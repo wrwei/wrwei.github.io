@@ -51,7 +51,5 @@ Safety-critical systems require justifications that they are acceptably safe to 
 To address the above challenge, my research is focused on adopting state of the art technologies to enable automated means for the activities in SCSE. I have had the honour to work with some great researchers and scientists to look at automated validation of safety cases, automated system safety analysis, automated verification of system behaviours, and trustworthiness of systems at runtime. My previous endeavours have been leveraging Model Based Systems Engineering (MBSE) technologies due to the degree of automation they provide. I am currently looking at using Digital Twin technologies for the runtime monitoring and assurance of systems (and systems of systems). I am also looking at the possibility of leveraging Large Language Models (LLMs) to automate the development and assurance of systems. All comments are welcome! Email me if you have any questions.
 
 <div class="rw-visitor-counter">
-  <div id="sfc68zelg4knydmyl235dyks8kemfj74mem"></div>
-  <script type="text/javascript" src="https://counter8.optistats.ovh/private/counter.js?c=68zelg4knydmyl235dyks8kemfj74mem&down=async" async></script>
-  <noscript><a href="https://www.freecounterstat.com" title="web counter"><img src="https://counter8.optistats.ovh/private/freecounterstat.php?c=68zelg4knydmyl235dyks8kemfj74mem" border="0" title="visitor counter" alt="visitor counter"></a></noscript>
+  <script type="text/javascript" src="https://counter.websiteout.com/js/3/9/3391/0"></script>
 </div>
