@@ -7,205 +7,180 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="reading-progress"></div>
+<div id="progress-bar"></div>
 <nav class="site-nav">
   <a class="nav-brand" href="index.html">Dev<span>Ops</span></a>
-  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a><a class="nav-dot" href="module-02.html" title="Module 2">2</a><a class="nav-dot" href="module-03.html" title="Module 3">3</a><a class="nav-dot" href="module-04.html" title="Module 4">4</a><a class="nav-dot" href="module-05.html" title="Module 5">5</a><a class="nav-dot active" href="module-06.html" title="Module 6">6</a><a class="nav-dot" href="module-07.html" title="Module 7">7</a><a class="nav-dot" href="module-08.html" title="Module 8">8</a><a class="nav-dot" href="module-09.html" title="Module 9">9</a><a class="nav-dot" href="module-10.html" title="Module 10">10</a></div>
+  <div class="nav-dropdown" id="navDropdown">
+  <button class="nav-dropdown-btn" onclick="document.getElementById('navDropdown').classList.toggle('open')">Module 06 of 10</button>
+  <div class="nav-dropdown-menu"><a href="module-01.html">Module 01 &mdash; Introduction to DevOps</a>
+<a href="module-02.html">Module 02 &mdash; Unix Tools & Scripting</a>
+<a href="module-03.html">Module 03 &mdash; Version Control & Git</a>
+<a href="module-04.html">Module 04 &mdash; Collaborating with Git</a>
+<a href="module-05.html">Module 05 &mdash; CI & Automated Testing</a>
+<a href="module-06.html" class="active">Module 06 &mdash; CI Pipelines in Practice</a>
+<a href="module-07.html">Module 07 &mdash; Automating Repetitive Tasks</a>
+<a href="module-08.html">Module 08 &mdash; Virtualisation and Containers</a>
+<a href="module-09.html">Module 09 &mdash; Containers in a DevOps Workflow</a>
+<a href="module-10.html">Module 10 &mdash; DevOps in Practice & Review</a>
+</div>
+</div>
 </nav>
-
-<div class="hero">
+<div id="layout">
+  <div id="sidebar"><div class="sidebar-label">Contents</div><nav><a href="#what-github-actions-is"><span class="snum">1</span>What GitHub Actions is</a>
+<a href="#anatomy-of-a-workflow-file"><span class="snum">2</span>Anatomy of a workflow file</a>
+<a href="#triggers-in-depth"><span class="snum">3</span>Triggers in depth</a>
+<a href="#jobs-and-runners"><span class="snum">4</span>Jobs and runners</a>
+<a href="#steps-run-vs-uses"><span class="snum">5</span>Steps: run vs uses</a>
+<a href="#secrets-and-environment-variables"><span class="snum">6</span>Secrets and environment variables</a>
+<a href="#caching-dependencies"><span class="snum">7</span>Caching dependencies</a>
+<a href="#debugging-a-failing-pipeline"><span class="snum">8</span>Debugging a failing pipeline</a>
+<a href="#worked-pipeline-walkthrough"><span class="snum">9</span>Worked pipeline walkthrough</a>
+<a href="#key-terms"><span class="snum">10</span>Key terms</a>
+<a href="#exercises"><span class="snum">11</span>Exercises</a>
+</nav></div>
+  <main id="content">
+    <div class="hero">
   <div class="hero-meta">
     <span class="tag tag-module">Module 06</span>
     <span class="tag tag-theme">CI/CD</span>
     <span class="tag tag-time">~1 hour</span>
   </div>
-<div class="page-body">
-
+    
   <h1>CI Pipelines in Practice with GitHub Actions</h1>
   <p class="hero-sub">Learn to read, write, and debug GitHub Actions workflows — the industry-standard CI system built into GitHub.</p>
   <div class="mlo-row"><span class="mlo-label">Covers:</span><span class="mlo-badge">MLO2</span><span class="mlo-badge">MLO4</span><span class="mlo-badge">MLO5</span></div>
-</div><h2 id="what-github-actions-is">What GitHub Actions is</h2><p>GitHub Actions is a CI/CD system that runs inside GitHub. When events happen in your repository — a push, a pull request, a scheduled timer — GitHub Actions triggers automated workflows defined in YAML files you commit alongside your code.</p><p>The key distinction from separate CI services like Jenkins or CircleCI is that GitHub Actions is <em>integrated</em>: the configuration lives in the repository, the workflows trigger on repository events, and the results appear directly on pull requests. No separate service to sign up for, no webhooks to configure.</p><p>GitHub provides <strong>hosted runners</strong> — virtual machines that execute your workflows. You get 2,000 free minutes per month on the free plan; most student projects use a small fraction of this.</p><h2 id="anatomy-of-a-workflow-file">Anatomy of a workflow file</h2><p>Workflow files live in <code>.github/workflows/</code> and must have a <code>.yml</code> or <code>.yaml</code> extension. Here is a complete, annotated example:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows/ci.yml — annotated</span></div><pre><code><span class="cmt"># Human-readable name shown in the Actions tab</span>
-<span class="cmd">name:</span>
-<span class="str"> CI</span>
-
+</div><section class="section" id="what-github-actions-is"><div class="section-header"><div class="section-num">58</div><h2>What GitHub Actions is</h2></div><p>GitHub Actions is a CI/CD system that runs inside GitHub. When events happen in your repository — a push, a pull request, a scheduled timer — GitHub Actions triggers automated workflows defined in YAML files you commit alongside your code.</p><p>The key distinction from separate CI services like Jenkins or CircleCI is that GitHub Actions is <em>integrated</em>: the configuration lives in the repository, the workflows trigger on repository events, and the results appear directly on pull requests. No separate service to sign up for, no webhooks to configure.</p><p>GitHub provides <strong>hosted runners</strong> — virtual machines that execute your workflows. You get 2,000 free minutes per month on the free plan; most student projects use a small fraction of this.</p><section class="section" id="anatomy-of-a-workflow-file"><div class="section-header"><div class="section-num">59</div><h2>Anatomy of a workflow file</h2></div><p>Workflow files live in <code>.github/workflows/</code> and must have a <code>.yml</code> or <code>.yaml</code> extension. Here is a complete, annotated example:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">.github/workflows/ci.yml — annotated</span></div><pre><code><span class="cmt"># Human-readable name shown in the Actions tab</span>
+<span class="cmd">name:</span><span class="str"> CI</span>
+<span class="out"></span>
 <span class="cmt"># When to run this workflow</span>
 <span class="cmd">on:</span>
 <span class="cmd">  push:</span>
 <span class="cmt">    # Only trigger on these branches</span>
-<span class="cmd">    branches:</span>
-<span class="str"> [main, develop]</span>
+<span class="cmd">    branches:</span><span class="str"> [main, develop]</span>
 <span class="cmd">  pull_request:</span>
 <span class="cmt">    # Trigger on PRs targeting main</span>
-<span class="cmd">    branches:</span>
-<span class="str"> [main]</span>
-
+<span class="cmd">    branches:</span><span class="str"> [main]</span>
+<span class="out"></span>
 <span class="cmt"># A workflow contains one or more jobs</span>
 <span class="cmd">jobs:</span>
 <span class="cmt">  # Job name — choose something descriptive</span>
 <span class="cmd">  test:</span>
 <span class="cmt">    # The OS and version for the runner VM</span>
-<span class="cmd">    runs-on:</span>
-<span class="str"> ubuntu-latest</span>
-
+<span class="cmd">    runs-on:</span><span class="str"> ubuntu-latest</span>
+<span class="out"></span>
 <span class="cmt">    # Each job has a sequence of steps</span>
 <span class="cmd">    steps:</span>
 <span class="cmt">      # Check out the repository code onto the runner</span>
-<span class="cmd">      - name:</span>
-<span class="str"> Checkout code</span>
-<span class="cmd">        uses:</span>
-<span class="str"> actions/checkout@v4</span>
-
+<span class="cmd">      - name:</span><span class="str"> Checkout code</span>
+<span class="cmd">        uses:</span><span class="str"> actions/checkout@v4</span>
+<span class="out"></span>
 <span class="cmt">      # Set up the Python version</span>
-<span class="cmd">      - name:</span>
-<span class="str"> Set up Python 3.11</span>
-<span class="cmd">        uses:</span>
-<span class="str"> actions/setup-python@v5</span>
+<span class="cmd">      - name:</span><span class="str"> Set up Python 3.11</span>
+<span class="cmd">        uses:</span><span class="str"> actions/setup-python@v5</span>
 <span class="cmd">        with:</span>
-<span class="cmd">          python-version:</span>
-<span class="str"> '3.11'</span>
-
+<span class="cmd">          python-version:</span><span class="str"> '3.11'</span>
+<span class="out"></span>
 <span class="cmt">      # Install dependencies</span>
-<span class="cmd">      - name:</span>
-<span class="str"> Install dependencies</span>
-<span class="cmd">        run:</span>
-<span class="str"> pip install -r requirements.txt</span>
-
+<span class="cmd">      - name:</span><span class="str"> Install dependencies</span>
+<span class="cmd">        run:</span><span class="str"> pip install -r requirements.txt</span>
+<span class="out"></span>
 <span class="cmt">      # Run the test suite</span>
-<span class="cmd">      - name:</span>
-<span class="str"> Run tests</span>
-<span class="cmd">        run:</span>
-<span class="str"> pytest -v</span>
-</code></pre></div><h2 id="triggers-in-depth">Triggers in depth</h2><p>The <code>on:</code> key controls when the workflow runs. Understanding triggers lets you build efficient pipelines that run only when needed.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows — trigger examples</span></div><pre><code><span class="cmt"># Push to any branch</span>
+<span class="cmd">      - name:</span><span class="str"> Run tests</span>
+<span class="cmd">        run:</span><span class="str"> pytest -v</span>
+</code></pre></div><section class="section" id="triggers-in-depth"><div class="section-header"><div class="section-num">60</div><h2>Triggers in depth</h2></div><p>The <code>on:</code> key controls when the workflow runs. Understanding triggers lets you build efficient pipelines that run only when needed.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">.github/workflows — trigger examples</span></div><pre><code><span class="cmt"># Push to any branch</span>
 <span class="cmd">on:</span>
 <span class="cmd"> push</span>
-
+<span class="out"></span>
 <span class="cmt"># Push or PR on specific branches</span>
 <span class="cmd">on:</span>
 <span class="cmd">  push:</span>
-<span class="cmd">    branches:</span>
-<span class="str"> [main, 'feature/**']</span>
+<span class="cmd">    branches:</span><span class="str"> [main, 'feature/**']</span>
 <span class="cmd">  pull_request:</span>
-<span class="cmd">    branches:</span>
-<span class="str"> [main]</span>
-
+<span class="cmd">    branches:</span><span class="str"> [main]</span>
+<span class="out"></span>
 <span class="cmt"># Scheduled (cron syntax)</span>
 <span class="cmd">on:</span>
 <span class="cmd">  schedule:</span>
 <span class="cmt">    # Run at 09:00 UTC every weekday</span>
-<span class="cmd">    - cron:</span>
-<span class="str"> '0 9 * * 1-5'</span>
-
+<span class="cmd">    - cron:</span><span class="str"> '0 9 * * 1-5'</span>
+<span class="out"></span>
 <span class="cmt"># Manual trigger (adds 'Run workflow' button)</span>
 <span class="cmd">on:</span>
 <span class="cmd"> workflow_dispatch</span>
-
+<span class="out"></span>
 <span class="cmt"># On new GitHub release</span>
 <span class="cmd">on:</span>
 <span class="cmd"> release:</span>
-<span class="cmd">    types:</span>
-<span class="str"> [published]</span>
-</code></pre></div><h2 id="jobs-and-runners">Jobs and runners</h2><p>A workflow can contain multiple jobs. By default, jobs run in <strong>parallel</strong>. You can declare dependencies to run them sequentially:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows — multiple jobs</span></div><pre><code><span class="cmd">jobs:</span>
+<span class="cmd">    types:</span><span class="str"> [published]</span>
+</code></pre></div><section class="section" id="jobs-and-runners"><div class="section-header"><div class="section-num">61</div><h2>Jobs and runners</h2></div><p>A workflow can contain multiple jobs. By default, jobs run in <strong>parallel</strong>. You can declare dependencies to run them sequentially:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">.github/workflows — multiple jobs</span></div><pre><code><span class="cmd">jobs:</span>
 <span class="cmd">  lint:</span>
-<span class="cmd">    runs-on:</span>
-<span class="str"> ubuntu-latest</span>
+<span class="cmd">    runs-on:</span><span class="str"> ubuntu-latest</span>
 <span class="cmd">    steps:</span>
-<span class="cmd">      - uses:</span>
-<span class="str"> actions/checkout@v4</span>
-<span class="cmd">      - run:</span>
-<span class="str"> pip install flake8 && flake8 .</span>
-
+<span class="cmd">      - uses:</span><span class="str"> actions/checkout@v4</span>
+<span class="cmd">      - run:</span><span class="str"> pip install flake8 && flake8 .</span>
+<span class="out"></span>
 <span class="cmd">  test:</span>
 <span class="cmt">    # This job waits for 'lint' to succeed before starting</span>
-<span class="cmd">    needs:</span>
-<span class="str"> lint</span>
-<span class="cmd">    runs-on:</span>
-<span class="str"> ubuntu-latest</span>
+<span class="cmd">    needs:</span><span class="str"> lint</span>
+<span class="cmd">    runs-on:</span><span class="str"> ubuntu-latest</span>
 <span class="cmd">    steps:</span>
-<span class="cmd">      - uses:</span>
-<span class="str"> actions/checkout@v4</span>
-<span class="cmd">      - uses:</span>
-<span class="str"> actions/setup-python@v5</span>
+<span class="cmd">      - uses:</span><span class="str"> actions/checkout@v4</span>
+<span class="cmd">      - uses:</span><span class="str"> actions/setup-python@v5</span>
 <span class="cmd">        with:</span>
-<span class="cmd">          python-version:</span>
-<span class="str"> '3.11'</span>
-<span class="cmd">      - run:</span>
-<span class="str"> pip install -r requirements.txt</span>
-<span class="cmd">      - run:</span>
-<span class="str"> pytest</span>
-</code></pre></div><p>GitHub provides runners for <code>ubuntu-latest</code>, <code>windows-latest</code>, and <code>macos-latest</code>. Ubuntu is most commonly used for server-side code.</p><h2 id="steps-run-vs-uses">Steps: run vs uses</h2><p>Every step does one of two things:</p><div class="def-list"><div class="def-row"><div class="def-term"><code>run:</code></div><div class="def-body">Executes a shell command directly on the runner. This is where your scripts and tool invocations go.</div></div><div class="def-row"><div class="def-term"><code>uses:</code></div><div class="def-body">Runs a pre-built Action from the GitHub Marketplace. Actions are reusable workflow components published as GitHub repositories.</div></div></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows — run and uses examples</span></div><pre><code><span class="cmt"># run: executes bash commands</span>
-<span class="cmd">- name:</span>
-<span class="str"> Build application</span>
-<span class="cmd">  run:</span>
-<span class="str"> |</span>
+<span class="cmd">          python-version:</span><span class="str"> '3.11'</span>
+<span class="cmd">      - run:</span><span class="str"> pip install -r requirements.txt</span>
+<span class="cmd">      - run:</span><span class="str"> pytest</span>
+</code></pre></div><p>GitHub provides runners for <code>ubuntu-latest</code>, <code>windows-latest</code>, and <code>macos-latest</code>. Ubuntu is most commonly used for server-side code.</p><section class="section" id="steps-run-vs-uses"><div class="section-header"><div class="section-num">62</div><h2>Steps: run vs uses</h2></div><p>Every step does one of two things:</p><div class="def-list"><div class="def-row"><div class="def-term"><code>run:</code></div><div class="def-body">Executes a shell command directly on the runner. This is where your scripts and tool invocations go.</div></div><div class="def-row"><div class="def-term"><code>uses:</code></div><div class="def-body">Runs a pre-built Action from the GitHub Marketplace. Actions are reusable workflow components published as GitHub repositories.</div></div></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">.github/workflows — run and uses examples</span></div><pre><code><span class="cmt"># run: executes bash commands</span>
+<span class="cmd">- name:</span><span class="str"> Build application</span>
+<span class="cmd">  run:</span><span class="str"> |</span>
 <span class="cmd">    echo 'Starting build'</span>
 <span class="cmd">    python3 -m build</span>
 <span class="cmd">    echo 'Build complete'</span>
-
+<span class="out"></span>
 <span class="cmt"># uses: runs a published Action</span>
-<span class="cmd">- name:</span>
-<span class="str"> Upload test report</span>
-<span class="cmd">  uses:</span>
-<span class="str"> actions/upload-artifact@v4</span>
+<span class="cmd">- name:</span><span class="str"> Upload test report</span>
+<span class="cmd">  uses:</span><span class="str"> actions/upload-artifact@v4</span>
 <span class="cmd">  with:</span>
-<span class="cmd">    name:</span>
-<span class="str"> test-results</span>
-<span class="cmd">    path:</span>
-<span class="str"> test-results.xml</span>
+<span class="cmd">    name:</span><span class="str"> test-results</span>
+<span class="cmd">    path:</span><span class="str"> test-results.xml</span>
 </code></pre></div><div class="callout callout-info"><div class="callout-title">ℹ Pinning action versions</div>
 <p>Always specify a version tag for actions: <code>actions/checkout@v4</code> not <code>actions/checkout</code>. Without a tag, the action uses the latest version, which may break when the action is updated. The <code>@v4</code> tag is stable — it only receives non-breaking updates.</p>
-</div><h2 id="secrets-and-environment-variables">Secrets and environment variables</h2><p>Your application often needs configuration — API keys, database URLs, feature flags. These should never be hard-coded in the workflow file (which is in version control). GitHub provides two mechanisms:</p><h3>Environment variables</h3><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows — environment variables</span></div><pre><code><span class="cmd">jobs:</span>
+</div><section class="section" id="secrets-and-environment-variables"><div class="section-header"><div class="section-num">63</div><h2>Secrets and environment variables</h2></div><p>Your application often needs configuration — API keys, database URLs, feature flags. These should never be hard-coded in the workflow file (which is in version control). GitHub provides two mechanisms:</p><h3>Environment variables</h3><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">.github/workflows — environment variables</span></div><pre><code><span class="cmd">jobs:</span>
 <span class="cmd">  test:</span>
 <span class="cmt">    # Job-level env vars</span>
 <span class="cmd">    env:</span>
-<span class="cmd">      APP_ENV:</span>
-<span class="str"> test</span>
-<span class="cmd">      LOG_LEVEL:</span>
-<span class="str"> debug</span>
+<span class="cmd">      APP_ENV:</span><span class="str"> test</span>
+<span class="cmd">      LOG_LEVEL:</span><span class="str"> debug</span>
 <span class="cmd">    steps:</span>
-<span class="cmd">      - name:</span>
-<span class="str"> Run tests</span>
+<span class="cmd">      - name:</span><span class="str"> Run tests</span>
 <span class="cmt">        # Step-level env var (overrides job-level)</span>
 <span class="cmd">        env:</span>
-<span class="cmd">          DATABASE_URL:</span>
-<span class="str"> sqlite:///:memory:</span>
-<span class="cmd">        run:</span>
-<span class="str"> pytest</span>
-</code></pre></div><h3>Secrets</h3><p>Secrets are encrypted values stored in GitHub (Settings → Secrets → Actions). They are never written to logs.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows — using secrets</span></div><pre><code><span class="cmd">      - name:</span>
-<span class="str"> Deploy</span>
+<span class="cmd">          DATABASE_URL:</span><span class="str"> sqlite:///:memory:</span>
+<span class="cmd">        run:</span><span class="str"> pytest</span>
+</code></pre></div><h3>Secrets</h3><p>Secrets are encrypted values stored in GitHub (Settings → Secrets → Actions). They are never written to logs.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">.github/workflows — using secrets</span></div><pre><code><span class="cmd">      - name:</span><span class="str"> Deploy</span>
 <span class="cmd">        env:</span>
 <span class="cmt">          # Secrets are referenced with ${{ secrets.NAME }}</span>
-<span class="cmd">          DEPLOY_API_KEY:</span>
-<span class="str"> ${{ secrets.DEPLOY_API_KEY }}</span>
-<span class="cmd">        run:</span>
-<span class="str"> ./deploy.sh</span>
-</code></pre></div><h2 id="caching-dependencies">Caching dependencies</h2><p>Installing Python packages on every pipeline run takes 20–60 seconds. Caching stores the installed packages and reuses them if <code>requirements.txt</code> has not changed.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows — caching pip</span></div><pre><code><span class="cmd">      - name:</span>
-<span class="str"> Cache pip packages</span>
-<span class="cmd">        uses:</span>
-<span class="str"> actions/cache@v4</span>
+<span class="cmd">          DEPLOY_API_KEY:</span><span class="str"> ${{ secrets.DEPLOY_API_KEY }}</span>
+<span class="cmd">        run:</span><span class="str"> ./deploy.sh</span>
+</code></pre></div><section class="section" id="caching-dependencies"><div class="section-header"><div class="section-num">64</div><h2>Caching dependencies</h2></div><p>Installing Python packages on every pipeline run takes 20–60 seconds. Caching stores the installed packages and reuses them if <code>requirements.txt</code> has not changed.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">.github/workflows — caching pip</span></div><pre><code><span class="cmd">      - name:</span><span class="str"> Cache pip packages</span>
+<span class="cmd">        uses:</span><span class="str"> actions/cache@v4</span>
 <span class="cmd">        with:</span>
 <span class="cmt">          # Cache key: unique per OS and requirements file hash</span>
-<span class="cmd">          key:</span>
-<span class="str"> ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}</span>
-<span class="cmd">          path:</span>
-<span class="str"> ~/.cache/pip</span>
-
-<span class="cmd">      - name:</span>
-<span class="str"> Install dependencies</span>
-<span class="cmd">        run:</span>
-<span class="str"> pip install -r requirements.txt</span>
-</code></pre></div><p>If requirements.txt has not changed, the cache hit saves the install step entirely. If it has changed, the new packages are installed and the cache is updated.</p><h2 id="debugging-a-failing-pipeline">Debugging a failing pipeline</h2><p>Failing pipelines are normal. The process for fixing them is systematic:</p><ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Click the failed run</strong> in the Actions tab. Look for the red ✗ icon.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Identify the failing step</strong>. Each step has its own expandable log.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Read from the first error</strong>. Error messages propagate — the first error is the root cause.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Look for file and line numbers</strong>. Python errors always include these.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Reproduce locally</strong>. Run the exact command from the failing step.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Fix and push</strong>. The pipeline re-runs automatically.</div></li></ol><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows — adding debug output</span></div><pre><code><span class="cmt"># Print debug information when a step fails</span>
-<span class="cmd">      - name:</span>
-<span class="str"> Debug environment</span>
+<span class="cmd">          key:</span><span class="str"> ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}</span>
+<span class="cmd">          path:</span><span class="str"> ~/.cache/pip</span>
+<span class="out"></span>
+<span class="cmd">      - name:</span><span class="str"> Install dependencies</span>
+<span class="cmd">        run:</span><span class="str"> pip install -r requirements.txt</span>
+</code></pre></div><p>If requirements.txt has not changed, the cache hit saves the install step entirely. If it has changed, the new packages are installed and the cache is updated.</p><section class="section" id="debugging-a-failing-pipeline"><div class="section-header"><div class="section-num">65</div><h2>Debugging a failing pipeline</h2></div><p>Failing pipelines are normal. The process for fixing them is systematic:</p><ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Click the failed run</strong> in the Actions tab. Look for the red ✗ icon.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Identify the failing step</strong>. Each step has its own expandable log.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Read from the first error</strong>. Error messages propagate — the first error is the root cause.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Look for file and line numbers</strong>. Python errors always include these.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Reproduce locally</strong>. Run the exact command from the failing step.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Fix and push</strong>. The pipeline re-runs automatically.</div></li></ol><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">.github/workflows — adding debug output</span></div><pre><code><span class="cmt"># Print debug information when a step fails</span>
+<span class="cmd">      - name:</span><span class="str"> Debug environment</span>
 <span class="cmt">        # if: failure() means this only runs if a previous step failed</span>
-<span class="cmd">        if:</span>
-<span class="str"> failure()</span>
-<span class="cmd">        run:</span>
-<span class="str"> |</span>
+<span class="cmd">        if:</span><span class="str"> failure()</span>
+<span class="cmd">        run:</span><span class="str"> |</span>
 <span class="cmd">          python3 --version</span>
 <span class="cmd">          pip list</span>
 <span class="cmd">          echo "PATH: $PATH"</span>
 <span class="cmd">          ls -la</span>
-</code></pre></div><h2 id="worked-pipeline-walkthrough">Worked pipeline walkthrough</h2><p>Let us trace the complete execution of the annotated workflow above:</p><ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Trigger</strong>: A developer pushes to the <code>main</code> branch. GitHub detects the push and starts the workflow.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Runner allocation</strong>: GitHub provisions a fresh Ubuntu VM. Every run starts with a clean environment.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Checkout</strong>: <code>actions/checkout@v4</code> clones the repository onto the runner at the pushed commit.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Python setup</strong>: <code>actions/setup-python@v5</code> installs Python 3.11 and adds it to PATH.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Install</strong>: <code>pip install -r requirements.txt</code> installs all declared dependencies.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Tests</strong>: <code>pytest -v</code> runs all tests. Each test is reported. If any fail, the step exits with code 1.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Result</strong>: If all steps exited with code 0, the workflow shows green. GitHub marks the commit with a tick. If any step failed, the workflow shows red and the commit gets a cross. Any open PR targeting this branch cannot be merged until the checks pass.</div></li></ol><h2 id="key-terms">Key terms</h2><div class="term-grid"><div class="term-card"><div class="term-word">GitHub Actions</div><div class="term-def">CI/CD system built into GitHub. Configured with YAML workflow files.</div></div><div class="term-card"><div class="term-word">.github/workflows/</div><div class="term-def">The directory where GitHub looks for workflow files.</div></div><div class="term-card"><div class="term-word">workflow</div><div class="term-def">A YAML file defining when and how automation runs.</div></div><div class="term-card"><div class="term-word">trigger (on:)</div><div class="term-def">The event that causes a workflow to run.</div></div><div class="term-card"><div class="term-word">job</div><div class="term-def">A set of steps that runs on a single runner machine.</div></div><div class="term-card"><div class="term-word">step</div><div class="term-def">A single task within a job — either a run: command or a uses: action.</div></div><div class="term-card"><div class="term-word">runner</div><div class="term-def">The virtual machine that executes a job. GitHub provides hosted runners.</div></div><div class="term-card"><div class="term-word">action</div><div class="term-def">A reusable workflow component published on GitHub Marketplace.</div></div><div class="term-card"><div class="term-word">secrets</div><div class="term-def">Encrypted values stored in GitHub, referenced in workflows as ${{ secrets.NAME }}.</div></div><div class="term-card"><div class="term-word">cache</div><div class="term-def">Storing build outputs (like installed packages) to speed up future runs.</div></div><div class="term-card"><div class="term-word">needs:</div><div class="term-def">Declares that a job depends on another job completing successfully first.</div></div></div><h2 id="exercises">Exercises</h2><div class="callout callout-exercise"><div class="callout-title">✎ Lab exercises — approximately 55 minutes</div>
+</code></pre></div><section class="section" id="worked-pipeline-walkthrough"><div class="section-header"><div class="section-num">66</div><h2>Worked pipeline walkthrough</h2></div><p>Let us trace the complete execution of the annotated workflow above:</p><ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Trigger</strong>: A developer pushes to the <code>main</code> branch. GitHub detects the push and starts the workflow.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Runner allocation</strong>: GitHub provisions a fresh Ubuntu VM. Every run starts with a clean environment.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Checkout</strong>: <code>actions/checkout@v4</code> clones the repository onto the runner at the pushed commit.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Python setup</strong>: <code>actions/setup-python@v5</code> installs Python 3.11 and adds it to PATH.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Install</strong>: <code>pip install -r requirements.txt</code> installs all declared dependencies.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Tests</strong>: <code>pytest -v</code> runs all tests. Each test is reported. If any fail, the step exits with code 1.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Result</strong>: If all steps exited with code 0, the workflow shows green. GitHub marks the commit with a tick. If any step failed, the workflow shows red and the commit gets a cross. Any open PR targeting this branch cannot be merged until the checks pass.</div></li></ol><section class="section" id="key-terms"><div class="section-header"><div class="section-num">67</div><h2>Key terms</h2></div><div class="term-grid"><div class="term-card"><div class="term-word">GitHub Actions</div><div class="term-def">CI/CD system built into GitHub. Configured with YAML workflow files.</div></div><div class="term-card"><div class="term-word">.github/workflows/</div><div class="term-def">The directory where GitHub looks for workflow files.</div></div><div class="term-card"><div class="term-word">workflow</div><div class="term-def">A YAML file defining when and how automation runs.</div></div><div class="term-card"><div class="term-word">trigger (on:)</div><div class="term-def">The event that causes a workflow to run.</div></div><div class="term-card"><div class="term-word">job</div><div class="term-def">A set of steps that runs on a single runner machine.</div></div><div class="term-card"><div class="term-word">step</div><div class="term-def">A single task within a job — either a run: command or a uses: action.</div></div><div class="term-card"><div class="term-word">runner</div><div class="term-def">The virtual machine that executes a job. GitHub provides hosted runners.</div></div><div class="term-card"><div class="term-word">action</div><div class="term-def">A reusable workflow component published on GitHub Marketplace.</div></div><div class="term-card"><div class="term-word">secrets</div><div class="term-def">Encrypted values stored in GitHub, referenced in workflows as ${{ secrets.NAME }}.</div></div><div class="term-card"><div class="term-word">cache</div><div class="term-def">Storing build outputs (like installed packages) to speed up future runs.</div></div><div class="term-card"><div class="term-word">needs:</div><div class="term-def">Declares that a job depends on another job completing successfully first.</div></div></div><section class="section" id="exercises"><div class="section-header"><div class="section-num">68</div><h2>Exercises</h2></div><div class="callout callout-exercise"><div class="callout-title">✎ Lab exercises — approximately 55 minutes</div>
 <h3>Part A: First pipeline</h3>
 <ol><li>Fork the provided Python starter repository.</li><li>Create the directory .github/workflows/ and add a file called ci.yml.</li><li>Write a workflow that: triggers on push and pull_request, uses ubuntu-latest, sets up Python 3.11, installs requirements.txt, runs pytest.</li><li>Push the file and check the Actions tab. Did it pass?</li><li>Deliberately break a test. Push and observe the failure in the pipeline.</li><li>Fix the test and push again.</li></ol>
 <h3>Part B: Adding a lint step</h3>
@@ -216,32 +191,32 @@
 <ol><li>Add the pip caching step to your workflow (before the install step).</li><li>Push twice. Check the second run's log — does the cache step show a hit?</li><li>Measure the time difference between a run with and without caching.</li></ol>
 <h3>Extension: Status badge</h3>
 <p>Add a GitHub Actions status badge to your README.md. The badge URL is: <code>https://github.com/YOUR-USERNAME/YOUR-REPO/actions/workflows/ci.yml/badge.svg</code>.</p>
-</div>
-<div class="pagination"><a class="page-btn prev" href="module-05.html"><span class="page-dir">← Previous</span><span class="page-title">CI & Automated Testing</span></a><a class="page-btn next" href="module-07.html"><span class="page-dir">Next →</span><span class="page-title">Automating Repetitive Tasks</span></a></div>
+</div></section></section></section></section></section></section></section></section></section></section></section>
+    <div class="pagination"><a class="page-btn prev" href="module-05.html"><span class="page-dir">← Previous</span><span class="page-title">CI & Automated Testing</span></a><a class="page-btn next" href="module-07.html"><span class="page-dir">Next →</span><span class="page-title">Automating Repetitive Tasks</span></a></div>
+  </main>
 </div>
 <footer>
-  <p>DevOps · Lancaster University</p>
+  <p>Lancaster University · DevOps</p>
   <p style="margin-top:6px">Questions? Post on the module Moodle forum or discuss with your lab demonstrator.</p>
 </footer>
 
 <script>
-// Reading progress bar
-const bar = document.querySelector('.reading-progress');
+// Progress bar
+const bar = document.getElementById('progress-bar');
 window.addEventListener('scroll', () => {
   const total = document.documentElement.scrollHeight - window.innerHeight;
   bar.style.width = (window.scrollY / total * 100) + '%';
 });
-
-// TOC active link
-const sections = document.querySelectorAll('h2[id]');
-const links = document.querySelectorAll('.toc-list a');
+// Sidebar active link on scroll
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('#sidebar nav a');
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => {
-    if(e.isIntersecting){
-      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id));
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
     }
   });
-}, {rootMargin:'-15% 0px -75% 0px'});
+}, { rootMargin: '-15% 0px -75% 0px' });
 sections.forEach(s => obs.observe(s));
 </script>
 

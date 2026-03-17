@@ -7,162 +7,151 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="reading-progress"></div>
+<div id="progress-bar"></div>
 <nav class="site-nav">
   <a class="nav-brand" href="index.html">Dev<span>Ops</span></a>
-  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a><a class="nav-dot" href="module-02.html" title="Module 2">2</a><a class="nav-dot active" href="module-03.html" title="Module 3">3</a><a class="nav-dot" href="module-04.html" title="Module 4">4</a><a class="nav-dot" href="module-05.html" title="Module 5">5</a><a class="nav-dot" href="module-06.html" title="Module 6">6</a><a class="nav-dot" href="module-07.html" title="Module 7">7</a><a class="nav-dot" href="module-08.html" title="Module 8">8</a><a class="nav-dot" href="module-09.html" title="Module 9">9</a><a class="nav-dot" href="module-10.html" title="Module 10">10</a></div>
+  <div class="nav-dropdown" id="navDropdown">
+  <button class="nav-dropdown-btn" onclick="document.getElementById('navDropdown').classList.toggle('open')">Module 03 of 10</button>
+  <div class="nav-dropdown-menu"><a href="module-01.html">Module 01 &mdash; Introduction to DevOps</a>
+<a href="module-02.html">Module 02 &mdash; Unix Tools & Scripting</a>
+<a href="module-03.html" class="active">Module 03 &mdash; Version Control & Git</a>
+<a href="module-04.html">Module 04 &mdash; Collaborating with Git</a>
+<a href="module-05.html">Module 05 &mdash; CI & Automated Testing</a>
+<a href="module-06.html">Module 06 &mdash; CI Pipelines in Practice</a>
+<a href="module-07.html">Module 07 &mdash; Automating Repetitive Tasks</a>
+<a href="module-08.html">Module 08 &mdash; Virtualisation and Containers</a>
+<a href="module-09.html">Module 09 &mdash; Containers in a DevOps Workflow</a>
+<a href="module-10.html">Module 10 &mdash; DevOps in Practice & Review</a>
+</div>
+</div>
 </nav>
-
-<div class="hero">
+<div id="layout">
+  <div id="sidebar"><div class="sidebar-label">Contents</div><nav><a href="#the-cost-of-not-tracking-changes"><span class="snum">1</span>The cost of not tracking changes</a>
+<a href="#how-git-stores-history"><span class="snum">2</span>How Git stores history</a>
+<a href="#the-three-areas"><span class="snum">3</span>The three areas</a>
+<a href="#setting-up-git"><span class="snum">4</span>Setting up Git</a>
+<a href="#core-workflow-commands"><span class="snum">5</span>Core workflow commands</a>
+<a href="#git-diff-in-depth"><span class="snum">6</span>git diff in depth</a>
+<a href="#the-gitignore-file"><span class="snum">7</span>The .gitignore file</a>
+<a href="#undoing-things"><span class="snum">8</span>Undoing things</a>
+<a href="#writing-good-commit-messages"><span class="snum">9</span>Writing good commit messages</a>
+<a href="#key-terms"><span class="snum">10</span>Key terms</a>
+<a href="#exercises"><span class="snum">11</span>Exercises</a>
+</nav></div>
+  <main id="content">
+    <div class="hero">
   <div class="hero-meta">
     <span class="tag tag-module">Module 03</span>
     <span class="tag tag-theme">Version Control</span>
     <span class="tag tag-time">~1 hour</span>
   </div>
-<div class="page-body">
-
+    
   <h1>Version Control and Git Basics</h1>
   <p class="hero-sub">Understand why version control exists, how Git models history, and master the core commands you will use every single working day.</p>
   <div class="mlo-row"><span class="mlo-label">Covers:</span><span class="mlo-badge">MLO4</span></div>
-</div><h2 id="the-cost-of-not-tracking-changes">The cost of not tracking changes</h2><p>Before version control, developers backed up work by copying folders. The result was chaos:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — the classic folder mess</span></div><pre><code><span class="out">project/</span>
+</div><section class="section" id="the-cost-of-not-tracking-changes"><div class="section-header"><div class="section-num">26</div><h2>The cost of not tracking changes</h2></div><p>Before version control, developers backed up work by copying folders. The result was chaos:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">plain — the classic folder mess</span></div><pre><code><span class="out">project/</span>
 <span class="out">├── app_v1.py</span>
 <span class="out">├── app_FINAL.py</span>
 <span class="out">├── app_FINAL_real.py</span>
 <span class="out">├── app_FINAL_v2_FIXED.py</span>
 <span class="out">└── app_backup_2024-01-09.py</span>
-</code></pre></div><p>This system has fatal flaws: there is no record of what changed between versions, no explanation of why, no way to work on two things simultaneously without overwriting each other, and no safe way to experiment without risking the working copy.</p><p>Git solves all of this. But understanding Git properly requires understanding the model it uses to store history.</p><h2 id="how-git-stores-history">How Git stores history</h2><p>Git's mental model is <strong>snapshots</strong>, not differences. When you commit, Git takes a complete picture of every tracked file at that moment in time. It stores this efficiently — unchanged files are referenced rather than duplicated — but the conceptual model is complete snapshots.</p><p>Each snapshot is called a <strong>commit</strong>. Every commit contains:</p><ul><li>The complete state of all tracked files</li><li>A reference to the previous commit (the parent)</li><li>The author's name and email</li><li>The timestamp</li><li>A message you wrote describing the change</li><li>A unique identifier (a long hex string called a hash)</li></ul><p>The sequence of commits forms a <strong>history</strong> — a chain going back to the very first commit. You can view any snapshot, compare any two, or return to any previous state. Nothing is ever lost.</p><div class="callout callout-insight"><div class="callout-title">★ Git is a content-addressable filesystem</div>
+</code></pre></div><p>This system has fatal flaws: there is no record of what changed between versions, no explanation of why, no way to work on two things simultaneously without overwriting each other, and no safe way to experiment without risking the working copy.</p><p>Git solves all of this. But understanding Git properly requires understanding the model it uses to store history.</p><section class="section" id="how-git-stores-history"><div class="section-header"><div class="section-num">27</div><h2>How Git stores history</h2></div><p>Git's mental model is <strong>snapshots</strong>, not differences. When you commit, Git takes a complete picture of every tracked file at that moment in time. It stores this efficiently — unchanged files are referenced rather than duplicated — but the conceptual model is complete snapshots.</p><p>Each snapshot is called a <strong>commit</strong>. Every commit contains:</p><ul><li>The complete state of all tracked files</li><li>A reference to the previous commit (the parent)</li><li>The author's name and email</li><li>The timestamp</li><li>A message you wrote describing the change</li><li>A unique identifier (a long hex string called a hash)</li></ul><p>The sequence of commits forms a <strong>history</strong> — a chain going back to the very first commit. You can view any snapshot, compare any two, or return to any previous state. Nothing is ever lost.</p><div class="callout callout-insight"><div class="callout-title">★ Git is a content-addressable filesystem</div>
 <p>Every commit is identified by a hash of its content. If two commits have the same hash, they have exactly the same content. This means Git's history is tamper-evident — you cannot quietly edit an old commit without changing its hash and breaking the chain. This is why Git is trusted for auditing and compliance.</p>
-</div><h2 id="the-three-areas">The three areas</h2><p>Understanding Git requires understanding three places where your code can live:</p><table class="compare-table"><thead><tr><th>Area</th><th>Description</th><th>Moved by</th></tr></thead><tbody><tr><td><strong>Working directory</strong></td><td>The actual files on your disk that you edit</td><td>You, editing files</td></tr><tr><td><strong>Staging area</strong> (index)</td><td>A holding area for changes you intend to commit</td><td><code>git add</code></td></tr><tr><td><strong>Repository</strong> (.git)</td><td>The permanent history of committed snapshots</td><td><code>git commit</code></td></tr></tbody></table><p>The staging area is the key to understanding Git. It lets you be selective: if you changed three files but only two of the changes are ready, you can stage just those two and commit them. The third change stays in your working directory until you are ready.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — visualising the three areas</span></div><pre><code><span class="cmt"># Changes exist only in working directory</span>
+</div><section class="section" id="the-three-areas"><div class="section-header"><div class="section-num">28</div><h2>The three areas</h2></div><p>Understanding Git requires understanding three places where your code can live:</p><table class="compare-table"><thead><tr><th>Area</th><th>Description</th><th>Moved by</th></tr></thead><tbody><tr><td><strong>Working directory</strong></td><td>The actual files on your disk that you edit</td><td>You, editing files</td></tr><tr><td><strong>Staging area</strong> (index)</td><td>A holding area for changes you intend to commit</td><td><code>git add</code></td></tr><tr><td><strong>Repository</strong> (.git)</td><td>The permanent history of committed snapshots</td><td><code>git commit</code></td></tr></tbody></table><p>The staging area is the key to understanding Git. It lets you be selective: if you changed three files but only two of the changes are ready, you can stage just those two and commit them. The third change stays in your working directory until you are ready.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash — visualising the three areas</span></div><pre><code><span class="cmt"># Changes exist only in working directory</span>
 <span class="out">[working dir]  app.py (modified)</span>
 <span class="out">[staging]      (empty)</span>
 <span class="out">[repository]   last commit: ...</span>
-
+<span class="out"></span>
 <span class="cmt"># After: git add app.py</span>
 <span class="out">[working dir]  app.py (staged)</span>
 <span class="out">[staging]      app.py</span>
 <span class="out">[repository]   last commit: ...</span>
-
+<span class="out"></span>
 <span class="cmt"># After: git commit -m 'Fix login bug'</span>
 <span class="out">[working dir]  app.py (clean)</span>
 <span class="out">[staging]      (empty)</span>
 <span class="out">[repository]   new commit: Fix login bug</span>
-</code></pre></div><h2 id="setting-up-git">Setting up Git</h2><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — first-time configuration</span></div><pre><code><span class="cmt"># Required: your identity appears in every commit</span>
-<span class="cmd">git config</span>
-<span class="flag"> --global</span>
-<span class="arg"> user.name</span>
-<span class="str"> "Your Name"</span>
-<span class="cmd">git config</span>
-<span class="flag"> --global</span>
-<span class="arg"> user.email</span>
-<span class="str"> "you@lancaster.ac.uk"</span>
-
+</code></pre></div><section class="section" id="setting-up-git"><div class="section-header"><div class="section-num">29</div><h2>Setting up Git</h2></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash — first-time configuration</span></div><pre><code><span class="cmt"># Required: your identity appears in every commit</span>
+<span class="cmd">git config</span><span class="flag"> --global</span><span class="arg"> user.name</span><span class="str"> "Your Name"</span>
+<span class="cmd">git config</span><span class="flag"> --global</span><span class="arg"> user.email</span><span class="str"> "you@lancaster.ac.uk"</span>
+<span class="cmt"></span>
 <span class="cmt"># Set your preferred editor for commit messages</span>
-<span class="cmd">git config</span>
-<span class="flag"> --global</span>
-<span class="arg"> core.editor</span>
-<span class="str"> nano</span>
-
+<span class="cmd">git config</span><span class="flag"> --global</span><span class="arg"> core.editor</span><span class="str"> nano</span>
+<span class="cmt"></span>
 <span class="cmt"># Set default branch name to 'main' (modern convention)</span>
-<span class="cmd">git config</span>
-<span class="flag"> --global</span>
-<span class="arg"> init.defaultBranch</span>
-<span class="str"> main</span>
-
+<span class="cmd">git config</span><span class="flag"> --global</span><span class="arg"> init.defaultBranch</span><span class="str"> main</span>
+<span class="cmt"></span>
 <span class="cmt"># Verify your settings</span>
-<span class="cmd">git config</span>
-<span class="flag"> --list</span>
-</code></pre></div><h2 id="core-workflow-commands">Core workflow commands</h2><ol class="steps"><li><div class="step-num"></div><div class="step-body"><h3>git init</h3><p>Create a new repository in the current directory.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash</span></div><pre><code><span class="cmd">mkdir </span>
-<span class="arg">my-project</span>
-<span class="cmd"> && cd </span>
-<span class="arg">my-project</span>
+<span class="cmd">git config</span><span class="flag"> --list</span>
+</code></pre></div><section class="section" id="core-workflow-commands"><div class="section-header"><div class="section-num">30</div><h2>Core workflow commands</h2></div><ol class="steps"><li><div class="step-num"></div><div class="step-body"><h3>git init</h3><p>Create a new repository in the current directory.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash</span></div><pre><code><span class="cmd">mkdir </span><span class="arg">my-project</span>
+<span class="cmd"> && cd </span><span class="arg">my-project</span>
 <span class="cmd">git init</span>
 <span class="out">Initialized empty Git repository in .git/</span>
-</code></pre></div><p>This creates a hidden <code>.git</code> directory. Your project is now a repository.</p></div></li><li><div class="step-num"></div><div class="step-body"><h3>git status</h3><p>Your most-used command. Shows what has changed, what is staged, and what is untracked.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash</span></div><pre><code><span class="cmd">git status</span>
+</code></pre></div><p>This creates a hidden <code>.git</code> directory. Your project is now a repository.</p></div></li><li><div class="step-num"></div><div class="step-body"><h3>git status</h3><p>Your most-used command. Shows what has changed, what is staged, and what is untracked.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash</span></div><pre><code><span class="cmd">git status</span>
 <span class="out">On branch main</span>
 <span class="out">Changes not staged for commit:</span>
 <span class="out">  modified:   app.py</span>
-
+<span class="out"></span>
 <span class="out">Untracked files:</span>
 <span class="out">  tests/</span>
-
+<span class="out"></span>
 <span class="out">no changes added to commit</span>
-</code></pre></div></div></li><li><div class="step-num"></div><div class="step-body"><h3>git add</h3><p>Stage changes for the next commit.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash</span></div><pre><code><span class="cmt"># Stage a specific file</span>
-<span class="cmd">git add </span>
-<span class="arg">app.py</span>
-
+</code></pre></div></div></li><li><div class="step-num"></div><div class="step-body"><h3>git add</h3><p>Stage changes for the next commit.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash</span></div><pre><code><span class="cmt"># Stage a specific file</span>
+<span class="cmd">git add </span><span class="arg">app.py</span>
+<span class="cmt"></span>
 <span class="cmt"># Stage all changes in current directory</span>
-<span class="cmd">git add </span>
-<span class="flag">.</span>
-
+<span class="cmd">git add </span><span class="flag">.</span>
+<span class="cmt"></span>
 <span class="cmt"># Stage parts of a file interactively</span>
-<span class="cmd">git add </span>
-<span class="flag">-p</span>
-<span class="arg"> app.py</span>
+<span class="cmd">git add </span><span class="flag">-p</span><span class="arg"> app.py</span>
 <span class="cmt">  # choose individual hunks</span>
-</code></pre></div></div></li><li><div class="step-num"></div><div class="step-body"><h3>git commit</h3><p>Take a snapshot of the staged changes.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash</span></div><pre><code><span class="cmt"># Commit with inline message</span>
-<span class="cmd">git commit </span>
-<span class="flag">-m </span>
-<span class="str">"Add user validation"</span>
+</code></pre></div></div></li><li><div class="step-num"></div><div class="step-body"><h3>git commit</h3><p>Take a snapshot of the staged changes.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash</span></div><pre><code><span class="cmt"># Commit with inline message</span>
+<span class="cmd">git commit </span><span class="flag">-m </span><span class="str">"Add user validation"</span>
 <span class="out">[main a1b2c3d] Add user validation</span>
 <span class="out"> 2 files changed, 34 insertions(+), 5 deletions(-)</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Open editor for a longer message</span>
 <span class="cmd">git commit</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Stage all tracked files and commit in one step</span>
-<span class="cmd">git commit </span>
-<span class="flag">-am </span>
-<span class="str">"Quick fix"</span>
-</code></pre></div></div></li><li><div class="step-num"></div><div class="step-body"><h3>git log</h3><p>View the history of commits.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash</span></div><pre><code><span class="cmt"># Default: full log</span>
+<span class="cmd">git commit </span><span class="flag">-am </span><span class="str">"Quick fix"</span>
+</code></pre></div></div></li><li><div class="step-num"></div><div class="step-body"><h3>git log</h3><p>View the history of commits.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash</span></div><pre><code><span class="cmt"># Default: full log</span>
 <span class="cmd">git log</span>
-
+<span class="cmt"></span>
 <span class="cmt"># One line per commit</span>
-<span class="cmd">git log </span>
-<span class="flag">--oneline</span>
+<span class="cmd">git log </span><span class="flag">--oneline</span>
 <span class="out">a1b2c3d Add user validation</span>
 <span class="out">9f3e2a1 Initial commit</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Show last N commits</span>
-<span class="cmd">git log </span>
-<span class="flag">--oneline -5</span>
-
+<span class="cmd">git log </span><span class="flag">--oneline -5</span>
+<span class="cmt"></span>
 <span class="cmt"># Show commits by a specific author</span>
-<span class="cmd">git log </span>
-<span class="flag">--author=</span>
-<span class="str">"Alice"</span>
-
+<span class="cmd">git log </span><span class="flag">--author=</span><span class="str">"Alice"</span>
+<span class="cmt"></span>
 <span class="cmt"># Show commits affecting a specific file</span>
-<span class="cmd">git log </span>
-<span class="flag">--oneline --</span>
-<span class="arg"> auth.py</span>
-
+<span class="cmd">git log </span><span class="flag">--oneline --</span><span class="arg"> auth.py</span>
+<span class="cmt"></span>
 <span class="cmt"># Graphical representation (useful with branches)</span>
-<span class="cmd">git log </span>
-<span class="flag">--oneline --graph --all</span>
-</code></pre></div></div></li></ol><h2 id="git-diff-in-depth">git diff in depth</h2><p><code>git diff</code> compares versions of your files. Which versions it compares depends on what arguments you give it:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — git diff variations</span></div><pre><code><span class="cmt"># Unstaged changes: working dir vs staging area</span>
+<span class="cmd">git log </span><span class="flag">--oneline --graph --all</span>
+</code></pre></div></div></li></ol><section class="section" id="git-diff-in-depth"><div class="section-header"><div class="section-num">31</div><h2>git diff in depth</h2></div><p><code>git diff</code> compares versions of your files. Which versions it compares depends on what arguments you give it:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash — git diff variations</span></div><pre><code><span class="cmt"># Unstaged changes: working dir vs staging area</span>
 <span class="cmd">git diff</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Staged changes: staging area vs last commit</span>
-<span class="cmd">git diff</span>
-<span class="flag"> --staged</span>
-
+<span class="cmd">git diff</span><span class="flag"> --staged</span>
+<span class="cmt"></span>
 <span class="cmt"># All changes: working dir vs last commit</span>
-<span class="cmd">git diff</span>
-<span class="arg"> HEAD</span>
-
+<span class="cmd">git diff</span><span class="arg"> HEAD</span>
+<span class="cmt"></span>
 <span class="cmt"># Compare two commits</span>
-<span class="cmd">git diff</span>
-<span class="arg"> a1b2c3d</span>
-<span class="arg"> f4e5d6c</span>
-
+<span class="cmd">git diff</span><span class="arg"> a1b2c3d</span><span class="arg"> f4e5d6c</span>
+<span class="cmt"></span>
 <span class="cmt"># Show only the names of changed files</span>
-<span class="cmd">git diff</span>
-<span class="flag"> --name-only</span>
-
+<span class="cmd">git diff</span><span class="flag"> --name-only</span>
+<span class="cmt"></span>
 <span class="cmt"># Show statistics (lines added/removed per file)</span>
-<span class="cmd">git diff</span>
-<span class="flag"> --stat</span>
-</code></pre></div><p>Reading a diff:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — reading a diff</span></div><pre><code><span class="out">diff --git a/app.py b/app.py</span>
+<span class="cmd">git diff</span><span class="flag"> --stat</span>
+</code></pre></div><p>Reading a diff:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">plain — reading a diff</span></div><pre><code><span class="out">diff --git a/app.py b/app.py</span>
 <span class="out">--- a/app.py          # old version</span>
 <span class="out">+++ b/app.py          # new version</span>
 <span class="out">@@ -12,7 +12,8 @@    # location in file</span>
@@ -170,42 +159,42 @@
 <span class="out">-    return True      # removed line (red)</span>
 <span class="out">+    if not user or not pw:  # added line (green)</span>
 <span class="out">+        return False</span>
-</code></pre></div><h2 id="the-gitignore-file">The .gitignore file</h2><p>Some files should never be committed: compiled outputs, local configuration, secrets, and large data files. A <code>.gitignore</code> file tells Git to ignore them.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — .gitignore</span></div><pre><code><span class="cmt"># Python</span>
+</code></pre></div><section class="section" id="the-gitignore-file"><div class="section-header"><div class="section-num">32</div><h2>The .gitignore file</h2></div><p>Some files should never be committed: compiled outputs, local configuration, secrets, and large data files. A <code>.gitignore</code> file tells Git to ignore them.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">plain — .gitignore</span></div><pre><code><span class="cmt"># Python</span>
 <span class="out">__pycache__/</span>
 <span class="out">*.pyc</span>
 <span class="out">*.pyo</span>
 <span class="out">.pytest_cache/</span>
 <span class="out">htmlcov/</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Secrets — NEVER commit these</span>
 <span class="out">.env</span>
 <span class="out">*.key</span>
 <span class="out">secrets.yml</span>
-
+<span class="cmt"></span>
 <span class="cmt"># IDE files</span>
 <span class="out">.vscode/</span>
 <span class="out">.idea/</span>
-
+<span class="cmt"></span>
 <span class="cmt"># OS files</span>
 <span class="out">.DS_Store</span>
 <span class="out">Thumbs.db</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Dependency directories</span>
 <span class="out">node_modules/</span>
 <span class="out">venv/</span>
 </code></pre></div><div class="callout callout-danger"><div class="callout-title">✕ Never commit secrets</div>
 <p>If you accidentally commit a password, API key, or private key, it is in the repository's history forever — even if you delete the file in the next commit. The correct response is to immediately rotate the secret (generate a new one and revoke the old one), then clean the history using git filter-repo. Prevention is infinitely easier: add .env and any key files to .gitignore before creating them.</p>
 <p>Use environment variables (Module 1) to pass secrets to your application. The <code>.env</code> file stores them locally and is excluded from version control.</p>
-</div><h2 id="undoing-things">Undoing things</h2><p>Knowing how to undo is as important as knowing how to commit. Here are the main options:</p><div class="def-list"><div class="def-row"><div class="def-term"><code>git restore app.py</code></div><div class="def-body">Discard unstaged changes — reverts working directory file to last committed state</div></div><div class="def-row"><div class="def-term"><code>git restore --staged app.py</code></div><div class="def-body">Unstage a file — moves it from staging area back to working directory</div></div><div class="def-row"><div class="def-term"><code>git commit --amend</code></div><div class="def-body">Edit the most recent commit message, or add forgotten files to it</div></div><div class="def-row"><div class="def-term"><code>git revert HEAD</code></div><div class="def-body">Create a new commit that undoes the last commit (safe for shared branches)</div></div><div class="def-row"><div class="def-term"><code>git stash</code></div><div class="def-body">Save current changes temporarily without committing them</div></div><div class="def-row"><div class="def-term"><code>git stash pop</code></div><div class="def-body">Restore the most recently stashed changes</div></div></div><div class="callout callout-warning"><div class="callout-title">⚠ git reset --hard is dangerous</div>
+</div><section class="section" id="undoing-things"><div class="section-header"><div class="section-num">33</div><h2>Undoing things</h2></div><p>Knowing how to undo is as important as knowing how to commit. Here are the main options:</p><div class="def-list"><div class="def-row"><div class="def-term"><code>git restore app.py</code></div><div class="def-body">Discard unstaged changes — reverts working directory file to last committed state</div></div><div class="def-row"><div class="def-term"><code>git restore --staged app.py</code></div><div class="def-body">Unstage a file — moves it from staging area back to working directory</div></div><div class="def-row"><div class="def-term"><code>git commit --amend</code></div><div class="def-body">Edit the most recent commit message, or add forgotten files to it</div></div><div class="def-row"><div class="def-term"><code>git revert HEAD</code></div><div class="def-body">Create a new commit that undoes the last commit (safe for shared branches)</div></div><div class="def-row"><div class="def-term"><code>git stash</code></div><div class="def-body">Save current changes temporarily without committing them</div></div><div class="def-row"><div class="def-term"><code>git stash pop</code></div><div class="def-body">Restore the most recently stashed changes</div></div></div><div class="callout callout-warning"><div class="callout-title">⚠ git reset --hard is dangerous</div>
 <p><code>git reset --hard</code> moves HEAD to a different commit and discards all changes in between. Any uncommitted work is lost permanently. Use it only on local branches you have not shared with others.</p>
-</div><h2 id="writing-good-commit-messages">Writing good commit messages</h2><p>A commit message is a gift to your future self and your teammates. Reading the log should tell the story of the project.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — anatomy of a good commit message</span></div><pre><code><span class="out">Add rate limiting to the login endpoint</span>
-
+</div><section class="section" id="writing-good-commit-messages"><div class="section-header"><div class="section-num">34</div><h2>Writing good commit messages</h2></div><p>A commit message is a gift to your future self and your teammates. Reading the log should tell the story of the project.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">plain — anatomy of a good commit message</span></div><pre><code><span class="out">Add rate limiting to the login endpoint</span>
+<span class="out"></span>
 <span class="out">Login attempts were unlimited, making brute-force attacks trivial.</span>
 <span class="out">Implements a sliding window of 5 attempts per IP per 15 minutes.</span>
 <span class="out">Exceeding the limit returns 429 Too Many Requests.</span>
-
+<span class="out"></span>
 <span class="out">Fixes: JIRA-1234</span>
-</code></pre></div><table class="compare-table"><thead><tr><th>Rule</th><th>Good example</th><th>Bad example</th></tr></thead><tbody><tr><td>Imperative mood in subject</td><td><em>Add login rate limiting</em></td><td><em>Added login rate limit</em></td></tr><tr><td>50 characters or less in subject</td><td><em>Fix null check in user parser</em></td><td><em>Fixed the null pointer bug that was crashing the parser in some edge cases</em></td></tr><tr><td>Blank line between subject and body</td><td>— (correct)</td><td>— (skipped)</td></tr><tr><td>Explain why, not what</td><td><em>Bypass slow DNS lookup on startup</em></td><td><em>Change DNS call</em></td></tr></tbody></table><h2 id="key-terms">Key terms</h2><div class="term-grid"><div class="term-card"><div class="term-word">repository</div><div class="term-def">A project folder tracked by Git, containing a .git directory.</div></div><div class="term-card"><div class="term-word">commit</div><div class="term-def">A snapshot of all tracked files at a point in time, with a message and unique hash.</div></div><div class="term-card"><div class="term-word">working directory</div><div class="term-def">The files on your disk that you edit directly.</div></div><div class="term-card"><div class="term-word">staging area</div><div class="term-def">The holding area for changes prepared for the next commit.</div></div><div class="term-card"><div class="term-word">hash</div><div class="term-def">A unique identifier for each commit, derived from its content.</div></div><div class="term-card"><div class="term-word">HEAD</div><div class="term-def">A pointer to the current commit — usually the tip of the current branch.</div></div><div class="term-card"><div class="term-word">.gitignore</div><div class="term-def">A file listing patterns that Git should not track.</div></div><div class="term-card"><div class="term-word">git diff</div><div class="term-def">Shows differences between versions of files.</div></div><div class="term-card"><div class="term-word">git stash</div><div class="term-def">Temporarily saves uncommitted changes without committing them.</div></div><div class="term-card"><div class="term-word">git log</div><div class="term-def">Shows the commit history.</div></div></div><h2 id="exercises">Exercises</h2><div class="callout callout-exercise"><div class="callout-title">✎ Lab exercises — approximately 50 minutes</div>
+</code></pre></div><table class="compare-table"><thead><tr><th>Rule</th><th>Good example</th><th>Bad example</th></tr></thead><tbody><tr><td>Imperative mood in subject</td><td><em>Add login rate limiting</em></td><td><em>Added login rate limit</em></td></tr><tr><td>50 characters or less in subject</td><td><em>Fix null check in user parser</em></td><td><em>Fixed the null pointer bug that was crashing the parser in some edge cases</em></td></tr><tr><td>Blank line between subject and body</td><td>— (correct)</td><td>— (skipped)</td></tr><tr><td>Explain why, not what</td><td><em>Bypass slow DNS lookup on startup</em></td><td><em>Change DNS call</em></td></tr></tbody></table><section class="section" id="key-terms"><div class="section-header"><div class="section-num">35</div><h2>Key terms</h2></div><div class="term-grid"><div class="term-card"><div class="term-word">repository</div><div class="term-def">A project folder tracked by Git, containing a .git directory.</div></div><div class="term-card"><div class="term-word">commit</div><div class="term-def">A snapshot of all tracked files at a point in time, with a message and unique hash.</div></div><div class="term-card"><div class="term-word">working directory</div><div class="term-def">The files on your disk that you edit directly.</div></div><div class="term-card"><div class="term-word">staging area</div><div class="term-def">The holding area for changes prepared for the next commit.</div></div><div class="term-card"><div class="term-word">hash</div><div class="term-def">A unique identifier for each commit, derived from its content.</div></div><div class="term-card"><div class="term-word">HEAD</div><div class="term-def">A pointer to the current commit — usually the tip of the current branch.</div></div><div class="term-card"><div class="term-word">.gitignore</div><div class="term-def">A file listing patterns that Git should not track.</div></div><div class="term-card"><div class="term-word">git diff</div><div class="term-def">Shows differences between versions of files.</div></div><div class="term-card"><div class="term-word">git stash</div><div class="term-def">Temporarily saves uncommitted changes without committing them.</div></div><div class="term-card"><div class="term-word">git log</div><div class="term-def">Shows the commit history.</div></div></div><section class="section" id="exercises"><div class="section-header"><div class="section-num">36</div><h2>Exercises</h2></div><div class="callout callout-exercise"><div class="callout-title">✎ Lab exercises — approximately 50 minutes</div>
 <h3>Part A: Build a history</h3>
 <ol><li>Create a new directory and initialise a Git repository.</li><li>Create a Python file with a function that adds two numbers. Commit it.</li><li>Add a docstring to the function. Stage and commit that change separately.</li><li>Add a second function. Commit it with a meaningful message.</li><li>Use git log --oneline to see all three commits.</li><li>Use git show followed by a commit hash to inspect each commit in detail.</li></ol>
 <h3>Part B: Working with diffs</h3>
@@ -214,32 +203,32 @@
 <ol><li>Make a change to the file but do not stage it. Use git restore to discard it.</li><li>Stage a change then use git restore --staged to unstage it.</li><li>Make and commit a change with a typo in the message. Use git commit --amend to fix it.</li><li>Create a commit you want to reverse. Use git revert HEAD to undo it safely.</li></ol>
 <h3>Part D: .gitignore</h3>
 <ol><li>Create a <code>.gitignore</code> file that ignores <code>__pycache__/</code>, <code>*.pyc</code>, and <code>.env</code>.</li><li>Create a file called <code>.env</code> with fake credentials. Verify git status does not list it.</li><li>Run <code>git check-ignore -v .env</code> to confirm .gitignore is working.</li></ol>
-</div>
-<div class="pagination"><a class="page-btn prev" href="module-02.html"><span class="page-dir">← Previous</span><span class="page-title">Unix Tools & Scripting</span></a><a class="page-btn next" href="module-04.html"><span class="page-dir">Next →</span><span class="page-title">Collaborating with Git</span></a></div>
+</div></section></section></section></section></section></section></section></section></section></section></section>
+    <div class="pagination"><a class="page-btn prev" href="module-02.html"><span class="page-dir">← Previous</span><span class="page-title">Unix Tools & Scripting</span></a><a class="page-btn next" href="module-04.html"><span class="page-dir">Next →</span><span class="page-title">Collaborating with Git</span></a></div>
+  </main>
 </div>
 <footer>
-  <p>DevOps · Lancaster University</p>
+  <p>Lancaster University · DevOps</p>
   <p style="margin-top:6px">Questions? Post on the module Moodle forum or discuss with your lab demonstrator.</p>
 </footer>
 
 <script>
-// Reading progress bar
-const bar = document.querySelector('.reading-progress');
+// Progress bar
+const bar = document.getElementById('progress-bar');
 window.addEventListener('scroll', () => {
   const total = document.documentElement.scrollHeight - window.innerHeight;
   bar.style.width = (window.scrollY / total * 100) + '%';
 });
-
-// TOC active link
-const sections = document.querySelectorAll('h2[id]');
-const links = document.querySelectorAll('.toc-list a');
+// Sidebar active link on scroll
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('#sidebar nav a');
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => {
-    if(e.isIntersecting){
-      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id));
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
     }
   });
-}, {rootMargin:'-15% 0px -75% 0px'});
+}, { rootMargin: '-15% 0px -75% 0px' });
 sections.forEach(s => obs.observe(s));
 </script>
 
