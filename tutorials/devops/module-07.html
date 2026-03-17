@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Automating Repetitive Tasks — DevOps SCCM4910</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-brand" href="index.html">Dev<span>Ops</span></a>
+  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a>
+<a class="nav-dot" href="module-02.html" title="Module 2">2</a>
+<a class="nav-dot" href="module-03.html" title="Module 3">3</a>
+<a class="nav-dot" href="module-04.html" title="Module 4">4</a>
+<a class="nav-dot" href="module-05.html" title="Module 5">5</a>
+<a class="nav-dot" href="module-06.html" title="Module 6">6</a>
+<a class="nav-dot active" href="module-07.html" title="Module 7">7</a>
+<a class="nav-dot" href="module-08.html" title="Module 8">8</a>
+<a class="nav-dot" href="module-09.html" title="Module 9">9</a>
+<a class="nav-dot" href="module-10.html" title="Module 10">10</a>
+</div>
+</nav>
+
+
+<div class="hero">
+  <div class="hero-meta">
+    <span class="tag tag-module">Module 07</span>
+    <span class="tag tag-theme">Automation</span>
+    <span class="tag tag-time">~45 min read</span>
+  </div>
+  <h1>Automating Repetitive Tasks</h1>
+  <p class="hero-sub">Stop typing the same commands every day. Write automation scripts that work identically locally and in CI.</p>
+  <div class="mlo-row"><span class="mlo-badge">MLO3</span><span class="mlo-badge">MLO6</span></div>
+</div>
+<div class="content-wrap">
+  <div class="main-col">
+<h2 id="why-automate">Why automate?</h2>
+<p>Consider what you do every time you start working on a project: navigate to the folder, activate a virtual environment, maybe install updated packages, run a quick test to make sure everything is still working.</p>
+<p>These are the same steps every single time. If you do something more than twice, it should be automated. There are two reasons:</p>
+<ul><li><strong>Consistency</strong> — a script runs the same steps in the same order every time. You cannot forget a step or do it slightly differently.</li><li><strong>Shareability</strong> — a script communicates the correct workflow to everyone on the team, including your future self.</li></ul>
+<div class="callout callout-info"><div class="callout-title">The connection to CI</div><p>Your CI pipeline is just automation running on someone else's computer. When you automate your local workflow with a script and then call that same script from the pipeline, you are guaranteed that local and CI behave identically. This is exactly the goal.</p></div>
+
+<h2 id="identifying-repetitive-tasks">Identifying repetitive tasks</h2>
+<p>Look at your workflow from the previous modules. You have been typing something like this every session:</p>
+<div class="code-block"><div class="code-label">bash — manual workflow (tedious)</div><pre><code><span class="cmd">cd </span>
+<span class="arg">~/devops-labs/my-project</span>
+<span class="cmd">pip install </span>
+<span class="flag">-r </span>
+<span class="arg">requirements.txt</span>
+<span class="cmd">flake8 </span>
+<span class="arg">.</span>
+<span class="cmd">pytest</span>
+</code></pre></div>
+<p>Four commands, every time. If you add a new tool later, you have to remember to run it. If someone new joins the project, they have to figure out the workflow from scratch.</p>
+<p>A script solves all of this:</p>
+<div class="code-block"><div class="code-label">bash — run.sh</div><pre><code><span class="cmd">#!/bin/bash</span>
+<span class="cmd">set </span>
+<span class="flag">-e</span>
+<span class="cmt">   # stop immediately if any command fails</span>
+<span class="out"></span>
+<span class="cmd">echo </span>
+<span class="arg">"Installing dependencies..."</span>
+<span class="cmd">pip install </span>
+<span class="flag">-r </span>
+<span class="arg">requirements.txt</span>
+<span class="out"></span>
+<span class="cmd">echo </span>
+<span class="arg">"Linting..."</span>
+<span class="cmd">flake8 </span>
+<span class="arg">.</span>
+<span class="out"></span>
+<span class="cmd">echo </span>
+<span class="arg">"Running tests..."</span>
+<span class="cmd">pytest</span>
+<span class="out"></span>
+<span class="cmd">echo </span>
+<span class="arg">"All checks passed."</span>
+</code></pre></div>
+
+<h2 id="a-well-structured-automation-script">A well-structured automation script</h2>
+<p>As scripts grow, give them structure. A common pattern is to define named tasks as functions, then call the right one based on an argument:</p>
+<div class="code-block"><div class="code-label">bash — structured tasks script</div><pre><code><span class="cmd">#!/bin/bash</span>
+<span class="cmd">set </span>
+<span class="flag">-e</span>
+<span class="out"></span>
+<span class="cmd">install() {</span>
+<span class="cmd">    echo </span>
+<span class="arg">"Installing..."</span>
+<span class="cmd">    pip install </span>
+<span class="flag">-r </span>
+<span class="arg">requirements.txt</span>
+<span class="cmd">}</span>
+<span class="out"></span>
+<span class="cmd">test() {</span>
+<span class="cmd">    echo </span>
+<span class="arg">"Testing..."</span>
+<span class="cmd">    pytest</span>
+<span class="cmd">}</span>
+<span class="out"></span>
+<span class="cmd">clean() {</span>
+<span class="cmd">    echo </span>
+<span class="arg">"Cleaning..."</span>
+<span class="cmd">    rm </span>
+<span class="flag">-rf </span>
+<span class="arg">__pycache__ .pytest_cache</span>
+<span class="cmd">}</span>
+<span class="out"></span>
+<span class="cmt"># Call the function matching the argument</span>
+<span class="cmd">"$@"</span>
+</code></pre></div>
+<p>Now you can call <code>./run.sh install</code>, <code>./run.sh test</code>, or <code>./run.sh clean</code> individually.</p>
+
+<h2 id="connecting-scripts-to-ci">Connecting scripts to CI</h2>
+<p>Replace inline commands in your pipeline with calls to your script:</p>
+<div class="code-block"><div class="code-label">.github/workflows/ci.yml — calling the script</div><pre><code><span class="cmd">      - name: </span>
+<span class="arg">Install dependencies</span>
+<span class="cmd">        run: </span>
+<span class="arg">./run.sh install</span>
+<span class="out"></span>
+<span class="cmd">      - name: </span>
+<span class="arg">Run tests</span>
+<span class="cmd">        run: </span>
+<span class="arg">./run.sh test</span>
+</code></pre></div>
+<p>This has a valuable property: the pipeline now does exactly what a developer would do locally. If you change the workflow, you update the script — and both local and CI benefit automatically.</p>
+<div class="callout callout-warning"><div class="callout-title">Make the script executable</div><p>GitHub Actions runners start fresh each time. The script must be committed with execute permissions: <code>chmod +x run.sh</code>, then <code>git add run.sh</code> and commit.</p></div>
+
+<h2 id="worked-example">Worked example</h2>
+<p>Here is the full picture: a developer works on a feature, runs the local script to verify everything is clean, pushes, and the pipeline calls the same script:</p>
+<div class="code-block"><div class="code-label">bash — developer's local session</div><pre><code><span class="cmt"># Make changes to the code</span>
+<span class="cmd">vim </span>
+<span class="arg">app.py</span>
+<span class="cmt"># Run the automated checks</span>
+<span class="cmd">./run.sh test</span>
+<span class="out">Testing...</span>
+<span class="out">3 passed in 0.11s</span>
+<span class="cmt"># Everything passes — commit and push</span>
+<span class="cmd">git add </span>
+<span class="flag">.</span>
+<span class="cmd">git commit </span>
+<span class="flag">-m </span>
+<span class=""Add user validation""></span>
+<span class="cmd">git push</span>
+<span class="cmt"># GitHub Actions now runs the same ./run.sh test</span>
+</code></pre></div>
+
+<h2 id="key-terms">Key terms</h2>
+<div class="term-grid"><div class="term-card"><div class="term-word">automation script</div><div class="term-def">A shell script that performs a named task: install, test, clean.</div></div><div class="term-card"><div class="term-word">set -e</div><div class="term-def">A shell option that stops the script immediately if any command fails.</div></div><div class="term-card"><div class="term-word">function</div><div class="term-def">A named block of commands in a shell script, called by name.</div></div><div class="term-card"><div class="term-word">$@</div><div class="term-def">A special variable in bash meaning 'all the arguments passed to this script'.</div></div><div class="term-card"><div class="term-word">idempotent</div><div class="term-def">Running the same script twice produces the same result as running it once.</div></div><div class="term-card"><div class="term-word">workflow parity</div><div class="term-def">Local and CI use the same scripts so they behave identically.</div></div></div>
+
+<h2 id="exercises">Exercises</h2>
+<div class="callout callout-exercise"><div class="callout-title">Lab exercises</div>
+<ol><li>Write a script <code>run.sh</code> with three tasks: <code>install</code>, <code>test</code>, and <code>clean</code>.</li><li>Add <code>set -e</code> at the top. Deliberately make one step fail — does the script stop?</li><li>Run each task locally: <code>./run.sh install</code>, <code>./run.sh test</code>.</li><li>Update your GitHub Actions workflow to call the script instead of running commands directly.</li><li>Push and confirm the pipeline still passes.</li><li>Extension: add a task that checks whether Python 3 is installed before doing anything else, printing a helpful error message if not.</li></ol>
+</div>
+</div>
+  <aside class="sidebar"><div class="toc"><div class="toc-title">On this page</div><ul class="toc-list"><li><a href="#why-automate">Why automate?</a></li><li><a href="#identifying-repetitive-tasks">Identifying repetitive tasks</a></li><li><a href="#a-well-structured-automation-script">A well-structured automation script</a></li><li><a href="#connecting-scripts-to-ci">Connecting scripts to CI</a></li><li><a href="#worked-example">Worked example</a></li><li><a href="#key-terms">Key terms</a></li><li><a href="#exercises">Exercises</a></li></ul></div></aside>
+</div>
+<div style="max-width:var(--wide);margin:0 auto;padding:0 2rem;">
+  <div class="pagination"><a class="page-btn prev" href="module-06.html"><span class="page-dir">← Previous</span><span class="page-title">CI Pipelines in Practice</span></a><a class="page-btn next" href="module-08.html"><span class="page-dir">Next →</span><span class="page-title">Virtualisation & Containers</span></a></div>
+</div>
+<footer><p>SCCM4910 DevOps · Lancaster University · Made for first-year students</p></footer>
+<script>
+const sections = document.querySelectorAll('h2[id]');
+const links = document.querySelectorAll('.toc-list a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id));
+    }
+  });
+}, {rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

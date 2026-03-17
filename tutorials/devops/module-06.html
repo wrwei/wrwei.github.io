@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CI Pipelines in Practice — DevOps SCCM4910</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-brand" href="index.html">Dev<span>Ops</span></a>
+  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a>
+<a class="nav-dot" href="module-02.html" title="Module 2">2</a>
+<a class="nav-dot" href="module-03.html" title="Module 3">3</a>
+<a class="nav-dot" href="module-04.html" title="Module 4">4</a>
+<a class="nav-dot" href="module-05.html" title="Module 5">5</a>
+<a class="nav-dot active" href="module-06.html" title="Module 6">6</a>
+<a class="nav-dot" href="module-07.html" title="Module 7">7</a>
+<a class="nav-dot" href="module-08.html" title="Module 8">8</a>
+<a class="nav-dot" href="module-09.html" title="Module 9">9</a>
+<a class="nav-dot" href="module-10.html" title="Module 10">10</a>
+</div>
+</nav>
+
+
+<div class="hero">
+  <div class="hero-meta">
+    <span class="tag tag-module">Module 06</span>
+    <span class="tag tag-theme">CI/CD</span>
+    <span class="tag tag-time">~45 min read</span>
+  </div>
+  <h1>CI Pipelines in Practice with GitHub Actions</h1>
+  <p class="hero-sub">Understand pipeline structure and learn to read, modify and debug a real GitHub Actions workflow.</p>
+  <div class="mlo-row"><span class="mlo-badge">MLO2</span><span class="mlo-badge">MLO4</span><span class="mlo-badge">MLO5</span></div>
+</div>
+<div class="content-wrap">
+  <div class="main-col">
+<h2 id="anatomy-of-a-pipeline">Anatomy of a pipeline</h2>
+<p>A CI pipeline is a sequence of steps that run automatically when code is pushed. Every pipeline has the same basic anatomy:</p>
+<div class="term-grid"><div class="term-card"><div class="term-word">Trigger</div><div class="term-def">The event that starts the pipeline — usually a push or a pull request.</div></div><div class="term-card"><div class="term-word">Job</div><div class="term-def">A unit of work that runs on a server. A pipeline can have one or more jobs.</div></div><div class="term-card"><div class="term-word">Step</div><div class="term-def">A single command or action within a job.</div></div><div class="term-card"><div class="term-word">Runner</div><div class="term-def">The server that executes the job. GitHub provides free hosted runners.</div></div><div class="term-card"><div class="term-word">Artefact</div><div class="term-def">A file produced by the pipeline — for example, a test report.</div></div></div>
+<p>For this module, every pipeline will be a single job with a linear sequence of steps: install dependencies, lint, run tests.</p>
+
+<h2 id="github-actions-concepts">GitHub Actions concepts</h2>
+<p>GitHub Actions is the CI system built into GitHub. When you push to a repository, it looks for workflow files in the <code>.github/workflows/</code> folder.</p>
+<p>A workflow file is written in YAML — a human-readable format that uses indentation to express structure. Here is a minimal but complete example:</p>
+<div class="code-block"><div class="code-label">.github/workflows/ci.yml</div><pre><code><span class="cmd">name: </span>
+<span class="arg">CI</span>
+<span class="out"></span>
+<span class="cmd">on:</span>
+<span class="cmd">  push:</span>
+<span class="cmd">    branches: </span>
+<span class="arg">[main]</span>
+<span class="cmd">  pull_request:</span>
+<span class="out"></span>
+<span class="cmd">jobs:</span>
+<span class="cmd">  test:</span>
+<span class="cmd">    runs-on: </span>
+<span class="arg">ubuntu-latest</span>
+<span class="out"></span>
+<span class="cmd">    steps:</span>
+<span class="cmd">      - name: </span>
+<span class="arg">Check out code</span>
+<span class="cmd">        uses: </span>
+<span class="arg">actions/checkout@v4</span>
+<span class="out"></span>
+<span class="cmd">      - name: </span>
+<span class="arg">Set up Python</span>
+<span class="cmd">        uses: </span>
+<span class="arg">actions/setup-python@v5</span>
+<span class="cmd">        with:</span>
+<span class="cmd">          python-version: </span>
+<span class="arg">'3.11'</span>
+<span class="out"></span>
+<span class="cmd">      - name: </span>
+<span class="arg">Install dependencies</span>
+<span class="cmd">        run: </span>
+<span class="arg">pip install -r requirements.txt</span>
+<span class="out"></span>
+<span class="cmd">      - name: </span>
+<span class="arg">Run tests</span>
+<span class="cmd">        run: </span>
+<span class="arg">pytest</span>
+</code></pre></div>
+
+<h2 id="reading-a-workflow-file">Reading a workflow file</h2>
+<p>Let us trace through the workflow above line by line:</p>
+<ol class="steps"><li><div class="step-num"></div><div class="step-body"><code>name: CI</code> — the display name shown in the GitHub Actions tab.</div></li><li><div class="step-num"></div><div class="step-body"><code>on: push / pull_request</code> — this pipeline runs whenever someone pushes to <code>main</code> or opens a pull request.</div></li><li><div class="step-num"></div><div class="step-body"><code>jobs: test:</code> — defines one job called <code>test</code>.</div></li><li><div class="step-num"></div><div class="step-body"><code>runs-on: ubuntu-latest</code> — the job runs on a fresh Ubuntu Linux server provided by GitHub.</div></li><li><div class="step-num"></div><div class="step-body"><code>steps:</code> — the sequence of things the job does.</div></li><li><div class="step-num"></div><div class="step-body"><code>uses: actions/checkout@v4</code> — a pre-built action that checks out your code so the runner can access it.</div></li><li><div class="step-num"></div><div class="step-body"><code>run: pip install -r requirements.txt</code> — install Python packages listed in your requirements file.</div></li><li><div class="step-num"></div><div class="step-body"><code>run: pytest</code> — run all tests.</div></li></ol>
+<div class="callout callout-info"><div class="callout-title">YAML indentation matters</div><p>In YAML, indentation defines structure. Two spaces is the convention. Never mix tabs and spaces — it will cause a parse error and the pipeline will not run.</p></div>
+
+<h2 id="modifying-the-workflow">Modifying the workflow</h2>
+<p>Rather than writing a workflow from scratch, you will work from the provided template. The most common modifications you will make:</p>
+<p><strong>Change the Python version:</strong></p>
+<div class="code-block"><div class="code-label">.github/workflows/ci.yml — change Python version</div><pre><code><span class="cmd">        python-version: </span>
+<span class="arg">'3.12'</span>
+<span class="cmt">        # change '3.11' to any supported version</span>
+</code></pre></div>
+<p><strong>Add a linting step</strong> before the tests:</p>
+<div class="code-block"><div class="code-label">.github/workflows/ci.yml — add a lint step</div><pre><code><span class="cmd">      - name: </span>
+<span class="arg">Lint with flake8</span>
+<span class="cmd">        run: </span>
+<span class="arg">pip install flake8 && flake8 .</span>
+</code></pre></div>
+<p><strong>Add an environment variable</strong> available to all steps:</p>
+<div class="code-block"><div class="code-label">.github/workflows/ci.yml — environment variable</div><pre><code><span class="cmd">    env:</span>
+<span class="cmd">      APP_ENV: </span>
+<span class="arg">test</span>
+<span class="cmd">      DEBUG: </span>
+<span class="arg">false</span>
+</code></pre></div>
+
+<h2 id="observing-the-pipeline">Observing the pipeline</h2>
+<p>After you push, navigate to your repository on GitHub and click the <strong>Actions</strong> tab. You will see:</p>
+<ul><li>A list of recent workflow runs — green for pass, red for fail</li><li>Click any run to see the jobs and steps</li><li>Click a step to expand its log output</li></ul>
+<p>When a run fails, the failed step is highlighted. Click it to see the exact error. This is the most important skill in working with CI: reading the log efficiently.</p>
+<div class="callout callout-warning"><div class="callout-title">Your first pipeline will probably fail</div><p>Almost everyone's first pipeline fails — usually due to a missing dependency in requirements.txt, a wrong path, or a YAML indentation error. This is normal. Read the error, fix it, push again.</p></div>
+
+<h2 id="key-terms">Key terms</h2>
+<div class="term-grid"><div class="term-card"><div class="term-word">GitHub Actions</div><div class="term-def">The CI/CD system built into GitHub, configured with YAML workflow files.</div></div><div class="term-card"><div class="term-word">.github/workflows/</div><div class="term-def">The folder where GitHub Actions looks for workflow files.</div></div><div class="term-card"><div class="term-word">YAML</div><div class="term-def">A human-readable data format using indentation for structure.</div></div><div class="term-card"><div class="term-word">trigger (on:)</div><div class="term-def">The event that causes the workflow to run.</div></div><div class="term-card"><div class="term-word">uses:</div><div class="term-def">Runs a pre-built action from the GitHub Marketplace.</div></div><div class="term-card"><div class="term-word">run:</div><div class="term-def">Executes a shell command directly on the runner.</div></div></div>
+
+<h2 id="exercises">Exercises</h2>
+<div class="callout callout-exercise"><div class="callout-title">Lab exercises</div>
+<ol><li>Fork the provided starter repository — it contains a Python script and a test file.</li><li>Look at the workflow file in .github/workflows/. Trace what each step does.</li><li>Add a step to install dependencies from requirements.txt before the tests run.</li><li>Push and check the Actions tab — did the pipeline pass?</li><li>Open test_app.py and deliberately break one test (change an expected value). Push and observe the failure.</li><li>Read the error in the Actions log. Fix the test, push, and confirm it passes.</li><li>Extension: add a linting step using flake8. Introduce a style error and observe it being caught.</li></ol>
+</div>
+</div>
+  <aside class="sidebar"><div class="toc"><div class="toc-title">On this page</div><ul class="toc-list"><li><a href="#anatomy-of-a-pipeline">Anatomy of a pipeline</a></li><li><a href="#github-actions-concepts">GitHub Actions concepts</a></li><li><a href="#reading-a-workflow-file">Reading a workflow file</a></li><li><a href="#modifying-the-workflow">Modifying the workflow</a></li><li><a href="#observing-the-pipeline">Observing the pipeline</a></li><li><a href="#key-terms">Key terms</a></li><li><a href="#exercises">Exercises</a></li></ul></div></aside>
+</div>
+<div style="max-width:var(--wide);margin:0 auto;padding:0 2rem;">
+  <div class="pagination"><a class="page-btn prev" href="module-05.html"><span class="page-dir">← Previous</span><span class="page-title">CI and Automated Testing</span></a><a class="page-btn next" href="module-07.html"><span class="page-dir">Next →</span><span class="page-title">Automating Repetitive Tasks</span></a></div>
+</div>
+<footer><p>SCCM4910 DevOps · Lancaster University · Made for first-year students</p></footer>
+<script>
+const sections = document.querySelectorAll('h2[id]');
+const links = document.querySelectorAll('.toc-list a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id));
+    }
+  });
+}, {rootMargin:'-20% 0px -70% 0px'});
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
