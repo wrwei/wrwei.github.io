@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysML v2 Module 2: Core Language Concepts</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-body:'Arial',system-ui,sans-serif;--font-mono:'Courier New',monospace;
+  --sidebar-w:260px;--content-max:820px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-weight:700;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .badge{margin-left:auto;background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem;border-radius:999px;white-space:nowrap}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--sky-light);color:var(--blue);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--navy)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:#fff}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+#main .module-eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sky);margin-bottom:.5rem}
+#main .module-title{font-size:2.2rem;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:.75rem;letter-spacing:-.02em}
+#main .module-lead{font-size:1.05rem;color:var(--slate);max-width:640px;margin-bottom:2.5rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:.75rem;margin:3rem 0 1.5rem;padding-bottom:.75rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sky);background:var(--sky-light);padding:.25rem .6rem;border-radius:6px}
+.section-header h2{font-size:1.4rem;font-weight:700;color:var(--navy);letter-spacing:-.01em}
+h3{font-size:1.05rem;font-weight:700;color:var(--navy);margin:1.75rem 0 .75rem}
+p{margin-bottom:1rem;color:#334155}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:#334155}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.25rem 0;border:1px solid var(--border)}
+pre code{background:none;padding:0;font-size:.88rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.25rem 0;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--sky)}
+.callout.note .callout-label{color:var(--sky)}
+.callout.tip{background:var(--green-bg);border-color:var(--green)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:#334155;font-size:.95rem}
+.callout p:last-child{margin-bottom:0}
+table{width:100%;border-collapse:collapse;margin:1.25rem 0;font-size:.9rem}
+th{background:var(--sky-light);color:var(--blue);font-weight:700;padding:.65rem .9rem;text-align:left;border:1px solid var(--border)}
+td{padding:.6rem .9rem;border:1px solid var(--border);color:#334155;vertical-align:top}
+tr:nth-child(even){background:#F8FAFC}
+.next-box{background:var(--sky-light);border-left:4px solid var(--blue);border-radius:10px;padding:1.25rem 1.5rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:.4rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;background:none}pre.lined table{border-collapse:collapse;width:100%;min-width:max-content}pre.lined td{padding:0;border:none;background:none;font-family:var(--font-mono);font-size:.88rem;line-height:1.7;color:var(--code-text)}pre.lined td.ln{width:2.8em;min-width:2.8em;text-align:right;padding-right:.75em;color:#94A3B8;user-select:none;border-right:1px solid #E2E8F0}pre.lined td.lc{padding-left:.9em;white-space:pre}pre.lined tr:hover td{background:rgba(14,165,233,.06)}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a class="brand" href="#">Principia <span>Modelling</span></a>
+  <span class="sep">›</span>
+  <span class="crumb">SysML v2 Module 2: Core Language Concepts</span>
+  <span class="badge">Module 2 of 8</span>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s0"><span class="num">★</span>KerML → SysML Bridge</a><a href="#s1"><span class="num">1</span>Namespaces</a><a href="#s2"><span class="num">2</span>Packages</a><a href="#s3"><span class="num">3</span>Import & Visibility</a><a href="#s4"><span class="num">4</span>Specialisation Chains</a><a href="#s5"><span class="num">5</span>Multiplicity</a><a href="#s6"><span class="num">6</span>The Feature Model</a><a href="#s7"><span class="num">7</span>Complete Example</a><a href="#s8"><span class="num">8</span>Module Summary</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-eyebrow">Module 2</div>
+    <h1 class="module-title">Core Language Concepts</h1>
+    <p class="module-lead">Namespaces, packages, import/visibility, specialisation, multiplicity, and the full feature model — the six core language mechanisms you will use in every SysML v2 model. Each is a SysML L2 realisation of a KerML L1 concept.</p>
+<span class="section-anchor" id="s0"></span>
+<div class="section-header">
+  <span class="section-num">★</span>
+  <h2>KerML → SysML: How Layer 1 becomes Layer 2</h2>
+</div>
+
+<p>Module 1 introduced KerML as the semantic foundation (L1) and SysML v2 as the language layer (L2) built on top. What does that actually mean in practice? <strong>Every SysML v2 keyword is a constrained, named application of a KerML concept.</strong> The table below shows exactly which KerML construct underlies each SysML feature covered in this module.</p>
+<table><thead><tr><th>SysML v2 concept (L2)</th><th>Underlying KerML construct (L1)</th><th>What SysML adds</th></tr></thead><tbody><tr><td><code>package</code></td><td><code>Namespace</code> (non-Type specialisation)</td><td>Convention that it holds definitions only; no instance semantics</td></tr><tr><td><code>part def</code> / <code>part</code></td><td><code>Class</code> (a Classifier)</td><td>Keyword <em>part</em> implies composite ownership and default multiplicity [1..1]</td></tr><tr><td><code>attribute def</code> / <code>attribute</code></td><td><code>DataType</code> (a Classifier)</td><td>Keyword <em>attribute</em> implies referential, value-typed semantics</td></tr><tr><td><code>action def</code> / <code>action</code></td><td><code>Behavior</code> (a Classifier)</td><td>Keyword <em>action</em> implies occurrence-over-time semantics</td></tr><tr><td><code>port def</code> / <code>port</code></td><td><code>Feature</code> with direction</td><td>Keyword <em>port</em> implies boundary interaction point; conjugation (~) reverses directions</td></tr><tr><td><code>specializes</code></td><td><code>Subclassification</code> (a Relationship)</td><td>Same semantics; SysML just restricts it to definition-level usage</td></tr><tr><td><code>subsets</code></td><td><code>Subsetting</code> (a Relationship)</td><td>Same semantics; SysML restricts it to usage-level features</td></tr><tr><td><code>redefines</code></td><td><code>Redefinition</code> (a Relationship)</td><td>Same semantics; SysML restricts it to usage-level features</td></tr><tr><td><code>import</code></td><td><code>Import</code> (a Namespace membership)</td><td>SysML adds public/private visibility and recursive (<code>::**</code>) variants</td></tr><tr><td>Multiplicity <code>[m..n]</code></td><td><code>Multiplicity</code> Feature on a typed element</td><td>SysML imposes default [1..1] on part/attribute/port; KerML default is [0..*]</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 0 — SysML v2 (L2) keywords mapped to their KerML (L1) origins</caption></table>
+<div class="callout note"><div class="callout-label">NOTE</div><p>You do not need to <em>write</em> KerML — you write SysML v2. But knowing the KerML origin of each keyword explains <em>why</em> the rules are what they are. When something surprises you (e.g. why default multiplicity differs, why every Type is a Namespace), the answer is always found one layer down in KerML.</p></div>
+<p>With that map in hand, the rest of this module covers each SysML v2 concept in depth, noting where KerML behaviour is inherited vs where SysML adds its own constraints.</p><span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>Namespaces — the backbone of every model</h2>
+</div>
+
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>Namespace</code> (Root layer, §8.3.2.4.5)</p>
+<p>A <strong>Namespace</strong> is an Element that contains other Elements, called its <em>members</em>. This is the most fundamental structural concept in KerML. Every pair of curly braces <code>{ }</code> in the textual notation delineates a namespace boundary. SysML v2 inherits this concept unchanged — which is why <code>part def</code>, <code>action def</code>, and even individual feature bodies all act as namespaces.</p>
+<div class="callout tip"><div class="callout-label">💡 Key insight</div><p>In SysML v2, <strong>every Type is also a Namespace</strong>. Every <code>part def</code>, <code>action def</code>, <code>port def</code>, and even every feature body acts as a namespace. In SysML v1, only Packages and Models were namespaces — in v2, the concept is pervasive.</p></div>
+<h3>Name resolution and qualified names</h3>
+<p>Elements can carry two identifiers: a <strong>declared name</strong> (regular identifier or unrestricted name in single quotes like <code>'Ordinary Cargo Bay'</code>) and a <strong>short name</strong> in angle brackets (like <code>&lt;CB&gt;</code>). Qualified names use <code>::</code> as separator:</p>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">Vehicles::Powertrain::Engine</td></tr></table></code></pre>
+<p>When a simple unqualified name is unambiguous within the current scope chain, use it directly. When collisions exist or the element is out of scope, use a qualified name.</p>
+<h3>KerML textual notation for bare namespaces</h3>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">namespace Outer {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    namespace Inner {</td></tr><tr><td class="ln" select="none">3</td><td class="lc">        // Elements here: Outer::Inner::elementName</td></tr><tr><td class="ln" select="none">4</td><td class="lc">    }</td></tr><tr><td class="ln" select="none">5</td><td class="lc">}</td></tr></table></code></pre>
+<div class="callout pitfall"><div class="callout-label">⚠️ BEGINNER PITFALL</div><p>Assuming only Packages are namespaces — because every Type is a Namespace, imports <em>inside</em> a definition are legal and useful. This technique avoids polluting the outer package with names relevant only to one definition:</p></div>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">part def Reindeer {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    private import Datatypes::Color;   // scoped to Reindeer only</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    attribute noseColor : Color;</td></tr><tr><td class="ln" select="none">4</td><td class="lc">}</td></tr></table></code></pre><span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>Packages — grouping without semantics</h2>
+</div>
+
+<p>A <strong>Package</strong> is a Namespace used purely to group Elements. Critically, it does <em>not</em> specialise <code>Type</code> — Packages have no instance-level semantics. This is the key distinction: Types classify things in the modelled universe; Packages merely organise the model itself.</p>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">package VehicleModel {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    import ScalarValues::*;</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    import ISQ::*;</td></tr><tr><td class="ln" select="none">4</td><td class="lc"></td></tr><tr><td class="ln" select="none">5</td><td class="lc">    part def Vehicle {</td></tr><tr><td class="ln" select="none">6</td><td class="lc">        attribute mass : ISQ::MassValue;</td></tr><tr><td class="ln" select="none">7</td><td class="lc">        part engine : Engine;</td></tr><tr><td class="ln" select="none">8</td><td class="lc">    }</td></tr><tr><td class="ln" select="none">9</td><td class="lc"></td></tr><tr><td class="ln" select="none">10</td><td class="lc">    part def Engine;</td></tr><tr><td class="ln" select="none">11</td><td class="lc"></td></tr><tr><td class="ln" select="none">12</td><td class="lc">    package Powertrain {</td></tr><tr><td class="ln" select="none">13</td><td class="lc">        part def Transmission;</td></tr><tr><td class="ln" select="none">14</td><td class="lc">        part def Drivetrain;</td></tr><tr><td class="ln" select="none">15</td><td class="lc">    }</td></tr><tr><td class="ln" select="none">16</td><td class="lc">}</td></tr></table></code></pre>
+<h3>Library packages</h3>
+<p>Reusable model libraries use the <code>library package</code> form. Standard libraries use <code>standard library package</code>:</p>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">library package CommonParts {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    part def Fastener;</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    part def Seal;</td></tr><tr><td class="ln" select="none">4</td><td class="lc">}</td></tr></table></code></pre>
+<div class="callout pitfall"><div class="callout-label">⚠️ BEGINNER PITFALL</div><p>A package must reside in a single file — there is no mechanism to re-open or extend a package across multiple source files (unlike C# partial classes). Plan your package granularity accordingly.</p></div><span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Import & Visibility</h2>
+</div>
+
+<p>SysML v2's import system governs three orthogonal dimensions: <em>which</em> elements are imported, <em>how</em> they are imported, and <em>whether</em> they are re-exported.</p>
+<h3>Visibility kinds</h3>
+<p>Every Membership carries a <code>VisibilityKind</code>:</p>
+<table><thead><tr><th>Keyword</th><th>Scope</th></tr></thead><tbody><tr><td><code>public</code> (default)</td><td>Visible outside the namespace</td></tr><tr><td><code>private</code></td><td>Visible only inside the owning namespace</td></tr><tr><td><code>protected</code></td><td>Visible within the namespace and in its specialisations</td></tr></tbody></table>
+<div class="callout note"><div class="callout-label">NOTE</div><p><strong>Default visibility is <code>public</code></strong> — everything you declare is visible unless you say otherwise. Best practice: declare <code>private</code> for implementation details.</p></div>
+<h3>Two import mechanisms</h3>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">// MembershipImport — single named element</td></tr><tr><td class="ln" select="none">2</td><td class="lc">import Sensors::Accelerometer;</td></tr><tr><td class="ln" select="none">3</td><td class="lc"></td></tr><tr><td class="ln" select="none">4</td><td class="lc">// NamespaceImport — all public members at once</td></tr><tr><td class="ln" select="none">5</td><td class="lc">import Sensors::*;</td></tr><tr><td class="ln" select="none">6</td><td class="lc"></td></tr><tr><td class="ln" select="none">7</td><td class="lc">// Private import — names do NOT re-export</td></tr><tr><td class="ln" select="none">8</td><td class="lc">private import InternalUtils::*;</td></tr><tr><td class="ln" select="none">9</td><td class="lc"></td></tr><tr><td class="ln" select="none">10</td><td class="lc">// Recursive import — all nested namespaces too</td></tr><tr><td class="ln" select="none">11</td><td class="lc">import VehicleModel::**;</td></tr><tr><td class="ln" select="none">12</td><td class="lc"></td></tr><tr><td class="ln" select="none">13</td><td class="lc">// Alias — create an alternative name</td></tr><tr><td class="ln" select="none">14</td><td class="lc">alias Accel for Sensors::Accelerometer;</td></tr></table></code></pre>
+<h3>Public vs private import — controlling re-export</h3>
+<p>The import relationship's own visibility controls whether imported names are re-exported when <em>this</em> namespace is subsequently imported by others:</p>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">package HighLevel {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    public import Sensors::*;         // names ARE re-exported</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    private import InternalUtils::*;  // names stay here</td></tr><tr><td class="ln" select="none">4</td><td class="lc">}</td></tr></table></code></pre>
+<div class="callout pitfall"><div class="callout-label">⚠️ COMMON PITFALL</div><p>Because both member and import visibility default to <code>public</code>, a chain of wildcard imports can propagate names far beyond their intended scope. <strong>Always write <code>private import</code> unless you explicitly intend re-export.</strong></p></div><span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>Specialisation Chains</h2>
+</div>
+
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>Subclassification</code>, <code>Subsetting</code>, <code>Redefinition</code> (Relationship subtypes)</p>
+<p>SysML v2 unifies UML generalisation, subsetting, and redefinition under a single concept: <strong>Specialisation</strong>. These three relationships all exist at the KerML layer — SysML simply exposes them through the keywords <code>specializes</code>, <code>subsets</code>, and <code>redefines</code>, and restricts their use: <code>specializes</code> applies between definitions, while <code>subsets</code> and <code>redefines</code> apply between usages. Because KerML treats both classifiers and features as Types, specialisation applies uniformly across the whole model.</p>
+<h3>Four specialisation relationships</h3>
+<table><thead><tr><th>Relationship</th><th>Applies to</th><th>Keyword</th><th>Shorthand</th><th>Semantic effect</th></tr></thead><tbody><tr><td>Subclassification</td><td>Definitions ↔ Definitions</td><td><code>specializes</code></td><td><code>:&gt;</code></td><td>Subtype inherits all features</td></tr><tr><td>Subsetting</td><td>Usages ↔ Usages</td><td><code>subsets</code></td><td><code>:&gt;</code></td><td>Values form a subset</td></tr><tr><td>Redefinition</td><td>Usages ↔ Usages</td><td><code>redefines</code></td><td><code>:&gt;&gt;</code></td><td>Replaces inherited feature</td></tr><tr><td>Feature Typing</td><td>Usage → Definition</td><td><code>typed by</code></td><td><code>:</code></td><td>Specifies the type</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 1 — Specialisation relationships and shorthands</caption></table>
+<div class="callout tip"><div class="callout-label">💡 Context-dependent operator</div><p>The <code>:&gt;</code> operator means <em>subclassification</em> between definitions, and <em>subsetting</em> between usages. The definition/usage distinction determines the meaning.</p></div>
+<h3>Subsetting example</h3>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">part def ReindeerTeam {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    abstract part reindeer : Reindeer[9];             // 9 reindeer total</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    part rudolph : Reindeer subsets reindeer;          // rudolph is one of the 9</td></tr><tr><td class="ln" select="none">4</td><td class="lc">    part dasher  : Reindeer subsets reindeer;          // dasher is another</td></tr><tr><td class="ln" select="none">5</td><td class="lc">}</td></tr></table></code></pre>
+<h3>Redefinition example</h3>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">part def Vehicle {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    part eng         : Engine;</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    attribute vendor : ScalarValues::String;</td></tr><tr><td class="ln" select="none">4</td><td class="lc">}</td></tr><tr><td class="ln" select="none">5</td><td class="lc"></td></tr><tr><td class="ln" select="none">6</td><td class="lc">part def DieselVehicle specializes Vehicle {</td></tr><tr><td class="ln" select="none">7</td><td class="lc">    part eng         : DieselEngine redefines eng;                     // narrows type</td></tr><tr><td class="ln" select="none">8</td><td class="lc">    attribute vendor : ScalarValues::String = "BoschMotorsport"</td></tr><tr><td class="ln" select="none">9</td><td class="lc">                       redefines vendor;                               // binds value</td></tr><tr><td class="ln" select="none">10</td><td class="lc">}</td></tr></table></code></pre>
+<h3>Conjugation — mirror-image ports</h3>
+<p>Conjugation creates a mirror image of a type where all feature directions are reversed: <code>in</code> ↔ <code>out</code>, <code>inout</code> stays. The <code>~</code> prefix denotes the conjugated form — primarily used for port compatibility:</p>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">port def FuelPort {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    out item fuelSupply : Fuel;</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    in  item fuelReturn : Fuel;</td></tr><tr><td class="ln" select="none">4</td><td class="lc">}</td></tr><tr><td class="ln" select="none">5</td><td class="lc"></td></tr><tr><td class="ln" select="none">6</td><td class="lc">part def FuelTank { port tankPort   :  FuelPort; }  // sends fuel</td></tr><tr><td class="ln" select="none">7</td><td class="lc">part def Engine   { port engFuelPort: ~FuelPort; }  // receives fuel</td></tr></table></code></pre>
+<div class="callout pitfall"><div class="callout-label">⚠️ COMMON PITFALL</div><p><strong>Confusing <code>subsets</code> with <code>redefines</code></strong>. Using <code>subsets</code> when you intend <code>redefines</code> creates an <em>additional</em> feature alongside the inherited one — the model ends up with both the original and the new feature. Redefines <em>replaces</em>; subsets <em>adds alongside</em>.</p></div><span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Multiplicity</h2>
+</div>
+
+<p>In KerML, <strong>Multiplicity is itself a Feature</strong> — not merely an annotation. This allows model-level parametric multiplicity (multiplicity that can vary by expression).</p>
+<h3>Syntax and common forms</h3>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">part def Vehicle {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    part engine    : Engine;        // default [1..1]</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    part wheels    : Wheel[4];      // exactly 4</td></tr><tr><td class="ln" select="none">4</td><td class="lc">    part passengers: Person[0..5];  // zero to 5</td></tr><tr><td class="ln" select="none">5</td><td class="lc">    attribute tags : String[*];     // zero or more (= [0..*])</td></tr><tr><td class="ln" select="none">6</td><td class="lc">    part sensors   : Sensor[1..*];  // one or more</td></tr><tr><td class="ln" select="none">7</td><td class="lc">    ref part trailer: Trailer[0..1];// optional reference</td></tr><tr><td class="ln" select="none">8</td><td class="lc">}</td></tr></table></code></pre>
+<h3>Default multiplicity — critical subtlety</h3>
+<table><thead><tr><th>Context</th><th>Default multiplicity</th></tr></thead><tbody><tr><td>KerML <code>feature</code> (unspecified)</td><td><code>[0..*]</code> — no constraint</td></tr><tr><td>SysML <code>part</code> usage</td><td><strong><code>[1..1]</code></strong> — exactly one</td></tr><tr><td>SysML <code>attribute</code> usage</td><td><strong><code>[1..1]</code></strong> — exactly one</td></tr><tr><td>SysML <code>port</code> usage</td><td><strong><code>[1..1]</code></strong> — exactly one</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 2 — Default multiplicity at KerML vs SysML layers</caption></table>
+<h3>Ordered, unique, and collection types</h3>
+<table><thead><tr><th>Keywords</th><th>Collection type</th></tr></thead><tbody><tr><td>(default)</td><td>Set — unordered, unique</td></tr><tr><td><code>ordered</code></td><td>Ordered set — ordered, unique</td></tr><tr><td><code>nonunique</code></td><td>Bag — unordered, allows duplicates</td></tr><tr><td><code>ordered nonunique</code></td><td>Sequence — ordered, allows duplicates</td></tr></tbody></table>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">part def DataCollector {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    attribute readings  : Real[*] ordered nonunique; // sequence</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    attribute deviceIds : String[1..*];              // set of IDs</td></tr><tr><td class="ln" select="none">4</td><td class="lc">}</td></tr></table></code></pre>
+<div class="callout pitfall"><div class="callout-label">⚠️ BEGINNER PITFALL</div><p>Multiplicity on a <strong>feature</strong> constrains values <em>per featuring instance</em> (e.g., each Vehicle has 4 Wheels). Multiplicity on a <strong>classifier</strong> constrains the total population across the universe. These are very different — feature-level meaning is overwhelmingly more common in practice.</p></div><span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>The Feature Model</h2>
+</div>
+
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>Feature</code> (a Type — Core layer)</p>
+<p><strong>A Feature is a Type</strong> that classifies relations between things. Because Features are Types, they can own sub-features, be specialised, carry multiplicity, and participate in every Type relationship. This unification — absent in UML — is the single most consequential architectural decision in KerML. In SysML v2, every usage keyword (<code>part</code>, <code>attribute</code>, <code>action</code>, <code>port</code>) produces a Feature under the hood; the keyword just adds domain-specific constraints on top of the raw KerML Feature.</p>
+
+<h3>Feature direction: <code>in</code>, <code>out</code>, <code>inout</code></h3>
+<p>Direction declares which way data or control flows <em>through</em> a feature relative to the element that owns it. It is only meaningful on features that participate in an interaction boundary — items inside a port, parameters of an action, or inputs and outputs of a function.</p>
+<ul>
+  <li><code>in</code> — the value is supplied <em>to</em> this element from outside. Think of it as an input socket.</li>
+  <li><code>out</code> — the value is produced <em>by</em> this element and sent outward. Think of it as an output socket.</li>
+  <li><code>inout</code> — the value flows both ways; the feature can both receive and produce values (e.g. a read/write data bus).</li>
+</ul>
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>Think of a power socket on a wall. From the building's perspective, the wall <em>supplies</em> power — that is <code>out</code>. From the appliance's perspective, it <em>receives</em> power — that is <code>in</code>. The same physical connection looks like <code>out</code> from one side and <code>in</code> from the other. This is exactly what conjugation (<code>~</code>) captures: it creates a mirror-image port type where every direction is reversed.</p></div>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">port def PowerPort {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    out item voltage : ElectricalPower;  // this port supplies power outward</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    in  item load    : LoadSignal;       // this port receives a load signal</td></tr><tr><td class="ln" select="none">4</td><td class="lc">}</td></tr><tr><td class="ln" select="none">5</td><td class="lc"></td></tr><tr><td class="ln" select="none">6</td><td class="lc">// ~PowerPort is the conjugate — reverses all directions:</td></tr><tr><td class="ln" select="none">7</td><td class="lc">//   in  item voltage : ElectricalPower  (now receives power)</td></tr><tr><td class="ln" select="none">8</td><td class="lc">//   out item load    : LoadSignal       (now sends load signal)</td></tr><tr><td class="ln" select="none">9</td><td class="lc"></td></tr><tr><td class="ln" select="none">10</td><td class="lc">action def MotorControl {</td></tr><tr><td class="ln" select="none">11</td><td class="lc">    in  rpm     : Real;   // input: desired RPM from controller</td></tr><tr><td class="ln" select="none">12</td><td class="lc">    in  voltage : Real;   // input: supply voltage</td></tr><tr><td class="ln" select="none">13</td><td class="lc">    out torque  : Real;   // output: resulting torque produced</td></tr><tr><td class="ln" select="none">14</td><td class="lc">}</td></tr></table></code></pre>
+<div class="callout note"><div class="callout-label">NOTE</div><p>Directed features are automatically referential — no <code>ref</code> keyword needed. <strong>Ports themselves are never directed</strong>: do not write <code>in port p</code>. Direction belongs to the features <em>inside</em> the port definition, not to the port itself.</p></div>
+
+<h3>Composite vs reference: <code>part</code> vs <code>ref part</code></h3>
+<p>This distinction controls ownership and lifetime. It answers: <em>does this element exist because its parent exists, or does it exist independently of it?</em></p>
+<ul>
+  <li><code>part</code> — <strong>composite</strong>: the parent exclusively owns the child. The child is created with the parent and destroyed with it. A car physically contains its engine — you cannot remove the engine and have it still meaningfully be "the car's engine".</li>
+  <li><code>ref part</code> — <strong>reference</strong>: the child exists independently; the parent merely holds a reference to it. The same <code>Person</code> can be the driver of multiple cars simultaneously. Destroying the car does not destroy the driver.</li>
+  <li><code>attribute</code> — always referential, but specifically for <em>value-typed</em> data (numbers, strings, quantities). Values have no identity — there is no meaningful concept of "this specific 3.7 volts".</li>
+</ul>
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>Composite is like the engine welded into a car: it lives and dies with the car. Reference is like the driver sitting in the car: they step out, they still exist independently.</p></div>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">part def Hospital {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    part    ward   : Ward[1..*];    // composite: wards exist only inside this hospital</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    ref part doctor: Doctor[0..*];  // reference: doctors work here but live elsewhere</td></tr><tr><td class="ln" select="none">4</td><td class="lc">    attribute name : String;        // value: just data, no independent existence</td></tr><tr><td class="ln" select="none">5</td><td class="lc">}</td></tr><tr><td class="ln" select="none">6</td><td class="lc"></td></tr><tr><td class="ln" select="none">7</td><td class="lc">// Consequence: deleting the Hospital also deletes its Wards.</td></tr><tr><td class="ln" select="none">8</td><td class="lc">// The Doctors are unaffected — they exist in their own right.</td></tr></table></code></pre>
+
+<h3>Four kinds of value assignment</h3>
+<p>SysML v2 is precise about <em>how</em> a value is assigned, distinguishing permanent constraints from starting points, and inherited defaults from fixed values. The question each form answers:</p>
+<table><thead><tr><th>Syntax</th><th>Name</th><th>Question it answers</th><th>Can it be overridden?</th></tr></thead><tbody><tr><td><code>= expr</code></td><td>Bound value</td><td>What is this value <em>always</em>?</td><td>No — permanent invariant, cannot change</td></tr><tr><td><code>:= expr</code></td><td>Initial value</td><td>What does this value <em>start at</em>?</td><td>Yes — can change during the instance lifetime</td></tr><tr><td><code>default = expr</code></td><td>Default bound</td><td>What is the value <em>unless</em> a specialisation changes it?</td><td>Yes — a redefining subtype can override it</td></tr><tr><td><code>default := expr</code></td><td>Default initial</td><td>What does it start at <em>unless</em> a specialisation changes it?</td><td>Yes — a redefining subtype can override it</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 3 — Four kinds of value assignment in SysML v2</caption></table>
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>A car dashboard. A <em>bound</em> value is like the number of wheels being permanently 4 — a structural fact that never varies. An <em>initial</em> value is like the fuel level starting at full when the car leaves the factory — it changes during use. A <em>default bound</em> is like a standard tyre pressure that all models share unless a sports variant overrides it. A <em>default initial</em> is like the factory seat position setting — it can be changed per driver.</p></div>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">part def Engine {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    attribute cylinders  : Integer = 4;            // bound: always 4, never changes</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    attribute rpm        : Real    := 0;           // initial: starts at 0, changes at runtime</td></tr><tr><td class="ln" select="none">4</td><td class="lc">    attribute idleRPM    : Real    default = 800;  // default bound: 800 unless subtype overrides</td></tr><tr><td class="ln" select="none">5</td><td class="lc">    attribute warmupTime : Real    default := 30;  // default initial: starts at 30s, overridable</td></tr><tr><td class="ln" select="none">6</td><td class="lc">}</td></tr><tr><td class="ln" select="none">7</td><td class="lc"></td></tr><tr><td class="ln" select="none">8</td><td class="lc">part def RacingEngine specializes Engine {</td></tr><tr><td class="ln" select="none">9</td><td class="lc">    attribute idleRPM : Real = 1200 redefines idleRPM;  // overrides the default bound</td></tr><tr><td class="ln" select="none">10</td><td class="lc">}</td></tr></table></code></pre>
+<div class="callout pitfall"><div class="callout-label">⚠️ COMMON PITFALL</div><p><code>=</code> is a <strong>permanent invariant</strong>, not a starting point. Writing <code>attribute rpm : Real = 0</code> means RPM can never deviate from zero at any point in the instance lifetime. Use <code>:=</code> when you mean starts at this value but will change during operation.</p></div>
+
+<h3>Feature chaining — dot-notation paths</h3>
+<p>Feature chaining lets you navigate a <em>path</em> through nested features using dot notation. It builds a derived feature whose values are the result of following the entire chain — each step produces a set of values that becomes the input domain for the next step.</p>
+<p>You use feature chaining in three main situations:</p>
+<ul>
+  <li><strong>Defining a derived feature</strong> — using the <code>chains</code> keyword to declare that one feature's values are reached by traversing a path through other features.</li>
+  <li><strong>Writing flow statements</strong> — addressing exactly which nested item endpoint a flow connects to, because a bare port name is not specific enough.</li>
+  <li><strong>Accessing nested attributes</strong> in constraints and requirements, where you need to reach inside a sub-part.</li>
+</ul>
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>"My cousins" is not a direct relationship — you have to follow: my parents, then their siblings, then their children. Feature chaining names exactly this kind of multi-hop path as a single reachable feature.</p></div>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">// ── Derived feature using the chains keyword ────────────────</td></tr><tr><td class="ln" select="none">2</td><td class="lc">part def Company {</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    part department : Department[1..*];</td></tr><tr><td class="ln" select="none">4</td><td class="lc">    // allEmployees navigates: Company -&gt; Department -&gt; Employee</td></tr><tr><td class="ln" select="none">5</td><td class="lc">    feature allEmployees : Employee[*] chains department.employee;</td></tr><tr><td class="ln" select="none">6</td><td class="lc">}</td></tr><tr><td class="ln" select="none">7</td><td class="lc">part def Department {</td></tr><tr><td class="ln" select="none">8</td><td class="lc">    part employee : Employee[1..*];</td></tr><tr><td class="ln" select="none">9</td><td class="lc">}</td></tr><tr><td class="ln" select="none">10</td><td class="lc"></td></tr><tr><td class="ln" select="none">11</td><td class="lc">// ── Dot notation in flow statements ─────────────────────────</td></tr><tr><td class="ln" select="none">12</td><td class="lc">// A flow cannot just say "from tank to engine" — it must name</td></tr><tr><td class="ln" select="none">13</td><td class="lc">// the specific item endpoint nested inside each port.</td></tr><tr><td class="ln" select="none">14</td><td class="lc">part def DriveSystem {</td></tr><tr><td class="ln" select="none">15</td><td class="lc">    part tank   : FuelTank { port out : FuelPort;  }</td></tr><tr><td class="ln" select="none">16</td><td class="lc">    part engine : Engine   { port in  : ~FuelPort; }</td></tr><tr><td class="ln" select="none">17</td><td class="lc"></td></tr><tr><td class="ln" select="none">18</td><td class="lc">    flow of Fuel from tank.out.fuelSupply   // tank -&gt; port out -&gt; item fuelSupply</td></tr><tr><td class="ln" select="none">19</td><td class="lc">                 to engine.in.fuelSupply;   // engine -&gt; port in -&gt; item fuelSupply</td></tr><tr><td class="ln" select="none">20</td><td class="lc">}</td></tr><tr><td class="ln" select="none">21</td><td class="lc"></td></tr><tr><td class="ln" select="none">22</td><td class="lc">// ── Accessing nested attributes in a constraint ──────────────</td></tr><tr><td class="ln" select="none">23</td><td class="lc">requirement def PowerBudget {</td></tr><tr><td class="ln" select="none">24</td><td class="lc">    subject sys : ElectricalSystem;</td></tr><tr><td class="ln" select="none">25</td><td class="lc">    require constraint {</td></tr><tr><td class="ln" select="none">26</td><td class="lc">        sys.battery.voltage &gt;= 12[V]  // sys -&gt; battery (part) -&gt; voltage (attribute)</td></tr><tr><td class="ln" select="none">27</td><td class="lc">    }</td></tr><tr><td class="ln" select="none">28</td><td class="lc">}</td></tr></table></code></pre>
+<div class="callout note"><div class="callout-label">NOTE</div><p>Dot notation in SysML v2 has precise KerML semantics: each segment of <code>a.b.c</code> narrows the set of values produced by the previous segment. The resulting chained feature is a real Feature in the model with its own multiplicity derived from the chain — it is not merely syntactic sugar.</p></div><span class="section-anchor" id="s7"></span>
+<div class="section-header">
+  <span class="section-num">7</span>
+  <h2>Complete Example — Multi-package System</h2>
+</div>
+
+<p>The following example, adapted from the official Sensmetry SysML v2 cheatsheet, demonstrates most of the concepts from this module in one cohesive model:</p>
+<pre class="lined"><code><table><tr><td class="ln" select="none">1</td><td class="lc">package VehicleSystem {</td></tr><tr><td class="ln" select="none">2</td><td class="lc">    private import ScalarValues::*;</td></tr><tr><td class="ln" select="none">3</td><td class="lc">    private import ISQ::*;</td></tr><tr><td class="ln" select="none">4</td><td class="lc">    private import SI::*;</td></tr><tr><td class="ln" select="none">5</td><td class="lc"></td></tr><tr><td class="ln" select="none">6</td><td class="lc">    package Definitions {</td></tr><tr><td class="ln" select="none">7</td><td class="lc">        part def Vehicle {</td></tr><tr><td class="ln" select="none">8</td><td class="lc">            attribute mass : ISQ::MassValue;</td></tr><tr><td class="ln" select="none">9</td><td class="lc">            part engine  : Engine;</td></tr><tr><td class="ln" select="none">10</td><td class="lc">            part fuelTank: FuelTank;</td></tr><tr><td class="ln" select="none">11</td><td class="lc">            port fuelPort: FuelPort;</td></tr><tr><td class="ln" select="none">12</td><td class="lc">        }</td></tr><tr><td class="ln" select="none">13</td><td class="lc"></td></tr><tr><td class="ln" select="none">14</td><td class="lc">        part def Engine {</td></tr><tr><td class="ln" select="none">15</td><td class="lc">            attribute power : ISQ::PowerValue;</td></tr><tr><td class="ln" select="none">16</td><td class="lc">            port engineFuelPort : ~FuelPort;</td></tr><tr><td class="ln" select="none">17</td><td class="lc">        }</td></tr><tr><td class="ln" select="none">18</td><td class="lc"></td></tr><tr><td class="ln" select="none">19</td><td class="lc">        port def FuelPort {</td></tr><tr><td class="ln" select="none">20</td><td class="lc">            out item fuelSupply : Fuel;</td></tr><tr><td class="ln" select="none">21</td><td class="lc">            in  item fuelReturn : Fuel;</td></tr><tr><td class="ln" select="none">22</td><td class="lc">        }</td></tr><tr><td class="ln" select="none">23</td><td class="lc"></td></tr><tr><td class="ln" select="none">24</td><td class="lc">        part def SportsCar specializes Vehicle {</td></tr><tr><td class="ln" select="none">25</td><td class="lc">            part engine : TurboEngine redefines engine;</td></tr><tr><td class="ln" select="none">26</td><td class="lc">        }</td></tr><tr><td class="ln" select="none">27</td><td class="lc"></td></tr><tr><td class="ln" select="none">28</td><td class="lc">        part def TurboEngine specializes Engine {</td></tr><tr><td class="ln" select="none">29</td><td class="lc">            attribute boostPressure : ISQ::PressureValue;</td></tr><tr><td class="ln" select="none">30</td><td class="lc">        }</td></tr><tr><td class="ln" select="none">31</td><td class="lc">    }</td></tr><tr><td class="ln" select="none">32</td><td class="lc"></td></tr><tr><td class="ln" select="none">33</td><td class="lc">    package Instances {</td></tr><tr><td class="ln" select="none">34</td><td class="lc">        private import Definitions::*;</td></tr><tr><td class="ln" select="none">35</td><td class="lc"></td></tr><tr><td class="ln" select="none">36</td><td class="lc">        part myCar : SportsCar {</td></tr><tr><td class="ln" select="none">37</td><td class="lc">            attribute mass : ISQ::MassValue = 1400[kg] redefines mass;</td></tr><tr><td class="ln" select="none">38</td><td class="lc">        }</td></tr><tr><td class="ln" select="none">39</td><td class="lc">    }</td></tr><tr><td class="ln" select="none">40</td><td class="lc"></td></tr><tr><td class="ln" select="none">41</td><td class="lc">    package Requirements {</td></tr><tr><td class="ln" select="none">42</td><td class="lc">        private import Definitions::*;</td></tr><tr><td class="ln" select="none">43</td><td class="lc">        private import Instances::*;</td></tr><tr><td class="ln" select="none">44</td><td class="lc"></td></tr><tr><td class="ln" select="none">45</td><td class="lc">        requirement def MassLimit {</td></tr><tr><td class="ln" select="none">46</td><td class="lc">            subject vehicle : Vehicle;</td></tr><tr><td class="ln" select="none">47</td><td class="lc">            attribute massLimit : ISQ::MassValue;</td></tr><tr><td class="ln" select="none">48</td><td class="lc">            require constraint { vehicle.mass &lt;= massLimit }</td></tr><tr><td class="ln" select="none">49</td><td class="lc">        }</td></tr><tr><td class="ln" select="none">50</td><td class="lc"></td></tr><tr><td class="ln" select="none">51</td><td class="lc">        requirement vehicleMassReq : MassLimit {</td></tr><tr><td class="ln" select="none">52</td><td class="lc">            subject vehicle = myCar;</td></tr><tr><td class="ln" select="none">53</td><td class="lc">            attribute massLimit : ISQ::MassValue = 1800[kg] redefines massLimit;</td></tr><tr><td class="ln" select="none">54</td><td class="lc">        }</td></tr><tr><td class="ln" select="none">55</td><td class="lc"></td></tr><tr><td class="ln" select="none">56</td><td class="lc">        satisfy vehicleMassReq by myCar;</td></tr><tr><td class="ln" select="none">57</td><td class="lc">    }</td></tr><tr><td class="ln" select="none">58</td><td class="lc">}</td></tr></table></code></pre>
+<p>This model demonstrates: packages and nesting, private wildcard imports, subclassification (<code>specializes</code>), redefinition (<code>redefines</code>), port definitions with directed features, conjugation (<code>~</code>), feature chaining, constraints, requirements, and the definition/usage pattern.</p><span class="section-anchor" id="s8"></span>
+<div class="section-header">
+  <span class="section-num">8</span>
+  <h2>Module Summary</h2>
+</div>
+
+<p>The concepts in this module span two layers. Keeping them separate prevents confusion:</p>
+<table><thead><tr><th>Concept</th><th>Layer</th><th>Key rule to remember</th></tr></thead><tbody><tr><td>Namespace / name resolution</td><td>KerML L1 — inherited unchanged</td><td>Every Type is a Namespace; scoped imports inside definitions are valid</td></tr><tr><td>Package</td><td>KerML L1 — no instance semantics</td><td>Organises the model; does not classify anything</td></tr><tr><td>Import / visibility</td><td>KerML L1 + SysML L2 constraints</td><td>Default is public; use <code>private import</code> unless you intend re-export</td></tr><tr><td><code>specializes</code></td><td>KerML <code>Subclassification</code> via SysML keyword</td><td>Between definitions only</td></tr><tr><td><code>subsets</code></td><td>KerML <code>Subsetting</code> via SysML keyword</td><td>Between usages; adds alongside, does not replace</td></tr><tr><td><code>redefines</code></td><td>KerML <code>Redefinition</code> via SysML keyword</td><td>Between usages; replaces the inherited feature entirely</td></tr><tr><td>Multiplicity</td><td>KerML Feature — SysML adds defaults</td><td>KerML: [0..*]; SysML part/attribute/port: [1..1]</td></tr><tr><td>Feature model</td><td>KerML Core — SysML adds keywords</td><td>Every usage keyword produces a KerML Feature with domain constraints added</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table — Module 2 concepts mapped to their layers</caption></table>
+<ul>
+  <li><strong>When something surprises you</strong>, look one layer down: the KerML origin in Table 0 (section ★) almost always explains why.</li>
+  <li><strong><code>subsets</code> vs <code>redefines</code></strong>: subsetting adds a named subset alongside the inherited feature; redefinition replaces it entirely.</li>
+  <li><strong>Default multiplicity differs by layer</strong>: KerML defaults to <code>[0..*]</code>; SysML defaults <code>part</code>/<code>attribute</code>/<code>port</code> to <code>[1..1]</code>.</li>
+</ul>
+<div class="next-box"><div class="next-label">Up Next</div><p>Module 3 — Structure Modelling — Parts, items, attributes, and decomposition: building complete structural models with SysML v2.</p></div>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+</body>
+</html>

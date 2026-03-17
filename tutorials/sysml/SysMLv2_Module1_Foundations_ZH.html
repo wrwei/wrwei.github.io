@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysML v2 模块一：基础</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-body:'Arial',system-ui,sans-serif;--font-mono:'Courier New',monospace;
+  --sidebar-w:260px;--content-max:820px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-weight:700;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .badge{margin-left:auto;background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem;border-radius:999px;white-space:nowrap}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--sky-light);color:var(--blue);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--navy)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:#fff}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+#main .module-eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sky);margin-bottom:.5rem}
+#main .module-title{font-size:2.2rem;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:.75rem;letter-spacing:-.02em}
+#main .module-lead{font-size:1.05rem;color:var(--slate);max-width:640px;margin-bottom:2.5rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:.75rem;margin:3rem 0 1.5rem;padding-bottom:.75rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sky);background:var(--sky-light);padding:.25rem .6rem;border-radius:6px}
+.section-header h2{font-size:1.4rem;font-weight:700;color:var(--navy);letter-spacing:-.01em}
+h3{font-size:1.05rem;font-weight:700;color:var(--navy);margin:1.75rem 0 .75rem}
+p{margin-bottom:1rem;color:#334155}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:#334155}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.25rem 0;border:1px solid var(--border)}
+pre code{background:none;padding:0;font-size:.88rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.25rem 0;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--sky)}
+.callout.note .callout-label{color:var(--sky)}
+.callout.tip{background:var(--green-bg);border-color:var(--green)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:#334155;font-size:.95rem}
+.callout p:last-child{margin-bottom:0}
+table{width:100%;border-collapse:collapse;margin:1.25rem 0;font-size:.9rem}
+th{background:var(--sky-light);color:var(--blue);font-weight:700;padding:.65rem .9rem;text-align:left;border:1px solid var(--border)}
+td{padding:.6rem .9rem;border:1px solid var(--border);color:#334155;vertical-align:top}
+tr:nth-child(even){background:#F8FAFC}
+.next-box{background:var(--sky-light);border-left:4px solid var(--blue);border-radius:10px;padding:1.25rem 1.5rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:.4rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a class="brand" href="#">Principia <span>Modelling</span></a>
+  <span class="sep">›</span>
+  <span class="crumb">SysML v2 模块一：基础</span>
+  <span class="badge">模块 1 / 共 8 模块</span>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>什么是 SysML v2？</a><a href="#s2"><span class="num">2</span>KerML — 语言基础</a><a href="#s3"><span class="num">3</span>语言层次结构</a><a href="#s4"><span class="num">4</span>定义 vs 用法</a><a href="#s5"><span class="num">5</span>文本表示法（STN）</a><a href="#s6"><span class="num">6</span>与 SysML v1 的对应</a><a href="#s7"><span class="num">7</span>本模块总结</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-eyebrow">Module 1</div>
+    <h1 class="module-title">SysML v2 基础</h1>
+    <p class="module-lead">什么是 SysML v2，它从哪里来，以及使它精确的 KerML 基础层。完成本模块后，你将理解语言设计背后的"为什么"。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>什么是 SysML v2？</h2>
+</div>
+
+<p>想象一下：你要建造一座大型工厂。在动工之前，你需要画出很多图纸——平面图、电路图、管道图……每一张图都描述工厂的某一个方面。系统工程也是一样。工程师在建造复杂系统（比如飞机、火箭、医疗设备）之前，也需要用图纸来描述系统的各个方面。<strong>SysML v2 就是专门用来画这种"系统图纸"的语言。</strong></p>
+<div class="callout tip"><div class="callout-label">💡 一句话总结</div><p>SysML v2 是工程师用来描述和设计复杂系统的一套标准"画图语言"，就像建筑师有 CAD 软件一样，系统工程师有 SysML v2。</p></div>
+<h3>SysML v2 是谁制定的？</h3>
+<p>SysML v2 是由一个叫"对象管理组织"（OMG）的国际标准机构制定的，并与国际系统工程理事会（INCOSE）共同合作完成。它在 2024 年正式发布，是目前最新的版本（官方标准编号为 OMG ptc/2024-05-04）。</p>
+<div class="callout note"><div class="callout-label">NOTE</div><p>SysML v2 还配套了一个 API（程序接口）标准，让不同软件工具之间可以共享模型数据——这在以前的版本中是没有的。</p></div>
+<h3>那 SysML v1 呢？它哪里不够好？</h3>
+<p>SysML v1 是 2006 年发布的老版本。它当时是基于 UML（一种软件设计语言）改造而来的，因此带来了很多与系统工程无关的"历史包袱"。SysML v2 则是从零重新设计的，专门为系统工程师打造。下表列出了 v1 的主要问题和 v2 的改进：</p>
+<table><thead><tr><th>SysML v1 的问题</th><th>SysML v2 的改进</th></tr></thead><tbody><tr><td>从 UML 继承了大量与系统无关的概念，用起来很绕</td><td>全新设计，基于 KerML，不再依赖 UML</td></tr><tr><td>很多概念的含义不够精确，容易产生歧义</td><td>采用严格的数学定义，含义明确</td></tr><tr><td>只有图形表示法，没有标准的文字语法</td><td>新增标准文字语法（STN），图文并存</td></tr><tr><td>不同工具之间无法互相读取对方的模型文件</td><td>提供标准 API 接口，工具间可以互通</td></tr><tr><td>行为建模（描述系统如何运作）的语言比较难用</td><td>行为建模更加简洁、统一</td></tr><tr><td>分配关系（谁负责什么）的写法很随意</td><td>分配关系有明确的规范写法</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 1 — SysML v1 的局限性及 v2 的改进</caption></table><span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>KerML — SysML v2 的语言基础</h2>
+</div>
+
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>想象你要建一座城市。在建任何建筑之前，你需要先建好地基、道路和水电网络——这些基础设施决定了城市里所有建筑遵循的规则。KerML 就是 SysML v2 的"城市基础设施"——它定义了最基本的规则，SysML v2 的所有内容都建立在它之上。</p></div>
+<p>KerML 的全称是"内核建模语言"（Kernel Modeling Language）。它本身也是一个独立的国际标准（OMG ptc/2024-05-05）。你通常不需要直接用 KerML 写模型——就像你盖房子不需要自己先建水泥厂一样。但了解 KerML 的基本概念，能帮你更好地理解 SysML v2 的设计逻辑。</p>
+<div class="callout tip"><div class="callout-label">💡 给初学者</div><p>KerML 是"幕后英雄"。它为 SysML v2 提供了精确的数学定义，让语言变得严格和一致。你学 SysML v2 时，感受到的那种"规整感"就来自 KerML。</p></div>
+<h3>KerML 的核心概念 — 逐步理解</h3>
+<p>下面我们从最基础的概念开始，一步一步往上建立理解。每个概念都建立在前一个之上。</p>
+<div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">第一步</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Element（元素）</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 简单理解：</strong>&nbsp;模型里所有"东西"的总称。每一个有名字的东西都是一个 Element。</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 生活类比：</strong>&nbsp;就像文件系统里的"文件或文件夹"——一切东西都是文件/文件夹，只是内容不同。</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 技术定义：</strong>&nbsp;模型的根基。所有 KerML 构件都是 Element 的子类型。携带 <code>name</code>（名称）和 <code>qualifiedName</code>（完全限定名）两个属性。</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">第二步</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Namespace（命名空间）</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 简单理解：</strong>&nbsp;一种可以"包含其他东西"的 Element，相当于一个容器或文件夹。</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 生活类比：</strong>&nbsp;就像电脑里的文件夹——文件夹本身也是一个文件，但它可以装其他文件。</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 技术定义：</strong>&nbsp;可以拥有其他 Element 的 Element。Package（包）、Type（类型）和 Feature（特征）都是 Namespace 的子类型。</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">第三步</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Type（类型）</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 简单理解：</strong>&nbsp;描述"某一类事物"是什么样子的模板，比如"所有发动机的共同特征"。</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 生活类比：</strong>&nbsp;就像饼干模具——模具本身不是饼干，但它定义了饼干的形状。用模具可以做出很多一模一样的饼干。</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 技术定义：</strong>&nbsp;对事物进行分类的 Namespace。通过 Feature（特征）来描述其实例的属性和行为。<code>isAbstract</code> 属性控制该类型是否可以直接实例化。</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">第四步</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Feature（特征）</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 简单理解：</strong>&nbsp;Type 的具体属性或行为，比如发动机的"功率"属性，或者"启动"这个动作。</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 生活类比：</strong>&nbsp;就像一份简历的各个栏目——"姓名""年龄""工作经历"都是这份简历的 Feature。</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 技术定义：</strong>&nbsp;Type 的类型化属性。可以是结构性的（属性/部件）或行为性的（动作/步骤）。携带方向（in/out/inout）、是否为复合（<code>isComposite</code>）等属性。</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">第五步</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Classifier（分类器）</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 简单理解：</strong>&nbsp;一种特殊的 Type，它描述的是真实存在或真实发生的事物（而不是抽象概念）。</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 生活类比：</strong>&nbsp;如果 Type 是"动物"的概念，那么 Classifier 就是"哺乳动物""鸟类"这样具体的分类——它们都是真实存在于自然界的东西。</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 技术定义：</strong>&nbsp;其实例是存在或发生的事物的 Type——包括结构体、行为、事件。<code>isSufficient</code> 属性决定拥有所有特征是否足以判断某物属于该类型。</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">第六步</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Class、DataType、Behavior（三种分类器）</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 简单理解：</strong>&nbsp;Classifier 分为三种：描述持续存在的物体（Class）、描述纯粹的数值（DataType）、描述随时间发生的过程（Behavior）。</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 生活类比：</strong>&nbsp;打个比方：一台洗衣机是 Class（它持续存在）；它的功率"800W"是 DataType（纯粹的数值，没有身份）；洗衣过程是 Behavior（它会随时间发生和结束）。</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 技术定义：</strong>&nbsp;Class：实例具有持续标识的 Classifier（结构体，随时间存在）。DataType：实例无标识的 Classifier（纯值，如数字、字符串）。Behavior：实例是随时间发生的事件的 Classifier（动作、过程、函数）。</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">第七步</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Connector（连接器）</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 简单理解：</strong>&nbsp;把两个 Feature 连接在一起的桥梁，描述它们之间的关系。</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 生活类比：</strong>&nbsp;就像电路图里的导线——导线本身不是电源也不是灯泡，但它把两者连了起来。</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 技术定义：</strong>&nbsp;将 Feature 实例相互链接的 Feature。是连接（Connection）、绑定（BindingConnector）和流（Flow）的语义基础。<code>isDirected</code> 控制是否有方向。</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">第八步</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Relationship（关系）及其三种子类型</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 简单理解：</strong>&nbsp;描述两个元素之间关系的桥梁。最重要的三种关系是：特化（一种是另一种的子类）、子集（一个特征是另一个的子集）、重定义（在子类中替换父类的某个特征）。</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 生活类比：</strong>&nbsp;特化 = "猫是哺乳动物的一种"；子集 = "我的朋友圈是所有人的子集"；重定义 = "我把父亲留给我的方法改造成了更适合自己的版本"。</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 技术定义：</strong>&nbsp;Relationship：关联两个或多个 Element 的 Element。Specialisation（特化）：specific Type 继承 general Type 的所有实例。Subsetting（子集）：子特征的所有值也是父特征的值。Redefinition（重定义）：在特化上下文中替换父特征，比子集更强。</p>
+</div><span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>SysML v2 的语言层次结构</h2>
+</div>
+
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>想象一栋大楼：地基（L0）→ 承重结构（L1/KerML）→ 房间布局（L2/SysML 语言）→ 家具和装饰（L3/标准库）。每一层都依赖下面的层，但你平时生活在最上层，不需要关心混凝土的配方。SysML v2 的四个层次也是这个道理。</p></div>
+<p>SysML v2 由四个层次组成，从下往上依次是：</p>
+<table><thead><tr><th>层次</th><th>名称</th><th>说明</th></tr></thead><tbody><tr><td>L3</td><td>SysML v2 标准库模型</td><td>现成的"工具箱"：已经定义好的国际单位（如米、千克、安培）、量制（ISQ）、几何空间关系等。你可以直接拿来用，不用自己重新定义。</td></tr><tr><td>L2</td><td>SysML v2 语言（核心）</td><td>你平时建模时用的所有关键字都在这一层：<code>part</code>（部件）、<code>item</code>（流动项）、<code>port</code>（端口）、<code>action</code>（动作）、<code>requirement</code>（需求）、<code>connection</code>（连接）等。</td></tr><tr><td>L1</td><td>KerML（内核建模语言）</td><td>上一节介绍的 KerML 就在这一层。它为 L2 的所有概念提供精确的语义定义，就像 Word 底层的文件格式规范——你看不到它，但它保证了所有功能都有明确的含义。</td></tr><tr><td>L0</td><td>基础数学语义</td><td>用集合论（高中数学的"集合"概念）来精确定义"类型""实例""特征值"等词的含义。这是给语言设计者看的，初学阶段不需要深究。</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">图 2 — SysML v2 语言层次（从下往上，L0 是基础，L3 是应用层）</caption></table>
+<div class="callout tip"><div class="callout-label">💡 实际上你需要了解哪一层？</div><p>作为初学者，你 90% 的时间都在 L2（SysML 语言层）工作——用 <code>part</code>、<code>action</code>、<code>port</code> 这些关键字建模。L3（标准库）提供现成的单位和类型。L1（KerML）帮你理解"为什么"。L0 是给语言设计者看的，初学阶段不需要深究。</p></div><span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>SysML v2 最重要的一个区分：定义 vs 用法</h2>
+</div>
+
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>想象"披萨"这道菜。<br><br><strong>【定义】</strong>餐厅的食谱卡片写着：披萨 = 面饼 + 番茄酱 + 奶酪 + 配料。这张食谱卡片就是"定义"——它描述披萨是什么，但它本身不是一张真正的披萨。<br><br><strong>【用法】</strong>厨师今天按照食谱做了三张披萨：一张玛格丽特、一张夏威夷、一张培根。这三张真实的披萨就是"用法"——它们是定义的具体实例，出现在特定的上下文中（今晚的菜单）。<br><br>SysML v2 中：<code>part def Battery</code> 是定义（食谱）；<code>part battery : Battery</code> 是用法（今晚的那道菜）。</p></div>
+<h3>定义（Definitions）— 描述"是什么"</h3>
+<p>定义就是一个可以反复使用的模板。你只需要写一次，就可以在很多地方引用它。SysML v2 的主要定义关键字：</p>
+<ul>
+  <li><code>part def</code> — 定义一个结构性组件（就像定义一个零件的"图纸"）</li>
+  <li><code>item def</code> — 定义一种在部件之间流动的事物（比如信号、数据包、液体）</li>
+  <li><code>port def</code> — 定义一个连接点（就像插座的形状标准）</li>
+  <li><code>action def</code> — 定义一个动作或功能（就像定义一个操作步骤）</li>
+  <li><code>state def</code> — 定义一种状态机行为（就像定义系统的各种工作状态）</li>
+  <li><code>requirement def</code> — 定义一种需求类型（就像需求的模板格式）</li>
+  <li><code>attribute def</code> — 定义一种值类型或属性（比如温度、重量）</li>
+</ul>
+<h3>用法（Usages）— 描述"在哪里用"</h3>
+<p>用法是把定义放到具体场景中使用。就像把"披萨食谱"应用到"今晚的菜单"里。用法的关键字和定义关键字一一对应，只是去掉了 <code>def</code>：</p>
+<ul>
+  <li><code>part</code> — 结构性部件的具体使用（这个系统里的那个具体零件）</li>
+  <li><code>item</code> — 流动项的具体实例</li>
+  <li><code>port</code> — 某个部件上的具体连接点</li>
+  <li><code>action</code> — 某个流程中的具体操作步骤</li>
+  <li><code>state</code> — 状态机中的一个具体状态</li>
+  <li><code>requirement</code> — 一条具体的需求</li>
+  <li><code>attribute</code> — 一个具体的属性值槽（等待被赋值）</li>
+</ul>
+<h3>看一个完整的例子</h3>
+<pre><code>// ── 第一步：定义（写"食谱"） ─────────────────────────────
+
+part def Battery {                    // 定义"电池"是什么
+    attribute capacity : Real;        // 电池有一个属性：容量（Wh）
+    attribute voltage  : Real;        // 电池有一个属性：电压（V）
+}
+
+part def Motor {                      // 定义"电机"是什么
+    attribute maxRPM : Real;          // 电机有一个属性：最大转速
+    port powerIn : ~ElectricalPort;   // 电机有一个连接点：电源输入口
+}
+
+part def Drone {                      // 定义"无人机"是什么
+    part battery : Battery;          // 无人机里有一个 Battery（用法）
+    part motor1  : Motor;            // 无人机里有四个 Motor（用法）
+    part motor2  : Motor;
+    part motor3  : Motor;
+    part motor4  : Motor;
+}
+
+// ── 第二步：用法（"点菜"） ──────────────────────────────────
+
+part missionDrone : Drone;           // 这是一架具体的任务无人机</code></pre>
+<div class="callout tip"><div class="callout-label">💡 关键规律</div><p>定义（<code>def</code>）= 模板，写一次，用很多次。用法（无 <code>def</code>）= 模板的一次具体应用，出现在某个上下文里。两者缺一不可：没有定义，就没有规范；没有用法，定义永远停留在纸上。</p></div><span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>SysML v2 文本表示法（STN）</h2>
+</div>
+
+<p>SysML v1 只有图形语言（各种方框和箭头的图）。SysML v2 新增了一套文字语法，叫做"SysML 文本表示法"（STN，SysML Textual Notation）。文字语法的好处是：可以用普通的文本编辑器编写，可以用 Git 管理版本，可以被程序自动处理。图形和文字可以互相转换，内容完全一致。</p>
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>类比：就像音乐既可以用五线谱（图形）来表示，也可以用简谱（文字）来表示，两种记法描述的是同一首曲子。SysML v2 的图形表示法和文本表示法也是如此。</p></div>
+<h3>基本语法规则（逐条说明）</h3>
+<table><thead><tr><th>语法模式</th><th>含义与说明</th></tr></thead><tbody><tr><td><code>关键字  名称  :  类型</code></td><td>最基本的模式。比如 <code>part battery : Battery</code> 意思是"有一个叫 battery 的部件，它的类型是 Battery"。</td></tr><tr><td><code>{ ... }</code></td><td>花括号里是这个元素"拥有"的内容，比如它的子部件、属性、动作等。</td></tr><tr><td><code>// 注释</code></td><td>双斜线后面是注释，给人看的说明文字，不影响模型含义。</td></tr><tr><td><code>package Pkg { ... }</code></td><td>定义一个命名空间（包），相当于一个文件夹，把相关的定义组织在一起。</td></tr><tr><td><code>import Pkg::*;</code></td><td>把某个包里的所有内容导入当前作用域，这样就可以直接用里面的定义，不用每次写完整路径。</td></tr><tr><td><code>:&gt;</code>（子集符号）</td><td>表示"是…的子集"。比如 <code>part motor1 :&gt; rotatingPart</code> 表示 motor1 也是一种 rotatingPart。</td></tr><tr><td><code>:&gt;&gt;</code>（重定义符号）</td><td>表示"替换父类中的某个特征"。比子集更强，原来的特征会被隐藏。</td></tr><tr><td><code>= expr</code>（赋值）</td><td>给属性指定一个默认值或计算表达式。比如 <code>attribute voltage = 3.7</code> 表示默认电压是 3.7V。</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 2 — SysML v2 文本表示法基本语法</caption></table>
+<div class="callout note"><div class="callout-label">NOTE</div><p>图文互转保证：任何符合规范的 SysML v2 工具都必须支持图形和文本两种形式，而且两者之间可以无损转换。你用文字写的模型，可以自动生成图形；图形也可以导出为文字。</p></div><span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>与 SysML v1 的对应关系</h2>
+</div>
+
+<p>如果你完全没用过 SysML v1，可以跳过这一节，或者把它当作词汇预览来看。下表列出了 v1 中常见概念在 v2 中对应的叫法：</p>
+<table><thead><tr><th>SysML v1 的叫法</th><th>SysML v2 的叫法</th><th>主要变化说明</th></tr></thead><tbody><tr><td>Block</td><td><code>part def</code></td><td>名称更清晰，不再有 UML Class 的历史包袱</td></tr><tr><td>Block Property</td><td><code>part</code> / <code>attribute</code>（用法）</td><td>明确区分：<code>part</code> 是结构组件，<code>attribute</code> 是数值属性</td></tr><tr><td>Flow Port</td><td>带方向的 <code>port</code></td><td><code>port def</code> 上直接指定 in/out/inout 方向</td></tr><tr><td>Standard Port</td><td>带接口的 <code>port def</code></td><td>端口通过接口类型来描述兼容性</td></tr><tr><td>ValueProperty</td><td><code>attribute</code></td><td>更简洁，可以关联国际单位（ISQ）</td></tr><tr><td>ConstraintBlock</td><td><code>constraint def</code></td><td>约束有了正式的数学表达式</td></tr><tr><td>Requirement (block)</td><td><code>requirement def</code></td><td>需求可以关联主体（subject）和利益相关者</td></tr><tr><td>satisfy / verify</td><td><code>satisfy</code> / <code>verify</code></td><td>现在是一等关系，有明确的类型化语义</td></tr><tr><td>Activity</td><td><code>action def</code></td><td>行为建模更统一，不再依赖 UML 活动图</td></tr><tr><td>StateMachine</td><td><code>state def</code></td><td>状态机与动作语义统一，更加一致</td></tr><tr><td>IBD（块图）</td><td>部件用法树/互连</td><td>不再需要单独的图形类型，用法树可以直接展示结构</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 3 — SysML v1 到 SysML v2 概念对照</caption></table><span class="section-anchor" id="s7"></span>
+<div class="section-header">
+  <span class="section-num">7</span>
+  <h2>本模块总结</h2>
+</div>
+
+<p>恭喜完成第一模块！下面用最简单的语言回顾一下本模块的核心内容：</p>
+<ul>
+  <li>SysML v2 是工程师用来设计复杂系统的"画图语言"，由 OMG 在 2024 年发布。</li>
+  <li>SysML v2 不再基于 UML，而是建立在全新的 KerML（内核建模语言）之上，概念更精确。</li>
+  <li>KerML 定义了最基础的构件：Element（元素）、Type（类型）、Feature（特征）、Classifier（分类器）、Connector（连接器）、Relationship（关系）。</li>
+  <li>SysML v2 分为四层：基础数学语义（L0）→ KerML（L1）→ SysML 语言（L2）→ 标准库（L3）。你平时在 L2 工作。</li>
+  <li>最核心的区分：<strong>定义</strong>（<code>def</code>）= 模板；<strong>用法</strong>（无 <code>def</code>）= 模板在具体场景中的应用。</li>
+  <li>SysML v2 新增了文字语法（STN），图形和文字可以互相转换。</li>
+  <li>如果你学过 SysML v1：Block → <code>part def</code>，Activity → <code>action def</code>，大多数概念都有直接对应。</li>
+</ul>
+<div class="next-box"><div class="next-label">Up Next</div><p>模块二 — 核心语言概念 — 命名空间、包、导入/可见性、特化链、多重性以及完整的特征模型。</p></div>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+</body>
+</html>
