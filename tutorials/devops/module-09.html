@@ -3,111 +3,206 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Containers in a DevOps Workflow — DevOps SCCM4910</title>
+<title>Module 09: Containers in a DevOps Workflow — DevOps Tutorials</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="reading-progress"></div>
 <nav class="site-nav">
-  <a class="nav-brand" href="index.html">Dev<span>Ops</span></a>
-  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a>
-<a class="nav-dot" href="module-02.html" title="Module 2">2</a>
-<a class="nav-dot" href="module-03.html" title="Module 3">3</a>
-<a class="nav-dot" href="module-04.html" title="Module 4">4</a>
-<a class="nav-dot" href="module-05.html" title="Module 5">5</a>
-<a class="nav-dot" href="module-06.html" title="Module 6">6</a>
-<a class="nav-dot" href="module-07.html" title="Module 7">7</a>
-<a class="nav-dot" href="module-08.html" title="Module 8">8</a>
-<a class="nav-dot active" href="module-09.html" title="Module 9">9</a>
-<a class="nav-dot" href="module-10.html" title="Module 10">10</a>
-</div>
+  <a class="nav-brand" href="../../tutorials/">Ran <span>Wei</span></a>
+  <span class="nav-sep">/</span>
+  <a class="nav-crumb" href="index.html">DevOps Series</a>
+  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a><a class="nav-dot" href="module-02.html" title="Module 2">2</a><a class="nav-dot" href="module-03.html" title="Module 3">3</a><a class="nav-dot" href="module-04.html" title="Module 4">4</a><a class="nav-dot" href="module-05.html" title="Module 5">5</a><a class="nav-dot" href="module-06.html" title="Module 6">6</a><a class="nav-dot" href="module-07.html" title="Module 7">7</a><a class="nav-dot" href="module-08.html" title="Module 8">8</a><a class="nav-dot active" href="module-09.html" title="Module 9">9</a><a class="nav-dot" href="module-10.html" title="Module 10">10</a></div>
 </nav>
-
 
 <div class="hero">
   <div class="hero-meta">
     <span class="tag tag-module">Module 09</span>
     <span class="tag tag-theme">Containers</span>
-    <span class="tag tag-time">~45 min read</span>
+    <span class="tag tag-time">~1 hour</span>
   </div>
-  <h1>Containers in a DevOps Workflow</h1>
-  <p class="hero-sub">Connect Docker to your CI pipeline and complete the journey from git push to a verified, containerised application.</p>
-  <div class="mlo-row"><span class="mlo-badge">MLO5</span><span class="mlo-badge">MLO6</span><span class="mlo-badge">MLO7</span></div>
-</div>
 <div class="content-wrap">
   <div class="main-col">
-<h2 id="containers-in-the-pipeline">Containers in the pipeline</h2>
-<p>In Module 8 you built a Docker image locally. Now let us connect that to the CI pipeline you built in Modules 6 and 7.</p>
-<p>The idea is simple: after the tests pass, the pipeline should also verify that the Docker image can be built and that the container runs correctly. This means if your Dockerfile has an error, you find out immediately — not when someone tries to deploy the application.</p>
-<div class="callout callout-info"><div class="callout-title">Why build in CI?</div><p>Building the image locally is useful. Building it in CI is essential. CI gives you a clean, neutral environment. If it builds and runs there, it will build and run anywhere.</p></div>
+  <h1>Containers in a DevOps Workflow</h1>
+  <p class="hero-sub">Connect Docker to your CI pipeline and trace the complete journey from a git push to a verified, containerised application.</p>
+  <div class="mlo-row"><span class="mlo-label">Covers:</span><span class="mlo-badge">MLO5</span><span class="mlo-badge">MLO6</span><span class="mlo-badge">MLO7</span></div>
+</div><h2 id="the-complete-pipeline-picture">The complete pipeline picture</h2><p>Over the last eight modules you have built the individual components of a DevOps pipeline. This module connects them. Here is the full picture:</p><div class="flow-row"><div class="flow-box">Developer push</div><span class="flow-arrow">→</span><div class="flow-box">CI: checkout</div><span class="flow-arrow">→</span><div class="flow-box">CI: test</div><span class="flow-arrow">→</span><div class="flow-box">CI: lint</div><span class="flow-arrow">→</span><div class="flow-box highlight">CI: docker build</div><span class="flow-arrow">→</span><div class="flow-box">CI: smoke test</div><span class="flow-arrow">→</span><div class="flow-box">PR green</div></div><p>The addition of Docker in the pipeline serves two purposes:</p><ul><li><strong>Environment verification</strong> — if the image builds in CI, it will build anywhere. Dockerfile errors are caught immediately.</li><li><strong>Artefact production</strong> — the image built in CI is the exact artefact that would be deployed to production. CI is the point where the application is packaged.</li></ul><h2 id="docker-in-ci">Docker in CI</h2><p>GitHub's hosted runners have Docker pre-installed. You do not need any special setup. Add the following steps after your tests:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows/ci.yml — docker steps</span></div><pre><code><span class="cmd">      - name:</span>
+<span class="str"> Build Docker image</span>
+<span class="cmd">        run:</span>
+<span class="str"> docker build -t my-app:${{ github.sha }} .</span>
 
-<h2 id="adding-docker-build-to-ci">Adding docker build to CI</h2>
-<p>GitHub's hosted runners have Docker pre-installed. Add two steps to your workflow:</p>
-<div class="code-block"><div class="code-label">.github/workflows/ci.yml — docker steps</div><pre><code><span class="cmd">      - name: </span>
-<span class="arg">Run tests</span>
-<span class="cmd">        run: </span>
-<span class="arg">./run.sh test</span>
-<span class="out"></span>
-<span class="cmd">      - name: </span>
-<span class="arg">Build Docker image</span>
-<span class="cmd">        run: </span>
-<span class="arg">docker build -t my-app:latest .</span>
-<span class="out"></span>
-<span class="cmd">      - name: </span>
-<span class="arg">Run container smoke test</span>
-<span class="cmd">        run: </span>
-<span class="arg">docker run --rm my-app:latest</span>
-</code></pre></div>
-<p>The <code>--rm</code> flag tells Docker to automatically remove the container after it exits. This keeps the runner clean.</p>
-<p>A <strong>smoke test</strong> is a minimal check — it does not test every feature, it just confirms the application starts and exits without crashing. This catches the most common deployment errors.</p>
+<span class="cmd">      - name:</span>
+<span class="str"> Run smoke test</span>
+<span class="cmd">        run:</span>
+<span class="str"> |</span>
+<span class="cmd">          docker run --rm \</span>
+<span class="cmd">            -e APP_ENV=test \</span>
+<span class="cmd">            my-app:${{ github.sha }} \</span>
+<span class="cmd">            python3 -c 'import app; print("OK")'</span>
+</code></pre></div><p><code>${{ github.sha }}</code> is a built-in GitHub Actions variable containing the commit hash. Using it as the image tag means every build produces a uniquely-identified image — you can always trace a running container back to the exact commit that built it.</p><h2 id="tagging-images-correctly">Tagging images correctly</h2><p>Image tags are version labels. Good tagging makes it possible to deploy any specific version and to understand which version is running where:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — tagging strategies</span></div><pre><code><span class="cmt"># By commit SHA — unique per build</span>
+<span class="cmd">docker build</span>
+<span class="flag"> -t</span>
+<span class="arg"> my-app:a1b2c3d .</span>
 
-<h2 id="environment-variables-in-containers">Environment variables in containers</h2>
-<p>Applications often need configuration that varies between environments — a database URL, an API key, a flag to enable debug mode. You should never hard-code these values in the image. Instead, pass them at runtime:</p>
-<div class="code-block"><div class="code-label">bash — passing environment variables</div><pre><code><span class="cmt"># Pass a single variable with -e</span>
-<span class="cmd">docker run </span>
-<span class="flag">-e </span>
-<span class="arg">APP_ENV=production </span>
-<span class="arg">my-app</span>
-<span class="out"></span>
-<span class="cmt"># Pass multiple variables</span>
-<span class="cmd">docker run </span>
-<span class="flag">-e </span>
-<span class="arg">APP_ENV=test </span>
-<span class="flag">-e </span>
-<span class="arg">DEBUG=false </span>
-<span class="arg">my-app</span>
-</code></pre></div>
-<p>In CI, you can pass the same variable from the workflow:</p>
-<div class="code-block"><div class="code-label">.github/workflows/ci.yml — env in docker run</div><pre><code><span class="cmd">      - name: </span>
-<span class="arg">Run container smoke test</span>
-<span class="cmd">        run: </span>
-<span class="arg">docker run --rm -e APP_ENV=test my-app:latest</span>
-</code></pre></div>
+<span class="cmt"># By semantic version — human readable</span>
+<span class="cmd">docker build</span>
+<span class="flag"> -t</span>
+<span class="arg"> my-app:1.4.2 .</span>
 
-<h2 id="the-full-pipeline-story">The full pipeline story</h2>
-<p>Let us trace the complete journey from a developer's commit to a verified, containerised application:</p>
-<ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Developer pushes code</strong> — <code>git push origin feature-branch</code></div></li><li><div class="step-num"></div><div class="step-body"><strong>Pipeline triggers</strong> — GitHub Actions detects the push and starts the workflow.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Checkout</strong> — the runner checks out the code.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Install and test</strong> — <code>./run.sh install</code> then <code>./run.sh test</code> run the automated checks.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Build image</strong> — <code>docker build -t my-app:latest .</code> packages the application.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Smoke test</strong> — <code>docker run --rm my-app:latest</code> confirms the container starts cleanly.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Pipeline passes</strong> — the PR can now be reviewed and merged with confidence.</div></li></ol>
-<p>This is a real, working DevOps pipeline. It is not the most complex one in the world, but it embodies every principle from the CALMS framework: automation, consistency, fast feedback.</p>
+<span class="cmt"># By branch name — useful for staging</span>
+<span class="cmd">docker build</span>
+<span class="flag"> -t</span>
+<span class="arg"> my-app:main .</span>
 
-<h2 id="common-deployment-challenges">Common deployment challenges</h2>
-<p>Containers make deployment more predictable, but some challenges remain:</p>
-<div class="term-grid"><div class="term-card"><div class="term-word">Port conflicts</div><div class="term-def">Two processes trying to use the same port. Solved by mapping container ports explicitly.</div></div><div class="term-card"><div class="term-word">Missing env vars</div><div class="term-def">The app needs a variable that was not passed at runtime. Fails loudly at startup.</div></div><div class="term-card"><div class="term-word">Image not rebuilding</div><div class="term-def">Docker caches layers aggressively. Sometimes you need --no-cache to force a fresh build.</div></div><div class="term-card"><div class="term-word">Large images</div><div class="term-def">Installing too many packages inflates the image. Use slim base images and clean up after RUN steps.</div></div><div class="term-card"><div class="term-word">Stopped vs running</div><div class="term-def">A container that exits immediately is not the same as one that never started. Check docker ps -a.</div></div></div>
-<div class="callout callout-warning"><div class="callout-title">The end of this module is not the end of the story</div><p>This module deliberately stopped before container orchestration (Kubernetes), container networking, volumes, and registry deployments. These are real and important topics — they are covered in later modules and in industry courses. The foundation you have built here is the necessary prerequisite for all of them.</p></div>
+<span class="cmt"># Multiple tags on the same image</span>
+<span class="cmd">docker build</span>
+<span class="flag">  -t</span>
+<span class="arg"> my-app:1.4.2</span>
+<span class="flag"> -t</span>
+<span class="arg"> my-app:latest .</span>
+</code></pre></div><p><code>latest</code> is a special convention: it refers to the most recently pushed version. Many tools pull <code>latest</code> by default. Be careful with it — it changes with every push, making it hard to reproduce a specific deployment. For serious deployments, always use a specific tag.</p><h2 id="health-checks">Health checks</h2><p>A container can be running but not actually serving requests correctly — the process started but is stuck, or the database connection failed. <strong>Health checks</strong> provide a way to verify the container is genuinely working:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">Dockerfile — health check</span></div><pre><code><span class="cmd">FROM</span>
+<span class="arg"> python:3.11-slim</span>
+<span class="cmd">WORKDIR</span>
+<span class="arg"> /app</span>
+<span class="cmd">COPY</span>
+<span class="arg"> . .</span>
+<span class="cmd">RUN</span>
+<span class="arg"> pip install -r requirements.txt</span>
 
-<h2 id="key-terms">Key terms</h2>
-<div class="term-grid"><div class="term-card"><div class="term-word">smoke test</div><div class="term-def">A minimal check that the application starts and runs without immediately crashing.</div></div><div class="term-card"><div class="term-word">--rm</div><div class="term-def">A docker run flag that removes the container automatically when it exits.</div></div><div class="term-card"><div class="term-word">-e</div><div class="term-def">A docker run flag that passes an environment variable to the container.</div></div><div class="term-card"><div class="term-word">image tag</div><div class="term-def">A label for a specific version of an image, e.g. my-app:latest.</div></div><div class="term-card"><div class="term-word">docker build cache</div><div class="term-def">Docker reuses unchanged layers to speed up builds. Use --no-cache to bypass.</div></div><div class="term-card"><div class="term-word">pipeline parity</div><div class="term-def">Local docker build and CI docker build produce identical images.</div></div></div>
+<span class="cmt"># Run this command to check health</span>
+<span class="cmt"># --interval: how often to check</span>
+<span class="cmt"># --timeout: how long to wait for a response</span>
+<span class="cmt"># --retries: how many failures before marking unhealthy</span>
+<span class="cmd">HEALTHCHECK</span>
+<span class="flag"> --interval=30s --timeout=5s --retries=3</span>
+<span class="cmd">  CMD</span>
+<span class="arg"> curl -f http://localhost:8000/health || exit 1</span>
 
-<h2 id="exercises">Exercises</h2>
-<div class="callout callout-exercise"><div class="callout-title">Lab exercises</div>
-<ol><li>Write a Dockerfile for the application from Module 6 and 7.</li><li>Build and run it locally — confirm the output matches running the script directly.</li><li>Add a docker build step to your GitHub Actions workflow.</li><li>Add a docker run --rm step as a smoke test.</li><li>Push and verify the complete pipeline passes: install, test, build, run.</li><li>Extension: pass an environment variable <code>APP_ENV=test</code> to the container in CI, and print it in your Python script to confirm it is received.</li></ol>
-</div>
-</div>
-  <aside class="sidebar"><div class="toc"><div class="toc-title">On this page</div><ul class="toc-list"><li><a href="#containers-in-the-pipeline">Containers in the pipeline</a></li><li><a href="#adding-docker-build-to-ci">Adding docker build to CI</a></li><li><a href="#environment-variables-in-containers">Environment variables in containers</a></li><li><a href="#the-full-pipeline-story">The full pipeline story</a></li><li><a href="#common-deployment-challenges">Common deployment challenges</a></li><li><a href="#key-terms">Key terms</a></li><li><a href="#exercises">Exercises</a></li></ul></div></aside>
+<span class="cmd">CMD</span>
+<span class="arg"> ["uvicorn", "app:app", "--host", "0.0.0.0"]</span>
+</code></pre></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — checking health status</span></div><pre><code><span class="cmd">docker ps</span>
+<span class="out">CONTAINER ID  IMAGE         STATUS</span>
+<span class="out">a1b2c3d4e5f6  my-app:latest Up 2 mins (healthy)</span>
+
+<span class="cmt"># An unhealthy container</span>
+<span class="out">b2c3d4e5f6a7  my-app:latest Up 5 mins (unhealthy)</span>
+</code></pre></div><h2 id="environment-specific-configuration">Environment-specific configuration</h2><p>The same Docker image should run in development, staging, and production. The difference is configuration — database URLs, log levels, API endpoints. Pass these as environment variables, never bake them into the image:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — runtime configuration</span></div><pre><code><span class="cmt"># Development: connect to local database, verbose logging</span>
+<span class="cmd">docker run</span>
+<span class="flag">  -e DATABASE_URL=postgresql://localhost/devdb</span>
+<span class="flag"> -e LOG_LEVEL=DEBUG</span>
+<span class="arg"> my-app:latest</span>
+
+<span class="cmt"># Production: connect to production database, minimal logging</span>
+<span class="cmd">docker run</span>
+<span class="flag">  -e DATABASE_URL=postgresql://prod-db.example.com/proddb</span>
+<span class="flag"> -e LOG_LEVEL=WARNING</span>
+<span class="flag"> -e SECRET_KEY=very_long_random_string</span>
+<span class="arg"> my-app:latest</span>
+</code></pre></div><p>In CI, pass test-specific configuration:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows — environment variables in CI</span></div><pre><code><span class="cmd">      - name:</span>
+<span class="str"> Run smoke test</span>
+<span class="cmd">        env:</span>
+<span class="cmd">          DATABASE_URL:</span>
+<span class="str"> sqlite:///:memory:</span>
+<span class="cmd">          APP_ENV:</span>
+<span class="str"> test</span>
+<span class="cmd">        run:</span>
+<span class="str"> docker run --rm -e DATABASE_URL -e APP_ENV my-app:latest</span>
+</code></pre></div><h2 id="container-registries">Container registries</h2><p>A container registry is a storage service for Docker images. When CI builds an image, it can push it to a registry. When a server deploys, it pulls from the registry.</p><table class="compare-table"><thead><tr><th>Registry</th><th>Use case</th><th>Notes</th></tr></thead><tbody><tr><td><strong>Docker Hub</strong></td><td>Public images, open-source projects</td><td>Free for public images. Official images (<code>python:3.11</code>) live here.</td></tr><tr><td><strong>GitHub Container Registry (GHCR)</strong></td><td>Private images linked to a GitHub repo</td><td>Free for public repos. Integrates naturally with GitHub Actions.</td></tr><tr><td><strong>AWS ECR / GCP Artifact Registry</strong></td><td>Enterprise/cloud deployments</td><td>Paid, but tightly integrated with cloud infrastructure.</td></tr></tbody></table><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows — push image to GHCR</span></div><pre><code><span class="cmd">      - name:</span>
+<span class="str"> Log in to GitHub Container Registry</span>
+<span class="cmd">        uses:</span>
+<span class="str"> docker/login-action@v3</span>
+<span class="cmd">        with:</span>
+<span class="cmd">          registry:</span>
+<span class="str"> ghcr.io</span>
+<span class="cmd">          username:</span>
+<span class="str"> ${{ github.actor }}</span>
+<span class="cmd">          password:</span>
+<span class="str"> ${{ secrets.GITHUB_TOKEN }}</span>
+
+<span class="cmd">      - name:</span>
+<span class="str"> Build and push</span>
+<span class="cmd">        run:</span>
+<span class="str"> |</span>
+<span class="cmd">          IMAGE=ghcr.io/${{ github.repository }}:${{ github.sha }}</span>
+<span class="cmd">          docker build -t $IMAGE .</span>
+<span class="cmd">          docker push $IMAGE</span>
+</code></pre></div><h2 id="the-deployment-gap">The deployment gap</h2><p>This module brings the pipeline to a verified, packaged container image. Deploying that image to a real server — pulling it, stopping the old version, starting the new one — is the next step, and it is outside the scope of this module.</p><p>This is an intentional boundary. Real deployment involves infrastructure decisions (where are the servers? how many replicas?), orchestration (Kubernetes, AWS ECS), secrets management in production, rolling deployments with zero downtime, and monitoring. These are Year 2 topics.</p><p>What this module teaches is the foundation: <em>building a pipeline that produces a verified, tagged, registry-stored image is the CI/CD team's output</em>. The deployment infrastructure consumes that output.</p><h2 id="common-production-challenges">Common production challenges</h2><p>These challenges will appear in your exam and in your career. Understanding them at a conceptual level now prepares you for solving them later:</p><div class="def-list"><div class="def-row"><div class="def-term">Image size bloat</div><div class="def-body">Installing too many packages increases image size. Use <code>--no-cache-dir</code> with pip, use slim base images, and remove package manager caches after installation.</div></div><div class="def-row"><div class="def-term">Secret leakage</div><div class="def-body">Secrets passed as build ARGs can be extracted from image history. Always pass secrets at runtime as environment variables, never at build time.</div></div><div class="def-row"><div class="def-term">Wrong CMD for the environment</div><div class="def-body">A CMD designed for development (e.g. Flask's debug server) is not suitable for production. Use Gunicorn or Uvicorn with worker processes in production.</div></div><div class="def-row"><div class="def-term">Missing env vars at startup</div><div class="def-body">If a required environment variable is not set, the application crashes immediately. Write startup checks that fail loudly with a useful message.</div></div><div class="def-row"><div class="def-term">Container can't connect to database</div><div class="def-body">In production, the database is a separate service. The application needs the correct DATABASE_URL and the network must allow the connection.</div></div></div><h2 id="putting-it-all-together">Putting it all together</h2><p>Here is the complete CI workflow integrating everything from Modules 6, 7, 8, and 9:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows/ci.yml — complete</span></div><pre><code><span class="cmd">name:</span>
+<span class="str"> CI</span>
+
+<span class="cmd">on:</span>
+<span class="cmd">  push:</span>
+<span class="cmd">    branches:</span>
+<span class="str"> [main]</span>
+<span class="cmd">  pull_request:</span>
+<span class="cmd">    branches:</span>
+<span class="str"> [main]</span>
+
+<span class="cmd">jobs:</span>
+<span class="cmd">  ci:</span>
+<span class="cmd">    runs-on:</span>
+<span class="str"> ubuntu-latest</span>
+
+<span class="cmd">    steps:</span>
+<span class="cmd">      - uses:</span>
+<span class="str"> actions/checkout@v4</span>
+
+<span class="cmd">      - uses:</span>
+<span class="str"> actions/setup-python@v5</span>
+<span class="cmd">        with:</span>
+<span class="cmd">          python-version:</span>
+<span class="str"> '3.11'</span>
+
+<span class="cmd">      - name:</span>
+<span class="str"> Install and test</span>
+<span class="cmd">        run:</span>
+<span class="str"> |</span>
+<span class="cmd">          chmod +x run.sh</span>
+<span class="cmd">          ./run.sh install</span>
+<span class="cmd">          ./run.sh lint</span>
+<span class="cmd">          ./run.sh test</span>
+
+<span class="cmd">      - name:</span>
+<span class="str"> Build Docker image</span>
+<span class="cmd">        run:</span>
+<span class="str"> docker build -t my-app:${{ github.sha }} .</span>
+
+<span class="cmd">      - name:</span>
+<span class="str"> Smoke test container</span>
+<span class="cmd">        run:</span>
+<span class="str"> |</span>
+<span class="cmd">          docker run --rm \</span>
+<span class="cmd">            -e APP_ENV=test \</span>
+<span class="cmd">            my-app:${{ github.sha }} \</span>
+<span class="cmd">            python3 -c 'import app; print("Image OK")'</span>
+</code></pre></div><h2 id="key-terms">Key terms</h2><div class="term-grid"><div class="term-card"><div class="term-word">smoke test</div><div class="term-def">A minimal check that the application starts and runs without immediately crashing.</div></div><div class="term-card"><div class="term-word">image tag</div><div class="term-def">A label for a specific version of an image. Commit SHA is a common choice in CI.</div></div><div class="term-card"><div class="term-word">container registry</div><div class="term-def">A storage service for Docker images. GitHub Container Registry (GHCR) is free.</div></div><div class="term-card"><div class="term-word">health check</div><div class="term-def">A command run periodically inside a container to verify it is working correctly.</div></div><div class="term-card"><div class="term-word">github.sha</div><div class="term-def">A built-in GitHub Actions variable containing the current commit's hash.</div></div><div class="term-card"><div class="term-word">--rm flag</div><div class="term-def">Tells docker run to automatically delete the container when it exits.</div></div><div class="term-card"><div class="term-word">deployment</div><div class="term-def">The act of taking a verified image and running it on a production server. Covered in Year 2.</div></div><div class="term-card"><div class="term-word">pipeline artefact</div><div class="term-def">The output of a CI pipeline — in this case, a tagged, verified Docker image.</div></div></div><h2 id="exercises">Exercises</h2><div class="callout callout-exercise"><div class="callout-title">✎ Lab exercises — approximately 55 minutes</div>
+<h3>Part A: Docker in the pipeline</h3>
+<ol><li>Take your working pipeline from Module 6.</li><li>Write a Dockerfile for the Python application.</li><li>Add a <code>docker build</code> step after the tests.</li><li>Add a smoke test step: <code>docker run --rm my-app:latest python3 -c "import app"</code></li><li>Push and verify all four steps pass: install, test, build, smoke.</li></ol>
+<h3>Part B: Tagging with commit SHA</h3>
+<ol><li>Update the build command to use <code>${{{{ github.sha }}}}</code> as the tag.</li><li>Push and check what tag appears in the Docker build log.</li><li>Run docker images locally — can you see the image with its SHA tag?</li></ol>
+<h3>Part C: Environment variables</h3>
+<ol><li>Add an APP_ENV environment variable to the smoke test step.</li><li>Modify your Python code to print the value of APP_ENV on startup.</li><li>Check the pipeline log — can you see it printing test?</li></ol>
+<h3>Part D: Health check</h3>
+<ol><li>Add a simple /health endpoint to your Flask app that returns {"status": "ok"}.</li><li>Add a HEALTHCHECK to the Dockerfile.</li><li>Run the container detached: <code>docker run -d -p 5000:5000 my-app:latest</code></li><li>Check health: <code>docker inspect <container-id> | grep Health</code></li><li>Check health via curl: <code>curl localhost:5000/health</code></li></ol>
+</div></div>
+  <div class="sidebar"><div class="toc"><div class="toc-title">On this page</div><ul class="toc-list"><li><a href=#the-complete-pipeline-picture>The complete pipeline picture</a></li><li><a href=#docker-in-ci>Docker in CI</a></li><li><a href=#tagging-images-correctly>Tagging images correctly</a></li><li><a href=#health-checks>Health checks</a></li><li><a href=#environment-specific-configuration>Environment-specific configuration</a></li><li><a href=#container-registries>Container registries</a></li><li><a href=#the-deployment-gap>The deployment gap</a></li><li><a href=#common-production-challenges>Common production challenges</a></li><li><a href=#putting-it-all-together>Putting it all together</a></li><li><a href=#key-terms>Key terms</a></li><li><a href=#exercises>Exercises</a></li></ul></div></div>
 </div>
 <div style="max-width:var(--wide);margin:0 auto;padding:0 2rem;">
-  <div class="pagination"><a class="page-btn prev" href="module-08.html"><span class="page-dir">← Previous</span><span class="page-title">Virtualisation & Containers</span></a><a class="page-btn next" href="module-10.html"><span class="page-dir">Next →</span><span class="page-title">DevOps in Practice</span></a></div>
+  <div class="pagination"><a class="page-btn prev" href="module-08.html"><span class="page-dir">← Previous</span><span class="page-title">Virtualisation and Containers</span></a><a class="page-btn next" href="module-10.html"><span class="page-dir">Next →</span><span class="page-title">DevOps in Practice & Review</span></a></div>
 </div>
-<footer><p>SCCM4910 DevOps · Lancaster University · Made for first-year students</p></footer>
+<footer>
+  <p>DevOps Tutorials · Ran Wei</p>
+  <p style="margin-top:6px">Questions? Post on the module Moodle forum or discuss with your lab demonstrator.</p>
+</footer>
+
 <script>
+// Reading progress bar
+const bar = document.querySelector('.reading-progress');
+window.addEventListener('scroll', () => {
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.width = (window.scrollY / total * 100) + '%';
+});
+
+// TOC active link
 const sections = document.querySelectorAll('h2[id]');
 const links = document.querySelectorAll('.toc-list a');
 const obs = new IntersectionObserver(entries => {
@@ -116,8 +211,9 @@ const obs = new IntersectionObserver(entries => {
       links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id));
     }
   });
-}, {rootMargin:'-20% 0px -70% 0px'});
+}, {rootMargin:'-15% 0px -75% 0px'});
 sections.forEach(s => obs.observe(s));
 </script>
+
 </body>
 </html>

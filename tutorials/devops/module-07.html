@@ -3,163 +3,360 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Automating Repetitive Tasks — DevOps SCCM4910</title>
+<title>Module 07: Automating Repetitive Tasks — DevOps Tutorials</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="reading-progress"></div>
 <nav class="site-nav">
-  <a class="nav-brand" href="index.html">Dev<span>Ops</span></a>
-  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a>
-<a class="nav-dot" href="module-02.html" title="Module 2">2</a>
-<a class="nav-dot" href="module-03.html" title="Module 3">3</a>
-<a class="nav-dot" href="module-04.html" title="Module 4">4</a>
-<a class="nav-dot" href="module-05.html" title="Module 5">5</a>
-<a class="nav-dot" href="module-06.html" title="Module 6">6</a>
-<a class="nav-dot active" href="module-07.html" title="Module 7">7</a>
-<a class="nav-dot" href="module-08.html" title="Module 8">8</a>
-<a class="nav-dot" href="module-09.html" title="Module 9">9</a>
-<a class="nav-dot" href="module-10.html" title="Module 10">10</a>
-</div>
+  <a class="nav-brand" href="../../tutorials/">Ran <span>Wei</span></a>
+  <span class="nav-sep">/</span>
+  <a class="nav-crumb" href="index.html">DevOps Series</a>
+  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a><a class="nav-dot" href="module-02.html" title="Module 2">2</a><a class="nav-dot" href="module-03.html" title="Module 3">3</a><a class="nav-dot" href="module-04.html" title="Module 4">4</a><a class="nav-dot" href="module-05.html" title="Module 5">5</a><a class="nav-dot" href="module-06.html" title="Module 6">6</a><a class="nav-dot active" href="module-07.html" title="Module 7">7</a><a class="nav-dot" href="module-08.html" title="Module 8">8</a><a class="nav-dot" href="module-09.html" title="Module 9">9</a><a class="nav-dot" href="module-10.html" title="Module 10">10</a></div>
 </nav>
-
 
 <div class="hero">
   <div class="hero-meta">
     <span class="tag tag-module">Module 07</span>
     <span class="tag tag-theme">Automation</span>
-    <span class="tag tag-time">~45 min read</span>
+    <span class="tag tag-time">~1 hour</span>
   </div>
-  <h1>Automating Repetitive Tasks</h1>
-  <p class="hero-sub">Stop typing the same commands every day. Write automation scripts that work identically locally and in CI.</p>
-  <div class="mlo-row"><span class="mlo-badge">MLO3</span><span class="mlo-badge">MLO6</span></div>
-</div>
 <div class="content-wrap">
   <div class="main-col">
-<h2 id="why-automate">Why automate?</h2>
-<p>Consider what you do every time you start working on a project: navigate to the folder, activate a virtual environment, maybe install updated packages, run a quick test to make sure everything is still working.</p>
-<p>These are the same steps every single time. If you do something more than twice, it should be automated. There are two reasons:</p>
-<ul><li><strong>Consistency</strong> — a script runs the same steps in the same order every time. You cannot forget a step or do it slightly differently.</li><li><strong>Shareability</strong> — a script communicates the correct workflow to everyone on the team, including your future self.</li></ul>
-<div class="callout callout-info"><div class="callout-title">The connection to CI</div><p>Your CI pipeline is just automation running on someone else's computer. When you automate your local workflow with a script and then call that same script from the pipeline, you are guaranteed that local and CI behave identically. This is exactly the goal.</p></div>
+  <h1>Automating Repetitive Tasks</h1>
+  <p class="hero-sub">Stop typing the same commands every day. Build professional automation scripts that work identically locally and in CI.</p>
+  <div class="mlo-row"><span class="mlo-label">Covers:</span><span class="mlo-badge">MLO3</span><span class="mlo-badge">MLO6</span></div>
+</div><h2 id="what-is-worth-automating">What is worth automating?</h2><p>A useful rule of thumb from the DevOps community: <em>if you do something more than twice, automate it</em>. But not everything that is repeated is worth automating — automation has a cost too.</p><table class="compare-table"><thead><tr><th>Task</th><th>Frequency</th><th>Automate?</th><th>Reason</th></tr></thead><tbody><tr><td>Run the tests</td><td>Every change</td><td>Yes</td><td>Fast, repetitive, easy to script</td></tr><tr><td>Set up a new developer's machine</td><td>Monthly</td><td>Yes</td><td>Error-prone if manual, expensive to debug</td></tr><tr><td>Update a hardcoded value in a config file</td><td>Twice a year</td><td>Maybe</td><td>Simple enough to do manually</td></tr><tr><td>Generate quarterly financial report</td><td>4× per year</td><td>Yes</td><td>Complex, needs consistency</td></tr><tr><td>Name a feature</td><td>Occasionally</td><td>No</td><td>Requires human judgment</td></tr></tbody></table><p>For DevOps workflows, the most valuable automation targets are: project setup, test running, code quality checks, dependency installation, and deployment steps. These are exactly what you automate in this module.</p><h2 id="anatomy-of-a-production-grade-script">Anatomy of a production-grade script</h2><p>Scripts for personal use can be loose. Scripts used by a team, or called by a CI pipeline, need more care:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — script template with best practices</span></div><pre><code><span class="cmd">#!/bin/bash</span>
+<span class="cmt"># set -e: exit immediately if any command fails</span>
+<span class="cmt"># set -u: treat unset variables as errors</span>
+<span class="cmt"># set -o pipefail: pipe fails if any command in it fails</span>
+<span class="cmd">set</span>
+<span class="flag"> -euo pipefail</span>
 
-<h2 id="identifying-repetitive-tasks">Identifying repetitive tasks</h2>
-<p>Look at your workflow from the previous modules. You have been typing something like this every session:</p>
-<div class="code-block"><div class="code-label">bash — manual workflow (tedious)</div><pre><code><span class="cmd">cd </span>
-<span class="arg">~/devops-labs/my-project</span>
-<span class="cmd">pip install </span>
-<span class="flag">-r </span>
-<span class="arg">requirements.txt</span>
-<span class="cmd">flake8 </span>
-<span class="arg">.</span>
-<span class="cmd">pytest</span>
-</code></pre></div>
-<p>Four commands, every time. If you add a new tool later, you have to remember to run it. If someone new joins the project, they have to figure out the workflow from scratch.</p>
-<p>A script solves all of this:</p>
-<div class="code-block"><div class="code-label">bash — run.sh</div><pre><code><span class="cmd">#!/bin/bash</span>
-<span class="cmd">set </span>
-<span class="flag">-e</span>
-<span class="cmt">   # stop immediately if any command fails</span>
-<span class="out"></span>
-<span class="cmd">echo </span>
-<span class="arg">"Installing dependencies..."</span>
-<span class="cmd">pip install </span>
-<span class="flag">-r </span>
-<span class="arg">requirements.txt</span>
-<span class="out"></span>
-<span class="cmd">echo </span>
-<span class="arg">"Linting..."</span>
-<span class="cmd">flake8 </span>
-<span class="arg">.</span>
-<span class="out"></span>
-<span class="cmd">echo </span>
-<span class="arg">"Running tests..."</span>
-<span class="cmd">pytest</span>
-<span class="out"></span>
-<span class="cmd">echo </span>
-<span class="arg">"All checks passed."</span>
-</code></pre></div>
+<span class="cmt"># Script metadata</span>
+<span class="cmd">SCRIPT_NAME=</span>
+<span class="str">"$(basename "$0")"</span>
+<span class="cmd">SCRIPT_DIR=</span>
+<span class="str">"$(cd "$(dirname "$0")" && pwd)"</span>
 
-<h2 id="a-well-structured-automation-script">A well-structured automation script</h2>
-<p>As scripts grow, give them structure. A common pattern is to define named tasks as functions, then call the right one based on an argument:</p>
-<div class="code-block"><div class="code-label">bash — structured tasks script</div><pre><code><span class="cmd">#!/bin/bash</span>
-<span class="cmd">set </span>
-<span class="flag">-e</span>
-<span class="out"></span>
-<span class="cmd">install() {</span>
-<span class="cmd">    echo </span>
-<span class="arg">"Installing..."</span>
-<span class="cmd">    pip install </span>
-<span class="flag">-r </span>
-<span class="arg">requirements.txt</span>
-<span class="cmd">}</span>
-<span class="out"></span>
-<span class="cmd">test() {</span>
-<span class="cmd">    echo </span>
-<span class="arg">"Testing..."</span>
+<span class="cmt"># Colour helpers</span>
+<span class="cmd">RED=</span>
+<span class="str">'\033[0;31m'</span>
+<span class="cmd">GREEN=</span>
+<span class="str">'\033[0;32m'</span>
+<span class="cmd">YELLOW=</span>
+<span class="str">'\033[1;33m'</span>
+<span class="cmd">RESET=</span>
+<span class="str">'\033[0m'</span>
+
+<span class="fn">log_info</span>
+<span class="cmd">()  { echo</span>
+<span class="str"> "${GREEN}[INFO]${RESET} $*"</span>
+<span class="cmd">; }</span>
+<span class="fn">log_warn</span>
+<span class="cmd">()  { echo</span>
+<span class="str"> "${YELLOW}[WARN]${RESET} $*"</span>
+<span class="cmd"> >&2; }</span>
+<span class="fn">log_error</span>
+<span class="cmd">() { echo</span>
+<span class="str"> "${RED}[ERROR]${RESET} $*"</span>
+<span class="cmd"> >&2; }</span>
+</code></pre></div><h2 id="script-arguments-and-help-text">Script arguments and help text</h2><p>A script that is easy to call and easy to understand is used correctly. Always include a usage function:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — usage and argument parsing</span></div><pre><code><span class="fn">usage</span>
+<span class="cmd">() {</span>
+<span class="cmd">    cat <<EOF</span>
+<span class="out">Usage: $SCRIPT_NAME [OPTIONS] COMMAND</span>
+
+<span class="out">Commands:</span>
+<span class="out">  install    Install Python dependencies</span>
+<span class="out">  test       Run the test suite</span>
+<span class="out">  lint       Run flake8 style checks</span>
+<span class="out">  clean      Remove build artefacts</span>
+<span class="out">  all        Run install, lint, and test</span>
+
+<span class="out">Options:</span>
+<span class="out">  -h, --help   Show this help message</span>
+<span class="out">  -v, --verbose  Show verbose output</span>
+<span class="out">EOF</span>
+<span class="kw">}</span>
+
+<span class="cmt"># Parse flags before the command</span>
+<span class="cmd">VERBOSE=false</span>
+<span class="kw">while</span>
+<span class="cmd"> [[ "${1:-}" == -* ]]; do</span>
+<span class="kw">    case</span>
+<span class="cmd"> "$1" in</span>
+<span class="cmd">        -h|--help)</span>
+<span class="cmd"> usage; exit 0 ;;</span>
+<span class="cmd">        -v|--verbose)</span>
+<span class="cmd"> VERBOSE=true; shift ;;</span>
+<span class="cmd">        *)</span>
+<span class="cmd"> log_error "Unknown option: $1"; usage; exit 1 ;;</span>
+<span class="kw">    esac</span>
+<span class="kw">done</span>
+</code></pre></div><h2 id="functions-and-reusability">Functions and reusability</h2><p>Functions are the building blocks of maintainable scripts. Each function does one thing and returns an appropriate exit code:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — functions as tasks</span></div><pre><code><span class="fn">install</span>
+<span class="cmd">() {</span>
+<span class="fn">    log_info</span>
+<span class="cmd"> "Installing dependencies..."</span>
+<span class="cmd">    pip install</span>
+<span class="flag"> -r requirements.txt</span>
+<span class="flag"> -q</span>
+<span class="fn">    log_info</span>
+<span class="cmd"> "Dependencies installed."</span>
+<span class="kw">}</span>
+
+<span class="fn">lint</span>
+<span class="cmd">() {</span>
+<span class="fn">    log_info</span>
+<span class="cmd"> "Running linter..."</span>
+<span class="kw">    if</span>
+<span class="cmd"> flake8 .; then</span>
+<span class="fn">        log_info</span>
+<span class="cmd"> "Lint: passed"</span>
+<span class="kw">    else</span>
+<span class="fn">        log_error</span>
+<span class="cmd"> "Lint: failed"</span>
+<span class="cmd">        return 1</span>
+<span class="kw">    fi</span>
+<span class="kw">}</span>
+
+<span class="fn">run_tests</span>
+<span class="cmd">() {</span>
+<span class="fn">    log_info</span>
+<span class="cmd"> "Running tests..."</span>
+<span class="kw">    if</span>
+<span class="cmd"> [ "$VERBOSE" = "true" ]; then</span>
+<span class="cmd">        pytest</span>
+<span class="flag"> -v</span>
+<span class="kw">    else</span>
+<span class="cmd">        pytest</span>
+<span class="kw">    fi</span>
+<span class="kw">}</span>
+
+<span class="fn">clean</span>
+<span class="cmd">() {</span>
+<span class="fn">    log_info</span>
+<span class="cmd"> "Cleaning..."</span>
+<span class="cmd">    rm</span>
+<span class="flag"> -rf</span>
+<span class="arg"> __pycache__ .pytest_cache .coverage htmlcov</span>
+<span class="fn">    log_info</span>
+<span class="cmd"> "Cleaned."</span>
+<span class="kw">}</span>
+</code></pre></div><h2 id="conditional-automation">Conditional automation</h2><p>Scripts often need to behave differently in different contexts — locally vs in CI, staging vs production:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — environment detection</span></div><pre><code><span class="cmt"># Detect CI environment</span>
+<span class="kw">if</span>
+<span class="cmd"> [ -n "${CI:-}" ]; then</span>
+<span class="fn">    log_info</span>
+<span class="cmd"> "Running in CI mode"</span>
+<span class="cmd">    EXTRA_FLAGS=</span>
+<span class="str">"--tb=short"</span>
+<span class="kw">else</span>
+<span class="fn">    log_info</span>
+<span class="cmd"> "Running locally"</span>
+<span class="cmd">    EXTRA_FLAGS=</span>
+<span class="str">""</span>
+<span class="kw">fi</span>
+
+<span class="cmt"># GitHub Actions sets CI=true automatically</span>
+<span class="cmt"># Use this to adjust behaviour</span>
+
+<span class="fn">run_tests</span>
+<span class="cmd">() {</span>
+<span class="cmd">    pytest $EXTRA_FLAGS</span>
+<span class="kw">}</span>
+</code></pre></div><h2 id="git-hooks-automating-before-commit">Git hooks: automating before commit</h2><p>Git hooks are scripts that run at specific points in the Git workflow — before a commit, before a push, after a merge. They live in <code>.git/hooks/</code>.</p><p>The most useful hook is <code>pre-commit</code> — it runs automatically before <code>git commit</code> completes. If it exits with a non-zero code, the commit is aborted.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — .git/hooks/pre-commit</span></div><pre><code><span class="cmd">#!/bin/bash</span>
+<span class="cmd">set</span>
+<span class="flag"> -euo pipefail</span>
+
+<span class="cmd">echo</span>
+<span class="str"> "Running pre-commit checks..."</span>
+
+<span class="cmt"># Only lint staged Python files</span>
+<span class="cmd">STAGED_PY=</span>
+<span class="str">"$(git diff --cached --name-only --diff-filter=ACM | grep \.py$)"</span>
+
+<span class="kw">if</span>
+<span class="cmd"> [ -n "$STAGED_PY" ]; then</span>
+<span class="cmd">    flake8 $STAGED_PY</span>
+<span class="kw">fi</span>
+
+<span class="cmd">echo</span>
+<span class="str"> "Pre-commit checks passed."</span>
+</code></pre></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — installing the hook</span></div><pre><code><span class="cmt"># Make it executable</span>
+<span class="cmd">chmod</span>
+<span class="flag"> +x</span>
+<span class="arg"> .git/hooks/pre-commit</span>
+</code></pre></div><div class="callout callout-warning"><div class="callout-title">⚠ Hooks are not version-controlled by default</div>
+<p>Files in <code>.git/</code> are not committed to the repository, so hooks do not propagate to teammates automatically. Two solutions: (1) store the hook in a <code>hooks/</code> directory in the repo and add a setup step that copies it; or (2) use the pre-commit framework (below), which handles this automatically.</p>
+</div><h2 id="pre-commit-framework">Pre-commit framework</h2><p>The <code>pre-commit</code> Python library manages hooks as configuration, making them shareable and version-controlled:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">yaml — .pre-commit-config.yaml</span></div><pre><code><span class="cmd">repos:</span>
+<span class="cmd">  - repo:</span>
+<span class="str"> https://github.com/psf/black</span>
+<span class="cmd">    rev:</span>
+<span class="str"> 24.3.0</span>
+<span class="cmd">    hooks:</span>
+<span class="cmd">      - id:</span>
+<span class="str"> black</span>
+
+<span class="cmd">  - repo:</span>
+<span class="str"> https://github.com/pycqa/flake8</span>
+<span class="cmd">    rev:</span>
+<span class="str"> 7.0.0</span>
+<span class="cmd">    hooks:</span>
+<span class="cmd">      - id:</span>
+<span class="str"> flake8</span>
+
+<span class="cmd">  - repo:</span>
+<span class="str"> https://github.com/pre-commit/pre-commit-hooks</span>
+<span class="cmd">    rev:</span>
+<span class="str"> v4.6.0</span>
+<span class="cmd">    hooks:</span>
+<span class="cmd">      - id:</span>
+<span class="str"> check-yaml</span>
+<span class="cmd">      - id:</span>
+<span class="str"> end-of-file-fixer</span>
+<span class="cmd">      - id:</span>
+<span class="str"> detect-private-key</span>
+</code></pre></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — installing pre-commit</span></div><pre><code><span class="cmd">pip install pre-commit</span>
+
+<span class="cmt"># Install the hooks into .git/hooks/</span>
+<span class="cmd">pre-commit install</span>
+<span class="out">pre-commit installed at .git/hooks/pre-commit</span>
+
+<span class="cmt"># Run manually on all files</span>
+<span class="cmd">pre-commit run</span>
+<span class="flag"> --all-files</span>
+</code></pre></div><h2 id="connecting-scripts-to-ci">Connecting scripts to CI</h2><p>Replace inline commands in your GitHub Actions workflow with calls to your script. This achieves <strong>pipeline parity</strong> — the pipeline does exactly what a developer does locally:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">.github/workflows/ci.yml — using run.sh</span></div><pre><code><span class="cmd">jobs:</span>
+<span class="cmd">  ci:</span>
+<span class="cmd">    runs-on:</span>
+<span class="str"> ubuntu-latest</span>
+<span class="cmd">    steps:</span>
+<span class="cmd">      - uses:</span>
+<span class="str"> actions/checkout@v4</span>
+<span class="cmt">      # Make the script executable (in case permissions were lost)</span>
+<span class="cmd">      - run:</span>
+<span class="str"> chmod +x run.sh</span>
+<span class="cmd">      - name:</span>
+<span class="str"> Install</span>
+<span class="cmd">        run:</span>
+<span class="str"> ./run.sh install</span>
+<span class="cmd">      - name:</span>
+<span class="str"> Lint</span>
+<span class="cmd">        run:</span>
+<span class="str"> ./run.sh lint</span>
+<span class="cmd">      - name:</span>
+<span class="str"> Test</span>
+<span class="cmd">        run:</span>
+<span class="str"> ./run.sh test</span>
+</code></pre></div><h2 id="a-complete-automation-example">A complete automation example</h2><p>Here is the complete <code>run.sh</code> drawing together everything from this module:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — run.sh (complete)</span></div><pre><code><span class="cmd">#!/bin/bash</span>
+<span class="cmd">set</span>
+<span class="flag"> -euo pipefail</span>
+
+<span class="cmd">SCRIPT_NAME=</span>
+<span class="str">"$(basename "$0")"</span>
+<span class="cmd">VERBOSE=false</span>
+
+<span class="fn">log</span>
+<span class="cmd">() { echo</span>
+<span class="str"> "[$SCRIPT_NAME] $*"</span>
+<span class="cmd">; }</span>
+<span class="fn">err</span>
+<span class="cmd">() { echo</span>
+<span class="str"> "[$SCRIPT_NAME] ERROR: $*"</span>
+<span class="cmd"> >&2; exit 1; }</span>
+
+<span class="fn">usage</span>
+<span class="cmd">() {</span>
+<span class="cmd">    echo</span>
+<span class="str"> "Usage: $SCRIPT_NAME {install|test|lint|clean|all}"</span>
+<span class="kw">}</span>
+
+<span class="fn">install</span>
+<span class="cmd">() {</span>
+<span class="fn">    log</span>
+<span class="cmd"> "Installing dependencies"</span>
+<span class="cmd">    pip install</span>
+<span class="flag"> -r requirements.txt</span>
+<span class="flag"> -q</span>
+<span class="kw">}</span>
+
+<span class="fn">lint</span>
+<span class="cmd">() {</span>
+<span class="fn">    log</span>
+<span class="cmd"> "Linting with flake8"</span>
+<span class="cmd">    flake8 </span>
+<span class="arg">.</span>
+<span class="kw">}</span>
+
+<span class="fn">run_tests</span>
+<span class="cmd">() {</span>
+<span class="fn">    log</span>
+<span class="cmd"> "Running tests"</span>
 <span class="cmd">    pytest</span>
-<span class="cmd">}</span>
-<span class="out"></span>
-<span class="cmd">clean() {</span>
-<span class="cmd">    echo </span>
-<span class="arg">"Cleaning..."</span>
-<span class="cmd">    rm </span>
-<span class="flag">-rf </span>
-<span class="arg">__pycache__ .pytest_cache</span>
-<span class="cmd">}</span>
-<span class="out"></span>
-<span class="cmt"># Call the function matching the argument</span>
-<span class="cmd">"$@"</span>
-</code></pre></div>
-<p>Now you can call <code>./run.sh install</code>, <code>./run.sh test</code>, or <code>./run.sh clean</code> individually.</p>
+<span class="kw">}</span>
 
-<h2 id="connecting-scripts-to-ci">Connecting scripts to CI</h2>
-<p>Replace inline commands in your pipeline with calls to your script:</p>
-<div class="code-block"><div class="code-label">.github/workflows/ci.yml — calling the script</div><pre><code><span class="cmd">      - name: </span>
-<span class="arg">Install dependencies</span>
-<span class="cmd">        run: </span>
-<span class="arg">./run.sh install</span>
-<span class="out"></span>
-<span class="cmd">      - name: </span>
-<span class="arg">Run tests</span>
-<span class="cmd">        run: </span>
-<span class="arg">./run.sh test</span>
-</code></pre></div>
-<p>This has a valuable property: the pipeline now does exactly what a developer would do locally. If you change the workflow, you update the script — and both local and CI benefit automatically.</p>
-<div class="callout callout-warning"><div class="callout-title">Make the script executable</div><p>GitHub Actions runners start fresh each time. The script must be committed with execute permissions: <code>chmod +x run.sh</code>, then <code>git add run.sh</code> and commit.</p></div>
+<span class="fn">clean</span>
+<span class="cmd">() {</span>
+<span class="fn">    log</span>
+<span class="cmd"> "Cleaning artefacts"</span>
+<span class="cmd">    rm</span>
+<span class="flag"> -rf</span>
+<span class="arg"> __pycache__ .pytest_cache .coverage</span>
+<span class="kw">}</span>
 
-<h2 id="worked-example">Worked example</h2>
-<p>Here is the full picture: a developer works on a feature, runs the local script to verify everything is clean, pushes, and the pipeline calls the same script:</p>
-<div class="code-block"><div class="code-label">bash — developer's local session</div><pre><code><span class="cmt"># Make changes to the code</span>
-<span class="cmd">vim </span>
-<span class="arg">app.py</span>
-<span class="cmt"># Run the automated checks</span>
-<span class="cmd">./run.sh test</span>
-<span class="out">Testing...</span>
-<span class="out">3 passed in 0.11s</span>
-<span class="cmt"># Everything passes — commit and push</span>
-<span class="cmd">git add </span>
-<span class="flag">.</span>
-<span class="cmd">git commit </span>
-<span class="flag">-m </span>
-<span class=""Add user validation""></span>
-<span class="cmd">git push</span>
-<span class="cmt"># GitHub Actions now runs the same ./run.sh test</span>
-</code></pre></div>
-
-<h2 id="key-terms">Key terms</h2>
-<div class="term-grid"><div class="term-card"><div class="term-word">automation script</div><div class="term-def">A shell script that performs a named task: install, test, clean.</div></div><div class="term-card"><div class="term-word">set -e</div><div class="term-def">A shell option that stops the script immediately if any command fails.</div></div><div class="term-card"><div class="term-word">function</div><div class="term-def">A named block of commands in a shell script, called by name.</div></div><div class="term-card"><div class="term-word">$@</div><div class="term-def">A special variable in bash meaning 'all the arguments passed to this script'.</div></div><div class="term-card"><div class="term-word">idempotent</div><div class="term-def">Running the same script twice produces the same result as running it once.</div></div><div class="term-card"><div class="term-word">workflow parity</div><div class="term-def">Local and CI use the same scripts so they behave identically.</div></div></div>
-
-<h2 id="exercises">Exercises</h2>
-<div class="callout callout-exercise"><div class="callout-title">Lab exercises</div>
-<ol><li>Write a script <code>run.sh</code> with three tasks: <code>install</code>, <code>test</code>, and <code>clean</code>.</li><li>Add <code>set -e</code> at the top. Deliberately make one step fail — does the script stop?</li><li>Run each task locally: <code>./run.sh install</code>, <code>./run.sh test</code>.</li><li>Update your GitHub Actions workflow to call the script instead of running commands directly.</li><li>Push and confirm the pipeline still passes.</li><li>Extension: add a task that checks whether Python 3 is installed before doing anything else, printing a helpful error message if not.</li></ol>
-</div>
-</div>
-  <aside class="sidebar"><div class="toc"><div class="toc-title">On this page</div><ul class="toc-list"><li><a href="#why-automate">Why automate?</a></li><li><a href="#identifying-repetitive-tasks">Identifying repetitive tasks</a></li><li><a href="#a-well-structured-automation-script">A well-structured automation script</a></li><li><a href="#connecting-scripts-to-ci">Connecting scripts to CI</a></li><li><a href="#worked-example">Worked example</a></li><li><a href="#key-terms">Key terms</a></li><li><a href="#exercises">Exercises</a></li></ul></div></aside>
+<span class="cmt"># Route to the requested function</span>
+<span class="kw">case</span>
+<span class="cmd"> "${1:-}" in</span>
+<span class="cmd">    install)</span>
+<span class="fn"> install</span>
+<span class="cmd"> ;;</span>
+<span class="cmd">    test)</span>
+<span class="fn"> run_tests</span>
+<span class="cmd"> ;;</span>
+<span class="cmd">    lint)</span>
+<span class="fn"> lint</span>
+<span class="cmd"> ;;</span>
+<span class="cmd">    clean)</span>
+<span class="fn"> clean</span>
+<span class="cmd"> ;;</span>
+<span class="cmd">    all)</span>
+<span class="fn"> install</span>
+<span class="cmd">;</span>
+<span class="fn"> lint</span>
+<span class="cmd">;</span>
+<span class="fn"> run_tests</span>
+<span class="cmd"> ;;</span>
+<span class="cmd">    *)</span>
+<span class="fn"> usage</span>
+<span class="cmd">; exit 1 ;;</span>
+<span class="kw">esac</span>
+</code></pre></div><h2 id="key-terms">Key terms</h2><div class="term-grid"><div class="term-card"><div class="term-word">set -euo pipefail</div><div class="term-def">Combined safety flags: stop on error, treat unset vars as errors, propagate pipe failures.</div></div><div class="term-card"><div class="term-word">function</div><div class="term-def">A named, reusable block of shell commands.</div></div><div class="term-card"><div class="term-word">exit code</div><div class="term-def">0 = success, non-zero = failure. Controls whether CI passes or fails.</div></div><div class="term-card"><div class="term-word">Git hook</div><div class="term-def">A script in .git/hooks/ that runs at a specific point in the Git workflow.</div></div><div class="term-card"><div class="term-word">pre-commit</div><div class="term-def">A framework for managing shareable, version-controlled Git hooks.</div></div><div class="term-card"><div class="term-word">pipeline parity</div><div class="term-def">Local scripts and CI scripts are identical — no surprises between environments.</div></div><div class="term-card"><div class="term-word">$CI</div><div class="term-def">Environment variable set to true by most CI systems, including GitHub Actions.</div></div><div class="term-card"><div class="term-word">case statement</div><div class="term-def">A shell construct for routing to different functions based on an argument.</div></div></div><h2 id="exercises">Exercises</h2><div class="callout callout-exercise"><div class="callout-title">✎ Lab exercises — approximately 55 minutes</div>
+<h3>Part A: Build run.sh</h3>
+<ol><li>Write <code>run.sh</code> with four tasks: <code>install</code>, <code>test</code>, <code>lint</code>, <code>clean</code>.</li><li>Add a usage function that prints help when called with no arguments or --help.</li><li>Add set -euo pipefail. Deliberately make lint fail — does the script stop?</li><li>Add colour output (green for success, red for errors).</li></ol>
+<h3>Part B: Git hooks</h3>
+<ol><li>Write a <code>pre-commit</code> hook that runs <code>flake8</code> on staged Python files.</li><li>Make it executable and test it by staging a file with a style error.</li><li>Fix the error. Verify the commit goes through.</li><li>Extension: add a check that prevents committing if any file contains the string <code>TODO: REMOVE BEFORE MERGE</code>.</li></ol>
+<h3>Part C: CI integration</h3>
+<ol><li>Update your GitHub Actions workflow from Module 6 to call run.sh instead of inline commands.</li><li>Push and verify the pipeline still passes.</li><li>Add <code>./run.sh all</code> as a single step. Does the pipeline still report which step failed?</li><li>Consider: is it better to have one step calling all, or three separate steps? Why?</li></ol>
+<h3>Part D: Pre-commit framework (extension)</h3>
+<ol><li>Install the pre-commit library and create a .pre-commit-config.yaml.</li><li>Configure black for auto-formatting and flake8 for style checking.</li><li>Add a hook to detect accidentally committed private keys.</li><li>Run <code>pre-commit run --all-files</code> and fix any issues found.</li></ol>
+</div></div>
+  <div class="sidebar"><div class="toc"><div class="toc-title">On this page</div><ul class="toc-list"><li><a href=#what-is-worth-automating>What is worth automating?</a></li><li><a href=#anatomy-of-a-production-grade-script>Anatomy of a production-grade script</a></li><li><a href=#script-arguments-and-help-text>Script arguments and help text</a></li><li><a href=#functions-and-reusability>Functions and reusability</a></li><li><a href=#conditional-automation>Conditional automation</a></li><li><a href=#git-hooks-automating-before-commit>Git hooks: automating before commit</a></li><li><a href=#pre-commit-framework>Pre-commit framework</a></li><li><a href=#connecting-scripts-to-ci>Connecting scripts to CI</a></li><li><a href=#a-complete-automation-example>A complete automation example</a></li><li><a href=#key-terms>Key terms</a></li><li><a href=#exercises>Exercises</a></li></ul></div></div>
 </div>
 <div style="max-width:var(--wide);margin:0 auto;padding:0 2rem;">
-  <div class="pagination"><a class="page-btn prev" href="module-06.html"><span class="page-dir">← Previous</span><span class="page-title">CI Pipelines in Practice</span></a><a class="page-btn next" href="module-08.html"><span class="page-dir">Next →</span><span class="page-title">Virtualisation & Containers</span></a></div>
+  <div class="pagination"><a class="page-btn prev" href="module-06.html"><span class="page-dir">← Previous</span><span class="page-title">CI Pipelines in Practice</span></a><a class="page-btn next" href="module-08.html"><span class="page-dir">Next →</span><span class="page-title">Virtualisation and Containers</span></a></div>
 </div>
-<footer><p>SCCM4910 DevOps · Lancaster University · Made for first-year students</p></footer>
+<footer>
+  <p>DevOps Tutorials · Ran Wei</p>
+  <p style="margin-top:6px">Questions? Post on the module Moodle forum or discuss with your lab demonstrator.</p>
+</footer>
+
 <script>
+// Reading progress bar
+const bar = document.querySelector('.reading-progress');
+window.addEventListener('scroll', () => {
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.width = (window.scrollY / total * 100) + '%';
+});
+
+// TOC active link
 const sections = document.querySelectorAll('h2[id]');
 const links = document.querySelectorAll('.toc-list a');
 const obs = new IntersectionObserver(entries => {
@@ -168,8 +365,9 @@ const obs = new IntersectionObserver(entries => {
       links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id));
     }
   });
-}, {rootMargin:'-20% 0px -70% 0px'});
+}, {rootMargin:'-15% 0px -75% 0px'});
 sections.forEach(s => obs.observe(s));
 </script>
+
 </body>
 </html>

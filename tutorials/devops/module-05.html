@@ -3,115 +3,199 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CI and Automated Testing — DevOps SCCM4910</title>
+<title>Module 05: CI & Automated Testing — DevOps Tutorials</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="reading-progress"></div>
 <nav class="site-nav">
-  <a class="nav-brand" href="index.html">Dev<span>Ops</span></a>
-  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a>
-<a class="nav-dot" href="module-02.html" title="Module 2">2</a>
-<a class="nav-dot" href="module-03.html" title="Module 3">3</a>
-<a class="nav-dot" href="module-04.html" title="Module 4">4</a>
-<a class="nav-dot active" href="module-05.html" title="Module 5">5</a>
-<a class="nav-dot" href="module-06.html" title="Module 6">6</a>
-<a class="nav-dot" href="module-07.html" title="Module 7">7</a>
-<a class="nav-dot" href="module-08.html" title="Module 8">8</a>
-<a class="nav-dot" href="module-09.html" title="Module 9">9</a>
-<a class="nav-dot" href="module-10.html" title="Module 10">10</a>
-</div>
+  <a class="nav-brand" href="../../tutorials/">Ran <span>Wei</span></a>
+  <span class="nav-sep">/</span>
+  <a class="nav-crumb" href="index.html">DevOps Series</a>
+  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a><a class="nav-dot" href="module-02.html" title="Module 2">2</a><a class="nav-dot" href="module-03.html" title="Module 3">3</a><a class="nav-dot" href="module-04.html" title="Module 4">4</a><a class="nav-dot active" href="module-05.html" title="Module 5">5</a><a class="nav-dot" href="module-06.html" title="Module 6">6</a><a class="nav-dot" href="module-07.html" title="Module 7">7</a><a class="nav-dot" href="module-08.html" title="Module 8">8</a><a class="nav-dot" href="module-09.html" title="Module 9">9</a><a class="nav-dot" href="module-10.html" title="Module 10">10</a></div>
 </nav>
-
 
 <div class="hero">
   <div class="hero-meta">
     <span class="tag tag-module">Module 05</span>
     <span class="tag tag-theme">CI/CD</span>
-    <span class="tag tag-time">~45 min read</span>
+    <span class="tag tag-time">~1 hour</span>
   </div>
-  <h1>Continuous Integration and Automated Testing</h1>
-  <p class="hero-sub">Understand what CI is, what automated tests look like, and how to read pipeline output.</p>
-  <div class="mlo-row"><span class="mlo-badge">MLO1</span><span class="mlo-badge">MLO2</span><span class="mlo-badge">MLO3</span><span class="mlo-badge">MLO5</span><span class="mlo-badge">MLO7</span></div>
-</div>
 <div class="content-wrap">
   <div class="main-col">
-<h2 id="the-integration-problem">The integration problem</h2>
-<p>Imagine ten developers all working on different features. Each person's code works perfectly on their own machine. On Friday they all try to merge into main at once. Half the code breaks.</p>
-<p>This was the state of software development for decades. Integrating everyone's work was so painful it happened only a few times a year — and those were always stressful, bug-filled events. The problem even had a name: <strong>integration hell</strong>.</p>
-<p><strong>Continuous Integration (CI)</strong> is the practice of merging small, frequent changes — and automatically checking them every time.</p>
+  <h1>Continuous Integration and Automated Testing</h1>
+  <p class="hero-sub">Understand why CI exists, how automated tests are structured, and how to read a pipeline log efficiently.</p>
+  <div class="mlo-row"><span class="mlo-label">Covers:</span><span class="mlo-badge">MLO1</span><span class="mlo-badge">MLO2</span><span class="mlo-badge">MLO3</span><span class="mlo-badge">MLO5</span><span class="mlo-badge">MLO7</span></div>
+</div><h2 id="integration-hell-and-cis-solution">Integration hell and CI's solution</h2><p>In 2000, a software team might spend three months developing features independently, then convene for a week-long <em>integration sprint</em> — a period of intense, stressful debugging as all the branches were merged and the inevitable conflicts resolved. This was called <strong>integration hell</strong>.</p><p>The observation that made CI possible was simple: if integration is painful because you do it rarely, do it constantly. If you merge every change immediately and check it automatically, integration never accumulates into a crisis.</p><p><strong>Continuous Integration</strong> means every developer merges their changes into the shared codebase at least once per day, and every merge automatically triggers a build and test run. Problems are caught within minutes, while the change is still fresh in the developer's mind.</p><h3>What CI is not</h3><p>CI is frequently confused with CD (Continuous Delivery or Continuous Deployment). They are related but distinct:</p><table class="compare-table"><thead><tr><th>Practice</th><th>Definition</th><th>Gate</th></tr></thead><tbody><tr><td><strong>Continuous Integration</strong></td><td>Frequently merging and automatically verifying changes</td><td>Tests must pass</td></tr><tr><td><strong>Continuous Delivery</strong></td><td>Every passing change is releasable at any time</td><td>Manual approval to release</td></tr><tr><td><strong>Continuous Deployment</strong></td><td>Every passing change is automatically released to production</td><td>Fully automated</td></tr></tbody></table><p>In this module we focus on CI. Delivery and deployment are covered in Module 9.</p><h2 id="the-ci-feedback-loop">The CI feedback loop</h2><p>Every CI system, regardless of which tool you use (GitHub Actions, Jenkins, CircleCI, GitLab CI), follows the same loop:</p><div class="flow-row"><div class="flow-box">Push / PR</div><span class="flow-arrow">→</span><div class="flow-box highlight">Checkout code</div><span class="flow-arrow">→</span><div class="flow-box">Install deps</div><span class="flow-arrow">→</span><div class="flow-box">Lint</div><span class="flow-arrow">→</span><div class="flow-box">Test</div><span class="flow-arrow">→</span><div class="flow-box">Report</div></div><p>If any step returns a non-zero exit code, the pipeline fails and reports the failure. No code that fails CI can be merged into the protected main branch — this is the <strong>quality gate</strong>.</p><h3>The cost of slow feedback</h3><p>The value of CI is in the speed of the feedback. Consider:</p><table class="compare-table"><thead><tr><th>Feedback speed</th><th>Cost of fixing the bug</th></tr></thead><tbody><tr><td>Within 5 minutes (CI)</td><td>Minutes — change is fresh, easy to identify</td></tr><tr><td>End of day (code review)</td><td>Hours — context lost, others may have built on top</td></tr><tr><td>Next sprint (QA testing)</td><td>Days — may require significant rework</td></tr><tr><td>In production (user report)</td><td>Very high — user impact, potential data issues, emergency fix required</td></tr></tbody></table><h2 id="anatomy-of-a-test">Anatomy of a test</h2><p>An automated test is a program that calls your code with specific inputs and verifies the outputs match expectations. The Arrange-Act-Assert pattern gives every test a consistent structure:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">python — arrange, act, assert</span></div><pre><code><span class="kw">def</span>
+<span class="fn"> test_calculate_discount</span>
+<span class="cmd">():</span>
+<span class="cmt">    # ARRANGE: set up inputs and expected values</span>
+<span class="cmd">    price = </span>
+<span class="num">100.0</span>
+<span class="cmd">    discount_rate = </span>
+<span class="num">0.20</span>
+<span class="cmd">    expected = </span>
+<span class="num">80.0</span>
 
-<h2 id="the-ci-loop">The CI loop</h2>
-<p>Every time a developer pushes code to the shared repository, CI automatically triggers a pipeline:</p>
-<ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Push</strong> — a developer pushes a commit or opens a pull request.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Build</strong> — the CI server checks out the code and runs any compilation or bundling steps.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Test</strong> — the automated test suite runs against the new code.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Report</strong> — the pipeline reports pass or fail. If it fails, the developer is notified immediately and the change is blocked from merging.</div></li></ol>
-<div class="callout callout-info"><div class="callout-title">The key insight</div><p>Fast feedback is the point. If you break something, you want to know within minutes — while the code is still fresh in your head — not days later when someone else discovers the problem.</p></div>
-<p>A <strong>quality gate</strong> is a rule the pipeline enforces: code that fails any check cannot merge into the main branch. Common gates include: all tests pass, code style is clean, no obvious security issues.</p>
+<span class="cmt">    # ACT: call the code under test</span>
+<span class="cmd">    result = </span>
+<span class="fn">calculate_discount</span>
+<span class="cmd">(price, discount_rate)</span>
 
-<h2 id="what-is-a-test">What is a test?</h2>
-<p>An automated test is a small program that checks whether another program does what it should. A test has three parts:</p>
-<div class="term-grid"><div class="term-card"><div class="term-word">Arrange</div><div class="term-def">Set up the inputs and the state you need.</div></div><div class="term-card"><div class="term-word">Act</div><div class="term-def">Call the function or run the code you are testing.</div></div><div class="term-card"><div class="term-word">Assert</div><div class="term-def">Check that the output or result matches what you expected.</div></div></div>
-<p>Here is a simple example in Python:</p>
-<div class="code-block"><div class="code-label">python — a simple test</div><pre><code><span class="cmt"># The function we want to test</span>
-<span class="cmd">def </span>
-<span class="arg">add</span>
-<span class="cmd">(a, b):</span>
-<span class="cmd">    return </span>
-<span class="arg">a + b</span>
-<span class="out"></span>
-<span class="cmt"># The test</span>
-<span class="cmd">def </span>
-<span class="arg">test_add</span>
+<span class="cmt">    # ASSERT: verify the result</span>
+<span class="kw">    assert</span>
+<span class="cmd"> result == expected</span>
+</code></pre></div><p>The <code>assert</code> statement raises an <code>AssertionError</code> if the condition is false. pytest catches this and marks the test as failed.</p><h3>Testing edge cases</h3><p>Testing only the happy path (expected input, expected output) is insufficient. Good tests also cover:</p><ul><li><strong>Boundary values</strong> — what happens with the smallest or largest valid input?</li><li><strong>Empty input</strong> — what happens with an empty list, empty string, or zero?</li><li><strong>Invalid input</strong> — does the function handle wrong types or values gracefully?</li><li><strong>Error conditions</strong> — does the function raise the right exception when it should?</li></ul><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">python — testing edge cases and exceptions</span></div><pre><code><span class="kw">import</span>
+<span class="cmd"> pytest</span>
+
+<span class="kw">def</span>
+<span class="fn"> test_divide_by_zero</span>
+<span class="cmd">():</span>
+<span class="cmt">    # Verify the function raises ValueError for division by zero</span>
+<span class="kw">    with</span>
+<span class="cmd"> pytest.raises(ValueError):</span>
+<span class="cmd">        </span>
+<span class="fn">divide</span>
+<span class="cmd">(10, 0)</span>
+
+<span class="kw">def</span>
+<span class="fn"> test_empty_list_returns_none</span>
 <span class="cmd">():</span>
 <span class="cmd">    result = </span>
-<span class="arg">add(2, 3)</span>
-<span class="cmd">    assert </span>
-<span class="arg">result == 5</span>
-<span class="cmt">    # If result is not 5, this line raises an error</span>
-</code></pre></div>
-<p>If the assertion passes, the test passes. If the assertion fails, the test fails and the pipeline stops.</p>
+<span class="fn">find_max</span>
+<span class="cmd">([])</span>
+<span class="kw">    assert</span>
+<span class="cmd"> result is None</span>
 
-<h2 id="running-tests">Running tests</h2>
-<p>We use <strong>pytest</strong>, a popular Python testing tool. Install it with <code>pip install pytest</code>, then run:</p>
-<div class="code-block"><div class="code-label">bash — running tests</div><pre><code><span class="cmt"># Run all tests in the current directory</span>
+<span class="kw">def</span>
+<span class="fn"> test_single_element_list</span>
+<span class="cmd">():</span>
+<span class="cmd">    result = </span>
+<span class="fn">find_max</span>
+<span class="cmd">([42])</span>
+<span class="kw">    assert</span>
+<span class="cmd"> result == </span>
+<span class="num">42</span>
+</code></pre></div><h2 id="the-testing-pyramid">The testing pyramid</h2><p>Not all tests are equal. The <strong>testing pyramid</strong> describes three layers of automated tests, with different trade-offs of speed, scope, and cost.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — testing pyramid</span></div><pre><code><span class="out">           /\</span>
+<span class="out">          /  \</span>
+<span class="out">         / E2E\  ← few, slow, expensive</span>
+<span class="out">        /------\</span>
+<span class="out">       /Integr. \  ← some, medium</span>
+<span class="out">      /----------\</span>
+<span class="out">     /    Unit    \  ← many, fast, cheap</span>
+<span class="out">    /______________\</span>
+</code></pre></div><table class="compare-table"><thead><tr><th>Layer</th><th>Tests</th><th>Speed</th><th>Example</th></tr></thead><tbody><tr><td><strong>Unit</strong></td><td>Individual functions or classes in isolation</td><td>Milliseconds</td><td>test that calculate_discount(100, 0.2) returns 80.0</td></tr><tr><td><strong>Integration</strong></td><td>Multiple components working together</td><td>Seconds</td><td>test that a POST /login request creates a session</td></tr><tr><td><strong>End-to-end</strong></td><td>The entire system from user perspective</td><td>Minutes</td><td>test that a user can sign up, log in, and place an order</td></tr></tbody></table><p>For this module, we focus on <strong>unit tests</strong>. They run in milliseconds, require no infrastructure, and give precise feedback on exactly which function is broken.</p><h2 id="pytest-in-practice">pytest in practice</h2><p>pytest is Python's most popular testing library. It discovers tests automatically: any file matching <code>test_*.py</code> or <code>*_test.py</code>, and any function or method starting with <code>test_</code>.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — running tests</span></div><pre><code><span class="cmt"># Run all tests</span>
 <span class="cmd">pytest</span>
-<span class="out">========================= test session starts ==========================</span>
-<span class="out">collected 3 items</span>
-<span class="out"></span>
-<span class="out">test_app.py ...                                               [100%]</span>
-<span class="out"></span>
-<span class="out">========================== 3 passed in 0.12s ==========================</span>
-</code></pre></div>
-<p>A failing test looks like this:</p>
-<div class="code-block"><div class="code-label">bash — a failing test</div><pre><code><span class="cmd">pytest</span>
-<span class="out">FAILED test_app.py::test_add - AssertionError: assert 6 == 5</span>
-<span class="out">1 failed, 2 passed in 0.14s</span>
-</code></pre></div>
-<div class="callout callout-warning"><div class="callout-title">Tests are only as good as what they check</div><p>A passing test suite does not guarantee the code is correct — it only confirms it behaves according to the tests you have written. Writing good tests is a skill developed over time.</p></div>
 
-<h2 id="reading-ci-output">Reading CI output</h2>
-<p>When a CI pipeline runs, it produces a log. Learning to read it efficiently is a key skill — you will spend time doing this throughout your career.</p>
-<p>The most important things to find in a failing pipeline log:</p>
-<ul><li>Which step failed (build, test, lint?)</li><li>The exact error message (usually in red or prefixed with ERROR or FAILED)</li><li>The file name and line number where the failure occurred</li></ul>
-<p>Ignore the noise — there is a lot of output about setup and dependency installation. Scroll to the first error, not the last.</p>
+<span class="cmt"># Run tests in a specific file</span>
+<span class="cmd">pytest</span>
+<span class="arg"> tests/test_auth.py</span>
 
-<h2 id="key-terms">Key terms</h2>
-<div class="term-grid"><div class="term-card"><div class="term-word">continuous integration</div><div class="term-def">The practice of merging and automatically checking code changes frequently.</div></div><div class="term-card"><div class="term-word">pipeline</div><div class="term-def">The automated sequence of steps that runs when code is pushed.</div></div><div class="term-card"><div class="term-word">quality gate</div><div class="term-def">A rule that must pass before code can be merged.</div></div><div class="term-card"><div class="term-word">test</div><div class="term-def">A small program that checks whether your code behaves correctly.</div></div><div class="term-card"><div class="term-word">pytest</div><div class="term-def">A Python tool for running automated tests.</div></div><div class="term-card"><div class="term-word">assert</div><div class="term-def">A statement that raises an error if a condition is not true.</div></div></div>
+<span class="cmt"># Run a specific test by name</span>
+<span class="cmd">pytest</span>
+<span class="arg"> tests/test_auth.py::test_login_success</span>
 
-<h2 id="test-preparation">Test preparation</h2>
-<div class="callout callout-concept"><div class="callout-title">In-class test — Week 5</div>
-<p>This week's lab is your in-class test, covering Modules 1–4. The test is one hour and counts for 10% of your module mark.</p>
-<p>It covers four areas:</p>
-<ul><li>DevOps concepts and the CALMS framework (Module 1)</li><li>Unix command-line tools — pipes, redirection and shell scripts (Module 2)</li><li>Git commands and workflows (Module 3)</li><li>Collaboration with branches and pull requests (Module 4)</li></ul>
-<p>Common question formats: write the command that achieves a given result, trace through a sequence of commands and describe the output, explain a concept in two or three sentences.</p>
-<p>Suggested revision: re-run the exercises from Modules 1–4, making sure you can do each step without looking at notes.</p>
-</div>
-</div>
-  <aside class="sidebar"><div class="toc"><div class="toc-title">On this page</div><ul class="toc-list"><li><a href="#the-integration-problem">The integration problem</a></li><li><a href="#the-ci-loop">The CI loop</a></li><li><a href="#what-is-a-test">What is a test?</a></li><li><a href="#running-tests">Running tests</a></li><li><a href="#reading-ci-output">Reading CI output</a></li><li><a href="#key-terms">Key terms</a></li><li><a href="#test-preparation">Test preparation</a></li></ul></div></aside>
+<span class="cmt"># Verbose output — show each test name</span>
+<span class="cmd">pytest</span>
+<span class="flag"> -v</span>
+
+<span class="cmt"># Stop after first failure</span>
+<span class="cmd">pytest</span>
+<span class="flag"> -x</span>
+
+<span class="cmt"># Show local variables on failure</span>
+<span class="cmd">pytest</span>
+<span class="flag"> -l</span>
+
+<span class="cmt"># Run tests matching a keyword</span>
+<span class="cmd">pytest</span>
+<span class="flag"> -k</span>
+<span class="str"> "login or logout"</span>
+</code></pre></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — pytest output (passing)</span></div><pre><code><span class="out">========================= test session starts ==========================</span>
+<span class="out">collected 5 items</span>
+
+<span class="out">tests/test_auth.py::test_login_success PASSED              [ 20%]</span>
+<span class="out">tests/test_auth.py::test_login_wrong_password PASSED       [ 40%]</span>
+<span class="out">tests/test_auth.py::test_login_empty_username PASSED       [ 60%]</span>
+<span class="out">tests/test_auth.py::test_logout PASSED                     [ 80%]</span>
+<span class="out">tests/test_auth.py::test_session_expires PASSED            [100%]</span>
+
+<span class="out">========================== 5 passed in 0.23s ==========================</span>
+</code></pre></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — pytest output (failing)</span></div><pre><code><span class="out">FAILED tests/test_auth.py::test_login_wrong_password</span>
+
+<span class="out">========================= FAILURES =================================</span>
+<span class="out">_____________________ test_login_wrong_password ____________________</span>
+
+<span class="out">    def test_login_wrong_password():</span>
+<span class="out">        result = login('alice', 'wrong')</span>
+<span class="out">>       assert result == False</span>
+<span class="out">E       AssertionError: assert True == False</span>
+<span class="out">E       (login returned True but should have returned False)</span>
+
+<span class="out">tests/test_auth.py:24: AssertionError</span>
+</code></pre></div><h2 id="fixtures-and-test-setup">Fixtures and test setup</h2><p>Many tests need the same setup — a database connection, a configured application, a sample user. Copying this setup into every test function is repetitive. pytest <strong>fixtures</strong> solve this:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">python — pytest fixtures</span></div><pre><code><span class="kw">import</span>
+<span class="cmd"> pytest</span>
+
+<span class="cmt"># Define a fixture</span>
+<span class="cmd">@pytest.fixture</span>
+<span class="kw">def</span>
+<span class="fn"> sample_user</span>
+<span class="cmd">():</span>
+<span class="kw">    return</span>
+<span class="cmd"> {</span>
+<span class="str">        'username'</span>
+<span class="cmd">: </span>
+<span class="str">'alice'</span>
+<span class="cmd">,</span>
+<span class="str">        'email'</span>
+<span class="cmd">: </span>
+<span class="str">'alice@example.com'</span>
+<span class="cmd">    }</span>
+
+<span class="cmt"># Use the fixture as a parameter</span>
+<span class="kw">def</span>
+<span class="fn"> test_create_greeting</span>
+<span class="cmd">(sample_user):</span>
+<span class="cmd">    result = </span>
+<span class="fn">create_greeting</span>
+<span class="cmd">(sample_user)</span>
+<span class="kw">    assert</span>
+<span class="str"> 'alice'</span>
+<span class="cmd"> in result</span>
+
+<span class="kw">def</span>
+<span class="fn"> test_user_has_email</span>
+<span class="cmd">(sample_user):</span>
+<span class="kw">    assert</span>
+<span class="str"> '@'</span>
+<span class="cmd"> in sample_user[</span>
+<span class="str">'email'</span>
+<span class="cmd">]</span>
+</code></pre></div><h2 id="reading-ci-output-like-a-pro">Reading CI output like a pro</h2><p>A CI log can be hundreds of lines. Finding the failure quickly is a critical skill. Follow this process:</p><ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Find the step that failed</strong> — pipeline tools highlight failed steps in red. Click it to expand.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Scroll to the first error</strong> — not the last. The first error often causes the subsequent errors.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Identify the type of failure</strong> — is it a syntax error? An import error? A test assertion failure? An environment error?</div></li><li><div class="step-num"></div><div class="step-body"><strong>Note the file and line number</strong> — always shown for Python errors.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Reproduce locally</strong> — run the exact same command the pipeline ran.</div></li></ol><h2 id="common-failure-patterns">Common failure patterns</h2><div class="def-list"><div class="def-row"><div class="def-term">ModuleNotFoundError</div><div class="def-body">A package is missing. Fix: add it to <code>requirements.txt</code> and push.</div></div><div class="def-row"><div class="def-term">pytest: command not found</div><div class="def-body">pytest not installed in CI environment. Fix: add <code>pip install pytest</code> to the pipeline install step.</div></div><div class="def-row"><div class="def-term">PermissionError on script</div><div class="def-body">The shell script is not executable. Fix: <code>chmod +x script.sh</code> and commit.</div></div><div class="def-row"><div class="def-term">YAML parse error</div><div class="def-body">Indentation error in the workflow file. YAML is sensitive to spaces vs tabs.</div></div><div class="def-row"><div class="def-term">AssertionError</div><div class="def-body">A test failed. Read the output — it shows what was expected vs what was returned.</div></div><div class="def-row"><div class="def-term">Connection refused</div><div class="def-body">A test is trying to connect to a database or service that is not running in CI. Unit tests should not need network connections.</div></div></div><h2 id="quality-gates">Quality gates</h2><p>A quality gate is a rule the pipeline enforces: code that fails the check cannot be merged. Common quality gates include:</p><ul class="check-list"><li>All tests must pass</li><li>Code style must conform (e.g. flake8, black --check)</li><li>No known security vulnerabilities in dependencies</li><li>Test coverage does not drop below a threshold (e.g. 80%)</li><li>No secrets or credentials in the code</li></ul><p>Quality gates are enforced by configuring GitHub branch protection rules: a branch can require all CI checks to pass before a PR can be merged.</p><h2 id="key-terms">Key terms</h2><div class="term-grid"><div class="term-card"><div class="term-word">CI</div><div class="term-def">Continuous Integration — frequently merging code and automatically verifying each change.</div></div><div class="term-card"><div class="term-word">quality gate</div><div class="term-def">A check that must pass before code can merge into a protected branch.</div></div><div class="term-card"><div class="term-word">unit test</div><div class="term-def">A test of an isolated function or class, with no external dependencies.</div></div><div class="term-card"><div class="term-word">test fixture</div><div class="term-def">Shared setup code that multiple tests can use, defined with @pytest.fixture.</div></div><div class="term-card"><div class="term-word">assert</div><div class="term-def">A statement that raises AssertionError if a condition is false.</div></div><div class="term-card"><div class="term-word">pytest</div><div class="term-def">Python's most popular testing library and test runner.</div></div><div class="term-card"><div class="term-word">testing pyramid</div><div class="term-def">Unit (many, fast) → Integration (some) → E2E (few, slow).</div></div><div class="term-card"><div class="term-word">feedback loop</div><div class="term-def">The time between making a change and knowing whether it broke something.</div></div></div><h2 id="test-preparation">Test preparation</h2><div class="callout callout-concept"><div class="callout-title">◆ In-class test — Week 5</div>
+<p>The in-class test this week covers everything from Modules 1 through 4. It is one hour, closed-book, and counts for 10% of the module mark.</p>
+<h3>Revision checklist</h3>
+<ul class="check-list"><li>Module 1: CALMS framework, DORA four key metrics, basic navigation (<code>pwd</code>, <code>ls</code>, <code>cd</code>), file permissions, <code>chmod</code>, environment variables</li><li>Module 2: <code>grep</code> flags (<code>-i</code>, <code>-r</code>, <code>-n</code>, <code>-v</code>), pipe operator, redirection (<code>></code> vs <code>>></code>), shell script structure, <code>set -e</code></li><li>Module 3: Git three areas (working/staging/repo), <code>git init</code>, <code>git add</code>, <code>git commit</code>, <code>git log</code>, <code>git diff</code>, <code>.gitignore</code></li><li>Module 4: Creating branches, merging, fast-forward vs three-way merge, <code>git push</code>, <code>git pull</code>, pull requests, conflict markers</li></ul>
+<h3>Sample question types</h3>
+<div class="qa-list"><details><summary>Write the Git command that creates a branch called feature/search and immediately switches to it.</summary><div class="qa-answer">Answer: <code>git switch -c feature/search</code></div></details><details><summary>A developer runs git diff. There is no output. They then run git diff --staged and see changes. Explain the state the repository is in.</summary><div class="qa-answer">The changes have been staged (git add has been run) but not yet committed. git diff compares working directory to staging area; since staging area and working directory match, it shows nothing. git diff --staged compares staging area to the last commit, where the changes are visible.</div></details><details><summary>What does set -e at the top of a shell script do?</summary><div class="qa-answer">It makes the script exit immediately if any command returns a non-zero exit code. Without it, the script would continue even if a step fails, potentially causing misleading or dangerous behaviour.</div></details><details><summary>Describe the CALMS framework in your own words.</summary><div class="qa-answer">CALMS stands for Culture (shared responsibility and blameless post-mortems), Automation (replace repetitive manual steps with scripts and machines), Lean (eliminate waste, prefer small frequent changes), Measurement (track delivery metrics to identify improvements), and Sharing (knowledge, tools, and post-mortems cross team boundaries).</div></details></div>
+</div></div>
+  <div class="sidebar"><div class="toc"><div class="toc-title">On this page</div><ul class="toc-list"><li><a href=#integration-hell-and-cis-solution>Integration hell and CI's solution</a></li><li><a href=#the-ci-feedback-loop>The CI feedback loop</a></li><li><a href=#anatomy-of-a-test>Anatomy of a test</a></li><li><a href=#the-testing-pyramid>The testing pyramid</a></li><li><a href=#pytest-in-practice>pytest in practice</a></li><li><a href=#fixtures-and-test-setup>Fixtures and test setup</a></li><li><a href=#reading-ci-output-like-a-pro>Reading CI output like a pro</a></li><li><a href=#common-failure-patterns>Common failure patterns</a></li><li><a href=#quality-gates>Quality gates</a></li><li><a href=#key-terms>Key terms</a></li><li><a href=#test-preparation>Test preparation</a></li></ul></div></div>
 </div>
 <div style="max-width:var(--wide);margin:0 auto;padding:0 2rem;">
   <div class="pagination"><a class="page-btn prev" href="module-04.html"><span class="page-dir">← Previous</span><span class="page-title">Collaborating with Git</span></a><a class="page-btn next" href="module-06.html"><span class="page-dir">Next →</span><span class="page-title">CI Pipelines in Practice</span></a></div>
 </div>
-<footer><p>SCCM4910 DevOps · Lancaster University · Made for first-year students</p></footer>
+<footer>
+  <p>DevOps Tutorials · Ran Wei</p>
+</footer>
+
 <script>
+// Reading progress bar
+const bar = document.querySelector('.reading-progress');
+window.addEventListener('scroll', () => {
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.width = (window.scrollY / total * 100) + '%';
+});
+
+// TOC active link
 const sections = document.querySelectorAll('h2[id]');
 const links = document.querySelectorAll('.toc-list a');
 const obs = new IntersectionObserver(entries => {
@@ -120,8 +204,9 @@ const obs = new IntersectionObserver(entries => {
       links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id));
     }
   });
-}, {rootMargin:'-20% 0px -70% 0px'});
+}, {rootMargin:'-15% 0px -75% 0px'});
 sections.forEach(s => obs.observe(s));
 </script>
+
 </body>
 </html>
