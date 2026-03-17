@@ -3,131 +3,206 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Virtualisation & Containers — DevOps SCCM4910</title>
+<title>Module 08: Virtualisation and Containers — DevOps Tutorials</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="reading-progress"></div>
 <nav class="site-nav">
-  <a class="nav-brand" href="index.html">Dev<span>Ops</span></a>
-  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a>
-<a class="nav-dot" href="module-02.html" title="Module 2">2</a>
-<a class="nav-dot" href="module-03.html" title="Module 3">3</a>
-<a class="nav-dot" href="module-04.html" title="Module 4">4</a>
-<a class="nav-dot" href="module-05.html" title="Module 5">5</a>
-<a class="nav-dot" href="module-06.html" title="Module 6">6</a>
-<a class="nav-dot" href="module-07.html" title="Module 7">7</a>
-<a class="nav-dot active" href="module-08.html" title="Module 8">8</a>
-<a class="nav-dot" href="module-09.html" title="Module 9">9</a>
-<a class="nav-dot" href="module-10.html" title="Module 10">10</a>
-</div>
+  <a class="nav-brand" href="../../tutorials/">Ran <span>Wei</span></a>
+  <span class="nav-sep">/</span>
+  <a class="nav-crumb" href="index.html">DevOps Series</a>
+  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a><a class="nav-dot" href="module-02.html" title="Module 2">2</a><a class="nav-dot" href="module-03.html" title="Module 3">3</a><a class="nav-dot" href="module-04.html" title="Module 4">4</a><a class="nav-dot" href="module-05.html" title="Module 5">5</a><a class="nav-dot" href="module-06.html" title="Module 6">6</a><a class="nav-dot" href="module-07.html" title="Module 7">7</a><a class="nav-dot active" href="module-08.html" title="Module 8">8</a><a class="nav-dot" href="module-09.html" title="Module 9">9</a><a class="nav-dot" href="module-10.html" title="Module 10">10</a></div>
 </nav>
-
 
 <div class="hero">
   <div class="hero-meta">
     <span class="tag tag-module">Module 08</span>
     <span class="tag tag-theme">Containers</span>
-    <span class="tag tag-time">~45 min read</span>
+    <span class="tag tag-time">~1 hour</span>
   </div>
-  <h1>Virtualisation and Containers</h1>
-  <p class="hero-sub">Understand the 'works on my machine' problem and learn to package applications with Docker.</p>
-  <div class="mlo-row"><span class="mlo-badge">MLO6</span><span class="mlo-badge">MLO7</span></div>
-</div>
 <div class="content-wrap">
   <div class="main-col">
-<h2 id="the-environment-problem">The environment problem</h2>
-<p>Here is a scenario that happens to almost every developer:</p>
-<div class="callout callout-concept"><div class="callout-title">The classic problem</div>
-<p>You spend an afternoon writing a script that works perfectly. The next day you send it to a classmate. They run it and get an error you have never seen. After an hour of debugging, you discover they have a different version of Python installed. Or a missing library. Or a different operating system.</p>
-<p>"It works on my machine" is one of the most common phrases in software development — and one of the most frustrating.</p>
-</div>
-<p>The fundamental issue is that software depends on its <strong>environment</strong> — the operating system, the language version, the installed packages. Environments differ between machines, and those differences cause unpredictable failures.</p>
+  <h1>Virtualisation and Containers</h1>
+  <p class="hero-sub">Understand the 'works on my machine' problem and learn to package any application in a Docker container that runs identically everywhere.</p>
+  <div class="mlo-row"><span class="mlo-label">Covers:</span><span class="mlo-badge">MLO6</span><span class="mlo-badge">MLO7</span></div>
+</div><h2 id="the-environment-problem-in-depth">The environment problem in depth</h2><p>Software depends on its <strong>environment</strong> — the operating system, the runtime version, the system libraries, the installed packages, the environment variables, the file paths. When any of these differ between two machines, the same code can behave differently.</p><p>This problem compounds across a development team's lifecycle:</p><ul><li><strong>Developer A</strong> uses Python 3.11 on macOS. <strong>Developer B</strong> uses Python 3.9 on Ubuntu. A feature that uses a 3.10+ API works for A and fails for B.</li><li>The <strong>CI server</strong> runs Ubuntu and Python 3.11 but a different minor version. A subtle difference in a library's behaviour causes intermittent failures.</li><li>The <strong>production server</strong> was set up two years ago with a different library version. A change that passed all tests breaks in production.</li></ul><p>This is not a rare edge case — it is the default state of software development without explicit environment management. Containers solve it.</p><h2 id="from-bare-metal-to-containers">From bare metal to containers</h2><p>Environment management has evolved through several generations:</p><table class="compare-table"><thead><tr><th>Approach</th><th>Mechanism</th><th>Pros</th><th>Cons</th></tr></thead><tbody><tr><td><strong>Bare metal</strong></td><td>All applications share the OS directly</td><td>Simple, fast</td><td>No isolation, environment conflicts</td></tr><tr><td><strong>Virtual machines</strong></td><td>Each application gets its own OS on virtualised hardware</td><td>Strong isolation</td><td>Large (GBs), slow to start, resource-heavy</td></tr><tr><td><strong>Containers</strong></td><td>Applications share the host OS kernel but have isolated filesystems</td><td>Lightweight, fast, portable</td><td>Less isolation than VMs, Linux-centric</td></tr></tbody></table><p>A container does not include an operating system. It includes only the application and its dependencies — the libraries, configuration, and runtime it needs. It shares the host's Linux kernel. This is why containers are measured in megabytes, not gigabytes, and start in seconds, not minutes.</p><div class="callout callout-concept"><div class="callout-title">◆ Analogy: shipping containers</div>
+<p>Before standardised shipping containers (invented in the 1950s), cargo was loaded and unloaded piece by piece at every port. Different ports had different equipment. Each shipment was a custom operation.</p>
+<p>The standardised container transformed logistics: any crane could handle any container; any ship could carry any combination of containers; the contents were irrelevant to the infrastructure. Docker containers do the same for software: any host with Docker can run any container, regardless of what is inside.</p>
+</div><h2 id="docker-architecture">Docker architecture</h2><p>Docker uses a client-server architecture:</p><div class="def-list"><div class="def-row"><div class="def-term">Docker daemon</div><div class="def-body">A background service (dockerd) that manages images, containers, networks, and volumes. Runs on the host.</div></div><div class="def-row"><div class="def-term">Docker client</div><div class="def-body">The <code>docker</code> command you type. Sends instructions to the daemon via a REST API.</div></div><div class="def-row"><div class="def-term">Docker registry</div><div class="def-body">A storage service for images. Docker Hub is the public registry. Images like <code>python:3.11</code> come from here.</div></div><div class="def-row"><div class="def-term">Image</div><div class="def-body">A read-only template for creating containers. Built from a Dockerfile.</div></div><div class="def-row"><div class="def-term">Container</div><div class="def-body">A running instance of an image. Isolated from other containers and the host.</div></div></div><div class="flow-row"><div class="flow-box">Docker client</div><span class="flow-arrow">→</span><div class="flow-box highlight">Docker daemon</div><span class="flow-arrow">→</span><div class="flow-box">Image pull/build</div><span class="flow-arrow">→</span><div class="flow-box">Container run</div></div><h2 id="images-and-layers">Images and layers</h2><p>A Docker image is not a single large file. It is a stack of <strong>layers</strong>. Each instruction in the Dockerfile creates a new layer. Layers are cached and reused:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — image layers</span></div><pre><code><span class="out">Layer 5: COPY . .          ← your application code</span>
+<span class="out">Layer 4: RUN pip install   ← your dependencies</span>
+<span class="out">Layer 3: COPY requirements.txt .</span>
+<span class="out">Layer 2: WORKDIR /app</span>
+<span class="out">Layer 1: FROM python:3.11-slim  ← base OS + Python</span>
+</code></pre></div><p>When you rebuild the image, Docker checks each layer. If the layer's input has not changed, the cached version is reused. This is why order matters: put things that change rarely (base image, system packages) before things that change often (application code).</p><div class="callout callout-info"><div class="callout-title">ℹ Layer caching order</div>
+<p>A common pattern: copy <code>requirements.txt</code> first, run <code>pip install</code>, then copy the rest of the application. This way, the expensive <code>pip install</code> layer is only rebuilt when <code>requirements.txt</code> changes, not every time you change a line of application code.</p>
+</div><h2 id="writing-a-dockerfile">Writing a Dockerfile</h2><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">Dockerfile — complete example with comments</span></div><pre><code><span class="cmt"># Base image: official Python image, slim variant for smaller size</span>
+<span class="cmd">FROM</span>
+<span class="arg"> python:3.11-slim</span>
 
-<h2 id="virtual-machines-vs-containers">Virtual machines vs containers</h2>
-<p>Two technologies address this problem in different ways:</p>
-<p>A <strong>virtual machine (VM)</strong> solves the problem by running a complete, separate operating system inside your computer. Your Python code runs on this 'guest' OS, which is identical for everyone. VMs work well, but they are large (often several gigabytes) and slow to start.</p>
-<p>A <strong>container</strong> is a lighter approach. Instead of running a whole separate OS, it isolates just the application and its dependencies — the Python version, the libraries — and shares the host OS's kernel. Containers start in seconds and use much less disk space.</p>
-<div class="term-grid"><div class="term-card"><div class="term-word">VM</div><div class="term-def">A full virtual computer running its own OS. Heavyweight but very isolated.</div></div><div class="term-card"><div class="term-word">Container</div><div class="term-def">An isolated application environment sharing the host OS kernel. Lightweight and fast.</div></div><div class="term-card"><div class="term-word">Docker</div><div class="term-def">The most widely used tool for building and running containers.</div></div><div class="term-card"><div class="term-word">image</div><div class="term-def">A blueprint for a container — a read-only snapshot of an application and its environment.</div></div><div class="term-card"><div class="term-word">container</div><div class="term-def">A running instance of an image. You can run many containers from one image.</div></div></div>
+<span class="cmt"># Set environment variables</span>
+<span class="cmt"># Prevent Python from writing .pyc files</span>
+<span class="cmd">ENV</span>
+<span class="arg"> PYTHONDONTWRITEBYTECODE=1</span>
+<span class="cmt"># Prevent Python from buffering stdout/stderr</span>
+<span class="cmd">ENV</span>
+<span class="arg"> PYTHONUNBUFFERED=1</span>
 
-<h2 id="docker-fundamentals">Docker fundamentals</h2>
-<p>Docker has three main concepts:</p>
-<ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Image</strong> — a read-only template that describes the environment. Think of it as a recipe.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Container</strong> — a running instance of an image. A recipe can produce many cakes; an image can produce many containers.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Registry</strong> — a place to store and share images. Docker Hub is the public registry; most official images (Python, nginx, postgres) are available there.</div></li></ol>
-<p>The core workflow is: write a Dockerfile → build an image → run a container.</p>
+<span class="cmt"># Create and set the working directory inside the container</span>
+<span class="cmd">WORKDIR</span>
+<span class="arg"> /app</span>
 
-<h2 id="your-first-dockerfile">Your first Dockerfile</h2>
-<p>A <code>Dockerfile</code> is a text file that describes how to build an image. Each line adds a layer:</p>
-<div class="code-block"><div class="code-label">Dockerfile</div><pre><code><span class="cmt"># Start from an official Python image</span>
-<span class="cmd">FROM </span>
-<span class="arg">python:3.11-slim</span>
-<span class="out"></span>
-<span class="cmt"># Set the working directory inside the container</span>
-<span class="cmd">WORKDIR </span>
-<span class="arg">/app</span>
-<span class="out"></span>
-<span class="cmt"># Copy your requirements file and install dependencies</span>
-<span class="cmd">COPY </span>
-<span class="arg">requirements.txt .</span>
-<span class="cmd">RUN </span>
-<span class="arg">pip install -r requirements.txt</span>
-<span class="out"></span>
-<span class="cmt"># Copy the rest of your code</span>
-<span class="cmd">COPY </span>
-<span class="arg">. .</span>
-<span class="out"></span>
+<span class="cmt"># Copy ONLY requirements first (better layer caching)</span>
+<span class="cmd">COPY</span>
+<span class="arg"> requirements.txt .</span>
+
+<span class="cmt"># Install dependencies</span>
+<span class="cmt"># --no-cache-dir reduces image size</span>
+<span class="cmd">RUN</span>
+<span class="arg"> pip install --no-cache-dir -r requirements.txt</span>
+
+<span class="cmt"># Copy the rest of the application</span>
+<span class="cmd">COPY</span>
+<span class="arg"> . .</span>
+
+<span class="cmt"># Document which port the application uses (informational)</span>
+<span class="cmd">EXPOSE</span>
+<span class="arg"> 8000</span>
+
 <span class="cmt"># The command to run when the container starts</span>
-<span class="cmd">CMD </span>
-<span class="arg">["python", "app.py"]</span>
-</code></pre></div>
-<p>Each instruction builds on the previous one. The <code>FROM</code> line is always first — it is the base image you start from. Choosing a <code>-slim</code> variant keeps the image small.</p>
+<span class="cmd">CMD</span>
+<span class="arg"> ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0"]</span>
+</code></pre></div><h2 id="dockerfile-instructions-reference">Dockerfile instructions reference</h2><div class="def-list"><div class="def-row"><div class="def-term">FROM</div><div class="def-body">Base image. Every Dockerfile starts with this. Use official slim images where possible.</div></div><div class="def-row"><div class="def-term">WORKDIR</div><div class="def-body">Set the working directory. Created automatically if it does not exist.</div></div><div class="def-row"><div class="def-term">COPY</div><div class="def-body">Copy files from the build context (your local directory) into the image. Prefer <code>COPY</code> over <code>ADD</code> for simple file copies.</div></div><div class="def-row"><div class="def-term">RUN</div><div class="def-body">Execute a command during the build. Creates a new layer. Chain related commands with && to reduce layers.</div></div><div class="def-row"><div class="def-term">ENV</div><div class="def-body">Set an environment variable available at build time and runtime.</div></div><div class="def-row"><div class="def-term">ARG</div><div class="def-body">Define a build-time variable (not available at runtime).</div></div><div class="def-row"><div class="def-term">EXPOSE</div><div class="def-body">Document which port the container listens on. Informational only — does not publish the port.</div></div><div class="def-row"><div class="def-term">CMD</div><div class="def-body">Default command when the container starts. Can be overridden at runtime.</div></div><div class="def-row"><div class="def-term">ENTRYPOINT</div><div class="def-body">Fixed command. Arguments to docker run are appended. Combined with CMD for flexible entry points.</div></div></div><h2 id="dockerignore">.dockerignore</h2><p>Just as <code>.gitignore</code> tells Git which files to ignore, <code>.dockerignore</code> tells Docker which files to exclude from the build context. A smaller build context means faster builds:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — .dockerignore</span></div><pre><code><span class="out">.git</span>
+<span class="out">.gitignore</span>
+<span class="out">__pycache__</span>
+<span class="out">*.pyc</span>
+<span class="out">.pytest_cache</span>
+<span class="out">*.egg-info</span>
+<span class="out">dist/</span>
+<span class="out">build/</span>
+<span class="out">.env</span>
+<span class="out">*.md</span>
+<span class="out">tests/</span>
+<span class="cmt"># We do not need tests inside the production image</span>
+</code></pre></div><h2 id="docker-commands-in-depth">Docker commands in depth</h2><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — essential Docker commands</span></div><pre><code><span class="cmt"># Build image, tag it, from Dockerfile in current dir</span>
+<span class="cmd">docker build</span>
+<span class="flag"> -t</span>
+<span class="arg"> my-app:latest .</span>
 
-<h2 id="core-docker-commands">Core Docker commands</h2>
-<div class="code-block"><div class="code-label">bash — essential Docker commands</div><pre><code><span class="cmt"># Build an image from the Dockerfile in the current directory</span>
-<span class="cmd">docker build </span>
-<span class="flag">-t </span>
-<span class="arg">my-app:latest .</span>
-<span class="out"></span>
+<span class="cmt"># Build with a different Dockerfile</span>
+<span class="cmd">docker build</span>
+<span class="flag"> -f</span>
+<span class="arg"> Dockerfile.prod</span>
+<span class="flag"> -t</span>
+<span class="arg"> my-app:prod .</span>
+
+<span class="cmt"># Force rebuild — ignore all caches</span>
+<span class="cmd">docker build</span>
+<span class="flag"> --no-cache</span>
+<span class="flag"> -t</span>
+<span class="arg"> my-app:latest .</span>
+
 <span class="cmt"># List all local images</span>
 <span class="cmd">docker images</span>
-<span class="out">REPOSITORY   TAG       IMAGE ID       SIZE</span>
-<span class="out">my-app       latest    a1b2c3d4e5f6   142MB</span>
-<span class="out"></span>
-<span class="cmt"># Run a container from your image</span>
-<span class="cmd">docker run </span>
-<span class="arg">my-app:latest</span>
-<span class="out"></span>
-<span class="cmt"># Run and get a shell inside the container</span>
-<span class="cmd">docker run </span>
-<span class="flag">-it </span>
-<span class="arg">my-app:latest bash</span>
-<span class="out"></span>
+<span class="out">REPOSITORY   TAG       IMAGE ID       CREATED       SIZE</span>
+<span class="out">my-app       latest    a1b2c3d4       2 mins ago    142MB</span>
+
+<span class="cmt"># Run a container (exits when command completes)</span>
+<span class="cmd">docker run</span>
+<span class="arg"> my-app:latest</span>
+
+<span class="cmt"># Run interactively with a terminal</span>
+<span class="cmd">docker run</span>
+<span class="flag"> -it</span>
+<span class="arg"> my-app:latest bash</span>
+
+<span class="cmt"># Run detached (in background)</span>
+<span class="cmd">docker run</span>
+<span class="flag"> -d</span>
+<span class="flag"> -p 8000:8000</span>
+<span class="arg"> my-app:latest</span>
+
+<span class="cmt"># Run and automatically delete container on exit</span>
+<span class="cmd">docker run</span>
+<span class="flag"> --rm</span>
+<span class="arg"> my-app:latest</span>
+
+<span class="cmt"># Pass environment variable</span>
+<span class="cmd">docker run</span>
+<span class="flag"> -e</span>
+<span class="arg"> APP_ENV=production</span>
+<span class="arg"> my-app:latest</span>
+
 <span class="cmt"># List running containers</span>
 <span class="cmd">docker ps</span>
-<span class="out"></span>
+
+<span class="cmt"># List all containers (including stopped)</span>
+<span class="cmd">docker ps</span>
+<span class="flag"> -a</span>
+
 <span class="cmt"># Stop a running container</span>
-<span class="cmd">docker stop </span>
-<span class="arg"><container-id></span>
-<span class="out"></span>
-<span class="cmt"># Remove a stopped container</span>
-<span class="cmd">docker rm </span>
-<span class="arg"><container-id></span>
-</code></pre></div>
-<div class="callout callout-info"><div class="callout-title">The -t flag</div><p>The <code>-t</code> flag gives your image a name and optional tag: <code>name:tag</code>. Tags are version labels. <code>latest</code> is used by convention for the most recent version.</p></div>
+<span class="cmd">docker stop</span>
+<span class="arg"> <container-id></span>
 
-<h2 id="key-terms">Key terms</h2>
-<div class="term-grid"><div class="term-card"><div class="term-word">Dockerfile</div><div class="term-def">A text file of instructions that builds a Docker image.</div></div><div class="term-card"><div class="term-word">FROM</div><div class="term-def">The base image your Dockerfile builds on.</div></div><div class="term-card"><div class="term-word">WORKDIR</div><div class="term-def">Sets the working directory inside the container.</div></div><div class="term-card"><div class="term-word">COPY</div><div class="term-def">Copies files from your local machine into the image.</div></div><div class="term-card"><div class="term-word">RUN</div><div class="term-def">Executes a command during the image build (e.g. install packages).</div></div><div class="term-card"><div class="term-word">CMD</div><div class="term-def">The default command to run when a container starts.</div></div></div>
+<span class="cmt"># View logs from a running container</span>
+<span class="cmd">docker logs</span>
+<span class="flag"> -f</span>
+<span class="arg"> <container-id></span>
 
-<h2 id="exercises">Exercises</h2>
-<div class="callout callout-exercise"><div class="callout-title">Lab exercises</div>
-<ol><li>Pull and run the official Python image: <code>docker run -it python:3.11-slim bash</code>. You are now inside a container — explore it.</li><li>Exit with <code>exit</code>. Run <code>docker ps -a</code> — you should see the stopped container.</li><li>Write a Dockerfile for a Python script that prints 'Hello from Docker'.</li><li>Build it: <code>docker build -t hello-docker .</code></li><li>Run it: <code>docker run hello-docker</code></li><li>Edit the Python script (outside the container), rebuild the image and run again.</li><li>Extension: use <code>docker history my-app</code> to see the layers in your image.</li></ol>
-</div>
-</div>
-  <aside class="sidebar"><div class="toc"><div class="toc-title">On this page</div><ul class="toc-list"><li><a href="#the-environment-problem">The environment problem</a></li><li><a href="#virtual-machines-vs-containers">Virtual machines vs containers</a></li><li><a href="#docker-fundamentals">Docker fundamentals</a></li><li><a href="#your-first-dockerfile">Your first Dockerfile</a></li><li><a href="#core-docker-commands">Core Docker commands</a></li><li><a href="#key-terms">Key terms</a></li><li><a href="#exercises">Exercises</a></li></ul></div></aside>
+<span class="cmt"># Delete all stopped containers and unused images</span>
+<span class="cmd">docker system prune</span>
+</code></pre></div><h2 id="volumes-and-bind-mounts">Volumes and bind mounts</h2><p>Containers have isolated filesystems. When a container exits, any files written inside it are lost. <strong>Volumes</strong> and <strong>bind mounts</strong> persist data outside the container:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — bind mount for development</span></div><pre><code><span class="cmt"># Mount current directory into the container</span>
+<span class="cmt"># Changes to local files appear immediately inside the container</span>
+<span class="cmd">docker run</span>
+<span class="flag"> -v</span>
+<span class="arg"> $(pwd):/app</span>
+<span class="arg"> my-app:latest</span>
+
+<span class="cmt"># Named volume for persistent data (e.g. database)</span>
+<span class="cmd">docker run</span>
+<span class="flag"> -v</span>
+<span class="arg"> db-data:/var/lib/postgresql/data</span>
+<span class="arg"> postgres:16</span>
+</code></pre></div><p>Bind mounts are useful during development — you edit code on your machine and the running container sees the changes immediately. Named volumes are used for persistence (databases, uploaded files).</p><h2 id="networking-basics">Networking basics</h2><p>Containers on the same Docker network can communicate with each other by container name. By default, containers are isolated from the host network:</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — port publishing</span></div><pre><code><span class="cmt"># -p host_port:container_port</span>
+<span class="cmt"># Forward requests to localhost:8000 → container:8000</span>
+<span class="cmd">docker run</span>
+<span class="flag"> -p 8000:8000</span>
+<span class="arg"> my-app:latest</span>
+
+<span class="cmt"># Map to a different host port</span>
+<span class="cmd">docker run</span>
+<span class="flag"> -p 3000:8000</span>
+<span class="arg"> my-app:latest</span>
+<span class="cmt"># localhost:3000 → container:8000</span>
+</code></pre></div><h2 id="key-terms">Key terms</h2><div class="term-grid"><div class="term-card"><div class="term-word">container</div><div class="term-def">An isolated process with its own filesystem, sharing the host OS kernel.</div></div><div class="term-card"><div class="term-word">image</div><div class="term-def">A read-only, layered template for creating containers.</div></div><div class="term-card"><div class="term-word">Dockerfile</div><div class="term-def">A text file of instructions that build a Docker image.</div></div><div class="term-card"><div class="term-word">layer</div><div class="term-def">One instruction's contribution to an image. Cached and reused if unchanged.</div></div><div class="term-card"><div class="term-word">FROM</div><div class="term-def">The base image a Dockerfile builds on.</div></div><div class="term-card"><div class="term-word">build context</div><div class="term-def">The directory sent to Docker during build. Controlled by .dockerignore.</div></div><div class="term-card"><div class="term-word">bind mount</div><div class="term-def">Mounts a host directory into a container. Used for development.</div></div><div class="term-card"><div class="term-word">named volume</div><div class="term-def">Docker-managed persistent storage, survives container deletion.</div></div><div class="term-card"><div class="term-word">docker run -p</div><div class="term-def">Publish a container port to the host so external processes can reach it.</div></div><div class="term-card"><div class="term-word">docker ps</div><div class="term-def">List running containers. Add -a for all including stopped.</div></div><div class="term-card"><div class="term-word">PYTHONUNBUFFERED</div><div class="term-def">Ensures Python output appears in docker logs immediately.</div></div></div><h2 id="exercises">Exercises</h2><div class="callout callout-exercise"><div class="callout-title">✎ Lab exercises — approximately 55 minutes</div>
+<h3>Part A: Exploring the runtime</h3>
+<ol><li>Pull and run the Python image interactively: <code>docker run -it python:3.11-slim bash</code></li><li>Inside the container, run <code>python3 --version</code>, <code>pip list</code>, and <code>ls /</code>.</li><li>Create a file: <code>echo hello > /tmp/test.txt</code>. Exit the container.</li><li>Run the same image again. Is <code>/tmp/test.txt</code> still there? Why not?</li></ol>
+<h3>Part B: Build your first image</h3>
+<ol><li>Write a Python script that prints a greeting and today's date.</li><li>Write a Dockerfile for it using python:3.11-slim as the base.</li><li>Add a <code>.dockerignore</code> excluding <code>__pycache__</code> and <code>.git</code>.</li><li>Build it: <code>docker build -t hello:v1 .</code></li><li>Run it: <code>docker run --rm hello:v1</code></li></ol>
+<h3>Part C: Layer caching</h3>
+<ol><li>Add a requirements.txt with one package (e.g. requests).</li><li>Update your Dockerfile to copy requirements.txt first, install, then copy the rest.</li><li>Build twice: <code>docker build -t hello:v2 .</code>. How does the second build differ?</li><li>Change only your Python script and rebuild. Which layers are rebuilt? Which are cached?</li></ol>
+<h3>Part D: Running a web application</h3>
+<ol><li>Install Flask locally and write a minimal Flask app that returns 'Hello from Docker'.</li><li>Add Flask to requirements.txt.</li><li>Update the Dockerfile CMD to run Flask: <code>["python3", "-m", "flask", "run", "--host=0.0.0.0"]</code></li><li>Build and run with port mapping: <code>docker run -p 5000:5000 hello:v3</code></li><li>Visit http://localhost:5000 in your browser.</li></ol>
+</div></div>
+  <div class="sidebar"><div class="toc"><div class="toc-title">On this page</div><ul class="toc-list"><li><a href=#the-environment-problem-in-depth>The environment problem in depth</a></li><li><a href=#from-bare-metal-to-containers>From bare metal to containers</a></li><li><a href=#docker-architecture>Docker architecture</a></li><li><a href=#images-and-layers>Images and layers</a></li><li><a href=#writing-a-dockerfile>Writing a Dockerfile</a></li><li><a href=#dockerfile-instructions-reference>Dockerfile instructions reference</a></li><li><a href=#dockerignore>.dockerignore</a></li><li><a href=#docker-commands-in-depth>Docker commands in depth</a></li><li><a href=#volumes-and-bind-mounts>Volumes and bind mounts</a></li><li><a href=#networking-basics>Networking basics</a></li><li><a href=#key-terms>Key terms</a></li><li><a href=#exercises>Exercises</a></li></ul></div></div>
 </div>
 <div style="max-width:var(--wide);margin:0 auto;padding:0 2rem;">
   <div class="pagination"><a class="page-btn prev" href="module-07.html"><span class="page-dir">← Previous</span><span class="page-title">Automating Repetitive Tasks</span></a><a class="page-btn next" href="module-09.html"><span class="page-dir">Next →</span><span class="page-title">Containers in a DevOps Workflow</span></a></div>
 </div>
-<footer><p>SCCM4910 DevOps · Lancaster University · Made for first-year students</p></footer>
+<footer>
+  <p>DevOps Tutorials · Ran Wei</p>
+  <p style="margin-top:6px">Questions? Post on the module Moodle forum or discuss with your lab demonstrator.</p>
+</footer>
+
 <script>
+// Reading progress bar
+const bar = document.querySelector('.reading-progress');
+window.addEventListener('scroll', () => {
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.width = (window.scrollY / total * 100) + '%';
+});
+
+// TOC active link
 const sections = document.querySelectorAll('h2[id]');
 const links = document.querySelectorAll('.toc-list a');
 const obs = new IntersectionObserver(entries => {
@@ -136,8 +211,9 @@ const obs = new IntersectionObserver(entries => {
       links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id));
     }
   });
-}, {rootMargin:'-20% 0px -70% 0px'});
+}, {rootMargin:'-15% 0px -75% 0px'});
 sections.forEach(s => obs.observe(s));
 </script>
+
 </body>
 </html>

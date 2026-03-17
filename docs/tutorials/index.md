@@ -20,7 +20,7 @@ A tutorial series covering the fundamentals of SysML v2, the next-generation sys
 
 ---
 
-## DevOps (SCCM4910)
+## DevOps
 
 A 10-module tutorial series on DevOps practices including Unix tools, Git, CI/CD, containers, and automation.
 
