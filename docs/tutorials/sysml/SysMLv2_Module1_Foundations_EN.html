@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysML v2 Module 1: Foundations</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-body:'Arial',system-ui,sans-serif;--font-mono:'Courier New',monospace;
+  --sidebar-w:260px;--content-max:820px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-weight:700;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .badge{margin-left:auto;background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem;border-radius:999px;white-space:nowrap}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--sky-light);color:var(--blue);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--navy)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:#fff}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+#main .module-eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sky);margin-bottom:.5rem}
+#main .module-title{font-size:2.2rem;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:.75rem;letter-spacing:-.02em}
+#main .module-lead{font-size:1.05rem;color:var(--slate);max-width:640px;margin-bottom:2.5rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:.75rem;margin:3rem 0 1.5rem;padding-bottom:.75rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sky);background:var(--sky-light);padding:.25rem .6rem;border-radius:6px}
+.section-header h2{font-size:1.4rem;font-weight:700;color:var(--navy);letter-spacing:-.01em}
+h3{font-size:1.05rem;font-weight:700;color:var(--navy);margin:1.75rem 0 .75rem}
+p{margin-bottom:1rem;color:#334155}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:#334155}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.25rem 0;border:1px solid var(--border)}
+pre code{background:none;padding:0;font-size:.88rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.25rem 0;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--sky)}
+.callout.note .callout-label{color:var(--sky)}
+.callout.tip{background:var(--green-bg);border-color:var(--green)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:#334155;font-size:.95rem}
+.callout p:last-child{margin-bottom:0}
+table{width:100%;border-collapse:collapse;margin:1.25rem 0;font-size:.9rem}
+th{background:var(--sky-light);color:var(--blue);font-weight:700;padding:.65rem .9rem;text-align:left;border:1px solid var(--border)}
+td{padding:.6rem .9rem;border:1px solid var(--border);color:#334155;vertical-align:top}
+tr:nth-child(even){background:#F8FAFC}
+.next-box{background:var(--sky-light);border-left:4px solid var(--blue);border-radius:10px;padding:1.25rem 1.5rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:.4rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a class="brand" href="#">Principia <span>Modelling</span></a>
+  <span class="sep">›</span>
+  <span class="crumb">SysML v2 Module 1: Foundations</span>
+  <span class="badge">Module 1 of 8</span>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>What is SysML v2?</a><a href="#s2"><span class="num">2</span>KerML — Language Foundation</a><a href="#s3"><span class="num">3</span>Language Architecture</a><a href="#s4"><span class="num">4</span>Definitions vs Usages</a><a href="#s5"><span class="num">5</span>Textual Notation (STN)</a><a href="#s6"><span class="num">6</span>Mapping from SysML v1</a><a href="#s7"><span class="num">7</span>Module Summary</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-eyebrow">Module 1</div>
+    <h1 class="module-title">SysML v2 Foundations</h1>
+    <p class="module-lead">What SysML v2 is, where it came from, and the foundational KerML layer that makes it precise. After this module, you will understand the "why" behind the language design.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>What is SysML v2?</h2>
+</div>
+
+<p>Imagine building a large factory. Before construction starts, you need many drawings — floor plans, electrical diagrams, plumbing layouts… each describes one aspect of the factory. Systems engineering is the same. Engineers building complex systems (aircraft, rockets, medical devices) need a structured <em>language</em> to describe every aspect of the system before it is built. <strong>SysML v2 is that language.</strong></p>
+<div class="callout tip"><div class="callout-label">💡 One-sentence summary</div><p>SysML v2 is a standardised <em>modelling language</em> for engineers to describe and design complex systems — just as architects use CAD software, systems engineers use SysML v2.</p></div>
+<h3>Who created SysML v2?</h3>
+<p>SysML v2 was created by the <strong>Object Management Group (OMG)</strong> in collaboration with INCOSE (the International Council on Systems Engineering). It was officially released in 2024 as OMG specification <code>ptc/2024-05-04</code> — the most current version.</p>
+<div class="callout note"><div class="callout-label">NOTE</div><p>SysML v2 ships with a companion <strong>API standard</strong> that allows different tools to exchange model data. This was not available in earlier versions and is one of the most important improvements.</p></div>
+<h3>What was wrong with SysML v1?</h3>
+<p>SysML v1 was released in 2006. It was adapted from UML (a software design language), which brought a lot of historical baggage irrelevant to systems engineering. SysML v2 is a clean redesign from first principles.</p>
+<table><thead><tr><th>SysML v1 limitation</th><th>SysML v2 improvement</th></tr></thead><tbody><tr><td>Inherited many UML concepts unrelated to systems</td><td>Clean redesign based on KerML — no UML dependency</td></tr><tr><td>Many concepts had imprecise meanings, causing ambiguity</td><td>Strict mathematical definitions — unambiguous semantics</td></tr><tr><td>Only graphical notation</td><td>New textual notation (STN) — both graphical and textual</td></tr><tr><td>Tools could not exchange model files</td><td>Standard API — tools can interoperate</td></tr><tr><td>Behavioural modelling was awkward</td><td>Unified, cleaner behaviour modelling</td></tr><tr><td>Allocation had no standard syntax</td><td>Allocation has a defined, formal syntax</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 1 — SysML v1 limitations and v2 improvements</caption></table><span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>KerML — The Language Foundation</h2>
+</div>
+
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>Imagine building a city. Before any building goes up, you need foundations, roads, and utilities — the infrastructure that governs rules for every building. KerML is exactly this for SysML v2: it defines the most fundamental rules, and everything in SysML v2 is built on top of it.</p></div>
+<p>KerML stands for <strong>Kernel Modeling Language</strong>. It is itself an independent OMG standard (<code>ptc/2024-05-05</code>). You usually do not write KerML directly — just as you do not build a water treatment plant before renovating your house — but understanding KerML's key concepts helps you understand <em>why</em> SysML v2 works the way it does.</p>
+<div class="callout tip"><div class="callout-label">💡 For beginners</div><p>KerML is the "unsung hero." It provides precise mathematical definitions that make the language rigorous and consistent. When SysML v2 feels organised and logical, you are feeling the effect of KerML.</p></div>
+<h3>KerML core concepts — step by step</h3>
+<p>Each concept below builds on the one before it.</p>
+<div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">Step 1</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Element</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 Simple:</strong>&nbsp;Everything in a model with a name.</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 Analogy:</strong>&nbsp;Like a "file or folder" in a file system — everything is one or the other.</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 Technical:</strong>&nbsp;The root type. All KerML constructs are subtypes of Element. Carries <code>name</code> (declared name) and <code>qualifiedName</code> (fully qualified path).</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">Step 2</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Namespace</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 Simple:</strong>&nbsp;An Element that can contain other Elements — a container or scope.</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 Analogy:</strong>&nbsp;Like a folder on your computer — the folder itself is also a file, but it can hold other files.</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 Technical:</strong>&nbsp;An Element that can own other Elements. Package, Type, and Feature are all subtypes of Namespace.</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">Step 3</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Type</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 Simple:</strong>&nbsp;A template describing "what a category of thing is like" — e.g. "the shared properties of all engines".</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 Analogy:</strong>&nbsp;Like a cookie cutter — the cutter itself is not a cookie, but it defines the shape. Many identical cookies can be made from one cutter.</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 Technical:</strong>&nbsp;A Namespace that classifies things. Features describe the properties and behaviours of its instances. The <code>isAbstract</code> property controls whether the type can be instantiated directly.</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">Step 4</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Feature</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 Simple:</strong>&nbsp;A specific property or behaviour of a Type — e.g. the "power" attribute of an engine, or the "start" action.</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 Analogy:</strong>&nbsp;Like the entries on a CV — "name", "age", "work history" are all features of that CV.</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 Technical:</strong>&nbsp;A typing attribute of a Type. Can be structural (attribute/part) or behavioural (action/step). Carries direction (in/out/inout), and whether it is composite (<code>isComposite</code>).</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">Step 5</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Classifier</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 Simple:</strong>&nbsp;A special Type whose instances are things that actually exist or happen (not abstract concepts).</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 Analogy:</strong>&nbsp;If Type is the concept of "animal", Classifier is specific categories like "mammal" or "bird" — things that actually exist in nature.</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 Technical:</strong>&nbsp;A Type whose instances are things that exist or occur — structures, behaviours, events. The <code>isSufficient</code> property determines whether having all features is enough to classify something as this type.</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">Step 6</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Class / DataType / Behavior</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 Simple:</strong>&nbsp;Three kinds of Classifier: persistent objects (Class), pure values (DataType), time-unfolding processes (Behavior).</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 Analogy:</strong>&nbsp;A washing machine is a Class (it persists); its power rating "800W" is a DataType (a pure number, no identity); the wash cycle is a Behavior (it unfolds over time and ends).</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 Technical:</strong>&nbsp;Class: instances have persistent identity (structures, existing over time). DataType: instances have no identity (pure values — numbers, strings). Behavior: instances are events that occur over time (actions, processes, functions).</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">Step 7</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Connector</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 Simple:</strong>&nbsp;A bridge linking two Features, describing the relationship between them.</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 Analogy:</strong>&nbsp;Like a wire in an electrical diagram — the wire itself is neither the power source nor the lamp, but it connects the two.</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 Technical:</strong>&nbsp;A Feature that links Feature instances to each other. The semantic foundation for Connection, BindingConnector, and Flow. <code>isDirected</code> controls whether it has direction.</p>
+</div><div style="background:#F8FAFC;border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:10px;padding:1.1rem 1.25rem;margin:.75rem 0">
+  <p><strong style="color:var(--sky)">Step 8</strong>&nbsp;&nbsp;<strong style="color:var(--navy);font-size:1.02rem">Relationship (and its three subtypes)</strong></p>
+  <p style="margin:.5rem 0 .25rem"><strong style="color:var(--slate);font-size:.85rem">📖 Simple:</strong>&nbsp;A bridge describing the relationship between two Elements. The three most important are: Specialisation (one is a subtype of another), Subsetting (one feature's values are a subset of another's), Redefinition (replace a parent feature in a subtype).</p>
+  <p style="margin:0 0 .25rem"><strong style="color:var(--orange);font-size:.85rem">🏠 Analogy:</strong>&nbsp;Specialisation = "a cat is a type of mammal"; Subsetting = "my friend group is a subset of all people"; Redefinition = "I adapted my parent's method into my own version".</p>
+  <p style="margin:0"><strong style="color:var(--blue);font-size:.85rem">📐 Technical:</strong>&nbsp;Relationship: an Element associating two or more Elements. Specialisation: a specific Type inherits all instances of a general Type. Subsetting: all values of a sub-feature are also values of the parent feature. Redefinition: replaces a parent feature in a specialisation context — stronger than subsetting.</p>
+</div>
+<h3>Summary of KerML core construct relationships</h3>
+<p>The diagram below shows how all KerML core constructs relate. You do not need to memorise it immediately — as you progress through the series, each box will become familiar.</p>
+<p><em>Reading guide: hollow triangle arrows mean "specialises" (subtype → supertype); dashed blue arrows mean "subsetting"; blue boxes are abstract types, green boxes are concrete types.</em></p>
+<div style="background:#F8FAFC;border:1px solid var(--border);border-radius:10px;padding:1.5rem;text-align:center;color:var(--muted);font-size:.9rem;margin:1.25rem 0">
+  [KerML Taxonomy Diagram — see docx version for embedded image]
+</div><span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>SysML v2 Language Architecture</h2>
+</div>
+
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>Think of a tall building: foundations (L0) → structural frame (L1 / KerML) → rooms and layouts (L2 / SysML language) → furniture and fittings (L3 / standard library). Each layer depends on the one below, but you live on the top floor — you do not need to think about the concrete mix. SysML v2's four layers work the same way.</p></div>
+<p>SysML v2 is organised into four layers:</p>
+<table><thead><tr><th>Layer</th><th>Name</th><th>Description</th></tr></thead><tbody><tr><td>L3</td><td>SysML v2 Standard Library</td><td>Ready-made "toolbox": pre-defined international units (metres, kilograms, amperes), ISQ quantities, geometric relationships etc. Use them directly without redefining.</td></tr><tr><td>L2</td><td>SysML v2 Language (core)</td><td>All the keywords you use day-to-day: <code>part</code>, <code>item</code>, <code>port</code>, <code>action</code>, <code>requirement</code>, <code>connection</code>, etc.</td></tr><tr><td>L1</td><td>KerML (Kernel Modeling Language)</td><td>Provides precise semantic definitions for everything in L2. Like Word's underlying file format — you don't see it, but it ensures every concept has a clear meaning.</td></tr><tr><td>L0</td><td>Mathematical foundation (set theory)</td><td>Uses set theory to precisely define "type", "instance", "feature value" etc. For language designers — beginners do not need to study this.</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 2 — SysML v2 language layers (L0 is the foundation, L3 is the application layer)</caption></table>
+<div class="callout tip"><div class="callout-label">💡 Which layer do you actually need?</div><p>As a beginner, 90% of your time is in L2 (SysML language layer) — modelling with <code>part</code>, <code>action</code>, <code>port</code> keywords. L3 (standard library) gives you ready-made units. L1 (KerML) helps you understand <em>why</em>. L0 is for language designers only.</p></div><span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>Definitions vs Usages</h2>
+</div>
+
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>Think about a pizza. <br><br><strong>[Definition]</strong> The menu card says: Pizza = dough + tomato sauce + cheese + toppings. That card is the definition — it describes what a pizza is, but it is not itself a pizza.<br><br><strong>[Usage]</strong> Today the chef made three pizzas: one Margherita, one Hawaiian, one Pepperoni. Those three real pizzas are usages — concrete instances of the definition, in a specific context (tonight's menu).<br><br>In SysML v2: <code>part def Battery</code> is the definition (menu card); <code>part battery : Battery</code> is the usage (tonight's actual battery).</p></div>
+<h3>Definitions — describing "what something is"</h3>
+<p>A definition is a reusable template. Write it once, reference it in many places. Key SysML v2 definition keywords:</p>
+<ul>
+  <li><code>part def</code> — defines a structural component (like a blueprint for a part)</li>
+  <li><code>item def</code> — defines something that flows between parts (signals, data, fluids)</li>
+  <li><code>port def</code> — defines a connection point (like a socket standard)</li>
+  <li><code>action def</code> — defines an action or function (like defining an operation step)</li>
+  <li><code>state def</code> — defines a state machine behaviour</li>
+  <li><code>requirement def</code> — defines a requirement type (template format)</li>
+  <li><code>attribute def</code> — defines a value type or attribute (e.g. temperature, mass)</li>
+</ul>
+<h3>Usages — describing "where it is used"</h3>
+<p>Usages place a definition into a specific context. Usage keywords correspond one-to-one with definition keywords — just remove <code>def</code>:</p>
+<ul>
+  <li><code>part</code> — a specific structural component (this system's particular part)</li>
+  <li><code>item</code> — a specific flowing element</li>
+  <li><code>port</code> — a specific connection point on a part</li>
+  <li><code>action</code> — a specific operation step in a flow</li>
+  <li><code>state</code> — a specific state in a state machine</li>
+  <li><code>requirement</code> — a specific requirement</li>
+  <li><code>attribute</code> — a specific attribute slot (waiting to be assigned a value)</li>
+</ul>
+<h3>A complete example</h3>
+<pre><code>// ── Step 1: Definitions (write the 'menu') ─────────────────────
+
+part def Battery {
+    attribute capacity : Real;    // battery has a capacity (Wh)
+    attribute voltage  : Real;    // battery has a voltage (V)
+}
+
+part def Motor {
+    attribute maxRPM : Real;
+    port powerIn : ~ElectricalPort;  // motor has a power input port
+}
+
+part def Drone {
+    part battery : Battery;       // usage — drone has one Battery
+    part motor1  : Motor;         // usage — drone has four Motors
+    part motor2  : Motor;
+    part motor3  : Motor;
+    part motor4  : Motor;
+}
+
+// ── Step 2: Usage (place a 'order') ───────────────────────────
+
+part missionDrone : Drone;        // this is one specific mission drone</code></pre>
+<div class="callout tip"><div class="callout-label">💡 The golden rule</div><p><code>def</code> = template, write once, use many times.  Usage (no <code>def</code>) = one concrete application of the template, in a specific context. Both are essential: no definition means no specification; no usage means the definition never leaves the page.</p></div><span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>SysML v2 Textual Notation (STN)</h2>
+</div>
+
+<p>SysML v1 only had a graphical language (boxes and arrows). SysML v2 adds a standard <strong>textual notation</strong> called STN (SysML Textual Notation). Benefits: can be written in any text editor, version-controlled in Git, and processed by code.</p>
+<div class="callout analogy"><div class="callout-label">🏠 ANALOGY</div><p>Music can be written as a score (graphical) or as tablature (text) — both describe the same song. SysML v2's graphical and textual notations work exactly like this: interchangeable, fully equivalent.</p></div>
+<h3>Core syntax rules</h3>
+<table><thead><tr><th>Syntax pattern</th><th>Meaning</th></tr></thead><tbody><tr><td><code>keyword name : type</code></td><td>The fundamental pattern. E.g. <code>part battery : Battery</code> means "there is a part called battery, typed by Battery".</td></tr><tr><td><code>{ ... }</code></td><td>Curly braces contain what this element "owns" — sub-parts, attributes, actions, etc.</td></tr><tr><td><code>// comment</code></td><td>Double slash starts a comment — human-readable annotation, no effect on model semantics.</td></tr><tr><td><code>package Pkg { ... }</code></td><td>Defines a namespace (package) to organise related definitions together.</td></tr><tr><td><code>import Pkg::*;</code></td><td>Imports all public contents of a package, so you can use them directly without writing the full path.</td></tr><tr><td><code>:&gt;</code> (subset operator)</td><td>Means "is a subset of". E.g. <code>part motor1 :&gt; rotatingParts</code> means motor1 is one of the rotating parts.</td></tr><tr><td><code>:&gt;&gt;</code> (redefine operator)</td><td>Means "replaces an inherited feature". Stronger than subsetting — the original feature is hidden.</td></tr><tr><td><code>= expr</code> (assignment)</td><td>Gives an attribute a default value or a binding expression. E.g. <code>attribute voltage = 3.7</code> means voltage is always 3.7 V.</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 3 — SysML v2 core textual notation syntax</caption></table>
+<div class="callout note"><div class="callout-label">NOTE</div><p>Any conformant SysML v2 tool must support both graphical and textual forms, and must be able to convert between them losslessly. A model written in text will automatically generate diagrams; diagrams can be exported as text.</p></div><span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>Mapping from SysML v1</h2>
+</div>
+
+<p>If you have no prior SysML v1 experience, you may skip this section or treat it as a vocabulary preview. The table below shows common SysML v1 concepts and their SysML v2 equivalents.</p>
+<table><thead><tr><th>SysML v1 name</th><th>SysML v2 name</th><th>Key change</th></tr></thead><tbody><tr><td>Block</td><td><code>part def</code></td><td>Clearer name, no UML Class heritage</td></tr><tr><td>Block Property</td><td><code>part</code> / <code>attribute</code> (usage)</td><td>Explicit separation: <code>part</code> is structural, <code>attribute</code> is a value</td></tr><tr><td>Flow Port</td><td>Directional <code>port</code></td><td>Direction (in/out/inout) specified directly in <code>port def</code></td></tr><tr><td>Standard Port</td><td><code>port def</code> with interface</td><td>Port described by its interface type</td></tr><tr><td>ValueProperty</td><td><code>attribute</code></td><td>Cleaner; can associate with ISQ international units</td></tr><tr><td>ConstraintBlock</td><td><code>constraint def</code></td><td>Constraints have formal mathematical expressions</td></tr><tr><td>Requirement (block)</td><td><code>requirement def</code></td><td>Requirements can be associated with a subject and stakeholders</td></tr><tr><td>satisfy / verify</td><td><code>satisfy</code> / <code>verify</code></td><td>Now first-class relationships with typed semantics</td></tr><tr><td>Activity</td><td><code>action def</code></td><td>Unified behaviour modelling, no longer depends on UML Activity</td></tr><tr><td>StateMachine</td><td><code>state def</code></td><td>State machine and action semantics are unified and consistent</td></tr><tr><td>IBD (Internal Block Diagram)</td><td>Part usage tree / interconnections</td><td>No separate diagram type needed; usage trees show structure directly</td></tr></tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 4 — SysML v1 to SysML v2 concept mapping</caption></table><span class="section-anchor" id="s7"></span>
+<div class="section-header">
+  <span class="section-num">7</span>
+  <h2>Module Summary</h2>
+</div>
+
+<p>Congratulations on completing Module 1! Here is a recap of the core ideas:</p>
+<ul>
+  <li>SysML v2 is a standardised "drawing language" for engineers to design complex systems, released by OMG in 2024.</li>
+  <li>SysML v2 is not based on UML — it is built on a new foundation, KerML (Kernel Modeling Language), with more precise concepts.</li>
+  <li>KerML defines the most fundamental constructs: Element, Type, Feature, Classifier, Connector, Relationship.</li>
+  <li>SysML v2 has four layers: mathematical foundation (L0) → KerML (L1) → SysML language (L2) → standard library (L3). You work in L2 day-to-day.</li>
+  <li>The most important distinction: <strong>definition</strong> (<code>def</code>) = template; <strong>usage</strong> (no <code>def</code>) = one concrete application in a specific context.</li>
+  <li>SysML v2 adds a textual notation (STN) — graphical and textual forms are interchangeable.</li>
+  <li>If you know SysML v1: Block → <code>part def</code>, Activity → <code>action def</code>, most concepts have direct equivalents.</li>
+</ul>
+<div class="next-box"><div class="next-label">Up Next</div><p>Module 2 — Core Language Concepts — Namespaces, packages, import/visibility, specialisation chains, multiplicity, and the full feature model.</p></div>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+</body>
+</html>
