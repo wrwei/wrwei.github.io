@@ -7,160 +7,158 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="reading-progress"></div>
+<div id="progress-bar"></div>
 <nav class="site-nav">
   <a class="nav-brand" href="index.html">Dev<span>Ops</span></a>
-  <div class="nav-modules"><a class="nav-dot" href="module-01.html" title="Module 1">1</a><a class="nav-dot" href="module-02.html" title="Module 2">2</a><a class="nav-dot" href="module-03.html" title="Module 3">3</a><a class="nav-dot active" href="module-04.html" title="Module 4">4</a><a class="nav-dot" href="module-05.html" title="Module 5">5</a><a class="nav-dot" href="module-06.html" title="Module 6">6</a><a class="nav-dot" href="module-07.html" title="Module 7">7</a><a class="nav-dot" href="module-08.html" title="Module 8">8</a><a class="nav-dot" href="module-09.html" title="Module 9">9</a><a class="nav-dot" href="module-10.html" title="Module 10">10</a></div>
+  <div class="nav-dropdown" id="navDropdown">
+  <button class="nav-dropdown-btn" onclick="document.getElementById('navDropdown').classList.toggle('open')">Module 04 of 10</button>
+  <div class="nav-dropdown-menu"><a href="module-01.html">Module 01 &mdash; Introduction to DevOps</a>
+<a href="module-02.html">Module 02 &mdash; Unix Tools & Scripting</a>
+<a href="module-03.html">Module 03 &mdash; Version Control & Git</a>
+<a href="module-04.html" class="active">Module 04 &mdash; Collaborating with Git</a>
+<a href="module-05.html">Module 05 &mdash; CI & Automated Testing</a>
+<a href="module-06.html">Module 06 &mdash; CI Pipelines in Practice</a>
+<a href="module-07.html">Module 07 &mdash; Automating Repetitive Tasks</a>
+<a href="module-08.html">Module 08 &mdash; Virtualisation and Containers</a>
+<a href="module-09.html">Module 09 &mdash; Containers in a DevOps Workflow</a>
+<a href="module-10.html">Module 10 &mdash; DevOps in Practice & Review</a>
+</div>
+</div>
 </nav>
-
-<div class="hero">
+<div id="layout">
+  <div id="sidebar"><div class="sidebar-label">Contents</div><nav><a href="#why-branches"><span class="snum">1</span>Why branches?</a>
+<a href="#creating-and-switching-branches"><span class="snum">2</span>Creating and switching branches</a>
+<a href="#merging-strategies"><span class="snum">3</span>Merging strategies</a>
+<a href="#remote-repositories-in-depth"><span class="snum">4</span>Remote repositories in depth</a>
+<a href="#the-pull-request-workflow"><span class="snum">5</span>The pull request workflow</a>
+<a href="#merge-conflicts-step-by-step"><span class="snum">6</span>Merge conflicts step by step</a>
+<a href="#branch-strategies-in-teams"><span class="snum">7</span>Branch strategies in teams</a>
+<a href="#git-stash-for-context-switching"><span class="snum">8</span>git stash for context switching</a>
+<a href="#key-terms"><span class="snum">9</span>Key terms</a>
+<a href="#exercises"><span class="snum">10</span>Exercises</a>
+</nav></div>
+  <main id="content">
+    <div class="hero">
   <div class="hero-meta">
     <span class="tag tag-module">Module 04</span>
     <span class="tag tag-theme">Version Control</span>
     <span class="tag tag-time">~1 hour</span>
   </div>
-<div class="page-body">
-
+    
   <h1>Collaborating with Git</h1>
   <p class="hero-sub">Learn to work with branches, remotes, and pull requests — the everyday workflow of every professional software team.</p>
   <div class="mlo-row"><span class="mlo-label">Covers:</span><span class="mlo-badge">MLO3</span><span class="mlo-badge">MLO4</span><span class="mlo-badge">MLO7</span></div>
-</div><h2 id="why-branches">Why branches?</h2><p>Everything committed so far has been on a single line of history called <code>main</code>. This works for solo projects, but consider a team scenario:</p><ul><li>Alice is building the login system</li><li>Bob is fixing a security bug in the API</li><li>Charlie is experimenting with a new caching layer</li></ul><p>If they all commit to <code>main</code> simultaneously, their changes mix together. Alice cannot test her login system without also getting Bob's half-finished security fix and Charlie's experimental cache. When something breaks, it is impossible to tell whose change caused it.</p><p>Branches solve this by giving each person (or each feature) a separate line of history. Alice's login work exists independently from Bob's bug fix. When each is finished and tested, it can be merged into <code>main</code>.</p><h2 id="creating-and-switching-branches">Creating and switching branches</h2><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — branch operations</span></div><pre><code><span class="cmt"># List all local branches (* = current)</span>
+</div><section class="section" id="why-branches"><div class="section-header"><div class="section-num">37</div><h2>Why branches?</h2></div><p>Everything committed so far has been on a single line of history called <code>main</code>. This works for solo projects, but consider a team scenario:</p><ul><li>Alice is building the login system</li><li>Bob is fixing a security bug in the API</li><li>Charlie is experimenting with a new caching layer</li></ul><p>If they all commit to <code>main</code> simultaneously, their changes mix together. Alice cannot test her login system without also getting Bob's half-finished security fix and Charlie's experimental cache. When something breaks, it is impossible to tell whose change caused it.</p><p>Branches solve this by giving each person (or each feature) a separate line of history. Alice's login work exists independently from Bob's bug fix. When each is finished and tested, it can be merged into <code>main</code>.</p><section class="section" id="creating-and-switching-branches"><div class="section-header"><div class="section-num">38</div><h2>Creating and switching branches</h2></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash — branch operations</span></div><pre><code><span class="cmt"># List all local branches (* = current)</span>
 <span class="cmd">git branch</span>
 <span class="out">* main</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Create a new branch</span>
-<span class="cmd">git branch</span>
-<span class="arg"> feature/login</span>
-
+<span class="cmd">git branch</span><span class="arg"> feature/login</span>
+<span class="cmt"></span>
 <span class="cmt"># Switch to it</span>
-<span class="cmd">git switch</span>
-<span class="arg"> feature/login</span>
+<span class="cmd">git switch</span><span class="arg"> feature/login</span>
 <span class="out">Switched to branch 'feature/login'</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Create and switch in one step (preferred)</span>
-<span class="cmd">git switch</span>
-<span class="flag"> -c</span>
-<span class="arg"> feature/login</span>
-
+<span class="cmd">git switch</span><span class="flag"> -c</span><span class="arg"> feature/login</span>
+<span class="cmt"></span>
 <span class="cmt"># Rename the current branch</span>
-<span class="cmd">git branch</span>
-<span class="flag"> -m</span>
-<span class="arg"> feature/user-login</span>
-
+<span class="cmd">git branch</span><span class="flag"> -m</span><span class="arg"> feature/user-login</span>
+<span class="cmt"></span>
 <span class="cmt"># Delete a branch (must not be current branch)</span>
-<span class="cmd">git branch</span>
-<span class="flag"> -d</span>
-<span class="arg"> feature/login</span>
+<span class="cmd">git branch</span><span class="flag"> -d</span><span class="arg"> feature/login</span>
 <span class="cmt">   # safe delete (only if merged)</span>
-<span class="cmd">git branch</span>
-<span class="flag"> -D</span>
-<span class="arg"> feature/login</span>
+<span class="cmd">git branch</span><span class="flag"> -D</span><span class="arg"> feature/login</span>
 <span class="cmt">   # force delete</span>
-</code></pre></div><p>After creating a branch, any commits you make are on that branch. The <code>main</code> branch is unaffected until you merge.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — visualising branches</span></div><pre><code><span class="out">main:          A --- B --- C</span>
+</code></pre></div><p>After creating a branch, any commits you make are on that branch. The <code>main</code> branch is unaffected until you merge.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash — visualising branches</span></div><pre><code><span class="out">main:          A --- B --- C</span>
 <span class="out">                           \</span>
 <span class="out">feature/login:              D --- E</span>
-
+<span class="out"></span>
 <span class="cmt"># HEAD points to the current commit on the current branch</span>
-<span class="cmd">git log</span>
-<span class="flag"> --oneline --graph --all</span>
+<span class="cmd">git log</span><span class="flag"> --oneline --graph --all</span>
 <span class="out">* f4e5d6c (HEAD -> feature/login) Add login form</span>
 <span class="out">* a1b2c3d (main) Initial commit</span>
-</code></pre></div><h2 id="merging-strategies">Merging strategies</h2><p>When a feature branch is ready, you merge it back into the target branch (usually <code>main</code>). Git uses different strategies depending on the history:</p><h3>Fast-forward merge</h3><p>If <code>main</code> has not moved since the branch was created, Git can simply move the <code>main</code> pointer forward. The history stays linear.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — fast-forward merge</span></div><pre><code><span class="cmd">git switch</span>
-<span class="arg"> main</span>
-<span class="cmd">git merge</span>
-<span class="arg"> feature/login</span>
+</code></pre></div><section class="section" id="merging-strategies"><div class="section-header"><div class="section-num">39</div><h2>Merging strategies</h2></div><p>When a feature branch is ready, you merge it back into the target branch (usually <code>main</code>). Git uses different strategies depending on the history:</p><h3>Fast-forward merge</h3><p>If <code>main</code> has not moved since the branch was created, Git can simply move the <code>main</code> pointer forward. The history stays linear.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash — fast-forward merge</span></div><pre><code><span class="cmd">git switch</span><span class="arg"> main</span>
+<span class="cmd">git merge</span><span class="arg"> feature/login</span>
 <span class="out">Updating a1b2c3d..f4e5d6c</span>
 <span class="out">Fast-forward</span>
 <span class="out"> login.py | 42 ++++</span>
-</code></pre></div><h3>Three-way merge</h3><p>If both branches have new commits, Git creates a <strong>merge commit</strong> that has two parents. The history records that both lines were combined.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — three-way merge</span></div><pre><code><span class="cmd">git merge</span>
-<span class="arg"> feature/login</span>
+</code></pre></div><h3>Three-way merge</h3><p>If both branches have new commits, Git creates a <strong>merge commit</strong> that has two parents. The history records that both lines were combined.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash — three-way merge</span></div><pre><code><span class="cmd">git merge</span><span class="arg"> feature/login</span>
 <span class="out">Merge made by the 'ort' strategy.</span>
 <span class="out"> login.py | 42 ++++</span>
-</code></pre></div><h2 id="remote-repositories-in-depth">Remote repositories in depth</h2><p>A <strong>remote</strong> repository is a copy of your repository hosted elsewhere — usually GitHub. The default remote is named <code>origin</code> by convention.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — working with remotes</span></div><pre><code><span class="cmt"># Clone an existing repository</span>
-<span class="cmd">git clone</span>
-<span class="arg"> https://github.com/user/repo.git</span>
-
+</code></pre></div><section class="section" id="remote-repositories-in-depth"><div class="section-header"><div class="section-num">40</div><h2>Remote repositories in depth</h2></div><p>A <strong>remote</strong> repository is a copy of your repository hosted elsewhere — usually GitHub. The default remote is named <code>origin</code> by convention.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash — working with remotes</span></div><pre><code><span class="cmt"># Clone an existing repository</span>
+<span class="cmd">git clone</span><span class="arg"> https://github.com/user/repo.git</span>
+<span class="cmt"></span>
 <span class="cmt"># See configured remotes</span>
-<span class="cmd">git remote</span>
-<span class="flag"> -v</span>
+<span class="cmd">git remote</span><span class="flag"> -v</span>
 <span class="out">origin  https://github.com/user/repo.git (fetch)</span>
 <span class="out">origin  https://github.com/user/repo.git (push)</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Download changes without merging (safe)</span>
-<span class="cmd">git fetch</span>
-<span class="arg"> origin</span>
-
+<span class="cmd">git fetch</span><span class="arg"> origin</span>
+<span class="cmt"></span>
 <span class="cmt"># Download and merge in one step</span>
 <span class="cmd">git pull</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Push your current branch to origin</span>
-<span class="cmd">git push</span>
-<span class="arg"> origin</span>
-<span class="arg"> feature/login</span>
-
+<span class="cmd">git push</span><span class="arg"> origin</span><span class="arg"> feature/login</span>
+<span class="cmt"></span>
 <span class="cmt"># Push and set tracking (first push of a new branch)</span>
-<span class="cmd">git push</span>
-<span class="flag"> -u</span>
-<span class="arg"> origin</span>
-<span class="arg"> feature/login</span>
+<span class="cmd">git push</span><span class="flag"> -u</span><span class="arg"> origin</span><span class="arg"> feature/login</span>
 </code></pre></div><div class="callout callout-info"><div class="callout-title">ℹ fetch vs pull</div>
 <p><code>git fetch</code> downloads changes from the remote but does NOT modify your local branches. It is always safe. <code>git pull</code> fetches and then immediately merges. Prefer <code>fetch</code> followed by <code>git merge origin/main</code> so you can inspect what is coming before merging.</p>
-</div><h2 id="the-pull-request-workflow">The pull request workflow</h2><p>A <strong>pull request</strong> (PR) is a GitHub feature (not a Git concept) that wraps a branch merge in a review process. It is the standard collaborative workflow in most professional teams.</p><ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Create a branch</strong> for your work: <code>git switch -c feature/add-search</code></div></li><li><div class="step-num"></div><div class="step-body"><strong>Make commits</strong> on the branch as you work.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Push the branch</strong> to GitHub: <code>git push -u origin feature/add-search</code></div></li><li><div class="step-num"></div><div class="step-body"><strong>Open a PR</strong> on GitHub. Write a clear description: what does this change do? Why? Any testing notes?</div></li><li><div class="step-num"></div><div class="step-body"><strong>Review happens</strong> — teammates comment on the code, suggest changes, ask questions. You can push more commits to the branch in response.</div></li><li><div class="step-num"></div><div class="step-body"><strong>CI checks run</strong> automatically — the pipeline you will build in Module 6 triggers and reports pass/fail.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Approval and merge</strong> — once approved and all checks pass, the PR is merged. The branch can then be deleted.</div></li></ol><div class="callout callout-concept"><div class="callout-title">◆ Good PR descriptions</div>
+</div><section class="section" id="the-pull-request-workflow"><div class="section-header"><div class="section-num">41</div><h2>The pull request workflow</h2></div><p>A <strong>pull request</strong> (PR) is a GitHub feature (not a Git concept) that wraps a branch merge in a review process. It is the standard collaborative workflow in most professional teams.</p><ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Create a branch</strong> for your work: <code>git switch -c feature/add-search</code></div></li><li><div class="step-num"></div><div class="step-body"><strong>Make commits</strong> on the branch as you work.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Push the branch</strong> to GitHub: <code>git push -u origin feature/add-search</code></div></li><li><div class="step-num"></div><div class="step-body"><strong>Open a PR</strong> on GitHub. Write a clear description: what does this change do? Why? Any testing notes?</div></li><li><div class="step-num"></div><div class="step-body"><strong>Review happens</strong> — teammates comment on the code, suggest changes, ask questions. You can push more commits to the branch in response.</div></li><li><div class="step-num"></div><div class="step-body"><strong>CI checks run</strong> automatically — the pipeline you will build in Module 6 triggers and reports pass/fail.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Approval and merge</strong> — once approved and all checks pass, the PR is merged. The branch can then be deleted.</div></li></ol><div class="callout callout-concept"><div class="callout-title">◆ Good PR descriptions</div>
 <p>A good pull request description answers three questions:</p>
 <ul><li><strong>What</strong> — what exactly does this change?</li><li><strong>Why</strong> — what problem does it solve? Link to any relevant issue or ticket.</li><li><strong>How</strong> — any notes on implementation decisions, trade-offs, or things reviewers should pay attention to.</li></ul>
 <p>A bad description is: 'fix bug'. A good description is: 'Fix race condition in cache invalidation that caused stale data to appear for up to 30 seconds after profile updates. Reproduced locally, added regression test in test_cache.py'.</p>
-</div><h2 id="merge-conflicts-step-by-step">Merge conflicts step by step</h2><p>A merge conflict occurs when two branches have changed the same part of the same file in incompatible ways. Git cannot decide which version to keep, so it puts both options into the file and asks you to choose.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — creating a conflict scenario</span></div><pre><code><span class="cmt"># On main: someone changes a function</span>
+</div><section class="section" id="merge-conflicts-step-by-step"><div class="section-header"><div class="section-num">42</div><h2>Merge conflicts step by step</h2></div><p>A merge conflict occurs when two branches have changed the same part of the same file in incompatible ways. Git cannot decide which version to keep, so it puts both options into the file and asks you to choose.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash — creating a conflict scenario</span></div><pre><code><span class="cmt"># On main: someone changes a function</span>
 <span class="out"># main: app.py line 15: return user.name.upper()</span>
-
+<span class="cmt"></span>
 <span class="cmt"># On feature/login: you change the same line</span>
 <span class="out"># feature: app.py line 15: return user.name.strip()</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Merging triggers a conflict</span>
-<span class="cmd">git merge</span>
-<span class="arg"> feature/login</span>
+<span class="cmd">git merge</span><span class="arg"> feature/login</span>
 <span class="out">CONFLICT (content): Merge conflict in app.py</span>
 <span class="out">Automatic merge failed; fix conflicts and then commit.</span>
-</code></pre></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — what a conflict looks like</span></div><pre><code><span class="out"><<<<<<< HEAD</span>
+</code></pre></div><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">plain — what a conflict looks like</span></div><pre><code><span class="out"><<<<<<< HEAD</span>
 <span class="out">    return user.name.upper()</span>
 <span class="out">=======</span>
 <span class="out">    return user.name.strip()</span>
 <span class="out">>>>>>>> feature/login</span>
 </code></pre></div><ol class="steps"><li><div class="step-num"></div><div class="step-body"><strong>Open the conflicted file</strong> in your editor.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Understand both sides</strong> — <code>HEAD</code> is the current branch (main), the other marker is the incoming branch.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Edit the file</strong> to the correct final state — delete all four marker lines and keep what you want.</div></li><li><div class="step-num"></div><div class="step-body"><strong>Stage the file</strong>: <code>git add app.py</code></div></li><li><div class="step-num"></div><div class="step-body"><strong>Complete the merge</strong>: <code>git commit</code> (Git pre-fills a merge commit message)</div></li></ol><div class="callout callout-warning"><div class="callout-title">⚠ Conflicts require thought</div>
 <p>Do not just pick one side or the other automatically. Sometimes the correct resolution combines both changes:</p>
-<div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">python</span></div><pre><code><span class="out">    return user.name.strip().upper()  # both: strip whitespace AND uppercase</span>
+<div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">python</span></div><pre><code><span class="out">    return user.name.strip().upper()  # both: strip whitespace AND uppercase</span>
 </code></pre></div>
 <p>Read the context carefully. If you are unsure what the correct result should be, talk to the author of the conflicting change.</p>
-</div><h2 id="branch-strategies-in-teams">Branch strategies in teams</h2><p>Teams adopt conventions for how branches are named and how work flows. Two common models:</p><h3>Feature branch workflow</h3><p>Every piece of work gets its own branch. All work flows through PRs into main. Main is always deployable. This is the most common model for teams of any size.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">plain — feature branch naming</span></div><pre><code><span class="out">feature/user-login</span>
+</div><section class="section" id="branch-strategies-in-teams"><div class="section-header"><div class="section-num">43</div><h2>Branch strategies in teams</h2></div><p>Teams adopt conventions for how branches are named and how work flows. Two common models:</p><h3>Feature branch workflow</h3><p>Every piece of work gets its own branch. All work flows through PRs into main. Main is always deployable. This is the most common model for teams of any size.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">plain — feature branch naming</span></div><pre><code><span class="out">feature/user-login</span>
 <span class="out">feature/JIRA-1234-search-api</span>
 <span class="out">fix/login-null-check</span>
 <span class="out">hotfix/critical-security-patch</span>
 <span class="out">chore/update-dependencies</span>
-</code></pre></div><h3>Trunk-based development</h3><p>Developers commit directly to main (the trunk) very frequently — multiple times per day. Features are hidden behind feature flags until ready. This requires strong CI and a culture of very small commits. Used by high-frequency deployment organisations like Google.</p><h2 id="git-stash-for-context-switching">git stash for context switching</h2><p>You are halfway through a feature when an urgent bug fix arrives. You cannot commit half-finished work. <code>git stash</code> saves your changes temporarily so you can switch context.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;text-align:left;margin-left:8px">bash — git stash</span></div><pre><code><span class="cmt"># Save all uncommitted changes</span>
+</code></pre></div><h3>Trunk-based development</h3><p>Developers commit directly to main (the trunk) very frequently — multiple times per day. Features are hidden behind feature flags until ready. This requires strong CI and a culture of very small commits. Used by high-frequency deployment organisations like Google.</p><section class="section" id="git-stash-for-context-switching"><div class="section-header"><div class="section-num">44</div><h2>git stash for context switching</h2></div><p>You are halfway through a feature when an urgent bug fix arrives. You cannot commit half-finished work. <code>git stash</code> saves your changes temporarily so you can switch context.</p><div class="code-block"><div class="code-header"><span class="code-dot" style="background:#F38BA8"></span><span class="code-dot" style="background:#F9E2AF"></span><span class="code-dot" style="background:#A6E3A1"></span><span style="flex:1;margin-left:8px">bash — git stash</span></div><pre><code><span class="cmt"># Save all uncommitted changes</span>
 <span class="cmd">git stash</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Save with a descriptive name</span>
-<span class="cmd">git stash push</span>
-<span class="flag"> -m</span>
-<span class="str"> "half-built login form"</span>
-
+<span class="cmd">git stash push</span><span class="flag"> -m</span><span class="str"> "half-built login form"</span>
+<span class="cmt"></span>
 <span class="cmt"># List stashed changes</span>
 <span class="cmd">git stash list</span>
 <span class="out">stash@{0}: On feature/login: half-built login form</span>
 <span class="out">stash@{1}: WIP on main: ...</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Restore the most recent stash</span>
 <span class="cmd">git stash pop</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Apply without removing from the list</span>
 <span class="cmd">git stash apply</span>
-
+<span class="cmt"></span>
 <span class="cmt"># Apply a specific stash</span>
-<span class="cmd">git stash apply</span>
-<span class="arg"> stash@{1}</span>
-
+<span class="cmd">git stash apply</span><span class="arg"> stash@{1}</span>
+<span class="cmt"></span>
 <span class="cmt"># Discard a stash</span>
 <span class="cmd">git stash drop</span>
-</code></pre></div><h2 id="key-terms">Key terms</h2><div class="term-grid"><div class="term-card"><div class="term-word">branch</div><div class="term-def">A separate line of development within a repository.</div></div><div class="term-card"><div class="term-word">merge</div><div class="term-def">Combining the history of one branch into another.</div></div><div class="term-card"><div class="term-word">fast-forward</div><div class="term-def">A merge where the target branch just moves its pointer forward — no merge commit created.</div></div><div class="term-card"><div class="term-word">merge commit</div><div class="term-def">A commit with two parents, created when two diverged branches are combined.</div></div><div class="term-card"><div class="term-word">remote</div><div class="term-def">A copy of the repository hosted elsewhere. Default is called origin.</div></div><div class="term-card"><div class="term-word">origin</div><div class="term-def">The conventional name for the remote repository, typically on GitHub.</div></div><div class="term-card"><div class="term-word">git fetch</div><div class="term-def">Download changes from the remote without merging. Safe to run anytime.</div></div><div class="term-card"><div class="term-word">git pull</div><div class="term-def">Fetch plus merge. Equivalent to git fetch followed by git merge.</div></div><div class="term-card"><div class="term-word">pull request</div><div class="term-def">A GitHub feature for proposing, reviewing, and merging a branch.</div></div><div class="term-card"><div class="term-word">merge conflict</div><div class="term-def">Two branches changed the same part of a file; manual resolution required.</div></div><div class="term-card"><div class="term-word">git stash</div><div class="term-def">Temporarily save uncommitted changes so you can switch context.</div></div><div class="term-card"><div class="term-word">tracking branch</div><div class="term-def">A local branch linked to a remote branch. Set with git push -u.</div></div></div><h2 id="exercises">Exercises</h2><div class="callout callout-exercise"><div class="callout-title">✎ Lab exercises — approximately 50 minutes</div>
+</code></pre></div><section class="section" id="key-terms"><div class="section-header"><div class="section-num">45</div><h2>Key terms</h2></div><div class="term-grid"><div class="term-card"><div class="term-word">branch</div><div class="term-def">A separate line of development within a repository.</div></div><div class="term-card"><div class="term-word">merge</div><div class="term-def">Combining the history of one branch into another.</div></div><div class="term-card"><div class="term-word">fast-forward</div><div class="term-def">A merge where the target branch just moves its pointer forward — no merge commit created.</div></div><div class="term-card"><div class="term-word">merge commit</div><div class="term-def">A commit with two parents, created when two diverged branches are combined.</div></div><div class="term-card"><div class="term-word">remote</div><div class="term-def">A copy of the repository hosted elsewhere. Default is called origin.</div></div><div class="term-card"><div class="term-word">origin</div><div class="term-def">The conventional name for the remote repository, typically on GitHub.</div></div><div class="term-card"><div class="term-word">git fetch</div><div class="term-def">Download changes from the remote without merging. Safe to run anytime.</div></div><div class="term-card"><div class="term-word">git pull</div><div class="term-def">Fetch plus merge. Equivalent to git fetch followed by git merge.</div></div><div class="term-card"><div class="term-word">pull request</div><div class="term-def">A GitHub feature for proposing, reviewing, and merging a branch.</div></div><div class="term-card"><div class="term-word">merge conflict</div><div class="term-def">Two branches changed the same part of a file; manual resolution required.</div></div><div class="term-card"><div class="term-word">git stash</div><div class="term-def">Temporarily save uncommitted changes so you can switch context.</div></div><div class="term-card"><div class="term-word">tracking branch</div><div class="term-def">A local branch linked to a remote branch. Set with git push -u.</div></div></div><section class="section" id="exercises"><div class="section-header"><div class="section-num">46</div><h2>Exercises</h2></div><div class="callout callout-exercise"><div class="callout-title">✎ Lab exercises — approximately 50 minutes</div>
 <h3>Part A: Branching</h3>
 <ol><li>Fork the provided starter repository on GitHub and clone it locally.</li><li>Create a branch called <code>feature/your-name</code> and switch to it.</li><li>Make two commits on this branch — add a new function and a docstring.</li><li>Use git log --oneline --graph --all to visualise the branch structure.</li><li>Switch back to main. Notice that your changes are not there.</li></ol>
 <h3>Part B: Remotes and pull requests</h3>
@@ -169,32 +167,32 @@
 <ol><li>You and your tutor will both be given the same file to edit. Both of you change line 5 to different things.</li><li>Your tutor pushes first. When you try to push, Git will reject it.</li><li>Fetch the changes, then merge. Resolve the conflict thoughtfully (read both sides).</li><li>Stage and complete the merge commit.</li><li>Push the resolved version.</li></ol>
 <h3>Part D: git stash</h3>
 <ol><li>Start editing a file but do not commit.</li><li>Use <code>git stash</code> to save your changes. Verify with <code>git status</code> that the working directory is clean.</li><li>Make and commit a different change. Then use <code>git stash pop</code> to restore your original changes.</li><li>Verify both changes are now present.</li></ol>
-</div>
-<div class="pagination"><a class="page-btn prev" href="module-03.html"><span class="page-dir">← Previous</span><span class="page-title">Version Control & Git</span></a><a class="page-btn next" href="module-05.html"><span class="page-dir">Next →</span><span class="page-title">CI & Automated Testing</span></a></div>
+</div></section></section></section></section></section></section></section></section></section></section>
+    <div class="pagination"><a class="page-btn prev" href="module-03.html"><span class="page-dir">← Previous</span><span class="page-title">Version Control & Git</span></a><a class="page-btn next" href="module-05.html"><span class="page-dir">Next →</span><span class="page-title">CI & Automated Testing</span></a></div>
+  </main>
 </div>
 <footer>
-  <p>DevOps · Lancaster University</p>
+  <p>Lancaster University · DevOps</p>
   <p style="margin-top:6px">Questions? Post on the module Moodle forum or discuss with your lab demonstrator.</p>
 </footer>
 
 <script>
-// Reading progress bar
-const bar = document.querySelector('.reading-progress');
+// Progress bar
+const bar = document.getElementById('progress-bar');
 window.addEventListener('scroll', () => {
   const total = document.documentElement.scrollHeight - window.innerHeight;
   bar.style.width = (window.scrollY / total * 100) + '%';
 });
-
-// TOC active link
-const sections = document.querySelectorAll('h2[id]');
-const links = document.querySelectorAll('.toc-list a');
+// Sidebar active link on scroll
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('#sidebar nav a');
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => {
-    if(e.isIntersecting){
-      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#'+e.target.id));
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
     }
   });
-}, {rootMargin:'-15% 0px -75% 0px'});
+}, { rootMargin: '-15% 0px -75% 0px' });
 sections.forEach(s => obs.observe(s));
 </script>
 
