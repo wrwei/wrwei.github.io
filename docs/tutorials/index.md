@@ -17,3 +17,11 @@ A comprehensive tutorial series covering the fundamentals of Object Oriented Des
 A tutorial series covering the fundamentals of SysML v2, the next-generation systems modelling language.
 
 [:octicons-arrow-right-24: Go to SysML v2 Tutorials](sysml/index.md)
+
+---
+
+## DevOps (SCCM4910)
+
+A 10-module tutorial series on DevOps practices including Unix tools, Git, CI/CD, containers, and automation.
+
+[:octicons-arrow-right-24: Go to DevOps Tutorials](devops/index.html)
