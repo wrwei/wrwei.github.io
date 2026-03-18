@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OOD 模块 9: SOLID 原则 — Ran Wei</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:      #1A2E4A;
+  --blue:      #2563EB;
+  --sky:       #0EA5E9;
+  --sky-light: #DBEAFE;
+  --sky-pale:  #F0F9FF;
+  --slate:     #475569;
+  --muted:     #94A3B8;
+  --border:    #E2E8F0;
+  --bg:        #FAFBFD;
+  --white:     #FFFFFF;
+  --green:     #16A34A;
+  --green-bg:  #F0FDF4;
+  --orange:    #EA580C;
+  --orange-bg: #FFF7ED;
+  --red:       #DC2626;
+  --red-bg:    #FEF2F2;
+  --code-bg:   #F1F5F9;
+  --code-text: #0F172A;
+  --purple:    #7C3AED;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'DM Mono', 'Fira Code', monospace;
+
+  --sidebar-w: 260px;
+  --content-max: 1000px;
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--navy);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── Progress bar ──────────────────────────────────────────────────────────── */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, var(--sky), var(--blue));
+  width: 0%; z-index: 1000;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(14,165,233,0.5);
+}
+
+/* ── Top nav ───────────────────────────────────────────────────────────────── */
+#topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250,251,253,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0 2rem; height: 56px;
+}
+#topbar .brand {
+  font-family: var(--font-display);
+  font-weight: 600; font-size: 1.05rem;
+  color: var(--navy); letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+#topbar .brand span { color: var(--sky); }
+#topbar .sep { color: var(--border); font-size: 1.2rem; }
+#topbar .crumb { color: var(--slate); font-size: 0.85rem; font-weight: 500; }
+#topbar .module-dropdown { margin-left: auto; position: relative; }
+#topbar .module-dropdown .badge { background: var(--sky-light); color: var(--blue); font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.65rem 0.2rem 0.8rem; border-radius: 999px; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 0.3rem; border: none; font-family: inherit; }
+#topbar .module-dropdown .badge::after { content: '\25BE'; font-size: 0.7rem; }
+#topbar .module-dropdown .dropdown-menu { display: none; position: absolute; top: calc(100% + 6px); right: 0; background: var(--white); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); min-width: 220px; padding: 0.4rem; z-index: 200; }
+#topbar .module-dropdown.open .dropdown-menu { display: block; }
+#topbar .module-dropdown .dropdown-menu a { display: block; padding: 0.5rem 0.75rem; border-radius: 7px; font-size: 0.82rem; font-weight: 500; color: var(--slate); text-decoration: none; transition: var(--transition); }
+#topbar .module-dropdown .dropdown-menu a:hover { background: var(--sky-pale); color: var(--blue); }
+#topbar .module-dropdown .dropdown-menu a.active { background: var(--sky-light); color: var(--blue); font-weight: 600; }
+
+/* ── Layout ────────────────────────────────────────────────────────────────── */
+#layout { display: flex; min-height: calc(100vh - 56px); }
+
+/* ── Sidebar ───────────────────────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  padding: 2rem 1.25rem 2rem 1.5rem;
+  border-right: 1px solid var(--border);
+  background: var(--white);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#sidebar .sidebar-label {
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.75rem;
+}
+#sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+#sidebar nav a {
+  display: flex; align-items: center; gap: 0.6rem;
+  font-size: 0.85rem; font-weight: 500;
+  color: var(--slate); text-decoration: none;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  transition: var(--transition);
+}
+#sidebar nav a .num {
+  width: 20px; height: 20px;
+  background: var(--border); color: var(--slate);
+  border-radius: 50%; font-size: 0.7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: var(--transition);
+}
+#sidebar nav a:hover { background: var(--sky-pale); color: var(--blue); }
+#sidebar nav a:hover .num { background: var(--sky-light); color: var(--blue); }
+#sidebar nav a.active { background: var(--sky-light); color: var(--blue); }
+#sidebar nav a.active .num { background: var(--blue); color: white; }
+
+#sidebar .meta {
+  margin-top: 2rem; padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem; color: var(--muted);
+  display: flex; flex-direction: column; gap: 0.4rem;
+}
+#sidebar .meta span { color: var(--slate); font-weight: 500; }
+
+/* ── Main content ──────────────────────────────────────────────────────────── */
+#content {
+  flex: 1;
+  padding: 3.5rem 3rem 6rem;
+  max-width: calc(var(--content-max) + 6rem);
+  min-width: 0;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────────── */
+.hero {
+  margin-bottom: 4rem;
+  padding-bottom: 3rem;
+  border-bottom: 1px solid var(--border);
+}
+.hero .series {
+  font-size: 0.8rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--sky); margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.hero .series::before {
+  content: ''; display: block;
+  width: 24px; height: 2px; background: var(--sky);
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 700; line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--navy); margin-bottom: 1rem;
+}
+.hero h1 em { color: var(--blue); font-style: normal; }
+.hero .subtitle {
+  font-size: 1.1rem; color: var(--slate);
+  font-weight: 300; max-width: 560px;
+  margin-bottom: 2rem;
+}
+.hero-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.chip {
+  font-size: 0.78rem; font-weight: 500;
+  padding: 0.3rem 0.8rem; border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--slate); background: var(--white);
+}
+.chip.blue { border-color: var(--sky-light); background: var(--sky-pale); color: var(--blue); }
+
+/* ── Sections ──────────────────────────────────────────────────────────────── */
+.section { margin-bottom: 4rem; scroll-margin-top: 72px; }
+
+.section-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1.75rem; padding-bottom: 1rem;
+  border-bottom: 2px solid var(--sky-light);
+}
+.section-header .num-badge {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--navy); color: white;
+  font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.section-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem; font-weight: 600;
+  letter-spacing: -0.02em; color: var(--navy);
+}
+
+h3 {
+  font-size: 1.05rem; font-weight: 600;
+  color: var(--blue); margin: 2rem 0 0.75rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+h3::before {
+  content: ''; display: block;
+  width: 3px; height: 1em;
+  background: var(--sky); border-radius: 2px;
+  flex-shrink: 0;
+}
+
+p { margin-bottom: 1rem; color: var(--slate); font-size: 0.97rem; }
+p strong { color: var(--navy); }
+
+/* ── Callout boxes ─────────────────────────────────────────────────────────── */
+.callout {
+  border-radius: 10px; padding: 1rem 1.25rem;
+  margin: 1.5rem 0; font-size: 0.92rem;
+  border-left: 4px solid;
+}
+.callout-title {
+  font-weight: 700; font-size: 0.78rem;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.callout.info {
+  background: var(--sky-pale); border-color: var(--blue); color: var(--slate);
+}
+.callout.info .callout-title { color: var(--blue); }
+.callout.tip {
+  background: var(--green-bg); border-color: var(--green); color: var(--slate);
+}
+.callout.tip .callout-title { color: var(--green); }
+.callout.warning {
+  background: var(--orange-bg); border-color: var(--orange); color: var(--slate);
+}
+.callout.warning .callout-title { color: var(--orange); }
+.callout.danger {
+  background: var(--red-bg); border-color: var(--red); color: var(--slate);
+}
+.callout.danger .callout-title { color: var(--red); }
+
+/* ── Tables ────────────────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin: 1.5rem 0; border-radius: 10px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+thead th {
+  background: var(--navy); color: white;
+  font-weight: 600; text-align: left;
+  padding: 0.65rem 1rem; font-size: 0.82rem;
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: var(--transition); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--sky-pale); }
+tbody td { padding: 0.6rem 1rem; color: var(--slate); vertical-align: top; }
+tbody td:first-child { color: var(--navy); font-weight: 500; }
+tbody td code { font-size: 0.82rem; }
+.caption {
+  text-align: center; font-size: 0.8rem;
+  color: var(--muted); font-style: italic;
+  margin-top: 0.5rem; margin-bottom: 1.5rem;
+}
+
+/* ── Code blocks ───────────────────────────────────────────────────────────── */
+.code-wrap {
+  margin: 1.5rem 0; border-radius: 10px;
+  overflow: hidden; border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.code-header {
+  background: var(--navy); color: var(--muted);
+  font-family: var(--font-mono); font-size: 0.75rem;
+  padding: 0.5rem 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.code-header .dots { display: flex; gap: 5px; }
+.code-header .dots span {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.code-header .dots span:nth-child(1) { background: #FF5F57; }
+.code-header .dots span:nth-child(2) { background: #FFBD2E; }
+.code-header .dots span:nth-child(3) { background: #28CA41; }
+.code-header .lang { color: var(--sky); font-weight: 500; }
+pre {
+  background: var(--code-bg);
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--code-text);
+  margin: 0;
+}
+/* Simple syntax colouring */
+.kw  { color: #7C3AED; font-weight: 500; }
+.fn  { color: #0369A1; }
+.st  { color: #16A34A; }
+.cm  { color: #94A3B8; font-style: italic; }
+.nb  { color: #EA580C; }
+.op  { color: #64748B; }
+
+/* ── Figures ───────────────────────────────────────────────────────────────── */
+.figure {
+  margin: 2rem 0;
+  border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.figure img { width: 100%; display: block; }
+.figure figcaption {
+  background: var(--navy); color: var(--muted);
+  font-size: 0.8rem; font-style: italic;
+  padding: 0.65rem 1.25rem;
+  text-align: center;
+}
+.figure figcaption strong { color: var(--sky); font-style: normal; }
+
+/* ── Bridge box ────────────────────────────────────────────────────────────── */
+.bridge {
+  background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%);
+  border-radius: 12px; padding: 1.5rem 2rem; margin: 2rem 0;
+  font-family: var(--font-mono); font-size: 0.88rem;
+}
+.bridge-header {
+  display: grid; grid-template-columns: 1fr 40px 1fr;
+  gap: 0.5rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+.bridge-header .col-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--sky); text-align: center;
+}
+.bridge-row {
+  display: grid; grid-template-columns: 1fr 40px 1fr;
+  gap: 0.5rem; align-items: center; margin: 0.35rem 0;
+}
+.bridge-row .b-left, .bridge-row .b-right {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 6px; padding: 0.4rem 0.85rem;
+  color: #CBD5E1; text-align: center;
+}
+.bridge-row.hi .b-left, .bridge-row.hi .b-right {
+  color: var(--sky); border-color: rgba(14,165,233,0.35);
+  background: rgba(14,165,233,0.08);
+}
+.bridge-row .b-arrow { text-align: center; color: var(--sky); opacity: 0.7; }
+
+/* ── Summary ───────────────────────────────────────────────────────────────── */
+.summary-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem; margin: 1.5rem 0;
+}
+.summary-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.1rem 1.25rem;
+  border-left: 3px solid var(--sky);
+  transition: var(--transition);
+}
+.summary-card:hover { box-shadow: 0 4px 16px rgba(14,165,233,0.1); border-left-color: var(--blue); }
+.summary-card .sk { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--sky); margin-bottom: 0.35rem; }
+.summary-card p { font-size: 0.88rem; color: var(--slate); margin: 0; }
+
+/* ── Next module banner ────────────────────────────────────────────────────── */
+.next-banner {
+  background: var(--sky-pale); border: 1px solid var(--sky-light);
+  border-radius: 12px; padding: 1.5rem 2rem;
+  display: flex; align-items: center; gap: 1.5rem; margin-top: 3rem;
+}
+.next-banner .icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: var(--blue); color: white;
+  font-size: 1.4rem; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.next-banner .text .label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--sky); margin-bottom: 0.25rem;
+}
+.next-banner .text h4 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--navy); margin-bottom: 0.25rem;
+}
+.next-banner .text p { font-size: 0.88rem; color: var(--slate); margin: 0; }
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #sidebar { display: none; }
+  #content { padding: 2rem 1.5rem 4rem; }
+}
+@media (max-width: 600px) {
+  .hero h1 { font-size: 2rem; }
+  #content { padding: 1.5rem 1rem 3rem; }
+}
+
+/* ── Fade-in animations ────────────────────────────────────────────────────── */
+.section {
+  opacity: 0; transform: translateY(18px);
+  animation: fadeUp 0.5s ease forwards;
+}
+@keyframes fadeUp {
+  to { opacity: 1; transform: none; }
+}
+.section:nth-child(1) { animation-delay: 0.05s; }
+.section:nth-child(2) { animation-delay: 0.1s; }
+.section:nth-child(3) { animation-delay: 0.15s; }
+.section:nth-child(4) { animation-delay: 0.2s; }
+.section:nth-child(5) { animation-delay: 0.25s; }
+.section:nth-child(6) { animation-delay: 0.3s; }
+.section:nth-child(7) { animation-delay: 0.35s; }
+.section:nth-child(8) { animation-delay: 0.4s; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">面向对象设计</a>
+  <span class="sep">/</span>
+  <span class="crumb">模块 9</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 9 / 9</button>
+    <div class="dropdown-menu">
+      <a href="OOD_Module1_Objects_Classes_ZH.html">1 &mdash; 对象与类</a>
+      <a href="OOD_Module2_Encapsulation_ZH.html">2 &mdash; 封装</a>
+      <a href="OOD_Module3_Inheritance_ZH.html">3 &mdash; 继承与层次结构</a>
+      <a href="OOD_Module4_Polymorphism_ZH.html">4 &mdash; 多态</a>
+      <a href="OOD_Module5_Composition_ZH.html">5 &mdash; 组合与聚合</a>
+      <a href="OOD_Module6_Interfaces_ZH.html">6 &mdash; 接口与契约</a>
+      <a href="OOD_Module7_Patterns_ZH.html">7 &mdash; 设计模式</a>
+      <a href="OOD_Module8_Practice_ZH.html">8 &mdash; OOD 实践</a>
+      <a href="OOD_Module9_SOLID_ZH.html" class="active">9 &mdash; SOLID 原则</a>
+    </div>
+  </div>
+  <a href="OOD_Module9_SOLID_EN.html" class="lang-switch">EN</a>
+</header>
+
+<div id="layout">
+
+  <aside id="sidebar">
+    <div class="sidebar-label">目录</div>
+    <nav>
+      <a href="#s1" class="nav-link"><span class="num">1</span> 为什么需要 SOLID？</a>
+      <a href="#s2" class="nav-link"><span class="num">2</span> 单一职责原则</a>
+      <a href="#s3" class="nav-link"><span class="num">3</span> 开闭原则</a>
+      <a href="#s4" class="nav-link"><span class="num">4</span> 里氏替换原则</a>
+      <a href="#s5" class="nav-link"><span class="num">5</span> 接口隔离原则</a>
+      <a href="#s6" class="nav-link"><span class="num">6</span> 依赖倒置原则</a>
+      <a href="#s7" class="nav-link"><span class="num">7</span> SOLID 实践</a>
+      <a href="#s8" class="nav-link"><span class="num">8</span> 总结</a>
+    </nav>
+    <div class="meta">
+      <div>语言 <span>Python 3</span></div>
+      <div>标记法 <span>UML 2.5</span></div>
+      <div>前置条件 <span>OOD 模块 1–8</span></div>
+    </div>
+  </aside>
+
+  <main id="content">
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- HERO                                                               -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <div class="hero section">
+      <div class="series">面向对象设计 &mdash; Ran Wei</div>
+      <h1>模块 9: <em>SOLID 原则</em></h1>
+      <p class="subtitle">五个设计原则，让面向对象系统更灵活、更易维护、更具变化韧性。</p>
+      <div class="hero-chips">
+        <span class="chip blue">前置条件: OOD 模块 1–8</span>
+        <span class="chip">Python 3</span>
+        <span class="chip">SRP</span>
+        <span class="chip">OCP</span>
+        <span class="chip">LSP</span>
+        <span class="chip">ISP</span>
+        <span class="chip">DIP</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- S1 — 为什么需要 SOLID？                                            -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="s1">
+      <div class="section-header">
+        <div class="num-badge">1</div>
+        <h2>为什么需要 SOLID？</h2>
+      </div>
+
+      <p>在前面的八个模块中，我们学习了面向对象设计的核心概念：类与对象、封装、继承、多态、组合、接口和设计模式。然而，仅仅了解这些概念还不够 —— 我们需要一套<strong>指导原则</strong>来确保我们的设计是健壮的、灵活的和可维护的。</p>
+
+      <p>SOLID 是由 Robert C. Martin（"Uncle Bob"）在 2000 年代初提出的五个面向对象设计原则的首字母缩写。这些原则相互补充，共同帮助开发者构建更好的软件系统。</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>字母</th><th>原则</th><th>核心思想</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>S</strong></td><td>单一职责原则 (SRP)</td><td>一个类只应有一个变化的原因</td></tr>
+            <tr><td><strong>O</strong></td><td>开闭原则 (OCP)</td><td>对扩展开放，对修改关闭</td></tr>
+            <tr><td><strong>L</strong></td><td>里氏替换原则 (LSP)</td><td>子类必须能替代其父类</td></tr>
+            <tr><td><strong>I</strong></td><td>接口隔离原则 (ISP)</td><td>不应强迫客户端依赖不需要的接口</td></tr>
+            <tr><td><strong>D</strong></td><td>依赖倒置原则 (DIP)</td><td>高层模块不应依赖低层模块，两者都应依赖抽象</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">表 1 &mdash; SOLID 五大原则概览</p>
+
+      <div class="callout info">
+        <div class="callout-title">为什么要学 SOLID？</div>
+        <p>遵循 SOLID 原则可以帮助你：(1) 降低类之间的耦合度；(2) 使代码更容易测试；(3) 使系统更容易扩展新功能而不破坏已有代码；(4) 提高代码的可读性和可维护性。</p>
+      </div>
+
+      <p>我们将继续使用<strong>在线书店</strong>作为贯穿全部原则的示例领域。让我们逐一深入了解每个原则。</p>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- S2 — 单一职责原则 (SRP)                                            -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="s2">
+      <div class="section-header">
+        <div class="num-badge">2</div>
+        <h2>单一职责原则 (SRP)</h2>
+      </div>
+
+      <p><strong>定义：</strong>一个类应当只有一个引起它变化的原因。换句话说，一个类应当只负责一项职责。</p>
+
+      <p>当一个类承担了过多职责时，任何一个职责的变更都可能影响到其他职责，导致代码脆弱且难以维护。SRP 要求我们将不同的关注点分离到不同的类中。</p>
+
+      <h3>违反 SRP 的示例</h3>
+
+      <p>考虑一个 <code>Order</code> 类，它同时负责订单数据管理、价格计算、数据库持久化和邮件通知：</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="cm"># 反面示例：一个类承担了太多职责</span>
+<span class="kw">class</span> <span class="fn">Order</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, order_id: <span class="nb">str</span>, items: <span class="nb">list</span>):
+        <span class="nb">self</span>.order_id = order_id
+        <span class="nb">self</span>.items = items
+
+    <span class="kw">def</span> <span class="fn">calculate_total</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="cm"># 职责 1：计算价格</span>
+        <span class="kw">return</span> <span class="nb">sum</span>(item.price * item.quantity <span class="kw">for</span> item <span class="kw">in</span> <span class="nb">self</span>.items)
+
+    <span class="kw">def</span> <span class="fn">save_to_database</span>(<span class="nb">self</span>):
+        <span class="cm"># 职责 2：数据库持久化</span>
+        db.execute(<span class="st">"INSERT INTO orders ..."</span>, <span class="nb">self</span>.order_id)
+
+    <span class="kw">def</span> <span class="fn">send_confirmation_email</span>(<span class="nb">self</span>):
+        <span class="cm"># 职责 3：发送邮件通知</span>
+        email_service.send(<span class="nb">self</span>.order_id, <span class="st">"订单已确认"</span>)
+
+    <span class="kw">def</span> <span class="fn">generate_invoice_pdf</span>(<span class="nb">self</span>):
+        <span class="cm"># 职责 4：生成 PDF 发票</span>
+        pdf_builder.create_invoice(<span class="nb">self</span>)</pre>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-title">问题所在</div>
+        <p>如果邮件服务的 API 变了，我们需要修改 <code>Order</code> 类。如果数据库表结构变了，也要改这个类。这个类有<strong>四个变化的原因</strong>，严重违反了 SRP。</p>
+      </div>
+
+      <h3>遵循 SRP 的重构</h3>
+
+      <p>我们将每个职责提取到独立的类中：</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="cm"># 正确示例：每个类只有一个职责</span>
+<span class="kw">class</span> <span class="fn">Order</span>:
+    <span class="st">"""仅负责订单数据和业务规则"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, order_id: <span class="nb">str</span>, items: <span class="nb">list</span>):
+        <span class="nb">self</span>.order_id = order_id
+        <span class="nb">self</span>.items = items
+
+    <span class="kw">def</span> <span class="fn">calculate_total</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> <span class="nb">sum</span>(item.price * item.quantity <span class="kw">for</span> item <span class="kw">in</span> <span class="nb">self</span>.items)
+
+
+<span class="kw">class</span> <span class="fn">OrderRepository</span>:
+    <span class="st">"""仅负责订单持久化"""</span>
+    <span class="kw">def</span> <span class="fn">save</span>(<span class="nb">self</span>, order: Order):
+        db.execute(<span class="st">"INSERT INTO orders ..."</span>, order.order_id)
+
+    <span class="kw">def</span> <span class="fn">find_by_id</span>(<span class="nb">self</span>, order_id: <span class="nb">str</span>) -> Order:
+        <span class="kw">return</span> db.query(<span class="st">"SELECT * FROM orders WHERE id = ?"</span>, order_id)
+
+
+<span class="kw">class</span> <span class="fn">OrderNotifier</span>:
+    <span class="st">"""仅负责订单通知"""</span>
+    <span class="kw">def</span> <span class="fn">send_confirmation</span>(<span class="nb">self</span>, order: Order):
+        email_service.send(order.order_id, <span class="st">"订单已确认"</span>)
+
+
+<span class="kw">class</span> <span class="fn">InvoiceGenerator</span>:
+    <span class="st">"""仅负责发票生成"""</span>
+    <span class="kw">def</span> <span class="fn">generate_pdf</span>(<span class="nb">self</span>, order: Order):
+        pdf_builder.create_invoice(order)</pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-title">SRP 核心要点</div>
+        <p>SRP 并不是说一个类只能有一个方法，而是说一个类的所有方法应该服务于<strong>同一个变化原因</strong>。当你发现一个类需要因不同的原因而改变时，就是拆分它的时候了。</p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- S3 — 开闭原则 (OCP)                                                -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="s3">
+      <div class="section-header">
+        <div class="num-badge">3</div>
+        <h2>开闭原则 (OCP)</h2>
+      </div>
+
+      <p><strong>定义：</strong>软件实体（类、模块、函数等）应当对扩展开放，对修改关闭。即你应该能够在不修改现有代码的情况下扩展系统的行为。</p>
+
+      <p>OCP 是 SOLID 中最具影响力的原则之一。它鼓励我们通过<strong>抽象和多态</strong>来设计系统，使得添加新功能时不需要修改已有的、经过测试的代码。</p>
+
+      <h3>违反 OCP 的示例</h3>
+
+      <p>假设我们的书店需要支持多种折扣策略。以下是一种常见但违反 OCP 的实现方式：</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="cm"># 反面示例：每新增一种折扣类型就要修改这个类</span>
+<span class="kw">class</span> <span class="fn">DiscountCalculator</span>:
+    <span class="kw">def</span> <span class="fn">calculate</span>(<span class="nb">self</span>, order: Order, discount_type: <span class="nb">str</span>) -> <span class="nb">float</span>:
+        total = order.calculate_total()
+        <span class="kw">if</span> discount_type == <span class="st">"percentage"</span>:
+            <span class="kw">return</span> total * <span class="nb">0.9</span>
+        <span class="kw">elif</span> discount_type == <span class="st">"fixed"</span>:
+            <span class="kw">return</span> total - <span class="nb">10.0</span>
+        <span class="kw">elif</span> discount_type == <span class="st">"buy_two_get_one"</span>:
+            <span class="cm"># 买二送一逻辑...</span>
+            <span class="kw">return</span> total * <span class="nb">0.67</span>
+        <span class="cm"># 每次新增折扣类型都要在这里添加分支！</span>
+        <span class="kw">return</span> total</pre>
+      </div>
+
+      <h3>遵循 OCP 的重构</h3>
+
+      <p>通过抽象基类和策略模式，我们可以在不修改现有代码的情况下添加新的折扣策略：</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">DiscountStrategy</span>(ABC):
+    <span class="st">"""折扣策略的抽象基类"""</span>
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="nb">self</span>, total: <span class="nb">float</span>) -> <span class="nb">float</span>:
+        <span class="kw">pass</span>
+
+
+<span class="kw">class</span> <span class="fn">PercentageDiscount</span>(DiscountStrategy):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, rate: <span class="nb">float</span>):
+        <span class="nb">self</span>.rate = rate  <span class="cm"># 例如 0.1 表示九折</span>
+
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="nb">self</span>, total: <span class="nb">float</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> total * (<span class="nb">1</span> - <span class="nb">self</span>.rate)
+
+
+<span class="kw">class</span> <span class="fn">FixedDiscount</span>(DiscountStrategy):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, amount: <span class="nb">float</span>):
+        <span class="nb">self</span>.amount = amount
+
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="nb">self</span>, total: <span class="nb">float</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> <span class="nb">max</span>(<span class="nb">0</span>, total - <span class="nb">self</span>.amount)
+
+
+<span class="kw">class</span> <span class="fn">MemberDiscount</span>(DiscountStrategy):
+    <span class="st">"""新增会员折扣 —— 无需修改任何现有代码！"""</span>
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="nb">self</span>, total: <span class="nb">float</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> total * <span class="nb">0.85</span>  <span class="cm"># 会员享八五折</span>
+
+
+<span class="kw">class</span> <span class="fn">DiscountCalculator</span>:
+    <span class="st">"""对修改关闭：这个类不需要因新折扣类型而改变"""</span>
+    <span class="kw">def</span> <span class="fn">calculate</span>(<span class="nb">self</span>, order: Order, strategy: DiscountStrategy) -> <span class="nb">float</span>:
+        <span class="kw">return</span> strategy.apply(order.calculate_total())</pre>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-title">OCP 的关键</div>
+        <p>OCP 的核心在于<strong>抽象</strong>。通过定义稳定的抽象接口，具体实现可以自由变化和扩展。策略模式、模板方法模式和装饰器模式都是实现 OCP 的常用手段。</p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- S4 — 里氏替换原则 (LSP)                                            -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="s4">
+      <div class="section-header">
+        <div class="num-badge">4</div>
+        <h2>里氏替换原则 (LSP)</h2>
+      </div>
+
+      <p><strong>定义：</strong>如果 S 是 T 的子类型，那么程序中使用 T 类型对象的地方都可以用 S 类型对象替换，而不会改变程序的正确性。</p>
+
+      <p>LSP 由 Barbara Liskov 于 1987 年提出，是正确使用继承的基础。违反 LSP 意味着子类<strong>破坏了</strong>父类的行为契约，这会导致难以预料的 bug。</p>
+
+      <h3>违反 LSP 的经典示例</h3>
+
+      <p>在书店系统中，假设我们有一个 <code>Book</code> 类和一个 <code>DigitalBook</code> 子类：</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">class</span> <span class="fn">Book</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, title: <span class="nb">str</span>, price: <span class="nb">float</span>, weight: <span class="nb">float</span>):
+        <span class="nb">self</span>.title = title
+        <span class="nb">self</span>.price = price
+        <span class="nb">self</span>.weight = weight  <span class="cm"># 重量（千克）</span>
+
+    <span class="kw">def</span> <span class="fn">get_shipping_cost</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> <span class="nb">self</span>.weight * <span class="nb">5.0</span>  <span class="cm"># 按重量计算运费</span>
+
+
+<span class="kw">class</span> <span class="fn">DigitalBook</span>(Book):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, title: <span class="nb">str</span>, price: <span class="nb">float</span>):
+        <span class="nb">super</span>().__init__(title, price, weight=<span class="nb">0</span>)
+
+    <span class="kw">def</span> <span class="fn">get_shipping_cost</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="cm"># 数字图书没有运费，但如果调用方期望正数呢？</span>
+        <span class="kw">raise</span> <span class="nb">NotImplementedError</span>(<span class="st">"数字图书不需要运费"</span>)</pre>
+      </div>
+
+      <div class="callout danger">
+        <div class="callout-title">违反 LSP</div>
+        <p>任何使用 <code>Book</code> 对象调用 <code>get_shipping_cost()</code> 的代码，在传入 <code>DigitalBook</code> 时都会抛出异常。子类<strong>不能</strong>安全地替代父类，违反了 LSP。</p>
+      </div>
+
+      <h3>遵循 LSP 的重构</h3>
+
+      <p>正确的做法是重新设计继承层次结构，使用抽象基类：</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Product</span>(ABC):
+    <span class="st">"""所有产品的抽象基类"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, title: <span class="nb">str</span>, price: <span class="nb">float</span>):
+        <span class="nb">self</span>.title = title
+        <span class="nb">self</span>.price = price
+
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">get_shipping_cost</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="kw">pass</span>
+
+
+<span class="kw">class</span> <span class="fn">PhysicalBook</span>(Product):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, title: <span class="nb">str</span>, price: <span class="nb">float</span>, weight: <span class="nb">float</span>):
+        <span class="nb">super</span>().__init__(title, price)
+        <span class="nb">self</span>.weight = weight
+
+    <span class="kw">def</span> <span class="fn">get_shipping_cost</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> <span class="nb">self</span>.weight * <span class="nb">5.0</span>
+
+
+<span class="kw">class</span> <span class="fn">DigitalBook</span>(Product):
+    <span class="kw">def</span> <span class="fn">get_shipping_cost</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> <span class="nb">0.0</span>  <span class="cm"># 数字图书运费为零 —— 契约满足！</span>
+
+
+<span class="cm"># 任何使用 Product 的代码都可以安全地调用 get_shipping_cost()</span>
+<span class="kw">def</span> <span class="fn">calculate_order_shipping</span>(products: <span class="nb">list</span>[Product]) -> <span class="nb">float</span>:
+    <span class="kw">return</span> <span class="nb">sum</span>(p.get_shipping_cost() <span class="kw">for</span> p <span class="kw">in</span> products)</pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-title">LSP 检验法则</div>
+        <p>检验 LSP 的简单方法：将父类替换为子类后，所有调用方的代码是否仍然正确工作？子类是否<strong>增强</strong>而非<strong>削弱</strong>了父类的契约？如果子类需要抛出新异常或限制输入范围，那就是违反 LSP 的信号。</p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- S5 — 接口隔离原则 (ISP)                                            -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="s5">
+      <div class="section-header">
+        <div class="num-badge">5</div>
+        <h2>接口隔离原则 (ISP)</h2>
+      </div>
+
+      <p><strong>定义：</strong>不应该强迫客户端依赖它们不使用的接口。应该将臃肿的接口拆分为更小、更具体的接口。</p>
+
+      <p>ISP 与 SRP 密切相关，但关注点不同。SRP 关注的是类的职责，ISP 关注的是接口的粒度。一个"胖接口"会迫使实现者提供它们不需要的方法。</p>
+
+      <h3>违反 ISP 的示例</h3>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">BookstoreService</span>(ABC):
+    <span class="st">"""一个过于庞大的接口"""</span>
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">search_books</span>(<span class="nb">self</span>, query: <span class="nb">str</span>) -> <span class="nb">list</span>: <span class="kw">pass</span>
+
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">place_order</span>(<span class="nb">self</span>, order: Order): <span class="kw">pass</span>
+
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">process_payment</span>(<span class="nb">self</span>, amount: <span class="nb">float</span>): <span class="kw">pass</span>
+
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">generate_report</span>(<span class="nb">self</span>) -> <span class="nb">str</span>: <span class="kw">pass</span>
+
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">manage_inventory</span>(<span class="nb">self</span>, book_id: <span class="nb">str</span>, qty: <span class="nb">int</span>): <span class="kw">pass</span>
+
+
+<span class="cm"># 问题：一个只需要搜索功能的客户端也被迫实现所有方法</span>
+<span class="kw">class</span> <span class="fn">BookSearchWidget</span>(BookstoreService):
+    <span class="kw">def</span> <span class="fn">search_books</span>(<span class="nb">self</span>, query):
+        <span class="kw">return</span> [<span class="st">"结果..."</span>]
+
+    <span class="cm"># 被迫实现不需要的方法</span>
+    <span class="kw">def</span> <span class="fn">place_order</span>(<span class="nb">self</span>, order): <span class="kw">raise</span> <span class="nb">NotImplementedError</span>
+    <span class="kw">def</span> <span class="fn">process_payment</span>(<span class="nb">self</span>, amount): <span class="kw">raise</span> <span class="nb">NotImplementedError</span>
+    <span class="kw">def</span> <span class="fn">generate_report</span>(<span class="nb">self</span>): <span class="kw">raise</span> <span class="nb">NotImplementedError</span>
+    <span class="kw">def</span> <span class="fn">manage_inventory</span>(<span class="nb">self</span>, book_id, qty): <span class="kw">raise</span> <span class="nb">NotImplementedError</span></pre>
+      </div>
+
+      <h3>遵循 ISP 的重构</h3>
+
+      <p>将大接口拆分为多个小而专注的接口：</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Searchable</span>(ABC):
+    <span class="st">"""搜索能力"""</span>
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">search_books</span>(<span class="nb">self</span>, query: <span class="nb">str</span>) -> <span class="nb">list</span>: <span class="kw">pass</span>
+
+
+<span class="kw">class</span> <span class="fn">OrderProcessing</span>(ABC):
+    <span class="st">"""订单处理能力"""</span>
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">place_order</span>(<span class="nb">self</span>, order: Order): <span class="kw">pass</span>
+
+
+<span class="kw">class</span> <span class="fn">PaymentProcessing</span>(ABC):
+    <span class="st">"""支付处理能力"""</span>
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">process_payment</span>(<span class="nb">self</span>, amount: <span class="nb">float</span>): <span class="kw">pass</span>
+
+
+<span class="kw">class</span> <span class="fn">Reporting</span>(ABC):
+    <span class="st">"""报告生成能力"""</span>
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">generate_report</span>(<span class="nb">self</span>) -> <span class="nb">str</span>: <span class="kw">pass</span>
+
+
+<span class="kw">class</span> <span class="fn">InventoryManagement</span>(ABC):
+    <span class="st">"""库存管理能力"""</span>
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">manage_inventory</span>(<span class="nb">self</span>, book_id: <span class="nb">str</span>, qty: <span class="nb">int</span>): <span class="kw">pass</span>
+
+
+<span class="cm"># 现在客户端只需实现它真正需要的接口</span>
+<span class="kw">class</span> <span class="fn">BookSearchWidget</span>(Searchable):
+    <span class="kw">def</span> <span class="fn">search_books</span>(<span class="nb">self</span>, query: <span class="nb">str</span>) -> <span class="nb">list</span>:
+        <span class="kw">return</span> [<span class="st">"结果..."</span>]
+
+
+<span class="cm"># 需要多种能力的服务可以组合多个接口</span>
+<span class="kw">class</span> <span class="fn">FullBookstoreService</span>(Searchable, OrderProcessing, PaymentProcessing):
+    <span class="kw">def</span> <span class="fn">search_books</span>(<span class="nb">self</span>, query): <span class="kw">return</span> [<span class="st">"结果..."</span>]
+    <span class="kw">def</span> <span class="fn">place_order</span>(<span class="nb">self</span>, order): <span class="kw">pass</span>
+    <span class="kw">def</span> <span class="fn">process_payment</span>(<span class="nb">self</span>, amount): <span class="kw">pass</span></pre>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-title">ISP 与 Python</div>
+        <p>Python 支持多重继承，因此可以通过让类继承多个小型 ABC 来组合接口。这种做法有时也叫做 <strong>mixin</strong> 模式。关键是：客户端代码只应依赖于它实际使用的方法集合。</p>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- S6 — 依赖倒置原则 (DIP)                                            -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="s6">
+      <div class="section-header">
+        <div class="num-badge">6</div>
+        <h2>依赖倒置原则 (DIP)</h2>
+      </div>
+
+      <p><strong>定义：</strong>(A) 高层模块不应该依赖低层模块，两者都应该依赖抽象。(B) 抽象不应该依赖细节，细节应该依赖抽象。</p>
+
+      <p>DIP 是 SOLID 中最深刻的原则之一。传统的分层架构中，高层业务逻辑直接依赖低层实现（如数据库、文件系统）。DIP 要求我们<strong>反转</strong>这种依赖关系，让高层和低层都依赖于抽象接口。</p>
+
+      <h3>违反 DIP 的示例</h3>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="cm"># 反面示例：高层模块直接依赖低层实现</span>
+<span class="kw">class</span> <span class="fn">MySQLDatabase</span>:
+    <span class="kw">def</span> <span class="fn">save_order</span>(<span class="nb">self</span>, order_data: <span class="nb">dict</span>):
+        <span class="nb">print</span>(<span class="st">f"保存到 MySQL: </span>{order_data}<span class="st">"</span>)
+
+
+<span class="kw">class</span> <span class="fn">OrderService</span>:
+    <span class="st">"""高层业务逻辑 —— 直接依赖具体的 MySQL 实现"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>):
+        <span class="nb">self</span>.db = MySQLDatabase()  <span class="cm"># 紧耦合！</span>
+
+    <span class="kw">def</span> <span class="fn">create_order</span>(<span class="nb">self</span>, customer: Customer, items: <span class="nb">list</span>):
+        order = Order(customer, items)
+        <span class="nb">self</span>.db.save_order(order.to_dict())
+        <span class="kw">return</span> order</pre>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-title">紧耦合的危害</div>
+        <p>如果我们想从 MySQL 切换到 PostgreSQL 或 MongoDB，就必须修改 <code>OrderService</code> 的代码。更糟糕的是，我们无法在不连接真实数据库的情况下测试 <code>OrderService</code>。</p>
+      </div>
+
+      <h3>遵循 DIP 的重构</h3>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="cm"># 抽象层 —— 高层和低层都依赖于此</span>
+<span class="kw">class</span> <span class="fn">OrderRepository</span>(ABC):
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">save</span>(<span class="nb">self</span>, order_data: <span class="nb">dict</span>):
+        <span class="kw">pass</span>
+
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">find_by_id</span>(<span class="nb">self</span>, order_id: <span class="nb">str</span>) -> <span class="nb">dict</span>:
+        <span class="kw">pass</span>
+
+
+<span class="cm"># 低层实现 —— 依赖于抽象</span>
+<span class="kw">class</span> <span class="fn">MySQLOrderRepository</span>(OrderRepository):
+    <span class="kw">def</span> <span class="fn">save</span>(<span class="nb">self</span>, order_data: <span class="nb">dict</span>):
+        <span class="nb">print</span>(<span class="st">f"保存到 MySQL: </span>{order_data}<span class="st">"</span>)
+
+    <span class="kw">def</span> <span class="fn">find_by_id</span>(<span class="nb">self</span>, order_id: <span class="nb">str</span>) -> <span class="nb">dict</span>:
+        <span class="kw">return</span> {<span class="st">"id"</span>: order_id}
+
+
+<span class="kw">class</span> <span class="fn">MongoOrderRepository</span>(OrderRepository):
+    <span class="kw">def</span> <span class="fn">save</span>(<span class="nb">self</span>, order_data: <span class="nb">dict</span>):
+        <span class="nb">print</span>(<span class="st">f"保存到 MongoDB: </span>{order_data}<span class="st">"</span>)
+
+    <span class="kw">def</span> <span class="fn">find_by_id</span>(<span class="nb">self</span>, order_id: <span class="nb">str</span>) -> <span class="nb">dict</span>:
+        <span class="kw">return</span> {<span class="st">"_id"</span>: order_id}
+
+
+<span class="cm"># 高层模块 —— 通过构造函数注入依赖于抽象</span>
+<span class="kw">class</span> <span class="fn">OrderService</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, repo: OrderRepository):
+        <span class="nb">self</span>.repo = repo  <span class="cm"># 依赖于抽象，而非具体实现</span>
+
+    <span class="kw">def</span> <span class="fn">create_order</span>(<span class="nb">self</span>, customer: Customer, items: <span class="nb">list</span>):
+        order = Order(customer, items)
+        <span class="nb">self</span>.repo.save(order.to_dict())
+        <span class="kw">return</span> order
+
+
+<span class="cm"># 使用 —— 在组装阶段选择具体实现</span>
+service = OrderService(MySQLOrderRepository())
+<span class="cm"># 或者轻松切换：</span>
+service = OrderService(MongoOrderRepository())</pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-title">依赖注入</div>
+        <p><strong>依赖注入 (DI)</strong> 是实现 DIP 的最常用手段。通过构造函数、setter 或参数将依赖传入，而非在类内部创建依赖对象。这样做有三大好处：(1) 可测试性 —— 可以注入 mock 对象；(2) 灵活性 —— 可以轻松替换实现；(3) 透明性 —— 类的依赖一目了然。</p>
+      </div>
+
+      <h3>DIP 与测试</h3>
+
+      <p>DIP 的一个重要优势是大幅提升可测试性。通过注入模拟对象，我们可以在不依赖外部系统的情况下测试业务逻辑：</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="cm"># 测试用的模拟实现</span>
+<span class="kw">class</span> <span class="fn">FakeOrderRepository</span>(OrderRepository):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>):
+        <span class="nb">self</span>.saved_orders = []
+
+    <span class="kw">def</span> <span class="fn">save</span>(<span class="nb">self</span>, order_data: <span class="nb">dict</span>):
+        <span class="nb">self</span>.saved_orders.append(order_data)
+
+    <span class="kw">def</span> <span class="fn">find_by_id</span>(<span class="nb">self</span>, order_id: <span class="nb">str</span>) -> <span class="nb">dict</span>:
+        <span class="kw">return</span> <span class="nb">next</span>(o <span class="kw">for</span> o <span class="kw">in</span> <span class="nb">self</span>.saved_orders <span class="kw">if</span> o[<span class="st">"id"</span>] == order_id)
+
+
+<span class="cm"># 单元测试 —— 无需数据库连接</span>
+<span class="kw">def</span> <span class="fn">test_create_order</span>():
+    fake_repo = FakeOrderRepository()
+    service = OrderService(fake_repo)
+    service.create_order(customer, items)
+    <span class="kw">assert</span> <span class="nb">len</span>(fake_repo.saved_orders) == <span class="nb">1</span></pre>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- S7 — SOLID 实践                                                    -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="s7">
+      <div class="section-header">
+        <div class="num-badge">7</div>
+        <h2>SOLID 实践</h2>
+      </div>
+
+      <p>让我们通过一个综合示例来展示如何在实际系统中同时应用所有五个 SOLID 原则。我们将设计一个书店的<strong>购物车结账系统</strong>。</p>
+
+      <h3>需求分析</h3>
+
+      <p>购物车结账系统需要支持以下功能：</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>功能</th><th>说明</th><th>对应原则</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>商品管理</td><td>添加、移除购物车中的商品</td><td>SRP</td></tr>
+            <tr><td>价格计算</td><td>支持多种折扣策略</td><td>OCP</td></tr>
+            <tr><td>产品多态</td><td>实体书和电子书统一处理</td><td>LSP</td></tr>
+            <tr><td>支付处理</td><td>支持多种支付方式</td><td>ISP</td></tr>
+            <tr><td>持久化</td><td>订单存储可替换</td><td>DIP</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">表 2 &mdash; 需求与 SOLID 原则的对应关系</p>
+
+      <h3>综合设计实现</h3>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> typing <span class="kw">import</span> Protocol
+
+
+<span class="cm"># ── LSP：使用抽象基类确保子类可替换 ──</span>
+<span class="kw">class</span> <span class="fn">Product</span>(ABC):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, title: <span class="nb">str</span>, price: <span class="nb">float</span>):
+        <span class="nb">self</span>.title = title
+        <span class="nb">self</span>.price = price
+
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">get_shipping_cost</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="kw">pass</span>
+
+
+<span class="kw">class</span> <span class="fn">PhysicalBook</span>(Product):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, title: <span class="nb">str</span>, price: <span class="nb">float</span>, weight: <span class="nb">float</span>):
+        <span class="nb">super</span>().__init__(title, price)
+        <span class="nb">self</span>.weight = weight
+
+    <span class="kw">def</span> <span class="fn">get_shipping_cost</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> <span class="nb">self</span>.weight * <span class="nb">5.0</span>
+
+
+<span class="kw">class</span> <span class="fn">DigitalBook</span>(Product):
+    <span class="kw">def</span> <span class="fn">get_shipping_cost</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> <span class="nb">0.0</span>
+
+
+<span class="cm"># ── OCP：折扣策略可以自由扩展 ──</span>
+<span class="kw">class</span> <span class="fn">DiscountStrategy</span>(ABC):
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="nb">self</span>, subtotal: <span class="nb">float</span>) -> <span class="nb">float</span>:
+        <span class="kw">pass</span>
+
+
+<span class="kw">class</span> <span class="fn">NoDiscount</span>(DiscountStrategy):
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="nb">self</span>, subtotal: <span class="nb">float</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> subtotal
+
+
+<span class="kw">class</span> <span class="fn">SeasonalDiscount</span>(DiscountStrategy):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, rate: <span class="nb">float</span>):
+        <span class="nb">self</span>.rate = rate
+
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="nb">self</span>, subtotal: <span class="nb">float</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> subtotal * (<span class="nb">1</span> - <span class="nb">self</span>.rate)
+
+
+<span class="cm"># ── ISP：细粒度的接口 ──</span>
+<span class="kw">class</span> <span class="fn">PaymentGateway</span>(ABC):
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">charge</span>(<span class="nb">self</span>, amount: <span class="nb">float</span>) -> <span class="nb">bool</span>:
+        <span class="kw">pass</span>
+
+
+<span class="kw">class</span> <span class="fn">Notifier</span>(ABC):
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="nb">self</span>, message: <span class="nb">str</span>, recipient: <span class="nb">str</span>):
+        <span class="kw">pass</span>
+
+
+<span class="cm"># ── DIP：持久化抽象 ──</span>
+<span class="kw">class</span> <span class="fn">OrderRepository</span>(ABC):
+    <span class="op">@</span>abstractmethod
+    <span class="kw">def</span> <span class="fn">save</span>(<span class="nb">self</span>, order_data: <span class="nb">dict</span>): <span class="kw">pass</span>
+
+
+<span class="cm"># ── SRP：购物车只负责管理商品 ──</span>
+<span class="kw">class</span> <span class="fn">ShoppingCart</span>:
+    <span class="st">"""仅负责管理购物车中的商品"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>):
+        <span class="nb">self</span>.items: <span class="nb">list</span>[Product] = []
+
+    <span class="kw">def</span> <span class="fn">add</span>(<span class="nb">self</span>, product: Product):
+        <span class="nb">self</span>.items.append(product)
+
+    <span class="kw">def</span> <span class="fn">remove</span>(<span class="nb">self</span>, product: Product):
+        <span class="nb">self</span>.items.remove(product)
+
+    <span class="kw">def</span> <span class="fn">get_subtotal</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> <span class="nb">sum</span>(p.price <span class="kw">for</span> p <span class="kw">in</span> <span class="nb">self</span>.items)
+
+    <span class="kw">def</span> <span class="fn">get_shipping</span>(<span class="nb">self</span>) -> <span class="nb">float</span>:
+        <span class="kw">return</span> <span class="nb">sum</span>(p.get_shipping_cost() <span class="kw">for</span> p <span class="kw">in</span> <span class="nb">self</span>.items)
+
+
+<span class="cm"># ── SRP：结账服务只负责协调结账流程 ──</span>
+<span class="kw">class</span> <span class="fn">CheckoutService</span>:
+    <span class="st">"""协调结账流程 —— 每个依赖都是抽象接口 (DIP)"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(
+        <span class="nb">self</span>,
+        payment: PaymentGateway,
+        repo: OrderRepository,
+        notifier: Notifier,
+        discount: DiscountStrategy,
+    ):
+        <span class="nb">self</span>.payment = payment
+        <span class="nb">self</span>.repo = repo
+        <span class="nb">self</span>.notifier = notifier
+        <span class="nb">self</span>.discount = discount
+
+    <span class="kw">def</span> <span class="fn">checkout</span>(<span class="nb">self</span>, cart: ShoppingCart, email: <span class="nb">str</span>) -> <span class="nb">bool</span>:
+        subtotal = cart.get_subtotal()
+        shipping = cart.get_shipping()
+        total = <span class="nb">self</span>.discount.apply(subtotal) + shipping
+
+        <span class="kw">if</span> <span class="nb">self</span>.payment.charge(total):
+            <span class="nb">self</span>.repo.save({<span class="st">"total"</span>: total, <span class="st">"items"</span>: <span class="nb">len</span>(cart.items)})
+            <span class="nb">self</span>.notifier.send(<span class="st">f"订单已确认，总计: ¥</span>{total:.2f}<span class="st">"</span>, email)
+            <span class="kw">return</span> <span class="nb">True</span>
+        <span class="kw">return</span> <span class="nb">False</span></pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-title">五项原则的协同作用</div>
+        <p>注意这个设计如何同时满足所有 SOLID 原则：<strong>SRP</strong> &mdash; 每个类只有一个职责；<strong>OCP</strong> &mdash; 新的折扣策略不需修改现有代码；<strong>LSP</strong> &mdash; PhysicalBook 和 DigitalBook 可互换使用；<strong>ISP</strong> &mdash; PaymentGateway、Notifier、OrderRepository 都是小接口；<strong>DIP</strong> &mdash; CheckoutService 依赖抽象而非具体实现。</p>
+      </div>
+
+      <h3>SOLID 原则之间的关系</h3>
+
+      <p>SOLID 的五个原则并非独立存在，它们相互支撑、相互强化：</p>
+
+      <div class="bridge">
+        <div class="bridge-header">
+          <div class="col-label">原则</div>
+          <div></div>
+          <div class="col-label">关联</div>
+        </div>
+        <div class="bridge-row hi">
+          <div class="b-left">SRP</div>
+          <div class="b-arrow">&harr;</div>
+          <div class="b-right">ISP：拆分职责 = 拆分接口</div>
+        </div>
+        <div class="bridge-row">
+          <div class="b-left">OCP</div>
+          <div class="b-arrow">&harr;</div>
+          <div class="b-right">DIP：依赖抽象使扩展成为可能</div>
+        </div>
+        <div class="bridge-row hi">
+          <div class="b-left">LSP</div>
+          <div class="b-arrow">&harr;</div>
+          <div class="b-right">OCP：正确的继承保证安全扩展</div>
+        </div>
+        <div class="bridge-row">
+          <div class="b-left">ISP</div>
+          <div class="b-arrow">&harr;</div>
+          <div class="b-right">SRP：小接口促进单一职责</div>
+        </div>
+        <div class="bridge-row hi">
+          <div class="b-left">DIP</div>
+          <div class="b-arrow">&harr;</div>
+          <div class="b-right">LSP：抽象的子类必须可替换</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- S8 — 总结                                                          -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <section class="section" id="s8">
+      <div class="section-header">
+        <div class="num-badge">8</div>
+        <h2>总结</h2>
+      </div>
+
+      <p>SOLID 原则是面向对象设计的基石。它们为我们提供了一套经过实践检验的指导方针，帮助我们构建更健壮、更灵活、更易维护的软件系统。以下是每个原则的关键要点：</p>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="sk">S &mdash; 单一职责原则</div>
+          <p>一个类只应有一个变化的原因。将不同的关注点分离到独立的类中，降低变更的影响范围。</p>
+        </div>
+        <div class="summary-card">
+          <div class="sk">O &mdash; 开闭原则</div>
+          <p>对扩展开放，对修改关闭。通过抽象和多态实现功能扩展，避免修改已有的稳定代码。</p>
+        </div>
+        <div class="summary-card">
+          <div class="sk">L &mdash; 里氏替换原则</div>
+          <p>子类必须能安全替代父类。确保继承关系中的行为一致性，不要在子类中削弱父类的契约。</p>
+        </div>
+        <div class="summary-card">
+          <div class="sk">I &mdash; 接口隔离原则</div>
+          <p>不强迫客户端依赖不需要的接口。将大接口拆分为小而专注的接口，提高内聚性和灵活性。</p>
+        </div>
+        <div class="summary-card">
+          <div class="sk">D &mdash; 依赖倒置原则</div>
+          <p>高层模块和低层模块都依赖于抽象。通过依赖注入解耦组件，提高可测试性和可替换性。</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-title">实践建议</div>
+        <p>SOLID 原则是指导方针，而非铁律。在实际开发中，应根据项目规模和复杂度灵活运用。过度设计和欠设计同样有害。关键是在代码开始变得难以维护时，识别出违反了哪个原则，并进行有针对性的重构。</p>
+      </div>
+
+      <div class="next-banner">
+        <div class="icon">&#x1F4DA;</div>
+        <div class="text"><div class="label">系列完成 &mdash; 下一步？</div><p>探索高级模式、领域驱动设计、整洁架构和测试驱动开发，进一步提升您的 OOD 技能。</p></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  bar.style.width = Math.min((window.scrollY / (h.scrollHeight - h.clientHeight)) * 100, 100) + '%';
+});
+const sections = document.querySelectorAll('section.section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+
+document.addEventListener('click', e => {
+  const dd = document.getElementById('moduleDropdown');
+  if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+});
+</script>
+
+</body>
+</html>

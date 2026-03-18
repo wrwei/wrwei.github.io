@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OOD Module 9: SOLID Principles — Ran Wei</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:      #1A2E4A;
+  --blue:      #2563EB;
+  --sky:       #0EA5E9;
+  --sky-light: #DBEAFE;
+  --sky-pale:  #F0F9FF;
+  --slate:     #475569;
+  --muted:     #94A3B8;
+  --border:    #E2E8F0;
+  --bg:        #FAFBFD;
+  --white:     #FFFFFF;
+  --green:     #16A34A;
+  --green-bg:  #F0FDF4;
+  --orange:    #EA580C;
+  --orange-bg: #FFF7ED;
+  --red:       #DC2626;
+  --red-bg:    #FEF2F2;
+  --code-bg:   #F1F5F9;
+  --code-text: #0F172A;
+  --purple:    #7C3AED;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'DM Mono', 'Fira Code', monospace;
+
+  --sidebar-w: 260px;
+  --content-max: 1000px;
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--navy);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ── Progress bar ──────────────────────────────────────────────────────────── */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, var(--sky), var(--blue));
+  width: 0%; z-index: 1000;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(14,165,233,0.5);
+}
+
+/* ── Top nav ───────────────────────────────────────────────────────────────── */
+#topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250,251,253,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0 2rem; height: 56px;
+}
+#topbar .brand {
+  font-family: var(--font-display);
+  font-weight: 600; font-size: 1.05rem;
+  color: var(--navy); letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+#topbar .brand span { color: var(--sky); }
+#topbar .sep { color: var(--border); font-size: 1.2rem; }
+#topbar .crumb { color: var(--slate); font-size: 0.85rem; font-weight: 500; }
+#topbar .module-dropdown { margin-left: auto; position: relative; }
+#topbar .module-dropdown .badge { background: var(--sky-light); color: var(--blue); font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.65rem 0.2rem 0.8rem; border-radius: 999px; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 0.3rem; border: none; font-family: inherit; }
+#topbar .module-dropdown .badge::after { content: '\25BE'; font-size: 0.7rem; }
+#topbar .module-dropdown .dropdown-menu { display: none; position: absolute; top: calc(100% + 6px); right: 0; background: var(--white); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); min-width: 220px; padding: 0.4rem; z-index: 200; }
+#topbar .module-dropdown.open .dropdown-menu { display: block; }
+#topbar .module-dropdown .dropdown-menu a { display: block; padding: 0.5rem 0.75rem; border-radius: 7px; font-size: 0.82rem; font-weight: 500; color: var(--slate); text-decoration: none; transition: var(--transition); }
+#topbar .module-dropdown .dropdown-menu a:hover { background: var(--sky-pale); color: var(--blue); }
+#topbar .module-dropdown .dropdown-menu a.active { background: var(--sky-light); color: var(--blue); font-weight: 600; }
+#topbar .lang-switch {
+  font-size: 0.78rem; font-weight: 600; color: var(--slate);
+  text-decoration: none; padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border); border-radius: 6px;
+  transition: var(--transition);
+}
+#topbar .lang-switch:hover { background: var(--sky-pale); color: var(--blue); border-color: var(--sky-light); }
+
+/* ── Layout ────────────────────────────────────────────────────────────────── */
+#layout { display: flex; min-height: calc(100vh - 56px); }
+
+/* ── Sidebar ───────────────────────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  padding: 2rem 1.25rem 2rem 1.5rem;
+  border-right: 1px solid var(--border);
+  background: var(--white);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#sidebar .sidebar-label {
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.75rem;
+}
+#sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+#sidebar nav a {
+  display: flex; align-items: center; gap: 0.6rem;
+  font-size: 0.85rem; font-weight: 500;
+  color: var(--slate); text-decoration: none;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  transition: var(--transition);
+}
+#sidebar nav a .num {
+  width: 20px; height: 20px;
+  background: var(--border); color: var(--slate);
+  border-radius: 50%; font-size: 0.7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: var(--transition);
+}
+#sidebar nav a:hover { background: var(--sky-pale); color: var(--blue); }
+#sidebar nav a:hover .num { background: var(--sky-light); color: var(--blue); }
+#sidebar nav a.active { background: var(--sky-light); color: var(--blue); }
+#sidebar nav a.active .num { background: var(--blue); color: white; }
+
+#sidebar .meta {
+  margin-top: 2rem; padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem; color: var(--muted);
+  display: flex; flex-direction: column; gap: 0.4rem;
+}
+#sidebar .meta span { color: var(--slate); font-weight: 500; }
+
+/* ── Main content ──────────────────────────────────────────────────────────── */
+#content {
+  flex: 1;
+  padding: 3.5rem 3rem 6rem;
+  max-width: calc(var(--content-max) + 6rem);
+  min-width: 0;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────────── */
+.hero {
+  margin-bottom: 4rem;
+  padding-bottom: 3rem;
+  border-bottom: 1px solid var(--border);
+}
+.hero .series {
+  font-size: 0.8rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--sky); margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.hero .series::before {
+  content: ''; display: block;
+  width: 24px; height: 2px; background: var(--sky);
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 700; line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--navy); margin-bottom: 1rem;
+}
+.hero h1 em { color: var(--blue); font-style: normal; }
+.hero .subtitle {
+  font-size: 1.1rem; color: var(--slate);
+  font-weight: 300; max-width: 560px;
+  margin-bottom: 2rem;
+}
+.hero-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.chip {
+  font-size: 0.78rem; font-weight: 500;
+  padding: 0.3rem 0.8rem; border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--slate); background: var(--white);
+}
+.chip.blue { border-color: var(--sky-light); background: var(--sky-pale); color: var(--blue); }
+
+/* ── Sections ──────────────────────────────────────────────────────────────── */
+.section { margin-bottom: 4rem; scroll-margin-top: 72px; }
+
+.section-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1.75rem; padding-bottom: 1rem;
+  border-bottom: 2px solid var(--sky-light);
+}
+.section-header .num-badge {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--navy); color: white;
+  font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.section-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem; font-weight: 600;
+  letter-spacing: -0.02em; color: var(--navy);
+}
+
+h3 {
+  font-size: 1.05rem; font-weight: 600;
+  color: var(--blue); margin: 2rem 0 0.75rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+h3::before {
+  content: ''; display: block;
+  width: 3px; height: 1em;
+  background: var(--sky); border-radius: 2px;
+  flex-shrink: 0;
+}
+
+p { margin-bottom: 1rem; color: var(--slate); font-size: 0.97rem; }
+p strong { color: var(--navy); }
+
+/* ── Callout boxes ─────────────────────────────────────────────────────────── */
+.callout {
+  border-radius: 10px; padding: 1rem 1.25rem;
+  margin: 1.5rem 0; font-size: 0.92rem;
+  border-left: 4px solid;
+}
+.callout-title {
+  font-weight: 700; font-size: 0.78rem;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.callout.info {
+  background: var(--sky-pale); border-color: var(--blue); color: var(--slate);
+}
+.callout.info .callout-title { color: var(--blue); }
+.callout.tip {
+  background: var(--green-bg); border-color: var(--green); color: var(--slate);
+}
+.callout.tip .callout-title { color: var(--green); }
+.callout.warning {
+  background: var(--orange-bg); border-color: var(--orange); color: var(--slate);
+}
+.callout.warning .callout-title { color: var(--orange); }
+.callout.danger {
+  background: var(--red-bg); border-color: var(--red); color: var(--slate);
+}
+.callout.danger .callout-title { color: var(--red); }
+
+/* ── Tables ────────────────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin: 1.5rem 0; border-radius: 10px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+thead th {
+  background: var(--navy); color: white;
+  font-weight: 600; text-align: left;
+  padding: 0.65rem 1rem; font-size: 0.82rem;
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: var(--transition); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--sky-pale); }
+tbody td { padding: 0.6rem 1rem; color: var(--slate); vertical-align: top; }
+tbody td:first-child { color: var(--navy); font-weight: 500; }
+tbody td code { font-size: 0.82rem; }
+.caption {
+  text-align: center; font-size: 0.8rem;
+  color: var(--muted); font-style: italic;
+  margin-top: 0.5rem; margin-bottom: 1.5rem;
+}
+
+/* ── Code blocks ───────────────────────────────────────────────────────────── */
+.code-wrap {
+  margin: 1.5rem 0; border-radius: 10px;
+  overflow: hidden; border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.code-header {
+  background: var(--navy); color: var(--muted);
+  font-family: var(--font-mono); font-size: 0.75rem;
+  padding: 0.5rem 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.code-header .dots { display: flex; gap: 5px; }
+.code-header .dots span {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.code-header .dots span:nth-child(1) { background: #FF5F57; }
+.code-header .dots span:nth-child(2) { background: #FFBD2E; }
+.code-header .dots span:nth-child(3) { background: #28CA41; }
+.code-header .lang { color: var(--sky); font-weight: 500; }
+pre {
+  background: var(--code-bg);
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--code-text);
+  margin: 0;
+}
+/* Simple syntax colouring */
+.kw  { color: #7C3AED; font-weight: 500; }
+.fn  { color: #0369A1; }
+.st  { color: #16A34A; }
+.cm  { color: #94A3B8; font-style: italic; }
+.nb  { color: #EA580C; }
+.op  { color: #64748B; }
+
+/* ── Figures ───────────────────────────────────────────────────────────────── */
+.figure {
+  margin: 2rem 0;
+  border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.figure img { width: 100%; display: block; }
+.figure figcaption {
+  background: var(--navy); color: var(--muted);
+  font-size: 0.8rem; font-style: italic;
+  padding: 0.65rem 1.25rem;
+  text-align: center;
+}
+.figure figcaption strong { color: var(--sky); font-style: normal; }
+
+/* ── Bridge box ────────────────────────────────────────────────────────────── */
+.bridge {
+  background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%);
+  border-radius: 12px; padding: 1.5rem 2rem; margin: 2rem 0;
+  font-family: var(--font-mono); font-size: 0.88rem;
+}
+.bridge-header {
+  display: grid; grid-template-columns: 1fr 40px 1fr;
+  gap: 0.5rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+.bridge-header .col-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--sky); text-align: center;
+}
+.bridge-row {
+  display: grid; grid-template-columns: 1fr 40px 1fr;
+  gap: 0.5rem; align-items: center; margin: 0.35rem 0;
+}
+.bridge-row .b-left, .bridge-row .b-right {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 6px; padding: 0.4rem 0.85rem;
+  color: #CBD5E1; text-align: center;
+}
+.bridge-row.hi .b-left, .bridge-row.hi .b-right {
+  color: var(--sky); border-color: rgba(14,165,233,0.35);
+  background: rgba(14,165,233,0.08);
+}
+.bridge-row .b-arrow { text-align: center; color: var(--sky); opacity: 0.7; }
+
+/* ── Summary ───────────────────────────────────────────────────────────────── */
+.summary-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem; margin: 1.5rem 0;
+}
+.summary-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.1rem 1.25rem;
+  border-left: 3px solid var(--sky);
+  transition: var(--transition);
+}
+.summary-card:hover { box-shadow: 0 4px 16px rgba(14,165,233,0.1); border-left-color: var(--blue); }
+.summary-card .sk { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--sky); margin-bottom: 0.35rem; }
+.summary-card p { font-size: 0.88rem; color: var(--slate); margin: 0; }
+
+/* ── Next module banner ────────────────────────────────────────────────────── */
+.next-banner {
+  background: var(--sky-pale); border: 1px solid var(--sky-light);
+  border-radius: 12px; padding: 1.5rem 2rem;
+  display: flex; align-items: center; gap: 1.5rem; margin-top: 3rem;
+}
+.next-banner .icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: var(--blue); color: white;
+  font-size: 1.4rem; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.next-banner .text .label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--sky); margin-bottom: 0.25rem;
+}
+.next-banner .text h4 {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 600; color: var(--navy); margin-bottom: 0.25rem;
+}
+.next-banner .text p { font-size: 0.88rem; color: var(--slate); margin: 0; }
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #sidebar { display: none; }
+  #content { padding: 2rem 1.5rem 4rem; }
+
+}
+@media (max-width: 600px) {
+  .hero h1 { font-size: 2rem; }
+  #content { padding: 1.5rem 1rem 3rem; }
+}
+
+/* ── Fade-in animations ────────────────────────────────────────────────────── */
+.section {
+  opacity: 0; transform: translateY(18px);
+  animation: fadeUp 0.5s ease forwards;
+}
+@keyframes fadeUp {
+  to { opacity: 1; transform: none; }
+}
+.section:nth-child(1) { animation-delay: 0.05s; }
+.section:nth-child(2) { animation-delay: 0.1s; }
+.section:nth-child(3) { animation-delay: 0.15s; }
+.section:nth-child(4) { animation-delay: 0.2s; }
+.section:nth-child(5) { animation-delay: 0.25s; }
+.section:nth-child(6) { animation-delay: 0.3s; }
+.section:nth-child(7) { animation-delay: 0.35s; }
+.section:nth-child(8) { animation-delay: 0.4s; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">Object-Oriented Design</a>
+  <span class="sep">/</span>
+  <span class="crumb">Module 9</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 9 of 9</button>
+    <div class="dropdown-menu">
+      <a href="OOD_Module1_Objects_Classes.html">1 &mdash; Objects &amp; Classes</a>
+      <a href="OOD_Module2_Encapsulation_EN.html">2 &mdash; Encapsulation</a>
+      <a href="OOD_Module3_Inheritance_EN.html">3 &mdash; Inheritance &amp; Hierarchies</a>
+      <a href="OOD_Module4_Polymorphism_EN.html">4 &mdash; Polymorphism</a>
+      <a href="OOD_Module5_Composition_EN.html">5 &mdash; Composition &amp; Aggregation</a>
+      <a href="OOD_Module6_Interfaces_EN.html">6 &mdash; Interfaces &amp; Contracts</a>
+      <a href="OOD_Module7_Patterns_EN.html">7 &mdash; Design Patterns</a>
+      <a href="OOD_Module8_Practice_EN.html">8 &mdash; OOD in Practice</a>
+      <a href="OOD_Module9_SOLID_EN.html" class="active">9 &mdash; SOLID Principles</a>
+    </div>
+  </div>
+  <a href="OOD_Module9_SOLID_ZH.html" class="lang-switch">中文</a>
+</header>
+
+<div id="layout">
+
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav>
+      <a href="#s1" class="nav-link"><span class="num">1</span> Why SOLID?</a>
+      <a href="#s2" class="nav-link"><span class="num">2</span> Single Responsibility</a>
+      <a href="#s3" class="nav-link"><span class="num">3</span> Open / Closed</a>
+      <a href="#s4" class="nav-link"><span class="num">4</span> Liskov Substitution</a>
+      <a href="#s5" class="nav-link"><span class="num">5</span> Interface Segregation</a>
+      <a href="#s6" class="nav-link"><span class="num">6</span> Dependency Inversion</a>
+      <a href="#s7" class="nav-link"><span class="num">7</span> SOLID in Practice</a>
+      <a href="#s8" class="nav-link"><span class="num">8</span> Summary</a>
+    </nav>
+    <div class="meta">
+      <div>Language <span>Python 3</span></div>
+      <div>Notation <span>UML 2.5</span></div>
+      <div>Prereqs <span>OOD Modules 1–8</span></div>
+    </div>
+  </aside>
+
+  <main id="content">
+
+    <div class="hero section">
+      <div class="series">Object-Oriented Design &mdash; Ran Wei</div>
+      <h1>Module 9: <em>SOLID Principles</em></h1>
+      <p class="subtitle">Five design principles that make object-oriented systems flexible, maintainable, and resilient to change.</p>
+      <div class="hero-chips">
+        <span class="chip blue">Prereq: OOD Modules 1–8</span>
+        <span class="chip">Python 3</span>
+        <span class="chip">SRP</span>
+        <span class="chip">OCP</span>
+        <span class="chip">LSP</span>
+        <span class="chip">ISP</span>
+        <span class="chip">DIP</span>
+      </div>
+    </div>
+
+    <!-- Section 1 -->
+    <section class="section" id="s1">
+      <div class="section-header"><div class="num-badge">1</div><h2>Why SOLID?</h2></div>
+
+      <p>Throughout Modules 1&ndash;8 you learned how to model objects, hide data behind clean interfaces, build inheritance hierarchies, leverage polymorphism, compose objects, define contracts, and apply design patterns. These are the <strong>mechanics</strong> of object-oriented design. But mechanics alone do not guarantee good design.</p>
+
+      <p>In the early 2000s, Robert C. Martin (widely known as <strong>Uncle Bob</strong>) collected five principles that had been discussed in the OO community for years and arranged them into the memorable acronym <strong>SOLID</strong>. These principles are not rules to follow blindly &mdash; they are guidelines that, when applied thoughtfully, lead to code that is easier to understand, extend, test, and maintain.</p>
+
+      <div class="callout info">
+        <div class="callout-title">&#x1F4A1; The SOLID Acronym</div>
+        <p>SOLID stands for five principles: <strong>S</strong>ingle Responsibility, <strong>O</strong>pen/Closed, <strong>L</strong>iskov Substitution, <strong>I</strong>nterface Segregation, and <strong>D</strong>ependency Inversion. Each one addresses a specific kind of design fragility that appears in real-world codebases as they grow.</p>
+      </div>
+
+      <p>The table below gives a quick overview. We will explore each principle in depth in the sections that follow, using examples from our bookshop domain.</p>
+
+      <div class="table-wrap">
+      <table>
+      <thead><tr><th>Letter</th><th>Principle</th><th>One-Line Summary</th></tr></thead>
+      <tbody>
+        <tr><td><strong>S</strong></td><td>Single Responsibility</td><td>A class should have only one reason to change.</td></tr>
+        <tr><td><strong>O</strong></td><td>Open / Closed</td><td>Open for extension, closed for modification.</td></tr>
+        <tr><td><strong>L</strong></td><td>Liskov Substitution</td><td>Subtypes must be substitutable for their base types.</td></tr>
+        <tr><td><strong>I</strong></td><td>Interface Segregation</td><td>Clients should not depend on interfaces they don&rsquo;t use.</td></tr>
+        <tr><td><strong>D</strong></td><td>Dependency Inversion</td><td>Depend on abstractions, not on concrete implementations.</td></tr>
+      </tbody>
+      </table>
+      </div>
+
+      <p>Think of these principles as a checklist you can apply during design reviews. When a design feels brittle or hard to change, one or more SOLID principles can usually point you toward a better structure.</p>
+    </section>
+
+    <!-- Section 2 -->
+    <section class="section" id="s2">
+      <div class="section-header"><div class="num-badge">2</div><h2>Single Responsibility Principle</h2></div>
+
+      <p>The Single Responsibility Principle (SRP) states: <strong>a class should have only one reason to change</strong>. &ldquo;Reason to change&rdquo; maps to a <em>responsibility</em> &mdash; a distinct concern that could evolve independently. When a class mixes multiple responsibilities, a change in one area risks breaking another.</p>
+
+      <h3>A Class Doing Too Much</h3>
+
+      <p>Consider an <code>Order</code> class that handles business logic, formats output, and saves data to a file &mdash; three separate concerns rolled into one:</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="cm"># BAD: Order has three reasons to change</span>
+<span class="kw">class</span> <span class="fn">Order</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, customer, items):
+        <span class="kw">self</span>.customer <span class="op">=</span> customer
+        <span class="kw">self</span>.items <span class="op">=</span> items
+
+    <span class="kw">def</span> <span class="fn">total</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="fn">sum</span>(item.price <span class="op">*</span> item.qty <span class="kw">for</span> item <span class="kw">in</span> <span class="kw">self</span>.items)
+
+    <span class="kw">def</span> <span class="fn">to_invoice_string</span>(<span class="kw">self</span>):
+        <span class="cm"># Responsibility 2: formatting</span>
+        lines <span class="op">=</span> [<span class="st">f"Invoice for </span>{<span class="kw">self</span>.customer.name}<span class="st">"</span>]
+        <span class="kw">for</span> item <span class="kw">in</span> <span class="kw">self</span>.items:
+            lines.append(<span class="st">f"  </span>{item.title}<span class="st"> x</span>{item.qty}<span class="st"> = </span>{item.price <span class="op">*</span> item.qty}<span class="st">"</span>)
+        lines.append(<span class="st">f"Total: </span>{<span class="kw">self</span>.total()}<span class="st">"</span>)
+        <span class="kw">return</span> <span class="st">"\n"</span>.join(lines)
+
+    <span class="kw">def</span> <span class="fn">save_to_file</span>(<span class="kw">self</span>, path):
+        <span class="cm"># Responsibility 3: persistence</span>
+        <span class="kw">with</span> <span class="fn">open</span>(path, <span class="st">"w"</span>) <span class="kw">as</span> f:
+            f.write(<span class="kw">self</span>.to_invoice_string())</pre>
+      </div>
+
+      <p>If the invoice format changes, you edit <code>Order</code>. If the storage mechanism changes (e.g., from file to database), you edit <code>Order</code> again. Each change risks introducing bugs in unrelated behaviour.</p>
+
+      <h3>Refactored: One Class, One Job</h3>
+
+      <p>We extract each responsibility into its own class:</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="cm"># GOOD: each class has a single responsibility</span>
+<span class="kw">class</span> <span class="fn">Order</span>:
+    <span class="cm">"""Pure domain logic: what is in the order and its total."""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, customer, items):
+        <span class="kw">self</span>.customer <span class="op">=</span> customer
+        <span class="kw">self</span>.items <span class="op">=</span> items
+
+    <span class="kw">def</span> <span class="fn">total</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="fn">sum</span>(item.price <span class="op">*</span> item.qty <span class="kw">for</span> item <span class="kw">in</span> <span class="kw">self</span>.items)
+
+
+<span class="kw">class</span> <span class="fn">InvoiceFormatter</span>:
+    <span class="cm">"""Turns an Order into a human-readable invoice."""</span>
+    <span class="kw">def</span> <span class="fn">format</span>(<span class="kw">self</span>, order):
+        lines <span class="op">=</span> [<span class="st">f"Invoice for </span>{order.customer.name}<span class="st">"</span>]
+        <span class="kw">for</span> item <span class="kw">in</span> order.items:
+            lines.append(<span class="st">f"  </span>{item.title}<span class="st"> x</span>{item.qty}<span class="st"> = </span>{item.price <span class="op">*</span> item.qty}<span class="st">"</span>)
+        lines.append(<span class="st">f"Total: </span>{order.total()}<span class="st">"</span>)
+        <span class="kw">return</span> <span class="st">"\n"</span>.join(lines)
+
+
+<span class="kw">class</span> <span class="fn">OrderRepository</span>:
+    <span class="cm">"""Handles persistence of orders."""</span>
+    <span class="kw">def</span> <span class="fn">save</span>(<span class="kw">self</span>, order, path):
+        formatter <span class="op">=</span> <span class="fn">InvoiceFormatter</span>()
+        <span class="kw">with</span> <span class="fn">open</span>(path, <span class="st">"w"</span>) <span class="kw">as</span> f:
+            f.write(formatter.format(order))</pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-title">&#x2705; How to Spot SRP Violations</div>
+        <p>Ask yourself: <em>&ldquo;If I describe what this class does, do I need the word &lsquo;and&rsquo;?&rdquo;</em> If you say &ldquo;Order calculates totals <strong>and</strong> formats invoices <strong>and</strong> saves to disk,&rdquo; you have at least two responsibilities too many.</p>
+      </div>
+
+      <p>Notice that SRP does not mean &ldquo;a class should have only one method.&rdquo; A class may have many methods as long as they all serve the same cohesive responsibility. The <code>Order</code> class above could have <code>add_item</code>, <code>remove_item</code>, <code>total</code>, and <code>apply_discount</code> &mdash; all are part of the single responsibility of managing order contents.</p>
+    </section>
+
+    <!-- Section 3 -->
+    <section class="section" id="s3">
+      <div class="section-header"><div class="num-badge">3</div><h2>Open / Closed Principle</h2></div>
+
+      <p>The Open/Closed Principle (OCP) states: <strong>software entities should be open for extension but closed for modification</strong>. In practice, this means you should be able to add new behaviour without editing existing, tested code.</p>
+
+      <p>You already used this idea in Module 4 (Polymorphism) and Module 7 (Design Patterns). OCP is the principle that explains <em>why</em> those techniques work so well.</p>
+
+      <h3>The Problem: Hardcoded Discounts</h3>
+
+      <p>Imagine our bookshop needs discount strategies. A naive approach uses conditionals:</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="cm"># BAD: adding a new discount means modifying this function</span>
+<span class="kw">def</span> <span class="fn">apply_discount</span>(order, discount_type):
+    <span class="kw">if</span> discount_type <span class="op">==</span> <span class="st">"percentage"</span>:
+        <span class="kw">return</span> order.total() <span class="op">*</span> <span class="nb">0.9</span>
+    <span class="kw">elif</span> discount_type <span class="op">==</span> <span class="st">"fixed"</span>:
+        <span class="kw">return</span> order.total() <span class="op">-</span> <span class="nb">5.00</span>
+    <span class="kw">elif</span> discount_type <span class="op">==</span> <span class="st">"buy2get1"</span>:
+        <span class="cm"># complex logic...</span>
+        <span class="kw">pass</span>
+    <span class="cm"># Every new discount type requires editing this function!</span></pre>
+      </div>
+
+      <p>Every time the business invents a new promotion, a developer must open this function, add another branch, and risk breaking the existing ones. This violates OCP.</p>
+
+      <h3>Refactored: Strategy Pattern</h3>
+
+      <p>We define an abstract discount and let each strategy extend it:</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">DiscountStrategy</span>(ABC):
+    <span class="cm">"""Abstract discount &mdash; closed for modification."""</span>
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="kw">self</span>, total):
+        ...
+
+<span class="kw">class</span> <span class="fn">PercentageDiscount</span>(<span class="fn">DiscountStrategy</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, pct):
+        <span class="kw">self</span>.pct <span class="op">=</span> pct
+
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="kw">self</span>, total):
+        <span class="kw">return</span> total <span class="op">*</span> (<span class="nb">1</span> <span class="op">-</span> <span class="kw">self</span>.pct)
+
+<span class="kw">class</span> <span class="fn">FixedDiscount</span>(<span class="fn">DiscountStrategy</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, amount):
+        <span class="kw">self</span>.amount <span class="op">=</span> amount
+
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="kw">self</span>, total):
+        <span class="kw">return</span> <span class="fn">max</span>(<span class="nb">0</span>, total <span class="op">-</span> <span class="kw">self</span>.amount)
+
+<span class="cm"># Usage &mdash; Order doesn't know which strategy is used</span>
+<span class="kw">class</span> <span class="fn">Order</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, items, discount: <span class="fn">DiscountStrategy</span> <span class="op">=</span> <span class="kw">None</span>):
+        <span class="kw">self</span>.items <span class="op">=</span> items
+        <span class="kw">self</span>._discount <span class="op">=</span> discount
+
+    <span class="kw">def</span> <span class="fn">total</span>(<span class="kw">self</span>):
+        raw <span class="op">=</span> <span class="fn">sum</span>(i.price <span class="op">*</span> i.qty <span class="kw">for</span> i <span class="kw">in</span> <span class="kw">self</span>.items)
+        <span class="kw">if</span> <span class="kw">self</span>._discount:
+            <span class="kw">return</span> <span class="kw">self</span>._discount.apply(raw)
+        <span class="kw">return</span> raw</pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-title">&#x2705; Adding New Discounts</div>
+        <p>To add a &ldquo;buy 2 get 1 free&rdquo; discount, you create a new class <code>BulkDiscount(DiscountStrategy)</code> and pass it into <code>Order</code>. You never touch <code>Order</code>, <code>PercentageDiscount</code>, or <code>FixedDiscount</code>. The system is <strong>open</strong> for extension (new subclasses) and <strong>closed</strong> for modification (existing classes stay untouched).</p>
+      </div>
+
+      <p>OCP relies heavily on <strong>abstraction</strong> and <strong>polymorphism</strong> &mdash; the very tools you learned in Modules 4 and 6. The principle simply formalises the motivation behind them.</p>
+    </section>
+
+    <!-- Section 4 -->
+    <section class="section" id="s4">
+      <div class="section-header"><div class="num-badge">4</div><h2>Liskov Substitution Principle</h2></div>
+
+      <p>The Liskov Substitution Principle (LSP), formulated by Barbara Liskov in 1987, states: <strong>if S is a subtype of T, then objects of type T may be replaced with objects of type S without altering the desirable properties of the program</strong>. In simpler terms, a subclass must be usable anywhere its parent class is expected, without surprises.</p>
+
+      <h3>The Classic Violation: Square and Rectangle</h3>
+
+      <p>A <code>Square</code> <em>is-a</em> <code>Rectangle</code> in geometry, so it seems natural to make it a subclass. But watch what happens:</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">class</span> <span class="fn">Rectangle</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, w, h):
+        <span class="kw">self</span>._w <span class="op">=</span> w
+        <span class="kw">self</span>._h <span class="op">=</span> h
+
+    @property
+    <span class="kw">def</span> <span class="fn">width</span>(<span class="kw">self</span>):  <span class="kw">return</span> <span class="kw">self</span>._w
+
+    @width.setter
+    <span class="kw">def</span> <span class="fn">width</span>(<span class="kw">self</span>, v):  <span class="kw">self</span>._w <span class="op">=</span> v
+
+    @property
+    <span class="kw">def</span> <span class="fn">height</span>(<span class="kw">self</span>):  <span class="kw">return</span> <span class="kw">self</span>._h
+
+    @height.setter
+    <span class="kw">def</span> <span class="fn">height</span>(<span class="kw">self</span>, v):  <span class="kw">self</span>._h <span class="op">=</span> v
+
+    <span class="kw">def</span> <span class="fn">area</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="kw">self</span>._w <span class="op">*</span> <span class="kw">self</span>._h
+
+
+<span class="kw">class</span> <span class="fn">Square</span>(<span class="fn">Rectangle</span>):
+    <span class="cm"># Override setters so width == height always</span>
+    @<span class="fn">Rectangle</span>.width.setter
+    <span class="kw">def</span> <span class="fn">width</span>(<span class="kw">self</span>, v):
+        <span class="kw">self</span>._w <span class="op">=</span> v
+        <span class="kw">self</span>._h <span class="op">=</span> v   <span class="cm"># surprise side effect!</span>
+
+    @<span class="fn">Rectangle</span>.height.setter
+    <span class="kw">def</span> <span class="fn">height</span>(<span class="kw">self</span>, v):
+        <span class="kw">self</span>._w <span class="op">=</span> v   <span class="cm"># surprise side effect!</span>
+        <span class="kw">self</span>._h <span class="op">=</span> v</pre>
+      </div>
+
+      <p>Any code that sets <code>width</code> and <code>height</code> independently on a <code>Rectangle</code> will break when given a <code>Square</code>, because setting one dimension silently changes the other. The subtype is <strong>not substitutable</strong>.</p>
+
+      <div class="callout warning">
+        <div class="callout-title">&#x26A0;&#xFE0F; Common LSP Violations</div>
+        <p><strong>1.</strong> Overriding a method to throw <code>NotImplementedError</code> &mdash; the parent promises the method works; the child breaks that promise.<br>
+        <strong>2.</strong> Strengthening preconditions &mdash; a child that accepts fewer inputs than the parent.<br>
+        <strong>3.</strong> Weakening postconditions &mdash; a child that returns a less specific result than the parent guarantees.<br>
+        <strong>4.</strong> Surprise side effects &mdash; the Square/Rectangle example above.</p>
+      </div>
+
+      <h3>A Bookshop Example</h3>
+
+      <p>In our bookshop, suppose we have a <code>Product</code> base class with a <code>discount_price</code> method that promises to return a value &le; the original price. A <code>PremiumEdition</code> subclass that returns a <em>higher</em> price (because it adds packaging costs inside <code>discount_price</code>) violates LSP:</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">class</span> <span class="fn">Product</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, title, price):
+        <span class="kw">self</span>.title <span class="op">=</span> title
+        <span class="kw">self</span>.price <span class="op">=</span> price
+
+    <span class="kw">def</span> <span class="fn">discount_price</span>(<span class="kw">self</span>, pct):
+        <span class="cm">"""Return price reduced by pct. Always &lt;= self.price."""</span>
+        <span class="kw">return</span> <span class="kw">self</span>.price <span class="op">*</span> (<span class="nb">1</span> <span class="op">-</span> pct)
+
+
+<span class="kw">class</span> <span class="fn">PremiumEdition</span>(<span class="fn">Product</span>):
+    <span class="kw">def</span> <span class="fn">discount_price</span>(<span class="kw">self</span>, pct):
+        <span class="cm"># BAD: breaks the postcondition (&lt;= self.price)</span>
+        <span class="kw">return</span> <span class="kw">self</span>.price <span class="op">*</span> (<span class="nb">1</span> <span class="op">-</span> pct) <span class="op">+</span> <span class="nb">15.00</span>  <span class="cm"># packaging surcharge</span></pre>
+      </div>
+
+      <p>The fix is straightforward: model the surcharge separately (e.g., <code>packaging_fee</code> property) instead of smuggling it into a method whose contract says &ldquo;returns a discounted price.&rdquo;</p>
+    </section>
+
+    <!-- Section 5 -->
+    <section class="section" id="s5">
+      <div class="section-header"><div class="num-badge">5</div><h2>Interface Segregation Principle</h2></div>
+
+      <p>The Interface Segregation Principle (ISP) states: <strong>clients should not be forced to depend on interfaces they do not use</strong>. A &ldquo;fat&rdquo; interface that bundles many unrelated methods forces implementors to provide stubs for things they don&rsquo;t care about.</p>
+
+      <h3>A Fat Interface</h3>
+
+      <p>Suppose we design a single <code>BookService</code> interface that every part of the system must use:</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">BookService</span>(ABC):
+    <span class="cm">"""Fat interface &mdash; every implementor must provide ALL of these."""</span>
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">search</span>(<span class="kw">self</span>, query): ...
+
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">add_to_cart</span>(<span class="kw">self</span>, book, cart): ...
+
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">process_payment</span>(<span class="kw">self</span>, order): ...
+
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">generate_report</span>(<span class="kw">self</span>): ...
+
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">send_email</span>(<span class="kw">self</span>, to, subject, body): ...</pre>
+      </div>
+
+      <p>A search module only needs <code>search</code>, but it is forced to depend on (and potentially stub out) <code>process_payment</code>, <code>generate_report</code>, and <code>send_email</code>. This coupling is unnecessary and makes the codebase harder to evolve.</p>
+
+      <h3>Refactored: Thin, Focused Interfaces</h3>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Searchable</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">search</span>(<span class="kw">self</span>, query): ...
+
+<span class="kw">class</span> <span class="fn">CartManager</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">add_to_cart</span>(<span class="kw">self</span>, book, cart): ...
+
+<span class="kw">class</span> <span class="fn">PaymentProcessor</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">process_payment</span>(<span class="kw">self</span>, order): ...
+
+<span class="kw">class</span> <span class="fn">ReportGenerator</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">generate_report</span>(<span class="kw">self</span>): ...
+
+<span class="kw">class</span> <span class="fn">Notifier</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="kw">self</span>, to, subject, body): ...</pre>
+      </div>
+
+      <p>Now each part of the system depends only on the interface it actually needs. The search module depends on <code>Searchable</code>; the checkout flow depends on <code>PaymentProcessor</code>. A concrete class can implement multiple interfaces if it genuinely provides all those capabilities:</p>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">class</span> <span class="fn">BookstoreService</span>(<span class="fn">Searchable</span>, <span class="fn">CartManager</span>):
+    <span class="cm">"""Implements only the interfaces it genuinely supports."""</span>
+    <span class="kw">def</span> <span class="fn">search</span>(<span class="kw">self</span>, query):
+        <span class="cm"># full-text search over book catalogue</span>
+        <span class="kw">return</span> [b <span class="kw">for</span> b <span class="kw">in</span> <span class="kw">self</span>._books <span class="kw">if</span> query.lower() <span class="kw">in</span> b.title.lower()]
+
+    <span class="kw">def</span> <span class="fn">add_to_cart</span>(<span class="kw">self</span>, book, cart):
+        cart.add(book)</pre>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-title">&#x1F4A1; Python and ISP</div>
+        <p>Python uses <strong>abstract base classes</strong> (<code>abc.ABC</code>) rather than language-level interfaces. The principle still applies: keep your ABCs small and focused. Python&rsquo;s multiple inheritance makes it easy to combine several thin ABCs into one concrete class.</p>
+      </div>
+    </section>
+
+    <!-- Section 6 -->
+    <section class="section" id="s6">
+      <div class="section-header"><div class="num-badge">6</div><h2>Dependency Inversion Principle</h2></div>
+
+      <p>The Dependency Inversion Principle (DIP) states: <strong>high-level modules should not depend on low-level modules; both should depend on abstractions</strong>. Additionally, <strong>abstractions should not depend on details; details should depend on abstractions</strong>.</p>
+
+      <p>Without DIP, high-level business logic becomes tightly coupled to infrastructure details (databases, APIs, email providers). Change the infrastructure and you must rewrite the business logic.</p>
+
+      <h3>The Problem: Direct Dependency</h3>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="cm"># BAD: high-level OrderProcessor depends directly on low-level StripeGateway</span>
+<span class="kw">class</span> <span class="fn">StripeGateway</span>:
+    <span class="kw">def</span> <span class="fn">charge</span>(<span class="kw">self</span>, amount, token):
+        <span class="cm"># calls Stripe API</span>
+        <span class="fn">print</span>(<span class="st">f"Charging </span>{amount}<span class="st"> via Stripe"</span>)
+        <span class="kw">return</span> <span class="kw">True</span>
+
+<span class="kw">class</span> <span class="fn">OrderProcessor</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>):
+        <span class="kw">self</span>.gateway <span class="op">=</span> <span class="fn">StripeGateway</span>()  <span class="cm"># hardcoded dependency!</span>
+
+    <span class="kw">def</span> <span class="fn">checkout</span>(<span class="kw">self</span>, order, token):
+        <span class="kw">if</span> <span class="kw">self</span>.gateway.charge(order.total(), token):
+            order.status <span class="op">=</span> <span class="st">"paid"</span></pre>
+      </div>
+
+      <p>Switching to PayPal means rewriting <code>OrderProcessor</code>. Testing requires a live Stripe connection (or complex mocking).</p>
+
+      <h3>Refactored: Depend on Abstractions</h3>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">PaymentGateway</span>(ABC):
+    <span class="cm">"""Abstraction that both high-level and low-level code depend on."""</span>
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">charge</span>(<span class="kw">self</span>, amount, token) <span class="op">-></span> <span class="kw">bool</span>: ...
+
+<span class="kw">class</span> <span class="fn">StripeGateway</span>(<span class="fn">PaymentGateway</span>):
+    <span class="kw">def</span> <span class="fn">charge</span>(<span class="kw">self</span>, amount, token):
+        <span class="fn">print</span>(<span class="st">f"Charging </span>{amount}<span class="st"> via Stripe"</span>)
+        <span class="kw">return</span> <span class="kw">True</span>
+
+<span class="kw">class</span> <span class="fn">PayPalGateway</span>(<span class="fn">PaymentGateway</span>):
+    <span class="kw">def</span> <span class="fn">charge</span>(<span class="kw">self</span>, amount, token):
+        <span class="fn">print</span>(<span class="st">f"Charging </span>{amount}<span class="st"> via PayPal"</span>)
+        <span class="kw">return</span> <span class="kw">True</span>
+
+<span class="kw">class</span> <span class="fn">OrderProcessor</span>:
+    <span class="cm">"""High-level module depends on the PaymentGateway abstraction."""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, gateway: <span class="fn">PaymentGateway</span>):
+        <span class="kw">self</span>._gateway <span class="op">=</span> gateway  <span class="cm"># injected, not created</span>
+
+    <span class="kw">def</span> <span class="fn">checkout</span>(<span class="kw">self</span>, order, token):
+        <span class="kw">if</span> <span class="kw">self</span>._gateway.charge(order.total(), token):
+            order.status <span class="op">=</span> <span class="st">"paid"</span>
+
+<span class="cm"># Usage &mdash; the caller decides which gateway to inject</span>
+processor <span class="op">=</span> <span class="fn">OrderProcessor</span>(<span class="fn">StripeGateway</span>())
+processor.checkout(my_order, <span class="st">"tok_abc123"</span>)</pre>
+      </div>
+
+      <p>This is <strong>constructor injection</strong> &mdash; the dependency is passed in at construction time rather than created internally. The bridge below shows how the dependency arrows are inverted:</p>
+
+      <div class="bridge">
+        <div class="bridge-header">
+          <div class="col-label">Without DIP</div>
+          <div></div>
+          <div class="col-label">With DIP</div>
+        </div>
+        <div class="bridge-row hi">
+          <div class="b-left">OrderProcessor</div>
+          <div class="b-arrow">&rarr;</div>
+          <div class="b-right">OrderProcessor</div>
+        </div>
+        <div class="bridge-row">
+          <div class="b-left">&darr; depends on</div>
+          <div class="b-arrow"></div>
+          <div class="b-right">&darr; depends on</div>
+        </div>
+        <div class="bridge-row hi">
+          <div class="b-left">StripeGateway</div>
+          <div class="b-arrow">&rarr;</div>
+          <div class="b-right">PaymentGateway (ABC)</div>
+        </div>
+        <div class="bridge-row">
+          <div class="b-left"></div>
+          <div class="b-arrow"></div>
+          <div class="b-right">&uarr; implements</div>
+        </div>
+        <div class="bridge-row hi">
+          <div class="b-left"></div>
+          <div class="b-arrow"></div>
+          <div class="b-right">StripeGateway</div>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-title">&#x1F4A1; Testing Benefits</div>
+        <p>With DIP you can inject a <code>FakeGateway</code> during tests &mdash; no network calls, no credentials, instant feedback. This is one of the most practical benefits of dependency inversion.</p>
+      </div>
+    </section>
+
+    <!-- Section 7 -->
+    <section class="section" id="s7">
+      <div class="section-header"><div class="num-badge">7</div><h2>SOLID in Practice</h2></div>
+
+      <p>Individual SOLID principles are useful on their own, but their real power emerges when they work <strong>together</strong>. Let us walk through a realistic bookshop checkout flow that applies all five principles.</p>
+
+      <h3>A Checkout System</h3>
+
+      <div class="code-wrap">
+        <div class="code-header"><div class="dots"><span></span><span></span><span></span></div><span class="lang">Python</span></div>
+        <pre><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="cm"># ISP: small, focused interfaces</span>
+<span class="kw">class</span> <span class="fn">PaymentGateway</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">charge</span>(<span class="kw">self</span>, amount, token) <span class="op">-></span> <span class="kw">bool</span>: ...
+
+<span class="kw">class</span> <span class="fn">Notifier</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="kw">self</span>, to, message): ...
+
+<span class="cm"># OCP: new discount strategies without modifying existing code</span>
+<span class="kw">class</span> <span class="fn">DiscountStrategy</span>(ABC):
+    @abstractmethod
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="kw">self</span>, total): ...
+
+<span class="kw">class</span> <span class="fn">NoDiscount</span>(<span class="fn">DiscountStrategy</span>):
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="kw">self</span>, total):
+        <span class="kw">return</span> total
+
+<span class="kw">class</span> <span class="fn">MemberDiscount</span>(<span class="fn">DiscountStrategy</span>):
+    <span class="kw">def</span> <span class="fn">apply</span>(<span class="kw">self</span>, total):
+        <span class="kw">return</span> total <span class="op">*</span> <span class="nb">0.85</span>  <span class="cm"># 15% off for members</span>
+
+<span class="cm"># SRP: Order only manages items and totals</span>
+<span class="kw">class</span> <span class="fn">Order</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, customer, items, discount: <span class="fn">DiscountStrategy</span>):
+        <span class="kw">self</span>.customer <span class="op">=</span> customer
+        <span class="kw">self</span>.items <span class="op">=</span> items
+        <span class="kw">self</span>._discount <span class="op">=</span> discount
+        <span class="kw">self</span>.status <span class="op">=</span> <span class="st">"pending"</span>
+
+    <span class="kw">def</span> <span class="fn">total</span>(<span class="kw">self</span>):
+        raw <span class="op">=</span> <span class="fn">sum</span>(i.price <span class="op">*</span> i.qty <span class="kw">for</span> i <span class="kw">in</span> <span class="kw">self</span>.items)
+        <span class="kw">return</span> <span class="kw">self</span>._discount.apply(raw)
+
+<span class="cm"># DIP: CheckoutService depends on abstractions, not concretes</span>
+<span class="kw">class</span> <span class="fn">CheckoutService</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="kw">self</span>, gateway: <span class="fn">PaymentGateway</span>, notifier: <span class="fn">Notifier</span>):
+        <span class="kw">self</span>._gateway <span class="op">=</span> gateway
+        <span class="kw">self</span>._notifier <span class="op">=</span> notifier
+
+    <span class="kw">def</span> <span class="fn">process</span>(<span class="kw">self</span>, order, token):
+        <span class="kw">if</span> <span class="kw">self</span>._gateway.charge(order.total(), token):
+            order.status <span class="op">=</span> <span class="st">"paid"</span>
+            <span class="kw">self</span>._notifier.send(
+                order.customer.email,
+                <span class="st">f"Order confirmed! Total: </span>{order.total()}<span class="st">"</span>
+            )</pre>
+      </div>
+
+      <p>In the design above: <code>Order</code> has a single responsibility (SRP); discounts are extensible without modification (OCP); every subclass honours its base-class contract (LSP); interfaces are small and focused (ISP); and high-level <code>CheckoutService</code> depends on abstractions (DIP).</p>
+
+      <div class="callout info">
+        <div class="callout-title">&#x1F4A1; Don&rsquo;t Over-Engineer</div>
+        <p>SOLID principles are guidelines, not laws. Applying every principle to every class in a small script would create unnecessary complexity. Use SOLID when your codebase is growing, when classes are hard to test in isolation, or when a change in one area keeps breaking another. <strong>Pragmatism beats purity.</strong></p>
+      </div>
+
+      <h3>What Each Principle Prevents</h3>
+
+      <div class="table-wrap">
+      <table>
+      <thead><tr><th>Principle</th><th>Prevents</th><th>Symptom of Violation</th></tr></thead>
+      <tbody>
+        <tr><td>SRP</td><td>Tangled responsibilities</td><td>Changing one feature breaks an unrelated feature</td></tr>
+        <tr><td>OCP</td><td>Fragile conditionals</td><td>Every new variant requires editing existing code</td></tr>
+        <tr><td>LSP</td><td>Broken substitutability</td><td>Subclass behaves unexpectedly when used as parent type</td></tr>
+        <tr><td>ISP</td><td>Forced dependencies</td><td>Implementors must stub methods they do not need</td></tr>
+        <tr><td>DIP</td><td>Tight coupling to details</td><td>Cannot test or swap infrastructure without rewriting logic</td></tr>
+      </tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- Section 8 -->
+    <section class="section" id="s8">
+      <div class="section-header"><div class="num-badge">8</div><h2>Summary</h2></div>
+
+      <p>The SOLID principles give you a vocabulary for evaluating and improving object-oriented designs. Here is what you should take away from this module:</p>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="sk">Single Responsibility</div>
+          <p>Each class should have one reason to change. Separate domain logic from formatting, persistence, and notification.</p>
+        </div>
+        <div class="summary-card">
+          <div class="sk">Open / Closed</div>
+          <p>Design for extension through abstraction and polymorphism. New behaviour should not require modifying existing, tested code.</p>
+        </div>
+        <div class="summary-card">
+          <div class="sk">Liskov Substitution</div>
+          <p>Subclasses must honour the contracts of their parents. If substitution causes surprises, the hierarchy is wrong.</p>
+        </div>
+        <div class="summary-card">
+          <div class="sk">Interface Segregation</div>
+          <p>Keep interfaces small and focused. Clients should depend only on the methods they actually call.</p>
+        </div>
+        <div class="summary-card">
+          <div class="sk">Dependency Inversion</div>
+          <p>High-level policy should not depend on low-level detail. Inject abstractions to achieve loose coupling and easy testing.</p>
+        </div>
+        <div class="summary-card">
+          <div class="sk">Pragmatism</div>
+          <p>Apply SOLID where it reduces pain. Over-engineering a small script with five layers of abstraction defeats the purpose.</p>
+        </div>
+      </div>
+
+      <div class="next-banner">
+        <div class="icon">&#x1F4DA;</div>
+        <div class="text"><div class="label">Series Complete &mdash; What next?</div><p>Explore advanced patterns, domain-driven design, clean architecture, and test-driven development to take your OOD skills further.</p></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const bar = document.getElementById('progress-bar');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  bar.style.width = Math.min((window.scrollY / (h.scrollHeight - h.clientHeight)) * 100, 100) + '%';
+});
+const sections = document.querySelectorAll('section.section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+
+document.addEventListener('click', e => {
+  const dd = document.getElementById('moduleDropdown');
+  if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+});
+</script>
+</body>
+</html>
