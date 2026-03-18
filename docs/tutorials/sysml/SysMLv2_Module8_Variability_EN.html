@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysML v2 Module 8: Variability &amp; Configuration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:220px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:#fff}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;background:none}pre.lined table{border-collapse:collapse;width:100%;min-width:max-content}pre.lined td{padding:0;border:none;background:none;font-family:var(--font-mono);font-size:.88rem;line-height:1.7;color:var(--code-text)}pre.lined td.ln{width:2.8em;min-width:2.8em;text-align:right;padding-right:.75em;color:#94A3B8;user-select:none;border-right:1px solid #E2E8F0}pre.lined td.lc{padding-left:.9em;white-space:pre}pre.lined tr:hover td{background:rgba(14,165,233,.06)}
+</style></head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">SysML v2 Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">Module 8</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 8 of 9</button>
+    <div class="dropdown-menu">
+      <a href="SysMLv2_Module1_Foundations_EN.html">1 &mdash; Foundations</a>
+      <a href="SysMLv2_Module2_CoreLanguage_EN.html">2 &mdash; Core Language Concepts</a>
+      <a href="SysMLv2_Module3_StructureModelling_EN.html">3 &mdash; Structure Modelling</a>
+      <a href="SysMLv2_Module4_BehaviourModelling_EN.html">4 &mdash; Behaviour Modelling</a>
+      <a href="SysMLv2_Module5_Requirements_EN.html">5 &mdash; Requirements &amp; Verification</a>
+      <a href="SysMLv2_Module6_AnalysisCases_EN.html">6 &mdash; Analysis Cases</a>
+      <a href="SysMLv2_Module7_MetadataProfiles_EN.html">7 &mdash; Metadata &amp; Profiles</a>
+      <a href="SysMLv2_Module8_Variability_EN.html" class="active">8 &mdash; Variability &amp; Configuration</a>
+      <a href="SysMLv2_Module9_Advanced_EN.html">9 &mdash; Advanced Topics</a>
+    </div>
+  </div>
+  <a href="SysMLv2_Module8_Variability_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">&#20013;&#25991;</a>
+</header>
+<div id="layout">
+  <aside id="sidebar"><div class="sidebar-label">Contents</div><nav><a href="#s0"><span class="num">&#9733;</span>KerML &#8594; SysML Bridge</a><a href="#s1"><span class="num">1</span>Variation Points</a><a href="#s2"><span class="num">2</span>Variant Definitions</a><a href="#s3"><span class="num">3</span>Configuration Management</a><a href="#s4"><span class="num">4</span>Filtering &amp; Selection</a><a href="#s5"><span class="num">5</span>Product Lines</a><a href="#s6"><span class="num">6</span>Complete Worked Example</a><a href="#s7"><span class="num">7</span>Module Summary</a></nav></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">SysML v2 &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 8: <em>Variability &amp; Configuration</em></h1>
+      <p class="module-lead">How to define variation points, declare alternative variants, and configure product lines &#8212; enabling a single model to capture an entire family of system configurations.</p>
+    </div>
+
+<!-- ═══════════════════ Section 0 ═══════════════════ -->
+<span class="section-anchor" id="s0"></span><div class="section-header"><span class="section-num">&#9733;</span><h2>KerML &#8594; SysML: Variability Concepts</h2></div>
+<p>SysML v2 variability is built on KerML&#8217;s <strong>usage variation</strong> and <strong>variant membership</strong> mechanisms. A <code>variation</code> usage declares a point of variability &#8212; a feature that must be bound to exactly one of its allowed alternatives. Each <code>variant</code> within that variation is a distinct membership option. At the KerML level, these are modelled through feature membership and subsetting relationships on usages.</p>
+
+<table><thead><tr><th>SysML v2 concept (L2)</th><th>Underlying KerML construct (L1)</th><th>What SysML adds</th></tr></thead><tbody>
+<tr><td><code>variation</code> (on a usage)</td><td>Usage with <code>isVariation = true</code></td><td>Marks a feature as a variation point; must be resolved to exactly one variant in any complete configuration</td></tr>
+<tr><td><code>variant</code></td><td><code>VariantMembership</code> (a kind of <code>OwningMembership</code>)</td><td>Declares a named alternative within a variation point; each variant subsets the variation usage</td></tr>
+<tr><td><code>variation part def</code></td><td><code>PartDefinition</code> with <code>isVariation = true</code></td><td>A definition whose usages are inherently variation points &#8212; every usage must be resolved</td></tr>
+<tr><td><code>variant part def</code></td><td><code>PartDefinition</code> owned via <code>VariantMembership</code></td><td>A definition that serves as one option within a variation definition</td></tr>
+<tr><td>Configuration binding</td><td><code>BindingConnector</code> resolving a variation to a specific variant</td><td>Fixes the choice; produces a fully resolved product instance</td></tr>
+<tr><td><code>filter</code> expression</td><td><code>FilterExpression</code> (a Boolean expression on metadata)</td><td>Selects elements from a package or namespace based on metadata criteria</td></tr>
+<tr><td>Product line package</td><td><code>Package</code> with mixed variation/non-variation content</td><td>Organises shared platform elements alongside variation points for a product family</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 0 &#8212; Module 8 SysML v2 (L2) concepts mapped to KerML (L1) origins</caption></table>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>In KerML, <code>isVariation</code> is a Boolean property on any Usage. When set to <code>true</code>, the usage becomes a variation point. Its owned members with <code>VariantMembership</code> are the allowed choices. SysML v2 provides the <code>variation</code> and <code>variant</code> keywords as syntactic sugar for this mechanism.</p></div>
+
+<!-- ═══════════════════ Section 1 ═══════════════════ -->
+<span class="section-anchor" id="s1"></span><div class="section-header"><span class="section-num">1</span><h2>Variation Points</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>variation</code> &#8594; Usage with <code>isVariation = true</code></p>
+<p>A <strong>variation point</strong> is a feature in a model that represents a choice &#8212; a place where different configurations may differ. In SysML v2, you declare a variation point by prefixing a usage with the <code>variation</code> keyword. The variation usage itself is not a concrete element; it is a placeholder that must be resolved to one of its variants in any complete configuration.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of a restaurant menu. The &ldquo;Main Course&rdquo; slot on the menu is a variation point &#8212; every diner must choose exactly one option. The individual dishes (steak, fish, pasta) are variants. The menu defines the structure; each diner&#8217;s order is a configuration.</p></div>
+
+<h3>Variation on part usages</h3>
+<p>The most common form of variation applies to part usages within a part definition. The <code>variation</code> keyword declares that the feature is a point of variability, and <code>variant</code> members declare the allowed alternatives:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">part def Vehicle {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    part engine : Engine;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    // Variation point: transmission type</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    variation part transmission : Transmission {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        variant part manual    : ManualTransmission;</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        variant part automatic : AutomaticTransmission;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        variant part cvt       : CVTTransmission;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
+</table></code></pre>
+<p>In this model, every instance of <code>Vehicle</code> must have exactly one transmission &#8212; either manual, automatic, or CVT. The variation point is not optional; it mandates a choice.</p>
+
+<h3>Variation on attribute usages</h3>
+<p>Variation points are not limited to parts. You can apply them to attributes, ports, or any other usage kind:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">part def Display {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    // Variation point: screen resolution</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    variation attribute resolution : ScreenResolution {</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">        variant attribute hd   : HD;    // 1280x720</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        variant attribute fhd  : FHD;   // 1920x1080</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        variant attribute uhd  : UHD;   // 3840x2160</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>A variation point must contain at least one <code>variant</code> member. Declaring a <code>variation</code> usage with no variants is a semantic error &#8212; there is no choice to make. Tooling should flag this as incomplete.</p></div>
+
+<!-- ═══════════════════ Section 2 ═══════════════════ -->
+<span class="section-anchor" id="s2"></span><div class="section-header"><span class="section-num">2</span><h2>Variant Definitions</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>variant</code> &#8594; <code>VariantMembership</code> (a kind of <code>OwningMembership</code>)</p>
+<p>A <strong>variant</strong> is a concrete alternative within a variation point. Each variant is a fully specified element &#8212; it carries its own features, constraints, and sub-structure. When a configuration selects a variant, that variant&#8217;s full definition replaces the variation point in the resolved model.</p>
+
+<h3>Inline variant definitions</h3>
+<p>Variants can be defined inline within the variation point, carrying their own unique features:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">part def Powertrain {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    variation part motorType : Motor {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">        variant part ice : ICEMotor {</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">            attribute displacement : ISQ::VolumeValue;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">            attribute cylinders    : ScalarValues::Integer;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        variant part electric : ElectricMotor {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">            attribute peakPower   : ISQ::PowerValue;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">            attribute batteryCapacity : ISQ::EnergyValue;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">        variant part hybrid : HybridMotor {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">            attribute displacement : ISQ::VolumeValue;</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">            attribute peakPower   : ISQ::PowerValue;</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>Referencing external variant definitions</h3>
+<p>Variants can also reference separately defined part definitions. This is useful when the same variant appears in multiple variation points across the model:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">part def ManualTransmission specializes Transmission {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    attribute gearCount : ScalarValues::Integer;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">part def AutomaticTransmission specializes Transmission {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    attribute modes : DriveMode[1..*];</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">part def Vehicle {</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    // Variants reference externally defined part defs</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    variation part transmission : Transmission {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">        variant part manual    : ManualTransmission;</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        variant part automatic : AutomaticTransmission;</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>Variation definitions</h3>
+<p>You can also mark an entire definition as a variation using <code>variation part def</code>. This means the definition itself is abstract &#8212; it cannot be instantiated directly but must be resolved to one of its variant members:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">variation part def DriveMode {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    variant part def eco   : EcoMode;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    variant part def sport : SportMode;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    variant part def normal: NormalMode;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>The distinction between <code>variation</code> on a usage and <code>variation</code> on a definition is important. A variation <em>usage</em> is a specific feature that must be resolved in context. A variation <em>definition</em> declares that the type itself is a variation &#8212; every usage of that definition inherits the variation point semantics.</p></div>
+
+<!-- ═══════════════════ Section 3 ═══════════════════ -->
+<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>Configuration Management</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: Configuration binding &#8594; <code>BindingConnector</code> resolving a variation to a specific variant</p>
+<p>A <strong>configuration</strong> is a concrete resolution of all variation points in a model. It selects exactly one variant for each variation point, producing a fully specified product instance. In SysML v2, configurations are modelled by specialising the product definition and binding each variation usage to its chosen variant.</p>
+
+<h3>Creating a configuration by specialisation</h3>
+<p>The standard pattern is to create a new part definition or usage that specialises the variable product and binds each variation point:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">// Base product with variation points</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">part def Vehicle {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    part engine : Engine;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    variation part transmission : Transmission {</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        variant part manual    : ManualTransmission;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        variant part automatic : AutomaticTransmission;</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    variation part infotainment : Infotainment {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">        variant part basic   : BasicInfotainment;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">        variant part premium : PremiumInfotainment;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">// Configuration: Sport Edition</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">part def SportEdition specializes Vehicle {</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    // Resolve transmission to manual</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    part transmission redefines Vehicle::transmission = manual;</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">    // Resolve infotainment to premium</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    part infotainment redefines Vehicle::infotainment = premium;</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">// Configuration: Economy Edition</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">part def EconomyEdition specializes Vehicle {</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">    part transmission redefines Vehicle::transmission = automatic;</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">    part infotainment redefines Vehicle::infotainment = basic;</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>Partial configurations</h3>
+<p>Not every configuration must resolve all variation points. A <strong>partial configuration</strong> resolves some variation points while leaving others open. This is useful for modelling product tiers or regional variants where some choices are fixed but others remain flexible:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">// Partial configuration: European variant (fixes transmission, leaves infotainment open)</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">part def EuropeanVehicle specializes Vehicle {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    part transmission redefines Vehicle::transmission = manual;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    // infotainment variation point remains unresolved</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">// Full configuration: European Sport (resolves remaining variation)</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">part def EuropeanSport specializes EuropeanVehicle {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    part infotainment redefines Vehicle::infotainment = premium;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Use partial configurations to build a layered configuration hierarchy. Start with a base product, create regional or tier-level partial configurations, and then create fully resolved configurations at the leaf level. This mirrors how automotive OEMs manage product lines in practice.</p></div>
+
+<!-- ═══════════════════ Section 4 ═══════════════════ -->
+<span class="section-anchor" id="s4"></span><div class="section-header"><span class="section-num">4</span><h2>Filtering &amp; Selection</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>filter</code> &#8594; <code>FilterExpression</code> (Boolean expression on metadata)</p>
+<p><strong>Filter expressions</strong> provide a query mechanism for selecting elements from a namespace based on metadata criteria. Unlike direct variant binding, filters work across packages and can select multiple elements simultaneously. They are especially powerful when combined with metadata annotations from Module 7.</p>
+
+<h3>Basic filter syntax</h3>
+<p>A <code>filter</code> expression is a Boolean predicate applied to elements in a package. Only elements satisfying the predicate are included in the filtered view:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">// Metadata for tagging elements</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">metadata def Region {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    attribute name : ScalarValues::String;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">metadata def Tier {</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    attribute level : ScalarValues::String;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">package AllFeatures {</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    part heatedSeats : HeatedSeats {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">        @Region { name = "EU"; }</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        @Tier { level = "premium"; }</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    part airCon : AirConditioning {</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">        @Region { name = "ALL"; }</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">        @Tier { level = "basic"; }</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    part sunroof : PanoramicSunroof {</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">        @Region { name = "US"; }</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">        @Tier { level = "premium"; }</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>Applying filter expressions</h3>
+<p>Filter expressions select elements from a package based on their metadata. The filtered package acts as a view &#8212; it does not duplicate elements but provides a scoped subset:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">// Select only premium-tier features</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">package PremiumFeatures filter Region::name == "ALL" or Tier::level == "premium";</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">// Select only EU-region features</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">package EUFeatures filter Region::name == "EU" or Region::name == "ALL";</td></tr>
+</table></code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Filter expressions operate on metadata annotations. They do not modify the underlying model &#8212; they produce a <em>view</em> of the model that includes only matching elements. This is conceptually similar to a database query: the data is unchanged, but the result set is narrowed.</p></div>
+
+<h3>Combining filters with variations</h3>
+<p>Filters and variation points are complementary mechanisms. Variation points define <em>mandatory choices</em> (you must pick one). Filters define <em>optional inclusion</em> (include if criteria are met). A well-designed product line uses both:</p>
+<ul>
+  <li><strong>Variation points</strong> for structural alternatives (engine type, body style)</li>
+  <li><strong>Filters</strong> for feature packages (comfort options, regional compliance features)</li>
+</ul>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>Do not use filters as a substitute for variation points. A filter selects from an existing set; a variation point declares a mandatory choice. If every product <em>must</em> have exactly one of several alternatives, use <code>variation</code>/<code>variant</code>. If a feature is conditionally included based on metadata, use <code>filter</code>.</p></div>
+
+<!-- ═══════════════════ Section 5 ═══════════════════ -->
+<span class="section-anchor" id="s5"></span><div class="section-header"><span class="section-num">5</span><h2>Product Line Modelling</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: Product line &#8594; Package with mixed variation/non-variation content</p>
+<p>A <strong>product line</strong> is a family of products that share a common platform but differ in specific features. SysML v2 supports product line modelling through a combination of shared definitions (the platform), variation points (the configurable aspects), and configurations (the resolved products).</p>
+
+<h3>Platform + variant strategy</h3>
+<p>The recommended pattern separates the model into three layers:</p>
+<ol>
+  <li><strong>Platform package</strong> &#8212; shared definitions, invariant structure, common constraints</li>
+  <li><strong>Variability package</strong> &#8212; variation points and variant definitions</li>
+  <li><strong>Configuration package</strong> &#8212; fully resolved products that bind all variation points</li>
+</ol>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">package Platform {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    // Shared across all products</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    part def Chassis { attribute wheelbase : ISQ::LengthValue; }</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    part def BrakeSystem { part frontBrakes : DiscBrake; part rearBrakes : DiscBrake; }</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    part def SteeringSystem { attribute ratio : ScalarValues::Real; }</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">package Variability {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    private import Platform::*;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    part def ProductVehicle {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">        part chassis  : Chassis;       // from platform (invariant)</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        part brakes   : BrakeSystem;   // from platform (invariant)</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">        part steering : SteeringSystem; // from platform (invariant)</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">        // Variable aspects</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">        variation part body : BodyStyle {</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">            variant part sedan : SedanBody;</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">            variant part suv   : SUVBody;</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">            variant part truck : TruckBody;</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">        variation part powertrain : Powertrain {</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">            variant part petrol   : PetrolPowertrain;</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">            variant part diesel   : DieselPowertrain;</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">            variant part electric : ElectricPowertrain;</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">27</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">28</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">29</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">30</td><td class="lc">package Configurations {</td></tr>
+<tr><td class="ln" select="none">31</td><td class="lc">    private import Variability::*;</td></tr>
+<tr><td class="ln" select="none">32</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">33</td><td class="lc">    part def SedanPetrol specializes ProductVehicle {</td></tr>
+<tr><td class="ln" select="none">34</td><td class="lc">        part body redefines ProductVehicle::body = sedan;</td></tr>
+<tr><td class="ln" select="none">35</td><td class="lc">        part powertrain redefines ProductVehicle::powertrain = petrol;</td></tr>
+<tr><td class="ln" select="none">36</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">37</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">38</td><td class="lc">    part def SUVElectric specializes ProductVehicle {</td></tr>
+<tr><td class="ln" select="none">39</td><td class="lc">        part body redefines ProductVehicle::body = suv;</td></tr>
+<tr><td class="ln" select="none">40</td><td class="lc">        part powertrain redefines ProductVehicle::powertrain = electric;</td></tr>
+<tr><td class="ln" select="none">41</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">42</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>Constraint propagation across variants</h3>
+<p>Constraints defined on the platform or base product apply to all configurations. Variant-specific constraints can be added at the variant level:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">part def ProductVehicle {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    // Platform constraint: applies to ALL configurations</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    assert constraint maxWeight {</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">        chassis.totalMass &lt;= 2500[kg]</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    variation part body : BodyStyle {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        variant part truck : TruckBody {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">            // Variant-specific constraint: only applies when truck is selected</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">            assert constraint towingCapacity {</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">                payloadCapacity &gt;= 1000[kg]</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">            }</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>The three-layer pattern (platform, variability, configuration) scales well. The platform package can be maintained by a platform engineering team, the variability package by product management, and the configuration package by specific product teams. Each layer imports from the one below.</p></div>
+
+<!-- ═══════════════════ Section 6 ═══════════════════ -->
+<span class="section-anchor" id="s6"></span><div class="section-header"><span class="section-num">6</span><h2>Complete Worked Example</h2></div>
+<p>The following model integrates all concepts from this module: a vehicle product line with sedan, SUV, and truck variants sharing a common platform, each with powertrain and feature-level variability, metadata-driven filtering, and fully resolved configurations.</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">package VehicleProductLine {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    private import ISQ::*;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    private import SI::*;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    private import ScalarValues::*;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    // ── Metadata for filtering ──────────────────────────────</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    metadata def MarketRegion {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        attribute region : String;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    metadata def FeatureTier {</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">        attribute tier : String;</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    // ── Shared platform ─────────────────────────────────────</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    part def Chassis {</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">        attribute wheelbase : LengthValue;</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">        attribute curbWeight : MassValue;</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    part def BrakeSystem {</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">        part frontBrakes : DiscBrake;</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">        part rearBrakes  : DiscBrake;</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">        part abs : ABSController;</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">    part def SteeringSystem {</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">        attribute steeringRatio : Real;</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">27</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">28</td><td class="lc">    // ── Body style variants ──────────────────────────────────</td></tr>
+<tr><td class="ln" select="none">29</td><td class="lc">    part def BodyStyle;</td></tr>
+<tr><td class="ln" select="none">30</td><td class="lc">    part def SedanBody specializes BodyStyle {</td></tr>
+<tr><td class="ln" select="none">31</td><td class="lc">        attribute doorCount   : Integer = 4;</td></tr>
+<tr><td class="ln" select="none">32</td><td class="lc">        attribute trunkVolume : VolumeValue;</td></tr>
+<tr><td class="ln" select="none">33</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">34</td><td class="lc">    part def SUVBody specializes BodyStyle {</td></tr>
+<tr><td class="ln" select="none">35</td><td class="lc">        attribute doorCount     : Integer = 5;</td></tr>
+<tr><td class="ln" select="none">36</td><td class="lc">        attribute groundClearance : LengthValue;</td></tr>
+<tr><td class="ln" select="none">37</td><td class="lc">        attribute roofRails     : Boolean = true;</td></tr>
+<tr><td class="ln" select="none">38</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">39</td><td class="lc">    part def TruckBody specializes BodyStyle {</td></tr>
+<tr><td class="ln" select="none">40</td><td class="lc">        attribute doorCount      : Integer = 4;</td></tr>
+<tr><td class="ln" select="none">41</td><td class="lc">        attribute bedLength      : LengthValue;</td></tr>
+<tr><td class="ln" select="none">42</td><td class="lc">        attribute payloadCapacity : MassValue;</td></tr>
+<tr><td class="ln" select="none">43</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">44</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">45</td><td class="lc">    // ── Powertrain variants ──────────────────────────────────</td></tr>
+<tr><td class="ln" select="none">46</td><td class="lc">    part def Powertrain;</td></tr>
+<tr><td class="ln" select="none">47</td><td class="lc">    part def PetrolPowertrain specializes Powertrain {</td></tr>
+<tr><td class="ln" select="none">48</td><td class="lc">        attribute displacement : VolumeValue;</td></tr>
+<tr><td class="ln" select="none">49</td><td class="lc">        attribute cylinders    : Integer;</td></tr>
+<tr><td class="ln" select="none">50</td><td class="lc">        attribute maxPower     : PowerValue;</td></tr>
+<tr><td class="ln" select="none">51</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">52</td><td class="lc">    part def DieselPowertrain specializes Powertrain {</td></tr>
+<tr><td class="ln" select="none">53</td><td class="lc">        attribute displacement : VolumeValue;</td></tr>
+<tr><td class="ln" select="none">54</td><td class="lc">        attribute maxTorque    : ForceValue;</td></tr>
+<tr><td class="ln" select="none">55</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">56</td><td class="lc">    part def ElectricPowertrain specializes Powertrain {</td></tr>
+<tr><td class="ln" select="none">57</td><td class="lc">        attribute batteryCapacity : EnergyValue;</td></tr>
+<tr><td class="ln" select="none">58</td><td class="lc">        attribute range           : LengthValue;</td></tr>
+<tr><td class="ln" select="none">59</td><td class="lc">        attribute chargePower     : PowerValue;</td></tr>
+<tr><td class="ln" select="none">60</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">61</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">62</td><td class="lc">    // ── Optional feature packages (metadata-tagged) ─────────</td></tr>
+<tr><td class="ln" select="none">63</td><td class="lc">    package FeatureCatalog {</td></tr>
+<tr><td class="ln" select="none">64</td><td class="lc">        part heatedSeats : HeatedSeats {</td></tr>
+<tr><td class="ln" select="none">65</td><td class="lc">            @MarketRegion { region = "ALL"; }</td></tr>
+<tr><td class="ln" select="none">66</td><td class="lc">            @FeatureTier { tier = "premium"; }</td></tr>
+<tr><td class="ln" select="none">67</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">68</td><td class="lc">        part adaptiveCruise : AdaptiveCruiseControl {</td></tr>
+<tr><td class="ln" select="none">69</td><td class="lc">            @MarketRegion { region = "ALL"; }</td></tr>
+<tr><td class="ln" select="none">70</td><td class="lc">            @FeatureTier { tier = "premium"; }</td></tr>
+<tr><td class="ln" select="none">71</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">72</td><td class="lc">        part towHitch : TowHitch {</td></tr>
+<tr><td class="ln" select="none">73</td><td class="lc">            @MarketRegion { region = "US"; }</td></tr>
+<tr><td class="ln" select="none">74</td><td class="lc">            @FeatureTier { tier = "basic"; }</td></tr>
+<tr><td class="ln" select="none">75</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">76</td><td class="lc">        part headlightWashers : HeadlightWashers {</td></tr>
+<tr><td class="ln" select="none">77</td><td class="lc">            @MarketRegion { region = "EU"; }</td></tr>
+<tr><td class="ln" select="none">78</td><td class="lc">            @FeatureTier { tier = "basic"; }</td></tr>
+<tr><td class="ln" select="none">79</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">80</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">81</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">82</td><td class="lc">    // ── Base product with variation points ───────────────────</td></tr>
+<tr><td class="ln" select="none">83</td><td class="lc">    part def Vehicle {</td></tr>
+<tr><td class="ln" select="none">84</td><td class="lc">        // Platform (invariant across all configurations)</td></tr>
+<tr><td class="ln" select="none">85</td><td class="lc">        part chassis  : Chassis;</td></tr>
+<tr><td class="ln" select="none">86</td><td class="lc">        part brakes   : BrakeSystem;</td></tr>
+<tr><td class="ln" select="none">87</td><td class="lc">        part steering : SteeringSystem;</td></tr>
+<tr><td class="ln" select="none">88</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">89</td><td class="lc">        // Variation point 1: body style</td></tr>
+<tr><td class="ln" select="none">90</td><td class="lc">        variation part body : BodyStyle {</td></tr>
+<tr><td class="ln" select="none">91</td><td class="lc">            variant part sedan : SedanBody;</td></tr>
+<tr><td class="ln" select="none">92</td><td class="lc">            variant part suv   : SUVBody;</td></tr>
+<tr><td class="ln" select="none">93</td><td class="lc">            variant part truck : TruckBody;</td></tr>
+<tr><td class="ln" select="none">94</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">95</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">96</td><td class="lc">        // Variation point 2: powertrain</td></tr>
+<tr><td class="ln" select="none">97</td><td class="lc">        variation part powertrain : Powertrain {</td></tr>
+<tr><td class="ln" select="none">98</td><td class="lc">            variant part petrol   : PetrolPowertrain;</td></tr>
+<tr><td class="ln" select="none">99</td><td class="lc">            variant part diesel   : DieselPowertrain;</td></tr>
+<tr><td class="ln" select="none">100</td><td class="lc">            variant part electric : ElectricPowertrain;</td></tr>
+<tr><td class="ln" select="none">101</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">102</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">103</td><td class="lc">        // Platform constraint: all variants must satisfy</td></tr>
+<tr><td class="ln" select="none">104</td><td class="lc">        assert constraint maxGrossWeight {</td></tr>
+<tr><td class="ln" select="none">105</td><td class="lc">            chassis.curbWeight &lt;= 3000[kg]</td></tr>
+<tr><td class="ln" select="none">106</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">107</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">108</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">109</td><td class="lc">    // ── Filtered feature views ───────────────────────────────</td></tr>
+<tr><td class="ln" select="none">110</td><td class="lc">    package PremiumFeatures filter FeatureTier::tier == "premium";</td></tr>
+<tr><td class="ln" select="none">111</td><td class="lc">    package USFeatures filter MarketRegion::region == "US"</td></tr>
+<tr><td class="ln" select="none">112</td><td class="lc">                            or MarketRegion::region == "ALL";</td></tr>
+<tr><td class="ln" select="none">113</td><td class="lc">    package EUFeatures filter MarketRegion::region == "EU"</td></tr>
+<tr><td class="ln" select="none">114</td><td class="lc">                            or MarketRegion::region == "ALL";</td></tr>
+<tr><td class="ln" select="none">115</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">116</td><td class="lc">    // ── Fully resolved configurations ────────────────────────</td></tr>
+<tr><td class="ln" select="none">117</td><td class="lc">    part def SedanPetrolUS specializes Vehicle {</td></tr>
+<tr><td class="ln" select="none">118</td><td class="lc">        part body redefines Vehicle::body = sedan;</td></tr>
+<tr><td class="ln" select="none">119</td><td class="lc">        part powertrain redefines Vehicle::powertrain = petrol;</td></tr>
+<tr><td class="ln" select="none">120</td><td class="lc">        // Include US-market features from the filtered view</td></tr>
+<tr><td class="ln" select="none">121</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">122</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">123</td><td class="lc">    part def SUVElectricEU specializes Vehicle {</td></tr>
+<tr><td class="ln" select="none">124</td><td class="lc">        part body redefines Vehicle::body = suv;</td></tr>
+<tr><td class="ln" select="none">125</td><td class="lc">        part powertrain redefines Vehicle::powertrain = electric;</td></tr>
+<tr><td class="ln" select="none">126</td><td class="lc">        // Include EU-market features from the filtered view</td></tr>
+<tr><td class="ln" select="none">127</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">128</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">129</td><td class="lc">    part def TruckDieselUS specializes Vehicle {</td></tr>
+<tr><td class="ln" select="none">130</td><td class="lc">        part body redefines Vehicle::body = truck;</td></tr>
+<tr><td class="ln" select="none">131</td><td class="lc">        part powertrain redefines Vehicle::powertrain = diesel;</td></tr>
+<tr><td class="ln" select="none">132</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">133</td><td class="lc">        // Truck-specific constraint override</td></tr>
+<tr><td class="ln" select="none">134</td><td class="lc">        assert constraint towRating {</td></tr>
+<tr><td class="ln" select="none">135</td><td class="lc">            body.payloadCapacity &gt;= 1500[kg]</td></tr>
+<tr><td class="ln" select="none">136</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">137</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">138</td><td class="lc">}</td></tr>
+</table></code></pre>
+<p>This model demonstrates: a <strong>shared platform</strong> (chassis, brakes, steering), two <strong>variation points</strong> (body style, powertrain) with three variants each, <strong>metadata-tagged optional features</strong> with filter expressions for market regions and tiers, <strong>platform-level constraints</strong> that apply to all configurations, <strong>variant-specific constraints</strong> (truck tow rating), and three <strong>fully resolved configurations</strong> targeting different market segments.</p>
+
+<!-- ═══════════════════ Section 7 ═══════════════════ -->
+<span class="section-anchor" id="s7"></span><div class="section-header"><span class="section-num">7</span><h2>Module Summary</h2></div>
+
+<table><thead><tr><th>SysML v2 concept</th><th>KerML origin</th><th>Key rule</th></tr></thead><tbody>
+<tr><td><code>variation</code> (on usage)</td><td>Usage with <code>isVariation = true</code></td><td>Marks a feature as a variation point; must be resolved to exactly one variant</td></tr>
+<tr><td><code>variant</code></td><td><code>VariantMembership</code></td><td>Declares one allowed alternative within a variation point</td></tr>
+<tr><td><code>variation part def</code></td><td><code>PartDefinition</code> with <code>isVariation = true</code></td><td>The definition itself is a variation; every usage inherits variation semantics</td></tr>
+<tr><td>Configuration binding</td><td><code>BindingConnector</code></td><td>Resolves a variation usage to a specific variant via <code>redefines</code></td></tr>
+<tr><td>Partial configuration</td><td>Specialisation with some variations unresolved</td><td>Fixes some choices, leaves others open for further specialisation</td></tr>
+<tr><td><code>filter</code> expression</td><td><code>FilterExpression</code></td><td>Selects elements from a namespace based on metadata criteria; produces a view</td></tr>
+<tr><td>Product line package</td><td>Package with mixed content</td><td>Three-layer pattern: platform + variability + configurations</td></tr>
+<tr><td>Metadata tagging</td><td>Metadata annotations</td><td>Annotates elements with region, tier, or other selection criteria for filtering</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table &#8212; Module 8 concepts and their KerML origins</caption></table>
+
+<div class="next-box"><div class="next-label">Up Next</div><p>Module 9 &#8212; Advanced Topics &#8212; Cross-cutting concerns, model libraries, inter-model dependencies, and scaling SysML v2 for large-scale systems engineering.</p></div>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{const h=document.documentElement;pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});}
+window.addEventListener('scroll',activateNav,{passive:true});activateNav();
+</script>
+</body></html>

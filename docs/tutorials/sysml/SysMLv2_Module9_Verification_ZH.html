@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysML v2 模块九：验证与确认</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:220px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:#fff}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;background:none}pre.lined table{border-collapse:collapse;width:100%;min-width:max-content}pre.lined td{padding:0;border:none;background:none;font-family:var(--font-mono);font-size:.88rem;line-height:1.7;color:var(--code-text)}pre.lined td.ln{width:2.8em;min-width:2.8em;text-align:right;padding-right:.75em;color:#94A3B8;user-select:none;border-right:1px solid #E2E8F0}pre.lined td.lc{padding-left:.9em;white-space:pre}pre.lined tr:hover td{background:rgba(14,165,233,.06)}
+</style></head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">SysML v2 系列</a>
+  <span class="sep">/</span>
+  <span class="crumb">模块 9</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 9 / 9</button>
+    <div class="dropdown-menu">
+      <a href="SysMLv2_Module1_Foundations_ZH.html">1 &mdash; 基础</a>
+      <a href="SysMLv2_Module2_CoreLanguage_ZH.html">2 &mdash; 核心语言概念</a>
+      <a href="SysMLv2_Module3_StructureModelling_ZH.html">3 &mdash; 结构建模</a>
+      <a href="SysMLv2_Module4_BehaviourModelling_ZH.html">4 &mdash; 行为建模</a>
+      <a href="SysMLv2_Module5_Requirements_ZH.html">5 &mdash; 需求建模</a>
+      <a href="SysMLv2_Module6_AnalysisCases_ZH.html">6 &mdash; 分析用例</a>
+      <a href="SysMLv2_Module7_VariantConfig_ZH.html">7 &mdash; 变体与配置</a>
+      <a href="SysMLv2_Module8_Metadata_ZH.html">8 &mdash; 元数据与配置文件</a>
+      <a href="SysMLv2_Module9_Verification_ZH.html" class="active">9 &mdash; 验证与确认</a>
+    </div>
+  </div>
+  <a href="SysMLv2_Module9_Verification_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar"><div class="sidebar-label">目录</div><nav><a href="#s1"><span class="num">1</span>V&amp;V 基础概念</a><a href="#s2"><span class="num">2</span>验证用例</a><a href="#s3"><span class="num">3</span>需求的验证关系</a><a href="#s4"><span class="num">4</span>测试用例建模</a><a href="#s5"><span class="num">5</span>确认与利益相关者</a><a href="#s6"><span class="num">6</span>自动化分析与仿真</a><a href="#s7"><span class="num">7</span>完整示例</a><a href="#s8"><span class="num">8</span>本模块总结</a></nav></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">SysML v2 &mdash; Ran Wei</div>
+      <h1 class="module-title">模块九：<em>验证与确认</em></h1>
+      <p class="module-lead">如何在 SysML v2 中建模验证用例、测试案例和确认活动，确保系统满足需求并符合利益相关者期望。</p>
+    </div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header"><span class="section-num">1</span><h2>V&amp;V 基础概念</h2></div>
+
+<p><strong>验证（Verification）</strong>回答"我们是否正确地构建了系统？"——即系统是否满足其规格要求。<strong>确认（Validation）</strong>回答"我们是否构建了正确的系统？"——即系统是否满足利益相关者的实际需要。SysML v2 为这两者提供了一等公民的语言构件。</p>
+
+<div class="callout analogy"><div class="callout-label">生活类比</div><p>验证好比检查一栋房子是否按照建筑图纸施工——每面墙的尺寸、材料和位置是否与图纸一致。确认则是询问住户："这栋房子住着舒服吗？满足你的生活需求吗？"前者对照规格，后者对照真实期望。</p></div>
+
+<h3>SysML v2 中的 V&amp;V 关键字</h3>
+<p>SysML v2 引入了专门的关键字来建模验证与确认活动：</p>
+<table><thead><tr><th>关键字</th><th>用途</th><th>说明</th></tr></thead><tbody>
+<tr><td><code>verification def</code></td><td>定义验证用例模板</td><td>描述如何验证一个或多个需求的方法和步骤</td></tr>
+<tr><td><code>verification</code></td><td>验证用例实例</td><td>在具体上下文中执行验证活动</td></tr>
+<tr><td><code>verify</code></td><td>声明验证关系</td><td>将验证用例与被验证的需求关联</td></tr>
+<tr><td><code>subject</code></td><td>验证对象</td><td>指定被测系统或组件</td></tr>
+<tr><td><code>objective</code></td><td>验证目标</td><td>在验证用例中声明需要满足的约束</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 1 &#8212; 验证与确认核心关键字</caption></table>
+
+<div class="callout note"><div class="callout-label">注意</div><p><code>verification def</code> 是 <code>case def</code> 的一种特化。验证用例本质上是一种带有明确目标（<code>objective</code>）的用例，其执行结果用于判断需求是否被满足。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header"><span class="section-num">2</span><h2>验证用例</h2></div>
+
+<p><strong>验证用例</strong>（<code>verification def</code>）定义了验证活动的模板——包括被测对象、验证步骤和预期结果。它是 SysML v2 中将需求与测试活动联系起来的核心构件。</p>
+
+<h3>定义验证用例</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">verification def VerifyMaxSpeed {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    doc /* 验证系统是否满足最大速度需求 */</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    subject vehicle : Vehicle;     // 被测对象</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        verify requirement MaxSpeedReq; // 验证目标需求</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    action setupTest : PrepareTestTrack;  // 步骤一：准备测试环境</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    action runTest   : AccelerateToMax;   // 步骤二：执行加速测试</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    action measure   : RecordSpeed;       // 步骤三：记录速度数据</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    first setupTest then runTest then measure;</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>验证用例的组成部分</h3>
+<p>每个验证用例通常包含以下要素：</p>
+<ul>
+  <li><strong><code>subject</code></strong>——被测试或被评估的系统/组件</li>
+  <li><strong><code>objective</code></strong>——验证用例要达成的目标，通常引用一个或多个需求</li>
+  <li><strong>动作序列</strong>——执行验证的具体步骤，使用 <code>action</code> 和控制流组织</li>
+  <li><strong><code>return</code></strong>——验证结果，通常为通过/失败的判定</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>验证用例可以嵌套。一个顶层验证用例可以包含多个子验证用例，每个子用例负责验证不同的需求方面。这种分解方式与动作的层次分解完全一致。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header"><span class="section-num">3</span><h2>需求的验证关系</h2></div>
+
+<p><code>verify</code> 关键字建立了验证用例与需求之间的<strong>可追溯关系</strong>。这是 V&amp;V 活动中最关键的连接——它确保每个需求都有对应的验证方法，每个验证活动都有明确的目标需求。</p>
+
+<h3>基本验证关系</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">requirement def MaxSpeedReq {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    doc /* 车辆最大速度不低于 200 km/h */</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    require constraint {</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        vehicle.maxSpeed >= 200 [km/h]</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">verification def VerifyMaxSpeed {</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">        verify requirement MaxSpeedReq;</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>多需求验证</h3>
+<p>一个验证用例可以同时验证多个需求。在 <code>objective</code> 块中列出所有需要验证的需求：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">verification def VerifyPerformance {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">        verify requirement MaxSpeedReq;       // 最大速度</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        verify requirement AccelerationReq;   // 加速性能</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        verify requirement BrakingDistReq;    // 制动距离</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout pitfall"><div class="callout-label">易错点</div><p>不要将 <code>verify</code> 与 <code>satisfy</code> 混淆。<code>satisfy</code> 声明某个设计元素满足需求（设计层面的断言），而 <code>verify</code> 声明某个验证活动将检查需求是否被满足（测试层面的活动）。两者是互补的，不是替代关系。</p></div>
+
+<h3>验证矩阵的可追溯性</h3>
+<p>通过 <code>verify</code> 关系，工具可以自动生成<strong>需求验证追溯矩阵（RVTM）</strong>。该矩阵显示每个需求对应的验证方法，帮助识别未被覆盖的需求：</p>
+<table><thead><tr><th>需求</th><th>验证用例</th><th>验证方法</th><th>状态</th></tr></thead><tbody>
+<tr><td>MaxSpeedReq</td><td>VerifyMaxSpeed</td><td>测试</td><td>已通过</td></tr>
+<tr><td>AccelerationReq</td><td>VerifyPerformance</td><td>测试</td><td>待执行</td></tr>
+<tr><td>SafetyReq</td><td>VerifySafety</td><td>分析</td><td>进行中</td></tr>
+<tr><td>EMCReq</td><td>&mdash;</td><td>&mdash;</td><td>未覆盖</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 2 &#8212; 需求验证追溯矩阵示例</caption></table>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header"><span class="section-num">4</span><h2>测试用例建模</h2></div>
+
+<p>验证用例的核心是<strong>测试用例</strong>——具体的测试步骤、输入数据、预期输出和判定标准。SysML v2 使用动作分解和约束来建模完整的测试流程。</p>
+
+<h3>带参数的测试用例</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">verification def VerifyBrakingDistance {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        verify requirement BrakingDistReq;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    // 测试输入参数</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    in attribute initialSpeed  : ISQ::SpeedValue;  // 初始速度</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    in attribute roadCondition : RoadSurface;       // 路面条件</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    // 测试步骤</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    action accelerate : AccelerateToSpeed {</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">        in attribute targetSpeed = initialSpeed;</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    action brake : EmergencyBrake;</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    action measureDist : MeasureStoppingDistance {</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">        out attribute distance : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">    first accelerate then brake then measureDist;</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">    // 判定标准：制动距离不超过 38 米</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">    assert constraint passcriterion {</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">        measureDist.distance <= 38 [m]</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">27</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>测试数据的参数化</h3>
+<p>通过参数化设计，同一验证用例可以用不同的输入数据多次执行。这避免了为每个测试场景重复定义验证用例：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">// 测试场景一：干燥路面，100 km/h</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">verification dryRoadTest : VerifyBrakingDistance {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    in attribute initialSpeed  = 100 [km/h];</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    in attribute roadCondition = RoadSurface::Dry;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">// 测试场景二：湿滑路面，80 km/h</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">verification wetRoadTest : VerifyBrakingDistance {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    in attribute initialSpeed  = 80 [km/h];</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    in attribute roadCondition = RoadSurface::Wet;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout note"><div class="callout-label">注意</div><p>验证用例中的 <code>assert constraint</code> 定义了通过/失败判定标准。工具在执行仿真或分析后，可以自动检查这些约束是否成立，从而实现自动化验证。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header"><span class="section-num">5</span><h2>确认与利益相关者</h2></div>
+
+<p><strong>确认</strong>关注的是系统是否满足利益相关者的真实需要，而不仅仅是技术规格。SysML v2 通过将利益相关者需求、用例和关注点集成到模型中来支持确认活动。</p>
+
+<h3>利益相关者与关注点</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">package Stakeholders {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    part def Operator {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">        doc /* 系统操作员——关注易用性和响应时间 */</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    part def SafetyEngineer {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        doc /* 安全工程师——关注故障模式和冗余 */</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    part def EndUser {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">        doc /* 最终用户——关注功能完整性和用户体验 */</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>利益相关者需求与确认活动</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">requirement def UsabilityReq {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    doc /* 操作员应能在 30 秒内完成紧急操作 */</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    stakeholder operator : Operator;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    subject sys : ControlSystem;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    require constraint {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        sys.emergencyResponseTime <= 30 [s]</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">// 确认活动：用户评审会</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">verification def ValidateUsability {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    doc /* 通过用户测试确认操作流程满足可用性需求 */</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    subject sys : ControlSystem;</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">        verify requirement UsabilityReq;</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    action briefOperator  : BriefingSession;   // 向操作员说明测试场景</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">    action executeScenario : EmergencyScenario; // 执行紧急操作场景</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">    action collectFeedback : UserFeedback;      // 收集操作员反馈</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">    first briefOperator then executeScenario then collectFeedback;</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout analogy"><div class="callout-label">生活类比</div><p>验证就像质检员拿着检测清单逐项检查产品是否合格。确认则是请客户实际试用产品，看它是否真正解决了客户的问题。质检通过的产品，客户未必满意；客户满意的产品，也未必通过了所有质检项目。两者都是不可或缺的。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s6"></span>
+<div class="section-header"><span class="section-num">6</span><h2>自动化分析与仿真</h2></div>
+
+<p>SysML v2 的验证用例可以与<strong>分析用例</strong>（<code>analysis</code>）结合，实现基于模型的自动化验证。分析用例执行计算或仿真，验证用例利用其结果来判定需求是否被满足。</p>
+
+<h3>分析驱动的验证</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">analysis def ThermalAnalysis {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    subject component : ElectronicModule;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    in attribute ambientTemp  : ISQ::TemperatureValue;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    in attribute powerDissipation : ISQ::PowerValue;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    return attribute maxJunctionTemp : ISQ::TemperatureValue;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">verification def VerifyThermalLimit {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    subject component : ElectronicModule;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">        verify requirement ThermalReq;</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    // 执行热分析</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    action runAnalysis : ThermalAnalysis {</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">        in attribute ambientTemp = 40 [degC];       // 环境温度</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">        in attribute powerDissipation = 15 [W];     // 功耗</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">    // 判定：结温不超过 125 摄氏度</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">    assert constraint {</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">        runAnalysis.maxJunctionTemp <= 125 [degC]</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>验证方法分类</h3>
+<p>工程实践中，验证方法通常分为四类。SysML v2 模型可以用元数据标注每个验证用例所采用的方法：</p>
+<table><thead><tr><th>验证方法</th><th>说明</th><th>适用场景</th></tr></thead><tbody>
+<tr><td>测试（Test）</td><td>通过物理测试或仿真执行获取实测数据</td><td>性能指标、功能行为</td></tr>
+<tr><td>分析（Analysis）</td><td>通过数学计算、建模或仿真推导结果</td><td>热分析、结构强度、可靠性</td></tr>
+<tr><td>检查（Inspection）</td><td>通过目视检查或文档审查确认合规</td><td>外观、标签、文档完整性</td></tr>
+<tr><td>演示（Demonstration）</td><td>通过操作演示展示功能实现</td><td>人机界面、操作流程</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 3 &#8212; 四种验证方法（TAID）</caption></table>
+
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">// 使用元数据标注验证方法</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">metadata def VerificationMethod {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    attribute method : MethodKind; // Test | Analysis | Inspection | Demonstration</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">@VerificationMethod { method = MethodKind::Analysis; }</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">verification def VerifyThermalLimit { /* ... */ }</td></tr>
+</table></code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>将验证方法编码为元数据而非硬编码到验证用例结构中，可以在不修改验证逻辑的情况下灵活调整验证策略。工具可以利用这些元数据自动生成验证计划文档。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s7"></span>
+<div class="section-header"><span class="section-num">7</span><h2>完整示例</h2></div>
+
+<p>以下示例展示了一个完整的 V&amp;V 模型——从利益相关者需求出发，经过需求分解、验证用例设计、到测试执行和结果判定的完整链条。</p>
+
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">package UAVVerification {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    private import ISQ::*; private import SI::*;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    // ── 需求定义 ────────────────────────────────────────</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    requirement def FlightEndurance {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        doc /* 无人机续航时间不低于 45 分钟 */</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        subject uav : UAV;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        require constraint {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">            uav.flightTime >= 45 [min]</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    requirement def PayloadCapacity {</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">        doc /* 无人机有效载荷不低于 2 kg */</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">        subject uav : UAV;</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">        require constraint {</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">            uav.maxPayload >= 2 [kg]</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">    requirement def WindResistance {</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">        doc /* 无人机可在 6 级风力下稳定飞行 */</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">        subject uav : UAV;</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">        require constraint {</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">            uav.maxWindTolerance >= 39 [km/h]</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">27</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">28</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">29</td><td class="lc">    // ── 分析用例 ────────────────────────────────────────</td></tr>
+<tr><td class="ln" select="none">30</td><td class="lc">    analysis def EnduranceAnalysis {</td></tr>
+<tr><td class="ln" select="none">31</td><td class="lc">        subject uav : UAV;</td></tr>
+<tr><td class="ln" select="none">32</td><td class="lc">        in attribute batteryCapacity : ISQ::EnergyValue;</td></tr>
+<tr><td class="ln" select="none">33</td><td class="lc">        in attribute avgPowerDraw    : ISQ::PowerValue;</td></tr>
+<tr><td class="ln" select="none">34</td><td class="lc">        return attribute estFlightTime : ISQ::TimeValue;</td></tr>
+<tr><td class="ln" select="none">35</td><td class="lc">        // estFlightTime = batteryCapacity / avgPowerDraw</td></tr>
+<tr><td class="ln" select="none">36</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">37</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">38</td><td class="lc">    // ── 验证用例：续航验证（分析方法） ─────────────────</td></tr>
+<tr><td class="ln" select="none">39</td><td class="lc">    @VerificationMethod { method = MethodKind::Analysis; }</td></tr>
+<tr><td class="ln" select="none">40</td><td class="lc">    verification def VerifyEndurance {</td></tr>
+<tr><td class="ln" select="none">41</td><td class="lc">        subject uav : UAV;</td></tr>
+<tr><td class="ln" select="none">42</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln" select="none">43</td><td class="lc">            verify requirement FlightEndurance;</td></tr>
+<tr><td class="ln" select="none">44</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">45</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">46</td><td class="lc">        action analyze : EnduranceAnalysis {</td></tr>
+<tr><td class="ln" select="none">47</td><td class="lc">            in attribute batteryCapacity = 500 [Wh];</td></tr>
+<tr><td class="ln" select="none">48</td><td class="lc">            in attribute avgPowerDraw    = 350 [W];</td></tr>
+<tr><td class="ln" select="none">49</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">50</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">51</td><td class="lc">        assert constraint {</td></tr>
+<tr><td class="ln" select="none">52</td><td class="lc">            analyze.estFlightTime >= 45 [min]</td></tr>
+<tr><td class="ln" select="none">53</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">54</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">55</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">56</td><td class="lc">    // ── 验证用例：载荷验证（测试方法） ─────────────────</td></tr>
+<tr><td class="ln" select="none">57</td><td class="lc">    @VerificationMethod { method = MethodKind::Test; }</td></tr>
+<tr><td class="ln" select="none">58</td><td class="lc">    verification def VerifyPayload {</td></tr>
+<tr><td class="ln" select="none">59</td><td class="lc">        subject uav : UAV;</td></tr>
+<tr><td class="ln" select="none">60</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln" select="none">61</td><td class="lc">            verify requirement PayloadCapacity;</td></tr>
+<tr><td class="ln" select="none">62</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">63</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">64</td><td class="lc">        action loadPayload : AttachPayload {</td></tr>
+<tr><td class="ln" select="none">65</td><td class="lc">            in attribute mass = 2 [kg]; // 加载 2 kg 载荷</td></tr>
+<tr><td class="ln" select="none">66</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">67</td><td class="lc">        action hover : StableHover {</td></tr>
+<tr><td class="ln" select="none">68</td><td class="lc">            in attribute duration = 5 [min]; // 悬停 5 分钟</td></tr>
+<tr><td class="ln" select="none">69</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">70</td><td class="lc">        action checkStability : MeasureFlightStability {</td></tr>
+<tr><td class="ln" select="none">71</td><td class="lc">            out attribute stable : Boolean;</td></tr>
+<tr><td class="ln" select="none">72</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">73</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">74</td><td class="lc">        first loadPayload then hover then checkStability;</td></tr>
+<tr><td class="ln" select="none">75</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">76</td><td class="lc">        assert constraint {</td></tr>
+<tr><td class="ln" select="none">77</td><td class="lc">            checkStability.stable == true</td></tr>
+<tr><td class="ln" select="none">78</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">79</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">80</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">81</td><td class="lc">    // ── 验证用例：抗风验证（演示方法） ─────────────────</td></tr>
+<tr><td class="ln" select="none">82</td><td class="lc">    @VerificationMethod { method = MethodKind::Demonstration; }</td></tr>
+<tr><td class="ln" select="none">83</td><td class="lc">    verification def VerifyWindResistance {</td></tr>
+<tr><td class="ln" select="none">84</td><td class="lc">        subject uav : UAV;</td></tr>
+<tr><td class="ln" select="none">85</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln" select="none">86</td><td class="lc">            verify requirement WindResistance;</td></tr>
+<tr><td class="ln" select="none">87</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">88</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">89</td><td class="lc">        action flyInWind : WindTunnelFlight {</td></tr>
+<tr><td class="ln" select="none">90</td><td class="lc">            in attribute windSpeed = 39 [km/h];</td></tr>
+<tr><td class="ln" select="none">91</td><td class="lc">            out attribute posError : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">92</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">93</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">94</td><td class="lc">        assert constraint {</td></tr>
+<tr><td class="ln" select="none">95</td><td class="lc">            flyInWind.posError <= 1.0 [m] // 位置偏差不超过 1 米</td></tr>
+<tr><td class="ln" select="none">96</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">97</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">98</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">99</td><td class="lc">    // ── 顶层验证计划 ────────────────────────────────────</td></tr>
+<tr><td class="ln" select="none">100</td><td class="lc">    verification def UAVVerificationPlan {</td></tr>
+<tr><td class="ln" select="none">101</td><td class="lc">        doc /* 无人机系统级验证计划 */</td></tr>
+<tr><td class="ln" select="none">102</td><td class="lc">        subject uav : UAV;</td></tr>
+<tr><td class="ln" select="none">103</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">104</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln" select="none">105</td><td class="lc">            verify requirement FlightEndurance;</td></tr>
+<tr><td class="ln" select="none">106</td><td class="lc">            verify requirement PayloadCapacity;</td></tr>
+<tr><td class="ln" select="none">107</td><td class="lc">            verify requirement WindResistance;</td></tr>
+<tr><td class="ln" select="none">108</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">109</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">110</td><td class="lc">        // 子验证用例：可并行执行</td></tr>
+<tr><td class="ln" select="none">111</td><td class="lc">        verification endurance : VerifyEndurance;</td></tr>
+<tr><td class="ln" select="none">112</td><td class="lc">        verification payload   : VerifyPayload;</td></tr>
+<tr><td class="ln" select="none">113</td><td class="lc">        verification wind      : VerifyWindResistance;</td></tr>
+<tr><td class="ln" select="none">114</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">115</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<p>此模型展示了：<strong>requirement def</strong>（需求定义与约束）、<strong>analysis def</strong>（分析用例计算续航）、<strong>verification def</strong>（分层验证用例结构）、<strong>verify</strong>（需求到验证的可追溯关系）、<strong>assert constraint</strong>（通过/失败判定）、<strong>元数据标注</strong>（验证方法分类），以及<strong>顶层验证计划</strong>（将多个子验证用例组合为系统级计划）。</p>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s8"></span>
+<div class="section-header"><span class="section-num">8</span><h2>本模块总结</h2></div>
+
+<table><thead><tr><th>概念</th><th>关键字</th><th>说明</th></tr></thead><tbody>
+<tr><td>验证用例定义</td><td><code>verification def</code></td><td>定义验证活动的模板，包含被测对象、目标和步骤</td></tr>
+<tr><td>验证用例实例</td><td><code>verification</code></td><td>在具体上下文中实例化并执行验证活动</td></tr>
+<tr><td>验证关系</td><td><code>verify</code></td><td>建立验证用例与需求之间的可追溯关系</td></tr>
+<tr><td>验证对象</td><td><code>subject</code></td><td>指定被测试/被评估的系统或组件</td></tr>
+<tr><td>验证目标</td><td><code>objective</code></td><td>声明验证用例要达成的目标，引用待验证需求</td></tr>
+<tr><td>判定标准</td><td><code>assert constraint</code></td><td>定义通过/失败的判定条件</td></tr>
+<tr><td>分析驱动验证</td><td><code>analysis</code> + <code>verification</code></td><td>分析用例提供计算结果，验证用例据此判定</td></tr>
+<tr><td>验证方法标注</td><td><code>metadata</code></td><td>用元数据标注测试/分析/检查/演示方法</td></tr>
+<tr><td>利益相关者需求</td><td><code>stakeholder</code></td><td>将需求关联到利益相关者，支持确认活动</td></tr>
+<tr><td>验证计划</td><td>嵌套 <code>verification</code></td><td>将多个子验证用例组合为分层验证计划</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 4 &#8212; 模块九概念总结</caption></table>
+
+<div class="next-box">
+  <div class="next-label">系列完成</div>
+  <p>您已完成 SysML v2 教程系列的全部九个模块。请探索 OMG SysML v2 规范和试点实现，以深化您的实践。</p>
+</div>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{const h=document.documentElement;pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});}
+window.addEventListener('scroll',activateNav,{passive:true});activateNav();
+</script>
+</body></html>
