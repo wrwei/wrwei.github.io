@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysML v2 模块 6：用例</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:220px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:#fff}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;background:none}pre.lined table{border-collapse:collapse;width:100%;min-width:max-content}pre.lined td{padding:0;border:none;background:none;font-family:var(--font-mono);font-size:.88rem;line-height:1.7;color:var(--code-text)}pre.lined td.ln{width:2.8em;min-width:2.8em;text-align:right;padding-right:.75em;color:#94A3B8;user-select:none;border-right:1px solid #E2E8F0}pre.lined td.lc{padding-left:.9em;white-space:pre}pre.lined tr:hover td{background:rgba(14,165,233,.06)}
+</style></head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">SysML v2 系列</a>
+  <span class="sep">/</span>
+  <span class="crumb">模块 6</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 6 / 9</button>
+    <div class="dropdown-menu">
+      <a href="SysMLv2_Module1_Foundations_ZH.html">1 &mdash; 基础</a>
+      <a href="SysMLv2_Module2_CoreLanguage_ZH.html">2 &mdash; 核心语言概念</a>
+      <a href="SysMLv2_Module3_StructureModelling_ZH.html">3 &mdash; 结构建模</a>
+      <a href="SysMLv2_Module4_BehaviourModelling_ZH.html">4 &mdash; 行为建模</a>
+      <a href="SysMLv2_Module5_RequirementsConstraints_ZH.html">5 &mdash; 需求与约束</a>
+      <a href="SysMLv2_Module6_Cases_ZH.html" class="active">6 &mdash; 用例</a>
+      <a href="SysMLv2_Module7_AnalysisTradeoffs_ZH.html">7 &mdash; 分析与权衡</a>
+      <a href="SysMLv2_Module8_VariantsConfigurations_ZH.html">8 &mdash; 变体与配置</a>
+      <a href="SysMLv2_Module9_VerificationValidation_ZH.html">9 &mdash; 验证与确认</a>
+    </div>
+  </div>
+  <a href="SysMLv2_Module6_Cases_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar"><div class="sidebar-label">目录</div><nav><a href="#s0"><span class="num">&#9733;</span>KerML &#8594; SysML 桥接</a><a href="#s1"><span class="num">1</span>用例定义</a><a href="#s2"><span class="num">2</span>参与者与主题</a><a href="#s3"><span class="num">3</span>包含用例</a><a href="#s4"><span class="num">4</span>分析用例</a><a href="#s5"><span class="num">5</span>验证用例</a><a href="#s6"><span class="num">6</span>完整示例</a><a href="#s7"><span class="num">7</span>模块总结</a></nav></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">SysML v2 &mdash; Ran Wei</div>
+      <h1 class="module-title">模块 6：<em>用例</em></h1>
+      <p class="module-lead">如何用 SysML v2 的 <code>use case def</code>、<code>analysis case</code> 和 <code>verification case</code> 描述系统需要实现的场景、分析过程和验证策略 &mdash; 以及它们如何映射到 KerML 计算层的底层构造。</p>
+    </div>
+
+<!-- ===== 第 0 节：KerML → SysML 桥接 ===== -->
+<span class="section-anchor" id="s0"></span><div class="section-header"><span class="section-num">&#9733;</span><h2>KerML &#8594; SysML：用例建模概念</h2></div>
+<p>SysML v2 中的"用例"（Case）构建在 KerML <strong>计算层</strong>（Computation layer）之上。KerML 的 <code>CaseDefinition</code> 继承自 <code>Calculation</code>（而 <code>Calculation</code> 又继承自 <code>Function</code>），代表一个可以产生结果的行为。SysML v2 在此基础上增加了领域语义：<strong>use case</strong>（使用用例）、<strong>analysis case</strong>（分析用例）和 <strong>verification case</strong>（验证用例）。</p>
+
+<table><thead><tr><th>SysML v2 概念（L2）</th><th>底层 KerML 构造（L1）</th><th>SysML 增加的语义</th></tr></thead><tbody>
+<tr><td><code>use case def</code></td><td><code>CaseDefinition</code>（继承自 <code>CalculationDefinition</code>）</td><td>描述系统与参与者之间的交互场景；具有 <code>subject</code> 和 <code>actor</code></td></tr>
+<tr><td><code>use case</code>（用法）</td><td>类型为 <code>CaseDefinition</code> 的 <code>Feature</code></td><td>在包或零件内实例化一个用例场景</td></tr>
+<tr><td><code>actor</code></td><td><code>PartUsage</code>（带有 <code>actor</code> 方向）</td><td>声明与系统交互的外部实体</td></tr>
+<tr><td><code>subject</code></td><td><code>SubjectMembership</code></td><td>标识用例所描述的系统或零件</td></tr>
+<tr><td><code>objective</code></td><td><code>ObjectiveMembership</code>（一个 <code>RequirementUsage</code>）</td><td>用例需要满足的目标需求</td></tr>
+<tr><td><code>include use case</code></td><td><code>IncludeUseCaseUsage</code></td><td>在一个用例中包含另一个用例的行为</td></tr>
+<tr><td><code>analysis case def</code></td><td><code>AnalysisCaseDefinition</code>（继承自 <code>CaseDefinition</code>）</td><td>定义一个分析过程；有 <code>return</code> 结果</td></tr>
+<tr><td><code>verification case def</code></td><td><code>VerificationCaseDefinition</code>（继承自 <code>CaseDefinition</code>）</td><td>定义验证流程；用 <code>verify</code> 链接需求</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 0 &mdash; 模块 6 SysML v2（L2）概念与 KerML（L1）起源的映射</caption></table>
+
+<div class="callout note"><div class="callout-label">说明</div><p>在 KerML 中，<code>CaseDefinition</code> 继承自 <code>CalculationDefinition</code>，后者又继承自 <code>ActionDefinition</code>。这意味着每个用例本质上是一个<strong>可执行的行为</strong>，可以包含子动作、参数和控制流。SysML v2 在此基础上增加了 <code>subject</code>、<code>actor</code> 和 <code>objective</code> 等系统工程专用语义。</p></div>
+
+<!-- ===== 第 1 节：用例定义 ===== -->
+<span class="section-anchor" id="s1"></span><div class="section-header"><span class="section-num">1</span><h2>用例定义</h2></div>
+<p><code>use case def</code> 定义一种可复用的交互场景类型。它描述了系统（<code>subject</code>）与外部实体（<code>actor</code>）之间的交互序列，以及需要达成的目标（<code>objective</code>）。</p>
+
+<h3>基本用例定义</h3>
+<p>最简单的用例定义包含一个主题和一个目标：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">use case def 监控环境 {</td></tr>
+<tr><td class="ln">2</td><td class="lc">    doc /* 系统持续监控环境数据并在异常时发出警报 */</td></tr>
+<tr><td class="ln">3</td><td class="lc"></td></tr>
+<tr><td class="ln">4</td><td class="lc">    subject system : 环境监控系统;  // 被描述的系统</td></tr>
+<tr><td class="ln">5</td><td class="lc"></td></tr>
+<tr><td class="ln">6</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln">7</td><td class="lc">        doc /* 确保环境参数异常时能在 10 秒内发出警报 */</td></tr>
+<tr><td class="ln">8</td><td class="lc">    }</td></tr>
+<tr><td class="ln">9</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>带动作序列的用例</h3>
+<p>用例本身是一种行为，因此可以包含动作序列来描述交互的具体步骤：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">use case def 紧急制动 {</td></tr>
+<tr><td class="ln">2</td><td class="lc">    subject vehicle : 车辆;</td></tr>
+<tr><td class="ln">3</td><td class="lc"></td></tr>
+<tr><td class="ln">4</td><td class="lc">    actor driver : 驾驶员;</td></tr>
+<tr><td class="ln">5</td><td class="lc"></td></tr>
+<tr><td class="ln">6</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln">7</td><td class="lc">        doc /* 车辆在障碍物检测后 200ms 内启动制动 */</td></tr>
+<tr><td class="ln">8</td><td class="lc">    }</td></tr>
+<tr><td class="ln">9</td><td class="lc"></td></tr>
+<tr><td class="ln">10</td><td class="lc">    // 用例中的动作序列</td></tr>
+<tr><td class="ln">11</td><td class="lc">    action 检测障碍 : 障碍物检测;</td></tr>
+<tr><td class="ln">12</td><td class="lc">    action 启动制动 : 制动控制;</td></tr>
+<tr><td class="ln">13</td><td class="lc">    action 通知驾驶员 : 警报发送;</td></tr>
+<tr><td class="ln">14</td><td class="lc"></td></tr>
+<tr><td class="ln">15</td><td class="lc">    first 检测障碍 then 启动制动;</td></tr>
+<tr><td class="ln">16</td><td class="lc">    first 启动制动 then 通知驾驶员;</td></tr>
+<tr><td class="ln">17</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>用例就像一个剧本：<strong>subject</strong> 是舞台上的主角，<strong>actor</strong> 是与主角互动的配角，<strong>objective</strong> 是剧情的目标，而动作序列是剧本中的一幕幕场景。</p></div>
+
+<!-- ===== 第 2 节：参与者与主题 ===== -->
+<span class="section-anchor" id="s2"></span><div class="section-header"><span class="section-num">2</span><h2>参与者与主题</h2></div>
+<p><code>subject</code>（主题）标识用例所描述的系统或子系统。<code>actor</code>（参与者）声明与系统交互的外部实体。两者都是零件用法（<code>part usage</code>），但具有不同的语义角色。</p>
+
+<h3>主题声明</h3>
+<p>每个用例必须有一个 <code>subject</code>。它指定用例所分析或描述的系统：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">part def 智能家居系统;</td></tr>
+<tr><td class="ln">2</td><td class="lc"></td></tr>
+<tr><td class="ln">3</td><td class="lc">use case def 温度调节 {</td></tr>
+<tr><td class="ln">4</td><td class="lc">    subject home : 智能家居系统;  // 用例描述的系统</td></tr>
+<tr><td class="ln">5</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>参与者声明</h3>
+<p>参与者可以是人、外部系统或环境。一个用例可以有多个参与者：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">use case def 远程监控 {</td></tr>
+<tr><td class="ln">2</td><td class="lc">    subject system : 工业控制系统;</td></tr>
+<tr><td class="ln">3</td><td class="lc"></td></tr>
+<tr><td class="ln">4</td><td class="lc">    actor operator : 操作员;       // 人类参与者</td></tr>
+<tr><td class="ln">5</td><td class="lc">    actor cloud : 云平台;          // 外部系统参与者</td></tr>
+<tr><td class="ln">6</td><td class="lc">    actor sensor : 传感器网络;     // 设备参与者</td></tr>
+<tr><td class="ln">7</td><td class="lc"></td></tr>
+<tr><td class="ln">8</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln">9</td><td class="lc">        doc /* 操作员能够通过云平台实时查看传感器数据 */</td></tr>
+<tr><td class="ln">10</td><td class="lc">    }</td></tr>
+<tr><td class="ln">11</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>参与者与主题的交互</h3>
+<p>参与者通过动作和数据流与主题系统交互。用例的动作序列描述了这些交互的时序关系：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">use case def 数据采集 {</td></tr>
+<tr><td class="ln">2</td><td class="lc">    subject system : 数据采集系统;</td></tr>
+<tr><td class="ln">3</td><td class="lc">    actor user : 分析师;</td></tr>
+<tr><td class="ln">4</td><td class="lc"></td></tr>
+<tr><td class="ln">5</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln">6</td><td class="lc">        doc /* 系统按照分析师的配置自动采集数据 */</td></tr>
+<tr><td class="ln">7</td><td class="lc">    }</td></tr>
+<tr><td class="ln">8</td><td class="lc"></td></tr>
+<tr><td class="ln">9</td><td class="lc">    action 配置参数 {</td></tr>
+<tr><td class="ln">10</td><td class="lc">        in item config : 采集配置 from user;  // 参与者提供输入</td></tr>
+<tr><td class="ln">11</td><td class="lc">    }</td></tr>
+<tr><td class="ln">12</td><td class="lc">    action 执行采集 : 自动采集;</td></tr>
+<tr><td class="ln">13</td><td class="lc">    action 返回结果 {</td></tr>
+<tr><td class="ln">14</td><td class="lc">        out item result : 采集报告 to user;   // 将结果返回参与者</td></tr>
+<tr><td class="ln">15</td><td class="lc">    }</td></tr>
+<tr><td class="ln">16</td><td class="lc"></td></tr>
+<tr><td class="ln">17</td><td class="lc">    first 配置参数 then 执行采集;</td></tr>
+<tr><td class="ln">18</td><td class="lc">    first 执行采集 then 返回结果;</td></tr>
+<tr><td class="ln">19</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p><code>subject</code> 和 <code>actor</code> 的区别在于：<strong>subject</strong> 是用例所描述的系统本身，<strong>actor</strong> 是与系统交互但不属于系统的外部实体。同一个零件在一个用例中可以是 subject，在另一个用例中可以是 actor。</p></div>
+
+<!-- ===== 第 3 节：包含用例 ===== -->
+<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>包含用例</h2></div>
+<p><code>include use case</code> 允许一个用例包含另一个用例的行为，实现用例的组合与复用。这类似于 UML 中的 <code>&lt;&lt;include&gt;&gt;</code> 关系，但在 SysML v2 中具有更精确的语义。</p>
+
+<h3>基本包含</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">use case def 用户认证;</td></tr>
+<tr><td class="ln">2</td><td class="lc"></td></tr>
+<tr><td class="ln">3</td><td class="lc">use case def 提交订单 {</td></tr>
+<tr><td class="ln">4</td><td class="lc">    subject system : 电商平台;</td></tr>
+<tr><td class="ln">5</td><td class="lc">    actor buyer : 买家;</td></tr>
+<tr><td class="ln">6</td><td class="lc"></td></tr>
+<tr><td class="ln">7</td><td class="lc">    // 包含认证用例 — 提交订单前必须先认证</td></tr>
+<tr><td class="ln">8</td><td class="lc">    include use case auth : 用户认证;</td></tr>
+<tr><td class="ln">9</td><td class="lc"></td></tr>
+<tr><td class="ln">10</td><td class="lc">    action 选择商品 : 商品选择;</td></tr>
+<tr><td class="ln">11</td><td class="lc">    action 确认支付 : 支付处理;</td></tr>
+<tr><td class="ln">12</td><td class="lc"></td></tr>
+<tr><td class="ln">13</td><td class="lc">    first auth then 选择商品;</td></tr>
+<tr><td class="ln">14</td><td class="lc">    first 选择商品 then 确认支付;</td></tr>
+<tr><td class="ln">15</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>多层包含</h3>
+<p>用例可以嵌套包含，形成用例的层次结构：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">use case def 传感器自检;</td></tr>
+<tr><td class="ln">2</td><td class="lc">use case def 通信检查;</td></tr>
+<tr><td class="ln">3</td><td class="lc"></td></tr>
+<tr><td class="ln">4</td><td class="lc">use case def 系统初始化 {</td></tr>
+<tr><td class="ln">5</td><td class="lc">    subject system : 无人机;</td></tr>
+<tr><td class="ln">6</td><td class="lc"></td></tr>
+<tr><td class="ln">7</td><td class="lc">    include use case selfTest : 传感器自检;</td></tr>
+<tr><td class="ln">8</td><td class="lc">    include use case commCheck : 通信检查;</td></tr>
+<tr><td class="ln">9</td><td class="lc"></td></tr>
+<tr><td class="ln">10</td><td class="lc">    // 两项检查并行执行</td></tr>
+<tr><td class="ln">11</td><td class="lc">    fork;</td></tr>
+<tr><td class="ln">12</td><td class="lc">        selfTest;</td></tr>
+<tr><td class="ln">13</td><td class="lc">        commCheck;</td></tr>
+<tr><td class="ln">14</td><td class="lc">    join;</td></tr>
+<tr><td class="ln">15</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout pitfall"><div class="callout-label">常见错误</div><p>不要将 <code>include use case</code> 与 <code>specialize</code> 混淆。<strong>include</strong> 表示"执行期间包含另一个用例的行为"，而 <strong>specialize</strong> 表示"本用例是另一个用例的一种特化形式"。前者是组合关系，后者是泛化关系。</p></div>
+
+<!-- ===== 第 4 节：分析用例 ===== -->
+<span class="section-anchor" id="s4"></span><div class="section-header"><span class="section-num">4</span><h2>分析用例</h2></div>
+<p><code>analysis case def</code> 定义一个分析过程，它是 <code>CaseDefinition</code> 的特化形式。分析用例具有 <code>return</code> 结果，用于表达分析的输出。典型应用包括性能分析、可靠性分析和权衡研究。</p>
+
+<h3>基本分析用例</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">analysis case def 质量预算分析 {</td></tr>
+<tr><td class="ln">2</td><td class="lc">    subject vehicle : 车辆;</td></tr>
+<tr><td class="ln">3</td><td class="lc"></td></tr>
+<tr><td class="ln">4</td><td class="lc">    // 分析的返回值 — 总质量是否在预算内</td></tr>
+<tr><td class="ln">5</td><td class="lc">    return result : Boolean;</td></tr>
+<tr><td class="ln">6</td><td class="lc"></td></tr>
+<tr><td class="ln">7</td><td class="lc">    objective massObjective {</td></tr>
+<tr><td class="ln">8</td><td class="lc">        doc /* 验证总质量不超过 2000 kg */</td></tr>
+<tr><td class="ln">9</td><td class="lc">    }</td></tr>
+<tr><td class="ln">10</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>带计算步骤的分析用例</h3>
+<p>分析用例可以包含详细的计算步骤，形成一个完整的分析流程：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">analysis case def 功耗分析 {</td></tr>
+<tr><td class="ln">2</td><td class="lc">    subject system : 嵌入式系统;</td></tr>
+<tr><td class="ln">3</td><td class="lc"></td></tr>
+<tr><td class="ln">4</td><td class="lc">    in attribute 环境温度 : ISQ::ThermodynamicTemperatureValue;</td></tr>
+<tr><td class="ln">5</td><td class="lc">    in attribute 工作模式 : 运行模式;</td></tr>
+<tr><td class="ln">6</td><td class="lc"></td></tr>
+<tr><td class="ln">7</td><td class="lc">    return 功耗报告 : 功耗分析报告;</td></tr>
+<tr><td class="ln">8</td><td class="lc"></td></tr>
+<tr><td class="ln">9</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln">10</td><td class="lc">        doc /* 系统在所有工作模式下功耗不超过 50W */</td></tr>
+<tr><td class="ln">11</td><td class="lc">    }</td></tr>
+<tr><td class="ln">12</td><td class="lc"></td></tr>
+<tr><td class="ln">13</td><td class="lc">    // 分析步骤</td></tr>
+<tr><td class="ln">14</td><td class="lc">    action 收集参数 : 参数采集;</td></tr>
+<tr><td class="ln">15</td><td class="lc">    action 计算静态功耗 : 静态分析;</td></tr>
+<tr><td class="ln">16</td><td class="lc">    action 计算动态功耗 : 动态分析;</td></tr>
+<tr><td class="ln">17</td><td class="lc">    action 汇总报告 : 报告生成;</td></tr>
+<tr><td class="ln">18</td><td class="lc"></td></tr>
+<tr><td class="ln">19</td><td class="lc">    first 收集参数 then 计算静态功耗;</td></tr>
+<tr><td class="ln">20</td><td class="lc">    first 收集参数 then 计算动态功耗;</td></tr>
+<tr><td class="ln">21</td><td class="lc">    first 计算静态功耗 then 汇总报告;</td></tr>
+<tr><td class="ln">22</td><td class="lc">    first 计算动态功耗 then 汇总报告;</td></tr>
+<tr><td class="ln">23</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout note"><div class="callout-label">说明</div><p><code>analysis case</code> 与 <code>use case</code> 的关键区别在于：分析用例有 <code>return</code> 结果，代表分析过程产生的输出。分析用例通常没有 <code>actor</code>，因为它描述的是系统内部的分析过程，而非与外部实体的交互。</p></div>
+
+<!-- ===== 第 5 节：验证用例 ===== -->
+<span class="section-anchor" id="s5"></span><div class="section-header"><span class="section-num">5</span><h2>验证用例</h2></div>
+<p><code>verification case def</code> 定义一个验证流程，用于检验系统是否满足需求。它通过 <code>verify</code> 关键字将验证过程与需求关联起来。</p>
+
+<h3>基本验证用例</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">requirement def 响应时间需求 {</td></tr>
+<tr><td class="ln">2</td><td class="lc">    doc /* 系统响应时间不超过 100ms */</td></tr>
+<tr><td class="ln">3</td><td class="lc">    subject system : 控制系统;</td></tr>
+<tr><td class="ln">4</td><td class="lc">}</td></tr>
+<tr><td class="ln">5</td><td class="lc"></td></tr>
+<tr><td class="ln">6</td><td class="lc">verification case def 响应时间测试 {</td></tr>
+<tr><td class="ln">7</td><td class="lc">    subject system : 控制系统;</td></tr>
+<tr><td class="ln">8</td><td class="lc"></td></tr>
+<tr><td class="ln">9</td><td class="lc">    // 声明本验证用例验证哪个需求</td></tr>
+<tr><td class="ln">10</td><td class="lc">    verify requirement 响应时间需求;</td></tr>
+<tr><td class="ln">11</td><td class="lc"></td></tr>
+<tr><td class="ln">12</td><td class="lc">    return verdict : VerdictKind;  // pass / fail / inconclusive</td></tr>
+<tr><td class="ln">13</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>带测试步骤的验证用例</h3>
+<p>验证用例可以包含详细的测试步骤，形成可执行的测试流程：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">verification case def 制动距离验证 {</td></tr>
+<tr><td class="ln">2</td><td class="lc">    subject vehicle : 车辆;</td></tr>
+<tr><td class="ln">3</td><td class="lc"></td></tr>
+<tr><td class="ln">4</td><td class="lc">    verify requirement 制动性能需求;</td></tr>
+<tr><td class="ln">5</td><td class="lc"></td></tr>
+<tr><td class="ln">6</td><td class="lc">    return verdict : VerdictKind;</td></tr>
+<tr><td class="ln">7</td><td class="lc"></td></tr>
+<tr><td class="ln">8</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln">9</td><td class="lc">        doc /* 在干燥路面上 100km/h 制动距离 &lt; 40m */</td></tr>
+<tr><td class="ln">10</td><td class="lc">    }</td></tr>
+<tr><td class="ln">11</td><td class="lc"></td></tr>
+<tr><td class="ln">12</td><td class="lc">    // 测试步骤</td></tr>
+<tr><td class="ln">13</td><td class="lc">    action 准备测试环境 : 测试准备 {</td></tr>
+<tr><td class="ln">14</td><td class="lc">        doc /* 设置初始速度和路面条件 */</td></tr>
+<tr><td class="ln">15</td><td class="lc">    }</td></tr>
+<tr><td class="ln">16</td><td class="lc">    action 执行制动 : 制动测试;</td></tr>
+<tr><td class="ln">17</td><td class="lc">    action 测量距离 : 距离测量;</td></tr>
+<tr><td class="ln">18</td><td class="lc">    action 判定结果 : 结果评估;</td></tr>
+<tr><td class="ln">19</td><td class="lc"></td></tr>
+<tr><td class="ln">20</td><td class="lc">    first 准备测试环境 then 执行制动;</td></tr>
+<tr><td class="ln">21</td><td class="lc">    first 执行制动 then 测量距离;</td></tr>
+<tr><td class="ln">22</td><td class="lc">    first 测量距离 then 判定结果;</td></tr>
+<tr><td class="ln">23</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>验证用例与需求的追溯</h3>
+<p>一个验证用例可以验证多个需求，反之一个需求也可以被多个验证用例覆盖：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">verification case def 系统集成测试 {</td></tr>
+<tr><td class="ln">2</td><td class="lc">    subject system : 飞行控制系统;</td></tr>
+<tr><td class="ln">3</td><td class="lc"></td></tr>
+<tr><td class="ln">4</td><td class="lc">    // 一个验证用例可以验证多个需求</td></tr>
+<tr><td class="ln">5</td><td class="lc">    verify requirement 响应时间需求;</td></tr>
+<tr><td class="ln">6</td><td class="lc">    verify requirement 可靠性需求;</td></tr>
+<tr><td class="ln">7</td><td class="lc">    verify requirement 安全性需求;</td></tr>
+<tr><td class="ln">8</td><td class="lc"></td></tr>
+<tr><td class="ln">9</td><td class="lc">    return verdict : VerdictKind;</td></tr>
+<tr><td class="ln">10</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p><code>verification case</code> 的 <code>return</code> 类型通常为 <code>VerdictKind</code>，其取值包括 <code>pass</code>（通过）、<code>fail</code>（失败）和 <code>inconclusive</code>（不确定）。这与 KerML 的 <code>CalculationDefinition</code> 的 <code>result</code> 语义一致 &mdash; 验证用例本质上是一个返回判定结果的计算。</p></div>
+
+<!-- ===== 第 6 节：完整示例 ===== -->
+<span class="section-anchor" id="s6"></span><div class="section-header"><span class="section-num">6</span><h2>完整示例</h2></div>
+<p>以下模型集成了本模块的所有概念：一个无人机任务系统的用例模型，包含使用用例、分析用例和验证用例。</p>
+<pre class="lined"><code><table>
+<tr><td class="ln">1</td><td class="lc">package 无人机任务用例 {</td></tr>
+<tr><td class="ln">2</td><td class="lc">    private import ISQ::*;</td></tr>
+<tr><td class="ln">3</td><td class="lc">    private import SI::*;</td></tr>
+<tr><td class="ln">4</td><td class="lc"></td></tr>
+<tr><td class="ln">5</td><td class="lc">    // ── 零件定义 ─────────────────────────────────────</td></tr>
+<tr><td class="ln">6</td><td class="lc">    part def 无人机;</td></tr>
+<tr><td class="ln">7</td><td class="lc">    part def 地面站;</td></tr>
+<tr><td class="ln">8</td><td class="lc">    part def 操作员;</td></tr>
+<tr><td class="ln">9</td><td class="lc"></td></tr>
+<tr><td class="ln">10</td><td class="lc">    // ── 需求定义 ─────────────────────────────────────</td></tr>
+<tr><td class="ln">11</td><td class="lc">    requirement def 续航需求 {</td></tr>
+<tr><td class="ln">12</td><td class="lc">        doc /* 无人机续航时间不少于 30 分钟 */</td></tr>
+<tr><td class="ln">13</td><td class="lc">        subject uav : 无人机;</td></tr>
+<tr><td class="ln">14</td><td class="lc">    }</td></tr>
+<tr><td class="ln">15</td><td class="lc"></td></tr>
+<tr><td class="ln">16</td><td class="lc">    requirement def 通信距离需求 {</td></tr>
+<tr><td class="ln">17</td><td class="lc">        doc /* 通信距离不少于 5 km */</td></tr>
+<tr><td class="ln">18</td><td class="lc">        subject uav : 无人机;</td></tr>
+<tr><td class="ln">19</td><td class="lc">    }</td></tr>
+<tr><td class="ln">20</td><td class="lc"></td></tr>
+<tr><td class="ln">21</td><td class="lc">    // ── 使用用例：任务执行 ───────────────────────────</td></tr>
+<tr><td class="ln">22</td><td class="lc">    use case def 执行侦察任务 {</td></tr>
+<tr><td class="ln">23</td><td class="lc">        doc /* 无人机按操作员指令执行区域侦察 */</td></tr>
+<tr><td class="ln">24</td><td class="lc"></td></tr>
+<tr><td class="ln">25</td><td class="lc">        subject uav : 无人机;</td></tr>
+<tr><td class="ln">26</td><td class="lc">        actor op : 操作员;</td></tr>
+<tr><td class="ln">27</td><td class="lc">        actor gcs : 地面站;</td></tr>
+<tr><td class="ln">28</td><td class="lc"></td></tr>
+<tr><td class="ln">29</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln">30</td><td class="lc">            doc /* 完成指定区域的影像采集并安全返航 */</td></tr>
+<tr><td class="ln">31</td><td class="lc">        }</td></tr>
+<tr><td class="ln">32</td><td class="lc"></td></tr>
+<tr><td class="ln">33</td><td class="lc">        // 包含子用例</td></tr>
+<tr><td class="ln">34</td><td class="lc">        include use case preflight : 飞行前检查;</td></tr>
+<tr><td class="ln">35</td><td class="lc"></td></tr>
+<tr><td class="ln">36</td><td class="lc">        action 起飞 : 自动起飞;</td></tr>
+<tr><td class="ln">37</td><td class="lc">        action 巡航侦察 : 区域扫描;</td></tr>
+<tr><td class="ln">38</td><td class="lc">        action 返航着陆 : 自动返航;</td></tr>
+<tr><td class="ln">39</td><td class="lc"></td></tr>
+<tr><td class="ln">40</td><td class="lc">        first preflight then 起飞;</td></tr>
+<tr><td class="ln">41</td><td class="lc">        first 起飞 then 巡航侦察;</td></tr>
+<tr><td class="ln">42</td><td class="lc">        first 巡航侦察 then 返航着陆;</td></tr>
+<tr><td class="ln">43</td><td class="lc">    }</td></tr>
+<tr><td class="ln">44</td><td class="lc"></td></tr>
+<tr><td class="ln">45</td><td class="lc">    // ── 子用例：飞行前检查 ──────────────────────────</td></tr>
+<tr><td class="ln">46</td><td class="lc">    use case def 飞行前检查 {</td></tr>
+<tr><td class="ln">47</td><td class="lc">        subject uav : 无人机;</td></tr>
+<tr><td class="ln">48</td><td class="lc">        actor op : 操作员;</td></tr>
+<tr><td class="ln">49</td><td class="lc"></td></tr>
+<tr><td class="ln">50</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln">51</td><td class="lc">            doc /* 确认无人机处于可飞行状态 */</td></tr>
+<tr><td class="ln">52</td><td class="lc">        }</td></tr>
+<tr><td class="ln">53</td><td class="lc"></td></tr>
+<tr><td class="ln">54</td><td class="lc">        action 检查电池 : 电池状态检查;</td></tr>
+<tr><td class="ln">55</td><td class="lc">        action 检查通信 : 通信链路检查;</td></tr>
+<tr><td class="ln">56</td><td class="lc">        action 检查传感器 : 传感器校准;</td></tr>
+<tr><td class="ln">57</td><td class="lc"></td></tr>
+<tr><td class="ln">58</td><td class="lc">        // 三项检查并行执行</td></tr>
+<tr><td class="ln">59</td><td class="lc">        fork;</td></tr>
+<tr><td class="ln">60</td><td class="lc">            检查电池;</td></tr>
+<tr><td class="ln">61</td><td class="lc">            检查通信;</td></tr>
+<tr><td class="ln">62</td><td class="lc">            检查传感器;</td></tr>
+<tr><td class="ln">63</td><td class="lc">        join;</td></tr>
+<tr><td class="ln">64</td><td class="lc">    }</td></tr>
+<tr><td class="ln">65</td><td class="lc"></td></tr>
+<tr><td class="ln">66</td><td class="lc">    // ── 分析用例：续航分析 ──────────────────────────</td></tr>
+<tr><td class="ln">67</td><td class="lc">    analysis case def 续航时间分析 {</td></tr>
+<tr><td class="ln">68</td><td class="lc">        subject uav : 无人机;</td></tr>
+<tr><td class="ln">69</td><td class="lc"></td></tr>
+<tr><td class="ln">70</td><td class="lc">        in attribute 载荷质量 : ISQ::MassValue;</td></tr>
+<tr><td class="ln">71</td><td class="lc">        in attribute 风速 : ISQ::SpeedValue;</td></tr>
+<tr><td class="ln">72</td><td class="lc"></td></tr>
+<tr><td class="ln">73</td><td class="lc">        return 预计续航 : ISQ::DurationValue;</td></tr>
+<tr><td class="ln">74</td><td class="lc"></td></tr>
+<tr><td class="ln">75</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln">76</td><td class="lc">            doc /* 在给定载荷和风速下计算预计续航时间 */</td></tr>
+<tr><td class="ln">77</td><td class="lc">        }</td></tr>
+<tr><td class="ln">78</td><td class="lc"></td></tr>
+<tr><td class="ln">79</td><td class="lc">        action 计算悬停功耗 : 悬停功耗模型;</td></tr>
+<tr><td class="ln">80</td><td class="lc">        action 计算巡航功耗 : 巡航功耗模型;</td></tr>
+<tr><td class="ln">81</td><td class="lc">        action 计算总续航 : 续航综合计算;</td></tr>
+<tr><td class="ln">82</td><td class="lc"></td></tr>
+<tr><td class="ln">83</td><td class="lc">        first 计算悬停功耗 then 计算总续航;</td></tr>
+<tr><td class="ln">84</td><td class="lc">        first 计算巡航功耗 then 计算总续航;</td></tr>
+<tr><td class="ln">85</td><td class="lc">    }</td></tr>
+<tr><td class="ln">86</td><td class="lc"></td></tr>
+<tr><td class="ln">87</td><td class="lc">    // ── 验证用例：续航验证 ──────────────────────────</td></tr>
+<tr><td class="ln">88</td><td class="lc">    verification case def 续航验证测试 {</td></tr>
+<tr><td class="ln">89</td><td class="lc">        subject uav : 无人机;</td></tr>
+<tr><td class="ln">90</td><td class="lc"></td></tr>
+<tr><td class="ln">91</td><td class="lc">        verify requirement 续航需求;</td></tr>
+<tr><td class="ln">92</td><td class="lc"></td></tr>
+<tr><td class="ln">93</td><td class="lc">        return verdict : VerdictKind;</td></tr>
+<tr><td class="ln">94</td><td class="lc"></td></tr>
+<tr><td class="ln">95</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln">96</td><td class="lc">            doc /* 实际飞行测试确认续航 >= 30 分钟 */</td></tr>
+<tr><td class="ln">97</td><td class="lc">        }</td></tr>
+<tr><td class="ln">98</td><td class="lc"></td></tr>
+<tr><td class="ln">99</td><td class="lc">        action 充满电池 : 电池充电;</td></tr>
+<tr><td class="ln">100</td><td class="lc">        action 标准载荷飞行 : 续航飞行测试;</td></tr>
+<tr><td class="ln">101</td><td class="lc">        action 记录时间 : 飞行时间记录;</td></tr>
+<tr><td class="ln">102</td><td class="lc">        action 评估结果 : 判定评估;</td></tr>
+<tr><td class="ln">103</td><td class="lc"></td></tr>
+<tr><td class="ln">104</td><td class="lc">        first 充满电池 then 标准载荷飞行;</td></tr>
+<tr><td class="ln">105</td><td class="lc">        first 标准载荷飞行 then 记录时间;</td></tr>
+<tr><td class="ln">106</td><td class="lc">        first 记录时间 then 评估结果;</td></tr>
+<tr><td class="ln">107</td><td class="lc">    }</td></tr>
+<tr><td class="ln">108</td><td class="lc"></td></tr>
+<tr><td class="ln">109</td><td class="lc">    // ── 验证用例：通信距离验证 ──────────────────────</td></tr>
+<tr><td class="ln">110</td><td class="lc">    verification case def 通信距离验证测试 {</td></tr>
+<tr><td class="ln">111</td><td class="lc">        subject uav : 无人机;</td></tr>
+<tr><td class="ln">112</td><td class="lc"></td></tr>
+<tr><td class="ln">113</td><td class="lc">        verify requirement 通信距离需求;</td></tr>
+<tr><td class="ln">114</td><td class="lc"></td></tr>
+<tr><td class="ln">115</td><td class="lc">        return verdict : VerdictKind;</td></tr>
+<tr><td class="ln">116</td><td class="lc">    }</td></tr>
+<tr><td class="ln">117</td><td class="lc">}</td></tr>
+</table></code></pre>
+<p>此模型展示了：<strong>use case def</strong>（使用用例定义与参与者交互）、<strong>include use case</strong>（用例组合）、<strong>analysis case def</strong>（带返回值的分析过程）、<strong>verification case def</strong>（带 verify 链接的验证流程）、以及 <strong>objective</strong>（每个用例的目标需求）。</p>
+
+<!-- ===== 第 7 节：模块总结 ===== -->
+<span class="section-anchor" id="s7"></span><div class="section-header"><span class="section-num">7</span><h2>模块总结</h2></div>
+<table><thead><tr><th>SysML v2 概念</th><th>KerML 起源</th><th>关键规则</th></tr></thead><tbody>
+<tr><td><code>use case def</code></td><td><code>CaseDefinition</code></td><td>描述系统与参与者之间的交互场景；有 subject、actor 和 objective</td></tr>
+<tr><td><code>use case</code>（用法）</td><td>类型为 <code>CaseDefinition</code> 的 Feature</td><td>在包或零件内实例化用例</td></tr>
+<tr><td><code>subject</code></td><td><code>SubjectMembership</code></td><td>标识用例所描述的系统；每个用例只有一个 subject</td></tr>
+<tr><td><code>actor</code></td><td><code>PartUsage</code> + actor 方向</td><td>声明外部参与者；可以有多个</td></tr>
+<tr><td><code>objective</code></td><td><code>ObjectiveMembership</code></td><td>用例需要满足的目标需求；本质上是一个 RequirementUsage</td></tr>
+<tr><td><code>include use case</code></td><td><code>IncludeUseCaseUsage</code></td><td>组合复用：在执行期间包含另一个用例的行为</td></tr>
+<tr><td><code>analysis case def</code></td><td><code>AnalysisCaseDefinition</code></td><td>定义分析过程；有 return 结果</td></tr>
+<tr><td><code>verification case def</code></td><td><code>VerificationCaseDefinition</code></td><td>定义验证流程；用 verify 链接需求</td></tr>
+<tr><td><code>verify requirement</code></td><td><code>RequirementVerification</code></td><td>声明验证用例与需求之间的追溯关系</td></tr>
+<tr><td><code>return</code></td><td><code>ResultExpressionMembership</code></td><td>继承自 Calculation；分析和验证用例的输出</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 &mdash; 模块 6 概念及其 KerML 起源</caption></table>
+
+<div class="next-box"><div class="next-label">下一步</div><p><a href="SysMLv2_Module7_AnalysisTradeoffs_ZH.html" style="color:var(--navy);text-decoration:none;">模块 7 &mdash; 分析与权衡</a> &mdash; 分析用例的深入应用、权衡研究和多目标优化。</p></div>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{const h=document.documentElement;pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});}
+window.addEventListener('scroll',activateNav,{passive:true});activateNav();
+</script>
+</body></html>

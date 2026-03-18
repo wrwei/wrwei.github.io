@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysML v2 Module 6: Cases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:220px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:#fff}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;background:none}pre.lined table{border-collapse:collapse;width:100%;min-width:max-content}pre.lined td{padding:0;border:none;background:none;font-family:var(--font-mono);font-size:.88rem;line-height:1.7;color:var(--code-text)}pre.lined td.ln{width:2.8em;min-width:2.8em;text-align:right;padding-right:.75em;color:#94A3B8;user-select:none;border-right:1px solid #E2E8F0}pre.lined td.lc{padding-left:.9em;white-space:pre}pre.lined tr:hover td{background:rgba(14,165,233,.06)}
+</style></head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">SysML v2 Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">Module 6</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 6 of 9</button>
+    <div class="dropdown-menu">
+      <a href="SysMLv2_Module1_Foundations_EN.html">1 &mdash; Foundations</a>
+      <a href="SysMLv2_Module2_CoreLanguage_EN.html">2 &mdash; Core Language Concepts</a>
+      <a href="SysMLv2_Module3_StructureModelling_EN.html">3 &mdash; Structure Modelling</a>
+      <a href="SysMLv2_Module4_BehaviourModelling_EN.html">4 &mdash; Behaviour Modelling</a>
+      <a href="SysMLv2_Module5_Requirements_EN.html">5 &mdash; Requirements &amp; Constraints</a>
+      <a href="SysMLv2_Module6_Cases_EN.html" class="active">6 &mdash; Cases</a>
+      <a href="SysMLv2_Module7_AnalysisTradeStudies_EN.html">7 &mdash; Analysis &amp; Trade Studies</a>
+      <a href="SysMLv2_Module8_Views_EN.html">8 &mdash; Views &amp; Viewpoints</a>
+      <a href="SysMLv2_Module9_Advanced_EN.html">9 &mdash; Advanced Topics</a>
+    </div>
+  </div>
+  <a href="SysMLv2_Module6_Cases_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">&#20013;&#25991;</a>
+</header>
+<div id="layout">
+  <aside id="sidebar"><div class="sidebar-label">Contents</div><nav><a href="#s0"><span class="num">&#9733;</span>KerML &#8594; SysML Bridge</a><a href="#s1"><span class="num">1</span>Use Case Definitions</a><a href="#s2"><span class="num">2</span>Actors &amp; Subjects</a><a href="#s3"><span class="num">3</span>Include Use Cases</a><a href="#s4"><span class="num">4</span>Analysis Cases</a><a href="#s5"><span class="num">5</span>Verification Cases</a><a href="#s6"><span class="num">6</span>Complete Worked Example</a><a href="#s7"><span class="num">7</span>Module Summary</a></nav></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">SysML v2 &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 6: <em>Cases</em></h1>
+      <p class="module-lead">How to describe system scenarios with use cases, evaluate design alternatives with analysis cases, and verify requirements with verification cases &#8212; the three pillars of SysML v2 case modelling.</p>
+    </div>
+
+<span class="section-anchor" id="s0"></span><div class="section-header"><span class="section-num">&#9733;</span><h2>KerML &#8594; SysML: Case Concepts</h2></div>
+<p>SysML v2 cases are specialised behaviours. Every case definition ultimately inherits from KerML&#8217;s <code>CaseDefinition</code>, which itself specialises <code>Behavior</code> from the Occurrence layer. Cases add structured semantics &#8212; actors, subjects, objectives &#8212; on top of the general behavioural machinery covered in Module 4.</p>
+<table><thead><tr><th>SysML v2 concept (L2)</th><th>Underlying KerML construct (L1)</th><th>What SysML adds</th></tr></thead><tbody>
+<tr><td><code>use case def</code></td><td><code>UseCaseDefinition</code> specialising <code>CaseDefinition</code> &#8594; <code>Behavior</code></td><td>Structures system behaviour around user goals; adds actor and subject semantics</td></tr>
+<tr><td><code>use case</code> (usage)</td><td>Feature typed by <code>UseCaseDefinition</code></td><td>A concrete scenario instance within a system or package context</td></tr>
+<tr><td><code>actor</code></td><td><code>PartDefinition</code> with <code>ActorMembership</code></td><td>Marks a part as an external entity interacting with the system under consideration</td></tr>
+<tr><td><code>subject</code></td><td><code>SubjectMembership</code> on a <code>CaseDefinition</code></td><td>Identifies the system or component being described by the case</td></tr>
+<tr><td><code>objective</code></td><td><code>RequirementUsage</code> owned by the case via <code>ObjectiveMembership</code></td><td>States the goal the case aims to achieve or verify; a requirement on the outcome</td></tr>
+<tr><td><code>include use case</code></td><td><code>IncludeUseCaseUsage</code> (a <code>PerformActionUsage</code>)</td><td>Composes a use case by invoking another use case as a sub-step</td></tr>
+<tr><td><code>analysis case def</code></td><td><code>AnalysisCaseDefinition</code> specialising <code>CaseDefinition</code></td><td>Adds return attributes for analytical evaluation; structures trade study inputs</td></tr>
+<tr><td><code>analysis case</code> (usage)</td><td>Feature typed by <code>AnalysisCaseDefinition</code></td><td>A concrete analytical evaluation within a model context</td></tr>
+<tr><td><code>verification case def</code></td><td><code>VerificationCaseDefinition</code> specialising <code>CaseDefinition</code></td><td>Links to requirements via <code>verify requirement</code>; structures V&amp;V activities</td></tr>
+<tr><td><code>verification case</code> (usage)</td><td>Feature typed by <code>VerificationCaseDefinition</code></td><td>A concrete verification procedure bound to a specific requirement</td></tr>
+<tr><td><code>verify requirement</code></td><td><code>RequirementVerificationMembership</code></td><td>Declares that a verification case verifies a particular requirement</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 0 &#8212; Module 6 SysML v2 (L2) case concepts mapped to KerML (L1) origins</caption></table>
+<div class="callout note"><div class="callout-label">NOTE</div><p>All three case types &#8212; use case, analysis case, verification case &#8212; share a common ancestor: <code>CaseDefinition</code>. This means they all support <code>subject</code>, <code>objective</code>, and <code>actor</code> keywords. The differences lie in their intended purpose and the additional semantics each adds (e.g., <code>return</code> for analysis cases, <code>verify requirement</code> for verification cases).</p></div>
+
+<span class="section-anchor" id="s1"></span><div class="section-header"><span class="section-num">1</span><h2>Use Case Definitions</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>use case def</code> &#8594; <code>UseCaseDefinition</code> specialising <code>CaseDefinition</code> &#8594; <code>Behavior</code></p>
+<p>A <strong>use case</strong> describes a sequence of actions that a system performs to deliver a result of value to an actor. In SysML v2, use cases are first-class behaviours: they have sub-actions, parameters, and control flow, just like the actions in Module 4. The difference is that a use case adds the concept of an <em>objective</em> &#8212; a requirement that describes what the use case is meant to achieve.</p>
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of a use case as a recipe: it has a goal (a delicious meal), a subject (the kitchen), actors (the chef, the supplier), and a sequence of steps. The recipe is not the meal itself &#8212; it is the description of how the meal gets made.</p></div>
+
+<h3>Defining a use case</h3>
+<p>The <code>use case def</code> keyword declares a reusable use case template. The body contains actions that describe the scenario flow:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">use case def DriveToDestination {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    doc /* The driver requests a route and the vehicle</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">         navigates autonomously to the destination. */</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        doc /* Vehicle arrives at the requested destination</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">             safely and within the estimated time. */</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    action enterDestination;     // step 1</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    action computeRoute;         // step 2</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    action navigateRoute;        // step 3</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    action arriveAtDestination;  // step 4</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    first enterDestination then computeRoute;</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    first computeRoute then navigateRoute;</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    first navigateRoute then arriveAtDestination;</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>Use case usages</h3>
+<p>A <code>use case</code> usage instantiates a use case definition in a specific context, binding it to a particular system or package:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">package AutonomousVehicleUseCases {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    use case driveCommute : DriveToDestination {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">        doc /* Daily commute scenario with familiar route. */</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    use case driveEmergency : DriveToDestination {</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        doc /* Emergency routing to nearest hospital. */</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">}</td></tr>
+</table></code></pre>
+<div class="callout note"><div class="callout-label">NOTE</div><p>Because <code>use case def</code> specialises <code>CaseDefinition</code> which specialises <code>Behavior</code>, a use case body supports the full range of action constructs: <code>first/then</code>, <code>if/else</code>, <code>fork/join</code>, parameters, and item flows. A use case is not merely a textual description &#8212; it is an executable behavioural specification.</p></div>
+
+<span class="section-anchor" id="s2"></span><div class="section-header"><span class="section-num">2</span><h2>Actors &amp; Subjects</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>actor</code> &#8594; <code>PartDefinition</code> with <code>ActorMembership</code>; &nbsp;<code>subject</code> &#8594; <code>SubjectMembership</code></p>
+<p>Every case has a <strong>subject</strong> &#8212; the system or component being described &#8212; and one or more <strong>actors</strong> &#8212; external entities that interact with the subject. The <code>subject</code> keyword declares a part that the case is about; the <code>actor</code> keyword declares parts that participate from outside.</p>
+
+<h3>Declaring actors and subjects</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">part def Driver;       // external human actor</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">part def CloudService; // external system actor</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">part def Vehicle;      // the system under design</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">use case def DriveToDestination {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    subject vehicle : Vehicle;      // the system being described</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    actor driver : Driver;          // human interacting with the vehicle</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    actor cloud  : CloudService;    // external service providing maps</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">        doc /* Vehicle arrives safely at destination. */</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    action driver.enterDestination;  // actor initiates the flow</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    action cloud.computeRoute;       // actor provides route data</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    action vehicle.navigate;         // subject performs navigation</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">}</td></tr>
+</table></code></pre>
+<div class="callout tip"><div class="callout-label">TIP</div><p>The <code>subject</code> and <code>actor</code> keywords are available on all case types &#8212; use cases, analysis cases, and verification cases. They establish the boundary between the system being modelled and its environment.</p></div>
+
+<h3>Actors as part definitions</h3>
+<p>Actors are not a special kind of element &#8212; they are ordinary <code>PartDefinition</code> instances that happen to be referenced via <code>ActorMembership</code>. This means actors can have their own attributes, ports, and behaviours:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">part def Driver {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    attribute name : String;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    attribute licenseLevel : LicenseType;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    port driverInterface : DriverHMI;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+</table></code></pre>
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>Do not confuse <code>actor</code> with a SysML v1 stereotype. In SysML v2, <code>actor</code> is a membership role, not a classifier kind. The same <code>PartDefinition</code> can be an actor in one use case and a subject in another &#8212; the role depends on the case context, not the definition.</p></div>
+
+<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>Include Use Cases</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>include use case</code> &#8594; <code>IncludeUseCaseUsage</code> (a <code>PerformActionUsage</code>)</p>
+<p>Use cases can be <strong>composed</strong> by including other use cases as sub-steps. The <code>include use case</code> statement invokes a use case definition within the body of another, similar to how <code>perform action</code> invokes an action definition.</p>
+
+<h3>Composing use cases</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">use case def Authenticate {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    actor driver : Driver;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    action scanBiometrics;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    action validateIdentity;</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    first scanBiometrics then validateIdentity;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">use case def DriveToDestination {</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    actor driver : Driver;</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    // Include authentication as a prerequisite step</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    include use case auth : Authenticate;</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    action computeRoute;</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">    action navigateRoute;</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">    first auth then computeRoute;</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">    first computeRoute then navigateRoute;</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>Specialising use cases</h3>
+<p>Use case definitions can specialise other use case definitions using <code>specializes</code>, inheriting all actors, subjects, and steps while adding or overriding specifics:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">use case def DriveInBadWeather specializes DriveToDestination {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    doc /* Extends base driving use case with weather-specific</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">         precautions: reduced speed limits and sensor recalibration. */</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    action recalibrateSensors;  // additional step</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    first auth then recalibrateSensors;</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    first recalibrateSensors then computeRoute;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
+</table></code></pre>
+<div class="callout note"><div class="callout-label">NOTE</div><p><code>include use case</code> is composition (the included use case runs as part of the including one). Specialisation (<code>specializes</code>) is inheritance (the child use case <em>is</em> a kind of the parent). Both are valid ways to build up complex use case hierarchies, but they have different semantics.</p></div>
+
+<span class="section-anchor" id="s4"></span><div class="section-header"><span class="section-num">4</span><h2>Analysis Cases</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>analysis case def</code> &#8594; <code>AnalysisCaseDefinition</code> specialising <code>CaseDefinition</code></p>
+<p>An <strong>analysis case</strong> is a case designed to evaluate alternatives and compute results. Unlike a use case (which describes a scenario), an analysis case produces a <strong>return value</strong> &#8212; the result of the analytical evaluation. Analysis cases are the foundation for trade studies in Module 7.</p>
+
+<h3>Defining an analysis case</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">analysis case def EvaluateSensorConfig {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        doc /* Determine which sensor configuration provides</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">             the best detection range at acceptable cost. */</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    in attribute sensorOptions : SensorConfig[1..*];</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    in attribute costLimit : ISQ::MassValue;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    // The return attribute holds the analysis result</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    return attribute bestConfig : SensorConfig;</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>Analysis case with evaluation logic</h3>
+<p>The body of an analysis case can contain actions that perform calculations, filter alternatives, and produce the return value:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">analysis case def CompareBrakingSystems {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        doc /* Select braking system with shortest stopping</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">             distance under standard test conditions. */</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    in attribute candidates : BrakeSystem[1..*];</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    return attribute selectedBrake : BrakeSystem;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    action computeStoppingDistance {</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        in attribute brake : BrakeSystem;</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">        out attribute distance : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    action rankCandidates {</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">        in attribute results : ISQ::LengthValue[1..*];</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">        out attribute winner : BrakeSystem;</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">}</td></tr>
+</table></code></pre>
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>An analysis case is like a scientific experiment: it has a hypothesis (objective), controlled inputs (parameters), a procedure (actions), and a conclusion (return value). The case packages all of these into a single reusable element that can be invoked by a trade study.</p></div>
+<div class="callout tip"><div class="callout-label">TIP</div><p>The <code>return</code> keyword on an analysis case parameter is what distinguishes it from a plain use case. The return attribute is the computed result that downstream trade studies or decisions consume. Without <code>return</code>, you have a use case; with it, you have an analysis case.</p></div>
+
+<span class="section-anchor" id="s5"></span><div class="section-header"><span class="section-num">5</span><h2>Verification Cases</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>verification case def</code> &#8594; <code>VerificationCaseDefinition</code> specialising <code>CaseDefinition</code></p>
+<p>A <strong>verification case</strong> describes a procedure that checks whether a system satisfies a specific requirement. It links the behavioural world (test procedures, simulations) to the requirement world (Module 5) through the <code>verify requirement</code> statement.</p>
+
+<h3>Defining a verification case</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">requirement def BrakingDistanceReq {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    doc /* The vehicle shall stop within 40 metres</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">         from 100 km/h on dry pavement. */</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    require constraint {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        vehicle.stoppingDistance &lt;= 40 [m]</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">verification case def VerifyBrakingDistance {</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">        verify requirement brakingReq : BrakingDistanceReq;</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    action accelerateTo100;</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">    action applyFullBrake;</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    action measureDistance;</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">    first accelerateTo100 then applyFullBrake;</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">    first applyFullBrake then measureDistance;</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>The verify requirement statement</h3>
+<p>The <code>verify requirement</code> statement inside a verification case&#8217;s <code>objective</code> creates a formal link between the verification procedure and the requirement being tested. This is the SysML v2 mechanism for traceability from V&amp;V activities back to requirements:</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">requirement def MaxLatencyReq {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    subject sys : AutonomousSystem;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    require constraint { sys.responseTime &lt;= 100 [ms] }</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">verification case def VerifyLatency {</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    subject sys : AutonomousSystem;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    objective {</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">        verify requirement latencyReq : MaxLatencyReq;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    action injectStimulus;</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    action measureResponse;</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    action compareToThreshold;</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    first injectStimulus then measureResponse;</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">    first measureResponse then compareToThreshold;</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">}</td></tr>
+</table></code></pre>
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>A verification case does not automatically <em>run</em> the test. It <em>describes</em> the test procedure and links it to the requirement. Execution is the responsibility of tooling (simulation, test harnesses). The model captures the what and why; the tool provides the how.</p></div>
+<div class="callout note"><div class="callout-label">NOTE</div><p>A single verification case can verify multiple requirements by listing several <code>verify requirement</code> statements inside its objective. Conversely, the same requirement can be referenced by multiple verification cases, enabling different verification methods (test, analysis, inspection, demonstration) for the same requirement.</p></div>
+
+<span class="section-anchor" id="s6"></span><div class="section-header"><span class="section-num">6</span><h2>Complete Worked Example</h2></div>
+<p>The following model integrates all three case types for an autonomous vehicle system: use cases for driving scenarios, an analysis case for sensor evaluation, and a verification case for braking compliance.</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc">package AutonomousVehicleCases {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    private import ISQ::*;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    private import SI::*;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    private import ScalarValues::*;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    // ── Part definitions ─────────────────────────────────────</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    part def Vehicle {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        attribute stoppingDistance : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">        attribute responseTime : ISQ::TimeValue;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">        part sensorSuite : SensorSuite;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">        part brakingSystem : BrakeSystem;</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    part def Driver;</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    part def TrafficAuthority;</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    part def SensorSuite {</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">        attribute detectionRange : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">        attribute cost : Real;</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">    part def BrakeSystem {</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">        attribute maxDeceleration : ISQ::AccelerationValue;</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">    part def SensorConfig {</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">        attribute lidarCount : Integer;</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">        attribute cameraCount : Integer;</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">        attribute totalCost : Real;</td></tr>
+<tr><td class="ln" select="none">27</td><td class="lc">        attribute effectiveRange : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">28</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">29</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">30</td><td class="lc">    // ── Requirements ─────────────────────────────────────────</td></tr>
+<tr><td class="ln" select="none">31</td><td class="lc">    requirement def BrakingDistanceReq {</td></tr>
+<tr><td class="ln" select="none">32</td><td class="lc">        doc /* Vehicle shall stop within 40 m from 100 km/h</td></tr>
+<tr><td class="ln" select="none">33</td><td class="lc">             on dry pavement. */</td></tr>
+<tr><td class="ln" select="none">34</td><td class="lc">        subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">35</td><td class="lc">        require constraint {</td></tr>
+<tr><td class="ln" select="none">36</td><td class="lc">            vehicle.stoppingDistance &lt;= 40 [m]</td></tr>
+<tr><td class="ln" select="none">37</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">38</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">39</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">40</td><td class="lc">    requirement def SensorRangeReq {</td></tr>
+<tr><td class="ln" select="none">41</td><td class="lc">        doc /* Sensor suite shall detect obstacles at 200 m. */</td></tr>
+<tr><td class="ln" select="none">42</td><td class="lc">        subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">43</td><td class="lc">        require constraint {</td></tr>
+<tr><td class="ln" select="none">44</td><td class="lc">            vehicle.sensorSuite.detectionRange &gt;= 200 [m]</td></tr>
+<tr><td class="ln" select="none">45</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">46</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">47</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">48</td><td class="lc">    // ── Use Case: Drive to Destination ───────────────────────</td></tr>
+<tr><td class="ln" select="none">49</td><td class="lc">    use case def DriveToDestination {</td></tr>
+<tr><td class="ln" select="none">50</td><td class="lc">        subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">51</td><td class="lc">        actor driver : Driver;</td></tr>
+<tr><td class="ln" select="none">52</td><td class="lc">        actor traffic : TrafficAuthority;</td></tr>
+<tr><td class="ln" select="none">53</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">54</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln" select="none">55</td><td class="lc">            doc /* Vehicle arrives at destination safely</td></tr>
+<tr><td class="ln" select="none">56</td><td class="lc">                 and within estimated time. */</td></tr>
+<tr><td class="ln" select="none">57</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">58</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">59</td><td class="lc">        action enterDestination;</td></tr>
+<tr><td class="ln" select="none">60</td><td class="lc">        action planRoute;</td></tr>
+<tr><td class="ln" select="none">61</td><td class="lc">        action engageAutopilot;</td></tr>
+<tr><td class="ln" select="none">62</td><td class="lc">        action monitorTraffic;</td></tr>
+<tr><td class="ln" select="none">63</td><td class="lc">        action arriveAtDestination;</td></tr>
+<tr><td class="ln" select="none">64</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">65</td><td class="lc">        first enterDestination then planRoute;</td></tr>
+<tr><td class="ln" select="none">66</td><td class="lc">        first planRoute then engageAutopilot;</td></tr>
+<tr><td class="ln" select="none">67</td><td class="lc">        first engageAutopilot then monitorTraffic;</td></tr>
+<tr><td class="ln" select="none">68</td><td class="lc">        first monitorTraffic then arriveAtDestination;</td></tr>
+<tr><td class="ln" select="none">69</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">70</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">71</td><td class="lc">    // ── Use Case: Emergency Stop ─────────────────────────────</td></tr>
+<tr><td class="ln" select="none">72</td><td class="lc">    use case def EmergencyStop {</td></tr>
+<tr><td class="ln" select="none">73</td><td class="lc">        subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">74</td><td class="lc">        actor driver : Driver;</td></tr>
+<tr><td class="ln" select="none">75</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">76</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln" select="none">77</td><td class="lc">            doc /* Vehicle comes to a complete stop as</td></tr>
+<tr><td class="ln" select="none">78</td><td class="lc">                 quickly as safely possible. */</td></tr>
+<tr><td class="ln" select="none">79</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">80</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">81</td><td class="lc">        action detectObstacle;</td></tr>
+<tr><td class="ln" select="none">82</td><td class="lc">        action activateEmergencyBrake;</td></tr>
+<tr><td class="ln" select="none">83</td><td class="lc">        action notifyDriver;</td></tr>
+<tr><td class="ln" select="none">84</td><td class="lc">        action recordIncident;</td></tr>
+<tr><td class="ln" select="none">85</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">86</td><td class="lc">        first detectObstacle then activateEmergencyBrake;</td></tr>
+<tr><td class="ln" select="none">87</td><td class="lc">        first activateEmergencyBrake then notifyDriver;</td></tr>
+<tr><td class="ln" select="none">88</td><td class="lc">        first notifyDriver then recordIncident;</td></tr>
+<tr><td class="ln" select="none">89</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">90</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">91</td><td class="lc">    // ── Analysis Case: Evaluate Sensor Configurations ────────</td></tr>
+<tr><td class="ln" select="none">92</td><td class="lc">    analysis case def EvaluateSensorConfig {</td></tr>
+<tr><td class="ln" select="none">93</td><td class="lc">        subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">94</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">95</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln" select="none">96</td><td class="lc">            doc /* Determine the sensor configuration that</td></tr>
+<tr><td class="ln" select="none">97</td><td class="lc">                 maximises detection range within budget. */</td></tr>
+<tr><td class="ln" select="none">98</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">99</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">100</td><td class="lc">        in attribute configs : SensorConfig[1..*];</td></tr>
+<tr><td class="ln" select="none">101</td><td class="lc">        in attribute budget  : Real;</td></tr>
+<tr><td class="ln" select="none">102</td><td class="lc">        return attribute bestConfig : SensorConfig;</td></tr>
+<tr><td class="ln" select="none">103</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">104</td><td class="lc">        action filterByBudget {</td></tr>
+<tr><td class="ln" select="none">105</td><td class="lc">            in attribute allConfigs : SensorConfig[1..*];</td></tr>
+<tr><td class="ln" select="none">106</td><td class="lc">            in attribute maxCost : Real;</td></tr>
+<tr><td class="ln" select="none">107</td><td class="lc">            out attribute affordable : SensorConfig[1..*];</td></tr>
+<tr><td class="ln" select="none">108</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">109</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">110</td><td class="lc">        action rankByRange {</td></tr>
+<tr><td class="ln" select="none">111</td><td class="lc">            in attribute candidates : SensorConfig[1..*];</td></tr>
+<tr><td class="ln" select="none">112</td><td class="lc">            out attribute ranked : SensorConfig;</td></tr>
+<tr><td class="ln" select="none">113</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">114</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">115</td><td class="lc">        flow filterByBudget.affordable to rankByRange.candidates;</td></tr>
+<tr><td class="ln" select="none">116</td><td class="lc">        first filterByBudget then rankByRange;</td></tr>
+<tr><td class="ln" select="none">117</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">118</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">119</td><td class="lc">    // ── Verification Case: Braking Distance ──────────────────</td></tr>
+<tr><td class="ln" select="none">120</td><td class="lc">    verification case def VerifyBrakingDistance {</td></tr>
+<tr><td class="ln" select="none">121</td><td class="lc">        subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">122</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">123</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln" select="none">124</td><td class="lc">            verify requirement : BrakingDistanceReq;</td></tr>
+<tr><td class="ln" select="none">125</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">126</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">127</td><td class="lc">        action accelerateTo100 {</td></tr>
+<tr><td class="ln" select="none">128</td><td class="lc">            doc /* Bring vehicle to 100 km/h on dry test track. */</td></tr>
+<tr><td class="ln" select="none">129</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">130</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">131</td><td class="lc">        action applyFullBrake {</td></tr>
+<tr><td class="ln" select="none">132</td><td class="lc">            doc /* Apply maximum braking force. */</td></tr>
+<tr><td class="ln" select="none">133</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">134</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">135</td><td class="lc">        action measureStoppingDistance {</td></tr>
+<tr><td class="ln" select="none">136</td><td class="lc">            out attribute measuredDistance : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">137</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">138</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">139</td><td class="lc">        action evaluateResult {</td></tr>
+<tr><td class="ln" select="none">140</td><td class="lc">            in attribute distance : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">141</td><td class="lc">            doc /* Compare measured distance against 40 m limit. */</td></tr>
+<tr><td class="ln" select="none">142</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">143</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">144</td><td class="lc">        flow measureStoppingDistance.measuredDistance</td></tr>
+<tr><td class="ln" select="none">145</td><td class="lc">            to evaluateResult.distance;</td></tr>
+<tr><td class="ln" select="none">146</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">147</td><td class="lc">        first accelerateTo100 then applyFullBrake;</td></tr>
+<tr><td class="ln" select="none">148</td><td class="lc">        first applyFullBrake then measureStoppingDistance;</td></tr>
+<tr><td class="ln" select="none">149</td><td class="lc">        first measureStoppingDistance then evaluateResult;</td></tr>
+<tr><td class="ln" select="none">150</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">151</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">152</td><td class="lc">    // ── Verification Case: Sensor Range ──────────────────────</td></tr>
+<tr><td class="ln" select="none">153</td><td class="lc">    verification case def VerifySensorRange {</td></tr>
+<tr><td class="ln" select="none">154</td><td class="lc">        subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">155</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">156</td><td class="lc">        objective {</td></tr>
+<tr><td class="ln" select="none">157</td><td class="lc">            verify requirement : SensorRangeReq;</td></tr>
+<tr><td class="ln" select="none">158</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">159</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">160</td><td class="lc">        action placeTargetAt200m;</td></tr>
+<tr><td class="ln" select="none">161</td><td class="lc">        action runDetectionSweep;</td></tr>
+<tr><td class="ln" select="none">162</td><td class="lc">        action confirmDetection;</td></tr>
+<tr><td class="ln" select="none">163</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">164</td><td class="lc">        first placeTargetAt200m then runDetectionSweep;</td></tr>
+<tr><td class="ln" select="none">165</td><td class="lc">        first runDetectionSweep then confirmDetection;</td></tr>
+<tr><td class="ln" select="none">166</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">167</td><td class="lc">}</td></tr>
+</table></code></pre>
+<p>This model demonstrates: <strong>use case definitions</strong> with actors, subjects, and objectives for driving scenarios; an <strong>analysis case</strong> with input parameters, return value, and evaluation actions for sensor selection; and <strong>verification cases</strong> with <code>verify requirement</code> linking test procedures to formal requirements. All three case types share the same <code>CaseDefinition</code> ancestry and use actions with successions to describe their procedural flow.</p>
+
+<span class="section-anchor" id="s7"></span><div class="section-header"><span class="section-num">7</span><h2>Module Summary</h2></div>
+<table><thead><tr><th>SysML v2 concept</th><th>KerML origin</th><th>Key rule</th></tr></thead><tbody>
+<tr><td><code>use case def</code></td><td><code>UseCaseDefinition</code> &#8594; <code>CaseDefinition</code> &#8594; <code>Behavior</code></td><td>Describes a system scenario around a user goal; has actors, subject, and objective</td></tr>
+<tr><td><code>actor</code></td><td><code>PartDefinition</code> with <code>ActorMembership</code></td><td>External entity interacting with the subject; role-based, not a special classifier</td></tr>
+<tr><td><code>subject</code></td><td><code>SubjectMembership</code></td><td>Identifies the system or component the case describes; one per case</td></tr>
+<tr><td><code>objective</code></td><td><code>RequirementUsage</code> via <code>ObjectiveMembership</code></td><td>States the goal the case aims to achieve; a requirement on the outcome</td></tr>
+<tr><td><code>include use case</code></td><td><code>IncludeUseCaseUsage</code></td><td>Composes a use case by invoking another as a sub-step</td></tr>
+<tr><td><code>analysis case def</code></td><td><code>AnalysisCaseDefinition</code> &#8594; <code>CaseDefinition</code></td><td>Evaluates alternatives; uses <code>return</code> attribute for computed results</td></tr>
+<tr><td><code>return</code> attribute</td><td>Directed Feature on <code>AnalysisCaseDefinition</code></td><td>The output of the analytical evaluation; consumed by trade studies</td></tr>
+<tr><td><code>verification case def</code></td><td><code>VerificationCaseDefinition</code> &#8594; <code>CaseDefinition</code></td><td>Describes a V&amp;V procedure; links to requirements via <code>verify requirement</code></td></tr>
+<tr><td><code>verify requirement</code></td><td><code>RequirementVerificationMembership</code></td><td>Formal link between a verification case and the requirement it tests</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table &#8212; Module 6 concepts and their KerML origins</caption></table>
+<div class="next-box"><div class="next-label">Up Next</div><p>Module 7 &#8212; Analysis &amp; Trade Studies &#8212; How to structure trade studies, evaluate design alternatives with analysis cases, and use objective functions to select optimal configurations.</p></div>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{const h=document.documentElement;pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});}
+window.addEventListener('scroll',activateNav,{passive:true});activateNav();
+</script>
+</body></html>
