@@ -1,0 +1,306 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE Module 4: Pillar 2 — The Modelling Method</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200;max-height:70vh;overflow-y:auto}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{display:inline-block;font-size:.82rem;font-weight:500;color:var(--slate);background:var(--sky-pale);border:1px solid var(--sky-light);padding:.25rem .75rem;border-radius:6px}
+.prereq strong{color:var(--navy)}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">Module 4</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 4 of 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_EN.html">1 &mdash; What is MBSE?</a>
+      <a href="MBSE_Module2_SELifecycle_EN.html">2 &mdash; The SE Lifecycle</a>
+      <a href="MBSE_Module3_PillarLanguage_EN.html">3 &mdash; Pillar 1: The Modelling Language</a>
+      <a href="MBSE_Module4_PillarMethod_EN.html" class="active">4 &mdash; Pillar 2: The Modelling Method</a>
+      <a href="MBSE_Module5_PillarTool_EN.html">5 &mdash; Pillar 3: The Modelling Tool</a>
+      <a href="MBSE_Module6_OOSEM_EN.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_EN.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_EN.html">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_EN.html">9 &mdash; Aerospace &amp; Defence</a>
+      <a href="MBSE_Module10_Automotive_EN.html">10 &mdash; Automotive &amp; Industry 4.0</a>
+      <a href="MBSE_Module11_Practice_EN.html">11 &mdash; Building an MBSE Practice</a>
+      <a href="MBSE_Module12_Future_EN.html">12 &mdash; The Future of MBSE</a>
+    </div>
+  </div>
+  <a href="MBSE_Module4_PillarMethod_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>Language is Not Enough</a><a href="#s2"><span class="num">2</span>What is a Modelling Method?</a><a href="#s3"><span class="num">3</span>Viewpoints and Views</a><a href="#s4"><span class="num">4</span>Major MBSE Frameworks</a><a href="#s5"><span class="num">5</span>Method-Language-Tool Alignment</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 4: <em>The Modelling Method</em></h1>
+      <p class="module-lead">Why "just having a language" is not enough &mdash; viewpoints, views, model organisation, and a preview of the major MBSE frameworks.</p>
+      <div class="prereq"><strong>Prerequisite:</strong> MBSE Module 3</div>
+    </div>
+
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>Language is Not Enough</h2>
+</div>
+
+<p>In Module 3 we explored the first pillar of MBSE &mdash; the <strong>modelling language</strong>. You now understand what SysML, UML, and domain-specific languages offer: a vocabulary and grammar for describing systems. But having a language is like having a dictionary &mdash; you still need <strong>grammar rules</strong>, <strong>essay structure</strong>, and a <strong>writing process</strong> to produce a coherent piece of writing.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Owning a piano does not make you a pianist. You also need a <em>method</em> &mdash; a practice routine, music theory, scales, and a structured approach to learning pieces. Without a method, two people with the same piano will produce very different (and possibly incompatible) music. MBSE works the same way: the language is the piano; the method is the discipline that makes the music coherent.</p></div>
+
+<p>Without an agreed modelling method, different engineers using the same language will produce <strong>inconsistent, incompatible models</strong>. One engineer might start with requirements, another with structure, a third with behaviour &mdash; and the resulting models will not fit together. The method provides the <em>discipline</em> that turns individual modelling efforts into a coherent system description.</p>
+
+<h3>What goes wrong without a method?</h3>
+<ul>
+  <li><strong>Inconsistent structure:</strong> Models are organised differently by each team, making integration painful.</li>
+  <li><strong>Missing viewpoints:</strong> Important stakeholder perspectives are overlooked because no one prescribed them.</li>
+  <li><strong>Redundant work:</strong> Engineers duplicate effort because they do not know what models already exist or how to reuse them.</li>
+  <li><strong>Traceability gaps:</strong> Without prescribed relationships between model elements, it becomes impossible to trace requirements through design to verification.</li>
+</ul>
+
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>What is a Modelling Method?</h2>
+</div>
+
+<p>A <strong>modelling method</strong> is a prescribed sequence of modelling activities, the viewpoints and views to create, and the rules for organising and relating model elements. It answers three fundamental questions:</p>
+<ol>
+  <li><strong>What models do I create?</strong> &mdash; Which diagrams, views, and artefacts are required?</li>
+  <li><strong>In what order?</strong> &mdash; Which modelling activities come first, and which depend on earlier outputs?</li>
+  <li><strong>How do they relate?</strong> &mdash; How are model elements traced and linked across different views?</li>
+</ol>
+
+<p>A well-defined method provides a <strong>repeatable process</strong> that any qualified engineer can follow to produce a consistent, complete system model. It bridges the gap between having a language (the notation) and having a usable, coherent model (the result).</p>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p><strong>ISO 42010</strong> (formally ISO/IEC/IEEE 42010:2022) is the international standard for <em>architecture description</em>. It defines the concepts of architecture framework, viewpoint, view, and model kind &mdash; providing a rigorous vocabulary for describing how system architectures should be documented. Most MBSE methods align with ISO 42010 concepts, even if they do not reference the standard explicitly.</p></div>
+
+<h3>Components of a modelling method</h3>
+<ul>
+  <li><strong>Viewpoint definitions:</strong> What perspectives on the system are needed (functional, structural, behavioural, etc.).</li>
+  <li><strong>View specifications:</strong> What each view contains, its notation, and its purpose.</li>
+  <li><strong>Process steps:</strong> The sequence of activities &mdash; e.g., "first capture stakeholder needs, then define use cases, then allocate functions to structure."</li>
+  <li><strong>Model organisation rules:</strong> How packages, namespaces, and directories should be structured.</li>
+  <li><strong>Consistency rules:</strong> How to ensure that elements defined in one view are correctly referenced in another.</li>
+</ul>
+
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Viewpoints and Views</h2>
+</div>
+
+<p>A complex system cannot be fully understood from a single perspective. Different stakeholders care about different aspects: the customer cares about functionality, the safety engineer cares about hazards, the manufacturing team cares about physical structure. <strong>Viewpoints and views</strong> provide a disciplined way to present multiple perspectives on the same system.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Consider a building. It has <em>floor plans</em> (structural view), <em>electrical diagrams</em> (electrical view), and <em>evacuation routes</em> (safety view). All three describe the <strong>same building</strong>, but from different stakeholder perspectives. An architect reads the floor plan; an electrician reads the wiring diagram; a fire marshal reads the evacuation plan. No single diagram tells the whole story &mdash; but together they provide a complete picture.</p></div>
+
+<h3>ISO 42010 core concepts</h3>
+<p>ISO 42010 defines a precise vocabulary for architecture description:</p>
+<ul>
+  <li><strong>Architecture Framework:</strong> A coordinated set of viewpoints, conventions, and practices for architecture description within a specific domain or community.</li>
+  <li><strong>Viewpoint:</strong> A specification of the conventions for constructing and interpreting a particular type of view. It defines <em>what</em> to model and <em>how</em>.</li>
+  <li><strong>View:</strong> A concrete representation of the system from a particular viewpoint. It is an instance of the viewpoint's specification.</li>
+  <li><strong>Model Kind:</strong> The conventions for a particular type of model within a view (e.g., "a SysML block definition diagram" is a model kind).</li>
+</ul>
+
+<h3>Stakeholder-driven viewpoints</h3>
+<p>The choice of viewpoints should be driven by stakeholder concerns. The table below illustrates how different stakeholders lead to different viewpoints:</p>
+<div class="table-wrap">
+<table><thead><tr><th>Stakeholder</th><th>Concern</th><th>Viewpoint</th><th>Example View</th></tr></thead><tbody>
+<tr><td>Customer</td><td>What does the system do?</td><td>Functional</td><td>Use case diagram, operational scenarios</td></tr>
+<tr><td>Systems Architect</td><td>How is the system structured?</td><td>Structural</td><td>Block definition diagram, internal block diagram</td></tr>
+<tr><td>Safety Engineer</td><td>What can go wrong?</td><td>Safety</td><td>Fault tree, hazard analysis view</td></tr>
+<tr><td>Software Developer</td><td>What behaviour must be implemented?</td><td>Behavioural</td><td>State machine, activity diagram</td></tr>
+<tr><td>Test Engineer</td><td>How do we verify the system?</td><td>Verification</td><td>Test case matrix, requirements traceability</td></tr>
+<tr><td>Project Manager</td><td>What is the schedule and cost?</td><td>Project</td><td>Work breakdown structure, milestone view</td></tr>
+</tbody></table>
+</div>
+<div class="caption">Table 1 &mdash; Stakeholders, concerns, viewpoints, and example views</div>
+
+<p>A good modelling method prescribes which viewpoints are mandatory, which are optional, and how views from different viewpoints relate to one another through traceability.</p>
+
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>The Major MBSE Frameworks &mdash; A Preview</h2>
+</div>
+
+<p>Over the past two decades, several MBSE frameworks (methods) have emerged, each with a different philosophy, origin, and focus. This section provides a brief overview &mdash; Modules 6, 7, and 8 will deep-dive into OOSEM, MagicGrid, and IBM Harmony respectively.</p>
+
+<h3>OOSEM (Object-Oriented SE Method)</h3>
+<p>Developed by INCOSE, OOSEM follows a top-down approach: stakeholder needs &rarr; use cases &rarr; logical architecture &rarr; physical architecture. It is language-agnostic in principle but closely associated with SysML. OOSEM emphasises <strong>requirements traceability</strong> and <strong>iterative refinement</strong>.</p>
+
+<h3>MagicGrid</h3>
+<p>Created by No Magic (now Dassault Syst&egrave;mes), MagicGrid organises modelling into a matrix of <strong>rows</strong> (problem domain, solution domain, implementation) and <strong>columns</strong> (requirements, structure, behaviour, parameters). Its strength is a clear, visual roadmap that tells engineers exactly which cell to fill in next.</p>
+
+<h3>IBM Harmony</h3>
+<p>A use-case-driven, architecture-centric method developed by IBM Rational. Harmony places strong emphasis on <strong>behavioural modelling</strong> &mdash; state machines and activity diagrams are central. It follows a "specify &rarr; design &rarr; verify" cycle within each iteration.</p>
+
+<h3>UAF (Unified Architecture Framework)</h3>
+<p>Designed for defence and enterprise architectures, UAF provides a comprehensive set of viewpoints covering strategic, operational, service, and resource perspectives. It is more complex than the methods above and is typically used in large-scale governmental and military programmes.</p>
+
+<h3>CESAM (CESAMES Systems Architecting Method)</h3>
+<p>Developed by the French CESAMES institute, CESAM focuses on <strong>systems architecting</strong> with an emphasis on operational, functional, and constructional viewpoints. It is particularly popular in French aerospace and transportation industries.</p>
+
+<div class="table-wrap">
+<table><thead><tr><th>Framework</th><th>Origin</th><th>Primary Focus</th><th>Language Dependency</th><th>Complexity Level</th></tr></thead><tbody>
+<tr><td>OOSEM</td><td>INCOSE</td><td>Requirements-driven, top-down decomposition</td><td>Language-agnostic (often SysML)</td><td>Medium</td></tr>
+<tr><td>MagicGrid</td><td>No Magic / Dassault</td><td>Matrix-based model organisation</td><td>SysML (tightly coupled)</td><td>Medium</td></tr>
+<tr><td>IBM Harmony</td><td>IBM Rational</td><td>Use-case-driven, behaviour-centric</td><td>SysML / UML</td><td>Medium&ndash;High</td></tr>
+<tr><td>UAF</td><td>OMG / NATO</td><td>Enterprise &amp; defence architecture</td><td>UAF Profile (SysML/UML)</td><td>High</td></tr>
+<tr><td>CESAM</td><td>CESAMES (France)</td><td>Systems architecting, operational focus</td><td>Language-agnostic</td><td>Medium</td></tr>
+</tbody></table>
+</div>
+<div class="caption">Table 2 &mdash; Comparison of major MBSE frameworks</div>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>No single framework is "best." The right choice depends on your <strong>domain</strong> (aerospace, automotive, defence), your <strong>organisation's maturity</strong>, and the <strong>modelling language</strong> you have adopted. Many organisations adapt and tailor a framework rather than adopting one verbatim. Start with the one that best fits your context and evolve it over time.</p></div>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Method-Language-Tool Alignment</h2>
+</div>
+
+<p>The three pillars of MBSE &mdash; <strong>language</strong>, <strong>method</strong>, and <strong>tool</strong> &mdash; must work in harmony. Each pillar has a distinct role:</p>
+<ul>
+  <li><strong>The method</strong> prescribes <em>what</em> to model and in what order.</li>
+  <li><strong>The language</strong> provides the <em>constructs</em> (keywords, diagrams, semantics) to express the models.</li>
+  <li><strong>The tool</strong> provides the <em>environment</em> to create, store, navigate, and analyse the models.</li>
+</ul>
+
+<p>When these three are aligned, engineers can follow the method's prescribed steps, express each step using the language's constructs, and use the tool to efficiently create and manage the resulting artefacts. When they are <strong>misaligned</strong>, the result is wasted effort, workarounds, and frustration.</p>
+
+<h3>Examples of good alignment</h3>
+<ul>
+  <li><strong>MagicGrid + SysML + Cameo Systems Modeler:</strong> The method was designed for SysML, and the tool natively supports MagicGrid templates.</li>
+  <li><strong>OOSEM + SysML v2 + Eclipse SysML v2 Pilot:</strong> OOSEM's process maps naturally to SysML v2 constructs, and the pilot tool supports the textual notation.</li>
+</ul>
+
+<h3>Examples of misalignment</h3>
+<ul>
+  <li>A method that prescribes parametric analysis, but the tool does not support constraint blocks.</li>
+  <li>A method that requires traceability matrices, but the language has no formal trace relationship.</li>
+  <li>A tool that supports rich behavioural modelling, but the method never prescribes behavioural views.</li>
+</ul>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p><strong>Common misalignment scenarios:</strong></p><p>1. <strong>Over-powered tool, no method:</strong> The team buys an expensive MBSE tool but has no agreed method. Engineers create ad-hoc models with no consistency &mdash; the tool becomes a glorified drawing application.</p><p>2. <strong>Method-language mismatch:</strong> The method prescribes views that the chosen language cannot express (e.g., requiring cost modelling in a language with no parametric support).</p><p>3. <strong>Tool lock-in:</strong> The method is so tightly coupled to one tool's proprietary features that switching tools means abandoning the method entirely.</p><p>Always verify that your method, language, and tool form a coherent triad before committing to an MBSE adoption programme.</p></div>
+
+<a href="MBSE_Module5_PillarTool_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 5 &mdash; Pillar 3: The Modelling Tool &mdash; The role of tools in MBSE, categories of tools, and selection criteria.</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

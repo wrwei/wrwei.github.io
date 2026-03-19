@@ -1,0 +1,369 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE Module 2: The SE Lifecycle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:220px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq-tag{display:inline-block;font-size:.78rem;font-weight:600;color:var(--orange);background:var(--orange-bg);padding:.2rem .7rem;border-radius:6px;margin-bottom:.5rem}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+.v-diagram{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin:1.5rem 0;font-family:var(--font-mono);font-size:.78rem;line-height:1.5;overflow-x:auto;text-align:center;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">Module 2</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 2 of 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_EN.html">1 &mdash; What is MBSE?</a>
+      <a href="MBSE_Module2_SELifecycle_EN.html" class="active">2 &mdash; The SE Lifecycle</a>
+      <a href="MBSE_Module3_PillarLanguage_EN.html">3 &mdash; Pillar: Language</a>
+      <a href="MBSE_Module4_PillarMethod_EN.html">4 &mdash; Pillar: Method</a>
+      <a href="MBSE_Module5_PillarTool_EN.html">5 &mdash; Pillar: Tool</a>
+      <a href="MBSE_Module6_OOSEM_EN.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_EN.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_EN.html">8 &mdash; Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_EN.html">9 &mdash; Aerospace &amp; Defence</a>
+      <a href="MBSE_Module10_Automotive_EN.html">10 &mdash; Automotive</a>
+      <a href="MBSE_Module11_Practice_EN.html">11 &mdash; Practice</a>
+      <a href="MBSE_Module12_Future_EN.html">12 &mdash; Future</a>
+    </div>
+  </div>
+  <a href="MBSE_Module2_SELifecycle_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>The V-Model</a><a href="#s2"><span class="num">2</span>ISO 15288 Processes</a><a href="#s3"><span class="num">3</span>Where MBSE Lives</a><a href="#s4"><span class="num">4</span>Iteration &amp; Recursion</a><a href="#s5"><span class="num">5</span>Concept of Operations</a><a href="#s6"><span class="num">6</span>Bridge to the Pillars</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 2: <em>The SE Lifecycle</em></h1>
+      <p class="module-lead">The V-model, lifecycle stages, and technical processes that MBSE supports &mdash; setting the stage for methodology.</p>
+      <span class="prereq-tag">Prereq: MBSE Module 1</span>
+    </div>
+
+<!-- ====== Section 1 ====== -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>The V-Model</h2>
+</div>
+
+<p>If there is one diagram every systems engineer has seen, it is the <strong>V-model</strong>. It is the most widely used lifecycle model in systems engineering and provides a clear, visual framework for understanding how a system goes from an initial concept to a verified, validated product.</p>
+
+<p>The V-model gets its name from its shape. The <strong>left side</strong> of the V represents <em>decomposition and definition</em> &mdash; the process of breaking a system down into smaller and smaller pieces, defining requirements and architecture at each level. The <strong>right side</strong> represents <em>integration and verification</em> &mdash; the process of building those pieces back up, testing at each level to confirm they work correctly.</p>
+
+<div class="v-diagram">
+<pre style="background:none;border:none;padding:0;margin:0;text-align:center;font-size:.8rem;line-height:1.6">
+System Requirements                                     System Validation
+    \                                                     /
+     \        &laquo; each level on the left               /
+      \          has a matching test level    &raquo;        /
+       \          on the right                        /
+  Subsystem Req.                         Subsystem Verification
+         \                                      /
+          \                                    /
+     Component Req.                Component Verification
+              \                           /
+               \                         /
+                \                       /
+              Implementation &amp; Coding
+</pre>
+</div>
+<p class="caption">Figure 1 &mdash; The V-model: decomposition on the left, integration and verification on the right</p>
+
+<p>Reading the left side from top to bottom:</p>
+<ol>
+  <li><strong>System Requirements</strong> &mdash; what the whole system must do.</li>
+  <li><strong>Subsystem Requirements</strong> &mdash; what each major subsystem must do to satisfy the system requirements.</li>
+  <li><strong>Component Requirements</strong> &mdash; what each individual component must do.</li>
+  <li><strong>Implementation</strong> &mdash; the actual building, coding, or manufacturing of each component (the bottom of the V).</li>
+</ol>
+
+<p>Reading the right side from bottom to top:</p>
+<ol>
+  <li><strong>Component Verification</strong> &mdash; does each component meet its component-level requirements?</li>
+  <li><strong>Subsystem Verification</strong> &mdash; when components are assembled into subsystems, do they meet subsystem requirements?</li>
+  <li><strong>System Validation</strong> &mdash; when everything is integrated, does the full system satisfy the original stakeholder needs?</li>
+</ol>
+
+<p>The critical insight is that <strong>each level of decomposition on the left has a corresponding verification or validation level on the right</strong>. You do not wait until the very end to discover that something is wrong &mdash; you test at every level.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div>
+<p>Think of planning a wedding. The <strong>left side</strong> of the V is decomposition: you start with "plan the perfect wedding" (system requirement), then break it down into sub-tasks &mdash; book a venue, hire a caterer, find a photographer (subsystem requirements), then into component-level details &mdash; select a menu, choose floral arrangements, design invitations.</p>
+<p>The <strong>right side</strong> is integration and verification: first you check each component individually (taste the food, review the invitation proofs), then you do a dress rehearsal combining multiple elements (rehearsal dinner), and finally the wedding day itself is the "system validation" &mdash; does the whole thing come together as intended?</p>
+</div>
+
+<!-- ====== Section 2 ====== -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>ISO/IEC/IEEE 15288 Technical Processes</h2>
+</div>
+
+<p>The V-model gives us the shape of the lifecycle, but the international standard <strong>ISO/IEC/IEEE 15288</strong> gives us the <em>vocabulary</em>. It defines a set of <strong>technical processes</strong> that any systems engineering effort should address. Think of it as a recipe book &mdash; it tells you what dishes (processes) exist, not the order in which you must cook them.</p>
+
+<table>
+<thead><tr><th>Technical Process</th><th>Purpose</th><th>Typical MBSE Artifact</th></tr></thead>
+<tbody>
+<tr><td>Stakeholder Needs Definition</td><td>Identify who the stakeholders are and what they need</td><td>Stakeholder model, use case diagrams</td></tr>
+<tr><td>Requirements Analysis</td><td>Transform stakeholder needs into precise, testable requirements</td><td>Requirements model, requirement diagrams</td></tr>
+<tr><td>Architecture Definition</td><td>Design the system structure (components, interfaces, allocation)</td><td>Block diagrams, internal block diagrams</td></tr>
+<tr><td>Design Definition</td><td>Detail the design of each component</td><td>Parametric models, detailed part models</td></tr>
+<tr><td>Integration</td><td>Assemble components into subsystems and systems</td><td>Integration plan models, interface matrices</td></tr>
+<tr><td>Verification</td><td>Confirm the system meets its requirements ("built the thing right")</td><td>Test case models, verification matrices</td></tr>
+<tr><td>Validation</td><td>Confirm the system meets stakeholder needs ("built the right thing")</td><td>Scenario models, simulation results</td></tr>
+<tr><td>Transition</td><td>Deliver the system to operators and support sustained use</td><td>Deployment models, training plans</td></tr>
+</tbody>
+<caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 1 &mdash; ISO/IEC/IEEE 15288 technical processes and their MBSE artifacts</caption>
+</table>
+
+<div class="callout note"><div class="callout-label">NOTE</div>
+<p>ISO/IEC/IEEE 15288 is a <strong>standard</strong>, not a mandate. It describes <em>what</em> processes exist, not <em>how</em> you must execute them. Your organisation is free to tailor, combine, or reorder these processes to fit your project. The standard gives a common language so that engineers across organisations and industries can communicate effectively.</p>
+</div>
+
+<h3>Verification vs Validation</h3>
+<p>A common source of confusion:</p>
+<ul>
+  <li><strong>Verification</strong> asks: "Did we build the system <em>right</em>?" &mdash; does the product meet its specified requirements?</li>
+  <li><strong>Validation</strong> asks: "Did we build the <em>right</em> system?" &mdash; does the product actually satisfy the stakeholder's real needs?</li>
+</ul>
+<p>You can build a perfectly verified bridge (meets all engineering specs) that fails validation (it was built in the wrong location). Both are essential.</p>
+
+<!-- ====== Section 3 ====== -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Where MBSE Lives in the Lifecycle</h2>
+</div>
+
+<p>A critical misconception to clear up right away: <strong>MBSE is not a lifecycle model</strong>. It is not a replacement for the V-model, the spiral model, or any other lifecycle framework. Instead, MBSE is a <em>way of performing lifecycle activities using models</em> rather than documents.</p>
+
+<p>In a traditional (document-based) approach, each lifecycle activity produces a document &mdash; a stakeholder needs document, a system requirements specification, an architecture description document, a test plan, and so on. In an MBSE approach, those same activities produce <em>models</em>:</p>
+
+<ul>
+  <li><strong>Stakeholder Needs Definition</strong> &rarr; Stakeholder needs model (use cases, scenarios, operational context)</li>
+  <li><strong>Requirements Analysis</strong> &rarr; Requirements model (structured, linked requirements with traceability)</li>
+  <li><strong>Architecture Definition</strong> &rarr; Architecture model (structural decomposition, interfaces, allocations)</li>
+  <li><strong>Design Definition</strong> &rarr; Behaviour and parametric models (state machines, activities, constraints)</li>
+  <li><strong>Verification &amp; Validation</strong> &rarr; Verification model (test cases linked to requirements, simulation results)</li>
+</ul>
+
+<p>The key advantage: because all of these models live in the same modelling environment, they are <strong>connected</strong>. A requirement can be traced to the architecture element that satisfies it, to the test case that verifies it, and to the stakeholder need that motivated it &mdash; all through live, navigable links rather than cross-references between static documents.</p>
+
+<div class="callout tip"><div class="callout-label">TIP</div>
+<p>When someone asks "Should we use MBSE or the V-model?", the answer is "both." The V-model (or whichever lifecycle you choose) tells you <em>what</em> to do and <em>when</em>. MBSE tells you <em>how</em> to capture and manage the information &mdash; using models instead of documents. They are complementary, not competing.</p>
+</div>
+
+<!-- ====== Section 4 ====== -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>Iteration and Recursion</h2>
+</div>
+
+<p>Real-world systems development is never a single, clean pass down one side of the V and up the other. Two important concepts make the lifecycle realistic: <strong>iteration</strong> and <strong>recursion</strong>.</p>
+
+<h3>Iteration</h3>
+<p><strong>Iteration</strong> means repeating a process or set of processes within the same level to refine the result. For example, you might go through several rounds of architecture definition before the design stabilises &mdash; each round producing a more mature, more detailed model. Think of a sculptor: the first pass gives rough shape, the second pass adds detail, the third pass polishes. Each pass iterates over the same process.</p>
+
+<h3>Recursion</h3>
+<p><strong>Recursion</strong> means applying the same set of processes at different levels of the system hierarchy. The same processes you use to define the system (stakeholder needs, requirements, architecture, verification) are applied again at the subsystem level, and again at the component level.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div>
+<p>Think of <strong>Russian nesting dolls</strong> (matryoshka). Open the outermost doll (the system) and inside is a smaller doll (a subsystem), which contains an even smaller doll (a component). Each doll has the same shape and the same painted features &mdash; just at a different scale. In systems engineering, each "doll" goes through the same lifecycle processes (requirements, architecture, verification), just at a different level of abstraction.</p>
+</div>
+
+<p>This is precisely why models are so valuable in systems engineering. A well-structured model can <strong>represent multiple levels of abstraction</strong> in a single, coherent framework. You can zoom out to see the system-level architecture, or zoom in to see how a specific component is designed &mdash; and the traceability links between levels are maintained automatically. With documents, managing this multi-level consistency is extraordinarily difficult. With models, it is built in.</p>
+
+<h3>The spiral within the V</h3>
+<p>In practice, most modern projects combine the V-model structure with iterative spirals. At each stage of the V, teams may go through multiple iterations (spirals) to mature their work products before moving on. MBSE supports this naturally: models are inherently incremental. You do not write a model "once and done" &mdash; you evolve it continuously, adding detail and refinement with each iteration.</p>
+
+<!-- ====== Section 5 ====== -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Concept of Operations (ConOps)</h2>
+</div>
+
+<p>Before you can define requirements or design architecture, you need to understand <em>how the system will be used</em>. This is the purpose of the <strong>Concept of Operations</strong> (ConOps) &mdash; a description of the system from the user's perspective, in the user's language, focused on operational scenarios.</p>
+
+<p>The ConOps is typically the starting point of any MBSE effort. It answers three fundamental questions:</p>
+<ol>
+  <li><strong>Who</strong> are the users and stakeholders?</li>
+  <li><strong>What</strong> do they do with (or expect from) the system?</li>
+  <li><strong>What scenarios</strong> must the system handle?</li>
+</ol>
+
+<h3>Example: Smart Home System</h3>
+<p>Consider a smart home security system. A ConOps model would capture:</p>
+
+<p><strong>Actors (who):</strong></p>
+<ul>
+  <li><strong>Homeowner</strong> &mdash; primary user, arms/disarms the system, monitors alerts</li>
+  <li><strong>Guest</strong> &mdash; limited access, can enter with a temporary code</li>
+  <li><strong>Maintenance Technician</strong> &mdash; performs updates and repairs, needs diagnostic access</li>
+  <li><strong>Monitoring Service</strong> &mdash; external service that responds to alarm events</li>
+</ul>
+
+<p><strong>Operations (what):</strong></p>
+<ul>
+  <li>Arm the system (full mode, away mode, night mode)</li>
+  <li>Disarm the system (via keypad, app, or voice)</li>
+  <li>Monitor cameras and sensor status</li>
+  <li>Configure automation rules (e.g., "if motion detected after 11pm, turn on lights")</li>
+  <li>Receive and acknowledge alerts</li>
+</ul>
+
+<p><strong>Scenarios (what if):</strong></p>
+<ul>
+  <li><strong>Normal operation</strong> &mdash; homeowner leaves, arms system, system monitors sensors, homeowner returns, disarms</li>
+  <li><strong>Alarm triggered</strong> &mdash; sensor detects intrusion, system sounds alarm, notifies monitoring service, homeowner receives alert</li>
+  <li><strong>Power failure</strong> &mdash; system switches to battery backup, reduces non-essential functions, notifies homeowner</li>
+  <li><strong>False alarm</strong> &mdash; homeowner cancels alarm within grace period, system logs event</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">TIP</div>
+<p><strong>Why ConOps matters:</strong> Without a clear ConOps, engineers often jump straight into designing components without truly understanding how the system will be used. This leads to technically impressive systems that fail in practice &mdash; the classic "solution looking for a problem." In MBSE, the ConOps model becomes a living reference that the rest of the model traces back to: every requirement should link to an operational need, and every test case should trace to an operational scenario.</p>
+</div>
+
+<!-- ====== Section 6 ====== -->
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>Bridge to the Pillars</h2>
+</div>
+
+<p>In this module, we explored the systems engineering lifecycle &mdash; the V-model, the ISO/IEC/IEEE 15288 technical processes, how MBSE supports (but does not replace) the lifecycle, the concepts of iteration and recursion, and the importance of a Concept of Operations.</p>
+
+<p>But understanding the lifecycle is only the beginning. To actually <em>practise</em> MBSE, you need three things working together:</p>
+
+<ol>
+  <li><strong>A modelling language</strong> &mdash; a precise, standardised way to express system information (e.g., SysML, SysML v2).</li>
+  <li><strong>A method</strong> &mdash; a systematic process that tells you what to model, in what order, and at what level of detail (e.g., OOSEM, MagicGrid, Harmony).</li>
+  <li><strong>A tool</strong> &mdash; a software environment that supports the language and method, enabling you to create, manage, and analyse models (e.g., Cameo, Rhapsody, Capella).</li>
+</ol>
+
+<p>These three elements are often called the <strong>three pillars of MBSE</strong>.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div>
+<p>Think of a <strong>three-legged stool</strong>. The seat is MBSE &mdash; it is what you sit on, what you actually use. But it cannot stand without all three legs: the <em>language</em> leg, the <em>method</em> leg, and the <em>tool</em> leg. Remove any one leg and the stool topples over. A brilliant tool is useless without a language to express your models. A powerful language is impractical without a tool to manage complexity. A language and tool together are directionless without a method to guide you.</p>
+</div>
+
+<p>In the next three modules, we will examine each pillar in depth: Module 3 covers Language, Module 4 covers Method, and Module 5 covers Tool.</p>
+
+<a href="MBSE_Module3_PillarLanguage_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 3 &mdash; Pillar: Language &mdash; Modelling languages for MBSE, from SysML v1 to SysML v2 and beyond.</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

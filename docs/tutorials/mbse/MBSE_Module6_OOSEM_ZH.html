@@ -1,0 +1,336 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE 模块 6：OOSEM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{display:inline-block;font-size:.85rem;font-weight:500;color:var(--slate);background:var(--sky-pale);border:1px solid var(--sky-light);padding:.3rem .9rem;border-radius:8px}
+.prereq strong{color:var(--navy)}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE 系列</a>
+  <span class="sep">/</span>
+  <span class="crumb">模块 6</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 6 / 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_ZH.html">1 &mdash; 什么是 MBSE？</a>
+      <a href="MBSE_Module2_SELifecycle_ZH.html">2 &mdash; 系统工程生命周期</a>
+      <a href="MBSE_Module3_PillarLanguage_ZH.html">3 &mdash; 支柱：建模语言</a>
+      <a href="MBSE_Module4_PillarMethod_ZH.html">4 &mdash; 支柱：建模方法</a>
+      <a href="MBSE_Module5_PillarTool_ZH.html">5 &mdash; 支柱：建模工具</a>
+      <a href="MBSE_Module6_OOSEM_ZH.html" class="active">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_ZH.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_ZH.html">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_ZH.html">9 &mdash; 航空航天与国防</a>
+      <a href="MBSE_Module10_Automotive_ZH.html">10 &mdash; 汽车与工业 4.0</a>
+      <a href="MBSE_Module11_Practice_ZH.html">11 &mdash; 构建 MBSE 实践</a>
+      <a href="MBSE_Module12_Future_ZH.html">12 &mdash; MBSE 的未来</a>
+    </div>
+  </div>
+  <a href="MBSE_Module6_OOSEM_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">目录</div>
+    <nav><a href="#s1"><span class="num">1</span>OOSEM 的起源与理念</a><a href="#s2"><span class="num">2</span>OOSEM 过程概述</a><a href="#s3"><span class="num">3</span>利益相关者需求与需求分析</a><a href="#s4"><span class="num">4</span>逻辑架构</a><a href="#s5"><span class="num">5</span>物理架构与权衡研究</a><a href="#s6"><span class="num">6</span>总结与适用场景</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE 系列 &mdash; Ran Wei</div>
+      <h1 class="module-title">模块 6：<em>OOSEM</em></h1>
+      <p class="module-lead">面向对象的系统工程方法 &mdash; 从利益相关者需求分析到逻辑架构与物理架构，以家庭安防系统为贯穿案例。</p>
+      <div class="prereq"><strong>前置模块：</strong>MBSE 模块 5 &mdash; 支柱 3：建模工具</div>
+    </div>
+
+<!-- ════════════════════════════════════════════ 第 1 节 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>OOSEM 的起源与理念</h2>
+</div>
+
+<p>OOSEM &mdash; <strong>面向对象的系统工程方法</strong>（Object-Oriented Systems Engineering Method）&mdash; 由 <strong>Sanford Friedenthal</strong>、<strong>Alan Moore</strong> 和 <strong>Rick Steiner</strong> 共同开发。他们也是广受认可的参考书 <em>A Practical Guide to SysML</em> 的作者。该方法的诞生源于一个认知：面向对象的思想已经深刻改变了软件工程，但系统工程领域还缺少一种能充分利用 SysML 等建模语言能力的、结构化的工程方法。</p>
+
+<h3>核心理念</h3>
+<p>OOSEM 将面向对象思想中的几个基本原则引入系统工程领域：</p>
+<ul>
+  <li><strong>封装</strong> &mdash; 每个系统元素通过定义良好的接口隐藏内部复杂性，使团队可以独立开发各子系统。</li>
+  <li><strong>抽象</strong> &mdash; 方法刻意将系统"做什么"（逻辑架构）与"怎么做"（物理架构）分离。这种分离是 OOSEM 最重要的核心概念。</li>
+  <li><strong>层级与分解</strong> &mdash; 系统被逐步分解为更小、更可管理的元素，每个元素都以与整体相同的严谨度进行建模。</li>
+  <li><strong>复用</strong> &mdash; 定义（类型）只需创建一次，可在多处实例化，从而保证模型的一致性。</li>
+</ul>
+
+<div class="callout note"><div class="callout-label">备注</div><p>OOSEM 的权威参考文献为：Friedenthal, S., Moore, A., &amp; Steiner, R., <em>A Practical Guide to SysML: The Systems Modeling Language</em>（第三版，Morgan Kaufmann 出版）。该书将 OOSEM 与 SysML 一同介绍，但 OOSEM 本身是语言无关的 &mdash; 它可以配合任何系统建模语言使用。</p></div>
+
+<h3>为什么"面向对象"对系统工程很重要？</h3>
+<p>传统系统工程通常采用纯功能分解 &mdash; 先将系统拆分为功能，再将功能分配给组件。OOSEM 增加了面向对象的维度：系统同时被分解为拥有结构和行为的<em>对象</em>（逻辑实体）。这种功能<em>加</em>结构的双重视角，能够产生更模块化、更易追溯、需求变更时更容易演进的架构。</p>
+
+<!-- ════════════════════════════════════════════ 第 2 节 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>OOSEM 过程概述</h2>
+</div>
+
+<p>OOSEM 将系统工程工作组织为五个主要活动。虽然以顺序方式呈现，但该过程本质上是迭代的 &mdash; 随着理解的深入，你会反复回到前面的活动。</p>
+
+<ol>
+  <li><strong>分析利益相关者需求</strong> &mdash; 识别谁关心这个系统，以及他们需要什么。以结构化的形式捕获需求。</li>
+  <li><strong>定义系统需求</strong> &mdash; 将利益相关者需求转化为精确的、可验证的系统需求，约束设计空间。</li>
+  <li><strong>定义逻辑架构</strong> &mdash; 基于功能将系统分解为逻辑子系统。这是"做什么"的视角，与技术选择无关。</li>
+  <li><strong>综合候选物理架构</strong> &mdash; 将逻辑功能映射到物理组件，生成多个候选方案。</li>
+  <li><strong>优化与评估</strong> &mdash; 进行权衡研究，根据需求和约束选出最佳候选架构。</li>
+</ol>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>OOSEM 是<strong>迭代</strong>的，而非严格顺序的。实践中，定义逻辑架构时往往会发现遗漏或模糊的需求，促使你回到第 2 步。同样，第 5 步的权衡研究可能揭示没有任何候选架构能满足所有需求，从而需要修改逻辑分解。请将这五个活动视为一个循环，而非瀑布。</p></div>
+
+<h3>贯穿案例：家庭安防系统</h3>
+<p>在后续各节中，我们将把 OOSEM 应用于一个<strong>家庭安防系统</strong>。该系统需要检测入侵、提醒房主，并可选择性地通知执法部门。它足够简单以适合教程，又足够丰富以展示 OOSEM 的每个活动。</p>
+
+<!-- ════════════════════════════════════════════ 第 3 节 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>利益相关者需求与需求分析</h2>
+</div>
+
+<p>OOSEM 的第一个活动是理解<em>谁</em>关心这个系统，以及他们<em>需要什么</em>。这并非走形式 &mdash; 利益相关者需求是验证每个设计决策的最终真实来源。</p>
+
+<h3>识别利益相关者</h3>
+<p>对于家庭安防系统，关键利益相关者包括：</p>
+<ul>
+  <li><strong>房主</strong> &mdash; 主要用户，希望感到安全并在入侵发生时收到警报。</li>
+  <li><strong>安保监控公司</strong> &mdash; 7x24 小时监控警报并在必要时调度警方的组织。</li>
+  <li><strong>安装人员/技术员</strong> &mdash; 负责实际安装、配置和维护系统的人员。</li>
+</ul>
+
+<h3>捕获需求与推导系统需求</h3>
+<p>每个利益相关者都用自己的语言表达需求。系统工程师必须将这些需求翻译为正式的、可验证的需求。下表展示了我们案例中的映射关系：</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>利益相关者</th><th>需求</th><th>推导出的系统需求</th></tr></thead>
+<tbody>
+<tr><td>房主</td><td>检测入侵</td><td>系统应在 2 秒内检测到通过任何门窗的未授权进入。</td></tr>
+<tr><td>房主</td><td>提醒房主</td><td>系统应在检测到入侵后 5 秒内向房主的移动设备发送推送通知。</td></tr>
+<tr><td>安保公司</td><td>通知警方</td><td>系统应在检测到入侵后 10 秒内向监控中心发送报警信号。</td></tr>
+<tr><td>安保公司</td><td>可靠通信</td><td>系统应支持至少两个独立通信通道（如蜂窝网络和 Wi-Fi）。</td></tr>
+<tr><td>安装人员</td><td>易于安装</td><td>对于标准三居室住宅，系统应可由一名技术员在 4 小时内完成安装。</td></tr>
+<tr><td>安装人员</td><td>远程诊断</td><td>系统应提供可通过移动应用访问的诊断接口，用于故障识别。</td></tr>
+</tbody>
+<caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 1 &mdash; 利益相关者需求到推导需求的映射（家庭安防系统）</caption>
+</table>
+</div>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>将利益相关者需求分析想象成医生问诊。患者（利益相关者）说"我胸口疼"（需求）。医生将其翻译为精确的诊断和可衡量的检验标准 &mdash;"血压低于 140/90，心电图在正常范围内"（推导出的系统需求）。没有这种翻译，你就无法验证治疗方案（设计）是否真正有效。</p></div>
+
+<!-- ════════════════════════════════════════════ 第 4 节 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>逻辑架构</h2>
+</div>
+
+<p>需求确定后，OOSEM 要求你设计<strong>逻辑架构</strong> &mdash; 纯粹基于<em>系统做什么</em>来分解系统，而非基于物理实现方式。这是 OOSEM"关注点分离"理念的核心。</p>
+
+<h3>家庭安防系统的逻辑子系统</h3>
+<p>分析第 3 节的需求，我们可以识别出三个主要逻辑功能：</p>
+<ul>
+  <li><strong>检测功能</strong> &mdash; 负责感知未授权进入事件（门、窗、移动）。</li>
+  <li><strong>警报功能</strong> &mdash; 负责在检测到入侵时通知房主和监控公司。</li>
+  <li><strong>控制功能</strong> &mdash; 负责系统的布防/撤防、管理传感器状态，以及协调检测和警报功能。</li>
+</ul>
+
+<p>注意，在这个阶段我们不提及摄像头、运动传感器、警报器或云服务器。我们只描述<em>能力</em>。检测功能负责检测；警报功能负责警报；控制功能负责协调。这是刻意为之的。</p>
+
+<h3>为什么要分离逻辑与物理？</h3>
+<p>逻辑架构充当稳定的骨架。物理技术会变化 &mdash; 今天的运动传感器明年可能被雷达模块取代 &mdash; 但"检测入侵"这一逻辑功能保持不变。通过先将需求锚定到逻辑功能，你可以确保：</p>
+<ul>
+  <li>需求追溯清晰 &mdash; 每个需求映射到逻辑功能，每个逻辑功能映射到一个或多个物理组件。</li>
+  <li>技术变更只影响物理层，而非整个架构。</li>
+  <li>多个候选物理架构可以在同一逻辑基线上进行评估。</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">提示</div><p><strong>逻辑 vs. 物理 &mdash; 石蕊测试：</strong>如果你发现自己在命名具体技术（如"PIR 传感器"、"AWS Lambda"、"Zigbee 无线电"），那你就已经进入了物理架构的领域。逻辑架构使用技术中立的语言："检测"、"通信"、"处理"。在综合物理候选方案之前，请保持两个层级的分离。</p></div>
+
+<!-- ════════════════════════════════════════════ 第 5 节 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>物理架构与权衡研究</h2>
+</div>
+
+<p>逻辑架构确定后，OOSEM 的下一个活动是<strong>综合候选物理架构</strong>。这意味着将每个逻辑功能映射到具体的、可实现的组件 &mdash; 然后评估哪种组合最能满足需求。</p>
+
+<h3>从逻辑到物理的映射</h3>
+<p>对于家庭安防系统，"检测"逻辑功能可以通过多种物理技术实现：被动红外（PIR）运动传感器、门/窗磁接触传感器、带视频分析的安防摄像头，或它们的组合。同样，"警报"功能可以使用本地警报器、基于云的推送通知服务、直接连接监控中心的蜂窝链路，或三者兼用。</p>
+
+<p>OOSEM 鼓励生成<strong>多个候选架构</strong>，然后进行<strong>权衡研究</strong>以选出最佳方案。下面是一个比较两个候选方案的简化权衡研究：</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>评估准则</th><th>权重</th><th>候选方案 A：仅传感器</th><th>候选方案 B：传感器 + 摄像头</th></tr></thead>
+<tbody>
+<tr><td>检测准确性</td><td>30%</td><td>良好 &mdash; PIR + 磁接触传感器覆盖入口点</td><td>优秀 &mdash; 摄像头增加视觉验证，减少误报</td></tr>
+<tr><td>安装成本</td><td>25%</td><td>低 &mdash; 传感器价格低廉且支持无线</td><td>中等 &mdash; 摄像头需要供电和定位</td></tr>
+<tr><td>持续成本</td><td>15%</td><td>低 &mdash; 带宽需求小，传感器电池供电</td><td>较高 &mdash; 视频存储和带宽成本</td></tr>
+<tr><td>隐私影响</td><td>15%</td><td>极小 &mdash; 无视频录制</td><td>中等 &mdash; 室内摄像头引发隐私顾虑</td></tr>
+<tr><td>可扩展性</td><td>15%</td><td>良好 &mdash; 易于增加更多传感器</td><td>良好 &mdash; 摄像头和传感器可独立扩展</td></tr>
+<tr><td colspan="2" style="font-weight:700;color:var(--navy)">加权总分</td><td style="font-weight:600">72 / 100</td><td style="font-weight:600">81 / 100</td></tr>
+</tbody>
+<caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 2 &mdash; 两个候选物理架构的权衡研究对比</caption>
+</table>
+</div>
+
+<p>在此示例中，候选方案 B 总分更高，因为检测准确性的提升（减少误报并实现视觉验证）超过了额外的成本和隐私考虑。权衡研究使决策依据明确且可追溯。</p>
+
+<div class="callout note"><div class="callout-label">备注</div><p>真实的权衡研究会包含定量评分、敏感性分析和利益相关者评审。上面的简化版本展示的是该活动的<em>结构</em>。在 OOSEM 中，权衡研究不是事后想法 &mdash; 它是一个正式的、有文档记录的决策关口，将物理架构与需求和利益相关者需求相关联。</p></div>
+
+<!-- ════════════════════════════════════════════ 第 6 节 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>OOSEM 总结与适用场景</h2>
+</div>
+
+<p>OOSEM 提供了一种全面的、文档完备的方法，用于将面向对象思想应用于整个系统工程生命周期。让我们总结它的优势、劣势和理想使用场景。</p>
+
+<h3>优势</h3>
+<ul>
+  <li><strong>覆盖全面</strong> &mdash; OOSEM 涵盖了从利益相关者需求到逻辑和物理架构，再到基于权衡研究进行选择的完整路径。</li>
+  <li><strong>文档完备</strong> &mdash; 该方法在 <em>A Practical Guide to SysML</em> 中有详尽描述，附有实例和模板。</li>
+  <li><strong>语言无关</strong> &mdash; 虽然最初与 SysML 一同介绍，但 OOSEM 的活动和产出物不绑定任何特定建模语言。它可以配合 SysML v1、SysML v2，甚至领域专用语言使用。</li>
+  <li><strong>强追溯性</strong> &mdash; 逻辑层与物理层的清晰分离创建了自然的追溯链：利益相关者需求 &rarr; 系统需求 &rarr; 逻辑功能 &rarr; 物理组件。</li>
+</ul>
+
+<h3>劣势</h3>
+<ul>
+  <li><strong>对小项目而言过于重量级</strong> &mdash; 包含正式权衡研究的完整五活动过程对于小型系统或快速原型开发可能过于繁琐。</li>
+  <li><strong>学习曲线</strong> &mdash; 不熟悉面向对象概念的团队在初期可能难以掌握逻辑/物理分离。</li>
+  <li><strong>对图表类型规定较少</strong> &mdash; OOSEM 告诉你每个阶段需要<em>产出什么</em>，但对<em>使用哪种图表类型</em>的规定较少（不像 MagicGrid 规定了具体的视图矩阵）。</li>
+</ul>
+
+<h3>何时使用 OOSEM</h3>
+<p>OOSEM 最适合以下场景：</p>
+<ul>
+  <li><strong>大规模复杂系统</strong> &mdash; 逻辑架构与物理架构的分离在管理复杂性方面效益显著。</li>
+  <li><strong>需要多个候选方案的项目</strong> &mdash; 需要正式的权衡研究来论证架构决策。</li>
+  <li><strong>首次采用 MBSE 的组织</strong> &mdash; 书籍级别的参考资料和实例使其成为实用的入门通道。</li>
+  <li><strong>多学科团队</strong> &mdash; 在进入物理设计之前，需要一个共享的、技术中立的框架。</li>
+</ul>
+
+<a href="MBSE_Module7_MagicGrid_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块 7 &mdash; MagicGrid &mdash; 一种通过抽象层级和关注维度来组织 MBSE 模型的结构化矩阵方法。</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE 第10讲：汽车与工业4.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{font-size:.88rem;color:var(--muted);margin-bottom:0}
+.prereq strong{color:var(--slate)}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE 系列</a>
+  <span class="sep">/</span>
+  <span class="crumb">第10讲</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">第 10 讲 / 共 12 讲</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_ZH.html">1 &mdash; 什么是MBSE？</a>
+      <a href="MBSE_Module2_Stakeholders_ZH.html">2 &mdash; 利益相关者与需求</a>
+      <a href="MBSE_Module3_SystemArchitecture_ZH.html">3 &mdash; 系统架构</a>
+      <a href="MBSE_Module4_Behavior_ZH.html">4 &mdash; 行为建模</a>
+      <a href="MBSE_Module5_Integration_ZH.html">5 &mdash; 集成与接口</a>
+      <a href="MBSE_Module6_Verification_ZH.html">6 &mdash; 验证与确认</a>
+      <a href="MBSE_Module7_TradeStudies_ZH.html">7 &mdash; 权衡分析</a>
+      <a href="MBSE_Module8_MBSE_tic_ZH.html">8 &mdash; MBSE实践</a>
+      <a href="MBSE_Module9_Aerospace_ZH.html">9 &mdash; 航空航天与国防</a>
+      <a href="MBSE_Module10_Automotive_ZH.html" class="active">10 &mdash; 汽车与工业4.0</a>
+      <a href="MBSE_Module11_Tools_ZH.html">11 &mdash; 工具与生态系统</a>
+      <a href="MBSE_Module12_Future_ZH.html">12 &mdash; MBSE的未来</a>
+    </div>
+  </div>
+  <a href="MBSE_Module10_Automotive_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">目录</div>
+    <nav>
+      <a href="#s1"><span class="num">1</span>汽车MBSE全景</a>
+      <a href="#s2"><span class="num">2</span>标准与框架</a>
+      <a href="#s3"><span class="num">3</span>自动驾驶系统的MBSE</a>
+      <a href="#s4"><span class="num">4</span>工业4.0与数字孪生</a>
+      <a href="#s5"><span class="num">5</span>跨领域通用模式</a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE 系列 &mdash; Ran Wei</div>
+      <h1 class="module-title">第10讲：<em>汽车与工业4.0</em></h1>
+      <p class="module-lead">MBSE在汽车领域（ISO 26262、AUTOSAR、SOTIF）和智能制造中的应用 &mdash; 领域特定适配与数字孪生。</p>
+      <p class="prereq"><strong>前置知识：</strong>MBSE 第9讲</p>
+    </div>
+
+<!-- ───────────────────── 第1节 ───────────────────── -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>汽车MBSE全景</h2>
+</div>
+
+<p>汽车行业正经历百年来最剧烈的变革。三大趋势 &mdash; <strong>电气化</strong>、<strong>自动驾驶</strong>和<strong>软件定义汽车（SDV）</strong>&mdash; 正在汇聚，使现代汽车成为地球上最复杂的工程系统之一。这种复杂性正在推动OEM和一级供应商快速采纳MBSE。</p>
+
+<h3>复杂度爆炸</h3>
+<p>一辆高端汽车目前可能包含<strong>超过100个电子控制单元（ECU）</strong>、超过<strong>1亿行软件代码</strong>、数千个在子系统之间流动的信号，以及数百个必须依据法规标准验证的安全相关功能。相比之下，一架现代商用飞机大约有1500万行代码。汽车已经成为<em>轮子上的计算机</em>。</p>
+
+<div class="callout note"><div class="callout-label">注意</div><p>汽车的软件内容大约每3至4年翻一番。一辆L4级自动驾驶汽车在包含传感器融合、规划和执行软件后，可能需要超过5亿行代码。在不使用基于模型的方法的情况下管理这种复杂性越来越不可行。</p></div>
+
+<h3>传统方法为何失效</h3>
+<p>当一辆汽车只有少数几个ECU且交互简单时，基于文档的系统工程是可行的。如今，软件、电子和机械子系统之间交互的组合爆炸意味着：</p>
+<ul>
+  <li><strong>需求文档</strong>长达数千页，交叉引用多到无法手动维护。</li>
+  <li><strong>接口规范</strong>随着软件通过OTA更新而频繁变化，使静态文档失效。</li>
+  <li><strong>安全分析</strong>（如FMEA、FTA）必须在每次架构变更时重新执行 &mdash; 这一手动过程无法跟上敏捷开发节奏。</li>
+  <li><strong>可追溯性</strong>从客户需求到测试结果横跨多个组织（OEM、一级供应商、二级供应商）和多种工具，使端到端覆盖分析几乎不可能。</li>
+</ul>
+<p>MBSE通过用<strong>单一事实来源</strong>取代静态文档来应对这些挑战 &mdash; 一个结构化的、可查询的系统模型，使架构、需求、安全分析和测试覆盖保持同步。</p>
+
+<!-- ───────────────────── 第2节 ───────────────────── -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>标准与框架</h2>
+</div>
+
+<p>汽车领域已经发展出丰富的标准生态系统，规范系统的设计、验证和认证方式。MBSE并不取代这些标准 &mdash; 它提供了一种结构化的方式来<em>一致地、可追溯地实施</em>这些标准。</p>
+
+<h3>ISO 26262 &mdash; 功能安全</h3>
+<p><strong>ISO 26262</strong>是道路车辆功能安全的国际标准。它定义了<strong>汽车安全完整性等级（ASIL）</strong>分类 &mdash; 从ASIL A（最低）到ASIL D（最高） &mdash; 决定了开发和验证活动的严格程度。MBSE对ISO 26262的支持包括：</p>
+<ul>
+  <li>在架构模型中直接进行<strong>ASIL分解</strong> &mdash; 将安全需求分配给冗余子系统。</li>
+  <li>维护从危害、安全目标、功能安全需求、技术安全需求，到设计元素和测试用例的可追溯链接。</li>
+  <li>通过从模型关系自动生成论证结构（如GSN），实现<strong>安全案例构建</strong>的自动化。</li>
+</ul>
+
+<h3>AUTOSAR &mdash; 软件架构</h3>
+<p><strong>AUTOSAR</strong>（AUTomotive Open System ARchitecture）标准化了ECU的软件架构。AUTOSAR Classic为深度嵌入式实时系统提供分层架构，而AUTOSAR Adaptive则支持自动驾驶所需的高性能计算平台。MBSE模型可以映射到AUTOSAR组件定义，实现自动代码生成和配置。</p>
+
+<h3>SOTIF / ISO 21448 &mdash; 预期功能安全</h3>
+<p><strong>ISO 21448（SOTIF）</strong>解决的是另一类安全问题：系统按设计运行，但由于传感器、算法或运行条件的<em>局限性</em>而仍然产生危害。这对自动驾驶车辆至关重要 &mdash; 例如，雷达传感器在某些天气条件下可能无法检测到静止物体。MBSE通过系统地建模<strong>运行设计域（ODD）</strong>和触发条件来提供帮助。</p>
+
+<h3>EAST-ADL &mdash; 架构描述语言</h3>
+<p><strong>EAST-ADL</strong>是汽车系统的领域特定架构描述语言。它提供的抽象层（车辆级、分析级、设计级、实现级）与MBSE实践自然对应。EAST-ADL模型可以与SysML和AUTOSAR模型集成，弥合系统工程和软件工程之间的鸿沟。</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>标准</th><th>关注点</th><th>MBSE如何帮助</th></tr></thead>
+<tbody>
+<tr><td>ISO 26262</td><td>功能安全（ASIL A&ndash;D）</td><td>可追溯的安全分解；自动化安全案例生成；架构变更时的影响分析</td></tr>
+<tr><td>AUTOSAR</td><td>软件架构（Classic与Adaptive）</td><td>将系统级功能映射到AUTOSAR软件组件；从模型生成配置文件</td></tr>
+<tr><td>ISO 21448（SOTIF）</td><td>预期功能安全</td><td>系统化ODD建模；触发条件分析；场景覆盖跟踪</td></tr>
+<tr><td>EAST-ADL</td><td>架构描述语言</td><td>与MBSE抽象层对齐的多级架构视图；桥接SysML与AUTOSAR</td></tr>
+</tbody>
+<caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表1 &mdash; 关键汽车标准与MBSE集成点</caption>
+</table>
+</div>
+
+<div class="callout tip"><div class="callout-label">建议</div><p>在汽车组织中启动MBSE时，建议从<strong>ISO 26262可追溯性</strong>入手 &mdash; 这是审计员已经要求提供结构化证据的领域。围绕安全案例构建系统模型，可以立即获得可审计的投资回报。</p></div>
+
+<!-- ───────────────────── 第3节 ───────────────────── -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>自动驾驶系统的MBSE</h2>
+</div>
+
+<p>自动驾驶推动着系统工程的边界。系统必须感知世界、做出决策并采取行动 &mdash; 所有这些都在毫秒级内完成，面对本质上无限多样的驾驶场景。MBSE提供了所需的严谨性，以定义、界定和验证自动驾驶系统应该做什么和不应该做什么。</p>
+
+<h3>运行设计域（ODD）建模</h3>
+<p><strong>ODD</strong>定义了自动驾驶系统设计运行的特定条件，包括道路类型、速度范围、天气条件、时间段、地理边界和交通密度。在系统模型中显式建模ODD，确保每个利益相关者对系统运行边界有精确、无歧义的共识。</p>
+
+<p><strong>示例 &mdash; L3级高速公路自动驾驶ODD：</strong></p>
+<ul>
+  <li><strong>道路类型：</strong>每个方向至少两车道的分隔公路，车道标线清晰。</li>
+  <li><strong>速度范围：</strong>0&ndash;130 km/h（交通拥堵辅助在0 km/h以上激活，高速辅助最高130 km/h）。</li>
+  <li><strong>天气条件：</strong>干燥或小雨；大雨、雪、雾（能见度&lt;100米）或结冰路面时不激活。</li>
+  <li><strong>时间段：</strong>全天候，前提是车道标线可被检测。</li>
+  <li><strong>地理范围：</strong>具有高精地图覆盖的已测绘高速公路路段。</li>
+</ul>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>想象一位驾校教练给学员分配练习路线。教练不会说"随便开"，而是仔细定义学员<em>被允许驾驶的范围</em>："仅限居民区街道，限速50，白天，干燥天气，不上高速。"ODD正是如此 &mdash; 对自动驾驶系统被允许运行的地点和条件的正式定义。随着系统证明其能力，ODD可以逐步扩展，就像教练逐渐允许学员上高速一样。</p></div>
+
+<h3>基于场景的测试</h3>
+<p>自动驾驶系统不能仅靠在公共道路上行驶数十亿公里来验证。工程师需要定义<strong>场景</strong> &mdash; 系统必须处理的情境的抽象描述（例如"高速行驶时另一车辆切入"）。MBSE可以实现：</p>
+<ul>
+  <li>与ODD参数链接的<strong>场景目录</strong>，确保完整覆盖。</li>
+  <li>从模型约束生成的<strong>参数变化</strong>（速度、距离、角度）。</li>
+  <li>从每个场景到其验证的安全需求的<strong>可追溯性</strong>。</li>
+</ul>
+
+<h3>传感器与执行器架构建模</h3>
+<p>自动驾驶车辆通常组合使用摄像头、激光雷达、毫米波雷达、超声波传感器和GNSS接收器。MBSE模型捕获传感器布局、视野覆盖、融合架构和降级模式，使工程师能够在确定硬件方案之前，分析传感器套件是否为每种ODD条件提供了足够的冗余和覆盖。</p>
+
+<!-- ───────────────────── 第4节 ───────────────────── -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>工业4.0与数字孪生</h2>
+</div>
+
+<p>工业4.0将<strong>工厂视为一个系统</strong>。正如MBSE可以建模汽车的架构，它同样可以建模整条生产线 &mdash; 机器人、输送带、检测工位、人工操作员，以及协调它们的控制逻辑。目标是相同的：管理复杂性、确保安全、支持变更。</p>
+
+<h3>生产线设计中的MBSE</h3>
+<p>现代汽车装配工厂是一个<strong>信息物理系统（CPS）</strong>：物理机器与软件控制器、网络基础设施和数据分析紧密耦合。MBSE的帮助包括：</p>
+<ul>
+  <li>将<strong>物理布局</strong>（工位、输送带、缓冲区）建模为系统架构。</li>
+  <li>定义机器人、PLC、MES（制造执行系统）和ERP系统之间的<strong>接口</strong>。</li>
+  <li>将<strong>节拍时间和产能需求</strong>作为可仿真的约束进行规约。</li>
+  <li>捕获<strong>安全区域</strong>和人机协作边界。</li>
+</ul>
+
+<h3>从工程模型到数字孪生</h3>
+<p><strong>数字孪生</strong>是物理资产或过程的运行时副本，通过传感器数据持续更新。它与MBSE的联系是直接的：在设计阶段创建的工程模型成为运营阶段数字孪生的<em>蓝图</em>。</p>
+<ul>
+  <li><strong>设计时模型（MBSE）：</strong>定义生产线的结构、行为、需求和约束。</li>
+  <li><strong>运行时数字孪生：</strong>用实时数据实例化模型 &mdash; 实际节拍时间、传感器读数、故障状态 &mdash; 实现监控、预测和优化。</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">建议</div><p>把MBSE模型想象成<strong>蓝图</strong>，数字孪生想象成<strong>活的建筑</strong>。蓝图定义了应该建造什么；数字孪生反映了实际发生的情况。当出现偏差时 &mdash; 例如，机器人手臂的实际节拍时间超过建模的节拍时间 &mdash; 数字孪生会发出警报，工程师参考MBSE模型来诊断根本原因并规划修正措施。</p></div>
+
+<h3>示例：智能工厂装配线</h3>
+<p>以电动汽车电池包装配线为例：</p>
+<ul>
+  <li><strong>工位1 &mdash; 电芯分选：</strong>来料电芯按容量和内阻进行测试和分选。机器人拾取电芯并放入模组托盘。</li>
+  <li><strong>工位2 &mdash; 模组装配：</strong>电芯被焊接成模组。视觉系统实时检测焊接质量。</li>
+  <li><strong>工位3 &mdash; 电池包集成：</strong>模组安装到电池壳体中，由点胶机器人涂覆导热界面材料。</li>
+  <li><strong>工位4 &mdash; 下线测试：</strong>组装完成的电池包进行电气测试、密封测试和功能验证。</li>
+</ul>
+<p>该产线的MBSE模型会将每个工位定义为具有端口（物料输入、物料输出、控制信号、质量数据）、行为模型（节拍时间、故障模式）和需求（产能、良率、安全性）的子系统。数字孪生将镜像这一结构，用实时传感器数据填充它，以实时跟踪OEE（整体设备效率）。</p>
+
+<!-- ───────────────────── 第5节 ───────────────────── -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>跨领域通用模式</h2>
+</div>
+
+<p>汽车和制造业看似领域特定，但这里使用的许多MBSE模式<strong>与航空航天、医疗设备、轨道交通和能源领域共通</strong>。识别这些模式有助于组织构建可复用的MBSE框架，而不是在每个领域从零开始。</p>
+
+<h3>跨领域的共享模式</h3>
+<ul>
+  <li><strong>安全分析集成：</strong>无论是ISO 26262（汽车）、ARP4754A（航空航天）还是IEC 62278（轨道交通），模式都相同 &mdash; 将危害链接到安全需求，通过架构进行分解，追溯到验证证据。</li>
+  <li><strong>架构权衡：</strong>集中式vs.分布式计算、冗余策略、功率/重量/成本优化 &mdash; 这些权衡模式在每个安全关键领域都反复出现。</li>
+  <li><strong>全生命周期管理：</strong>从概念到设计、生产、运行和退役，对随系统演化的模型的需求是普遍的。</li>
+  <li><strong>供应商集成：</strong>多级供应链需要共享接口模型和基于合同的设计 &mdash; 这一模式在汽车、航空航天和国防领域都很常见。</li>
+</ul>
+
+<div class="callout note"><div class="callout-label">注意</div><p>MBSE社区的趋势是走向<strong>领域无关的工具链</strong>。SysML v2、Capella以及基于Eclipse构建的MBSE框架等工具被设计为跨行业使用。领域特定内容（安全标准、架构模式、库组件）作为层叠加在共享的建模基础之上。这意味着在一个领域学到的技能和方法可以很容易地迁移到另一个领域。</p></div>
+
+<h3>即将到来的融合</h3>
+<p>随着汽车变得软件定义、工厂变得信息物理化，"产品工程"和"生产工程"的边界正在模糊。MBSE是跨越两者的通用语言 &mdash; 从车辆系统模型到工厂数字孪生，从设计时分析到运行时监控。现在投资MBSE能力的组织，正在构建一个将服务于跨领域、跨产品生命周期的基础。</p>
+
+<a href="MBSE_Module11_Tools_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一讲</div><p>第11讲 &mdash; 工具与生态系统 &mdash; MBSE工具链、互操作性标准，以及构建集成建模环境。</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

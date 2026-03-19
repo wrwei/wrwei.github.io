@@ -1,0 +1,341 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE 模块 8：IBM Harmony</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{font-size:.88rem;color:var(--muted);margin-bottom:0}
+.prereq a{color:var(--blue);text-decoration:none;font-weight:500}
+.prereq a:hover{text-decoration:underline}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE 系列</a>
+  <span class="sep">/</span>
+  <span class="crumb">模块 8</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 8 / 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_ZH.html">1 &mdash; 什么是 MBSE？</a>
+      <a href="MBSE_Module2_SELifecycle_ZH.html">2 &mdash; 系统工程生命周期</a>
+      <a href="MBSE_Module3_PillarLanguage_ZH.html">3 &mdash; 支柱一：建模语言</a>
+      <a href="MBSE_Module4_PillarMethod_ZH.html">4 &mdash; 支柱二：建模方法</a>
+      <a href="MBSE_Module5_PillarTool_ZH.html">5 &mdash; 支柱三：建模工具</a>
+      <a href="MBSE_Module6_OOSEM_ZH.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_ZH.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_ZH.html" class="active">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_ZH.html">9 &mdash; 航空航天与国防</a>
+      <a href="MBSE_Module10_Automotive_ZH.html">10 &mdash; 汽车与工业 4.0</a>
+      <a href="MBSE_Module11_Practice_ZH.html">11 &mdash; 构建 MBSE 实践</a>
+      <a href="MBSE_Module12_Future_ZH.html">12 &mdash; MBSE 的未来</a>
+    </div>
+  </div>
+  <a href="MBSE_Module8_Harmony_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">目录</div>
+    <nav>
+      <a href="#s1"><span class="num">1</span>Harmony 的起源</a>
+      <a href="#s2"><span class="num">2</span>Harmony-SE 流程</a>
+      <a href="#s3"><span class="num">3</span>需求分析</a>
+      <a href="#s4"><span class="num">4</span>系统功能分析</a>
+      <a href="#s5"><span class="num">5</span>设计综合</a>
+      <a href="#s6"><span class="num">6</span>三方框架对比</a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE 系列 &mdash; Ran Wei</div>
+      <h1 class="module-title">模块 8：<em>IBM Harmony</em></h1>
+      <p class="module-lead">一种用例驱动、以架构为中心的方法，强调行为建模 &mdash; 以医用输液泵为贯穿案例。</p>
+      <p class="prereq">前置模块：<a href="MBSE_Module7_MagicGrid_ZH.html">MBSE 模块 7 &mdash; MagicGrid</a></p>
+    </div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 1 节 -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>Harmony 的起源</h2>
+</div>
+
+<p>IBM Harmony（正式名称为 <strong>Harmony for Systems Engineering</strong>，简称 <strong>Harmony-SE</strong>）是由 <strong>IBM Rational</strong> 开发的一套 MBSE 方法论，主要基于 <strong>Bruce Powel Douglass</strong> 的工作。Douglass 是实时与嵌入式系统设计领域的多产作者，他将 Harmony 打造成一个实用的、以行为为核心的流程，可应用于从小型医疗设备到大型国防系统的各种项目。</p>
+
+<h3>从软件到系统</h3>
+<p>Harmony 最初作为软件工程流程 &mdash; <strong>Harmony for Software</strong> &mdash; 围绕 UML 和面向对象设计为实时嵌入式软件量身定制。IBM 认识到在系统层面同样需要这种严谨性，因此将该方法向上扩展为 <strong>Harmony-SE</strong>，使其适用于基于 SysML 的多学科系统设计。软件层和系统层的两个 Harmony 流程可以无缝衔接：Harmony-SE 产出系统架构，Harmony for Software 负责实现。</p>
+
+<h3>核心理念</h3>
+<p>Harmony 建立在两大支柱之上：</p>
+<ul>
+  <li><strong>用例驱动：</strong>整个流程围绕用例组织 &mdash; 每个用例捕获系统与环境交互的一个场景。用例驱动功能、行为的识别，并最终驱动物理设计。</li>
+  <li><strong>以架构为中心：</strong>健壮的系统架构在早期就开始形成，并持续精化。架构不是事后补充，而是所有分析和设计活动围绕的骨架。</li>
+</ul>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Harmony 诞生于 IBM Rational 部门 &mdash; 同一部门还开发了 Rational Rhapsody，这是最广泛使用的 SysML/UML 建模工具之一。因此，Harmony 在历史上与 Rhapsody 紧密集成，但该方法论本身是工具无关的，可以使用任何支持 SysML 的工具来实践。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 2 节 -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>Harmony-SE 流程</h2>
+</div>
+
+<p>Harmony-SE 将系统工程工作组织为<strong>三个主要阶段</strong>，每个阶段产出特定的模型制品，并为下一阶段提供输入。流程是迭代的 &mdash; 你可以从后续阶段回溯以完善早期工作 &mdash; 但总体流程从问题理解推进到方案设计。</p>
+
+<h3>阶段概览</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>阶段</th><th>关注点</th><th>关键制品</th></tr></thead>
+<tbody>
+<tr><td>1. 需求分析</td><td>从用户视角理解系统<em>必须做什么</em></td><td>用例图、用例描述、参与者定义、系统上下文图</td></tr>
+<tr><td>2. 系统功能分析</td><td>分解系统内部<em>如何运作</em>以实现每个用例</td><td>活动图、序列图、状态机图、功能模块定义</td></tr>
+<tr><td>3. 设计综合</td><td>将功能分配给物理子系统并定义接口</td><td>物理架构（BDD/IBD）、分配矩阵、接口定义、端口规格</td></tr>
+</tbody>
+</table>
+</div>
+<p class="caption">表 1 &mdash; Harmony-SE 的三个阶段</p>
+
+<h3>阶段之间的流转</h3>
+<p>各阶段通过明确的交接相连：</p>
+<ul>
+  <li><strong>需求分析 &rarr; 系统功能分析：</strong>第一阶段识别的每个用例都成为第二阶段的输入。针对每个用例，工程师创建活动图（分解功能）、序列图（探索交互场景）和状态机（捕获模态行为）。</li>
+  <li><strong>系统功能分析 &rarr; 设计综合：</strong>第二阶段识别的功能和行为需要在第三阶段分配给物理组件。这是从<em>功能</em>（逻辑）世界到<em>物理</em>（设计）世界的关键转换。</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Harmony 是<strong>行为优先</strong>的。与某些从结构开始（先定义子系统，再问"它们做什么？"）的方法论不同，Harmony 坚持在决定物理架构<em>之前</em>充分理解系统的行为。这对于安全关键和实时系统尤为重要，因为行为正确性是最优先的。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 3 节 -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>需求分析</h2>
+</div>
+
+<p>Harmony-SE 的第一阶段聚焦于从用户和外部系统的视角捕获系统<em>必须做什么</em>。主要载体是<strong>用例</strong> &mdash; 描述参与者与系统之间一次完整交互、并产生有意义结果的叙述。</p>
+
+<h3>识别参与者</h3>
+<p>参与者是系统边界之外与系统交互的任何实体，可以是人类用户、外部系统或物理环境。以我们的贯穿案例 &mdash; <strong>医用输液泵</strong> &mdash; 为例，关键参与者包括：</p>
+<ul>
+  <li><strong>护士</strong> &mdash; 主要操作者，负责对泵进行编程、启停输液，并响应报警。</li>
+  <li><strong>患者</strong> &mdash; 药物的接受者；泵必须检测影响患者的异常情况（如管路堵塞、管路进气）。</li>
+  <li><strong>药房系统</strong> &mdash; 一个外部 IT 系统，向泵提供药物库数据和剂量限值。</li>
+</ul>
+
+<h3>定义用例</h3>
+<p>每个用例描述一次以目标为导向的交互。输液泵的主要用例包括：</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>用例</th><th>主要参与者</th><th>描述</th></tr></thead>
+<tbody>
+<tr><td>编程输液</td><td>护士</td><td>护士选择药物、设定输注速率和输注量，并确认程序。泵根据药物库进行验证。</td></tr>
+<tr><td>输送药物</td><td>护士 / 患者</td><td>泵按设定速率输送药物，监控流量，并跟踪已输送量。</td></tr>
+<tr><td>检测堵塞</td><td>患者（间接）</td><td>泵检测到输液管路被阻塞（压力超过阈值），转换到报警状态。</td></tr>
+<tr><td>触发报警</td><td>护士</td><td>泵产生声光报警，暂停输送，等待护士确认并处理异常。</td></tr>
+</tbody>
+</table>
+</div>
+<p class="caption">表 2 &mdash; 医用输液泵的主要用例</p>
+
+<h3>系统边界</h3>
+<p>清晰的系统边界将系统<em>内部</em>（泵体硬件、固件、传感器、执行器）与系统<em>外部</em>（护士、患者、药房系统、医院网络）分隔开来。Harmony 要求在进行任何功能分解之前，在<strong>系统上下文图</strong>中明确画出这条边界。</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>可以把系统边界想象成一家餐厅的墙壁。墙壁内是厨房、服务员和设备 &mdash; 那就是你的系统。墙壁外是顾客（参与者），他们通过明确定义的接口（菜单、服务台）与系统交互。在设计厨房布局之前，你必须先知道墙壁在哪里。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 4 节 -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>系统功能分析</h2>
+</div>
+
+<p>用例定义完成后，Harmony-SE 进入其最具特色的阶段：<strong>系统功能分析</strong>。在这个阶段，使用三种互补的图类型对系统行为进行详细建模。</p>
+
+<h3>活动图 &mdash; 功能分解</h3>
+<p>针对每个用例，活动图将高层功能分解为较小的子功能（动作），并通过控制流和数据流连接。对于"输送药物"，活动图可能分解为：<em>验证程序 &rarr; 排气/充盈管路 &rarr; 启动泵电机 &rarr; 监控流速 &rarr; 跟踪已输送量 &rarr; 完成时停止</em>。</p>
+
+<h3>序列图 &mdash; 交互场景</h3>
+<p>序列图捕获特定场景 &mdash; "正常路径"、异常路径和边界情况。它们展示系统内部功能模块与外部参与者之间按时间顺序的消息交换。对于输液泵，一个关键场景是堵塞检测序列：<em>流量传感器检测到回压 &rarr; 控制器评估阈值 &rarr; 控制器命令泵停止 &rarr; 报警管理器激活报警 &rarr; 显示屏显示错误代码</em>。</p>
+
+<h3>状态机图 &mdash; 模态行为</h3>
+<p>状态机捕获系统的模式和转换。输液泵的顶层状态机包括：</p>
+<ul>
+  <li><strong>空闲（Idle）</strong> &mdash; 泵已开机但没有活跃的输液程序。</li>
+  <li><strong>编程（Programming）</strong> &mdash; 护士正在输入输液参数。</li>
+  <li><strong>输注（Infusing）</strong> &mdash; 药物按设定速率输送中。</li>
+  <li><strong>暂停（Paused）</strong> &mdash; 输送暂时停止（护士手动暂停或自动保持）。</li>
+  <li><strong>报警（Alarm）</strong> &mdash; 检测到故障条件；输送停止，报警激活。</li>
+</ul>
+<p>状态之间的转换由事件触发：<em>护士按下启动键</em>（空闲 &rarr; 编程）、<em>程序确认</em>（编程 &rarr; 输注）、<em>检测到堵塞</em>（输注 &rarr; 报警）、<em>护士确认报警</em>（报警 &rarr; 暂停或空闲）。</p>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p><strong>行为建模对安全关键系统为何重要：</strong>在医疗设备、汽车和航空航天等领域，监管机构（如 FDA、EASA）要求有证据表明系统在所有模式下行为正确 &mdash; 包括故障模式。状态机使每一种可能的模式和每一次转换都显式化，不留下未分析的行为空间。这就是 Harmony 的行为优先理念特别适合安全关键开发的原因。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 5 节 -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>设计综合</h2>
+</div>
+
+<p>设计综合是模型从<strong>"做什么"</strong>过渡到<strong>"怎么做"</strong>的阶段。系统功能分析中识别的功能和行为现在被分配到物理子系统，并正式定义子系统之间的接口。</p>
+
+<h3>将功能分配到物理子系统</h3>
+<p>分配是将每个逻辑功能指派给一个或多个物理组件的行为，通过<strong>分配矩阵</strong>或 SysML <code>&laquo;allocate&raquo;</code> 关系来捕获。对于输液泵：</p>
+<ul>
+  <li><strong>"输送药物"</strong>功能分配到三个物理子系统：<strong>泵机构</strong>（蠕动马达和转子）、<strong>流量传感器</strong>（超声波或滴计数传感器）和<strong>控制器板</strong>（运行控制算法的嵌入式处理器）。</li>
+  <li><strong>"触发报警"</strong>功能分配到<strong>报警扬声器</strong>、<strong>LED 指示面板</strong>和<strong>控制器板</strong>。</li>
+  <li><strong>"编程输液"</strong>功能分配到<strong>触摸屏显示器</strong>、<strong>键盘</strong>和<strong>控制器板</strong>。</li>
+</ul>
+
+<h3>定义接口</h3>
+<p>功能分配完成后，子系统之间的接口就变得清晰了。控制器板需要与泵机构通信（马达转速指令）、与流量传感器通信（流速读数）、与显示屏通信（UI 更新）。每个接口都定义了具体的信号类型、数据速率和协议 &mdash; 以 SysML 端口和流的形式捕获。</p>
+
+<h3>物理架构</h3>
+<p>设计综合的产出是<strong>物理架构</strong> &mdash; 通常以 SysML 模块定义图（BDD）展示子系统层次结构，以内部模块图（IBD）展示子系统如何通过端口和连接器相连。这一架构成为硬件、软件和集成团队的工作规范。</p>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>从功能架构到物理架构的过渡通常是任何 MBSE 方法论中最具挑战性的步骤。Harmony 通过确保在分配开始<em>之前</em>功能模型足够完整来帮助解决这一问题。因为每个功能都已通过活动图、序列图和状态机进行了深入探索，工程师可以高度确信分配是完整的 &mdash; 没有功能被"遗弃"而没有物理归属。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 6 节 -->
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>三方框架对比</h2>
+</div>
+
+<p>通过模块 6、7 和 8，你已经学习了三种最广泛采用的 MBSE 框架：<strong>OOSEM</strong>、<strong>MagicGrid</strong> 和 <strong>IBM Harmony</strong>。每种都有其独特的优势。下表提供了全面的对比，帮助你根据具体情况选择合适的框架。</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>维度</th><th>OOSEM</th><th>MagicGrid</th><th>IBM Harmony</th></tr></thead>
+<tbody>
+<tr><td>主要驱动力</td><td>利益相关者需求和任务需求</td><td>按抽象层次和关注点组织模型</td><td>用例（参与者-系统交互）</td></tr>
+<tr><td>流程风格</td><td>全面的自顶向下生命周期流程（分析 &rarr; 设计 &rarr; 验证）</td><td>矩阵引导：按抽象层次（问题域、方案域、实现域）和关注点（需求、行为、结构）填充单元格</td><td>三阶段线性流程：需求分析 &rarr; 功能分析 &rarr; 设计综合</td></tr>
+<tr><td>行为强调程度</td><td>中等 &mdash; 行为是多个并行关注点之一</td><td>中等 &mdash; 行为占据矩阵的一列</td><td>强 &mdash; 行为建模是核心；功能分析是最详尽的阶段</td></tr>
+<tr><td>模型组织方式</td><td>按流程阶段组织（利益相关者需求、系统需求、逻辑架构、物理架构）</td><td>按 3&times;4 矩阵（或含参数化的 4&times;4 矩阵）组织；结构化程度高，易于导航</td><td>按用例组织 &mdash; 每个用例拥有自己的活动图、序列图和状态机图集</td></tr>
+<tr><td>最适合</td><td>需要跨完整生命周期进行全面追溯的大型多学科项目</td><td>重视结构化、可导航模型和清晰关注点分离的团队；适合新建模人员入门</td><td>行为正确性至关重要的安全关键和实时系统（医疗、汽车、国防）</td></tr>
+<tr><td>学习曲线</td><td>陡峭 &mdash; 概念众多，流程范围广</td><td>中等 &mdash; 矩阵提供清晰的路线图；更容易定位"我在哪里？"</td><td>中等 &mdash; 三阶段流程直观易懂；深入的行为建模需要练习</td></tr>
+</tbody>
+</table>
+</div>
+<p class="caption">表 3 &mdash; Harmony vs. OOSEM vs. MagicGrid 对比</p>
+
+<p>没有哪个框架是普遍"最好的"。许多组织会从多个框架中借鉴元素。核心结论是：</p>
+<ul>
+  <li><strong>Harmony</strong> 在需要<em>行为优先</em>严谨性时最强 &mdash; 特别适合具有复杂状态行为的安全关键系统。</li>
+  <li><strong>OOSEM</strong> 在需要<em>全面的生命周期流程</em>（从利益相关者分析到验证的完整覆盖）时最强。</li>
+  <li><strong>MagicGrid</strong> 在需要<em>模型组织</em>（清晰、可导航的结构，帮助大型团队保持一致）时最强。</li>
+</ul>
+
+<a href="MBSE_Module9_AerospaceDef_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块 9 &mdash; 航空航天与国防 &mdash; MBSE 在航空航天与国防领域的应用：标准、认证与实践模式。</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

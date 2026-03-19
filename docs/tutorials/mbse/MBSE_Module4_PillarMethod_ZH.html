@@ -1,0 +1,306 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE 模块 4：支柱 2 — 建模方法</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200;max-height:70vh;overflow-y:auto}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{display:inline-block;font-size:.82rem;font-weight:500;color:var(--slate);background:var(--sky-pale);border:1px solid var(--sky-light);padding:.25rem .75rem;border-radius:6px}
+.prereq strong{color:var(--navy)}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE 系列</a>
+  <span class="sep">/</span>
+  <span class="crumb">模块 4</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 4 / 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_ZH.html">1 &mdash; 什么是 MBSE？</a>
+      <a href="MBSE_Module2_SELifecycle_ZH.html">2 &mdash; 系统工程生命周期</a>
+      <a href="MBSE_Module3_PillarLanguage_ZH.html">3 &mdash; 支柱 1：建模语言</a>
+      <a href="MBSE_Module4_PillarMethod_ZH.html" class="active">4 &mdash; 支柱 2：建模方法</a>
+      <a href="MBSE_Module5_PillarTool_ZH.html">5 &mdash; 支柱 3：建模工具</a>
+      <a href="MBSE_Module6_OOSEM_ZH.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_ZH.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_ZH.html">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_ZH.html">9 &mdash; 航空航天与国防</a>
+      <a href="MBSE_Module10_Automotive_ZH.html">10 &mdash; 汽车与工业 4.0</a>
+      <a href="MBSE_Module11_Practice_ZH.html">11 &mdash; 构建 MBSE 实践</a>
+      <a href="MBSE_Module12_Future_ZH.html">12 &mdash; MBSE 的未来</a>
+    </div>
+  </div>
+  <a href="MBSE_Module4_PillarMethod_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">目录</div>
+    <nav><a href="#s1"><span class="num">1</span>仅有语言远远不够</a><a href="#s2"><span class="num">2</span>什么是建模方法？</a><a href="#s3"><span class="num">3</span>视角与视图</a><a href="#s4"><span class="num">4</span>主要 MBSE 框架预览</a><a href="#s5"><span class="num">5</span>方法-语言-工具对齐</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE 系列 &mdash; Ran Wei</div>
+      <h1 class="module-title">模块 4：<em>建模方法</em></h1>
+      <p class="module-lead">"仅仅拥有一门语言"为什么不够 &mdash; 视角、视图、模型组织，以及主要 MBSE 框架的预览。</p>
+      <div class="prereq"><strong>前置要求：</strong>MBSE 模块 3</div>
+    </div>
+
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>仅有语言远远不够</h2>
+</div>
+
+<p>在模块 3 中，我们探讨了 MBSE 的第一根支柱 &mdash; <strong>建模语言</strong>。你现在了解了 SysML、UML 和领域专用语言所提供的：描述系统的词汇和语法。但拥有一门语言就像拥有一本词典 &mdash; 你仍然需要<strong>语法规则</strong>、<strong>文章结构</strong>和<strong>写作流程</strong>才能写出一篇连贯的文章。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>拥有一架钢琴并不能让你成为钢琴家。你还需要一套<em>方法</em> &mdash; 练习计划、乐理知识、音阶练习，以及学习曲目的结构化方式。没有方法，两个拥有同一架钢琴的人会弹出截然不同（甚至互不兼容）的音乐。MBSE 也是如此：语言是钢琴；方法是让音乐和谐统一的纪律。</p></div>
+
+<p>如果没有统一的建模方法，使用同一种语言的不同工程师将产生<strong>不一致、不兼容的模型</strong>。一位工程师可能从需求开始建模，另一位从结构开始，第三位从行为开始 &mdash; 最终的模型将无法拼合在一起。方法提供的<em>纪律</em>能够将各个工程师的独立建模工作整合为一个连贯的系统描述。</p>
+
+<h3>没有方法会出什么问题？</h3>
+<ul>
+  <li><strong>结构不一致：</strong>各团队以不同方式组织模型，导致集成困难重重。</li>
+  <li><strong>视角缺失：</strong>由于没有人规定应该创建哪些视角，重要的利益相关方视角被忽略。</li>
+  <li><strong>重复劳动：</strong>工程师不知道已有哪些模型、如何复用，导致大量重复工作。</li>
+  <li><strong>可追溯性断裂：</strong>如果模型元素之间没有规定的关系，从需求到设计再到验证的追溯就无从谈起。</li>
+</ul>
+
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>什么是建模方法？</h2>
+</div>
+
+<p><strong>建模方法</strong>是一套规定好的建模活动序列、需要创建的视角和视图，以及组织和关联模型元素的规则。它回答三个根本性问题：</p>
+<ol>
+  <li><strong>我需要创建哪些模型？</strong> &mdash; 需要哪些图表、视图和工件？</li>
+  <li><strong>按什么顺序？</strong> &mdash; 哪些建模活动先做，哪些依赖于前置输出？</li>
+  <li><strong>它们如何关联？</strong> &mdash; 模型元素如何在不同视图之间进行追溯和链接？</li>
+</ol>
+
+<p>一个定义良好的方法提供了一个<strong>可重复的过程</strong>，任何具备资质的工程师都可以遵循它来创建一致且完整的系统模型。它弥合了"拥有一门语言"（符号体系）和"拥有一个可用的、连贯的模型"（最终成果）之间的鸿沟。</p>
+
+<div class="callout note"><div class="callout-label">注释</div><p><strong>ISO 42010</strong>（正式名称 ISO/IEC/IEEE 42010:2022）是<em>架构描述</em>的国际标准。它定义了架构框架、视角（viewpoint）、视图（view）和模型种类（model kind）等概念 &mdash; 为如何记录系统架构提供了严格的术语体系。大多数 MBSE 方法都与 ISO 42010 的概念保持一致，即使它们没有明确引用该标准。</p></div>
+
+<h3>建模方法的组成要素</h3>
+<ul>
+  <li><strong>视角定义：</strong>需要哪些系统视角（功能、结构、行为等）。</li>
+  <li><strong>视图规范：</strong>每个视图包含什么内容、使用什么符号、服务什么目的。</li>
+  <li><strong>过程步骤：</strong>活动的先后顺序 &mdash; 例如，"首先捕获利益相关方需求，然后定义用例，再将功能分配到结构"。</li>
+  <li><strong>模型组织规则：</strong>包（package）、命名空间和目录应该如何组织。</li>
+  <li><strong>一致性规则：</strong>如何确保在一个视图中定义的元素在另一个视图中被正确引用。</li>
+</ul>
+
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>视角与视图</h2>
+</div>
+
+<p>一个复杂系统无法从单一视角被完整理解。不同的利益相关方关心不同的方面：客户关心功能，安全工程师关心隐患，制造团队关心物理结构。<strong>视角（viewpoint）和视图（view）</strong>提供了一种有纪律的方式来呈现同一系统的多个视角。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>想象一栋建筑。它有<em>平面图</em>（结构视图）、<em>电气图</em>（电气视图）和<em>疏散路线图</em>（安全视图）。这三者描述的是<strong>同一栋建筑</strong>，但来自不同的利益相关方视角。建筑师看平面图，电气工程师看电气布线图，消防部门看疏散路线。没有任何一张图能讲述全部故事 &mdash; 但它们合在一起就提供了完整的画面。</p></div>
+
+<h3>ISO 42010 核心概念</h3>
+<p>ISO 42010 为架构描述定义了精确的术语：</p>
+<ul>
+  <li><strong>架构框架（Architecture Framework）：</strong>在特定领域或社区中，用于架构描述的一组协调的视角、约定和实践。</li>
+  <li><strong>视角（Viewpoint）：</strong>用于构建和解释特定类型视图的约定规范。它规定了<em>建什么模型</em>以及<em>如何建</em>。</li>
+  <li><strong>视图（View）：</strong>从特定视角对系统的具体表述。它是视角规范的一个实例。</li>
+  <li><strong>模型种类（Model Kind）：</strong>视图中特定类型模型的约定（例如，"一张 SysML 模块定义图"就是一种模型种类）。</li>
+</ul>
+
+<h3>利益相关方驱动的视角</h3>
+<p>视角的选择应由利益相关方的关注点驱动。下表说明了不同的利益相关方如何产生不同的视角：</p>
+<div class="table-wrap">
+<table><thead><tr><th>利益相关方</th><th>关注点</th><th>视角</th><th>示例视图</th></tr></thead><tbody>
+<tr><td>客户</td><td>系统做什么？</td><td>功能视角</td><td>用例图、运行场景</td></tr>
+<tr><td>系统架构师</td><td>系统如何组织？</td><td>结构视角</td><td>模块定义图、内部模块图</td></tr>
+<tr><td>安全工程师</td><td>可能出什么问题？</td><td>安全视角</td><td>故障树、危害分析视图</td></tr>
+<tr><td>软件开发者</td><td>需要实现什么行为？</td><td>行为视角</td><td>状态机、活动图</td></tr>
+<tr><td>测试工程师</td><td>如何验证系统？</td><td>验证视角</td><td>测试用例矩阵、需求追溯</td></tr>
+<tr><td>项目经理</td><td>进度和成本如何？</td><td>项目视角</td><td>工作分解结构、里程碑视图</td></tr>
+</tbody></table>
+</div>
+<div class="caption">表 1 &mdash; 利益相关方、关注点、视角与示例视图</div>
+
+<p>一个好的建模方法会规定哪些视角是必须的、哪些是可选的，以及不同视角的视图之间如何通过可追溯性进行关联。</p>
+
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>主要 MBSE 框架 &mdash; 预览</h2>
+</div>
+
+<p>在过去二十年中，涌现了多个 MBSE 框架（方法），每个框架都有不同的理念、来源和侧重点。本节提供简要概述 &mdash; 模块 6、7 和 8 将分别深入探讨 OOSEM、MagicGrid 和 IBM Harmony。</p>
+
+<h3>OOSEM（面向对象系统工程方法）</h3>
+<p>由 INCOSE 开发，OOSEM 遵循自顶向下的方法：利益相关方需求 &rarr; 用例 &rarr; 逻辑架构 &rarr; 物理架构。原则上它不依赖特定语言，但与 SysML 紧密关联。OOSEM 强调<strong>需求可追溯性</strong>和<strong>迭代精化</strong>。</p>
+
+<h3>MagicGrid</h3>
+<p>由 No Magic（现为 Dassault Syst&egrave;mes）创建，MagicGrid 将建模组织为一个矩阵：<strong>行</strong>（问题域、解决方案域、实现域）和<strong>列</strong>（需求、结构、行为、参数）。它的优势在于提供清晰的可视化路线图，告诉工程师下一步该填写矩阵的哪个单元格。</p>
+
+<h3>IBM Harmony</h3>
+<p>IBM Rational 开发的一种用例驱动、以架构为中心的方法。Harmony 非常重视<strong>行为建模</strong> &mdash; 状态机和活动图是其核心。它在每次迭代中遵循"规约 &rarr; 设计 &rarr; 验证"的循环。</p>
+
+<h3>UAF（统一架构框架）</h3>
+<p>专为国防和企业架构设计，UAF 提供了一套全面的视角，涵盖战略、运营、服务和资源等层面。它比上述方法更加复杂，通常用于大型政府和军事项目。</p>
+
+<h3>CESAM（CESAMES 系统架构方法）</h3>
+<p>由法国 CESAMES 研究所开发，CESAM 聚焦于<strong>系统架构</strong>，强调运营、功能和构造视角。在法国航空航天和交通运输行业尤为流行。</p>
+
+<div class="table-wrap">
+<table><thead><tr><th>框架</th><th>来源</th><th>主要侧重</th><th>语言依赖性</th><th>复杂度</th></tr></thead><tbody>
+<tr><td>OOSEM</td><td>INCOSE</td><td>需求驱动、自顶向下分解</td><td>语言无关（常用 SysML）</td><td>中等</td></tr>
+<tr><td>MagicGrid</td><td>No Magic / Dassault</td><td>基于矩阵的模型组织</td><td>SysML（紧耦合）</td><td>中等</td></tr>
+<tr><td>IBM Harmony</td><td>IBM Rational</td><td>用例驱动、以行为为中心</td><td>SysML / UML</td><td>中高</td></tr>
+<tr><td>UAF</td><td>OMG / NATO</td><td>企业与国防架构</td><td>UAF Profile（SysML/UML）</td><td>高</td></tr>
+<tr><td>CESAM</td><td>CESAMES（法国）</td><td>系统架构、运营视角</td><td>语言无关</td><td>中等</td></tr>
+</tbody></table>
+</div>
+<div class="caption">表 2 &mdash; 主要 MBSE 框架对比</div>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>没有哪个框架是"最好的"。正确的选择取决于你的<strong>领域</strong>（航空航天、汽车、国防）、你的<strong>组织成熟度</strong>以及你所采用的<strong>建模语言</strong>。许多组织会对框架进行裁剪和定制，而非照搬。从最适合你当前场景的框架开始，然后逐步演进。</p></div>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>方法-语言-工具对齐</h2>
+</div>
+
+<p>MBSE 的三根支柱 &mdash; <strong>语言</strong>、<strong>方法</strong>和<strong>工具</strong> &mdash; 必须协调一致。每根支柱各有其独特的作用：</p>
+<ul>
+  <li><strong>方法</strong>规定<em>建什么模型</em>以及建模的顺序。</li>
+  <li><strong>语言</strong>提供表达模型的<em>构造元素</em>（关键字、图表、语义）。</li>
+  <li><strong>工具</strong>提供创建、存储、浏览和分析模型的<em>环境</em>。</li>
+</ul>
+
+<p>当三者对齐时，工程师可以按照方法规定的步骤，使用语言的构造元素来表达每一步，并利用工具高效地创建和管理产出的工件。当三者<strong>不对齐</strong>时，结果就是浪费精力、变通方案和挫败感。</p>
+
+<h3>良好对齐的例子</h3>
+<ul>
+  <li><strong>MagicGrid + SysML + Cameo Systems Modeler：</strong>方法专为 SysML 设计，工具原生支持 MagicGrid 模板。</li>
+  <li><strong>OOSEM + SysML v2 + Eclipse SysML v2 Pilot：</strong>OOSEM 的流程自然映射到 SysML v2 构造，试验工具支持文本记法。</li>
+</ul>
+
+<h3>不对齐的例子</h3>
+<ul>
+  <li>方法要求进行参数分析，但工具不支持约束块。</li>
+  <li>方法要求追溯矩阵，但语言没有正式的追溯关系。</li>
+  <li>工具支持丰富的行为建模，但方法从未规定行为视图。</li>
+</ul>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p><strong>常见的不对齐场景：</strong></p><p>1. <strong>工具过于强大，但没有方法：</strong>团队购买了昂贵的 MBSE 工具，却没有统一的方法。工程师们随意创建模型，毫无一致性 &mdash; 工具沦为高级画图软件。</p><p>2. <strong>方法-语言不匹配：</strong>方法要求创建的视图是所选语言无法表达的（例如，要求用没有参数建模能力的语言进行成本建模）。</p><p>3. <strong>工具锁定：</strong>方法与某一工具的专有特性深度绑定，以至于更换工具就意味着放弃整套方法。</p><p>在启动 MBSE 采纳计划之前，请务必验证你的方法、语言和工具是否构成一个协调的三位一体。</p></div>
+
+<a href="MBSE_Module5_PillarTool_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块 5 &mdash; 支柱 3：建模工具 &mdash; 工具在 MBSE 中的角色、工具分类与选型标准。</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

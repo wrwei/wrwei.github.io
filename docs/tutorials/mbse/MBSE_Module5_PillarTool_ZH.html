@@ -1,0 +1,310 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE 模块 5：支柱三 — 建模工具</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{font-size:.88rem;color:var(--slate);background:var(--sky-pale);display:inline-block;padding:.3rem .85rem;border-radius:6px;margin-bottom:.5rem}
+.prereq strong{color:var(--navy)}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE 系列</a>
+  <span class="sep">/</span>
+  <span class="crumb">模块 5</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 5 / 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_ZH.html">1 &mdash; 什么是 MBSE？</a>
+      <a href="MBSE_Module2_SELifecycle_ZH.html">2 &mdash; 系统工程生命周期</a>
+      <a href="MBSE_Module3_PillarLanguage_ZH.html">3 &mdash; 支柱一：建模语言</a>
+      <a href="MBSE_Module4_PillarMethod_ZH.html">4 &mdash; 支柱二：建模方法</a>
+      <a href="MBSE_Module5_PillarTool_ZH.html" class="active">5 &mdash; 支柱三：建模工具</a>
+      <a href="MBSE_Module6_OOSEM_ZH.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_ZH.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_ZH.html">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_ZH.html">9 &mdash; 航空航天与国防</a>
+      <a href="MBSE_Module10_Automotive_ZH.html">10 &mdash; 汽车与工业 4.0</a>
+      <a href="MBSE_Module11_Practice_ZH.html">11 &mdash; 构建 MBSE 实践</a>
+      <a href="MBSE_Module12_Future_ZH.html">12 &mdash; MBSE 的未来</a>
+    </div>
+  </div>
+  <a href="MBSE_Module5_PillarTool_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">目录</div>
+    <nav><a href="#s1"><span class="num">1</span>工具为何重要</a><a href="#s2"><span class="num">2</span>MBSE 工具分类</a><a href="#s3"><span class="num">3</span>模型仓库与协作</a><a href="#s4"><span class="num">4</span>模型交换与互操作</a><a href="#s5"><span class="num">5</span>工具选型框架</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE 系列 &mdash; Ran Wei</div>
+      <h1 class="module-title">模块 5：<em>建模工具</em></h1>
+      <p class="module-lead">工具在 MBSE 中的角色、工具类别以及选型标准 &mdash; 保持工具无关性的同时，阐明工具必须做到什么。</p>
+      <div class="prereq"><strong>前置要求：</strong>MBSE 模块 4 &mdash; 支柱二：建模方法</div>
+    </div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 1 节 -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>工具为何重要</h2>
+</div>
+
+<p>仅存在于白板上的模型不是 MBSE。它也许能捕捉好的想法，但无法被查询、验证、版本控制或在分布式团队中共享。<strong>工具是 MBSE 的第三根支柱</strong>，因为它将概念模型转变为一项活的、可计算的资产。</p>
+
+<p>没有工具，你的模型只是一张快照。有了工具，它就变成了整个组织都能与之交互的持久化、不断演进的产物。工具提供四项关键能力：</p>
+
+<ul>
+  <li><strong>创建（Create）</strong>&mdash; 使用所选建模语言（如 SysML）编写模型元素，具备语法检查和图形/文本编辑器。</li>
+  <li><strong>存储（Store）</strong>&mdash; 将模型持久化到仓库中，使其在单次会话结束后仍然存在，并防止数据丢失。</li>
+  <li><strong>分析（Analyse）</strong>&mdash; 执行一致性检查、生成报告、运行仿真，并追踪需求到设计元素。</li>
+  <li><strong>共享（Share）</strong>&mdash; 让多名工程师同时查看、评审和贡献模型。</li>
+</ul>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>想想手写信与使用文字处理软件的区别。两者都能产出文本，但文字处理软件提供了拼写检查、格式设置、协作编辑和版本管理。你完全可以手写出优美的文章，但你会失去搜索、重新排版或合并五位合著者修改的能力。MBSE 工具对模型做的事情完全一样 &mdash; 它不改变你建模的内容，但从根本上改变了你<em>能对模型做什么</em>。</p></div>
+
+<h3>四项能力的实际表现</h3>
+<p>无论厂商是谁，每个 MBSE 工具都必须支持这四项能力的某种组合。有些工具侧重编写（创建），有些侧重长期管理（存储），还有些侧重下游使用（分析、共享）。理解这种分工是理解工具生态的关键。</p>
+
+<div class="table-wrap"><table><thead><tr><th>能力</th><th>能做什么</th><th>缺少会怎样</th></tr></thead><tbody>
+<tr><td>创建</td><td>图形/文本编辑器、拖拽建模、语法校验</td><td>工程师无法高效编写模型</td></tr>
+<tr><td>存储</td><td>持久化仓库、备份、访问控制</td><td>会话结束后模型丢失</td></tr>
+<tr><td>分析</td><td>一致性检查、仿真挂接、追溯矩阵、报告</td><td>模型只是静态图片，没有计算价值</td></tr>
+<tr><td>共享</td><td>多用户访问、评审工作流、向利益相关方导出</td><td>模型被锁在某个工程师的电脑上</td></tr>
+</tbody></table></div>
+<div class="caption">表 1 &mdash; 工具的四项关键能力</div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 2 节 -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>MBSE 工具分类</h2>
+</div>
+
+<p>MBSE 工具生态非常广泛。与其推荐某一款产品，不如理解工具的<strong>分类</strong>以及每个类别所扮演的角色。</p>
+
+<h3>编写工具（Authoring Tools）</h3>
+<p>这是工程师日常直接使用的工具，提供用特定建模语言创建和修改模型的编辑器。代表产品包括 Cameo Systems Modeler / Magic Systems of Systems Architect、IBM Rhapsody、Eclipse Papyrus 以及 Capella（使用其自身的 Arcadia 方法）。编写工具通常支持图形化建模，并且越来越多地支持文本表示法。</p>
+
+<h3>仓库与 PLM 工具（Repository / PLM Tools）</h3>
+<p>当模型规模超出单个文件时，就需要受管理的仓库。仓库工具提供版本控制、访问控制和生命周期管理。产品生命周期管理（PLM）平台也能承担此角色，将模型数据与 CAD、文档和物料清单数据集成在一起。代表产品包括 Teamwork Cloud 和 IBM DOORS（侧重需求管理的仓库）。</p>
+
+<h3>仿真工具（Simulation Tools）</h3>
+<p>当 MBSE 模型可以被仿真时，其价值显著提升。仿真工具获取模型的行为或参数方面，并执行它们 &mdash; 预测性能、验证约束或探索权衡方案。代表产品包括 MATLAB/Simulink 和基于 Modelica 的环境（如 OpenModelica、Dymola）。</p>
+
+<h3>集成平台（Integration Platforms）</h3>
+<p>在实践中，没有一个工具能做所有事。集成平台 &mdash; 有时称为模型总线或 API 连接器 &mdash; 在不同工具之间架起桥梁，使数据在它们之间流动。例如，将 SysML 模型输入仿真工具，或在建模工具与需求管理工具之间同步需求。</p>
+
+<div class="table-wrap"><table><thead><tr><th>类别</th><th>用途</th><th>示例工具</th></tr></thead><tbody>
+<tr><td>编写工具</td><td>使用建模语言创建和编辑模型</td><td>Cameo/MagicSystems、Rhapsody、Papyrus、Capella</td></tr>
+<tr><td>仓库 / PLM</td><td>存储、版本控制和管理模型产物</td><td>Teamwork Cloud、DOORS、Windchill、3DEXPERIENCE</td></tr>
+<tr><td>仿真工具</td><td>执行模型以预测行为和性能</td><td>Simulink、OpenModelica、Dymola、Cameo Simulation Toolkit</td></tr>
+<tr><td>集成平台</td><td>连接工具并在工具链间同步数据</td><td>OSLC 连接器、Intercax Syndeia、Phoenix Integration ModelCenter</td></tr>
+</tbody></table></div>
+<div class="caption">表 2 &mdash; MBSE 工具分类（列举不构成推荐）</div>
+
+<div class="callout note"><div class="callout-label">说明</div><p>本教程系列<strong>不绑定任何工具</strong>。我们提及具体产品仅作为各类别的示例。此处所教授的概念适用于您最终选择的任何工具。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 3 节 -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>模型仓库与协作</h2>
+</div>
+
+<p>真实世界的 MBSE 是一项团队活动。多名工程师 &mdash; 系统架构师、领域专家、需求分析师 &mdash; 都需要为同一个模型做出贡献。这使得<strong>协作基础设施</strong>与编写工具本身同等重要。</p>
+
+<h3>多用户访问</h3>
+<p>模型仓库允许多名用户同时对模型进行操作，通过访问控制确保工程师只修改自己负责的部分。基于角色的权限（读、写、管理员）防止对共享产物的意外破坏。</p>
+
+<h3>模型的分支与合并</h3>
+<p>正如软件开发者使用 Git 进行代码分支，模型仓库也能支持分支 &mdash; 允许团队在不影响主模型的情况下探索一个设计变体。当变体被批准后，再合并回主线。然而，模型合并比代码合并困难得多，因为模型是相互关联元素的图（graph），而不是一行行的文本。</p>
+
+<h3>模型的版本控制</h3>
+<p>对模型的每一次更改都应被记录：谁改了什么、什么时候改的、为什么改。这提供了审计追踪，支持回滚，在受监管行业（航空航天、医疗器械、汽车）中往往是认证所必需的。</p>
+
+<p>与 Git 的类比虽然有用但并不完美。代码差异（diff）以逐行方式展示文本文件的变化。模型差异则必须比较图结构 &mdash; 新增元素、删除关系、更改属性 &mdash; 并以人类可审阅的方式呈现。这是工具发展的一个活跃领域。</p>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p><strong>并发模型编辑非常困难。</strong>当两名工程师同时修改同一个模型元素时，合并可能产生难以解决的冲突。与文本合并冲突（展示一行的两个版本）不同，模型冲突可能涉及矛盾的关系、不兼容的类型变更或断裂的引用。最佳实践：定义清晰的所有权边界（如按包划分），并在工具支持的情况下使用锁定机制。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 4 节 -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>模型交换与互操作</h2>
+</div>
+
+<p>没有一个组织只用一个工具做所有事。模型需要在工具之间、团队之间以及组织之间（例如主承包商与供应商之间）进行交换。这就是<strong>互操作标准</strong>的领域。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>想想 USB 与专有充电器的对比。在 USB 成为标准之前，每个手机厂商都有自己的接口 &mdash; 每台设备都需要不同的线缆。标准接口意味着任何设备都能与任何充电器配合使用。模型交换标准的目标完全相同：任何符合标准的工具都应该能读取其他符合标准的工具所产出的模型。</p></div>
+
+<h3>关键互操作标准</h3>
+
+<div class="table-wrap"><table><thead><tr><th>标准</th><th>用途</th><th>适用范围</th></tr></thead><tbody>
+<tr><td>XMI（XML 元数据交换）</td><td>将 UML/SysML v1 模型序列化为 XML 文件</td><td>UML/SysML v1 工具间的模型交换</td></tr>
+<tr><td>ReqIF（需求交换格式）</td><td>在工具之间交换需求数据</td><td>需求管理（如 DOORS 与其他工具互通）</td></tr>
+<tr><td>SysML v2 API</td><td>用于读写 SysML v2 模型数据的标准 REST API</td><td>SysML v2 工具互操作（新标准）</td></tr>
+<tr><td>FMI（功能模型接口）</td><td>在工具之间交换仿真组件</td><td>动态模型的联合仿真和模型交换</td></tr>
+<tr><td>OSLC（开放生命周期协作服务）</td><td>通过 Web API 跨生命周期工具链接产物</td><td>跨工具追溯（需求、测试、模型）</td></tr>
+</tbody></table></div>
+<div class="caption">表 3 &mdash; 关键模型交换与互操作标准</div>
+
+<h3>为什么互操作很难</h3>
+<p>即使有了标准，互操作仍然充满挑战。不同工具可能对同一标准有略微不同的解释，支持标准的不同子集，或添加专有扩展。结果是，从工具 A 导出的模型导入工具 B 后可能丢失信息、需要手动修复或出现意外行为。</p>
+
+<p>SysML v2 通过其配套的 <strong>API 标准</strong>直接解决了这一问题 &mdash; 一个基于 REST 的接口，精确定义了工具如何交换模型数据。这相比 SysML v1 时代基于 XMI 的交换方式是重大改进，后者在不同工具间的一致性一直备受诟病。</p>
+
+<div class="callout note"><div class="callout-label">说明</div><p>评估工具时，务必用实际工具链测试互操作性。纸面上符合标准不等于实践中无缝交换。在做出承诺之前，请要求概念验证或试用。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ 第 5 节 -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>工具选型 &mdash; 决策框架</h2>
+</div>
+
+<p>选择 MBSE 工具是一项影响团队多年的重大决策。错误的选择可能造成供应商锁定、限制协作，或强制推行与你的方法冲突的工作流程。正确的选择则能加速采纳并放大模型的价值。</p>
+
+<h3>决策标准</h3>
+<p>下表列出了需要评估的关键标准。请根据组织的实际情况对每项标准赋予权重 &mdash; 小型创业公司与国防主承包商的优先级截然不同。</p>
+
+<div class="table-wrap"><table><thead><tr><th>标准</th><th>应提出的问题</th><th>为何重要</th></tr></thead><tbody>
+<tr><td>语言支持</td><td>是否支持 SysML v1、SysML v2、UML 或领域特定语言？</td><td>必须匹配你的方法所要求的语言</td></tr>
+<tr><td>方法支持</td><td>是否支持你所选的方法（OOSEM、MagicGrid、Arcadia 等）？</td><td>与方法冲突的工具会拖慢采纳速度</td></tr>
+<tr><td>协作能力</td><td>多用户仓库？分支？基于角色的访问控制？Web 评审？</td><td>MBSE 是团队活动；仅支持单人的工具无法扩展</td></tr>
+<tr><td>仿真能力</td><td>内置仿真？与 Simulink/Modelica 集成？</td><td>可执行的模型使 MBSE 的价值倍增</td></tr>
+<tr><td>互操作性</td><td>支持 XMI、ReqIF、SysML v2 API、FMI、OSLC？</td><td>你的工具必须融入更大的工具链</td></tr>
+<tr><td>成本</td><td>许可模式（按席位、浮动、订阅）？总拥有成本？</td><td>预算约束是真实的；需包含培训和基础设施成本</td></tr>
+<tr><td>供应商锁定</td><td>如果需要，能否将模型导出到其他工具？</td><td>迁移成本可能让你被困在不合适的工具上</td></tr>
+<tr><td>生态系统</td><td>社区规模？插件？培训资源？厂商路线图？</td><td>活跃的生态系统降低风险并加速学习</td></tr>
+<tr><td>易用性</td><td>学习曲线？界面质量？文档？</td><td>工程师的日常使用体验决定了采纳程度</td></tr>
+</tbody></table></div>
+<div class="caption">表 4 &mdash; MBSE 工具选型标准</div>
+
+<h3>务实的方法</h3>
+<p>没有工具能在每项标准上都得满分。目标是识别你的<strong>必备项</strong>（不可谈判的需求）和<strong>加分项</strong>（期望但非必须），然后筛选出满足所有必备项且在加分项上表现良好的工具。</p>
+
+<ol>
+  <li><strong>明确需求</strong> &mdash; 你需要什么语言、方法、团队规模和集成需求？</li>
+  <li><strong>调研市场</strong> &mdash; 在每个类别中识别候选工具。</li>
+  <li><strong>要求演示</strong> &mdash; 用你的实际用例观看工具演示。</li>
+  <li><strong>开展试点</strong> &mdash; 在一个真实但低风险的项目上试用入围工具。</li>
+  <li><strong>评估并决策</strong> &mdash; 按标准打分，做出有据可查的决策。</li>
+</ol>
+
+<div class="callout tip"><div class="callout-label">提醒</div><p>本系列<strong>不绑定任何工具</strong>。我们教授的 MBSE 概念、方法和框架适用于您使用的任何工具。优秀的系统工程师先理解原则 &mdash; 工具是载体，不是目的地。</p></div>
+
+<a href="MBSE_Module6_OOSEM_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块 6 &mdash; OOSEM &mdash; 面向对象的系统工程方法：从利益相关方需求到逻辑架构和物理架构。</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

@@ -25,3 +25,11 @@ A tutorial series covering the fundamentals of SysML v2, the next-generation sys
 A 10-module tutorial series on DevOps practices including Unix tools, Git, CI/CD, containers, and automation.
 
 [:octicons-arrow-right-24: Go to DevOps Tutorials](devops/index.html)
+
+---
+
+## Model-Based Systems Engineering
+
+A 12-module tutorial series on MBSE methodology, the three pillars (language, method, tool), industry frameworks (OOSEM, MagicGrid, IBM Harmony), and domain applications — tool-agnostic and beginner-friendly.
+
+[:octicons-arrow-right-24: Go to MBSE Tutorials](mbse/index.html)
