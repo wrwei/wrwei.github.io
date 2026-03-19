@@ -1,0 +1,341 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE Module 8: IBM Harmony</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{font-size:.88rem;color:var(--muted);margin-bottom:0}
+.prereq a{color:var(--blue);text-decoration:none;font-weight:500}
+.prereq a:hover{text-decoration:underline}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">Module 8</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 8 of 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_EN.html">1 &mdash; What is MBSE?</a>
+      <a href="MBSE_Module2_SELifecycle_EN.html">2 &mdash; The SE Lifecycle</a>
+      <a href="MBSE_Module3_PillarLanguage_EN.html">3 &mdash; Pillar 1: Modelling Language</a>
+      <a href="MBSE_Module4_PillarMethod_EN.html">4 &mdash; Pillar 2: Modelling Method</a>
+      <a href="MBSE_Module5_PillarTool_EN.html">5 &mdash; Pillar 3: Modelling Tool</a>
+      <a href="MBSE_Module6_OOSEM_EN.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_EN.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_EN.html" class="active">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_EN.html">9 &mdash; Aerospace &amp; Defence</a>
+      <a href="MBSE_Module10_Automotive_EN.html">10 &mdash; Automotive &amp; Industry 4.0</a>
+      <a href="MBSE_Module11_Practice_EN.html">11 &mdash; Building an MBSE Practice</a>
+      <a href="MBSE_Module12_Future_EN.html">12 &mdash; The Future of MBSE</a>
+    </div>
+  </div>
+  <a href="MBSE_Module8_Harmony_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav>
+      <a href="#s1"><span class="num">1</span>Harmony Origins</a>
+      <a href="#s2"><span class="num">2</span>The Harmony-SE Process</a>
+      <a href="#s3"><span class="num">3</span>Requirements Analysis</a>
+      <a href="#s4"><span class="num">4</span>System Functional Analysis</a>
+      <a href="#s5"><span class="num">5</span>Design Synthesis</a>
+      <a href="#s6"><span class="num">6</span>Three-Way Comparison</a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 8: <em>IBM Harmony</em></h1>
+      <p class="module-lead">A use-case-driven, architecture-centric approach with strong behaviour emphasis &mdash; with a running medical infusion pump example.</p>
+      <p class="prereq">Prerequisite: <a href="MBSE_Module7_MagicGrid_EN.html">MBSE Module 7 &mdash; MagicGrid</a></p>
+    </div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 1 -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>Harmony Origins</h2>
+</div>
+
+<p>IBM Harmony (formally known as <strong>Harmony for Systems Engineering</strong>, or <strong>Harmony-SE</strong>) is an MBSE methodology developed at <strong>IBM Rational</strong>, based primarily on the work of <strong>Bruce Powel Douglass</strong>. Douglass, a prolific author on real-time and embedded systems design, shaped Harmony into a practical, behaviour-focused process that could be applied from small medical devices to large defence systems.</p>
+
+<h3>From software to systems</h3>
+<p>Harmony originally began as a software engineering process &mdash; <strong>Harmony for Software</strong> &mdash; tailored around UML and object-oriented design for real-time embedded software. Recognising that the same rigour was needed at the systems level, IBM extended the method upward into <strong>Harmony-SE</strong>, adapting it for multi-discipline system design using SysML. The two layers (software and systems) are designed to work together seamlessly: Harmony-SE produces the system architecture that Harmony for Software then implements.</p>
+
+<h3>Core philosophy</h3>
+<p>Harmony is built on two pillars:</p>
+<ul>
+  <li><strong>Use-case-driven:</strong> The entire process is organised around use cases &mdash; each use case captures a scenario of how the system interacts with its environment. Use cases drive the identification of functions, behaviours, and ultimately the physical design.</li>
+  <li><strong>Architecture-centric:</strong> A robust system architecture emerges early and is continuously refined. The architecture is not an afterthought; it is the backbone around which all analysis and design activities are organised.</li>
+</ul>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Harmony was developed inside IBM Rational &mdash; the same division that produced Rational Rhapsody, one of the most widely used SysML/UML modelling tools. As a result, Harmony has historically been tightly integrated with Rhapsody, although the methodology itself is tool-agnostic and can be practised with any SysML-capable tool.</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 2 -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>The Harmony-SE Process</h2>
+</div>
+
+<p>Harmony-SE organises the systems engineering effort into <strong>three main phases</strong>, each producing specific model artifacts that feed the next. The process is iterative &mdash; you may loop back from later phases to refine earlier work &mdash; but the overall flow moves from problem understanding to solution design.</p>
+
+<h3>Phase overview</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Phase</th><th>Focus</th><th>Key Artifacts</th></tr></thead>
+<tbody>
+<tr><td>1. Requirements Analysis</td><td>Understanding <em>what</em> the system must do from the users' perspective</td><td>Use case diagrams, use case descriptions, actor definitions, system context diagram</td></tr>
+<tr><td>2. System Functional Analysis</td><td>Decomposing <em>how</em> the system behaves internally to fulfil each use case</td><td>Activity diagrams, sequence diagrams, state machine diagrams, functional block definitions</td></tr>
+<tr><td>3. Design Synthesis</td><td>Allocating functions to physical subsystems and defining interfaces</td><td>Physical architecture (BDD/IBD), allocation matrices, interface definitions, port specifications</td></tr>
+</tbody>
+</table>
+</div>
+<p class="caption">Table 1 &mdash; The three phases of Harmony-SE</p>
+
+<h3>Flow between phases</h3>
+<p>The phases are connected by clear handoffs:</p>
+<ul>
+  <li><strong>Requirements Analysis &rarr; System Functional Analysis:</strong> Each use case identified in Phase 1 becomes the input to Phase 2. For every use case, engineers create activity diagrams (to decompose the function), sequence diagrams (to explore interaction scenarios), and state machines (to capture modal behaviour).</li>
+  <li><strong>System Functional Analysis &rarr; Design Synthesis:</strong> The functions and behaviours identified in Phase 2 must be allocated to physical components in Phase 3. This is the critical transition from the <em>functional</em> (logical) world to the <em>physical</em> (design) world.</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Harmony is <strong>behaviour-first</strong>. Unlike some methodologies that start with structure (defining subsystems and then asking "what do they do?"), Harmony insists on fully understanding the system's behaviour <em>before</em> deciding on the physical architecture. This is particularly valuable for safety-critical and real-time systems, where behavioural correctness is paramount.</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 3 -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Requirements Analysis</h2>
+</div>
+
+<p>The first phase of Harmony-SE focuses on capturing <em>what</em> the system must do from the perspective of its users and external systems. The primary vehicle is the <strong>use case</strong> &mdash; a narrative of a complete interaction between an actor and the system that delivers a meaningful result.</p>
+
+<h3>Identifying actors</h3>
+<p>An actor is any entity outside the system boundary that interacts with the system. Actors can be human users, external systems, or even the physical environment. For our running example &mdash; a <strong>medical infusion pump</strong> &mdash; the key actors are:</p>
+<ul>
+  <li><strong>Nurse</strong> &mdash; the primary operator who programmes the pump, starts/stops infusions, and responds to alarms.</li>
+  <li><strong>Patient</strong> &mdash; the recipient of the medication; the pump must detect conditions that affect the patient (e.g. occlusion, air-in-line).</li>
+  <li><strong>Pharmacy System</strong> &mdash; an external IT system that supplies drug library data and dosage limits to the pump.</li>
+</ul>
+
+<h3>Defining use cases</h3>
+<p>Each use case describes a goal-oriented interaction. For the infusion pump, the primary use cases include:</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Use Case</th><th>Primary Actor</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>Programme Infusion</td><td>Nurse</td><td>The nurse selects a drug, sets the dose rate, volume to be infused, and confirms the programme. The pump validates against the drug library.</td></tr>
+<tr><td>Deliver Medication</td><td>Nurse / Patient</td><td>The pump delivers medication at the programmed rate, monitors flow, and tracks volume delivered.</td></tr>
+<tr><td>Detect Occlusion</td><td>Patient (indirect)</td><td>The pump detects that the IV line is blocked (pressure exceeds threshold) and transitions to an alarm state.</td></tr>
+<tr><td>Raise Alarm</td><td>Nurse</td><td>The pump generates audible and visual alarms, pauses delivery, and waits for the nurse to acknowledge and resolve the condition.</td></tr>
+</tbody>
+</table>
+</div>
+<p class="caption">Table 2 &mdash; Primary use cases for the medical infusion pump</p>
+
+<h3>System boundary</h3>
+<p>A clear system boundary separates what is <em>inside</em> the system (the pump hardware, firmware, sensors, actuators) from what is <em>outside</em> (the nurse, patient, pharmacy system, hospital network). Harmony insists on drawing this boundary explicitly in a <strong>system context diagram</strong> before any functional decomposition begins.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of the system boundary like the walls of a restaurant. Inside the walls are the kitchen, waitstaff, and equipment &mdash; that is your system. Outside are the customers (actors) who interact through well-defined interfaces (the menu, the service counter). You must know exactly where the walls are before you can design the kitchen layout.</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 4 -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>System Functional Analysis</h2>
+</div>
+
+<p>Once the use cases are defined, Harmony-SE moves into its most distinctive phase: <strong>System Functional Analysis</strong>. This is where the system's behaviour is modelled in detail using three complementary diagram types.</p>
+
+<h3>Activity diagrams &mdash; functional decomposition</h3>
+<p>For each use case, an activity diagram breaks the high-level function into smaller sub-functions (actions) connected by control and data flows. For "Deliver Medication," the activity diagram might decompose into: <em>validate programme &rarr; prime line &rarr; start pump motor &rarr; monitor flow rate &rarr; track volume delivered &rarr; stop when complete</em>.</p>
+
+<h3>Sequence diagrams &mdash; interaction scenarios</h3>
+<p>Sequence diagrams capture specific scenarios &mdash; the "happy path," error paths, and edge cases. They show the time-ordered exchange of messages between the system's internal functional blocks and external actors. For the infusion pump, a key scenario is the occlusion detection sequence: <em>flow sensor detects back-pressure &rarr; controller evaluates threshold &rarr; controller commands pump stop &rarr; alarm manager activates alarm &rarr; display shows error code</em>.</p>
+
+<h3>State machine diagrams &mdash; modal behaviour</h3>
+<p>State machines capture the system's modes and transitions. For the infusion pump, the top-level state machine is:</p>
+<ul>
+  <li><strong>Idle</strong> &mdash; pump is on but no programme is active.</li>
+  <li><strong>Programming</strong> &mdash; the nurse is entering infusion parameters.</li>
+  <li><strong>Infusing</strong> &mdash; medication is being delivered at the programmed rate.</li>
+  <li><strong>Paused</strong> &mdash; delivery is temporarily halted (nurse-initiated or automatic hold).</li>
+  <li><strong>Alarm</strong> &mdash; a fault condition has been detected; delivery is stopped and the alarm is active.</li>
+</ul>
+<p>Transitions between states are triggered by events: <em>nurse presses Start</em> (Idle &rarr; Programming), <em>programme confirmed</em> (Programming &rarr; Infusing), <em>occlusion detected</em> (Infusing &rarr; Alarm), <em>nurse acknowledges alarm</em> (Alarm &rarr; Paused or Idle).</p>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p><strong>Why behaviour modelling matters for safety-critical systems:</strong> In domains like medical devices, automotive, and aerospace, regulators (e.g. the FDA, EASA) require evidence that the system behaves correctly in all modes &mdash; including failure modes. State machines make every possible mode and every transition explicit, leaving no room for unanalysed behaviour. This is why Harmony's behaviour-first philosophy is especially well suited to safety-critical development.</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 5 -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Design Synthesis</h2>
+</div>
+
+<p>Design Synthesis is the phase where the model transitions from <strong>"what"</strong> the system does to <strong>"how"</strong> it does it. The functions and behaviours identified during System Functional Analysis are now allocated to physical subsystems, and the interfaces between those subsystems are formally defined.</p>
+
+<h3>Allocating functions to physical subsystems</h3>
+<p>Allocation is the act of assigning each logical function to one or more physical components. This is captured in an <strong>allocation matrix</strong> or through SysML <code>&laquo;allocate&raquo;</code> relationships. For the infusion pump:</p>
+<ul>
+  <li>The <strong>"deliver medication"</strong> function allocates to three physical subsystems: the <strong>pump mechanism</strong> (peristaltic motor and rotor), the <strong>flow sensor</strong> (ultrasonic or drip-count sensor), and the <strong>controller board</strong> (embedded processor running the control algorithm).</li>
+  <li>The <strong>"raise alarm"</strong> function allocates to the <strong>alarm speaker</strong>, <strong>LED indicator panel</strong>, and the <strong>controller board</strong>.</li>
+  <li>The <strong>"programme infusion"</strong> function allocates to the <strong>touchscreen display</strong>, <strong>keypad</strong>, and <strong>controller board</strong>.</li>
+</ul>
+
+<h3>Defining interfaces</h3>
+<p>Once functions are allocated, the interfaces between subsystems become clear. The controller board must communicate with the pump mechanism (motor speed commands), the flow sensor (flow rate readings), and the display (UI updates). Each interface is defined with specific signal types, data rates, and protocols &mdash; captured as SysML ports and flows.</p>
+
+<h3>The physical architecture</h3>
+<p>The result of Design Synthesis is a <strong>physical architecture</strong> &mdash; typically represented as a SysML Block Definition Diagram (BDD) showing the subsystem hierarchy and an Internal Block Diagram (IBD) showing how subsystems are connected through ports and connectors. This architecture becomes the specification that hardware, software, and integration teams work from.</p>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>The transition from functional to physical architecture is often the most challenging step in any MBSE methodology. Harmony helps by ensuring that the functional model is thorough <em>before</em> allocation begins. Because every function has been explored through activity diagrams, sequence diagrams, and state machines, engineers have high confidence that the allocation is complete &mdash; no function is "orphaned" without a physical home.</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 6 -->
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>Three-Way Comparison</h2>
+</div>
+
+<p>With Modules 6, 7, and 8, you have now studied the three most widely adopted MBSE frameworks: <strong>OOSEM</strong>, <strong>MagicGrid</strong>, and <strong>IBM Harmony</strong>. Each has distinct strengths. The table below provides a comprehensive comparison to help you choose the right framework for your context.</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Dimension</th><th>OOSEM</th><th>MagicGrid</th><th>IBM Harmony</th></tr></thead>
+<tbody>
+<tr><td>Primary Driver</td><td>Stakeholder needs and mission requirements</td><td>Model organisation by abstraction level and concern</td><td>Use cases (actor-system interactions)</td></tr>
+<tr><td>Process Style</td><td>Comprehensive, top-down lifecycle process (analyse &rarr; design &rarr; verify)</td><td>Matrix-guided: fill cells by abstraction level (Problem, Solution, Implementation) and concern (Requirements, Behaviour, Structure)</td><td>Three-phase linear flow: Requirements Analysis &rarr; Functional Analysis &rarr; Design Synthesis</td></tr>
+<tr><td>Behaviour Emphasis</td><td>Moderate &mdash; behaviour is one of several parallel concerns</td><td>Moderate &mdash; behaviour occupies one column of the grid</td><td>Strong &mdash; behaviour modelling is the centrepiece; functional analysis is the most elaborate phase</td></tr>
+<tr><td>Model Organisation</td><td>Organised by process phase (stakeholder needs, requirements, logical arch., physical arch.)</td><td>Organised by a 3&times;4 matrix (or 4&times;4 with parametrics); highly structured and navigable</td><td>Organised by use case &mdash; each use case has its own set of activity, sequence, and state machine diagrams</td></tr>
+<tr><td>Best For</td><td>Large-scale, multi-discipline programmes requiring comprehensive traceability across the full lifecycle</td><td>Teams that value a structured, navigable model and clear separation of concerns; good for onboarding new modellers</td><td>Safety-critical and real-time systems where behavioural correctness is paramount (medical, automotive, defence)</td></tr>
+<tr><td>Learning Curve</td><td>Steep &mdash; many concepts and a broad process to master</td><td>Moderate &mdash; the grid provides a clear roadmap; easier to know "where am I?"</td><td>Moderate &mdash; the three-phase process is intuitive; deep behaviour modelling requires practice</td></tr>
+</tbody>
+</table>
+</div>
+<p class="caption">Table 3 &mdash; Harmony vs. OOSEM vs. MagicGrid comparison</p>
+
+<p>No single framework is universally "best." Many organisations adapt elements from multiple frameworks. The key takeaway is:</p>
+<ul>
+  <li><strong>Harmony</strong> is strongest when you need <em>behaviour-first</em> rigour &mdash; especially for safety-critical systems with complex state-based behaviour.</li>
+  <li><strong>OOSEM</strong> is strongest when you need a <em>comprehensive lifecycle process</em> that covers everything from stakeholder analysis to verification.</li>
+  <li><strong>MagicGrid</strong> is strongest when you need <em>model organisation</em> &mdash; a clear, navigable structure that scales and helps large teams stay aligned.</li>
+</ul>
+
+<a href="MBSE_Module9_AerospaceDef_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 9 &mdash; Aerospace &amp; Defence &mdash; How MBSE is applied in aerospace and defence: standards, certification, and real-world patterns.</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

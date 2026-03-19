@@ -1,0 +1,369 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE 模块 2：系统工程生命周期</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:220px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq-tag{display:inline-block;font-size:.78rem;font-weight:600;color:var(--orange);background:var(--orange-bg);padding:.2rem .7rem;border-radius:6px;margin-bottom:.5rem}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+.v-diagram{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin:1.5rem 0;font-family:var(--font-mono);font-size:.78rem;line-height:1.5;overflow-x:auto;text-align:center;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">模块 2</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 2 / 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_ZH.html">1 &mdash; 什么是 MBSE？</a>
+      <a href="MBSE_Module2_SELifecycle_ZH.html" class="active">2 &mdash; 系统工程生命周期</a>
+      <a href="MBSE_Module3_PillarLanguage_ZH.html">3 &mdash; 支柱：语言</a>
+      <a href="MBSE_Module4_PillarMethod_ZH.html">4 &mdash; 支柱：方法</a>
+      <a href="MBSE_Module5_PillarTool_ZH.html">5 &mdash; 支柱：工具</a>
+      <a href="MBSE_Module6_OOSEM_ZH.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_ZH.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_ZH.html">8 &mdash; Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_ZH.html">9 &mdash; 航空航天与国防</a>
+      <a href="MBSE_Module10_Automotive_ZH.html">10 &mdash; 汽车行业</a>
+      <a href="MBSE_Module11_Practice_ZH.html">11 &mdash; 实践</a>
+      <a href="MBSE_Module12_Future_ZH.html">12 &mdash; 未来展望</a>
+    </div>
+  </div>
+  <a href="MBSE_Module2_SELifecycle_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">目录</div>
+    <nav><a href="#s1"><span class="num">1</span>V 模型</a><a href="#s2"><span class="num">2</span>ISO 15288 技术过程</a><a href="#s3"><span class="num">3</span>MBSE 在生命周期中的位置</a><a href="#s4"><span class="num">4</span>迭代与递归</a><a href="#s5"><span class="num">5</span>运行概念 (ConOps)</a><a href="#s6"><span class="num">6</span>通往三大支柱</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE Series &mdash; Ran Wei</div>
+      <h1 class="module-title">模块 2：<em>系统工程生命周期</em></h1>
+      <p class="module-lead">V 模型、生命周期阶段以及 MBSE 所支持的技术过程 &mdash; 为方法论的学习奠定基础。</p>
+      <span class="prereq-tag">前置：MBSE 模块 1</span>
+    </div>
+
+<!-- ====== 第 1 节 ====== -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>V 模型（V-Model）</h2>
+</div>
+
+<p>如果说系统工程中有一张每位工程师都见过的图，那一定是 <strong>V 模型</strong>。它是系统工程中最常用的生命周期模型，用一个清晰的 V 形结构展示了系统从初始概念到验证交付的完整过程。</p>
+
+<p>V 模型因其形状而得名。V 的<strong>左侧</strong>代表<em>分解与定义</em> &mdash; 将系统逐步拆解为越来越小的部分，并在每一层定义需求和架构。V 的<strong>右侧</strong>代表<em>集成与验证</em> &mdash; 将这些部分重新组装，并在每一层进行测试以确认其正确性。</p>
+
+<div class="v-diagram">
+<pre style="background:none;border:none;padding:0;margin:0;text-align:center;font-size:.8rem;line-height:1.6">
+系统需求 (System Requirements)                      系统确认 (System Validation)
+    \                                                     /
+     \        &laquo; 左侧每一层                            /
+      \          在右侧都有对应的测试层 &raquo;            /
+       \                                                /
+  子系统需求 (Subsystem Req.)              子系统验证 (Subsystem Verification)
+         \                                      /
+          \                                    /
+     组件需求 (Component Req.)        组件验证 (Component Verification)
+              \                           /
+               \                         /
+                \                       /
+              实现与编码 (Implementation)
+</pre>
+</div>
+<p class="caption">图 1 &mdash; V 模型：左侧为分解，右侧为集成与验证</p>
+
+<p>从上到下阅读左侧：</p>
+<ol>
+  <li><strong>系统需求（System Requirements）</strong> &mdash; 整个系统必须做什么。</li>
+  <li><strong>子系统需求（Subsystem Requirements）</strong> &mdash; 每个主要子系统需要满足哪些系统需求。</li>
+  <li><strong>组件需求（Component Requirements）</strong> &mdash; 每个独立组件必须做什么。</li>
+  <li><strong>实现（Implementation）</strong> &mdash; 对每个组件进行实际的构建、编码或制造（V 的底部）。</li>
+</ol>
+
+<p>从下到上阅读右侧：</p>
+<ol>
+  <li><strong>组件验证（Component Verification）</strong> &mdash; 每个组件是否满足其组件级需求？</li>
+  <li><strong>子系统验证（Subsystem Verification）</strong> &mdash; 组件组装成子系统后，是否满足子系统需求？</li>
+  <li><strong>系统确认（System Validation）</strong> &mdash; 所有部分集成后，完整系统是否满足最初的利益相关者需求？</li>
+</ol>
+
+<p>关键洞察：<strong>左侧的每一层分解都对应右侧的一个验证或确认层级</strong>。你不必等到最后才发现问题 &mdash; 而是在每一层都进行测试。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div>
+<p>想象一下策划婚礼。V 的<strong>左侧</strong>是分解：你从"策划完美的婚礼"（系统需求）出发，然后拆分为子任务 &mdash; 预订场地、聘请餐饮服务、找摄影师（子系统需求），再进一步拆分为组件级细节 &mdash; 选择菜单、挑选花艺、设计请柬。</p>
+<p>V 的<strong>右侧</strong>是集成与验证：首先逐项检查每个组件（品尝食物、审核请柬样张），然后进行整合多个要素的彩排（彩排晚宴），最后婚礼当天就是"系统确认" &mdash; 一切是否如预期般完美地结合在一起？</p>
+</div>
+
+<!-- ====== 第 2 节 ====== -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>ISO/IEC/IEEE 15288 技术过程</h2>
+</div>
+
+<p>V 模型给了我们生命周期的形状，而国际标准 <strong>ISO/IEC/IEEE 15288</strong> 则给了我们<em>词汇表</em>。它定义了一组系统工程项目应当涵盖的<strong>技术过程（Technical Processes）</strong>。可以把它想象成一本食谱 &mdash; 它告诉你有哪些"菜品"（过程），但不规定你必须按什么顺序烹饪。</p>
+
+<table>
+<thead><tr><th>技术过程</th><th>目的</th><th>典型 MBSE 制品</th></tr></thead>
+<tbody>
+<tr><td>利益相关者需求定义<br><small>(Stakeholder Needs Definition)</small></td><td>识别利益相关者及其需求</td><td>利益相关者模型、用例图</td></tr>
+<tr><td>需求分析<br><small>(Requirements Analysis)</small></td><td>将利益相关者需求转化为精确、可测试的需求</td><td>需求模型、需求图</td></tr>
+<tr><td>架构定义<br><small>(Architecture Definition)</small></td><td>设计系统结构（组件、接口、分配）</td><td>模块图、内部模块图</td></tr>
+<tr><td>设计定义<br><small>(Design Definition)</small></td><td>详细设计每个组件</td><td>参数模型、详细零件模型</td></tr>
+<tr><td>集成<br><small>(Integration)</small></td><td>将组件组装为子系统和系统</td><td>集成计划模型、接口矩阵</td></tr>
+<tr><td>验证<br><small>(Verification)</small></td><td>确认系统满足其需求（"正确地构建了产品"）</td><td>测试用例模型、验证矩阵</td></tr>
+<tr><td>确认<br><small>(Validation)</small></td><td>确认系统满足利益相关者需求（"构建了正确的产品"）</td><td>场景模型、仿真结果</td></tr>
+<tr><td>移交<br><small>(Transition)</small></td><td>将系统交付给运营方并支持持续使用</td><td>部署模型、培训计划</td></tr>
+</tbody>
+<caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 1 &mdash; ISO/IEC/IEEE 15288 技术过程及其 MBSE 制品</caption>
+</table>
+
+<div class="callout note"><div class="callout-label">说明</div>
+<p>ISO/IEC/IEEE 15288 是一项<strong>标准</strong>，而非强制规定。它描述的是<em>有哪些</em>过程存在，而不是你<em>必须如何</em>执行它们。你的组织可以根据项目需要自由裁剪、合并或重新排列这些过程。该标准提供了一套通用语言，使跨组织、跨行业的工程师能够有效沟通。</p>
+</div>
+
+<h3>验证 vs 确认（Verification vs Validation）</h3>
+<p>一个常见的混淆点：</p>
+<ul>
+  <li><strong>验证（Verification）</strong>问的是："我们是否<em>正确地</em>构建了系统？" &mdash; 产品是否满足其规定的需求？</li>
+  <li><strong>确认（Validation）</strong>问的是："我们是否构建了<em>正确的</em>系统？" &mdash; 产品是否真正满足利益相关者的实际需求？</li>
+</ul>
+<p>你可以建造一座完美通过验证的桥梁（满足所有工程规格），但它可能无法通过确认（因为建在了错误的位置）。两者缺一不可。</p>
+
+<!-- ====== 第 3 节 ====== -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>MBSE 在生命周期中的位置</h2>
+</div>
+
+<p>首先需要澄清一个关键误解：<strong>MBSE 不是一种生命周期模型</strong>。它不是 V 模型、螺旋模型或任何其他生命周期框架的替代品。相反，MBSE 是一种<em>使用模型而非文档来执行生命周期活动的方式</em>。</p>
+
+<p>在传统的（基于文档的）方法中，每个生命周期活动都会产出一份文档 &mdash; 利益相关者需求文档、系统需求规格书、架构描述文档、测试计划等等。而在 MBSE 方法中，同样的活动产出的是<em>模型</em>：</p>
+
+<ul>
+  <li><strong>利益相关者需求定义</strong> &rarr; 利益相关者需求模型（用例、场景、运行上下文）</li>
+  <li><strong>需求分析</strong> &rarr; 需求模型（结构化、有链接的需求及可追溯性）</li>
+  <li><strong>架构定义</strong> &rarr; 架构模型（结构分解、接口、分配关系）</li>
+  <li><strong>设计定义</strong> &rarr; 行为和参数模型（状态机、活动、约束）</li>
+  <li><strong>验证与确认</strong> &rarr; 验证模型（与需求关联的测试用例、仿真结果）</li>
+</ul>
+
+<p>关键优势在于：由于所有这些模型都存在于同一个建模环境中，它们是<strong>相互关联的</strong>。一条需求可以追溯到满足它的架构元素、验证它的测试用例，以及驱动它产生的利益相关者需求 &mdash; 全部通过可导航的实时链接，而非静态文档之间的交叉引用。</p>
+
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>当有人问"我们应该用 MBSE 还是 V 模型？"时，答案是"两者都用"。V 模型（或你选择的任何生命周期模型）告诉你<em>做什么</em>以及<em>什么时候做</em>。MBSE 告诉你<em>如何</em>捕获和管理信息 &mdash; 用模型代替文档。它们是互补的，而非竞争关系。</p>
+</div>
+
+<!-- ====== 第 4 节 ====== -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>迭代与递归（Iteration and Recursion）</h2>
+</div>
+
+<p>现实中的系统开发绝非沿着 V 的一侧走下去再沿另一侧走上来那么简单。两个重要概念使生命周期更加贴近现实：<strong>迭代（Iteration）</strong>和<strong>递归（Recursion）</strong>。</p>
+
+<h3>迭代（Iteration）</h3>
+<p><strong>迭代</strong>是指在同一层级内反复执行某个过程或过程集以优化结果。例如，你可能要经过几轮架构定义才能使设计稳定下来 &mdash; 每一轮都会产出更成熟、更详细的模型。就像雕塑家：第一遍塑造粗糙的形状，第二遍增加细节，第三遍进行打磨。每一遍都是对同一过程的迭代。</p>
+
+<h3>递归（Recursion）</h3>
+<p><strong>递归</strong>是指在系统层次结构的不同层级应用同一组过程。你用来定义系统的过程（利益相关者需求、需求分析、架构定义、验证）同样会在子系统层级再执行一次，在组件层级再执行一次。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div>
+<p>想象<strong>俄罗斯套娃</strong>（Matryoshka）。打开最外层的娃娃（系统），里面是一个较小的娃娃（子系统），再里面是一个更小的娃娃（组件）。每个娃娃都有相同的形状和绘制特征 &mdash; 只是大小不同。在系统工程中，每一层"娃娃"都会经历相同的生命周期过程（需求、架构、验证），只是在不同的抽象层级上。</p>
+</div>
+
+<p>这正是模型在系统工程中如此有价值的原因。一个结构良好的模型能够在单一的、一致的框架中<strong>表示多个抽象层级</strong>。你可以放大查看系统级架构，也可以缩小查看某个具体组件的设计 &mdash; 层级之间的可追溯性链接会自动维护。使用文档来管理这种多层级一致性极其困难，而使用模型则是内建的。</p>
+
+<h3>V 中的螺旋</h3>
+<p>在实践中，大多数现代项目会将 V 模型结构与迭代螺旋相结合。在 V 的每一个阶段，团队可能会经历多次迭代（螺旋）来完善其工作成果。MBSE 天然支持这种方式：模型本质上是渐进式的。你不会"一次性"写完一个模型 &mdash; 你会在每次迭代中持续演进它，不断增加细节和优化。</p>
+
+<!-- ====== 第 5 节 ====== -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>运行概念（Concept of Operations, ConOps）</h2>
+</div>
+
+<p>在定义需求或设计架构之前，你需要先理解<em>系统将如何被使用</em>。这就是<strong>运行概念（ConOps）</strong>的目的 &mdash; 从用户视角、用用户的语言来描述系统，聚焦于运行场景。</p>
+
+<p>ConOps 通常是任何 MBSE 工作的起点。它回答三个基本问题：</p>
+<ol>
+  <li><strong>谁</strong>是用户和利益相关者？</li>
+  <li>他们<strong>做什么</strong>（对系统有什么期望）？</li>
+  <li>系统需要处理<strong>哪些场景</strong>？</li>
+</ol>
+
+<h3>示例：智能家居系统</h3>
+<p>以一个智能家居安防系统为例。ConOps 模型会捕获：</p>
+
+<p><strong>角色（谁）：</strong></p>
+<ul>
+  <li><strong>房主</strong> &mdash; 主要用户，布防/撤防系统，监控警报</li>
+  <li><strong>访客</strong> &mdash; 有限访问权限，可使用临时密码进入</li>
+  <li><strong>维护技术人员</strong> &mdash; 进行更新和维修，需要诊断访问权限</li>
+  <li><strong>监控服务商</strong> &mdash; 响应警报事件的外部服务</li>
+</ul>
+
+<p><strong>操作（做什么）：</strong></p>
+<ul>
+  <li>布防系统（全防模式、外出模式、夜间模式）</li>
+  <li>撤防系统（通过键盘、APP 或语音）</li>
+  <li>监控摄像头和传感器状态</li>
+  <li>配置自动化规则（例如"晚上 11 点后检测到移动则开灯"）</li>
+  <li>接收和确认警报</li>
+</ul>
+
+<p><strong>场景（如果发生什么）：</strong></p>
+<ul>
+  <li><strong>正常运行</strong> &mdash; 房主离家，布防系统，系统监控传感器，房主回家，撤防</li>
+  <li><strong>警报触发</strong> &mdash; 传感器检测到入侵，系统发出警报，通知监控服务商，房主收到警告</li>
+  <li><strong>断电</strong> &mdash; 系统切换到电池备份，减少非关键功能，通知房主</li>
+  <li><strong>误报</strong> &mdash; 房主在宽限期内取消警报，系统记录事件</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">提示</div>
+<p><strong>为什么 ConOps 很重要：</strong>如果没有清晰的 ConOps，工程师往往会在没有真正理解系统将如何被使用的情况下直接跳入组件设计。这会导致技术上令人印象深刻但在实践中失败的系统 &mdash; 典型的"拿着锤子找钉子"。在 MBSE 中，ConOps 模型成为一个活的参考基准，模型的其余部分都可以追溯回它：每条需求都应链接到一个运行需求，每个测试用例都应追溯到一个运行场景。</p>
+</div>
+
+<!-- ====== 第 6 节 ====== -->
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>通往三大支柱</h2>
+</div>
+
+<p>在本模块中，我们探索了系统工程生命周期 &mdash; V 模型、ISO/IEC/IEEE 15288 技术过程、MBSE 如何支持（而非替代）生命周期、迭代与递归的概念，以及运行概念（ConOps）的重要性。</p>
+
+<p>但理解生命周期只是开始。要真正<em>实践</em> MBSE，你需要三样东西协同工作：</p>
+
+<ol>
+  <li><strong>建模语言（Modelling Language）</strong> &mdash; 一种精确、标准化的方式来表达系统信息（例如 SysML、SysML v2）。</li>
+  <li><strong>方法（Method）</strong> &mdash; 一套系统化的过程，告诉你建什么模型、按什么顺序、到什么程度的细节（例如 OOSEM、MagicGrid、Harmony）。</li>
+  <li><strong>工具（Tool）</strong> &mdash; 一个支持语言和方法的软件环境，使你能够创建、管理和分析模型（例如 Cameo、Rhapsody、Capella）。</li>
+</ol>
+
+<p>这三个要素通常被称为 <strong>MBSE 的三大支柱</strong>。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div>
+<p>想象一个<strong>三脚凳</strong>。凳面就是 MBSE &mdash; 它是你坐的地方，是你实际使用的东西。但没有三条腿它就站不住：<em>语言</em>这条腿、<em>方法</em>这条腿、<em>工具</em>这条腿。移除任何一条腿，凳子就会倒塌。再好的工具，没有表达模型的语言也无用武之地。再强大的语言，没有管理复杂性的工具也不切实际。语言和工具齐备了，没有方法来引导方向，也是徒劳的。</p>
+</div>
+
+<p>在接下来的三个模块中，我们将深入研究每根支柱：模块 3 讲语言，模块 4 讲方法，模块 5 讲工具。</p>
+
+<a href="MBSE_Module3_PillarLanguage_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一步</div><p>模块 3 &mdash; 支柱：语言 &mdash; MBSE 的建模语言，从 SysML v1 到 SysML v2 及更多。</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

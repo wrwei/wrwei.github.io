@@ -1,0 +1,310 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE Module 5: Pillar 3 — The Modelling Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{font-size:.88rem;color:var(--slate);background:var(--sky-pale);display:inline-block;padding:.3rem .85rem;border-radius:6px;margin-bottom:.5rem}
+.prereq strong{color:var(--navy)}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">Module 5</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 5 of 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_EN.html">1 &mdash; What is MBSE?</a>
+      <a href="MBSE_Module2_SELifecycle_EN.html">2 &mdash; The SE Lifecycle</a>
+      <a href="MBSE_Module3_PillarLanguage_EN.html">3 &mdash; Pillar 1: The Modelling Language</a>
+      <a href="MBSE_Module4_PillarMethod_EN.html">4 &mdash; Pillar 2: The Modelling Method</a>
+      <a href="MBSE_Module5_PillarTool_EN.html" class="active">5 &mdash; Pillar 3: The Modelling Tool</a>
+      <a href="MBSE_Module6_OOSEM_EN.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_EN.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_EN.html">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_EN.html">9 &mdash; Aerospace &amp; Defence</a>
+      <a href="MBSE_Module10_Automotive_EN.html">10 &mdash; Automotive &amp; Industry 4.0</a>
+      <a href="MBSE_Module11_Practice_EN.html">11 &mdash; Building an MBSE Practice</a>
+      <a href="MBSE_Module12_Future_EN.html">12 &mdash; The Future of MBSE</a>
+    </div>
+  </div>
+  <a href="MBSE_Module5_PillarTool_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>Why Tools Matter</a><a href="#s2"><span class="num">2</span>Categories of MBSE Tools</a><a href="#s3"><span class="num">3</span>Repository &amp; Collaboration</a><a href="#s4"><span class="num">4</span>Exchange &amp; Interoperability</a><a href="#s5"><span class="num">5</span>Selecting a Tool</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 5: <em>The Modelling Tool</em></h1>
+      <p class="module-lead">The role of tools in MBSE, categories of tools, and selection criteria &mdash; remaining tool-agnostic while explaining what tools must do.</p>
+      <div class="prereq"><strong>Prerequisite:</strong> MBSE Module 4 &mdash; Pillar 2: The Modelling Method</div>
+    </div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 1 -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>Why Tools Matter</h2>
+</div>
+
+<p>A model that exists only on a whiteboard is not MBSE. It may capture good ideas, but it cannot be queried, validated, versioned, or shared across a distributed team. <strong>Tools are the third pillar of MBSE</strong> because they turn a conceptual model into a living, computable asset.</p>
+
+<p>Without a tool, your model is a snapshot. With a tool, it becomes a persistent, evolving artefact that the entire organisation can interact with. Tools provide four key capabilities:</p>
+
+<ul>
+  <li><strong>Create</strong> &mdash; author model elements using the chosen modelling language (e.g. SysML), with syntax checking and graphical/textual editors.</li>
+  <li><strong>Store</strong> &mdash; persist the model in a repository so it survives beyond a single session and is protected against data loss.</li>
+  <li><strong>Analyse</strong> &mdash; run consistency checks, generate reports, perform simulations, and trace requirements to design elements.</li>
+  <li><strong>Share</strong> &mdash; enable multiple engineers to view, review, and contribute to the model concurrently.</li>
+</ul>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of the difference between handwriting a letter and using a word processor. Both produce text, but the word processor enables spell-check, formatting, collaboration, and versioning. You could write perfectly good prose by hand, but you would lose the ability to search, reformat, or merge edits from five co-authors. MBSE tools do the same for models &mdash; they do not change what you model, but they fundamentally change what you can <em>do</em> with the model.</p></div>
+
+<h3>The four capabilities in practice</h3>
+<p>Every MBSE tool, regardless of vendor, must support some combination of these four capabilities. Some tools focus on authoring (Create), others on long-term management (Store), and still others on downstream use (Analyse, Share). Understanding this split is the key to understanding the tool landscape.</p>
+
+<div class="table-wrap"><table><thead><tr><th>Capability</th><th>What it enables</th><th>Without it&hellip;</th></tr></thead><tbody>
+<tr><td>Create</td><td>Graphical/textual editors, drag-and-drop diagrams, syntax validation</td><td>Engineers cannot author models efficiently</td></tr>
+<tr><td>Store</td><td>Persistent repository, backup, access control</td><td>Models are lost when the session ends</td></tr>
+<tr><td>Analyse</td><td>Consistency checks, simulation hooks, traceability matrices, reports</td><td>Models are static pictures with no computable value</td></tr>
+<tr><td>Share</td><td>Multi-user access, review workflows, export to stakeholders</td><td>Models are siloed on one engineer's machine</td></tr>
+</tbody></table></div>
+<div class="caption">Table 1 &mdash; The four key tool capabilities</div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 2 -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>Categories of MBSE Tools</h2>
+</div>
+
+<p>The MBSE tool ecosystem is broad. Rather than recommending a single product, it is more useful to understand the <strong>categories</strong> of tools and the role each category plays.</p>
+
+<h3>Authoring tools</h3>
+<p>These are the tools engineers interact with daily. They provide editors for creating and modifying models in a specific modelling language. Examples include Cameo Systems Modeler / Magic Systems of Systems Architect, IBM Rhapsody, Eclipse Papyrus, and Capella (which uses its own Arcadia method). Authoring tools typically support graphical diagram editing and, increasingly, textual notation.</p>
+
+<h3>Repository and PLM tools</h3>
+<p>Once models grow beyond a single file, they need a managed repository. Repository tools provide version control, access control, and lifecycle management for model artefacts. Product Lifecycle Management (PLM) platforms can also serve this role, integrating model data alongside CAD, documents, and bill-of-materials data. Examples include Teamwork Cloud and IBM DOORS (for requirements-focused repositories).</p>
+
+<h3>Simulation tools</h3>
+<p>MBSE models gain significant value when they can be simulated. Simulation tools take behavioural or parametric aspects of a model and execute them &mdash; predicting performance, verifying constraints, or exploring trade-offs. Examples include MATLAB/Simulink and Modelica-based environments (e.g. OpenModelica, Dymola).</p>
+
+<h3>Integration platforms</h3>
+<p>In practice, no single tool does everything. Integration platforms &mdash; sometimes called model buses or API connectors &mdash; bridge different tools so that data flows between them. They enable, for instance, a SysML model to feed into a simulation tool or to synchronise requirements between a modelling tool and a requirements management tool.</p>
+
+<div class="table-wrap"><table><thead><tr><th>Category</th><th>Purpose</th><th>Example Tools</th></tr></thead><tbody>
+<tr><td>Authoring</td><td>Create and edit models in a modelling language</td><td>Cameo/MagicSystems, Rhapsody, Papyrus, Capella</td></tr>
+<tr><td>Repository / PLM</td><td>Store, version, and manage model artefacts</td><td>Teamwork Cloud, DOORS, Windchill, 3DEXPERIENCE</td></tr>
+<tr><td>Simulation</td><td>Execute models to predict behaviour and performance</td><td>Simulink, OpenModelica, Dymola, Cameo Simulation Toolkit</td></tr>
+<tr><td>Integration</td><td>Connect tools and synchronise data across the toolchain</td><td>OSLC connectors, Intercax Syndeia, Phoenix Integration ModelCenter</td></tr>
+</tbody></table></div>
+<div class="caption">Table 2 &mdash; MBSE tool categories (listed without endorsement)</div>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>This tutorial series is <strong>tool-agnostic</strong>. We mention specific products only as examples of each category. The concepts taught here apply regardless of which tool you ultimately choose.</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 3 -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Model Repository and Collaboration</h2>
+</div>
+
+<p>Real-world MBSE is a team sport. Multiple engineers &mdash; systems architects, domain specialists, requirements analysts &mdash; all need to contribute to the same model. This makes <strong>collaboration infrastructure</strong> just as important as the authoring tool itself.</p>
+
+<h3>Multi-user access</h3>
+<p>A model repository allows multiple users to work on the model concurrently, with access control ensuring that engineers only modify the parts they are responsible for. Role-based permissions (read, write, admin) prevent accidental damage to shared artefacts.</p>
+
+<h3>Branching and merging models</h3>
+<p>Just as software developers use Git to branch code, model repositories can support branching &mdash; allowing a team to explore a design variant without affecting the main model. When the variant is approved, it is merged back. However, model merging is significantly harder than code merging because models are graphs of interconnected elements, not lines of text.</p>
+
+<h3>Version control for models</h3>
+<p>Every change to the model should be tracked: who changed what, when, and why. This provides an audit trail, supports rollback, and is often required for certification in regulated industries (aerospace, medical devices, automotive).</p>
+
+<p>The analogy to Git is useful but imperfect. Code diffs show line-by-line changes in text files. Model diffs must compare graph structures &mdash; added elements, deleted relationships, changed attributes &mdash; and present them in a way that a human can review. This is an area of active tool development.</p>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p><strong>Concurrent model editing is hard.</strong> When two engineers modify the same model element at the same time, the merge may produce conflicts that are difficult to resolve. Unlike a text merge conflict (which shows two versions of a line), a model conflict may involve contradictory relationships, incompatible type changes, or broken references. Best practice: define clear ownership boundaries (e.g. by package) and use locking where the tool supports it.</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 4 -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>Model Exchange and Interoperability</h2>
+</div>
+
+<p>No organisation uses a single tool for everything. Models must be exchanged between tools, between teams, and between organisations (e.g. a prime contractor and its suppliers). This is the domain of <strong>interoperability standards</strong>.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of USB vs. proprietary chargers. Before USB became the standard, every phone manufacturer had its own connector &mdash; you needed a different cable for every device. A standard connector means any device works with any charger. Model exchange standards aim for the same thing: any conformant tool should be able to read a model produced by any other conformant tool.</p></div>
+
+<h3>Key interoperability standards</h3>
+
+<div class="table-wrap"><table><thead><tr><th>Standard</th><th>Purpose</th><th>Scope</th></tr></thead><tbody>
+<tr><td>XMI (XML Metadata Interchange)</td><td>Serialise UML/SysML v1 models as XML files</td><td>Model exchange between UML/SysML v1 tools</td></tr>
+<tr><td>ReqIF (Requirements Interchange Format)</td><td>Exchange requirements data between tools</td><td>Requirements management (e.g. DOORS &harr; other tools)</td></tr>
+<tr><td>SysML v2 API</td><td>Standard REST API for reading/writing SysML v2 model data</td><td>SysML v2 tool interoperability (the new standard)</td></tr>
+<tr><td>FMI (Functional Mock-up Interface)</td><td>Exchange simulation components between tools</td><td>Co-simulation and model exchange for dynamic models</td></tr>
+<tr><td>OSLC (Open Services for Lifecycle Collaboration)</td><td>Link artefacts across lifecycle tools via web APIs</td><td>Cross-tool traceability (requirements, tests, models)</td></tr>
+</tbody></table></div>
+<div class="caption">Table 3 &mdash; Key model exchange and interoperability standards</div>
+
+<h3>Why interoperability is hard</h3>
+<p>Even with standards, interoperability remains challenging. Different tools may interpret the same standard slightly differently, support different subsets of the standard, or add proprietary extensions. The result is that a model exported from Tool A and imported into Tool B may lose information, require manual repair, or behave unexpectedly.</p>
+
+<p>SysML v2 addresses this directly with its companion <strong>API standard</strong> &mdash; a REST-based interface that defines exactly how tools exchange model data. This is a significant improvement over XMI-based exchange in SysML v1, which was notoriously inconsistent across tools.</p>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>When evaluating tools, always test interoperability with your actual toolchain. Conformance to a standard on paper does not guarantee seamless exchange in practice. Request a proof-of-concept or trial before committing.</p></div>
+
+<!-- ════════════════════════════════════════════════════════════ Section 5 -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Selecting a Tool &mdash; Decision Framework</h2>
+</div>
+
+<p>Choosing an MBSE tool is a significant decision that affects your team for years. The wrong choice can create vendor lock-in, limit collaboration, or impose workflows that conflict with your method. The right choice accelerates adoption and amplifies the value of your models.</p>
+
+<h3>Decision criteria</h3>
+<p>The following table lists the key criteria to evaluate. Weight each criterion according to your organisation's context &mdash; a small startup has different priorities from a defence prime contractor.</p>
+
+<div class="table-wrap"><table><thead><tr><th>Criterion</th><th>Questions to ask</th><th>Why it matters</th></tr></thead><tbody>
+<tr><td>Language support</td><td>Does it support SysML v1, SysML v2, UML, or domain-specific languages?</td><td>Must match the language your method requires</td></tr>
+<tr><td>Method support</td><td>Does it support your chosen method (OOSEM, MagicGrid, Arcadia, etc.)?</td><td>A tool that fights your method slows adoption</td></tr>
+<tr><td>Collaboration</td><td>Multi-user repository? Branching? Role-based access? Web review?</td><td>MBSE is a team activity; solo-only tools do not scale</td></tr>
+<tr><td>Simulation capability</td><td>Built-in simulation? Integration with Simulink/Modelica?</td><td>Executable models multiply the value of MBSE</td></tr>
+<tr><td>Interoperability</td><td>XMI, ReqIF, SysML v2 API, FMI, OSLC support?</td><td>Your tool must fit into a larger toolchain</td></tr>
+<tr><td>Cost</td><td>Licence model (per-seat, floating, subscription)? Total cost of ownership?</td><td>Budget constraints are real; include training and infrastructure</td></tr>
+<tr><td>Vendor lock-in</td><td>Can you export your models to another tool if needed?</td><td>Switching costs can trap you with an unsuitable tool</td></tr>
+<tr><td>Ecosystem</td><td>Community size? Plugins? Training resources? Vendor roadmap?</td><td>A vibrant ecosystem reduces risk and accelerates learning</td></tr>
+<tr><td>Usability</td><td>Learning curve? UI quality? Documentation?</td><td>Engineer adoption depends on the day-to-day experience</td></tr>
+</tbody></table></div>
+<div class="caption">Table 4 &mdash; MBSE tool selection criteria</div>
+
+<h3>A pragmatic approach</h3>
+<p>No tool scores perfectly on every criterion. The goal is to identify your <strong>must-haves</strong> (non-negotiable requirements) and <strong>nice-to-haves</strong> (desirable but not essential), then shortlist tools that satisfy all must-haves and score well on nice-to-haves.</p>
+
+<ol>
+  <li><strong>Define your requirements</strong> &mdash; what language, method, team size, and integration needs do you have?</li>
+  <li><strong>Survey the market</strong> &mdash; identify candidate tools in each category.</li>
+  <li><strong>Request demonstrations</strong> &mdash; see the tool in action with your actual use cases.</li>
+  <li><strong>Run a pilot</strong> &mdash; trial the shortlisted tool(s) on a real (but low-risk) project.</li>
+  <li><strong>Evaluate and decide</strong> &mdash; score against your criteria and make a documented decision.</li>
+</ol>
+
+<div class="callout tip"><div class="callout-label">REMINDER</div><p>This series is <strong>tool-agnostic</strong>. We teach MBSE concepts, methods, and frameworks that apply regardless of which tool you use. A good systems engineer understands the principles first &mdash; the tool is the vehicle, not the destination.</p></div>
+
+<a href="MBSE_Module6_OOSEM_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 6 &mdash; OOSEM &mdash; Object-Oriented Systems Engineering Method: from stakeholder needs through logical and physical architecture.</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

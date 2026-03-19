@@ -1,0 +1,313 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE 模块 3：支柱一 — 建模语言</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:280px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{display:inline-block;font-size:.82rem;font-weight:500;color:var(--orange);background:var(--orange-bg);padding:.25rem .85rem;border-radius:6px;margin-bottom:.5rem}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">模块 3</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 3 / 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_ZH.html">1 &mdash; 什么是 MBSE？</a>
+      <a href="MBSE_Module2_SELifecycle_ZH.html">2 &mdash; 系统工程生命周期</a>
+      <a href="MBSE_Module3_PillarLanguage_ZH.html" class="active">3 &mdash; 支柱一：建模语言</a>
+      <a href="MBSE_Module4_PillarMethod_ZH.html">4 &mdash; 支柱二：建模方法</a>
+      <a href="MBSE_Module5_PillarTool_ZH.html">5 &mdash; 支柱三：建模工具</a>
+      <a href="MBSE_Module6_OOSEM_ZH.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_ZH.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_ZH.html">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_ZH.html">9 &mdash; 航空航天与国防</a>
+      <a href="MBSE_Module10_Automotive_ZH.html">10 &mdash; 汽车与工业 4.0</a>
+      <a href="MBSE_Module11_Practice_ZH.html">11 &mdash; 构建 MBSE 实践</a>
+      <a href="MBSE_Module12_Future_ZH.html">12 &mdash; MBSE 的未来</a>
+    </div>
+  </div>
+  <a href="MBSE_Module3_PillarLanguage_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">目录</div>
+    <nav><a href="#s1"><span class="num">1</span>什么是建模语言？</a><a href="#s2"><span class="num">2</span>SysML v1：成熟的标准</a><a href="#s3"><span class="num">3</span>SysML v2：下一代语言</a><a href="#s4"><span class="num">4</span>其他建模语言</a><a href="#s5"><span class="num">5</span>如何选择语言</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE Series &mdash; Ran Wei</div>
+      <h1 class="module-title">模块 3：<em>建模语言</em></h1>
+      <p class="module-lead">建模语言是什么、为什么重要，以及对 SysML v1、SysML v2、UML 及其他选项的概览 &mdash; 不深入教授任何一种语言。</p>
+      <span class="prereq">前置要求：MBSE 模块 2</span>
+    </div>
+
+<!-- ====== 第 1 节 ====== -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>什么是建模语言？</h2>
+</div>
+
+<p>在构建模型之前，你需要一种<strong>语言</strong>来表达它。建模语言（Modelling Language）不是编程语言 &mdash; 它不在计算机上运行以生成软件。相反，它提供了一种结构化的方式来<em>描述</em>系统：系统的组成部分、行为、需求和关系。</p>
+
+<p>每种语言 &mdash; 无论是人类语言还是建模语言 &mdash; 都有三个基本方面：</p>
+<ul>
+  <li><strong>语法（Syntax）</strong> &mdash; 定义哪些构造是允许的、以及它们如何组合的语法规则。</li>
+  <li><strong>语义（Semantics）</strong> &mdash; 这些构造背后的含义。两个语法正确的句子可能有完全不同的含义。</li>
+  <li><strong>表示法（Notation）</strong> &mdash; 用于书写语言表达式的视觉或文本表示形式。</li>
+</ul>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>想想英语。它有<strong>语法</strong>（Syntax）&mdash; 例如"主语 + 动词 + 宾语"的规则。它有<strong>含义</strong>（Semantics）&mdash; 句子"The car accelerates"（汽车加速）传达了一个具体的概念。它用<strong>拉丁字母</strong>（Notation）书写 &mdash; 但同样的含义也可以用西里尔字母或汉字来表达。建模语言的工作方式完全相同：语法定义了你能写什么，语义定义了它意味着什么，表示法定义了它在页面或屏幕上的呈现方式。</p></div>
+
+<div class="table-wrap">
+<table><thead><tr><th>概念</th><th>人类语言示例</th><th>建模语言示例</th></tr></thead><tbody>
+<tr><td>语法（Syntax）</td><td>主语 &ndash; 动词 &ndash; 宾语 的语序</td><td>Block 必须有名称；Port 连接到 Connector</td></tr>
+<tr><td>语义（Semantics）</td><td>"泵输送流体"有明确含义</td><td>一个由 <code>part def</code> 定义类型的 <code>part</code> 表示"这是该定义的一个实例"</td></tr>
+<tr><td>表示法（Notation）</td><td>用拉丁字母书写（A、B、C&hellip;）</td><td>带标签的方框（图形化）或 <code>part pump : Pump</code>（文本化）</td></tr>
+</tbody></table>
+</div>
+<p class="caption">表 1 &mdash; 语言的三个方面：人类语言 vs 建模语言</p>
+
+<p>在评估任何建模语言时，请思考：<em>语法是否定义良好？语义是否精确且无歧义？表示法是否支持团队的工作方式？</em></p>
+
+<!-- ====== 第 2 节 ====== -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>SysML v1：成熟的标准</h2>
+</div>
+
+<p><strong>SysML v1</strong>（Systems Modeling Language，系统建模语言第一版）由 OMG 于 2007 年发布。它被设计为 UML 的一个 <em>Profile</em>（剖面）&mdash; 即扩展和定制 UML 的面向软件的构造，使其适用于系统工程。近二十年来，SysML v1 一直是 MBSE 中使用最广泛的建模语言。</p>
+
+<h3>九种图类型</h3>
+<p>SysML v1 将模型组织为九种图类型，分为三个类别：</p>
+
+<div class="table-wrap">
+<table><thead><tr><th>类别</th><th>图类型</th><th>用途</th></tr></thead><tbody>
+<tr><td rowspan="4">结构图</td><td>Block Definition Diagram（BDD，模块定义图）</td><td>定义 Block 及其关系（组合、泛化）</td></tr>
+<tr><td>Internal Block Diagram（IBD，内部模块图）</td><td>展示内部结构 &mdash; Block 内部的 Part、Port 和 Connector</td></tr>
+<tr><td>Package Diagram（包图）</td><td>将模型元素组织到包（命名空间）中</td></tr>
+<tr><td>Parametric Diagram（参数图）</td><td>捕获连接值属性的约束方程</td></tr>
+<tr><td rowspan="4">行为图</td><td>Activity Diagram（活动图）</td><td>建模工作流、数据/控制流和动作</td></tr>
+<tr><td>Sequence Diagram（序列图）</td><td>展示 Part 之间随时间的消息交换</td></tr>
+<tr><td>State Machine Diagram（状态机图）</td><td>建模 Block 的状态、转换和事件</td></tr>
+<tr><td>Use Case Diagram（用例图）</td><td>捕获参与者及其与系统的交互</td></tr>
+<tr><td>跨领域</td><td>Requirement Diagram（需求图）</td><td>追踪需求及其 satisfy/verify/refine 关系</td></tr>
+</tbody></table>
+</div>
+<p class="caption">表 2 &mdash; SysML v1 的九种图类型</p>
+
+<h3>优势</h3>
+<ul>
+  <li><strong>广泛的工具支持</strong> &mdash; 所有主流 MBSE 工具（Cameo、Rhapsody、Enterprise Architect、Papyrus）都支持 SysML v1。</li>
+  <li><strong>庞大的社区</strong> &mdash; 丰富的培训资料、会议和从业者网络。</li>
+  <li><strong>大量教材和标准参考</strong> &mdash; 在学术界和工业界的文献中都有充分的文档记录。</li>
+</ul>
+
+<h3>局限性</h3>
+<ul>
+  <li><strong>继承了 UML 的历史包袱</strong> &mdash; 许多 UML 构造与系统工程无关，但无法被干净地移除。</li>
+  <li><strong>语义不精确</strong> &mdash; 某些概念（如 Allocation，分配）缺乏严格定义，导致不同工具之间的解释不一致。</li>
+  <li><strong>没有标准 API</strong> &mdash; 模型被锁定在专有工具格式中；互操作需要自定义的导出/导入。</li>
+</ul>
+
+<div class="callout note"><div class="callout-label">说明</div><p>本模块仅从高层次概述 SysML v1。我们不会在此深入教授其图形语法 &mdash; 目标是理解它是什么以及它在 MBSE 版图中的位置。</p></div>
+
+<!-- ====== 第 3 节 ====== -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>SysML v2：下一代语言</h2>
+</div>
+
+<p><strong>SysML v2</strong> 是系统建模语言的全新设计，由 OMG 于 2024 年发布。SysML v2 不再扩展 UML，而是建立在自己的基础之上 &mdash; <strong>KerML</strong>（Kernel Modeling Language，核心建模语言）&mdash; 提供精确的、数学化的语义。</p>
+
+<h3>核心创新</h3>
+<ul>
+  <li><strong>文本表示法（Textual Notation）</strong> &mdash; 标准文本语法（STN）可以在任何文本编辑器中编写，并使用 Git 进行版本控制。</li>
+  <li><strong>KerML 基础</strong> &mdash; 所有语言构造都有精确的语义定义，消除了 v1 的歧义问题。</li>
+  <li><strong>标准 API</strong> &mdash; 配套的 API 规范实现了工具互操作：模型可以在符合标准的工具之间交换。</li>
+  <li><strong>统一的行为建模</strong> &mdash; Action（动作）、State（状态）和 Interaction（交互）共享一个一致的语义框架。</li>
+  <li><strong>不依赖 UML</strong> &mdash; 全新设计，不受遗留软件工程构造的束缚。</li>
+</ul>
+
+<h3>SysML v1 与 v2 对比</h3>
+<div class="table-wrap">
+<table><thead><tr><th>维度</th><th>SysML v1</th><th>SysML v2</th></tr></thead><tbody>
+<tr><td>基础</td><td>UML Profile（继承 UML 元模型）</td><td>KerML &mdash; 独立的、数学化的基础</td></tr>
+<tr><td>表示法</td><td>仅图形化</td><td>图形化 + 标准文本表示法（STN）</td></tr>
+<tr><td>语义</td><td>非正式的，常有歧义</td><td>精确的，由 KerML 形式化定义</td></tr>
+<tr><td>互操作性</td><td>无标准 API；工具锁定格式</td><td>用于模型交换的标准 API</td></tr>
+<tr><td>行为建模</td><td>多种互不关联的图类型</td><td>统一的 Action/State/Interaction 框架</td></tr>
+<tr><td>成熟度</td><td>成熟（2007）；广泛的工具支持</td><td>新发布（2024）；生态系统快速成长中</td></tr>
+</tbody></table>
+</div>
+<p class="caption">表 3 &mdash; SysML v1 与 SysML v2 对比</p>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>如需深入了解 SysML v2，请参阅我们的 <a href="../sysml/" style="color:var(--green);font-weight:600">SysML v2 教程系列</a>。该系列通过九个模块从基础到高级全面介绍该语言。</p></div>
+
+<!-- ====== 第 4 节 ====== -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>其他建模语言</h2>
+</div>
+
+<p>SysML 是最通用的系统建模语言，但并不是唯一的选择。根据你的领域，<strong>领域特定语言</strong>（Domain-Specific Language，DSL）可能更合适 &mdash; 或者可以与 SysML 一起使用，以解决专门的关注点。</p>
+
+<div class="table-wrap">
+<table><thead><tr><th>语言</th><th>领域</th><th>表示法类型</th><th>核心优势</th></tr></thead><tbody>
+<tr><td>UML</td><td>软件工程</td><td>图形化</td><td>全面的软件设计；14 种图类型</td></tr>
+<tr><td>AADL</td><td>实时/嵌入式系统</td><td>文本 + 图形</td><td>精确建模时序、调度和资源预算</td></tr>
+<tr><td>Modelica</td><td>物理/仿真</td><td>文本（基于方程）</td><td>多领域物理仿真（热、电、机械）</td></tr>
+<tr><td>EAST-ADL</td><td>汽车行业</td><td>图形（基于 UML）</td><td>与 AUTOSAR 对齐的汽车专用抽象</td></tr>
+<tr><td>Capella / Arcadia</td><td>系统架构</td><td>图形（方法驱动）</td><td>方法与工具紧密集成；引导式架构工作流</td></tr>
+</tbody></table>
+</div>
+<p class="caption">表 4 &mdash; SysML 之外的建模语言概览</p>
+
+<p>关键结论：<strong>SysML 是最通用的</strong>系统建模语言，也是 MBSE 的事实标准。然而，领域特定语言的存在是有充分理由的 &mdash; 它们编码了通用语言无法涵盖的领域知识。在实践中，组织通常使用 SysML 进行系统级架构建模，并使用 DSL 进行详细的领域建模。</p>
+
+<div class="callout note"><div class="callout-label">说明</div><p>这并不是一个详尽的列表。其他值得注意的语言包括 BPMN（业务流程）、ArchiMate（企业架构）以及各种安全专用表示法（如故障树、STPA 图）。正确的选择取决于你的领域和工程环境。</p></div>
+
+<!-- ====== 第 5 节 ====== -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>如何选择语言</h2>
+</div>
+
+<p>选择建模语言不是一个纯粹的技术决策。语言必须适合你的<strong>领域</strong>、你的<strong>团队</strong>、你的<strong>工具</strong>以及你的<strong>组织环境</strong>。最重要的是，语言不是孤立存在的 &mdash; 它必须与建模<em>方法</em>（模块 4）和建模<em>工具</em>（模块 5）协同工作。这三大支柱是相互依赖的。</p>
+
+<h3>决策因素</h3>
+<div class="table-wrap">
+<table><thead><tr><th>因素</th><th>需要考虑的问题</th></tr></thead><tbody>
+<tr><td>领域适配性</td><td>该语言是否支持你的领域所需的模型类型？（如实时约束、物理仿真、安全分析）</td></tr>
+<tr><td>团队熟悉度</td><td>你的团队是否已经了解这种语言？需要多少培训投入？</td></tr>
+<tr><td>工具支持</td><td>你的组织使用或能够采购的工具是否支持该语言？</td></tr>
+<tr><td>标准合规性</td><td>你的行业或客户是否要求使用特定标准？（如国防合同通常要求使用 SysML）</td></tr>
+<tr><td>互操作性</td><td>模型能否与供应商、合作伙伴或生态系统中的其他工具进行交换？</td></tr>
+<tr><td>生态系统成熟度</td><td>是否有教材、培训课程、社区论坛和咨询支持？</td></tr>
+</tbody></table>
+</div>
+<p class="caption">表 5 &mdash; 选择建模语言的决策因素</p>
+
+<p>在许多组织中，答案很明确：<strong>SysML</strong>（v1 或 v2）是通用 MBSE 的默认选择，必要时辅以领域特定语言。但这个选择应该是经过深思熟虑的，而不是偶然做出的。</p>
+
+<p>请记住：语言只是 MBSE 三大支柱之一。一种好的语言配合糟糕的方法，仍然会产生糟糕的模型。在下一个模块中，我们将转向<strong>支柱二 &mdash; 建模方法</strong>。</p>
+
+<a href="MBSE_Module4_PillarMethod_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块 4 &mdash; 支柱二：建模方法 &mdash; 为什么"只有语言"是不够的 &mdash; 视点、视图，以及主要 MBSE 框架的预览。</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

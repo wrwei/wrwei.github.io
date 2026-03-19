@@ -1,0 +1,336 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE Module 6: OOSEM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{display:inline-block;font-size:.85rem;font-weight:500;color:var(--slate);background:var(--sky-pale);border:1px solid var(--sky-light);padding:.3rem .9rem;border-radius:8px}
+.prereq strong{color:var(--navy)}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">Module 6</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 6 of 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_EN.html">1 &mdash; What is MBSE?</a>
+      <a href="MBSE_Module2_SELifecycle_EN.html">2 &mdash; The SE Lifecycle</a>
+      <a href="MBSE_Module3_PillarLanguage_EN.html">3 &mdash; Pillar: Language</a>
+      <a href="MBSE_Module4_PillarMethod_EN.html">4 &mdash; Pillar: Method</a>
+      <a href="MBSE_Module5_PillarTool_EN.html">5 &mdash; Pillar: Tool</a>
+      <a href="MBSE_Module6_OOSEM_EN.html" class="active">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_EN.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_EN.html">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_EN.html">9 &mdash; Aerospace &amp; Defence</a>
+      <a href="MBSE_Module10_Automotive_EN.html">10 &mdash; Automotive &amp; Industry 4.0</a>
+      <a href="MBSE_Module11_Practice_EN.html">11 &mdash; Building an MBSE Practice</a>
+      <a href="MBSE_Module12_Future_EN.html">12 &mdash; The Future of MBSE</a>
+    </div>
+  </div>
+  <a href="MBSE_Module6_OOSEM_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>OOSEM Origins &amp; Philosophy</a><a href="#s2"><span class="num">2</span>The OOSEM Process Overview</a><a href="#s3"><span class="num">3</span>Stakeholder Needs &amp; Requirements</a><a href="#s4"><span class="num">4</span>Logical Architecture</a><a href="#s5"><span class="num">5</span>Physical Architecture &amp; Trade Studies</a><a href="#s6"><span class="num">6</span>Summary &amp; When to Use</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 6: <em>OOSEM</em></h1>
+      <p class="module-lead">Object-Oriented Systems Engineering Method &mdash; from stakeholder needs analysis through logical and physical architecture, with a running home security system example.</p>
+      <div class="prereq"><strong>Prerequisite:</strong> MBSE Module 5 &mdash; Pillar 3: The Modelling Tool</div>
+    </div>
+
+<!-- ════════════════════════════════════════════ Section 1 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>OOSEM Origins and Philosophy</h2>
+</div>
+
+<p>OOSEM &mdash; the <strong>Object-Oriented Systems Engineering Method</strong> &mdash; was developed by <strong>Sanford Friedenthal</strong>, <strong>Alan Moore</strong>, and <strong>Rick Steiner</strong>, the same team behind the widely-used reference text <em>A Practical Guide to SysML</em>. The method emerged from the recognition that while object-oriented thinking had transformed software engineering, systems engineering lacked a comparable, structured approach that fully exploited the power of modelling languages like SysML.</p>
+
+<h3>Core philosophical principles</h3>
+<p>OOSEM brings several fundamental ideas from object-oriented thinking into the systems engineering domain:</p>
+<ul>
+  <li><strong>Encapsulation</strong> &mdash; each system element hides internal complexity behind well-defined interfaces, so teams can work on subsystems independently.</li>
+  <li><strong>Abstraction</strong> &mdash; the method deliberately separates <em>what</em> the system must do (logical architecture) from <em>how</em> it does it (physical architecture). This separation is the single most important concept in OOSEM.</li>
+  <li><strong>Hierarchy and decomposition</strong> &mdash; systems are broken down into progressively smaller, manageable elements, each modelled with the same rigour as the whole.</li>
+  <li><strong>Reuse</strong> &mdash; definitions (types) are created once and instantiated many times, promoting consistency across the model.</li>
+</ul>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>The canonical reference for OOSEM is: Friedenthal, S., Moore, A., &amp; Steiner, R., <em>A Practical Guide to SysML: The Systems Modeling Language</em> (3rd edition, Morgan Kaufmann). The book presents OOSEM alongside SysML, but the method itself is language-independent &mdash; it can be applied with any systems modelling language.</p></div>
+
+<h3>Why "object-oriented" matters for SE</h3>
+<p>Traditional systems engineering often followed a purely functional decomposition &mdash; breaking the system into functions, then allocating functions to components. OOSEM adds the object-oriented dimension: the system is also decomposed into <em>objects</em> (logical entities) that own both structure and behaviour. This dual perspective &mdash; functional <em>and</em> structural &mdash; produces architectures that are more modular, more traceable, and easier to evolve when requirements change.</p>
+
+<!-- ════════════════════════════════════════════ Section 2 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>The OOSEM Process Overview</h2>
+</div>
+
+<p>OOSEM organises the systems engineering effort into five main activities. Although they are presented in sequence, the process is fundamentally iterative &mdash; you will revisit earlier activities as understanding deepens.</p>
+
+<ol>
+  <li><strong>Analyse Stakeholder Needs</strong> &mdash; Identify who cares about the system and what they need. Capture needs in a structured form.</li>
+  <li><strong>Define System Requirements</strong> &mdash; Transform stakeholder needs into precise, verifiable system requirements that constrain the design.</li>
+  <li><strong>Define Logical Architecture</strong> &mdash; Decompose the system into logical subsystems based on functionality. This is the "what it does" view, independent of technology choices.</li>
+  <li><strong>Synthesise Candidate Physical Architectures</strong> &mdash; Map logical functions onto physical components. Generate multiple candidate solutions.</li>
+  <li><strong>Optimise and Evaluate</strong> &mdash; Conduct trade studies to select the best candidate architecture against requirements and constraints.</li>
+</ol>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>OOSEM is <strong>iterative</strong>, not strictly sequential. In practice, defining the logical architecture often reveals missing or ambiguous requirements, sending you back to step 2. Similarly, trade studies in step 5 may reveal that no candidate architecture meets all requirements, prompting a revision of the logical decomposition. Treat the five activities as a cycle, not a waterfall.</p></div>
+
+<h3>The running example: Home Security System</h3>
+<p>Throughout the remaining sections, we will apply OOSEM to a <strong>Home Security System</strong>. This system must detect intrusions, alert the homeowner, and optionally notify law enforcement. It is simple enough to fit in a tutorial but rich enough to illustrate every OOSEM activity.</p>
+
+<!-- ════════════════════════════════════════════ Section 3 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Stakeholder Needs and Requirements Analysis</h2>
+</div>
+
+<p>The first OOSEM activity is to understand <em>who</em> cares about the system and <em>what</em> they need. This is not just a formality &mdash; stakeholder needs are the ultimate source of truth against which every design decision will be validated.</p>
+
+<h3>Identifying stakeholders</h3>
+<p>For our home security system, the key stakeholders are:</p>
+<ul>
+  <li><strong>Homeowner</strong> &mdash; the primary user who wants to feel safe and be alerted to intrusions.</li>
+  <li><strong>Security monitoring company</strong> &mdash; the organisation that monitors alerts 24/7 and dispatches police if needed.</li>
+  <li><strong>Installer / technician</strong> &mdash; the person who physically installs, configures, and maintains the system.</li>
+</ul>
+
+<h3>Capturing needs and deriving requirements</h3>
+<p>Each stakeholder has needs expressed in their own language. The systems engineer must translate these into formal, verifiable requirements. The table below shows this mapping for our example:</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Stakeholder</th><th>Need</th><th>Derived Requirement</th></tr></thead>
+<tbody>
+<tr><td>Homeowner</td><td>Detect intrusion</td><td>The system shall detect unauthorised entry through any door or window within 2 seconds.</td></tr>
+<tr><td>Homeowner</td><td>Alert owner</td><td>The system shall send a push notification to the owner's mobile device within 5 seconds of detection.</td></tr>
+<tr><td>Security company</td><td>Notify police</td><td>The system shall transmit an alarm signal to the monitoring centre within 10 seconds of detection.</td></tr>
+<tr><td>Security company</td><td>Reliable communication</td><td>The system shall support at least two independent communication channels (e.g., cellular and Wi-Fi).</td></tr>
+<tr><td>Installer</td><td>Easy installation</td><td>The system shall be installable by one technician within 4 hours for a standard 3-bedroom house.</td></tr>
+<tr><td>Installer</td><td>Remote diagnostics</td><td>The system shall expose a diagnostic interface accessible via a mobile app for fault identification.</td></tr>
+</tbody>
+<caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 1 &mdash; Stakeholder needs mapped to derived requirements (Home Security System)</caption>
+</table>
+</div>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of stakeholder needs analysis like a doctor's consultation. The patient (stakeholder) says "my chest hurts" (need). The doctor translates this into a precise diagnosis and measurable test criteria &mdash; "blood pressure below 140/90, ECG within normal range" (derived requirements). Without this translation, you cannot verify whether the treatment (design) actually works.</p></div>
+
+<!-- ════════════════════════════════════════════ Section 4 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>Logical Architecture</h2>
+</div>
+
+<p>Once requirements are established, OOSEM asks you to design the <strong>logical architecture</strong> &mdash; a decomposition of the system into subsystems based purely on <em>what the system does</em>, not on how it is physically built. This is the heart of OOSEM's "separation of concerns" philosophy.</p>
+
+<h3>Logical subsystems for the Home Security System</h3>
+<p>Analysing the requirements from Section 3, we can identify three primary logical functions:</p>
+<ul>
+  <li><strong>Detection function</strong> &mdash; responsible for sensing unauthorised entry events (doors, windows, motion).</li>
+  <li><strong>Alert function</strong> &mdash; responsible for notifying the homeowner and the monitoring company when an intrusion is detected.</li>
+  <li><strong>Control function</strong> &mdash; responsible for arming/disarming the system, managing sensor states, and coordinating the detection and alert functions.</li>
+</ul>
+
+<p>Notice that at this stage we say nothing about cameras, motion sensors, sirens, or cloud servers. We only describe <em>capabilities</em>. The detection function detects; the alert function alerts; the control function coordinates. This is deliberate.</p>
+
+<h3>Why separate logical from physical?</h3>
+<p>The logical architecture acts as a stable backbone. Physical technologies change &mdash; today's motion sensor may be replaced by a radar module next year &mdash; but the logical function "detect intrusion" remains the same. By anchoring requirements to logical functions first, you ensure that:</p>
+<ul>
+  <li>Requirements traceability is clean &mdash; each requirement maps to a logical function, and each logical function maps to one or more physical components.</li>
+  <li>Technology changes only affect the physical layer, not the entire architecture.</li>
+  <li>Multiple candidate physical architectures can be evaluated against the same logical baseline.</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p><strong>Logical vs. Physical &mdash; the litmus test:</strong> If you find yourself naming specific technologies (e.g., "PIR sensor", "AWS Lambda", "Zigbee radio"), you have crossed into physical architecture territory. Logical architecture uses technology-neutral language: "detection", "communication", "processing". Keep the two layers separate until it is time to synthesise physical candidates.</p></div>
+
+<!-- ════════════════════════════════════════════ Section 5 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Physical Architecture and Trade Studies</h2>
+</div>
+
+<p>With the logical architecture defined, the next OOSEM activity is to <strong>synthesise candidate physical architectures</strong>. This means mapping each logical function to concrete, implementable components &mdash; and then evaluating which combination best satisfies the requirements.</p>
+
+<h3>Mapping logical to physical</h3>
+<p>For our Home Security System, the "detection" logical function could be realised by several physical technologies: passive infrared (PIR) motion sensors, door/window magnetic contact sensors, security cameras with video analytics, or a combination. Similarly, the "alert" function could use a local siren, a cloud-based push notification service, a direct cellular link to the monitoring centre, or all three.</p>
+
+<p>OOSEM encourages generating <strong>multiple candidate architectures</strong> and then conducting a <strong>trade study</strong> to select the best one. Below is a simplified trade study comparing two candidates:</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Criterion</th><th>Weight</th><th>Candidate A: Sensor-Only</th><th>Candidate B: Sensor + Camera</th></tr></thead>
+<tbody>
+<tr><td>Detection accuracy</td><td>30%</td><td>Good &mdash; PIR + magnetic contacts cover entry points</td><td>Excellent &mdash; cameras add visual verification, reducing false alarms</td></tr>
+<tr><td>Installation cost</td><td>25%</td><td>Low &mdash; sensors are inexpensive and wireless</td><td>Medium &mdash; cameras require power and positioning</td></tr>
+<tr><td>Ongoing cost</td><td>15%</td><td>Low &mdash; minimal bandwidth, battery-powered sensors</td><td>Higher &mdash; video storage and bandwidth costs</td></tr>
+<tr><td>Privacy impact</td><td>15%</td><td>Minimal &mdash; no video recording</td><td>Moderate &mdash; indoor cameras raise privacy concerns</td></tr>
+<tr><td>Scalability</td><td>15%</td><td>Good &mdash; easy to add more sensors</td><td>Good &mdash; cameras and sensors can be added independently</td></tr>
+<tr><td colspan="2" style="font-weight:700;color:var(--navy)">Weighted Score</td><td style="font-weight:600">72 / 100</td><td style="font-weight:600">81 / 100</td></tr>
+</tbody>
+<caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 2 &mdash; Trade study comparing two candidate physical architectures</caption>
+</table>
+</div>
+
+<p>In this example, Candidate B scores higher overall because the improved detection accuracy (reducing false alarms and enabling visual verification) outweighs the additional cost and privacy considerations. The trade study makes the rationale explicit and traceable.</p>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>A real trade study would include quantitative scores, sensitivity analysis, and stakeholder review. The simplified version above illustrates the <em>structure</em> of the activity. In OOSEM, the trade study is not an afterthought &mdash; it is a formal, documented decision gate that links the physical architecture back to requirements and stakeholder needs.</p></div>
+
+<!-- ════════════════════════════════════════════ Section 6 ════════════════════════════════════════════ -->
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>OOSEM Summary and When to Use</h2>
+</div>
+
+<p>OOSEM provides a comprehensive, well-documented method for applying object-oriented thinking to the full systems engineering lifecycle. Let us summarise its strengths, weaknesses, and ideal use cases.</p>
+
+<h3>Strengths</h3>
+<ul>
+  <li><strong>Comprehensive coverage</strong> &mdash; OOSEM addresses the entire path from stakeholder needs through logical and physical architecture to trade-study-based selection.</li>
+  <li><strong>Well-documented</strong> &mdash; the method is thoroughly described in <em>A Practical Guide to SysML</em>, with worked examples and templates.</li>
+  <li><strong>Language-independent</strong> &mdash; although originally presented alongside SysML, OOSEM's activities and artefacts are not tied to any specific modelling language. It can be applied with SysML v1, SysML v2, or even domain-specific languages.</li>
+  <li><strong>Strong traceability</strong> &mdash; the clean separation of logical and physical layers creates natural traceability chains: Stakeholder Need &rarr; Requirement &rarr; Logical Function &rarr; Physical Component.</li>
+</ul>
+
+<h3>Weaknesses</h3>
+<ul>
+  <li><strong>Heavyweight for small projects</strong> &mdash; the full five-activity process with formal trade studies can be overkill for small systems or rapid prototyping efforts.</li>
+  <li><strong>Learning curve</strong> &mdash; teams unfamiliar with object-oriented concepts may struggle with the logical/physical separation initially.</li>
+  <li><strong>Less prescriptive on diagrams</strong> &mdash; OOSEM tells you <em>what</em> to produce at each stage but is less specific about <em>which</em> diagram types to use (unlike MagicGrid, which prescribes a specific matrix of views).</li>
+</ul>
+
+<h3>When to use OOSEM</h3>
+<p>OOSEM is best suited for:</p>
+<ul>
+  <li><strong>Large-scale, complex systems</strong> where the separation of logical and physical architecture pays off in managing complexity.</li>
+  <li><strong>Programmes with multiple candidate solutions</strong> where formal trade studies are needed to justify architecture decisions.</li>
+  <li><strong>Organisations adopting MBSE for the first time</strong> &mdash; the book-length reference and worked examples make it a practical on-ramp.</li>
+  <li><strong>Multi-disciplinary teams</strong> that need a shared, technology-neutral framework before committing to physical design.</li>
+</ul>
+
+<a href="MBSE_Module7_MagicGrid_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 7 &mdash; MagicGrid &mdash; A structured matrix approach to organising MBSE models by abstraction level and concern.</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

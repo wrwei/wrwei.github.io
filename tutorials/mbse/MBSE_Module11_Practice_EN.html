@@ -1,0 +1,343 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE Module 11: Building an MBSE Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:280px;padding:.4rem;z-index:200}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{font-size:.85rem;color:var(--muted);margin-bottom:0}
+.prereq a{color:var(--blue);text-decoration:none}
+.prereq a:hover{text-decoration:underline}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">Module 11</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 11 of 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_EN.html">1 &mdash; What is MBSE?</a>
+      <a href="MBSE_Module2_SELifecycle_EN.html">2 &mdash; The SE Lifecycle</a>
+      <a href="MBSE_Module3_PillarLanguage_EN.html">3 &mdash; Pillar: Language</a>
+      <a href="MBSE_Module4_PillarMethod_EN.html">4 &mdash; Pillar: Method</a>
+      <a href="MBSE_Module5_PillarTool_EN.html">5 &mdash; Pillar: Tool</a>
+      <a href="MBSE_Module6_OOSEM_EN.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_EN.html">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_EN.html">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_EN.html">9 &mdash; Aerospace &amp; Defence</a>
+      <a href="MBSE_Module10_Automotive_EN.html">10 &mdash; Automotive &amp; Industry 4.0</a>
+      <a href="MBSE_Module11_Practice_EN.html" class="active">11 &mdash; Building an MBSE Practice</a>
+      <a href="MBSE_Module12_Future_EN.html">12 &mdash; The Future of MBSE</a>
+    </div>
+  </div>
+  <a href="MBSE_Module11_Practice_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>The Adoption Challenge</a><a href="#s2"><span class="num">2</span>MBSE Maturity Models</a><a href="#s3"><span class="num">3</span>Pilot Projects</a><a href="#s4"><span class="num">4</span>Common Barriers</a><a href="#s5"><span class="num">5</span>Training &amp; Competency</a><a href="#s6"><span class="num">6</span>Measuring Success</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 11: <em>Building an MBSE Practice</em></h1>
+      <p class="module-lead">Organisational adoption &mdash; how to introduce MBSE into a team or enterprise, overcome resistance, and measure success.</p>
+      <p class="prereq">Prerequisite: <a href="MBSE_Module10_Automotive_EN.html">MBSE Module 10</a></p>
+    </div>
+
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>The Adoption Challenge</h2>
+</div>
+
+<p>By now you understand the technical foundations of MBSE &mdash; the languages, methods, tools, frameworks, and domain applications. But knowing <em>what</em> MBSE is and knowing <em>how to make an organisation adopt it</em> are two very different things. Many MBSE initiatives fail not because the technology is wrong, but because the human and organisational dimensions were neglected.</p>
+
+<p>MBSE adoption is as much an <strong>organisational change</strong> as it is a technical one. You are asking people to change how they think, how they work, and how they collaborate. That is hard. It touches on identity, competence, workflow habits, and power structures. Understanding this is the first step toward a successful adoption.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think about the transition from paper maps to GPS navigation. GPS is technically superior in almost every way &mdash; it recalculates routes in real time, shows traffic, and never gets folded the wrong way. But when GPS first appeared, many experienced drivers resisted it. They "knew the roads." They did not trust a screen. They worried about what would happen if the battery died. Some felt that relying on GPS made them less skilled. The transition required not just buying a device, but building trust, learning new habits, and accepting that the old way &mdash; however familiar &mdash; had real limitations. MBSE adoption follows the same pattern. The technology is ready; the challenge is getting people to embrace it.</p></div>
+
+<h3>The human side of change</h3>
+<p>Change management research consistently shows that technology adoption follows a predictable emotional arc. People move from <strong>awareness</strong> ("I've heard of MBSE") through <strong>understanding</strong> ("I see why it matters") to <strong>acceptance</strong> ("I'm willing to try") and finally <strong>commitment</strong> ("I can't imagine going back"). Most failed adoptions stall somewhere between understanding and acceptance &mdash; people intellectually agree that MBSE is better, but they are not willing to endure the discomfort of changing their daily practices.</p>
+
+<p>Successful change requires addressing three things simultaneously:</p>
+<ul>
+  <li><strong>Motivation</strong> &mdash; why should I change? What is in it for me personally, not just for the organisation?</li>
+  <li><strong>Ability</strong> &mdash; can I actually do this? Do I have the training, tools, and support I need?</li>
+  <li><strong>Reinforcement</strong> &mdash; will the organisation reward this new behaviour, or will it quietly revert to the old way?</li>
+</ul>
+
+<p>If any one of these is missing, adoption will fail. A brilliantly motivated team without training will flounder. A well-trained team without management reinforcement will drift back to documents within six months.</p>
+
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>MBSE Maturity Models</h2>
+</div>
+
+<p>Before you can plan an adoption journey, you need to know where you are starting from. <strong>MBSE maturity models</strong> provide a structured way to assess an organisation's current capability and chart a path forward. The most widely referenced is the INCOSE MBSE maturity assessment, but the general concept applies regardless of the specific framework you use.</p>
+
+<p>Maturity models typically define five levels, each building on the one before:</p>
+
+<table><thead><tr><th>Level</th><th>Name</th><th>Description</th><th>Characteristics</th></tr></thead><tbody>
+<tr><td>1</td><td>Initial / Ad Hoc</td><td>No systematic modelling. Engineering is entirely document-centric.</td><td>No modelling tools or standards; knowledge lives in documents and people's heads; no formal traceability.</td></tr>
+<tr><td>2</td><td>Managed / Exploratory</td><td>Individual teams or engineers experiment with modelling on selected projects.</td><td>One or two pilot projects; modelling is voluntary; models are not authoritative artefacts; limited tool deployment.</td></tr>
+<tr><td>3</td><td>Defined / Standardised</td><td>The organisation has defined MBSE processes, a chosen language and tool, and training programmes.</td><td>Modelling method documented; tool licences available; models used in design reviews; basic traceability in place.</td></tr>
+<tr><td>4</td><td>Quantitatively Managed</td><td>MBSE is the standard way of working. Metrics are collected and used to improve the practice.</td><td>Models are the authoritative source of truth; automated consistency checking; metrics tracked (defect rates, review efficiency); model libraries and reuse.</td></tr>
+<tr><td>5</td><td>Optimising / Digital Thread</td><td>Fully integrated digital thread from requirements through design, manufacturing, and operations.</td><td>Models drive downstream processes (simulation, code generation, test automation); continuous improvement based on data; cross-programme model reuse; AI-assisted modelling.</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 1 &mdash; MBSE maturity levels</caption></table>
+
+<div class="callout tip"><div class="callout-label">SELF-ASSESSMENT</div><p>Before reading further, pause and honestly assess your organisation. Which level are you at today? Most organisations that think they are at Level 3 are actually at Level 2 &mdash; they have tools and some training, but models are not yet authoritative artefacts used in formal reviews. Being honest about your starting point is essential for planning a realistic adoption roadmap. The INCOSE MBSE Maturity Assessment provides a structured questionnaire to help with this evaluation.</p></div>
+
+<h3>Why maturity matters</h3>
+<p>Trying to jump from Level 1 to Level 5 in a single leap is the most common strategic mistake in MBSE adoption. Each level builds capabilities and organisational muscle that the next level depends on. An organisation at Level 1 that invests in an enterprise modelling tool (a Level 4 activity) will waste money &mdash; the tool will sit unused because no one knows how to model, and there is no method to guide them.</p>
+
+<p>The right approach is to <strong>target the next level up</strong>, achieve it, stabilise, and then plan the next step. For most organisations, reaching Level 3 within two to three years is an ambitious but achievable goal.</p>
+
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Pilot Projects and Incremental Adoption</h2>
+</div>
+
+<p>The single most effective strategy for MBSE adoption is to <strong>start small</strong>. Rather than attempting to transform the entire organisation at once, begin with one team, one project, and one viewpoint. This is sometimes called the <strong>"lighthouse project"</strong> approach &mdash; pick a visible project that will shine a light on what MBSE can do, guiding others to follow.</p>
+
+<h3>The lighthouse project</h3>
+<p>A lighthouse project serves multiple purposes. It demonstrates concrete value to sceptics. It builds practical experience within the team. It produces reusable artefacts (model templates, method guidelines, training materials) that can be shared with other teams. And it provides real data on the costs and benefits of MBSE, which is essential for securing continued investment.</p>
+
+<p>The key is choosing the <em>right</em> project. Not every project is suitable as a pilot.</p>
+
+<div class="callout tip"><div class="callout-label">PILOT SELECTION CRITERIA</div>
+<p>A good MBSE pilot project should have the following characteristics:</p>
+<p><strong>Right size:</strong> Large enough to demonstrate value, small enough to be manageable. A six-month project with a team of five to ten people is ideal. Too small and the overhead of setting up MBSE will dominate; too large and the risk of failure is too high.</p>
+<p><strong>Right complexity:</strong> The project should involve enough cross-domain interaction (hardware, software, interfaces) to benefit from model-based traceability. A purely software project or a purely mechanical project will not showcase MBSE's strengths.</p>
+<p><strong>Supportive team:</strong> The team must include at least a few people who are enthusiastic about MBSE. Forcing an entirely reluctant team to pilot a new approach is a recipe for failure. You need early adopters who will champion the effort.</p>
+<p><strong>Measurable outcomes:</strong> Define success criteria before you start. What metrics will you track? How will you compare the pilot's performance to previous projects? Without measurable outcomes, the pilot becomes an anecdote rather than evidence.</p>
+<p><strong>Visible stakeholders:</strong> Choose a project that matters to senior leadership. A successful pilot that no one important sees is a wasted opportunity.</p>
+</div>
+
+<h3>Incremental expansion</h3>
+<p>After the first pilot succeeds, resist the temptation to immediately mandate MBSE across the organisation. Instead, expand incrementally:</p>
+<ol>
+  <li><strong>Second pilot:</strong> Apply lessons learned to a second project, ideally in a different domain or division. This tests whether the approach transfers beyond the original team.</li>
+  <li><strong>Community of practice:</strong> Bring together people from both pilots to share experiences, build common templates, and develop internal training materials.</li>
+  <li><strong>Broader rollout:</strong> Gradually expand to more projects, supported by the community of practice. Each new project benefits from the accumulated knowledge.</li>
+  <li><strong>Standardisation:</strong> Once a critical mass of projects is using MBSE, formalise the approach as an organisational standard.</li>
+</ol>
+
+<p>This incremental approach typically takes two to four years to reach organisation-wide adoption, but the results are far more durable than a top-down mandate.</p>
+
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>Common Barriers and How to Overcome Them</h2>
+</div>
+
+<p>Every MBSE adoption will encounter barriers. Anticipating them and having mitigation strategies ready is far better than being surprised. The table below summarises the most common barriers, their root causes, and proven mitigation strategies.</p>
+
+<table><thead><tr><th>Barrier</th><th>Root Cause</th><th>Mitigation Strategy</th></tr></thead><tbody>
+<tr><td>Resistance to change</td><td>Fear of the unknown; loss of established expertise; comfort with current practices</td><td>Start with volunteers and early adopters; demonstrate quick wins; provide psychological safety to experiment and fail; celebrate early successes publicly</td></tr>
+<tr><td>Lack of training</td><td>Engineers are expected to learn MBSE on their own; training budget is insufficient</td><td>Invest in structured training programmes (formal courses + mentoring); allocate dedicated learning time; provide sandbox environments for practice</td></tr>
+<tr><td>Tool costs</td><td>Commercial MBSE tools require significant licensing investment; infrastructure costs for servers and administration</td><td>Start with evaluation licences or open-source tools (e.g. Eclipse Papyrus, Capella); build a business case based on pilot results; consider cloud-based licensing models</td></tr>
+<tr><td>Lack of management buy-in</td><td>Leadership does not understand MBSE value; no visible ROI data; competing priorities</td><td>Present MBSE as a risk-reduction strategy, not a cost; use pilot data to build the business case; connect MBSE outcomes to strategic goals (time-to-market, quality, compliance)</td></tr>
+<tr><td>"We've always done it this way"</td><td>Deep-rooted organisational culture; success with current approach makes change feel unnecessary</td><td>Acknowledge past success while highlighting new challenges (increasing complexity, shorter timelines, regulatory pressure); frame MBSE as evolution, not revolution</td></tr>
+<tr><td>Unclear ROI</td><td>Benefits of MBSE are long-term and systemic; hard to attribute directly to modelling</td><td>Define measurable metrics before starting; track leading indicators (review duration, defect discovery timing); benchmark against comparable non-MBSE projects</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 2 &mdash; Common MBSE adoption barriers and mitigations</caption></table>
+
+<div class="callout pitfall"><div class="callout-label">MOST COMMON FAILURE MODE</div><p>The single most common failure mode in MBSE adoption is <strong>mandating tools without investing in method and training</strong>. An organisation buys expensive tool licences, installs them on every engineer's machine, and declares "we are now doing MBSE." Six months later, the tools are unused, the licences are wasted, and the organisation concludes that "MBSE doesn't work." In reality, MBSE was never tried &mdash; only tool procurement was. Without a defined method, adequate training, and a supportive culture, tools alone achieve nothing.</p></div>
+
+<h3>Addressing resistance constructively</h3>
+<p>Resistance is not the enemy &mdash; it is a signal. When an experienced engineer says "this won't work," they are often raising legitimate concerns based on years of practical experience. The most effective response is not to dismiss their concerns, but to engage with them:</p>
+<ul>
+  <li><strong>Listen first.</strong> Understand <em>why</em> they are resistant. Is it fear of obsolescence? Past experience with failed initiatives? Genuine technical concerns?</li>
+  <li><strong>Involve them.</strong> Invite sceptics to participate in the pilot &mdash; not as passive observers, but as active contributors whose expertise is valued.</li>
+  <li><strong>Show, don't tell.</strong> Demonstrations are more persuasive than presentations. Show a working model solving a real problem the engineer cares about.</li>
+  <li><strong>Be patient.</strong> Some people will come around quickly; others will take a year or more. That is normal and acceptable.</li>
+</ul>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Training and Competency Development</h2>
+</div>
+
+<p>MBSE competency is not a single skill &mdash; it is a bundle of interrelated skills that must be developed together. An engineer who knows SysML syntax but cannot think in terms of systems architecture will produce syntactically correct but semantically useless models. Training programmes must address all four skill dimensions.</p>
+
+<h3>The four skill dimensions</h3>
+<ul>
+  <li><strong>Systems thinking:</strong> The ability to see a system as an integrated whole, understand emergent behaviour, and reason about cross-cutting concerns. This is the hardest skill to teach because it is a way of thinking, not a body of knowledge.</li>
+  <li><strong>Modelling language proficiency:</strong> Fluency in SysML (or whatever modelling language the organisation has chosen). This includes understanding the abstract syntax (what the language elements mean) and the concrete syntax (how to write and read models).</li>
+  <li><strong>Method knowledge:</strong> Understanding the modelling method &mdash; which views to create, in what order, what questions each view answers, and how views relate to each other. Without method knowledge, engineers create models but do not know what to model or why.</li>
+  <li><strong>Tool proficiency:</strong> Practical ability to use the modelling tool effectively. This includes not just basic operations (creating elements, drawing diagrams) but also advanced features (model queries, impact analysis, report generation).</li>
+</ul>
+
+<h3>Training pathways</h3>
+<p>Effective training uses a blended approach that combines multiple learning modalities:</p>
+<ul>
+  <li><strong>Formal courses:</strong> Structured classroom or online courses covering the modelling language and method. Typically two to five days for foundational competency. Organisations like INCOSE and tool vendors offer certified training.</li>
+  <li><strong>Mentoring:</strong> Pairing less experienced modellers with experienced ones on real projects. This is the most effective way to transfer tacit knowledge &mdash; the kind of practical wisdom that cannot be captured in a textbook.</li>
+  <li><strong>Community of practice:</strong> A regular forum (weekly or biweekly) where practitioners share challenges, solutions, and best practices. Communities of practice build collective knowledge and create a support network.</li>
+  <li><strong>Learning by doing:</strong> Provide sandbox projects where engineers can experiment without fear of breaking a real model. Hands-on practice is essential &mdash; modelling is a craft that improves with repetition.</li>
+</ul>
+
+<h3>The MBSE champion</h3>
+<p>Every successful MBSE adoption has at least one <strong>MBSE champion</strong> &mdash; a person who evangelises the approach, supports struggling colleagues, troubleshoots problems, and keeps the momentum going when enthusiasm wanes. The champion does not have to be the most senior person in the room, but they need three qualities: deep MBSE competency, credibility with their peers, and relentless enthusiasm.</p>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>The MBSE champion role is often informal and unpaid &mdash; which is a mistake. Organisations that formally recognise and resource this role (dedicated time, training budget, access to leadership) see significantly faster adoption. Consider creating a formal role such as "MBSE Practice Lead" or "Modelling Coach" to give the champion the authority and resources they need.</p></div>
+
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>Measuring MBSE Success</h2>
+</div>
+
+<p>If you cannot measure it, you cannot improve it &mdash; and you cannot justify continued investment in it. Measuring the success of an MBSE adoption is essential, but it must be done carefully. The wrong metrics can be worse than no metrics at all.</p>
+
+<h3>Meaningful metrics</h3>
+<p>Good MBSE metrics connect modelling activities to business outcomes. They answer the question: "Is MBSE making our engineering better?" The following table presents a set of proven metrics organised by what they measure.</p>
+
+<table><thead><tr><th>Category</th><th>Metric</th><th>What It Measures</th><th>Target Direction</th></tr></thead><tbody>
+<tr><td>Quality</td><td>Defect reduction</td><td>Number of defects found after design reviews vs. historical baseline</td><td>Decrease</td></tr>
+<tr><td>Quality</td><td>Requirements coverage</td><td>Percentage of requirements traced to design elements and test cases</td><td>Increase toward 100%</td></tr>
+<tr><td>Efficiency</td><td>Design review duration</td><td>Time spent in design reviews per review cycle</td><td>Decrease</td></tr>
+<tr><td>Efficiency</td><td>Time-to-market</td><td>Overall project duration from concept to delivery</td><td>Decrease</td></tr>
+<tr><td>Cost</td><td>Rework reduction</td><td>Effort spent on rework as a percentage of total effort</td><td>Decrease</td></tr>
+<tr><td>Cost</td><td>Change impact analysis time</td><td>Time needed to assess the impact of a requirements change</td><td>Decrease</td></tr>
+<tr><td>Adoption</td><td>Model usage rate</td><td>Percentage of teams actively using the model as their primary engineering artefact</td><td>Increase</td></tr>
+<tr><td>Adoption</td><td>Training completion</td><td>Percentage of target engineers who have completed MBSE training</td><td>Increase toward 100%</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table 3 &mdash; MBSE success metrics</caption></table>
+
+<h3>Avoiding vanity metrics</h3>
+<p>A vanity metric is one that looks impressive on a slide but does not actually indicate success. The most common vanity metrics in MBSE are:</p>
+<ul>
+  <li><strong>"Number of diagrams created"</strong> &mdash; more diagrams does not mean better engineering. A team could create hundreds of meaningless diagrams. What matters is whether the model supports better decision-making.</li>
+  <li><strong>"Number of model elements"</strong> &mdash; a large model is not inherently better than a small one. A bloated model with redundant or unused elements is actually worse.</li>
+  <li><strong>"Number of tool licences deployed"</strong> &mdash; deploying licences is an input, not an outcome. What matters is whether people are actually using the tools to create value.</li>
+</ul>
+
+<p>The antidote to vanity metrics is to always ask: <strong>"So what?"</strong> If someone reports that the team created 500 diagrams last quarter, ask: "Did that reduce defects? Did it improve design review efficiency? Did it help the team make better decisions?" If the answer is unclear, the metric is not meaningful.</p>
+
+<h3>Connecting to business value</h3>
+<p>Ultimately, MBSE must justify itself in business terms. Engineering leaders and executives do not care about modelling for its own sake &mdash; they care about delivering products faster, cheaper, and with higher quality. When presenting MBSE metrics, always connect them to business outcomes:</p>
+<ul>
+  <li><strong>Defect reduction</strong> translates to lower warranty costs and fewer field failures.</li>
+  <li><strong>Faster design reviews</strong> translate to shorter schedules and lower labour costs.</li>
+  <li><strong>Better requirements coverage</strong> translates to reduced compliance risk.</li>
+  <li><strong>Lower rework</strong> translates directly to cost savings &mdash; rework typically consumes 20&ndash;40% of engineering effort in document-centric projects.</li>
+</ul>
+
+<p>Building this evidence base takes time. The pilot project provides the first data points; each subsequent project adds more. Over two to three years, the cumulative evidence becomes compelling.</p>
+
+<a href="MBSE_Module12_Future_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 12 &mdash; The Future of MBSE &mdash; Digital threads, AI-assisted modelling, SysML v2 ecosystem, and the convergence of MBSE with DevOps.</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

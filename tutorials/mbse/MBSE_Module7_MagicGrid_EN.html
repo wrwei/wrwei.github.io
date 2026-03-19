@@ -1,0 +1,350 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE Module 7: MagicGrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200;max-height:70vh;overflow-y:auto}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{font-size:.85rem;color:var(--muted);font-weight:500}
+.prereq a{color:var(--blue);text-decoration:none}
+.prereq a:hover{text-decoration:underline}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE Series</a>
+  <span class="sep">/</span>
+  <span class="crumb">Module 7</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 7 of 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_EN.html">1 &mdash; What is MBSE?</a>
+      <a href="MBSE_Module2_SELifecycle_EN.html">2 &mdash; The SE Lifecycle</a>
+      <a href="MBSE_Module3_PillarLanguage_EN.html">3 &mdash; Pillar 1: Modelling Language</a>
+      <a href="MBSE_Module4_PillarMethod_EN.html">4 &mdash; Pillar 2: Modelling Method</a>
+      <a href="MBSE_Module5_PillarTool_EN.html">5 &mdash; Pillar 3: Modelling Tool</a>
+      <a href="MBSE_Module6_OOSEM_EN.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_EN.html" class="active">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_EN.html">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_EN.html">9 &mdash; Aerospace &amp; Defence</a>
+      <a href="MBSE_Module10_Automotive_EN.html">10 &mdash; Automotive &amp; Industry 4.0</a>
+      <a href="MBSE_Module11_Practice_EN.html">11 &mdash; Building an MBSE Practice</a>
+      <a href="MBSE_Module12_Future_EN.html">12 &mdash; The Future of MBSE</a>
+    </div>
+  </div>
+  <a href="MBSE_Module7_MagicGrid_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>MagicGrid Origins</a><a href="#s2"><span class="num">2</span>The Grid Structure</a><a href="#s3"><span class="num">3</span>Problem Domain (Black Box)</a><a href="#s4"><span class="num">4</span>Solution Domain (White Box)</a><a href="#s5"><span class="num">5</span>Implementation Domain</a><a href="#s6"><span class="num">6</span>MagicGrid vs. OOSEM</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 7: <em>MagicGrid</em></h1>
+      <p class="module-lead">A structured matrix approach to organising MBSE models by abstraction level and concern &mdash; with a running EV charging station example.</p>
+      <p class="prereq">Prerequisite: <a href="MBSE_Module6_OOSEM_EN.html">MBSE Module 6 &mdash; OOSEM</a></p>
+    </div>
+
+<!-- ─── Section 1 ─── -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>MagicGrid Origins</h2>
+</div>
+
+<p>MagicGrid was developed by <strong>No Magic</strong> (now part of <strong>Dassault Syst&egrave;mes</strong>) as a practical, prescriptive MBSE methodology. Unlike academic frameworks that describe principles in the abstract, MagicGrid was designed from the outset to be <em>directly usable</em> &mdash; providing a clear, step-by-step recipe for populating an MBSE model.</p>
+
+<p>The methodology emerged from years of consulting experience with Cameo Systems Modeler and was first documented publicly in the <em>MBSE Grid-Based Approach</em> technical paper by No Magic. Its goal was to answer a deceptively simple question: <strong>"I have a modelling tool open &mdash; what do I model first, and where does each diagram go?"</strong></p>
+
+<h3>Design philosophy</h3>
+<p>MagicGrid rests on two organising principles:</p>
+<ul>
+  <li><strong>Abstraction levels</strong> &mdash; separate <em>what</em> the system must do (problem) from <em>how</em> it does it (solution) and <em>what it is built from</em> (implementation).</li>
+  <li><strong>Concern columns</strong> &mdash; separate requirements, structure, behaviour, and parametrics so each aspect of the system has a dedicated home.</li>
+</ul>
+<p>The intersection of a row (abstraction level) and a column (concern) tells you exactly which SysML diagrams and model elements to create. This makes MagicGrid highly approachable for teams new to MBSE.</p>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Although MagicGrid was developed alongside Cameo Systems Modeler, the underlying concepts are <strong>tool-agnostic</strong>. The grid structure, abstraction levels, and concern columns can be applied with any SysML-capable tool &mdash; including open-source options like Eclipse Papyrus or the emerging SysML v2 tooling ecosystem.</p></div>
+
+<!-- ─── Section 2 ─── -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>The Grid Structure</h2>
+</div>
+
+<p>The core of MagicGrid is a <strong>3 &times; 4 matrix</strong>. Rows represent abstraction levels; columns represent engineering concerns. Every model element you create has a well-defined "address" inside this grid.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of MagicGrid as a <strong>spreadsheet</strong> where the rows are "zoom levels" (how much detail you see) and the columns are "aspects" (what kind of detail you are looking at). Just as you would not mix revenue numbers with headcount data in the same spreadsheet column, you do not mix structural diagrams with behavioural diagrams in the same grid cell.</p></div>
+
+<h3>Rows &mdash; abstraction levels</h3>
+<ul>
+  <li><strong>Problem Domain (Black Box)</strong> &mdash; the system is an opaque box; we define external interactions without revealing internals.</li>
+  <li><strong>Solution Domain (White Box)</strong> &mdash; we open the box and describe the logical internal architecture.</li>
+  <li><strong>Implementation</strong> &mdash; we map the logical architecture to physical components, hardware, software, and services.</li>
+</ul>
+
+<h3>Columns &mdash; engineering concerns</h3>
+<ul>
+  <li><strong>Requirements</strong> &mdash; what the system must do or satisfy.</li>
+  <li><strong>Structure</strong> &mdash; what the system is made of (parts, connections, interfaces).</li>
+  <li><strong>Behaviour</strong> &mdash; how the system behaves over time (activities, states, interactions).</li>
+  <li><strong>Parametrics</strong> &mdash; quantitative constraints, equations, and measures of effectiveness.</li>
+</ul>
+
+<h3>The 3 &times; 4 grid at a glance</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th></th><th>Requirements</th><th>Structure</th><th>Behaviour</th><th>Parametrics</th></tr></thead>
+<tbody>
+<tr><td><strong>Problem Domain<br>(Black Box)</strong></td><td>Stakeholder needs, system-level requirements</td><td>System context diagram, external actors</td><td>Use cases, high-level activity diagrams</td><td>Measures of effectiveness (MoE), key performance parameters</td></tr>
+<tr><td><strong>Solution Domain<br>(White Box)</strong></td><td>Subsystem requirements, derived requirements</td><td>Logical architecture, internal block diagrams</td><td>State machines, detailed activity diagrams, sequence diagrams</td><td>Constraint blocks, trade-off equations</td></tr>
+<tr><td><strong>Implementation</strong></td><td>Interface requirements, component specs</td><td>Physical architecture, allocated components</td><td>Implementation-level interactions, deployment sequences</td><td>Verification constraints, test parameters</td></tr>
+</tbody>
+</table>
+</div>
+<p class="caption">Table 1 &mdash; The MagicGrid 3 &times; 4 matrix with example artifacts</p>
+
+<p>The grid is typically worked through <strong>top-to-bottom</strong> (from problem domain down to implementation) and roughly <strong>left-to-right</strong> within each row, though iteration across cells is expected and encouraged.</p>
+
+<!-- ─── Section 3 ─── -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Problem Domain (Black Box)</h2>
+</div>
+
+<p>In the problem domain row, the system is treated as an <strong>opaque box</strong>. We define <em>what</em> it must do without deciding <em>how</em>. This forces the engineering team to fully understand the problem before jumping to solutions.</p>
+
+<h3>Running example: EV Charging Station</h3>
+<p>Throughout this module, we will use an <strong>EV charging station</strong> as a running example. This is a system that charges electric vehicles, processes payments, communicates with the electricity grid, and provides status information to station owners.</p>
+
+<h3>Stakeholders</h3>
+<p>The first step in the problem domain is identifying who interacts with the system and who has an interest in it:</p>
+<ul>
+  <li><strong>EV Driver</strong> &mdash; the primary user who charges their vehicle and pays for the service.</li>
+  <li><strong>Grid Operator</strong> &mdash; the electricity provider who supplies power and needs load management data.</li>
+  <li><strong>Station Owner</strong> &mdash; the business entity that owns and operates the charging infrastructure, interested in uptime, revenue, and maintenance.</li>
+</ul>
+
+<h3>Use cases</h3>
+<p>Use cases capture the externally visible functions of the system:</p>
+<ul>
+  <li><strong>Charge Vehicle</strong> &mdash; the primary function; the driver plugs in and the station delivers energy.</li>
+  <li><strong>Monitor Status</strong> &mdash; the station owner (or an automated system) checks real-time status &mdash; availability, fault conditions, energy delivered.</li>
+  <li><strong>Process Payment</strong> &mdash; the system handles contactless payment, authorisation, and transaction logging.</li>
+</ul>
+
+<h3>System context</h3>
+<p>A system context diagram at this level shows the EV charging station as a single block, surrounded by its actors (EV Driver, Grid Operator, Station Owner) and external systems (payment gateway, electricity grid, cloud monitoring platform). All interfaces are external &mdash; we do not yet show what is inside the station.</p>
+
+<h3>Measures of effectiveness</h3>
+<p>Parametrics in the problem domain capture high-level performance targets:</p>
+<ul>
+  <li>Charging power: 50&ndash;350 kW (DC fast charging)</li>
+  <li>Payment processing time: &lt; 3 seconds</li>
+  <li>System availability: &ge; 99.5%</li>
+  <li>Mean time to repair: &le; 4 hours</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Resist the temptation to jump into internal design at this stage. The black-box discipline ensures that every requirement traces back to a genuine stakeholder need &mdash; not to an assumed technical solution. If you find yourself discussing specific hardware or software choices, you have moved to the solution domain too early.</p></div>
+
+<!-- ─── Section 4 ─── -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>Solution Domain (White Box)</h2>
+</div>
+
+<p>Having defined <em>what</em> the system must do, we now open the box and describe <em>how</em> it achieves those goals. The solution domain introduces the <strong>logical architecture</strong> &mdash; subsystems, internal interfaces, state machines, and detailed behaviour.</p>
+
+<h3>Logical decomposition</h3>
+<p>For our EV charging station, the logical subsystems include:</p>
+<ul>
+  <li><strong>Charging Controller</strong> &mdash; manages the charging protocol (CCS, CHAdeMO, or AC Type 2), controls power delivery, and handles safety interlocks.</li>
+  <li><strong>Payment Processor</strong> &mdash; handles NFC card reading, online authorisation, and transaction recording.</li>
+  <li><strong>Energy Management</strong> &mdash; communicates with the grid operator for load balancing, monitors power draw, and implements smart charging schedules.</li>
+  <li><strong>User Interface</strong> &mdash; the display and physical controls that guide the driver through the charging session &mdash; plug-in instructions, charging progress, and receipts.</li>
+</ul>
+
+<h3>Internal structure</h3>
+<p>An internal block diagram at this level shows how the four subsystems connect. The Charging Controller exchanges power commands with Energy Management; the Payment Processor sends authorisation status to the Charging Controller (charging only begins after payment is confirmed); and the User Interface communicates with all other subsystems to display status.</p>
+
+<h3>Behaviour modelling</h3>
+<p>State machines describe the lifecycle of a charging session: <em>Idle &rarr; Authenticating &rarr; Charging &rarr; Complete &rarr; Idle</em>, with fault transitions from any state to a <em>Faulted</em> state. Activity diagrams detail the sequence of internal operations within each state transition.</p>
+
+<h3>Constraint blocks</h3>
+<p>Parametric constraints at the solution level express engineering trade-offs. For example, a constraint block might relate charging power, cable temperature, and session duration to ensure that thermal limits are never exceeded.</p>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Every element in the solution domain should <strong>trace back</strong> to a problem-domain requirement. The Charging Controller exists because there is a "Charge Vehicle" use case. The Payment Processor exists because there is a "Process Payment" use case. If a solution-domain element has no traceability to the problem domain, question whether it is needed.</p></div>
+
+<!-- ─── Section 5 ─── -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Implementation Domain</h2>
+</div>
+
+<p>The implementation row bridges the gap between the logical architecture and the real world. Here, logical subsystems are <strong>allocated</strong> to physical components, and interface specifications become concrete.</p>
+
+<h3>From logical to physical</h3>
+<p>The allocation from solution-domain subsystems to implementation-domain components for our EV charging station:</p>
+<ul>
+  <li><strong>Charging Controller</strong> &rarr; a dedicated <strong>embedded ECU</strong> (e.g., ARM Cortex-based industrial controller) running real-time firmware that implements the CCS/CHAdeMO protocol stack.</li>
+  <li><strong>Payment Processor</strong> &rarr; a combination of an <strong>NFC card reader</strong> (physical hardware at the station) and a <strong>cloud payment service</strong> (remote software) connected via 4G/5G.</li>
+  <li><strong>Energy Management</strong> &rarr; a <strong>smart meter</strong> and <strong>power electronics module</strong> at the station, communicating via OCPP (Open Charge Point Protocol) with a <strong>cloud-based energy management platform</strong>.</li>
+  <li><strong>User Interface</strong> &rarr; a ruggedised <strong>touchscreen display</strong>, LED status indicators, and an optional <strong>mobile app</strong> companion.</li>
+</ul>
+
+<h3>Interface specifications</h3>
+<p>At the implementation level, interfaces become concrete protocols and physical connectors:</p>
+<ul>
+  <li>Charging Controller &harr; Energy Management: CAN bus (physical), OCPP 2.0.1 (application layer)</li>
+  <li>Payment Processor &harr; Cloud Service: HTTPS/TLS over 4G, ISO 8583 message format</li>
+  <li>User Interface &harr; Charging Controller: internal Ethernet, MQTT for status updates</li>
+</ul>
+
+<h3>Verification constraints</h3>
+<p>Parametric constraints at this level map directly to test procedures. For example: "The NFC reader shall complete a contactless transaction in under 500 ms" is a testable constraint allocated to the Payment Processor hardware.</p>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>The implementation domain is where MagicGrid connects to procurement and manufacturing. Each physical component in this row should be traceable upward to a logical subsystem (solution domain) and ultimately to a stakeholder need (problem domain). This end-to-end traceability is one of MBSE's greatest strengths &mdash; and MagicGrid's grid structure makes it visible at a glance.</p></div>
+
+<!-- ─── Section 6 ─── -->
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>MagicGrid vs. OOSEM</h2>
+</div>
+
+<p>Module 6 introduced OOSEM (Object-Oriented Systems Engineering Method). Both OOSEM and MagicGrid are widely used MBSE frameworks, but they differ in philosophy, organisation, and emphasis. The table below compares them across six dimensions.</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>Dimension</th><th>MagicGrid</th><th>OOSEM</th></tr></thead>
+<tbody>
+<tr><td><strong>Origin</strong></td><td>No Magic / Dassault Syst&egrave;mes &mdash; born from tool-vendor consulting</td><td>INCOSE / Lockheed Martin &mdash; born from systems engineering practice</td></tr>
+<tr><td><strong>Process Style</strong></td><td>Grid-based, prescriptive: "fill in each cell"</td><td>Process-oriented, iterative: "follow the lifecycle steps"</td></tr>
+<tr><td><strong>Model Organisation</strong></td><td>Highly structured &mdash; the 3&times;4 matrix defines exactly where every artifact lives</td><td>Flexible &mdash; organised around process phases (stakeholder needs analysis, requirements analysis, logical architecture, etc.)</td></tr>
+<tr><td><strong>Language Dependency</strong></td><td>Designed for SysML but tool-agnostic in principle</td><td>Language-agnostic; commonly used with SysML v1 and v2</td></tr>
+<tr><td><strong>Best For</strong></td><td>Teams wanting a clear, repeatable recipe; organisations new to MBSE</td><td>Experienced SE teams who need flexibility; projects with complex stakeholder landscapes</td></tr>
+<tr><td><strong>Complexity</strong></td><td>Lower learning curve &mdash; the grid provides immediate structure</td><td>Higher learning curve &mdash; more process discipline required, but greater adaptability</td></tr>
+</tbody>
+</table>
+</div>
+<p class="caption">Table 2 &mdash; MagicGrid vs. OOSEM comparison</p>
+
+<p>In practice, the two frameworks are <strong>not mutually exclusive</strong>. Many organisations adopt MagicGrid's model organisation (the 3&times;4 grid) while following OOSEM's process steps within each cell. The key is to choose the approach &mdash; or combination &mdash; that best fits your team's maturity and project context.</p>
+
+<a href="MBSE_Module8_Harmony_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 8 &mdash; IBM Harmony &mdash; A use-case-driven, architecture-centric approach with strong behaviour emphasis.</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>

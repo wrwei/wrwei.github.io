@@ -1,0 +1,350 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBSE 模块 7：MagicGrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;
+  --slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;
+  --green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;
+  --red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;
+  --purple:#7E22CE;--purple-bg:#FDF4FF;
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;
+  --sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}
+#topbar .brand span{color:var(--sky)}
+#topbar .sep{color:var(--border);font-size:1.2rem}
+#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}
+#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}
+#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:260px;padding:.4rem;z-index:200;max-height:70vh;overflow-y:auto}
+#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}
+#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}
+#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}
+#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}
+#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}
+#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}
+#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}
+.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-eyebrow{display:none}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}
+#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.prereq{font-size:.85rem;color:var(--muted);font-weight:500}
+.prereq a{color:var(--blue);text-decoration:none}
+.prereq a:hover{text-decoration:underline}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}
+.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}
+p strong{color:var(--navy)}
+ul,ol{margin:.5rem 0 1rem 1.5rem}
+li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}
+pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}
+pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}
+.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}
+.callout.note .callout-label{color:var(--blue)}
+.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}
+.callout.tip .callout-label{color:var(--green)}
+.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}
+.callout.analogy .callout-label{color:var(--orange)}
+.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}
+.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
+.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}
+.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}
+td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}
+td:first-child{color:var(--navy);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--sky-pale)}
+.caption{text-align:center;font-size:.8rem;color:var(--muted);font-style:italic;margin-top:.5rem;margin-bottom:1.5rem}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}
+.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}
+.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a>
+  <span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">MBSE 系列</a>
+  <span class="sep">/</span>
+  <span class="crumb">模块 7</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 7 / 12</button>
+    <div class="dropdown-menu">
+      <a href="MBSE_Module1_WhatIsMBSE_ZH.html">1 &mdash; 什么是 MBSE？</a>
+      <a href="MBSE_Module2_SELifecycle_ZH.html">2 &mdash; 系统工程生命周期</a>
+      <a href="MBSE_Module3_PillarLanguage_ZH.html">3 &mdash; 支柱一：建模语言</a>
+      <a href="MBSE_Module4_PillarMethod_ZH.html">4 &mdash; 支柱二：建模方法</a>
+      <a href="MBSE_Module5_PillarTool_ZH.html">5 &mdash; 支柱三：建模工具</a>
+      <a href="MBSE_Module6_OOSEM_ZH.html">6 &mdash; OOSEM</a>
+      <a href="MBSE_Module7_MagicGrid_ZH.html" class="active">7 &mdash; MagicGrid</a>
+      <a href="MBSE_Module8_Harmony_ZH.html">8 &mdash; IBM Harmony</a>
+      <a href="MBSE_Module9_AerospaceDef_ZH.html">9 &mdash; 航空航天与国防</a>
+      <a href="MBSE_Module10_Automotive_ZH.html">10 &mdash; 汽车与工业 4.0</a>
+      <a href="MBSE_Module11_Practice_ZH.html">11 &mdash; 构建 MBSE 实践</a>
+      <a href="MBSE_Module12_Future_ZH.html">12 &mdash; MBSE 的未来</a>
+    </div>
+  </div>
+  <a href="MBSE_Module7_MagicGrid_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">目录</div>
+    <nav><a href="#s1"><span class="num">1</span>MagicGrid 起源</a><a href="#s2"><span class="num">2</span>网格结构</a><a href="#s3"><span class="num">3</span>问题域（黑盒）</a><a href="#s4"><span class="num">4</span>解决方案域（白盒）</a><a href="#s5"><span class="num">5</span>实现域</a><a href="#s6"><span class="num">6</span>MagicGrid 与 OOSEM</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">MBSE 系列 &mdash; Ran Wei</div>
+      <h1 class="module-title">模块 7：<em>MagicGrid</em></h1>
+      <p class="module-lead">一种通过抽象层次和关注点来组织 MBSE 模型的结构化矩阵方法 &mdash; 以电动汽车充电站为贯穿示例。</p>
+      <p class="prereq">前置条件：<a href="MBSE_Module6_OOSEM_ZH.html">MBSE 模块 6 &mdash; OOSEM</a></p>
+    </div>
+
+<!-- ─── 第 1 节 ─── -->
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>MagicGrid 起源</h2>
+</div>
+
+<p>MagicGrid 由 <strong>No Magic</strong>（现属 <strong>达索系统 Dassault Syst&egrave;mes</strong>）开发，是一种实用且具有规范性的 MBSE 方法学。与停留在抽象原则层面的学术框架不同，MagicGrid 从一开始就以<em>直接可用</em>为设计目标 &mdash; 为填充 MBSE 模型提供清晰的、逐步执行的操作指南。</p>
+
+<p>该方法学源于多年来使用 Cameo Systems Modeler 的咨询实践经验，最初由 No Magic 在 <em>MBSE Grid-Based Approach</em> 技术论文中公开发表。它要回答的核心问题非常直接：<strong>"我已经打开了建模工具 &mdash; 应该先建什么模型？每张图放在哪里？"</strong></p>
+
+<h3>设计理念</h3>
+<p>MagicGrid 基于两个组织原则：</p>
+<ul>
+  <li><strong>抽象层次</strong> &mdash; 将系统<em>必须做什么</em>（问题域）与<em>如何做</em>（解决方案域）以及<em>用什么实现</em>（实现域）分离。</li>
+  <li><strong>关注点列</strong> &mdash; 将需求、结构、行为和参数化分析分开，使系统的每个方面都有专属区域。</li>
+</ul>
+<p>行（抽象层次）与列（关注点）的交叉单元格精确告诉你应创建哪些 SysML 图和模型元素。这使得 MagicGrid 对 MBSE 新手团队非常友好。</p>
+
+<div class="callout note"><div class="callout-label">说明</div><p>尽管 MagicGrid 是配合 Cameo Systems Modeler 开发的，但其底层概念是<strong>工具无关</strong>的。网格结构、抽象层次和关注点列可以在任何支持 SysML 的工具中使用 &mdash; 包括 Eclipse Papyrus 等开源选项或新兴的 SysML v2 工具生态。</p></div>
+
+<!-- ─── 第 2 节 ─── -->
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>网格结构</h2>
+</div>
+
+<p>MagicGrid 的核心是一个 <strong>3 &times; 4 矩阵</strong>。行代表抽象层次，列代表工程关注点。你创建的每个模型元素在该网格中都有明确的"地址"。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>把 MagicGrid 想象成一张<strong>电子表格</strong>：行是"缩放级别"（你看到多少细节），列是"视角"（你在看哪种细节）。就像你不会在同一个电子表格列中混合收入数据和人员编制一样，你不会在同一个网格单元中混合结构图和行为图。</p></div>
+
+<h3>行 &mdash; 抽象层次</h3>
+<ul>
+  <li><strong>问题域（黑盒）</strong> &mdash; 系统是一个不透明的盒子；我们定义外部交互，不暴露内部结构。</li>
+  <li><strong>解决方案域（白盒）</strong> &mdash; 打开盒子，描述逻辑内部架构。</li>
+  <li><strong>实现域</strong> &mdash; 将逻辑架构映射到物理组件、硬件、软件和服务。</li>
+</ul>
+
+<h3>列 &mdash; 工程关注点</h3>
+<ul>
+  <li><strong>需求</strong> &mdash; 系统必须做什么或满足什么。</li>
+  <li><strong>结构</strong> &mdash; 系统由什么组成（部件、连接、接口）。</li>
+  <li><strong>行为</strong> &mdash; 系统如何随时间运行（活动、状态、交互）。</li>
+  <li><strong>参数化</strong> &mdash; 定量约束、方程和效能度量。</li>
+</ul>
+
+<h3>3 &times; 4 网格一览</h3>
+<div class="table-wrap">
+<table>
+<thead><tr><th></th><th>需求</th><th>结构</th><th>行为</th><th>参数化</th></tr></thead>
+<tbody>
+<tr><td><strong>问题域<br>（黑盒）</strong></td><td>利益相关方需求、系统级需求</td><td>系统上下文图、外部参与者</td><td>用例、高层活动图</td><td>效能度量（MoE）、关键性能参数</td></tr>
+<tr><td><strong>解决方案域<br>（白盒）</strong></td><td>子系统需求、派生需求</td><td>逻辑架构、内部块图</td><td>状态机、详细活动图、序列图</td><td>约束块、权衡方程</td></tr>
+<tr><td><strong>实现域</strong></td><td>接口需求、组件规格</td><td>物理架构、已分配组件</td><td>实现层交互、部署序列</td><td>验证约束、测试参数</td></tr>
+</tbody>
+</table>
+</div>
+<p class="caption">表 1 &mdash; MagicGrid 3 &times; 4 矩阵及各单元示例工件</p>
+
+<p>通常<strong>自上而下</strong>（从问题域到实现域）遍历网格，每行内部大致<strong>从左到右</strong>推进，但跨单元的迭代是预期且鼓励的。</p>
+
+<!-- ─── 第 3 节 ─── -->
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>问题域（黑盒）</h2>
+</div>
+
+<p>在问题域这一行中，系统被视为一个<strong>不透明的盒子</strong>。我们定义它<em>必须做什么</em>，而不决定<em>如何做</em>。这迫使工程团队在跳到解决方案之前充分理解问题。</p>
+
+<h3>贯穿示例：电动汽车充电站</h3>
+<p>在本模块中，我们以一个<strong>电动汽车充电站</strong>作为贯穿示例。该系统为电动汽车充电、处理支付、与电网通信，并向站点所有者提供状态信息。</p>
+
+<h3>利益相关方</h3>
+<p>问题域的第一步是识别谁与系统交互、谁对系统有利益关切：</p>
+<ul>
+  <li><strong>电动汽车驾驶员</strong> &mdash; 主要用户，为车辆充电并支付费用。</li>
+  <li><strong>电网运营商</strong> &mdash; 电力供应方，供电并需要负载管理数据。</li>
+  <li><strong>充电站所有者</strong> &mdash; 拥有和运营充电基础设施的商业实体，关注正常运行时间、收入和维护。</li>
+</ul>
+
+<h3>用例</h3>
+<p>用例捕获系统的外部可见功能：</p>
+<ul>
+  <li><strong>为车辆充电</strong> &mdash; 主要功能；驾驶员插入充电枪，充电站输送电能。</li>
+  <li><strong>监控状态</strong> &mdash; 站点所有者（或自动化系统）检查实时状态 &mdash; 可用性、故障状态、已输送电量。</li>
+  <li><strong>处理支付</strong> &mdash; 系统处理非接触式支付、授权和交易记录。</li>
+</ul>
+
+<h3>系统上下文</h3>
+<p>此层级的系统上下文图将电动汽车充电站显示为一个单独的块，周围是参与者（电动汽车驾驶员、电网运营商、站点所有者）和外部系统（支付网关、电网、云监控平台）。所有接口都是外部的 &mdash; 我们尚未展示站内结构。</p>
+
+<h3>效能度量</h3>
+<p>问题域中的参数化捕获高层性能目标：</p>
+<ul>
+  <li>充电功率：50&ndash;350 kW（直流快充）</li>
+  <li>支付处理时间：&lt; 3 秒</li>
+  <li>系统可用性：&ge; 99.5%</li>
+  <li>平均修复时间：&le; 4 小时</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>在此阶段要抵制跳入内部设计的冲动。黑盒纪律确保每一条需求都可追溯到真正的利益相关方需求 &mdash; 而非某个假定的技术方案。如果你发现自己在讨论具体的硬件或软件选择，说明已经过早进入了解决方案域。</p></div>
+
+<!-- ─── 第 4 节 ─── -->
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>解决方案域（白盒）</h2>
+</div>
+
+<p>在定义了系统<em>必须做什么</em>之后，我们现在打开盒子，描述它<em>如何</em>实现这些目标。解决方案域引入<strong>逻辑架构</strong> &mdash; 子系统、内部接口、状态机和详细行为。</p>
+
+<h3>逻辑分解</h3>
+<p>对于我们的电动汽车充电站，逻辑子系统包括：</p>
+<ul>
+  <li><strong>充电控制器</strong> &mdash; 管理充电协议（CCS、CHAdeMO 或交流 Type 2），控制功率输出，处理安全联锁。</li>
+  <li><strong>支付处理器</strong> &mdash; 处理 NFC 读卡、在线授权和交易记录。</li>
+  <li><strong>能源管理</strong> &mdash; 与电网运营商通信以进行负载均衡，监控功率消耗，实施智能充电调度。</li>
+  <li><strong>用户界面</strong> &mdash; 引导驾驶员完成充电过程的显示屏和物理控件 &mdash; 插枪说明、充电进度和收据。</li>
+</ul>
+
+<h3>内部结构</h3>
+<p>此层级的内部块图展示四个子系统如何连接。充电控制器与能源管理交换功率指令；支付处理器向充电控制器发送授权状态（仅在确认付款后才开始充电）；用户界面与其他所有子系统通信以显示状态。</p>
+
+<h3>行为建模</h3>
+<p>状态机描述充电会话的生命周期：<em>空闲 &rarr; 认证中 &rarr; 充电中 &rarr; 已完成 &rarr; 空闲</em>，任何状态都可以因故障转换到<em>故障</em>状态。活动图详细描述每个状态转换内的操作序列。</p>
+
+<h3>约束块</h3>
+<p>解决方案层级的参数化约束表达工程权衡。例如，一个约束块可以关联充电功率、电缆温度和会话时长，以确保永远不超过热极限。</p>
+
+<div class="callout note"><div class="callout-label">说明</div><p>解决方案域中的每个元素都应<strong>追溯回</strong>问题域的需求。充电控制器的存在是因为有"为车辆充电"用例。支付处理器的存在是因为有"处理支付"用例。如果某个解决方案域元素没有指向问题域的可追溯性，就需要质疑它是否必要。</p></div>
+
+<!-- ─── 第 5 节 ─── -->
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>实现域</h2>
+</div>
+
+<p>实现行在逻辑架构与现实世界之间架起桥梁。在这里，逻辑子系统被<strong>分配</strong>给物理组件，接口规格变得具体。</p>
+
+<h3>从逻辑到物理</h3>
+<p>电动汽车充电站从解决方案域子系统到实现域组件的分配：</p>
+<ul>
+  <li><strong>充电控制器</strong> &rarr; 专用<strong>嵌入式 ECU</strong>（例如基于 ARM Cortex 的工业控制器），运行实现 CCS/CHAdeMO 协议栈的实时固件。</li>
+  <li><strong>支付处理器</strong> &rarr; <strong>NFC 读卡器</strong>（站点物理硬件）与<strong>云支付服务</strong>（远程软件）的组合，通过 4G/5G 连接。</li>
+  <li><strong>能源管理</strong> &rarr; 站点的<strong>智能电表</strong>和<strong>电力电子模块</strong>，通过 OCPP（开放充电点协议）与<strong>云端能源管理平台</strong>通信。</li>
+  <li><strong>用户界面</strong> &rarr; 加固型<strong>触摸屏显示器</strong>、LED 状态指示灯，以及可选的<strong>手机 App</strong> 配套应用。</li>
+</ul>
+
+<h3>接口规格</h3>
+<p>在实现层级，接口变成具体的协议和物理连接器：</p>
+<ul>
+  <li>充电控制器 &harr; 能源管理：CAN 总线（物理层）、OCPP 2.0.1（应用层）</li>
+  <li>支付处理器 &harr; 云服务：基于 4G 的 HTTPS/TLS、ISO 8583 报文格式</li>
+  <li>用户界面 &harr; 充电控制器：内部以太网、MQTT 状态更新</li>
+</ul>
+
+<h3>验证约束</h3>
+<p>此层级的参数化约束直接映射到测试规程。例如："NFC 读卡器应在 500 毫秒内完成非接触式交易"是分配给支付处理器硬件的可测试约束。</p>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>实现域是 MagicGrid 连接采购和制造的地方。此行中的每个物理组件都应可向上追溯到逻辑子系统（解决方案域），最终追溯到利益相关方需求（问题域）。这种端到端的可追溯性是 MBSE 最大的优势之一 &mdash; 而 MagicGrid 的网格结构使其一目了然。</p></div>
+
+<!-- ─── 第 6 节 ─── -->
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>MagicGrid 与 OOSEM</h2>
+</div>
+
+<p>模块 6 介绍了 OOSEM（面向对象的系统工程方法）。OOSEM 和 MagicGrid 都是广泛使用的 MBSE 框架，但它们在理念、组织方式和侧重点上有所不同。下表从六个维度进行比较。</p>
+
+<div class="table-wrap">
+<table>
+<thead><tr><th>维度</th><th>MagicGrid</th><th>OOSEM</th></tr></thead>
+<tbody>
+<tr><td><strong>起源</strong></td><td>No Magic / 达索系统 &mdash; 源于工具厂商咨询实践</td><td>INCOSE / 洛克希德·马丁 &mdash; 源于系统工程实践</td></tr>
+<tr><td><strong>过程风格</strong></td><td>基于网格，规范性强："填充每个单元格"</td><td>面向过程，迭代式："遵循生命周期步骤"</td></tr>
+<tr><td><strong>模型组织</strong></td><td>高度结构化 &mdash; 3&times;4 矩阵精确定义每个工件的位置</td><td>灵活 &mdash; 围绕过程阶段组织（利益相关方需求分析、需求分析、逻辑架构等）</td></tr>
+<tr><td><strong>语言依赖</strong></td><td>为 SysML 设计，但原则上工具无关</td><td>语言无关；常与 SysML v1 和 v2 配合使用</td></tr>
+<tr><td><strong>最适用于</strong></td><td>需要清晰、可重复操作指南的团队；MBSE 新手组织</td><td>需要灵活性的资深系统工程团队；利益相关方关系复杂的项目</td></tr>
+<tr><td><strong>复杂度</strong></td><td>学习曲线较低 &mdash; 网格提供即时结构</td><td>学习曲线较高 &mdash; 需要更强的过程纪律，但适应性更强</td></tr>
+</tbody>
+</table>
+</div>
+<p class="caption">表 2 &mdash; MagicGrid 与 OOSEM 对比</p>
+
+<p>在实践中，两种框架<strong>并非互斥</strong>。许多组织采用 MagicGrid 的模型组织方式（3&times;4 网格），同时在每个单元格内遵循 OOSEM 的过程步骤。关键是选择最适合团队成熟度和项目情境的方法 &mdash; 或两者的组合。</p>
+
+<a href="MBSE_Module8_Harmony_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一节</div><p>模块 8 &mdash; IBM Harmony &mdash; 一种以用例驱动、以架构为中心且强调行为的方法。</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+const links=[...document.querySelectorAll('#sidebar nav a')];
+const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});
+}
+window.addEventListener('scroll',activateNav,{passive:true});
+activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
+  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+</footer>
+</body>
+</html>
