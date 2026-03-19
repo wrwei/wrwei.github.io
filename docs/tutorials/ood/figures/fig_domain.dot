@@ -1,0 +1,57 @@
+digraph DomainModel {
+    graph [
+        rankdir=TB
+        fontname="Courier New"
+        nodesep=0.5
+        ranksep=0.7
+        bgcolor=white
+        margin="0.3,0.2"
+        dpi=150
+    ]
+
+    node [
+        shape=record
+        fontname="Courier New"
+        fontsize=12
+        style=bold
+    ]
+
+    edge [
+        fontname="Courier New"
+        fontsize=10
+    ]
+
+    /* ── Top tier ── */
+    Customer [label="{Customer|customer_id\l_name, _email\l|get_name()\lemail «property»\l}"]
+    Order [label="{Order|order_id, _status\l_items:list[OrderItem]\l|place(), cancel()\ltotal()\l}"]
+    Inventory [label="{«Singleton» Inventory|_catalogue : dict\l_observers : list\l|add_book()\lget_book(isbn)\lnotify()\l}"]
+
+    /* ── Middle tier ── */
+    PremiumCustomer [label="{PremiumCustomer|_loyalty_pts\l|add_points()\lget_discount_rate()\l}"]
+    ShoppingCart [label="{ShoppingCart|cart_id\l_items : list[Book]\l|add_item(b)\ltotal()\l}"]
+    OrderItem [label="{OrderItem|_book : Book\l_qty, _unit_price\l|subtotal()\l}"]
+    Payment [label="{Payment|payment_id\l_amount, _method\l|process()\lrefund()\l}"]
+
+    /* ── Book hierarchy ── */
+    Book [label="{«abstract» Book|isbn, title, author\l_price, _stock\l|get_details() «abstract»\lapply_discount()\l}"]
+    DigitalBook [label="{DigitalBook|file_format\lfile_size\l|get_details()\ldownload()\l}"]
+    PhysicalBook [label="{PhysicalBook|weight\lwarehouse\l|get_details()\lget_shipping_cost()\l}"]
+
+    /* ── Inheritance ── */
+    PremiumCustomer -> Customer [arrowhead=empty, label="extends"]
+    DigitalBook -> Book [arrowhead=empty, label="extends"]
+    PhysicalBook -> Book [arrowhead=empty, label="extends"]
+
+    /* ── Composition ── */
+    Order -> OrderItem [dir=both, arrowtail=diamond, arrowhead=none, taillabel="1..*"]
+    Order -> Payment [dir=both, arrowtail=diamond, arrowhead=none, taillabel="1"]
+
+    /* ── Aggregation ── */
+    ShoppingCart -> Book [dir=both, arrowtail=odiamond, arrowhead=none, taillabel="0..*"]
+    Inventory -> Book [dir=both, arrowtail=odiamond, arrowhead=none, taillabel="0..*"]
+
+    /* ── Association ── */
+    Customer -> Order [style=dashed, arrowhead=open, label="places", constraint=false]
+    Customer -> ShoppingCart [style=dashed, arrowhead=open, label="uses", constraint=false]
+    OrderItem -> Book [style=dashed, arrowhead=open, label="ref"]
+}
