@@ -1,212 +1,42 @@
-<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Agents — Tutorial Series</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agents — Tutorial Series</title><link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg:      #FAFBFD;
-  --white:   #FFFFFF;
-  --navy:    #1A2E4A;
-  --blue:    #2563EB;
-  --sky:     #0EA5E9;
-  --sky-light: #DBEAFE;
-  --sky-pale:  #F0F9FF;
-  --slate:   #475569;
-  --muted:   #94A3B8;
-  --border:  #E2E8F0;
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body:    'DM Sans', system-ui, sans-serif;
-  --font-mono:    'DM Mono', 'Fira Code', monospace;
-  --radius:  10px;
-  --tr:      0.2s cubic-bezier(0.4,0,0.2,1);
-}
-
-html { font-size: 16px; scroll-behavior: smooth; }
-body { background: var(--bg); color: var(--navy); font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased; }
-
-.site-nav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(250,251,253,0.92); backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 2rem; height: 56px;
-  display: flex; align-items: center; gap: 0.6rem;
-}
-.nav-brand { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; color: var(--navy); text-decoration: none; white-space: nowrap; flex-shrink: 0; letter-spacing: -0.01em; }
-.nav-brand span { color: var(--sky); }
-.nav-sep { color: var(--border); font-size: 1.2rem; }
-.nav-crumb { font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; color: var(--slate); text-decoration: none; white-space: nowrap; }
-.nav-crumb:hover { color: var(--blue); }
-
-.index-hero {
-  padding: 5rem 2rem 3rem;
-  max-width: 1100px; margin: 0 auto;
-  border-bottom: 1px solid var(--border);
-}
-.index-hero h1 {
-  font-family: var(--font-display);
-  font-size: clamp(2.2rem, 5vw, 3.8rem);
-  font-weight: 700; line-height: 1.12;
-  letter-spacing: -0.03em;
-  margin-bottom: 1.25rem;
-}
-.index-hero h1 em { color: var(--blue); font-style: normal; }
-.index-hero .lead {
-  font-size: 1.15rem; color: var(--slate);
-  max-width: 580px; line-height: 1.65;
-  margin-bottom: 1.5rem; font-weight: 300;
-}
-.tag {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
-  padding: 3px 10px; border-radius: 20px;
-  letter-spacing: 0.04em; white-space: nowrap;
-}
-.tag-module { background: var(--navy); color: white; }
-.tag-theme  { background: var(--sky-light); color: var(--blue); }
-.tag-time   { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
-
-.index-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-  gap: 1.25rem; padding: 3rem 2rem;
-  max-width: 1100px; margin: 0 auto;
-}
-.module-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  text-decoration: none;
-  transition: all 0.2s;
-  display: flex; flex-direction: column;
-}
-.module-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
-  border-color: var(--blue);
-}
-.card-num { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-bottom: 8px; }
-.card-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 8px; line-height: 1.3; }
-.card-desc { font-size: 13px; color: var(--slate); line-height: 1.55; flex: 1; }
-.card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; }
-.card-theme { font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 20px; }
-.card-lang { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
-.theme-foundations { background: #E2E8F0; color: #475569; }
-.theme-core        { background: #DBEAFE; color: #2563EB; }
-.theme-advanced    { background: #EDE9FE; color: #7C3AED; }
-.theme-practice    { background: #F0FDF4; color: #16A34A; }
-
-@media (max-width: 600px) {
-  .index-hero { padding: 3rem 1.25rem 2rem; }
-  .index-grid { padding: 2rem 1.25rem; }
-  .index-hero h1 { font-size: 2rem; }
-}
-</style>
-</head>
-<body>
-<nav class="site-nav">
-  <a class="nav-brand" href="../../tutorials/">Ran <span>Wei</span></a>
-  <span class="nav-sep">/</span>
-  <a class="nav-crumb" href="index.html">AI Agent Series</a>
-</nav>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#FAFBFD;--white:#FFFFFF;--navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;--slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;--radius:10px}
+html{font-size:16px;scroll-behavior:smooth}body{background:var(--bg);color:var(--navy);font-family:var(--font-body);line-height:1.7}
+.site-nav{position:sticky;top:0;z-index:100;background:rgba(250,251,253,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;gap:0.6rem}
+.nav-brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);text-decoration:none;letter-spacing:-0.01em}.nav-brand span{color:var(--sky)}.nav-sep{color:var(--border);font-size:1.2rem}.nav-crumb{font-size:0.85rem;font-weight:500;color:var(--slate);text-decoration:none}.nav-crumb:hover{color:var(--blue)}
+.index-hero{padding:5rem 2rem 3rem;max-width:1100px;margin:0 auto;border-bottom:1px solid var(--border)}.index-hero h1{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.8rem);font-weight:700;line-height:1.12;letter-spacing:-0.03em;margin-bottom:1.25rem}.index-hero h1 em{color:var(--blue);font-style:normal}.index-hero .lead{font-size:1.15rem;color:var(--slate);max-width:580px;line-height:1.65;margin-bottom:1.5rem;font-weight:300}
+.tag{font-family:var(--font-mono);font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;letter-spacing:0.04em;white-space:nowrap}.tag-module{background:var(--navy);color:white}.tag-theme{background:var(--sky-light);color:var(--blue)}.tag-time{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+.index-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:1.25rem;padding:3rem 2rem;max-width:1100px;margin:0 auto}
+.module-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-decoration:none;transition:all 0.2s;display:flex;flex-direction:column}.module-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,0.08);border-color:var(--blue)}
+.card-num{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:8px}.card-title{font-family:var(--font-display);font-size:1.05rem;font-weight:700;color:var(--navy);margin-bottom:8px;line-height:1.3}.card-desc{font-size:13px;color:var(--slate);line-height:1.55;flex:1}.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:1rem}.card-theme{font-family:var(--font-mono);font-size:11px;padding:2px 8px;border-radius:20px}.card-lang{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.theme-foundations{background:#E2E8F0;color:#475569}.theme-core{background:#DBEAFE;color:#2563EB}.theme-integration{background:#FEF3C7;color:#D97706}.theme-advanced{background:#EDE9FE;color:#7C3AED}.theme-practice{background:#F0FDF4;color:#16A34A}
+@media(max-width:600px){.index-hero{padding:3rem 1.25rem 2rem}.index-grid{padding:2rem 1.25rem}.index-hero h1{font-size:2rem}}
+</style></head><body>
+<nav class="site-nav"><a class="nav-brand" href="../../tutorials/">Ran <span>Wei</span></a><span class="nav-sep">/</span><a class="nav-crumb" href="index.html">AI Agent Series</a></nav>
 <div class="index-hero">
   <h1>Building <em>AI Agents</em></h1>
-  <p class="lead">Ten modules covering AI agent fundamentals &mdash; from concepts and API setup through tool use, memory, multi-agent orchestration, and deployment, with OpenAI &amp; Anthropic APIs.</p>
-  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem">
-    <span class="tag tag-module">AI Agents</span>
-    <span class="tag tag-theme">LLM &middot; Tool Use &middot; MCP</span>
-    <span class="tag tag-time">10 modules &middot; EN / 中文</span>
-  </div>
+  <p class="lead">Fifteen modules covering AI agent fundamentals &mdash; from concepts, prompt engineering, and API setup through RAG, MCP, multi-agent orchestration, safety, and deployment.</p>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem"><span class="tag tag-module">AI Agents</span><span class="tag tag-theme">LLM &middot; RAG &middot; MCP &middot; A2A</span><span class="tag tag-time">15 modules &middot; EN / 中文</span></div>
 </div>
-<div class="index-grid"><a class="module-card" href="module_01_EN.html">
-  <div class="card-num">Module 01</div>
-  <div class="card-title">What is an AI Agent?</div>
-  <div class="card-desc">Definition, agent vs chatbot, core components (LLM, tools, memory, planning), and the 2025&ndash;2026 agent landscape.</div>
-  <div class="card-footer">
-    <span class="card-theme theme-foundations">Foundations</span>
-    <span class="card-lang">EN &middot; 中文</span>
-  </div>
-</a><a class="module-card" href="module_02_EN.html">
-  <div class="card-num">Module 02</div>
-  <div class="card-title">Environment Setup &amp; API Configuration</div>
-  <div class="card-desc">Python environment, API keys, SDK installation, and first connection to OpenAI and Anthropic APIs.</div>
-  <div class="card-footer">
-    <span class="card-theme theme-foundations">Foundations</span>
-    <span class="card-lang">EN &middot; 中文</span>
-  </div>
-</a><a class="module-card" href="module_03_EN.html">
-  <div class="card-num">Module 03</div>
-  <div class="card-title">Your First API Call</div>
-  <div class="card-desc">Chat completions, system/user/assistant messages, temperature, tokens, and structured output.</div>
-  <div class="card-footer">
-    <span class="card-theme theme-foundations">Foundations</span>
-    <span class="card-lang">EN &middot; 中文</span>
-  </div>
-</a><a class="module-card" href="module_04_EN.html">
-  <div class="card-num">Module 04</div>
-  <div class="card-title">Building the Agent Loop</div>
-  <div class="card-desc">The observe&ndash;think&ndash;act cycle, implementing the core agent loop, and handling multi-step reasoning.</div>
-  <div class="card-footer">
-    <span class="card-theme theme-core">Core</span>
-    <span class="card-lang">EN &middot; 中文</span>
-  </div>
-</a><a class="module-card" href="module_05_EN.html">
-  <div class="card-num">Module 05</div>
-  <div class="card-title">Tool Use &amp; Function Calling</div>
-  <div class="card-desc">Defining tools, function calling protocols, tool execution, and building a tool registry.</div>
-  <div class="card-footer">
-    <span class="card-theme theme-core">Core</span>
-    <span class="card-lang">EN &middot; 中文</span>
-  </div>
-</a><a class="module-card" href="module_06_EN.html">
-  <div class="card-num">Module 06</div>
-  <div class="card-title">Memory &amp; Context Management</div>
-  <div class="card-desc">Short-term and long-term memory, context window strategies, and persistent storage patterns.</div>
-  <div class="card-footer">
-    <span class="card-theme theme-core">Core</span>
-    <span class="card-lang">EN &middot; 中文</span>
-  </div>
-</a><a class="module-card" href="module_07_EN.html">
-  <div class="card-num">Module 07</div>
-  <div class="card-title">Multi-Agent Orchestration</div>
-  <div class="card-desc">Agent communication, delegation patterns, supervisor architectures, and collaborative workflows.</div>
-  <div class="card-footer">
-    <span class="card-theme theme-advanced">Advanced</span>
-    <span class="card-lang">EN &middot; 中文</span>
-  </div>
-</a><a class="module-card" href="module_08_EN.html">
-  <div class="card-num">Module 08</div>
-  <div class="card-title">MCP Protocol Integration</div>
-  <div class="card-desc">Model Context Protocol &mdash; standardised tool and resource integration for interoperable agents.</div>
-  <div class="card-footer">
-    <span class="card-theme theme-advanced">Advanced</span>
-    <span class="card-lang">EN &middot; 中文</span>
-  </div>
-</a><a class="module-card" href="module_09_EN.html">
-  <div class="card-num">Module 09</div>
-  <div class="card-title">Testing &amp; Evaluation</div>
-  <div class="card-desc">Unit testing agents, evaluation frameworks, benchmarks, and measuring agent performance.</div>
-  <div class="card-footer">
-    <span class="card-theme theme-practice">Practice</span>
-    <span class="card-lang">EN &middot; 中文</span>
-  </div>
-</a><a class="module-card" href="module_10_EN.html">
-  <div class="card-num">Module 10</div>
-  <div class="card-title">Deployment &amp; Best Practices</div>
-  <div class="card-desc">Production deployment, monitoring, security, cost management, and real-world best practices.</div>
-  <div class="card-footer">
-    <span class="card-theme theme-practice">Practice</span>
-    <span class="card-lang">EN &middot; 中文</span>
-  </div>
-</a></div>
-<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
-  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
-</footer>
-</body>
-</html>
+<div class="index-grid"><a class="module-card" href="module_01_EN.html"><div class="card-num">Module 01</div><div class="card-title">What is an AI Agent?</div><div class="card-desc">Definition, agent vs chatbot, core components, and the 2025-2026 agent landscape.</div><div class="card-footer"><span class="card-theme theme-foundations">Foundations</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_02_EN.html"><div class="card-num">Module 02</div><div class="card-title">Environment Setup &amp; API Configuration</div><div class="card-desc">Python environment, API keys, SDK installation, and first connection.</div><div class="card-footer"><span class="card-theme theme-foundations">Foundations</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_03_EN.html"><div class="card-num">Module 03</div><div class="card-title">Prompt Engineering</div><div class="card-desc">Effective prompts, system prompts, few-shot and chain-of-thought, templates, debugging.</div><div class="card-footer"><span class="card-theme theme-foundations">Foundations</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_04_EN.html"><div class="card-num">Module 04</div><div class="card-title">Your First API Call</div><div class="card-desc">Chat completions, system/user/assistant messages, temperature, tokens.</div><div class="card-footer"><span class="card-theme theme-core">Core</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_05_EN.html"><div class="card-num">Module 05</div><div class="card-title">Building the Agent Loop</div><div class="card-desc">The observe-think-act cycle, core agent loop, multi-step reasoning.</div><div class="card-footer"><span class="card-theme theme-core">Core</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_06_EN.html"><div class="card-num">Module 06</div><div class="card-title">Tool Use &amp; Function Calling</div><div class="card-desc">Defining tools, function calling protocols, tool execution.</div><div class="card-footer"><span class="card-theme theme-core">Core</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_07_EN.html"><div class="card-num">Module 07</div><div class="card-title">Memory &amp; Context Management</div><div class="card-desc">Short/long-term memory, context window strategies, persistent storage.</div><div class="card-footer"><span class="card-theme theme-core">Core</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_08_EN.html"><div class="card-num">Module 08</div><div class="card-title">RAG &mdash; Retrieval-Augmented Generation</div><div class="card-desc">Embeddings, vector databases, document chunking, RAG pipelines.</div><div class="card-footer"><span class="card-theme theme-integration">Data &amp; Integration</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_09_EN.html"><div class="card-num">Module 09</div><div class="card-title">MCP &mdash; Building Your Own Servers</div><div class="card-desc">MCP servers exposing tools, resources, and prompts to agents.</div><div class="card-footer"><span class="card-theme theme-integration">Data &amp; Integration</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_10_EN.html"><div class="card-num">Module 10</div><div class="card-title">LangChain &amp; CrewAI</div><div class="card-desc">Agent frameworks &mdash; LangChain for general-purpose, CrewAI for role-based teams.</div><div class="card-footer"><span class="card-theme theme-integration">Data &amp; Integration</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_11_EN.html"><div class="card-num">Module 11</div><div class="card-title">Multi-Agent Orchestration</div><div class="card-desc">Agent communication, delegation, supervisor architectures, collaborative workflows.</div><div class="card-footer"><span class="card-theme theme-advanced">Advanced</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_12_EN.html"><div class="card-num">Module 12</div><div class="card-title">A2A Protocol</div><div class="card-desc">Google's Agent-to-Agent protocol for standardised inter-agent communication.</div><div class="card-footer"><span class="card-theme theme-advanced">Advanced</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_13_EN.html"><div class="card-num">Module 13</div><div class="card-title">Safety &amp; Guardrails</div><div class="card-desc">Prompt injection defence, output validation, guardrail frameworks, human-in-the-loop.</div><div class="card-footer"><span class="card-theme theme-practice">Practice</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_14_EN.html"><div class="card-num">Module 14</div><div class="card-title">Testing &amp; Evaluation</div><div class="card-desc">Unit testing, evaluation frameworks, benchmarks, measuring performance.</div><div class="card-footer"><span class="card-theme theme-practice">Practice</span><span class="card-lang">EN &middot; 中文</span></div></a>
+<a class="module-card" href="module_15_EN.html"><div class="card-num">Module 15</div><div class="card-title">Deployment &amp; Best Practices</div><div class="card-desc">Production deployment, monitoring, security, cost management.</div><div class="card-footer"><span class="card-theme theme-practice">Practice</span><span class="card-lang">EN &middot; 中文</span></div></a>
+</div>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p></footer>
+</body></html>
