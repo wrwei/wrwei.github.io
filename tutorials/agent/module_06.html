@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 6: Memory & Context Management</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;600;800&family=Noto+Sans+SC:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0f172a;--dark:#1e293b;--teal:#0d9488;--teal-light:#14b8a6;
+  --mint:#5eead4;--white:#ffffff;--off:#f8fafc;--slate:#64748b;
+  --light-slate:#94a3b8;--code-bg:#0f172a;--card:#ffffff;
+  --green:#22c55e;--orange:#f97316;--blue:#3b82f6;--red:#ef4444;
+  --purple:#7c3aed;--glow:rgba(13,148,136,0.15);
+}
+body{
+  font-family:'Outfit','Noto Sans SC',sans-serif;
+  background:var(--off);color:var(--dark);
+  line-height:1.7;font-size:17px;
+}
+.grain{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;opacity:0.03;z-index:9999;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+header{
+  background:var(--navy);padding:2rem 0 3rem;position:relative;overflow:hidden;
+}
+header::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--teal),var(--mint),var(--teal-light));
+}
+header::after{
+  content:'';position:absolute;bottom:-60px;left:-20%;width:140%;height:120px;
+  background:var(--off);border-radius:50%;
+}
+.header-inner{
+  max-width:900px;margin:0 auto;padding:0 2rem;position:relative;z-index:1;
+}
+.mod-label{
+  display:inline-block;background:rgba(13,148,136,0.2);color:var(--mint);
+  font-size:0.8rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  padding:0.3rem 1rem;border-radius:20px;margin-bottom:1rem;
+  border:1px solid rgba(94,234,212,0.2);
+}
+header h1{
+  font-family:'Outfit',sans-serif;font-weight:800;font-size:2.6rem;
+  color:var(--white);line-height:1.2;margin-bottom:0.5rem;
+  animation:fadeUp 0.6s ease both;
+}
+header .zh-title{
+  font-family:'Noto Sans SC',sans-serif;font-weight:600;font-size:1.5rem;
+  color:var(--mint);opacity:0.9;animation:fadeUp 0.6s 0.1s ease both;
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+main{
+  max-width:900px;margin:-1rem auto 4rem;padding:0 2rem;position:relative;z-index:2;
+}
+.section{margin-bottom:3rem;animation:fadeUp 0.5s ease both}
+.section:nth-child(2){animation-delay:0.1s}
+.section:nth-child(3){animation-delay:0.15s}
+.section:nth-child(4){animation-delay:0.2s}
+h2{
+  font-family:'Outfit',sans-serif;font-weight:800;font-size:1.6rem;
+  color:var(--navy);margin-bottom:0.3rem;padding-top:1rem;
+  display:flex;align-items:center;gap:0.5rem;
+}
+h2 .num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:var(--teal);color:var(--white);
+  border-radius:8px;font-size:0.85rem;font-weight:600;flex-shrink:0;
+}
+.zh-sub{
+  font-family:'Noto Sans SC',sans-serif;font-weight:600;font-size:1.05rem;
+  color:var(--teal);margin-bottom:1.2rem;
+}
+p,.dual{margin-bottom:1rem}
+.en{color:var(--dark);margin-bottom:0.4rem}
+.zh{color:var(--slate);font-family:'Noto Sans SC',sans-serif;font-size:0.95rem}
+pre{
+  background:var(--code-bg);color:#e2e8f0;border-radius:12px;
+  padding:1.5rem;margin:1rem 0 1.5rem;overflow-x:auto;
+  font-family:'JetBrains Mono',monospace;font-size:0.85rem;line-height:1.8;
+  border:1px solid rgba(94,234,212,0.1);position:relative;
+}
+pre::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--teal),var(--mint));border-radius:12px 12px 0 0;
+}
+code{font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#5eead4}.fn{color:#38bdf8}
+.cm{color:#64748b;font-style:italic}.num{color:#fbbf24}
+.tip,.warn{
+  padding:1rem 1.2rem;border-radius:10px;margin:1rem 0 1.5rem;
+  display:flex;gap:0.6rem;align-items:flex-start;
+  font-size:0.95rem;
+}
+.tip{background:#ecfdf5;border-left:4px solid var(--green);color:#166534}
+.warn{background:#fff7ed;border-left:4px solid var(--orange);color:#9a3412}
+.tip .icon,.warn .icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+ul{margin:0.5rem 0 1.5rem 1.5rem}
+li{margin-bottom:0.6rem;position:relative;padding-left:0.3rem}
+li::marker{color:var(--teal);font-weight:700}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin:1.5rem 0}
+.card{
+  background:var(--white);border-radius:12px;padding:1.5rem;
+  border:1px solid #e2e8f0;transition:all 0.3s;
+}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,0.08)}
+.card h3{font-size:1rem;color:var(--navy);margin-bottom:0.3rem}
+.card p{font-size:0.9rem;color:var(--slate);margin:0}
+table{
+  width:100%;border-collapse:collapse;margin:1rem 0 1.5rem;
+  background:var(--white);border-radius:12px;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+}
+th{background:var(--navy);color:var(--white);text-align:left;padding:0.8rem 1rem;font-size:0.85rem;font-weight:600}
+td{padding:0.7rem 1rem;border-bottom:1px solid #f1f5f9;font-size:0.9rem}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+.nav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:2rem 0;border-top:1px solid #e2e8f0;margin-top:3rem;
+}
+.nav-btn{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  padding:0.6rem 1.2rem;border-radius:8px;font-size:0.9rem;
+  text-decoration:none;font-weight:600;transition:all 0.2s;
+}
+.nav-btn.prev{background:#f1f5f9;color:var(--dark)}
+.nav-btn.prev:hover{background:#e2e8f0}
+.nav-btn.next{background:var(--teal);color:var(--white)}
+.nav-btn.next:hover{background:var(--teal-light)}
+.nav-btn.disabled{opacity:0.3;pointer-events:none;background:#f1f5f9;color:var(--slate)}
+footer{text-align:center;padding:2rem;color:var(--slate);font-size:0.85rem}
+@media(max-width:640px){
+  header h1{font-size:1.8rem}
+  header .zh-title{font-size:1.2rem}
+  pre{font-size:0.78rem;padding:1rem}
+  main{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<header>
+  <div style="max-width:800px;margin:0 auto;padding:0.8rem 2rem 0"><a href="../" style="color:var(--mint);text-decoration:none;font-size:0.85rem;opacity:0.8">&larr; Back to Tutorials</a></div>
+  <div class="header-inner">
+    <div class="mod-label">Module 06 / 模块6</div>
+    <h1>Memory & Context Management</h1>
+    <div class="zh-title">记忆与上下文管理</div>
+  </div>
+</header>
+<main>
+<div class="section">
+<h2><span class="num">6.1</span> The Context Window Problem</h2>
+<div class="zh-sub">上下文窗口问题</div>
+<div class="dual"><p class="en">Every LLM has a finite context window (e.g., 128K tokens for GPT-4o, 200K for Claude). Long conversations eventually exceed this limit. An agent needs strategies to manage what stays in context and what gets compressed or stored elsewhere.</p><p class="zh">每个LLM都有有限的上下文窗口（例如GPT-4o的128K token，Claude的200K）。长对话最终会超出此限制。智能体需要策略来管理哪些信息保留在上下文中，哪些被压缩或存储到其他地方。</p></div>
+</div>
+<div class="section">
+<h2><span class="num">6.2</span> Sliding Window Memory</h2>
+<div class="zh-sub">滑动窗口记忆</div>
+<pre><code>class ConversationMemory:
+    def __init__(self, max_messages=50):
+        self.messages = []
+        self.max_messages = max_messages
+
+    def add(self, role, content):
+        self.messages.append({'role': role, 'content': content})
+        if len(self.messages) > self.max_messages:
+            # Keep system + most recent messages
+            self.messages = (
+                self.messages[:1] +
+                self.messages[-self.max_messages + 1:]
+            )
+
+    def get_messages(self):
+        return self.messages.copy()</code></pre>
+</div>
+<div class="section">
+<h2><span class="num">6.3</span> Summarisation Strategy</h2>
+<div class="zh-sub">摘要策略</div>
+<div class="dual"><p class="en">For long-running agents, periodically summarise older messages using the LLM itself, then replace the originals with the summary. This compresses context while retaining key information.</p><p class="zh">对于长期运行的智能体，定期使用LLM本身总结旧消息，然后用摘要替换原始消息。这在保留关键信息的同时压缩了上下文。</p></div>
+<pre><code>async def summarise_old_messages(client, messages, keep_recent=10):
+    if len(messages) <= keep_recent + 5:
+        return messages  # Not enough to summarise
+
+    old = messages[1:-keep_recent]  # Skip system, keep recent
+    summary_prompt = f'Summarise this conversation concisely:\n{old}'
+
+    summary = client.messages.create(
+        model='claude-sonnet-4-20250514',
+        max_tokens=500,
+        messages=[{'role': 'user', 'content': summary_prompt}]
+    )
+
+    return (
+        messages[:1] +  # System message
+        [{'role': 'user', 'content': f'[Summary]: {summary.content[0].text}'}] +
+        messages[-keep_recent:]  # Recent messages
+    )</code></pre>
+</div>
+<div class="section">
+<h2><span class="num">6.4</span> Persistent Storage</h2>
+<div class="zh-sub">持久化存储</div>
+<ul><li><b>Vector databases</b> (Pinecone, Chroma, Weaviate) — for semantic search over past interactions / <b>向量数据库</b>——用于过去交互的语义搜索</li><li><b>Key-value stores</b> (Redis) — for fast access to user preferences / <b>键值存储</b>——用于快速访问用户偏好</li><li><b>SQL databases</b> — for structured data and audit trails / <b>SQL数据库</b>——用于结构化数据和审计跟踪</li></ul>
+</div>
+
+<nav class="nav">
+  <a href="module_05.html" class="nav-btn prev">&larr; Module 5</a>
+  <a href="index.html" style="color:var(--slate);text-decoration:none;font-size:0.85rem">All Modules / 所有模块</a>
+  <a href="module_07.html" class="nav-btn next">Module 7 &rarr;</a>
+</nav>
+</main>
+<footer>AI Agent Development Tutorial · AI智能体开发教程 · 2026</footer>
+</body>
+</html>
