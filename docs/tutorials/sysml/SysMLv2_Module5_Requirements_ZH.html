@@ -137,7 +137,7 @@ pre.lined .op{color:#6366F1}
 <tr><td><code>requirement def</code></td><td><code>ConstraintDefinition</code>（特化 <code>Class</code>）</td><td>添加 <code>doc</code> 文本描述、<code>subject</code>、<code>stakeholder</code> 等元数据</td></tr>
 <tr><td><code>requirement</code>（使用）</td><td>由 <code>ConstraintDefinition</code> 类型化的 <code>Feature</code></td><td>在特定上下文中实例化需求，绑定具体主体</td></tr>
 <tr><td><code>satisfy</code></td><td><code>SatisfyRequirementUsage</code></td><td>声明一个设计元素满足某个需求</td></tr>
-<tr><td><code>derive</code></td><td><code>DependencyRelationship</code></td><td>表示一个需求派生自另一个需求</td></tr>
+<tr><td><code>specializes</code>（需求间）</td><td><code>Subclassification</code></td><td>需求流转：子需求继承并细化父需求的约束</td></tr>
 <tr><td><code>constraint def</code></td><td><code>ConstraintDefinition</code></td><td>纯布尔约束，不附加需求元数据</td></tr>
 <tr><td><code>constraint</code>（使用）</td><td>由 <code>ConstraintDefinition</code> 类型化的 <code>Feature</code></td><td>在上下文中应用约束表达式</td></tr>
 <tr><td><code>assume constraint</code></td><td>前提约束（<code>ConstraintUsage</code>）</td><td>声明需求成立的前提条件</td></tr>
@@ -210,9 +210,9 @@ pre.lined .op{color:#6366F1}
 <div class="callout tip"><div class="callout-label">提示</div><p>需求层次分解是系统工程的核心实践。SysML v2 中子需求是父需求的组合特征 &#8212; 与零件的组合关系在概念上完全一致。工具可以自动检查：当所有子需求约束均为 <code>true</code> 时，父需求方可判定为已满足。</p></div>
 
 <!-- ====== 第 3 节：满足与派生 ====== -->
-<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>满足与派生</h2></div>
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 溯源：<code>satisfy</code> &#8594; <code>SatisfyRequirementUsage</code>；<code>derive</code> &#8594; <code>DependencyRelationship</code></p>
-<p><strong>满足</strong>（<code>satisfy</code>）声明一个设计元素满足某个需求。<strong>派生</strong>（<code>derive</code>）表示一个需求来源于另一个需求。这两种关系构成了需求追溯的基础。</p>
+<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>满足与需求流转</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 溯源：<code>satisfy</code> &#8594; <code>SatisfyRequirementUsage</code>（特化 <code>RequirementUsage</code> 和 <code>AssertConstraintUsage</code>）</p>
+<p><strong>满足</strong>（<code>assert satisfy</code>）声明一个设计元素满足某个需求。需求流转（从系统需求推导出子系统需求）通过 <strong>特化</strong>（<code>specializes</code>）来实现，而非单独的 <code>derive</code> 关键字。</p>
 <h3>满足关系</h3>
 <pre class="lined"><code><table>
 <tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> ChassisDesign {</td></tr>
@@ -220,23 +220,24 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">3</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc"><span class="cm">// 声明底盘设计满足质量需求</span></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc"><span class="kw">satisfy</span> vehicleMass by chassisDesign : ChassisDesign;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"><span class="kw">assert</span> <span class="kw">satisfy</span> vehicleMass by chassisDesign : ChassisDesign;</td></tr>
 </table></code></pre>
-<p><code>satisfy</code> 建立了从设计解决方案到需求的追溯链。工具可以检查 <code>chassisDesign</code> 的属性值是否满足 <code>vehicleMass</code> 中的约束表达式。</p>
-<h3>派生关系</h3>
-<p>派生表示一个低层需求是从高层需求推导出来的：</p>
+<p><code>assert satisfy</code> 建立了从设计解决方案到需求的追溯链。工具可以检查 <code>chassisDesign</code> 的属性值是否满足 <code>vehicleMass</code> 中的约束表达式。</p>
+<h3>需求流转（使用特化）</h3>
+<p>需求流转通过 <code>specializes</code> 实现。子需求继承父需求的所有约束，并可以添加更严格的条件：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> BrakingDistance {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 从 100 km/h 到完全停车的距离不超过 35m */</span></td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">subject</span> brakeSystem : BrakeSystem;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> { brakeSystem.stoppingDistance &lt;= <span class="nu">35</span> [m] }</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc"><span class="cm">// 制动距离需求派生自安全需求</span></td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">derive <span class="kw">requirement</span> brakingReq : BrakingDistance</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">from</span> safetyReq;</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> SafetyReq {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 系统安全顶层需求 */</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"><span class="cm">// 制动距离需求特化自安全需求</span></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> BrakingDistance <span class="kw">specializes</span> SafetyReq {</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 从 100 km/h 到完全停车的距离不超过 35m */</span></td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">subject</span> brakeSystem : BrakeSystem;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> { brakeSystem.stoppingDistance &lt;= <span class="nu">35</span> [m] }</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
 </table></code></pre>
-<div class="callout analogy"><div class="callout-label">类比</div><p>把 <code>satisfy</code> 想象成"这个零件兑现了这份合同条款"，而 <code>derive</code> 是"这个细化条款源自那份总合同"。两者共同建立起从顶层利益相关方需求到底层组件设计的完整追溯链。</p></div>
+<div class="callout analogy"><div class="callout-label">类比</div><p>把 <code>assert satisfy</code> 想象成"这个零件兑现了这份合同条款"，而 <code>specializes</code> 是"这个细化条款继承并扩展了那份总合同"。两者共同建立起从顶层利益相关方需求到底层组件设计的完整追溯链。</p></div>
 <h3>需求特化</h3>
 <p>需求定义可以通过 <code>specializes</code> 继承并细化父需求的约束：</p>
 <pre class="lined"><code><table>
@@ -412,10 +413,10 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">71</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">72</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">73</td><td class="lc">    <span class="cm">// 声明满足关系</span></td></tr>
-<tr><td class="ln" select="none">74</td><td class="lc">    <span class="kw">satisfy</span> sysReqs.massReq      by uavDesign.airframe;</td></tr>
-<tr><td class="ln" select="none">75</td><td class="lc">    <span class="kw">satisfy</span> sysReqs.enduranceReq by uavDesign.battery;</td></tr>
-<tr><td class="ln" select="none">76</td><td class="lc">    <span class="kw">satisfy</span> sysReqs.commRangeReq by uavDesign.radioLink;</td></tr>
-<tr><td class="ln" select="none">77</td><td class="lc">    <span class="kw">satisfy</span> sysReqs.safetyReq    by uavDesign.controller;</td></tr>
+<tr><td class="ln" select="none">74</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> sysReqs.massReq      by uavDesign.airframe;</td></tr>
+<tr><td class="ln" select="none">75</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> sysReqs.enduranceReq by uavDesign.battery;</td></tr>
+<tr><td class="ln" select="none">76</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> sysReqs.commRangeReq by uavDesign.radioLink;</td></tr>
+<tr><td class="ln" select="none">77</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> sysReqs.safetyReq    by uavDesign.controller;</td></tr>
 <tr><td class="ln" select="none">78</td><td class="lc">}</td></tr>
 </table></code></pre>
 <p>该模型展示了：<strong>constraint def</strong>（可复用的布尔约束）、<strong>requirement def</strong> 的层次分解（顶层需求包含五个子需求）、<strong>assume/require constraint</strong>（续航需求的风速假设）、<strong>stakeholder</strong>（安全需求的来源标注）、<strong>satisfy</strong>（将设计零件映射到各项需求）。</p>
@@ -427,7 +428,7 @@ pre.lined .op{color:#6366F1}
 <tr><td><code>requirement</code>（使用）</td><td>由 <code>ConstraintDefinition</code> 类型化的 <code>Feature</code></td><td>在上下文中实例化需求，可绑定具体主体和重定义参数</td></tr>
 <tr><td>需求层次</td><td>组合 <code>Feature</code> 嵌套</td><td>父需求满足当且仅当所有子需求均满足</td></tr>
 <tr><td><code>satisfy</code></td><td><code>SatisfyRequirementUsage</code></td><td>声明设计元素满足需求；是设计意图而非验证证据</td></tr>
-<tr><td><code>derive</code></td><td><code>DependencyRelationship</code></td><td>表示需求间的派生（追溯）关系</td></tr>
+<tr><td><code>specializes</code>（需求间）</td><td><code>Subclassification</code></td><td>需求流转：子需求继承并细化父需求的约束</td></tr>
 <tr><td><code>constraint def</code></td><td><code>ConstraintDefinition</code></td><td>定义可复用的布尔表达式，不含需求元数据</td></tr>
 <tr><td><code>constraint</code>（使用）</td><td><code>ConstraintUsage</code></td><td>在上下文中应用约束；<code>assert</code> 版本强制执行</td></tr>
 <tr><td><code>assume constraint</code></td><td><code>ConstraintUsage</code>（前提）</td><td>需求成立的前提条件；界定验证的有效范围</td></tr>

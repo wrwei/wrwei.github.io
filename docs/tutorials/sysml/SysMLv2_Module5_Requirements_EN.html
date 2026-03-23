@@ -135,8 +135,7 @@ pre.lined .op{color:#6366F1}
 <tr><td><code>requirement def</code></td><td><code>ConstraintDefinition</code> (specialises <code>Definition</code>)</td><td>Adds <code>text</code>, <code>doc</code>, <code>subject</code>, and requirement-specific semantics atop a boolean constraint</td></tr>
 <tr><td><code>requirement</code> (usage)</td><td><code>ConstraintUsage</code> (a <code>Feature</code> typed by a <code>ConstraintDefinition</code>)</td><td>A usage of a requirement in a specific context; can be nested to form hierarchies</td></tr>
 <tr><td><code>subject</code></td><td><code>Feature</code> on the <code>ConstraintDefinition</code></td><td>Identifies the element under test; binds the requirement to a design element</td></tr>
-<tr><td><code>satisfy</code></td><td><code>SatisfyRequirementUsage</code> (a <code>Dependency</code>)</td><td>Asserts that a design element satisfies a requirement; traced for verification</td></tr>
-<tr><td><code>derive</code></td><td><code>DependencyRelationship</code></td><td>Traces one requirement to another from which it is derived; supports traceability</td></tr>
+<tr><td><code>satisfy</code></td><td><code>SatisfyRequirementUsage</code> (specialises <code>RequirementUsage</code> and <code>AssertConstraintUsage</code>)</td><td>Asserts that a design element satisfies a requirement; traced for verification</td></tr>
 <tr><td><code>constraint def</code></td><td><code>ConstraintDefinition</code></td><td>A named boolean expression that can be reused; base type for requirement def</td></tr>
 <tr><td><code>constraint</code> (usage)</td><td><code>ConstraintUsage</code></td><td>An instance of a constraint in a specific context; evaluates to true or false</td></tr>
 <tr><td><code>assume constraint</code></td><td><code>ConstraintUsage</code> with <code>isAssumption = true</code></td><td>A condition assumed to hold; not verified but relied upon by required constraints</td></tr>
@@ -172,9 +171,9 @@ pre.lined .op{color:#6366F1}
 <div class="callout tip"><div class="callout-label">TIP</div><p>Always declare a <code>subject</code> on your requirement definitions. This explicitly identifies which design element the requirement applies to, making satisfaction relationships unambiguous and enabling tooling to auto-trace requirements to design.</p></div>
 
 <h3>Requirement identifiers</h3>
-<p>Requirements can be given short identifiers for traceability. SysML v2 supports the <code>id</code> keyword for this purpose:</p>
+<p>Requirements can be given short identifiers for traceability. SysML v2 uses the <em>short name</em> syntax (angle-bracket notation) for this purpose:</p>
 <pre class="lined"><code><table>
-<tr><td class="ln">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> BrakingDistanceReq id <span class="st">&#x27;REQ-BRK-001&#x27;</span> {</td></tr>
+<tr><td class="ln">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> &lt;<span class="st">&#x27;REQ-BRK-001&#x27;</span>&gt; BrakingDistanceReq {</td></tr>
 <tr><td class="ln">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* The vehicle shall achieve full stop within 40 metres</span></td></tr>
 <tr><td class="ln">3</td><td class="lc">         <span class="kw">from</span> <span class="nu">100</span> km/h on a dry surface. */</td></tr>
 <tr><td class="ln">4</td><td class="lc">    <span class="kw">subject</span> vehicle : Vehicle;</td></tr>
@@ -236,9 +235,9 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln">13</td><td class="lc">}</td></tr>
 </table></code></pre>
 
-<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>Satisfy &amp; Derive</h2></div>
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>satisfy</code> &#8594; <code>SatisfyRequirementUsage</code> (a Dependency); &nbsp;<code>derive</code> &#8594; <code>DependencyRelationship</code></p>
-<p>The <strong>satisfy</strong> relationship asserts that a design element meets a requirement. This is the primary traceability link between the requirements domain and the design domain. The <strong>derive</strong> relationship traces one requirement to another from which it was derived, capturing requirement flow-down.</p>
+<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>Satisfy &amp; Requirement Flow-Down</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>satisfy</code> &#8594; <code>SatisfyRequirementUsage</code> (specialises <code>RequirementUsage</code> and <code>AssertConstraintUsage</code>)</p>
+<p>The <strong>satisfy</strong> relationship (written <code>assert satisfy</code>) asserts that a design element meets a requirement. This is the primary traceability link between the requirements domain and the design domain. Requirement flow-down (deriving subsystem requirements from system requirements) is achieved using <strong>specialization</strong> (<code>specializes</code>), not a separate <code>derive</code> keyword.</p>
 
 <h3>Satisfy: linking requirements to design</h3>
 <pre class="lined"><code><table>
@@ -248,7 +247,7 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln">4</td><td class="lc">    <span class="kw">part</span> brakes : BrakingSystem;</td></tr>
 <tr><td class="ln">5</td><td class="lc"></td></tr>
 <tr><td class="ln">6</td><td class="lc">    <span class="cm">// Assert that the braking system satisfies the braking requirement</span></td></tr>
-<tr><td class="ln">7</td><td class="lc">    <span class="kw">satisfy</span> brakingReq by brakes;</td></tr>
+<tr><td class="ln">7</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> brakingReq by brakes;</td></tr>
 <tr><td class="ln">8</td><td class="lc">}</td></tr>
 </table></code></pre>
 <div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of <code>satisfy</code> as signing off on a checklist item. The requirement is the checklist item (&#8220;braking distance shall be under 40 m&#8221;) and the design element (brakes) is what delivers that capability. The <code>satisfy</code> link is your signature confirming the match.</p></div>
@@ -261,26 +260,25 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln">3</td><td class="lc">    <span class="kw">part</span> esc      : ElectronicStabilityControl;</td></tr>
 <tr><td class="ln">4</td><td class="lc">    <span class="kw">part</span> airbags  : AirbagSystem;</td></tr>
 <tr><td class="ln">5</td><td class="lc"></td></tr>
-<tr><td class="ln">6</td><td class="lc">    <span class="kw">satisfy</span> brakingReq   by brakes;</td></tr>
-<tr><td class="ln">7</td><td class="lc">    <span class="kw">satisfy</span> stabilityReq by esc;</td></tr>
-<tr><td class="ln">8</td><td class="lc">    <span class="kw">satisfy</span> airbagReq    by airbags;</td></tr>
+<tr><td class="ln">6</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> brakingReq   by brakes;</td></tr>
+<tr><td class="ln">7</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> stabilityReq by esc;</td></tr>
+<tr><td class="ln">8</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> airbagReq    by airbags;</td></tr>
 <tr><td class="ln">9</td><td class="lc">}</td></tr>
 </table></code></pre>
 
-<h3>Derive: requirement flow-down</h3>
-<p>The <code>derive</code> relationship captures that one requirement is derived from another. This is essential for tracing system-level requirements down to subsystem-level requirements:</p>
+<h3>Requirement flow-down using specialization</h3>
+<p>Requirement flow-down (deriving subsystem requirements from system requirements) is achieved using <code>specializes</code>. The child requirement inherits all constraints from the parent and can add further constraints or tighten existing ones:</p>
 <pre class="lined"><code><table>
 <tr><td class="ln">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> SystemSafetyReq {</td></tr>
 <tr><td class="ln">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* The system shall prevent unintended acceleration. */</span></td></tr>
 <tr><td class="ln">3</td><td class="lc">}</td></tr>
 <tr><td class="ln">4</td><td class="lc"></td></tr>
-<tr><td class="ln">5</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> ThrottleSafetyReq {</td></tr>
+<tr><td class="ln">5</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> ThrottleSafetyReq <span class="kw">specializes</span> SystemSafetyReq {</td></tr>
 <tr><td class="ln">6</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* The throttle controller shall return to idle</span></td></tr>
 <tr><td class="ln">7</td><td class="lc">         within <span class="nu">200</span> ms of brake pedal activation. */</td></tr>
-<tr><td class="ln">8</td><td class="lc">    derive ThrottleSafetyReq <span class="kw">from</span> SystemSafetyReq;</td></tr>
-<tr><td class="ln">9</td><td class="lc">}</td></tr>
+<tr><td class="ln">8</td><td class="lc">}</td></tr>
 </table></code></pre>
-<div class="callout pitfall"><div class="callout-label">PITFALL</div><p><code>satisfy</code> and <code>derive</code> are different relationships. <code>satisfy</code> links a requirement to a <em>design element</em> that fulfils it. <code>derive</code> links a requirement to another <em>requirement</em> from which it was obtained. Confusing the two will break your traceability chain.</p></div>
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p><code>assert satisfy</code> and <code>specializes</code> serve different purposes. <code>assert satisfy</code> links a requirement to a <em>design element</em> that fulfils it. <code>specializes</code> between requirements captures requirement flow-down: the child requirement refines and inherits constraints from the parent requirement. Confusing the two will break your traceability chain.</p></div>
 
 <span class="section-anchor" id="s4"></span><div class="section-header"><span class="section-num">4</span><h2>Constraints &amp; Expressions</h2></div>
 <p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>constraint def</code> &#8594; <code>ConstraintDefinition</code>; &nbsp;<code>constraint</code> &#8594; <code>ConstraintUsage</code></p>
@@ -461,12 +459,12 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln">78</td><td class="lc">        }</td></tr>
 <tr><td class="ln">79</td><td class="lc">    }</td></tr>
 <tr><td class="ln">80</td><td class="lc"></td></tr>
-<tr><td class="ln">81</td><td class="lc">    <span class="cm">// ── Derived requirement: ABS-specific ───────────────────</span></td></tr>
-<tr><td class="ln">82</td><td class="lc">    <span class="kw">requirement</span> <span class="kw">def</span> ABSActivationReq id <span class="st">&#x27;REQ-ABS-001&#x27;</span> {</td></tr>
+<tr><td class="ln">81</td><td class="lc">    <span class="cm">// ── Specialised requirement: ABS-specific ──────────────</span></td></tr>
+<tr><td class="ln">82</td><td class="lc">    <span class="kw">requirement</span> <span class="kw">def</span> &lt;<span class="st">&#x27;REQ-ABS-001&#x27;</span>&gt; ABSActivationReq <span class="kw">specializes</span> BrakingSafetyReq {</td></tr>
 <tr><td class="ln">83</td><td class="lc">        <span class="kw">doc</span> <span class="cm">/* ABS shall modulate brake pressure at 15 Hz minimum</span></td></tr>
 <tr><td class="ln">84</td><td class="lc">             when wheel slip exceeds <span class="nu">10</span>%. */</td></tr>
 <tr><td class="ln">85</td><td class="lc">        <span class="kw">subject</span> abs : ABSController;</td></tr>
-<tr><td class="ln">86</td><td class="lc">        derive ABSActivationReq <span class="kw">from</span> BrakingSafetyReq;</td></tr>
+<tr><td class="ln">86</td><td class="lc">        <span class="cm">// flow-down via specializes (declared above)</span></td></tr>
 <tr><td class="ln">87</td><td class="lc"></td></tr>
 <tr><td class="ln">88</td><td class="lc">        <span class="kw">require</span> <span class="kw">constraint</span> {</td></tr>
 <tr><td class="ln">89</td><td class="lc">            abs.modulationFrequency &gt;= <span class="nu">15</span> [Hz]</td></tr>
@@ -479,12 +477,12 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln">96</td><td class="lc">        <span class="kw">part</span> absCtrl    : ABSController;</td></tr>
 <tr><td class="ln">97</td><td class="lc">        <span class="kw">part</span> actuators  : BrakeActuator;</td></tr>
 <tr><td class="ln">98</td><td class="lc"></td></tr>
-<tr><td class="ln">99</td><td class="lc">        <span class="kw">satisfy</span> BrakingSafetyReq by brakes;</td></tr>
-<tr><td class="ln">100</td><td class="lc">        <span class="kw">satisfy</span> ABSActivationReq by absCtrl;</td></tr>
+<tr><td class="ln">99</td><td class="lc">        <span class="kw">assert</span> <span class="kw">satisfy</span> BrakingSafetyReq by brakes;</td></tr>
+<tr><td class="ln">100</td><td class="lc">        <span class="kw">assert</span> <span class="kw">satisfy</span> ABSActivationReq by absCtrl;</td></tr>
 <tr><td class="ln">101</td><td class="lc">    }</td></tr>
 <tr><td class="ln">102</td><td class="lc">}</td></tr>
 </table></code></pre>
-<p>This model demonstrates: <strong>requirement def</strong> with <code>doc</code> strings and identifiers, <strong>hierarchical requirement decomposition</strong> (parent BrakingSafetyReq containing three child requirements), <strong>assume</strong> and <strong>require constraint</strong> separation, <strong>reusable constraint definitions</strong> (MaxStoppingDistance, ResponseTimeLimit), <strong>derive</strong> for requirement flow-down (ABSActivationReq from BrakingSafetyReq), and <strong>satisfy</strong> links connecting requirements to design elements.</p>
+<p>This model demonstrates: <strong>requirement def</strong> with <code>doc</code> strings and identifiers, <strong>hierarchical requirement decomposition</strong> (parent BrakingSafetyReq containing three child requirements), <strong>assume</strong> and <strong>require constraint</strong> separation, <strong>reusable constraint definitions</strong> (MaxStoppingDistance, ResponseTimeLimit), <strong>specializes</strong> for requirement flow-down (ABSActivationReq specializes BrakingSafetyReq), and <strong>assert satisfy</strong> links connecting requirements to design elements.</p>
 
 <span class="section-anchor" id="s7"></span><div class="section-header"><span class="section-num">7</span><h2>Module Summary</h2></div>
 <table><thead><tr><th>SysML v2 concept</th><th>KerML origin</th><th>Key rule</th></tr></thead><tbody>
@@ -493,7 +491,7 @@ pre.lined .op{color:#6366F1}
 <tr><td><code>subject</code></td><td>Feature on <code>ConstraintDefinition</code></td><td>Identifies the design element the requirement applies to</td></tr>
 <tr><td><code>doc</code></td><td><code>Documentation</code></td><td>Human-readable prose attached to any model element</td></tr>
 <tr><td><code>satisfy</code></td><td><code>SatisfyRequirementUsage</code></td><td>Links a design element to the requirement it fulfils; primary traceability link</td></tr>
-<tr><td><code>derive</code></td><td><code>DependencyRelationship</code></td><td>Traces one requirement to the higher-level requirement it was derived from</td></tr>
+<tr><td><code>specializes</code> (between requirements)</td><td><code>Subclassification</code></td><td>Requirement flow-down: child requirement inherits and tightens parent constraints</td></tr>
 <tr><td><code>constraint def</code></td><td><code>ConstraintDefinition</code></td><td>A named boolean expression; base type for requirement def</td></tr>
 <tr><td><code>constraint</code> (usage)</td><td><code>ConstraintUsage</code></td><td>An instance of a constraint applied to a specific element; evaluates to true/false</td></tr>
 <tr><td><code>assume constraint</code></td><td><code>ConstraintUsage</code> (isAssumption)</td><td>A condition taken for granted; not verified but relied upon</td></tr>
