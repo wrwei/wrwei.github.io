@@ -108,15 +108,15 @@ pre.lined .op{color:#6366F1}
   <div class="module-dropdown" id="moduleDropdown">
     <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 8 of 9</button>
     <div class="dropdown-menu">
-      <a href="SysMLv2_Module1_Foundations_EN.html">1 &mdash; Foundations</a>
+      <a href="SysMLv2_Module1_Foundations_EN.html">1 &mdash; Foundations &amp; Philosophy</a>
       <a href="SysMLv2_Module2_CoreLanguage_EN.html">2 &mdash; Core Language Concepts</a>
       <a href="SysMLv2_Module3_StructureModelling_EN.html">3 &mdash; Structure Modelling</a>
       <a href="SysMLv2_Module4_BehaviourModelling_EN.html">4 &mdash; Behaviour Modelling</a>
-      <a href="SysMLv2_Module5_Requirements_EN.html">5 &mdash; Requirements &amp; Verification</a>
-      <a href="SysMLv2_Module6_AnalysisCases_EN.html">6 &mdash; Analysis Cases</a>
-      <a href="SysMLv2_Module7_MetadataProfiles_EN.html">7 &mdash; Metadata &amp; Profiles</a>
+      <a href="SysMLv2_Module5_Requirements_EN.html">5 &mdash; Requirements &amp; Constraints</a>
+      <a href="SysMLv2_Module6_Cases_EN.html">6 &mdash; Use Cases &amp; Analysis Cases</a>
+      <a href="SysMLv2_Module7_Analysis_EN.html">7 &mdash; Analysis &amp; Trade Studies</a>
       <a href="SysMLv2_Module8_Variability_EN.html" class="active">8 &mdash; Variability &amp; Configuration</a>
-      <a href="SysMLv2_Module9_Advanced_EN.html">9 &mdash; Advanced Topics</a>
+      <a href="SysMLv2_Module9_Verification_EN.html">9 &mdash; Verification &amp; Validation</a>
     </div>
   </div>
   <a href="SysMLv2_Module8_Variability_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">&#20013;&#25991;</a>
@@ -138,7 +138,7 @@ pre.lined .op{color:#6366F1}
 <tr><td><code>variation</code> (on a usage)</td><td>Usage with <code>isVariation = true</code></td><td>Marks a feature as a variation point; must be resolved to exactly one variant in any complete configuration</td></tr>
 <tr><td><code>variant</code></td><td><code>VariantMembership</code> (a kind of <code>OwningMembership</code>)</td><td>Declares a named alternative within a variation point; each variant subsets the variation usage</td></tr>
 <tr><td><code>variation part def</code></td><td><code>PartDefinition</code> with <code>isVariation = true</code></td><td>A definition whose usages are inherently variation points &#8212; every usage must be resolved</td></tr>
-<tr><td><code>variant part def</code></td><td><code>PartDefinition</code> owned via <code>VariantMembership</code></td><td>A definition that serves as one option within a variation definition</td></tr>
+<tr><td><code>variant</code> (in a variation def)</td><td><code>VariantMembership</code> owning a usage</td><td>A usage that serves as one option within a variation definition</td></tr>
 <tr><td>Configuration binding</td><td><code>BindingConnector</code> resolving a variation to a specific variant</td><td>Fixes the choice; produces a fully resolved product instance</td></tr>
 <tr><td><code>filter</code> expression</td><td><code>FilterExpression</code> (a Boolean expression on metadata)</td><td>Selects elements from a package or namespace based on metadata criteria</td></tr>
 <tr><td>Product line package</td><td><code>Package</code> with mixed variation/non-variation content</td><td>Organises shared platform elements alongside variation points for a product family</td></tr>
@@ -213,11 +213,11 @@ pre.lined .op{color:#6366F1}
 <h3>Referencing external variant definitions</h3>
 <p>Variants can also reference separately defined part definitions. This is useful when the same variant appears in multiple variation points across the model:</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> ManualTransmission <span class="kw">specializes</span> Transmission {</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> ManualTransmission <span class="kw">:&gt;</span> Transmission {</td></tr>
 <tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">attribute</span> gearCount : <span class="ty">ScalarValues</span>::<span class="ty">Integer</span>;</td></tr>
 <tr><td class="ln" select="none">3</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> AutomaticTransmission <span class="kw">specializes</span> Transmission {</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> AutomaticTransmission <span class="kw">:&gt;</span> Transmission {</td></tr>
 <tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">attribute</span> modes : DriveMode[<span class="nu">1</span>..*];</td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
@@ -234,9 +234,9 @@ pre.lined .op{color:#6366F1}
 <p>You can also mark an entire definition as a variation using <code>variation part def</code>. This means the definition itself is abstract &#8212; it cannot be instantiated directly but must be resolved to one of its variant members:</p>
 <pre class="lined"><code><table>
 <tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">variation</span> <span class="kw">part</span> <span class="kw">def</span> DriveMode {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">variant</span> <span class="kw">part</span> <span class="kw">def</span> eco   : EcoMode;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">variant</span> <span class="kw">part</span> <span class="kw">def</span> sport : SportMode;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">variant</span> <span class="kw">part</span> <span class="kw">def</span> normal: NormalMode;</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">variant</span> eco   : EcoMode;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">variant</span> sport : SportMode;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">variant</span> normal: NormalMode;</td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
 </table></code></pre>
 
@@ -264,7 +264,7 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">12</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">14</td><td class="lc"><span class="cm">// Configuration: Sport Edition</span></td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> SportEdition <span class="kw">specializes</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> SportEdition <span class="kw">:&gt;</span> Vehicle {</td></tr>
 <tr><td class="ln" select="none">16</td><td class="lc">    <span class="cm">// Resolve transmission to manual</span></td></tr>
 <tr><td class="ln" select="none">17</td><td class="lc">    <span class="kw">part</span> transmission <span class="kw">redefines</span> Vehicle::transmission = manual;</td></tr>
 <tr><td class="ln" select="none">18</td><td class="lc">    <span class="cm">// Resolve infotainment to premium</span></td></tr>
@@ -272,7 +272,7 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">20</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">21</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">22</td><td class="lc"><span class="cm">// Configuration: Economy Edition</span></td></tr>
-<tr><td class="ln" select="none">23</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> EconomyEdition <span class="kw">specializes</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> EconomyEdition <span class="kw">:&gt;</span> Vehicle {</td></tr>
 <tr><td class="ln" select="none">24</td><td class="lc">    <span class="kw">part</span> transmission <span class="kw">redefines</span> Vehicle::transmission = automatic;</td></tr>
 <tr><td class="ln" select="none">25</td><td class="lc">    <span class="kw">part</span> infotainment <span class="kw">redefines</span> Vehicle::infotainment = basic;</td></tr>
 <tr><td class="ln" select="none">26</td><td class="lc">}</td></tr>
@@ -282,13 +282,13 @@ pre.lined .op{color:#6366F1}
 <p>Not every configuration must resolve all variation points. A <strong>partial configuration</strong> resolves some variation points while leaving others open. This is useful for modelling product tiers or regional variants where some choices are fixed but others remain flexible:</p>
 <pre class="lined"><code><table>
 <tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// Partial configuration: European variant (fixes transmission, leaves infotainment open)</span></td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> EuropeanVehicle <span class="kw">specializes</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> EuropeanVehicle <span class="kw">:&gt;</span> Vehicle {</td></tr>
 <tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">part</span> transmission <span class="kw">redefines</span> Vehicle::transmission = manual;</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc">    <span class="cm">// infotainment variation point remains unresolved</span></td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc"><span class="cm">// Full configuration: European Sport (resolves remaining variation)</span></td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> EuropeanSport <span class="kw">specializes</span> EuropeanVehicle {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> EuropeanSport <span class="kw">:&gt;</span> EuropeanVehicle {</td></tr>
 <tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">part</span> infotainment <span class="kw">redefines</span> Vehicle::infotainment = premium;</td></tr>
 <tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
 </table></code></pre>
@@ -298,7 +298,7 @@ pre.lined .op{color:#6366F1}
 <!-- ═══════════════════ Section 4 ═══════════════════ -->
 <span class="section-anchor" id="s4"></span><div class="section-header"><span class="section-num">4</span><h2>Filtering &amp; Selection</h2></div>
 <p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML origin: <code>filter</code> &#8594; <code>FilterExpression</code> (Boolean expression on metadata)</p>
-<p><strong>Filter expressions</strong> provide a query mechanism for selecting elements from a namespace based on metadata criteria. Unlike direct variant binding, filters work across packages and can select multiple elements simultaneously. They are especially powerful when combined with metadata annotations from Module 7.</p>
+<p><strong>Filter expressions</strong> provide a query mechanism for selecting elements from a namespace based on metadata criteria. Unlike direct variant binding, filters work across packages and can select multiple elements simultaneously. They are especially powerful when combined with metadata annotations.</p>
 
 <h3>Basic filter syntax</h3>
 <p>A <code>filter</code> expression is a Boolean predicate applied to elements in a package. Only elements satisfying the predicate are included in the filtered view:</p>
@@ -394,12 +394,12 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">30</td><td class="lc"><span class="kw">package</span> Configurations {</td></tr>
 <tr><td class="ln" select="none">31</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> Variability::*;</td></tr>
 <tr><td class="ln" select="none">32</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">33</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SedanPetrol <span class="kw">specializes</span> ProductVehicle {</td></tr>
+<tr><td class="ln" select="none">33</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SedanPetrol <span class="kw">:&gt;</span> ProductVehicle {</td></tr>
 <tr><td class="ln" select="none">34</td><td class="lc">        <span class="kw">part</span> body <span class="kw">redefines</span> ProductVehicle::body = sedan;</td></tr>
 <tr><td class="ln" select="none">35</td><td class="lc">        <span class="kw">part</span> powertrain <span class="kw">redefines</span> ProductVehicle::powertrain = petrol;</td></tr>
 <tr><td class="ln" select="none">36</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">37</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">38</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SUVElectric <span class="kw">specializes</span> ProductVehicle {</td></tr>
+<tr><td class="ln" select="none">38</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SUVElectric <span class="kw">:&gt;</span> ProductVehicle {</td></tr>
 <tr><td class="ln" select="none">39</td><td class="lc">        <span class="kw">part</span> body <span class="kw">redefines</span> ProductVehicle::body = suv;</td></tr>
 <tr><td class="ln" select="none">40</td><td class="lc">        <span class="kw">part</span> powertrain <span class="kw">redefines</span> ProductVehicle::powertrain = electric;</td></tr>
 <tr><td class="ln" select="none">41</td><td class="lc">    }</td></tr>
@@ -461,16 +461,16 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">27</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">28</td><td class="lc">    <span class="cm">// ── Body style variants ──────────────────────────────────</span></td></tr>
 <tr><td class="ln" select="none">29</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> BodyStyle;</td></tr>
-<tr><td class="ln" select="none">30</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SedanBody <span class="kw">specializes</span> BodyStyle {</td></tr>
+<tr><td class="ln" select="none">30</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SedanBody <span class="kw">:&gt;</span> BodyStyle {</td></tr>
 <tr><td class="ln" select="none">31</td><td class="lc">        <span class="kw">attribute</span> doorCount   : <span class="ty">Integer</span> = <span class="nu">4</span>;</td></tr>
 <tr><td class="ln" select="none">32</td><td class="lc">        <span class="kw">attribute</span> trunkVolume : VolumeValue;</td></tr>
 <tr><td class="ln" select="none">33</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">34</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SUVBody <span class="kw">specializes</span> BodyStyle {</td></tr>
+<tr><td class="ln" select="none">34</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SUVBody <span class="kw">:&gt;</span> BodyStyle {</td></tr>
 <tr><td class="ln" select="none">35</td><td class="lc">        <span class="kw">attribute</span> doorCount     : <span class="ty">Integer</span> = <span class="nu">5</span>;</td></tr>
 <tr><td class="ln" select="none">36</td><td class="lc">        <span class="kw">attribute</span> groundClearance : LengthValue;</td></tr>
 <tr><td class="ln" select="none">37</td><td class="lc">        <span class="kw">attribute</span> roofRails     : <span class="ty">Boolean</span> = <span class="ct">true</span>;</td></tr>
 <tr><td class="ln" select="none">38</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">39</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> TruckBody <span class="kw">specializes</span> BodyStyle {</td></tr>
+<tr><td class="ln" select="none">39</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> TruckBody <span class="kw">:&gt;</span> BodyStyle {</td></tr>
 <tr><td class="ln" select="none">40</td><td class="lc">        <span class="kw">attribute</span> doorCount      : <span class="ty">Integer</span> = <span class="nu">4</span>;</td></tr>
 <tr><td class="ln" select="none">41</td><td class="lc">        <span class="kw">attribute</span> bedLength      : LengthValue;</td></tr>
 <tr><td class="ln" select="none">42</td><td class="lc">        <span class="kw">attribute</span> payloadCapacity : MassValue;</td></tr>
@@ -478,16 +478,16 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">44</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">45</td><td class="lc">    <span class="cm">// ── Powertrain variants ──────────────────────────────────</span></td></tr>
 <tr><td class="ln" select="none">46</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> Powertrain;</td></tr>
-<tr><td class="ln" select="none">47</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> PetrolPowertrain <span class="kw">specializes</span> Powertrain {</td></tr>
+<tr><td class="ln" select="none">47</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> PetrolPowertrain <span class="kw">:&gt;</span> Powertrain {</td></tr>
 <tr><td class="ln" select="none">48</td><td class="lc">        <span class="kw">attribute</span> displacement : VolumeValue;</td></tr>
 <tr><td class="ln" select="none">49</td><td class="lc">        <span class="kw">attribute</span> cylinders    : <span class="ty">Integer</span>;</td></tr>
 <tr><td class="ln" select="none">50</td><td class="lc">        <span class="kw">attribute</span> maxPower     : PowerValue;</td></tr>
 <tr><td class="ln" select="none">51</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">52</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> DieselPowertrain <span class="kw">specializes</span> Powertrain {</td></tr>
+<tr><td class="ln" select="none">52</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> DieselPowertrain <span class="kw">:&gt;</span> Powertrain {</td></tr>
 <tr><td class="ln" select="none">53</td><td class="lc">        <span class="kw">attribute</span> displacement : VolumeValue;</td></tr>
 <tr><td class="ln" select="none">54</td><td class="lc">        <span class="kw">attribute</span> maxTorque    : ForceValue;</td></tr>
 <tr><td class="ln" select="none">55</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">56</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> ElectricPowertrain <span class="kw">specializes</span> Powertrain {</td></tr>
+<tr><td class="ln" select="none">56</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> ElectricPowertrain <span class="kw">:&gt;</span> Powertrain {</td></tr>
 <tr><td class="ln" select="none">57</td><td class="lc">        <span class="kw">attribute</span> batteryCapacity : EnergyValue;</td></tr>
 <tr><td class="ln" select="none">58</td><td class="lc">        <span class="kw">attribute</span> range           : LengthValue;</td></tr>
 <tr><td class="ln" select="none">59</td><td class="lc">        <span class="kw">attribute</span> chargePower     : PowerValue;</td></tr>
@@ -548,19 +548,19 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">114</td><td class="lc">                            <span class="kw">or</span> MarketRegion::region == <span class="st">&quot;ALL&quot;</span>;</td></tr>
 <tr><td class="ln" select="none">115</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">116</td><td class="lc">    <span class="cm">// ── Fully resolved configurations ────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">117</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SedanPetrolUS <span class="kw">specializes</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">117</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SedanPetrolUS <span class="kw">:&gt;</span> Vehicle {</td></tr>
 <tr><td class="ln" select="none">118</td><td class="lc">        <span class="kw">part</span> body <span class="kw">redefines</span> Vehicle::body = sedan;</td></tr>
 <tr><td class="ln" select="none">119</td><td class="lc">        <span class="kw">part</span> powertrain <span class="kw">redefines</span> Vehicle::powertrain = petrol;</td></tr>
 <tr><td class="ln" select="none">120</td><td class="lc">        <span class="cm">// Include US-market features from the filtered view</span></td></tr>
 <tr><td class="ln" select="none">121</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">122</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">123</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SUVElectricEU <span class="kw">specializes</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">123</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SUVElectricEU <span class="kw">:&gt;</span> Vehicle {</td></tr>
 <tr><td class="ln" select="none">124</td><td class="lc">        <span class="kw">part</span> body <span class="kw">redefines</span> Vehicle::body = suv;</td></tr>
 <tr><td class="ln" select="none">125</td><td class="lc">        <span class="kw">part</span> powertrain <span class="kw">redefines</span> Vehicle::powertrain = electric;</td></tr>
 <tr><td class="ln" select="none">126</td><td class="lc">        <span class="cm">// Include EU-market features from the filtered view</span></td></tr>
 <tr><td class="ln" select="none">127</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">128</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">129</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> TruckDieselUS <span class="kw">specializes</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">129</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> TruckDieselUS <span class="kw">:&gt;</span> Vehicle {</td></tr>
 <tr><td class="ln" select="none">130</td><td class="lc">        <span class="kw">part</span> body <span class="kw">redefines</span> Vehicle::body = truck;</td></tr>
 <tr><td class="ln" select="none">131</td><td class="lc">        <span class="kw">part</span> powertrain <span class="kw">redefines</span> Vehicle::powertrain = diesel;</td></tr>
 <tr><td class="ln" select="none">132</td><td class="lc"></td></tr>
@@ -587,7 +587,7 @@ pre.lined .op{color:#6366F1}
 <tr><td>Metadata tagging</td><td>Metadata annotations</td><td>Annotates elements with region, tier, or other selection criteria for filtering</td></tr>
 </tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table &#8212; Module 8 concepts and their KerML origins</caption></table>
 
-<div class="next-box"><div class="next-label">Up Next</div><p>Module 9 &#8212; Advanced Topics &#8212; Cross-cutting concerns, model libraries, inter-model dependencies, and scaling SysML v2 for large-scale systems engineering.</p></div>
+<div class="next-box"><div class="next-label">Up Next</div><p><a href="SysMLv2_Module9_Verification_EN.html" style="color:var(--blue);text-decoration:none;font-weight:600;">Module 9 &#8212; Verification &amp; Validation</a> &#8212; How to define verification cases, bind them to requirements, model verification methods, and integrate V&amp;V into the systems engineering lifecycle.</p></div>
   </main>
 </div>
 <script>
