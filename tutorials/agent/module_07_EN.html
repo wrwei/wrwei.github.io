@@ -60,7 +60,7 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <div id="layout">
   <aside id="sidebar">
     <div class="sidebar-label">Contents</div>
-    <nav><a href="#s1"><span class="num">1</span>Context Window</a><a href="#s2"><span class="num">2</span>Sliding Window</a><a href="#s3"><span class="num">3</span>Summarisation</a><a href="#s4"><span class="num">4</span>Persistent Storage</a></nav>
+    <nav><a href="#s1"><span class="num">1</span>Context Window</a><a href="#s2"><span class="num">2</span>Short-Term Memory</a><a href="#s3"><span class="num">3</span>Summarisation</a><a href="#s4"><span class="num">4</span>Long-Term Memory</a><a href="#s5"><span class="num">5</span>Persistent Storage</a><a href="#s6"><span class="num">6</span>Putting It Together</a></nav>
   </aside>
   <main id="main">
     <div class="module-hero">
@@ -74,32 +74,308 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>The Context Window Problem</h2>
 </div>
-<p>Every LLM has a finite context window. Long conversations exceed this limit. Agents need strategies to manage context.</p>
+<p>Every LLM has a finite <strong>context window</strong> &mdash; the maximum number of tokens it can process in a single request. This includes the system prompt, all conversation history, tool definitions, and the model's response. When your conversation exceeds this limit, you must decide what to keep and what to discard.</p>
+<p>Context windows have grown dramatically (from 4K tokens in early GPT-3.5 to 200K in Claude and 1M+ in Gemini), but they are still finite. More importantly, <strong>longer contexts cost more money and increase latency</strong>. Even if a model supports 200K tokens, sending 200K tokens on every request is wasteful if only 5K are relevant.</p>
+<p>Memory management is therefore about two things: staying within limits, and staying efficient. A well-designed memory system gives the agent access to everything it needs while keeping token usage minimal.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of the context window as a desk. You can only spread so many papers on it at once. Memory management is the art of filing, summarising, and retrieving papers so the right information is on the desk when you need it &mdash; without burying yourself in old notes.</p></div>
+
+<div class="table-wrap"><table>
+  <tr><th>Model</th><th>Context Window</th><th>Approx. Pages of Text</th></tr>
+  <tr><td>GPT-4o</td><td>128K tokens</td><td>~300 pages</td></tr>
+  <tr><td>Claude Sonnet / Opus</td><td>200K tokens</td><td>~500 pages</td></tr>
+  <tr><td>Gemini 1.5 Pro</td><td>1M+ tokens</td><td>~2,500 pages</td></tr>
+</table></div>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Token counts are approximate. 1 token is roughly 4 characters in English, or about 0.75 words. Code and non-English text tend to use more tokens per word.</p></div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
-  <h2>Sliding Window Memory</h2>
+  <h2>Short-Term Memory &mdash; Sliding Window</h2>
 </div>
-<pre><code>class ConversationMemory:
-    def __init__(self, max_messages=50):
-        self.messages = []
-        self.max_messages = max_messages
-    def add(self, role, content):
-        self.messages.append({'role': role, 'content': content})
-        if len(self.messages) > self.max_messages:
-            self.messages = self.messages[:1] + self.messages[-self.max_messages+1:]</code></pre>
+<p>The simplest memory strategy is a <strong>sliding window</strong>: keep the most recent N messages and discard everything older. This mirrors how humans focus on the current conversation while forgetting earlier details.</p>
+<p>The key design decision is where to cut. A naive approach drops the oldest messages, but this can remove the system prompt or important early instructions. A better approach always preserves the system prompt and the first user message, then applies the window to everything in between.</p>
+
+<pre><code>class SlidingWindowMemory:
+    """Keep the system prompt + last N message pairs."""
+
+    def __init__(self, max_pairs: int = 20):
+        self.system_prompt = ""
+        self.messages: list[dict] = []
+        self.max_pairs = max_pairs  # each pair = user + assistant
+
+    def set_system(self, prompt: str):
+        self.system_prompt = prompt
+
+    def add(self, role: str, content: str):
+        self.messages.append({"role": role, "content": content})
+        # Keep max_pairs * 2 messages (user+assistant pairs)
+        max_msgs = self.max_pairs * 2
+        if len(self.messages) > max_msgs:
+            self.messages = self.messages[-max_msgs:]
+
+    def get_messages(self) -> list[dict]:
+        """Return messages formatted for the API."""
+        result = []
+        if self.system_prompt:
+            result.append({"role": "system", "content": self.system_prompt})
+        result.extend(self.messages)
+        return result
+
+    @property
+    def token_estimate(self) -> int:
+        """Rough token count (4 chars per token)."""
+        total = len(self.system_prompt)
+        total += sum(len(m["content"]) for m in self.messages)
+        return total // 4</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Count tokens, not messages. A single message with a large tool result might use 5,000 tokens, while ten short chat messages might use only 500. Use <code>tiktoken</code> (OpenAI) or Anthropic's token counting API for accurate counts.</p></div>
+
+<h3>Token-Based Window</h3>
+<pre><code>import tiktoken
+
+class TokenWindowMemory:
+    """Keep messages that fit within a token budget."""
+
+    def __init__(self, max_tokens: int = 8000, model: str = "gpt-4o"):
+        self.max_tokens = max_tokens
+        self.encoder = tiktoken.encoding_for_model(model)
+        self.messages: list[dict] = []
+
+    def _count_tokens(self, messages: list[dict]) -> int:
+        return sum(len(self.encoder.encode(m["content"])) for m in messages)
+
+    def add(self, role: str, content: str):
+        self.messages.append({"role": role, "content": content})
+        # Trim from the front until we're within budget
+        while (len(self.messages) > 2 and
+               self._count_tokens(self.messages) > self.max_tokens):
+            self.messages.pop(1)  # keep index 0 (first message)</code></pre>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
   <h2>Summarisation Strategy</h2>
 </div>
-<p>Periodically summarise older messages using the LLM itself, replacing originals with the summary.</p>
+<p>Sliding windows lose information permanently. A <strong>summarisation strategy</strong> compresses older messages into a concise summary, preserving key facts while reducing token count. You use the LLM itself to generate these summaries.</p>
+<p>The typical approach is: when the conversation exceeds a threshold, take the oldest chunk of messages, summarise them, replace them with the summary, and continue. This creates a layered memory where recent messages are verbatim and older ones are compressed.</p>
+
+<pre><code>import anthropic
+
+client = anthropic.Anthropic()
+
+class SummarisedMemory:
+    """Memory that summarises old messages to stay within budget."""
+
+    def __init__(self, max_tokens: int = 6000, summary_threshold: int = 8000):
+        self.messages: list[dict] = []
+        self.summary: str = ""
+        self.max_tokens = max_tokens
+        self.summary_threshold = summary_threshold
+
+    def add(self, role: str, content: str):
+        self.messages.append({"role": role, "content": content})
+        if self._estimate_tokens() > self.summary_threshold:
+            self._compress()
+
+    def _estimate_tokens(self) -> int:
+        total = len(self.summary)
+        total += sum(len(m["content"]) for m in self.messages)
+        return total // 4
+
+    def _compress(self):
+        """Summarise the oldest half of messages."""
+        mid = len(self.messages) // 2
+        old_messages = self.messages[:mid]
+        self.messages = self.messages[mid:]
+
+        # Use the LLM to create a summary
+        conversation = "\n".join(
+            f'{m["role"]}: {m["content"]}' for m in old_messages
+        )
+        prompt = f"""Summarise this conversation, preserving:
+- Key decisions and facts
+- User preferences mentioned
+- Any pending tasks or commitments
+
+Previous summary: {self.summary or 'None'}
+
+Conversation to summarise:
+{conversation}"""
+
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=500,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        self.summary = response.content[0].text
+
+    def get_messages(self) -> list[dict]:
+        msgs = []
+        if self.summary:
+            msgs.append({"role": "system",
+                         "content": f"Conversation summary so far:\n{self.summary}"})
+        msgs.extend(self.messages)
+        return msgs</code></pre>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>Summaries lose nuance. If the user said "I'm allergic to peanuts" 50 messages ago and the summary didn't capture it, the agent might recommend a peanut dish. For safety-critical information, use <strong>explicit fact extraction</strong> alongside summaries.</p></div>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Combine summarisation with a <strong>fact store</strong>: after each conversation turn, extract key facts (user preferences, constraints, decisions) into a structured store. Include these facts in every request regardless of the summary window.</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
-  <h2>Persistent Storage</h2>
+  <h2>Long-Term Memory &mdash; Semantic Retrieval</h2>
 </div>
-<ul><li><b>Vector databases</b> (Pinecone, Chroma) &mdash; semantic search</li><li><b>Key-value stores</b> (Redis) &mdash; user preferences</li><li><b>SQL databases</b> &mdash; structured data and audit trails</li></ul>
+<p>For agents that interact with users over days, weeks, or months, you need <strong>long-term memory</strong> that persists across sessions. The most effective approach uses <strong>vector embeddings</strong> to store and retrieve relevant past interactions semantically.</p>
+<p>Instead of replaying the entire history, you embed each conversation turn and store it in a vector database. When the user sends a new message, you search for the most relevant past interactions and include them as context. This gives the agent seemingly unlimited memory while using minimal tokens.</p>
+
+<pre><code>import chromadb
+from datetime import datetime
+
+class LongTermMemory:
+    """Semantic long-term memory using vector embeddings."""
+
+    def __init__(self, user_id: str):
+        self.client = chromadb.PersistentClient(path="./memory_db")
+        self.collection = self.client.get_or_create_collection(
+            name=f"memory_{user_id}",
+            metadata={"hnsw:space": "cosine"}
+        )
+        self.user_id = user_id
+
+    def store(self, content: str, metadata: dict = None):
+        """Store a memory with timestamp."""
+        meta = {"timestamp": datetime.now().isoformat(),
+                "user_id": self.user_id}
+        if metadata:
+            meta.update(metadata)
+        self.collection.add(
+            documents=[content],
+            metadatas=[meta],
+            ids=[f"mem_{datetime.now().timestamp()}"]
+        )
+
+    def recall(self, query: str, n_results: int = 5) -> list[str]:
+        """Retrieve relevant memories for a query."""
+        if self.collection.count() == 0:
+            return []
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=min(n_results, self.collection.count())
+        )
+        return results["documents"][0]
+
+    def get_context_string(self, query: str) -> str:
+        """Format memories as context for the LLM."""
+        memories = self.recall(query)
+        if not memories:
+            return ""
+        formatted = "\n".join(f"- {m}" for m in memories)
+        return f"Relevant memories from past conversations:\n{formatted}"</code></pre>
+
+<div class="card-grid">
+  <div class="card"><h3>Episodic Memory</h3><p>Stores specific interactions and events. "Last Tuesday, the user asked about flight prices to Tokyo."</p></div>
+  <div class="card"><h3>Semantic Memory</h3><p>Stores general facts and knowledge. "The user prefers window seats and vegetarian meals."</p></div>
+  <div class="card"><h3>Procedural Memory</h3><p>Stores learned processes. "When deploying, always run tests first, then push to staging."</p></div>
+</div>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Persistent Storage Patterns</h2>
+</div>
+<p>Different types of memory data call for different storage backends. In practice, a production agent uses multiple storage systems together.</p>
+
+<div class="table-wrap"><table>
+  <tr><th>Storage Type</th><th>Best For</th><th>Example Tools</th><th>Access Pattern</th></tr>
+  <tr><td>Vector Database</td><td>Semantic search over past conversations</td><td>ChromaDB, Pinecone, Weaviate, pgvector</td><td>Similarity search by embedding</td></tr>
+  <tr><td>Key-Value Store</td><td>User preferences, session state, fast lookups</td><td>Redis, DynamoDB</td><td>Exact key lookup</td></tr>
+  <tr><td>SQL Database</td><td>Structured records, audit trails, relationships</td><td>PostgreSQL, SQLite</td><td>Queries with filters and joins</td></tr>
+  <tr><td>Document Store</td><td>Conversation logs, complex nested data</td><td>MongoDB, Firestore</td><td>Document queries</td></tr>
+</table></div>
+
+<h3>User Profile Store with Redis</h3>
+<pre><code>import redis
+import json
+
+class UserProfileMemory:
+    """Fast key-value store for user preferences and facts."""
+
+    def __init__(self, user_id: str):
+        self.redis = redis.Redis(host="localhost", port=6379, db=0)
+        self.user_id = user_id
+        self.key = f"agent:user:{user_id}:profile"
+
+    def set_fact(self, key: str, value: str):
+        """Store a user fact. e.g., set_fact('timezone', 'UTC+1')"""
+        self.redis.hset(self.key, key, value)
+
+    def get_fact(self, key: str) -> str | None:
+        val = self.redis.hget(self.key, key)
+        return val.decode() if val else None
+
+    def get_all_facts(self) -> dict:
+        data = self.redis.hgetall(self.key)
+        return {k.decode(): v.decode() for k, v in data.items()}
+
+    def get_context_string(self) -> str:
+        facts = self.get_all_facts()
+        if not facts:
+            return ""
+        lines = [f"- {k}: {v}" for k, v in facts.items()]
+        return "Known user preferences:\n" + "\n".join(lines)</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Always separate <strong>facts</strong> (timezone, language preference, name) from <strong>episodic memories</strong> (what happened in past conversations). Facts should be deterministic lookups; episodes should be semantic search.</p></div>
+
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>Putting It All Together</h2>
+</div>
+<p>A production-grade memory system typically layers multiple strategies. Here is a complete example combining sliding window (recent), summarisation (medium-term), and vector retrieval (long-term).</p>
+
+<pre><code>class AgentMemory:
+    """Layered memory: recent window + summary + long-term retrieval."""
+
+    def __init__(self, user_id: str, system_prompt: str):
+        self.system_prompt = system_prompt
+        self.window = SlidingWindowMemory(max_pairs=10)
+        self.summarised = SummarisedMemory()
+        self.long_term = LongTermMemory(user_id)
+        self.profile = UserProfileMemory(user_id)
+
+    def add_turn(self, user_msg: str, assistant_msg: str):
+        # Store in short-term window
+        self.window.add("user", user_msg)
+        self.window.add("assistant", assistant_msg)
+        # Store in long-term
+        self.long_term.store(f"User: {user_msg}\nAssistant: {assistant_msg}")
+
+    def build_messages(self, current_query: str) -> list[dict]:
+        # Layer 1: System prompt + user profile
+        profile_ctx = self.profile.get_context_string()
+        system = self.system_prompt
+        if profile_ctx:
+            system += f"\n\n{profile_ctx}"
+
+        # Layer 2: Relevant long-term memories
+        ltm_ctx = self.long_term.get_context_string(current_query)
+        if ltm_ctx:
+            system += f"\n\n{ltm_ctx}"
+
+        # Layer 3: Conversation summary (if any)
+        if self.summarised.summary:
+            system += f"\n\nConversation summary:\n{self.summarised.summary}"
+
+        # Layer 4: Recent messages (verbatim)
+        messages = [{"role": "system", "content": system}]
+        messages.extend(self.window.messages)
+        messages.append({"role": "user", "content": current_query})
+        return messages</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Monitor your token usage per layer. In most applications, the system prompt + profile + retrieved memories should use no more than 30% of your token budget, leaving 70% for the actual conversation and model response.</p></div>
 <a href="module_08_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 8 &mdash; RAG &mdash; Retrieval-Augmented Generation</p></div></a>
   </main>
 </div>

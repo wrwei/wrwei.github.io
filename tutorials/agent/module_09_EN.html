@@ -74,47 +74,278 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>What is MCP?</h2>
 </div>
-<p>The Model Context Protocol (MCP) is an open standard by Anthropic for connecting agents to tools and data. Think of it as USB-C for AI. Donated to the Linux Foundation in Dec 2025, 97M+ monthly SDK downloads.</p>
+<p>The <strong>Model Context Protocol (MCP)</strong> is an open standard created by Anthropic for connecting AI agents to external tools and data sources. Before MCP, every AI application had to build custom integrations for every tool &mdash; a Slack integration for one app, a completely different Slack integration for another. MCP standardises these connections so that a tool integration built once works with any MCP-compatible host.</p>
+<p>Think of it as <strong>USB-C for AI</strong>. Just as USB-C provides a universal connector between devices and peripherals, MCP provides a universal protocol between AI agents and their tools. Anthropic donated MCP to the Linux Foundation in December 2025, and it has grown to over 97 million monthly SDK downloads across all languages.</p>
+<p>MCP matters because it solves the <strong>N x M integration problem</strong>. Without MCP, N AI applications need M custom integrations each, yielding N*M total integrations. With MCP, each tool builds one server and each application builds one client, yielding N+M total integrations.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Before USB, every printer, scanner, and keyboard had a different connector. You needed a specific cable and driver for each combination. USB unified this &mdash; any device works with any computer. MCP does the same for AI tools: build one MCP server for your database, and it works with Claude Desktop, VS Code, Cursor, and any other MCP host.</p></div>
+
+<div class="table-wrap"><table>
+  <tr><th>Without MCP</th><th>With MCP</th></tr>
+  <tr><td>Custom integration per app per tool</td><td>One server per tool, works everywhere</td></tr>
+  <tr><td>Different APIs, formats, auth methods</td><td>Standardised protocol and message format</td></tr>
+  <tr><td>Tight coupling between agent and tools</td><td>Loose coupling via protocol</td></tr>
+  <tr><td>Hard to share tools between projects</td><td>Community registry of reusable servers</td></tr>
+</table></div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
   <h2>Architecture</h2>
 </div>
-<div class="card-grid"><div class="card"><h3>MCP Host</h3><p>Your AI app (Claude Desktop, IDE, custom).</p></div><div class="card"><h3>MCP Client</h3><p>SDK connecting to servers.</p></div><div class="card"><h3>MCP Server</h3><p>Exposes tools, resources, prompts.</p></div></div>
+<p>MCP follows a client-server architecture with three distinct roles. Understanding these roles is key to building and integrating MCP servers correctly.</p>
+
+<div class="card-grid">
+  <div class="card"><h3>MCP Host</h3><p>The AI application the user interacts with. Examples: Claude Desktop, VS Code with Copilot, Cursor, or your own custom agent application. The host manages one or more MCP clients.</p></div>
+  <div class="card"><h3>MCP Client</h3><p>A protocol client (provided by the MCP SDK) that maintains a 1:1 connection with a single MCP server. The host creates one client per server it connects to.</p></div>
+  <div class="card"><h3>MCP Server</h3><p>A lightweight programme that exposes capabilities via the MCP protocol. Each server provides some combination of <strong>tools</strong>, <strong>resources</strong>, and <strong>prompts</strong>.</p></div>
+</div>
+
+<p>The communication flow is: <strong>User &rarr; Host &rarr; Client &rarr; Server &rarr; External System</strong>. The LLM inside the host decides which tools to call, the client sends the request to the appropriate server, the server executes the action and returns results, and the client passes them back to the host.</p>
+
+<h3>MCP Primitives</h3>
+<div class="table-wrap"><table>
+  <tr><th>Primitive</th><th>Description</th><th>Control</th><th>Example</th></tr>
+  <tr><td>Tools</td><td>Functions the model can call to take actions</td><td>Model-controlled (LLM decides when to call)</td><td>Send email, query database, create file</td></tr>
+  <tr><td>Resources</td><td>Read-only data the application can access</td><td>Application-controlled (host decides when to read)</td><td>File contents, database schemas, API docs</td></tr>
+  <tr><td>Prompts</td><td>Reusable prompt templates with arguments</td><td>User-controlled (user selects which prompt)</td><td>"Summarise this document", "Review this PR"</td></tr>
+</table></div>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>MCP supports two transport mechanisms: <strong>stdio</strong> (standard input/output, for local servers) and <strong>SSE</strong> (Server-Sent Events over HTTP, for remote servers). Stdio is simpler and more common for local development; SSE enables hosting MCP servers as web services.</p></div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
   <h2>Building an MCP Server</h2>
 </div>
-<pre><code>pip install mcp</code></pre>
+<p>The Python MCP SDK provides <code>FastMCP</code>, a high-level API that makes building servers as easy as writing decorated Python functions. Each decorated function becomes a tool, resource, or prompt that any MCP host can discover and use.</p>
+
+<pre><code>pip install mcp[cli]</code></pre>
+
+<h3>A Complete Example Server</h3>
 <pre><code>from mcp.server.fastmcp import FastMCP
-mcp = FastMCP('My Tools')
+import json
+import sqlite3
+from datetime import datetime
+
+# Create the MCP server
+mcp = FastMCP("Company Tools", version="1.0.0")
+
+# --- TOOLS (model-controlled) ---
 
 @mcp.tool()
 def get_stock_price(symbol: str) -> str:
-    """Get stock price."""
-    prices = {'AAPL': 227.50, 'GOOGL': 178.30}
-    return f'{symbol}: ${prices.get(symbol.upper(), "Unknown")}'
+    """Get the current stock price for a given ticker symbol.
 
-mcp.run(transport='stdio')</code></pre>
+    Args:
+        symbol: Stock ticker symbol, e.g., 'AAPL', 'GOOGL', 'MSFT'
+
+    Returns:
+        Current price and daily change as a formatted string.
+    """
+    # In production, call a real API like Alpha Vantage or Yahoo Finance
+    prices = {
+        "AAPL": {"price": 227.50, "change": +1.2},
+        "GOOGL": {"price": 178.30, "change": -0.8},
+        "MSFT": {"price": 445.20, "change": +2.1},
+    }
+    data = prices.get(symbol.upper())
+    if not data:
+        return f"Unknown symbol: {symbol}"
+    sign = "+" if data["change"] >= 0 else ""
+    return f"{symbol.upper()}: ${data['price']:.2f} ({sign}{data['change']}%)"
+
+@mcp.tool()
+def query_employees(department: str = "", role: str = "") -> str:
+    """Search the employee directory by department and/or role.
+
+    Args:
+        department: Filter by department name (optional)
+        role: Filter by job role (optional)
+
+    Returns:
+        JSON array of matching employees with name, role, department, email.
+    """
+    conn = sqlite3.connect("company.db")
+    conn.row_factory = sqlite3.Row
+    query = "SELECT name, role, department, email FROM employees WHERE 1=1"
+    params = []
+    if department:
+        query += " AND department LIKE ?"
+        params.append(f"%{department}%")
+    if role:
+        query += " AND role LIKE ?"
+        params.append(f"%{role}%")
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return json.dumps([dict(r) for r in rows], indent=2)
+
+@mcp.tool()
+def create_calendar_event(
+    title: str, date: str, time: str, duration_minutes: int = 60
+) -> str:
+    """Create a new calendar event.
+
+    Args:
+        title: Event title
+        date: Date in YYYY-MM-DD format
+        time: Start time in HH:MM format (24-hour)
+        duration_minutes: Duration in minutes (default: 60)
+    """
+    # In production, call Google Calendar or Outlook API
+    return json.dumps({
+        "status": "created",
+        "event": {"title": title, "date": date, "time": time,
+                  "duration": duration_minutes}
+    })
+
+# Run the server
+if __name__ == "__main__":
+    mcp.run(transport="stdio")</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Write <strong>detailed docstrings</strong> for every tool. The MCP SDK extracts these as the tool description that the LLM reads. Include argument descriptions, expected formats, and return value documentation. The quality of your docstrings directly determines how well the LLM uses your tools.</p></div>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>MCP tools must return <strong>strings</strong>. If your function returns a dict or list, serialise it to JSON first. The MCP protocol communicates via text, so non-string return values will cause errors.</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
   <h2>Resources and Prompts</h2>
 </div>
-<p>Beyond tools, MCP servers expose <strong>resources</strong> (read-only data) and <strong>prompts</strong> (reusable templates).</p>
+<p>Beyond tools, MCP servers expose <strong>resources</strong> (read-only data) and <strong>prompts</strong> (reusable templates). Resources let the host application browse and read data without the LLM deciding to do so. Prompts provide pre-built interaction patterns that users can trigger.</p>
+
+<h3>Resources</h3>
+<pre><code>@mcp.resource("company://docs/{doc_name}")
+def get_document(doc_name: str) -> str:
+    """Read a company document by name.
+
+    Exposes documents like:
+      company://docs/vacation-policy
+      company://docs/expense-guidelines
+    """
+    docs_dir = "./company_docs"
+    path = f"{docs_dir}/{doc_name}.md"
+    try:
+        with open(path, "r") as f:
+            return f.read()
+    except FileNotFoundError:
+        return f"Document '{doc_name}' not found."
+
+@mcp.resource("company://metrics/dashboard")
+def get_dashboard_metrics() -> str:
+    """Get current company metrics dashboard data."""
+    # In production, query your metrics database
+    return json.dumps({
+        "revenue_mtd": "$2.4M",
+        "active_users": 15420,
+        "uptime": "99.97%",
+        "open_tickets": 23
+    }, indent=2)</code></pre>
+
+<h3>Prompts</h3>
+<pre><code>from mcp.server.fastmcp import Context
+
+@mcp.prompt()
+def review_code(language: str, code: str) -> str:
+    """Review code for bugs, style issues, and improvements."""
+    return f"""Please review the following {language} code for:
+1. Bugs and potential errors
+2. Style and readability issues
+3. Performance improvements
+4. Security concerns
+
+Code to review:
+```{language}
+{code}
+```
+
+Provide specific, actionable feedback with code examples for each issue found."""
+
+@mcp.prompt()
+def summarise_meeting(notes: str) -> str:
+    """Summarise meeting notes into action items and decisions."""
+    return f"""Analyse these meeting notes and produce:
+1. A 2-3 sentence summary
+2. Key decisions made
+3. Action items with owners and deadlines
+
+Meeting notes:
+{notes}"""</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>The difference between tools, resources, and prompts is about <strong>who controls them</strong>. Tools are model-controlled (the LLM decides to call them). Resources are application-controlled (the host reads them as needed). Prompts are user-controlled (the user selects them from a menu).</p></div>
+
 <span class="section-anchor" id="s5"></span>
 <div class="section-header">
   <span class="section-num">5</span>
   <h2>Connecting to Claude Desktop</h2>
 </div>
-<pre><code>{"mcpServers": {"my-tools": {"command": "python", "args": ["server.py"]}}}</code></pre>
+<p>Claude Desktop is the most common MCP host for testing and personal use. To connect your server, you edit the Claude Desktop configuration file and add your server definition.</p>
+
+<h3>Configuration File Location</h3>
+<ul>
+  <li><strong>macOS:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
+  <li><strong>Windows:</strong> <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
+</ul>
+
+<h3>Configuration Format</h3>
+<pre><code>{
+  "mcpServers": {
+    "company-tools": {
+      "command": "python",
+      "args": ["/absolute/path/to/server.py"],
+      "env": {
+        "DATABASE_URL": "sqlite:///company.db",
+        "API_KEY": "your-api-key-here"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxxx"
+      }
+    }
+  }
+}</code></pre>
+
+<p>After saving the configuration and restarting Claude Desktop, your tools will appear in the tools menu (the hammer icon). Claude will automatically discover all tools, resources, and prompts exposed by your server.</p>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Use the <strong>MCP Inspector</strong> to debug your server before connecting it to Claude Desktop. Run <code>mcp dev server.py</code> to launch an interactive web UI that lets you test every tool, resource, and prompt directly.</p></div>
+
+<h3>Testing with the MCP Inspector</h3>
+<pre><code># Install the CLI tools
+pip install "mcp[cli]"
+
+# Launch the inspector (opens a web UI)
+mcp dev server.py
+
+# Or test from the command line
+mcp run server.py</code></pre>
+
 <span class="section-anchor" id="s6"></span>
 <div class="section-header">
   <span class="section-num">6</span>
   <h2>The MCP Ecosystem</h2>
 </div>
-<ul><li>Official registry of community servers</li><li>Pre-built: GitHub, Slack, PostgreSQL, filesystem</li><li>SDKs: Python, TypeScript, Java, C#, Go</li><li>Inspector tool for debugging</li></ul>
+<p>The MCP ecosystem has grown rapidly since the protocol's release. There is a large library of pre-built servers for common integrations, SDKs in multiple languages, and a growing community of developers building and sharing servers.</p>
+
+<div class="card-grid">
+  <div class="card"><h3>Pre-Built Servers</h3><p>GitHub, Slack, PostgreSQL, SQLite, filesystem, Google Drive, Brave Search, Puppeteer, and dozens more available from the official registry.</p></div>
+  <div class="card"><h3>Multi-Language SDKs</h3><p>Official SDKs for Python, TypeScript, Java, C#, Go, and Kotlin. Build MCP servers in your language of choice.</p></div>
+  <div class="card"><h3>MCP Inspector</h3><p>Built-in debugging tool. Interact with your server's tools, resources, and prompts through a web UI before connecting to a host.</p></div>
+  <div class="card"><h3>Community Registry</h3><p>Browse and share MCP servers at the official registry. Install community servers with a single command.</p></div>
+</div>
+
+<div class="table-wrap"><table>
+  <tr><th>Pre-Built Server</th><th>Capabilities</th><th>Install</th></tr>
+  <tr><td>Filesystem</td><td>Read, write, search files in allowed directories</td><td><code>npx @modelcontextprotocol/server-filesystem</code></td></tr>
+  <tr><td>GitHub</td><td>Repos, issues, PRs, code search</td><td><code>npx @modelcontextprotocol/server-github</code></td></tr>
+  <tr><td>PostgreSQL</td><td>Query databases, inspect schemas</td><td><code>npx @modelcontextprotocol/server-postgres</code></td></tr>
+  <tr><td>Brave Search</td><td>Web search via Brave API</td><td><code>npx @modelcontextprotocol/server-brave-search</code></td></tr>
+  <tr><td>Puppeteer</td><td>Browser automation, screenshots</td><td><code>npx @modelcontextprotocol/server-puppeteer</code></td></tr>
+</table></div>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>When building production MCP servers, always validate inputs, handle errors gracefully, and consider security implications. An MCP server is essentially an API that an AI can call &mdash; apply the same security practices you would to any API (authentication, rate limiting, input sanitisation, principle of least privilege).</p></div>
 <a href="module_10_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 10 &mdash; LangChain &amp; CrewAI</p></div></a>
   </main>
 </div>

@@ -60,13 +60,13 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <div id="layout">
   <aside id="sidebar">
     <div class="sidebar-label">Contents</div>
-    <nav><a href="#s1"><span class="num">1</span>Interoperability</a><a href="#s2"><span class="num">2</span>What is A2A?</a><a href="#s3"><span class="num">3</span>A2A Architecture</a><a href="#s4"><span class="num">4</span>A2A vs MCP</a><a href="#s5"><span class="num">5</span>Implementing</a><a href="#s6"><span class="num">6</span>Future</a></nav>
+    <nav><a href="#s1"><span class="num">1</span>Interoperability</a><a href="#s2"><span class="num">2</span>What is A2A?</a><a href="#s3"><span class="num">3</span>Agent Cards</a><a href="#s4"><span class="num">4</span>Task Lifecycle</a><a href="#s5"><span class="num">5</span>A2A vs MCP</a><a href="#s6"><span class="num">6</span>Implementing A2A</a><a href="#s7"><span class="num">7</span>The Future</a></nav>
   </aside>
   <main id="main">
     <div class="module-hero">
       <div class="series">AI Agent Series &mdash; Ran Wei</div>
       <h1 class="module-title">Module 12: <em>A2A Protocol</em></h1>
-      <p class="module-lead">Understanding A2A for agent-to-agent communication.</p>
+      <p class="module-lead">Understanding the Agent-to-Agent protocol for standardised inter-agent communication and collaboration across platforms.</p>
     </div>
 
 <span class="section-anchor" id="s1"></span>
@@ -74,43 +74,357 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>The Interoperability Challenge</h2>
 </div>
-<p>MCP solves agent-to-tool. A2A solves agent-to-agent communication.</p>
-<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>MCP = office tools access. A2A = common language between companies.</p></div>
+<p>In Module 9, we learned how <strong>MCP (Model Context Protocol)</strong> lets agents connect to tools and data sources through a standardised interface. But what happens when agents need to talk to <em>each other</em>? If your research agent is built with LangChain and your writing agent runs on a custom framework, how do they communicate?</p>
+<p>Without a standard protocol, every agent-to-agent integration becomes a custom, fragile point-to-point connection. If you have 5 agents and they all need to talk to each other, that is 10 custom integrations. Add a 6th agent and you need 15. This does not scale.</p>
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of MCP as giving every worker access to the same office tools (printers, databases, file systems). A2A is the common language and meeting protocol that lets workers from different companies collaborate on shared projects &mdash; even if they were trained differently and speak different internal jargons.</p></div>
+<p>The industry needed a standard way for agents to:</p>
+<ul>
+  <li><strong>Discover</strong> what other agents can do</li>
+  <li><strong>Delegate</strong> tasks to the best-suited agent</li>
+  <li><strong>Track</strong> progress on delegated work</li>
+  <li><strong>Exchange</strong> structured results and artifacts</li>
+</ul>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
   <h2>What is A2A?</h2>
 </div>
-<p>Google's open protocol (April 2025) for agent-to-agent communication. Supported by 50+ companies.</p>
-<ul><li><strong>Discover</strong> via Agent Cards</li><li><strong>Delegate</strong> tasks</li><li><strong>Stream</strong> progress</li><li><strong>Exchange</strong> data</li></ul>
+<p>The <strong>Agent-to-Agent (A2A) protocol</strong> is an open standard introduced by Google in April 2025 for inter-agent communication. It was developed in collaboration with over 50 technology companies and is designed to be framework-agnostic &mdash; agents built with any stack can interoperate.</p>
+<p>A2A defines four core capabilities:</p>
+<div class="card-grid">
+<div class="card"><h3>Discovery</h3><p>Agents publish machine-readable <strong>Agent Cards</strong> describing their skills, endpoints, and authentication requirements. Other agents can discover them automatically.</p></div>
+<div class="card"><h3>Task Delegation</h3><p>A client agent creates a <strong>Task</strong> and sends it to a remote agent. The task contains a message with the request, and the remote agent processes it.</p></div>
+<div class="card"><h3>Streaming</h3><p>For long-running tasks, agents can stream progress updates via <strong>Server-Sent Events (SSE)</strong>, letting the client agent monitor status in real time.</p></div>
+<div class="card"><h3>Artifact Exchange</h3><p>Agents exchange structured data as <strong>Artifacts</strong> &mdash; files, JSON objects, images, or any content type. This goes beyond plain text to rich data payloads.</p></div>
+</div>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>A2A is transport-agnostic at its core but defines HTTP + JSON-RPC as the primary transport. Agents communicate over standard web protocols, making them compatible with existing infrastructure like load balancers, API gateways, and authentication systems.</p></div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
-  <h2>A2A Architecture</h2>
+  <h2>Agent Cards</h2>
 </div>
-<p>Every agent publishes an <strong>Agent Card</strong> (JSON) describing capabilities. Communication via <strong>Tasks</strong> with states: submitted, working, completed, failed.</p>
-<pre><code>{"name": "Invoice Processor",
- "url": "https://agents.example.com/invoice",
- "skills": [{"id": "extract_invoice"}]}</code></pre>
+<p>Every A2A-compliant agent publishes an <strong>Agent Card</strong> &mdash; a JSON document that describes who the agent is, what it can do, and how to interact with it. Agent Cards are hosted at a well-known URL: <code>/.well-known/agent.json</code>.</p>
+<p>Think of an Agent Card as an API specification for an agent. It tells other agents (or orchestrators) everything they need to know to decide whether to delegate a task and how to format the request.</p>
+
+<pre><code>{
+  "name": "Invoice Processor",
+  "description": "Extracts structured data from invoice documents (PDF, images).",
+  "url": "https://agents.example.com/invoice",
+  "version": "1.0.0",
+  "protocol": "a2a/1.0",
+  "authentication": {
+    "schemes": ["bearer"]
+  },
+  "skills": [
+    {
+      "id": "extract_invoice_data",
+      "name": "Extract Invoice Data",
+      "description": "Parse an invoice and return structured line items, totals, and vendor info.",
+      "inputModes": ["application/pdf", "image/png", "image/jpeg"],
+      "outputModes": ["application/json"]
+    },
+    {
+      "id": "validate_invoice",
+      "name": "Validate Invoice",
+      "description": "Cross-check invoice data against purchase orders.",
+      "inputModes": ["application/json"],
+      "outputModes": ["application/json"]
+    }
+  ],
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": false
+  }
+}</code></pre>
+
+<h3>Discovering Agents</h3>
+<p>A client agent can discover available agents by fetching their Agent Cards. In a typical enterprise setup, a registry or directory service indexes available agents.</p>
+
+<pre><code>import httpx
+
+async def discover_agent(base_url: str) -> dict:
+    """Fetch and parse an Agent Card from a remote agent."""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{base_url}/.well-known/agent.json")
+        response.raise_for_status()
+        card = response.json()
+        print(f"Discovered: {card['name']}")
+        print(f"Skills: {[s['id'] for s in card['skills']]}")
+        return card
+
+async def find_agent_for_skill(registry_urls: list[str], skill_needed: str) -> dict:
+    """Search a list of known agents for one that has a specific skill."""
+    for url in registry_urls:
+        try:
+            card = await discover_agent(url)
+            skill_ids = [s["id"] for s in card.get("skills", [])]
+            if skill_needed in skill_ids:
+                return card
+        except httpx.HTTPError:
+            continue
+    raise ValueError(f"No agent found with skill: {skill_needed}")</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>In production, maintain a local cache of Agent Cards with a TTL (time-to-live). Re-fetching cards on every request adds latency. Refresh the cache periodically or when you get a version mismatch error.</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
-  <h2>A2A vs MCP</h2>
+  <h2>Task Lifecycle</h2>
 </div>
-<div class="table-wrap"><table><tr><th>Aspect</th><th>MCP</th><th>A2A</th></tr><tr><td>Purpose</td><td>Agent &harr; Tools</td><td>Agent &harr; Agent</td></tr><tr><td>By</td><td>Anthropic</td><td>Google</td></tr><tr><td>Best for</td><td>Tool integration</td><td>Agent collaboration</td></tr></table></div>
-<div class="callout tip"><div class="callout-label">TIP</div><p>MCP and A2A are complementary. Use both.</p></div>
+<p>Communication in A2A revolves around <strong>Tasks</strong>. A client agent creates a task, sends it to a remote agent, and the remote agent processes it through a well-defined lifecycle.</p>
+
+<div class="table-wrap"><table>
+<tr><th>State</th><th>Description</th><th>Transitions To</th></tr>
+<tr><td><code>submitted</code></td><td>Task received by remote agent, queued for processing</td><td>working, failed</td></tr>
+<tr><td><code>working</code></td><td>Agent is actively processing the task</td><td>completed, failed, input-needed</td></tr>
+<tr><td><code>input-needed</code></td><td>Agent needs additional information from the client</td><td>working, failed</td></tr>
+<tr><td><code>completed</code></td><td>Task finished successfully, artifacts available</td><td>(terminal)</td></tr>
+<tr><td><code>failed</code></td><td>Task failed with an error message</td><td>(terminal)</td></tr>
+</table></div>
+
+<h3>Creating and Sending a Task</h3>
+<pre><code>import httpx, uuid
+
+async def send_task(agent_url: str, skill_id: str, message: str,
+                    auth_token: str) -> dict:
+    """Send a task to a remote A2A agent."""
+    task_id = str(uuid.uuid4())
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "tasks/send",
+        "id": task_id,
+        "params": {
+            "id": task_id,
+            "message": {
+                "role": "user",
+                "parts": [{"type": "text", "text": message}]
+            },
+            "metadata": {
+                "skill_id": skill_id
+            }
+        }
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            agent_url,
+            json=payload,
+            headers={"Authorization": f"Bearer {auth_token}"}
+        )
+        return response.json()
+
+# Example: delegate invoice processing to a remote agent
+# result = await send_task(
+#     "https://agents.example.com/invoice",
+#     "extract_invoice_data",
+#     "Extract all line items from the attached invoice.",
+#     auth_token="your-token-here"
+# )</code></pre>
+
+<h3>Polling for Task Status</h3>
+<pre><code>import asyncio
+
+async def poll_task(agent_url: str, task_id: str, auth_token: str,
+                    interval: float = 2.0) -> dict:
+    """Poll a task until it reaches a terminal state."""
+    terminal_states = {"completed", "failed"}
+    async with httpx.AsyncClient() as client:
+        while True:
+            response = await client.post(agent_url, json={
+                "jsonrpc": "2.0",
+                "method": "tasks/get",
+                "id": "poll-1",
+                "params": {"id": task_id}
+            }, headers={"Authorization": f"Bearer {auth_token}"})
+
+            result = response.json()["result"]
+            status = result["status"]["state"]
+            print(f"Task {task_id}: {status}")
+
+            if status in terminal_states:
+                return result
+            await asyncio.sleep(interval)</code></pre>
+
+<h3>Streaming with Server-Sent Events</h3>
+<p>For long-running tasks, A2A supports streaming updates via SSE. Instead of polling, the client subscribes to a stream and receives events as the agent works.</p>
+<pre><code>import httpx
+
+async def stream_task(agent_url: str, task_id: str, skill_id: str,
+                      message: str, auth_token: str):
+    """Subscribe to streaming updates from a remote agent."""
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "tasks/sendSubscribe",
+        "id": task_id,
+        "params": {
+            "id": task_id,
+            "message": {
+                "role": "user",
+                "parts": [{"type": "text", "text": message}]
+            }
+        }
+    }
+    async with httpx.AsyncClient() as client:
+        async with client.stream("POST", agent_url, json=payload,
+                                  headers={"Authorization": f"Bearer {auth_token}"}) as resp:
+            async for line in resp.aiter_lines():
+                if line.startswith("data:"):
+                    event_data = json.loads(line[5:].strip())
+                    print(f"Event: {event_data}")</code></pre>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>Not all A2A agents support streaming. Always check the <code>capabilities.streaming</code> field in the Agent Card before attempting to use <code>tasks/sendSubscribe</code>. Fall back to polling if streaming is unavailable.</p></div>
+
 <span class="section-anchor" id="s5"></span>
 <div class="section-header">
   <span class="section-num">5</span>
-  <h2>Implementing A2A</h2>
+  <h2>A2A vs MCP</h2>
 </div>
-<ol><li>Fetch Agent Card from <code>/.well-known/agent.json</code></li><li>Create task via POST</li><li>Poll or subscribe for updates</li><li>Process result</li></ol>
+<p>A2A and MCP are frequently confused because both are "protocols for AI agents." The distinction is straightforward: MCP connects agents to <strong>tools and data</strong>, while A2A connects <strong>agents to other agents</strong>. They operate at different layers and are designed to work together.</p>
+
+<div class="table-wrap"><table>
+<tr><th>Aspect</th><th>MCP</th><th>A2A</th></tr>
+<tr><td>Purpose</td><td>Agent &harr; Tools &amp; Data</td><td>Agent &harr; Agent</td></tr>
+<tr><td>Originated by</td><td>Anthropic</td><td>Google</td></tr>
+<tr><td>Transport</td><td>stdio / HTTP+SSE</td><td>HTTP + JSON-RPC</td></tr>
+<tr><td>Discovery</td><td>Server capabilities list</td><td>Agent Cards at well-known URL</td></tr>
+<tr><td>Interaction model</td><td>Tool calls (request/response)</td><td>Tasks with lifecycle states</td></tr>
+<tr><td>Streaming</td><td>SSE for resources</td><td>SSE for task progress</td></tr>
+<tr><td>Best for</td><td>Connecting to databases, APIs, files, services</td><td>Delegating work between autonomous agents</td></tr>
+<tr><td>Opaque execution</td><td>No &mdash; client controls tool calls</td><td>Yes &mdash; remote agent decides how to execute</td></tr>
+</table></div>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>A key architectural difference: with MCP, the client agent decides which tools to call and when. With A2A, the client delegates a task and the remote agent autonomously decides how to accomplish it. A2A treats remote agents as opaque collaborators, not as tools to be controlled.</p></div>
+
+<h3>Using Both Together</h3>
+<p>In a production multi-agent system, a typical architecture uses both protocols:</p>
+<pre><code># An orchestrator agent that uses both MCP and A2A
+#
+# MCP: Connect to local tools (database, file system, APIs)
+# A2A: Delegate to remote specialist agents
+
+# 1. Use MCP to read customer data from a database
+customer_data = await mcp_client.call_tool("database_query", {
+    "sql": "SELECT * FROM customers WHERE id = 42"
+})
+
+# 2. Use A2A to delegate analysis to a remote specialist agent
+analysis_result = await send_task(
+    agent_url="https://agents.analytics-team.com/customer-insights",
+    skill_id="analyse_customer",
+    message=f"Analyse this customer profile and suggest retention strategies: "
+            f"{customer_data}"
+)
+
+# 3. Use MCP to write the result back to a local system
+await mcp_client.call_tool("database_insert", {
+    "table": "customer_insights",
+    "data": analysis_result
+})</code></pre>
+
 <span class="section-anchor" id="s6"></span>
 <div class="section-header">
   <span class="section-num">6</span>
+  <h2>Implementing an A2A Server</h2>
+</div>
+<p>To make your agent available to other agents via A2A, you need to implement an A2A-compliant server. The Google A2A SDK provides reference implementations, but here is a simplified example showing the core concepts.</p>
+
+<pre><code>from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+import uuid
+
+app = FastAPI()
+
+# In-memory task store (use a database in production)
+tasks = {}
+
+@app.get("/.well-known/agent.json")
+async def agent_card():
+    """Serve the Agent Card for discovery."""
+    return {
+        "name": "Summary Agent",
+        "description": "Summarises documents and articles.",
+        "url": "https://my-agent.example.com",
+        "version": "1.0.0",
+        "protocol": "a2a/1.0",
+        "skills": [{
+            "id": "summarise",
+            "name": "Summarise Text",
+            "description": "Create a concise summary of any text input.",
+            "inputModes": ["text/plain"],
+            "outputModes": ["text/plain"]
+        }],
+        "capabilities": {"streaming": False}
+    }
+
+@app.post("/")
+async def handle_jsonrpc(request: Request):
+    """Handle A2A JSON-RPC requests."""
+    body = await request.json()
+    method = body.get("method")
+
+    if method == "tasks/send":
+        return await handle_task_send(body)
+    elif method == "tasks/get":
+        return await handle_task_get(body)
+    else:
+        return JSONResponse({"jsonrpc": "2.0", "error": {
+            "code": -32601, "message": f"Unknown method: {method}"
+        }, "id": body.get("id")})
+
+async def handle_task_send(body: dict) -> JSONResponse:
+    """Process a new task."""
+    params = body["params"]
+    task_id = params.get("id", str(uuid.uuid4()))
+    message_text = params["message"]["parts"][0]["text"]
+
+    # Process the task (in production, do this async with a queue)
+    import anthropic
+    client = anthropic.Anthropic()
+    response = client.messages.create(
+        model="claude-sonnet-4-20250514", max_tokens=1024,
+        system="You create clear, concise summaries.",
+        messages=[{"role": "user", "content": f"Summarise:\n{message_text}"}]
+    )
+    summary = response.content[0].text
+
+    task_result = {
+        "id": task_id,
+        "status": {"state": "completed"},
+        "artifacts": [{
+            "parts": [{"type": "text", "text": summary}]
+        }]
+    }
+    tasks[task_id] = task_result
+    return JSONResponse({"jsonrpc": "2.0", "result": task_result, "id": body["id"]})
+
+async def handle_task_get(body: dict) -> JSONResponse:
+    """Return task status and results."""
+    task_id = body["params"]["id"]
+    if task_id in tasks:
+        return JSONResponse({"jsonrpc": "2.0", "result": tasks[task_id], "id": body["id"]})
+    return JSONResponse({"jsonrpc": "2.0", "error": {
+        "code": -32602, "message": "Task not found"
+    }, "id": body["id"]})</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>For production A2A servers, use the official <code>a2a-python</code> SDK from Google rather than building from scratch. It handles JSON-RPC parsing, SSE streaming, task state management, and authentication out of the box.</p></div>
+
+<span class="section-anchor" id="s7"></span>
+<div class="section-header">
+  <span class="section-num">7</span>
   <h2>The Future</h2>
 </div>
-<p>MCP + A2A = open agent ecosystem. Agents discover, communicate, delegate regardless of framework.</p>
+<p>The combination of MCP and A2A creates the foundation for an <strong>open agent ecosystem</strong>. Agents built with any framework can discover each other, delegate tasks, and exchange results &mdash; just as web services communicate via REST APIs today.</p>
+<p>Key trends to watch:</p>
+<ul>
+  <li><strong>Agent marketplaces</strong> &mdash; directories where organisations publish A2A-compliant agents, similar to API marketplaces</li>
+  <li><strong>Cross-organisation collaboration</strong> &mdash; agents from different companies working together on shared workflows (e.g., supply chain coordination)</li>
+  <li><strong>Agent identity and trust</strong> &mdash; verifiable agent credentials and capability attestations to ensure you are delegating to a trustworthy agent</li>
+  <li><strong>Standardised billing</strong> &mdash; protocols for agents to negotiate and pay for services rendered by other agents</li>
+</ul>
+<div class="callout note"><div class="callout-label">NOTE</div><p>A2A is still an evolving standard. As of early 2026, the core protocol is stable, but extensions for billing, trust, and advanced discovery are still being developed. Follow the <a href="https://github.com/google/A2A" style="color:var(--blue)">official A2A repository</a> for updates.</p></div>
+
 <a href="module_13_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 13 &mdash; Safety &amp; Guardrails</p></div></a>
   </main>
 </div>

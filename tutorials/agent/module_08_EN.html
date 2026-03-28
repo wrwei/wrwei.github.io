@@ -74,53 +74,307 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>The Knowledge Problem</h2>
 </div>
-<p>LLMs have knowledge cutoffs. <strong>RAG</strong> retrieves relevant documents at query time and injects them into the LLM context.</p>
-<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>An LLM without RAG is an expert without today's newspaper. RAG gives them a research assistant.</p></div>
+<p>LLMs have a <strong>knowledge cutoff</strong> &mdash; they only know what was in their training data. They cannot answer questions about events after their cutoff date, your company's internal documents, or any private data they were never trained on. They also hallucinate confidently when they do not know something.</p>
+<p><strong>Retrieval-Augmented Generation (RAG)</strong> solves this by retrieving relevant documents at query time and injecting them into the LLM's context. Instead of relying on memorised knowledge, the model reads the actual source material and generates an answer grounded in that material.</p>
+<p>RAG is the most widely deployed pattern in production AI systems because it is simpler and cheaper than fine-tuning, can be updated instantly (just add or remove documents), and provides citations back to source material.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>An LLM without RAG is like a doctor taking an exam from memory alone. RAG gives them access to the latest medical journals during the exam &mdash; they still need expertise to interpret the material, but their answers are grounded in current evidence rather than potentially outdated knowledge.</p></div>
+
+<div class="card-grid">
+  <div class="card"><h3>Up-to-Date Answers</h3><p>Query live data sources instead of relying on training-data knowledge that may be months or years old.</p></div>
+  <div class="card"><h3>Domain Specificity</h3><p>Ground answers in your company's internal docs, policies, and knowledge base without fine-tuning.</p></div>
+  <div class="card"><h3>Reduced Hallucination</h3><p>When the model answers from provided context, it is far less likely to fabricate facts.</p></div>
+  <div class="card"><h3>Verifiable Sources</h3><p>Every answer can cite the specific document chunks it drew from, enabling user verification.</p></div>
+</div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
   <h2>RAG Architecture Overview</h2>
 </div>
-<ol><li><strong>Embed</strong> &mdash; convert documents to vectors</li><li><strong>Store</strong> &mdash; save in vector database</li><li><strong>Retrieve</strong> &mdash; find similar chunks</li><li><strong>Generate</strong> &mdash; pass to LLM</li></ol>
-<div class="callout note"><div class="callout-label">NOTE</div><p>RAG does not fine-tune the model. It augments the prompt with retrieved context.</p></div>
+<p>A RAG system has two phases: an <strong>indexing phase</strong> (offline, run once or periodically) and a <strong>query phase</strong> (online, run for every user question). Understanding both phases is essential to building an effective pipeline.</p>
+
+<h3>Indexing Phase (Offline)</h3>
+<ol>
+  <li><strong>Load</strong> &mdash; Read documents from files, databases, APIs, or web pages</li>
+  <li><strong>Chunk</strong> &mdash; Split documents into smaller, meaningful pieces</li>
+  <li><strong>Embed</strong> &mdash; Convert each chunk into a vector (a list of numbers) using an embedding model</li>
+  <li><strong>Store</strong> &mdash; Save the vectors and original text in a vector database</li>
+</ol>
+
+<h3>Query Phase (Online)</h3>
+<ol>
+  <li><strong>Embed Query</strong> &mdash; Convert the user's question into a vector using the same embedding model</li>
+  <li><strong>Retrieve</strong> &mdash; Find the most similar document chunks using vector similarity search</li>
+  <li><strong>Augment</strong> &mdash; Insert retrieved chunks into the LLM prompt as context</li>
+  <li><strong>Generate</strong> &mdash; The LLM reads the context and produces a grounded answer</li>
+</ol>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>RAG does <strong>not</strong> fine-tune or modify the model. It augments the prompt with retrieved context at query time. This means you can update your knowledge base instantly without retraining anything.</p></div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
   <h2>Document Chunking and Embedding</h2>
 </div>
-<div class="table-wrap"><table><tr><th>Strategy</th><th>Best For</th><th>Drawback</th></tr><tr><td>Fixed-size</td><td>Simple</td><td>May split sentences</td></tr><tr><td>Sentence-based</td><td>Natural boundaries</td><td>Variable sizes</td></tr><tr><td>Recursive</td><td>Preserving meaning</td><td>More complex</td></tr></table></div>
+<p>Chunking is arguably the most important step in a RAG pipeline. If your chunks are too large, they waste context tokens and dilute relevance. If they are too small, they lose context and the model cannot synthesise a coherent answer.</p>
+<p>The goal is to create chunks that are <strong>self-contained</strong> (make sense on their own), <strong>focused</strong> (about one topic), and <strong>appropriately sized</strong> (typically 200-1000 tokens).</p>
+
+<div class="table-wrap"><table>
+  <tr><th>Strategy</th><th>How It Works</th><th>Best For</th><th>Drawback</th></tr>
+  <tr><td>Fixed-size</td><td>Split every N characters/tokens</td><td>Simple implementation</td><td>May split mid-sentence or mid-paragraph</td></tr>
+  <tr><td>Sentence-based</td><td>Split on sentence boundaries</td><td>Natural text, articles</td><td>Variable chunk sizes, some sentences too short</td></tr>
+  <tr><td>Recursive character</td><td>Try paragraph, then sentence, then word boundaries</td><td>General-purpose, preserves structure</td><td>More complex to implement</td></tr>
+  <tr><td>Semantic</td><td>Use embeddings to detect topic shifts</td><td>Long documents with multiple topics</td><td>Expensive, requires embedding each sentence</td></tr>
+  <tr><td>Document-aware</td><td>Use headings, sections, or markup structure</td><td>Markdown, HTML, structured docs</td><td>Requires document-specific parsing</td></tr>
+</table></div>
+
+<h3>Chunking with Overlap</h3>
+<pre><code>def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
+    """Split text into overlapping chunks by character count."""
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end]
+        # Try to end at a sentence boundary
+        last_period = chunk.rfind(". ")
+        if last_period > chunk_size * 0.5:
+            end = start + last_period + 1
+            chunk = text[start:end]
+        chunks.append(chunk.strip())
+        start = end - overlap  # overlap for context continuity
+    return chunks
+
+# Example
+text = open("company_handbook.txt").read()
+chunks = chunk_text(text, chunk_size=800, overlap=100)
+print(f"Created {len(chunks)} chunks from {len(text)} characters")</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p><strong>Overlap</strong> is critical. A 50-100 token overlap between chunks ensures that information at chunk boundaries is not lost. Without overlap, a sentence that spans two chunks will be incomplete in both.</p></div>
+
+<h3>Generating Embeddings</h3>
+<pre><code># Using OpenAI embeddings (most popular choice)
+import openai
+
+client = openai.OpenAI()
+
+def get_embeddings(texts: list[str]) -> list[list[float]]:
+    """Generate embeddings for a batch of texts."""
+    response = client.embeddings.create(
+        model="text-embedding-3-small",  # 1536 dimensions, cheap
+        input=texts
+    )
+    return [item.embedding for item in response.data]
+
+# Embed a single query
+query_embedding = get_embeddings(["What is the refund policy?"])[0]
+
+# Embed all chunks
+chunk_embeddings = get_embeddings(chunks)</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Always use the <strong>same embedding model</strong> for both indexing and querying. Mixing models (e.g., indexing with OpenAI and querying with Cohere) will produce meaningless similarity scores because the vector spaces are different.</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
   <h2>Vector Databases</h2>
 </div>
-<div class="card-grid"><div class="card"><h3>ChromaDB</h3><p>Open-source, local, great for prototyping.</p></div><div class="card"><h3>Pinecone</h3><p>Managed cloud, scalable.</p></div><div class="card"><h3>pgvector</h3><p>PostgreSQL extension.</p></div><div class="card"><h3>Weaviate</h3><p>Open-source, hybrid search.</p></div></div>
+<p>Vector databases are purpose-built for storing and searching high-dimensional vectors. They use specialised indexing algorithms (like HNSW or IVF) that make similarity search fast even over millions of vectors.</p>
+
+<div class="card-grid">
+  <div class="card"><h3>ChromaDB</h3><p>Open-source, runs locally, Python-native. Perfect for prototyping and small-to-medium datasets. Has built-in embedding support.</p></div>
+  <div class="card"><h3>Pinecone</h3><p>Fully managed cloud service. Scales to billions of vectors. Serverless pricing model. Best for production workloads.</p></div>
+  <div class="card"><h3>pgvector</h3><p>PostgreSQL extension. Use your existing Postgres infrastructure. Great when you already have a SQL database and want to add vector search.</p></div>
+  <div class="card"><h3>Weaviate</h3><p>Open-source with hybrid search (vector + keyword). Built-in support for multi-modal data. Good for complex search requirements.</p></div>
+  <div class="card"><h3>Qdrant</h3><p>Open-source, Rust-based, very fast. Rich filtering capabilities. Both cloud and self-hosted options.</p></div>
+  <div class="card"><h3>FAISS</h3><p>Meta's library for efficient similarity search. Not a database (no persistence built-in), but extremely fast for in-memory search.</p></div>
+</div>
+
+<h3>Setting Up ChromaDB</h3>
+<pre><code>import chromadb
+
+# Persistent storage (survives restarts)
+client = chromadb.PersistentClient(path="./chroma_db")
+
+# Create a collection
+collection = client.get_or_create_collection(
+    name="company_docs",
+    metadata={"hnsw:space": "cosine"}  # cosine similarity
+)
+
+# Index documents
+collection.add(
+    documents=chunks,                          # raw text
+    ids=[f"chunk_{i}" for i in range(len(chunks))],  # unique IDs
+    metadatas=[{"source": "handbook.pdf", "page": i // 5}
+               for i in range(len(chunks))]     # metadata for filtering
+)
+
+# Query
+results = collection.query(
+    query_texts=["What is the vacation policy?"],
+    n_results=5,
+    where={"source": "handbook.pdf"}  # optional metadata filter
+)
+
+for doc, score in zip(results["documents"][0], results["distances"][0]):
+    print(f"[{score:.3f}] {doc[:100]}...")</code></pre>
+
 <span class="section-anchor" id="s5"></span>
 <div class="section-header">
   <span class="section-num">5</span>
-  <h2>Building a RAG Pipeline</h2>
+  <h2>Building a Complete RAG Pipeline</h2>
 </div>
-<pre><code>import anthropic, chromadb
-ai = anthropic.Anthropic()
-db = chromadb.Client()
-collection = db.get_or_create_collection('kb')
+<p>Let us build a production-quality RAG pipeline that indexes a collection of documents and answers questions from them. This example uses ChromaDB for storage and Anthropic's Claude for generation.</p>
 
-def rag_query(question):
-    results = collection.query(query_texts=[question], n_results=3)
-    context = '\n'.join(results['documents'][0])
-    response = ai.messages.create(
-        model='claude-sonnet-4-20250514', max_tokens=1024,
-        system=f'Answer from context. Say if not found.\n\n{context}',
-        messages=[{'role': 'user', 'content': question}])
-    return response.content[0].text</code></pre>
-<div class="callout tip"><div class="callout-label">TIP</div><p>Always instruct the LLM to say &ldquo;I don't know&rdquo; when context lacks the answer.</p></div>
+<pre><code>import anthropic
+import chromadb
+import os
+import json
+
+class RAGPipeline:
+    """Complete RAG pipeline: index, retrieve, generate."""
+
+    def __init__(self, collection_name: str = "knowledge_base"):
+        self.ai = anthropic.Anthropic()
+        self.db = chromadb.PersistentClient(path="./rag_db")
+        self.collection = self.db.get_or_create_collection(collection_name)
+
+    def index_document(self, text: str, source: str, chunk_size: int = 800):
+        """Chunk and index a document."""
+        chunks = chunk_text(text, chunk_size=chunk_size, overlap=100)
+        self.collection.add(
+            documents=chunks,
+            ids=[f"{source}_{i}" for i in range(len(chunks))],
+            metadatas=[{"source": source, "chunk_index": i}
+                       for i in range(len(chunks))]
+        )
+        print(f"Indexed {len(chunks)} chunks from '{source}'")
+
+    def index_directory(self, dir_path: str):
+        """Index all .txt and .md files in a directory."""
+        for fname in os.listdir(dir_path):
+            if fname.endswith((".txt", ".md")):
+                path = os.path.join(dir_path, fname)
+                text = open(path, "r", encoding="utf-8").read()
+                self.index_document(text, source=fname)
+
+    def retrieve(self, query: str, n_results: int = 5) -> list[dict]:
+        """Retrieve relevant chunks for a query."""
+        if self.collection.count() == 0:
+            return []
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=min(n_results, self.collection.count())
+        )
+        return [
+            {"text": doc, "source": meta["source"], "score": dist}
+            for doc, meta, dist in zip(
+                results["documents"][0],
+                results["metadatas"][0],
+                results["distances"][0]
+            )
+        ]
+
+    def query(self, question: str, n_results: int = 5) -> dict:
+        """Full RAG: retrieve context, then generate an answer."""
+        chunks = self.retrieve(question, n_results)
+
+        if not chunks:
+            return {"answer": "No documents indexed yet.", "sources": []}
+
+        # Build context string with source attribution
+        context_parts = []
+        for i, c in enumerate(chunks, 1):
+            context_parts.append(f"[Source {i}: {c['source']}]\n{c['text']}")
+        context = "\n\n---\n\n".join(context_parts)
+
+        system_prompt = f"""You are a helpful assistant that answers questions
+based ONLY on the provided context. If the context does not contain
+the answer, say "I don't have enough information to answer that."
+Always cite which source(s) you used, e.g., [Source 1].
+
+Context:
+{context}"""
+
+        response = self.ai.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=[{"role": "user", "content": question}]
+        )
+
+        return {
+            "answer": response.content[0].text,
+            "sources": [c["source"] for c in chunks],
+            "chunks_used": len(chunks)
+        }
+
+# Usage
+rag = RAGPipeline()
+rag.index_directory("./company_docs")
+result = rag.query("What is our remote work policy?")
+print(result["answer"])
+print("Sources:", result["sources"])</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Always instruct the LLM to say "I don't know" when the context does not contain the answer. Without this instruction, the model will often hallucinate an answer that sounds plausible but is not grounded in your documents.</p></div>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p><strong>Retrieval quality is the bottleneck, not generation quality.</strong> If the wrong chunks are retrieved, even the best LLM will produce a bad answer. Spend most of your optimisation effort on chunking, embedding choice, and retrieval tuning rather than prompt engineering the generation step.</p></div>
+
 <span class="section-anchor" id="s6"></span>
 <div class="section-header">
   <span class="section-num">6</span>
   <h2>Evaluation and Quality</h2>
 </div>
-<ul><li><strong>Recall@k</strong> &mdash; correct doc in top-k?</li><li><strong>Faithfulness</strong> &mdash; grounded in context?</li><li><strong>Relevance</strong> &mdash; addresses the question?</li></ul>
-<div class="callout note"><div class="callout-label">NOTE</div><p>Start simple, measure, then optimise.</p></div>
+<p>Measuring RAG quality requires evaluating both the <strong>retrieval</strong> step and the <strong>generation</strong> step separately. A common mistake is only evaluating the final answer without understanding whether failures come from bad retrieval or bad generation.</p>
+
+<div class="table-wrap"><table>
+  <tr><th>Metric</th><th>What It Measures</th><th>How to Compute</th></tr>
+  <tr><td>Recall@k</td><td>Is the correct document in the top-k retrieved chunks?</td><td>Label ground-truth docs, check if retrieved</td></tr>
+  <tr><td>Precision@k</td><td>What fraction of retrieved chunks are actually relevant?</td><td>Human annotation or LLM-as-judge</td></tr>
+  <tr><td>Faithfulness</td><td>Is the answer grounded in the retrieved context (no hallucination)?</td><td>LLM-as-judge: "Is this claim supported by the context?"</td></tr>
+  <tr><td>Answer Relevance</td><td>Does the answer actually address the question asked?</td><td>LLM-as-judge or human evaluation</td></tr>
+  <tr><td>Latency</td><td>End-to-end response time</td><td>Measure retrieval + generation time</td></tr>
+</table></div>
+
+<h3>Simple Evaluation Script</h3>
+<pre><code>def evaluate_rag(pipeline: RAGPipeline, test_cases: list[dict]) -> dict:
+    """Evaluate RAG pipeline on test cases.
+    Each test case: {"question": str, "expected_source": str, "expected_keywords": [str]}
+    """
+    results = {"retrieval_hits": 0, "answer_relevant": 0, "total": len(test_cases)}
+
+    for tc in test_cases:
+        result = pipeline.query(tc["question"])
+
+        # Check retrieval: did we find the right source?
+        if tc["expected_source"] in result["sources"]:
+            results["retrieval_hits"] += 1
+
+        # Check answer: does it contain expected keywords?
+        answer_lower = result["answer"].lower()
+        if all(kw.lower() in answer_lower for kw in tc["expected_keywords"]):
+            results["answer_relevant"] += 1
+
+    results["retrieval_accuracy"] = results["retrieval_hits"] / results["total"]
+    results["answer_accuracy"] = results["answer_relevant"] / results["total"]
+    return results
+
+# Example test cases
+test_cases = [
+    {"question": "What is the vacation policy?",
+     "expected_source": "hr_handbook.txt",
+     "expected_keywords": ["days", "annual"]},
+    {"question": "How do I submit expenses?",
+     "expected_source": "finance_guide.txt",
+     "expected_keywords": ["receipt", "submit"]},
+]
+metrics = evaluate_rag(rag, test_cases)
+print(f"Retrieval accuracy: {metrics['retrieval_accuracy']:.0%}")
+print(f"Answer accuracy: {metrics['answer_accuracy']:.0%}")</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Start with a simple pipeline, measure its performance, then optimise. Common improvements include: better chunking strategies, re-ranking retrieved results with a cross-encoder, query expansion (rewriting the query for better retrieval), and hybrid search combining vector similarity with keyword matching (BM25).</p></div>
 <a href="module_09_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 9 &mdash; MCP &mdash; Building Your Own Servers</p></div></a>
   </main>
 </div>
