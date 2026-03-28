@@ -60,47 +60,401 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <div id="layout">
   <aside id="sidebar">
     <div class="sidebar-label">目录</div>
-    <nav><a href="#s1"><span class="num">1</span>生产检查清单</a><a href="#s2"><span class="num">2</span>错误处理</a><a href="#s3"><span class="num">3</span>成本估算</a><a href="#s4"><span class="num">4</span>下一步</a></nav>
+    <nav><a href="#s1"><span class="num">1</span>容器化</a><a href="#s2"><span class="num">2</span>错误处理</a><a href="#s3"><span class="num">3</span>监控与可观测性</a><a href="#s4"><span class="num">4</span>扩展</a><a href="#s5"><span class="num">5</span>成本管理</a><a href="#s6"><span class="num">6</span>生产检查清单</a><a href="#s7"><span class="num">7</span>下一步</a></nav>
   </aside>
   <main id="main">
     <div class="module-hero">
       <div class="series">AI智能体系列 &mdash; Ran Wei</div>
       <h1 class="module-title">模块15: <em>部署与最佳实践</em></h1>
-      <p class="module-lead">生产部署模式。</p>
+      <p class="module-lead">将智能体从原型推向生产：容器化、监控、扩展、成本管理和全面的部署检查清单。</p>
     </div>
 
 <span class="section-anchor" id="s1"></span>
 <div class="section-header">
   <span class="section-num">1</span>
-  <h2>生产检查清单</h2>
+  <h2>容器化</h2>
 </div>
-<ul><li>速率限制</li><li>指数退避重试</li><li>日志</li><li>成本监控</li><li>超时</li><li>沙箱</li><li>人在回路中</li></ul>
+<p>将你的智能体容器化可以确保它在开发、预发布和生产环境中一致运行。Docker容器将你的智能体代码、依赖项和配置打包成一个可部署的单元。</p>
+
+<h3>智能体服务的Dockerfile</h3>
+<pre><code># Dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install dependencies first (cached layer)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY src/ ./src/
+COPY prompts/ ./prompts/
+COPY config/ ./config/
+
+# Non-root user for security
+RUN useradd --create-home appuser
+USER appuser
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+EXPOSE 8000
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre>
+
+<h3>多智能体系统的Docker Compose</h3>
+<p>当你有多个智能体作为独立服务运行时（如模块11中讨论的），Docker Compose让你可以一起定义和运行它们。</p>
+<pre><code># docker-compose.yml
+version: "3.9"
+services:
+  orchestrator:
+    build: ./orchestrator
+    ports: ["8000:8000"]
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - REDIS_URL=redis://redis:6379
+    depends_on: [redis]
+
+  research-agent:
+    build: ./agents/research
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+  writer-agent:
+    build: ./agents/writer
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+  redis:
+    image: redis:7-alpine
+    volumes: ["redis-data:/data"]
+
+volumes:
+  redis-data:</code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>永远不要将API密钥烘焙到Docker镜像中。使用环境变量或密钥管理器（AWS Secrets Manager、HashiCorp Vault等）。<code>.env</code> 文件应该在你的 <code>.gitignore</code> 和 <code>.dockerignore</code> 中。</p></div>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>Python智能体容器可能很大（1GB+），因为有ML依赖项。使用多阶段构建和 <code>python:3.12-slim</code> 作为基础镜像来保持镜像精简。只安装你的智能体在生产中实际需要的包。</p></div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
-  <h2>错误处理模式</h2>
+  <h2>错误处理</h2>
 </div>
+<p>生产中的智能体面临各种故障：API速率限制、网络超时、格式错误的LLM响应和工具执行错误。带有重试和熔断器的健壮错误处理使你的智能体保持弹性。</p>
+
+<h3>带抖动的指数退避</h3>
+<pre><code>import time, random
+import anthropic
+
+def call_with_retry(func, max_retries: int = 3, base_delay: float = 1.0):
+    """Call a function with exponential backoff and jitter on failure."""
+    for attempt in range(max_retries + 1):
+        try:
+            return func()
+        except anthropic.RateLimitError:
+            if attempt == max_retries:
+                raise
+            delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+            print(f"Rate limited. Retrying in {delay:.1f}s (attempt {attempt + 1})")
+            time.sleep(delay)
+        except anthropic.APIStatusError as e:
+            if e.status_code >= 500:  # Server errors are retryable
+                if attempt == max_retries:
+                    raise
+                time.sleep(base_delay * (2 ** attempt))
+            else:
+                raise  # Client errors (4xx) are not retryable
+        except anthropic.APIConnectionError:
+            if attempt == max_retries:
+                raise
+            time.sleep(base_delay * (2 ** attempt))
+    raise Exception("Max retries exceeded")</code></pre>
+
+<h3>熔断器模式</h3>
+<p>如果API持续失败，停止请求并快速失败，而不是等待重试。熔断器在达到失败阈值后"打开"，在冷却期后"关闭"。</p>
 <pre><code>import time
-def call_with_retry(func, max_retries=3):
-    for attempt in range(max_retries):
-        try: return func()
-        except Exception:
-            if attempt == max_retries - 1: raise
-            time.sleep(2 ** attempt)</code></pre>
+
+class CircuitBreaker:
+    """Prevent cascading failures with a circuit breaker."""
+
+    def __init__(self, failure_threshold: int = 5, reset_timeout: float = 60.0):
+        self.failure_threshold = failure_threshold
+        self.reset_timeout = reset_timeout
+        self.failure_count = 0
+        self.last_failure_time = 0
+        self.state = "closed"  # closed = normal, open = failing fast
+
+    def call(self, func):
+        """Execute function through the circuit breaker."""
+        if self.state == "open":
+            if time.time() - self.last_failure_time > self.reset_timeout:
+                self.state = "half-open"  # Try one request
+            else:
+                raise Exception("Circuit breaker is OPEN - failing fast")
+
+        try:
+            result = func()
+            if self.state == "half-open":
+                self.state = "closed"
+                self.failure_count = 0
+            return result
+        except Exception as e:
+            self.failure_count += 1
+            self.last_failure_time = time.time()
+            if self.failure_count >= self.failure_threshold:
+                self.state = "open"
+                print(f"Circuit breaker OPENED after {self.failure_count} failures")
+            raise
+
+# Usage
+api_breaker = CircuitBreaker(failure_threshold=5, reset_timeout=60)
+try:
+    result = api_breaker.call(lambda: client.messages.create(...))
+except Exception as e:
+    # Serve cached response or graceful fallback
+    result = fallback_response()</code></pre>
+
+<div class="callout note"><div class="callout-label">注意</div><p>将重试与熔断器结合使用：重试单个瞬态故障，但如果故障累积，熔断器会阻止进一步的尝试。这既保护了你的智能体，也保护了上游API免受过载。</p></div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
-  <h2>成本估算</h2>
+  <h2>监控与可观测性</h2>
 </div>
-<div class="table-wrap"><table><tr><th>模型</th><th>输入</th><th>输出</th><th>每任务</th></tr><tr><td>GPT-4o</td><td>$2.50/1M</td><td>$10/1M</td><td>$0.01-$0.10</td></tr><tr><td>Claude Sonnet 4</td><td>$3/1M</td><td>$15/1M</td><td>$0.02-$0.15</td></tr></table></div>
-<div class="callout tip"><div class="callout-label">TIP</div><p>简单步骤用小模型。10-50倍成本降低。</p></div>
+<p>看不到的问题无法修复。生产中的智能体需要全面的日志记录、指标和追踪来诊断问题并跟踪长期性能。</p>
+
+<h3>结构化日志</h3>
+<pre><code>import logging, json, time, uuid
+
+class AgentLogger:
+    """Structured logging for agent interactions."""
+
+    def __init__(self, agent_name: str):
+        self.logger = logging.getLogger(agent_name)
+        self.logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter('%(message)s'))
+        self.logger.addHandler(handler)
+
+    def log_llm_call(self, request_id: str, model: str, input_tokens: int,
+                     output_tokens: int, latency_ms: float, success: bool):
+        self.logger.info(json.dumps({
+            "event": "llm_call",
+            "request_id": request_id,
+            "model": model,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "latency_ms": round(latency_ms, 2),
+            "success": success,
+            "cost_usd": self._estimate_cost(model, input_tokens, output_tokens),
+            "timestamp": time.time(),
+        }))
+
+    def log_tool_call(self, request_id: str, tool_name: str,
+                      latency_ms: float, success: bool, error: str = ""):
+        self.logger.info(json.dumps({
+            "event": "tool_call",
+            "request_id": request_id,
+            "tool": tool_name,
+            "latency_ms": round(latency_ms, 2),
+            "success": success,
+            "error": error,
+            "timestamp": time.time(),
+        }))
+
+    def _estimate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
+        prices = {
+            "claude-sonnet-4-20250514": (3.0, 15.0),   # per 1M tokens
+            "claude-haiku-4-20250514":  (0.25, 1.25),
+        }
+        input_price, output_price = prices.get(model, (3.0, 15.0))
+        return (input_tokens * input_price + output_tokens * output_price) / 1_000_000</code></pre>
+
+<h3>需要跟踪的关键指标</h3>
+<div class="table-wrap"><table>
+<tr><th>指标</th><th>告诉你什么</th><th>告警阈值</th></tr>
+<tr><td>请求延迟 (p50, p95, p99)</td><td>你的智能体响应速度</td><td>p95 > 10s</td></tr>
+<tr><td>错误率</td><td>请求失败的频率</td><td>> 5%</td></tr>
+<tr><td>每请求token使用量</td><td>智能体使用了多少上下文</td><td>> 上下文窗口的80%</td></tr>
+<tr><td>每请求成本</td><td>每次交互的费用</td><td>> $0.50/请求</td></tr>
+<tr><td>工具调用成功率</td><td>工具的可靠性</td><td>< 95%</td></tr>
+<tr><td>任务完成率</td><td>智能体完成任务的频率</td><td>< 90%</td></tr>
+<tr><td>人工升级率</td><td>智能体无法处理请求的频率</td><td>> 20%</td></tr>
+</table></div>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>将结构化日志发送到集中式系统（ELK stack、Datadog、Grafana Cloud），并设置显示实时智能体健康状况的仪表盘。为异常建立告警——token使用量的突然飙升通常意味着你的智能体陷入了循环。</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
+  <h2>扩展</h2>
+</div>
+<p>AI智能体主要是I/O密集型（等待LLM API响应），而非CPU密集型。这意味着扩展策略与传统的计算密集型应用不同。</p>
+
+<h3>使用FastAPI的水平扩展</h3>
+<pre><code>from fastapi import FastAPI, BackgroundTasks
+from pydantic import BaseModel
+import asyncio, anthropic
+
+app = FastAPI()
+client = anthropic.AsyncAnthropic()
+
+class AgentRequest(BaseModel):
+    user_id: str
+    message: str
+
+class AgentResponse(BaseModel):
+    response: str
+    latency_ms: float
+
+@app.post("/agent", response_model=AgentResponse)
+async def handle_request(req: AgentRequest):
+    """Handle agent requests asynchronously for high throughput."""
+    import time
+    start = time.time()
+
+    response = await client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=2048,
+        system="You are a helpful assistant.",
+        messages=[{"role": "user", "content": req.message}]
+    )
+
+    latency = (time.time() - start) * 1000
+    return AgentResponse(
+        response=response.content[0].text,
+        latency_ms=latency
+    )
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}</code></pre>
+
+<div class="card-grid">
+<div class="card"><h3>异步I/O</h3><p>使用 <code>asyncio</code> 和异步API客户端。单个进程可以在等待响应的同时处理数百个并发LLM请求。</p></div>
+<div class="card"><h3>Worker进程</h3><p>在负载均衡器后面运行多个Uvicorn worker（<code>--workers 4</code>）。每个worker处理自己的异步事件循环。</p></div>
+<div class="card"><h3>基于队列</h3><p>对于长时间运行的智能体任务，使用任务队列（Celery、Redis Queue）将请求接受与处理解耦。</p></div>
+<div class="card"><h3>自动扩展</h3><p>部署在Kubernetes或云服务上，根据请求队列深度或延迟指标自动扩展。</p></div>
+</div>
+
+<div class="callout note"><div class="callout-label">注意</div><p>瓶颈几乎总是在LLM API，而不是你的应用代码。如果LLM提供商对你进行速率限制，水平扩展你的智能体没有帮助。在扩展基础设施之前，先监控你的API速率限制并向提供商申请更高的限制。</p></div>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>成本管理</h2>
+</div>
+<p>在生产中，LLM API成本可以迅速升级，特别是在多智能体系统中，每个用户请求会触发多个API调用。主动的成本管理至关重要。</p>
+
+<div class="table-wrap"><table>
+<tr><th>模型</th><th>输入（每1M token）</th><th>输出（每1M token）</th><th>每任务典型成本</th></tr>
+<tr><td>Claude Opus 4</td><td>$15.00</td><td>$75.00</td><td>$0.10 - $1.00</td></tr>
+<tr><td>Claude Sonnet 4</td><td>$3.00</td><td>$15.00</td><td>$0.02 - $0.15</td></tr>
+<tr><td>Claude Haiku 4</td><td>$0.25</td><td>$1.25</td><td>$0.001 - $0.01</td></tr>
+<tr><td>GPT-4o</td><td>$2.50</td><td>$10.00</td><td>$0.01 - $0.10</td></tr>
+<tr><td>GPT-4o-mini</td><td>$0.15</td><td>$0.60</td><td>$0.001 - $0.01</td></tr>
+</table></div>
+
+<h3>成本优化策略</h3>
+<pre><code>class CostOptimiser:
+    """Route requests to the cheapest capable model."""
+
+    def __init__(self):
+        self.client = anthropic.Anthropic()
+        self.model_tiers = {
+            "simple":  "claude-haiku-4-20250514",    # Classification, extraction
+            "medium":  "claude-sonnet-4-20250514",   # Analysis, writing
+            "complex": "claude-opus-4-20250514",     # Complex reasoning
+        }
+
+    def classify_complexity(self, task: str) -> str:
+        """Use a cheap model to classify task complexity."""
+        response = self.client.messages.create(
+            model="claude-haiku-4-20250514",
+            max_tokens=10,
+            system="Classify task complexity as: simple, medium, or complex. "
+                   "One word only.",
+            messages=[{"role": "user", "content": task}]
+        )
+        complexity = response.content[0].text.strip().lower()
+        return complexity if complexity in self.model_tiers else "medium"
+
+    def run(self, task: str) -> str:
+        """Route to the appropriate model based on complexity."""
+        complexity = self.classify_complexity(task)
+        model = self.model_tiers[complexity]
+        print(f"Routing to {model} (complexity: {complexity})")
+
+        response = self.client.messages.create(
+            model=model, max_tokens=2048,
+            messages=[{"role": "user", "content": task}]
+        )
+        return response.content[0].text</code></pre>
+
+<p>关键的成本节省技术：</p>
+<ol>
+  <li><strong>模型路由</strong> &mdash; 简单任务用便宜的模型，仅在需要时用昂贵的模型（节省5-50倍）</li>
+  <li><strong>提示缓存</strong> &mdash; 缓存系统提示和常用上下文以减少输入token</li>
+  <li><strong>响应缓存</strong> &mdash; 缓存相同或近似相同的查询以避免冗余API调用</li>
+  <li><strong>Token预算</strong> &mdash; 为每个任务适当设置 <code>max_tokens</code>；不要为是/否问题请求4096个token</li>
+  <li><strong>批处理</strong> &mdash; 对非时间敏感的工作负载使用批量API（通常便宜50%）</li>
+  <li><strong>支出告警</strong> &mdash; 在API密钥上设置硬性支出上限，并在接近限制时发出告警</li>
+</ol>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>模型路由器中的分类调用花费不到一分钱。即使有时路由不正确，对60-80%的请求使用更便宜模型所带来的整体节省远远超过路由调用本身的成本。</p></div>
+
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>生产检查清单</h2>
+</div>
+<p>在将智能体部署到生产之前，逐项检查这份全面的清单。每个项目都针对生产AI系统中常见的故障模式。</p>
+
+<div class="table-wrap"><table>
+<tr><th>类别</th><th>项目</th><th>状态</th></tr>
+<tr><td><strong>安全</strong></td><td>API密钥存储在密钥管理器中（不在代码或环境文件中）</td><td></td></tr>
+<tr><td><strong>安全</strong></td><td>输入验证和提示注入防御（模块13）</td><td></td></tr>
+<tr><td><strong>安全</strong></td><td>PII和有害内容的输出过滤</td><td></td></tr>
+<tr><td><strong>安全</strong></td><td>所有工具的最小权限</td><td></td></tr>
+<tr><td><strong>可靠性</strong></td><td>API调用的带抖动指数退避</td><td></td></tr>
+<tr><td><strong>可靠性</strong></td><td>外部依赖的熔断器</td><td></td></tr>
+<tr><td><strong>可靠性</strong></td><td>所有LLM调用的超时设置（30-120秒，取决于任务）</td><td></td></tr>
+<tr><td><strong>可靠性</strong></td><td>服务不可用时的优雅降级</td><td></td></tr>
+<tr><td><strong>可观测性</strong></td><td>所有LLM调用和工具执行的结构化日志</td><td></td></tr>
+<tr><td><strong>可观测性</strong></td><td>包含延迟、错误率和成本的指标仪表盘</td><td></td></tr>
+<tr><td><strong>可观测性</strong></td><td>错误率飙升和成本异常的告警</td><td></td></tr>
+<tr><td><strong>成本</strong></td><td>成本适当的模型路由选择</td><td></td></tr>
+<tr><td><strong>成本</strong></td><td>API密钥的硬性支出上限</td><td></td></tr>
+<tr><td><strong>成本</strong></td><td>适用时的响应缓存</td><td></td></tr>
+<tr><td><strong>测试</strong></td><td>基准测试套件通过（模块14）</td><td></td></tr>
+<tr><td><strong>测试</strong></td><td>所有提示更改的回归测试</td><td></td></tr>
+<tr><td><strong>安全</strong></td><td>高风险操作的人在回路中</td><td></td></tr>
+<tr><td><strong>安全</strong></td><td>按用户和按操作类型的速率限制</td><td></td></tr>
+<tr><td><strong>安全</strong></td><td>所有智能体决策和操作的审计追踪</td><td></td></tr>
+</table></div>
+
+<span class="section-anchor" id="s7"></span>
+<div class="section-header">
+  <span class="section-num">7</span>
   <h2>下一步</h2>
 </div>
-<ul><li>探索LangChain和CrewAI</li><li>学习A2A协议</li><li>构建MCP服务器</li><li>实现RAG</li></ul>
-<div class="callout tip"><div class="callout-label">恭喜</div><p>您已完成AI智能体系列的全部15个模块。您现在已具备构建生产级AI智能体的基础。这个领域正在快速发展——保持好奇心，继续构建。</p></div>
+<p>你已经完成了AI智能体系列的全部15个模块。你现在拥有了构建、测试和部署生产级AI智能体的基础知识和实践技能。以下是继续学习的建议路径：</p>
+
+<div class="card-grid">
+<div class="card"><h3>构建真实项目</h3><p>选择一个你关心的问题，构建一个端到端的智能体。客户支持机器人、研究助手或代码审查智能体都是很好的起点。</p></div>
+<div class="card"><h3>探索框架</h3><p>尝试LangChain、CrewAI或Anthropic Agent SDK，用更少的样板代码构建更复杂的多智能体系统。</p></div>
+<div class="card"><h3>深入RAG</h3><p>生产级RAG系统涉及分块策略、嵌入模型选择、重排序和混合搜索。模块8只是个开始。</p></div>
+<div class="card"><h3>贡献开源</h3><p>为MCP服务器、A2A实现或智能体框架做贡献。生态系统还很年轻，欢迎贡献者。</p></div>
+</div>
+
+<ul>
+  <li>通过关注 <a href="https://docs.anthropic.com" style="color:var(--blue)">Anthropic</a>、<a href="https://modelcontextprotocol.io" style="color:var(--blue)">MCP</a> 和 <a href="https://github.com/google/A2A" style="color:var(--blue)">A2A</a> 的官方文档，保持对快速发展的智能体生态系统的了解</li>
+  <li>加入社区论坛和Discord服务器，分享模式并向其他构建智能体的人学习</li>
+  <li>阅读关于智能体架构、工具使用和安全的研究论文——学术前沿发展很快</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">恭喜</div><p>你已经完成了AI智能体系列的全部15个模块。你现在已具备构建生产级AI智能体的基础。这个领域正在快速发展——保持好奇心，继续构建，始终优先考虑安全。</p></div>
   </main>
 </div>
 <script>

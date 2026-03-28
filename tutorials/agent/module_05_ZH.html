@@ -66,36 +66,314 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
     <div class="module-hero">
       <div class="series">AI智能体系列 &mdash; Ran Wei</div>
       <h1 class="module-title">模块5: <em>构建智能体循环</em></h1>
-      <p class="module-lead">构建观察-思考-行动循环。</p>
+      <p class="module-lead">构建核心的观察-思考-行动循环。</p>
     </div>
 
 <span class="section-anchor" id="s1"></span>
 <div class="section-header">
   <span class="section-num">1</span>
-  <h2>观察 → 思考 → 行动</h2>
+  <h2>观察 &rarr; 思考 &rarr; 行动循环</h2>
 </div>
-<p>智能体本质上是一个循环。</p>
+<p>每个AI智能体的核心都是一个循环。智能体<strong>观察</strong>当前状态（用户输入、工具结果、记忆），通过将上下文发送给LLM进行推理来<strong>思考</strong>，然后通过调用工具或返回最终响应来<strong>行动</strong>。这个循环重复直到任务完成。</p>
+<p>这个模式被称为<strong>ReAct循环</strong>（推理+行动），最初在Yao等人2022年的论文中描述。它是每个现代智能体框架使用的相同模式——LangChain、CrewAI、OpenAI Agents SDK和Claude的工具使用——无论其具体API如何。</p>
+<div class="callout analogy"><div class="callout-label">类比</div><p>将智能体循环想象成一位厨师准备复杂菜肴。厨师(1)<strong>观察</strong>食材和食谱的当前状态，(2)<strong>思考</strong>下一步该做什么（"洋葱已经软了，该加大蒜了"），(3)<strong>行动</strong>执行下一步。每次行动后，厨师观察结果并决定下一步。当厨师判断不需要更多步骤时，菜就完成了。</p></div>
+<p>以下是伪代码形式的流程：</p>
+<pre><code># The universal agent loop pattern
+messages = [user_input]
+
+while True:
+    # THINK: Send context to LLM
+    response = llm.generate(messages)
+
+    # DECIDE: Does the LLM want to use a tool?
+    if response.wants_tool_call:
+        # ACT: Execute the tool
+        tool_result = execute_tool(response.tool_call)
+
+        # OBSERVE: Add result to context for next iteration
+        messages.append(response)         # LLM's reasoning
+        messages.append(tool_result)      # Tool's output
+        continue                          # Loop back to THINK
+
+    else:
+        # DONE: LLM has a final answer
+        return response.text</code></pre>
+<p>关键洞察是LLM自己决定何时停止。不是开发者硬编码"调用工具A，然后调用工具B，然后响应"。LLM根据任务和中间结果动态选择行动。这使得智能体具有<strong>灵活性</strong>——同一个循环可以处理"天气怎么样？"（一次工具调用）或"研究并总结前5名竞争对手"（多次工具调用和推理步骤）。</p>
+<div class="callout note"><div class="callout-label">注意</div><p>智能体循环在概念上很简单，但细节极其重要。你如何处理错误、如何管理不断增长的消息历史、以及如何防止无限循环，是区分玩具演示和生产智能体的关键。</p></div>
+
+<h3>API级别的循环</h3>
+<p>OpenAI和Anthropic都通过响应对象来信号工具使用。模式是相同的：</p>
+<div class="table-wrap"><table><tr><th>步骤</th><th>OpenAI信号</th><th>Anthropic信号</th></tr><tr><td>LLM想要工具</td><td><code>finish_reason == "tool_calls"</code></td><td><code>stop_reason == "tool_use"</code></td></tr><tr><td>LLM已完成</td><td><code>finish_reason == "stop"</code></td><td><code>stop_reason == "end_turn"</code></td></tr><tr><td>工具调用详情</td><td><code>message.tool_calls[0]</code></td><td><code>content</code> 块中 <code>type == "tool_use"</code></td></tr><tr><td>发送工具结果</td><td><code>role: "tool"</code> 消息</td><td><code>role: "user"</code> 中 <code>type: "tool_result"</code></td></tr></table></div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
-  <h2>最小智能体</h2>
+  <h2>最小智能体 &mdash; Anthropic</h2>
 </div>
-<pre><code>def run_agent(user_message, max_steps=10):
-    messages = [{'role': 'user', 'content': user_message}]
+<p>让我们使用Anthropic SDK构建一个最小但完整的智能体。这个智能体可以查询天气——一个简单的例子，但它展示了使用真实API调用的完整观察-思考-行动循环。</p>
+
+<h3>第1步：定义工具</h3>
+<p>首先，定义智能体可以使用的工具。每个工具需要名称、描述和输入模式。描述至关重要——它告诉LLM<strong>何时</strong>使用该工具：</p>
+<pre><code>import anthropic
+
+client = anthropic.Anthropic()
+
+# Define the tools available to the agent
+tools = [
+    {
+        "name": "get_weather",
+        "description": "Get the current weather for a city. Use this when the user asks about weather, temperature, or conditions in a specific location.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "description": "The city name, e.g. 'London' or 'Tokyo'"
+                }
+            },
+            "required": ["city"]
+        }
+    }
+]</code></pre>
+
+<h3>第2步：实现工具</h3>
+<p>在真实应用中，此函数会调用天气API。目前我们使用一个桩函数：</p>
+<pre><code>def execute_tool(tool_name: str, tool_input: dict) -> str:
+    """Execute a tool and return the result as a string."""
+    if tool_name == "get_weather":
+        city = tool_input["city"]
+        # In production, call a real weather API here
+        return f"Current weather in {city}: 22°C, partly cloudy, humidity 65%"
+    else:
+        return f"Error: Unknown tool '{tool_name}'"</code></pre>
+
+<h3>第3步：智能体循环</h3>
+<p>现在是将一切联系在一起的核心循环：</p>
+<pre><code>def run_agent(user_message: str, max_steps: int = 10) -> str:
+    """Run the agent loop until a final answer is produced."""
+    print(f"\n{'='*50}")
+    print(f"User: {user_message}")
+    print(f"{'='*50}")
+
+    messages = [{"role": "user", "content": user_message}]
+
     for step in range(max_steps):
-        response = client.messages.create(...)
-        if response.stop_reason == 'tool_use':
-            # handle tool call
+        print(f"\n--- Step {step + 1} ---")
+
+        # THINK: Send context to the LLM
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system="You are a helpful assistant with access to tools.",
+            tools=tools,
+            messages=messages
+        )
+
+        print(f"Stop reason: {response.stop_reason}")
+
+        # CHECK: Does the LLM want to call a tool?
+        if response.stop_reason == "tool_use":
+            # Find the tool_use block in the response
+            tool_block = next(
+                b for b in response.content if b.type == "tool_use"
+            )
+            print(f"Tool call: {tool_block.name}({tool_block.input})")
+
+            # ACT: Execute the tool
+            result = execute_tool(tool_block.name, tool_block.input)
+            print(f"Tool result: {result}")
+
+            # OBSERVE: Add both the LLM response and tool result to history
+            messages.append({"role": "assistant", "content": response.content})
+            messages.append({
+                "role": "user",
+                "content": [{
+                    "type": "tool_result",
+                    "tool_use_id": tool_block.id,
+                    "content": result
+                }]
+            })
+            continue  # Back to THINK
+
+        # DONE: LLM produced a final text response
+        final_text = next(
+            b.text for b in response.content if b.type == "text"
+        )
+        print(f"\nFinal answer: {final_text}")
+        return final_text
+
+    return "Error: Max steps reached without a final answer."
+
+
+# Run it!
+run_agent("What's the weather like in Tokyo?")</code></pre>
+<div class="callout tip"><div class="callout-label">提示</div><p><code>for step in range(max_steps)</code> 循环是每个智能体的核心。它提供了防止无限循环的安全边界。LLM通过返回 <code>stop_reason == "end_turn"</code> 而非 <code>"tool_use"</code> 来决定何时停止。</p></div>
+
+<h3>预期输出</h3>
+<pre><code>==================================================
+User: What's the weather like in Tokyo?
+==================================================
+
+--- Step 1 ---
+Stop reason: tool_use
+Tool call: get_weather({'city': 'Tokyo'})
+Tool result: Current weather in Tokyo: 22°C, partly cloudy, humidity 65%
+
+--- Step 2 ---
+Stop reason: end_turn
+
+Final answer: The current weather in Tokyo is 22°C with partly cloudy skies
+and 65% humidity.</code></pre>
+
+<h3>最小智能体 &mdash; OpenAI版本</h3>
+<p>使用OpenAI API的相同模式，以便你比较语法差异：</p>
+<pre><code>from openai import OpenAI
+import json
+
+client = OpenAI()
+
+# OpenAI tool format wraps each tool in a "function" type
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get the current weather for a city.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "city": {"type": "string", "description": "City name"}
+                },
+                "required": ["city"]
+            }
+        }
+    }
+]
+
+def run_agent_openai(user_message: str, max_steps: int = 10) -> str:
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": user_message}
+    ]
+
+    for step in range(max_steps):
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            tools=tools,
+            messages=messages
+        )
+        choice = response.choices[0]
+
+        if choice.finish_reason == "tool_calls":
+            tool_call = choice.message.tool_calls[0]
+            args = json.loads(tool_call.function.arguments)
+            result = execute_tool(tool_call.function.name, args)
+
+            # OpenAI requires appending the assistant message first
+            messages.append(choice.message)
+            # Then the tool result with matching tool_call_id
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": result
+            })
             continue
-        return response.content[0].text
-    return 'Max steps reached'</code></pre>
-<div class="callout tip"><div class="callout-label">TIP</div><p><code>for step in range(max_steps)</code>是每个智能体的核心。</p></div>
+
+        return choice.message.content
+
+    return "Max steps reached."</code></pre>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
-  <h2>安全：防止失控</h2>
+  <h2>安全：防止失控的智能体</h2>
 </div>
-<div class="callout pitfall"><div class="callout-label">WARNING</div><p>始终设置最大步数。</p></div>
+<p>缺乏适当安全措施的智能体循环可能会失控——发起数十次API调用，消耗你的预算，并产生无意义的结果。安全机制不是可选的；它们是智能体设计的核心部分。</p>
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>失控的智能体可以在几分钟内消耗你的全部API预算。使用GPT-4o的20步循环，每步发送不断增长的对话历史，可以轻松花费$5-$20每次运行。没有限制的话，导致无限循环的bug可能在你注意到之前花费数百美元。</p></div>
+
+<h3>基本安全措施</h3>
+<div class="card-grid">
+<div class="card"><h3>最大步数限制</h3><p>始终限制循环迭代次数。从 <code>max_steps=10</code> 开始，根据用例调整。大多数任务在3-5步内完成。</p></div>
+<div class="card"><h3>Token预算</h3><p>跟踪所有步骤的累计token使用量。如果总token超过阈值（如50,000 token），终止运行。</p></div>
+<div class="card"><h3>步骤日志</h3><p>记录每一步：调用的工具、输入、结果和token计数。这对调试和成本分析至关重要。</p></div>
+<div class="card"><h3>超时</h3><p>为整个智能体运行设置时间限制。如果智能体超过60秒，可能出了问题。</p></div>
+</div>
+
+<h3>在代码中实现安全措施</h3>
+<pre><code>import time
+
+def run_safe_agent(user_message: str, max_steps: int = 10,
+                   max_tokens: int = 50000, timeout: int = 60) -> str:
+    """Agent loop with comprehensive safety measures."""
+    messages = [{"role": "user", "content": user_message}]
+    total_tokens = 0
+    start_time = time.time()
+
+    for step in range(max_steps):
+        # Safety check: timeout
+        elapsed = time.time() - start_time
+        if elapsed > timeout:
+            print(f"TIMEOUT: Agent exceeded {timeout}s limit at step {step + 1}")
+            return "Error: Agent timed out."
+
+        # THINK
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system="You are a helpful assistant.",
+            tools=tools,
+            messages=messages
+        )
+
+        # Safety check: token budget
+        step_tokens = response.usage.input_tokens + response.usage.output_tokens
+        total_tokens += step_tokens
+        print(f"Step {step + 1}: {step_tokens} tokens (total: {total_tokens})")
+
+        if total_tokens > max_tokens:
+            print(f"BUDGET: Exceeded {max_tokens} token limit")
+            return "Error: Token budget exceeded."
+
+        # Normal loop logic continues...
+        if response.stop_reason == "tool_use":
+            tool_block = next(
+                b for b in response.content if b.type == "tool_use"
+            )
+            result = execute_tool(tool_block.name, tool_block.input)
+            messages.append({"role": "assistant", "content": response.content})
+            messages.append({
+                "role": "user",
+                "content": [{
+                    "type": "tool_result",
+                    "tool_use_id": tool_block.id,
+                    "content": result
+                }]
+            })
+            continue
+
+        final = next(b.text for b in response.content if b.type == "text")
+        print(f"\nCompleted in {step + 1} steps, {total_tokens} tokens, "
+              f"{time.time() - start_time:.1f}s")
+        return final
+
+    return "Error: Max steps reached."</code></pre>
+
+<h3>检测无限循环</h3>
+<p>一种更微妙的失败模式是智能体不断用相同的输入调用相同的工具，得到相同的结果，却从不取得进展。你可以通过跟踪最近的工具调用来检测这种情况：</p>
+<pre><code>def detect_loop(messages: list, lookback: int = 4) -> bool:
+    """Check if the agent is stuck calling the same tool repeatedly."""
+    recent_tool_calls = []
+    for msg in messages[-lookback * 2:]:  # Check last N exchanges
+        if isinstance(msg.get("content"), list):
+            for block in msg["content"]:
+                if isinstance(block, dict) and block.get("type") == "tool_result":
+                    recent_tool_calls.append(block.get("content", ""))
+
+    # If all recent tool results are identical, we're probably looping
+    if len(recent_tool_calls) >= 3 and len(set(recent_tool_calls)) == 1:
+        return True
+    return False</code></pre>
+<div class="callout note"><div class="callout-label">注意</div><p>在生产智能体中，你还应该实现<strong>速率限制</strong>（如每分钟不超过30次API调用）、<strong>成本告警</strong>（如日支出超过$10时发送邮件通知）和<strong>终止开关</strong>（立即停止所有运行中的智能体的方法）。当你从开发扩展到生产使用时，这些运维关注点变得至关重要。</p></div>
 <a href="module_06_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块6 &mdash; 工具调用与Function Calling</p></div></a>
   </main>
 </div>

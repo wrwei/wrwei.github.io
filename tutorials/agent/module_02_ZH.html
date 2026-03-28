@@ -60,7 +60,7 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <div id="layout">
   <aside id="sidebar">
     <div class="sidebar-label">目录</div>
-    <nav><a href="#s1"><span class="num">1</span>前置条件</a><a href="#s2"><span class="num">2</span>安装依赖</a><a href="#s3"><span class="num">3</span>项目结构</a><a href="#s4"><span class="num">4</span>配置API密钥</a><a href="#s5"><span class="num">5</span>加载密钥</a></nav>
+    <nav><a href="#s1"><span class="num">1</span>前置条件</a><a href="#s2"><span class="num">2</span>安装依赖</a><a href="#s3"><span class="num">3</span>项目结构</a><a href="#s4"><span class="num">4</span>配置API密钥</a><a href="#s5"><span class="num">5</span>在Python中加载密钥</a></nav>
   </aside>
   <main id="main">
     <div class="module-hero">
@@ -74,44 +74,247 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>前置条件</h2>
 </div>
-<ul><li>安装Python 3.10+</li><li>OpenAI API密钥</li><li>Anthropic API密钥</li><li>代码编辑器</li></ul>
+<p>在构建AI智能体之前，你需要一个正确配置的开发环境。本模块将带你完成每一步——从安装Python到验证你的第一个API连接。完成后，你将拥有一个可用于本教程系列其余部分的项目脚手架。</p>
+<p>开始之前，你需要准备以下内容：</p>
+<ul>
+<li><strong>Python 3.10+</strong> &mdash; 我们推荐Python 3.11或3.12，以获得与现代AI库的最佳兼容性</li>
+<li><strong>OpenAI API密钥</strong> &mdash; 从 <a href="https://platform.openai.com" style="color:var(--blue)">platform.openai.com</a> 获取</li>
+<li><strong>Anthropic API密钥</strong> &mdash; 从 <a href="https://console.anthropic.com" style="color:var(--blue)">console.anthropic.com</a> 获取</li>
+<li><strong>代码编辑器</strong> &mdash; 推荐VS Code，因其出色的Python支持和集成终端</li>
+<li><strong>基本Python知识</strong> &mdash; 函数、类、字典，以及包管理</li>
+<li><strong>终端/命令行</strong> &mdash; 你应该能熟练运行命令</li>
+</ul>
+<div class="callout note"><div class="callout-label">注意</div><p>OpenAI和Anthropic都为新账户提供免费试用额度。OpenAI通常提供$5&ndash;$18的免费额度，Anthropic提供$5。这足以完成本教程系列中的所有练习。</p></div>
+
+<h3>检查Python版本</h3>
+<p>打开终端并验证你的Python安装：</p>
+<pre><code># Check Python version (must be 3.10 or higher)
+python --version
+# Output: Python 3.12.4
+
+# On some systems, you may need to use python3
+python3 --version</code></pre>
+<p>如果你没有安装Python，请从 <a href="https://python.org" style="color:var(--blue)">python.org</a> 下载。在macOS上也可以使用 <code>brew install python</code>。在Ubuntu/Debian上使用 <code>sudo apt install python3</code>。</p>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
   <h2>安装依赖</h2>
 </div>
-<pre><code>pip install openai anthropic python-dotenv</code></pre>
+<p>我们强烈建议使用<strong>虚拟环境</strong>来隔离项目依赖。这可以防止你机器上不同Python项目之间的版本冲突。</p>
+
+<h3>创建虚拟环境</h3>
+<pre><code># Create project directory
+mkdir ai-agent-tutorial
+cd ai-agent-tutorial
+
+# Create a virtual environment
+python -m venv venv
+
+# Activate it (macOS / Linux)
+source venv/bin/activate
+
+# Activate it (Windows)
+venv\Scripts\activate
+
+# You should see (venv) in your terminal prompt</code></pre>
+
+<h3>安装所需的包</h3>
+<pre><code># Install all dependencies at once
+pip install openai anthropic python-dotenv
+
+# Verify installation
+pip list | grep -E "openai|anthropic|dotenv"</code></pre>
+<p>这将安装三个包：</p>
+<div class="table-wrap"><table><tr><th>包</th><th>用途</th><th>版本（截至2026年）</th></tr><tr><td><code>openai</code></td><td>OpenAI官方Python SDK——提供GPT-4o、o3等的客户端</td><td>1.x+</td></tr><tr><td><code>anthropic</code></td><td>Anthropic官方Python SDK——提供Claude Sonnet/Opus的客户端</td><td>0.40+</td></tr><tr><td><code>python-dotenv</code></td><td>从<code>.env</code>文件加载环境变量——将密钥与代码分离</td><td>1.x+</td></tr></table></div>
+<div class="callout tip"><div class="callout-label">提示</div><p>在 <code>requirements.txt</code> 文件中固定依赖版本以确保可复现性。安装后运行 <code>pip freeze > requirements.txt</code>。这样，任何克隆你项目的人都可以运行 <code>pip install -r requirements.txt</code> 获得完全相同的环境。</p></div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
   <h2>项目结构</h2>
 </div>
+<p>一个良好的项目结构将在智能体变得复杂时为你节省很多麻烦。以下是我们在本教程系列中将构建的结构：</p>
 <pre><code>ai-agent-tutorial/
-├── .env
-├── .gitignore
-├── agent_openai.py
-├── agent_anthropic.py
-├── tools.py
-└── main.py</code></pre>
+├── .env                 # API keys (NEVER commit this file!)
+├── .gitignore           # Must include .env
+├── requirements.txt     # Pinned dependencies
+├── config.py            # Centralised configuration
+├── agent_openai.py      # OpenAI-based agent implementation
+├── agent_anthropic.py   # Anthropic-based agent implementation
+├── tools.py             # Tool definitions and implementations
+├── memory.py            # Memory management (short + long term)
+├── evaluator.py         # Agent evaluation and testing
+└── main.py              # Entry point</code></pre>
+<p>每个文件都有明确的职责。这种关注点分离使得交换组件变得容易——例如，只需更改一个import即可从OpenAI切换到Anthropic。</p>
+
+<h3>创建.gitignore文件</h3>
+<p>如果你使用Git（你应该使用），请立即创建 <code>.gitignore</code> 以防止意外提交敏感文件：</p>
+<pre><code># .gitignore
+.env
+venv/
+__pycache__/
+*.pyc
+.DS_Store</code></pre>
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>在你的第一次提交<strong>之前</strong>创建 <code>.gitignore</code>。如果你不小心提交了包含API密钥的 <code>.env</code> 文件，密钥将永远存在于你的Git历史中（即使你之后删除了该文件）。如果发生这种情况，请立即在供应商的控制面板中轮换你的API密钥。</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
   <h2>配置API密钥</h2>
 </div>
+<p>API密钥是OpenAI和Anthropic识别和计费你的账户的方式。它们是<strong>机密信息</strong>，绝不能出现在你的源代码、提交历史或公共仓库中。</p>
+
+<h3>获取API密钥</h3>
+<p><strong>OpenAI：</strong>前往 <a href="https://platform.openai.com/api-keys" style="color:var(--blue)">platform.openai.com/api-keys</a>，点击"Create new secret key"，命名后复制密钥。你只能看到一次。</p>
+<p><strong>Anthropic：</strong>前往 <a href="https://console.anthropic.com/settings/keys" style="color:var(--blue)">console.anthropic.com/settings/keys</a>，点击"Create Key"，命名后复制。同样的规则——你只能看到一次。</p>
+
+<h3>在.env文件中存储密钥</h3>
+<p>在项目根目录创建一个 <code>.env</code> 文件。该文件在运行时加载，但绝不提交到版本控制：</p>
 <pre><code># .env
 OPENAI_API_KEY=sk-proj-your-key-here
 ANTHROPIC_API_KEY=sk-ant-your-key-here</code></pre>
-<div class="callout pitfall"><div class="callout-label">WARNING</div><p>立即将.env加入.gitignore。</p></div>
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>永远不要在Python文件中硬编码API密钥。永远不要在聊天消息、截图或文档中分享它们。如果密钥泄露，任何人都可以使用你的账户进行API调用并产生费用。</p></div>
+
+<h3>替代方案：系统环境变量</h3>
+<p>对于生产部署，你可能更倾向于将密钥设置为系统环境变量，而不是使用 <code>.env</code> 文件：</p>
+<pre><code># macOS / Linux (add to ~/.bashrc or ~/.zshrc for persistence)
+export OPENAI_API_KEY="sk-proj-your-key-here"
+export ANTHROPIC_API_KEY="sk-ant-your-key-here"
+
+# Windows PowerShell
+$env:OPENAI_API_KEY="sk-proj-your-key-here"
+$env:ANTHROPIC_API_KEY="sk-ant-your-key-here"</code></pre>
+<div class="callout note"><div class="callout-label">注意</div><p>OpenAI和Anthropic的Python SDK都会自动查找 <code>OPENAI_API_KEY</code> 和 <code>ANTHROPIC_API_KEY</code> 环境变量。如果这些变量已设置，创建客户端时不需要显式传递密钥。</p></div>
+
 <span class="section-anchor" id="s5"></span>
 <div class="section-header">
   <span class="section-num">5</span>
-  <h2>加载密钥</h2>
+  <h2>在Python中加载密钥</h2>
 </div>
-<pre><code>import os
+<p>现在让我们编写一个配置模块来加载和验证你的API密钥。这个模式确保你能在任何API调用之前尽早发现缺失的密钥。</p>
+
+<h3>基本密钥加载</h3>
+<pre><code># config.py
+import os
 from dotenv import load_dotenv
+
+# Load variables from .env file into environment
 load_dotenv()
-assert os.getenv('OPENAI_API_KEY')
-assert os.getenv('ANTHROPIC_API_KEY')</code></pre>
+
+# Read keys from environment
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+
+# Validate - fail fast if keys are missing
+assert OPENAI_API_KEY, "Missing OPENAI_API_KEY in .env file"
+assert ANTHROPIC_API_KEY, "Missing ANTHROPIC_API_KEY in .env file"
+
+print("API keys loaded successfully.")</code></pre>
+
+<h3>验证连接</h3>
+<p>在进入下一模块之前，让我们通过向每个供应商发起最小API调用来验证密钥是否有效：</p>
+<pre><code># verify_setup.py
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
+import anthropic
+
+load_dotenv()
+
+# --- Test OpenAI ---
+print("Testing OpenAI connection...")
+oai_client = OpenAI()  # Automatically reads OPENAI_API_KEY
+response = oai_client.chat.completions.create(
+    model="gpt-4o-mini",   # Use the cheapest model for testing
+    messages=[{"role": "user", "content": "Say 'hello' and nothing else."}],
+    max_tokens=10
+)
+print(f"  OpenAI response: {response.choices[0].message.content}")
+
+# --- Test Anthropic ---
+print("Testing Anthropic connection...")
+ant_client = anthropic.Anthropic()  # Automatically reads ANTHROPIC_API_KEY
+message = ant_client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=10,
+    messages=[{"role": "user", "content": "Say 'hello' and nothing else."}]
+)
+print(f"  Anthropic response: {message.content[0].text}")
+
+print("\nAll connections verified! Your environment is ready.")</code></pre>
+<p>运行此文件：</p>
+<pre><code>python verify_setup.py
+# Expected output:
+# Testing OpenAI connection...
+#   OpenAI response: hello
+# Testing Anthropic connection...
+#   Anthropic response: hello
+# All connections verified! Your environment is ready.</code></pre>
+<div class="callout tip"><div class="callout-label">提示</div><p>我们在OpenAI测试中使用了 <code>gpt-4o-mini</code> 而不是 <code>gpt-4o</code>，因为它显著更便宜。对于验证目的，任何模型都可以。将昂贵的模型留到你真正需要其推理能力的时候。</p></div>
+
+<h3>常见错误排查</h3>
+<div class="table-wrap"><table><tr><th>错误信息</th><th>原因</th><th>修复方法</th></tr><tr><td><code>AuthenticationError</code></td><td>无效或过期的API密钥</td><td>在供应商控制面板重新生成密钥</td></tr><tr><td><code>RateLimitError</code></td><td>请求过多或没有额度</td><td>等待、添加计费信息或降低请求频率</td></tr><tr><td><code>ModuleNotFoundError: No module named 'openai'</code></td><td>包未安装或Python环境不正确</td><td>激活你的venv，然后 <code>pip install openai</code></td></tr><tr><td><code>AssertionError: Missing OPENAI_API_KEY</code></td><td><code>.env</code> 文件缺失或密钥未设置</td><td>检查 <code>.env</code> 文件是否在正确的目录中并包含密钥</td></tr></table></div>
+
+<h3>健壮的配置模块</h3>
+<p>对于生产级别的配置，使用一个配置类来处理多个环境（开发、测试、生产）并提供合理的默认值：</p>
+<pre><code># config.py - production-quality configuration
+import os
+from dataclasses import dataclass
+from dotenv import load_dotenv
+
+load_dotenv()
+
+@dataclass
+class Config:
+    """Centralised configuration for the AI agent project."""
+    openai_api_key: str = ""
+    anthropic_api_key: str = ""
+    default_provider: str = "anthropic"  # or "openai"
+    default_model: str = "claude-sonnet-4-20250514"
+    max_tokens: int = 1024
+    temperature: float = 0.0
+    max_agent_steps: int = 10
+    log_file: str = "agent_log.jsonl"
+
+    @classmethod
+    def from_env(cls) -> "Config":
+        """Load configuration from environment variables."""
+        return cls(
+            openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+            anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
+            default_provider=os.getenv("DEFAULT_PROVIDER", "anthropic"),
+            max_agent_steps=int(os.getenv("MAX_AGENT_STEPS", "10")),
+        )
+
+    def validate(self) -> list[str]:
+        """Return a list of configuration errors (empty = all good)."""
+        errors = []
+        if not self.openai_api_key:
+            errors.append("OPENAI_API_KEY is not set")
+        if not self.anthropic_api_key:
+            errors.append("ANTHROPIC_API_KEY is not set")
+        return errors
+
+# Usage
+config = Config.from_env()
+errors = config.validate()
+if errors:
+    print("Configuration errors:")
+    for e in errors:
+        print(f"  - {e}")
+else:
+    print("Configuration OK")</code></pre>
+<div class="callout note"><div class="callout-label">注意</div><p>使用 <code>Config</code> dataclass为你提供所有智能体设置的单一数据源。当你以后添加 <code>max_agent_steps</code> 或 <code>temperature</code> 等参数时，它们集中在一个地方而不是分散在多个文件中。随着项目增长，这将变得极其宝贵。</p></div>
+
+<h3>VS Code推荐扩展</h3>
+<p>如果你使用VS Code，安装以下扩展以获得AI智能体项目的最佳开发体验：</p>
+<div class="card-grid">
+<div class="card"><h3>Python</h3><p>Microsoft的官方扩展。提供IntelliSense、代码检查、调试和Jupyter支持。</p></div>
+<div class="card"><h3>Pylance</h3><p>高级类型检查和自动补全。捕获工具定义和API调用中的类型错误。</p></div>
+<div class="card"><h3>Python Dotenv</h3><p><code>.env</code>文件的语法高亮。便于发现密钥中的格式错误。</p></div>
+<div class="card"><h3>REST Client</h3><p>直接从VS Code测试API端点。对调试工具实现很有用。</p></div>
+</div>
 <a href="module_03_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块3 &mdash; 提示工程</p></div></a>
   </main>
 </div>

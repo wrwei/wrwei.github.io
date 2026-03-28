@@ -74,46 +74,307 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>知识问题</h2>
 </div>
-<p>LLM有知识截止日期。<strong>RAG</strong>在查询时检索相关文档。</p>
-<div class="callout analogy"><div class="callout-label">类比</div><p>没有RAG的LLM就像没有今天报纸的专家。</p></div>
+<p>LLM有一个<strong>知识截止日期</strong> &mdash; 它们只知道训练数据中包含的内容。它们无法回答关于截止日期之后的事件、您公司的内部文档或任何从未训练过的私有数据的问题。它们在不确定的时候还会自信地产生幻觉。</p>
+<p><strong>检索增强生成（RAG）</strong>通过在查询时检索相关文档并将其注入LLM的上下文来解决这个问题。模型不是依赖记忆中的知识，而是阅读实际的源材料并生成基于该材料的答案。</p>
+<p>RAG是生产AI系统中部署最广泛的模式，因为它比微调更简单、更便宜，可以即时更新（只需添加或删除文档），并且提供回溯到源材料的引用。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>没有RAG的LLM就像一个仅凭记忆参加考试的医生。RAG让他们在考试期间可以查阅最新的医学期刊 &mdash; 他们仍然需要专业知识来解读材料，但他们的答案基于当前证据而非可能过时的知识。</p></div>
+
+<div class="card-grid">
+  <div class="card"><h3>最新答案</h3><p>查询实时数据源，而非依赖可能过时数月或数年的训练数据知识。</p></div>
+  <div class="card"><h3>领域专业性</h3><p>将答案基于您公司的内部文档、政策和知识库，无需微调。</p></div>
+  <div class="card"><h3>减少幻觉</h3><p>当模型从提供的上下文中回答时，编造事实的可能性大大降低。</p></div>
+  <div class="card"><h3>可验证来源</h3><p>每个答案都可以引用其所依据的特定文档片段，支持用户验证。</p></div>
+</div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
-  <h2>RAG架构</h2>
+  <h2>RAG架构概览</h2>
 </div>
-<ol><li>嵌入</li><li>存储</li><li>检索</li><li>生成</li></ol>
+<p>RAG系统有两个阶段：<strong>索引阶段</strong>（离线，运行一次或定期运行）和<strong>查询阶段</strong>（在线，每个用户问题运行一次）。理解这两个阶段对于构建有效的管道至关重要。</p>
+
+<h3>索引阶段（离线）</h3>
+<ol>
+  <li><strong>加载</strong> &mdash; 从文件、数据库、API或网页读取文档</li>
+  <li><strong>分块</strong> &mdash; 将文档分割成更小的、有意义的片段</li>
+  <li><strong>嵌入</strong> &mdash; 使用嵌入模型将每个片段转换为向量（一组数字）</li>
+  <li><strong>存储</strong> &mdash; 将向量和原始文本保存到向量数据库中</li>
+</ol>
+
+<h3>查询阶段（在线）</h3>
+<ol>
+  <li><strong>嵌入查询</strong> &mdash; 使用相同的嵌入模型将用户的问题转换为向量</li>
+  <li><strong>检索</strong> &mdash; 使用向量相似性搜索找到最相似的文档片段</li>
+  <li><strong>增强</strong> &mdash; 将检索到的片段作为上下文插入LLM提示中</li>
+  <li><strong>生成</strong> &mdash; LLM阅读上下文并产生基于事实的答案</li>
+</ol>
+
+<div class="callout note"><div class="callout-label">注意</div><p>RAG<strong>不会</strong>微调或修改模型。它在查询时用检索到的上下文增强提示。这意味着您可以即时更新知识库，无需重新训练任何东西。</p></div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
   <h2>文档分块与嵌入</h2>
 </div>
-<div class="table-wrap"><table><tr><th>策略</th><th>适用</th><th>缺点</th></tr><tr><td>固定大小</td><td>简单</td><td>可能断句</td></tr><tr><td>基于句子</td><td>自然边界</td><td>大小不一</td></tr></table></div>
+<p>分块可以说是RAG管道中最重要的步骤。如果您的片段太大，它们会浪费上下文token并稀释相关性。如果太小，它们会丢失上下文，模型无法综合出连贯的答案。</p>
+<p>目标是创建<strong>自包含的</strong>（独立就有意义）、<strong>专注的</strong>（关于一个主题）且<strong>大小适当的</strong>（通常200-1000个token）片段。</p>
+
+<div class="table-wrap"><table>
+  <tr><th>策略</th><th>工作方式</th><th>最适合</th><th>缺点</th></tr>
+  <tr><td>固定大小</td><td>每N个字符/token分割</td><td>简单实现</td><td>可能在句中或段中截断</td></tr>
+  <tr><td>基于句子</td><td>在句子边界分割</td><td>自然文本、文章</td><td>片段大小不一，有些句子太短</td></tr>
+  <tr><td>递归字符</td><td>先尝试段落、再句子、再单词边界</td><td>通用目的，保留结构</td><td>实现更复杂</td></tr>
+  <tr><td>语义分割</td><td>使用嵌入检测主题转换</td><td>包含多个主题的长文档</td><td>昂贵，需要嵌入每个句子</td></tr>
+  <tr><td>文档感知</td><td>使用标题、章节或标记结构</td><td>Markdown、HTML、结构化文档</td><td>需要针对文档的特定解析</td></tr>
+</table></div>
+
+<h3>带重叠的分块</h3>
+<pre><code>def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
+    """Split text into overlapping chunks by character count."""
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end]
+        # Try to end at a sentence boundary
+        last_period = chunk.rfind(". ")
+        if last_period > chunk_size * 0.5:
+            end = start + last_period + 1
+            chunk = text[start:end]
+        chunks.append(chunk.strip())
+        start = end - overlap  # overlap for context continuity
+    return chunks
+
+# Example
+text = open("company_handbook.txt").read()
+chunks = chunk_text(text, chunk_size=800, overlap=100)
+print(f"Created {len(chunks)} chunks from {len(text)} characters")</code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p><strong>重叠</strong>非常关键。片段之间50-100个token的重叠确保片段边界处的信息不会丢失。没有重叠的话，横跨两个片段的句子在两个片段中都是不完整的。</p></div>
+
+<h3>生成嵌入</h3>
+<pre><code># Using OpenAI embeddings (most popular choice)
+import openai
+
+client = openai.OpenAI()
+
+def get_embeddings(texts: list[str]) -> list[list[float]]:
+    """Generate embeddings for a batch of texts."""
+    response = client.embeddings.create(
+        model="text-embedding-3-small",  # 1536 dimensions, cheap
+        input=texts
+    )
+    return [item.embedding for item in response.data]
+
+# Embed a single query
+query_embedding = get_embeddings(["What is the refund policy?"])[0]
+
+# Embed all chunks
+chunk_embeddings = get_embeddings(chunks)</code></pre>
+
+<div class="callout note"><div class="callout-label">注意</div><p>索引和查询始终使用<strong>相同的嵌入模型</strong>。混合使用模型（例如用OpenAI索引，用Cohere查询）会产生无意义的相似度分数，因为向量空间不同。</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
   <h2>向量数据库</h2>
 </div>
-<div class="card-grid"><div class="card"><h3>ChromaDB</h3><p>开源，本地运行</p></div><div class="card"><h3>Pinecone</h3><p>云服务</p></div><div class="card"><h3>pgvector</h3><p>PostgreSQL扩展</p></div></div>
+<p>向量数据库专为存储和搜索高维向量而构建。它们使用专门的索引算法（如HNSW或IVF），即使在数百万个向量上也能快速进行相似性搜索。</p>
+
+<div class="card-grid">
+  <div class="card"><h3>ChromaDB</h3><p>开源，本地运行，Python原生。适合原型开发和中小型数据集。内置嵌入支持。</p></div>
+  <div class="card"><h3>Pinecone</h3><p>完全托管的云服务。可扩展到数十亿向量。无服务器定价模式。最适合生产工作负载。</p></div>
+  <div class="card"><h3>pgvector</h3><p>PostgreSQL扩展。使用现有的Postgres基础设施。当您已有SQL数据库并想添加向量搜索时非常理想。</p></div>
+  <div class="card"><h3>Weaviate</h3><p>开源，支持混合搜索（向量+关键词）。内置多模态数据支持。适合复杂搜索需求。</p></div>
+  <div class="card"><h3>Qdrant</h3><p>开源，基于Rust，非常快。丰富的过滤功能。提供云和自托管选项。</p></div>
+  <div class="card"><h3>FAISS</h3><p>Meta的高效相似性搜索库。不是数据库（没有内置持久化），但在内存搜索方面极其快速。</p></div>
+</div>
+
+<h3>设置ChromaDB</h3>
+<pre><code>import chromadb
+
+# Persistent storage (survives restarts)
+client = chromadb.PersistentClient(path="./chroma_db")
+
+# Create a collection
+collection = client.get_or_create_collection(
+    name="company_docs",
+    metadata={"hnsw:space": "cosine"}  # cosine similarity
+)
+
+# Index documents
+collection.add(
+    documents=chunks,                          # raw text
+    ids=[f"chunk_{i}" for i in range(len(chunks))],  # unique IDs
+    metadatas=[{"source": "handbook.pdf", "page": i // 5}
+               for i in range(len(chunks))]     # metadata for filtering
+)
+
+# Query
+results = collection.query(
+    query_texts=["What is the vacation policy?"],
+    n_results=5,
+    where={"source": "handbook.pdf"}  # optional metadata filter
+)
+
+for doc, score in zip(results["documents"][0], results["distances"][0]):
+    print(f"[{score:.3f}] {doc[:100]}...")</code></pre>
+
 <span class="section-anchor" id="s5"></span>
 <div class="section-header">
   <span class="section-num">5</span>
-  <h2>构建RAG管道</h2>
+  <h2>构建完整的RAG管道</h2>
 </div>
-<pre><code>import anthropic, chromadb
-ai = anthropic.Anthropic()
-collection = chromadb.Client().get_or_create_collection('kb')
+<p>让我们构建一个生产质量的RAG管道，索引一组文档并从中回答问题。此示例使用ChromaDB进行存储，Anthropic的Claude进行生成。</p>
 
-def rag_query(q):
-    ctx = '\n'.join(collection.query(query_texts=[q], n_results=3)['documents'][0])
-    return ai.messages.create(model='claude-sonnet-4-20250514', max_tokens=1024,
-        system=f'根据上下文回答。\n{ctx}',
-        messages=[{'role':'user','content':q}]).content[0].text</code></pre>
+<pre><code>import anthropic
+import chromadb
+import os
+import json
+
+class RAGPipeline:
+    """Complete RAG pipeline: index, retrieve, generate."""
+
+    def __init__(self, collection_name: str = "knowledge_base"):
+        self.ai = anthropic.Anthropic()
+        self.db = chromadb.PersistentClient(path="./rag_db")
+        self.collection = self.db.get_or_create_collection(collection_name)
+
+    def index_document(self, text: str, source: str, chunk_size: int = 800):
+        """Chunk and index a document."""
+        chunks = chunk_text(text, chunk_size=chunk_size, overlap=100)
+        self.collection.add(
+            documents=chunks,
+            ids=[f"{source}_{i}" for i in range(len(chunks))],
+            metadatas=[{"source": source, "chunk_index": i}
+                       for i in range(len(chunks))]
+        )
+        print(f"Indexed {len(chunks)} chunks from '{source}'")
+
+    def index_directory(self, dir_path: str):
+        """Index all .txt and .md files in a directory."""
+        for fname in os.listdir(dir_path):
+            if fname.endswith((".txt", ".md")):
+                path = os.path.join(dir_path, fname)
+                text = open(path, "r", encoding="utf-8").read()
+                self.index_document(text, source=fname)
+
+    def retrieve(self, query: str, n_results: int = 5) -> list[dict]:
+        """Retrieve relevant chunks for a query."""
+        if self.collection.count() == 0:
+            return []
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=min(n_results, self.collection.count())
+        )
+        return [
+            {"text": doc, "source": meta["source"], "score": dist}
+            for doc, meta, dist in zip(
+                results["documents"][0],
+                results["metadatas"][0],
+                results["distances"][0]
+            )
+        ]
+
+    def query(self, question: str, n_results: int = 5) -> dict:
+        """Full RAG: retrieve context, then generate an answer."""
+        chunks = self.retrieve(question, n_results)
+
+        if not chunks:
+            return {"answer": "No documents indexed yet.", "sources": []}
+
+        # Build context string with source attribution
+        context_parts = []
+        for i, c in enumerate(chunks, 1):
+            context_parts.append(f"[Source {i}: {c['source']}]\n{c['text']}")
+        context = "\n\n---\n\n".join(context_parts)
+
+        system_prompt = f"""You are a helpful assistant that answers questions
+based ONLY on the provided context. If the context does not contain
+the answer, say "I don't have enough information to answer that."
+Always cite which source(s) you used, e.g., [Source 1].
+
+Context:
+{context}"""
+
+        response = self.ai.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=[{"role": "user", "content": question}]
+        )
+
+        return {
+            "answer": response.content[0].text,
+            "sources": [c["source"] for c in chunks],
+            "chunks_used": len(chunks)
+        }
+
+# Usage
+rag = RAGPipeline()
+rag.index_directory("./company_docs")
+result = rag.query("What is our remote work policy?")
+print(result["answer"])
+print("Sources:", result["sources"])</code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>始终指示LLM在上下文不包含答案时说"我不知道"。如果没有这个指令，模型通常会编造一个听起来合理但并非基于您文档的答案。</p></div>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p><strong>检索质量是瓶颈，而非生成质量。</strong>如果检索到了错误的片段，即使最好的LLM也会产生糟糕的答案。将大部分优化精力花在分块、嵌入选择和检索调优上，而非生成步骤的提示工程。</p></div>
+
 <span class="section-anchor" id="s6"></span>
 <div class="section-header">
   <span class="section-num">6</span>
   <h2>评估与质量</h2>
 </div>
-<ul><li>Recall@k</li><li>答案忠实度</li><li>答案相关性</li></ul>
+<p>衡量RAG质量需要分别评估<strong>检索</strong>步骤和<strong>生成</strong>步骤。一个常见的错误是只评估最终答案，而不了解失败是来自糟糕的检索还是糟糕的生成。</p>
+
+<div class="table-wrap"><table>
+  <tr><th>指标</th><th>衡量内容</th><th>计算方式</th></tr>
+  <tr><td>Recall@k</td><td>正确的文档是否在前k个检索结果中？</td><td>标注真实文档，检查是否被检索到</td></tr>
+  <tr><td>Precision@k</td><td>检索到的片段中有多少是真正相关的？</td><td>人工标注或LLM评判</td></tr>
+  <tr><td>忠实度</td><td>答案是否基于检索到的上下文（无幻觉）？</td><td>LLM评判："这个论断是否被上下文支持？"</td></tr>
+  <tr><td>答案相关性</td><td>答案是否真正回答了所提的问题？</td><td>LLM评判或人工评估</td></tr>
+  <tr><td>延迟</td><td>端到端响应时间</td><td>测量检索 + 生成时间</td></tr>
+</table></div>
+
+<h3>简单评估脚本</h3>
+<pre><code>def evaluate_rag(pipeline: RAGPipeline, test_cases: list[dict]) -> dict:
+    """Evaluate RAG pipeline on test cases.
+    Each test case: {"question": str, "expected_source": str, "expected_keywords": [str]}
+    """
+    results = {"retrieval_hits": 0, "answer_relevant": 0, "total": len(test_cases)}
+
+    for tc in test_cases:
+        result = pipeline.query(tc["question"])
+
+        # Check retrieval: did we find the right source?
+        if tc["expected_source"] in result["sources"]:
+            results["retrieval_hits"] += 1
+
+        # Check answer: does it contain expected keywords?
+        answer_lower = result["answer"].lower()
+        if all(kw.lower() in answer_lower for kw in tc["expected_keywords"]):
+            results["answer_relevant"] += 1
+
+    results["retrieval_accuracy"] = results["retrieval_hits"] / results["total"]
+    results["answer_accuracy"] = results["answer_relevant"] / results["total"]
+    return results
+
+# Example test cases
+test_cases = [
+    {"question": "What is the vacation policy?",
+     "expected_source": "hr_handbook.txt",
+     "expected_keywords": ["days", "annual"]},
+    {"question": "How do I submit expenses?",
+     "expected_source": "finance_guide.txt",
+     "expected_keywords": ["receipt", "submit"]},
+]
+metrics = evaluate_rag(rag, test_cases)
+print(f"Retrieval accuracy: {metrics['retrieval_accuracy']:.0%}")
+print(f"Answer accuracy: {metrics['answer_accuracy']:.0%}")</code></pre>
+
+<div class="callout note"><div class="callout-label">注意</div><p>从简单的管道开始，测量其性能，然后优化。常见的改进包括：更好的分块策略、使用交叉编码器对检索结果进行重排序、查询扩展（重写查询以提高检索效果），以及将向量相似性与关键词匹配（BM25）相结合的混合搜索。</p></div>
 <a href="module_09_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块9 &mdash; MCP &mdash; 构建你自己的服务器</p></div></a>
   </main>
 </div>

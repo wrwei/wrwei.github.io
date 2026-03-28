@@ -74,42 +74,278 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>什么是MCP？</h2>
 </div>
-<p>MCP是Anthropic创建的开放标准。AI的USB-C。2025年12月捐赠给Linux基金会。</p>
+<p><strong>模型上下文协议（MCP）</strong>是Anthropic创建的开放标准，用于将AI智能体连接到外部工具和数据源。在MCP之前，每个AI应用都必须为每个工具构建自定义集成 &mdash; 一个应用的Slack集成和另一个应用的Slack集成完全不同。MCP标准化了这些连接，使得一次构建的工具集成可以与任何兼容MCP的主机一起工作。</p>
+<p>可以把它想象成<strong>AI的USB-C</strong>。就像USB-C在设备和外设之间提供通用连接器一样，MCP在AI智能体和工具之间提供通用协议。Anthropic于2025年12月将MCP捐赠给Linux基金会，目前所有语言的SDK月下载量已超过9700万次。</p>
+<p>MCP之所以重要，是因为它解决了<strong>N x M集成问题</strong>。没有MCP时，N个AI应用各需要M个自定义集成，总共N*M个集成。有了MCP，每个工具构建一个服务器，每个应用构建一个客户端，总共只需N+M个集成。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>在USB出现之前，每台打印机、扫描仪和键盘都有不同的连接器。您需要为每种组合准备特定的电缆和驱动程序。USB统一了这一切 &mdash; 任何设备都能与任何电脑配合使用。MCP对AI工具做了同样的事情：为您的数据库构建一个MCP服务器，它就能与Claude Desktop、VS Code、Cursor以及任何其他MCP主机一起工作。</p></div>
+
+<div class="table-wrap"><table>
+  <tr><th>没有MCP</th><th>有MCP</th></tr>
+  <tr><td>每个应用每个工具都需要自定义集成</td><td>每个工具一个服务器，到处都能用</td></tr>
+  <tr><td>不同的API、格式、认证方法</td><td>标准化的协议和消息格式</td></tr>
+  <tr><td>智能体与工具紧耦合</td><td>通过协议松耦合</td></tr>
+  <tr><td>难以在项目间共享工具</td><td>可复用服务器的社区注册表</td></tr>
+</table></div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
   <h2>架构</h2>
 </div>
-<div class="card-grid"><div class="card"><h3>MCP主机</h3><p>AI应用</p></div><div class="card"><h3>MCP客户端</h3><p>SDK</p></div><div class="card"><h3>MCP服务器</h3><p>暴露工具</p></div></div>
+<p>MCP遵循客户端-服务器架构，有三个不同的角色。理解这些角色是正确构建和集成MCP服务器的关键。</p>
+
+<div class="card-grid">
+  <div class="card"><h3>MCP主机</h3><p>用户交互的AI应用。例如：Claude Desktop、带Copilot的VS Code、Cursor，或您自己的自定义智能体应用。主机管理一个或多个MCP客户端。</p></div>
+  <div class="card"><h3>MCP客户端</h3><p>一个协议客户端（由MCP SDK提供），与单个MCP服务器保持1:1连接。主机为其连接的每个服务器创建一个客户端。</p></div>
+  <div class="card"><h3>MCP服务器</h3><p>一个轻量级程序，通过MCP协议暴露功能。每个服务器提供<strong>工具</strong>、<strong>资源</strong>和<strong>提示</strong>的某种组合。</p></div>
+</div>
+
+<p>通信流程为：<strong>用户 &rarr; 主机 &rarr; 客户端 &rarr; 服务器 &rarr; 外部系统</strong>。主机内的LLM决定调用哪些工具，客户端将请求发送到相应的服务器，服务器执行操作并返回结果，客户端将结果传回主机。</p>
+
+<h3>MCP原语</h3>
+<div class="table-wrap"><table>
+  <tr><th>原语</th><th>描述</th><th>控制方</th><th>示例</th></tr>
+  <tr><td>工具</td><td>模型可以调用的函数以执行操作</td><td>模型控制（LLM决定何时调用）</td><td>发送邮件、查询数据库、创建文件</td></tr>
+  <tr><td>资源</td><td>应用可以访问的只读数据</td><td>应用控制（主机决定何时读取）</td><td>文件内容、数据库schema、API文档</td></tr>
+  <tr><td>提示</td><td>带参数的可复用提示模板</td><td>用户控制（用户选择使用哪个提示）</td><td>"总结此文档"、"审查此PR"</td></tr>
+</table></div>
+
+<div class="callout note"><div class="callout-label">注意</div><p>MCP支持两种传输机制：<strong>stdio</strong>（标准输入/输出，用于本地服务器）和<strong>SSE</strong>（HTTP上的Server-Sent Events，用于远程服务器）。Stdio更简单，更常用于本地开发；SSE支持将MCP服务器作为Web服务托管。</p></div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
   <h2>构建MCP服务器</h2>
 </div>
+<p>Python MCP SDK提供了 <code>FastMCP</code>，一个高级API，使构建服务器像编写带装饰器的Python函数一样简单。每个装饰过的函数都成为任何MCP主机可以发现和使用的工具、资源或提示。</p>
+
+<pre><code>pip install mcp[cli]</code></pre>
+
+<h3>完整的示例服务器</h3>
 <pre><code>from mcp.server.fastmcp import FastMCP
-mcp = FastMCP('My Tools')
+import json
+import sqlite3
+from datetime import datetime
+
+# Create the MCP server
+mcp = FastMCP("Company Tools", version="1.0.0")
+
+# --- TOOLS (model-controlled) ---
+
 @mcp.tool()
 def get_stock_price(symbol: str) -> str:
-    return f'{symbol}: $227.50'
-mcp.run(transport='stdio')</code></pre>
+    """Get the current stock price for a given ticker symbol.
+
+    Args:
+        symbol: Stock ticker symbol, e.g., 'AAPL', 'GOOGL', 'MSFT'
+
+    Returns:
+        Current price and daily change as a formatted string.
+    """
+    # In production, call a real API like Alpha Vantage or Yahoo Finance
+    prices = {
+        "AAPL": {"price": 227.50, "change": +1.2},
+        "GOOGL": {"price": 178.30, "change": -0.8},
+        "MSFT": {"price": 445.20, "change": +2.1},
+    }
+    data = prices.get(symbol.upper())
+    if not data:
+        return f"Unknown symbol: {symbol}"
+    sign = "+" if data["change"] >= 0 else ""
+    return f"{symbol.upper()}: ${data['price']:.2f} ({sign}{data['change']}%)"
+
+@mcp.tool()
+def query_employees(department: str = "", role: str = "") -> str:
+    """Search the employee directory by department and/or role.
+
+    Args:
+        department: Filter by department name (optional)
+        role: Filter by job role (optional)
+
+    Returns:
+        JSON array of matching employees with name, role, department, email.
+    """
+    conn = sqlite3.connect("company.db")
+    conn.row_factory = sqlite3.Row
+    query = "SELECT name, role, department, email FROM employees WHERE 1=1"
+    params = []
+    if department:
+        query += " AND department LIKE ?"
+        params.append(f"%{department}%")
+    if role:
+        query += " AND role LIKE ?"
+        params.append(f"%{role}%")
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return json.dumps([dict(r) for r in rows], indent=2)
+
+@mcp.tool()
+def create_calendar_event(
+    title: str, date: str, time: str, duration_minutes: int = 60
+) -> str:
+    """Create a new calendar event.
+
+    Args:
+        title: Event title
+        date: Date in YYYY-MM-DD format
+        time: Start time in HH:MM format (24-hour)
+        duration_minutes: Duration in minutes (default: 60)
+    """
+    # In production, call Google Calendar or Outlook API
+    return json.dumps({
+        "status": "created",
+        "event": {"title": title, "date": date, "time": time,
+                  "duration": duration_minutes}
+    })
+
+# Run the server
+if __name__ == "__main__":
+    mcp.run(transport="stdio")</code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>为每个工具编写<strong>详细的文档字符串</strong>。MCP SDK将这些提取为LLM读取的工具描述。包括参数描述、预期格式和返回值文档。文档字符串的质量直接决定了LLM使用工具的效果。</p></div>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>MCP工具必须返回<strong>字符串</strong>。如果您的函数返回dict或list，请先序列化为JSON。MCP协议通过文本通信，非字符串返回值会导致错误。</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
   <h2>资源与提示</h2>
 </div>
-<p>MCP还可暴露资源和提示模板。</p>
+<p>除了工具之外，MCP服务器还暴露<strong>资源</strong>（只读数据）和<strong>提示</strong>（可复用模板）。资源让主机应用可以浏览和读取数据，而无需LLM决定这样做。提示提供用户可以触发的预构建交互模式。</p>
+
+<h3>资源</h3>
+<pre><code>@mcp.resource("company://docs/{doc_name}")
+def get_document(doc_name: str) -> str:
+    """Read a company document by name.
+
+    Exposes documents like:
+      company://docs/vacation-policy
+      company://docs/expense-guidelines
+    """
+    docs_dir = "./company_docs"
+    path = f"{docs_dir}/{doc_name}.md"
+    try:
+        with open(path, "r") as f:
+            return f.read()
+    except FileNotFoundError:
+        return f"Document '{doc_name}' not found."
+
+@mcp.resource("company://metrics/dashboard")
+def get_dashboard_metrics() -> str:
+    """Get current company metrics dashboard data."""
+    # In production, query your metrics database
+    return json.dumps({
+        "revenue_mtd": "$2.4M",
+        "active_users": 15420,
+        "uptime": "99.97%",
+        "open_tickets": 23
+    }, indent=2)</code></pre>
+
+<h3>提示模板</h3>
+<pre><code>from mcp.server.fastmcp import Context
+
+@mcp.prompt()
+def review_code(language: str, code: str) -> str:
+    """Review code for bugs, style issues, and improvements."""
+    return f"""Please review the following {language} code for:
+1. Bugs and potential errors
+2. Style and readability issues
+3. Performance improvements
+4. Security concerns
+
+Code to review:
+```{language}
+{code}
+```
+
+Provide specific, actionable feedback with code examples for each issue found."""
+
+@mcp.prompt()
+def summarise_meeting(notes: str) -> str:
+    """Summarise meeting notes into action items and decisions."""
+    return f"""Analyse these meeting notes and produce:
+1. A 2-3 sentence summary
+2. Key decisions made
+3. Action items with owners and deadlines
+
+Meeting notes:
+{notes}"""</code></pre>
+
+<div class="callout note"><div class="callout-label">注意</div><p>工具、资源和提示之间的区别在于<strong>谁来控制它们</strong>。工具是模型控制的（LLM决定调用它们）。资源是应用控制的（主机根据需要读取它们）。提示是用户控制的（用户从菜单中选择它们）。</p></div>
+
 <span class="section-anchor" id="s5"></span>
 <div class="section-header">
   <span class="section-num">5</span>
   <h2>连接Claude Desktop</h2>
 </div>
-<pre><code>{"mcpServers": {"my-tools": {"command": "python", "args": ["server.py"]}}}</code></pre>
+<p>Claude Desktop是测试和个人使用中最常见的MCP主机。要连接您的服务器，您需要编辑Claude Desktop配置文件并添加您的服务器定义。</p>
+
+<h3>配置文件位置</h3>
+<ul>
+  <li><strong>macOS:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
+  <li><strong>Windows:</strong> <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
+</ul>
+
+<h3>配置格式</h3>
+<pre><code>{
+  "mcpServers": {
+    "company-tools": {
+      "command": "python",
+      "args": ["/absolute/path/to/server.py"],
+      "env": {
+        "DATABASE_URL": "sqlite:///company.db",
+        "API_KEY": "your-api-key-here"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxxx"
+      }
+    }
+  }
+}</code></pre>
+
+<p>保存配置并重启Claude Desktop后，您的工具将出现在工具菜单中（锤子图标）。Claude会自动发现您服务器暴露的所有工具、资源和提示。</p>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>在连接到Claude Desktop之前，使用<strong>MCP Inspector</strong>调试您的服务器。运行 <code>mcp dev server.py</code> 启动一个交互式Web UI，让您直接测试每个工具、资源和提示。</p></div>
+
+<h3>使用MCP Inspector测试</h3>
+<pre><code># Install the CLI tools
+pip install "mcp[cli]"
+
+# Launch the inspector (opens a web UI)
+mcp dev server.py
+
+# Or test from the command line
+mcp run server.py</code></pre>
+
 <span class="section-anchor" id="s6"></span>
 <div class="section-header">
   <span class="section-num">6</span>
   <h2>MCP生态</h2>
 </div>
-<ul><li>社区服务器</li><li>多语言SDK</li><li>调试工具</li></ul>
+<p>MCP生态系统自协议发布以来增长迅速。有大量用于常见集成的预构建服务器、多种语言的SDK，以及不断壮大的开发者社区在构建和共享服务器。</p>
+
+<div class="card-grid">
+  <div class="card"><h3>预构建服务器</h3><p>GitHub、Slack、PostgreSQL、SQLite、文件系统、Google Drive、Brave Search、Puppeteer等，均可从官方注册表获取。</p></div>
+  <div class="card"><h3>多语言SDK</h3><p>Python、TypeScript、Java、C#、Go和Kotlin的官方SDK。用您选择的语言构建MCP服务器。</p></div>
+  <div class="card"><h3>MCP Inspector</h3><p>内置调试工具。在连接到主机之前，通过Web UI与服务器的工具、资源和提示进行交互。</p></div>
+  <div class="card"><h3>社区注册表</h3><p>在官方注册表中浏览和共享MCP服务器。只需一条命令即可安装社区服务器。</p></div>
+</div>
+
+<div class="table-wrap"><table>
+  <tr><th>预构建服务器</th><th>功能</th><th>安装</th></tr>
+  <tr><td>Filesystem</td><td>在允许的目录中读取、写入、搜索文件</td><td><code>npx @modelcontextprotocol/server-filesystem</code></td></tr>
+  <tr><td>GitHub</td><td>仓库、Issue、PR、代码搜索</td><td><code>npx @modelcontextprotocol/server-github</code></td></tr>
+  <tr><td>PostgreSQL</td><td>查询数据库、检查schema</td><td><code>npx @modelcontextprotocol/server-postgres</code></td></tr>
+  <tr><td>Brave Search</td><td>通过Brave API进行网络搜索</td><td><code>npx @modelcontextprotocol/server-brave-search</code></td></tr>
+  <tr><td>Puppeteer</td><td>浏览器自动化、截图</td><td><code>npx @modelcontextprotocol/server-puppeteer</code></td></tr>
+</table></div>
+
+<div class="callout note"><div class="callout-label">注意</div><p>构建生产级MCP服务器时，始终验证输入、优雅处理错误，并考虑安全影响。MCP服务器本质上是一个AI可以调用的API &mdash; 应用与任何API相同的安全实践（身份验证、速率限制、输入净化、最小权限原则）。</p></div>
 <a href="module_10_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块10 &mdash; LangChain与CrewAI</p></div></a>
   </main>
 </div>
