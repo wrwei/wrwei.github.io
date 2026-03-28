@@ -60,7 +60,7 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <div id="layout">
   <aside id="sidebar">
     <div class="sidebar-label">目录</div>
-    <nav><a href="#s1"><span class="num">1</span>上下文窗口</a><a href="#s2"><span class="num">2</span>滑动窗口</a><a href="#s3"><span class="num">3</span>摘要策略</a><a href="#s4"><span class="num">4</span>持久化存储</a></nav>
+    <nav><a href="#s1"><span class="num">1</span>上下文窗口</a><a href="#s2"><span class="num">2</span>短期记忆</a><a href="#s3"><span class="num">3</span>摘要策略</a><a href="#s4"><span class="num">4</span>长期记忆</a><a href="#s5"><span class="num">5</span>持久化存储</a><a href="#s6"><span class="num">6</span>综合应用</a></nav>
   </aside>
   <main id="main">
     <div class="module-hero">
@@ -74,28 +74,308 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>上下文窗口问题</h2>
 </div>
-<p>LLM上下文窗口有限。智能体需要管理策略。</p>
+<p>每个LLM都有一个有限的<strong>上下文窗口</strong> &mdash; 它在单次请求中能处理的最大token数。这包括系统提示、所有对话历史、工具定义和模型的响应。当您的对话超过此限制时，您必须决定保留什么和丢弃什么。</p>
+<p>上下文窗口已经大幅增长（从早期GPT-3.5的4K token到Claude的200K和Gemini的1M+），但它们仍然是有限的。更重要的是，<strong>更长的上下文花费更多的钱并增加延迟</strong>。即使模型支持200K token，如果只有5K是相关的，每次请求都发送200K token是浪费的。</p>
+<p>因此，记忆管理涉及两个方面：保持在限制范围内，以及保持效率。一个设计良好的记忆系统让智能体可以访问所有需要的信息，同时将token使用量降到最低。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>把上下文窗口想象成一张桌子。你一次只能在上面铺这么多文件。记忆管理是归档、总结和检索文件的艺术，使得正确的信息在需要时出现在桌上 &mdash; 而不会被旧笔记淹没。</p></div>
+
+<div class="table-wrap"><table>
+  <tr><th>模型</th><th>上下文窗口</th><th>约等于文本页数</th></tr>
+  <tr><td>GPT-4o</td><td>128K token</td><td>~300页</td></tr>
+  <tr><td>Claude Sonnet / Opus</td><td>200K token</td><td>~500页</td></tr>
+  <tr><td>Gemini 1.5 Pro</td><td>1M+ token</td><td>~2,500页</td></tr>
+</table></div>
+
+<div class="callout note"><div class="callout-label">注意</div><p>Token计数是近似值。1个token大约是英文中的4个字符，约0.75个单词。代码和非英文文本每个单词往往使用更多token。</p></div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
-  <h2>滑动窗口记忆</h2>
+  <h2>短期记忆 &mdash; 滑动窗口</h2>
 </div>
-<pre><code>class ConversationMemory:
-    def __init__(self, max_messages=50):
-        self.messages = []
-        self.max_messages = max_messages</code></pre>
+<p>最简单的记忆策略是<strong>滑动窗口</strong>：保留最近的N条消息，丢弃更早的所有内容。这类似于人类专注于当前对话同时遗忘早期细节的方式。</p>
+<p>关键的设计决策是在哪里截断。简单的做法是丢弃最旧的消息，但这可能会移除系统提示或重要的早期指令。更好的做法是始终保留系统提示和第一条用户消息，然后对中间的所有内容应用窗口。</p>
+
+<pre><code>class SlidingWindowMemory:
+    """Keep the system prompt + last N message pairs."""
+
+    def __init__(self, max_pairs: int = 20):
+        self.system_prompt = ""
+        self.messages: list[dict] = []
+        self.max_pairs = max_pairs  # each pair = user + assistant
+
+    def set_system(self, prompt: str):
+        self.system_prompt = prompt
+
+    def add(self, role: str, content: str):
+        self.messages.append({"role": role, "content": content})
+        # Keep max_pairs * 2 messages (user+assistant pairs)
+        max_msgs = self.max_pairs * 2
+        if len(self.messages) > max_msgs:
+            self.messages = self.messages[-max_msgs:]
+
+    def get_messages(self) -> list[dict]:
+        """Return messages formatted for the API."""
+        result = []
+        if self.system_prompt:
+            result.append({"role": "system", "content": self.system_prompt})
+        result.extend(self.messages)
+        return result
+
+    @property
+    def token_estimate(self) -> int:
+        """Rough token count (4 chars per token)."""
+        total = len(self.system_prompt)
+        total += sum(len(m["content"]) for m in self.messages)
+        return total // 4</code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>计算token，而非消息数。一条包含大量工具结果的消息可能使用5,000个token，而十条简短的聊天消息可能只使用500个。使用 <code>tiktoken</code>（OpenAI）或Anthropic的token计数API来获取准确的计数。</p></div>
+
+<h3>基于Token的窗口</h3>
+<pre><code>import tiktoken
+
+class TokenWindowMemory:
+    """Keep messages that fit within a token budget."""
+
+    def __init__(self, max_tokens: int = 8000, model: str = "gpt-4o"):
+        self.max_tokens = max_tokens
+        self.encoder = tiktoken.encoding_for_model(model)
+        self.messages: list[dict] = []
+
+    def _count_tokens(self, messages: list[dict]) -> int:
+        return sum(len(self.encoder.encode(m["content"])) for m in messages)
+
+    def add(self, role: str, content: str):
+        self.messages.append({"role": role, "content": content})
+        # Trim from the front until we're within budget
+        while (len(self.messages) > 2 and
+               self._count_tokens(self.messages) > self.max_tokens):
+            self.messages.pop(1)  # keep index 0 (first message)</code></pre>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
   <h2>摘要策略</h2>
 </div>
-<p>定期用LLM总结旧消息。</p>
+<p>滑动窗口会永久丢失信息。<strong>摘要策略</strong>将较旧的消息压缩成简洁的摘要，保留关键事实同时减少token数量。您使用LLM本身来生成这些摘要。</p>
+<p>典型的做法是：当对话超过阈值时，取最旧的一批消息，进行摘要，用摘要替换它们，然后继续。这创建了一个分层记忆，其中最近的消息是逐字记录的，而较旧的消息是压缩的。</p>
+
+<pre><code>import anthropic
+
+client = anthropic.Anthropic()
+
+class SummarisedMemory:
+    """Memory that summarises old messages to stay within budget."""
+
+    def __init__(self, max_tokens: int = 6000, summary_threshold: int = 8000):
+        self.messages: list[dict] = []
+        self.summary: str = ""
+        self.max_tokens = max_tokens
+        self.summary_threshold = summary_threshold
+
+    def add(self, role: str, content: str):
+        self.messages.append({"role": role, "content": content})
+        if self._estimate_tokens() > self.summary_threshold:
+            self._compress()
+
+    def _estimate_tokens(self) -> int:
+        total = len(self.summary)
+        total += sum(len(m["content"]) for m in self.messages)
+        return total // 4
+
+    def _compress(self):
+        """Summarise the oldest half of messages."""
+        mid = len(self.messages) // 2
+        old_messages = self.messages[:mid]
+        self.messages = self.messages[mid:]
+
+        # Use the LLM to create a summary
+        conversation = "\n".join(
+            f'{m["role"]}: {m["content"]}' for m in old_messages
+        )
+        prompt = f"""Summarise this conversation, preserving:
+- Key decisions and facts
+- User preferences mentioned
+- Any pending tasks or commitments
+
+Previous summary: {self.summary or 'None'}
+
+Conversation to summarise:
+{conversation}"""
+
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=500,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        self.summary = response.content[0].text
+
+    def get_messages(self) -> list[dict]:
+        msgs = []
+        if self.summary:
+            msgs.append({"role": "system",
+                         "content": f"Conversation summary so far:\n{self.summary}"})
+        msgs.extend(self.messages)
+        return msgs</code></pre>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>摘要会丢失细微差别。如果用户在50条消息前说了"我对花生过敏"，而摘要没有捕获到这一点，智能体可能会推荐花生菜品。对于安全关键的信息，除了摘要之外还要使用<strong>显式事实提取</strong>。</p></div>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>将摘要与<strong>事实存储</strong>结合使用：在每轮对话后，将关键事实（用户偏好、约束条件、决策）提取到结构化存储中。无论摘要窗口如何，都在每次请求中包含这些事实。</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
-  <h2>持久化存储</h2>
+  <h2>长期记忆 &mdash; 语义检索</h2>
 </div>
-<ul><li>向量数据库</li><li>键值存储</li><li>SQL数据库</li></ul>
+<p>对于需要与用户在数天、数周或数月内交互的智能体，您需要跨会话持久化的<strong>长期记忆</strong>。最有效的方法使用<strong>向量嵌入</strong>来语义化地存储和检索相关的过往交互。</p>
+<p>您不是重放整个历史记录，而是将每轮对话嵌入并存储在向量数据库中。当用户发送新消息时，您搜索最相关的过往交互并将其作为上下文包含在内。这使智能体看似拥有无限记忆，同时使用最少的token。</p>
+
+<pre><code>import chromadb
+from datetime import datetime
+
+class LongTermMemory:
+    """Semantic long-term memory using vector embeddings."""
+
+    def __init__(self, user_id: str):
+        self.client = chromadb.PersistentClient(path="./memory_db")
+        self.collection = self.client.get_or_create_collection(
+            name=f"memory_{user_id}",
+            metadata={"hnsw:space": "cosine"}
+        )
+        self.user_id = user_id
+
+    def store(self, content: str, metadata: dict = None):
+        """Store a memory with timestamp."""
+        meta = {"timestamp": datetime.now().isoformat(),
+                "user_id": self.user_id}
+        if metadata:
+            meta.update(metadata)
+        self.collection.add(
+            documents=[content],
+            metadatas=[meta],
+            ids=[f"mem_{datetime.now().timestamp()}"]
+        )
+
+    def recall(self, query: str, n_results: int = 5) -> list[str]:
+        """Retrieve relevant memories for a query."""
+        if self.collection.count() == 0:
+            return []
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=min(n_results, self.collection.count())
+        )
+        return results["documents"][0]
+
+    def get_context_string(self, query: str) -> str:
+        """Format memories as context for the LLM."""
+        memories = self.recall(query)
+        if not memories:
+            return ""
+        formatted = "\n".join(f"- {m}" for m in memories)
+        return f"Relevant memories from past conversations:\n{formatted}"</code></pre>
+
+<div class="card-grid">
+  <div class="card"><h3>情景记忆</h3><p>存储具体的交互和事件。"上周二，用户询问了去东京的机票价格。"</p></div>
+  <div class="card"><h3>语义记忆</h3><p>存储一般事实和知识。"用户偏好靠窗座位和素食餐。"</p></div>
+  <div class="card"><h3>程序记忆</h3><p>存储已学习的流程。"部署时，始终先运行测试，然后推送到预发布环境。"</p></div>
+</div>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>持久化存储模式</h2>
+</div>
+<p>不同类型的记忆数据需要不同的存储后端。在实践中，生产级智能体会同时使用多个存储系统。</p>
+
+<div class="table-wrap"><table>
+  <tr><th>存储类型</th><th>最适合</th><th>示例工具</th><th>访问模式</th></tr>
+  <tr><td>向量数据库</td><td>对过往对话的语义搜索</td><td>ChromaDB、Pinecone、Weaviate、pgvector</td><td>通过嵌入进行相似性搜索</td></tr>
+  <tr><td>键值存储</td><td>用户偏好、会话状态、快速查找</td><td>Redis、DynamoDB</td><td>精确键查找</td></tr>
+  <tr><td>SQL数据库</td><td>结构化记录、审计跟踪、关系</td><td>PostgreSQL、SQLite</td><td>带过滤和连接的查询</td></tr>
+  <tr><td>文档存储</td><td>对话日志、复杂的嵌套数据</td><td>MongoDB、Firestore</td><td>文档查询</td></tr>
+</table></div>
+
+<h3>使用Redis的用户档案存储</h3>
+<pre><code>import redis
+import json
+
+class UserProfileMemory:
+    """Fast key-value store for user preferences and facts."""
+
+    def __init__(self, user_id: str):
+        self.redis = redis.Redis(host="localhost", port=6379, db=0)
+        self.user_id = user_id
+        self.key = f"agent:user:{user_id}:profile"
+
+    def set_fact(self, key: str, value: str):
+        """Store a user fact. e.g., set_fact('timezone', 'UTC+1')"""
+        self.redis.hset(self.key, key, value)
+
+    def get_fact(self, key: str) -> str | None:
+        val = self.redis.hget(self.key, key)
+        return val.decode() if val else None
+
+    def get_all_facts(self) -> dict:
+        data = self.redis.hgetall(self.key)
+        return {k.decode(): v.decode() for k, v in data.items()}
+
+    def get_context_string(self) -> str:
+        facts = self.get_all_facts()
+        if not facts:
+            return ""
+        lines = [f"- {k}: {v}" for k, v in facts.items()]
+        return "Known user preferences:\n" + "\n".join(lines)</code></pre>
+
+<div class="callout note"><div class="callout-label">注意</div><p>始终将<strong>事实</strong>（时区、语言偏好、姓名）与<strong>情景记忆</strong>（过往对话中发生了什么）分开。事实应该是确定性查找；情景应该是语义搜索。</p></div>
+
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>综合应用</h2>
+</div>
+<p>生产级的记忆系统通常分层使用多种策略。以下是一个完整示例，结合了滑动窗口（近期）、摘要（中期）和向量检索（长期）。</p>
+
+<pre><code>class AgentMemory:
+    """Layered memory: recent window + summary + long-term retrieval."""
+
+    def __init__(self, user_id: str, system_prompt: str):
+        self.system_prompt = system_prompt
+        self.window = SlidingWindowMemory(max_pairs=10)
+        self.summarised = SummarisedMemory()
+        self.long_term = LongTermMemory(user_id)
+        self.profile = UserProfileMemory(user_id)
+
+    def add_turn(self, user_msg: str, assistant_msg: str):
+        # Store in short-term window
+        self.window.add("user", user_msg)
+        self.window.add("assistant", assistant_msg)
+        # Store in long-term
+        self.long_term.store(f"User: {user_msg}\nAssistant: {assistant_msg}")
+
+    def build_messages(self, current_query: str) -> list[dict]:
+        # Layer 1: System prompt + user profile
+        profile_ctx = self.profile.get_context_string()
+        system = self.system_prompt
+        if profile_ctx:
+            system += f"\n\n{profile_ctx}"
+
+        # Layer 2: Relevant long-term memories
+        ltm_ctx = self.long_term.get_context_string(current_query)
+        if ltm_ctx:
+            system += f"\n\n{ltm_ctx}"
+
+        # Layer 3: Conversation summary (if any)
+        if self.summarised.summary:
+            system += f"\n\nConversation summary:\n{self.summarised.summary}"
+
+        # Layer 4: Recent messages (verbatim)
+        messages = [{"role": "system", "content": system}]
+        messages.extend(self.window.messages)
+        messages.append({"role": "user", "content": current_query})
+        return messages</code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>监控每层的token使用量。在大多数应用中，系统提示 + 用户档案 + 检索的记忆不应超过token预算的30%，剩余70%留给实际对话和模型响应。</p></div>
 <a href="module_08_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块8 &mdash; RAG &mdash; 检索增强生成</p></div></a>
   </main>
 </div>

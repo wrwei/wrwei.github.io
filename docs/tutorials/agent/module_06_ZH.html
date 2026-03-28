@@ -60,13 +60,13 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <div id="layout">
   <aside id="sidebar">
     <div class="sidebar-label">目录</div>
-    <nav><a href="#s1"><span class="num">1</span>工具的重要性</a><a href="#s2"><span class="num">2</span>OpenAI工具格式</a><a href="#s3"><span class="num">3</span>Anthropic工具格式</a><a href="#s4"><span class="num">4</span>实用示例</a></nav>
+    <nav><a href="#s1"><span class="num">1</span>工具的重要性</a><a href="#s2"><span class="num">2</span>Function Calling协议</a><a href="#s3"><span class="num">3</span>工具定义</a><a href="#s4"><span class="num">4</span>工具执行循环</a><a href="#s5"><span class="num">5</span>构建工具注册表</a><a href="#s6"><span class="num">6</span>实用示例</a></nav>
   </aside>
   <main id="main">
     <div class="module-hero">
       <div class="series">AI智能体系列 &mdash; Ran Wei</div>
       <h1 class="module-title">模块6: <em>工具调用与Function Calling</em></h1>
-      <p class="module-lead">通过定义工具赋予智能体超能力。</p>
+      <p class="module-lead">通过定义可调用工具赋予智能体超能力。</p>
     </div>
 
 <span class="section-anchor" id="s1"></span>
@@ -74,26 +74,381 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>为什么工具重要</h2>
 </div>
-<p>没有工具，LLM只能生成文本。工具将聊天机器人转变为智能体。</p>
+<p>没有工具，LLM只能生成文本。它无法查询今天的天气、查询数据库、发送邮件或运行代码。<strong>工具将聊天机器人转变为智能体</strong>，赋予它在真实世界中执行操作和检索训练数据之外信息的能力。</p>
+<p>核心洞察在于：LLM擅长<em>决定做什么</em>和<em>解读结果</em>，但它们需要外部函数来真正<em>执行操作</em>。Function Calling是连接语言理解与真实世界操作的桥梁。</p>
+<p>以客户支持智能体为例。没有工具，它只能说"我很乐意帮您查询订单状态"。有了工具，它可以真正调用 <code>get_order_status(order_id="12345")</code>，获取真实数据并呈现给用户。这就是听起来有用的聊天机器人和真正有用的智能体之间的区别。</p>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>把LLM想象成一个坐在密封房间里的聪明人。他们可以通过门上的缝隙进行推理和交流，但无法看到或触摸外部世界。工具就像给了他们一部电话、一台电脑和文件柜的访问权限 &mdash; 突然之间他们就能完成真正的任务了。</p></div>
+
+<div class="card-grid">
+  <div class="card"><h3>信息检索</h3><p>搜索引擎、数据库、API &mdash; 获取模型从未训练过的实时数据。</p></div>
+  <div class="card"><h3>计算</h3><p>计算器、代码解释器 &mdash; 执行LLM难以完成的精确数学和逻辑运算。</p></div>
+  <div class="card"><h3>副作用操作</h3><p>发送邮件、创建工单、更新记录 &mdash; 执行改变世界的操作。</p></div>
+  <div class="card"><h3>感知</h3><p>读取文件、解析图像、处理音频 &mdash; 将智能体的感知能力扩展到文本之外。</p></div>
+</div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
-  <h2>OpenAI工具格式</h2>
+  <h2>Function Calling协议</h2>
 </div>
-<pre><code>tools = [{'type': 'function', 'function': {'name': 'search_web', ...}}]</code></pre>
+<p>Function Calling遵循应用程序与LLM之间的特定协议。模型从不直接执行工具 &mdash; 它输出一个结构化请求，描述要调用哪个工具以及使用什么参数。然后您的应用程序执行函数并将结果反馈给模型。</p>
+
+<h3>四步交互流程</h3>
+<ol>
+  <li><strong>定义</strong> &mdash; 在调用API时描述可用工具（名称、描述、参数）。</li>
+  <li><strong>决策</strong> &mdash; 模型分析用户的请求，决定是否调用工具，以及调用哪个工具和使用什么参数。</li>
+  <li><strong>执行</strong> &mdash; 您的代码接收工具调用请求，运行实际函数，并收集结果。</li>
+  <li><strong>响应</strong> &mdash; 您将工具结果发送回模型，模型将其整合到自然语言响应中。</li>
+</ol>
+
+<pre><code># Function Calling的概念流程
+# 第1步：用户提问
+user_msg = "What's the weather in London?"
+
+# 第2步：模型决定调用工具（返回结构化JSON）
+# {tool_name: "get_weather", arguments: {city: "London"}}
+
+# 第3步：您的代码执行实际函数
+result = get_weather(city="London")  # returns {"temp": 12, "condition": "cloudy"}
+
+# 第4步：您将结果发送回去；模型生成自然语言响应
+# "It's currently 12C and cloudy in London."</code></pre>
+
+<div class="callout note"><div class="callout-label">注意</div><p>模型永远无法直接访问您的函数。它只能看到您提供的<strong>描述</strong>。这意味着您的工具描述至关重要 &mdash; 它们是模型理解每个工具的功能、何时使用以及提供什么参数的唯一指南。</p></div>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>一个常见错误是假设模型执行工具。它不会。如果您忘记实际调用函数并发送结果回去，智能体循环就会停滞。务必在代码中实现执行步骤。</p></div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
-  <h2>Anthropic工具格式</h2>
+  <h2>工具定义 &mdash; OpenAI与Anthropic</h2>
 </div>
-<pre><code>tools = [{'name': 'search_web', 'input_schema': {...}}]</code></pre>
-<div class="callout tip"><div class="callout-label">TIP</div><p>编写详细的工具描述。</p></div>
+<p>两大主要提供商都使用JSON Schema来描述工具参数，但封装格式不同。了解两者可以让您构建跨提供商工作的智能体。</p>
+
+<h3>OpenAI格式</h3>
+<pre><code>tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get current weather for a city. Returns temperature in Celsius and conditions.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "city": {
+                        "type": "string",
+                        "description": "City name, e.g. 'London' or 'New York'"
+                    },
+                    "units": {
+                        "type": "string",
+                        "enum": ["celsius", "fahrenheit"],
+                        "description": "Temperature unit (default: celsius)"
+                    }
+                },
+                "required": ["city"]
+            }
+        }
+    }
+]
+
+import openai
+client = openai.OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Weather in Paris?"}],
+    tools=tools
+)</code></pre>
+
+<h3>Anthropic格式</h3>
+<pre><code>tools = [
+    {
+        "name": "get_weather",
+        "description": "Get current weather for a city. Returns temperature in Celsius and conditions.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "description": "City name, e.g. 'London' or 'New York'"
+                },
+                "units": {
+                    "type": "string",
+                    "enum": ["celsius", "fahrenheit"],
+                    "description": "Temperature unit (default: celsius)"
+                }
+            },
+            "required": ["city"]
+        }
+    }
+]
+
+import anthropic
+client = anthropic.Anthropic()
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    tools=tools,
+    messages=[{"role": "user", "content": "Weather in Paris?"}]
+)</code></pre>
+
+<div class="table-wrap"><table>
+  <tr><th>方面</th><th>OpenAI</th><th>Anthropic</th></tr>
+  <tr><td>封装键</td><td><code>"function"</code> 在 <code>"type": "function"</code> 内</td><td>扁平结构 &mdash; name、description、input_schema在顶层</td></tr>
+  <tr><td>Schema键</td><td><code>"parameters"</code></td><td><code>"input_schema"</code></td></tr>
+  <tr><td>响应中的工具调用</td><td><code>tool_calls[].function.arguments</code>（JSON字符串）</td><td><code>content[]</code> 中 <code>type: "tool_use"</code> 块</td></tr>
+  <tr><td>结果消息角色</td><td><code>"tool"</code></td><td><code>"user"</code> 带 <code>tool_result</code> 块</td></tr>
+</table></div>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>为每个工具和每个参数编写<strong>详细、具体的描述</strong>。包含示例、边界情况和预期格式。模型完全依赖这些描述来决定何时以及如何调用每个工具。模糊的描述如"搜索网络"会导致工具选择不佳；"使用Google搜索网络并返回前5个结果的标题+摘要对"则好得多。</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
+  <h2>工具执行循环</h2>
+</div>
+<p>在真正的智能体中，工具调用发生在循环内部。模型可能调用一个工具，查看结果，然后调用另一个 &mdash; 或者它可能并行调用多个工具。您的智能体循环必须优雅地处理所有这些情况。</p>
+
+<h3>完整的Anthropic工具循环</h3>
+<pre><code>import anthropic
+import json
+
+client = anthropic.Anthropic()
+
+# Define your actual tool implementations
+def get_weather(city: str, units: str = "celsius") -> dict:
+    """Simulate a weather API call."""
+    data = {"London": {"temp": 12, "condition": "cloudy"},
+            "Paris": {"temp": 18, "condition": "sunny"}}
+    return data.get(city, {"temp": 0, "condition": "unknown"})
+
+def search_news(query: str, max_results: int = 5) -> list:
+    """Simulate a news search."""
+    return [{"title": f"News about {query}", "source": "Reuters"}]
+
+# Map tool names to functions
+TOOL_REGISTRY = {
+    "get_weather": get_weather,
+    "search_news": search_news,
+}
+
+# Tool definitions for the API
+tools = [
+    {"name": "get_weather",
+     "description": "Get current weather for a city.",
+     "input_schema": {"type": "object",
+                      "properties": {"city": {"type": "string"},
+                                     "units": {"type": "string", "enum": ["celsius", "fahrenheit"]}},
+                      "required": ["city"]}},
+    {"name": "search_news",
+     "description": "Search recent news articles.",
+     "input_schema": {"type": "object",
+                      "properties": {"query": {"type": "string"},
+                                     "max_results": {"type": "integer"}},
+                      "required": ["query"]}}
+]
+
+def run_agent(user_message: str) -> str:
+    messages = [{"role": "user", "content": user_message}]
+
+    while True:
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            tools=tools,
+            messages=messages
+        )
+
+        # Check if the model wants to use tools
+        if response.stop_reason == "tool_use":
+            # Collect all tool calls and results
+            tool_results = []
+            for block in response.content:
+                if block.type == "tool_use":
+                    func = TOOL_REGISTRY[block.name]
+                    result = func(**block.input)
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": json.dumps(result)
+                    })
+
+            # Add assistant response and tool results to messages
+            messages.append({"role": "assistant", "content": response.content})
+            messages.append({"role": "user", "content": tool_results})
+        else:
+            # Model is done &mdash; extract text response
+            return "".join(b.text for b in response.content if hasattr(b, "text"))
+
+# Usage
+answer = run_agent("What's the weather in London and any AI news today?")</code></pre>
+
+<div class="callout note"><div class="callout-label">注意</div><p>循环持续进行直到 <code>stop_reason</code> 为 <code>"end_turn"</code>（而非 <code>"tool_use"</code>）。这允许模型链式调用多个工具 &mdash; 例如，先搜索城市名称，再获取其天气。</p></div>
+
+<h3>OpenAI工具循环</h3>
+<pre><code>import openai
+import json
+
+client = openai.OpenAI()
+
+def run_agent_openai(user_message: str) -> str:
+    messages = [{"role": "user", "content": user_message}]
+
+    while True:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            tools=tools  # same JSON Schema definitions
+        )
+        msg = response.choices[0].message
+
+        if msg.tool_calls:
+            messages.append(msg)  # add assistant message with tool calls
+            for tc in msg.tool_calls:
+                func = TOOL_REGISTRY[tc.function.name]
+                args = json.loads(tc.function.arguments)
+                result = func(**args)
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": json.dumps(result)
+                })
+        else:
+            return msg.content</code></pre>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>构建工具注册表</h2>
+</div>
+<p>随着智能体的增长，您将拥有数十个工具。<strong>工具注册表</strong>模式可以保持它们的组织性、验证性，并易于扩展。注册表将工具名称映射到其实现，并从Python类型提示自动生成API定义。</p>
+
+<pre><code>import inspect
+import json
+from typing import Callable, Any, get_type_hints
+
+class ToolRegistry:
+    """Registry that auto-generates tool schemas from type hints."""
+
+    def __init__(self):
+        self._tools: dict[str, Callable] = {}
+        self._schemas: list[dict] = []
+
+    def tool(self, func: Callable) -> Callable:
+        """Decorator to register a tool function."""
+        name = func.__name__
+        hints = get_type_hints(func)
+        doc = inspect.getdoc(func) or ""
+
+        # Build JSON Schema from type hints
+        properties = {}
+        required = []
+        sig = inspect.signature(func)
+        for param_name, param in sig.parameters.items():
+            ptype = hints.get(param_name, str)
+            json_type = {"str": "string", "int": "integer",
+                         "float": "number", "bool": "boolean"}.get(ptype.__name__, "string")
+            properties[param_name] = {"type": json_type}
+            if param.default is inspect.Parameter.empty:
+                required.append(param_name)
+
+        schema = {
+            "name": name,
+            "description": doc,
+            "input_schema": {
+                "type": "object",
+                "properties": properties,
+                "required": required
+            }
+        }
+        self._tools[name] = func
+        self._schemas.append(schema)
+        return func
+
+    def execute(self, name: str, arguments: dict) -> Any:
+        """Execute a registered tool by name."""
+        if name not in self._tools:
+            return {"error": f"Unknown tool: {name}"}
+        try:
+            return self._tools[name](**arguments)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @property
+    def definitions(self) -> list[dict]:
+        return self._schemas
+
+# Usage
+registry = ToolRegistry()
+
+@registry.tool
+def calculate(expression: str) -> str:
+    """Evaluate a mathematical expression safely. Example: '2 + 3 * 4'"""
+    allowed = set("0123456789+-*/.() ")
+    if not all(c in allowed for c in expression):
+        return "Error: invalid characters"
+    return str(eval(expression))  # use a safe parser in production
+
+@registry.tool
+def read_file(path: str) -> str:
+    """Read the contents of a text file given its path."""
+    with open(path, "r") as f:
+        return f.read()
+
+# Pass registry.definitions to the API, use registry.execute() in your loop</code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>在生产环境中，使用 <code>pydantic</code> 模型进行工具输入验证。像 <code>instructor</code> 或Anthropic自带的工具使用助手等库可以从Pydantic模型自动生成schema，在同一处提供验证和schema生成。</p></div>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>永远不要在生产环境中使用裸露的 <code>eval()</code>。使用安全的数学解析器如 <code>asteval</code> 或 <code>simpleeval</code>。上面的示例为了简洁而简化。</p></div>
+
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
   <h2>实用工具示例</h2>
 </div>
-<div class="card-grid"><div class="card"><h3>网络搜索</h3><p>查询API</p></div><div class="card"><h3>计算器</h3><p>安全计算</p></div><div class="card"><h3>文件读取</h3><p>解析文件</p></div><div class="card"><h3>数据库</h3><p>SQL查询</p></div></div>
+<p>以下是真实智能体中常用的工具集合。每个工具解决了LLM本身无法独立完成的不同类别的能力。</p>
+
+<div class="card-grid">
+  <div class="card"><h3>网络搜索</h3><p>查询Google、Bing或Brave API获取实时信息。对任何需要回答时事问题的智能体来说都是必不可少的。</p></div>
+  <div class="card"><h3>计算器</h3><p>安全的数学运算。LLM经常犯算术错误 &mdash; 始终将计算委托给工具。</p></div>
+  <div class="card"><h3>文件读取</h3><p>读取和解析本地文件（CSV、JSON、PDF）。支持文档处理智能体。</p></div>
+  <div class="card"><h3>数据库查询</h3><p>对PostgreSQL、MySQL或SQLite执行SQL查询。模型生成SQL；您的工具安全执行。</p></div>
+  <div class="card"><h3>代码执行器</h3><p>在沙盒环境（Docker、E2B或子进程）中运行Python。为数据分析和编码智能体提供动力。</p></div>
+  <div class="card"><h3>邮件/消息</h3><p>通过SMTP或API（SendGrid、SES）发送邮件。允许智能体与人类和其他系统通信。</p></div>
+</div>
+
+<h3>示例：数据库查询工具</h3>
+<pre><code>import sqlite3
+
+@registry.tool
+def query_database(sql: str) -> str:
+    """Execute a read-only SQL query against the app database.
+    Only SELECT statements are allowed. Returns results as JSON."""
+    if not sql.strip().upper().startswith("SELECT"):
+        return json.dumps({"error": "Only SELECT queries are allowed"})
+
+    conn = sqlite3.connect("app.db")
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(sql).fetchall()
+        return json.dumps([dict(row) for row in rows])
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+    finally:
+        conn.close()</code></pre>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p><strong>SQL注入是真实风险。</strong>即使有只读限制，模型生成的查询也可能访问敏感表。在生产环境中，使用参数化查询，通过视图层限制可访问的表，并以最小权限运行数据库用户。</p></div>
+
+<h3>最佳实践清单</h3>
+<ul>
+  <li>像向新同事解释一样编写描述 &mdash; 包含示例和边界情况</li>
+  <li>尽可能使用 <code>enum</code> 约束限制参数值</li>
+  <li>工具返回结构化JSON，而非自由格式文本</li>
+  <li>始终优雅地处理错误 &mdash; 返回错误消息而非抛出异常</li>
+  <li>添加超时限制以防止工具无限挂起</li>
+  <li>记录每次工具调用以便调试和审计</li>
+  <li>考虑使用 <code>tool_choice</code> 参数来强制或阻止特定工具的使用</li>
+</ul>
 <a href="module_07_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块7 &mdash; 记忆与上下文管理</p></div></a>
   </main>
 </div>

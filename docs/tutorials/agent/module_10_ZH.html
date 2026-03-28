@@ -72,40 +72,381 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <span class="section-anchor" id="s1"></span>
 <div class="section-header">
   <span class="section-num">1</span>
-  <h2>为什么使用框架</h2>
+  <h2>为什么使用智能体框架？</h2>
 </div>
-<p>LangChain和CrewAI提供经过实战检验的抽象。</p>
+<p>从零构建智能体（如我们在模块4-6中所做的）可以给您最大的控制和理解。但随着您构建更多智能体，您会发现自己在重复构建相同的模式：工具注册、记忆管理、提示模板、错误处理和对话循环。<strong>框架提供了这些模式的经过实战检验的实现</strong>，这样您可以专注于应用逻辑而非基础设施。</p>
+<p>Python生态系统中最流行的两个框架是<strong>LangChain</strong>（通用智能体框架）和<strong>CrewAI</strong>（多智能体编排框架）。它们服务于不同的需求，甚至可以一起使用。</p>
+<p>话虽如此，框架增加了复杂性、抽象层和依赖。并非每个项目都需要框架。关键是理解它们提供什么，以便您可以做出明智的决定。</p>
+
+<div class="callout note"><div class="callout-label">注意</div><p>框架是工具，不是必需品。许多生产AI系统使用直接API调用加自定义代码。框架在以下情况下表现出色：需要快速原型开发、您的用例与其模式紧密匹配，或者您想要访问其集成生态系统。</p></div>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>框架之于智能体开发，就像Web框架（Django、Flask）之于Web开发。您<em>可以</em>从原始socket构建Web服务器，有时也应该这样做。但大多数时候，框架可以在已解决的问题上为您节省数周的工作。</p></div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
-  <h2>LangChain架构</h2>
+  <h2>LangChain &mdash; 架构</h2>
 </div>
-<div class="table-wrap"><table><tr><th>概念</th><th>目的</th></tr><tr><td>Models</td><td>LLM统一接口</td></tr><tr><td>Agents</td><td>LLM驱动决策</td></tr><tr><td>Memory</td><td>记忆管理</td></tr></table></div>
+<p>LangChain是最广泛采用的LLM应用框架。它提供模块化架构，每个组件（模型、提示、链、智能体、记忆）可以独立使用或组合在一起。该框架已经显著演进，现在以<strong>LangChain表达式语言（LCEL）</strong>为中心，用于声明式地组合链。</p>
+
+<div class="table-wrap"><table>
+  <tr><th>包</th><th>用途</th><th>安装</th></tr>
+  <tr><td><code>langchain-core</code></td><td>基础抽象、LCEL、接口</td><td>自动安装</td></tr>
+  <tr><td><code>langchain</code></td><td>链、智能体、高级API</td><td><code>pip install langchain</code></td></tr>
+  <tr><td><code>langchain-anthropic</code></td><td>Claude模型集成</td><td><code>pip install langchain-anthropic</code></td></tr>
+  <tr><td><code>langchain-openai</code></td><td>OpenAI模型集成</td><td><code>pip install langchain-openai</code></td></tr>
+  <tr><td><code>langchain-community</code></td><td>第三方集成（工具、向量存储）</td><td><code>pip install langchain-community</code></td></tr>
+  <tr><td><code>langgraph</code></td><td>有状态的多步骤智能体工作流（图结构）</td><td><code>pip install langgraph</code></td></tr>
+</table></div>
+
+<pre><code>pip install langchain langchain-anthropic langchain-openai</code></pre>
+
+<h3>核心概念</h3>
+<div class="card-grid">
+  <div class="card"><h3>模型</h3><p>LLM和聊天模型的统一接口。只需修改一行即可在Claude、GPT、Gemini和本地模型之间切换。</p></div>
+  <div class="card"><h3>提示模板</h3><p>带变量的结构化模板。支持system/user/assistant消息、少样本示例和动态内容。</p></div>
+  <div class="card"><h3>输出解析器</h3><p>将模型输出解析为结构化格式（JSON、Pydantic模型、列表）。处理格式错误输出的重试。</p></div>
+  <div class="card"><h3>链（LCEL）</h3><p>使用管道操作符组合组件：<code>prompt | model | parser</code>。声明式、可流式、可批处理。</p></div>
+  <div class="card"><h3>工具与智能体</h3><p>将工具定义为Python函数。智能体使用LLM决定调用哪些工具以及调用顺序。</p></div>
+  <div class="card"><h3>记忆</h3><p>对话记忆实现：缓冲、摘要、向量支持。可插入任何链。</p></div>
+</div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
   <h2>使用LangChain构建</h2>
 </div>
-<p>使用<code>create_tool_calling_agent</code>和<code>AgentExecutor</code>。</p>
+<p>让我们使用LangChain逐步构建越来越复杂的应用，从简单的链开始，逐步到完整的工具调用智能体。</p>
+
+<h3>使用LCEL的简单链</h3>
+<pre><code>from langchain_anthropic import ChatAnthropic
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+# Create a simple chain: prompt -> model -> parse output
+llm = ChatAnthropic(model="claude-sonnet-4-20250514")
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are an expert {domain} consultant."),
+    ("human", "{question}")
+])
+parser = StrOutputParser()
+
+# Compose with the pipe operator (LCEL)
+chain = prompt | llm | parser
+
+# Invoke
+answer = chain.invoke({
+    "domain": "cybersecurity",
+    "question": "What are the top 3 threats for small businesses?"
+})
+print(answer)</code></pre>
+
+<h3>使用Pydantic的结构化输出</h3>
+<pre><code>from pydantic import BaseModel, Field
+from langchain_core.output_parsers import JsonOutputParser
+
+class MovieReview(BaseModel):
+    title: str = Field(description="Movie title")
+    rating: float = Field(description="Rating out of 10")
+    summary: str = Field(description="One-sentence summary")
+    recommend: bool = Field(description="Whether to recommend")
+
+parser = JsonOutputParser(pydantic_object=MovieReview)
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "Analyse the movie and respond in JSON.\n{format_instructions}"),
+    ("human", "Review the movie: {movie}")
+])
+
+chain = prompt | llm | parser
+review = chain.invoke({
+    "movie": "Inception",
+    "format_instructions": parser.get_format_instructions()
+})
+print(f"{review['title']}: {review['rating']}/10 - {review['summary']}")</code></pre>
+
+<h3>工具调用智能体</h3>
+<pre><code>from langchain_anthropic import ChatAnthropic
+from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.tools import tool
+import requests
+
+@tool
+def search_web(query: str) -> str:
+    """Search the web for current information about a topic.
+    Use this when you need up-to-date information."""
+    # In production, use a real search API
+    return f"Top results for '{query}': [simulated search results]"
+
+@tool
+def calculate(expression: str) -> str:
+    """Evaluate a mathematical expression. Use Python syntax.
+    Example: '2 ** 10' returns '1024'."""
+    try:
+        result = eval(expression, {"__builtins__": {}})
+        return str(result)
+    except Exception as e:
+        return f"Error: {e}"
+
+@tool
+def get_weather(city: str) -> str:
+    """Get the current weather for a city."""
+    # Simulated
+    return f"Weather in {city}: 18C, partly cloudy, humidity 65%"
+
+# Set up the agent
+llm = ChatAnthropic(model="claude-sonnet-4-20250514")
+tools = [search_web, calculate, get_weather]
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant with access to tools. "
+               "Use tools when needed to provide accurate answers."),
+    ("human", "{input}"),
+    ("placeholder", "{agent_scratchpad}")
+])
+
+agent = create_tool_calling_agent(llm, tools, prompt)
+executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+
+# Run the agent
+result = executor.invoke({
+    "input": "What's 2^16 and what's the weather in Tokyo?"
+})
+print(result["output"])</code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>在开发期间为AgentExecutor设置 <code>verbose=True</code>。这会打印每次工具调用和中间步骤，便于调试智能体的推理和工具选择。</p></div>
+
+<h3>使用LangChain的RAG链</h3>
+<pre><code>from langchain_anthropic import ChatAnthropic
+from langchain_community.vectorstores import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+
+# Set up vector store
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+vectorstore = Chroma(persist_directory="./chroma_db",
+                     embedding_function=embeddings)
+retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+
+# RAG prompt
+prompt = ChatPromptTemplate.from_messages([
+    ("system", """Answer based only on the following context.
+If the context doesn't contain the answer, say so.
+
+Context: {context}"""),
+    ("human", "{question}")
+])
+
+# Format retrieved docs
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+# Compose the RAG chain
+rag_chain = (
+    {"context": retriever | format_docs, "question": RunnablePassthrough()}
+    | prompt
+    | ChatAnthropic(model="claude-sonnet-4-20250514")
+    | StrOutputParser()
+)
+
+answer = rag_chain.invoke("What is the vacation policy?")</code></pre>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>LangChain的抽象可能使调试变得困难。当出现问题时，堆栈跟踪通常会穿过许多层框架代码。始终使用 <code>verbose=True</code> 开始，并考虑使用LangSmith（LangChain的可观测性平台）进行生产监控。</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
-  <h2>CrewAI团队</h2>
+  <h2>CrewAI &mdash; 基于角色的团队</h2>
 </div>
-<p>CrewAI定义角色和任务。</p>
-<div class="callout analogy"><div class="callout-label">类比</div><p>LangChain=多面手员工，CrewAI=项目团队。</p></div>
+<p><strong>CrewAI</strong>采用与LangChain根本不同的方法。不是构建单独的链和智能体，而是定义一个由具有不同角色、目标和背景故事的<strong>智能体团队</strong>，然后为它们分配任务。CrewAI处理编排 &mdash; 决定哪个智能体处理哪个任务，在智能体之间传递结果，并管理整体工作流。</p>
+<p>这自然地映射到现实世界的团队动态。就像一个产品团队有研究员、设计师和工程师一样，一个CrewAI团队可以有研究智能体、分析智能体和写作智能体，各自专注于自己的角色。</p>
+
+<pre><code>pip install crewai crewai-tools</code></pre>
+
+<div class="callout analogy"><div class="callout-label">类比</div><p>如果LangChain像是雇用了一个能做很多事的多面手员工，CrewAI就像是组建了一个项目团队。每个团队成员都有特定的角色、专长和职责。项目经理（CrewAI）协调工作流程，确保任务按正确顺序完成。</p></div>
+
+<h3>CrewAI核心概念</h3>
+<div class="card-grid">
+  <div class="card"><h3>Agent</h3><p>一个自主单元，具有<strong>角色</strong>（职位头衔）、<strong>目标</strong>（试图实现的目标）和<strong>背景故事</strong>（专长和个性）。</p></div>
+  <div class="card"><h3>Task</h3><p>一个具体的任务，带有描述、预期输出格式和指定的智能体。任务可以依赖于其他任务。</p></div>
+  <div class="card"><h3>Crew</h3><p>一组智能体及一组任务和流程类型（顺序或层次）。调用 <code>kickoff()</code> 运行整个工作流。</p></div>
+  <div class="card"><h3>工具</h3><p>智能体可以使用的函数。CrewAI支持LangChain工具、自定义工具和内置工具（网络搜索、文件I/O等）。</p></div>
+</div>
+
 <span class="section-anchor" id="s5"></span>
 <div class="section-header">
   <span class="section-num">5</span>
   <h2>构建Crew</h2>
 </div>
-<p>定义Agent、Task、Crew，调用kickoff()。</p>
+<p>让我们构建一个实用的CrewAI应用：一个分析主题并生成报告的内容研究团队。</p>
+
+<pre><code>from crewai import Agent, Task, Crew, Process
+from crewai_tools import SerperDevTool  # web search tool
+
+# --- Define Agents ---
+
+researcher = Agent(
+    role="Senior Research Analyst",
+    goal="Uncover cutting-edge developments and key data points about {topic}",
+    backstory="""You are an expert research analyst with 15 years of experience.
+    You excel at finding reliable sources, identifying trends, and
+    synthesising complex information into clear insights. You always
+    verify facts from multiple sources.""",
+    tools=[SerperDevTool()],
+    verbose=True,
+    allow_delegation=False
+)
+
+analyst = Agent(
+    role="Data Analyst",
+    goal="Analyse research findings and identify key patterns and implications",
+    backstory="""You are a skilled data analyst who specialises in
+    interpreting qualitative and quantitative information. You create
+    clear comparisons and identify trends that others miss. You are
+    known for your balanced, objective analysis.""",
+    verbose=True,
+    allow_delegation=False
+)
+
+writer = Agent(
+    role="Technical Writer",
+    goal="Create a compelling, well-structured report about {topic}",
+    backstory="""You are an award-winning technical writer who transforms
+    complex research into accessible, engaging content. You write in a
+    clear, professional style with strong structure and flow.""",
+    verbose=True,
+    allow_delegation=False
+)
+
+# --- Define Tasks ---
+
+research_task = Task(
+    description="""Research the topic: {topic}
+
+    Find:
+    1. Current state and recent developments (last 6 months)
+    2. Key players and their market positions
+    3. Technical innovations and breakthroughs
+    4. Challenges and limitations
+    5. Market size and growth projections
+
+    Compile your findings with sources.""",
+    agent=researcher,
+    expected_output="Detailed research notes with sources and key data points"
+)
+
+analysis_task = Task(
+    description="""Analyse the research findings about {topic}.
+
+    Produce:
+    1. SWOT analysis (Strengths, Weaknesses, Opportunities, Threats)
+    2. Trend analysis with timeline
+    3. Competitive landscape comparison
+    4. Risk assessment
+    5. Three possible future scenarios (optimistic, realistic, pessimistic)""",
+    agent=analyst,
+    expected_output="Structured analysis with SWOT, trends, and scenarios",
+    context=[research_task]  # depends on research results
+)
+
+report_task = Task(
+    description="""Write a professional report about {topic}.
+
+    The report should include:
+    - Executive summary (200 words)
+    - Introduction and background
+    - Key findings (from research)
+    - Analysis and implications
+    - Recommendations
+    - Conclusion
+
+    Target audience: C-level executives.
+    Tone: Professional but accessible. No jargon without explanation.""",
+    agent=writer,
+    expected_output="A polished report in markdown format, 1500-2000 words",
+    context=[research_task, analysis_task]  # depends on both
+)
+
+# --- Assemble and Run the Crew ---
+
+crew = Crew(
+    agents=[researcher, analyst, writer],
+    tasks=[research_task, analysis_task, report_task],
+    process=Process.sequential,  # tasks run in order
+    verbose=True
+)
+
+# Kick off the crew
+result = crew.kickoff(inputs={"topic": "AI agents in enterprise software"})
+print(result)</code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p><code>backstory</code> 字段出人意料地重要。它塑造了智能体处理工作的方式 &mdash; 提到"注重细节"的背景故事会产生比没有提到的更加细致的输出。把它想象成详细的职位描述加个性档案。</p></div>
+
+<h3>CrewAI中的自定义工具</h3>
+<pre><code>from crewai.tools import BaseTool
+from pydantic import BaseModel, Field
+
+class DatabaseQueryInput(BaseModel):
+    query: str = Field(description="SQL SELECT query to execute")
+
+class DatabaseQueryTool(BaseTool):
+    name: str = "query_database"
+    description: str = "Execute a read-only SQL query against the analytics database."
+    args_schema: type[BaseModel] = DatabaseQueryInput
+
+    def _run(self, query: str) -> str:
+        import sqlite3
+        if not query.strip().upper().startswith("SELECT"):
+            return "Error: Only SELECT queries allowed"
+        conn = sqlite3.connect("analytics.db")
+        try:
+            rows = conn.execute(query).fetchall()
+            return str(rows[:50])  # limit output
+        finally:
+            conn.close()
+
+# Give the tool to an agent
+data_agent = Agent(
+    role="Data Engineer",
+    goal="Query databases to find requested information",
+    backstory="Expert in SQL and data analysis.",
+    tools=[DatabaseQueryTool()]
+)</code></pre>
+
 <span class="section-anchor" id="s6"></span>
 <div class="section-header">
   <span class="section-num">6</span>
-  <h2>选择框架</h2>
+  <h2>选择正确的方法</h2>
 </div>
-<div class="callout tip"><div class="callout-label">TIP</div><p>先自定义理解基础，反复构建相同模式时再采用框架。</p></div>
+<p>没有单一最好的框架。正确的选择取决于您的用例、团队经验和需求。以下是详细的比较，帮助您做出决定。</p>
+
+<div class="table-wrap"><table>
+  <tr><th>因素</th><th>LangChain</th><th>CrewAI</th><th>自定义（直接API）</th></tr>
+  <tr><td>最适合</td><td>通用LLM应用、RAG、单智能体工作流</td><td>多智能体协作、基于角色的工作流</td><td>最大控制、简单用例、性能关键场景</td></tr>
+  <tr><td>学习曲线</td><td>中高（大量API接口）</td><td>中低（直观的智能体/任务模型）</td><td>高（需自己构建一切）</td></tr>
+  <tr><td>抽象级别</td><td>中（可组合组件）</td><td>高（定义角色和目标，框架处理其余）</td><td>无（您编写每一行）</td></tr>
+  <tr><td>调试</td><td>可能困难（深层调用栈）</td><td>中等（verbose模式有帮助）</td><td>容易（您控制一切）</td></tr>
+  <tr><td>生态系统</td><td>最大：700+集成</td><td>增长中：内置工具 + LangChain兼容</td><td>您自己构建的</td></tr>
+  <tr><td>多模型</td><td>优秀（一行切换模型）</td><td>良好（支持主要提供商）</td><td>您自己实现提供商切换</td></tr>
+  <tr><td>生产就绪度</td><td>高（LangSmith用于监控）</td><td>中等（较新，快速演进）</td><td>取决于您的工程能力</td></tr>
+</table></div>
+
+<div class="callout tip"><div class="callout-label">提示</div><p><strong>从直接API调用开始</strong>构建您的第一个智能体。理解每一步发生了什么。然后，如果您发现自己在不同项目中重复构建相同的模式，再采用框架。如果您的用例是单智能体工具调用工作流，LangChain是自然的选择。如果您需要多个智能体协作，CrewAI正是为此而构建的。对于许多生产系统，围绕API的薄自定义封装就是您所需要的全部。</p></div>
+
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>避免在项目早期出现"框架锁定"。LangChain和CrewAI都在快速演进，并伴随着破坏性变更。如果您的整个应用紧密耦合到框架的内部实现，升级将变得痛苦。保持业务逻辑和框架特定代码之间的清晰分离。</p></div>
+
+<h3>决策流程图</h3>
+<ul>
+  <li><strong>简单聊天机器人或问答？</strong> &rarr; 直接API调用或LangChain</li>
+  <li><strong>文档上的RAG？</strong> &rarr; LangChain（优秀的检索器生态系统）</li>
+  <li><strong>带工具的单智能体？</strong> &rarr; LangChain或直接API</li>
+  <li><strong>多智能体协作？</strong> &rarr; CrewAI或LangGraph</li>
+  <li><strong>复杂的有状态工作流？</strong> &rarr; LangGraph（基于图的智能体编排）</li>
+  <li><strong>需要最大性能和控制？</strong> &rarr; 直接API调用</li>
+</ul>
 <a href="module_11_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块11 &mdash; 多智能体编排</p></div></a>
   </main>
 </div>

@@ -60,7 +60,7 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <div id="layout">
   <aside id="sidebar">
     <div class="sidebar-label">目录</div>
-    <nav><a href="#s1"><span class="num">1</span>OpenAI第一次调用</a><a href="#s2"><span class="num">2</span>Anthropic第一次调用</a><a href="#s3"><span class="num">3</span>API差异</a></nav>
+    <nav><a href="#s1"><span class="num">1</span>OpenAI第一次调用</a><a href="#s2"><span class="num">2</span>Anthropic第一次调用</a><a href="#s3"><span class="num">3</span>API关键差异</a></nav>
   </aside>
   <main id="main">
     <div class="module-hero">
@@ -72,33 +72,254 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <span class="section-anchor" id="s1"></span>
 <div class="section-header">
   <span class="section-num">1</span>
-  <h2>OpenAI &mdash; 第一次调用</h2>
+  <h2>OpenAI &mdash; 第一次调用 (GPT-4o)</h2>
 </div>
+<p>让我们从最基本的API调用开始。OpenAI Chat Completions API接收一个消息列表（每条消息包含角色和内容），并返回模型生成的响应。这是你将构建的每个智能体的基础。</p>
+
+<h3>最小示例</h3>
 <pre><code>from openai import OpenAI
+
+# Client automatically reads OPENAI_API_KEY from environment
 client = OpenAI()
+
 response = client.chat.completions.create(
-    model='gpt-4o',
-    messages=[{'role': 'system', 'content': 'You are a helpful assistant.'},
-              {'role': 'user', 'content': 'What is an AI agent?'}])
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "What is an AI agent?"}
+    ]
+)
+
+# Extract the response text
 print(response.choices[0].message.content)</code></pre>
+<p><code>messages</code> 数组是核心概念。它代表一段对话历史，包含三种可能的角色：</p>
+<div class="table-wrap"><table><tr><th>角色</th><th>用途</th><th>使用时机</th></tr><tr><td><code>system</code></td><td>设定智能体的身份、规则和行为</td><td>一次，在messages数组的开头</td></tr><tr><td><code>user</code></td><td>来自人类用户的消息</td><td>每次用户输入（问题、指令、后续跟进）</td></tr><tr><td><code>assistant</code></td><td>之前的模型响应（用于上下文）</td><td>构建多轮对话时</td></tr></table></div>
+
+<h3>理解响应对象</h3>
+<p>OpenAI的响应包含的不仅仅是文本。以下是如何检查它：</p>
+<pre><code># Full response inspection
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Explain AI agents in one sentence."}
+    ]
+)
+
+# The response text
+print(response.choices[0].message.content)
+
+# Why the model stopped generating
+print(response.choices[0].finish_reason)  # "stop", "length", or "tool_calls"
+
+# Token usage (important for cost tracking!)
+print(f"Prompt tokens:     {response.usage.prompt_tokens}")
+print(f"Completion tokens: {response.usage.completion_tokens}")
+print(f"Total tokens:      {response.usage.total_tokens}")
+
+# Model used
+print(f"Model: {response.model}")</code></pre>
+<div class="callout note"><div class="callout-label">注意</div><p><code>finish_reason</code> 字段对智能体至关重要。值为 <code>"stop"</code> 表示模型自然结束。<code>"length"</code> 表示达到了token限制（你的响应被截断了！）。<code>"tool_calls"</code> 表示模型想要调用工具——这是模块6中介绍的智能体行为的基础。</p></div>
+
+<h3>使用Temperature和Max Tokens控制输出</h3>
+<p><strong>Temperature</strong>控制随机性。对于智能体，你几乎总是希望低temperature（确定性、可靠的输出）。<strong>Max tokens</strong>限制响应长度。</p>
+<pre><code>response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a precise data analyst."},
+        {"role": "user", "content": "What is 15% of 847?"}
+    ],
+    temperature=0.0,    # Deterministic output (best for agents)
+    max_tokens=100,     # Limit response length
+)
+print(response.choices[0].message.content)
+# Output: "15% of 847 is 127.05."</code></pre>
+<div class="table-wrap"><table><tr><th>Temperature</th><th>行为</th><th>最适合</th></tr><tr><td>0.0</td><td>确定性——相同输入总是给出相同输出</td><td>智能体、数据提取、计算</td></tr><tr><td>0.3&ndash;0.5</td><td>略有创意但大致一致</td><td>客户支持、结构化写作</td></tr><tr><td>0.7&ndash;1.0</td><td>创意性和多样性</td><td>头脑风暴、创意写作、探索</td></tr><tr><td>1.5&ndash;2.0</td><td>高度随机，通常不连贯</td><td>实践中很少有用</td></tr></table></div>
+<div class="callout tip"><div class="callout-label">提示</div><p>对于智能体应用，在开发和测试期间设置 <code>temperature=0</code> 以确保结果可复现。之后可以针对特定创意任务增加它。</p></div>
+
+<h3>多轮对话</h3>
+<p>要进行来回对话，你需要将助手的响应和用户的后续跟进都追加到messages数组中：</p>
+<pre><code>messages = [
+    {"role": "system", "content": "You are a helpful maths tutor."},
+    {"role": "user", "content": "What is a derivative?"},
+]
+
+# First turn
+response = client.chat.completions.create(model="gpt-4o", messages=messages)
+assistant_reply = response.choices[0].message.content
+print(f"Assistant: {assistant_reply}")
+
+# Append assistant reply and user follow-up
+messages.append({"role": "assistant", "content": assistant_reply})
+messages.append({"role": "user", "content": "Can you give me a simple example?"})
+
+# Second turn - model has full context of the conversation
+response = client.chat.completions.create(model="gpt-4o", messages=messages)
+print(f"Assistant: {response.choices[0].message.content}")</code></pre>
+<div class="callout analogy"><div class="callout-label">类比</div><p>messages数组就像一份对话记录。模型在API调用之间没有记忆——你必须每次都发送完整的记录。这就是为什么智能体循环（模块5）会持续追加到这个数组。</p></div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
-  <h2>Anthropic &mdash; 第一次调用</h2>
+  <h2>Anthropic &mdash; 第一次调用 (Claude Sonnet 4)</h2>
 </div>
+<p>Anthropic的Messages API遵循类似的概念，但语法不同。最大的区别是系统提示是一个<strong>独立参数</strong>，而不是messages数组的一部分。</p>
+
+<h3>最小示例</h3>
 <pre><code>import anthropic
+
+# Client automatically reads ANTHROPIC_API_KEY from environment
 client = anthropic.Anthropic()
+
 message = client.messages.create(
-    model='claude-sonnet-4-20250514', max_tokens=1024,
-    system='You are a helpful assistant.',
-    messages=[{'role': 'user', 'content': 'What is an AI agent?'}])
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,                              # Required (not optional!)
+    system="You are a helpful assistant.",         # Separate from messages
+    messages=[
+        {"role": "user", "content": "What is an AI agent?"}
+    ]
+)
+
+# Extract the response text
 print(message.content[0].text)</code></pre>
+
+<h3>理解Anthropic响应</h3>
+<pre><code>message = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    system="You are a helpful assistant.",
+    messages=[{"role": "user", "content": "Explain AI agents in one sentence."}]
+)
+
+# The response text (Anthropic returns a list of content blocks)
+print(message.content[0].text)
+
+# Stop reason
+print(message.stop_reason)  # "end_turn", "max_tokens", or "tool_use"
+
+# Token usage
+print(f"Input tokens:  {message.usage.input_tokens}")
+print(f"Output tokens: {message.usage.output_tokens}")
+
+# Model used
+print(f"Model: {message.model}")</code></pre>
+<div class="callout note"><div class="callout-label">注意</div><p>Anthropic的 <code>stop_reason</code> 使用与OpenAI不同的值。OpenAI的 <code>"stop"</code> 对应的是 <code>"end_turn"</code>。<code>"tool_calls"</code> 对应的是 <code>"tool_use"</code>。请务必查看供应商的文档以获取确切值。</p></div>
+
+<h3>Anthropic的多轮对话</h3>
+<pre><code>messages = [
+    {"role": "user", "content": "What is a derivative in calculus?"},
+]
+
+# First turn
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    system="You are a helpful maths tutor.",
+    messages=messages
+)
+assistant_reply = response.content[0].text
+
+# Append and continue
+messages.append({"role": "assistant", "content": assistant_reply})
+messages.append({"role": "user", "content": "Can you give me a simple example?"})
+
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    system="You are a helpful maths tutor.",
+    messages=messages
+)
+print(response.content[0].text)</code></pre>
+
+<h3>Anthropic的结构化输出</h3>
+<p>对于智能体用例，你经常需要模型返回结构化数据（JSON）而不是自由格式文本。以下是如何请求和解析结构化输出：</p>
+<pre><code>import json
+
+message = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    system="""You are a data extraction assistant.
+Always respond with valid JSON. No other text.""",
+    messages=[{
+        "role": "user",
+        "content": "Extract the key details: 'Meeting with Sarah on Tuesday at 3pm to discuss Q4 budget. Location: Room 204.'"
+    }]
+)
+
+# Parse the JSON response
+data = json.loads(message.content[0].text)
+print(json.dumps(data, indent=2))
+# {
+#   "event": "Meeting",
+#   "attendee": "Sarah",
+#   "day": "Tuesday",
+#   "time": "3:00 PM",
+#   "topic": "Q4 budget",
+#   "location": "Room 204"
+# }</code></pre>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
   <h2>API关键差异</h2>
 </div>
-<div class="table-wrap"><table><tr><th>特性</th><th>OpenAI</th><th>Anthropic</th></tr><tr><td>系统提示</td><td>在messages内</td><td>独立system参数</td></tr><tr><td>响应</td><td>choices[0].message.content</td><td>content[0].text</td></tr><tr><td>最大token</td><td>可选</td><td>必需</td></tr></table></div>
+<p>构建智能体时，你通常会希望支持多个LLM供应商（用于成本优化、故障转移或能力差异）。以下是两个API的详细对比：</p>
+<div class="table-wrap"><table><tr><th>特性</th><th>OpenAI</th><th>Anthropic</th></tr><tr><td>系统提示</td><td>在 <code>messages</code> 数组中作为 <code>role: "system"</code></td><td>独立的 <code>system</code> 参数</td></tr><tr><td>响应文本</td><td><code>response.choices[0].message.content</code></td><td><code>message.content[0].text</code></td></tr><tr><td>最大token</td><td>可选（默认为模型最大值）</td><td><strong>必需</strong>——必须始终指定</td></tr><tr><td>停止原因</td><td><code>"stop"</code>、<code>"length"</code>、<code>"tool_calls"</code></td><td><code>"end_turn"</code>、<code>"max_tokens"</code>、<code>"tool_use"</code></td></tr><tr><td>Token使用量</td><td><code>usage.prompt_tokens</code> / <code>usage.completion_tokens</code></td><td><code>usage.input_tokens</code> / <code>usage.output_tokens</code></td></tr><tr><td>工具格式</td><td>包裹在 <code>type: "function"</code> 中</td><td>直接在顶层使用 <code>input_schema</code></td></tr><tr><td>流式传输</td><td><code>stream=True</code> 配合SSE事件</td><td><code>stream=True</code> 或 <code>client.messages.stream()</code></td></tr></table></div>
+
+<h3>编写供应商无关的包装器</h3>
+<p>由于概念相同但语法不同，常见的模式是编写一个薄包装器来统一两个API：</p>
+<pre><code>from openai import OpenAI
+import anthropic
+
+class LLMClient:
+    """Unified wrapper for OpenAI and Anthropic APIs."""
+
+    def __init__(self, provider: str = "openai"):
+        self.provider = provider
+        if provider == "openai":
+            self.client = OpenAI()
+            self.model = "gpt-4o"
+        elif provider == "anthropic":
+            self.client = anthropic.Anthropic()
+            self.model = "claude-sonnet-4-20250514"
+
+    def chat(self, system: str, user_message: str,
+             temperature: float = 0.0, max_tokens: int = 1024) -> str:
+        """Send a message and return the response text."""
+        if self.provider == "openai":
+            response = self.client.chat.completions.create(
+                model=self.model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user_message},
+                ],
+            )
+            return response.choices[0].message.content
+
+        elif self.provider == "anthropic":
+            message = self.client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                system=system,
+                messages=[{"role": "user", "content": user_message}],
+            )
+            return message.content[0].text
+
+# Usage - switch providers with one parameter
+llm = LLMClient(provider="anthropic")
+answer = llm.chat(
+    system="You are a helpful assistant.",
+    user_message="What is an AI agent?"
+)
+print(answer)</code></pre>
+<div class="callout tip"><div class="callout-label">提示</div><p>两个API都支持流式传输、工具使用、视觉（图像输入）和多轮对话。概念完全相同——只是语法不同。学会一个就能轻松使用另一个。在本教程系列中，我们尽可能展示两者，以便你选择偏好的供应商。</p></div>
+
+<h3>成本意识</h3>
+<p>API调用需要花钱。理解token定价对于构建不会让你破产的智能体至关重要：</p>
+<div class="table-wrap"><table><tr><th>模型</th><th>输入（每100万token）</th><th>输出（每100万token）</th><th>最适合</th></tr><tr><td>GPT-4o mini</td><td>$0.15</td><td>$0.60</td><td>简单任务、分类、廉价测试</td></tr><tr><td>GPT-4o</td><td>$2.50</td><td>$10.00</td><td>复杂推理、智能体核心</td></tr><tr><td>Claude Haiku</td><td>$0.25</td><td>$1.25</td><td>快速、简单任务、高吞吐量</td></tr><tr><td>Claude Sonnet 4</td><td>$3.00</td><td>$15.00</td><td>复杂推理、智能体核心</td></tr></table></div>
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>一个运行10步的智能体循环，每步都发送完整的对话历史，可以迅速消耗数千个token。始终监控 <code>usage.total_tokens</code>（或 <code>usage.input_tokens + usage.output_tokens</code>）并在开发期间设置预算限制。失控的智能体循环可能在几分钟内花费数十美元。</p></div>
 <a href="module_05_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块5 &mdash; 构建智能体循环</p></div></a>
   </main>
 </div>
