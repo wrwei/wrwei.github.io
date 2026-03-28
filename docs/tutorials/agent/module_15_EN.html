@@ -60,51 +60,401 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <div id="layout">
   <aside id="sidebar">
     <div class="sidebar-label">Contents</div>
-    <nav><a href="#s1"><span class="num">1</span>Production Checklist</a><a href="#s2"><span class="num">2</span>Error Handling</a><a href="#s3"><span class="num">3</span>Cost Estimation</a><a href="#s4"><span class="num">4</span>What's Next?</a></nav>
+    <nav><a href="#s1"><span class="num">1</span>Containerisation</a><a href="#s2"><span class="num">2</span>Error Handling</a><a href="#s3"><span class="num">3</span>Monitoring &amp; Observability</a><a href="#s4"><span class="num">4</span>Scaling</a><a href="#s5"><span class="num">5</span>Cost Management</a><a href="#s6"><span class="num">6</span>Production Checklist</a><a href="#s7"><span class="num">7</span>What's Next?</a></nav>
   </aside>
   <main id="main">
     <div class="module-hero">
       <div class="series">AI Agent Series &mdash; Ran Wei</div>
       <h1 class="module-title">Module 15: <em>Deployment &amp; Best Practices</em></h1>
-      <p class="module-lead">Production-ready deployment patterns.</p>
+      <p class="module-lead">Taking your agent from prototype to production: containerisation, monitoring, scaling, cost management, and a comprehensive deployment checklist.</p>
     </div>
 
 <span class="section-anchor" id="s1"></span>
 <div class="section-header">
   <span class="section-num">1</span>
-  <h2>Production Checklist</h2>
+  <h2>Containerisation</h2>
 </div>
-<ul><li>Rate limiting</li><li>Error handling with exponential backoff</li><li>Logging all LLM calls</li><li>Cost monitoring</li><li>Timeouts</li><li>Sandboxing</li><li>Human-in-the-loop for high-stakes</li></ul>
+<p>Containerising your agent ensures it runs consistently across development, staging, and production environments. A Docker container packages your agent code, dependencies, and configuration into a single deployable unit.</p>
+
+<h3>Dockerfile for an Agent Service</h3>
+<pre><code># Dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install dependencies first (cached layer)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY src/ ./src/
+COPY prompts/ ./prompts/
+COPY config/ ./config/
+
+# Non-root user for security
+RUN useradd --create-home appuser
+USER appuser
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD curl -f http://localhost:8000/health || exit 1
+
+EXPOSE 8000
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]</code></pre>
+
+<h3>Docker Compose for Multi-Agent Systems</h3>
+<p>When you have multiple agents running as separate services (as discussed in Module 11), Docker Compose lets you define and run them together.</p>
+<pre><code># docker-compose.yml
+version: "3.9"
+services:
+  orchestrator:
+    build: ./orchestrator
+    ports: ["8000:8000"]
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - REDIS_URL=redis://redis:6379
+    depends_on: [redis]
+
+  research-agent:
+    build: ./agents/research
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+  writer-agent:
+    build: ./agents/writer
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+  redis:
+    image: redis:7-alpine
+    volumes: ["redis-data:/data"]
+
+volumes:
+  redis-data:</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Never bake API keys into your Docker image. Use environment variables or a secrets manager (AWS Secrets Manager, HashiCorp Vault, etc.). The <code>.env</code> file should be in your <code>.gitignore</code> and <code>.dockerignore</code>.</p></div>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>Python agent containers can be large (1GB+) due to ML dependencies. Use multi-stage builds and <code>python:3.12-slim</code> as the base to keep images lean. Only install the packages your agent actually needs in production.</p></div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
-  <h2>Error Handling Pattern</h2>
+  <h2>Error Handling</h2>
 </div>
-<pre><code>import time
-from openai import RateLimitError, APIError
+<p>Production agents face a range of failures: API rate limits, network timeouts, malformed LLM responses, and tool execution errors. Robust error handling with retries and circuit breakers keeps your agent resilient.</p>
 
-def call_with_retry(func, max_retries=3):
-    for attempt in range(max_retries):
-        try: return func()
-        except RateLimitError:
-            time.sleep(2 ** attempt)
-        except APIError as e:
-            if attempt == max_retries - 1: raise
-    raise Exception('Max retries exceeded')</code></pre>
+<h3>Exponential Backoff with Jitter</h3>
+<pre><code>import time, random
+import anthropic
+
+def call_with_retry(func, max_retries: int = 3, base_delay: float = 1.0):
+    """Call a function with exponential backoff and jitter on failure."""
+    for attempt in range(max_retries + 1):
+        try:
+            return func()
+        except anthropic.RateLimitError:
+            if attempt == max_retries:
+                raise
+            delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+            print(f"Rate limited. Retrying in {delay:.1f}s (attempt {attempt + 1})")
+            time.sleep(delay)
+        except anthropic.APIStatusError as e:
+            if e.status_code >= 500:  # Server errors are retryable
+                if attempt == max_retries:
+                    raise
+                time.sleep(base_delay * (2 ** attempt))
+            else:
+                raise  # Client errors (4xx) are not retryable
+        except anthropic.APIConnectionError:
+            if attempt == max_retries:
+                raise
+            time.sleep(base_delay * (2 ** attempt))
+    raise Exception("Max retries exceeded")</code></pre>
+
+<h3>Circuit Breaker Pattern</h3>
+<p>If an API is consistently failing, stop hitting it and fail fast instead of waiting through retries. A circuit breaker "opens" after a threshold of failures and "closes" after a cooldown period.</p>
+<pre><code>import time
+
+class CircuitBreaker:
+    """Prevent cascading failures with a circuit breaker."""
+
+    def __init__(self, failure_threshold: int = 5, reset_timeout: float = 60.0):
+        self.failure_threshold = failure_threshold
+        self.reset_timeout = reset_timeout
+        self.failure_count = 0
+        self.last_failure_time = 0
+        self.state = "closed"  # closed = normal, open = failing fast
+
+    def call(self, func):
+        """Execute function through the circuit breaker."""
+        if self.state == "open":
+            if time.time() - self.last_failure_time > self.reset_timeout:
+                self.state = "half-open"  # Try one request
+            else:
+                raise Exception("Circuit breaker is OPEN - failing fast")
+
+        try:
+            result = func()
+            if self.state == "half-open":
+                self.state = "closed"
+                self.failure_count = 0
+            return result
+        except Exception as e:
+            self.failure_count += 1
+            self.last_failure_time = time.time()
+            if self.failure_count >= self.failure_threshold:
+                self.state = "open"
+                print(f"Circuit breaker OPENED after {self.failure_count} failures")
+            raise
+
+# Usage
+api_breaker = CircuitBreaker(failure_threshold=5, reset_timeout=60)
+try:
+    result = api_breaker.call(lambda: client.messages.create(...))
+except Exception as e:
+    # Serve cached response or graceful fallback
+    result = fallback_response()</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Combine retries with circuit breakers: retry individual transient failures, but if failures accumulate, the circuit breaker stops further attempts. This protects both your agent and the upstream API from overload.</p></div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
-  <h2>Cost Estimation</h2>
+  <h2>Monitoring and Observability</h2>
 </div>
-<div class="table-wrap"><table><tr><th>Model</th><th>Input</th><th>Output</th><th>~Cost/task</th></tr><tr><td>GPT-4o</td><td>$2.50/1M</td><td>$10.00/1M</td><td>$0.01-$0.10</td></tr><tr><td>Claude Sonnet 4</td><td>$3.00/1M</td><td>$15.00/1M</td><td>$0.02-$0.15</td></tr><tr><td>GPT-4o-mini</td><td>$0.15/1M</td><td>$0.60/1M</td><td>$0.001-$0.01</td></tr></table></div>
-<div class="callout tip"><div class="callout-label">TIP</div><p>Use smaller models for simple steps. 10-50x cost reduction.</p></div>
+<p>You cannot fix what you cannot see. Production agents need comprehensive logging, metrics, and tracing to diagnose issues and track performance over time.</p>
+
+<h3>Structured Logging</h3>
+<pre><code>import logging, json, time, uuid
+
+class AgentLogger:
+    """Structured logging for agent interactions."""
+
+    def __init__(self, agent_name: str):
+        self.logger = logging.getLogger(agent_name)
+        self.logger.setLevel(logging.INFO)
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter('%(message)s'))
+        self.logger.addHandler(handler)
+
+    def log_llm_call(self, request_id: str, model: str, input_tokens: int,
+                     output_tokens: int, latency_ms: float, success: bool):
+        self.logger.info(json.dumps({
+            "event": "llm_call",
+            "request_id": request_id,
+            "model": model,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "latency_ms": round(latency_ms, 2),
+            "success": success,
+            "cost_usd": self._estimate_cost(model, input_tokens, output_tokens),
+            "timestamp": time.time(),
+        }))
+
+    def log_tool_call(self, request_id: str, tool_name: str,
+                      latency_ms: float, success: bool, error: str = ""):
+        self.logger.info(json.dumps({
+            "event": "tool_call",
+            "request_id": request_id,
+            "tool": tool_name,
+            "latency_ms": round(latency_ms, 2),
+            "success": success,
+            "error": error,
+            "timestamp": time.time(),
+        }))
+
+    def _estimate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
+        prices = {
+            "claude-sonnet-4-20250514": (3.0, 15.0),   # per 1M tokens
+            "claude-haiku-4-20250514":  (0.25, 1.25),
+        }
+        input_price, output_price = prices.get(model, (3.0, 15.0))
+        return (input_tokens * input_price + output_tokens * output_price) / 1_000_000</code></pre>
+
+<h3>Key Metrics to Track</h3>
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>What It Tells You</th><th>Alert Threshold</th></tr>
+<tr><td>Request latency (p50, p95, p99)</td><td>How fast your agent responds</td><td>p95 > 10s</td></tr>
+<tr><td>Error rate</td><td>How often requests fail</td><td>> 5%</td></tr>
+<tr><td>Token usage per request</td><td>How much context the agent uses</td><td>> 80% of context window</td></tr>
+<tr><td>Cost per request</td><td>How much each interaction costs</td><td>> $0.50/request</td></tr>
+<tr><td>Tool call success rate</td><td>How reliable your tools are</td><td>< 95%</td></tr>
+<tr><td>Task completion rate</td><td>How often the agent finishes the task</td><td>< 90%</td></tr>
+<tr><td>Human escalation rate</td><td>How often the agent cannot handle a request</td><td>> 20%</td></tr>
+</table></div>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Send structured logs to a centralised system (ELK stack, Datadog, Grafana Cloud) and set up dashboards that show real-time agent health. Build alerts for anomalies &mdash; a sudden spike in token usage often means your agent is stuck in a loop.</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
+  <h2>Scaling</h2>
+</div>
+<p>AI agents are primarily I/O-bound (waiting for LLM API responses), not CPU-bound. This means scaling strategies differ from traditional compute-heavy applications.</p>
+
+<h3>Horizontal Scaling with FastAPI</h3>
+<pre><code>from fastapi import FastAPI, BackgroundTasks
+from pydantic import BaseModel
+import asyncio, anthropic
+
+app = FastAPI()
+client = anthropic.AsyncAnthropic()
+
+class AgentRequest(BaseModel):
+    user_id: str
+    message: str
+
+class AgentResponse(BaseModel):
+    response: str
+    latency_ms: float
+
+@app.post("/agent", response_model=AgentResponse)
+async def handle_request(req: AgentRequest):
+    """Handle agent requests asynchronously for high throughput."""
+    import time
+    start = time.time()
+
+    response = await client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=2048,
+        system="You are a helpful assistant.",
+        messages=[{"role": "user", "content": req.message}]
+    )
+
+    latency = (time.time() - start) * 1000
+    return AgentResponse(
+        response=response.content[0].text,
+        latency_ms=latency
+    )
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}</code></pre>
+
+<div class="card-grid">
+<div class="card"><h3>Async I/O</h3><p>Use <code>asyncio</code> and async API clients. A single process can handle hundreds of concurrent LLM requests while waiting for responses.</p></div>
+<div class="card"><h3>Worker Processes</h3><p>Run multiple Uvicorn workers (<code>--workers 4</code>) behind a load balancer. Each worker handles its own async event loop.</p></div>
+<div class="card"><h3>Queue-Based</h3><p>For long-running agent tasks, use a task queue (Celery, Redis Queue) to decouple request acceptance from processing.</p></div>
+<div class="card"><h3>Auto-Scaling</h3><p>Deploy on Kubernetes or cloud services with auto-scaling based on request queue depth or latency metrics.</p></div>
+</div>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>The bottleneck is almost always the LLM API, not your application code. Scaling your agent horizontally does not help if the LLM provider is rate-limiting you. Monitor your API rate limits and request higher limits from your provider before scaling your infrastructure.</p></div>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Cost Management</h2>
+</div>
+<p>LLM API costs can escalate quickly in production, especially with multi-agent systems where each user request triggers multiple API calls. Proactive cost management is essential.</p>
+
+<div class="table-wrap"><table>
+<tr><th>Model</th><th>Input (per 1M tokens)</th><th>Output (per 1M tokens)</th><th>Typical cost per task</th></tr>
+<tr><td>Claude Opus 4</td><td>$15.00</td><td>$75.00</td><td>$0.10 - $1.00</td></tr>
+<tr><td>Claude Sonnet 4</td><td>$3.00</td><td>$15.00</td><td>$0.02 - $0.15</td></tr>
+<tr><td>Claude Haiku 4</td><td>$0.25</td><td>$1.25</td><td>$0.001 - $0.01</td></tr>
+<tr><td>GPT-4o</td><td>$2.50</td><td>$10.00</td><td>$0.01 - $0.10</td></tr>
+<tr><td>GPT-4o-mini</td><td>$0.15</td><td>$0.60</td><td>$0.001 - $0.01</td></tr>
+</table></div>
+
+<h3>Cost Optimisation Strategies</h3>
+<pre><code>class CostOptimiser:
+    """Route requests to the cheapest capable model."""
+
+    def __init__(self):
+        self.client = anthropic.Anthropic()
+        self.model_tiers = {
+            "simple":  "claude-haiku-4-20250514",    # Classification, extraction
+            "medium":  "claude-sonnet-4-20250514",   # Analysis, writing
+            "complex": "claude-opus-4-20250514",     # Complex reasoning
+        }
+
+    def classify_complexity(self, task: str) -> str:
+        """Use a cheap model to classify task complexity."""
+        response = self.client.messages.create(
+            model="claude-haiku-4-20250514",
+            max_tokens=10,
+            system="Classify task complexity as: simple, medium, or complex. "
+                   "One word only.",
+            messages=[{"role": "user", "content": task}]
+        )
+        complexity = response.content[0].text.strip().lower()
+        return complexity if complexity in self.model_tiers else "medium"
+
+    def run(self, task: str) -> str:
+        """Route to the appropriate model based on complexity."""
+        complexity = self.classify_complexity(task)
+        model = self.model_tiers[complexity]
+        print(f"Routing to {model} (complexity: {complexity})")
+
+        response = self.client.messages.create(
+            model=model, max_tokens=2048,
+            messages=[{"role": "user", "content": task}]
+        )
+        return response.content[0].text</code></pre>
+
+<p>Key cost-saving techniques:</p>
+<ol>
+  <li><strong>Model routing</strong> &mdash; use cheap models for simple tasks, expensive models only when needed (5-50x savings)</li>
+  <li><strong>Prompt caching</strong> &mdash; cache system prompts and frequently used context to reduce input tokens</li>
+  <li><strong>Response caching</strong> &mdash; cache identical or near-identical queries to avoid redundant API calls</li>
+  <li><strong>Token budgets</strong> &mdash; set <code>max_tokens</code> appropriately for each task; do not request 4096 tokens for a yes/no answer</li>
+  <li><strong>Batch processing</strong> &mdash; use batch APIs for non-time-sensitive workloads (typically 50% cheaper)</li>
+  <li><strong>Spending alerts</strong> &mdash; set hard spending caps on API keys and alert when approaching limits</li>
+</ol>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>The classification call in the model router costs fractions of a cent. Even if it sometimes routes incorrectly, the overall savings from using cheaper models for 60-80% of requests far outweigh the cost of the routing call itself.</p></div>
+
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>Production Checklist</h2>
+</div>
+<p>Before deploying an agent to production, walk through this comprehensive checklist. Each item addresses a common failure mode in production AI systems.</p>
+
+<div class="table-wrap"><table>
+<tr><th>Category</th><th>Item</th><th>Status</th></tr>
+<tr><td><strong>Security</strong></td><td>API keys stored in secrets manager (not in code or env files)</td><td></td></tr>
+<tr><td><strong>Security</strong></td><td>Input validation and prompt injection defences (Module 13)</td><td></td></tr>
+<tr><td><strong>Security</strong></td><td>Output filtering for PII and harmful content</td><td></td></tr>
+<tr><td><strong>Security</strong></td><td>Least-privilege permissions for all tools</td><td></td></tr>
+<tr><td><strong>Reliability</strong></td><td>Exponential backoff with jitter for API calls</td><td></td></tr>
+<tr><td><strong>Reliability</strong></td><td>Circuit breakers for external dependencies</td><td></td></tr>
+<tr><td><strong>Reliability</strong></td><td>Timeouts on all LLM calls (30-120s depending on task)</td><td></td></tr>
+<tr><td><strong>Reliability</strong></td><td>Graceful degradation when services are unavailable</td><td></td></tr>
+<tr><td><strong>Observability</strong></td><td>Structured logging for all LLM calls and tool executions</td><td></td></tr>
+<tr><td><strong>Observability</strong></td><td>Metrics dashboard with latency, error rate, and cost</td><td></td></tr>
+<tr><td><strong>Observability</strong></td><td>Alerting for error rate spikes and cost anomalies</td><td></td></tr>
+<tr><td><strong>Cost</strong></td><td>Model routing for cost-appropriate model selection</td><td></td></tr>
+<tr><td><strong>Cost</strong></td><td>Hard spending caps on API keys</td><td></td></tr>
+<tr><td><strong>Cost</strong></td><td>Response caching where applicable</td><td></td></tr>
+<tr><td><strong>Testing</strong></td><td>Benchmark suite passing (Module 14)</td><td></td></tr>
+<tr><td><strong>Testing</strong></td><td>Regression tests for all prompt changes</td><td></td></tr>
+<tr><td><strong>Safety</strong></td><td>Human-in-the-loop for high-risk actions</td><td></td></tr>
+<tr><td><strong>Safety</strong></td><td>Rate limiting per user and per action type</td><td></td></tr>
+<tr><td><strong>Safety</strong></td><td>Audit trail for all agent decisions and actions</td><td></td></tr>
+</table></div>
+
+<span class="section-anchor" id="s7"></span>
+<div class="section-header">
+  <span class="section-num">7</span>
   <h2>What's Next?</h2>
 </div>
-<ul><li>Explore LangChain and CrewAI</li><li>Learn the A2A protocol</li><li>Build MCP servers</li><li>Implement RAG</li><li>Study prompt engineering</li></ul>
-<div class="callout tip"><div class="callout-label">CONGRATULATIONS</div><p>You have completed all 15 modules of the AI Agent Series. You now have the foundations to build production-grade AI agents. The field is evolving rapidly &mdash; stay curious, keep building.</p></div>
+<p>You have completed all 15 modules of the AI Agent Series. You now have the foundational knowledge and practical skills to build, test, and deploy production-grade AI agents. Here is a suggested path for continuing your learning:</p>
+
+<div class="card-grid">
+<div class="card"><h3>Build a Real Project</h3><p>Pick a problem you care about and build an end-to-end agent. A customer support bot, a research assistant, or a code review agent are all great starting points.</p></div>
+<div class="card"><h3>Explore Frameworks</h3><p>Try LangChain, CrewAI, or the Anthropic Agent SDK for building more sophisticated multi-agent systems with less boilerplate.</p></div>
+<div class="card"><h3>Go Deeper on RAG</h3><p>Production RAG systems involve chunking strategies, embedding model selection, re-ranking, and hybrid search. Module 8 was just the beginning.</p></div>
+<div class="card"><h3>Contribute to Open Source</h3><p>Contribute to MCP servers, A2A implementations, or agent frameworks. The ecosystem is young and welcomes contributors.</p></div>
+</div>
+
+<ul>
+  <li>Stay current with the rapidly evolving agent ecosystem by following the official documentation for <a href="https://docs.anthropic.com" style="color:var(--blue)">Anthropic</a>, <a href="https://modelcontextprotocol.io" style="color:var(--blue)">MCP</a>, and <a href="https://github.com/google/A2A" style="color:var(--blue)">A2A</a></li>
+  <li>Join community forums and Discord servers to share patterns and learn from others building agents</li>
+  <li>Read research papers on agent architectures, tool use, and safety &mdash; the academic frontier is moving fast</li>
+</ul>
+
+<div class="callout tip"><div class="callout-label">CONGRATULATIONS</div><p>You have completed all 15 modules of the AI Agent Series. You now have the foundations to build production-grade AI agents. The field is evolving rapidly &mdash; stay curious, keep building, and always prioritise safety.</p></div>
   </main>
 </div>
 <script>

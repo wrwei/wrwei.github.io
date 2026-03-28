@@ -74,26 +74,205 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>Definition</h2>
 </div>
-<p>An AI agent is a software system that uses a large language model (LLM) as its reasoning core, combined with tools, memory, and planning capabilities, to autonomously complete multi-step tasks on behalf of a user.</p>
+<p>An <strong>AI agent</strong> is a software system that uses a large language model (LLM) as its reasoning core, combined with tools, memory, and planning capabilities, to autonomously complete multi-step tasks on behalf of a user.</p>
+<p>Unlike traditional software that follows rigid, pre-programmed rules, an AI agent can interpret ambiguous instructions, break complex goals into sub-tasks, decide which tools to use at each step, and adapt its strategy based on intermediate results. The LLM provides the "brain" &mdash; natural language understanding and generation &mdash; while the surrounding infrastructure provides the "body" &mdash; the ability to perceive, remember, and act on the world.</p>
+<p>A more formal way to think about it: an AI agent is a system that receives a <strong>goal</strong>, operates within an <strong>environment</strong>, and takes <strong>actions</strong> over multiple steps to achieve that goal, using an LLM to decide what to do at each step.</p>
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of an AI agent like an executive assistant. You say "book me a flight to Tokyo next week, something under $800." The assistant checks your calendar, searches flight options, compares prices, and books the best one &mdash; all without you micromanaging each step. A chatbot, by contrast, is like a dictionary: you ask a question, you get an answer, end of interaction.</p></div>
+<div class="callout note"><div class="callout-label">NOTE</div><p>The term "agent" in AI has a long history dating back to the 1990s (e.g., Marvin Minsky's "Society of Mind"). What makes the current wave different is the use of LLMs as a general-purpose reasoning engine, which dramatically broadens the range of tasks an agent can handle without task-specific programming.</p></div>
+<h3>Key Properties of an AI Agent</h3>
+<p>Researchers have identified several properties that distinguish true agents from simpler AI systems. Not every agent needs all of these, but understanding them helps you design the right level of complexity for your use case:</p>
+<ul>
+<li><strong>Autonomy</strong> &mdash; operates without step-by-step human guidance; can complete a multi-step task after receiving a single high-level instruction</li>
+<li><strong>Reactivity</strong> &mdash; perceives its environment and responds to changes; for example, retrying a failed API call or adapting when search results are empty</li>
+<li><strong>Proactivity</strong> &mdash; takes initiative to achieve goals, not just respond to prompts; may gather additional information before the user asks for it</li>
+<li><strong>Tool use</strong> &mdash; extends its capabilities by calling external functions and APIs; this is the single most important differentiator from chatbots</li>
+<li><strong>Persistence</strong> &mdash; maintains state across interactions through memory systems; can "remember" what happened in previous sessions</li>
+<li><strong>Self-correction</strong> &mdash; when a step fails or produces unexpected results, the agent can recognise the error and try a different approach</li>
+</ul>
+<div class="callout note"><div class="callout-label">NOTE</div><p>In practice, the most impactful property is <strong>tool use</strong>. An LLM with tools can access real-time data, execute code, and take actions in the real world. Everything else (planning, memory, self-correction) enhances the quality of those tool-use decisions.</p></div>
+<pre><code># A conceptual skeleton of an AI agent in Python
+class AIAgent:
+    def __init__(self, llm, tools, memory):
+        self.llm = llm          # The reasoning engine (GPT-4o, Claude, etc.)
+        self.tools = tools      # Available actions (search, calculate, etc.)
+        self.memory = memory    # Short-term and long-term storage
+
+    def run(self, goal: str, max_steps: int = 10) -> str:
+        """Execute the agent loop until the goal is achieved."""
+        self.memory.add("user", goal)
+
+        for step in range(max_steps):
+            # THINK: Ask the LLM what to do next
+            thought = self.llm.think(self.memory.context())
+
+            if thought.wants_tool:
+                # ACT: Execute the requested tool
+                result = self.tools.execute(thought.tool_call)
+                # OBSERVE: Store the result for the next iteration
+                self.memory.add("assistant", thought.reasoning)
+                self.memory.add("tool", result)
+            else:
+                # DONE: Return the final answer
+                return thought.response
+
+        return "Max steps reached without a final answer."</code></pre>
+<div class="callout note"><div class="callout-label">NOTE</div><p>This is <strong>pseudocode</strong> to illustrate the architecture. You will build a real, runnable version of this in Module 5 using the actual OpenAI and Anthropic APIs. The key takeaway is that the structure is surprisingly simple &mdash; a class with an LLM, tools, memory, and a loop.</p></div>
+
+<h3>What Makes an Agent Different from Traditional Software?</h3>
+<p>Traditional software is deterministic &mdash; given the same input, it always produces the same output. An AI agent is <strong>stochastic</strong> &mdash; it may take different paths to solve the same problem. This has profound implications for testing, debugging, and deployment (covered in Modules 14&ndash;15).</p>
+<div class="table-wrap"><table><tr><th>Property</th><th>Traditional Software</th><th>AI Agent</th></tr><tr><td>Behaviour</td><td>Deterministic &mdash; follows exact code paths</td><td>Stochastic &mdash; LLM may reason differently each time</td></tr><tr><td>Error handling</td><td>Try/catch, pre-defined error codes</td><td>Self-correction, retry with different strategy</td></tr><tr><td>Testing</td><td>Unit tests with exact assertions</td><td>Evaluation suites with fuzzy matching</td></tr><tr><td>Debugging</td><td>Step through code line by line</td><td>Inspect conversation logs and reasoning traces</td></tr><tr><td>Scaling</td><td>More servers, load balancing</td><td>More agents, orchestration, cost management</td></tr></table></div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
   <h2>Agent vs Chatbot</h2>
 </div>
-<p>A chatbot responds to a single prompt. An agent reasons across multiple steps, decides which tools to use, maintains context, and takes real-world actions.</p>
-<div class="table-wrap"><table><tr><th>Aspect</th><th>Chatbot</th><th>Agent</th></tr><tr><td>Reasoning</td><td>Single turn</td><td>Multi-step</td></tr><tr><td>Tools</td><td>None</td><td>Search, APIs, code</td></tr><tr><td>Memory</td><td>Session only</td><td>Short + Long term</td></tr><tr><td>Actions</td><td>Text output</td><td>Real-world effects</td></tr><tr><td>Autonomy</td><td>Reactive</td><td>Goal-directed</td></tr></table></div>
+<p>The simplest way to understand AI agents is to contrast them with chatbots, which most people are already familiar with. A <strong>chatbot</strong> responds to a single prompt with a single response. An <strong>agent</strong> reasons across multiple steps, decides which tools to use, maintains context, and takes real-world actions.</p>
+<p>When you ask ChatGPT "What's the weather in London?", it either knows the answer from training data (possibly outdated) or tells you it cannot access real-time data. When you ask an <strong>agent</strong> the same question, it recognises it needs current data, calls a weather API, gets the result, formats it, and returns a live answer. The difference is not intelligence &mdash; it is <strong>architecture</strong>.</p>
+<p>Here is a concrete example. Suppose a user says: "Find the three cheapest flights from London to Tokyo next Tuesday, then email me a summary." A chatbot would generate a plausible-sounding but invented list. An agent would: (1) call a flight search API, (2) filter and sort results, (3) compose an email, and (4) send it through an email API &mdash; four distinct actions across multiple turns of reasoning.</p>
+<div class="table-wrap"><table><tr><th>Aspect</th><th>Chatbot</th><th>Agent</th></tr><tr><td>Reasoning</td><td>Single turn &mdash; one prompt, one response</td><td>Multi-step &mdash; plans, executes, and iterates</td></tr><tr><td>Tools</td><td>None (text generation only)</td><td>Search, APIs, code execution, databases</td></tr><tr><td>Memory</td><td>Session only (lost on reload)</td><td>Short-term (conversation) + long-term (persistent)</td></tr><tr><td>Actions</td><td>Text output only</td><td>Real-world side effects (send email, write file, etc.)</td></tr><tr><td>Autonomy</td><td>Reactive &mdash; waits for each prompt</td><td>Goal-directed &mdash; pursues objectives independently</td></tr><tr><td>Error handling</td><td>None &mdash; user must retry</td><td>Self-correcting &mdash; retries with different strategy</td></tr></table></div>
+<div class="callout tip"><div class="callout-label">TIP</div><p>Not every application needs an agent. If your use case is single-turn Q&amp;A (e.g., "summarise this document"), a simple LLM call is cheaper, faster, and more reliable. Agents shine when tasks require <strong>multiple steps</strong>, <strong>external data</strong>, or <strong>real-world actions</strong>.</p></div>
+
+<h3>The Spectrum of Autonomy</h3>
+<p>In practice, there is a spectrum between a pure chatbot and a fully autonomous agent. Most real-world systems fall somewhere in the middle:</p>
+<div class="table-wrap"><table><tr><th>Level</th><th>Description</th><th>Example</th></tr><tr><td>Level 0: Chatbot</td><td>Single-turn text generation</td><td>Basic ChatGPT conversation</td></tr><tr><td>Level 1: Router</td><td>LLM classifies intent, routes to the right handler</td><td>Customer support triage</td></tr><tr><td>Level 2: Tool-user</td><td>LLM decides which tool to call in a single step</td><td>Weather lookup, calculator</td></tr><tr><td>Level 3: Agent</td><td>Multi-step reasoning with tool use and self-correction</td><td>Research assistant, coding agent</td></tr><tr><td>Level 4: Multi-agent</td><td>Multiple agents collaborating on a shared goal</td><td>Software development team simulation</td></tr></table></div>
+<p>As you progress through this tutorial, you will build systems at each level &mdash; starting from simple API calls (Level 0) and working up to multi-agent orchestration (Level 4) by Module 11.</p>
+
+<h3>A Practical Example: Chatbot vs Agent</h3>
+<p>To make the distinction concrete, here is what happens when you ask both a chatbot and an agent the same question: "What are the top 3 trending Python repositories on GitHub right now?"</p>
+<pre><code># CHATBOT APPROACH: Single LLM call, no tools
+# The model can only use training data (potentially months old)
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user",
+               "content": "What are the top 3 trending Python repos on GitHub?"}]
+)
+# Result: May list repos that WERE popular during training,
+# but cannot know what's trending RIGHT NOW.
+
+# AGENT APPROACH: LLM + tool use
+# The agent recognises it needs live data and calls a tool
+# Step 1: LLM decides to call search_github_trending(language="python")
+# Step 2: Tool returns real-time data from GitHub's API
+# Step 3: LLM formats the result into a helpful response
+# Result: Accurate, real-time information</code></pre>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
   <h2>Core Components</h2>
 </div>
-<div class="card-grid"><div class="card"><h3>LLM Core</h3><p>The reasoning engine &mdash; GPT-4o, Claude Sonnet 4, etc.</p></div><div class="card"><h3>Tools</h3><p>Functions the agent can invoke: search, calculate, API calls.</p></div><div class="card"><h3>Memory</h3><p>Short-term (conversation) and long-term (persistent storage).</p></div><div class="card"><h3>Planning</h3><p>Decomposing complex goals into executable sub-tasks.</p></div><div class="card"><h3>Orchestration</h3><p>The control loop that ties everything together.</p></div></div>
+<p>Every AI agent, regardless of framework or implementation, is built from the same five core components. Understanding these is essential before writing any code.</p>
+<div class="card-grid"><div class="card"><h3>LLM Core</h3><p>The reasoning engine &mdash; GPT-4o, Claude Sonnet 4, Gemini, etc. This is the "brain" that understands instructions, generates plans, and produces responses.</p></div><div class="card"><h3>Tools</h3><p>Functions the agent can invoke: web search, calculators, API calls, code execution, database queries, file I/O. Tools are what give an agent its "hands."</p></div><div class="card"><h3>Memory</h3><p>Short-term (the current conversation context) and long-term (persistent vector stores, databases). Memory gives the agent continuity across interactions.</p></div><div class="card"><h3>Planning</h3><p>Decomposing complex goals into executable sub-tasks and determining the order of operations. This is the "strategic thinking" capability.</p></div><div class="card"><h3>Orchestration</h3><p>The control loop (observe-think-act) that ties everything together and manages the flow between components.</p></div></div>
+
+<h3>The LLM Core in Depth</h3>
+<p>The LLM is the most critical component. It acts as the decision-making centre that interprets user intent, generates plans, selects tools, and synthesises results. Modern agents typically use the most capable models available &mdash; GPT-4o, Claude Sonnet 4, or Gemini &mdash; because reasoning quality directly determines agent reliability.</p>
+<p>The LLM receives the full conversation history (including tool results) as context and must decide at each step: should I call a tool, ask the user for clarification, or deliver a final answer? This decision-making is guided by the <strong>system prompt</strong> (covered in Module 3) and the model's inherent capabilities.</p>
+
+<h3>Tools: Extending the Agent's Reach</h3>
+<p>Without tools, an agent is just a chatbot with extra steps. Tools are what allow an agent to <strong>interact with the real world</strong>. Each tool is defined by a name, a description (so the LLM knows when to use it), and an input schema (so the LLM knows what parameters to provide).</p>
+<pre><code># Example: defining a tool for the agent to use
+weather_tool = {
+    "name": "get_weather",
+    "description": "Get the current weather for a given city. Use this when the user asks about weather conditions.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "city": {"type": "string", "description": "The city name, e.g. 'London'"},
+            "units": {"type": "string", "enum": ["celsius", "fahrenheit"], "description": "Temperature unit"}
+        },
+        "required": ["city"]
+    }
+}</code></pre>
+<div class="callout note"><div class="callout-label">NOTE</div><p>Tool descriptions are part of your prompt engineering. A vague description like "gets weather" will lead to the LLM using the tool incorrectly. A clear description like "Get the current weather for a given city. Use this when the user asks about current weather conditions, temperature, or forecasts" dramatically improves tool selection accuracy.</p></div>
+
+<h3>Memory: Short-Term vs Long-Term</h3>
+<p><strong>Short-term memory</strong> is the conversation history &mdash; the messages array you pass to the API on each call. It is limited by the model's context window (e.g., 128K tokens for GPT-4o, 200K for Claude). As the conversation grows, older messages may need to be summarised or dropped to stay within limits.</p>
+<p><strong>Long-term memory</strong> is external storage &mdash; a vector database, a JSON file, or a traditional database &mdash; that persists across sessions and allows the agent to "remember" past interactions. For example, an agent might store user preferences ("prefers metric units") in long-term memory so it does not need to ask every time.</p>
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Short-term memory is like the papers currently on your desk &mdash; you can see them and reference them, but desk space is limited. Long-term memory is like a filing cabinet &mdash; you can store much more, but you need to know what to look for and retrieve it explicitly.</p></div>
+
+<h3>Planning: Decomposing Goals</h3>
+<p>Planning is the ability to take a high-level goal like "prepare a competitive analysis report" and break it into actionable steps: (1) identify competitors, (2) gather financial data, (3) analyse market positioning, (4) draft the report. Advanced agents use techniques like <strong>chain-of-thought reasoning</strong> and <strong>ReAct</strong> (Reasoning + Acting) to plan more effectively.</p>
+
+<h3>Orchestration: The Control Loop</h3>
+<p>Orchestration is the "glue" that connects all the other components. It is the code that manages the agent loop &mdash; sending messages to the LLM, parsing responses, executing tool calls, handling errors, and deciding when the task is complete. You can think of it as the main event loop in a GUI application or the game loop in a video game.</p>
+<p>In its simplest form, orchestration is a <code>while</code> loop with an if/else branch. In production systems, it may include retry logic, parallel tool execution, human approval gates, and cost tracking. We will build this step by step starting in Module 5.</p>
+<pre><code># The orchestration loop in its simplest form
+def agent_loop(user_goal, llm, tools, max_steps=10):
+    messages = [{"role": "user", "content": user_goal}]
+
+    for step in range(max_steps):
+        response = llm.generate(messages)       # Think
+
+        if response.wants_tool:                  # Needs more info?
+            result = tools.run(response.tool)    # Act
+            messages.append(response.as_message())
+            messages.append(result.as_message()) # Observe
+        else:
+            return response.text                 # Done!
+
+    return "Reached max steps without completing."</code></pre>
+
+<h3>How the Components Work Together</h3>
+<p>Here is a walkthrough of all five components interacting in a real scenario. The user asks: "What was Apple's revenue last quarter?"</p>
+<ol>
+<li><strong>Orchestration</strong> receives the user message and starts the loop</li>
+<li><strong>LLM Core</strong> (Claude Sonnet 4) reasons: "I need financial data. I should use the search_sec_filings tool."</li>
+<li><strong>Planning</strong> (implicit in the LLM's reasoning): decides to search for Apple's latest 10-Q filing</li>
+<li><strong>Tools</strong>: the <code>search_sec_filings</code> function calls the SEC EDGAR API and returns the filing data</li>
+<li><strong>Memory</strong>: the tool result is added to the conversation history</li>
+<li><strong>LLM Core</strong> reads the filing data, extracts the revenue figure, and formats a response</li>
+<li><strong>Orchestration</strong> detects that the LLM is done (no more tool calls) and returns the final answer to the user</li>
+</ol>
+<div class="callout tip"><div class="callout-label">TIP</div><p>When building your first agent, start with just the LLM + one tool + the loop. Add memory and planning sophistication only when you need them. Premature complexity is the #1 reason agent projects fail.</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
   <h2>The Agent Landscape (2025-2026)</h2>
 </div>
-<p>The AI agent ecosystem has exploded. Key protocols like MCP (Model Context Protocol) and A2A (Agent-to-Agent) provide standardised communication. Major cloud providers now offer agent marketplaces. The market is projected to reach $50B by 2030.</p>
+<p>The AI agent ecosystem has exploded since 2024. What was once a niche area of research has become the fastest-growing segment of the AI industry, with every major technology company investing heavily in agent infrastructure. The market is projected to reach $50B by 2030.</p>
+<p>Two key protocols have emerged as industry standards for agent communication. <strong>MCP (Model Context Protocol)</strong>, introduced by Anthropic, standardises how agents connect to external tools and data sources &mdash; think of it as "USB-C for AI agents." <strong>A2A (Agent-to-Agent)</strong>, introduced by Google, enables agents built by different vendors to communicate and collaborate on tasks. Together, these protocols solve the interoperability problem that previously made it impossible for agents from different vendors to work together.</p>
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>MCP is like a universal adapter for tools. Before MCP, every agent framework had its own way of connecting to tools &mdash; like having different charging cables for every phone. MCP standardises the connection so any tool built to the MCP spec works with any agent that supports MCP. A2A does the same thing, but for agent-to-agent communication rather than agent-to-tool communication.</p></div>
+<p>The landscape can be broadly divided into three tiers:</p>
+<div class="table-wrap"><table><tr><th>Tier</th><th>What It Includes</th><th>Examples</th></tr><tr><td>Foundation Models</td><td>The LLMs that power agent reasoning</td><td>GPT-4o, Claude Sonnet 4, Gemini 2.5 Pro</td></tr><tr><td>Agent Frameworks</td><td>Libraries and SDKs for building agents</td><td>LangChain, CrewAI, OpenAI Agents SDK, Claude Agent SDK</td></tr><tr><td>Agent Platforms</td><td>End-to-end hosted solutions for deploying agents</td><td>OpenAI Assistants API, Amazon Bedrock Agents, Google Vertex AI Agent Builder</td></tr></table></div>
+<div class="callout note"><div class="callout-label">NOTE</div><p>The agent ecosystem is evolving extremely fast. Frameworks and best practices that are standard today may be superseded within months. Focus on understanding the <strong>core concepts</strong> (LLM reasoning, tool use, memory, planning) rather than memorising specific API signatures &mdash; the concepts transfer across all frameworks.</p></div>
+<h3>Where Agents Are Used Today</h3>
+<ul>
+<li><strong>Customer support</strong> &mdash; agents that resolve tickets by searching knowledge bases, looking up orders, and taking actions like issuing refunds</li>
+<li><strong>Software engineering</strong> &mdash; coding agents (Copilot, Cursor, Claude Code) that write, test, and debug code autonomously</li>
+<li><strong>Data analysis</strong> &mdash; agents that query databases, run statistical analyses, and generate visualisations from natural language requests</li>
+<li><strong>Research</strong> &mdash; agents that search the web, read papers, synthesise findings, and produce structured reports</li>
+<li><strong>Workflow automation</strong> &mdash; agents that handle multi-step business processes like onboarding, procurement, or compliance checking</li>
+</ul>
+
+<h3>Key Industry Trends</h3>
+<p>Several trends are shaping the agent landscape right now:</p>
+<ul>
+<li><strong>Standardised protocols</strong> &mdash; MCP and A2A are becoming the "HTTP of agents," enabling interoperability between different vendors and frameworks</li>
+<li><strong>Specialised vs general agents</strong> &mdash; the industry is moving from "do everything" agents toward specialised agents that excel at one domain (coding, data analysis, customer support)</li>
+<li><strong>Human-in-the-loop</strong> &mdash; most production agents include approval steps where a human reviews high-impact actions before execution</li>
+<li><strong>Cost optimisation</strong> &mdash; techniques like model routing (use a cheap model for simple tasks, expensive model for complex ones) are becoming standard</li>
+<li><strong>Evaluation frameworks</strong> &mdash; the industry is developing better ways to measure agent reliability, accuracy, and safety (covered in Module 14)</li>
+</ul>
+<h3>What This Tutorial Series Covers</h3>
+<p>This 15-module series takes you from zero to production-ready AI agents. Here is a roadmap of what you will learn:</p>
+<div class="card-grid">
+<div class="card"><h3>Modules 1&ndash;5: Foundations</h3><p>Core concepts, environment setup, prompt engineering, API calls, and the agent loop. By Module 5, you will have a working agent.</p></div>
+<div class="card"><h3>Modules 6&ndash;9: Capabilities</h3><p>Tool use, memory management, RAG (retrieval-augmented generation), and MCP (Model Context Protocol) for connecting to external services.</p></div>
+<div class="card"><h3>Modules 10&ndash;12: Architecture</h3><p>Agent frameworks (LangChain, CrewAI), multi-agent orchestration, and the A2A (Agent-to-Agent) communication protocol.</p></div>
+<div class="card"><h3>Modules 13&ndash;15: Production</h3><p>Safety guardrails, testing and evaluation, deployment best practices, and cost optimisation strategies.</p></div>
+</div>
+<div class="callout tip"><div class="callout-label">TIP</div><p>The best way to learn about agents is to build one. Starting in Module 2, we will set up your development environment and begin writing code. By Module 5, you will have a working agent that can reason, use tools, and maintain conversation context.</p></div>
+
+<h3>Prerequisites for This Series</h3>
+<p>To get the most from this tutorial, you should have:</p>
+<ul>
+<li><strong>Basic Python knowledge</strong> &mdash; functions, classes, dictionaries, list comprehensions, and working with packages</li>
+<li><strong>Comfort with the command line</strong> &mdash; navigating directories, running scripts, and installing packages with pip</li>
+<li><strong>A willingness to experiment</strong> &mdash; agent development is iterative; expect to test, fail, and refine your approach</li>
+</ul>
+<p>No prior experience with LLMs, APIs, or AI is required. We will cover everything from scratch.</p>
 <a href="module_02_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 2 &mdash; Environment Setup &amp; API Configuration</p></div></a>
   </main>
 </div>

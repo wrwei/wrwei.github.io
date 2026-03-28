@@ -60,7 +60,7 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
 <div id="layout">
   <aside id="sidebar">
     <div class="sidebar-label">Contents</div>
-    <nav><a href="#s1"><span class="num">1</span>Why Tools Matter</a><a href="#s2"><span class="num">2</span>OpenAI Tool Format</a><a href="#s3"><span class="num">3</span>Anthropic Tool Format</a><a href="#s4"><span class="num">4</span>Practical Examples</a></nav>
+    <nav><a href="#s1"><span class="num">1</span>Why Tools Matter</a><a href="#s2"><span class="num">2</span>Function Calling Protocol</a><a href="#s3"><span class="num">3</span>Tool Definitions</a><a href="#s4"><span class="num">4</span>Tool Execution Loop</a><a href="#s5"><span class="num">5</span>Building a Tool Registry</a><a href="#s6"><span class="num">6</span>Practical Examples</a></nav>
   </aside>
   <main id="main">
     <div class="module-hero">
@@ -74,30 +74,381 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padd
   <span class="section-num">1</span>
   <h2>Why Tools Matter</h2>
 </div>
-<p>Without tools, an LLM can only generate text. With tools, it can search, query databases, call APIs, execute code. Tools transform a chatbot into an agent.</p>
+<p>Without tools, an LLM can only generate text. It cannot look up today's weather, query a database, send an email, or run code. <strong>Tools transform a chatbot into an agent</strong> by giving it the ability to take actions in the real world and retrieve information beyond its training data.</p>
+<p>The core insight is that LLMs are excellent at <em>deciding what to do</em> and <em>interpreting results</em>, but they need external functions to actually <em>do things</em>. Function calling is the bridge between language understanding and real-world action.</p>
+<p>Consider a customer-support agent. Without tools, it can only say "I'd be happy to check your order status." With tools, it can actually call <code>get_order_status(order_id="12345")</code>, retrieve the real data, and present it to the user. This is the difference between a helpful-sounding chatbot and a genuinely useful agent.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of an LLM as a brilliant person sitting in a sealed room. They can reason and communicate through a slot in the door, but they cannot see or touch the outside world. Tools are like giving them a phone, a computer, and access to filing cabinets &mdash; suddenly they can accomplish real tasks.</p></div>
+
+<div class="card-grid">
+  <div class="card"><h3>Information Retrieval</h3><p>Search engines, databases, APIs &mdash; fetch live data the model was never trained on.</p></div>
+  <div class="card"><h3>Computation</h3><p>Calculators, code interpreters &mdash; perform precise math and logic that LLMs struggle with.</p></div>
+  <div class="card"><h3>Side Effects</h3><p>Send emails, create tickets, update records &mdash; take actions that change the world.</p></div>
+  <div class="card"><h3>Perception</h3><p>Read files, parse images, process audio &mdash; extend the agent's senses beyond text.</p></div>
+</div>
+
 <span class="section-anchor" id="s2"></span>
 <div class="section-header">
   <span class="section-num">2</span>
-  <h2>Tool Definition &mdash; OpenAI Format</h2>
+  <h2>The Function Calling Protocol</h2>
 </div>
-<pre><code>tools = [{'type': 'function', 'function': {'name': 'search_web',
-  'description': 'Search the web', 'parameters': {'type': 'object',
-  'properties': {'query': {'type': 'string'}}, 'required': ['query']}}}]</code></pre>
+<p>Function calling follows a specific protocol between your application and the LLM. The model never executes tools directly &mdash; it outputs a structured request describing which tool to call and with what arguments. Your application then executes the function and feeds the result back to the model.</p>
+
+<h3>The Four-Step Dance</h3>
+<ol>
+  <li><strong>Define</strong> &mdash; You describe available tools (name, description, parameters) when calling the API.</li>
+  <li><strong>Decide</strong> &mdash; The model analyses the user's request and decides whether to call a tool, and if so, which one and with what arguments.</li>
+  <li><strong>Execute</strong> &mdash; Your code receives the tool-call request, runs the actual function, and collects the result.</li>
+  <li><strong>Respond</strong> &mdash; You send the tool result back to the model, which incorporates it into a natural-language response.</li>
+</ol>
+
+<pre><code># Conceptual flow of function calling
+# Step 1: User asks a question
+user_msg = "What's the weather in London?"
+
+# Step 2: Model decides to call a tool (returns structured JSON)
+# {tool_name: "get_weather", arguments: {city: "London"}}
+
+# Step 3: Your code executes the real function
+result = get_weather(city="London")  # returns {"temp": 12, "condition": "cloudy"}
+
+# Step 4: You send the result back; model writes a natural response
+# "It's currently 12C and cloudy in London."</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>The model never has direct access to your functions. It only sees the <strong>descriptions</strong> you provide. This means your tool descriptions are critically important &mdash; they are the model's only guide to understanding what each tool does, when to use it, and what arguments to provide.</p></div>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>A common mistake is assuming the model executes tools. It does not. If you forget to actually call the function and send results back, the agent loop stalls. Always implement the execution step in your code.</p></div>
+
 <span class="section-anchor" id="s3"></span>
 <div class="section-header">
   <span class="section-num">3</span>
-  <h2>Tool Definition &mdash; Anthropic Format</h2>
+  <h2>Tool Definitions &mdash; OpenAI vs Anthropic</h2>
 </div>
-<pre><code>tools = [{'name': 'search_web', 'description': 'Search the web',
-  'input_schema': {'type': 'object', 'properties': {'query': {'type': 'string'}},
-  'required': ['query']}}]</code></pre>
-<div class="callout tip"><div class="callout-label">TIP</div><p>Write detailed tool descriptions. The LLM uses these to decide when and how to use each tool.</p></div>
+<p>Both major providers use JSON Schema to describe tool parameters, but the envelope format differs. Understanding both lets you build agents that work across providers.</p>
+
+<h3>OpenAI Format</h3>
+<pre><code>tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get current weather for a city. Returns temperature in Celsius and conditions.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "city": {
+                        "type": "string",
+                        "description": "City name, e.g. 'London' or 'New York'"
+                    },
+                    "units": {
+                        "type": "string",
+                        "enum": ["celsius", "fahrenheit"],
+                        "description": "Temperature unit (default: celsius)"
+                    }
+                },
+                "required": ["city"]
+            }
+        }
+    }
+]
+
+import openai
+client = openai.OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Weather in Paris?"}],
+    tools=tools
+)</code></pre>
+
+<h3>Anthropic Format</h3>
+<pre><code>tools = [
+    {
+        "name": "get_weather",
+        "description": "Get current weather for a city. Returns temperature in Celsius and conditions.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "description": "City name, e.g. 'London' or 'New York'"
+                },
+                "units": {
+                    "type": "string",
+                    "enum": ["celsius", "fahrenheit"],
+                    "description": "Temperature unit (default: celsius)"
+                }
+            },
+            "required": ["city"]
+        }
+    }
+]
+
+import anthropic
+client = anthropic.Anthropic()
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    tools=tools,
+    messages=[{"role": "user", "content": "Weather in Paris?"}]
+)</code></pre>
+
+<div class="table-wrap"><table>
+  <tr><th>Aspect</th><th>OpenAI</th><th>Anthropic</th></tr>
+  <tr><td>Wrapper key</td><td><code>"function"</code> inside <code>"type": "function"</code></td><td>Flat &mdash; name, description, input_schema at top level</td></tr>
+  <tr><td>Schema key</td><td><code>"parameters"</code></td><td><code>"input_schema"</code></td></tr>
+  <tr><td>Tool call in response</td><td><code>tool_calls[].function.arguments</code> (JSON string)</td><td><code>content[]</code> block with <code>type: "tool_use"</code></td></tr>
+  <tr><td>Result message role</td><td><code>"tool"</code></td><td><code>"user"</code> with <code>tool_result</code> block</td></tr>
+</table></div>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Write <strong>detailed, specific descriptions</strong> for every tool and every parameter. Include examples, edge cases, and expected formats. The model relies entirely on these descriptions to decide when and how to call each tool. Vague descriptions like "Search the web" lead to poor tool selection; "Search the web using Google and return the top 5 results as title+snippet pairs" is much better.</p></div>
+
 <span class="section-anchor" id="s4"></span>
 <div class="section-header">
   <span class="section-num">4</span>
+  <h2>The Tool Execution Loop</h2>
+</div>
+<p>In a real agent, tool calling happens inside a loop. The model may call one tool, inspect the result, then call another &mdash; or it may call multiple tools in parallel. Your agent loop must handle all these cases gracefully.</p>
+
+<h3>Complete Anthropic Tool Loop</h3>
+<pre><code>import anthropic
+import json
+
+client = anthropic.Anthropic()
+
+# Define your actual tool implementations
+def get_weather(city: str, units: str = "celsius") -> dict:
+    """Simulate a weather API call."""
+    data = {"London": {"temp": 12, "condition": "cloudy"},
+            "Paris": {"temp": 18, "condition": "sunny"}}
+    return data.get(city, {"temp": 0, "condition": "unknown"})
+
+def search_news(query: str, max_results: int = 5) -> list:
+    """Simulate a news search."""
+    return [{"title": f"News about {query}", "source": "Reuters"}]
+
+# Map tool names to functions
+TOOL_REGISTRY = {
+    "get_weather": get_weather,
+    "search_news": search_news,
+}
+
+# Tool definitions for the API
+tools = [
+    {"name": "get_weather",
+     "description": "Get current weather for a city.",
+     "input_schema": {"type": "object",
+                      "properties": {"city": {"type": "string"},
+                                     "units": {"type": "string", "enum": ["celsius", "fahrenheit"]}},
+                      "required": ["city"]}},
+    {"name": "search_news",
+     "description": "Search recent news articles.",
+     "input_schema": {"type": "object",
+                      "properties": {"query": {"type": "string"},
+                                     "max_results": {"type": "integer"}},
+                      "required": ["query"]}}
+]
+
+def run_agent(user_message: str) -> str:
+    messages = [{"role": "user", "content": user_message}]
+
+    while True:
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            tools=tools,
+            messages=messages
+        )
+
+        # Check if the model wants to use tools
+        if response.stop_reason == "tool_use":
+            # Collect all tool calls and results
+            tool_results = []
+            for block in response.content:
+                if block.type == "tool_use":
+                    func = TOOL_REGISTRY[block.name]
+                    result = func(**block.input)
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": json.dumps(result)
+                    })
+
+            # Add assistant response and tool results to messages
+            messages.append({"role": "assistant", "content": response.content})
+            messages.append({"role": "user", "content": tool_results})
+        else:
+            # Model is done &mdash; extract text response
+            return "".join(b.text for b in response.content if hasattr(b, "text"))
+
+# Usage
+answer = run_agent("What's the weather in London and any AI news today?")</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>The loop continues until <code>stop_reason</code> is <code>"end_turn"</code> (not <code>"tool_use"</code>). This allows the model to chain multiple tool calls &mdash; for example, searching for a city name first, then getting its weather.</p></div>
+
+<h3>OpenAI Tool Loop</h3>
+<pre><code>import openai
+import json
+
+client = openai.OpenAI()
+
+def run_agent_openai(user_message: str) -> str:
+    messages = [{"role": "user", "content": user_message}]
+
+    while True:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            tools=tools  # same JSON Schema definitions
+        )
+        msg = response.choices[0].message
+
+        if msg.tool_calls:
+            messages.append(msg)  # add assistant message with tool calls
+            for tc in msg.tool_calls:
+                func = TOOL_REGISTRY[tc.function.name]
+                args = json.loads(tc.function.arguments)
+                result = func(**args)
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": json.dumps(result)
+                })
+        else:
+            return msg.content</code></pre>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Building a Tool Registry</h2>
+</div>
+<p>As your agent grows, you will have dozens of tools. A <strong>tool registry</strong> pattern keeps them organised, validated, and easy to extend. The registry maps tool names to their implementations and auto-generates API definitions from Python type hints.</p>
+
+<pre><code>import inspect
+import json
+from typing import Callable, Any, get_type_hints
+
+class ToolRegistry:
+    """Registry that auto-generates tool schemas from type hints."""
+
+    def __init__(self):
+        self._tools: dict[str, Callable] = {}
+        self._schemas: list[dict] = []
+
+    def tool(self, func: Callable) -> Callable:
+        """Decorator to register a tool function."""
+        name = func.__name__
+        hints = get_type_hints(func)
+        doc = inspect.getdoc(func) or ""
+
+        # Build JSON Schema from type hints
+        properties = {}
+        required = []
+        sig = inspect.signature(func)
+        for param_name, param in sig.parameters.items():
+            ptype = hints.get(param_name, str)
+            json_type = {"str": "string", "int": "integer",
+                         "float": "number", "bool": "boolean"}.get(ptype.__name__, "string")
+            properties[param_name] = {"type": json_type}
+            if param.default is inspect.Parameter.empty:
+                required.append(param_name)
+
+        schema = {
+            "name": name,
+            "description": doc,
+            "input_schema": {
+                "type": "object",
+                "properties": properties,
+                "required": required
+            }
+        }
+        self._tools[name] = func
+        self._schemas.append(schema)
+        return func
+
+    def execute(self, name: str, arguments: dict) -> Any:
+        """Execute a registered tool by name."""
+        if name not in self._tools:
+            return {"error": f"Unknown tool: {name}"}
+        try:
+            return self._tools[name](**arguments)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @property
+    def definitions(self) -> list[dict]:
+        return self._schemas
+
+# Usage
+registry = ToolRegistry()
+
+@registry.tool
+def calculate(expression: str) -> str:
+    """Evaluate a mathematical expression safely. Example: '2 + 3 * 4'"""
+    allowed = set("0123456789+-*/.() ")
+    if not all(c in allowed for c in expression):
+        return "Error: invalid characters"
+    return str(eval(expression))  # use a safe parser in production
+
+@registry.tool
+def read_file(path: str) -> str:
+    """Read the contents of a text file given its path."""
+    with open(path, "r") as f:
+        return f.read()
+
+# Pass registry.definitions to the API, use registry.execute() in your loop</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>In production, use <code>pydantic</code> models for tool input validation. Libraries like <code>instructor</code> or Anthropic's own tool-use helpers can auto-generate schemas from Pydantic models, giving you both validation and schema generation in one place.</p></div>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>Never use bare <code>eval()</code> in production. Use a safe math parser like <code>asteval</code> or <code>simpleeval</code>. The example above is simplified for clarity.</p></div>
+
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
   <h2>Practical Tool Examples</h2>
 </div>
-<div class="card-grid"><div class="card"><h3>Web Search</h3><p>Query search APIs.</p></div><div class="card"><h3>Calculator</h3><p>Safe math evaluation.</p></div><div class="card"><h3>File Reader</h3><p>Parse local files.</p></div><div class="card"><h3>Database</h3><p>SQL queries.</p></div><div class="card"><h3>Code Executor</h3><p>Sandboxed Python.</p></div><div class="card"><h3>Email</h3><p>Send via SMTP/API.</p></div></div>
+<p>Here is a collection of commonly used tools in real-world agents. Each addresses a different class of capability that LLMs lack on their own.</p>
+
+<div class="card-grid">
+  <div class="card"><h3>Web Search</h3><p>Query Google, Bing, or Brave APIs to get live information. Essential for any agent that answers questions about current events.</p></div>
+  <div class="card"><h3>Calculator</h3><p>Safe mathematical evaluation. LLMs frequently make arithmetic errors &mdash; always offload computation to a tool.</p></div>
+  <div class="card"><h3>File Reader</h3><p>Read and parse local files (CSV, JSON, PDF). Enables document-processing agents.</p></div>
+  <div class="card"><h3>Database Query</h3><p>Execute SQL queries against PostgreSQL, MySQL, or SQLite. The model generates SQL; your tool executes it safely.</p></div>
+  <div class="card"><h3>Code Executor</h3><p>Run Python in a sandboxed environment (Docker, E2B, or subprocess). Powers data-analysis and coding agents.</p></div>
+  <div class="card"><h3>Email / Messaging</h3><p>Send emails via SMTP or API (SendGrid, SES). Allows agents to communicate with humans and other systems.</p></div>
+</div>
+
+<h3>Example: Database Query Tool</h3>
+<pre><code>import sqlite3
+
+@registry.tool
+def query_database(sql: str) -> str:
+    """Execute a read-only SQL query against the app database.
+    Only SELECT statements are allowed. Returns results as JSON."""
+    if not sql.strip().upper().startswith("SELECT"):
+        return json.dumps({"error": "Only SELECT queries are allowed"})
+
+    conn = sqlite3.connect("app.db")
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(sql).fetchall()
+        return json.dumps([dict(row) for row in rows])
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+    finally:
+        conn.close()</code></pre>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p><strong>SQL injection is a real risk.</strong> Even with read-only restrictions, a model-generated query could access sensitive tables. In production, use parameterised queries, restrict accessible tables via a view layer, and run the database user with minimal permissions.</p></div>
+
+<h3>Best Practices Checklist</h3>
+<ul>
+  <li>Write descriptions as if explaining to a new colleague &mdash; include examples and edge cases</li>
+  <li>Use <code>enum</code> constraints to limit parameter values where possible</li>
+  <li>Return structured JSON from tools, not free-form text</li>
+  <li>Always handle errors gracefully &mdash; return error messages rather than raising exceptions</li>
+  <li>Add timeout limits to prevent tools from hanging indefinitely</li>
+  <li>Log every tool call for debugging and auditing</li>
+  <li>Consider <code>tool_choice</code> parameter to force or prevent specific tool usage</li>
+</ul>
 <a href="module_07_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 7 &mdash; Memory &amp; Context Management</p></div></a>
   </main>
 </div>
