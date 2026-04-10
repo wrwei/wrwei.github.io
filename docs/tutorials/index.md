@@ -33,3 +33,11 @@ A 10-module tutorial series on DevOps practices including Unix tools, Git, CI/CD
 A 12-module tutorial series on MBSE methodology, the three pillars (language, method, tool), industry frameworks (OOSEM, MagicGrid, IBM Harmony), and domain applications — tool-agnostic and beginner-friendly.
 
 [:octicons-arrow-right-24: Go to MBSE Tutorials](mbse/index.html)
+
+---
+
+## AI Agents
+
+A 10-module tutorial series on AI agents — what they are, how they work, and how to build them using large language models, tool use, memory, and multi-agent architectures.
+
+[:octicons-arrow-right-24: Go to AI Agent Tutorials](agent/index.html)

@@ -1,0 +1,327 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Environment Setup & API Configuration</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;--slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;--green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;--red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;--purple:#7E22CE;--purple-bg:#FDF4FF;--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;--sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1)}
+html{scroll-behavior:smooth;font-size:16px}body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}#topbar .brand span{color:var(--sky)}#topbar .sep{color:var(--border);font-size:1.2rem}#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:280px;padding:.4rem;z-index:200;max-height:70vh;overflow-y:auto}#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}p strong{color:var(--navy)}ul,ol{margin:.5rem 0 1rem 1.5rem}li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}.callout.note .callout-label{color:var(--blue)}.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}.callout.tip .callout-label{color:var(--green)}.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}.callout.analogy .callout-label{color:var(--orange)}.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:.88rem}th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}td:first-child{color:var(--navy);font-weight:500}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:var(--sky-pale)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.5rem 0}.card{background:var(--white);border-radius:12px;padding:1.25rem;border:1px solid var(--border);transition:all 0.2s}.card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.06)}.card h3{font-size:.95rem;color:var(--navy);margin:0 0 .3rem;display:block}.card h3::before{display:none}.card p{font-size:.88rem;color:var(--slate);margin:0}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}</style></head><body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">AI Agents</a><span class="sep">/</span><span class="crumb">Module 2</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 2 of 15</button>
+    <div class="dropdown-menu">
+      <a href="module_01_EN.html">1 &mdash; What is an AI Agent?</a>
+      <a href="module_02_EN.html" class="active">2 &mdash; Environment Setup &amp; API Configuration</a>
+      <a href="module_03_EN.html">3 &mdash; Prompt Engineering</a>
+      <a href="module_04_EN.html">4 &mdash; Your First API Call</a>
+      <a href="module_05_EN.html">5 &mdash; Building the Agent Loop</a>
+      <a href="module_06_EN.html">6 &mdash; Tool Use &amp; Function Calling</a>
+      <a href="module_07_EN.html">7 &mdash; Memory &amp; Context Management</a>
+      <a href="module_08_EN.html">8 &mdash; RAG &mdash; Retrieval-Augmented Generation</a>
+      <a href="module_09_EN.html">9 &mdash; MCP &mdash; Building Your Own Servers</a>
+      <a href="module_10_EN.html">10 &mdash; LangChain &amp; CrewAI</a>
+      <a href="module_11_EN.html">11 &mdash; Multi-Agent Orchestration</a>
+      <a href="module_12_EN.html">12 &mdash; A2A Protocol</a>
+      <a href="module_13_EN.html">13 &mdash; Safety &amp; Guardrails</a>
+      <a href="module_14_EN.html">14 &mdash; Testing &amp; Evaluation</a>
+      <a href="module_15_EN.html">15 &mdash; Deployment &amp; Best Practices</a>
+    </div>
+  </div>
+  <a href="module_02_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>Prerequisites</a><a href="#s2"><span class="num">2</span>Install Dependencies</a><a href="#s3"><span class="num">3</span>Project Structure</a><a href="#s4"><span class="num">4</span>Configure API Keys</a><a href="#s5"><span class="num">5</span>Load Keys in Python</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">AI Agent Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 2: <em>Environment Setup &amp; API Configuration</em></h1>
+      <p class="module-lead">Setting up your development environment with Python, API keys, and project structure.</p>
+    </div>
+
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>Prerequisites</h2>
+</div>
+<p>Before building AI agents, you need a properly configured development environment. This module walks you through every step &mdash; from installing Python to verifying your first API connection. By the end, you will have a working project scaffold ready for the rest of this tutorial series.</p>
+<p>Here is what you need before starting:</p>
+<ul>
+<li><strong>Python 3.10+</strong> installed &mdash; we recommend Python 3.11 or 3.12 for the best compatibility with modern AI libraries</li>
+<li><strong>An OpenAI API key</strong> from <a href="https://platform.openai.com" style="color:var(--blue)">platform.openai.com</a></li>
+<li><strong>An Anthropic API key</strong> from <a href="https://console.anthropic.com" style="color:var(--blue)">console.anthropic.com</a></li>
+<li><strong>A code editor</strong> &mdash; VS Code is recommended for its excellent Python support and integrated terminal</li>
+<li><strong>Basic Python knowledge</strong> &mdash; functions, classes, dictionaries, and working with packages</li>
+<li><strong>A terminal / command line</strong> &mdash; you should be comfortable running commands</li>
+</ul>
+<div class="callout note"><div class="callout-label">NOTE</div><p>Both OpenAI and Anthropic offer free trial credits for new accounts. OpenAI typically provides $5&ndash;$18 in free credits, and Anthropic provides $5. This is more than enough to complete every exercise in this tutorial series.</p></div>
+
+<h3>Checking Your Python Version</h3>
+<p>Open a terminal and verify your Python installation:</p>
+<pre><code># Check Python version (must be 3.10 or higher)
+python --version
+# Output: Python 3.12.4
+
+# On some systems, you may need to use python3
+python3 --version</code></pre>
+<p>If you do not have Python installed, download it from <a href="https://python.org" style="color:var(--blue)">python.org</a>. On macOS, you can also use <code>brew install python</code>. On Ubuntu/Debian, use <code>sudo apt install python3</code>.</p>
+
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>Install Dependencies</h2>
+</div>
+<p>We strongly recommend using a <strong>virtual environment</strong> to isolate your project dependencies. This prevents version conflicts between different Python projects on your machine.</p>
+
+<h3>Create a Virtual Environment</h3>
+<pre><code># Create project directory
+mkdir ai-agent-tutorial
+cd ai-agent-tutorial
+
+# Create a virtual environment
+python -m venv venv
+
+# Activate it (macOS / Linux)
+source venv/bin/activate
+
+# Activate it (Windows)
+venv\Scripts\activate
+
+# You should see (venv) in your terminal prompt</code></pre>
+
+<h3>Install the Required Packages</h3>
+<pre><code># Install all dependencies at once
+pip install openai anthropic python-dotenv
+
+# Verify installation
+pip list | grep -E "openai|anthropic|dotenv"</code></pre>
+<p>This installs three packages:</p>
+<div class="table-wrap"><table><tr><th>Package</th><th>Purpose</th><th>Version (as of 2026)</th></tr><tr><td><code>openai</code></td><td>Official OpenAI Python SDK &mdash; provides the client for GPT-4o, o3, etc.</td><td>1.x+</td></tr><tr><td><code>anthropic</code></td><td>Official Anthropic Python SDK &mdash; provides the client for Claude Sonnet/Opus</td><td>0.40+</td></tr><tr><td><code>python-dotenv</code></td><td>Loads environment variables from a <code>.env</code> file &mdash; keeps secrets out of code</td><td>1.x+</td></tr></table></div>
+<div class="callout tip"><div class="callout-label">TIP</div><p>Pin your dependency versions in a <code>requirements.txt</code> file for reproducibility. Run <code>pip freeze > requirements.txt</code> after installing. This way, anyone cloning your project can run <code>pip install -r requirements.txt</code> and get the exact same environment.</p></div>
+
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Project Structure</h2>
+</div>
+<p>A well-organised project structure will save you headaches as your agent grows in complexity. Here is the structure we will build throughout this tutorial series:</p>
+<pre><code>ai-agent-tutorial/
+├── .env                 # API keys (NEVER commit this file!)
+├── .gitignore           # Must include .env
+├── requirements.txt     # Pinned dependencies
+├── config.py            # Centralised configuration
+├── agent_openai.py      # OpenAI-based agent implementation
+├── agent_anthropic.py   # Anthropic-based agent implementation
+├── tools.py             # Tool definitions and implementations
+├── memory.py            # Memory management (short + long term)
+├── evaluator.py         # Agent evaluation and testing
+└── main.py              # Entry point</code></pre>
+<p>Each file has a clear responsibility. This separation of concerns makes it easy to swap components &mdash; for example, switching from OpenAI to Anthropic by changing one import.</p>
+
+<h3>Create the .gitignore File</h3>
+<p>If you are using Git (you should be), create a <code>.gitignore</code> immediately to prevent accidentally committing sensitive files:</p>
+<pre><code># .gitignore
+.env
+venv/
+__pycache__/
+*.pyc
+.DS_Store</code></pre>
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>Create your <code>.gitignore</code> <strong>before</strong> your first commit. If you accidentally commit a <code>.env</code> file with API keys, the keys are in your Git history forever (even if you delete the file later). If this happens, immediately rotate your API keys on the provider's dashboard.</p></div>
+
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>Configure API Keys</h2>
+</div>
+<p>API keys are how OpenAI and Anthropic identify and bill your account. They are <strong>secrets</strong> that must never appear in your source code, commit history, or public repositories.</p>
+
+<h3>Getting Your API Keys</h3>
+<p><strong>OpenAI:</strong> Go to <a href="https://platform.openai.com/api-keys" style="color:var(--blue)">platform.openai.com/api-keys</a>, click "Create new secret key", give it a name, and copy the key. You will only see it once.</p>
+<p><strong>Anthropic:</strong> Go to <a href="https://console.anthropic.com/settings/keys" style="color:var(--blue)">console.anthropic.com/settings/keys</a>, click "Create Key", name it, and copy. Same rule &mdash; you will only see it once.</p>
+
+<h3>Store Keys in a .env File</h3>
+<p>Create a <code>.env</code> file in your project root. This file is loaded at runtime but never committed to version control:</p>
+<pre><code># .env
+OPENAI_API_KEY=sk-proj-your-key-here
+ANTHROPIC_API_KEY=sk-ant-your-key-here</code></pre>
+<div class="callout pitfall"><div class="callout-label">WARNING</div><p>Never hard-code API keys directly in your Python files. Never share them in chat messages, screenshots, or documentation. If a key is compromised, anyone can make API calls billed to your account.</p></div>
+
+<h3>Alternative: System Environment Variables</h3>
+<p>For production deployments, you may prefer to set keys as system environment variables rather than using a <code>.env</code> file:</p>
+<pre><code># macOS / Linux (add to ~/.bashrc or ~/.zshrc for persistence)
+export OPENAI_API_KEY="sk-proj-your-key-here"
+export ANTHROPIC_API_KEY="sk-ant-your-key-here"
+
+# Windows PowerShell
+$env:OPENAI_API_KEY="sk-proj-your-key-here"
+$env:ANTHROPIC_API_KEY="sk-ant-your-key-here"</code></pre>
+<div class="callout note"><div class="callout-label">NOTE</div><p>Both the OpenAI and Anthropic Python SDKs automatically look for <code>OPENAI_API_KEY</code> and <code>ANTHROPIC_API_KEY</code> environment variables. If these are set, you do not need to pass the key explicitly when creating a client.</p></div>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Load Keys in Python</h2>
+</div>
+<p>Now let us write a configuration module that loads and validates your API keys. This pattern ensures you catch missing keys early, before any API calls are attempted.</p>
+
+<h3>Basic Key Loading</h3>
+<pre><code># config.py
+import os
+from dotenv import load_dotenv
+
+# Load variables from .env file into environment
+load_dotenv()
+
+# Read keys from environment
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+
+# Validate - fail fast if keys are missing
+assert OPENAI_API_KEY, "Missing OPENAI_API_KEY in .env file"
+assert ANTHROPIC_API_KEY, "Missing ANTHROPIC_API_KEY in .env file"
+
+print("API keys loaded successfully.")</code></pre>
+
+<h3>Verifying Your Connection</h3>
+<p>Before moving to the next module, let us verify that your keys work by making a minimal API call to each provider:</p>
+<pre><code># verify_setup.py
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
+import anthropic
+
+load_dotenv()
+
+# --- Test OpenAI ---
+print("Testing OpenAI connection...")
+oai_client = OpenAI()  # Automatically reads OPENAI_API_KEY
+response = oai_client.chat.completions.create(
+    model="gpt-4o-mini",   # Use the cheapest model for testing
+    messages=[{"role": "user", "content": "Say 'hello' and nothing else."}],
+    max_tokens=10
+)
+print(f"  OpenAI response: {response.choices[0].message.content}")
+
+# --- Test Anthropic ---
+print("Testing Anthropic connection...")
+ant_client = anthropic.Anthropic()  # Automatically reads ANTHROPIC_API_KEY
+message = ant_client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=10,
+    messages=[{"role": "user", "content": "Say 'hello' and nothing else."}]
+)
+print(f"  Anthropic response: {message.content[0].text}")
+
+print("\nAll connections verified! Your environment is ready.")</code></pre>
+<p>Run this file:</p>
+<pre><code>python verify_setup.py
+# Expected output:
+# Testing OpenAI connection...
+#   OpenAI response: hello
+# Testing Anthropic connection...
+#   Anthropic response: hello
+# All connections verified! Your environment is ready.</code></pre>
+<div class="callout tip"><div class="callout-label">TIP</div><p>We used <code>gpt-4o-mini</code> for the OpenAI test instead of <code>gpt-4o</code> because it is significantly cheaper. For verification purposes, any model will do. Save the expensive models for when you actually need their reasoning capabilities.</p></div>
+
+<h3>Troubleshooting Common Errors</h3>
+<div class="table-wrap"><table><tr><th>Error Message</th><th>Cause</th><th>Fix</th></tr><tr><td><code>AuthenticationError</code></td><td>Invalid or expired API key</td><td>Regenerate key on provider dashboard</td></tr><tr><td><code>RateLimitError</code></td><td>Too many requests or no credits</td><td>Wait, add billing info, or reduce request rate</td></tr><tr><td><code>ModuleNotFoundError: No module named 'openai'</code></td><td>Package not installed or wrong Python environment</td><td>Activate your venv, then <code>pip install openai</code></td></tr><tr><td><code>AssertionError: Missing OPENAI_API_KEY</code></td><td><code>.env</code> file missing or key not set</td><td>Check <code>.env</code> exists in the right directory and contains the key</td></tr></table></div>
+
+<h3>A Robust Configuration Module</h3>
+<p>For a production-quality setup, use a configuration class that handles multiple environments (development, testing, production) and provides sensible defaults:</p>
+<pre><code># config.py - production-quality configuration
+import os
+from dataclasses import dataclass
+from dotenv import load_dotenv
+
+load_dotenv()
+
+@dataclass
+class Config:
+    """Centralised configuration for the AI agent project."""
+    openai_api_key: str = ""
+    anthropic_api_key: str = ""
+    default_provider: str = "anthropic"  # or "openai"
+    default_model: str = "claude-sonnet-4-20250514"
+    max_tokens: int = 1024
+    temperature: float = 0.0
+    max_agent_steps: int = 10
+    log_file: str = "agent_log.jsonl"
+
+    @classmethod
+    def from_env(cls) -> "Config":
+        """Load configuration from environment variables."""
+        return cls(
+            openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+            anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
+            default_provider=os.getenv("DEFAULT_PROVIDER", "anthropic"),
+            max_agent_steps=int(os.getenv("MAX_AGENT_STEPS", "10")),
+        )
+
+    def validate(self) -> list[str]:
+        """Return a list of configuration errors (empty = all good)."""
+        errors = []
+        if not self.openai_api_key:
+            errors.append("OPENAI_API_KEY is not set")
+        if not self.anthropic_api_key:
+            errors.append("ANTHROPIC_API_KEY is not set")
+        return errors
+
+# Usage
+config = Config.from_env()
+errors = config.validate()
+if errors:
+    print("Configuration errors:")
+    for e in errors:
+        print(f"  - {e}")
+else:
+    print("Configuration OK")</code></pre>
+<div class="callout note"><div class="callout-label">NOTE</div><p>Using a <code>Config</code> dataclass gives you a single source of truth for all agent settings. When you later add parameters like <code>max_agent_steps</code> or <code>temperature</code>, they live in one place rather than being scattered across multiple files. This becomes invaluable as your project grows.</p></div>
+
+<h3>VS Code Recommended Extensions</h3>
+<p>If you are using VS Code, install these extensions for the best development experience with AI agent projects:</p>
+<div class="card-grid">
+<div class="card"><h3>Python</h3><p>Microsoft's official extension. Provides IntelliSense, linting, debugging, and Jupyter support.</p></div>
+<div class="card"><h3>Pylance</h3><p>Advanced type checking and auto-completion. Catches type errors in tool definitions and API calls.</p></div>
+<div class="card"><h3>Python Dotenv</h3><p>Syntax highlighting for <code>.env</code> files. Makes it easy to spot formatting errors in your keys.</p></div>
+<div class="card"><h3>REST Client</h3><p>Test API endpoints directly from VS Code. Useful for debugging tool implementations.</p></div>
+</div>
+<a href="module_03_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 3 &mdash; Prompt Engineering</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');window.addEventListener('scroll',()=>{const h=document.documentElement;pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const links=[...document.querySelectorAll('#sidebar nav a')];const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});}
+window.addEventListener('scroll',activateNav,{passive:true});activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p></footer></body></html>

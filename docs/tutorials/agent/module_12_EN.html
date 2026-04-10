@@ -1,0 +1,437 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A2A Protocol</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;--slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;--green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;--red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;--purple:#7E22CE;--purple-bg:#FDF4FF;--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;--sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1)}
+html{scroll-behavior:smooth;font-size:16px}body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}#topbar .brand span{color:var(--sky)}#topbar .sep{color:var(--border);font-size:1.2rem}#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:280px;padding:.4rem;z-index:200;max-height:70vh;overflow-y:auto}#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}p strong{color:var(--navy)}ul,ol{margin:.5rem 0 1rem 1.5rem}li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}.callout.note .callout-label{color:var(--blue)}.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}.callout.tip .callout-label{color:var(--green)}.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}.callout.analogy .callout-label{color:var(--orange)}.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:.88rem}th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}td:first-child{color:var(--navy);font-weight:500}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:var(--sky-pale)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.5rem 0}.card{background:var(--white);border-radius:12px;padding:1.25rem;border:1px solid var(--border);transition:all 0.2s}.card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.06)}.card h3{font-size:.95rem;color:var(--navy);margin:0 0 .3rem;display:block}.card h3::before{display:none}.card p{font-size:.88rem;color:var(--slate);margin:0}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}</style></head><body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">AI Agents</a><span class="sep">/</span><span class="crumb">Module 12</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 12 of 15</button>
+    <div class="dropdown-menu">
+      <a href="module_01_EN.html">1 &mdash; What is an AI Agent?</a>
+      <a href="module_02_EN.html">2 &mdash; Environment Setup &amp; API Configuration</a>
+      <a href="module_03_EN.html">3 &mdash; Prompt Engineering</a>
+      <a href="module_04_EN.html">4 &mdash; Your First API Call</a>
+      <a href="module_05_EN.html">5 &mdash; Building the Agent Loop</a>
+      <a href="module_06_EN.html">6 &mdash; Tool Use &amp; Function Calling</a>
+      <a href="module_07_EN.html">7 &mdash; Memory &amp; Context Management</a>
+      <a href="module_08_EN.html">8 &mdash; RAG &mdash; Retrieval-Augmented Generation</a>
+      <a href="module_09_EN.html">9 &mdash; MCP &mdash; Building Your Own Servers</a>
+      <a href="module_10_EN.html">10 &mdash; LangChain &amp; CrewAI</a>
+      <a href="module_11_EN.html">11 &mdash; Multi-Agent Orchestration</a>
+      <a href="module_12_EN.html" class="active">12 &mdash; A2A Protocol</a>
+      <a href="module_13_EN.html">13 &mdash; Safety &amp; Guardrails</a>
+      <a href="module_14_EN.html">14 &mdash; Testing &amp; Evaluation</a>
+      <a href="module_15_EN.html">15 &mdash; Deployment &amp; Best Practices</a>
+    </div>
+  </div>
+  <a href="module_12_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>Interoperability</a><a href="#s2"><span class="num">2</span>What is A2A?</a><a href="#s3"><span class="num">3</span>Agent Cards</a><a href="#s4"><span class="num">4</span>Task Lifecycle</a><a href="#s5"><span class="num">5</span>A2A vs MCP</a><a href="#s6"><span class="num">6</span>Implementing A2A</a><a href="#s7"><span class="num">7</span>The Future</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">AI Agent Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 12: <em>A2A Protocol</em></h1>
+      <p class="module-lead">Understanding the Agent-to-Agent protocol for standardised inter-agent communication and collaboration across platforms.</p>
+    </div>
+
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>The Interoperability Challenge</h2>
+</div>
+<p>In Module 9, we learned how <strong>MCP (Model Context Protocol)</strong> lets agents connect to tools and data sources through a standardised interface. But what happens when agents need to talk to <em>each other</em>? If your research agent is built with LangChain and your writing agent runs on a custom framework, how do they communicate?</p>
+<p>Without a standard protocol, every agent-to-agent integration becomes a custom, fragile point-to-point connection. If you have 5 agents and they all need to talk to each other, that is 10 custom integrations. Add a 6th agent and you need 15. This does not scale.</p>
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of MCP as giving every worker access to the same office tools (printers, databases, file systems). A2A is the common language and meeting protocol that lets workers from different companies collaborate on shared projects &mdash; even if they were trained differently and speak different internal jargons.</p></div>
+<p>The industry needed a standard way for agents to:</p>
+<ul>
+  <li><strong>Discover</strong> what other agents can do</li>
+  <li><strong>Delegate</strong> tasks to the best-suited agent</li>
+  <li><strong>Track</strong> progress on delegated work</li>
+  <li><strong>Exchange</strong> structured results and artifacts</li>
+</ul>
+
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>What is A2A?</h2>
+</div>
+<p>The <strong>Agent-to-Agent (A2A) protocol</strong> is an open standard introduced by Google in April 2025 for inter-agent communication. It was developed in collaboration with over 50 technology companies and is designed to be framework-agnostic &mdash; agents built with any stack can interoperate.</p>
+<p>A2A defines four core capabilities:</p>
+<div class="card-grid">
+<div class="card"><h3>Discovery</h3><p>Agents publish machine-readable <strong>Agent Cards</strong> describing their skills, endpoints, and authentication requirements. Other agents can discover them automatically.</p></div>
+<div class="card"><h3>Task Delegation</h3><p>A client agent creates a <strong>Task</strong> and sends it to a remote agent. The task contains a message with the request, and the remote agent processes it.</p></div>
+<div class="card"><h3>Streaming</h3><p>For long-running tasks, agents can stream progress updates via <strong>Server-Sent Events (SSE)</strong>, letting the client agent monitor status in real time.</p></div>
+<div class="card"><h3>Artifact Exchange</h3><p>Agents exchange structured data as <strong>Artifacts</strong> &mdash; files, JSON objects, images, or any content type. This goes beyond plain text to rich data payloads.</p></div>
+</div>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>A2A is transport-agnostic at its core but defines HTTP + JSON-RPC as the primary transport. Agents communicate over standard web protocols, making them compatible with existing infrastructure like load balancers, API gateways, and authentication systems.</p></div>
+
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Agent Cards</h2>
+</div>
+<p>Every A2A-compliant agent publishes an <strong>Agent Card</strong> &mdash; a JSON document that describes who the agent is, what it can do, and how to interact with it. Agent Cards are hosted at a well-known URL: <code>/.well-known/agent.json</code>.</p>
+<p>Think of an Agent Card as an API specification for an agent. It tells other agents (or orchestrators) everything they need to know to decide whether to delegate a task and how to format the request.</p>
+
+<pre><code>{
+  "name": "Invoice Processor",
+  "description": "Extracts structured data from invoice documents (PDF, images).",
+  "url": "https://agents.example.com/invoice",
+  "version": "1.0.0",
+  "protocol": "a2a/1.0",
+  "authentication": {
+    "schemes": ["bearer"]
+  },
+  "skills": [
+    {
+      "id": "extract_invoice_data",
+      "name": "Extract Invoice Data",
+      "description": "Parse an invoice and return structured line items, totals, and vendor info.",
+      "inputModes": ["application/pdf", "image/png", "image/jpeg"],
+      "outputModes": ["application/json"]
+    },
+    {
+      "id": "validate_invoice",
+      "name": "Validate Invoice",
+      "description": "Cross-check invoice data against purchase orders.",
+      "inputModes": ["application/json"],
+      "outputModes": ["application/json"]
+    }
+  ],
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": false
+  }
+}</code></pre>
+
+<h3>Discovering Agents</h3>
+<p>A client agent can discover available agents by fetching their Agent Cards. In a typical enterprise setup, a registry or directory service indexes available agents.</p>
+
+<pre><code>import httpx
+
+async def discover_agent(base_url: str) -> dict:
+    """Fetch and parse an Agent Card from a remote agent."""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{base_url}/.well-known/agent.json")
+        response.raise_for_status()
+        card = response.json()
+        print(f"Discovered: {card['name']}")
+        print(f"Skills: {[s['id'] for s in card['skills']]}")
+        return card
+
+async def find_agent_for_skill(registry_urls: list[str], skill_needed: str) -> dict:
+    """Search a list of known agents for one that has a specific skill."""
+    for url in registry_urls:
+        try:
+            card = await discover_agent(url)
+            skill_ids = [s["id"] for s in card.get("skills", [])]
+            if skill_needed in skill_ids:
+                return card
+        except httpx.HTTPError:
+            continue
+    raise ValueError(f"No agent found with skill: {skill_needed}")</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>In production, maintain a local cache of Agent Cards with a TTL (time-to-live). Re-fetching cards on every request adds latency. Refresh the cache periodically or when you get a version mismatch error.</p></div>
+
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>Task Lifecycle</h2>
+</div>
+<p>Communication in A2A revolves around <strong>Tasks</strong>. A client agent creates a task, sends it to a remote agent, and the remote agent processes it through a well-defined lifecycle.</p>
+
+<div class="table-wrap"><table>
+<tr><th>State</th><th>Description</th><th>Transitions To</th></tr>
+<tr><td><code>submitted</code></td><td>Task received by remote agent, queued for processing</td><td>working, failed</td></tr>
+<tr><td><code>working</code></td><td>Agent is actively processing the task</td><td>completed, failed, input-needed</td></tr>
+<tr><td><code>input-needed</code></td><td>Agent needs additional information from the client</td><td>working, failed</td></tr>
+<tr><td><code>completed</code></td><td>Task finished successfully, artifacts available</td><td>(terminal)</td></tr>
+<tr><td><code>failed</code></td><td>Task failed with an error message</td><td>(terminal)</td></tr>
+</table></div>
+
+<h3>Creating and Sending a Task</h3>
+<pre><code>import httpx, uuid
+
+async def send_task(agent_url: str, skill_id: str, message: str,
+                    auth_token: str) -> dict:
+    """Send a task to a remote A2A agent."""
+    task_id = str(uuid.uuid4())
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "tasks/send",
+        "id": task_id,
+        "params": {
+            "id": task_id,
+            "message": {
+                "role": "user",
+                "parts": [{"type": "text", "text": message}]
+            },
+            "metadata": {
+                "skill_id": skill_id
+            }
+        }
+    }
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            agent_url,
+            json=payload,
+            headers={"Authorization": f"Bearer {auth_token}"}
+        )
+        return response.json()
+
+# Example: delegate invoice processing to a remote agent
+# result = await send_task(
+#     "https://agents.example.com/invoice",
+#     "extract_invoice_data",
+#     "Extract all line items from the attached invoice.",
+#     auth_token="your-token-here"
+# )</code></pre>
+
+<h3>Polling for Task Status</h3>
+<pre><code>import asyncio
+
+async def poll_task(agent_url: str, task_id: str, auth_token: str,
+                    interval: float = 2.0) -> dict:
+    """Poll a task until it reaches a terminal state."""
+    terminal_states = {"completed", "failed"}
+    async with httpx.AsyncClient() as client:
+        while True:
+            response = await client.post(agent_url, json={
+                "jsonrpc": "2.0",
+                "method": "tasks/get",
+                "id": "poll-1",
+                "params": {"id": task_id}
+            }, headers={"Authorization": f"Bearer {auth_token}"})
+
+            result = response.json()["result"]
+            status = result["status"]["state"]
+            print(f"Task {task_id}: {status}")
+
+            if status in terminal_states:
+                return result
+            await asyncio.sleep(interval)</code></pre>
+
+<h3>Streaming with Server-Sent Events</h3>
+<p>For long-running tasks, A2A supports streaming updates via SSE. Instead of polling, the client subscribes to a stream and receives events as the agent works.</p>
+<pre><code>import httpx
+
+async def stream_task(agent_url: str, task_id: str, skill_id: str,
+                      message: str, auth_token: str):
+    """Subscribe to streaming updates from a remote agent."""
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "tasks/sendSubscribe",
+        "id": task_id,
+        "params": {
+            "id": task_id,
+            "message": {
+                "role": "user",
+                "parts": [{"type": "text", "text": message}]
+            }
+        }
+    }
+    async with httpx.AsyncClient() as client:
+        async with client.stream("POST", agent_url, json=payload,
+                                  headers={"Authorization": f"Bearer {auth_token}"}) as resp:
+            async for line in resp.aiter_lines():
+                if line.startswith("data:"):
+                    event_data = json.loads(line[5:].strip())
+                    print(f"Event: {event_data}")</code></pre>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>Not all A2A agents support streaming. Always check the <code>capabilities.streaming</code> field in the Agent Card before attempting to use <code>tasks/sendSubscribe</code>. Fall back to polling if streaming is unavailable.</p></div>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>A2A vs MCP</h2>
+</div>
+<p>A2A and MCP are frequently confused because both are "protocols for AI agents." The distinction is straightforward: MCP connects agents to <strong>tools and data</strong>, while A2A connects <strong>agents to other agents</strong>. They operate at different layers and are designed to work together.</p>
+
+<div class="table-wrap"><table>
+<tr><th>Aspect</th><th>MCP</th><th>A2A</th></tr>
+<tr><td>Purpose</td><td>Agent &harr; Tools &amp; Data</td><td>Agent &harr; Agent</td></tr>
+<tr><td>Originated by</td><td>Anthropic</td><td>Google</td></tr>
+<tr><td>Transport</td><td>stdio / HTTP+SSE</td><td>HTTP + JSON-RPC</td></tr>
+<tr><td>Discovery</td><td>Server capabilities list</td><td>Agent Cards at well-known URL</td></tr>
+<tr><td>Interaction model</td><td>Tool calls (request/response)</td><td>Tasks with lifecycle states</td></tr>
+<tr><td>Streaming</td><td>SSE for resources</td><td>SSE for task progress</td></tr>
+<tr><td>Best for</td><td>Connecting to databases, APIs, files, services</td><td>Delegating work between autonomous agents</td></tr>
+<tr><td>Opaque execution</td><td>No &mdash; client controls tool calls</td><td>Yes &mdash; remote agent decides how to execute</td></tr>
+</table></div>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>A key architectural difference: with MCP, the client agent decides which tools to call and when. With A2A, the client delegates a task and the remote agent autonomously decides how to accomplish it. A2A treats remote agents as opaque collaborators, not as tools to be controlled.</p></div>
+
+<h3>Using Both Together</h3>
+<p>In a production multi-agent system, a typical architecture uses both protocols:</p>
+<pre><code># An orchestrator agent that uses both MCP and A2A
+#
+# MCP: Connect to local tools (database, file system, APIs)
+# A2A: Delegate to remote specialist agents
+
+# 1. Use MCP to read customer data from a database
+customer_data = await mcp_client.call_tool("database_query", {
+    "sql": "SELECT * FROM customers WHERE id = 42"
+})
+
+# 2. Use A2A to delegate analysis to a remote specialist agent
+analysis_result = await send_task(
+    agent_url="https://agents.analytics-team.com/customer-insights",
+    skill_id="analyse_customer",
+    message=f"Analyse this customer profile and suggest retention strategies: "
+            f"{customer_data}"
+)
+
+# 3. Use MCP to write the result back to a local system
+await mcp_client.call_tool("database_insert", {
+    "table": "customer_insights",
+    "data": analysis_result
+})</code></pre>
+
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>Implementing an A2A Server</h2>
+</div>
+<p>To make your agent available to other agents via A2A, you need to implement an A2A-compliant server. The Google A2A SDK provides reference implementations, but here is a simplified example showing the core concepts.</p>
+
+<pre><code>from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+import uuid
+
+app = FastAPI()
+
+# In-memory task store (use a database in production)
+tasks = {}
+
+@app.get("/.well-known/agent.json")
+async def agent_card():
+    """Serve the Agent Card for discovery."""
+    return {
+        "name": "Summary Agent",
+        "description": "Summarises documents and articles.",
+        "url": "https://my-agent.example.com",
+        "version": "1.0.0",
+        "protocol": "a2a/1.0",
+        "skills": [{
+            "id": "summarise",
+            "name": "Summarise Text",
+            "description": "Create a concise summary of any text input.",
+            "inputModes": ["text/plain"],
+            "outputModes": ["text/plain"]
+        }],
+        "capabilities": {"streaming": False}
+    }
+
+@app.post("/")
+async def handle_jsonrpc(request: Request):
+    """Handle A2A JSON-RPC requests."""
+    body = await request.json()
+    method = body.get("method")
+
+    if method == "tasks/send":
+        return await handle_task_send(body)
+    elif method == "tasks/get":
+        return await handle_task_get(body)
+    else:
+        return JSONResponse({"jsonrpc": "2.0", "error": {
+            "code": -32601, "message": f"Unknown method: {method}"
+        }, "id": body.get("id")})
+
+async def handle_task_send(body: dict) -> JSONResponse:
+    """Process a new task."""
+    params = body["params"]
+    task_id = params.get("id", str(uuid.uuid4()))
+    message_text = params["message"]["parts"][0]["text"]
+
+    # Process the task (in production, do this async with a queue)
+    import anthropic
+    client = anthropic.Anthropic()
+    response = client.messages.create(
+        model="claude-sonnet-4-20250514", max_tokens=1024,
+        system="You create clear, concise summaries.",
+        messages=[{"role": "user", "content": f"Summarise:\n{message_text}"}]
+    )
+    summary = response.content[0].text
+
+    task_result = {
+        "id": task_id,
+        "status": {"state": "completed"},
+        "artifacts": [{
+            "parts": [{"type": "text", "text": summary}]
+        }]
+    }
+    tasks[task_id] = task_result
+    return JSONResponse({"jsonrpc": "2.0", "result": task_result, "id": body["id"]})
+
+async def handle_task_get(body: dict) -> JSONResponse:
+    """Return task status and results."""
+    task_id = body["params"]["id"]
+    if task_id in tasks:
+        return JSONResponse({"jsonrpc": "2.0", "result": tasks[task_id], "id": body["id"]})
+    return JSONResponse({"jsonrpc": "2.0", "error": {
+        "code": -32602, "message": "Task not found"
+    }, "id": body["id"]})</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>For production A2A servers, use the official <code>a2a-python</code> SDK from Google rather than building from scratch. It handles JSON-RPC parsing, SSE streaming, task state management, and authentication out of the box.</p></div>
+
+<span class="section-anchor" id="s7"></span>
+<div class="section-header">
+  <span class="section-num">7</span>
+  <h2>The Future</h2>
+</div>
+<p>The combination of MCP and A2A creates the foundation for an <strong>open agent ecosystem</strong>. Agents built with any framework can discover each other, delegate tasks, and exchange results &mdash; just as web services communicate via REST APIs today.</p>
+<p>Key trends to watch:</p>
+<ul>
+  <li><strong>Agent marketplaces</strong> &mdash; directories where organisations publish A2A-compliant agents, similar to API marketplaces</li>
+  <li><strong>Cross-organisation collaboration</strong> &mdash; agents from different companies working together on shared workflows (e.g., supply chain coordination)</li>
+  <li><strong>Agent identity and trust</strong> &mdash; verifiable agent credentials and capability attestations to ensure you are delegating to a trustworthy agent</li>
+  <li><strong>Standardised billing</strong> &mdash; protocols for agents to negotiate and pay for services rendered by other agents</li>
+</ul>
+<div class="callout note"><div class="callout-label">NOTE</div><p>A2A is still an evolving standard. As of early 2026, the core protocol is stable, but extensions for billing, trust, and advanced discovery are still being developed. Follow the <a href="https://github.com/google/A2A" style="color:var(--blue)">official A2A repository</a> for updates.</p></div>
+
+<a href="module_13_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 13 &mdash; Safety &amp; Guardrails</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');window.addEventListener('scroll',()=>{const h=document.documentElement;pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const links=[...document.querySelectorAll('#sidebar nav a')];const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});}
+window.addEventListener('scroll',activateNav,{passive:true});activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p></footer></body></html>

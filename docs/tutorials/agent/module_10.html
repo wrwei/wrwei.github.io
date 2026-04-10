@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 10: Deployment & Best Practices</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;600;800&family=Noto+Sans+SC:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --navy:#0f172a;--dark:#1e293b;--teal:#0d9488;--teal-light:#14b8a6;
+  --mint:#5eead4;--white:#ffffff;--off:#f8fafc;--slate:#64748b;
+  --light-slate:#94a3b8;--code-bg:#0f172a;--card:#ffffff;
+  --green:#22c55e;--orange:#f97316;--blue:#3b82f6;--red:#ef4444;
+  --purple:#7c3aed;--glow:rgba(13,148,136,0.15);
+}
+body{
+  font-family:'Outfit','Noto Sans SC',sans-serif;
+  background:var(--off);color:var(--dark);
+  line-height:1.7;font-size:17px;
+}
+.grain{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;opacity:0.03;z-index:9999;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+header{
+  background:var(--navy);padding:2rem 0 3rem;position:relative;overflow:hidden;
+}
+header::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--teal),var(--mint),var(--teal-light));
+}
+header::after{
+  content:'';position:absolute;bottom:-60px;left:-20%;width:140%;height:120px;
+  background:var(--off);border-radius:50%;
+}
+.header-inner{
+  max-width:900px;margin:0 auto;padding:0 2rem;position:relative;z-index:1;
+}
+.mod-label{
+  display:inline-block;background:rgba(13,148,136,0.2);color:var(--mint);
+  font-size:0.8rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  padding:0.3rem 1rem;border-radius:20px;margin-bottom:1rem;
+  border:1px solid rgba(94,234,212,0.2);
+}
+header h1{
+  font-family:'Outfit',sans-serif;font-weight:800;font-size:2.6rem;
+  color:var(--white);line-height:1.2;margin-bottom:0.5rem;
+  animation:fadeUp 0.6s ease both;
+}
+header .zh-title{
+  font-family:'Noto Sans SC',sans-serif;font-weight:600;font-size:1.5rem;
+  color:var(--mint);opacity:0.9;animation:fadeUp 0.6s 0.1s ease both;
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+main{
+  max-width:900px;margin:-1rem auto 4rem;padding:0 2rem;position:relative;z-index:2;
+}
+.section{margin-bottom:3rem;animation:fadeUp 0.5s ease both}
+.section:nth-child(2){animation-delay:0.1s}
+.section:nth-child(3){animation-delay:0.15s}
+.section:nth-child(4){animation-delay:0.2s}
+h2{
+  font-family:'Outfit',sans-serif;font-weight:800;font-size:1.6rem;
+  color:var(--navy);margin-bottom:0.3rem;padding-top:1rem;
+  display:flex;align-items:center;gap:0.5rem;
+}
+h2 .num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:var(--teal);color:var(--white);
+  border-radius:8px;font-size:0.85rem;font-weight:600;flex-shrink:0;
+}
+.zh-sub{
+  font-family:'Noto Sans SC',sans-serif;font-weight:600;font-size:1.05rem;
+  color:var(--teal);margin-bottom:1.2rem;
+}
+p,.dual{margin-bottom:1rem}
+.en{color:var(--dark);margin-bottom:0.4rem}
+.zh{color:var(--slate);font-family:'Noto Sans SC',sans-serif;font-size:0.95rem}
+pre{
+  background:var(--code-bg);color:#e2e8f0;border-radius:12px;
+  padding:1.5rem;margin:1rem 0 1.5rem;overflow-x:auto;
+  font-family:'JetBrains Mono',monospace;font-size:0.85rem;line-height:1.8;
+  border:1px solid rgba(94,234,212,0.1);position:relative;
+}
+pre::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--teal),var(--mint));border-radius:12px 12px 0 0;
+}
+code{font-family:'JetBrains Mono',monospace}
+.kw{color:#c084fc}.str{color:#5eead4}.fn{color:#38bdf8}
+.cm{color:#64748b;font-style:italic}.num{color:#fbbf24}
+.tip,.warn{
+  padding:1rem 1.2rem;border-radius:10px;margin:1rem 0 1.5rem;
+  display:flex;gap:0.6rem;align-items:flex-start;
+  font-size:0.95rem;
+}
+.tip{background:#ecfdf5;border-left:4px solid var(--green);color:#166534}
+.warn{background:#fff7ed;border-left:4px solid var(--orange);color:#9a3412}
+.tip .icon,.warn .icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+ul{margin:0.5rem 0 1.5rem 1.5rem}
+li{margin-bottom:0.6rem;position:relative;padding-left:0.3rem}
+li::marker{color:var(--teal);font-weight:700}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin:1.5rem 0}
+.card{
+  background:var(--white);border-radius:12px;padding:1.5rem;
+  border:1px solid #e2e8f0;transition:all 0.3s;
+}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,0.08)}
+.card h3{font-size:1rem;color:var(--navy);margin-bottom:0.3rem}
+.card p{font-size:0.9rem;color:var(--slate);margin:0}
+table{
+  width:100%;border-collapse:collapse;margin:1rem 0 1.5rem;
+  background:var(--white);border-radius:12px;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+}
+th{background:var(--navy);color:var(--white);text-align:left;padding:0.8rem 1rem;font-size:0.85rem;font-weight:600}
+td{padding:0.7rem 1rem;border-bottom:1px solid #f1f5f9;font-size:0.9rem}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+.nav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:2rem 0;border-top:1px solid #e2e8f0;margin-top:3rem;
+}
+.nav-btn{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  padding:0.6rem 1.2rem;border-radius:8px;font-size:0.9rem;
+  text-decoration:none;font-weight:600;transition:all 0.2s;
+}
+.nav-btn.prev{background:#f1f5f9;color:var(--dark)}
+.nav-btn.prev:hover{background:#e2e8f0}
+.nav-btn.next{background:var(--teal);color:var(--white)}
+.nav-btn.next:hover{background:var(--teal-light)}
+.nav-btn.disabled{opacity:0.3;pointer-events:none;background:#f1f5f9;color:var(--slate)}
+footer{text-align:center;padding:2rem;color:var(--slate);font-size:0.85rem}
+@media(max-width:640px){
+  header h1{font-size:1.8rem}
+  header .zh-title{font-size:1.2rem}
+  pre{font-size:0.78rem;padding:1rem}
+  main{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<header>
+  <div style="max-width:800px;margin:0 auto;padding:0.8rem 2rem 0"><a href="../" style="color:var(--mint);text-decoration:none;font-size:0.85rem;opacity:0.8">&larr; Back to Tutorials</a></div>
+  <div class="header-inner">
+    <div class="mod-label">Module 10 / 模块10</div>
+    <h1>Deployment & Best Practices</h1>
+    <div class="zh-title">部署与最佳实践</div>
+  </div>
+</header>
+<main>
+<div class="section">
+<h2><span class="num">10.1</span> Production Checklist</h2>
+<div class="zh-sub">生产检查清单</div>
+<ul><li>✓ <b>Rate limiting</b> — prevent API cost overruns / <b>速率限制</b>——防止API成本超支</li><li>✓ <b>Error handling</b> — retry with exponential backoff / <b>错误处理</b>——指数退避重试</li><li>✓ <b>Logging</b> — record all LLM calls and tool executions / <b>日志</b>——记录所有LLM调用和工具执行</li><li>✓ <b>Cost monitoring</b> — track spend per user/task / <b>成本监控</b>——跟踪每用户/任务花费</li><li>✓ <b>Timeouts</b> — kill long-running tasks / <b>超时</b>——终止长时间运行的任务</li><li>✓ <b>Sandboxing</b> — never execute arbitrary code on production / <b>沙箱</b>——永远不在生产环境执行任意代码</li><li>✓ <b>Human-in-the-loop</b> — require approval for high-stakes actions / <b>人在回路中</b>——高风险操作需人工审批</li></ul>
+</div>
+<div class="section">
+<h2><span class="num">10.2</span> Error Handling Pattern</h2>
+<div class="zh-sub">错误处理模式</div>
+<pre><code>import time
+from openai import RateLimitError, APIError
+
+def call_with_retry(func, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except RateLimitError:
+            wait = 2 ** attempt  # 1s, 2s, 4s
+            print(f'Rate limited. Retrying in {wait}s...')
+            time.sleep(wait)
+        except APIError as e:
+            print(f'API error: {e}')
+            if attempt == max_retries - 1:
+                raise
+    raise Exception('Max retries exceeded')</code></pre>
+</div>
+<div class="section">
+<h2><span class="num">10.3</span> Cost Estimation</h2>
+<div class="zh-sub">成本估算</div>
+<table>
+<tr><th>Model / 模型</th><th>Input / 输入</th><th>Output / 输出</th><th>~Cost per agent task / 每任务成本</th></tr>
+<tr><td>GPT-4o</td><td>$2.50 / 1M tokens</td><td>$10.00 / 1M tokens</td><td>$0.01 — $0.10</td></tr>
+<tr><td>Claude Sonnet 4</td><td>$3.00 / 1M tokens</td><td>$15.00 / 1M tokens</td><td>$0.02 — $0.15</td></tr>
+<tr><td>GPT-4o-mini</td><td>$0.15 / 1M tokens</td><td>$0.60 / 1M tokens</td><td>$0.001 — $0.01</td></tr>
+<tr><td>Claude Haiku 4.5</td><td>$0.80 / 1M tokens</td><td>$4.00 / 1M tokens</td><td>$0.005 — $0.05</td></tr>
+</table>
+<div class="tip"><span class="icon">✅</span><span>Use smaller models (GPT-4o-mini, Haiku) for simple tool-routing steps. Reserve large models for complex reasoning. This can reduce costs 10-50×. / 简单工具路由步骤使用小模型。复杂推理保留大模型。这可以降低10-50倍成本。</span></div>
+</div>
+<div class="section">
+<h2><span class="num">10.4</span> What's Next?</h2>
+<div class="zh-sub">下一步？</div>
+<ul><li>Explore <b>LangChain</b> and <b>CrewAI</b> for higher-level agent frameworks / 探索<b>LangChain</b>和<b>CrewAI</b>等更高级框架</li><li>Learn the <b>A2A protocol</b> for agent-to-agent communication / 学习<b>A2A协议</b>用于智能体间通信</li><li>Build <b>MCP servers</b> for your own data sources / 为自己的数据源构建<b>MCP服务器</b></li><li>Implement <b>RAG</b> (Retrieval-Augmented Generation) for domain knowledge / 实现<b>RAG</b>用于领域知识</li><li>Study <b>prompt engineering</b> to improve agent behaviour / 研究<b>提示工程</b>改善智能体行为</li></ul>
+<div class="tip"><span class="icon">✅</span><span>Congratulations! 🎉 恭喜你完成了本教程！You now have the foundations to build production-grade AI agents. The field is evolving rapidly — stay curious, keep building. / 你现在已经具备构建生产级AI智能体的基础。这个领域正在快速发展——保持好奇心，继续构建。</span></div>
+</div>
+
+<nav class="nav">
+  <a href="module_09.html" class="nav-btn prev">&larr; Module 9</a>
+  <a href="index.html" style="color:var(--slate);text-decoration:none;font-size:0.85rem">All Modules / 所有模块</a>
+  <span class="nav-btn disabled">&rarr;</span>
+</nav>
+</main>
+<footer>AI Agent Development Tutorial · AI智能体开发教程 · 2026</footer>
+</body>
+</html>

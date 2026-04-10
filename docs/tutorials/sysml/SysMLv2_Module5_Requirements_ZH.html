@@ -87,6 +87,15 @@ tbody tr:hover{background:var(--sky-pale)}
 .next-box p{margin:0;font-weight:500;color:var(--navy)}
 @media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}
 pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;background:none}pre.lined table{border-collapse:collapse;width:100%;min-width:max-content}pre.lined td{padding:0;border:none;background:none;font-family:var(--font-mono);font-size:.88rem;line-height:1.7;color:var(--code-text)}pre.lined td.ln{width:2.8em;min-width:2.8em;text-align:right;padding-right:.75em;color:#94A3B8;user-select:none;border-right:1px solid #E2E8F0}pre.lined td.lc{padding-left:.9em;white-space:pre}pre.lined tr:hover td{background:rgba(14,165,233,.06)}
+
+/* SysML syntax highlighting */
+pre.lined .kw{color:#2563EB;font-weight:500}
+pre.lined .ty{color:#0F766E}
+pre.lined .st{color:#B45309}
+pre.lined .cm{color:#94A3B8;font-style:italic}
+pre.lined .nu{color:#7C3AED}
+pre.lined .ct{color:#DC2626}
+pre.lined .op{color:#6366F1}
 </style></head>
 <body>
 <div id="progress-bar"></div>
@@ -113,7 +122,7 @@ pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;backg
   <a href="SysMLv2_Module5_Requirements_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
 </header>
 <div id="layout">
-  <aside id="sidebar"><div class="sidebar-label">目录</div><nav><a href="#s0"><span class="num">&#9733;</span>KerML &#8594; SysML 桥接</a><a href="#s1"><span class="num">1</span>需求定义</a><a href="#s2"><span class="num">2</span>需求使用与层次</a><a href="#s3"><span class="num">3</span>满足与派生</a><a href="#s4"><span class="num">4</span>约束与表达式</a><a href="#s5"><span class="num">5</span>假设与要求约束</a><a href="#s6"><span class="num">6</span>完整示例</a><a href="#s7"><span class="num">7</span>模块总结</a></nav></aside>
+  <aside id="sidebar"><div class="sidebar-label">目录</div><nav><a href="#s0"><span class="num">&#9733;</span>KerML &#8594; SysML 桥接</a><a href="#s1"><span class="num">1</span>需求定义</a><a href="#s2"><span class="num">2</span>需求使用与层次</a><a href="#s3"><span class="num">3</span>满足与流转</a><a href="#s4"><span class="num">4</span>约束与表达式</a><a href="#s5"><span class="num">5</span>假设与要求约束</a><a href="#s6"><span class="num">6</span>完整示例</a><a href="#s7"><span class="num">7</span>模块总结</a></nav></aside>
   <main id="main">
     <div class="module-hero">
       <div class="series">SysML v2 &mdash; Ran Wei</div>
@@ -128,7 +137,7 @@ pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;backg
 <tr><td><code>requirement def</code></td><td><code>ConstraintDefinition</code>（特化 <code>Class</code>）</td><td>添加 <code>doc</code> 文本描述、<code>subject</code>、<code>stakeholder</code> 等元数据</td></tr>
 <tr><td><code>requirement</code>（使用）</td><td>由 <code>ConstraintDefinition</code> 类型化的 <code>Feature</code></td><td>在特定上下文中实例化需求，绑定具体主体</td></tr>
 <tr><td><code>satisfy</code></td><td><code>SatisfyRequirementUsage</code></td><td>声明一个设计元素满足某个需求</td></tr>
-<tr><td><code>derive</code></td><td><code>DependencyRelationship</code></td><td>表示一个需求派生自另一个需求</td></tr>
+<tr><td><code>specializes</code>（需求间）</td><td><code>Subclassification</code></td><td>需求流转：子需求继承并细化父需求的约束</td></tr>
 <tr><td><code>constraint def</code></td><td><code>ConstraintDefinition</code></td><td>纯布尔约束，不附加需求元数据</td></tr>
 <tr><td><code>constraint</code>（使用）</td><td>由 <code>ConstraintDefinition</code> 类型化的 <code>Feature</code></td><td>在上下文中应用约束表达式</td></tr>
 <tr><td><code>assume constraint</code></td><td>前提约束（<code>ConstraintUsage</code>）</td><td>声明需求成立的前提条件</td></tr>
@@ -144,22 +153,22 @@ pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;backg
 <h3>基本需求定义</h3>
 <p>一个最基本的需求定义包括名称、文档说明和可选的主体声明：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">requirement def MassRequirement {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    doc /* 系统总质量不得超过规定上限 */</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    attribute massLimit : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    require constraint { vehicle.totalMass &lt;= massLimit }</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> MassRequirement {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 系统总质量不得超过规定上限 */</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">subject</span> vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">attribute</span> massLimit : ISQ::MassValue;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> { vehicle.totalMass &lt;= massLimit }</td></tr>
 <tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
 </table></code></pre>
 <h3>带利益相关方的需求</h3>
 <p><code>stakeholder</code> 关键字标注需求的来源或关注方：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">requirement def SafetyRequirement {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    doc /* 系统必须在检测到故障后 500ms 内进入安全状态 */</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    subject sys : ControlSystem;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    stakeholder safetyEngineer : SafetyEngineer;</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    attribute responseTime : ISQ::TimeValue;</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    require constraint { responseTime &lt;= 500 [ms] }</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> SafetyRequirement {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 系统必须在检测到故障后 500ms 内进入安全状态 */</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">subject</span> sys : ControlSystem;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">stakeholder</span> safetyEngineer : SafetyEngineer;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">attribute</span> responseTime : ISQ::TimeValue;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> { responseTime &lt;= <span class="nu">500</span> [ms] }</td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc">}</td></tr>
 </table></code></pre>
 <div class="callout note"><div class="callout-label">注意</div><p><code>subject</code> 声明了需求的作用对象 &#8212; 即需要满足该需求的设计元素。它是一个类型化的特征，在需求被使用时可以绑定到具体的零部件或子系统。<code>stakeholder</code> 则记录谁提出或关注这个需求，支持需求追溯。</p></div>
@@ -170,70 +179,71 @@ pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;backg
 <p>与结构建模中 <code>part def</code> / <code>part</code> 的关系一样，<code>requirement def</code> 是模板，<code>requirement</code> 使用是在具体上下文中的实例化。需求可以嵌套形成层次结构，实现从顶层系统需求到子系统需求的逐级分解。</p>
 <h3>需求使用</h3>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">// 在具体项目上下文中使用需求</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">requirement vehicleMass : MassRequirement {</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    subject vehicle : PassengerVehicle;  // 绑定具体主体</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    attribute redefines massLimit = 1500 [kg];</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// 在具体项目上下文中使用需求</span></td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">requirement</span> vehicleMass : MassRequirement {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">subject</span> vehicle : PassengerVehicle;  <span class="cm">// 绑定具体主体</span></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">attribute</span> <span class="kw">redefines</span> massLimit = <span class="nu">1500</span> [kg];</td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
 </table></code></pre>
 <h3>需求层次分解</h3>
 <p>需求可以包含子需求，形成树状层次结构。父需求被满足当且仅当所有子需求都被满足：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">requirement def VehicleRequirements {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    doc /* 车辆系统顶层需求 */</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    subject vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> VehicleRequirements {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 车辆系统顶层需求 */</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">subject</span> vehicle : Vehicle;</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    // 子需求：质量约束</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    requirement massReq : MassRequirement {</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">        attribute redefines massLimit = 2000 [kg];</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="cm">// 子需求：质量约束</span></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">requirement</span> massReq : MassRequirement {</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        <span class="kw">attribute</span> <span class="kw">redefines</span> massLimit = <span class="nu">2000</span> [kg];</td></tr>
 <tr><td class="ln" select="none">8</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">    // 子需求：最高速度</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    requirement speedReq {</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">        doc /* 最高速度不低于 180 km/h */</td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">        require constraint { vehicle.maxSpeed &gt;= 180 [km/h] }</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    <span class="cm">// 子需求：最高速度</span></td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">requirement</span> speedReq {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">        <span class="kw">doc</span> <span class="cm">/* 最高速度不低于 180 km/h */</span></td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        <span class="kw">require</span> <span class="kw">constraint</span> { vehicle.maxSpeed &gt;= <span class="nu">180</span> [km/h] }</td></tr>
 <tr><td class="ln" select="none">14</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">15</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc">    // 子需求：安全性</td></tr>
-<tr><td class="ln" select="none">17</td><td class="lc">    requirement safetyReq : SafetyRequirement;</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    <span class="cm">// 子需求：安全性</span></td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    <span class="kw">requirement</span> safetyReq : SafetyRequirement;</td></tr>
 <tr><td class="ln" select="none">18</td><td class="lc">}</td></tr>
 </table></code></pre>
 <div class="callout tip"><div class="callout-label">提示</div><p>需求层次分解是系统工程的核心实践。SysML v2 中子需求是父需求的组合特征 &#8212; 与零件的组合关系在概念上完全一致。工具可以自动检查：当所有子需求约束均为 <code>true</code> 时，父需求方可判定为已满足。</p></div>
 
-<!-- ====== 第 3 节：满足与派生 ====== -->
-<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>满足与派生</h2></div>
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 溯源：<code>satisfy</code> &#8594; <code>SatisfyRequirementUsage</code>；<code>derive</code> &#8594; <code>DependencyRelationship</code></p>
-<p><strong>满足</strong>（<code>satisfy</code>）声明一个设计元素满足某个需求。<strong>派生</strong>（<code>derive</code>）表示一个需求来源于另一个需求。这两种关系构成了需求追溯的基础。</p>
+<!-- ====== 第 3 节：满足与流转 ====== -->
+<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>满足与需求流转</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 溯源：<code>satisfy</code> &#8594; <code>SatisfyRequirementUsage</code>（特化 <code>RequirementUsage</code> 和 <code>AssertConstraintUsage</code>）</p>
+<p><strong>满足</strong>（<code>assert satisfy</code>）声明一个设计元素满足某个需求。需求流转（从系统需求推导出子系统需求）通过 <strong>特化</strong>（<code>specializes</code>）来实现，而非单独的 <code>derive</code> 关键字。</p>
 <h3>满足关系</h3>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">part def ChassisDesign {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    attribute totalMass : ISQ::MassValue;</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> ChassisDesign {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">attribute</span> totalMass : ISQ::MassValue;</td></tr>
 <tr><td class="ln" select="none">3</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">// 声明底盘设计满足质量需求</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">satisfy vehicleMass by chassisDesign : ChassisDesign;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"><span class="cm">// 声明底盘设计满足质量需求</span></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"><span class="kw">assert</span> <span class="kw">satisfy</span> vehicleMass by chassisDesign : ChassisDesign;</td></tr>
 </table></code></pre>
-<p><code>satisfy</code> 建立了从设计解决方案到需求的追溯链。工具可以检查 <code>chassisDesign</code> 的属性值是否满足 <code>vehicleMass</code> 中的约束表达式。</p>
-<h3>派生关系</h3>
-<p>派生表示一个低层需求是从高层需求推导出来的：</p>
+<p><code>assert satisfy</code> 建立了从设计解决方案到需求的追溯链。工具可以检查 <code>chassisDesign</code> 的属性值是否满足 <code>vehicleMass</code> 中的约束表达式。</p>
+<h3>需求流转（使用特化）</h3>
+<p>需求流转通过 <code>specializes</code> 实现。子需求继承父需求的所有约束，并可以添加更严格的条件：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">requirement def BrakingDistance {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    doc /* 从 100 km/h 到完全停车的距离不超过 35m */</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    subject brakeSystem : BrakeSystem;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    require constraint { brakeSystem.stoppingDistance &lt;= 35 [m] }</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">// 制动距离需求派生自安全需求</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">derive requirement brakingReq : BrakingDistance</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    from safetyReq;</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> SafetyReq {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 系统安全顶层需求 */</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"><span class="cm">// 制动距离需求特化自安全需求</span></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> BrakingDistance <span class="kw">specializes</span> SafetyReq {</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 从 100 km/h 到完全停车的距离不超过 35m */</span></td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">subject</span> brakeSystem : BrakeSystem;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> { brakeSystem.stoppingDistance &lt;= <span class="nu">35</span> [m] }</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
 </table></code></pre>
-<div class="callout analogy"><div class="callout-label">类比</div><p>把 <code>satisfy</code> 想象成"这个零件兑现了这份合同条款"，而 <code>derive</code> 是"这个细化条款源自那份总合同"。两者共同建立起从顶层利益相关方需求到底层组件设计的完整追溯链。</p></div>
+<div class="callout analogy"><div class="callout-label">类比</div><p>把 <code>assert satisfy</code> 想象成"这个零件兑现了这份合同条款"，而 <code>specializes</code> 是"这个细化条款继承并扩展了那份总合同"。两者共同建立起从顶层利益相关方需求到底层组件设计的完整追溯链。</p></div>
 <h3>需求特化</h3>
 <p>需求定义可以通过 <code>specializes</code> 继承并细化父需求的约束：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">requirement def HighPerformanceMass specializes MassRequirement {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    doc /* 高性能版本的更严格质量限制 */</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    attribute redefines massLimit = 1200 [kg];</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> HighPerformanceMass <span class="kw">specializes</span> MassRequirement {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 高性能版本的更严格质量限制 */</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">attribute</span> <span class="kw">redefines</span> massLimit = <span class="nu">1200</span> [kg];</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc">}</td></tr>
 </table></code></pre>
 <div class="callout pitfall"><div class="callout-label">陷阱</div><p><code>satisfy</code> 不等于验证（verification）。<code>satisfy</code> 只是声明设计意图 &#8212; "这个元素旨在满足该需求"。实际验证需要在模块 9（验证与确认）中通过测试用例、分析或仿真来完成。不要把 <code>satisfy</code> 当作已通过验证的证据。</p></div>
@@ -244,26 +254,26 @@ pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;backg
 <p><strong>约束</strong>（<code>constraint</code>）是需求的核心组件 &#8212; 一个求值为布尔值的表达式。约束可以独立于需求使用，也可以嵌入需求定义中。SysML v2 提供了丰富的表达式语法来编写约束条件。</p>
 <h3>约束定义</h3>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">constraint def TemperatureRange {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    in attribute temp : ISQ::TemperatureValue;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    in attribute lower : ISQ::TemperatureValue;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    in attribute upper : ISQ::TemperatureValue;</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    temp &gt;= lower and temp &lt;= upper</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">constraint</span> <span class="kw">def</span> TemperatureRange {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">in</span> <span class="kw">attribute</span> temp : ISQ::TemperatureValue;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">in</span> <span class="kw">attribute</span> lower : ISQ::TemperatureValue;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">in</span> <span class="kw">attribute</span> upper : ISQ::TemperatureValue;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    temp &gt;= lower <span class="kw">and</span> temp &lt;= upper</td></tr>
 <tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
 </table></code></pre>
 <h3>在零件上应用约束</h3>
 <p>约束可以直接附加到零件定义上，作为不变条件（invariant）：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">part def BatteryPack {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    attribute temperature : ISQ::TemperatureValue;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    attribute minTemp : ISQ::TemperatureValue = -20 [degC];</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    attribute maxTemp : ISQ::TemperatureValue = 60 [degC];</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> BatteryPack {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">attribute</span> temperature : ISQ::TemperatureValue;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">attribute</span> minTemp : ISQ::TemperatureValue = -<span class="nu">20</span> [degC];</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">attribute</span> maxTemp : ISQ::TemperatureValue = <span class="nu">60</span> [degC];</td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    // 温度必须始终在范围内</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">    assert constraint tempInRange : TemperatureRange {</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">        in temp = temperature;</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">        in lower = minTemp;</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">        in upper = maxTemp;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="cm">// 温度必须始终在范围内</span></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">assert</span> <span class="kw">constraint</span> tempInRange : TemperatureRange {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        <span class="kw">in</span> temp = temperature;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">        <span class="kw">in</span> lower = minTemp;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">        <span class="kw">in</span> upper = maxTemp;</td></tr>
 <tr><td class="ln" select="none">11</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">12</td><td class="lc">}</td></tr>
 </table></code></pre>
@@ -287,19 +297,19 @@ pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;backg
 <h3>假设约束</h3>
 <p>假设约束描述需求成立的前提条件 &#8212; 环境或上下文必须满足的条件：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">requirement def OperationalRange {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    doc /* 系统在正常环境条件下工作距离不少于 200km */</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    subject sys : MobileSystem;</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> OperationalRange {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 系统在正常环境条件下工作距离不少于 200km */</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">subject</span> sys : MobileSystem;</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    // 前提：环境温度在正常范围内</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    assume constraint {</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">        sys.environment.temperature &gt;= -10 [degC] and</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">        sys.environment.temperature &lt;= 45 [degC]</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="cm">// 前提：环境温度在正常范围内</span></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">assume</span> <span class="kw">constraint</span> {</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        sys.environment.temperature &gt;= -<span class="nu">10</span> [degC] <span class="kw">and</span></td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        sys.environment.temperature &lt;= <span class="nu">45</span> [degC]</td></tr>
 <tr><td class="ln" select="none">9</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">10</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    // 要求：工作距离满足指标</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">    require constraint {</td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">        sys.operationalRange &gt;= 200 [km]</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    <span class="cm">// 要求：工作距离满足指标</span></td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> {</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        sys.operationalRange &gt;= <span class="nu">200</span> [km]</td></tr>
 <tr><td class="ln" select="none">14</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">15</td><td class="lc">}</td></tr>
 </table></code></pre>
@@ -307,21 +317,21 @@ pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;backg
 <h3>多条约束组合</h3>
 <p>一个需求可以包含多条假设约束和要求约束：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">requirement def CommunicationReliability {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    doc /* 通信子系统可靠性要求 */</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    subject comm : CommunicationSubsystem;</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> CommunicationReliability {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* 通信子系统可靠性要求 */</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">subject</span> comm : CommunicationSubsystem;</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    // 假设：供电正常</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    assume constraint { comm.powerSupply.voltage &gt;= 11.5 [V] }</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="cm">// 假设：供电正常</span></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">assume</span> <span class="kw">constraint</span> { comm.powerSupply.voltage &gt;= <span class="nu">11.5</span> [V] }</td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">    // 假设：天线完好</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    assume constraint { comm.antenna.status == AntennaStatus::operational }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    <span class="cm">// 假设：天线完好</span></td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">assume</span> <span class="kw">constraint</span> { comm.antenna.status == AntennaStatus::operational }</td></tr>
 <tr><td class="ln" select="none">10</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    // 要求：丢包率低于阈值</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">    require constraint { comm.packetLossRate &lt;= 0.01 }</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    <span class="cm">// 要求：丢包率低于阈值</span></td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> { comm.packetLossRate &lt;= <span class="nu">0.01</span> }</td></tr>
 <tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">    // 要求：延迟低于阈值</td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc">    require constraint { comm.latency &lt;= 50 [ms] }</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    <span class="cm">// 要求：延迟低于阈值</span></td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> { comm.latency &lt;= <span class="nu">50</span> [ms] }</td></tr>
 <tr><td class="ln" select="none">16</td><td class="lc">}</td></tr>
 </table></code></pre>
 <div class="callout pitfall"><div class="callout-label">陷阱</div><p>不要遗漏假设约束。如果一个需求在特定环境条件下才成立但没有用 <code>assume constraint</code> 显式声明，验证时可能在不合理的条件下判定需求未满足，产生误导性结论。明确的假设约束让验证范围精确可控。</p></div>
@@ -330,83 +340,83 @@ pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;backg
 <span class="section-anchor" id="s6"></span><div class="section-header"><span class="section-num">6</span><h2>完整示例</h2></div>
 <p>以下模型整合了前面所有概念：为一个无人机系统建立需求体系，包含需求定义、层次分解、约束表达式、假设/要求约束，以及满足关系。</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc">package UAVRequirements {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    private import ISQ::*;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    private import SI::*;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    private import ScalarValues::*;</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">package</span> UAVRequirements {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> ISQ::*;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> SI::*;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> <span class="ty">ScalarValues</span>::*;</td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    // ── 约束定义（可复用的布尔表达式）──────────────</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">    constraint def WithinRange {</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">        in attribute value : Real;</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">        in attribute min   : Real;</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">        in attribute max   : Real;</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">        value &gt;= min and value &lt;= max</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="cm">// ── 约束定义（可复用的布尔表达式）──────────────</span></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">constraint</span> <span class="kw">def</span> WithinRange {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        <span class="kw">in</span> <span class="kw">attribute</span> value : <span class="ty">Real</span>;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">        <span class="kw">in</span> <span class="kw">attribute</span> min   : <span class="ty">Real</span>;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">        <span class="kw">in</span> <span class="kw">attribute</span> max   : <span class="ty">Real</span>;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">        value &gt;= min <span class="kw">and</span> value &lt;= max</td></tr>
 <tr><td class="ln" select="none">12</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">    // ── 顶层需求定义 ─────────────────────────────</td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc">    requirement def UAVSystemRequirements {</td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc">        doc /* 无人机系统顶层需求规格 */</td></tr>
-<tr><td class="ln" select="none">17</td><td class="lc">        subject uav : UAV;</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    <span class="cm">// ── 顶层需求定义 ─────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    <span class="kw">requirement</span> <span class="kw">def</span> UAVSystemRequirements {</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">        <span class="kw">doc</span> <span class="cm">/* 无人机系统顶层需求规格 */</span></td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">        <span class="kw">subject</span> uav : UAV;</td></tr>
 <tr><td class="ln" select="none">18</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">19</td><td class="lc">        // 子需求：最大起飞质量</td></tr>
-<tr><td class="ln" select="none">20</td><td class="lc">        requirement massReq {</td></tr>
-<tr><td class="ln" select="none">21</td><td class="lc">            doc /* 最大起飞质量不超过 25kg */</td></tr>
-<tr><td class="ln" select="none">22</td><td class="lc">            require constraint { uav.totalMass &lt;= 25 [kg] }</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">        <span class="cm">// 子需求：最大起飞质量</span></td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">        <span class="kw">requirement</span> massReq {</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">            <span class="kw">doc</span> <span class="cm">/* 最大起飞质量不超过 25kg */</span></td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">            <span class="kw">require</span> <span class="kw">constraint</span> { uav.totalMass &lt;= <span class="nu">25</span> [kg] }</td></tr>
 <tr><td class="ln" select="none">23</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">24</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">25</td><td class="lc">        // 子需求：续航时间</td></tr>
-<tr><td class="ln" select="none">26</td><td class="lc">        requirement enduranceReq {</td></tr>
-<tr><td class="ln" select="none">27</td><td class="lc">            doc /* 续航时间不少于 45 分钟 */</td></tr>
-<tr><td class="ln" select="none">28</td><td class="lc">            assume constraint {</td></tr>
-<tr><td class="ln" select="none">29</td><td class="lc">                uav.environment.windSpeed &lt;= 15 [m/s]</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">        <span class="cm">// 子需求：续航时间</span></td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">        <span class="kw">requirement</span> enduranceReq {</td></tr>
+<tr><td class="ln" select="none">27</td><td class="lc">            <span class="kw">doc</span> <span class="cm">/* 续航时间不少于 45 分钟 */</span></td></tr>
+<tr><td class="ln" select="none">28</td><td class="lc">            <span class="kw">assume</span> <span class="kw">constraint</span> {</td></tr>
+<tr><td class="ln" select="none">29</td><td class="lc">                uav.environment.windSpeed &lt;= <span class="nu">15</span> [m/s]</td></tr>
 <tr><td class="ln" select="none">30</td><td class="lc">            }</td></tr>
-<tr><td class="ln" select="none">31</td><td class="lc">            require constraint { uav.endurance &gt;= 45 [min] }</td></tr>
+<tr><td class="ln" select="none">31</td><td class="lc">            <span class="kw">require</span> <span class="kw">constraint</span> { uav.endurance &gt;= <span class="nu">45</span> [min] }</td></tr>
 <tr><td class="ln" select="none">32</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">33</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">34</td><td class="lc">        // 子需求：通信距离</td></tr>
-<tr><td class="ln" select="none">35</td><td class="lc">        requirement commRangeReq {</td></tr>
-<tr><td class="ln" select="none">36</td><td class="lc">            doc /* 遥控通信距离不少于 10km */</td></tr>
-<tr><td class="ln" select="none">37</td><td class="lc">            require constraint { uav.commRange &gt;= 10 [km] }</td></tr>
+<tr><td class="ln" select="none">34</td><td class="lc">        <span class="cm">// 子需求：通信距离</span></td></tr>
+<tr><td class="ln" select="none">35</td><td class="lc">        <span class="kw">requirement</span> commRangeReq {</td></tr>
+<tr><td class="ln" select="none">36</td><td class="lc">            <span class="kw">doc</span> <span class="cm">/* 遥控通信距离不少于 10km */</span></td></tr>
+<tr><td class="ln" select="none">37</td><td class="lc">            <span class="kw">require</span> <span class="kw">constraint</span> { uav.commRange &gt;= <span class="nu">10</span> [km] }</td></tr>
 <tr><td class="ln" select="none">38</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">39</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">40</td><td class="lc">        // 子需求：工作温度范围</td></tr>
-<tr><td class="ln" select="none">41</td><td class="lc">        requirement tempReq {</td></tr>
-<tr><td class="ln" select="none">42</td><td class="lc">            doc /* 系统需在 -20 至 50 度环境下正常工作 */</td></tr>
-<tr><td class="ln" select="none">43</td><td class="lc">            assert constraint operatingTemp : WithinRange {</td></tr>
-<tr><td class="ln" select="none">44</td><td class="lc">                in value = uav.environment.temperature;</td></tr>
-<tr><td class="ln" select="none">45</td><td class="lc">                in min = -20 [degC];</td></tr>
-<tr><td class="ln" select="none">46</td><td class="lc">                in max = 50 [degC];</td></tr>
+<tr><td class="ln" select="none">40</td><td class="lc">        <span class="cm">// 子需求：工作温度范围</span></td></tr>
+<tr><td class="ln" select="none">41</td><td class="lc">        <span class="kw">requirement</span> tempReq {</td></tr>
+<tr><td class="ln" select="none">42</td><td class="lc">            <span class="kw">doc</span> <span class="cm">/* 系统需在 -20 至 50 度环境下正常工作 */</span></td></tr>
+<tr><td class="ln" select="none">43</td><td class="lc">            <span class="kw">assert</span> <span class="kw">constraint</span> operatingTemp : WithinRange {</td></tr>
+<tr><td class="ln" select="none">44</td><td class="lc">                <span class="kw">in</span> value = uav.environment.temperature;</td></tr>
+<tr><td class="ln" select="none">45</td><td class="lc">                <span class="kw">in</span> min = -<span class="nu">20</span> [degC];</td></tr>
+<tr><td class="ln" select="none">46</td><td class="lc">                <span class="kw">in</span> max = <span class="nu">50</span> [degC];</td></tr>
 <tr><td class="ln" select="none">47</td><td class="lc">            }</td></tr>
 <tr><td class="ln" select="none">48</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">49</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">50</td><td class="lc">        // 子需求：安全响应</td></tr>
-<tr><td class="ln" select="none">51</td><td class="lc">        requirement safetyReq {</td></tr>
-<tr><td class="ln" select="none">52</td><td class="lc">            doc /* 检测到致命故障后 1 秒内启动紧急着陆 */</td></tr>
-<tr><td class="ln" select="none">53</td><td class="lc">            stakeholder safetyOfficer : SafetyOfficer;</td></tr>
-<tr><td class="ln" select="none">54</td><td class="lc">            require constraint {</td></tr>
-<tr><td class="ln" select="none">55</td><td class="lc">                uav.faultResponseTime &lt;= 1000 [ms]</td></tr>
+<tr><td class="ln" select="none">50</td><td class="lc">        <span class="cm">// 子需求：安全响应</span></td></tr>
+<tr><td class="ln" select="none">51</td><td class="lc">        <span class="kw">requirement</span> safetyReq {</td></tr>
+<tr><td class="ln" select="none">52</td><td class="lc">            <span class="kw">doc</span> <span class="cm">/* 检测到致命故障后 1 秒内启动紧急着陆 */</span></td></tr>
+<tr><td class="ln" select="none">53</td><td class="lc">            <span class="kw">stakeholder</span> safetyOfficer : SafetyOfficer;</td></tr>
+<tr><td class="ln" select="none">54</td><td class="lc">            <span class="kw">require</span> <span class="kw">constraint</span> {</td></tr>
+<tr><td class="ln" select="none">55</td><td class="lc">                uav.faultResponseTime &lt;= <span class="nu">1000</span> [ms]</td></tr>
 <tr><td class="ln" select="none">56</td><td class="lc">            }</td></tr>
 <tr><td class="ln" select="none">57</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">58</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">59</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">60</td><td class="lc">    // ── 满足关系 ─────────────────────────────────</td></tr>
-<tr><td class="ln" select="none">61</td><td class="lc">    part def UAVDesign {</td></tr>
-<tr><td class="ln" select="none">62</td><td class="lc">        part airframe   : Airframe;</td></tr>
-<tr><td class="ln" select="none">63</td><td class="lc">        part battery    : BatteryPack;</td></tr>
-<tr><td class="ln" select="none">64</td><td class="lc">        part radioLink  : RadioLink;</td></tr>
-<tr><td class="ln" select="none">65</td><td class="lc">        part controller : FlightController;</td></tr>
+<tr><td class="ln" select="none">60</td><td class="lc">    <span class="cm">// ── 满足关系 ─────────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">61</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> UAVDesign {</td></tr>
+<tr><td class="ln" select="none">62</td><td class="lc">        <span class="kw">part</span> airframe   : Airframe;</td></tr>
+<tr><td class="ln" select="none">63</td><td class="lc">        <span class="kw">part</span> battery    : BatteryPack;</td></tr>
+<tr><td class="ln" select="none">64</td><td class="lc">        <span class="kw">part</span> radioLink  : RadioLink;</td></tr>
+<tr><td class="ln" select="none">65</td><td class="lc">        <span class="kw">part</span> controller : FlightController;</td></tr>
 <tr><td class="ln" select="none">66</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">67</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">68</td><td class="lc">    // 具体使用顶层需求</td></tr>
-<tr><td class="ln" select="none">69</td><td class="lc">    requirement sysReqs : UAVSystemRequirements {</td></tr>
-<tr><td class="ln" select="none">70</td><td class="lc">        subject uav : UAVDesign;</td></tr>
+<tr><td class="ln" select="none">68</td><td class="lc">    <span class="cm">// 具体使用顶层需求</span></td></tr>
+<tr><td class="ln" select="none">69</td><td class="lc">    <span class="kw">requirement</span> sysReqs : UAVSystemRequirements {</td></tr>
+<tr><td class="ln" select="none">70</td><td class="lc">        <span class="kw">subject</span> uav : UAVDesign;</td></tr>
 <tr><td class="ln" select="none">71</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">72</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">73</td><td class="lc">    // 声明满足关系</td></tr>
-<tr><td class="ln" select="none">74</td><td class="lc">    satisfy sysReqs.massReq      by uavDesign.airframe;</td></tr>
-<tr><td class="ln" select="none">75</td><td class="lc">    satisfy sysReqs.enduranceReq by uavDesign.battery;</td></tr>
-<tr><td class="ln" select="none">76</td><td class="lc">    satisfy sysReqs.commRangeReq by uavDesign.radioLink;</td></tr>
-<tr><td class="ln" select="none">77</td><td class="lc">    satisfy sysReqs.safetyReq    by uavDesign.controller;</td></tr>
+<tr><td class="ln" select="none">73</td><td class="lc">    <span class="cm">// 声明满足关系</span></td></tr>
+<tr><td class="ln" select="none">74</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> sysReqs.massReq      by uavDesign.airframe;</td></tr>
+<tr><td class="ln" select="none">75</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> sysReqs.enduranceReq by uavDesign.battery;</td></tr>
+<tr><td class="ln" select="none">76</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> sysReqs.commRangeReq by uavDesign.radioLink;</td></tr>
+<tr><td class="ln" select="none">77</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> sysReqs.safetyReq    by uavDesign.controller;</td></tr>
 <tr><td class="ln" select="none">78</td><td class="lc">}</td></tr>
 </table></code></pre>
 <p>该模型展示了：<strong>constraint def</strong>（可复用的布尔约束）、<strong>requirement def</strong> 的层次分解（顶层需求包含五个子需求）、<strong>assume/require constraint</strong>（续航需求的风速假设）、<strong>stakeholder</strong>（安全需求的来源标注）、<strong>satisfy</strong>（将设计零件映射到各项需求）。</p>
@@ -418,7 +428,7 @@ pre.lined{padding:0;overflow-x:auto}pre.lined code{display:block;padding:0;backg
 <tr><td><code>requirement</code>（使用）</td><td>由 <code>ConstraintDefinition</code> 类型化的 <code>Feature</code></td><td>在上下文中实例化需求，可绑定具体主体和重定义参数</td></tr>
 <tr><td>需求层次</td><td>组合 <code>Feature</code> 嵌套</td><td>父需求满足当且仅当所有子需求均满足</td></tr>
 <tr><td><code>satisfy</code></td><td><code>SatisfyRequirementUsage</code></td><td>声明设计元素满足需求；是设计意图而非验证证据</td></tr>
-<tr><td><code>derive</code></td><td><code>DependencyRelationship</code></td><td>表示需求间的派生（追溯）关系</td></tr>
+<tr><td><code>specializes</code>（需求间）</td><td><code>Subclassification</code></td><td>需求流转：子需求继承并细化父需求的约束</td></tr>
 <tr><td><code>constraint def</code></td><td><code>ConstraintDefinition</code></td><td>定义可复用的布尔表达式，不含需求元数据</td></tr>
 <tr><td><code>constraint</code>（使用）</td><td><code>ConstraintUsage</code></td><td>在上下文中应用约束；<code>assert</code> 版本强制执行</td></tr>
 <tr><td><code>assume constraint</code></td><td><code>ConstraintUsage</code>（前提）</td><td>需求成立的前提条件；界定验证的有效范围</td></tr>

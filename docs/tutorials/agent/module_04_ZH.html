@@ -1,0 +1,332 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第一次API调用</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;--slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;--green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;--red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;--purple:#7E22CE;--purple-bg:#FDF4FF;--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;--sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1)}
+html{scroll-behavior:smooth;font-size:16px}body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}#topbar .brand span{color:var(--sky)}#topbar .sep{color:var(--border);font-size:1.2rem}#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:280px;padding:.4rem;z-index:200;max-height:70vh;overflow-y:auto}#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}p strong{color:var(--navy)}ul,ol{margin:.5rem 0 1rem 1.5rem}li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}.callout.note .callout-label{color:var(--blue)}.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}.callout.tip .callout-label{color:var(--green)}.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}.callout.analogy .callout-label{color:var(--orange)}.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:.88rem}th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}td:first-child{color:var(--navy);font-weight:500}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:var(--sky-pale)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.5rem 0}.card{background:var(--white);border-radius:12px;padding:1.25rem;border:1px solid var(--border);transition:all 0.2s}.card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.06)}.card h3{font-size:.95rem;color:var(--navy);margin:0 0 .3rem;display:block}.card h3::before{display:none}.card p{font-size:.88rem;color:var(--slate);margin:0}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}</style></head><body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">AI智能体</a><span class="sep">/</span><span class="crumb">模块4</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">模块 4 / 15</button>
+    <div class="dropdown-menu">
+      <a href="module_01_ZH.html">1 &mdash; 什么是AI智能体？</a>
+      <a href="module_02_ZH.html">2 &mdash; 环境搭建与API配置</a>
+      <a href="module_03_ZH.html">3 &mdash; 提示工程</a>
+      <a href="module_04_ZH.html" class="active">4 &mdash; 第一次API调用</a>
+      <a href="module_05_ZH.html">5 &mdash; 构建智能体循环</a>
+      <a href="module_06_ZH.html">6 &mdash; 工具调用与Function Calling</a>
+      <a href="module_07_ZH.html">7 &mdash; 记忆与上下文管理</a>
+      <a href="module_08_ZH.html">8 &mdash; RAG &mdash; 检索增强生成</a>
+      <a href="module_09_ZH.html">9 &mdash; MCP &mdash; 构建你自己的服务器</a>
+      <a href="module_10_ZH.html">10 &mdash; LangChain与CrewAI</a>
+      <a href="module_11_ZH.html">11 &mdash; 多智能体编排</a>
+      <a href="module_12_ZH.html">12 &mdash; A2A协议</a>
+      <a href="module_13_ZH.html">13 &mdash; 安全与护栏</a>
+      <a href="module_14_ZH.html">14 &mdash; 测试与评估</a>
+      <a href="module_15_ZH.html">15 &mdash; 部署与最佳实践</a>
+    </div>
+  </div>
+  <a href="module_04_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">目录</div>
+    <nav><a href="#s1"><span class="num">1</span>OpenAI第一次调用</a><a href="#s2"><span class="num">2</span>Anthropic第一次调用</a><a href="#s3"><span class="num">3</span>API关键差异</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">AI智能体系列 &mdash; Ran Wei</div>
+      <h1 class="module-title">模块4: <em>第一次API调用</em></h1>
+      <p class="module-lead">向OpenAI和Anthropic发起第一次API调用。</p>
+    </div>
+
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>OpenAI &mdash; 第一次调用 (GPT-4o)</h2>
+</div>
+<p>让我们从最基本的API调用开始。OpenAI Chat Completions API接收一个消息列表（每条消息包含角色和内容），并返回模型生成的响应。这是你将构建的每个智能体的基础。</p>
+
+<h3>最小示例</h3>
+<pre><code>from openai import OpenAI
+
+# Client automatically reads OPENAI_API_KEY from environment
+client = OpenAI()
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "What is an AI agent?"}
+    ]
+)
+
+# Extract the response text
+print(response.choices[0].message.content)</code></pre>
+<p><code>messages</code> 数组是核心概念。它代表一段对话历史，包含三种可能的角色：</p>
+<div class="table-wrap"><table><tr><th>角色</th><th>用途</th><th>使用时机</th></tr><tr><td><code>system</code></td><td>设定智能体的身份、规则和行为</td><td>一次，在messages数组的开头</td></tr><tr><td><code>user</code></td><td>来自人类用户的消息</td><td>每次用户输入（问题、指令、后续跟进）</td></tr><tr><td><code>assistant</code></td><td>之前的模型响应（用于上下文）</td><td>构建多轮对话时</td></tr></table></div>
+
+<h3>理解响应对象</h3>
+<p>OpenAI的响应包含的不仅仅是文本。以下是如何检查它：</p>
+<pre><code># Full response inspection
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Explain AI agents in one sentence."}
+    ]
+)
+
+# The response text
+print(response.choices[0].message.content)
+
+# Why the model stopped generating
+print(response.choices[0].finish_reason)  # "stop", "length", or "tool_calls"
+
+# Token usage (important for cost tracking!)
+print(f"Prompt tokens:     {response.usage.prompt_tokens}")
+print(f"Completion tokens: {response.usage.completion_tokens}")
+print(f"Total tokens:      {response.usage.total_tokens}")
+
+# Model used
+print(f"Model: {response.model}")</code></pre>
+<div class="callout note"><div class="callout-label">注意</div><p><code>finish_reason</code> 字段对智能体至关重要。值为 <code>"stop"</code> 表示模型自然结束。<code>"length"</code> 表示达到了token限制（你的响应被截断了！）。<code>"tool_calls"</code> 表示模型想要调用工具——这是模块6中介绍的智能体行为的基础。</p></div>
+
+<h3>使用Temperature和Max Tokens控制输出</h3>
+<p><strong>Temperature</strong>控制随机性。对于智能体，你几乎总是希望低temperature（确定性、可靠的输出）。<strong>Max tokens</strong>限制响应长度。</p>
+<pre><code>response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "You are a precise data analyst."},
+        {"role": "user", "content": "What is 15% of 847?"}
+    ],
+    temperature=0.0,    # Deterministic output (best for agents)
+    max_tokens=100,     # Limit response length
+)
+print(response.choices[0].message.content)
+# Output: "15% of 847 is 127.05."</code></pre>
+<div class="table-wrap"><table><tr><th>Temperature</th><th>行为</th><th>最适合</th></tr><tr><td>0.0</td><td>确定性——相同输入总是给出相同输出</td><td>智能体、数据提取、计算</td></tr><tr><td>0.3&ndash;0.5</td><td>略有创意但大致一致</td><td>客户支持、结构化写作</td></tr><tr><td>0.7&ndash;1.0</td><td>创意性和多样性</td><td>头脑风暴、创意写作、探索</td></tr><tr><td>1.5&ndash;2.0</td><td>高度随机，通常不连贯</td><td>实践中很少有用</td></tr></table></div>
+<div class="callout tip"><div class="callout-label">提示</div><p>对于智能体应用，在开发和测试期间设置 <code>temperature=0</code> 以确保结果可复现。之后可以针对特定创意任务增加它。</p></div>
+
+<h3>多轮对话</h3>
+<p>要进行来回对话，你需要将助手的响应和用户的后续跟进都追加到messages数组中：</p>
+<pre><code>messages = [
+    {"role": "system", "content": "You are a helpful maths tutor."},
+    {"role": "user", "content": "What is a derivative?"},
+]
+
+# First turn
+response = client.chat.completions.create(model="gpt-4o", messages=messages)
+assistant_reply = response.choices[0].message.content
+print(f"Assistant: {assistant_reply}")
+
+# Append assistant reply and user follow-up
+messages.append({"role": "assistant", "content": assistant_reply})
+messages.append({"role": "user", "content": "Can you give me a simple example?"})
+
+# Second turn - model has full context of the conversation
+response = client.chat.completions.create(model="gpt-4o", messages=messages)
+print(f"Assistant: {response.choices[0].message.content}")</code></pre>
+<div class="callout analogy"><div class="callout-label">类比</div><p>messages数组就像一份对话记录。模型在API调用之间没有记忆——你必须每次都发送完整的记录。这就是为什么智能体循环（模块5）会持续追加到这个数组。</p></div>
+
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>Anthropic &mdash; 第一次调用 (Claude Sonnet 4)</h2>
+</div>
+<p>Anthropic的Messages API遵循类似的概念，但语法不同。最大的区别是系统提示是一个<strong>独立参数</strong>，而不是messages数组的一部分。</p>
+
+<h3>最小示例</h3>
+<pre><code>import anthropic
+
+# Client automatically reads ANTHROPIC_API_KEY from environment
+client = anthropic.Anthropic()
+
+message = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,                              # Required (not optional!)
+    system="You are a helpful assistant.",         # Separate from messages
+    messages=[
+        {"role": "user", "content": "What is an AI agent?"}
+    ]
+)
+
+# Extract the response text
+print(message.content[0].text)</code></pre>
+
+<h3>理解Anthropic响应</h3>
+<pre><code>message = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    system="You are a helpful assistant.",
+    messages=[{"role": "user", "content": "Explain AI agents in one sentence."}]
+)
+
+# The response text (Anthropic returns a list of content blocks)
+print(message.content[0].text)
+
+# Stop reason
+print(message.stop_reason)  # "end_turn", "max_tokens", or "tool_use"
+
+# Token usage
+print(f"Input tokens:  {message.usage.input_tokens}")
+print(f"Output tokens: {message.usage.output_tokens}")
+
+# Model used
+print(f"Model: {message.model}")</code></pre>
+<div class="callout note"><div class="callout-label">注意</div><p>Anthropic的 <code>stop_reason</code> 使用与OpenAI不同的值。OpenAI的 <code>"stop"</code> 对应的是 <code>"end_turn"</code>。<code>"tool_calls"</code> 对应的是 <code>"tool_use"</code>。请务必查看供应商的文档以获取确切值。</p></div>
+
+<h3>Anthropic的多轮对话</h3>
+<pre><code>messages = [
+    {"role": "user", "content": "What is a derivative in calculus?"},
+]
+
+# First turn
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    system="You are a helpful maths tutor.",
+    messages=messages
+)
+assistant_reply = response.content[0].text
+
+# Append and continue
+messages.append({"role": "assistant", "content": assistant_reply})
+messages.append({"role": "user", "content": "Can you give me a simple example?"})
+
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    system="You are a helpful maths tutor.",
+    messages=messages
+)
+print(response.content[0].text)</code></pre>
+
+<h3>Anthropic的结构化输出</h3>
+<p>对于智能体用例，你经常需要模型返回结构化数据（JSON）而不是自由格式文本。以下是如何请求和解析结构化输出：</p>
+<pre><code>import json
+
+message = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    system="""You are a data extraction assistant.
+Always respond with valid JSON. No other text.""",
+    messages=[{
+        "role": "user",
+        "content": "Extract the key details: 'Meeting with Sarah on Tuesday at 3pm to discuss Q4 budget. Location: Room 204.'"
+    }]
+)
+
+# Parse the JSON response
+data = json.loads(message.content[0].text)
+print(json.dumps(data, indent=2))
+# {
+#   "event": "Meeting",
+#   "attendee": "Sarah",
+#   "day": "Tuesday",
+#   "time": "3:00 PM",
+#   "topic": "Q4 budget",
+#   "location": "Room 204"
+# }</code></pre>
+
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>API关键差异</h2>
+</div>
+<p>构建智能体时，你通常会希望支持多个LLM供应商（用于成本优化、故障转移或能力差异）。以下是两个API的详细对比：</p>
+<div class="table-wrap"><table><tr><th>特性</th><th>OpenAI</th><th>Anthropic</th></tr><tr><td>系统提示</td><td>在 <code>messages</code> 数组中作为 <code>role: "system"</code></td><td>独立的 <code>system</code> 参数</td></tr><tr><td>响应文本</td><td><code>response.choices[0].message.content</code></td><td><code>message.content[0].text</code></td></tr><tr><td>最大token</td><td>可选（默认为模型最大值）</td><td><strong>必需</strong>——必须始终指定</td></tr><tr><td>停止原因</td><td><code>"stop"</code>、<code>"length"</code>、<code>"tool_calls"</code></td><td><code>"end_turn"</code>、<code>"max_tokens"</code>、<code>"tool_use"</code></td></tr><tr><td>Token使用量</td><td><code>usage.prompt_tokens</code> / <code>usage.completion_tokens</code></td><td><code>usage.input_tokens</code> / <code>usage.output_tokens</code></td></tr><tr><td>工具格式</td><td>包裹在 <code>type: "function"</code> 中</td><td>直接在顶层使用 <code>input_schema</code></td></tr><tr><td>流式传输</td><td><code>stream=True</code> 配合SSE事件</td><td><code>stream=True</code> 或 <code>client.messages.stream()</code></td></tr></table></div>
+
+<h3>编写供应商无关的包装器</h3>
+<p>由于概念相同但语法不同，常见的模式是编写一个薄包装器来统一两个API：</p>
+<pre><code>from openai import OpenAI
+import anthropic
+
+class LLMClient:
+    """Unified wrapper for OpenAI and Anthropic APIs."""
+
+    def __init__(self, provider: str = "openai"):
+        self.provider = provider
+        if provider == "openai":
+            self.client = OpenAI()
+            self.model = "gpt-4o"
+        elif provider == "anthropic":
+            self.client = anthropic.Anthropic()
+            self.model = "claude-sonnet-4-20250514"
+
+    def chat(self, system: str, user_message: str,
+             temperature: float = 0.0, max_tokens: int = 1024) -> str:
+        """Send a message and return the response text."""
+        if self.provider == "openai":
+            response = self.client.chat.completions.create(
+                model=self.model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user_message},
+                ],
+            )
+            return response.choices[0].message.content
+
+        elif self.provider == "anthropic":
+            message = self.client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                system=system,
+                messages=[{"role": "user", "content": user_message}],
+            )
+            return message.content[0].text
+
+# Usage - switch providers with one parameter
+llm = LLMClient(provider="anthropic")
+answer = llm.chat(
+    system="You are a helpful assistant.",
+    user_message="What is an AI agent?"
+)
+print(answer)</code></pre>
+<div class="callout tip"><div class="callout-label">提示</div><p>两个API都支持流式传输、工具使用、视觉（图像输入）和多轮对话。概念完全相同——只是语法不同。学会一个就能轻松使用另一个。在本教程系列中，我们尽可能展示两者，以便你选择偏好的供应商。</p></div>
+
+<h3>成本意识</h3>
+<p>API调用需要花钱。理解token定价对于构建不会让你破产的智能体至关重要：</p>
+<div class="table-wrap"><table><tr><th>模型</th><th>输入（每100万token）</th><th>输出（每100万token）</th><th>最适合</th></tr><tr><td>GPT-4o mini</td><td>$0.15</td><td>$0.60</td><td>简单任务、分类、廉价测试</td></tr><tr><td>GPT-4o</td><td>$2.50</td><td>$10.00</td><td>复杂推理、智能体核心</td></tr><tr><td>Claude Haiku</td><td>$0.25</td><td>$1.25</td><td>快速、简单任务、高吞吐量</td></tr><tr><td>Claude Sonnet 4</td><td>$3.00</td><td>$15.00</td><td>复杂推理、智能体核心</td></tr></table></div>
+<div class="callout pitfall"><div class="callout-label">陷阱</div><p>一个运行10步的智能体循环，每步都发送完整的对话历史，可以迅速消耗数千个token。始终监控 <code>usage.total_tokens</code>（或 <code>usage.input_tokens + usage.output_tokens</code>）并在开发期间设置预算限制。失控的智能体循环可能在几分钟内花费数十美元。</p></div>
+<a href="module_05_ZH.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">下一模块</div><p>模块5 &mdash; 构建智能体循环</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');window.addEventListener('scroll',()=>{const h=document.documentElement;pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const links=[...document.querySelectorAll('#sidebar nav a')];const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});}
+window.addEventListener('scroll',activateNav,{passive:true});activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p></footer></body></html>

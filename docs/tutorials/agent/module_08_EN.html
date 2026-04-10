@@ -1,0 +1,387 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG — Retrieval-Augmented Generation</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;--slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;--green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;--red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;--purple:#7E22CE;--purple-bg:#FDF4FF;--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;--sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1)}
+html{scroll-behavior:smooth;font-size:16px}body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}#topbar .brand span{color:var(--sky)}#topbar .sep{color:var(--border);font-size:1.2rem}#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:280px;padding:.4rem;z-index:200;max-height:70vh;overflow-y:auto}#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}p strong{color:var(--navy)}ul,ol{margin:.5rem 0 1rem 1.5rem}li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}.callout.note .callout-label{color:var(--blue)}.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}.callout.tip .callout-label{color:var(--green)}.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}.callout.analogy .callout-label{color:var(--orange)}.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:.88rem}th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}td:first-child{color:var(--navy);font-weight:500}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:var(--sky-pale)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.5rem 0}.card{background:var(--white);border-radius:12px;padding:1.25rem;border:1px solid var(--border);transition:all 0.2s}.card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.06)}.card h3{font-size:.95rem;color:var(--navy);margin:0 0 .3rem;display:block}.card h3::before{display:none}.card p{font-size:.88rem;color:var(--slate);margin:0}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}</style></head><body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">AI Agents</a><span class="sep">/</span><span class="crumb">Module 8</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 8 of 15</button>
+    <div class="dropdown-menu">
+      <a href="module_01_EN.html">1 &mdash; What is an AI Agent?</a>
+      <a href="module_02_EN.html">2 &mdash; Environment Setup &amp; API Configuration</a>
+      <a href="module_03_EN.html">3 &mdash; Prompt Engineering</a>
+      <a href="module_04_EN.html">4 &mdash; Your First API Call</a>
+      <a href="module_05_EN.html">5 &mdash; Building the Agent Loop</a>
+      <a href="module_06_EN.html">6 &mdash; Tool Use &amp; Function Calling</a>
+      <a href="module_07_EN.html">7 &mdash; Memory &amp; Context Management</a>
+      <a href="module_08_EN.html" class="active">8 &mdash; RAG &mdash; Retrieval-Augmented Generation</a>
+      <a href="module_09_EN.html">9 &mdash; MCP &mdash; Building Your Own Servers</a>
+      <a href="module_10_EN.html">10 &mdash; LangChain &amp; CrewAI</a>
+      <a href="module_11_EN.html">11 &mdash; Multi-Agent Orchestration</a>
+      <a href="module_12_EN.html">12 &mdash; A2A Protocol</a>
+      <a href="module_13_EN.html">13 &mdash; Safety &amp; Guardrails</a>
+      <a href="module_14_EN.html">14 &mdash; Testing &amp; Evaluation</a>
+      <a href="module_15_EN.html">15 &mdash; Deployment &amp; Best Practices</a>
+    </div>
+  </div>
+  <a href="module_08_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>Knowledge Problem</a><a href="#s2"><span class="num">2</span>RAG Architecture</a><a href="#s3"><span class="num">3</span>Chunking & Embedding</a><a href="#s4"><span class="num">4</span>Vector Databases</a><a href="#s5"><span class="num">5</span>RAG Pipeline</a><a href="#s6"><span class="num">6</span>Evaluation</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">AI Agent Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 8: <em>RAG &mdash; Retrieval-Augmented Generation</em></h1>
+      <p class="module-lead">Giving your agent access to external knowledge through RAG.</p>
+    </div>
+
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>The Knowledge Problem</h2>
+</div>
+<p>LLMs have a <strong>knowledge cutoff</strong> &mdash; they only know what was in their training data. They cannot answer questions about events after their cutoff date, your company's internal documents, or any private data they were never trained on. They also hallucinate confidently when they do not know something.</p>
+<p><strong>Retrieval-Augmented Generation (RAG)</strong> solves this by retrieving relevant documents at query time and injecting them into the LLM's context. Instead of relying on memorised knowledge, the model reads the actual source material and generates an answer grounded in that material.</p>
+<p>RAG is the most widely deployed pattern in production AI systems because it is simpler and cheaper than fine-tuning, can be updated instantly (just add or remove documents), and provides citations back to source material.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>An LLM without RAG is like a doctor taking an exam from memory alone. RAG gives them access to the latest medical journals during the exam &mdash; they still need expertise to interpret the material, but their answers are grounded in current evidence rather than potentially outdated knowledge.</p></div>
+
+<div class="card-grid">
+  <div class="card"><h3>Up-to-Date Answers</h3><p>Query live data sources instead of relying on training-data knowledge that may be months or years old.</p></div>
+  <div class="card"><h3>Domain Specificity</h3><p>Ground answers in your company's internal docs, policies, and knowledge base without fine-tuning.</p></div>
+  <div class="card"><h3>Reduced Hallucination</h3><p>When the model answers from provided context, it is far less likely to fabricate facts.</p></div>
+  <div class="card"><h3>Verifiable Sources</h3><p>Every answer can cite the specific document chunks it drew from, enabling user verification.</p></div>
+</div>
+
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>RAG Architecture Overview</h2>
+</div>
+<p>A RAG system has two phases: an <strong>indexing phase</strong> (offline, run once or periodically) and a <strong>query phase</strong> (online, run for every user question). Understanding both phases is essential to building an effective pipeline.</p>
+
+<h3>Indexing Phase (Offline)</h3>
+<ol>
+  <li><strong>Load</strong> &mdash; Read documents from files, databases, APIs, or web pages</li>
+  <li><strong>Chunk</strong> &mdash; Split documents into smaller, meaningful pieces</li>
+  <li><strong>Embed</strong> &mdash; Convert each chunk into a vector (a list of numbers) using an embedding model</li>
+  <li><strong>Store</strong> &mdash; Save the vectors and original text in a vector database</li>
+</ol>
+
+<h3>Query Phase (Online)</h3>
+<ol>
+  <li><strong>Embed Query</strong> &mdash; Convert the user's question into a vector using the same embedding model</li>
+  <li><strong>Retrieve</strong> &mdash; Find the most similar document chunks using vector similarity search</li>
+  <li><strong>Augment</strong> &mdash; Insert retrieved chunks into the LLM prompt as context</li>
+  <li><strong>Generate</strong> &mdash; The LLM reads the context and produces a grounded answer</li>
+</ol>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>RAG does <strong>not</strong> fine-tune or modify the model. It augments the prompt with retrieved context at query time. This means you can update your knowledge base instantly without retraining anything.</p></div>
+
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Document Chunking and Embedding</h2>
+</div>
+<p>Chunking is arguably the most important step in a RAG pipeline. If your chunks are too large, they waste context tokens and dilute relevance. If they are too small, they lose context and the model cannot synthesise a coherent answer.</p>
+<p>The goal is to create chunks that are <strong>self-contained</strong> (make sense on their own), <strong>focused</strong> (about one topic), and <strong>appropriately sized</strong> (typically 200-1000 tokens).</p>
+
+<div class="table-wrap"><table>
+  <tr><th>Strategy</th><th>How It Works</th><th>Best For</th><th>Drawback</th></tr>
+  <tr><td>Fixed-size</td><td>Split every N characters/tokens</td><td>Simple implementation</td><td>May split mid-sentence or mid-paragraph</td></tr>
+  <tr><td>Sentence-based</td><td>Split on sentence boundaries</td><td>Natural text, articles</td><td>Variable chunk sizes, some sentences too short</td></tr>
+  <tr><td>Recursive character</td><td>Try paragraph, then sentence, then word boundaries</td><td>General-purpose, preserves structure</td><td>More complex to implement</td></tr>
+  <tr><td>Semantic</td><td>Use embeddings to detect topic shifts</td><td>Long documents with multiple topics</td><td>Expensive, requires embedding each sentence</td></tr>
+  <tr><td>Document-aware</td><td>Use headings, sections, or markup structure</td><td>Markdown, HTML, structured docs</td><td>Requires document-specific parsing</td></tr>
+</table></div>
+
+<h3>Chunking with Overlap</h3>
+<pre><code>def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
+    """Split text into overlapping chunks by character count."""
+    chunks = []
+    start = 0
+    while start < len(text):
+        end = start + chunk_size
+        chunk = text[start:end]
+        # Try to end at a sentence boundary
+        last_period = chunk.rfind(". ")
+        if last_period > chunk_size * 0.5:
+            end = start + last_period + 1
+            chunk = text[start:end]
+        chunks.append(chunk.strip())
+        start = end - overlap  # overlap for context continuity
+    return chunks
+
+# Example
+text = open("company_handbook.txt").read()
+chunks = chunk_text(text, chunk_size=800, overlap=100)
+print(f"Created {len(chunks)} chunks from {len(text)} characters")</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p><strong>Overlap</strong> is critical. A 50-100 token overlap between chunks ensures that information at chunk boundaries is not lost. Without overlap, a sentence that spans two chunks will be incomplete in both.</p></div>
+
+<h3>Generating Embeddings</h3>
+<pre><code># Using OpenAI embeddings (most popular choice)
+import openai
+
+client = openai.OpenAI()
+
+def get_embeddings(texts: list[str]) -> list[list[float]]:
+    """Generate embeddings for a batch of texts."""
+    response = client.embeddings.create(
+        model="text-embedding-3-small",  # 1536 dimensions, cheap
+        input=texts
+    )
+    return [item.embedding for item in response.data]
+
+# Embed a single query
+query_embedding = get_embeddings(["What is the refund policy?"])[0]
+
+# Embed all chunks
+chunk_embeddings = get_embeddings(chunks)</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Always use the <strong>same embedding model</strong> for both indexing and querying. Mixing models (e.g., indexing with OpenAI and querying with Cohere) will produce meaningless similarity scores because the vector spaces are different.</p></div>
+
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>Vector Databases</h2>
+</div>
+<p>Vector databases are purpose-built for storing and searching high-dimensional vectors. They use specialised indexing algorithms (like HNSW or IVF) that make similarity search fast even over millions of vectors.</p>
+
+<div class="card-grid">
+  <div class="card"><h3>ChromaDB</h3><p>Open-source, runs locally, Python-native. Perfect for prototyping and small-to-medium datasets. Has built-in embedding support.</p></div>
+  <div class="card"><h3>Pinecone</h3><p>Fully managed cloud service. Scales to billions of vectors. Serverless pricing model. Best for production workloads.</p></div>
+  <div class="card"><h3>pgvector</h3><p>PostgreSQL extension. Use your existing Postgres infrastructure. Great when you already have a SQL database and want to add vector search.</p></div>
+  <div class="card"><h3>Weaviate</h3><p>Open-source with hybrid search (vector + keyword). Built-in support for multi-modal data. Good for complex search requirements.</p></div>
+  <div class="card"><h3>Qdrant</h3><p>Open-source, Rust-based, very fast. Rich filtering capabilities. Both cloud and self-hosted options.</p></div>
+  <div class="card"><h3>FAISS</h3><p>Meta's library for efficient similarity search. Not a database (no persistence built-in), but extremely fast for in-memory search.</p></div>
+</div>
+
+<h3>Setting Up ChromaDB</h3>
+<pre><code>import chromadb
+
+# Persistent storage (survives restarts)
+client = chromadb.PersistentClient(path="./chroma_db")
+
+# Create a collection
+collection = client.get_or_create_collection(
+    name="company_docs",
+    metadata={"hnsw:space": "cosine"}  # cosine similarity
+)
+
+# Index documents
+collection.add(
+    documents=chunks,                          # raw text
+    ids=[f"chunk_{i}" for i in range(len(chunks))],  # unique IDs
+    metadatas=[{"source": "handbook.pdf", "page": i // 5}
+               for i in range(len(chunks))]     # metadata for filtering
+)
+
+# Query
+results = collection.query(
+    query_texts=["What is the vacation policy?"],
+    n_results=5,
+    where={"source": "handbook.pdf"}  # optional metadata filter
+)
+
+for doc, score in zip(results["documents"][0], results["distances"][0]):
+    print(f"[{score:.3f}] {doc[:100]}...")</code></pre>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Building a Complete RAG Pipeline</h2>
+</div>
+<p>Let us build a production-quality RAG pipeline that indexes a collection of documents and answers questions from them. This example uses ChromaDB for storage and Anthropic's Claude for generation.</p>
+
+<pre><code>import anthropic
+import chromadb
+import os
+import json
+
+class RAGPipeline:
+    """Complete RAG pipeline: index, retrieve, generate."""
+
+    def __init__(self, collection_name: str = "knowledge_base"):
+        self.ai = anthropic.Anthropic()
+        self.db = chromadb.PersistentClient(path="./rag_db")
+        self.collection = self.db.get_or_create_collection(collection_name)
+
+    def index_document(self, text: str, source: str, chunk_size: int = 800):
+        """Chunk and index a document."""
+        chunks = chunk_text(text, chunk_size=chunk_size, overlap=100)
+        self.collection.add(
+            documents=chunks,
+            ids=[f"{source}_{i}" for i in range(len(chunks))],
+            metadatas=[{"source": source, "chunk_index": i}
+                       for i in range(len(chunks))]
+        )
+        print(f"Indexed {len(chunks)} chunks from '{source}'")
+
+    def index_directory(self, dir_path: str):
+        """Index all .txt and .md files in a directory."""
+        for fname in os.listdir(dir_path):
+            if fname.endswith((".txt", ".md")):
+                path = os.path.join(dir_path, fname)
+                text = open(path, "r", encoding="utf-8").read()
+                self.index_document(text, source=fname)
+
+    def retrieve(self, query: str, n_results: int = 5) -> list[dict]:
+        """Retrieve relevant chunks for a query."""
+        if self.collection.count() == 0:
+            return []
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=min(n_results, self.collection.count())
+        )
+        return [
+            {"text": doc, "source": meta["source"], "score": dist}
+            for doc, meta, dist in zip(
+                results["documents"][0],
+                results["metadatas"][0],
+                results["distances"][0]
+            )
+        ]
+
+    def query(self, question: str, n_results: int = 5) -> dict:
+        """Full RAG: retrieve context, then generate an answer."""
+        chunks = self.retrieve(question, n_results)
+
+        if not chunks:
+            return {"answer": "No documents indexed yet.", "sources": []}
+
+        # Build context string with source attribution
+        context_parts = []
+        for i, c in enumerate(chunks, 1):
+            context_parts.append(f"[Source {i}: {c['source']}]\n{c['text']}")
+        context = "\n\n---\n\n".join(context_parts)
+
+        system_prompt = f"""You are a helpful assistant that answers questions
+based ONLY on the provided context. If the context does not contain
+the answer, say "I don't have enough information to answer that."
+Always cite which source(s) you used, e.g., [Source 1].
+
+Context:
+{context}"""
+
+        response = self.ai.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=[{"role": "user", "content": question}]
+        )
+
+        return {
+            "answer": response.content[0].text,
+            "sources": [c["source"] for c in chunks],
+            "chunks_used": len(chunks)
+        }
+
+# Usage
+rag = RAGPipeline()
+rag.index_directory("./company_docs")
+result = rag.query("What is our remote work policy?")
+print(result["answer"])
+print("Sources:", result["sources"])</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Always instruct the LLM to say "I don't know" when the context does not contain the answer. Without this instruction, the model will often hallucinate an answer that sounds plausible but is not grounded in your documents.</p></div>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p><strong>Retrieval quality is the bottleneck, not generation quality.</strong> If the wrong chunks are retrieved, even the best LLM will produce a bad answer. Spend most of your optimisation effort on chunking, embedding choice, and retrieval tuning rather than prompt engineering the generation step.</p></div>
+
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>Evaluation and Quality</h2>
+</div>
+<p>Measuring RAG quality requires evaluating both the <strong>retrieval</strong> step and the <strong>generation</strong> step separately. A common mistake is only evaluating the final answer without understanding whether failures come from bad retrieval or bad generation.</p>
+
+<div class="table-wrap"><table>
+  <tr><th>Metric</th><th>What It Measures</th><th>How to Compute</th></tr>
+  <tr><td>Recall@k</td><td>Is the correct document in the top-k retrieved chunks?</td><td>Label ground-truth docs, check if retrieved</td></tr>
+  <tr><td>Precision@k</td><td>What fraction of retrieved chunks are actually relevant?</td><td>Human annotation or LLM-as-judge</td></tr>
+  <tr><td>Faithfulness</td><td>Is the answer grounded in the retrieved context (no hallucination)?</td><td>LLM-as-judge: "Is this claim supported by the context?"</td></tr>
+  <tr><td>Answer Relevance</td><td>Does the answer actually address the question asked?</td><td>LLM-as-judge or human evaluation</td></tr>
+  <tr><td>Latency</td><td>End-to-end response time</td><td>Measure retrieval + generation time</td></tr>
+</table></div>
+
+<h3>Simple Evaluation Script</h3>
+<pre><code>def evaluate_rag(pipeline: RAGPipeline, test_cases: list[dict]) -> dict:
+    """Evaluate RAG pipeline on test cases.
+    Each test case: {"question": str, "expected_source": str, "expected_keywords": [str]}
+    """
+    results = {"retrieval_hits": 0, "answer_relevant": 0, "total": len(test_cases)}
+
+    for tc in test_cases:
+        result = pipeline.query(tc["question"])
+
+        # Check retrieval: did we find the right source?
+        if tc["expected_source"] in result["sources"]:
+            results["retrieval_hits"] += 1
+
+        # Check answer: does it contain expected keywords?
+        answer_lower = result["answer"].lower()
+        if all(kw.lower() in answer_lower for kw in tc["expected_keywords"]):
+            results["answer_relevant"] += 1
+
+    results["retrieval_accuracy"] = results["retrieval_hits"] / results["total"]
+    results["answer_accuracy"] = results["answer_relevant"] / results["total"]
+    return results
+
+# Example test cases
+test_cases = [
+    {"question": "What is the vacation policy?",
+     "expected_source": "hr_handbook.txt",
+     "expected_keywords": ["days", "annual"]},
+    {"question": "How do I submit expenses?",
+     "expected_source": "finance_guide.txt",
+     "expected_keywords": ["receipt", "submit"]},
+]
+metrics = evaluate_rag(rag, test_cases)
+print(f"Retrieval accuracy: {metrics['retrieval_accuracy']:.0%}")
+print(f"Answer accuracy: {metrics['answer_accuracy']:.0%}")</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>Start with a simple pipeline, measure its performance, then optimise. Common improvements include: better chunking strategies, re-ranking retrieved results with a cross-encoder, query expansion (rewriting the query for better retrieval), and hybrid search combining vector similarity with keyword matching (BM25).</p></div>
+<a href="module_09_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 9 &mdash; MCP &mdash; Building Your Own Servers</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');window.addEventListener('scroll',()=>{const h=document.documentElement;pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const links=[...document.querySelectorAll('#sidebar nav a')];const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});}
+window.addEventListener('scroll',activateNav,{passive:true});activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p></footer></body></html>

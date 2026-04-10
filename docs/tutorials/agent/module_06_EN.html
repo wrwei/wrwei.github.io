@@ -1,0 +1,461 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tool Use & Function Calling</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#1A2E4A;--blue:#2563EB;--sky:#0EA5E9;--sky-light:#DBEAFE;--sky-pale:#F0F9FF;--slate:#475569;--muted:#94A3B8;--border:#E2E8F0;--bg:#FAFBFD;--white:#FFFFFF;--green:#15803D;--green-bg:#F0FDF4;--orange:#C2410C;--orange-bg:#FFF7ED;--red:#DC2626;--red-bg:#FEF2F2;--code-bg:#F1F5F9;--code-text:#0F172A;--purple:#7E22CE;--purple-bg:#FDF4FF;--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',system-ui,sans-serif;--font-mono:'DM Mono','Fira Code',monospace;--sidebar-w:260px;--content-max:1000px;--transition:0.2s cubic-bezier(0.4,0,0.2,1)}
+html{scroll-behavior:smooth;font-size:16px}body{font-family:var(--font-body);background:var(--bg);color:var(--navy);line-height:1.7;min-height:100vh}
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--sky),var(--blue));width:0%;z-index:1000;transition:width 0.1s linear;box-shadow:0 0 8px rgba(14,165,233,.5)}
+#topbar{position:sticky;top:0;z-index:100;background:rgba(250,251,253,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;padding:0 2rem;height:56px}
+#topbar .brand{font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--navy);letter-spacing:-.01em;text-decoration:none;white-space:nowrap}#topbar .brand span{color:var(--sky)}#topbar .sep{color:var(--border);font-size:1.2rem}#topbar .crumb{color:var(--slate);font-size:.85rem;font-weight:500}
+#topbar .module-dropdown{margin-left:auto;position:relative}#topbar .module-dropdown .badge{background:var(--sky-light);color:var(--blue);font-size:.75rem;font-weight:600;padding:.2rem .65rem .2rem .8rem;border-radius:999px;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem;border:none;font-family:inherit}#topbar .module-dropdown .badge::after{content:'\25BE';font-size:.7rem}
+#topbar .module-dropdown .dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:280px;padding:.4rem;z-index:200;max-height:70vh;overflow-y:auto}#topbar .module-dropdown.open .dropdown-menu{display:block}
+#topbar .module-dropdown .dropdown-menu a{display:block;padding:.5rem .75rem;border-radius:7px;font-size:.82rem;font-weight:500;color:var(--slate);text-decoration:none}#topbar .module-dropdown .dropdown-menu a:hover{background:var(--sky-pale);color:var(--blue)}#topbar .module-dropdown .dropdown-menu a.active{background:var(--sky-light);color:var(--blue);font-weight:600}
+#layout{display:flex;min-height:calc(100vh - 56px)}#sidebar{width:var(--sidebar-w);flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:2rem 1.25rem 2rem 1.5rem;border-right:1px solid var(--border);background:var(--white);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar .sidebar-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}#sidebar nav{display:flex;flex-direction:column;gap:2px}
+#sidebar nav a{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:500;color:var(--slate);text-decoration:none;padding:.45rem .75rem;border-radius:8px;transition:var(--transition)}#sidebar nav a .num{width:20px;height:20px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--transition)}
+#sidebar nav a:hover{background:var(--sky-pale);color:var(--blue)}#sidebar nav a:hover .num{background:var(--sky-light);color:var(--blue)}#sidebar nav a.active{background:var(--sky-light);color:var(--blue)}#sidebar nav a.active .num{background:var(--blue);color:white}
+#main{flex:1;padding:3rem 3rem 5rem;max-width:calc(var(--sidebar-w) + var(--content-max));min-width:0}.module-hero{margin-bottom:4rem;padding-bottom:3rem;border-bottom:1px solid var(--border)}
+.module-hero .series{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}.module-hero .series::before{content:'';display:block;width:24px;height:2px;background:var(--sky)}
+#main .module-title{font-family:var(--font-display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:1rem;letter-spacing:-.03em}#main .module-title em{color:var(--blue);font-style:normal}
+#main .module-lead{font-size:1.1rem;color:var(--slate);font-weight:300;max-width:560px;margin-bottom:2rem;line-height:1.65}
+.section-anchor{display:block;height:80px;margin-top:-80px;visibility:hidden}.section-header{display:flex;align-items:center;gap:1rem;margin:3rem 0 1.75rem;padding-bottom:1rem;border-bottom:2px solid var(--sky-light)}
+.section-header .section-num{width:36px;height:36px;border-radius:10px;background:var(--navy);color:white;font-family:var(--font-display);font-size:1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-header h2{font-family:var(--font-display);font-size:1.6rem;font-weight:600;color:var(--navy);letter-spacing:-.02em}
+h3{font-size:1.05rem;font-weight:600;color:var(--blue);margin:2rem 0 .75rem;display:flex;align-items:center;gap:.5rem}h3::before{content:'';display:block;width:3px;height:1em;background:var(--sky);border-radius:2px;flex-shrink:0}
+p{margin-bottom:1rem;color:var(--slate);font-size:.97rem}p strong{color:var(--navy)}ul,ol{margin:.5rem 0 1rem 1.5rem}li{margin-bottom:.35rem;color:var(--slate)}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:4px;color:#0F172A}pre{background:var(--code-bg);border-radius:10px;padding:1.25rem 1.5rem;overflow-x:auto;margin:1.5rem 0;border:1px solid var(--border);font-family:var(--font-mono);font-size:.82rem;line-height:1.7;color:var(--code-text)}pre code{background:none;padding:0;font-size:.82rem;line-height:1.7;color:var(--code-text)}
+.callout{border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 0;font-size:.92rem;border-left:4px solid}.callout.note{background:var(--sky-pale);border-color:var(--blue);color:var(--slate)}.callout.note .callout-label{color:var(--blue)}.callout.tip{background:var(--green-bg);border-color:var(--green);color:var(--slate)}.callout.tip .callout-label{color:var(--green)}.callout.analogy{background:var(--orange-bg);border-color:var(--orange);color:var(--slate)}.callout.analogy .callout-label{color:var(--orange)}.callout.pitfall{background:var(--red-bg);border-color:var(--red);color:var(--slate)}.callout.pitfall .callout-label{color:var(--red)}
+.callout-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}.callout p{margin-bottom:.5rem;color:var(--slate);font-size:.92rem}.callout p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:1.5rem 0;border-radius:10px;border:1px solid var(--border)}table{width:100%;border-collapse:collapse;font-size:.88rem}th{background:var(--navy);color:white;font-weight:600;text-align:left;padding:.65rem 1rem;font-size:.82rem}td{padding:.6rem 1rem;color:var(--slate);vertical-align:top;border-bottom:1px solid var(--border)}td:first-child{color:var(--navy);font-weight:500}tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:var(--sky-pale)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.5rem 0}.card{background:var(--white);border-radius:12px;padding:1.25rem;border:1px solid var(--border);transition:all 0.2s}.card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.06)}.card h3{font-size:.95rem;color:var(--navy);margin:0 0 .3rem;display:block}.card h3::before{display:none}.card p{font-size:.88rem;color:var(--slate);margin:0}
+.next-box{background:var(--sky-pale);border:1px solid var(--sky-light);border-radius:12px;padding:1.5rem 2rem;margin:3rem 0 0}.next-box .next-label{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--sky);margin-bottom:.25rem}.next-box p{margin:0;font-weight:500;color:var(--navy)}
+@media(max-width:900px){#sidebar{display:none}#main{padding:2rem 1.5rem 4rem}#topbar{padding:0 1.25rem}}</style></head><body>
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="./" class="crumb" style="text-decoration:none;">AI Agents</a><span class="sep">/</span><span class="crumb">Module 6</span>
+  <div class="module-dropdown" id="moduleDropdown">
+    <button class="badge" onclick="this.parentElement.classList.toggle('open')">Module 6 of 15</button>
+    <div class="dropdown-menu">
+      <a href="module_01_EN.html">1 &mdash; What is an AI Agent?</a>
+      <a href="module_02_EN.html">2 &mdash; Environment Setup &amp; API Configuration</a>
+      <a href="module_03_EN.html">3 &mdash; Prompt Engineering</a>
+      <a href="module_04_EN.html">4 &mdash; Your First API Call</a>
+      <a href="module_05_EN.html">5 &mdash; Building the Agent Loop</a>
+      <a href="module_06_EN.html" class="active">6 &mdash; Tool Use &amp; Function Calling</a>
+      <a href="module_07_EN.html">7 &mdash; Memory &amp; Context Management</a>
+      <a href="module_08_EN.html">8 &mdash; RAG &mdash; Retrieval-Augmented Generation</a>
+      <a href="module_09_EN.html">9 &mdash; MCP &mdash; Building Your Own Servers</a>
+      <a href="module_10_EN.html">10 &mdash; LangChain &amp; CrewAI</a>
+      <a href="module_11_EN.html">11 &mdash; Multi-Agent Orchestration</a>
+      <a href="module_12_EN.html">12 &mdash; A2A Protocol</a>
+      <a href="module_13_EN.html">13 &mdash; Safety &amp; Guardrails</a>
+      <a href="module_14_EN.html">14 &mdash; Testing &amp; Evaluation</a>
+      <a href="module_15_EN.html">15 &mdash; Deployment &amp; Best Practices</a>
+    </div>
+  </div>
+  <a href="module_06_ZH.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">中文</a>
+</header>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="sidebar-label">Contents</div>
+    <nav><a href="#s1"><span class="num">1</span>Why Tools Matter</a><a href="#s2"><span class="num">2</span>Function Calling Protocol</a><a href="#s3"><span class="num">3</span>Tool Definitions</a><a href="#s4"><span class="num">4</span>Tool Execution Loop</a><a href="#s5"><span class="num">5</span>Building a Tool Registry</a><a href="#s6"><span class="num">6</span>Practical Examples</a></nav>
+  </aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">AI Agent Series &mdash; Ran Wei</div>
+      <h1 class="module-title">Module 6: <em>Tool Use &amp; Function Calling</em></h1>
+      <p class="module-lead">Giving your agent superpowers by defining callable tools.</p>
+    </div>
+
+<span class="section-anchor" id="s1"></span>
+<div class="section-header">
+  <span class="section-num">1</span>
+  <h2>Why Tools Matter</h2>
+</div>
+<p>Without tools, an LLM can only generate text. It cannot look up today's weather, query a database, send an email, or run code. <strong>Tools transform a chatbot into an agent</strong> by giving it the ability to take actions in the real world and retrieve information beyond its training data.</p>
+<p>The core insight is that LLMs are excellent at <em>deciding what to do</em> and <em>interpreting results</em>, but they need external functions to actually <em>do things</em>. Function calling is the bridge between language understanding and real-world action.</p>
+<p>Consider a customer-support agent. Without tools, it can only say "I'd be happy to check your order status." With tools, it can actually call <code>get_order_status(order_id="12345")</code>, retrieve the real data, and present it to the user. This is the difference between a helpful-sounding chatbot and a genuinely useful agent.</p>
+
+<div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of an LLM as a brilliant person sitting in a sealed room. They can reason and communicate through a slot in the door, but they cannot see or touch the outside world. Tools are like giving them a phone, a computer, and access to filing cabinets &mdash; suddenly they can accomplish real tasks.</p></div>
+
+<div class="card-grid">
+  <div class="card"><h3>Information Retrieval</h3><p>Search engines, databases, APIs &mdash; fetch live data the model was never trained on.</p></div>
+  <div class="card"><h3>Computation</h3><p>Calculators, code interpreters &mdash; perform precise math and logic that LLMs struggle with.</p></div>
+  <div class="card"><h3>Side Effects</h3><p>Send emails, create tickets, update records &mdash; take actions that change the world.</p></div>
+  <div class="card"><h3>Perception</h3><p>Read files, parse images, process audio &mdash; extend the agent's senses beyond text.</p></div>
+</div>
+
+<span class="section-anchor" id="s2"></span>
+<div class="section-header">
+  <span class="section-num">2</span>
+  <h2>The Function Calling Protocol</h2>
+</div>
+<p>Function calling follows a specific protocol between your application and the LLM. The model never executes tools directly &mdash; it outputs a structured request describing which tool to call and with what arguments. Your application then executes the function and feeds the result back to the model.</p>
+
+<h3>The Four-Step Dance</h3>
+<ol>
+  <li><strong>Define</strong> &mdash; You describe available tools (name, description, parameters) when calling the API.</li>
+  <li><strong>Decide</strong> &mdash; The model analyses the user's request and decides whether to call a tool, and if so, which one and with what arguments.</li>
+  <li><strong>Execute</strong> &mdash; Your code receives the tool-call request, runs the actual function, and collects the result.</li>
+  <li><strong>Respond</strong> &mdash; You send the tool result back to the model, which incorporates it into a natural-language response.</li>
+</ol>
+
+<pre><code># Conceptual flow of function calling
+# Step 1: User asks a question
+user_msg = "What's the weather in London?"
+
+# Step 2: Model decides to call a tool (returns structured JSON)
+# {tool_name: "get_weather", arguments: {city: "London"}}
+
+# Step 3: Your code executes the real function
+result = get_weather(city="London")  # returns {"temp": 12, "condition": "cloudy"}
+
+# Step 4: You send the result back; model writes a natural response
+# "It's currently 12C and cloudy in London."</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>The model never has direct access to your functions. It only sees the <strong>descriptions</strong> you provide. This means your tool descriptions are critically important &mdash; they are the model's only guide to understanding what each tool does, when to use it, and what arguments to provide.</p></div>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>A common mistake is assuming the model executes tools. It does not. If you forget to actually call the function and send results back, the agent loop stalls. Always implement the execution step in your code.</p></div>
+
+<span class="section-anchor" id="s3"></span>
+<div class="section-header">
+  <span class="section-num">3</span>
+  <h2>Tool Definitions &mdash; OpenAI vs Anthropic</h2>
+</div>
+<p>Both major providers use JSON Schema to describe tool parameters, but the envelope format differs. Understanding both lets you build agents that work across providers.</p>
+
+<h3>OpenAI Format</h3>
+<pre><code>tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get current weather for a city. Returns temperature in Celsius and conditions.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "city": {
+                        "type": "string",
+                        "description": "City name, e.g. 'London' or 'New York'"
+                    },
+                    "units": {
+                        "type": "string",
+                        "enum": ["celsius", "fahrenheit"],
+                        "description": "Temperature unit (default: celsius)"
+                    }
+                },
+                "required": ["city"]
+            }
+        }
+    }
+]
+
+import openai
+client = openai.OpenAI()
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Weather in Paris?"}],
+    tools=tools
+)</code></pre>
+
+<h3>Anthropic Format</h3>
+<pre><code>tools = [
+    {
+        "name": "get_weather",
+        "description": "Get current weather for a city. Returns temperature in Celsius and conditions.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "description": "City name, e.g. 'London' or 'New York'"
+                },
+                "units": {
+                    "type": "string",
+                    "enum": ["celsius", "fahrenheit"],
+                    "description": "Temperature unit (default: celsius)"
+                }
+            },
+            "required": ["city"]
+        }
+    }
+]
+
+import anthropic
+client = anthropic.Anthropic()
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    tools=tools,
+    messages=[{"role": "user", "content": "Weather in Paris?"}]
+)</code></pre>
+
+<div class="table-wrap"><table>
+  <tr><th>Aspect</th><th>OpenAI</th><th>Anthropic</th></tr>
+  <tr><td>Wrapper key</td><td><code>"function"</code> inside <code>"type": "function"</code></td><td>Flat &mdash; name, description, input_schema at top level</td></tr>
+  <tr><td>Schema key</td><td><code>"parameters"</code></td><td><code>"input_schema"</code></td></tr>
+  <tr><td>Tool call in response</td><td><code>tool_calls[].function.arguments</code> (JSON string)</td><td><code>content[]</code> block with <code>type: "tool_use"</code></td></tr>
+  <tr><td>Result message role</td><td><code>"tool"</code></td><td><code>"user"</code> with <code>tool_result</code> block</td></tr>
+</table></div>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>Write <strong>detailed, specific descriptions</strong> for every tool and every parameter. Include examples, edge cases, and expected formats. The model relies entirely on these descriptions to decide when and how to call each tool. Vague descriptions like "Search the web" lead to poor tool selection; "Search the web using Google and return the top 5 results as title+snippet pairs" is much better.</p></div>
+
+<span class="section-anchor" id="s4"></span>
+<div class="section-header">
+  <span class="section-num">4</span>
+  <h2>The Tool Execution Loop</h2>
+</div>
+<p>In a real agent, tool calling happens inside a loop. The model may call one tool, inspect the result, then call another &mdash; or it may call multiple tools in parallel. Your agent loop must handle all these cases gracefully.</p>
+
+<h3>Complete Anthropic Tool Loop</h3>
+<pre><code>import anthropic
+import json
+
+client = anthropic.Anthropic()
+
+# Define your actual tool implementations
+def get_weather(city: str, units: str = "celsius") -> dict:
+    """Simulate a weather API call."""
+    data = {"London": {"temp": 12, "condition": "cloudy"},
+            "Paris": {"temp": 18, "condition": "sunny"}}
+    return data.get(city, {"temp": 0, "condition": "unknown"})
+
+def search_news(query: str, max_results: int = 5) -> list:
+    """Simulate a news search."""
+    return [{"title": f"News about {query}", "source": "Reuters"}]
+
+# Map tool names to functions
+TOOL_REGISTRY = {
+    "get_weather": get_weather,
+    "search_news": search_news,
+}
+
+# Tool definitions for the API
+tools = [
+    {"name": "get_weather",
+     "description": "Get current weather for a city.",
+     "input_schema": {"type": "object",
+                      "properties": {"city": {"type": "string"},
+                                     "units": {"type": "string", "enum": ["celsius", "fahrenheit"]}},
+                      "required": ["city"]}},
+    {"name": "search_news",
+     "description": "Search recent news articles.",
+     "input_schema": {"type": "object",
+                      "properties": {"query": {"type": "string"},
+                                     "max_results": {"type": "integer"}},
+                      "required": ["query"]}}
+]
+
+def run_agent(user_message: str) -> str:
+    messages = [{"role": "user", "content": user_message}]
+
+    while True:
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
+            tools=tools,
+            messages=messages
+        )
+
+        # Check if the model wants to use tools
+        if response.stop_reason == "tool_use":
+            # Collect all tool calls and results
+            tool_results = []
+            for block in response.content:
+                if block.type == "tool_use":
+                    func = TOOL_REGISTRY[block.name]
+                    result = func(**block.input)
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": json.dumps(result)
+                    })
+
+            # Add assistant response and tool results to messages
+            messages.append({"role": "assistant", "content": response.content})
+            messages.append({"role": "user", "content": tool_results})
+        else:
+            # Model is done &mdash; extract text response
+            return "".join(b.text for b in response.content if hasattr(b, "text"))
+
+# Usage
+answer = run_agent("What's the weather in London and any AI news today?")</code></pre>
+
+<div class="callout note"><div class="callout-label">NOTE</div><p>The loop continues until <code>stop_reason</code> is <code>"end_turn"</code> (not <code>"tool_use"</code>). This allows the model to chain multiple tool calls &mdash; for example, searching for a city name first, then getting its weather.</p></div>
+
+<h3>OpenAI Tool Loop</h3>
+<pre><code>import openai
+import json
+
+client = openai.OpenAI()
+
+def run_agent_openai(user_message: str) -> str:
+    messages = [{"role": "user", "content": user_message}]
+
+    while True:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            tools=tools  # same JSON Schema definitions
+        )
+        msg = response.choices[0].message
+
+        if msg.tool_calls:
+            messages.append(msg)  # add assistant message with tool calls
+            for tc in msg.tool_calls:
+                func = TOOL_REGISTRY[tc.function.name]
+                args = json.loads(tc.function.arguments)
+                result = func(**args)
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": json.dumps(result)
+                })
+        else:
+            return msg.content</code></pre>
+
+<span class="section-anchor" id="s5"></span>
+<div class="section-header">
+  <span class="section-num">5</span>
+  <h2>Building a Tool Registry</h2>
+</div>
+<p>As your agent grows, you will have dozens of tools. A <strong>tool registry</strong> pattern keeps them organised, validated, and easy to extend. The registry maps tool names to their implementations and auto-generates API definitions from Python type hints.</p>
+
+<pre><code>import inspect
+import json
+from typing import Callable, Any, get_type_hints
+
+class ToolRegistry:
+    """Registry that auto-generates tool schemas from type hints."""
+
+    def __init__(self):
+        self._tools: dict[str, Callable] = {}
+        self._schemas: list[dict] = []
+
+    def tool(self, func: Callable) -> Callable:
+        """Decorator to register a tool function."""
+        name = func.__name__
+        hints = get_type_hints(func)
+        doc = inspect.getdoc(func) or ""
+
+        # Build JSON Schema from type hints
+        properties = {}
+        required = []
+        sig = inspect.signature(func)
+        for param_name, param in sig.parameters.items():
+            ptype = hints.get(param_name, str)
+            json_type = {"str": "string", "int": "integer",
+                         "float": "number", "bool": "boolean"}.get(ptype.__name__, "string")
+            properties[param_name] = {"type": json_type}
+            if param.default is inspect.Parameter.empty:
+                required.append(param_name)
+
+        schema = {
+            "name": name,
+            "description": doc,
+            "input_schema": {
+                "type": "object",
+                "properties": properties,
+                "required": required
+            }
+        }
+        self._tools[name] = func
+        self._schemas.append(schema)
+        return func
+
+    def execute(self, name: str, arguments: dict) -> Any:
+        """Execute a registered tool by name."""
+        if name not in self._tools:
+            return {"error": f"Unknown tool: {name}"}
+        try:
+            return self._tools[name](**arguments)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @property
+    def definitions(self) -> list[dict]:
+        return self._schemas
+
+# Usage
+registry = ToolRegistry()
+
+@registry.tool
+def calculate(expression: str) -> str:
+    """Evaluate a mathematical expression safely. Example: '2 + 3 * 4'"""
+    allowed = set("0123456789+-*/.() ")
+    if not all(c in allowed for c in expression):
+        return "Error: invalid characters"
+    return str(eval(expression))  # use a safe parser in production
+
+@registry.tool
+def read_file(path: str) -> str:
+    """Read the contents of a text file given its path."""
+    with open(path, "r") as f:
+        return f.read()
+
+# Pass registry.definitions to the API, use registry.execute() in your loop</code></pre>
+
+<div class="callout tip"><div class="callout-label">TIP</div><p>In production, use <code>pydantic</code> models for tool input validation. Libraries like <code>instructor</code> or Anthropic's own tool-use helpers can auto-generate schemas from Pydantic models, giving you both validation and schema generation in one place.</p></div>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p>Never use bare <code>eval()</code> in production. Use a safe math parser like <code>asteval</code> or <code>simpleeval</code>. The example above is simplified for clarity.</p></div>
+
+<span class="section-anchor" id="s6"></span>
+<div class="section-header">
+  <span class="section-num">6</span>
+  <h2>Practical Tool Examples</h2>
+</div>
+<p>Here is a collection of commonly used tools in real-world agents. Each addresses a different class of capability that LLMs lack on their own.</p>
+
+<div class="card-grid">
+  <div class="card"><h3>Web Search</h3><p>Query Google, Bing, or Brave APIs to get live information. Essential for any agent that answers questions about current events.</p></div>
+  <div class="card"><h3>Calculator</h3><p>Safe mathematical evaluation. LLMs frequently make arithmetic errors &mdash; always offload computation to a tool.</p></div>
+  <div class="card"><h3>File Reader</h3><p>Read and parse local files (CSV, JSON, PDF). Enables document-processing agents.</p></div>
+  <div class="card"><h3>Database Query</h3><p>Execute SQL queries against PostgreSQL, MySQL, or SQLite. The model generates SQL; your tool executes it safely.</p></div>
+  <div class="card"><h3>Code Executor</h3><p>Run Python in a sandboxed environment (Docker, E2B, or subprocess). Powers data-analysis and coding agents.</p></div>
+  <div class="card"><h3>Email / Messaging</h3><p>Send emails via SMTP or API (SendGrid, SES). Allows agents to communicate with humans and other systems.</p></div>
+</div>
+
+<h3>Example: Database Query Tool</h3>
+<pre><code>import sqlite3
+
+@registry.tool
+def query_database(sql: str) -> str:
+    """Execute a read-only SQL query against the app database.
+    Only SELECT statements are allowed. Returns results as JSON."""
+    if not sql.strip().upper().startswith("SELECT"):
+        return json.dumps({"error": "Only SELECT queries are allowed"})
+
+    conn = sqlite3.connect("app.db")
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute(sql).fetchall()
+        return json.dumps([dict(row) for row in rows])
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+    finally:
+        conn.close()</code></pre>
+
+<div class="callout pitfall"><div class="callout-label">PITFALL</div><p><strong>SQL injection is a real risk.</strong> Even with read-only restrictions, a model-generated query could access sensitive tables. In production, use parameterised queries, restrict accessible tables via a view layer, and run the database user with minimal permissions.</p></div>
+
+<h3>Best Practices Checklist</h3>
+<ul>
+  <li>Write descriptions as if explaining to a new colleague &mdash; include examples and edge cases</li>
+  <li>Use <code>enum</code> constraints to limit parameter values where possible</li>
+  <li>Return structured JSON from tools, not free-form text</li>
+  <li>Always handle errors gracefully &mdash; return error messages rather than raising exceptions</li>
+  <li>Add timeout limits to prevent tools from hanging indefinitely</li>
+  <li>Log every tool call for debugging and auditing</li>
+  <li>Consider <code>tool_choice</code> parameter to force or prevent specific tool usage</li>
+</ul>
+<a href="module_07_EN.html" style="text-decoration:none;color:inherit;display:block"><div class="next-box"><div class="next-label">Up Next</div><p>Module 7 &mdash; Memory &amp; Context Management</p></div></a>
+  </main>
+</div>
+<script>
+const pb=document.getElementById('progress-bar');window.addEventListener('scroll',()=>{const h=document.documentElement;pb.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const links=[...document.querySelectorAll('#sidebar nav a')];const sections=[...document.querySelectorAll('.section-anchor')];
+function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});links.forEach(l=>{l.classList.toggle('active',l.getAttribute('href')==='#'+cur);});}
+window.addEventListener('scroll',activateNav,{passive:true});activateNav();
+</script>
+<footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p></footer></body></html>
