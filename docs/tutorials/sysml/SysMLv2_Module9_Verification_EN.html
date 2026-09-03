@@ -132,11 +132,11 @@ pre.lined .op{color:#6366F1}
 
 <!-- ═══════════ Section 0 ═══════════ -->
 <span class="section-anchor" id="s0"></span><div class="section-header"><span class="section-num">&#9733;</span><h2>KerML &#8594; SysML: V&amp;V Concepts</h2></div>
-<p>SysML v2 verification and validation modelling is built on KerML&#8217;s <strong>Case</strong> and <strong>Requirement</strong> infrastructure. A <code>verification case def</code> is a specialised <code>CaseDefinition</code> at the KerML level, inheriting the ability to have an objective, a subject, and a structured body of actions. The <code>verify requirement</code> relationship maps to a <code>RequirementVerification</code> dependency that tools can trace automatically.</p>
+<p>SysML v2 verification and validation modelling is built on KerML&#8217;s <strong>Case</strong> and <strong>Requirement</strong> infrastructure. A <code>verification def</code> is a specialised <code>CaseDefinition</code> at the KerML level, inheriting the ability to have an objective, a subject, and a structured body of actions. The <code>verify requirement</code> relationship maps to a <code>RequirementVerification</code> dependency that tools can trace automatically.</p>
 
 <table><thead><tr><th>SysML v2 concept (L2)</th><th>Underlying KerML construct (L1)</th><th>What SysML adds</th></tr></thead><tbody>
-<tr><td><code>verification case def</code></td><td><code>VerificationCaseDefinition</code> (specialises <code>CaseDefinition</code>)</td><td>Named, reusable test-case type with an objective, subject, and action body</td></tr>
-<tr><td><code>verification case</code> (usage)</td><td><code>VerificationCaseUsage</code> (Feature typed by <code>VerificationCaseDefinition</code>)</td><td>An instance of a verification case, bound to a specific system element</td></tr>
+<tr><td><code>verification def</code></td><td><code>VerificationCaseDefinition</code> (specialises <code>CaseDefinition</code>)</td><td>Named, reusable test-case type with an objective, subject, and action body</td></tr>
+<tr><td><code>verification</code> (usage)</td><td><code>VerificationCaseUsage</code> (Feature typed by <code>VerificationCaseDefinition</code>)</td><td>An instance of a verification case, bound to a specific system element</td></tr>
 <tr><td><code>objective</code></td><td><code>ObjectiveMembership</code> containing a <code>RequirementUsage</code></td><td>States the goal of the verification case; uses <code>verify requirement</code> inside</td></tr>
 <tr><td><code>verify requirement</code></td><td><code>RequirementVerification</code> (a <code>Dependency</code>)</td><td>Declares that the enclosing case verifies a specific requirement</td></tr>
 <tr><td><code>subject</code></td><td><code>SubjectMembership</code> (a directed Feature)</td><td>Binds the verification case to the system-under-test element</td></tr>
@@ -154,11 +154,11 @@ pre.lined .op{color:#6366F1}
 <h3>Basic structure</h3>
 <p>Every verification case follows a three-part pattern: subject, objective, and body.</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> CheckTemperatureRange {</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">def</span> CheckTemperatureRange {</td></tr>
 <tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> sut : TemperatureSensor;</td></tr>
 <tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">objective</span> {</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">verify</span> <span class="kw">requirement</span> SensorAccuracyReq;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">verify</span> <span class="kw">requirement</span> : SensorAccuracyReq;</td></tr>
 <tr><td class="ln" select="none">6</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">action</span> stimulate : ApplyTemperature {</td></tr>
@@ -174,7 +174,7 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">18</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">19</td><td class="lc">    <span class="kw">return</span> verdict : VerdictKind =</td></tr>
 <tr><td class="ln" select="none">20</td><td class="lc">        <span class="kw">if</span> measure.reading &gt;= <span class="nu">84.5</span> <span class="kw">and</span> measure.reading &lt;= <span class="nu">85.5</span></td></tr>
-<tr><td class="ln" select="none">21</td><td class="lc">            <span class="kw">then</span> VerdictKind::pass</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">            ? VerdictKind::pass</td></tr>
 <tr><td class="ln" select="none">22</td><td class="lc">            <span class="kw">else</span> VerdictKind::fail;</td></tr>
 <tr><td class="ln" select="none">23</td><td class="lc">}</td></tr>
 </table></code></pre>
@@ -183,14 +183,14 @@ pre.lined .op{color:#6366F1}
 <h3>Composing verification cases</h3>
 <p>Because verification cases are actions, you can compose them using the same sequencing and concurrency mechanisms from Module 4. A parent verification case can invoke child cases as sub-actions:</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> FullSensorSuite {</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">def</span> FullSensorSuite {</td></tr>
 <tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> sut : TemperatureSensor;</td></tr>
 <tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">action</span> rangeCheck  : CheckTemperatureRange  { <span class="kw">subject</span> = sut; }</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">action</span> driftCheck  : CheckSensorDrift       { <span class="kw">subject</span> = sut; }</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">action</span> latencyTest : CheckResponseLatency   { <span class="kw">subject</span> = sut; }</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">verification</span> rangeCheck  : CheckTemperatureRange  { <span class="kw">subject</span> = sut; }</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">verification</span> driftCheck  : CheckSensorDrift       { <span class="kw">subject</span> = sut; }</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">verification</span> latencyTest : CheckResponseLatency   { <span class="kw">subject</span> = sut; }</td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">first</span> rangeCheck <span class="kw">then</span> driftCheck <span class="kw">then</span> latencyTest;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">first</span> rangeCheck <span class="kw">then</span> driftCheck; <span class="kw">then</span> latencyTest;</td></tr>
 <tr><td class="ln" select="none">9</td><td class="lc">}</td></tr>
 </table></code></pre>
 
@@ -203,12 +203,12 @@ pre.lined .op{color:#6366F1}
 <h3>The objective block</h3>
 <p>An <code>objective</code> is a requirement usage nested inside the verification case. It can contain one or more <code>verify requirement</code> references and additional constraints. The objective gives tools a machine-readable declaration of the test&#8217;s purpose:</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> BrakeResponseTest {</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">def</span> BrakeResponseTest {</td></tr>
 <tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> sut : BrakingSubsystem;</td></tr>
 <tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">objective</span> {</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">verify</span> <span class="kw">requirement</span> BrakeStoppingDistanceReq;</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">verify</span> <span class="kw">requirement</span> BrakeResponseTimeReq;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">verify</span> <span class="kw">requirement</span> : BrakeStoppingDistanceReq;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">verify</span> <span class="kw">requirement</span> : BrakeResponseTimeReq;</td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc">        <span class="kw">require</span> <span class="kw">constraint</span> {</td></tr>
 <tr><td class="ln" select="none">8</td><td class="lc">            <span class="kw">doc</span> <span class="cm">/* Both requirements must pass simultaneously */</span></td></tr>
 <tr><td class="ln" select="none">9</td><td class="lc">        }</td></tr>
@@ -224,7 +224,7 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">3</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc"><span class="cm">// Instantiate a verification case, binding subject to a real part</span></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc"><span class="kw">verification</span> <span class="kw">case</span> brakeTest : BrakeResponseTest {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"><span class="kw">verification</span> brakeTest : BrakeResponseTest {</td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">subject</span> = vehicle.brakes;</td></tr>
 <tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
 </table></code></pre>
@@ -252,14 +252,14 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">9</td><td class="lc"><span class="cm">// Design satisfies the requirement</span></td></tr>
 <tr><td class="ln" select="none">10</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> BrakingSubsystem {</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> <span class="kw">requirement</span> StoppingDistance;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">assert</span> <span class="kw">satisfy</span> <span class="kw">requirement</span> : StoppingDistance;</td></tr>
 <tr><td class="ln" select="none">12</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">14</td><td class="lc"><span class="cm">// Verification case verifies the requirement</span></td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc"><span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> BrakeStopTest {</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc"><span class="kw">verification</span> <span class="kw">def</span> BrakeStopTest {</td></tr>
 <tr><td class="ln" select="none">16</td><td class="lc">    <span class="kw">subject</span> sut : BrakingSubsystem;</td></tr>
 <tr><td class="ln" select="none">17</td><td class="lc">    <span class="kw">objective</span> {</td></tr>
-<tr><td class="ln" select="none">18</td><td class="lc">        <span class="kw">verify</span> <span class="kw">requirement</span> StoppingDistance;</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">        <span class="kw">verify</span> <span class="kw">requirement</span> : StoppingDistance;</td></tr>
 <tr><td class="ln" select="none">19</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">20</td><td class="lc">}</td></tr>
 </table></code></pre>
@@ -276,9 +276,9 @@ pre.lined .op{color:#6366F1}
 <h3>Test</h3>
 <p>A test involves exercising the SUT with controlled inputs and measuring outputs. This is the most common verification case pattern &#8212; the examples throughout this module are test cases:</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> PedalForceTest {</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">def</span> PedalForceTest {</td></tr>
 <tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> sut : BrakePedal;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> MaxPedalForceReq; }</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> : MaxPedalForceReq; }</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">action</span> applyForce : ApplyPedalForce { <span class="kw">in</span> force = <span class="nu">500</span>[N]; }</td></tr>
 <tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">action</span> readDisplacement : MeasureDisplacement { <span class="kw">out</span> travel : <span class="ty">Real</span>; }</td></tr>
@@ -286,16 +286,16 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">return</span> verdict : VerdictKind =</td></tr>
 <tr><td class="ln" select="none">10</td><td class="lc">        <span class="kw">if</span> readDisplacement.travel &gt;= <span class="nu">10</span>[mm]</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">            <span class="kw">then</span> VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">            ? VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
 <tr><td class="ln" select="none">12</td><td class="lc">}</td></tr>
 </table></code></pre>
 
 <h3>Analysis</h3>
-<p>Analysis uses calculation or simulation rather than physical testing. In SysML v2 you can model this by embedding an <code>analysis case</code> (from Module 7) inside a verification case:</p>
+<p>Analysis uses calculation or simulation rather than physical testing. In SysML v2 you can model this by embedding an <code>analysis</code> (from Module 7) inside a verification case:</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> ThermalAnalysisVerification {</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">def</span> ThermalAnalysisVerification {</td></tr>
 <tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> sut : ElectronicEnclosure;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> MaxOperatingTempReq; }</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> : MaxOperatingTempReq; }</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">action</span> runAnalysis : ThermalAnalysisCase {</td></tr>
 <tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">in</span>  ambientTemp = <span class="nu">55</span>[degC];</td></tr>
@@ -304,29 +304,29 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">10</td><td class="lc">    <span class="kw">return</span> verdict : VerdictKind =</td></tr>
 <tr><td class="ln" select="none">11</td><td class="lc">        <span class="kw">if</span> runAnalysis.peakTemp &lt;= <span class="nu">85</span>[degC]</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">            <span class="kw">then</span> VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">            ? VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
 <tr><td class="ln" select="none">13</td><td class="lc">}</td></tr>
 </table></code></pre>
 
 <h3>Inspection</h3>
 <p>Inspection verifies a requirement by examining the design artefact itself &#8212; reviewing drawings, checking part numbers, or confirming labelling. In SysML v2, an inspection case typically has no stimulus action; it queries attributes directly:</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> LabelInspection {</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">def</span> LabelInspection {</td></tr>
 <tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> sut : ControlPanel;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> LabellingStandardReq; }</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> : LabellingStandardReq; }</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">return</span> verdict : VerdictKind =</td></tr>
 <tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">if</span> sut.hasLabel <span class="kw">and</span> sut.labelLanguage == <span class="st">&quot;EN&quot;</span></td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">            <span class="kw">then</span> VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">            ? VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
 <tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
 </table></code></pre>
 
 <h3>Demonstration</h3>
 <p>Demonstration verifies by operating the system under realistic conditions and observing its behaviour. The verification case body sequences real-world scenario actions rather than isolated stimulus-response pairs:</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> EmergencyStopDemo {</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">verification</span> <span class="kw">def</span> EmergencyStopDemo {</td></tr>
 <tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> sut : Vehicle;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> EmergencyStopReq; }</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> : EmergencyStopReq; }</td></tr>
 <tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">action</span> driveAtSpeed  : DriveVehicle { <span class="kw">in</span> speed = <span class="nu">60</span>[km/h]; }</td></tr>
 <tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">action</span> triggerEStop  : ActivateEmergencyBrake;</td></tr>
@@ -334,11 +334,11 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">8</td><td class="lc">        <span class="kw">out</span> stoppedSafely : <span class="ty">Boolean</span>;</td></tr>
 <tr><td class="ln" select="none">9</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">10</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">first</span> driveAtSpeed <span class="kw">then</span> triggerEStop <span class="kw">then</span> observeResult;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">first</span> driveAtSpeed <span class="kw">then</span> triggerEStop; <span class="kw">then</span> observeResult;</td></tr>
 <tr><td class="ln" select="none">12</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">13</td><td class="lc">    <span class="kw">return</span> verdict : VerdictKind =</td></tr>
 <tr><td class="ln" select="none">14</td><td class="lc">        <span class="kw">if</span> observeResult.stoppedSafely</td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc">            <span class="kw">then</span> VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">            ? VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
 <tr><td class="ln" select="none">16</td><td class="lc">}</td></tr>
 </table></code></pre>
 
@@ -346,7 +346,7 @@ pre.lined .op{color:#6366F1}
 
 <table><thead><tr><th>Method</th><th>SysML v2 pattern</th><th>When to use</th></tr></thead><tbody>
 <tr><td>Test</td><td>Stimulus actions &#8594; measure actions &#8594; compare verdict</td><td>Performance, functional behaviour, environmental limits</td></tr>
-<tr><td>Analysis</td><td>Embed <code>analysis case</code> &#8594; evaluate result against threshold</td><td>Thermal, structural, timing calculations; early design phases</td></tr>
+<tr><td>Analysis</td><td>Embed <code>analysis</code> &#8594; evaluate result against threshold</td><td>Thermal, structural, timing calculations; early design phases</td></tr>
 <tr><td>Inspection</td><td>Query SUT attributes directly &#8594; compare against spec</td><td>Labelling, part numbers, material declarations</td></tr>
 <tr><td>Demonstration</td><td>Realistic scenario actions &#8594; observe outcome</td><td>Operational scenarios, usability, safety demonstrations</td></tr>
 </tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">Table &mdash; TAID verification methods in SysML v2</caption></table>
@@ -361,7 +361,7 @@ pre.lined .op{color:#6366F1}
   <li><strong>Stakeholder needs</strong> &#8594; <code>requirement def</code> with <code>require constraint</code> (Module 5)</li>
   <li><strong>System requirements</strong> &#8594; decomposed requirements with <code>subject</code> bindings</li>
   <li><strong>Architecture</strong> &#8594; <code>part def</code>, <code>port def</code>, <code>connection def</code> (Module 3)</li>
-  <li><strong>Detailed design</strong> &#8594; <code>action def</code>, <code>state def</code>, <code>analysis case def</code> (Modules 4, 7)</li>
+  <li><strong>Detailed design</strong> &#8594; <code>action def</code>, <code>state def</code>, <code>analysis def</code> (Modules 4, 7)</li>
 </ul>
 <p>Each level is linked to the one above through <code>assert satisfy requirement</code> relationships and specialisation hierarchies.</p>
 
@@ -390,17 +390,17 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">13</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">14</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">15</td><td class="lc">    <span class="cm">// Right side: verification hierarchy</span></td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc">    <span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> UnitTest_Caliper {</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    <span class="kw">verification</span> <span class="kw">def</span> UnitTest_Caliper {</td></tr>
 <tr><td class="ln" select="none">17</td><td class="lc">        <span class="kw">subject</span> sut : BrakeCaliper;</td></tr>
-<tr><td class="ln" select="none">18</td><td class="lc">        <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> SubsystemReq; }</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">        <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> : SubsystemReq; }</td></tr>
 <tr><td class="ln" select="none">19</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">20</td><td class="lc">    <span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> SystemTest_Braking {</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">    <span class="kw">verification</span> <span class="kw">def</span> SystemTest_Braking {</td></tr>
 <tr><td class="ln" select="none">21</td><td class="lc">        <span class="kw">subject</span> sut : Vehicle;</td></tr>
-<tr><td class="ln" select="none">22</td><td class="lc">        <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> SystemReq; }</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">        <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> : SystemReq; }</td></tr>
 <tr><td class="ln" select="none">23</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">24</td><td class="lc">    <span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> Validation_Safety {</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">    <span class="kw">verification</span> <span class="kw">def</span> Validation_Safety {</td></tr>
 <tr><td class="ln" select="none">25</td><td class="lc">        <span class="kw">subject</span> sut : Vehicle;</td></tr>
-<tr><td class="ln" select="none">26</td><td class="lc">        <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> StakeholderNeed; }</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">        <span class="kw">objective</span> { <span class="kw">verify</span> <span class="kw">requirement</span> : StakeholderNeed; }</td></tr>
 <tr><td class="ln" select="none">27</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">28</td><td class="lc">}</td></tr>
 </table></code></pre>
@@ -455,11 +455,11 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">40</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">41</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">42</td><td class="lc">    <span class="cm">// ── Verification case 1: Stopping distance (Test) ───────</span></td></tr>
-<tr><td class="ln" select="none">43</td><td class="lc">    <span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> StoppingDistanceTest {</td></tr>
+<tr><td class="ln" select="none">43</td><td class="lc">    <span class="kw">verification</span> <span class="kw">def</span> StoppingDistanceTest {</td></tr>
 <tr><td class="ln" select="none">44</td><td class="lc">        <span class="kw">subject</span> sut : Vehicle;</td></tr>
 <tr><td class="ln" select="none">45</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">46</td><td class="lc">        <span class="kw">objective</span> {</td></tr>
-<tr><td class="ln" select="none">47</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> StoppingDistanceReq;</td></tr>
+<tr><td class="ln" select="none">47</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> : StoppingDistanceReq;</td></tr>
 <tr><td class="ln" select="none">48</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">49</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">50</td><td class="lc">        <span class="kw">action</span> accelerate : AccelerateToSpeed {</td></tr>
@@ -470,19 +470,19 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">55</td><td class="lc">            <span class="kw">out</span> distance : LengthValue;</td></tr>
 <tr><td class="ln" select="none">56</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">57</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">58</td><td class="lc">        <span class="kw">first</span> accelerate <span class="kw">then</span> applyBrakes <span class="kw">then</span> measureDist;</td></tr>
+<tr><td class="ln" select="none">58</td><td class="lc">        <span class="kw">first</span> accelerate <span class="kw">then</span> applyBrakes; <span class="kw">then</span> measureDist;</td></tr>
 <tr><td class="ln" select="none">59</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">60</td><td class="lc">        <span class="kw">return</span> verdict : VerdictKind =</td></tr>
 <tr><td class="ln" select="none">61</td><td class="lc">            <span class="kw">if</span> measureDist.distance &lt;= <span class="nu">40</span>[m]</td></tr>
-<tr><td class="ln" select="none">62</td><td class="lc">                <span class="kw">then</span> VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
+<tr><td class="ln" select="none">62</td><td class="lc">                ? VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
 <tr><td class="ln" select="none">63</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">64</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">65</td><td class="lc">    <span class="cm">// ── Verification case 2: Response time (Analysis) ───────</span></td></tr>
-<tr><td class="ln" select="none">66</td><td class="lc">    <span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> ResponseTimeAnalysis {</td></tr>
+<tr><td class="ln" select="none">66</td><td class="lc">    <span class="kw">verification</span> <span class="kw">def</span> ResponseTimeAnalysis {</td></tr>
 <tr><td class="ln" select="none">67</td><td class="lc">        <span class="kw">subject</span> sut : BrakingSubsystem;</td></tr>
 <tr><td class="ln" select="none">68</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">69</td><td class="lc">        <span class="kw">objective</span> {</td></tr>
-<tr><td class="ln" select="none">70</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> BrakeResponseTimeReq;</td></tr>
+<tr><td class="ln" select="none">70</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> : BrakeResponseTimeReq;</td></tr>
 <tr><td class="ln" select="none">71</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">72</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">73</td><td class="lc">        <span class="kw">action</span> simulate : HydraulicResponseSimulation {</td></tr>
@@ -492,28 +492,28 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">77</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">78</td><td class="lc">        <span class="kw">return</span> verdict : VerdictKind =</td></tr>
 <tr><td class="ln" select="none">79</td><td class="lc">            <span class="kw">if</span> simulate.latency &lt;= <span class="nu">150</span>[ms]</td></tr>
-<tr><td class="ln" select="none">80</td><td class="lc">                <span class="kw">then</span> VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
+<tr><td class="ln" select="none">80</td><td class="lc">                ? VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
 <tr><td class="ln" select="none">81</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">82</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">83</td><td class="lc">    <span class="cm">// ── Verification case 3: Pedal force (Inspection) ───────</span></td></tr>
-<tr><td class="ln" select="none">84</td><td class="lc">    <span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> PedalForceInspection {</td></tr>
+<tr><td class="ln" select="none">84</td><td class="lc">    <span class="kw">verification</span> <span class="kw">def</span> PedalForceInspection {</td></tr>
 <tr><td class="ln" select="none">85</td><td class="lc">        <span class="kw">subject</span> sut : BrakePedal;</td></tr>
 <tr><td class="ln" select="none">86</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">87</td><td class="lc">        <span class="kw">objective</span> {</td></tr>
-<tr><td class="ln" select="none">88</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> PedalForceReq;</td></tr>
+<tr><td class="ln" select="none">88</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> : PedalForceReq;</td></tr>
 <tr><td class="ln" select="none">89</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">90</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">91</td><td class="lc">        <span class="kw">return</span> verdict : VerdictKind =</td></tr>
 <tr><td class="ln" select="none">92</td><td class="lc">            <span class="kw">if</span> sut.ratedMaxForce &lt;= <span class="nu">500</span>[N]</td></tr>
-<tr><td class="ln" select="none">93</td><td class="lc">                <span class="kw">then</span> VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
+<tr><td class="ln" select="none">93</td><td class="lc">                ? VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
 <tr><td class="ln" select="none">94</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">95</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">96</td><td class="lc">    <span class="cm">// ── Verification case 4: ABS activation (Demonstration) ─</span></td></tr>
-<tr><td class="ln" select="none">97</td><td class="lc">    <span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> ABSActivationDemo {</td></tr>
+<tr><td class="ln" select="none">97</td><td class="lc">    <span class="kw">verification</span> <span class="kw">def</span> ABSActivationDemo {</td></tr>
 <tr><td class="ln" select="none">98</td><td class="lc">        <span class="kw">subject</span> sut : Vehicle;</td></tr>
 <tr><td class="ln" select="none">99</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">100</td><td class="lc">        <span class="kw">objective</span> {</td></tr>
-<tr><td class="ln" select="none">101</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> ABSActivationReq;</td></tr>
+<tr><td class="ln" select="none">101</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> : ABSActivationReq;</td></tr>
 <tr><td class="ln" select="none">102</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">103</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">104</td><td class="lc">        <span class="kw">action</span> driveOnWetSurface : DriveVehicle {</td></tr>
@@ -525,41 +525,41 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln" select="none">110</td><td class="lc">            <span class="kw">out</span> absActivated : <span class="ty">Boolean</span>;</td></tr>
 <tr><td class="ln" select="none">111</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">112</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">113</td><td class="lc">        <span class="kw">first</span> driveOnWetSurface <span class="kw">then</span> hardBrake <span class="kw">then</span> checkABS;</td></tr>
+<tr><td class="ln" select="none">113</td><td class="lc">        <span class="kw">first</span> driveOnWetSurface <span class="kw">then</span> hardBrake; <span class="kw">then</span> checkABS;</td></tr>
 <tr><td class="ln" select="none">114</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">115</td><td class="lc">        <span class="kw">return</span> verdict : VerdictKind =</td></tr>
 <tr><td class="ln" select="none">116</td><td class="lc">            <span class="kw">if</span> checkABS.absActivated</td></tr>
-<tr><td class="ln" select="none">117</td><td class="lc">                <span class="kw">then</span> VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
+<tr><td class="ln" select="none">117</td><td class="lc">                ? VerdictKind::pass <span class="kw">else</span> VerdictKind::fail;</td></tr>
 <tr><td class="ln" select="none">118</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">119</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">120</td><td class="lc">    <span class="cm">// ── Composite test campaign ──────────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">121</td><td class="lc">    <span class="kw">verification</span> <span class="kw">case</span> <span class="kw">def</span> BrakingSystemCampaign {</td></tr>
+<tr><td class="ln" select="none">121</td><td class="lc">    <span class="kw">verification</span> <span class="kw">def</span> BrakingSystemCampaign {</td></tr>
 <tr><td class="ln" select="none">122</td><td class="lc">        <span class="kw">subject</span> sut : Vehicle;</td></tr>
 <tr><td class="ln" select="none">123</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">124</td><td class="lc">        <span class="kw">objective</span> {</td></tr>
-<tr><td class="ln" select="none">125</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> StoppingDistanceReq;</td></tr>
-<tr><td class="ln" select="none">126</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> BrakeResponseTimeReq;</td></tr>
-<tr><td class="ln" select="none">127</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> PedalForceReq;</td></tr>
-<tr><td class="ln" select="none">128</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> ABSActivationReq;</td></tr>
+<tr><td class="ln" select="none">125</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> : StoppingDistanceReq;</td></tr>
+<tr><td class="ln" select="none">126</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> : BrakeResponseTimeReq;</td></tr>
+<tr><td class="ln" select="none">127</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> : PedalForceReq;</td></tr>
+<tr><td class="ln" select="none">128</td><td class="lc">            <span class="kw">verify</span> <span class="kw">requirement</span> : ABSActivationReq;</td></tr>
 <tr><td class="ln" select="none">129</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">130</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">131</td><td class="lc">        <span class="kw">action</span> test1 : StoppingDistanceTest  { <span class="kw">subject</span> = sut; }</td></tr>
-<tr><td class="ln" select="none">132</td><td class="lc">        <span class="kw">action</span> test2 : ResponseTimeAnalysis   { <span class="kw">subject</span> = sut.brakes; }</td></tr>
-<tr><td class="ln" select="none">133</td><td class="lc">        <span class="kw">action</span> test3 : PedalForceInspection   { <span class="kw">subject</span> = sut.brakes.pedal; }</td></tr>
-<tr><td class="ln" select="none">134</td><td class="lc">        <span class="kw">action</span> test4 : ABSActivationDemo      { <span class="kw">subject</span> = sut; }</td></tr>
+<tr><td class="ln" select="none">131</td><td class="lc">        <span class="kw">verification</span> test1 : StoppingDistanceTest  { <span class="kw">subject</span> = sut; }</td></tr>
+<tr><td class="ln" select="none">132</td><td class="lc">        <span class="kw">verification</span> test2 : ResponseTimeAnalysis   { <span class="kw">subject</span> = sut.brakes; }</td></tr>
+<tr><td class="ln" select="none">133</td><td class="lc">        <span class="kw">verification</span> test3 : PedalForceInspection   { <span class="kw">subject</span> = sut.brakes.pedal; }</td></tr>
+<tr><td class="ln" select="none">134</td><td class="lc">        <span class="kw">verification</span> test4 : ABSActivationDemo      { <span class="kw">subject</span> = sut; }</td></tr>
 <tr><td class="ln" select="none">135</td><td class="lc"></td></tr>
 <tr><td class="ln" select="none">136</td><td class="lc">        <span class="cm">// Run inspection first, then analysis, then physical tests</span></td></tr>
-<tr><td class="ln" select="none">137</td><td class="lc">        <span class="kw">first</span> test3 <span class="kw">then</span> test2 <span class="kw">then</span> test1 <span class="kw">then</span> test4;</td></tr>
+<tr><td class="ln" select="none">137</td><td class="lc">        <span class="kw">first</span> test3 <span class="kw">then</span> test2; <span class="kw">then</span> test1; <span class="kw">then</span> test4;</td></tr>
 <tr><td class="ln" select="none">138</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">139</td><td class="lc">}</td></tr>
 </table></code></pre>
-<p>This model demonstrates: <strong>verification case def</strong> with subject and objective, <strong>verify requirement</strong> traceability, all four <strong>TAID verification methods</strong> (test, analysis, inspection, demonstration), <strong>verdict evaluation</strong> with pass/fail logic, and a <strong>composite test campaign</strong> that sequences individual verification cases.</p>
+<p>This model demonstrates: <strong>verification def</strong> with subject and objective, <strong>verify requirement</strong> traceability, all four <strong>TAID verification methods</strong> (test, analysis, inspection, demonstration), <strong>verdict evaluation</strong> with pass/fail logic, and a <strong>composite test campaign</strong> that sequences individual verification cases.</p>
 
 <!-- ═══════════ Section 7 ═══════════ -->
 <span class="section-anchor" id="s7"></span><div class="section-header"><span class="section-num">7</span><h2>Module Summary</h2></div>
 <table><thead><tr><th>SysML v2 concept</th><th>KerML origin</th><th>Key rule</th></tr></thead><tbody>
-<tr><td><code>verification case def</code></td><td><code>VerificationCaseDefinition</code></td><td>A reusable test-case type with subject, objective, and action body</td></tr>
-<tr><td><code>verification case</code></td><td><code>VerificationCaseUsage</code></td><td>An instance of a verification case bound to a specific SUT</td></tr>
+<tr><td><code>verification def</code></td><td><code>VerificationCaseDefinition</code></td><td>A reusable test-case type with subject, objective, and action body</td></tr>
+<tr><td><code>verification</code></td><td><code>VerificationCaseUsage</code></td><td>An instance of a verification case bound to a specific SUT</td></tr>
 <tr><td><code>objective</code></td><td><code>ObjectiveMembership</code></td><td>Declares the goal of the case; contains <code>verify requirement</code> references</td></tr>
 <tr><td><code>verify requirement</code></td><td><code>RequirementVerification</code></td><td>Links a verification case to the requirement it demonstrates</td></tr>
 <tr><td><code>subject</code></td><td><code>SubjectMembership</code></td><td>Binds the SUT; same concept as in <code>requirement def</code></td></tr>

@@ -358,21 +358,41 @@ pre.lined .op{color:#6366F1}
 <div class="callout analogy"><div class="callout-label">ANALOGY</div><p>Think of a warranty contract. The <code>assume constraint</code> lists the conditions under which the warranty applies (&#8220;normal use, dry roads, within weight limits&#8221;). The <code>require constraint</code> is what the manufacturer guarantees if those conditions hold (&#8220;braking distance under 40 m&#8221;). If you violate the assumptions, the guarantee is void.</p></div>
 
 <h3>Preconditions and postconditions on actions</h3>
-<p>Assumptions and required constraints can also be applied to actions, acting as preconditions and postconditions:</p>
+<p><code>assume</code> and <code>require constraint</code> are requirement body items &#8212; they cannot appear directly inside an <code>action def</code>. To express preconditions and postconditions on an action, write a requirement whose <strong>subject</strong> is that action:</p>
 <pre class="lined"><code><table>
-<tr><td class="ln">1</td><td class="lc"><span class="kw">action</span> <span class="kw">def</span> EmergencyBrake {</td></tr>
-<tr><td class="ln">2</td><td class="lc">    <span class="kw">in</span> <span class="kw">part</span> vehicle : Vehicle;</td></tr>
+<tr><td class="ln">1</td><td class="lc"><span class="kw">requirement</span> <span class="kw">def</span> EmergencyBrakeContract {</td></tr>
+
+<tr><td class="ln">2</td><td class="lc">    <span class="kw">subject</span> brake : EmergencyBrake;</td></tr>
+
 <tr><td class="ln">3</td><td class="lc"></td></tr>
+
 <tr><td class="ln">4</td><td class="lc">    <span class="cm">// Precondition: vehicle must be moving</span></td></tr>
+
 <tr><td class="ln">5</td><td class="lc">    <span class="kw">assume</span> <span class="kw">constraint</span> {</td></tr>
-<tr><td class="ln">6</td><td class="lc">        vehicle.speed &gt; <span class="nu">0</span> [km/h]</td></tr>
+
+<tr><td class="ln">6</td><td class="lc">        brake.vehicle.speed &gt; <span class="nu">0</span> [km/h]</td></tr>
+
 <tr><td class="ln">7</td><td class="lc">    }</td></tr>
+
 <tr><td class="ln">8</td><td class="lc"></td></tr>
+
 <tr><td class="ln">9</td><td class="lc">    <span class="cm">// Postcondition: vehicle must be stopped</span></td></tr>
+
 <tr><td class="ln">10</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> {</td></tr>
-<tr><td class="ln">11</td><td class="lc">        vehicle.speed == <span class="nu">0</span> [km/h]</td></tr>
+
+<tr><td class="ln">11</td><td class="lc">        brake.vehicle.speed == <span class="nu">0</span> [km/h]</td></tr>
+
 <tr><td class="ln">12</td><td class="lc">    }</td></tr>
+
 <tr><td class="ln">13</td><td class="lc">}</td></tr>
+
+<tr><td class="ln">14</td><td class="lc"></td></tr>
+
+<tr><td class="ln">15</td><td class="lc"><span class="kw">action</span> <span class="kw">def</span> EmergencyBrake {</td></tr>
+
+<tr><td class="ln">16</td><td class="lc">    <span class="kw">in</span> <span class="kw">part</span> vehicle : Vehicle;</td></tr>
+
+<tr><td class="ln">17</td><td class="lc">}</td></tr>
 </table></code></pre>
 <div class="callout pitfall"><div class="callout-label">PITFALL</div><p>An <code>assume constraint</code> is <em>not verified</em> by the system &#8212; it is a declaration that the environment or context is expected to provide this condition. If you need the system to <em>guarantee</em> a condition, use <code>require constraint</code>. Misclassifying a required constraint as an assumption creates a gap in your verification coverage.</p></div>
 
@@ -477,8 +497,8 @@ pre.lined .op{color:#6366F1}
 <tr><td class="ln">96</td><td class="lc">        <span class="kw">part</span> absCtrl    : ABSController;</td></tr>
 <tr><td class="ln">97</td><td class="lc">        <span class="kw">part</span> actuators  : BrakeActuator;</td></tr>
 <tr><td class="ln">98</td><td class="lc"></td></tr>
-<tr><td class="ln">99</td><td class="lc">        <span class="kw">assert</span> <span class="kw">satisfy</span> BrakingSafetyReq by brakes;</td></tr>
-<tr><td class="ln">100</td><td class="lc">        <span class="kw">assert</span> <span class="kw">satisfy</span> ABSActivationReq by absCtrl;</td></tr>
+<tr><td class="ln">99</td><td class="lc">        <span class="kw">assert</span> <span class="kw">satisfy</span> <span class="kw">requirement</span> : BrakingSafetyReq by brakes;</td></tr>
+<tr><td class="ln">100</td><td class="lc">        <span class="kw">assert</span> <span class="kw">satisfy</span> <span class="kw">requirement</span> : ABSActivationReq by absCtrl;</td></tr>
 <tr><td class="ln">101</td><td class="lc">    }</td></tr>
 <tr><td class="ln">102</td><td class="lc">}</td></tr>
 </table></code></pre>
