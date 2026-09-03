@@ -122,342 +122,487 @@ pre.lined .op{color:#6366F1}
   <a href="SysMLv2_Module8_Variability_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
 </header>
 <div id="layout">
-  <aside id="sidebar"><div class="sidebar-label">目录</div><nav><a href="#s0"><span class="num">&#9733;</span>KerML &#8594; SysML 对应关系</a><a href="#s1"><span class="num">1</span>变体概述</a><a href="#s2"><span class="num">2</span>变体用法与选项</a><a href="#s3"><span class="num">3</span>配置定义</a><a href="#s4"><span class="num">4</span>约束与规则</a><a href="#s5"><span class="num">5</span>特化与变体继承</a><a href="#s6"><span class="num">6</span>完整示例</a><a href="#s7"><span class="num">7</span>本模块总结</a></nav></aside>
+  <aside id="sidebar"><div class="sidebar-label">目录</div><nav><a href="#s0"><span class="num">&#9733;</span>KerML &#8594; SysML 桥接</a><a href="#s1"><span class="num">1</span>变体点</a><a href="#s2"><span class="num">2</span>变体定义</a><a href="#s3"><span class="num">3</span>配置管理</a><a href="#s4"><span class="num">4</span>过滤与选择</a><a href="#s5"><span class="num">5</span>产品线建模</a><a href="#s6"><span class="num">6</span>完整示例</a><a href="#s7"><span class="num">7</span>模块总结</a></nav></aside>
   <main id="main">
     <div class="module-hero">
       <div class="series">SysML v2 &mdash; Ran Wei</div>
       <h1 class="module-title">模块 8：<em>变体与配置</em></h1>
-      <p class="module-lead">如何在一个统一模型中描述产品家族的多种变体——使用 variation、variant、选项与配置机制——以及这些概念如何映射到 KerML 的类型系统。</p>
+      <p class="module-lead">如何定义变体点、声明可选变体并配置产品线 &#8212; 让一个模型就能刻画整个系统配置族。</p>
     </div>
 
-<!-- ════════════════════════════════════════════════════════ -->
-<span class="section-anchor" id="s0"></span>
-<div class="section-header"><span class="section-num">&#9733;</span><h2>KerML &#8594; SysML：变体建模概念对应关系</h2></div>
+<!-- ═══════════════════ Section 0 ═══════════════════ -->
+<span class="section-anchor" id="s0"></span><div class="section-header"><span class="section-num">&#9733;</span><h2>KerML &#8594; SysML：可变性概念</h2></div>
+<p>SysML v2 的可变性建立在 KerML 的<strong>使用变体（usage variation）</strong>与<strong>变体成员关系（variant membership）</strong>机制之上。<code>variation</code> 使用声明一个可变点 &#8212; 该特征必须恰好绑定到其允许的备选项之一。变体点内的每个 <code>variant</code> 都是一个独立的成员选项。在 KerML 层面，这些都通过使用上的特征成员关系与子集关系来建模。</p>
 
-<p>SysML v2 的变体机制建立在 KerML 的类型系统之上。<strong>variation</strong> 不是独立的元模型元素，而是通过特化（specialization）和重定义（redefinition）在已有类型系统上的约束应用。每一个变体选项本质上都是父定义的一个特化子类型。</p>
+<table><thead><tr><th>SysML v2 概念（L2）</th><th>底层 KerML 构造（L1）</th><th>SysML 增加了什么</th></tr></thead><tbody>
+<tr><td><code>variation</code>（作用于使用）</td><td><code>isVariation = true</code> 的 Usage</td><td>把某个特征标记为变体点；在任何完整配置中都必须解析为恰好一个变体</td></tr>
+<tr><td><code>variant</code></td><td><code>VariantMembership</code>（一种 <code>OwningMembership</code>）</td><td>在变体点内声明一个具名备选项；每个变体都是该变体使用的子集</td></tr>
+<tr><td><code>variation part def</code></td><td><code>isVariation = true</code> 的 <code>PartDefinition</code></td><td>其使用天然即为变体点的定义 &#8212; 每次使用都必须被解析</td></tr>
+<tr><td><code>variant</code>（位于变体定义内）</td><td>拥有某个使用的 <code>VariantMembership</code></td><td>在变体定义中充当一个选项的使用</td></tr>
+<tr><td>配置绑定</td><td>把变体解析到某个具体变体的 <code>BindingConnector</code></td><td>固定该选择；产出一个完整解析的产品实例</td></tr>
+<tr><td><code>filter</code> 表达式</td><td><code>FilterExpression</code>（作用于元数据的布尔表达式）</td><td>依据元数据条件从包或命名空间中挑选元素</td></tr>
+<tr><td>产品线包</td><td>混合了变体与非变体内容的 <code>Package</code></td><td>把共享平台元素与产品族的变体点组织在一起</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 0 &#8212; 模块 8 的 SysML v2（L2）可变性概念到 KerML（L1）起源的映射</caption></table>
 
-<table><thead><tr><th>SysML v2 概念（L2）</th><th>底层 KerML 构件（L1）</th><th>SysML 额外添加了什么</th></tr></thead><tbody>
-<tr><td><code>variation</code> 修饰符</td><td>标记为"抽象"的 <code>Usage</code></td><td>表明该用法有多个可选变体，运行时恰好选择一个</td></tr>
-<tr><td><code>variant</code></td><td>特化父 Usage 的子 <code>Usage</code></td><td>每个 variant 是一个可选配置项，由约束或配置选择</td></tr>
-<tr><td>配置（<code>usage</code> 选择）</td><td><code>Redefinition</code>（重定义某个 variation 的绑定）</td><td>在特定产品配置中，将 variation 绑定为某一个 variant</td></tr>
-<tr><td><code>variant part</code></td><td>特化并重定义父 <code>Feature</code></td><td>用于结构部件的变体选择</td></tr>
-<tr><td><code>variant attribute</code></td><td>特化并重定义父 <code>Feature</code>（DataType 类型化）</td><td>用于属性值的变体选择</td></tr>
-<tr><td><code>variant action</code></td><td>特化并重定义父 <code>Feature</code>（Behavior 类型化）</td><td>用于行为的变体选择</td></tr>
-<tr><td>约束过滤（<code>filter</code>）</td><td><code>ConstraintUsage</code></td><td>限定哪些 variant 组合是合法的</td></tr>
-</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 0 &#8212; 模块八 SysML v2（L2）概念与 KerML（L1）来源的对照</caption></table>
+<div class="callout note"><div class="callout-label">说明</div><p>在 KerML 中，<code>isVariation</code> 是任意 Usage 上的布尔属性。当它为 <code>true</code> 时，该使用即成为变体点，其带 <code>VariantMembership</code> 的自有成员就是允许的选项。SysML v2 用 <code>variation</code> 与 <code>variant</code> 关键字为这套机制提供了语法糖。</p></div>
 
-<div class="callout note"><div class="callout-label">注意</div><p>在 KerML 中，变体并非专门的元类。它是对已有类型系统机制（特化、重定义、抽象）的<em>语义约束</em>应用。SysML v2 引入 <code>variation</code> 和 <code>variant</code> 关键字，以便建模者用简洁的语法表达产品家族的可选性。</p></div>
+<!-- ═══════════════════ Section 1 ═══════════════════ -->
+<span class="section-anchor" id="s1"></span><div class="section-header"><span class="section-num">1</span><h2>变体点</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 起源：<code>variation</code> &#8594; <code>isVariation = true</code> 的 Usage</p>
+<p><strong>变体点</strong>是模型中代表一次选择的特征 &#8212; 不同配置正是在这里产生差异。在 SysML v2 中，给使用加上 <code>variation</code> 前缀即可声明变体点。变体使用本身并不是具体元素，而是一个占位符：在任何完整配置中，它都必须被解析为某一个变体。</p>
 
-<!-- ════════════════════════════════════════════════════════ -->
-<span class="section-anchor" id="s1"></span>
-<div class="section-header"><span class="section-num">1</span><h2>变体概述</h2></div>
+<div class="callout analogy"><div class="callout-label">类比</div><p>可以想象一份餐厅菜单。菜单上的「主菜」这一栏就是变体点 &#8212; 每位客人必须且只能选一项。具体的菜品（牛排、鱼、意面）则是变体。菜单定义结构，而每位客人点的那一单就是一个配置。</p></div>
 
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 来源：<code>variation</code> &#8594; 抽象 Usage（Abstract Feature）</p>
-
-<p>在系统工程中，一个产品家族通常包含多种<strong>变体</strong>——同一基础设计的不同版本。例如，一辆汽车可能有汽油版和电动版，同一型号的传感器可能有高精度和标准精度之分。SysML v2 通过 <code>variation</code> 机制在<em>同一个模型</em>中捕获所有这些选项，而不是维护多个独立模型。</p>
-
-<div class="callout analogy"><div class="callout-label">生活类比</div><p>想象一家餐厅的菜单：每道菜是一个「变体点」（variation point），比如主食可以选择米饭、面条或面包。你点餐时做出的选择就是一个「配置」（configuration）——你不需要整个菜单都做出来，只需选定每个选项即可。</p></div>
-
-<h3>为什么需要变体建模</h3>
-<ul>
-<li><strong>复用</strong>：共享的部分只建模一次，变化的部分用 variant 表示</li>
-<li><strong>一致性</strong>：所有变体共享同一个基础架构，避免模型间不一致</li>
-<li><strong>可追溯性</strong>：每个配置决策都有明确的模型痕迹</li>
-<li><strong>自动化</strong>：工具可以根据约束自动排除不合法的组合</li>
-</ul>
-
-<h3>核心术语</h3>
-<table><thead><tr><th>术语</th><th>含义</th></tr></thead><tbody>
-<tr><td>变体点（variation point）</td><td>模型中需要做选择的位置，用 <code>variation</code> 标记</td></tr>
-<tr><td>变体选项（variant）</td><td>某个变体点的一个可选值，用 <code>variant</code> 声明</td></tr>
-<tr><td>配置（configuration）</td><td>对所有变体点做出选择后得到的具体产品实例</td></tr>
-</tbody></table>
-
-<!-- ════════════════════════════════════════════════════════ -->
-<span class="section-anchor" id="s2"></span>
-<div class="section-header"><span class="section-num">2</span><h2>变体用法与选项</h2></div>
-
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 来源：<code>variant</code> &#8594; 特化父 Usage 的子 Feature</p>
-
-<p>使用 <code>variation</code> 修饰符标记一个用法（usage）为变体点，然后用 <code>variant</code> 声明该变体点的各个选项。每个 variant 在类型系统中是父用法的一个特化。</p>
-
-<h3>部件变体</h3>
+<h3>零件使用上的变体</h3>
+<p>最常见的变体形式作用在零件定义内的零件使用上。<code>variation</code> 关键字声明该特征是一个可变点，<code>variant</code> 成员则声明允许的备选项：</p>
 <pre class="lined"><code><table>
 <tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Vehicle {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="cm">// 变体点：动力总成可选择不同类型</span></td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> powertrain : Powertrain {</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> ice   : ICEPowertrain;    <span class="cm">// 内燃机</span></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> ev    : EVPowertrain;     <span class="cm">// 纯电动</span></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> hybrid: HybridPowertrain; <span class="cm">// 混合动力</span></td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">part</span> engine : Engine;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="cm">// Variation point: transmission type</span></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> transmission : Transmission {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> manual    : ManualTransmission;</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> automatic : AutomaticTransmission;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> cvt       : CVTTransmission;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
+</table></code></pre>
+<p>在这个模型中，每个 <code>Vehicle</code> 实例都必须恰好有一套变速器 &#8212; 手动、自动或 CVT 三者取一。变体点不是可选项，它强制要求作出选择。</p>
+
+<h3>属性使用上的变体</h3>
+<p>变体点并不限于零件。你可以把它用在属性、端口或任何其他种类的使用上：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Display {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="cm">// Variation point: screen resolution</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">variation</span> <span class="kw">attribute</span> resolution : ScreenResolution {</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> hd   : HD;    <span class="cm">// 1280x720</span></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> fhd  : FHD;   <span class="cm">// 1920x1080</span></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> uhd  : UHD;   <span class="cm">// 3840x2160</span></td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
 </table></code></pre>
 
-<p>上述代码声明了一个名为 <code>powertrain</code> 的变体点，提供三个选项。在任意具体的 Vehicle 实例中，<code>powertrain</code> 必须恰好绑定为其中之一。</p>
+<div class="callout pitfall"><div class="callout-label">常见误区</div><p>变体点必须至少包含一个 <code>variant</code> 成员。声明一个没有任何变体的 <code>variation</code> 使用属于语义错误 &#8212; 因为根本无从选择。工具应把它标记为不完整。</p></div>
 
-<h3>属性变体</h3>
+<!-- ═══════════════════ Section 2 ═══════════════════ -->
+<span class="section-anchor" id="s2"></span><div class="section-header"><span class="section-num">2</span><h2>变体定义</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 起源：<code>variant</code> &#8594; <code>VariantMembership</code>（一种 <code>OwningMembership</code>）</p>
+<p><strong>变体</strong>是变体点内的一个具体备选项。每个变体都是完整规定的元素 &#8212; 它带有自己的特征、约束和子结构。当某个配置选中一个变体时，在解析后的模型中，该变体的完整定义就取代了原来的变体点。</p>
+
+<h3>内联变体定义</h3>
+<p>变体可以直接内联定义在变体点里，并带上各自特有的特征：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Sensor {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="cm">// 变体点：精度等级</span></td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">variation</span> <span class="kw">attribute</span> accuracy : AccuracyLevel {</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> standard : StandardAccuracy;</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> high     : HighAccuracy;</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<h3>行为变体</h3>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">action</span> <span class="kw">def</span> Navigate {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="cm">// 变体点：导航算法</span></td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">variation</span> <span class="kw">action</span> algorithm : NavAlgorithm {</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">        <span class="kw">variant</span> <span class="kw">action</span> astar   : AStarNav;      <span class="cm">// A* 算法</span></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">variant</span> <span class="kw">action</span> dijkstra: DijkstraNav;   <span class="cm">// Dijkstra 算法</span></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<div class="callout note"><div class="callout-label">注意</div><p><code>variation</code> 可以应用于 <code>part</code>、<code>attribute</code>、<code>action</code>、<code>port</code> 等任何用法类型。每个 <code>variant</code> 必须与变体点的类型兼容（即为其特化或子类型）。</p></div>
-
-<div class="callout pitfall"><div class="callout-label">常见错误</div><p>不要将 <code>variation</code> 与 <code>abstract</code> 混淆。<code>abstract</code> 表示该定义不能直接实例化，但不限制子类型数量。<code>variation</code> 表示运行时恰好选择一个 variant，且变体选项是显式枚举的。</p></div>
-
-<!-- ════════════════════════════════════════════════════════ -->
-<span class="section-anchor" id="s3"></span>
-<div class="section-header"><span class="section-num">3</span><h2>配置定义</h2></div>
-
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 来源：配置 &#8594; 通过 <code>Redefinition</code> 将 variation 绑定为特定 variant</p>
-
-<p><strong>配置</strong>（configuration）是对一个产品家族模型中所有变体点做出具体选择的结果。在 SysML v2 中，配置通过特化父定义并重定义其变体点来实现。</p>
-
-<h3>基本配置</h3>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// 产品家族定义</span></td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Vehicle {</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> powertrain : Powertrain {</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> ice    : ICEPowertrain;</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> ev     : EVPowertrain;</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> hybrid : HybridPowertrain;</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">variation</span> <span class="kw">attribute</span> market : MarketRegion {</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> cn : ChinaMarket;</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> eu : EUMarket;</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> us : USMarket;</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc"><span class="cm">// 配置：中国市场纯电动版</span></td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> VehicleCN_EV <span class="kw">:&gt;</span> Vehicle {</td></tr>
-<tr><td class="ln" select="none">17</td><td class="lc">    <span class="kw">part</span> powertrain <span class="kw">redefines</span> Vehicle::powertrain = powertrain::ev;</td></tr>
-<tr><td class="ln" select="none">18</td><td class="lc">    <span class="kw">attribute</span> market <span class="kw">redefines</span> Vehicle::market = market::cn;</td></tr>
-<tr><td class="ln" select="none">19</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<div class="callout analogy"><div class="callout-label">生活类比</div><p>产品家族定义就像汽车官网上的「车型配置器」：你可以看到所有可选项。当你最终下单时，你选择了具体的发动机、颜色、内饰——这就是一个配置。模型中的 <code>redefines</code> 就相当于你在配置器中做出的每一个选择。</p></div>
-
-<h3>部分配置</h3>
-<p>并非所有变体点都必须在同一个特化中全部绑定。你可以创建<strong>部分配置</strong>，只绑定一部分变体点，将其余选择留给更下层的特化：</p>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// 部分配置：先确定市场，动力总成留给后续选择</span></td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> VehicleCN <span class="kw">:&gt;</span> Vehicle {</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">attribute</span> market <span class="kw">redefines</span> Vehicle::market = market::cn;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="cm">// powertrain 仍然是 variation，尚未绑定</span></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc"><span class="cm">// 完全配置：中国市场 + 混合动力</span></td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> VehicleCN_Hybrid <span class="kw">:&gt;</span> VehicleCN {</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">part</span> powertrain <span class="kw">redefines</span> Vehicle::powertrain = powertrain::hybrid;</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<div class="callout note"><div class="callout-label">注意</div><p>部分配置在大型产品线中非常有用。它允许按阶段逐步缩小选项范围——例如先确定市场法规要求，再确定动力平台，最后确定内饰选项。</p></div>
-
-<!-- ════════════════════════════════════════════════════════ -->
-<span class="section-anchor" id="s4"></span>
-<div class="section-header"><span class="section-num">4</span><h2>约束与规则</h2></div>
-
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 来源：约束过滤 &#8594; <code>ConstraintUsage</code></p>
-
-<p>并非所有变体组合都是合法的。例如，电动版可能不支持某些低成本内饰，某些传感器只在高端市场可用。SysML v2 通过<strong>约束</strong>来限定合法的变体组合。</p>
-
-<h3>变体间约束</h3>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Vehicle {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> powertrain : Powertrain {</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> ice : ICEPowertrain;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> ev  : EVPowertrain;</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> interior : Interior {</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> basic   : BasicInterior;</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> premium : PremiumInterior;</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    <span class="cm">// 约束：电动版必须搭配高端内饰</span></td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">    <span class="kw">assert</span> <span class="kw">constraint</span> evRequiresPremium {</td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">        powertrain == ev <span class="kw">implies</span> interior == premium</td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<h3>使用 <code>require constraint</code> 过滤</h3>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Vehicle {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">variation</span> <span class="kw">attribute</span> batteryCapacity : BatterySize {</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> small  : SmallBattery;   <span class="cm">// 40 kWh</span></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> medium : MediumBattery;  <span class="cm">// 60 kWh</span></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> large  : LargeBattery;   <span class="cm">// 100 kWh</span></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">    <span class="cm">// 内燃机版不需要电池选项</span></td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> batteryOnlyForEV {</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">        powertrain == ice <span class="kw">implies</span> batteryCapacity == <span class="ct">null</span></td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<div class="callout pitfall"><div class="callout-label">常见错误</div><p>约束只声明合法组合，不会自动替你做出选择。如果你创建了一个配置但违反了约束条件，工具应当报告一致性错误。约束是<em>验证规则</em>，不是<em>推导规则</em>。</p></div>
-
-<div class="callout tip"><div class="callout-label">提示</div><p>将变体约束集中放在产品家族定义中，而不是分散在各个配置里。这样当产品线规则变化时，只需修改一处。</p></div>
-
-<!-- ════════════════════════════════════════════════════════ -->
-<span class="section-anchor" id="s5"></span>
-<div class="section-header"><span class="section-num">5</span><h2>特化与变体继承</h2></div>
-
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 来源：特化 &#8594; <code>Specialization</code>（类型层次关系）</p>
-
-<p>变体机制与 SysML v2 的特化系统紧密集成。当你特化一个包含 variation 的定义时，所有的变体点和选项都会被继承。你可以在子类型中：</p>
-<ul>
-<li><strong>绑定</strong>变体点（选定一个 variant）</li>
-<li><strong>缩小</strong>变体选项（移除某些不适用的 variant）</li>
-<li><strong>添加</strong>新的变体点（扩展产品线）</li>
-</ul>
-
-<h3>缩小变体选项</h3>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Vehicle {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> powertrain : Powertrain {</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> ice    : ICEPowertrain;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> ev     : EVPowertrain;</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> hybrid : HybridPowertrain;</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc"><span class="cm">// 城市车型：只提供电动和混合动力</span></td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> CityVehicle <span class="kw">:&gt;</span> Vehicle {</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> powertrain <span class="kw">redefines</span> Vehicle::powertrain {</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> ev     : EVPowertrain;</td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> hybrid : HybridPowertrain;</td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">        <span class="cm">// ice 选项被移除</span></td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Powertrain {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> motorType : Motor {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> ice : ICEMotor {</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">            <span class="kw">attribute</span> displacement : ISQ::VolumeValue;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">            <span class="kw">attribute</span> cylinders    : <span class="ty">ScalarValues</span>::<span class="ty">Integer</span>;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> electric : ElectricMotor {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">            <span class="kw">attribute</span> peakPower   : ISQ::PowerValue;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">            <span class="kw">attribute</span> batteryCapacity : ISQ::EnergyValue;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> hybrid : HybridMotor {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">            <span class="kw">attribute</span> displacement : ISQ::VolumeValue;</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">            <span class="kw">attribute</span> peakPower   : ISQ::PowerValue;</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">        }</td></tr>
 <tr><td class="ln" select="none">15</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">16</td><td class="lc">}</td></tr>
 </table></code></pre>
 
-<h3>添加新变体点</h3>
+<h3>引用外部的变体定义</h3>
+<p>变体也可以引用单独定义的零件定义。当同一个变体出现在模型中多个变体点里时，这种写法很有用：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// 高端车型：继承所有选项，新增自动驾驶等级变体</span></td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> PremiumVehicle <span class="kw">:&gt;</span> Vehicle {</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">variation</span> <span class="kw">attribute</span> autoLevel : AutonomyLevel {</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> l2 : Level2;</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> l3 : Level3;</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">variant</span> <span class="kw">attribute</span> l4 : Level4;</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> ManualTransmission <span class="kw">:&gt;</span> Transmission {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">attribute</span> gearCount : <span class="ty">ScalarValues</span>::<span class="ty">Integer</span>;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> AutomaticTransmission <span class="kw">:&gt;</span> Transmission {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">attribute</span> modes : DriveMode[<span class="nu">1</span>..*];</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    <span class="cm">// Variants reference externally defined part defs</span></td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> transmission : Transmission {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> manual    : ManualTransmission;</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> automatic : AutomaticTransmission;</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>变体定义（定义级）</h3>
+<p>你也可以用 <code>variation part def</code> 把整个定义标记为变体。这意味着该定义本身是抽象的 &#8212; 它不能被直接实例化，而必须解析为它的某个变体成员：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">variation</span> <span class="kw">part</span> <span class="kw">def</span> DriveMode {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">variant</span> eco   : EcoMode;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">variant</span> sport : SportMode;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">variant</span> normal: NormalMode;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout note"><div class="callout-label">说明</div><p>要区分作用在使用上的 <code>variation</code> 与作用在定义上的 <code>variation</code>。变体<em>使用</em>是一个必须在上下文中被解析的具体特征；变体<em>定义</em>则声明类型本身就是一个变体 &#8212; 该定义的每一次使用都继承变体点语义。</p></div>
+
+<!-- ═══════════════════ Section 3 ═══════════════════ -->
+<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>配置管理</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 起源：配置绑定 &#8594; 把变体解析到某个具体变体的 <code>BindingConnector</code></p>
+<p><strong>配置</strong>是对模型中全部变体点的一次具体解析。它为每个变体点恰好选定一个变体，从而产出一个完整规定的产品实例。在 SysML v2 中，配置通过特化产品定义、并把每个变体使用绑定到所选变体来建模。</p>
+
+<h3>通过特化创建配置</h3>
+<p>标准做法是新建一个零件定义或使用，特化那个可变的产品，并绑定每一个变体点：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// Base product with variation points</span></td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">part</span> engine : Engine;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> transmission : Transmission {</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> manual    : ManualTransmission;</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> automatic : AutomaticTransmission;</td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<div class="callout note"><div class="callout-label">注意</div><p>变体的继承遵循 KerML 的特化语义：子类型的实例集是父类型实例集的子集。缩小变体选项就是进一步约束这个子集。反之，你<em>不能</em>在子类型中添加父类型没有的 variant 到已有的 variation point——那将扩大实例集，违反特化语义。但你可以添加新的 variation point。</p></div>
-
-<!-- ════════════════════════════════════════════════════════ -->
-<span class="section-anchor" id="s6"></span>
-<div class="section-header"><span class="section-num">6</span><h2>完整示例</h2></div>
-
-<p>以下模型展示了一个完整的智能家居设备产品家族，综合运用部件变体、属性变体、变体约束和多级配置。</p>
-
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">package</span> SmartHomeProductLine {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> <span class="ty">ScalarValues</span>::*;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="cm">// ── 基础定义 ─────────────────────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> WifiModule;</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> BluetoothModule;</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> ZigbeeModule;</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> BasicProcessor;</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> AIProcessor;</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> StandardCamera;</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> HDCamera;</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">    <span class="cm">// ── 产品家族定义 ─────────────────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SmartHub {</td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc">        <span class="cm">// 变体点 1：通信模块</span></td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc">        <span class="kw">variation</span> <span class="kw">part</span> comms : CommsModule {</td></tr>
-<tr><td class="ln" select="none">17</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> wifi      : WifiModule;</td></tr>
-<tr><td class="ln" select="none">18</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> bluetooth : BluetoothModule;</td></tr>
-<tr><td class="ln" select="none">19</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> zigbee    : ZigbeeModule;</td></tr>
-<tr><td class="ln" select="none">20</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> infotainment : Infotainment {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> basic   : BasicInfotainment;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> premium : PremiumInfotainment;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc"><span class="cm">// Configuration: Sport Edition</span></td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> SportEdition <span class="kw">:&gt;</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    <span class="cm">// Resolve transmission to manual</span></td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    <span class="kw">part</span> transmission <span class="kw">redefines</span> Vehicle::transmission = transmission::manual;</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">    <span class="cm">// Resolve infotainment to premium</span></td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    <span class="kw">part</span> infotainment <span class="kw">redefines</span> Vehicle::infotainment = infotainment::premium;</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">21</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">22</td><td class="lc">        <span class="cm">// 变体点 2：处理器</span></td></tr>
-<tr><td class="ln" select="none">23</td><td class="lc">        <span class="kw">variation</span> <span class="kw">part</span> processor : Processor {</td></tr>
-<tr><td class="ln" select="none">24</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> basic : BasicProcessor;</td></tr>
-<tr><td class="ln" select="none">25</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> ai    : AIProcessor;</td></tr>
-<tr><td class="ln" select="none">26</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">27</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">28</td><td class="lc">        <span class="cm">// 变体点 3：摄像头（可选）</span></td></tr>
-<tr><td class="ln" select="none">29</td><td class="lc">        <span class="kw">variation</span> <span class="kw">part</span> camera [<span class="nu">0</span>..<span class="nu">1</span>] : Camera {</td></tr>
-<tr><td class="ln" select="none">30</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> stdCam : StandardCamera;</td></tr>
-<tr><td class="ln" select="none">31</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> hdCam  : HDCamera;</td></tr>
-<tr><td class="ln" select="none">32</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">33</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">34</td><td class="lc">        <span class="cm">// 变体点 4：目标市场</span></td></tr>
-<tr><td class="ln" select="none">35</td><td class="lc">        <span class="kw">variation</span> <span class="kw">attribute</span> region : MarketRegion {</td></tr>
-<tr><td class="ln" select="none">36</td><td class="lc">            <span class="kw">variant</span> <span class="kw">attribute</span> cn : ChinaRegion;</td></tr>
-<tr><td class="ln" select="none">37</td><td class="lc">            <span class="kw">variant</span> <span class="kw">attribute</span> eu : EURegion;</td></tr>
-<tr><td class="ln" select="none">38</td><td class="lc">            <span class="kw">variant</span> <span class="kw">attribute</span> us : USRegion;</td></tr>
-<tr><td class="ln" select="none">39</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">40</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">41</td><td class="lc">        <span class="cm">// ── 变体约束 ────────────────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">42</td><td class="lc">        <span class="cm">// HD 摄像头需要 AI 处理器</span></td></tr>
-<tr><td class="ln" select="none">43</td><td class="lc">        <span class="kw">assert</span> <span class="kw">constraint</span> hdNeedsAI {</td></tr>
-<tr><td class="ln" select="none">44</td><td class="lc">            camera == hdCam <span class="kw">implies</span> processor == ai</td></tr>
-<tr><td class="ln" select="none">45</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">46</td><td class="lc">        <span class="cm">// 中国市场必须支持 Zigbee</span></td></tr>
-<tr><td class="ln" select="none">47</td><td class="lc">        <span class="kw">assert</span> <span class="kw">constraint</span> cnNeedsZigbee {</td></tr>
-<tr><td class="ln" select="none">48</td><td class="lc">            region == cn <span class="kw">implies</span> comms == zigbee</td></tr>
-<tr><td class="ln" select="none">49</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">50</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">51</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">52</td><td class="lc">    <span class="cm">// ── 配置 1：中国市场基础版 ───────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">53</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SmartHub_CN_Basic <span class="kw">:&gt;</span> SmartHub {</td></tr>
-<tr><td class="ln" select="none">54</td><td class="lc">        <span class="kw">part</span> comms     <span class="kw">redefines</span> SmartHub::comms     = comms::zigbee;</td></tr>
-<tr><td class="ln" select="none">55</td><td class="lc">        <span class="kw">part</span> processor <span class="kw">redefines</span> SmartHub::processor = processor::basic;</td></tr>
-<tr><td class="ln" select="none">56</td><td class="lc">        <span class="kw">part</span> camera    <span class="kw">redefines</span> SmartHub::camera    = camera::stdCam;</td></tr>
-<tr><td class="ln" select="none">57</td><td class="lc">        <span class="kw">attribute</span> region <span class="kw">redefines</span> SmartHub::region   = region::cn;</td></tr>
-<tr><td class="ln" select="none">58</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">59</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">60</td><td class="lc">    <span class="cm">// ── 配置 2：欧洲市场高端版 ───────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">61</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SmartHub_EU_Premium <span class="kw">:&gt;</span> SmartHub {</td></tr>
-<tr><td class="ln" select="none">62</td><td class="lc">        <span class="kw">part</span> comms     <span class="kw">redefines</span> SmartHub::comms     = comms::wifi;</td></tr>
-<tr><td class="ln" select="none">63</td><td class="lc">        <span class="kw">part</span> processor <span class="kw">redefines</span> SmartHub::processor = processor::ai;</td></tr>
-<tr><td class="ln" select="none">64</td><td class="lc">        <span class="kw">part</span> camera    <span class="kw">redefines</span> SmartHub::camera    = camera::hdCam;</td></tr>
-<tr><td class="ln" select="none">65</td><td class="lc">        <span class="kw">attribute</span> region <span class="kw">redefines</span> SmartHub::region   = region::eu;</td></tr>
-<tr><td class="ln" select="none">66</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">67</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc"><span class="cm">// Configuration: Economy Edition</span></td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> EconomyEdition <span class="kw">:&gt;</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">    <span class="kw">part</span> transmission <span class="kw">redefines</span> Vehicle::transmission = transmission::automatic;</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">    <span class="kw">part</span> infotainment <span class="kw">redefines</span> Vehicle::infotainment = infotainment::basic;</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">}</td></tr>
 </table></code></pre>
 
-<p>这个模型展示了：<strong>多个变体点</strong>（通信、处理器、摄像头、市场）、<strong>变体约束</strong>（HD 摄像头需要 AI 处理器、中国市场需要 Zigbee）、<strong>可选变体</strong>（摄像头多重性 [0..1]）以及<strong>完整配置</strong>（将所有变体点绑定为具体选项）。</p>
+<h3>部分配置</h3>
+<p>并非每个配置都必须解析全部变体点。<strong>部分配置</strong>只解析其中一部分，其余保持开放。这在为产品档次或区域变体建模时很有用 &#8212; 某些选择已经固定，另一些仍需灵活：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// Partial configuration: European variant (fixes transmission, leaves infotainment open)</span></td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> EuropeanVehicle <span class="kw">:&gt;</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">part</span> transmission <span class="kw">redefines</span> Vehicle::transmission = transmission::manual;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="cm">// infotainment variation point remains unresolved</span></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc"><span class="cm">// Full configuration: European Sport (resolves remaining variation)</span></td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> EuropeanSport <span class="kw">:&gt;</span> EuropeanVehicle {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">part</span> infotainment <span class="kw">redefines</span> Vehicle::infotainment = infotainment::premium;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
+</table></code></pre>
 
-<!-- ════════════════════════════════════════════════════════ -->
-<span class="section-anchor" id="s7"></span>
-<div class="section-header"><span class="section-num">7</span><h2>本模块总结</h2></div>
+<div class="callout tip"><div class="callout-label">提示</div><p>可以用部分配置搭建分层的配置体系：从基础产品出发，先做区域级或档次级的部分配置，再在叶节点做完全解析的配置。这与汽车主机厂在实践中管理产品线的方式一致。</p></div>
 
-<table><thead><tr><th>SysML v2 概念</th><th>KerML 来源</th><th>关键规则</th></tr></thead><tbody>
-<tr><td><code>variation</code></td><td>抽象 Usage</td><td>标记某个用法为变体点；运行时恰好选择一个 variant</td></tr>
-<tr><td><code>variant</code></td><td>特化父 Usage 的子 Feature</td><td>每个选项必须与变体点的类型兼容</td></tr>
-<tr><td>配置（<code>redefines</code>）</td><td><code>Redefinition</code></td><td>通过重定义将变体点绑定为具体选项</td></tr>
-<tr><td>部分配置</td><td>部分 <code>Redefinition</code></td><td>只绑定部分变体点，其余留给下层特化</td></tr>
-<tr><td>变体约束</td><td><code>ConstraintUsage</code></td><td>限定合法的变体组合；是验证规则，不是推导规则</td></tr>
-<tr><td>缩小选项</td><td>重定义 variation 并减少 variant</td><td>子类型可移除不适用的选项，但不能添加到已有变体点</td></tr>
-<tr><td>添加变体点</td><td>子类型中声明新 variation</td><td>扩展产品线的可选维度</td></tr>
-</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 &#8212; 模块八概念与 KerML 来源对照</caption></table>
+<!-- ═══════════════════ Section 4 ═══════════════════ -->
+<span class="section-anchor" id="s4"></span><div class="section-header"><span class="section-num">4</span><h2>过滤与选择</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 起源：<code>filter</code> &#8594; <code>FilterExpression</code>（作用于元数据的布尔表达式）</p>
+<p><strong>过滤表达式</strong>提供一种查询机制，可依据元数据条件从命名空间中挑选元素。与直接的变体绑定不同，过滤器可以跨包工作，并能同时选中多个元素。它与元数据注解配合使用时尤其强大。</p>
 
-<div class="next-box"><div class="next-label">下一模块</div><p><a href="SysMLv2_Module9_Verification_ZH.html" style="color:var(--blue);text-decoration:none;font-weight:600;">模块 9 &#8212; 验证与确认</a> &#8212; 如何定义验证用例、将其绑定到需求、建模验证方法，并将 V&amp;V 工作流集成到系统工程生命周期中。</p></div>
+<h3>基本过滤语法</h3>
+<p><code>filter</code> 表达式是施加于包内元素的布尔谓词。只有满足该谓词的元素才会出现在过滤后的视图中：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// Metadata for tagging elements</span></td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">metadata</span> <span class="kw">def</span> Region {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">attribute</span> name : <span class="ty">ScalarValues</span>::<span class="ty">String</span>;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"><span class="kw">metadata</span> <span class="kw">def</span> Tier {</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">attribute</span> level : <span class="ty">ScalarValues</span>::<span class="ty">String</span>;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc"><span class="kw">package</span> AllFeatures {</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">part</span> heatedSeats : HeatedSeats {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">        @Region { name = <span class="st">&quot;EU&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        @Tier { level = <span class="st">&quot;premium&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    <span class="kw">part</span> airCon : AirConditioning {</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">        @Region { name = <span class="st">&quot;ALL&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">        @Tier { level = <span class="st">&quot;basic&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    <span class="kw">part</span> sunroof : PanoramicSunroof {</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">        @Region { name = <span class="st">&quot;US&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">        @Tier { level = <span class="st">&quot;premium&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>应用过滤表达式</h3>
+<p>过滤表达式依据元数据从包中挑选元素。被过滤的包充当一个视图 &#8212; 它并不复制元素，而是给出一个受限的子集：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// Select only premium-tier features</span></td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">package</span> PremiumFeatures {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">import</span> AllFeatures::**;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">filter</span> @Tier <span class="kw">and</span> Tier::level == <span class="st">&quot;premium&quot;</span>;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc"><span class="cm">// Select only EU-region features</span></td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"><span class="kw">package</span> EUFeatures {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">import</span> AllFeatures::**;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    <span class="kw">filter</span> @Region <span class="kw">and</span> (Region::name == <span class="st">&quot;EU&quot;</span> <span class="kw">or</span> Region::name == <span class="st">&quot;ALL&quot;</span>);</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout note"><div class="callout-label">说明</div><p>过滤表达式作用于元数据注解。它们不会修改底层模型 &#8212; 只是产出一个仅含匹配元素的模型<em>视图</em>。这在概念上类似数据库查询：数据本身没变，只是结果集被收窄了。</p></div>
+
+<h3>把过滤器与变体结合使用</h3>
+<p>过滤器与变体点是互补机制。变体点定义的是<em>强制选择</em>（必须选一个）；过滤器定义的是<em>可选纳入</em>（满足条件才纳入）。设计良好的产品线两者兼用：</p>
+<ul>
+  <li><strong>变体点</strong>用于结构性备选（发动机类型、车身形式）</li>
+  <li><strong>过滤器</strong>用于功能包（舒适选装、区域合规功能）</li>
+</ul>
+
+<div class="callout pitfall"><div class="callout-label">常见误区</div><p>不要用过滤器替代变体点。过滤器是从既有集合中挑选，变体点则声明一次强制选择。如果每个产品都<em>必须</em>在若干备选中恰好取一个，请用 <code>variation</code>/<code>variant</code>；如果某项功能是依据元数据有条件地纳入，才用 <code>filter</code>。</p></div>
+
+<!-- ═══════════════════ Section 5 ═══════════════════ -->
+<span class="section-anchor" id="s5"></span><div class="section-header"><span class="section-num">5</span><h2>产品线建模</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 起源：产品线 &#8594; 混合了变体与非变体内容的 Package</p>
+<p><strong>产品线</strong>是一族共享同一平台、但在具体功能上有所差异的产品。SysML v2 通过共享定义（平台）、变体点（可配置的部分）与配置（已解析的产品）三者的组合来支持产品线建模。</p>
+
+<h3>平台 + 变体策略</h3>
+<p>推荐的模式把模型分为三层：</p>
+<ol>
+  <li><strong>平台包</strong> &#8212; 共享定义、不变结构与公共约束</li>
+  <li><strong>可变性包</strong> &#8212; 变体点与变体定义</li>
+  <li><strong>配置包</strong> &#8212; 绑定了全部变体点的完整产品</li>
+</ol>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">package</span> Platform {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="cm">// Shared across all products</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> Chassis { <span class="kw">attribute</span> wheelbase : ISQ::LengthValue; }</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> BrakeSystem { <span class="kw">part</span> frontBrakes : DiscBrake; <span class="kw">part</span> rearBrakes : DiscBrake; }</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SteeringSystem { <span class="kw">attribute</span> ratio : <span class="ty">ScalarValues</span>::<span class="ty">Real</span>; }</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"><span class="kw">package</span> Variability {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> Platform::*;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> ProductVehicle {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">        <span class="kw">part</span> chassis  : Chassis;       <span class="cm">// from platform (invariant)</span></td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        <span class="kw">part</span> brakes   : BrakeSystem;   <span class="cm">// from platform (invariant)</span></td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">        <span class="kw">part</span> steering : SteeringSystem; <span class="cm">// from platform (invariant)</span></td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">        <span class="cm">// Variable aspects</span></td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">        <span class="kw">variation</span> <span class="kw">part</span> body : BodyStyle {</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> sedan : SedanBody;</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> suv   : SUVBody;</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> truck : TruckBody;</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">        <span class="kw">variation</span> <span class="kw">part</span> powertrain : Powertrain {</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> petrol   : PetrolPowertrain;</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> diesel   : DieselPowertrain;</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> electric : ElectricPowertrain;</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">27</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">28</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">29</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">30</td><td class="lc"><span class="kw">package</span> Configurations {</td></tr>
+<tr><td class="ln" select="none">31</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> Variability::*;</td></tr>
+<tr><td class="ln" select="none">32</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">33</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SedanPetrol <span class="kw">:&gt;</span> ProductVehicle {</td></tr>
+<tr><td class="ln" select="none">34</td><td class="lc">        <span class="kw">part</span> body <span class="kw">redefines</span> ProductVehicle::body = body::sedan;</td></tr>
+<tr><td class="ln" select="none">35</td><td class="lc">        <span class="kw">part</span> powertrain <span class="kw">redefines</span> ProductVehicle::powertrain = powertrain::petrol;</td></tr>
+<tr><td class="ln" select="none">36</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">37</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">38</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SUVElectric <span class="kw">:&gt;</span> ProductVehicle {</td></tr>
+<tr><td class="ln" select="none">39</td><td class="lc">        <span class="kw">part</span> body <span class="kw">redefines</span> ProductVehicle::body = body::suv;</td></tr>
+<tr><td class="ln" select="none">40</td><td class="lc">        <span class="kw">part</span> powertrain <span class="kw">redefines</span> ProductVehicle::powertrain = powertrain::electric;</td></tr>
+<tr><td class="ln" select="none">41</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">42</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>约束在变体间的传播</h3>
+<p>定义在平台或基础产品上的约束适用于全部配置；变体特有的约束则可以加在变体层级上：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> ProductVehicle {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="cm">// Platform constraint: applies to ALL configurations</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">assert</span> <span class="kw">constraint</span> maxWeight {</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">        chassis.totalMass &lt;= <span class="nu">2500</span>[kg]</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">variation</span> <span class="kw">part</span> body : BodyStyle {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        <span class="kw">variant</span> <span class="kw">part</span> truck : TruckBody {</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">            <span class="cm">// Variant-specific constraint: only applies when truck is selected</span></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">            <span class="kw">assert</span> <span class="kw">constraint</span> towingCapacity {</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">                payloadCapacity &gt;= <span class="nu">1000</span>[kg]</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">            }</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<div class="callout tip"><div class="callout-label">提示</div><p>三层模式（平台、可变性、配置）具有良好的可扩展性：平台包可由平台工程团队维护，可变性包由产品管理负责，配置包则由各产品团队负责。每一层从下一层导入内容。</p></div>
+
+<!-- ═══════════════════ Section 6 ═══════════════════ -->
+<span class="section-anchor" id="s6"></span><div class="section-header"><span class="section-num">6</span><h2>完整示例</h2></div>
+<p>下面的模型整合了本模块的全部概念：一条车辆产品线，包含轿车、SUV 与皮卡三种变体，共享同一平台，各自具备动力总成与功能级的可变性，并配有元数据驱动的过滤和完整解析的配置。</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">package</span> VehicleProductLine {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> ISQ::*;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> SI::*;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> <span class="ty">ScalarValues</span>::*;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="cm">// ── Metadata for filtering ──────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">metadata</span> <span class="kw">def</span> MarketRegion {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        <span class="kw">attribute</span> region : <span class="ty">String</span>;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    <span class="kw">metadata</span> <span class="kw">def</span> FeatureTier {</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">        <span class="kw">attribute</span> tier : <span class="ty">String</span>;</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    <span class="cm">// ── Shared platform ─────────────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> Chassis {</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">        <span class="kw">attribute</span> wheelbase : LengthValue;</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">        <span class="kw">attribute</span> curbWeight : MassValue;</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> BrakeSystem {</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">        <span class="kw">part</span> frontBrakes : DiscBrake;</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">        <span class="kw">part</span> rearBrakes  : DiscBrake;</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">        <span class="kw">part</span> abs : ABSController;</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SteeringSystem {</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">        <span class="kw">attribute</span> steeringRatio : <span class="ty">Real</span>;</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">27</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">28</td><td class="lc">    <span class="cm">// ── Body style variants ──────────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">29</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> BodyStyle;</td></tr>
+<tr><td class="ln" select="none">30</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SedanBody <span class="kw">:&gt;</span> BodyStyle {</td></tr>
+<tr><td class="ln" select="none">31</td><td class="lc">        <span class="kw">attribute</span> doorCount   : <span class="ty">Integer</span> = <span class="nu">4</span>;</td></tr>
+<tr><td class="ln" select="none">32</td><td class="lc">        <span class="kw">attribute</span> trunkVolume : VolumeValue;</td></tr>
+<tr><td class="ln" select="none">33</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">34</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SUVBody <span class="kw">:&gt;</span> BodyStyle {</td></tr>
+<tr><td class="ln" select="none">35</td><td class="lc">        <span class="kw">attribute</span> doorCount     : <span class="ty">Integer</span> = <span class="nu">5</span>;</td></tr>
+<tr><td class="ln" select="none">36</td><td class="lc">        <span class="kw">attribute</span> groundClearance : LengthValue;</td></tr>
+<tr><td class="ln" select="none">37</td><td class="lc">        <span class="kw">attribute</span> roofRails     : <span class="ty">Boolean</span> = <span class="ct">true</span>;</td></tr>
+<tr><td class="ln" select="none">38</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">39</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> TruckBody <span class="kw">:&gt;</span> BodyStyle {</td></tr>
+<tr><td class="ln" select="none">40</td><td class="lc">        <span class="kw">attribute</span> doorCount      : <span class="ty">Integer</span> = <span class="nu">4</span>;</td></tr>
+<tr><td class="ln" select="none">41</td><td class="lc">        <span class="kw">attribute</span> bedLength      : LengthValue;</td></tr>
+<tr><td class="ln" select="none">42</td><td class="lc">        <span class="kw">attribute</span> payloadCapacity : MassValue;</td></tr>
+<tr><td class="ln" select="none">43</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">44</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">45</td><td class="lc">    <span class="cm">// ── Powertrain variants ──────────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">46</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> Powertrain;</td></tr>
+<tr><td class="ln" select="none">47</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> PetrolPowertrain <span class="kw">:&gt;</span> Powertrain {</td></tr>
+<tr><td class="ln" select="none">48</td><td class="lc">        <span class="kw">attribute</span> displacement : VolumeValue;</td></tr>
+<tr><td class="ln" select="none">49</td><td class="lc">        <span class="kw">attribute</span> cylinders    : <span class="ty">Integer</span>;</td></tr>
+<tr><td class="ln" select="none">50</td><td class="lc">        <span class="kw">attribute</span> maxPower     : PowerValue;</td></tr>
+<tr><td class="ln" select="none">51</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">52</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> DieselPowertrain <span class="kw">:&gt;</span> Powertrain {</td></tr>
+<tr><td class="ln" select="none">53</td><td class="lc">        <span class="kw">attribute</span> displacement : VolumeValue;</td></tr>
+<tr><td class="ln" select="none">54</td><td class="lc">        <span class="kw">attribute</span> maxTorque    : ForceValue;</td></tr>
+<tr><td class="ln" select="none">55</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">56</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> ElectricPowertrain <span class="kw">:&gt;</span> Powertrain {</td></tr>
+<tr><td class="ln" select="none">57</td><td class="lc">        <span class="kw">attribute</span> batteryCapacity : EnergyValue;</td></tr>
+<tr><td class="ln" select="none">58</td><td class="lc">        <span class="kw">attribute</span> range           : LengthValue;</td></tr>
+<tr><td class="ln" select="none">59</td><td class="lc">        <span class="kw">attribute</span> chargePower     : PowerValue;</td></tr>
+<tr><td class="ln" select="none">60</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">61</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">62</td><td class="lc">    <span class="cm">// ── Optional feature packages (metadata-tagged) ─────────</span></td></tr>
+<tr><td class="ln" select="none">63</td><td class="lc">    <span class="kw">package</span> FeatureCatalog {</td></tr>
+<tr><td class="ln" select="none">64</td><td class="lc">        <span class="kw">part</span> heatedSeats : HeatedSeats {</td></tr>
+<tr><td class="ln" select="none">65</td><td class="lc">            @MarketRegion { region = <span class="st">&quot;ALL&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">66</td><td class="lc">            @FeatureTier { tier = <span class="st">&quot;premium&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">67</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">68</td><td class="lc">        <span class="kw">part</span> adaptiveCruise : AdaptiveCruiseControl {</td></tr>
+<tr><td class="ln" select="none">69</td><td class="lc">            @MarketRegion { region = <span class="st">&quot;ALL&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">70</td><td class="lc">            @FeatureTier { tier = <span class="st">&quot;premium&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">71</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">72</td><td class="lc">        <span class="kw">part</span> towHitch : TowHitch {</td></tr>
+<tr><td class="ln" select="none">73</td><td class="lc">            @MarketRegion { region = <span class="st">&quot;US&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">74</td><td class="lc">            @FeatureTier { tier = <span class="st">&quot;basic&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">75</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">76</td><td class="lc">        <span class="kw">part</span> headlightWashers : HeadlightWashers {</td></tr>
+<tr><td class="ln" select="none">77</td><td class="lc">            @MarketRegion { region = <span class="st">&quot;EU&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">78</td><td class="lc">            @FeatureTier { tier = <span class="st">&quot;basic&quot;</span>; }</td></tr>
+<tr><td class="ln" select="none">79</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">80</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">81</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">82</td><td class="lc">    <span class="cm">// ── Base product with variation points ───────────────────</span></td></tr>
+<tr><td class="ln" select="none">83</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">84</td><td class="lc">        <span class="cm">// Platform (invariant across all configurations)</span></td></tr>
+<tr><td class="ln" select="none">85</td><td class="lc">        <span class="kw">part</span> chassis  : Chassis;</td></tr>
+<tr><td class="ln" select="none">86</td><td class="lc">        <span class="kw">part</span> brakes   : BrakeSystem;</td></tr>
+<tr><td class="ln" select="none">87</td><td class="lc">        <span class="kw">part</span> steering : SteeringSystem;</td></tr>
+<tr><td class="ln" select="none">88</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">89</td><td class="lc">        <span class="cm">// Variation point 1: body style</span></td></tr>
+<tr><td class="ln" select="none">90</td><td class="lc">        <span class="kw">variation</span> <span class="kw">part</span> body : BodyStyle {</td></tr>
+<tr><td class="ln" select="none">91</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> sedan : SedanBody;</td></tr>
+<tr><td class="ln" select="none">92</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> suv   : SUVBody;</td></tr>
+<tr><td class="ln" select="none">93</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> truck : TruckBody;</td></tr>
+<tr><td class="ln" select="none">94</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">95</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">96</td><td class="lc">        <span class="cm">// Variation point 2: powertrain</span></td></tr>
+<tr><td class="ln" select="none">97</td><td class="lc">        <span class="kw">variation</span> <span class="kw">part</span> powertrain : Powertrain {</td></tr>
+<tr><td class="ln" select="none">98</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> petrol   : PetrolPowertrain;</td></tr>
+<tr><td class="ln" select="none">99</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> diesel   : DieselPowertrain;</td></tr>
+<tr><td class="ln" select="none">100</td><td class="lc">            <span class="kw">variant</span> <span class="kw">part</span> electric : ElectricPowertrain;</td></tr>
+<tr><td class="ln" select="none">101</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">102</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">103</td><td class="lc">        <span class="cm">// Platform constraint: all variants must satisfy</span></td></tr>
+<tr><td class="ln" select="none">104</td><td class="lc">        <span class="kw">assert</span> <span class="kw">constraint</span> maxGrossWeight {</td></tr>
+<tr><td class="ln" select="none">105</td><td class="lc">            chassis.curbWeight &lt;= <span class="nu">3000</span>[kg]</td></tr>
+<tr><td class="ln" select="none">106</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">107</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">108</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">109</td><td class="lc">    <span class="cm">// ── Filtered feature views ───────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">110</td><td class="lc">    <span class="kw">package</span> PremiumFeatures {</td></tr>
+<tr><td class="ln" select="none">111</td><td class="lc">        <span class="kw">import</span> FeatureCatalog::**;</td></tr>
+<tr><td class="ln" select="none">112</td><td class="lc">        <span class="kw">filter</span> @FeatureTier <span class="kw">and</span> FeatureTier::tier == <span class="st">&quot;premium&quot;</span>;</td></tr>
+<tr><td class="ln" select="none">113</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">114</td><td class="lc">    <span class="kw">package</span> USFeatures {</td></tr>
+<tr><td class="ln" select="none">115</td><td class="lc">        <span class="kw">import</span> FeatureCatalog::**;</td></tr>
+<tr><td class="ln" select="none">116</td><td class="lc">        <span class="kw">filter</span> @MarketRegion <span class="kw">and</span> (MarketRegion::region == <span class="st">&quot;US&quot;</span></td></tr>
+<tr><td class="ln" select="none">117</td><td class="lc">                                <span class="kw">or</span> MarketRegion::region == <span class="st">&quot;ALL&quot;</span>);</td></tr>
+<tr><td class="ln" select="none">118</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">119</td><td class="lc">    <span class="kw">package</span> EUFeatures {</td></tr>
+<tr><td class="ln" select="none">120</td><td class="lc">        <span class="kw">import</span> FeatureCatalog::**;</td></tr>
+<tr><td class="ln" select="none">121</td><td class="lc">        <span class="kw">filter</span> @MarketRegion <span class="kw">and</span> (MarketRegion::region == <span class="st">&quot;EU&quot;</span></td></tr>
+<tr><td class="ln" select="none">122</td><td class="lc">                                <span class="kw">or</span> MarketRegion::region == <span class="st">&quot;ALL&quot;</span>);</td></tr>
+<tr><td class="ln" select="none">123</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">124</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">125</td><td class="lc">    <span class="cm">// ── Fully resolved configurations ────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">126</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SedanPetrolUS <span class="kw">:&gt;</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">127</td><td class="lc">        <span class="kw">part</span> body <span class="kw">redefines</span> Vehicle::body = body::sedan;</td></tr>
+<tr><td class="ln" select="none">128</td><td class="lc">        <span class="kw">part</span> powertrain <span class="kw">redefines</span> Vehicle::powertrain = powertrain::petrol;</td></tr>
+<tr><td class="ln" select="none">129</td><td class="lc">        <span class="cm">// Include US-market features from the filtered view</span></td></tr>
+<tr><td class="ln" select="none">130</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">131</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">132</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> SUVElectricEU <span class="kw">:&gt;</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">133</td><td class="lc">        <span class="kw">part</span> body <span class="kw">redefines</span> Vehicle::body = body::suv;</td></tr>
+<tr><td class="ln" select="none">134</td><td class="lc">        <span class="kw">part</span> powertrain <span class="kw">redefines</span> Vehicle::powertrain = powertrain::electric;</td></tr>
+<tr><td class="ln" select="none">135</td><td class="lc">        <span class="cm">// Include EU-market features from the filtered view</span></td></tr>
+<tr><td class="ln" select="none">136</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">137</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">138</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> TruckDieselUS <span class="kw">:&gt;</span> Vehicle {</td></tr>
+<tr><td class="ln" select="none">139</td><td class="lc">        <span class="kw">part</span> body <span class="kw">redefines</span> Vehicle::body = body::truck;</td></tr>
+<tr><td class="ln" select="none">140</td><td class="lc">        <span class="kw">part</span> powertrain <span class="kw">redefines</span> Vehicle::powertrain = powertrain::diesel;</td></tr>
+<tr><td class="ln" select="none">141</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">142</td><td class="lc">        <span class="cm">// Truck-specific constraint override</span></td></tr>
+<tr><td class="ln" select="none">143</td><td class="lc">        <span class="kw">assert</span> <span class="kw">constraint</span> towRating {</td></tr>
+<tr><td class="ln" select="none">144</td><td class="lc">            body.payloadCapacity &gt;= <span class="nu">1500</span>[kg]</td></tr>
+<tr><td class="ln" select="none">145</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">146</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">147</td><td class="lc">}</td></tr>
+</table></code></pre>
+<p>该模型演示了：<strong>共享平台</strong>（底盘、制动、转向）、两个各含三个变体的<strong>变体点</strong>（车身形式、动力总成）、带市场区域与档次过滤表达式的<strong>元数据标记选装功能</strong>、适用于全部配置的<strong>平台级约束</strong>、<strong>变体特有约束</strong>（皮卡拖挂能力），以及面向不同细分市场的三个<strong>完整解析配置</strong>。</p>
+
+<!-- ═══════════════════ Section 7 ═══════════════════ -->
+<span class="section-anchor" id="s7"></span><div class="section-header"><span class="section-num">7</span><h2>模块总结</h2></div>
+
+<table><thead><tr><th>SysML v2 概念</th><th>KerML 起源</th><th>关键规则</th></tr></thead><tbody>
+<tr><td><code>variation</code>（作用于使用）</td><td><code>isVariation = true</code> 的 Usage</td><td>把某个特征标记为变体点；必须解析为恰好一个变体</td></tr>
+<tr><td><code>variant</code></td><td><code>VariantMembership</code></td><td>在变体点内声明一个允许的备选项</td></tr>
+<tr><td><code>variation part def</code></td><td><code>isVariation = true</code> 的 <code>PartDefinition</code></td><td>定义本身即是变体；其每次使用都继承变体语义</td></tr>
+<tr><td>配置绑定</td><td><code>BindingConnector</code></td><td>通过 <code>redefines</code> 把变体使用解析到某个具体变体</td></tr>
+<tr><td>部分配置</td><td>仍有部分变体未解析的特化</td><td>固定一部分选择，其余留待进一步特化</td></tr>
+<tr><td><code>filter</code> 表达式</td><td><code>FilterExpression</code></td><td>依据元数据条件从命名空间中挑选元素；产出一个视图</td></tr>
+<tr><td>产品线包</td><td>内容混合的 Package</td><td>三层模式：平台 + 可变性 + 配置</td></tr>
+<tr><td>元数据标记</td><td>元数据注解</td><td>为元素标注区域、档次等筛选条件，供过滤使用</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 &#8212; 模块 8 的概念及其 KerML 起源</caption></table>
+
+<div class="next-box"><div class="next-label">下一模块</div><p><a href="SysMLv2_Module9_Verification_ZH.html" style="color:var(--blue);text-decoration:none;font-weight:600;">模块 9 &#8212; 验证与确认</a> &#8212; 如何定义验证用例、把它们绑定到需求、为验证方法建模，并把 V&amp;V 融入系统工程生命周期。</p></div>
   </main>
 </div>
 <script>
@@ -469,6 +614,6 @@ function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offs
 window.addEventListener('scroll',activateNav,{passive:true});activateNav();
 </script>
 <footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
-  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+  <p>&copy; Ran Wei &middot; 授权协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
 </footer>
 </body></html>

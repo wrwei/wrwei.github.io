@@ -122,429 +122,442 @@ pre.lined .op{color:#6366F1}
   <a href="SysMLv2_Module7_Analysis_EN.html" class="lang-switch" style="font-size:0.78rem;font-weight:500;color:var(--slate);text-decoration:none;border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:6px;margin-left:0.5rem;">EN</a>
 </header>
 <div id="layout">
-  <aside id="sidebar"><div class="sidebar-label">目录</div><nav><a href="#s0"><span class="num">&#9733;</span>KerML &#8594; SysML 对应关系</a><a href="#s1"><span class="num">1</span>分析案例概述</a><a href="#s2"><span class="num">2</span>分析动作与计算</a><a href="#s3"><span class="num">3</span>约束与目标函数</a><a href="#s4"><span class="num">4</span>权衡研究</a><a href="#s5"><span class="num">5</span>度量与评估准则</a><a href="#s6"><span class="num">6</span>完整示例</a><a href="#s7"><span class="num">7</span>本模块总结</a></nav></aside>
+  <aside id="sidebar"><div class="sidebar-label">目录</div><nav><a href="#s0"><span class="num">&#9733;</span>KerML &#8594; SysML 桥接</a><a href="#s1"><span class="num">1</span>分析用例详解</a><a href="#s2"><span class="num">2</span>目标函数</a><a href="#s3"><span class="num">3</span>计算定义</a><a href="#s4"><span class="num">4</span>权衡研究模式</a><a href="#s5"><span class="num">5</span>评估与结果</a><a href="#s6"><span class="num">6</span>完整示例</a><a href="#s7"><span class="num">7</span>模块总结</a></nav></aside>
   <main id="main">
     <div class="module-hero">
       <div class="series">SysML v2 &mdash; Ran Wei</div>
       <h1 class="module-title">模块 7：<em>分析与权衡</em></h1>
-      <p class="module-lead">如何在 SysML v2 中定义分析案例、评估设计备选方案，以及通过权衡研究做出可追溯的工程决策。</p>
+      <p class="module-lead">如何组织定量分析、定义目标函数与计算，并运用权衡研究模式比较设计备选方案 &#8212; 全部都在 SysML v2 的形式化分析框架之内完成。</p>
     </div>
 
-<!-- ═══════════════════════════════════════════════════ S0 ═══ -->
-<span class="section-anchor" id="s0"></span><div class="section-header"><span class="section-num">&#9733;</span><h2>KerML &#8594; SysML：分析与权衡概念对应关系</h2></div>
-<p>SysML v2 的分析建模建立在 KerML 的 <strong>Feature</strong>、<strong>Expression</strong> 和 <strong>Classifier</strong> 机制之上。分析案例、计算和权衡研究都是 SysML L2 对这些 L1 核心构件的领域特化。</p>
-<table><thead><tr><th>SysML v2 概念（L2）</th><th>底层 KerML 构件（L1）</th><th>SysML 额外添加了什么</th></tr></thead><tbody>
-<tr><td><code>analysis def</code></td><td><code>CaseDefinition</code>（特化自 <code>CalculationDefinition</code>）</td><td>结构化的分析框架：主题、输入参数、求解步骤和返回结果</td></tr>
-<tr><td><code>analysis</code>（用法）</td><td>由 <code>CaseDefinition</code> 类型化的 Feature</td><td>在特定上下文中实例化分析，绑定具体设计参数</td></tr>
-<tr><td><code>calc def</code></td><td><code>Function</code>（KerML Core 层）</td><td>可复用的数学函数；返回一个计算结果值</td></tr>
-<tr><td><code>calc</code>（用法）</td><td>由 <code>Function</code> 类型化的 Feature</td><td>在分析或约束中调用计算定义</td></tr>
-<tr><td><code>constraint def</code></td><td><code>Predicate</code>（返回 Boolean 的 <code>Function</code>）</td><td>断言设计必须满足的条件；用于验证和优化</td></tr>
-<tr><td><code>objective</code></td><td><code>RequirementUsage</code>（在 <code>CaseDefinition</code> 中）</td><td>声明分析的目标函数或优化方向</td></tr>
-<tr><td><code>subject</code></td><td><code>SubjectMembership</code></td><td>指定分析针对的系统或组件</td></tr>
-<tr><td><code>return</code></td><td><code>ResultExpressionMembership</code></td><td>分析案例的最终输出值</td></tr>
-</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 0 &#8212; 模块七 SysML v2（L2）概念与 KerML（L1）来源的对照</caption></table>
-<div class="callout note"><div class="callout-label">注意</div><p>在 KerML 中，<code>Function</code> 是一种特化的 <code>Behavior</code>，具有返回值。<code>Predicate</code> 进一步特化 <code>Function</code>，返回 <code>Boolean</code>。SysML v2 的 <code>calc def</code> 和 <code>constraint def</code> 分别映射到这两个构件，为工程分析提供了类型安全的数学建模基础。</p></div>
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 0 &#8212; KerML Bridge
+     ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s0"></span><div class="section-header"><span class="section-num">&#9733;</span><h2>KerML &#8594; SysML：分析概念</h2></div>
+<p>SysML v2 的分析建模建立在 KerML 的<strong>函数（Function）</strong>与<strong>用例（Case）</strong>抽象之上。本模块中的每个分析关键字，都映射到一个为其提供形式化语义的 KerML 构造。</p>
+<table><thead><tr><th>SysML v2 概念（L2）</th><th>底层 KerML 构造（L1）</th><th>SysML 增加了什么</th></tr></thead><tbody>
+<tr><td><code>calc def</code></td><td><code>Function</code>（一种返回值的 Behavior）</td><td>具名、可复用的数学表达式，带类型化参数与返回类型</td></tr>
+<tr><td><code>calc</code>（使用）</td><td>由 <code>Function</code> 定型的 <code>Expression</code></td><td>在具体上下文中对函数求值，把实参绑定到参数上</td></tr>
+<tr><td><code>analysis def</code></td><td><code>CaseDefinition</code>（特化自 <code>CalculationDefinition</code>）</td><td>用主题、目标与返回值组织一次完整的分析</td></tr>
+<tr><td><code>analysis</code>（使用）</td><td><code>CaseUsage</code></td><td>把该分析施加到某个具体设计上下文的一个实例</td></tr>
+<tr><td><code>objective</code></td><td>作用域限定在该用例内的 <code>RequirementUsage</code></td><td>定义该分析必须满足或评估的成功判据</td></tr>
+<tr><td><code>subject</code></td><td><code>SubjectMembership</code>（一个参数）</td><td>标识正在被分析的是哪个系统元素</td></tr>
+<tr><td><code>return</code></td><td><code>ReturnParameterMembership</code></td><td>该分析或计算得到的结果值</td></tr>
+<tr><td><code>require constraint</code></td><td><code>RequirementConstraintMembership</code></td><td>为达成目标而必须成立的布尔约束</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 0 &#8212; 模块 7 的 SysML v2（L2）分析概念到 KerML（L1）起源的映射</caption></table>
+<div class="callout note"><div class="callout-label">说明</div><p>在 KerML 中，<code>Function</code> 是一种会计算并返回值的 <code>Behavior</code> &#8212; 它在 <code>Behavior</code> 基础上特化出一个 <code>result</code> 参数。<code>CaseDefinition</code> 又进一步特化自 <code>CalculationDefinition</code>（后者本身特化自 <code>Function</code>），并补充了<strong>主题</strong>与<strong>目标</strong>这两个结构化概念。也就是说，在 KerML 层面上，每个分析用例都是一个返回值的函数。</p></div>
 
-<!-- ═══════════════════════════════════════════════════ S1 ═══ -->
-<span class="section-anchor" id="s1"></span><div class="section-header"><span class="section-num">1</span><h2>分析案例概述</h2></div>
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 来源：<code>analysis def</code> &#8594; <code>CaseDefinition</code>（特化自 <code>CalculationDefinition</code>）</p>
-<p><strong>分析案例（analysis case）</strong>是 SysML v2 中用于组织工程分析的核心结构。它将分析的输入、求解步骤和输出结果封装为一个可复用、可追溯的单元。与动作（action）描述系统行为不同，分析案例描述的是工程师对设计的<em>评估过程</em>。</p>
-<div class="callout analogy"><div class="callout-label">&#127968; 生活类比</div><p>分析案例就像实验室里的实验方案：它规定了实验对象（subject）、输入变量、实验步骤和预期结果。每次用不同参数运行这个方案，就得到一组新的实验数据。</p></div>
-<h3>分析案例的基本结构</h3>
-<p>一个分析案例包含四个关键要素：<strong>subject</strong>（分析主题）、<strong>输入参数</strong>、<strong>计算步骤</strong>和 <strong>return</strong>（返回结果）：</p>
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 1 &#8212; Analysis Case Deep Dive
+     ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s1"></span><div class="section-header"><span class="section-num">1</span><h2>分析用例详解</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 起源：<code>analysis def</code> &#8594; <code>CaseDefinition</code>（特化自 <code>CalculationDefinition</code>）</p>
+<p><strong>分析用例</strong>是 SysML v2 为各类定量评估提供的结构化容器。它把<strong>主题</strong>（被分析的元素）、<strong>目标</strong>（成功判据）和<strong>返回</strong>值（计算结果）打包成一个可复用的定义。与一堆松散的约束不同，分析用例是一等模型元素，可以被实例化、被特化，也可以追溯到需求。</p>
+<div class="callout analogy"><div class="callout-label">类比</div><p>可以把它想成一份实验报告：写明测的是什么（主题）、什么算成功（目标）、实验步骤（主体），并记录结果（返回值）。分析用例就是它在建模中的对应物 &#8212; 一个自洽、可重复的实验定义。</p></div>
+
+<h3>基本结构</h3>
 <pre class="lined"><code><table>
 <tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">analysis</span> <span class="kw">def</span> MassAnalysis {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> vehicle : Vehicle;           <span class="cm">// 分析主题：被分析的系统</span></td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">in</span> <span class="kw">attribute</span> payload : ISQ::MassValue;  <span class="cm">// 输入参数</span></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    <span class="cm">// 计算步骤</span></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    calc totalMass : MassRollup {</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">        <span class="kw">in</span> dryMass  = vehicle.dryMass;</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">        <span class="kw">in</span> fuelMass = vehicle.fuelMass;</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">        <span class="kw">in</span> payload  = payload;</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">    <span class="kw">return</span> totalMass.result;             <span class="cm">// 返回计算结果</span></td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">}</td></tr>
-</table></code></pre>
-<div class="callout note"><div class="callout-label">注意</div><p><code>analysis def</code> 是定义层面的模板，<code>analysis</code> 是用法层面的实例。这与 <code>part def</code>/<code>part</code>、<code>action def</code>/<code>action</code> 的模式完全一致——SysML v2 中「定义/用法」的分离贯穿所有领域。</p></div>
-
-<h3>在模型中实例化分析</h3>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> vehicle1 : Vehicle {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">attribute</span> dryMass  = <span class="nu">1200</span>[kg];</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">attribute</span> fuelMass = <span class="nu">300</span>[kg];</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc"><span class="cm">// 用具体值实例化分析案例</span></td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc"><span class="kw">analysis</span> massCheck : MassAnalysis {</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">subject</span> vehicle1;</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">in</span> payload = <span class="nu">500</span>[kg];</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<!-- ═══════════════════════════════════════════════════ S2 ═══ -->
-<span class="section-anchor" id="s2"></span><div class="section-header"><span class="section-num">2</span><h2>分析动作与计算</h2></div>
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 来源：<code>calc def</code> &#8594; <code>Function</code>（Core 层）；<code>calc</code> &#8594; 由 <code>Function</code> 类型化的 Feature</p>
-<p><strong>计算定义（calc def）</strong>是 SysML v2 中可复用的数学函数。与 <code>action def</code> 不同，计算定义<em>必须</em>有返回值——它映射到 KerML 的 <code>Function</code>，而非一般的 <code>Behavior</code>。计算可以在分析案例、约束和其他计算中被调用。</p>
-
-<h3>定义计算</h3>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> MassRollup {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">in</span> dryMass  : ISQ::MassValue;   <span class="cm">// 结构质量</span></td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">in</span> fuelMass : ISQ::MassValue;   <span class="cm">// 燃油质量</span></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">in</span> payload  : ISQ::MassValue;   <span class="cm">// 载荷质量</span></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">return</span> result : ISQ::MassValue = dryMass + fuelMass + payload;</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<h3>组合多个计算</h3>
-<p>计算可以相互调用，形成计算链。这是将复杂分析分解为可复用模块的关键手段：</p>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> ThrustToWeight {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">in</span> thrust    : ISQ::ForceValue;  <span class="cm">// 推力</span></td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">in</span> totalMass : ISQ::MassValue;   <span class="cm">// 总质量</span></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">in</span> g         : ISQ::AccelerationValue = <span class="nu">9.81</span>[m/s^<span class="nu">2</span>];</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">return</span> ratio : <span class="ty">Real</span> = thrust / (totalMass * g);</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> PerformanceScore {</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">in</span> thrust    : ISQ::ForceValue;</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">    <span class="kw">in</span> totalMass : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">in</span> range     : ISQ::LengthValue; <span class="cm">// 航程</span></td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">    <span class="cm">// 调用另一个计算</span></td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">    calc twr : ThrustToWeight {</td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc">        <span class="kw">in</span> thrust    = thrust;</td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc">        <span class="kw">in</span> totalMass = totalMass;</td></tr>
-<tr><td class="ln" select="none">17</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">18</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">19</td><td class="lc">    <span class="kw">return</span> score : <span class="ty">Real</span> = <span class="nu">0.6</span> * twr.ratio + <span class="nu">0.4</span> * (range / <span class="nu">1000</span>[km]);</td></tr>
-<tr><td class="ln" select="none">20</td><td class="lc">}</td></tr>
-</table></code></pre>
-<div class="callout tip"><div class="callout-label">提示</div><p><code>calc def</code> 与 <code>action def</code> 的核心区别：计算定义<em>必须</em>有 <code>return</code> 结果，且通常是无副作用的纯函数。动作定义则描述有时间跨度的行为过程。在分析场景中，优先使用 <code>calc def</code> 建模数学关系。</p></div>
-
-<!-- ═══════════════════════════════════════════════════ S3 ═══ -->
-<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>约束与目标函数</h2></div>
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 来源：<code>constraint def</code> &#8594; <code>Predicate</code>（返回 Boolean 的 <code>Function</code>）；<code>objective</code> &#8594; <code>RequirementUsage</code></p>
-<p><strong>约束（constraint）</strong>是断言设计必须满足的条件的布尔谓词。在分析案例中，约束用于定义可行域——只有满足所有约束的设计方案才是有效的。<strong>目标（objective）</strong>则指定分析要优化的方向。</p>
-
-<h3>约束定义</h3>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">constraint</span> <span class="kw">def</span> MassLimit {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">in</span> totalMass : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">in</span> maxMass   : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    totalMass &lt;= maxMass           <span class="cm">// 总质量不得超过上限</span></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc"><span class="kw">constraint</span> <span class="kw">def</span> ThrustConstraint {</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">in</span> twr : <span class="ty">Real</span>;                 <span class="cm">// 推重比</span></td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    twr &gt;= <span class="nu">1.2</span>                    <span class="cm">// 推重比不得低于 1.2</span></td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<h3>在分析中使用约束</h3>
-<p>约束可以在分析案例中通过 <code>assert constraint</code> 声明为必须成立的条件：</p>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">analysis</span> <span class="kw">def</span> FeasibilityCheck {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> vehicle : Vehicle;</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> vehicle : Vehicle;        <span class="cm">// what we are analysing</span></td></tr>
 <tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    calc mass : MassRollup { <span class="cm">/* ... */</span> }</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    calc twr  : ThrustToWeight { <span class="cm">/* ... */</span> }</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">    <span class="cm">// 断言约束：设计必须满足这些条件</span></td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">assert</span> <span class="kw">constraint</span> massOk : MassLimit {</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">        <span class="kw">in</span> totalMass = mass.result;</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">        <span class="kw">in</span> maxMass   = <span class="nu">2500</span>[kg];</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">    <span class="kw">assert</span> <span class="kw">constraint</span> thrustOk : ThrustConstraint {</td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">        <span class="kw">in</span> twr = twr.ratio;</td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<h3>目标函数</h3>
-<p><code>objective</code> 声明分析案例要达成的目标。它是一种特殊的需求用法，通常包含优化方向（最大化或最小化）：</p>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">analysis</span> <span class="kw">def</span> DesignOptimization {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> vehicle : Vehicle;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">objective</span> maxRange {</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">doc</span> <span class="cm">/* 在满足所有约束的前提下，最大化航程 */</span></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">require</span> <span class="kw">constraint</span> massOk : MassLimit;</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">        maximize rangeCalc.result;</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">    calc rangeCalc : RangeEstimate { <span class="cm">/* ... */</span> }</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">}</td></tr>
-</table></code></pre>
-<div class="callout pitfall"><div class="callout-label">&#9888;&#65039; 常见错误</div><p>不要将 <code>constraint</code> 与 <code>requirement</code> 混淆。<code>constraint</code> 是可求值的布尔表达式（映射到 <code>Predicate</code>），用于数学验证。<code>requirement</code> 是可追溯的利益相关者需求，可以包含约束但也包含文本描述和验证关系。在分析案例中使用 <code>constraint</code> 定义可行域。</p></div>
-
-<!-- ═══════════════════════════════════════════════════ S4 ═══ -->
-<span class="section-anchor" id="s4"></span><div class="section-header"><span class="section-num">4</span><h2>权衡研究</h2></div>
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 来源：权衡研究是分析案例的特化应用，利用多个分析案例实例比较设计备选方案</p>
-<p><strong>权衡研究（trade study）</strong>是系统工程中最核心的决策工具之一。在 SysML v2 中，权衡研究通过对多个设计备选方案运行相同的分析案例，然后比较结果来实现。这使决策过程完全可追溯、可重复。</p>
-<div class="callout analogy"><div class="callout-label">&#127968; 生活类比</div><p>权衡研究就像购车时的对比评测：你列出评价指标（油耗、空间、价格），给每个指标分配权重，然后对每款候选车型逐项打分，最后加权求和得出总分。SysML v2 让你在模型中将这个过程形式化。</p></div>
-
-<h3>定义备选方案</h3>
-<p>每个备选方案是同一部件定义的不同变体配置：</p>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> PropulsionSystem {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">attribute</span> thrust  : ISQ::ForceValue;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">attribute</span> mass    : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">attribute</span> cost    : <span class="ty">Real</span>;             <span class="cm">// 单位成本（万元）</span></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">attribute</span> fuelEff : <span class="ty">Real</span>;             <span class="cm">// 燃油效率（km/L）</span></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc"><span class="cm">// 备选方案 A：大推力引擎</span></td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc"><span class="kw">part</span> optionA : PropulsionSystem {</td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">    <span class="op">:&gt;&gt;</span> thrust  = <span class="nu">50000</span>[N];</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    <span class="op">:&gt;&gt;</span> mass    = <span class="nu">400</span>[kg];</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">    <span class="op">:&gt;&gt;</span> cost    = <span class="nu">120</span>;</td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">    <span class="op">:&gt;&gt;</span> fuelEff = <span class="nu">8.5</span>;</td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc"><span class="cm">// 备选方案 B：轻量引擎</span></td></tr>
-<tr><td class="ln" select="none">17</td><td class="lc"><span class="kw">part</span> optionB : PropulsionSystem {</td></tr>
-<tr><td class="ln" select="none">18</td><td class="lc">    <span class="op">:&gt;&gt;</span> thrust  = <span class="nu">35000</span>[N];</td></tr>
-<tr><td class="ln" select="none">19</td><td class="lc">    <span class="op">:&gt;&gt;</span> mass    = <span class="nu">250</span>[kg];</td></tr>
-<tr><td class="ln" select="none">20</td><td class="lc">    <span class="op">:&gt;&gt;</span> cost    = <span class="nu">85</span>;</td></tr>
-<tr><td class="ln" select="none">21</td><td class="lc">    <span class="op">:&gt;&gt;</span> fuelEff = <span class="nu">12.0</span>;</td></tr>
-<tr><td class="ln" select="none">22</td><td class="lc">}</td></tr>
-<tr><td class="ln" select="none">23</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">24</td><td class="lc"><span class="cm">// 备选方案 C：混合动力</span></td></tr>
-<tr><td class="ln" select="none">25</td><td class="lc"><span class="kw">part</span> optionC : PropulsionSystem {</td></tr>
-<tr><td class="ln" select="none">26</td><td class="lc">    <span class="op">:&gt;&gt;</span> thrust  = <span class="nu">42000</span>[N];</td></tr>
-<tr><td class="ln" select="none">27</td><td class="lc">    <span class="op">:&gt;&gt;</span> mass    = <span class="nu">350</span>[kg];</td></tr>
-<tr><td class="ln" select="none">28</td><td class="lc">    <span class="op">:&gt;&gt;</span> cost    = <span class="nu">150</span>;</td></tr>
-<tr><td class="ln" select="none">29</td><td class="lc">    <span class="op">:&gt;&gt;</span> fuelEff = <span class="nu">15.0</span>;</td></tr>
-<tr><td class="ln" select="none">30</td><td class="lc">}</td></tr>
-</table></code></pre>
-
-<h3>权衡分析案例</h3>
-<pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">analysis</span> <span class="kw">def</span> PropulsionTradeStudy {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> candidate : PropulsionSystem;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">objective</span> bestValue {</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">doc</span> <span class="cm">/* 在满足推力约束的前提下，选择综合得分最高的方案 */</span></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">        maximize scoreCalc.score;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">objective</span> massObjective {</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">doc</span> <span class="cm">/* Total mass shall not exceed 2000 kg */</span></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">require</span> <span class="kw">constraint</span> { vehicle.totalMass &lt;= <span class="nu">2000</span> [kg] }</td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc">    }</td></tr>
 <tr><td class="ln" select="none">8</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    <span class="cm">// 加权评分计算</span></td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">    calc scoreCalc : WeightedScore {</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">        <span class="kw">in</span> thrustVal  = candidate.thrust;</td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">        <span class="kw">in</span> massVal    = candidate.mass;</td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">        <span class="kw">in</span> costVal    = candidate.cost;</td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">        <span class="kw">in</span> fuelEffVal = candidate.fuelEff;</td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">17</td><td class="lc">    <span class="kw">assert</span> <span class="kw">constraint</span> minThrust : ThrustConstraint {</td></tr>
-<tr><td class="ln" select="none">18</td><td class="lc">        <span class="kw">in</span> twr = candidate.thrust / (candidate.mass * <span class="nu">9.81</span>[m/s^<span class="nu">2</span>]);</td></tr>
-<tr><td class="ln" select="none">19</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">20</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">21</td><td class="lc">    <span class="kw">return</span> scoreCalc.score;</td></tr>
-<tr><td class="ln" select="none">22</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">return</span> totalMass : ISQ::MassValue = vehicle.totalMass;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
 </table></code></pre>
 
-<h3>对每个备选方案运行分析</h3>
+<h3>主题与范围</h3>
+<p><code>subject</code> 关键字声明被研究的元素。在 KerML 层面它是一个带方向的 <code>in</code> 参数 &#8212; 分析用例从它被使用的上下文中接收主题。主题可以是任意零件、连接或条目定义：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// 针对每个候选方案实例化权衡分析</span></td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">analysis</span> tradeA : PropulsionTradeStudy { <span class="kw">subject</span> optionA; }</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc"><span class="kw">analysis</span> tradeB : PropulsionTradeStudy { <span class="kw">subject</span> optionB; }</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc"><span class="kw">analysis</span> tradeC : PropulsionTradeStudy { <span class="kw">subject</span> optionC; }</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">analysis</span> <span class="kw">def</span> ThermalAnalysis {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> heatExchanger : HeatExchanger;  <span class="cm">// scoped to one component</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="cm">// ... objective, calculations, return</span></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"><span class="cm">// Instantiation: apply analysis to a specific design element</span></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc"><span class="kw">analysis</span> thermalCheck : ThermalAnalysis {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">subject</span> heatExchanger = mainRadiator;   <span class="cm">// binds to a specific part</span></td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">}</td></tr>
 </table></code></pre>
-<div class="callout note"><div class="callout-label">注意</div><p>权衡研究的可追溯性是其核心价值。每个决策都记录在模型中：选择了什么、为什么选择、基于哪些数据。当需求变更时，只需重新运行分析案例即可评估影响。</p></div>
 
-<!-- ═══════════════════════════════════════════════════ S5 ═══ -->
-<span class="section-anchor" id="s5"></span><div class="section-header"><span class="section-num">5</span><h2>度量与评估准则</h2></div>
-<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 来源：度量通过 <code>attribute def</code> 和标准库类型（ISQ）建模；评估准则通过 <code>calc def</code> 和 <code>constraint def</code> 组合实现</p>
-<p>有效的分析依赖于明确定义的<strong>度量（measures of effectiveness, MOE）</strong>和<strong>评估准则</strong>。SysML v2 通过属性定义和计算定义的组合，将这些度量形式化为模型的一部分。</p>
-
-<h3>定义度量属性</h3>
+<h3>返回值</h3>
+<p>每个分析用例都可以声明一个 <code>return</code> 参数 &#8212; 即分析计算得到的输出。由于 <code>CaseDefinition</code> 特化自 <code>CalculationDefinition</code>（后者又特化自 <code>Function</code>），每个分析用例本质上都是一个返回值的函数：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">attribute</span> <span class="kw">def</span> PerformanceMetrics {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">attribute</span> range       : ISQ::LengthValue;  <span class="cm">// 航程</span></td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">attribute</span> endurance   : ISQ::TimeValue;     <span class="cm">// 续航时间</span></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">attribute</span> maxSpeed    : ISQ::SpeedValue;    <span class="cm">// 最大速度</span></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">attribute</span> unitCost    : <span class="ty">Real</span>;               <span class="cm">// 单位成本</span></td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">attribute</span> reliability : <span class="ty">Real</span>;               <span class="cm">// 可靠性（0-1）</span></td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">analysis</span> <span class="kw">def</span> PowerBudgetAnalysis {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> sys : ElectricalSystem;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> { <span class="kw">require</span> <span class="kw">constraint</span> { sys.totalDraw &lt;= sys.capacity } }</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">return</span> margin : ISQ::PowerValue = sys.capacity - sys.totalDraw;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+</table></code></pre>
+<div class="callout note"><div class="callout-label">说明</div><p>返回值不只是文档 &#8212; 它是一个带类型的 Feature，可以被下游引用。其他分析用例、需求或权衡研究都可以读取某个已完成分析用例的返回值，用于进一步决策。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 2 &#8212; Objective Functions
+     ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s2"></span><div class="section-header"><span class="section-num">2</span><h2>目标函数</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 起源：<code>objective</code> &#8594; 作用域限定在 <code>CaseDefinition</code> 内的 <code>RequirementUsage</code></p>
+<p><strong>目标</strong>是分析用例的核心 &#8212; 它陈述分析要成功必须满足什么。在 KerML 层面，目标是该用例拥有的一个 <code>RequirementUsage</code>，因此它具备需求的全套机制：约束、文档与可追溯性。</p>
+
+<h3>简单的约束型目标</h3>
+<p>最常见的写法是用 <code>require constraint</code> 给出一个布尔条件：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">analysis</span> <span class="kw">def</span> VibrationAnalysis {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> structure : AircraftWing;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> vibrationLimit {</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">        <span class="kw">doc</span> <span class="cm">/* First natural frequency must exceed 25 Hz */</span></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        <span class="kw">require</span> <span class="kw">constraint</span> {</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">            structure.firstNaturalFrequency &gt;= <span class="nu">25</span> [Hz]</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">return</span> fn1 : ISQ::FrequencyValue = structure.firstNaturalFrequency;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>复合目标</h3>
+<p>目标中可以包含多个 <code>require constraint</code> 块。只有全部约束同时成立，目标才算被满足：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">objective</span> performanceGoals {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* The sensor must meet all three criteria */</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> { sensor.range &gt;= <span class="nu">200</span> [m] }</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> { sensor.accuracy &lt;= <span class="nu">0.05</span> [m] }</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> { sensor.updateRate &gt;= <span class="nu">20</span> [Hz] }</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>效能度量</h3>
+<p>在权衡研究中，目标常常会定义<strong>效能度量</strong>（MOE） &#8212; 用来把各备选方案放在同一尺度上比较的量化指标。它们通常是被目标引用的计算：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">objective</span> sensorEffectiveness {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">doc</span> <span class="cm">/* Maximise the composite effectiveness score */</span></td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">require</span> <span class="kw">constraint</span> {</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">        computeEffectiveness(sensor) &gt;= <span class="nu">0.7</span>  <span class="cm">// minimum threshold</span></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
+</table></code></pre>
+<div class="callout tip"><div class="callout-label">提示</div><p>目标应保持声明式 &#8212; 只陈述<em>什么</em>必须成立，而不写<em>如何</em>计算。把计算步骤交给 <code>calc def</code>（见第 3 节）。这种分离让目标保持可读，也让同一个计算能在多个分析用例中复用。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 3 &#8212; Calculation Definitions
+     ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s3"></span><div class="section-header"><span class="section-num">3</span><h2>计算定义</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">KerML 起源：<code>calc def</code> &#8594; <code>Function</code>（一种返回值的 <code>Behavior</code>）</p>
+<p><strong>计算定义</strong>（<code>calc def</code>）定义一个可复用的数学关系。它是 SysML v2 用来表达公式、单位换算、评分函数以及任何可计算表达式的机制。在 KerML 层面，<code>calc def</code> 映射到 <code>Function</code>，即在 <code>Behavior</code> 上特化出 <code>result</code> 参数的构造。</p>
+
+<h3>基本的计算定义</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> KineticEnergy {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">in</span> mass     : ISQ::MassValue;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">in</span> velocity : ISQ::SpeedValue;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">return</span> energy : ISQ::EnergyValue = <span class="nu">0.5</span> * mass * velocity ** <span class="nu">2</span>;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>使用计算</h3>
+<p><code>calc</code> 使用把实参绑定到已声明的参数上，从而在具体上下文中对 <code>calc def</code> 求值：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Projectile {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">attribute</span> mass : ISQ::MassValue;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">attribute</span> speed : ISQ::SpeedValue;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">attribute</span> ke : ISQ::EnergyValue = KineticEnergy(mass, speed);</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+</table></code></pre>
+
+<h3>带 ISQ 单位的计算</h3>
+<p>SysML v2 集成了<strong>国际量制</strong>（ISQ）库，提供基于 SI 的单位类型。计算会自然地把单位带入表达式，从而支持量纲一致性检查：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> ThermalResistance {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">in</span> thickness    : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">in</span> conductivity : ISQ::ThermalConductivityValue;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">in</span> area         : ISQ::AreaValue;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">return</span> resistance : ISQ::ThermalResistanceValue</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        = thickness / (conductivity * area);</td></tr>
 <tr><td class="ln" select="none">7</td><td class="lc">}</td></tr>
 </table></code></pre>
 
-<h3>加权评分计算</h3>
-<p>权衡研究通常使用加权评分法。每个度量被归一化后乘以权重，再求和得到综合得分：</p>
+<h3>组合计算</h3>
+<p>计算定义可以调用其他计算，用简单而经过检验的部件搭建出复杂表达式：</p>
 <pre class="lined"><code><table>
 <tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> WeightedScore {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">in</span> thrustVal  : ISQ::ForceValue;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">in</span> massVal    : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">in</span> costVal    : <span class="ty">Real</span>;</td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">in</span> fuelEffVal : <span class="ty">Real</span>;</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">in</span> rawScore : <span class="ty">Real</span>;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">in</span> weight   : <span class="ty">Real</span>;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">return</span> : <span class="ty">Real</span> = rawScore * weight;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
 <tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">    <span class="cm">// 权重系数</span></td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">attribute</span> wThrust  : <span class="ty">Real</span> = <span class="nu">0.30</span>;   <span class="cm">// 推力权重 30%</span></td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">attribute</span> wMass    : <span class="ty">Real</span> = <span class="nu">0.25</span>;   <span class="cm">// 质量权重 25%</span></td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">    <span class="kw">attribute</span> wCost    : <span class="ty">Real</span> = <span class="nu">0.20</span>;   <span class="cm">// 成本权重 20%</span></td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">attribute</span> wFuelEff : <span class="ty">Real</span> = <span class="nu">0.25</span>;   <span class="cm">// 燃油效率权重 25%</span></td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">    <span class="cm">// 归一化后加权求和</span></td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">    <span class="kw">return</span> score : <span class="ty">Real</span> =</td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc">        wThrust  * (thrustVal / <span class="nu">50000</span>[N]) +</td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc">        wMass    * (<span class="nu">1</span> - massVal / <span class="nu">500</span>[kg]) +</td></tr>
-<tr><td class="ln" select="none">17</td><td class="lc">        wCost    * (<span class="nu">1</span> - costVal / <span class="nu">200</span>) +</td></tr>
-<tr><td class="ln" select="none">18</td><td class="lc">        wFuelEff * (fuelEffVal / <span class="nu">20</span>);</td></tr>
-<tr><td class="ln" select="none">19</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> CompositeScore {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">in</span> scores  : <span class="ty">Real</span>[*];   <span class="cm">// array of raw scores</span></td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">    <span class="kw">in</span> weights : <span class="ty">Real</span>[*];   <span class="cm">// corresponding weights</span></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">    <span class="kw">return</span> : <span class="ty">Real</span> = sum(WeightedScore(scores, weights));</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">}</td></tr>
 </table></code></pre>
+<div class="callout pitfall"><div class="callout-label">常见误区</div><p><code>calc def</code> <em>不是</em>命令式函数。它是一个声明式的数学关系 &#8212; 表达式定义的是结果<em>等于</em>什么，而不是求值的步骤序列。SysML v2 工具可以按分析场景选择及早求值、惰性求值或符号求值。</p></div>
 
-<h3>评估结果对比表</h3>
-<p>权衡研究的输出通常以对比表形式呈现：</p>
-<table><thead><tr><th>度量指标</th><th>权重</th><th>方案 A（大推力）</th><th>方案 B（轻量）</th><th>方案 C（混动）</th></tr></thead><tbody>
-<tr><td>推力（N）</td><td>30%</td><td>50,000 &#10004;</td><td>35,000</td><td>42,000</td></tr>
-<tr><td>质量（kg）</td><td>25%</td><td>400</td><td>250 &#10004;</td><td>350</td></tr>
-<tr><td>成本（万元）</td><td>20%</td><td>120</td><td>85 &#10004;</td><td>150</td></tr>
-<tr><td>燃油效率（km/L）</td><td>25%</td><td>8.5</td><td>12.0</td><td>15.0 &#10004;</td></tr>
-<tr><td><strong>加权总分</strong></td><td>100%</td><td>0.695</td><td>0.738</td><td><strong>0.763</strong></td></tr>
-</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 &#8212; 推进系统权衡研究评估结果</caption></table>
-<div class="callout tip"><div class="callout-label">提示</div><p>在实际工程中，权重系数的确定本身就是一个重要决策。可以通过层次分析法（AHP）或利益相关者投票来确定权重。SysML v2 模型可以在权重变化时快速重新计算，进行灵敏度分析。</p></div>
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 4 &#8212; Trade Study Pattern
+     ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s4"></span><div class="section-header"><span class="section-num">4</span><h2>权衡研究模式</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">综合运用：<code>analysis def</code>、<code>calc def</code>、<code>objective</code> 与变体点</p>
+<p><strong>权衡研究</strong>用一组共同的评估准则比较多个设计备选方案，并选出最优者。SysML v2 用分析用例、计算定义和变体点为此提供了结构化模式。该模式分四步：定义备选方案、定义评估准则、为每个方案打分、选出优胜者。</p>
 
-<!-- ═══════════════════════════════════════════════════ S6 ═══ -->
-<span class="section-anchor" id="s6"></span><div class="section-header"><span class="section-num">6</span><h2>完整示例</h2></div>
-<p>以下模型综合了本模块的所有内容：一个 UAV 推进系统权衡研究，整合了计算定义、约束、分析案例、目标函数和多方案对比。</p>
+<h3>第 1 步：定义备选方案</h3>
+<p>每个备选方案都建模为主题类型的一个独立使用或变体：</p>
 <pre class="lined"><code><table>
-<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">package</span> UAVTradeStudy {</td></tr>
-<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> ISQ::*; <span class="kw">private</span> <span class="kw">import</span> SI::*;</td></tr>
-<tr><td class="ln" select="none">3</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">4</td><td class="lc">    <span class="cm">// ── 部件定义 ─────────────────────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> Engine {</td></tr>
-<tr><td class="ln" select="none">6</td><td class="lc">        <span class="kw">attribute</span> thrust   : ISQ::ForceValue;</td></tr>
-<tr><td class="ln" select="none">7</td><td class="lc">        <span class="kw">attribute</span> mass     : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">8</td><td class="lc">        <span class="kw">attribute</span> cost     : <span class="ty">Real</span>;           <span class="cm">// 成本（万元）</span></td></tr>
-<tr><td class="ln" select="none">9</td><td class="lc">        <span class="kw">attribute</span> fuelRate : <span class="ty">Real</span>;           <span class="cm">// 耗油率（L/h）</span></td></tr>
-<tr><td class="ln" select="none">10</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">11</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">12</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> UAV {</td></tr>
-<tr><td class="ln" select="none">13</td><td class="lc">        <span class="kw">attribute</span> airframeMass : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">14</td><td class="lc">        <span class="kw">attribute</span> fuelCapacity : <span class="ty">Real</span>;       <span class="cm">// 油箱容量（L）</span></td></tr>
-<tr><td class="ln" select="none">15</td><td class="lc">        <span class="kw">part</span> engine : Engine;</td></tr>
-<tr><td class="ln" select="none">16</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">17</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">18</td><td class="lc">    <span class="cm">// ── 计算定义 ─────────────────────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">19</td><td class="lc">    <span class="kw">calc</span> <span class="kw">def</span> TotalMass {</td></tr>
-<tr><td class="ln" select="none">20</td><td class="lc">        <span class="kw">in</span> airframe : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">21</td><td class="lc">        <span class="kw">in</span> engineM  : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">22</td><td class="lc">        <span class="kw">return</span> result : ISQ::MassValue = airframe + engineM;</td></tr>
-<tr><td class="ln" select="none">23</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">24</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">25</td><td class="lc">    <span class="kw">calc</span> <span class="kw">def</span> EnduranceCalc {</td></tr>
-<tr><td class="ln" select="none">26</td><td class="lc">        <span class="kw">in</span> fuelCap  : <span class="ty">Real</span>;                 <span class="cm">// 油箱容量</span></td></tr>
-<tr><td class="ln" select="none">27</td><td class="lc">        <span class="kw">in</span> fuelRate : <span class="ty">Real</span>;                 <span class="cm">// 耗油率</span></td></tr>
-<tr><td class="ln" select="none">28</td><td class="lc">        <span class="kw">return</span> hours : <span class="ty">Real</span> = fuelCap / fuelRate;  <span class="cm">// 续航小时数</span></td></tr>
-<tr><td class="ln" select="none">29</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">30</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">31</td><td class="lc">    <span class="kw">calc</span> <span class="kw">def</span> TradeScore {</td></tr>
-<tr><td class="ln" select="none">32</td><td class="lc">        <span class="kw">in</span> thrust    : ISQ::ForceValue;</td></tr>
-<tr><td class="ln" select="none">33</td><td class="lc">        <span class="kw">in</span> totalMass : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">34</td><td class="lc">        <span class="kw">in</span> cost      : <span class="ty">Real</span>;</td></tr>
-<tr><td class="ln" select="none">35</td><td class="lc">        <span class="kw">in</span> endurance : <span class="ty">Real</span>;</td></tr>
-<tr><td class="ln" select="none">36</td><td class="lc">        <span class="kw">return</span> score : <span class="ty">Real</span> =</td></tr>
-<tr><td class="ln" select="none">37</td><td class="lc">            <span class="nu">0.30</span> * (thrust / <span class="nu">60000</span>[N]) +       <span class="cm">// 推力得分</span></td></tr>
-<tr><td class="ln" select="none">38</td><td class="lc">            <span class="nu">0.25</span> * (<span class="nu">1</span> - totalMass / <span class="nu">800</span>[kg]) +  <span class="cm">// 轻量得分</span></td></tr>
-<tr><td class="ln" select="none">39</td><td class="lc">            <span class="nu">0.20</span> * (<span class="nu">1</span> - cost / <span class="nu">200</span>) +            <span class="cm">// 低成本得分</span></td></tr>
-<tr><td class="ln" select="none">40</td><td class="lc">            <span class="nu">0.25</span> * (endurance / <span class="nu">12</span>);              <span class="cm">// 续航得分</span></td></tr>
-<tr><td class="ln" select="none">41</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">42</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">43</td><td class="lc">    <span class="cm">// ── 约束定义 ─────────────────────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">44</td><td class="lc">    <span class="kw">constraint</span> <span class="kw">def</span> MaxTakeoffMass {</td></tr>
-<tr><td class="ln" select="none">45</td><td class="lc">        <span class="kw">in</span> total : ISQ::MassValue;</td></tr>
-<tr><td class="ln" select="none">46</td><td class="lc">        total &lt;= <span class="nu">700</span>[kg]                    <span class="cm">// 最大起飞质量限制</span></td></tr>
-<tr><td class="ln" select="none">47</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">48</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">49</td><td class="lc">    <span class="kw">constraint</span> <span class="kw">def</span> MinEndurance {</td></tr>
-<tr><td class="ln" select="none">50</td><td class="lc">        <span class="kw">in</span> hours : <span class="ty">Real</span>;</td></tr>
-<tr><td class="ln" select="none">51</td><td class="lc">        hours &gt;= <span class="nu">4.0</span>                        <span class="cm">// 最少续航 4 小时</span></td></tr>
-<tr><td class="ln" select="none">52</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">53</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">54</td><td class="lc">    <span class="cm">// ── 分析案例 ─────────────────────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">55</td><td class="lc">    <span class="kw">analysis</span> <span class="kw">def</span> EngineTradeStudy {</td></tr>
-<tr><td class="ln" select="none">56</td><td class="lc">        <span class="kw">subject</span> uav : UAV;</td></tr>
-<tr><td class="ln" select="none">57</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">58</td><td class="lc">        <span class="kw">objective</span> selectBest {</td></tr>
-<tr><td class="ln" select="none">59</td><td class="lc">            <span class="kw">doc</span> <span class="cm">/* 在满足质量和续航约束的条件下，选择综合得分最高的引擎 */</span></td></tr>
-<tr><td class="ln" select="none">60</td><td class="lc">            <span class="kw">require</span> <span class="kw">constraint</span> massOk : MaxTakeoffMass;</td></tr>
-<tr><td class="ln" select="none">61</td><td class="lc">            <span class="kw">require</span> <span class="kw">constraint</span> endurOk : MinEndurance;</td></tr>
-<tr><td class="ln" select="none">62</td><td class="lc">            maximize finalScore.score;</td></tr>
-<tr><td class="ln" select="none">63</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">64</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">65</td><td class="lc">        <span class="cm">// 计算步骤</span></td></tr>
-<tr><td class="ln" select="none">66</td><td class="lc">        calc mass : TotalMass {</td></tr>
-<tr><td class="ln" select="none">67</td><td class="lc">            <span class="kw">in</span> airframe = uav.airframeMass;</td></tr>
-<tr><td class="ln" select="none">68</td><td class="lc">            <span class="kw">in</span> engineM  = uav.engine.mass;</td></tr>
-<tr><td class="ln" select="none">69</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">70</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">71</td><td class="lc">        calc endur : EnduranceCalc {</td></tr>
-<tr><td class="ln" select="none">72</td><td class="lc">            <span class="kw">in</span> fuelCap  = uav.fuelCapacity;</td></tr>
-<tr><td class="ln" select="none">73</td><td class="lc">            <span class="kw">in</span> fuelRate = uav.engine.fuelRate;</td></tr>
-<tr><td class="ln" select="none">74</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">75</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">76</td><td class="lc">        calc finalScore : TradeScore {</td></tr>
-<tr><td class="ln" select="none">77</td><td class="lc">            <span class="kw">in</span> thrust    = uav.engine.thrust;</td></tr>
-<tr><td class="ln" select="none">78</td><td class="lc">            <span class="kw">in</span> totalMass = mass.result;</td></tr>
-<tr><td class="ln" select="none">79</td><td class="lc">            <span class="kw">in</span> cost      = uav.engine.cost;</td></tr>
-<tr><td class="ln" select="none">80</td><td class="lc">            <span class="kw">in</span> endurance = endur.hours;</td></tr>
-<tr><td class="ln" select="none">81</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">82</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">83</td><td class="lc">        <span class="cm">// 断言约束</span></td></tr>
-<tr><td class="ln" select="none">84</td><td class="lc">        <span class="kw">assert</span> <span class="kw">constraint</span> massOk : MaxTakeoffMass {</td></tr>
-<tr><td class="ln" select="none">85</td><td class="lc">            <span class="kw">in</span> total = mass.result;</td></tr>
-<tr><td class="ln" select="none">86</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">87</td><td class="lc">        <span class="kw">assert</span> <span class="kw">constraint</span> endurOk : MinEndurance {</td></tr>
-<tr><td class="ln" select="none">88</td><td class="lc">            <span class="kw">in</span> hours = endur.hours;</td></tr>
-<tr><td class="ln" select="none">89</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">90</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">91</td><td class="lc">        <span class="kw">return</span> finalScore.score;</td></tr>
-<tr><td class="ln" select="none">92</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">93</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">94</td><td class="lc">    <span class="cm">// ── 备选方案实例化 ───────────────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">95</td><td class="lc">    <span class="kw">part</span> uavAlpha : UAV {</td></tr>
-<tr><td class="ln" select="none">96</td><td class="lc">        <span class="op">:&gt;&gt;</span> airframeMass = <span class="nu">350</span>[kg]; <span class="op">:&gt;&gt;</span> fuelCapacity = <span class="nu">80</span>;</td></tr>
-<tr><td class="ln" select="none">97</td><td class="lc">        <span class="kw">part</span> engine : Engine {</td></tr>
-<tr><td class="ln" select="none">98</td><td class="lc">            <span class="op">:&gt;&gt;</span> thrust = <span class="nu">45000</span>[N]; <span class="op">:&gt;&gt;</span> mass = <span class="nu">180</span>[kg];</td></tr>
-<tr><td class="ln" select="none">99</td><td class="lc">            <span class="op">:&gt;&gt;</span> cost = <span class="nu">95</span>; <span class="op">:&gt;&gt;</span> fuelRate = <span class="nu">12</span>;</td></tr>
-<tr><td class="ln" select="none">100</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">101</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">102</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">103</td><td class="lc">    <span class="kw">part</span> uavBeta : UAV {</td></tr>
-<tr><td class="ln" select="none">104</td><td class="lc">        <span class="op">:&gt;&gt;</span> airframeMass = <span class="nu">350</span>[kg]; <span class="op">:&gt;&gt;</span> fuelCapacity = <span class="nu">80</span>;</td></tr>
-<tr><td class="ln" select="none">105</td><td class="lc">        <span class="kw">part</span> engine : Engine {</td></tr>
-<tr><td class="ln" select="none">106</td><td class="lc">            <span class="op">:&gt;&gt;</span> thrust = <span class="nu">38000</span>[N]; <span class="op">:&gt;&gt;</span> mass = <span class="nu">120</span>[kg];</td></tr>
-<tr><td class="ln" select="none">107</td><td class="lc">            <span class="op">:&gt;&gt;</span> cost = <span class="nu">65</span>; <span class="op">:&gt;&gt;</span> fuelRate = <span class="nu">8</span>;</td></tr>
-<tr><td class="ln" select="none">108</td><td class="lc">        }</td></tr>
-<tr><td class="ln" select="none">109</td><td class="lc">    }</td></tr>
-<tr><td class="ln" select="none">110</td><td class="lc"></td></tr>
-<tr><td class="ln" select="none">111</td><td class="lc">    <span class="cm">// ── 运行权衡分析 ─────────────────────────────────────</span></td></tr>
-<tr><td class="ln" select="none">112</td><td class="lc">    <span class="kw">analysis</span> studyAlpha : EngineTradeStudy { <span class="kw">subject</span> uavAlpha; }</td></tr>
-<tr><td class="ln" select="none">113</td><td class="lc">    <span class="kw">analysis</span> studyBeta  : EngineTradeStudy { <span class="kw">subject</span> uavBeta; }</td></tr>
-<tr><td class="ln" select="none">114</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">part</span> <span class="kw">def</span> Sensor {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">attribute</span> range       : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">attribute</span> accuracy    : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">attribute</span> updateRate  : ISQ::FrequencyValue;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="kw">attribute</span> unitCost    : <span class="ty">Real</span>;   <span class="cm">// in USD</span></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="kw">attribute</span> mass        : ISQ::MassValue;</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">attribute</span> powerDraw   : ISQ::PowerValue;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc"><span class="kw">part</span> radarSensor : Sensor {</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> range      = <span class="nu">250</span> [m];</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> accuracy   = <span class="nu">0.10</span> [m];</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> updateRate = <span class="nu">15</span> [Hz];</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> unitCost   = <span class="nu">1200</span>;</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> mass       = <span class="nu">0.8</span> [kg];</td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> powerDraw  = <span class="nu">12</span> [W];</td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc"><span class="kw">part</span> lidarSensor : Sensor {</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> range      = <span class="nu">150</span> [m];</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> accuracy   = <span class="nu">0.02</span> [m];</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> updateRate = <span class="nu">10</span> [Hz];</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> unitCost   = <span class="nu">4500</span>;</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> mass       = <span class="nu">1.2</span> [kg];</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> powerDraw  = <span class="nu">18</span> [W];</td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">27</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">28</td><td class="lc"><span class="kw">part</span> cameraSensor : Sensor {</td></tr>
+<tr><td class="ln" select="none">29</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> range      = <span class="nu">100</span> [m];</td></tr>
+<tr><td class="ln" select="none">30</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> accuracy   = <span class="nu">0.15</span> [m];</td></tr>
+<tr><td class="ln" select="none">31</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> updateRate = <span class="nu">30</span> [Hz];</td></tr>
+<tr><td class="ln" select="none">32</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> unitCost   = <span class="nu">350</span>;</td></tr>
+<tr><td class="ln" select="none">33</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> mass       = <span class="nu">0.3</span> [kg];</td></tr>
+<tr><td class="ln" select="none">34</td><td class="lc">    <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> powerDraw  = <span class="nu">5</span> [W];</td></tr>
+<tr><td class="ln" select="none">35</td><td class="lc">}</td></tr>
 </table></code></pre>
-<p>此模型演示了：<strong>calc def</strong>（可复用的数学函数）、<strong>constraint def</strong>（设计约束条件）、带 <strong>objective</strong> 和 <strong>maximize</strong> 的 <strong>analysis def</strong>、<strong>assert constraint</strong>（断言设计可行性）、以及通过实例化同一分析案例对<strong>多个备选方案</strong>进行系统化比较。</p>
 
-<!-- ═══════════════════════════════════════════════════ S7 ═══ -->
-<span class="section-anchor" id="s7"></span><div class="section-header"><span class="section-num">7</span><h2>本模块总结</h2></div>
-<table><thead><tr><th>SysML v2 概念</th><th>KerML 来源</th><th>关键规则</th></tr></thead><tbody>
-<tr><td><code>analysis def</code></td><td><code>CaseDefinition</code></td><td>结构化分析框架；包含 subject、参数、计算步骤和 return</td></tr>
-<tr><td><code>analysis</code>（用法）</td><td>由 <code>CaseDefinition</code> 类型化的 Feature</td><td>绑定具体设计参数实例化分析</td></tr>
-<tr><td><code>calc def</code></td><td><code>Function</code>（KerML Core 层）</td><td>可复用的数学函数；必须有 return 结果</td></tr>
-<tr><td><code>calc</code>（用法）</td><td>由 <code>Function</code> 类型化的 Feature</td><td>在分析或约束中调用计算</td></tr>
-<tr><td><code>constraint def</code></td><td><code>Predicate</code></td><td>返回 Boolean 的断言；定义设计可行域</td></tr>
-<tr><td><code>assert constraint</code></td><td>Predicate 的实例化断言</td><td>声明约束必须成立；用于验证</td></tr>
-<tr><td><code>objective</code></td><td><code>RequirementUsage</code></td><td>分析的目标函数；支持 maximize / minimize</td></tr>
-<tr><td><code>subject</code></td><td><code>SubjectMembership</code></td><td>指定分析所针对的系统或组件</td></tr>
-<tr><td><code>return</code></td><td><code>ResultExpressionMembership</code></td><td>分析案例的最终输出值</td></tr>
-<tr><td>权衡研究</td><td>分析案例的多实例比较</td><td>对各备选方案运行同一分析；决策可追溯</td></tr>
-</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 &#8212; 模块七概念与其 KerML 来源</caption></table>
+<h3>第 2 步：定义评估准则</h3>
+<p>每条准则都是一个 <code>calc def</code>，把原始属性归一化到 0&#8211;1 区间，从而让不同物理量之间也能公平比较：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> NormaliseRange {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">in</span> range : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">return</span> : <span class="ty">Real</span> = range / <span class="nu">300</span> [m];   <span class="cm">// max expected range</span></td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> NormaliseAccuracy {</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">in</span> accuracy : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">    <span class="kw">return</span> : <span class="ty">Real</span> = <span class="nu">1.0</span> - (accuracy / <span class="nu">0.20</span> [m]);  <span class="cm">// lower is better</span></td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> NormaliseCost {</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">    <span class="kw">in</span> cost : <span class="ty">Real</span>;</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">    <span class="kw">return</span> : <span class="ty">Real</span> = <span class="nu">1.0</span> - (cost / <span class="nu">5000</span>);  <span class="cm">// lower cost is better</span></td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">}</td></tr>
+</table></code></pre>
 
-<div class="next-box"><div class="next-label">下一讲</div><p>模块八 &#8212; 视图与视点 &#8212; 如何定义视点、渲染视图，以及向不同利益相关者展示模型的不同侧面。</p></div>
+<h3>第 3 步：建立评分模型</h3>
+<p>一个综合评分计算为每条归一化准则赋予权重：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">calc</span> <span class="kw">def</span> SensorScore {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">in</span> sensor : Sensor;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">return</span> : <span class="ty">Real</span> =</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">        <span class="nu">0.30</span> * NormaliseRange(sensor.range) +</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">        <span class="nu">0.25</span> * NormaliseAccuracy(sensor.accuracy) +</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">        <span class="nu">0.20</span> * NormaliseCost(sensor.unitCost) +</td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">        <span class="nu">0.15</span> * (sensor.updateRate / <span class="nu">30</span> [Hz]) +</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        <span class="nu">0.10</span> * (<span class="nu">1.0</span> - sensor.mass / <span class="nu">2.0</span> [kg]);</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">}</td></tr>
+</table></code></pre>
+<div class="callout note"><div class="callout-label">说明</div><p>这些权重（0.30、0.25、0.20、0.15、0.10）反映利益相关方的优先级，总和必须为 1.0。调整权重即可做敏感性分析 &#8212; 观察优先级变化时各方案排名如何移动。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 5 &#8212; Evaluation &amp; Results
+     ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s5"></span><div class="section-header"><span class="section-num">5</span><h2>评估与结果</h2></div>
+<p style="font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem">综合运用：<code>analysis</code> 使用、结果比较与决策记录</p>
+<p>备选方案与评分模型就位后，最后一步是评估每个方案、比较得分并记录决策。做法是为每个方案实例化一次分析用例。</p>
+
+<h3>评估每个备选方案</h3>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">analysis</span> <span class="kw">def</span> SensorTradeStudy {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">subject</span> sensor : Sensor;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">objective</span> { <span class="kw">require</span> <span class="kw">constraint</span> { SensorScore(sensor) &gt;= <span class="nu">0.5</span> } }</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">return</span> score : <span class="ty">Real</span> = SensorScore(sensor);</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">}</td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc"><span class="cm">// Instantiate for each alternative</span></td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc"><span class="kw">analysis</span> radarEval  : SensorTradeStudy { <span class="kw">subject</span> sensor = radarSensor; }</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc"><span class="kw">analysis</span> lidarEval  : SensorTradeStudy { <span class="kw">subject</span> sensor = lidarSensor; }</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc"><span class="kw">analysis</span> cameraEval : SensorTradeStudy { <span class="kw">subject</span> sensor = cameraSensor; }</td></tr>
+</table></code></pre>
+
+<h3>比较结果</h3>
+<p>各项得分可以列成决策矩阵。按第 4 节定义的评分模型，计算结果如下：</p>
+<table><thead><tr><th>备选方案</th><th>探测距离（0.30）</th><th>精度（0.25）</th><th>成本（0.20）</th><th>刷新率（0.15）</th><th>质量（0.10）</th><th>总分</th></tr></thead><tbody>
+<tr><td>毫米波雷达</td><td>0.250</td><td>0.125</td><td>0.152</td><td>0.075</td><td>0.060</td><td><strong>0.662</strong></td></tr>
+<tr><td>激光雷达</td><td>0.150</td><td>0.225</td><td>0.020</td><td>0.050</td><td>0.040</td><td><strong>0.485</strong></td></tr>
+<tr><td>摄像头</td><td>0.100</td><td>0.063</td><td>0.186</td><td>0.150</td><td>0.085</td><td><strong>0.584</strong></td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 5 &#8212; 传感器权衡研究决策矩阵</caption></table>
+<p>在这组权重下，<strong>毫米波雷达</strong>得分最高（0.662），其次是摄像头（0.584）和激光雷达（0.485）。激光雷达未达到目标中设定的 0.5 最低门槛。</p>
+
+<h3>记录决策</h3>
+<p>分析用例的返回值与目标满足情况会成为模型的永久记录。这样的可追溯性让日后的评审者能够理解某个设计选择<em>为什么</em>被作出，以及它建立在<em>哪些假设</em>（权重、归一化函数）之上：</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="cm">// Decision record: select radar as primary perception sensor</span></td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc"><span class="kw">part</span> autonomousVehicle : Vehicle {</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">part</span> primarySensor : Sensor = radarSensor;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="cm">// Justified by: radarEval.score = 0.662 (highest)</span></td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc">    <span class="cm">// Rationale: best balance of range, cost, and mass</span></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">}</td></tr>
+</table></code></pre>
+<div class="callout tip"><div class="callout-label">提示</div><p>通过调整权重来做敏感性分析。如果权重的小幅变动就使排名大幅改变，说明该决策比较脆弱，可能需要补充准则或数据来加强。SysML v2 让这件事很容易：用不同权重组合新建若干分析用例使用，再比较各自的返回值。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 6 &#8212; Complete Worked Example
+     ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s6"></span><div class="section-header"><span class="section-num">6</span><h2>完整示例</h2></div>
+<p>下面的模型把本模块的全部概念整合成一次完整的传感器选型权衡研究，面向自动驾驶车辆的感知系统。它定义了备选方案、计算、带目标的分析用例，并对各方案进行评估。</p>
+<pre class="lined"><code><table>
+<tr><td class="ln" select="none">1</td><td class="lc"><span class="kw">package</span> SensorTradeStudyPackage {</td></tr>
+<tr><td class="ln" select="none">2</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> ISQ::*;</td></tr>
+<tr><td class="ln" select="none">3</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> SI::*;</td></tr>
+<tr><td class="ln" select="none">4</td><td class="lc">    <span class="kw">private</span> <span class="kw">import</span> <span class="ty">ScalarValues</span>::*;</td></tr>
+<tr><td class="ln" select="none">5</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">6</td><td class="lc">    <span class="cm">// ── Sensor definition ────────────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">7</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> Sensor {</td></tr>
+<tr><td class="ln" select="none">8</td><td class="lc">        <span class="kw">attribute</span> range       : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">9</td><td class="lc">        <span class="kw">attribute</span> accuracy    : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">10</td><td class="lc">        <span class="kw">attribute</span> updateRate  : ISQ::FrequencyValue;</td></tr>
+<tr><td class="ln" select="none">11</td><td class="lc">        <span class="kw">attribute</span> unitCost    : <span class="ty">Real</span>;</td></tr>
+<tr><td class="ln" select="none">12</td><td class="lc">        <span class="kw">attribute</span> mass        : ISQ::MassValue;</td></tr>
+<tr><td class="ln" select="none">13</td><td class="lc">        <span class="kw">attribute</span> powerDraw   : ISQ::PowerValue;</td></tr>
+<tr><td class="ln" select="none">14</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">15</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">16</td><td class="lc">    <span class="cm">// ── Alternatives ─────────────────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">17</td><td class="lc">    <span class="kw">part</span> radarSensor : Sensor {</td></tr>
+<tr><td class="ln" select="none">18</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> range      = <span class="nu">250</span> [m];</td></tr>
+<tr><td class="ln" select="none">19</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> accuracy   = <span class="nu">0.10</span> [m];</td></tr>
+<tr><td class="ln" select="none">20</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> updateRate = <span class="nu">15</span> [Hz];</td></tr>
+<tr><td class="ln" select="none">21</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> unitCost   = <span class="nu">1200</span>;</td></tr>
+<tr><td class="ln" select="none">22</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> mass       = <span class="nu">0.8</span> [kg];</td></tr>
+<tr><td class="ln" select="none">23</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> powerDraw  = <span class="nu">12</span> [W];</td></tr>
+<tr><td class="ln" select="none">24</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">25</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">26</td><td class="lc">    <span class="kw">part</span> lidarSensor : Sensor {</td></tr>
+<tr><td class="ln" select="none">27</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> range      = <span class="nu">150</span> [m];</td></tr>
+<tr><td class="ln" select="none">28</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> accuracy   = <span class="nu">0.02</span> [m];</td></tr>
+<tr><td class="ln" select="none">29</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> updateRate = <span class="nu">10</span> [Hz];</td></tr>
+<tr><td class="ln" select="none">30</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> unitCost   = <span class="nu">4500</span>;</td></tr>
+<tr><td class="ln" select="none">31</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> mass       = <span class="nu">1.2</span> [kg];</td></tr>
+<tr><td class="ln" select="none">32</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> powerDraw  = <span class="nu">18</span> [W];</td></tr>
+<tr><td class="ln" select="none">33</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">34</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">35</td><td class="lc">    <span class="kw">part</span> cameraSensor : Sensor {</td></tr>
+<tr><td class="ln" select="none">36</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> range      = <span class="nu">100</span> [m];</td></tr>
+<tr><td class="ln" select="none">37</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> accuracy   = <span class="nu">0.15</span> [m];</td></tr>
+<tr><td class="ln" select="none">38</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> updateRate = <span class="nu">30</span> [Hz];</td></tr>
+<tr><td class="ln" select="none">39</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> unitCost   = <span class="nu">350</span>;</td></tr>
+<tr><td class="ln" select="none">40</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> mass       = <span class="nu">0.3</span> [kg];</td></tr>
+<tr><td class="ln" select="none">41</td><td class="lc">        <span class="kw">attribute</span> <span class="op">:&gt;&gt;</span> powerDraw  = <span class="nu">5</span> [W];</td></tr>
+<tr><td class="ln" select="none">42</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">43</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">44</td><td class="lc">    <span class="cm">// ── Normalisation calculations ────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">45</td><td class="lc">    <span class="kw">calc</span> <span class="kw">def</span> NormRange {</td></tr>
+<tr><td class="ln" select="none">46</td><td class="lc">        <span class="kw">in</span> r : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">47</td><td class="lc">        <span class="kw">return</span> : <span class="ty">Real</span> = r / <span class="nu">300</span> [m];</td></tr>
+<tr><td class="ln" select="none">48</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">49</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">50</td><td class="lc">    <span class="kw">calc</span> <span class="kw">def</span> NormAccuracy {</td></tr>
+<tr><td class="ln" select="none">51</td><td class="lc">        <span class="kw">in</span> a : ISQ::LengthValue;</td></tr>
+<tr><td class="ln" select="none">52</td><td class="lc">        <span class="kw">return</span> : <span class="ty">Real</span> = <span class="nu">1.0</span> - (a / <span class="nu">0.20</span> [m]);</td></tr>
+<tr><td class="ln" select="none">53</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">54</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">55</td><td class="lc">    <span class="kw">calc</span> <span class="kw">def</span> NormCost {</td></tr>
+<tr><td class="ln" select="none">56</td><td class="lc">        <span class="kw">in</span> c : <span class="ty">Real</span>;</td></tr>
+<tr><td class="ln" select="none">57</td><td class="lc">        <span class="kw">return</span> : <span class="ty">Real</span> = <span class="nu">1.0</span> - (c / <span class="nu">5000</span>);</td></tr>
+<tr><td class="ln" select="none">58</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">59</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">60</td><td class="lc">    <span class="kw">calc</span> <span class="kw">def</span> NormRate {</td></tr>
+<tr><td class="ln" select="none">61</td><td class="lc">        <span class="kw">in</span> f : ISQ::FrequencyValue;</td></tr>
+<tr><td class="ln" select="none">62</td><td class="lc">        <span class="kw">return</span> : <span class="ty">Real</span> = f / <span class="nu">30</span> [Hz];</td></tr>
+<tr><td class="ln" select="none">63</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">64</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">65</td><td class="lc">    <span class="kw">calc</span> <span class="kw">def</span> NormMass {</td></tr>
+<tr><td class="ln" select="none">66</td><td class="lc">        <span class="kw">in</span> m : ISQ::MassValue;</td></tr>
+<tr><td class="ln" select="none">67</td><td class="lc">        <span class="kw">return</span> : <span class="ty">Real</span> = <span class="nu">1.0</span> - (m / <span class="nu">2.0</span> [kg]);</td></tr>
+<tr><td class="ln" select="none">68</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">69</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">70</td><td class="lc">    <span class="cm">// ── Composite scoring calculation ────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">71</td><td class="lc">    <span class="kw">calc</span> <span class="kw">def</span> SensorScore {</td></tr>
+<tr><td class="ln" select="none">72</td><td class="lc">        <span class="kw">in</span> sensor : Sensor;</td></tr>
+<tr><td class="ln" select="none">73</td><td class="lc">        <span class="kw">return</span> : <span class="ty">Real</span> =</td></tr>
+<tr><td class="ln" select="none">74</td><td class="lc">            <span class="nu">0.30</span> * NormRange(sensor.range) +</td></tr>
+<tr><td class="ln" select="none">75</td><td class="lc">            <span class="nu">0.25</span> * NormAccuracy(sensor.accuracy) +</td></tr>
+<tr><td class="ln" select="none">76</td><td class="lc">            <span class="nu">0.20</span> * NormCost(sensor.unitCost) +</td></tr>
+<tr><td class="ln" select="none">77</td><td class="lc">            <span class="nu">0.15</span> * NormRate(sensor.updateRate) +</td></tr>
+<tr><td class="ln" select="none">78</td><td class="lc">            <span class="nu">0.10</span> * NormMass(sensor.mass);</td></tr>
+<tr><td class="ln" select="none">79</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">80</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">81</td><td class="lc">    <span class="cm">// ── Analysis case definition ─────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">82</td><td class="lc">    <span class="kw">analysis</span> <span class="kw">def</span> SensorTradeStudy {</td></tr>
+<tr><td class="ln" select="none">83</td><td class="lc">        <span class="kw">subject</span> sensor : Sensor;</td></tr>
+<tr><td class="ln" select="none">84</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">85</td><td class="lc">        <span class="kw">objective</span> suitability {</td></tr>
+<tr><td class="ln" select="none">86</td><td class="lc">            <span class="kw">doc</span> <span class="cm">/* Sensor must achieve a minimum composite score */</span></td></tr>
+<tr><td class="ln" select="none">87</td><td class="lc">            <span class="kw">require</span> <span class="kw">constraint</span> { SensorScore(sensor) &gt;= <span class="nu">0.5</span> }</td></tr>
+<tr><td class="ln" select="none">88</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">89</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">90</td><td class="lc">        <span class="kw">return</span> score : <span class="ty">Real</span> = SensorScore(sensor);</td></tr>
+<tr><td class="ln" select="none">91</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">92</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">93</td><td class="lc">    <span class="cm">// ── Evaluate each alternative ─────────────────────────────</span></td></tr>
+<tr><td class="ln" select="none">94</td><td class="lc">    <span class="kw">analysis</span> radarEval : SensorTradeStudy {</td></tr>
+<tr><td class="ln" select="none">95</td><td class="lc">        <span class="kw">subject</span> sensor = radarSensor;   <span class="cm">// score = 0.662</span></td></tr>
+<tr><td class="ln" select="none">96</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">97</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">98</td><td class="lc">    <span class="kw">analysis</span> lidarEval : SensorTradeStudy {</td></tr>
+<tr><td class="ln" select="none">99</td><td class="lc">        <span class="kw">subject</span> sensor = lidarSensor;   <span class="cm">// score = 0.485 (fails objective)</span></td></tr>
+<tr><td class="ln" select="none">100</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">101</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">102</td><td class="lc">    <span class="kw">analysis</span> cameraEval : SensorTradeStudy {</td></tr>
+<tr><td class="ln" select="none">103</td><td class="lc">        <span class="kw">subject</span> sensor = cameraSensor;  <span class="cm">// score = 0.584</span></td></tr>
+<tr><td class="ln" select="none">104</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">105</td><td class="lc"></td></tr>
+<tr><td class="ln" select="none">106</td><td class="lc">    <span class="cm">// ── Decision: apply best alternative ──────────────────────</span></td></tr>
+<tr><td class="ln" select="none">107</td><td class="lc">    <span class="kw">part</span> <span class="kw">def</span> AutonomousVehicle {</td></tr>
+<tr><td class="ln" select="none">108</td><td class="lc">        <span class="kw">part</span> perceptionSuite {</td></tr>
+<tr><td class="ln" select="none">109</td><td class="lc">            <span class="cm">// Selected: radar (highest score, meets objective)</span></td></tr>
+<tr><td class="ln" select="none">110</td><td class="lc">            <span class="kw">part</span> primarySensor : Sensor = radarSensor;</td></tr>
+<tr><td class="ln" select="none">111</td><td class="lc">            <span class="cm">// Complementary: camera (second highest, low cost)</span></td></tr>
+<tr><td class="ln" select="none">112</td><td class="lc">            <span class="kw">part</span> secondarySensor : Sensor = cameraSensor;</td></tr>
+<tr><td class="ln" select="none">113</td><td class="lc">        }</td></tr>
+<tr><td class="ln" select="none">114</td><td class="lc">    }</td></tr>
+<tr><td class="ln" select="none">115</td><td class="lc">}</td></tr>
+</table></code></pre>
+<p>该模型演示了：用 <strong>calc def</strong> 编写归一化与评分函数、带主题和目标的 <strong>analysis def</strong>、用 <strong>require constraint</strong> 设定最低门槛、为每个备选方案实例化分析用例，以及把最终设计决策追溯回权衡研究结果。</p>
+<div class="callout tip"><div class="callout-label">提示</div><p>在真实项目中，你还应为这次权衡研究补充敏感性分析（调整权重）、追加约束（功耗预算、集成复杂度），并链接到验证用例，以确认所选传感器满足模块 5 中的系统级需求。</p></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SECTION 7 &#8212; Module Summary
+     ════════════════════════════════════════════════════════════ -->
+<span class="section-anchor" id="s7"></span><div class="section-header"><span class="section-num">7</span><h2>模块总结</h2></div>
+<table><thead><tr><th>SysML v2 概念</th><th>KerML 起源</th><th>关键规则</th></tr></thead><tbody>
+<tr><td><code>calc def</code></td><td><code>Function</code>（特化自 <code>Behavior</code>）</td><td>声明式的数学关系，带类型化参数与返回值</td></tr>
+<tr><td><code>calc</code>（使用）</td><td>由 <code>Function</code> 定型的 <code>Expression</code></td><td>在上下文中对 calc def 求值；把实参绑定到参数</td></tr>
+<tr><td><code>analysis def</code></td><td><code>CaseDefinition</code></td><td>带主题、目标与返回值的结构化容器</td></tr>
+<tr><td><code>analysis</code>（使用）</td><td><code>CaseUsage</code></td><td>施加于某个具体设计元素的分析实例</td></tr>
+<tr><td><code>objective</code></td><td><code>RequirementUsage</code></td><td>作用域限定在该分析用例内的成功判据；承载约束</td></tr>
+<tr><td><code>subject</code></td><td><code>SubjectMembership</code></td><td>标识被分析的元素；充当输入参数</td></tr>
+<tr><td><code>return</code></td><td><code>ReturnParameterMembership</code></td><td>计算得到的结果值；可被下游元素引用</td></tr>
+<tr><td><code>require constraint</code></td><td><code>RequirementConstraintMembership</code></td><td>为满足目标而必须成立的布尔条件</td></tr>
+<tr><td>权衡研究模式</td><td>以上构造的组合</td><td>定义备选方案、归一化准则、加权评分、比较、决策</td></tr>
+</tbody><caption style="caption-side:bottom;font-size:.8rem;color:var(--muted);padding:.5rem;text-align:center">表 &#8212; 模块 7 的概念及其 KerML 起源</caption></table>
+<div class="next-box"><div class="next-label">下一模块</div><p>模块 8 &#8212; 变体与配置 &#8212; 变体点、变体配置，以及如何在 SysML v2 中为产品线可变性建模。</p></div>
   </main>
 </div>
 <script>
@@ -556,6 +569,6 @@ function activateNav(){let cur='';sections.forEach(s=>{if(window.scrollY>=s.offs
 window.addEventListener('scroll',activateNav,{passive:true});activateNav();
 </script>
 <footer style="margin-top:3rem;padding:1.5rem;text-align:center;font-size:0.85rem;color:#94a3b8;border-top:1px solid #e2e8f0">
-  <p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
+  <p>&copy; Ran Wei &middot; 授权协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:none">CC BY 4.0</a></p>
 </footer>
 </body></html>
