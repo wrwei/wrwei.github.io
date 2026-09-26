@@ -8,6 +8,10 @@ hide:
 
 <div class="rw-news-list">
   <div class="rw-news-item">
+    <span class="rw-news-date">09/26</span>
+    Two papers on model-driven engineering for quantum systems have been accepted at the <a href="https://conf.researchr.org/track/models-2026/models-2026-workshops">Quantum and Model-Driven Engineering workshop at MODELS 2026</a>.
+  </div>
+  <div class="rw-news-item">
     <span class="rw-news-date">03/25</span>
     New tutorial series on <a href="tutorials/ood/">Object Oriented Design</a> is now available, covering objects & classes, encapsulation, inheritance, and polymorphism — in both English and Chinese!
   </div>
@@ -27,15 +31,15 @@ hide:
 
 ## About Me
 
-I am currently a Senior Lecturer (Associate Professor) of Computer Science at the School of Computing and Communications, Lancaster University, UK. I am also a long-term visiting scholar at the Department of Engineering, University of Cambridge.
+I am a Senior Lecturer (Associate Professor) in Computer Science at the School of Computing and Communications, Lancaster University, UK. I maintain a visiting research collaboration with the Department of Engineering at the University of Cambridge. My background is in Model Driven Engineering (MDE), which I apply to Model Based Systems Engineering (MBSE), high-integrity systems and model-based assurance.
 
-I am an active contributing member of [Structured Assurance Case Metamodel (SACM)](https://www.omg.org/spec/SACM/), an international standard specified by the [Object Management Group](https://www.omg.org/index.htm). I am also an active contributing member of [Goal Structuring Notation (GSN)](https://scsc.uk/gsn?page=gsn%202standard), specified by the [Assurance Case Working Group](https://scsc.uk/gsn?page=gsn%201about). I am a certified ISO-26262 engineer, and a member of INCOSE (International Council on Systems Engineering) UK.
+I contribute to the [Structured Assurance Case Metamodel (SACM)](https://www.omg.org/spec/SACM/) from the Object Management Group and the [Goal Structuring Notation (GSN)](https://scsc.uk/gsn?page=gsn%202standard) from the Assurance Case Working Group. I am a certified ISO 26262 Functional Safety Engineer, a Fellow of the Higher Education Academy (FHEA), and a member of INCOSE UK. I lead the development of [Principia](https://principia-modelling.com/), a commercial-grade MBSE toolchain.
 
 Prior to my current position, I had taken the following roles:
 
 <ul class="rw-career-list">
   <li>
-    <strong>Assistant Professor (2023–2024)</strong> at the <a href="https://www.eng.cam.ac.uk/">Department of Engineering</a>, <a href="https://www.cam.ac.uk">University of Cambridge</a>, UK — worked with <a href="https://www.eng.cam.ac.uk/profiles/lpd25">Dr Lavindra de Silva</a> and <a href="https://www.eng.cam.ac.uk/profiles/ib340">Prof Ioannis Brilakis</a> to explore Digital Twin applications in the construction sector.
+    <strong>Research Assistant Professor (2023–2024)</strong> at the <a href="https://www.eng.cam.ac.uk/">Department of Engineering</a>, <a href="https://www.cam.ac.uk">University of Cambridge</a>, UK — worked with <a href="https://www.eng.cam.ac.uk/profiles/lpd25">Dr Lavindra de Silva</a> and <a href="https://www.eng.cam.ac.uk/profiles/ib340">Prof Ioannis Brilakis</a> to explore Digital Twin applications in the construction sector.
   </li>
   <li>
     <strong>Associate Professor (2020–2023)</strong> at the School of Artificial Intelligence, <a href="https://www.dlut.edu.cn">Dalian University of Technology</a>, China — worked on the automated assurance of safety critical systems, to assure the safety of critical systems with AI/ML capabilities.
@@ -54,7 +58,7 @@ Modern safety-critical systems must be rigorously justified as acceptably safe b
 
 My research tackles this bottleneck by bringing automation to the core activities of SCSE, spanning the following interconnected themes:
 
-**Model Based Systems Engineering & Tooling.** Much of my work is grounded in MBSE, which provides the rigour and machine-processable representations needed for automation. I have contributed to the development of modelling standards — notably the [Structured Assurance Case Metamodel (SACM)](https://www.omg.org/spec/SACM/) and [Goal Structuring Notation (GSN)](https://scsc.uk/gsn?page=gsn%202standard) — and built open-source tooling to support them, including automated generation of graphical editors for UML/SysML profiles and model management capabilities within the [Epsilon](https://eclipse.dev/epsilon/) platform ecosystem.
+**Model Based Systems Engineering & Tooling.** Much of my work is grounded in MBSE, which provides the rigour and machine-processable representations needed for automation. I have contributed to the development of modelling standards — notably [SACM](https://www.omg.org/spec/SACM/) and [GSN](https://scsc.uk/gsn?page=gsn%202standard) — and to the [Epsilon](https://eclipse.dev/epsilon/) model-management platform. I led the development of the Assurance Case Management Environment (ACME) for SACM and GSN. I am now developing [Principia](https://principia-modelling.com/), an MBSE toolchain bringing modelling, simulation and assurance together; its codebase contains approximately 8.86 million lines.
 
 **Traceability & the Digital Thread.** A recurring challenge in systems engineering is maintaining coherent traceability across heterogeneous artifacts produced by different tools throughout the system lifecycle. My work addresses this by establishing model-based digital threads that link requirements, design models, safety analyses, and assurance arguments, enabling automated impact analysis and change propagation when any part of the system evolves.
 
@@ -62,7 +66,7 @@ My research tackles this bottleneck by bringing automation to the core activitie
 
 **Digital Twins for Runtime Assurance.** More recently, I have been exploring Digital Twin technologies for runtime monitoring and assurance of systems and systems of systems — from [highway infrastructure maintenance](https://www.sciencedirect.com/science/article/pii/S2666165925000146) to [space launch vehicles](https://www.sciencedirect.com/science/article/pii/S2452414X24000852). Digital Twins offer a promising paradigm for maintaining a live, model-based representation of a system throughout its operational life, enabling continuous assurance even as the system and its environment change.
 
-**LLMs for Systems Engineering.** I am also investigating how Large Language Models can be harnessed to support the development and assurance of safety-critical systems — a direction with exciting potential but also significant challenges around trust and reliability.
+**AI-augmented software engineering.** My current research direction follows the slogan *“LLMs draft, formal methods discriminate, and assurance cases explain.”* LLMs propose code and system models; formal methods check them against requirements and safety properties; assurance cases present the evidence and reasoning behind the results. Recent work includes [formal-method-guided generation of safety-critical software](https://arxiv.org/abs/2606.22413) and [traceable system models generated from requirements](https://arxiv.org/abs/2607.16708). The first paper is under major revision at ACM TOSEM; the second has been submitted to *Communications Engineering*.
 
 I am always happy to discuss ideas — feel free to reach out by email!
 

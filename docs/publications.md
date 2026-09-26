@@ -4,9 +4,74 @@ title: Publications
 
 I am fortunate to collaborate with talented researchers and engineers. Below are selected publications:
 
+### Manuscripts and preprints
+
+<ul class="rw-pub-list">
+  <li>
+    <strong>R. Wei</strong>, L. Zhu, H. Wang, J. Woodcock, F. Yan, S. Foster and X. Ji.
+    <span class="rw-paper-title"><a href="https://arxiv.org/abs/2606.22413">Formal-Method-Guided Vibe Coding: Closing the Verification Loop on AI-Generated Safety-Critical Software Through Model-Driven Engineering</a></span>.
+    Major revision, <em>ACM Transactions on Software Engineering and Methodology (TOSEM)</em>.
+  </li>
+  <li>
+    H. Wang, L. Zhu, <strong>R. Wei</strong>, J. Gao, J. Woodcock, H. Zhang and X. Ji.
+    <span class="rw-paper-title">Formal-Method-Guided Risk Ranking: Closing the Comparative Residual-Risk Loop on Verification-Passing Controllers</span>.
+    Submitted to <em>ACM Transactions on Software Engineering and Methodology (TOSEM)</em>, July 2026.
+  </li>
+  <li>
+    <strong>R. Wei</strong>, L. Zhu, H. Wang, R. Yang, J. Guan, S. Ji, Y. Hu, Z. Jiang and X. Ji.
+    <span class="rw-paper-title"><a href="https://arxiv.org/abs/2607.16708">Model-Driven Discipline for Multi-Agent LLMs: Requirement-to-Verification Generation of Traceable System Models</a></span>.
+    Submitted to <em>Communications Engineering</em> (Nature Portfolio).
+  </li>
+  <li>
+    J. Woodcock, G. Leite, A. Sampaio and <strong>R. Wei</strong>.
+    <span class="rw-paper-title"><a href="https://arxiv.org/abs/2608.13459">CAPRI: Contract-Aware Proof Repair for Isabelle</a></span>.
+    Submitted to SBMF 2026.
+  </li>
+  <li>
+    J. Woodcock, G. Leite, A. Sampaio and <strong>R. Wei</strong>.
+    <span class="rw-paper-title"><a href="https://arxiv.org/abs/2608.18822">Contract-Aware Rescue of a Drifted Isabelle Development: The Double-Tank Case Study</a></span>.
+    Submitted to FMAS 2026.
+  </li>
+  <li>
+    Y. Tian, <strong>R. Wei</strong>, J. Zhang, X. Zhang, W. Hu and L. Zhu.
+    <span class="rw-paper-title"><a href="https://doi.org/10.21203/rs.3.rs-10388873/v1">A Model-Based Digital Twin for Predicting Deterioration of Mogao Polychrome Sculpture</a></span>.
+    Submitted to <em>npj Heritage Science</em>.
+  </li>
+</ul>
+
+### 2026
+
+<ul class="rw-pub-list">
+  <li>
+    V.K. Reja, M. Yin, D. Davletshina, <strong>R. Wei</strong>, J. Fauth, F. Perrotta and I. Brilakis.
+    <span class="rw-paper-title">Establishing and Fulfilling Information Requirements for Computer Vision-Enabled Digital Twin-Based Control of Roadside Vegetation</span>,
+    <em>Journal of Construction Engineering and Management</em>, 152(9), 04026147, 2026.
+  </li>
+  <li>
+    A. Elsokary, H. Ishida, <strong>R. Wei</strong>, M.J. de C. Henshaw and S. Ji.
+    <span class="rw-paper-title"><a href="https://arxiv.org/abs/2607.10367">Model-Driven Digital Twin Framework for Quantum Networks</a></span>,
+    accepted research preview at the 1st Workshop on Quantum and Model-Driven Engineering (MODELS 2026).
+  </li>
+  <li>
+    S. Ji, H. Ishida, A. Elsokary, S. Powley, C. White, A. Zagoskin, <strong>R. Wei</strong>, M. Aslam and M.J. de C. Henshaw.
+    <span class="rw-paper-title"><a href="https://arxiv.org/abs/2607.10347">A Framework for Managing the Models of Engineered Quantum Systems</a></span>,
+    accepted short paper at the 1st Workshop on Quantum and Model-Driven Engineering (MODELS 2026).
+  </li>
+  <li>
+    J. Guan, J. Zhang, H. Zhou, <strong>R. Wei</strong>, D. You, H. Wang, Y. Wang, T. Wang, X. Zhao, J. Li and Z. Jiang.
+    <span class="rw-paper-title"><a href="https://arxiv.org/abs/2604.10484">Strix: Re-thinking NPU Reliability from a System Perspective</a></span>,
+    accepted at DAC 2026.
+  </li>
+</ul>
+
 ### 2025
 
 <ul class="rw-pub-list">
+  <li>
+    R. Jiang, P. Dong, Y. Ding, <strong>R. Wei</strong> and Z. Jiang.
+    <span class="rw-paper-title">Thetis-lathe: Guidance on Reducing Residual Safety Obstacle in System Software from Rust Source Codes</span>,
+    <em>ACM Transactions on Embedded Computing Systems</em>, 24(4), article 56, pp. 1–25, 2025.
+  </li>
   <li>
     K.B. Blay, A. Darko, S. Hwang, I. Brilakis, F. Foster and <strong>R. Wei</strong>.
     <span class="rw-paper-title">Ensuring information security resilience in Digital-enabled Construction Projects (DCP) through quantum security technologies</span>,
@@ -25,11 +90,6 @@ I am fortunate to collaborate with talented researchers and engineers. Below are
   <li>
     T. Wang, Y. Li, W. Tang, J. Guan, Z. Guo, R. Jiang, <strong>R. Wei</strong>, J. Li and Z. Jiang.
     <span class="rw-paper-title">FlexStep: Enabling Flexible Error Detection in Multi/Many-core Real-time Systems</span>,
-    <em>62nd ACM/IEEE Design Automation Conference (<strong>DAC</strong>)</em>, pp. 1-7, 2025.
-  </li>
-  <li>
-    H. Wang, Z. Zhao, J. Wang, Y. Du, Y. Cheng, B. Guo, H. Xiao, C. Ma, X. Han, D. You and J. Guan.
-    <span class="rw-paper-title">NVR: Vector Runahead on NPUs for Sparse Memory Access</span>,
     <em>62nd ACM/IEEE Design Automation Conference (<strong>DAC</strong>)</em>, pp. 1-7, 2025.
   </li>
   <li>
@@ -91,7 +151,7 @@ I am fortunate to collaborate with talented researchers and engineers. Below are
   <li>
     Dawei Yang, Yan Wang, <strong>Ran Wei</strong>, Jiapeng Guan, Xiaohua Huang, Wei Cai, Zhe Jiang.
     <span class="rw-paper-title"><a href="https://doi.org/10.1016/j.sysarc.2024.103085">An efficient multi-task learning CNN for driver attention monitoring</a></span>,
-    <em>Journal of System Architecture (<strong>JSA</strong>)</em>, 2024.
+    <em>Journal of Systems Architecture (<strong>JSA</strong>)</em>, 2024.
   </li>
 </ul>
 
