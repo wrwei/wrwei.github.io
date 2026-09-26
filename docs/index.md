@@ -33,7 +33,7 @@ hide:
 
 I am a Senior Lecturer (Associate Professor) in Computer Science at the School of Computing and Communications, Lancaster University, UK. I maintain a visiting research collaboration with the Department of Engineering at the University of Cambridge. My background is in Model Driven Engineering (MDE), which I apply to Model Based Systems Engineering (MBSE), high-integrity systems and model-based assurance.
 
-I contribute to the [Structured Assurance Case Metamodel (SACM)](https://www.omg.org/spec/SACM/) from the Object Management Group and the [Goal Structuring Notation (GSN)](https://scsc.uk/gsn?page=gsn%202standard) from the Assurance Case Working Group. I am a certified ISO 26262 Functional Safety Engineer, a Fellow of the Higher Education Academy (FHEA), and a member of INCOSE UK. I lead the development of [Principia](https://principia-modelling.com/), a commercial-grade MBSE toolchain.
+I contribute to the [Structured Assurance Case Metamodel (SACM)](https://www.omg.org/spec/SACM/) from the Object Management Group and the [Goal Structuring Notation (GSN)](https://scsc.uk/gsn?page=gsn%202standard) from the Assurance Case Working Group. I am a certified ISO 26262 Functional Safety Engineer, a Fellow of the Higher Education Academy (FHEA), and a member of the [Institute for Systems Engineering (IfSE)](https://ifse.org.uk/), formerly INCOSE UK. I lead the development of [Principia](https://principia-modelling.com/), a commercial-grade MBSE toolchain.
 
 Prior to my current position, I had taken the following roles:
 
