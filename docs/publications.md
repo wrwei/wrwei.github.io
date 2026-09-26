@@ -2,7 +2,7 @@
 title: Publications
 ---
 
-I am fortunate to collaborate with talented researchers and engineers. Below are selected publications:
+I am fortunate to collaborate with talented researchers and engineers. This page lists selected publications and current manuscripts; my [Google Scholar profile](https://scholar.google.com/citations?user=HY8KkDAAAAAJ&hl=en) has the broader record.
 
 ### Manuscripts and preprints
 
@@ -62,6 +62,16 @@ I am fortunate to collaborate with talented researchers and engineers. Below are
     <span class="rw-paper-title"><a href="https://arxiv.org/abs/2604.10484">Strix: Re-thinking NPU Reliability from a System Perspective</a></span>,
     accepted at DAC 2026.
   </li>
+  <li>
+    J. Zhang, J. Guan, H. Zhou, X. Han, T. Wang, <strong>R. Wei</strong> and Z. Jiang.
+    <span class="rw-paper-title"><a href="https://arxiv.org/abs/2604.10494">From Characterization to Microarchitecture: Designing an Elegant and Reliable BFP-Based NPU</a></span>,
+    accepted at DAC 2026.
+  </li>
+  <li>
+    H. Zhou, J. Guan, J. Zhang, <strong>R. Wei</strong>, X. Zhao, Z. Jiang and X. Ji.
+    <span class="rw-paper-title"><a href="https://doi.org/10.1109/ICASSP55912.2026.11463557">S2VD: A Subspace-Aware SVD Method for Efficient LLM Compression</a></span>,
+    <em>IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)</em>, 2026.
+  </li>
 </ul>
 
 ### 2025
@@ -107,6 +117,21 @@ I am fortunate to collaborate with talented researchers and engineers. Below are
 ### 2024
 
 <ul class="rw-pub-list">
+  <li>
+    Y. Wen, M. Wang, M. Ariyachandra, <strong>R. Wei</strong>, I. Brilakis and L. Xiao.
+    <span class="rw-paper-title">Knowledge Driven Rule-Based Building Geometric Digital Twin Construction — State of Art Review</span>,
+    <em>European Council on Computing in Construction (EC3)</em>, 2024.
+  </li>
+  <li>
+    M. Yin, V.K. Reja, <strong>R. Wei</strong>, B. Sheil and I. Brilakis.
+    <span class="rw-paper-title">How Can Digital Twins be Used in Highway Maintenance? A Questionnaire Survey for Industry Practitioners</span>,
+    <em>European Council on Computing in Construction (EC3)</em>, 2024.
+  </li>
+  <li>
+    V.K. Reja, D. Davletshina, M. Yin, <strong>R. Wei</strong>, Q.F. Adam, I. Brilakis and F. Perrotta.
+    <span class="rw-paper-title">A Digital Twin Based Approach to Control Overgrowth of Roadside Vegetation</span>,
+    <em>International Symposium on Automation and Robotics in Construction (ISARC)</em>, pp. 661–668, 2024.
+  </li>
   <li>
     Yuandong Pan, Mudan Wang, Linjun Lu, <strong>Ran Wei</strong>, Stefano Cavazzi, Matt Peck, Ioannis Brilakis.
     <span class="rw-paper-title"><a href="https://www.sciencedirect.com/science/article/pii/S092658052400390X">Scan-to-graph: Automatic Generation and Representation of Highway Geometric Digital Twins from Point Cloud Data</a></span>,
@@ -274,6 +299,11 @@ I am fortunate to collaborate with talented researchers and engineers. Below are
 
 <ul class="rw-pub-list">
   <li>
+    W. Chang, S. Zhao, <strong>R. Wei</strong>, A. Wellings and A. Burns.
+    <span class="rw-paper-title">From Java to Real-Time Java: A Model-Driven Methodology with Automated Toolchain</span>,
+    <em>ACM SIGPLAN Conference on Languages, Compilers, and Tools for Embedded Systems (LCTES)</em>, pp. 123–134, 2019.
+  </li>
+  <li>
     Yiannis Papadopoulos, Youcef Gheraibia, Jan Reich, Merve Saimler, <strong>Ran Wei</strong>.
     <span class="rw-paper-title">A Runtime Safety Analysis Concept for Open Adaptive Systems</span>,
     <em>Model-Based Safety and Assessment: 6th International Symposium (<strong>IMBSA 2019</strong>)</em>, 2019.
@@ -282,5 +312,25 @@ I am fortunate to collaborate with talented researchers and engineers. Below are
     <strong>Ran Wei</strong>, Tim P Kelly, Xiaotian Dai, Shuai Zhao, Richard Hawkins.
     <span class="rw-paper-title"><a href="https://www.sciencedirect.com/science/article/abs/pii/S0164121219301062">Model based system assurance using the structured assurance case metamodel</a></span>,
     <em>Journal of Systems and Software (<strong>JSS</strong>)</em>, 2019.
+  </li>
+</ul>
+
+### 2016
+
+<ul class="rw-pub-list">
+  <li>
+    <strong>R. Wei</strong>, D.S. Kolovos, A. Garcia-Dominguez, K. Barmpis and R.F. Paige.
+    <span class="rw-paper-title">Partial Loading of XMI Models</span>,
+    <em>ACM/IEEE International Conference on Model Driven Engineering Languages and Systems (MODELS)</em>, pp. 329–339, 2016.
+  </li>
+</ul>
+
+### 2014
+
+<ul class="rw-pub-list">
+  <li>
+    S.M. Shah, <strong>R. Wei</strong>, D.S. Kolovos, L.M. Rose, R.F. Paige and K. Barmpis.
+    <span class="rw-paper-title">A Framework to Benchmark NoSQL Data Stores for Large-Scale Model Persistence</span>,
+    <em>ACM/IEEE International Conference on Model Driven Engineering Languages and Systems (MODELS)</em>, pp. 586–601, 2014.
   </li>
 </ul>
