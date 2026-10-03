@@ -46,7 +46,7 @@ does not publish it.
 | 02 Neural networks and backpropagation | Done | Done |
 | 03 Convolutional networks | Done | Parts 10 and 11 translated; parts 12, 20, 21, 30, 40 and the metadata to do; then Chinese QA |
 | 04 Recurrent networks and sequences | Written, edited, figures and widgets done. To do: verify labs, technical review, QA | To do |
-| 05 Other networks worth knowing | All seven parts written; `20-labs-a.md` (Labs 1–3) is unverified. To do: verify Labs 1–3, edit, figures, widgets (drafts of both exist), verify labs, technical review, QA | To do |
+| 05 Other networks worth knowing | All seven parts written; `20-labs-a.md` (Labs 1–3) is unverified. Figures already cut to 18 (fig-05-1, 2, 4, 5, 7, 9, 11, 12, 13, 15, 16, 17, 20, 21, 25, 26, 28, 29), each cited in the text. To do: verify Labs 1–3, edit, figures, widgets (drafts of both exist), verify labs, technical review, QA | To do |
 | 06 The transformer | Parts 10 and 11 written. `20-labs-a.md` has only Lab 1 (Labs 2, 3 missing) and `21-labs-b.md` only Lab 4 (Labs 5, 6 missing). To do: parts 12, 30, 40, the missing labs, then every later step (drafts of both widgets exist) | To do |
 | 07 Large language models | Parts 10 and 12 written. To do: parts 11, 20, 21, 30, 40, then every later step (one widget draft exists) | To do |
 | 08 LLM pretraining | Parts 10 and 11 written. To do: parts 12, 20, 21, 30, 40, then every later step | To do |
@@ -146,9 +146,11 @@ For each module, in this order. Each step names the guide that governs it.
    about 20,000 words against the outline's 15,000; exercises with full solutions about 10,000). That
    is realistically 12–15 hours of study, not 10. Decide whether to trim, or to describe the modules
    as about 12 hours (the page header and study-plan text say "about ten hours").
-2. **Figure numbers have gaps.** Editors kept at most 18 figures per module but did not renumber
-   them, so a page can show Figures 1.2, 1.4, 1.6. Fix in `tools/md.mjs` (`figNumber`): number
-   figures by order of appearance instead of by id.
+2. **Figure numbers** (fixed). Pages number figures by order of appearance, and the build rewrites
+   each "Figure N.k" in the text (k is the figure id's number) to the number shown, so cutting or
+   reordering figures leaves no gaps and ids never change (`SPEC.md`, section on figures).
+   `check.mjs` warns about a reference whose figure is not on the page; Module 06 cites Figures
+   6.19, 6.23 and 6.24 from sections not yet written.
 3. **Unverified files**: `src/en/module_05/20-labs-a.md` was written but never run through
    `labrun.py`; the partial Module 06 lab files need finishing and running.
 4. **Paper details**: some guided-reading notes (section names, figure numbers inside papers) were
