@@ -436,7 +436,7 @@ for n in (1, 2, 3):
 :::
 
 ::: exercise id=e9 level=1 kind=conceptual minutes=5
-Explain why teacher forcing lets an RNN decoder be trained without sampling, and what exposure bias is. Using Lab 4's numbers for the model without attention at length 12 (teacher-forced token accuracy 73%, free-running 51%), explain the gap and propose two remedies.
+Explain why teacher forcing lets an RNN decoder be trained without sampling, and what exposure bias is. Using Lab 4's numbers for the model without attention at length 12 (teacher-forced token accuracy 74%, free-running 53%), explain the gap and propose two remedies.
 :::
 
 ::: solution
@@ -444,7 +444,7 @@ Explain why teacher forcing lets an RNN decoder be trained without sampling, and
 
 **Exposure bias.** At test time there is no true previous token, so the decoder conditions on its own outputs. The model was only ever exposed to correct prefixes. One wrong token puts it in a state that no training step produced; its next prediction is less reliable than the model's accuracy on correct prefixes suggests, and errors compound.
 
-**The gap.** Teacher-forced accuracy of 73% means 27% of tokens are wrong *given a correct prefix*. Free-running accuracy of 51% means 49% are wrong, $49/27 = 1.8$ times as many. The extra errors are those that follow an earlier error: nothing else differs between the two measurements. The gap grows with length (essentially none at length 4, 99.8% against 99.7%; 91% against 78% at length 8; 73% against 51% at length 12) because a longer output has more earlier tokens that can be wrong. It also needs errors to compound: with attention both accuracies are 100% at every length, and exposure bias costs nothing for a model that never errs.
+**The gap.** Teacher-forced accuracy of 74% means 26% of tokens are wrong *given a correct prefix*. Free-running accuracy of 53% means 47% are wrong, $47/26 = 1.8$ times as many. The extra errors are those that follow an earlier error: nothing else differs between the two measurements. The gap grows with length (essentially none at length 4, 99.7% against 99.4%; 91% against 80% at length 8; 74% against 53% at length 12) because a longer output has more earlier tokens that can be wrong. It also needs errors to compound: with attention both accuracies are 100% at every length, and exposure bias costs nothing for a model that never errs.
 
 **Remedies.**
 

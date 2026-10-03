@@ -635,8 +635,8 @@ The same model then scores about 0.12 to 0.14, depending on the seed, against th
 least-squares linear autoregression on the same windows scores 0.099, at the noise floor (no
 one-step forecast can beat the noise's standard deviation of 0.1 except by chance). On a sinusoid
 plus drift plus noise, a linear model is the right tool. [Lab 3](#lab3) runs the same model on a
-nonlinear signal that also drifts: it loses to persistence there too (RMSE 0.42 against 0.37, mean
-error $-0.32$), the fix brings it to 0.135, and on that signal the LSTM has something to add over
+nonlinear signal that also drifts: it loses to persistence there too (RMSE 0.43 against 0.36, mean
+error $-0.32$), the fix brings it to 0.13, and on that signal the LSTM has something to add over
 the linear model.
 :::
 
@@ -664,9 +664,9 @@ linear model with a long window the two nearly coincide: when the window holds t
 linear state, iterating the best one-step linear predictor gives the best $h$-step one, which is
 what the direct regression estimates. For a nonlinear model they differ, often a lot. Step 5 of
 [Lab 3](#lab3) plots error against horizon for both strategies: the recursive LSTM is the best
-forecaster at $h = 1$ (RMSE 0.13), and at $h = 20$ it is close to the naive forecast (0.73
-against 0.78) and well behind the direct LSTM and both linear models (about 0.57; the two linear
-strategies coincide).
+forecaster at $h = 1$ (RMSE 0.13), and at $h = 20$ it is worse than the naive forecast (0.78
+against 0.72) and well behind the direct LSTM and both linear models (about 0.55 to 0.56; the two
+linear strategies coincide).
 
 ### Point forecasts and intervals
 

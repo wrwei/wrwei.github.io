@@ -185,9 +185,9 @@ At test time there is no true previous token; the decoder conditions on its own 
 token puts it in a state no training step produced, the next prediction is less reliable, and
 errors compound. Ranzato et al. (2016) named this **exposure bias**: the model was only ever
 exposed to correct prefixes. [Lab 4](#lab4) measures it. For the model without attention at length
-12, token accuracy is 73% when each step is given the true prefix (teacher-forced) and 51% when the
-model runs on its own outputs (free-running); at length 8, 91% against 78%; at length 4 there is no
-gap worth the name (99.8% against 99.7%).
+12, token accuracy is 74% when each step is given the true prefix (teacher-forced) and 53% when the
+model runs on its own outputs (free-running); at length 8, 91% against 80%; at length 4 there is no
+gap worth the name (99.7% against 99.4%).
 
 **Scheduled sampling** (Bengio et al. 2015) feeds the model's own prediction in place of the true
 token with a probability that rises during training, so it learns to recover from its mistakes.
@@ -262,7 +262,7 @@ substantially. Reversal puts the first source words next to the first target wor
 earliest dependencies the decoder needs are short; that such a trick helps at all is a symptom of
 the bottleneck. Cho, van Merriënboer, Bahdanau and Bengio (2014) observed translation quality
 falling as sentences grew longer. Lab 4 measures it cleanly: reversing digit strings with a GRU
-encoder–decoder whose summary is 64 numbers, sequence accuracy is about 99% at length 4, 36% at
+encoder–decoder whose summary is 64 numbers, sequence accuracy is about 98% at length 4, 43% at
 length 8 and 1% at length 12 (one run; another seed moves the middle value by several points).
 [Section 11](#s11) removes the bottleneck.
 
@@ -376,9 +376,9 @@ producing each output. It can be plotted, and Bahdanau et al.'s plots for Englis
 translation are mostly diagonal, because the languages share word order, with local departures
 where they do not, such as the swapped order of adjective and noun. For digit reversal the
 alignment should be the anti-diagonal, and it is. In [Lab 4](#lab4), for an 8-digit input the
-argmax of each digit row is $(7, 6, 5, 4, 3, 2, 1, 0)$, with peak weights between 0.65 and 0.83:
+argmax of each digit row is $(7, 6, 5, 4, 3, 2, 1, 0)$, with peak weights between 0.63 and 0.84:
 the model has found "look at the mirror position". Lab 4's Step 6 plots the heat map. With
-attention the sequence accuracy is 100% at lengths 4, 8 and 12, against about 99%, 36% and 1%
+attention the sequence accuracy is 100% at lengths 4, 8 and 12, against about 98%, 43% and 1%
 without.
 
 ### Luong's variants, and the scale of a dot product
@@ -814,7 +814,7 @@ targets and validation inputs.
 
 **Symptom.** On the newest data the network is worse than persistence: the code of
 [Section 8](#s8)'s worked example scores 1.075 against the naive 0.155, and the same model in
-[Lab 3](#lab3) 0.42 against 0.37. **Cause.** The level drifted
+[Lab 3](#lab3) 0.43 against 0.36. **Cause.** The level drifted
 beyond anything seen in training, and a network does not extrapolate a level: its predictions are
 biased towards the levels it knows. **Fix.** Normalise per window (subtract the last value or the
 window mean; RevIN) or difference the series, and always print the naive baseline beside the model.
@@ -870,14 +870,14 @@ does not change.
 **Symptom.** Output is fluent for a few tokens, then drifts off or loops. **Cause.** Exposure bias:
 the model was trained only with teacher forcing and has never seen its own mistakes
 ([Section 10](#s10)). **Fix.** Scheduled sampling, some free-running training, or sequence-level
-objectives. At minimum, evaluate free-running: in Lab 4, at length 12, the gap is 73%
-teacher-forced against 51% free-running token accuracy.
+objectives. At minimum, evaluate free-running: in Lab 4, at length 12, the gap is 74%
+teacher-forced against 53% free-running token accuracy.
 
 ### A multi-step forecast that diverges after a few steps
 
 **Symptom.** Excellent one-step error, poor error at longer horizons. **Cause.** The recursive
 strategy feeds predictions back as inputs and compounds their errors; in Lab 3 the best one-step
-model, the recursive LSTM, is nearly as bad as naive at $h = 20$ (RMSE 0.73 against 0.78). **Fix.** Train a direct multi-output model, or train the
+model, the recursive LSTM, is worse than naive at $h = 20$ (RMSE 0.78 against 0.72). **Fix.** Train a direct multi-output model, or train the
 recursive model on its own rollouts, and report error against horizon.
 
 ### Beam search that returns short or empty outputs

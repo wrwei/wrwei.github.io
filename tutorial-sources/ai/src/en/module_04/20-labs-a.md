@@ -474,7 +474,7 @@ largest gradient norm before clipping: 1.43; updates clipped: 0
 
 The first window's mean training loss, about 1.15, is dominated by the first few dozen updates,
 when the loss falls from 3.61; by update 500 the network is at about 0.4 on both texts. From
-there the validation loss wanders between about 0.39 and 0.40 while the training loss creeps down
+there the validation loss wanders between about 0.39 and 0.41 while the training loss creeps down
 to about 0.38, so the best checkpoint is simply the lowest of a flat region (the exact update
 may differ from run to run). That best validation loss, about 0.39 nats per character, is clearly
 below the 5-gram's 0.48, so the network uses context beyond four characters. The largest
@@ -557,8 +557,9 @@ C2 pres 1.9 bar night shift ok /P1
 ```
 
 The samples read like the log. Units follow quantities, values are plausible numbers, and statuses
-agree with values. Look at the closing tags, though: in the six lines at $\tau = 0.5$ above,
-several close with a tag that is not the one that opened the line. The network has learned what a
+mostly agree with values (one line at $\tau = 1$, `C1 temp 84.8 C night shift ok`, should say
+`high`). Look at the closing tags, though: every one of the six lines at $\tau = 0.5$ above closes
+with a tag that is not the one that opened the line. The network has learned what a
 closing tag looks like (a slash, one of the eight tags) but not which one. Counting settles it.
 
 ### Step 8: audit the samples against the rules
@@ -618,7 +619,7 @@ always-ok baseline for the status: about 73%;  guessing the tag: 12.5%
 ```
 
 One more thing about the table: the closing-tag figure is computed from about 225 lines at
-$\tau = 0.5$ and 194 at $\tau = 1$, so it carries a sampling error of about 3 percentage
+$\tau = 0.5$ and 193 at $\tau = 1$, so it carries a sampling error of about 3 percentage
 points. Re-run `sample` with another seed to see it move.
 
 ### What you should see
@@ -643,8 +644,8 @@ points. Re-run `sample` with another seed to see it move.
   where the gradient over 18 steps has not yet vanished. This is [Section 4](#s4)'s
   vanishing gradient seen as behaviour. The loss does not show it clearly, because the missing
   memory costs only 0.07 nats per character out of 0.39; the audit does.
-- **Temperature trades validity for variety.** At $\tau = 1$ about 6% of the lines are malformed;
-  at $\tau = 0.5$ almost none are, but the lines repeat the likeliest patterns.
+- **Temperature trades validity for variety.** At $\tau = 1$ about 5% of the lines are malformed
+  and about 4% of the statuses disagree with their values; at $\tau = 0.5$ almost none do, but the lines repeat the likeliest patterns.
 
 ### Try this
 
@@ -845,7 +846,7 @@ The default initialisation has spectral radius 0.57 and largest singular value 1
   not stop it. Every singular value of the matrix is 1; the remaining loss is the tanh derivative,
   which is below 1 wherever a unit is not near zero. This is the point of [Section 4](#s4): the
   matrix is one factor of the Jacobian, and the activation is the other.
-- **Orthogonal times 1.5** explodes: the ratio rises through 1.7, 9.8 and 118 at lags 10, 50 and 100
+- **Orthogonal times 1.5** explodes: the ratio rises through 1.7, 9.6 and 117 at lags 10, 50 and 100
   to about $2\times 10^{4}$ at lag 199, roughly 5% per step. Section 4's two failures come from
   one scale factor. This is the case where gradient clipping would act.
 - **The LSTM with forget bias 0** decays like the plain RNN. A forget gate at $\sigma(0) = 0.5$ halves
@@ -1129,16 +1130,18 @@ the closing-tag accuracy is a noisy measurement: 4,000 characters make about 130
 percentage has a standard error of about 3 to 4 points. Read the pattern, not single values.
 
 - **The plain RNN** stays at 14 to 25% for the whole run, around the level of Lab 1, whatever the
-  number of updates. Its validation loss, about 0.39 to 0.41, does not improve after update 500.
-- **Both LSTMs** show the same shape: a long plateau at the level of guessing, then a rise. The
-  forget-bias-1 LSTM reaches about 86% and the bias-0 LSTM about 79% at update 2,500. The
-  transition is abrupt because the tag needs a unit that stores it *and* an output pathway that
+  number of updates. Its validation loss, about 0.39 to 0.42, does not improve after update 500.
+- **Both LSTMs** show the same shape: a long plateau near the level of guessing, then a rise. The
+  bias-0 LSTM reaches about 78% and the forget-bias-1 LSTM about 64% at update 2,500. The rise is
+  abrupt for bias 0 (22% at update 1,500, 65% at 2,000) and steadier for bias 1. It is abrupt
+  because the tag needs a unit that stores it *and* an output pathway that
   reads it: until both exist the gradient of the closing-tag loss is weak, and once one of them
   starts to form the other follows.
-- **The validation loss** of the two LSTMs ends at about 0.375, against about 0.40 for the plain RNN
-  and just under the 0.378 that Lab 1 computed as the floor for a model that guesses the closing
-  tag. The loss differs by 0.025 nats per character while the accuracy differs by a factor of
-  four: the loss is dominated by the random digits, and the behavioural audit shows what it hides.
+- **The validation loss** of the two LSTMs reaches 0.373 to 0.374 at its best, just under the 0.378
+  that Lab 1 computed as the floor for a model that guesses the closing tag, against 0.390 at best
+  for the plain RNN. At update 2,500 it is 0.379 and 0.395 against the plain RNN's 0.415. The loss
+  differs by 0.02 to 0.04 nats per character while the accuracy differs by a factor of four to
+  five: the loss is dominated by the random digits, and the behavioural audit shows what it hides.
 - **Which LSTM is ahead** is not stable. Repeating the run with `torch.manual_seed(7)` in
   `train_log_model` gave 79% for the bias-0 LSTM and 74% for the bias-1 LSTM at update 2,500, the
   reverse of the order above, and both again far above the plain RNN at 25%. The robust finding is
@@ -1381,10 +1384,10 @@ parameters 12,961
 LSTM  RMSE 0.427   naive RMSE 0.361   LSTM mean error -0.317
 ```
 
-The test windows, after normalising with the training statistics, lie between 0.98 and 3.60, while
-the network was trained on inputs between $-2.18$ and 2.30. Almost all of the test period is
+The test windows, after normalising with the training statistics, lie between 1.02 and 3.55, while
+the network was trained on inputs between $-2.18$ and 2.32. Almost all of the test period is
 above the range the network has ever seen: the drift has carried the level out of it. The LSTM's
-RMSE, about 0.42, is *worse* than the naive forecast's 0.37, and its mean error is $-0.3$: it
+RMSE, about 0.43, is *worse* than the naive forecast's 0.36, and its mean error is $-0.3$: it
 systematically predicts too low, as a network does when its saturating units cannot represent a
 level beyond the training range. The model has learned a map on the range it saw, and does not
 extrapolate it as a linear model would. A second seed (`torch.manual_seed(1)` at the top, and
@@ -1435,7 +1438,7 @@ plt.show()
 fixed LSTM RMSE 0.132   mean error +0.024
 ```
 
-The fixed model's RMSE is about 0.135 with a mean error close to zero, a third of the naive error
+The fixed model's RMSE is about 0.13 with a mean error close to zero, a third of the naive error
 and about a third of the globally normalised model's. The plot shows why: that model's forecasts
 (dashed) sit slightly below the measurement at the peaks, the bias that the mean error reports,
 while the fixed model follows both level and shape. The three lines changed what the network is
@@ -1531,14 +1534,14 @@ print("LSTM improvement over linear AR per fold: " + ", ".join(f"{g:.0%}" for g 
 LSTM improvement over linear AR per fold: 13%, 12%, 12%, 16%
 ```
 
-The ordering is the same in every fold. The naive forecast has an RMSE of about 0.38. The
-seasonal-naive forecast is much worse, about 0.85, worse than naive by a factor of more than two:
+The ordering is the same in every fold. The naive forecast has an RMSE of about 0.375. The
+seasonal-naive forecast is much worse, about 0.84, worse than naive by a factor of more than two:
 the period-50 load is a small part of this signal, the response is dominated by the random
 forcing and the stiffened oscillation, and the value one period ago is almost unrelated to the
 value now. A baseline has to be computed, not assumed; here the textbook choice for a periodic
-signal is the wrong one. The linear autoregression, at about 0.16, is a strong baseline
-that nobody should skip. The LSTM, at about 0.136 with a standard deviation over folds of about
-0.005, is the best in every fold, by 11 to 21% over the linear model in this run (9 to 17% in
+signal is the wrong one. The linear autoregression, at about 0.155, is a strong baseline
+that nobody should skip. The LSTM, at about 0.135 with a standard deviation over folds of about
+0.006, is the best in every fold, by 12 to 16% over the linear model in this run (9 to 17% in
 the second seed). That margin is real but modest, and it is the honest size of the benefit of a
 neural forecaster here.
 
@@ -1630,21 +1633,22 @@ direct model trained; 981 forecast origins
 
 Look at three things.
 
-- **The naive forecast is not monotonic in $h$:** 0.36, 1.07, 0.58 and 0.78 at $h = 1, 5, 10, 20$. It
+- **The naive forecast is not monotonic in $h$:** 0.34, 1.02, 0.62 and 0.72 at $h = 1, 5, 10, 20$. It
   follows the oscillation, whose period is about 11 samples: persistence is worst when the signal has
   turned by half a period (here $h$ around 5) and recovers near a full period ($h$ around 10 to 11).
-  Seasonal naive is flat at about 0.86, because its error does not depend on $h$ for $h \le P$.
-- **Recursion compounds.** The recursive LSTM is the best forecaster at $h = 1$ (0.134), and its error
-  grows to 0.39, 0.48 and 0.73 at $h = 5, 10, 20$. It reads its own predictions as inputs, so it
-  carries its errors forward: [Section 8](#s8)'s forecasting form of exposure bias. By $h = 20$ it
-  is close to the naive forecast's 0.78 and far above the direct LSTM's 0.57.
+  Seasonal naive is flat at about 0.79, because its error does not depend on $h$ for $h \le P$.
+- **Recursion compounds.** The recursive LSTM is the best forecaster at $h = 1$ (0.133), and its error
+  grows to 0.42, 0.53 and 0.78 at $h = 5, 10, 20$, already slightly behind the linear model at $h = 5$.
+  It reads its own predictions as inputs, so it carries its errors forward: [Section 8](#s8)'s
+  forecasting form of exposure bias. By $h = 20$ it is worse than the naive forecast's 0.72 and far
+  above the direct LSTM's 0.56.
 - **For the linear model the two strategies coincide.** Recursive and direct linear forecasts agree
-  to about three decimals (0.576 and 0.574 at $h = 20$), as [Section 8](#s8) predicts when the window
-  holds the system's whole linear state. The direct LSTM (0.15, 0.40, 0.47, 0.57) is slightly worse than
+  to about three decimals (0.551 and 0.552 at $h = 20$), as [Section 8](#s8) predicts when the window
+  holds the system's whole linear state. The direct LSTM (0.15, 0.40, 0.50, 0.56) is slightly worse than
   the recursive one at $h = 1$, where its shared head pays for also predicting 19 other horizons, and
   slightly better than the linear model at $h = 10$; at $h = 20$ it is level with the linear model. Beyond
-  about $h = 10$ nothing in the observed window predicts the random forcing, so every method heads
-  for the same floor, near 0.57.
+  about $h = 10$ nothing in the observed window predicts the random forcing, so the direct LSTM and
+  both linear models head for the same floor, near 0.55.
 
 ### Step 6: from forecaster to monitor
 

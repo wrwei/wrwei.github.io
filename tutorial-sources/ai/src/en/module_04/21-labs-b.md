@@ -235,7 +235,7 @@ with attention
 ```
 
 The loss is a mean over real target tokens, in nats. The model with attention is below 0.02 by step
-500 and is essentially done. The model without it is still at about 0.34 after 1,500 steps: it gets
+500 and is essentially done. The model without it is still at about 0.37 after 1,500 steps: it gets
 some digits right and makes mistakes elsewhere in the string, which the next step quantifies.
 
 ### Step 4: Accuracy against length, teacher-forced and free-running
@@ -285,15 +285,15 @@ attention        12    100.0%          100.0%        100.0%
 
 Three observations, each one a claim of the text that you can now check.
 
-1. **The bottleneck.** Without attention, sequence accuracy collapses with length: about 99% at
-   length 4, 36% at length 8 and 1% at length 12 in this run. One vector of 64 numbers has to carry
+1. **The bottleneck.** Without attention, sequence accuracy collapses with length: about 98% at
+   length 4, 43% at length 8 and 1% at length 12 in this run. One vector of 64 numbers has to carry
    up to 12 digits in order, and a 64-dimensional state trained by gradient descent in 1,500
    updates does not. Most of the damage is at the far end of the string: token accuracy is 91%
-   (teacher-forced) at length 8 and 73% at length 12, so the model gets many digits right and almost
+   (teacher-forced) at length 8 and 74% at length 12, so the model gets many digits right and almost
    never all of them.
 2. **Exposure bias.** Without attention the free-running token accuracy is below the
-   teacher-forced one, and the gap widens with length: none worth the name at length 4, 12 points
-   at length 8 (90.6% against 78.2%) and 22 points at length 12 (73.0% against 51.1%). A wrong
+   teacher-forced one, and the gap widens with length: none worth the name at length 4, 11 points
+   at length 8 (91.4% against 80.3%) and 21 points at length 12 (74.1% against 52.7%). A wrong
    digit pushes the decoder into a state it never saw in training, and the following predictions
    suffer.
 3. **Attention removes both problems.** With it, accuracy is 100% at every length in both
@@ -421,8 +421,8 @@ weight on padding:  0.000000
 The alignment is the anti-diagonal: to emit the first output digit the decoder looks at the last
 source digit, then at the one before, and so on, and at the first position when it emits `EOS`. The
 model was never told this; the only signal was the cross-entropy of the output. The peak
-weights on the eight digit rows are between 0.65 and 0.83; the `EOS` row is the least sure, with a
-peak of 0.25 on position 0, which is the position the last digit came from. A bright anti-diagonal
+weights on the eight digit rows are between 0.63 and 0.84; the `EOS` row is the least sure, with a
+peak of 0.26 on position 0, which is the position the last digit came from. A bright anti-diagonal
 is what a correct solution of this task looks like.
 
 ### Step 7 (optional): The packing bug, reproduced on purpose
@@ -483,17 +483,17 @@ you pad, test exactly the way you trained, and pack whenever a layer reads backw
   12,352 of the difference.
 - **Training.** The attention model's loss is near zero within a few hundred steps; the model
   without attention stays far above it after 1,500 steps.
-- **The bottleneck.** Without attention, sequence accuracy is about 99% at length 4, 36% at
+- **The bottleneck.** Without attention, sequence accuracy is about 98% at length 4, 43% at
   length 8 and 1% at length 12. With attention it is 100% at all three. (The numbers of this run;
   another seed moves the middle one by several points.)
 - **Exposure bias.** Without attention, free-running token accuracy trails teacher-forced token
-  accuracy, by 0.1 points at length 4, 12 at length 8 and 22 at length 12. With attention both are
+  accuracy, by 0.3 points at length 4, 11 at length 8 and 21 at length 12. With attention both are
   at 100%.
 - **Search.** Beam search with $k = 4$ leaves the bottleneck model at 0 correct strings out of
   200 at length 12, with token accuracy 51.8% against 52.5%: search cannot supply what the model
   does not know.
 - **Alignment.** Row $t$ of the heat map peaks at source position $7 - t$ (and at position 0 for
-  `EOS`), with peak weights of 0.65 to 0.83 on the digit rows.
+  `EOS`), with peak weights of 0.63 to 0.84 on the digit rows.
 - **The bug.** The unpacked model is accurate on strings padded as in training and fails on
   strings cut to their true width; the packed model handles both.
 
