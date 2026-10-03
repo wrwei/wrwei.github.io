@@ -1,0 +1,16 @@
+{
+ "summary": "gd-quadratic: sliders for eta (0.01-2.5, log, default 1.8, ticks at 1 and 2), kappa (1-1000, log, default 20), sigma_g (0-1, default 0); preset dropdown (6 presets + custom); Run/Step/Reset; click on contours sets w0. Default state shows the zig-zag: steep factor -0.800, flat 0.910, converges in 66 steps vs envelope prediction 73, L0=1.431, w0=(-3.78,-0.45). Verified against an independent Python implementation (mulberry32+Box-Muller, same update): L0, ratio factors, actual steps (66; kappa1/eta1:1; 1/1.8:31; 9/1.8:31; 20/1.0:120; 20/0.5:243; 100/1.8:299; 1000/1.8:2386; 20/2.05 diverges at 141; kappa1 eta0.01: 688 vs pred 687; kappa1000 eta0.01: pred 690,772, actual 429,844), predicted steps, noise floors (0.0681/0.0264/0.0046 at eta 1/0.5/0.1) and with noise the mean L over steps 201-300 (kappa1000 eta1.8 sigma.3: 0.4056 vs floor 0.4455; kappa1 eta1 sigma.3: 0.08164 vs 0.09) and L at step 300 all match to display rounding. widget-test en and zh: no errors, all 7 controls change output.",
+ "changes": [
+  "slider value now sits beside its label (it previously dropped below the tick marks)",
+  "kappa slider value renders lambda_min with a real subscript",
+  "bars canvas taller; the 'stable only below 1' note no longer overlaps the axis ticks; right margin widened so '= rho' is not clipped at 400 px",
+  "num() no longer prints 6.611e+4 style numbers for values between 1e4 and 1e5",
+  "noisy run that diverges now reports 'infinity (diverges at step n)' instead of 'not measured with noise'",
+  "'first 300 steps shown' reworded to 'plots show the first 300 steps' (the actual step count can exceed 300)"
+ ],
+ "issues": [
+  "The spec's extra stop rule '||w|| > 10^3' was deliberately not implemented: it makes kappa=20 eta=2.05 diverge at step 134, contradicting the spec's reference value of 141 (L > 10^6 alone gives 141). Any state reaching ||w||>1000 has L>10^6 for the steep direction anyway.",
+  "Slider positions are on an integer 0-1000 scale with 3-significant-figure rounding, so exactly eta=2 is reachable (position 960) but values like 1.8 are only reached exactly through the presets; the marginal status was verified at eta=2.00.",
+  "In noisy runs the 'at the noise floor' status is judged from the noise-free part of the loss only, so for very large kappa it can read 'at the floor' while the running mean is still approaching the floor (kappa=1000, eta=1.8, sigma=0.3: mean 0.406 vs floor 0.446)."
+ ]
+}

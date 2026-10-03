@@ -1,0 +1,103 @@
+{
+  "title": "神经网络与反向传播",
+  "title_em": "反向传播",
+  "lead": "由线性映射与非线性函数堆叠而成的网络如何自己学出特征；反向模式微分如何只需至多两次额外的前向计算量就给出完整梯度；以及为什么训练在很大程度上就是让数值保持在合理范围内：参数初始化、优化器、归一化、正则化与数值稳定性，每一项都配有一项检查，用来判断它何时失效。",
+  "prerequisites": [
+    "第 1 模块：监督学习的设定，作为负对数似然的损失（平方误差、二元交叉熵与 softmax 交叉熵），梯度下降与 mini-batch SGD，条件数以及为什么要对特征做标准化，训练/验证/测试集划分，作为权重衰减的岭回归，以及早停。",
+    "微积分：偏导数，作为路径求和的多元链式法则，以及二阶泰勒展开。",
+    "线性代数：矩阵乘积及其形状，转置，外积，以及对称矩阵的特征值与特征向量。",
+    "概率：期望与方差，独立变量之和的方差，以及伯努利分布。",
+    "Python 与 NumPy（数组形状、广播、`@` 运算符）；不要求会用 PyTorch，因为它会在用到时引入，从实验 1 的交叉验证开始。"
+  ],
+  "outcomes": [
+    "写出一个 $L$ 层 MLP 对一个 batch 的前向计算，并标明每一处的形状；计算其参数量、前向 FLOPs（每个样本每个权重两次）以及必须存储的激活值数量。",
+    "由链式法则推导反向传播的四个方程，包括 softmax 交叉熵下的 $\\boldsymbol{\\delta} = \\hat{\\mathbf{p}} - \\mathbf{y}$，并在 NumPy 中实现，使每个梯度分量与中心有限差分的相对误差都低于 $10^{-6}$。",
+    "把反向传播解释为计算图上的反向模式自动微分，分别用前向模式和反向模式手工计算一个梯度，并说明为什么对标量损失而言反向模式的代价只是前向计算的小常数倍，而前向模式每个输入都需要一次计算。",
+    "由方差保持推导 Xavier（Glorot）初始化与 He 初始化，并逐层预测零初始化、过小和过大的初始尺度会对激活值和梯度造成什么影响。",
+    "实现 SGD、重球动量与 Nesterov 动量、AdaGrad、RMSProp、带有推导所得偏差修正的 Adam，以及 AdamW；给出梯度下降与动量法在二次函数上的稳定性界限，并解释为什么在 Adam 下解耦权重衰减不同于 $L_2$ 正则化。",
+    "用范围测试选择峰值学习率，配置预热与余弦退火，并使用全局范数梯度裁剪，清楚每一项分别防范什么问题。",
+    "手工计算批归一化、层归一化与均方根归一化（RMSNorm），并说明批归一化在训练模式与评估模式下的行为有何不同。",
+    "推导反向 dropout 的 $1/(1 - p)$ 缩放，并把权重衰减、早停、数据增强、标签平滑与温度缩放用在它们各自真正起作用的地方。",
+    "利用 log-sum-exp 由 logits 计算不会溢出的交叉熵，解释为什么 $\\ln(\\operatorname{softmax}(\\mathbf{z}))$ 以及把 softmax 放在损失之前会失败，并说出 fp32、bf16 与 fp16 的取值范围。",
+    "根据初始损失、损失曲线、梯度范数和激活值统计量诊断一次失败的训练，使用单 batch 过拟合测试、梯度检验和一份书面检查清单。"
+  ],
+  "software": [
+    "Python 3.11 或更高版本。",
+    "NumPy。",
+    "PyTorch 2.x；CPU 版本就足够，也可以用免费的 Google Colab 代替。",
+    "scikit-learn，只用 `load_digits` 和 `make_moons`，二者随软件包自带，因此无需下载任何数据。",
+    "matplotlib。",
+    "一个较新的网页浏览器，用于两个交互式小组件。"
+  ],
+  "sessions": [
+    {
+      "n": 1,
+      "title": "网络及其梯度",
+      "activities": [
+        { "what": "阅读第 1–2 节并配合 MLP 演示场：学到的特征，然后是带形状与计算代价的前向计算。", "kind": "read", "minutes": 31, "refs": ["s1", "s2"] },
+        { "what": "练习 1 和 3：仿射塌缩，以及深度论证说明了什么。", "kind": "exercises", "minutes": 10, "refs": ["e1", "e3"] },
+        { "what": "阅读第 3 节：反向传播的四个方程。", "kind": "read", "minutes": 21, "refs": ["s3"] },
+        { "what": "实验 1：在 NumPy 中手写反向传播，并用有限差分和 PyTorch 进行检验。", "kind": "lab", "minutes": 40, "refs": ["lab1"] },
+        { "what": "练习 2：三层 tanh 网络的四个方程，并附 FLOP 计数。", "kind": "exercises", "minutes": 15, "refs": ["e2"] }
+      ]
+    },
+    {
+      "n": 2,
+      "title": "自动微分、激活函数与参数初始化",
+      "activities": [
+        { "what": "阅读第 4 节：计算图、反向模式与前向模式。", "kind": "read", "minutes": 18, "refs": ["s4"] },
+        { "what": "实验 2：约 100 行代码实现的标量自动微分引擎。", "kind": "lab", "minutes": 40, "refs": ["lab2"] },
+        { "what": "练习 4：手工计算前向模式与反向模式。", "kind": "exercises", "minutes": 10, "refs": ["e4"] },
+        { "what": "阅读第 5–6 节：激活函数，然后是参数初始化。", "kind": "read", "minutes": 30, "refs": ["s5", "s6"] },
+        { "what": "练习 5 和 6：一个死亡 ReLU 单元，以及初始尺度在各层之间的传递。", "kind": "exercises", "minutes": 15, "refs": ["e5", "e6"] },
+        { "what": "导读：Rumelhart、Hinton 和 Williams（1986）关于反向传播的论文。", "kind": "papers", "minutes": 15, "refs": ["reading"] }
+      ]
+    },
+    {
+      "n": 3,
+      "title": "优化器",
+      "activities": [
+        { "what": "阅读第 7 节并配合优化器路径小组件：二次函数上的梯度下降与动量法。", "kind": "read", "minutes": 18, "refs": ["s7"] },
+        { "what": "练习 7：二次函数上的稳定性界限与收敛速率。", "kind": "exercises", "minutes": 10, "refs": ["e7"] },
+        { "what": "阅读第 8 节：AdaGrad、RMSProp、Adam 与 AdamW。", "kind": "read", "minutes": 18, "refs": ["s8"] },
+        { "what": "练习 8 和 9：手工计算 Adam，以及 L2 正则化与解耦权重衰减的对比。", "kind": "exercises", "minutes": 15, "refs": ["e8", "e9"] },
+        { "what": "阅读第 9 节：学习率调度、范围测试与梯度裁剪。", "kind": "read", "minutes": 13, "refs": ["s9"] },
+        { "what": "实验 3：在 digits 网络上试验优化器、学习率调度与范围测试。", "kind": "lab", "minutes": 35, "refs": ["lab3"] },
+        { "what": "导读：Loshchilov 和 Hutter（2019）关于 AdamW 的论文。", "kind": "papers", "minutes": 15, "refs": ["reading"] }
+      ]
+    },
+    {
+      "n": 4,
+      "title": "归一化、正则化与数值计算",
+      "activities": [
+        { "what": "阅读第 10–11 节：归一化层，然后是神经网络的正则化与校准。", "kind": "read", "minutes": 30, "refs": ["s10", "s11"] },
+        { "what": "练习 10：反向 dropout。", "kind": "exercises", "minutes": 5, "refs": ["e10"] },
+        { "what": "阅读第 12 节：损失函数与数值稳定性。", "kind": "read", "minutes": 14, "refs": ["s12"] },
+        { "what": "练习 11 和 12：log-sum-exp，以及把 softmax 放在损失之前所带来的下限。", "kind": "exercises", "minutes": 15, "refs": ["e11", "e12"] },
+        { "what": "阅读第 13 节：逐行讲解一个完整的训练循环。", "kind": "read", "minutes": 9, "refs": ["s13"] },
+        { "what": "实验 4：诚实地对待 digits，一次带早停和五个随机种子的完整 PyTorch 训练。", "kind": "lab", "minutes": 35, "refs": ["lab4"] },
+        { "what": "导读：Glorot 和 Bengio（2010）关于参数初始化的论文。", "kind": "papers", "minutes": 20, "refs": ["reading"] }
+      ]
+    },
+    {
+      "n": 5,
+      "title": "调试与复习",
+      "activities": [
+        { "what": "阅读第 14 节：训练动态与调试。", "kind": "read", "minutes": 16, "refs": ["s14"] },
+        { "what": "练习 13 和 14：解读梯度检验，以及解读损失曲线。", "kind": "exercises", "minutes": 10, "refs": ["e13", "e14"] },
+        { "what": "实验 5：由四个有问题的训练脚本组成的调试诊所。", "kind": "lab", "minutes": 35, "refs": ["lab5"] },
+        { "what": "阅读“哪里会出错”：十四种失败，每种都有症状、原因和修复方法。", "kind": "read", "minutes": 7, "refs": ["wrong"] },
+        { "what": "练习 15：在实验 1 的网络上比较 Adam 与 SGD，输入以毫米为单位记录。", "kind": "exercises", "minutes": 25, "refs": ["e15"] },
+        { "what": "自测小测验：十二道题。", "kind": "quiz", "minutes": 18, "refs": ["quiz"] },
+        { "what": "复习：总结、你答错的检查项，以及凭记忆重写的第 14 节检查清单。", "kind": "review", "minutes": 10, "refs": ["summary"] }
+      ]
+    }
+  ],
+  "labs": [
+    { "title": "在 NumPy 中手写反向传播" },
+    { "title": "约 100 行代码实现的标量自动微分引擎" },
+    { "title": "优化器、学习率调度与范围测试" },
+    { "title": "诚实地对待 digits：一次完整的 PyTorch 训练" },
+    { "title": "调试诊所：四个有问题的训练脚本" }
+  ]
+}

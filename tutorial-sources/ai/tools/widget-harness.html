@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Widget harness</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.10/dist/katex.min.css">
+<link rel="stylesheet" href="../src/assets/style.css">
+<style>body{padding:2rem;max-width:900px;margin:0 auto}</style>
+<script>
+  // ?w=<widget-name>&lang=en|zh&<data attributes...>
+  var q = new URLSearchParams(location.search)
+  if (q.get('lang') === 'zh') document.documentElement.lang = 'zh-CN'
+</script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.18.10/dist/katex.min.js"></script>
+<script src="../src/assets/widgets-core.js"></script>
+</head><body>
+<div class="content">
+  <div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" id="w"></div><div class="widget-caption"><p>Harness caption.</p></div></div>
+</div>
+<script>
+  var name = q.get('w')
+  var el = document.getElementById('w')
+  el.setAttribute('data-widget', name)
+  q.forEach(function (v, k) { if (k !== 'w' && k !== 'lang') el.setAttribute('data-' + k, v) })
+  var s = document.createElement('script')
+  s.src = '../src/widgets/' + name + '.js'
+  s.onload = function () {
+    AIW.mount(el, function (root) {
+      if (!window.katex) return
+      root.querySelectorAll('.math-i, .math-d').forEach(function (m) {
+        katex.render(m.textContent, m, { displayMode: m.classList.contains('math-d'), throwOnError: false })
+      })
+    })
+    window.__mounted = true
+  }
+  s.onerror = function () { window.__mounted = 'missing' }
+  document.body.appendChild(s)
+</script>
+</body></html>

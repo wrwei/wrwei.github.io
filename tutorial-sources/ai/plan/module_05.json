@@ -1,0 +1,1533 @@
+{
+ "module": 5,
+ "title": "Other networks worth knowing",
+ "title_em": "worth knowing",
+ "lead": "Autoencoders and VAEs, GANs, diffusion models, graph networks, physics-informed networks and neural operators, contrastive learning and mixture of experts: what each one optimises, its equations derived, a worked example in numbers, a lab that runs on a laptop, and how each one fails.",
+ "prerequisites": [
+  "Module 01: maximum likelihood and cross-entropy, train/test splits, baselines and leakage, PCA",
+  "Module 02: MLPs, backpropagation and reverse-mode autodiff, Adam, writing a PyTorch training loop",
+  "Module 03: convolution and weight sharing (the GCN analogy); the U-Net by name",
+  "Module 04: attention as a softmax-weighted average (Bahdanau); anomaly detection from forecasting residuals",
+  "Probability: Gaussian densities, expectations, conditional distributions, Jensen's inequality",
+  "Calculus and linear algebra: the chain rule, eigenvalues and eigenvectors of symmetric matrices, second-order linear ODEs (the damped oscillator)"
+ ],
+ "outcomes": [
+  "Derive the ELBO in two ways, compute the closed-form Gaussian KL, and detect posterior collapse from KL per dimension and active units.",
+  "Build an autoencoder anomaly detector, set its threshold from held-out normal data, and report its false-alarm and detection rates against a PCA baseline.",
+  "Derive the optimal GAN discriminator and the Jensen-Shannon objective, explain the non-saturating loss and mode collapse, and state why diffusion displaced GANs for most image work.",
+  "Derive the closed-form forward process of a diffusion model, explain the noise-prediction loss through the ELBO and through the score, and train and sample a 2D diffusion model with classifier-free guidance.",
+  "Compute a GCN layer by hand from the normalised adjacency, implement message passing from an edge list, and explain over-smoothing from the eigenvalues of the propagation matrix.",
+  "Write the loss of a physics-informed network for an ODE or PDE, diagnose the trivial-solution failure, fix it by non-dimensionalising, weighting or hard constraints, and solve an inverse problem.",
+  "Describe DeepONet and the Fourier neural operator and state the checks a surrogate needs before it is used on a new design.",
+  "Derive InfoNCE as a classification loss with its log N bound, and measure with a linear probe what contrastive pretraining buys when labels are few and how the augmentations decide what is learned.",
+  "Count the total and active parameters of a mixture-of-experts model and explain routing collapse and the load-balancing loss.",
+  "Choose among these families for an engineering problem and name the baseline each choice must beat."
+ ],
+ "software": [
+  "Python 3.11+",
+  "PyTorch 2.x (the CPU build is enough; Google Colab is the free option if you want a GPU, which no lab needs)",
+  "NumPy",
+  "scikit-learn (load_digits, make_moons, PCA, LogisticRegression, KNeighborsClassifier, NearestNeighbors, roc_auc_score)",
+  "SciPy (scipy.optimize.curve_fit in Lab 4)",
+  "matplotlib"
+ ],
+ "sessions": [
+  {
+   "n": 1,
+   "title": "Autoencoders and variational autoencoders",
+   "activities": [
+    {
+     "what": "Read sections 1-2: the map of the families and the shared toolkit; autoencoders and anomaly detection",
+     "kind": "read",
+     "minutes": 27,
+     "refs": [
+      "s1",
+      "s2"
+     ]
+    },
+    {
+     "what": "Exercise e1: what an unconstrained autoencoder learns",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e1"
+     ]
+    },
+    {
+     "what": "Read section 3: variational autoencoders",
+     "kind": "read",
+     "minutes": 27,
+     "refs": [
+      "s3"
+     ]
+    },
+    {
+     "what": "Exercise e2: the ELBO two ways and the Gaussian KL",
+     "kind": "exercises",
+     "minutes": 12,
+     "refs": [
+      "e2"
+     ]
+    },
+    {
+     "what": "Lab 1: autoencoders, a VAE and an anomaly detector on 8x8 digits",
+     "kind": "lab",
+     "minutes": 40,
+     "refs": [
+      "lab1"
+     ]
+    },
+    {
+     "what": "Exercise e3: diagnosing partial posterior collapse",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e3"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "title": "Adversarial and diffusion models",
+   "activities": [
+    {
+     "what": "Read section 4: generative adversarial networks",
+     "kind": "read",
+     "minutes": 15,
+     "refs": [
+      "s4"
+     ]
+    },
+    {
+     "what": "Exercises e4-e5",
+     "kind": "exercises",
+     "minutes": 15,
+     "refs": [
+      "e4",
+      "e5"
+     ]
+    },
+    {
+     "what": "Read section 5: diffusion, the forward process and the training objective (with the diffusion explorer)",
+     "kind": "read",
+     "minutes": 26,
+     "refs": [
+      "s5"
+     ]
+    },
+    {
+     "what": "Exercise e6: derive the closed-form forward process",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e6"
+     ]
+    },
+    {
+     "what": "Read section 6: sampling, guidance, latent diffusion and cost",
+     "kind": "read",
+     "minutes": 17,
+     "refs": [
+      "s6"
+     ]
+    },
+    {
+     "what": "Lab 2: a diffusion model on two moons, with classifier-free guidance",
+     "kind": "lab",
+     "minutes": 45,
+     "refs": [
+      "lab2"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "title": "Diffusion in the original; graph networks",
+   "activities": [
+    {
+     "what": "Exercise e7: a schedule that stops short of pure noise",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e7"
+     ]
+    },
+    {
+     "what": "Guided reading: Ho, Jain and Abbeel (2020), DDPM",
+     "kind": "papers",
+     "minutes": 20,
+     "refs": [
+      "paper1"
+     ]
+    },
+    {
+     "what": "Read sections 7-8: message passing, the GCN, attention, depth limits (with the message-passing explorer)",
+     "kind": "read",
+     "minutes": 38,
+     "refs": [
+      "s7",
+      "s8"
+     ]
+    },
+    {
+     "what": "Lab 3: a GCN from scratch for single points of failure in fault trees",
+     "kind": "lab",
+     "minutes": 35,
+     "refs": [
+      "lab3"
+     ]
+    },
+    {
+     "what": "Guided reading: Kipf and Welling (2017), GCN",
+     "kind": "papers",
+     "minutes": 12,
+     "refs": [
+      "paper2"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "title": "Physics-informed networks and operators",
+   "activities": [
+    {
+     "what": "Exercises e8-e10",
+     "kind": "exercises",
+     "minutes": 20,
+     "refs": [
+      "e8",
+      "e9",
+      "e10"
+     ]
+    },
+    {
+     "what": "Read sections 9-10: physics-informed networks; neural operators and surrogates",
+     "kind": "read",
+     "minutes": 35,
+     "refs": [
+      "s9",
+      "s10"
+     ]
+    },
+    {
+     "what": "Lab 4: a physics-informed network for a damped oscillator",
+     "kind": "lab",
+     "minutes": 40,
+     "refs": [
+      "lab4"
+     ]
+    },
+    {
+     "what": "Exercises e11-e12 (e12 extends the Lab 4 code to the heat equation)",
+     "kind": "exercises",
+     "minutes": 35,
+     "refs": [
+      "e11",
+      "e12"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "title": "Representations, routing and choosing",
+   "activities": [
+    {
+     "what": "Guided reading: Raissi, Perdikaris and Karniadakis (2019), PINNs",
+     "kind": "papers",
+     "minutes": 13,
+     "refs": [
+      "paper3"
+     ]
+    },
+    {
+     "what": "Read section 11: contrastive and self-supervised learning",
+     "kind": "read",
+     "minutes": 14,
+     "refs": [
+      "s11"
+     ]
+    },
+    {
+     "what": "Lab 5: contrastive pretraining on unlabelled vibration signals",
+     "kind": "lab",
+     "minutes": 30,
+     "refs": [
+      "lab5"
+     ]
+    },
+    {
+     "what": "Read sections 12-13 and 'What goes wrong': mixture of experts, choosing a family, failure modes",
+     "kind": "read",
+     "minutes": 26,
+     "refs": [
+      "s12",
+      "s13",
+      "what_goes_wrong"
+     ]
+    },
+    {
+     "what": "Exercises e13-e15",
+     "kind": "exercises",
+     "minutes": 15,
+     "refs": [
+      "e13",
+      "e14",
+      "e15"
+     ]
+    },
+    {
+     "what": "Self-check quiz",
+     "kind": "quiz",
+     "minutes": 15,
+     "refs": [
+      "quiz"
+     ]
+    },
+    {
+     "what": "Summary and review: the choosing table, the 14 failure modes, the outcomes list",
+     "kind": "review",
+     "minutes": 10,
+     "refs": [
+      "review"
+     ]
+    }
+   ]
+  }
+ ],
+ "sections": [
+  {
+   "id": "s1",
+   "title": "A map of the families, and the tools they share",
+   "minutes": 12,
+   "target_words": 850,
+   "purpose": "Orient the reader with a map of what each family solves and optimises, and collect the four mathematical tools the rest of the module uses: KL divergence, Jensen's inequality, Gaussian algebra and Monte Carlo gradients.",
+   "must_cover": [
+    "A map table, one row per family, columns 'problem it solves', 'what it optimises', 'what it outputs': autoencoder (reconstruct x through a bottleneck; squared error); VAE (maximise the ELBO, a lower bound on log p(x)); GAN (a minimax game between generator and discriminator); diffusion (regress the noise added at a random noise level); GNN (a supervised loss on node or graph labels, computed with message-passing layers); PINN (residual of a known differential equation plus data and boundary terms); contrastive learning (InfoNCE: pick the positive among N candidates); mixture of experts (any loss; an architecture that routes each input to k of E experts).",
+    "Three ways to build a generator and how they compare: an explicit latent-variable model trained on a likelihood bound (VAE), an implicit model trained adversarially (GAN), a model that learns to undo gradual noising (diffusion). Compare on network evaluations per sample (1, 1, tens to hundreds), training stability, mode coverage, and whether a likelihood or bound is available (bound, none, bound).",
+    "KL divergence D_KL(q||p) = E_q[log q/p]. Non-negativity derived from Jensen's inequality: -D_KL = E_q[log p/q] <= log E_q[p/q] = log 1 = 0, with equality iff q = p. Asymmetric, so not a distance.",
+    "Closed-form KL between univariate Gaussians: D_KL(N(mu1, s1^2) || N(mu2, s2^2)) = log(s2/s1) + (s1^2 + (mu1 - mu2)^2)/(2 s2^2) - 1/2, derived in three lines (expectation of the difference of two log-densities); special case against N(0, 1): (1/2)(mu^2 + s^2 - log s^2 - 1), used in Section 3.",
+    "Gaussian algebra used in Section 5: if a ~ N(0, sa^2) and b ~ N(0, sb^2) are independent then a + b ~ N(0, sa^2 + sb^2); c * N(0, 1) = N(0, c^2); any Gaussian sample can be written mu + sigma * eps with eps ~ N(0, 1).",
+    "Monte Carlo: E_p[f(x)] is estimated by an average over samples; the gradient problem when the sampling distribution depends on the parameters, grad_phi E_{q_phi}[f(z)] is not E_{q_phi}[grad_phi f(z)]; stated here, solved in Section 3.",
+    "One-sentence reminders with links, not re-derivations: maximum likelihood and cross-entropy (Module 01), reverse-mode autodiff (Module 02), PCA (Module 01)."
+   ],
+   "worked_examples": [
+    "Forward and reverse KL with q = N(0, 1) and p = N(1, 0.5) (variance 0.5): D_KL(q||p) = log(sqrt(0.5)/1) + (1 + 1)/(2 * 0.5) - 1/2 = -0.3466 + 2 - 0.5 = 1.1534 nats; D_KL(p||q) = log(1/sqrt(0.5)) + (0.5 + 1)/2 - 1/2 = 0.3466 + 0.75 - 0.5 = 0.5966 nats. Different numbers, so KL is not symmetric. Both numbers reappear in Section 3 as the ELBO gap and the KL term of one exact example.",
+    "One Gaussian step: scale x0 = 2 by sqrt(0.5) and add sqrt(0.5) * eps: x = 1.4142 + 0.7071 eps ~ N(1.4142, 0.5); with eps = -0.4, x = 1.1314. Section 5 is this step repeated."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-1",
+     "description": "Map of the module in two rows. Top row, three generator pipelines: VAE (x -> encoder -> (mu, sigma) -> z -> decoder -> x-hat, labelled 'maximise ELBO'); GAN (z -> G -> fake x -> D <- real x, labelled 'minimax'); diffusion (x0 -> add noise -> ... -> x_T ~ N(0, I), with dashed arrows back labelled 'learned denoiser eps_theta, tens to hundreds of steps'). Bottom row, four boxes: GNN (small graph with arrows converging on one node, 'message passing'), PINN (network u_theta(x, t) feeding a box 'N[u] = 0', 'residual loss'), contrastive (one input -> two augmented views -> encoder -> two points pulled together on a circle, other points pushed apart, 'InfoNCE'), MoE (input -> router -> 2 of 8 expert boxes highlighted, 'top-k'). Each box carries its objective in one line."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why is D_KL(q||p) never negative? -> Jensen: E_q[log(p/q)] <= log E_q[p/q] = log of the integral of p = log 1 = 0.",
+    "Which generator family needs many network evaluations per sample, and why? -> Diffusion: it reverses the noising one step at a time, one network evaluation per step."
+   ],
+   "from_source": "The source's italic lead ('families an engineer will meet outside the classification-and-sequence mainstream: what each optimises, one equation each') and its 'Choosing' table, reorganised as a map at the start.",
+   "new_material": "The comparison of the three generator families on cost, stability, coverage and likelihood; the shared toolkit (KL definition and non-negativity, the Gaussian KL formula, sums of Gaussians, the Monte Carlo gradient problem) with numeric examples reused in Sections 3 and 5."
+  },
+  {
+   "id": "s2",
+   "title": "Autoencoders: bottlenecks, denoising and anomaly detection",
+   "minutes": 15,
+   "target_words": 1100,
+   "purpose": "Show what an autoencoder learns, prove that the linear one recovers the PCA subspace, and use reconstruction error as an anomaly score with an honestly chosen threshold.",
+   "must_cover": [
+    "Definition: encoder z = f_phi(x) in R^{d_z}, decoder x-hat = g_theta(z), loss L = (1/N) sum_i ||x_i - g_theta(f_phi(x_i))||^2. Undercomplete (d_z < d_x) means a bottleneck; an overcomplete autoencoder with no other constraint can learn the identity and is useless.",
+    "Linear autoencoder = PCA subspace: with centred data, linear f and g and squared error, the optimal product g(f(x)) is the orthogonal projection onto the top d_z eigenvectors of the covariance (Eckart-Young). The autoencoder recovers the subspace, not the individual components, because any invertible d_z x d_z mixing in the code gives the same reconstruction. The mean squared reconstruction error equals the sum of the discarded eigenvalues (Baldi and Hornik 1989).",
+    "Nonlinear autoencoders find curved manifolds. Lab 1 numbers on 8x8 digits: at d_z = 2 the autoencoder's test error is 0.037 per pixel against PCA's 0.053; at d_z = 8, 0.011 against 0.025.",
+    "Denoising autoencoder: train on a corrupted input (x + noise, or x with pixels masked), target the clean x; the network learns to move points back toward the data. Vincent (2011): for small Gaussian noise of variance sigma^2 the optimal denoiser r satisfies r(x~) - x~ approx sigma^2 * grad log p(x~), a pointer to the score in Section 5.",
+    "Anomaly detection: train on normal operation only; score = reconstruction error; set the threshold at a high percentile of the errors on held-out normal data, which fixes the false-alarm rate by construction; the detection rate can only be measured on known anomalies. Classical baseline from process monitoring: PCA's squared prediction error (the Q statistic). Module 04 does the same with forecasting residuals.",
+    "How it fails: anomalies that resemble normal data reconstruct well; a change of operating condition shifts normal errors above the threshold; anomalies hidden in the 'normal' training data are learned as normal."
+   ],
+   "worked_examples": [
+    "Linear autoencoder by hand: four centred points (2, 2), (-2, -2), (1, -1), (-1, 1). Covariance (1/N) sum x x^T = [[2.5, 1.5], [1.5, 2.5]], eigenvalues 4 and 1 with eigenvectors (1, 1)/sqrt(2) and (1, -1)/sqrt(2). The best one-dimensional code projects onto (1, 1)/sqrt(2): (2, 2) and (-2, -2) reconstruct exactly, (1, -1) and (-1, 1) reconstruct to (0, 0) with squared error 2 each. Mean squared error 4/4 = 1.0, the discarded eigenvalue.",
+    "Anomaly threshold with Lab 1's numbers: an autoencoder (d_z = 8) trained on digits 0-8; the 95th percentile of validation errors is 0.0261 per pixel. On the test set 4.0% of normal digits exceed it and 58.3% of the 9s do; ROC AUC 0.952. A PCA (8 components) Q-statistic detector gives AUC 0.791 and detects 22.2% at a 7.7% false-alarm rate. Both numbers matter: an AUC of 0.95 can hide a detection rate too low to be useful at the operating threshold."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-2",
+     "description": "Autoencoder architecture: an 8x8 digit (64 pixels) -> encoder (64 -> 128 -> d_z) -> bottleneck z drawn as two neurons (d_z = 2) -> decoder (d_z -> 128 -> 64) -> reconstructed digit; a loss arrow compares input and output."
+    },
+    {
+     "id": "fig-05-3",
+     "description": "Two panels. Left: the four-point linear-autoencoder example in the plane with the principal axis (1, 1)/sqrt(2), dashed projection lines and hollow circles for reconstructions. Right: Lab 1 histograms of per-pixel reconstruction error for normal test digits (0-8) and for 9s, the threshold 0.0261 as a vertical line, and the false-alarm (4.0%) and detection (58.3%) fractions annotated."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "A linear autoencoder with d_z = 3 is trained on centred data with squared error. What does it recover? -> The span of the top three principal components, not necessarily the components themselves.",
+    "How is the anomaly threshold chosen, and which error rate does that choice fix? -> At a high percentile of reconstruction errors on held-out normal data; it fixes the false-alarm rate (about 100 minus the percentile, in per cent); the detection rate must be measured on known anomalies."
+   ],
+   "from_source": "Source section 1, first paragraph: encoder and decoder, the reconstruction loss, the bottleneck, the PCA equivalence for linear maps and squared error, curved manifolds, denoising, and anomaly detection by reconstruction error (a sensor channel behaving newly, a part outside the design space).",
+   "new_material": "The PCA proof sketch with a four-point numeric example; Vincent's denoiser-score link as the bridge to diffusion; threshold selection, false-alarm versus detection rate, the PCA Q-statistic baseline and Lab 1's measured numbers; the failure modes."
+  },
+  {
+   "id": "s3",
+   "title": "Variational autoencoders: the ELBO and the reparameterisation trick",
+   "minutes": 27,
+   "target_words": 1850,
+   "purpose": "Derive the VAE objective from the latent-variable model, show exactly what the bound gives up, make its gradient computable, and explain and diagnose posterior collapse.",
+   "must_cover": [
+    "Latent-variable model p_theta(x) = integral of p_theta(x|z) p(z) dz with prior p(z) = N(0, I). Direct maximum likelihood is intractable: the integral is over d_z dimensions and the posterior p_theta(z|x) is unknown.",
+    "ELBO by Jensen, written line by line: log p_theta(x) = log E_{q_phi(z|x)}[p_theta(x|z) p(z) / q_phi(z|x)] >= E_q[log p_theta(x|z)] - D_KL(q_phi(z|x) || p(z)). Name the two terms: reconstruction and the penalty that keeps codes near the prior.",
+    "ELBO as an identity: log p_theta(x) = ELBO + D_KL(q_phi(z|x) || p_theta(z|x)), derived from p(x) = p(x|z)p(z)/p(z|x) by taking the expectation under q. The gap is the KL to the true posterior; maximising over phi tightens the bound, maximising over theta raises the likelihood.",
+    "Amortised inference: one encoder network outputs (mu_phi(x), log sigma^2_phi(x)) for every x, instead of a separate optimisation of q for each data point.",
+    "Closed-form KL for a diagonal Gaussian against N(0, I): (1/2) sum_j (mu_j^2 + sigma_j^2 - log sigma_j^2 - 1), from Section 1's formula; independent dimensions add.",
+    "The gradient problem and its two answers: the score-function (REINFORCE) estimator E_q[f(z) grad_phi log q_phi(z)] is unbiased but high-variance; the reparameterisation z = mu_phi(x) + sigma_phi(x) * eps, eps ~ N(0, I), makes z a differentiable function of mu and sigma, so grad_phi E_eps[f(mu + sigma * eps)] = E_eps[grad_phi f(mu + sigma * eps)]; dz/dmu = 1, dz/dsigma = eps.",
+    "Decoder likelihoods: Bernoulli for intensities in [0, 1] (binary cross-entropy) or Gaussian N(x-hat, sigma_x^2 I) with -log p = ||x - x-hat||^2 / (2 sigma_x^2) + (d_x/2) log(2 pi sigma_x^2). The source's MSE-sum loss is the Gaussian with sigma_x^2 = 1/2, a wide noise model for [0, 1] pixels. sigma_x sets the exchange rate between reconstruction and KL; the beta-VAE (Higgins et al. 2017) weights the KL by beta.",
+    "Reproduce the source's VAE class (encoder to 2 d_z outputs split into mu and logvar, reparameterised sample, decoder, reconstruction plus closed-form KL), and state the likelihood choice explicitly.",
+    "Posterior collapse: q_phi(z|x) is close to p(z) for every x in some or all dimensions, and the decoder ignores z. Causes: a KL weight too large for the likelihood term (beta > 1, or a large implied sigma_x^2); a decoder that can model x without z (autoregressive decoders in text VAEs, Bowman et al. 2016). Diagnosis: KL per dimension; active units, the dimensions with Var_x(E_q[z_j]) > 0.01 (Burda et al. 2016). Fixes: KL warm-up from 0, free bits (Kingma et al. 2016), beta <= 1, a better-scaled likelihood. Warm-up cannot fix collapse that is the optimum of the chosen objective: in Lab 1, beta = 4 stays collapsed even with warm-up.",
+    "Lab 1 numbers (d_z = 8, Bernoulli decoder): beta = 0.5 gives KL 6.5 nats and 8 active units; beta = 1 gives 3.6 nats and 6 active; beta = 4 gives 0.00 nats, 0 active, and reconstruction 27.2 nats against 21.0 at beta = 1. The MSE-sum loss at beta = 1 gives KL 0.6 nats and 3 active units.",
+    "Why VAE samples are blurry: the decoder outputs the average of the plausible images for a code. VAEs are valued for their smooth, interpolable latent space (a latent design space in engineering terms) and as the compressor inside latent diffusion (Section 6)."
+   ],
+   "worked_examples": [
+    "A model where everything is exact: p(z) = N(0, 1), p(x|z) = N(z, 1), so p(x) = N(0, 2) and p(z|x) = N(x/2, 1/2). For x = 2: log p(x) = -(1/2) log(4 pi) - 1 = -2.2655. With q = N(1, 0.5), the true posterior: E_q[log p(x|z)] = -(1/2) log(2 pi) - (1/2)[(x - m)^2 + s^2] = -0.9189 - 0.75 = -1.6689; KL(q || p(z)) = (1/2)(1 + 0.5 - log 0.5 - 1) = 0.5966; ELBO = -2.2655 = log p(x), the bound is tight. With q = N(0, 1), a collapsed posterior equal to the prior: E_q[log p(x|z)] = -0.9189 - (1/2)(4 + 1) = -3.4189, KL = 0, ELBO = -3.4189, gap 1.1534 = KL(N(0, 1) || N(1, 0.5)), the number from Section 1.",
+    "Closed-form KL in two dimensions: mu = (1.0, -0.5), sigma = (0.5, 1.0). Per dimension (1/2)(1 + 0.25 + 1.3863 - 1) = 0.8181 and (1/2)(0.25 + 1 - 0 - 1) = 0.125; total 0.9431 nats. The first dimension pays mainly for its narrow variance (-log sigma^2 = 1.386), not for its mean.",
+    "Reparameterisation with the same mu and sigma and eps = (0.3, -1.2): z = mu + sigma * eps = (1.15, -1.70); dz/dmu = (1, 1), dz/dsigma = eps = (0.3, -1.2). The gradient reaches mu and sigma through an ordinary multiply and add."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-4",
+     "description": "VAE computation graph: x -> encoder -> mu and log sigma^2; eps ~ N(0, I) drawn as an external input node; z = mu + sigma * eps -> decoder -> x-hat -> reconstruction term; mu and sigma -> KL term; both summed into -ELBO. Dashed red gradient arrows flow back through z to mu and sigma and, visibly, not into eps."
+    },
+    {
+     "id": "fig-05-5",
+     "description": "The exact example: on a z axis from -3 to 4, the prior N(0, 1), the true posterior N(1, 0.5), and beside it a stacked bar decomposing log p(x) = -2.27 into ELBO plus gap for q = posterior (gap 0) and q = prior (gap 1.15)."
+    },
+    {
+     "id": "fig-05-6",
+     "description": "Lab 1 results in three panels: (a) test-set latent means of the d_z = 2 VAE coloured by digit; (b) a 10 x 10 grid of digits decoded from z on [-2.5, 2.5]^2; (c) bars of KL per latent dimension for the d_z = 8 VAE at beta = 0.5, 1 and 4, showing 8, 6 and 0 active units."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "What is the gap between log p(x) and the ELBO? -> D_KL(q_phi(z|x) || p_theta(z|x)), the KL from the approximate posterior to the true one.",
+    "Why can't you back-propagate through 'draw z from N(mu, sigma^2)' directly, and what does the reparameterisation change? -> Drawing a sample is not a differentiable function of mu and sigma; writing z = mu + sigma * eps with eps as an input makes z differentiable in both.",
+    "A VAE's KL term is 0.00 nats in every dimension. What do its samples look like, and why? -> All alike, roughly the average image: q equals the prior for every x, so z carries no information and the decoder ignores it."
+   ],
+   "from_source": "Source section 1, second paragraph and code: q(z|x) = N(mu(x), sigma^2(x)), the ELBO and its derivation by Jensen with q as an importance distribution, the reparameterisation trick, the smooth latent design space, and the VAE class with the closed-form KL; source section 9 ('a VAE with a too-strong KL term learns nothing (posterior collapse); anneal the weight'); source exercise 1 (now e2) and exercise 2 (now a Lab 1 extension).",
+   "new_material": "Both ELBO derivations and the exact linear-Gaussian example; amortised inference; score-function versus reparameterised gradients; the decoder-variance and beta trade-off, including what the source's MSE-sum loss implies (sigma_x^2 = 1/2); posterior-collapse diagnosis by active units and fixes, with Lab 1's measured numbers; why samples blur."
+  },
+  {
+   "id": "s4",
+   "title": "Generative adversarial networks",
+   "minutes": 15,
+   "target_words": 1100,
+   "purpose": "Derive what the GAN game optimises, why its original loss stalls, why it collapses onto a few modes, and why diffusion displaced it for most new work.",
+   "must_cover": [
+    "The game: min_G max_D V(G, D) = E_{x ~ p_data}[log D(x)] + E_{z ~ p(z)}[log(1 - D(G(z)))]; D outputs a probability through a sigmoid on a logit a.",
+    "Optimal discriminator derived pointwise: for fixed G, a log y + b log(1 - y) is maximised at y = a/(a + b), so D*(x) = p_data(x) / (p_data(x) + p_g(x)): the discriminator estimates a density ratio.",
+    "Substituting D*: V(G, D*) = -log 4 + 2 JSD(p_data || p_g), minimised (value -log 4) exactly when p_g = p_data.",
+    "Saturation: early in training D(G(z)) is near 0 and the gradient of log(1 - sigma(a)) with respect to the logit is -sigma(a), near 0; the non-saturating loss -log D(G(z)) has gradient -(1 - sigma(a)), near -1. Same fixed point, different dynamics.",
+    "Mode collapse: nothing in the loss rewards covering all of p_data; G can map many z to the few outputs D currently accepts; D adapts and G hops to other modes (Metz et al. 2017 show this on a ring of eight Gaussians). Diagnose with diversity measures (modes covered, nearest-neighbour distances from held-out data to samples, precision and recall), never with the loss.",
+    "Disjoint supports: when p_data and p_g sit on non-overlapping low-dimensional sets, the JSD is log 2 whatever their distance, so it carries no information about which way to move. The Wasserstein-1 (earth mover's) distance W(p, q) = inf over couplings gamma of E_{(x, y) ~ gamma} ||x - y|| does. Kantorovich-Rubinstein dual: W = sup over 1-Lipschitz f of E_p[f] - E_q[f], with a critic f. WGAN enforced the Lipschitz condition by weight clipping; WGAN-GP by a penalty lambda E[(||grad f(x-hat)|| - 1)^2] on interpolates; spectral normalisation is the other common stabiliser.",
+    "Where GANs stand, dated 'as of 2026': the fastest generators (one forward pass) and the first to produce photorealistic images; since about 2021 diffusion has replaced them for most new image work (Dhariwal and Nichol 2021) because it trains as a stable regression, covers the modes (its objective is a likelihood bound), conditions easily and scales. The adversarial loss survives as a term in image and audio codecs, in the autoencoder of latent diffusion (Rombach et al. train it with a patch-based adversarial term) and in distilling diffusion models to few steps.",
+    "Engineering uses: fast samplers for design-space exploration and data augmentation, super-resolution of fields; check coverage before trusting the samples."
+   ],
+   "worked_examples": [
+    "Optimal discriminator on three points: p_data = (0.5, 0.5, 0), p_g = (0, 0.5, 0.5). D* = (1, 0.5, 0). V = 0.5 log 1 + 0.5 log 0.5 + 0.5 log 0.5 + 0.5 log 1 = -0.6931. Check: m = (0.25, 0.5, 0.25), JSD = (1/2)KL(p_data || m) + (1/2)KL(p_g || m) = 0.3466, and -log 4 + 2(0.3466) = -0.6931. With p_g = p_data, D* = 1/2 everywhere and V = -log 4 = -1.3863; with disjoint p_data = (1, 0) and p_g = (0, 1), V = 0 and JSD = log 2 = 0.6931, its maximum.",
+    "Saturation in numbers: at D(G(z)) = 0.01 (logit a = -4.6), d/da log(1 - sigma(a)) = -0.01 while d/da [-log sigma(a)] = -0.99. The non-saturating loss gives the generator a gradient 99 times larger at the moment it most needs one.",
+    "Disjoint supports: p_data a point mass at 0, p_g a point mass at theta. For every theta other than 0, JSD = log 2 = 0.693 and its gradient in theta is zero; W1 = |theta| with gradient sign(theta), pointing home from any distance."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-7",
+     "description": "GAN training loop: noise z -> G -> fake samples; real samples from the data; both into D -> probability 'real'; two loss arrows, D's (classify real versus fake) and G's (fool D), annotated 'non-saturating: maximise log D(G(z))'."
+    },
+    {
+     "id": "fig-05-8",
+     "description": "One-dimensional picture: p_data with two bumps, p_g with one bump between them, and D*(x) = p_data / (p_data + p_g) as a dashed curve on a secondary axis from 0 to 1."
+    },
+    {
+     "id": "fig-05-9",
+     "description": "Mode collapse schematic, labelled as illustrative and not data (after Metz et al. 2017): a ring of eight Gaussian modes; GAN samples at four training snapshots sitting on one or two modes that change from snapshot to snapshot; beside it diffusion samples covering all eight."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "At a point where p_data = 0.3 and p_g = 0.1, what is D*? -> 0.3/0.4 = 0.75.",
+    "Why does the Jensen-Shannon divergence give the generator no direction when p_data and p_g sit on disjoint supports, and what does the Wasserstein-1 distance do instead? -> The JSD equals log 2 for any two disjoint distributions, however far apart they are, so its gradient is zero; W1 grows with the distance between them (|theta| for two point masses), so its gradient points p_g toward p_data."
+   ],
+   "from_source": "Source section 2: the minimax objective, D estimating the density ratio, G minimising the Jensen-Shannon divergence, first photorealistic images, fastest generators at inference, unstable training, mode collapse, the Wasserstein GAN's earth-mover distance, diffusion replacing GANs for most new work since 2021, the adversarial loss surviving in codecs; source section 9 ('the same six images; check diversity, not just quality'); references Goodfellow et al. 2014 and Arjovsky et al. 2017.",
+   "new_material": "The optimal-discriminator and JSD derivation with a three-point numeric check; the saturating and non-saturating gradients in numbers; the disjoint-support example that motivates Wasserstein; the Kantorovich-Rubinstein dual, gradient penalty and spectral normalisation; four reasons diffusion won; where adversarial terms survive."
+  },
+  {
+   "id": "s5",
+   "title": "Diffusion I: the forward process and the training objective",
+   "minutes": 26,
+   "target_words": 1750,
+   "purpose": "Build the forward noising process and its closed form, show how the schedule controls it, and derive the noise-prediction loss from the ELBO and from denoising score matching.",
+   "must_cover": [
+    "Forward process: q(x_t | x_{t-1}) = N(sqrt(1 - beta_t) x_{t-1}, beta_t I) for t = 1..T; alpha_t = 1 - beta_t; alpha-bar_t = product over s <= t of alpha_s. The sqrt(1 - beta_t) factor keeps unit-variance data at unit variance.",
+    "Closed form q(x_t | x_0) = N(sqrt(alpha-bar_t) x_0, (1 - alpha-bar_t) I), derived by composing two steps (independent Gaussian noises add: alpha_t (1 - alpha-bar_{t-1}) + (1 - alpha_t) = 1 - alpha-bar_t) and induction. A training input is x_t = sqrt(alpha-bar_t) x_0 + sqrt(1 - alpha-bar_t) eps in one line, with no loop over t.",
+    "Schedules: Ho et al.'s linear beta from 1e-4 to 0.02 with T = 1000 (alpha-bar_T = 4.0e-5); the cosine schedule (Nichol and Dhariwal 2021) alpha-bar_t = f(t)/f(0) with f(t) = cos^2(((t/T + s)/(1 + s)) * pi/2), s = 0.008, beta_t clipped at 0.999 in the paper. Signal-to-noise ratio SNR(t) = alpha-bar_t / (1 - alpha-bar_t). Requirement: alpha-bar_T close to 0, so that x_T is close to N(0, I), where sampling starts.",
+    "The reverse conditional q(x_{t-1} | x_t, x_0) = N(mu-tilde_t, beta-tilde_t I) with mu-tilde_t = (sqrt(alpha-bar_{t-1}) beta_t / (1 - alpha-bar_t)) x_0 + (sqrt(alpha_t)(1 - alpha-bar_{t-1}) / (1 - alpha-bar_t)) x_t and beta-tilde_t = ((1 - alpha-bar_{t-1}) / (1 - alpha-bar_t)) beta_t. Stated, with 'complete the square in x_{t-1}' named as the skipped algebra.",
+    "The diffusion ELBO as a sum of per-step KLs between Gaussians (L_T + sum of L_{t-1} + L_0); with fixed variances each KL is a weighted squared difference of means; substituting x_0 = (x_t - sqrt(1 - alpha-bar_t) eps) / sqrt(alpha-bar_t) gives mu-tilde_t = (1/sqrt(alpha_t))(x_t - (beta_t / sqrt(1 - alpha-bar_t)) eps), so parameterising mu_theta the same way with eps_theta turns each term into a weighted ||eps - eps_theta(x_t, t)||^2. Ho et al. drop the weights: L_simple = E_{t, x_0, eps} ||eps - eps_theta(sqrt(alpha-bar_t) x_0 + sqrt(1 - alpha-bar_t) eps, t)||^2 (the source's equation).",
+    "The dropped weight with sigma_t^2 = beta_t is beta_t / (2 alpha_t (1 - alpha-bar_t)): 0.50 at t = 1, 0.010 at t = 100, 0.0055 at t = 500, 0.010 at t = 1000 for the linear schedule. Relative to the ELBO, L_simple moves emphasis away from the easiest, smallest-t steps.",
+    "The score view: grad_{x_t} log q(x_t | x_0) = -eps / sqrt(1 - alpha-bar_t), so an eps-predictor is a scaled score estimator, s_theta = -eps_theta / sqrt(1 - alpha-bar_t) (denoising score matching: Vincent 2011; Song and Ermon 2019). Tweedie's formula E[x_0 | x_t] = (x_t + (1 - alpha-bar_t) grad log p_t(x_t)) / sqrt(alpha-bar_t) means x-hat_0 = (x_t - sqrt(1 - alpha-bar_t) eps_theta) / sqrt(alpha-bar_t) is a posterior mean: an average, which is why denoising pure noise in one step gives a blur.",
+    "Why training is stable: a plain regression against a fixed target distribution, with no adversary.",
+    "Other parameterisations: predict x_0, or v = sqrt(alpha-bar) eps - sqrt(1 - alpha-bar) x_0 (Salimans and Ho 2022); the same information with different weighting over t.",
+    "The network: a U-Net (Module 03) or a transformer for images, an MLP in Lab 2; t enters through a sinusoidal embedding (the same construction as the positional encodings of Module 06)."
+   ],
+   "worked_examples": [
+    "Schedules in numbers, T = 1000: linear alpha-bar_t = 0.897, 0.524, 0.0786, 0.00335 and 4.0e-5 at t = 100, 250, 500, 750 and 1000; cosine 0.972, 0.847, 0.494, 0.144 and 2.4e-9. The linear schedule falls below alpha-bar = 0.01 (SNR -20 dB) at t = 674 and spends 33% of its steps there; the cosine schedule falls below it at t = 936 (6.5% of steps). Those steps are nearly pure noise and teach the model little.",
+    "One noising step in closed form: x_0 = 2.0, alpha-bar_t = 0.5, eps = -0.4: x_t = sqrt(0.5) * 2 + sqrt(0.5) * (-0.4) = 1.4142 - 0.2828 = 1.1314.",
+    "The optimal denoiser for Gaussian data: x_0 ~ N(2, 0.25). At alpha-bar_t = 0.5, p(x_t) = N(sqrt(0.5) * 2, 0.5 * 0.25 + 0.5) = N(1.4142, 0.625), and the optimal noise prediction is eps*(x_t) = sqrt(1 - alpha-bar)(x_t - 1.4142)/0.625. At x_t = 1.0, eps* = 0.7071 * (-0.4142)/0.625 = -0.4686, so x-hat_0 = (1.0 - 0.7071 * (-0.4686))/0.7071 = 1.8828, equal to E[x_0 | x_t] from Gaussian conditioning, 2 + (0.7071 * 0.25/0.625)(1.0 - 1.4142) = 1.8828. For Gaussian data the ideal denoiser is linear; for multimodal data the network must learn a nonlinear one."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-10",
+     "description": "Forward process on Lab 2's two moons: six scatter panels at t = 0, 50, 100, 150, 175 and 200 under the capped cosine schedule with T = 200, each titled with alpha-bar_t, the moons dissolving into a round Gaussian cloud."
+    },
+    {
+     "id": "fig-05-11",
+     "description": "alpha-bar_t (left axis, linear scale) and SNR in dB (right axis) against t for the linear and cosine schedules with T = 1000; a horizontal line at alpha-bar = 0.01; the region where the linear schedule is below it (t > 674) shaded."
+    },
+    {
+     "id": "fig-05-12",
+     "description": "One training step as a diagram: draw x_0 from the data, t uniform on {1..T}, eps ~ N(0, I) -> x_t = sqrt(alpha-bar_t) x_0 + sqrt(1 - alpha-bar_t) eps -> network eps_theta(x_t, t) -> squared error against eps."
+    }
+   ],
+   "widget": "diffusion-explorer",
+   "checks": [
+    "Why can training draw x_t directly instead of running t noising steps? -> A composition of Gaussian steps is Gaussian: q(x_t | x_0) = N(sqrt(alpha-bar_t) x_0, (1 - alpha-bar_t) I).",
+    "What does the network's noise prediction tell you about the clean data? -> x-hat_0 = (x_t - sqrt(1 - alpha-bar_t) eps_theta) / sqrt(alpha-bar_t), the posterior mean E[x_0 | x_t]; equivalently eps_theta is the score scaled by -sqrt(1 - alpha-bar_t).",
+    "In the diffusion explorer, set t = 500. Which schedule still shows the ring, and why? -> The cosine schedule (alpha-bar = 0.49, SNR about 0 dB); under the linear schedule alpha-bar = 0.079 and the ring is gone."
+   ],
+   "from_source": "Source section 3, first half: the forward process with x_t = sqrt(alpha-bar_t) x_0 + sqrt(1 - alpha-bar_t) eps, a fixed schedule falling from 1 to 0, the noise-prediction loss of Ho, Jain and Abbeel, 'a plain regression, which is why training is stable'; source exercise 3 (now e6).",
+   "new_material": "The per-step process and the induction proof; linear and cosine schedules with computed values; the reverse conditional; the ELBO-to-L_simple derivation with the dropped weights computed; the score and Tweedie view; the Gaussian-data optimal denoiser; other parameterisations; the diffusion explorer."
+  },
+  {
+   "id": "s6",
+   "title": "Diffusion II: sampling, guidance, latent diffusion and cost",
+   "minutes": 17,
+   "target_words": 1250,
+   "purpose": "Turn the trained noise predictor into a sampler, steer it with a condition, make it affordable in a latent space, and count what it costs at inference.",
+   "must_cover": [
+    "Ancestral (DDPM) sampling: x_T ~ N(0, I); for t = T..1, x_{t-1} = (1/sqrt(alpha_t))(x_t - (beta_t / sqrt(1 - alpha-bar_t)) eps_theta(x_t, t)) + sigma_t z, z ~ N(0, I), z = 0 at the last step, sigma_t^2 = beta_t or beta-tilde_t. T network evaluations per sample.",
+    "The first step when beta_T is near 1: the factor 1/sqrt(alpha_T) is 31.6 for beta_T = 0.999 and multiplies any error in eps_theta. Lab 2 caps beta at 0.5 with T = 200 (alpha-bar_T = 6.8e-5, factor 1.41). Equivalent fix: compute x-hat_0, clip it to the data range, and take the posterior mean mu-tilde_t(x_t, x-hat_0).",
+    "DDIM (Song, Meng and Ermon 2021): a deterministic update x_{t'} = sqrt(alpha-bar_{t'}) x-hat_0 + sqrt(1 - alpha-bar_{t'}) eps_theta(x_t, t) on a strided subsequence of steps, with the same trained network. Lab 2's step sweep: precision distance 0.023 at 200 steps, 0.030 at 20, 0.045 at 5 and 1.57 at 1 (one step from pure noise returns a scaled-up posterior mean, far from the data).",
+    "Conditioning: feed c (a class, a text embedding, a low-resolution image, a measured boundary condition) to eps_theta(x_t, t, c).",
+    "Classifier guidance (Dhariwal and Nichol 2021) in one sentence: add the gradient of a noisy-input classifier's log p(c | x_t).",
+    "Classifier-free guidance (Ho and Salimans 2022): train one network with c replaced by a null token with probability p_uncond (0.1-0.2; 0.2 in Lab 2); sample with eps-tilde = eps_theta(x_t, null) + w [eps_theta(x_t, c) - eps_theta(x_t, null)]: w = 0 unconditional, w = 1 conditional, w > 1 extrapolates. Interpretation: grad log p(x | c) + (w - 1) grad log p(c | x), sharpening toward samples a classifier would label c. Two network evaluations per step. Convention warning: Ho and Salimans write (1 + w), so their w is this module's w minus 1.",
+    "The guidance trade-off measured in Lab 2 (1,000 samples of class 0): w = 0 puts 50% in the requested moon; w = 1 puts 100% there with recall distance 0.022; w = 3, 100% with recall 0.029; w = 7, 100% with recall 0.046 and precision worsening from 0.014 to 0.033. Fidelity is bought with diversity.",
+    "Latent diffusion (Rombach et al. 2022): train an autoencoder (KL-regularised, with perceptual and adversarial losses) that compresses, for example, a 512 x 512 x 3 image to a 64 x 64 x 4 latent (downsampling factor 8), run diffusion on the latent, decode once at the end.",
+    "Cost = steps x evaluations per step x cost per evaluation. Distillation to 1-4 steps: progressive distillation (Salimans and Ho 2022), consistency models (Song et al. 2023).",
+    "Engineering uses (generic): candidate geometries conditioned on requirements; imputing missing sensor channels by conditioning on the observed ones; super-resolving coarse simulation fields. Every generated design still goes through the solver and the checks."
+   ],
+   "worked_examples": [
+    "Classifier-free guidance in two dimensions: eps_theta(x_t, null) = (0.2, -0.1), eps_theta(x_t, c) = (0.5, 0.3). w = 0 gives (0.2, -0.1); w = 1 gives (0.5, 0.3); w = 3 gives (0.2 + 3 * 0.3, -0.1 + 3 * 0.4) = (1.1, 1.1); w = 7.5 gives (2.45, 2.9). For w > 1 the guided prediction leaves the segment between the two estimates.",
+    "Latent compression: 512 x 512 x 3 = 786,432 values per image against 64 x 64 x 4 = 16,384 per latent: the denoiser processes 48 times fewer values at every step.",
+    "Inference cost: 50 sampling steps with classifier-free guidance = 100 network evaluations per image, against 1 for a GAN; a distilled 4-step sampler with the guidance folded into the student needs 4."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-13",
+     "description": "Lab 2 reverse process: seven scatter panels of 2,000 samples at t = 200, 150, 100, 50, 20, 5 and 0, each annotated with the mean nearest-neighbour distance to the data (0.246, 0.234, 0.211, 0.134, 0.056, 0.025, 0.020): structure appears late."
+    },
+    {
+     "id": "fig-05-14",
+     "description": "Lab 2 guidance sweep: four panels of class-0 samples at w = 0, 1, 3 and 7 over a faint outline of both moons, each titled with the fraction in class 0 and the recall distance."
+    },
+    {
+     "id": "fig-05-15",
+     "description": "Latent diffusion pipeline with shapes on every arrow: image 512 x 512 x 3 -> encoder -> latent 64 x 64 x 4 -> diffusion loop (denoiser, with the condition c entering by cross-attention) -> decoder -> image."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "With p_uncond = 0.2 and w = 1, what does classifier-free guidance compute? -> The conditional prediction eps_theta(x_t, c) alone; guidance extrapolates only when w > 1.",
+    "Why is latent diffusion cheaper than pixel diffusion at the same image size? -> The denoiser runs at every step on a latent with 48 times fewer values (512 x 512 x 3 to 64 x 64 x 4); the decoder runs once."
+   ],
+   "from_source": "Source section 3, second half: generation runs the process backward, subtracting a fraction of the predicted noise over tens to hundreds of steps; conditioning on anything (a text embedding, a class, a low-resolution image) by feeding it to eps_theta; latent diffusion in a VAE's latent space; the cost at inference and distillation to few-step samplers; engineering uses (candidate geometries, missing sensor data, super-resolved simulation fields); reference Rombach et al. 2022.",
+   "new_material": "The ancestral update and its first-step pitfall; DDIM with Lab 2's step sweep; classifier and classifier-free guidance with the formula, the convention warning, the arithmetic and Lab 2's guidance sweep; latent compression and cost counting; distillation references."
+  },
+  {
+   "id": "s7",
+   "title": "Graph neural networks I: message passing and the GCN",
+   "minutes": 21,
+   "target_words": 1450,
+   "purpose": "Show how a network reads data whose structure is a graph, derive the GCN layer from message passing with symmetric normalisation, and compute one layer by hand on a fault tree.",
+   "must_cover": [
+    "Graphs as data: G = (V, E) with n nodes, adjacency A in {0, 1}^{n x n}, degree matrix D, node features X in R^{n x d}, optional edge features. Examples: molecules, meshes, circuits, fault trees, SysML block diagrams, safety arguments in Goal Structuring Notation.",
+    "The constraint: node numbering is arbitrary, so layers must be permutation-equivariant, f(P A P^T, P X) = P f(A, X), and graph-level outputs permutation-invariant (sum, mean or max readout). An MLP on a flattened adjacency matrix breaks this and cannot take graphs of different sizes.",
+    "Message passing (Gilmer et al. 2017): m_v = AGG over u in N(v) of M(h_u, h_v, e_uv), h_v' = U(h_v, m_v). The source's form: h_v^(l+1) = phi(W_self h_v^(l) + sum over u in N(v) of W_nbr h_u^(l)). Weights are shared across nodes as a convolution shares them across positions (Module 03); L layers give an L-hop receptive field.",
+    "Why normalise: with sum aggregation a node of degree 50 receives messages 50 times larger than a leaf's, and repeated layers multiply by A's large eigenvalues, so features explode (on the 12-node tree with no normalisation the message-passing explorer's largest feature value reaches 1.22e4 after 8 steps).",
+    "GCN derivation (Kipf and Welling 2017): set W_self = W_nbr = W, add self-loops A-tilde = A + I, normalise symmetrically A-hat = D-tilde^{-1/2} A-tilde D-tilde^{-1/2}, so H^(l+1) = phi(A-hat H^(l) W^(l)) with entries A-hat_ij = 1/sqrt(d-tilde_i d-tilde_j). A-hat has largest eigenvalue 1 with eigenvector D-tilde^{1/2} 1, so repeated application neither explodes nor vanishes. Compare the random-walk normalisation D-tilde^{-1} A-tilde (mean aggregation). Kipf and Welling's motivation as a first-order approximation of a spectral filter with the 'renormalisation trick': one paragraph, no spectral theory required.",
+    "The source's code gcn_layer(A_hat, H, W) = relu(A_hat @ H @ W), and the edge-list form used in Lab 3: out_i = sum over j of A-hat_ij H_j, computed with index_add_ over (i, j, weight) triples; cost O(|E| d + n d d').",
+    "Fault trees as graphs: nodes are events and gates (OR, AND), edges join each input to its gate, features one-hot by type. A single point of failure is a basic event whose failure alone causes the top event: every gate on its path to the top is an OR. Deciding it needs information several hops away, which makes it the task of Lab 3.",
+    "Transductive (training and test nodes in one graph) versus inductive (new graphs at test time) learning; engineering models are usually inductive, so split by graph."
+   ],
+   "worked_examples": [
+    "One GCN layer on a five-node fault tree: top event T (OR) with inputs G1 (AND) and basic event E3; G1 with inputs E1 and E2. Degrees with self-loops d-tilde = (T 3, G1 4, E1 2, E2 2, E3 2). Entries of A-hat: T-T 1/3 = 0.3333, T-G1 1/sqrt(12) = 0.2887, T-E3 1/sqrt(6) = 0.4082, G1-G1 0.25, G1-E1 1/sqrt(8) = 0.3536, E1-E1 0.5. Features [OR, AND, basic]: T (1, 0, 0), G1 (0, 1, 0), E1 to E3 (0, 0, 1). A-hat X: T (0.3333, 0.2887, 0.4082); G1 (0.2887, 0.25, 0.7071); E1 = E2 = (0, 0.3536, 0.5); E3 = (0.4082, 0, 0.5). After one layer (W = I, ReLU) E3's vector records that its gate is an OR and E1's that its gate is an AND: E3 is a single point of failure and E1 is not. For a deeper event the answer depends on gates further up, which needs more layers.",
+    "Normalisation check: the edge between a node with 3 neighbours and a leaf (1 neighbour), self-loops included, has weight 1/sqrt(4 * 2) = 0.354; unnormalised it would be 1."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-16",
+     "description": "The five-node fault tree drawn top-down with gate shapes labelled OR and AND and circles for basic events; beside it the 5 x 5 matrix A-hat with its entries and the 5 x 3 matrix A-hat X with E3's and E1's rows highlighted."
+    },
+    {
+     "id": "fig-05-17",
+     "description": "Message passing for one node: neighbour feature vectors as arrows into the centre node, each multiplied by W and the weight 1/sqrt(d-tilde_i d-tilde_j), summed with the node's own transformed vector, then a nonlinearity; a side panel shades the two-hop receptive field of a basic event after two layers."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why must a GNN layer be permutation-equivariant? -> Node numbering is arbitrary; renumbering the nodes must renumber the outputs and change nothing else.",
+    "How many layers does a GCN need before a basic event at depth 3 can receive information from the top event? -> Three; each layer extends the receptive field by one hop."
+   ],
+   "from_source": "Source section 4, first paragraph and code: graph-structured engineering data (molecules, meshes, circuits, fault trees, system models), the message-passing equation, weights shared like a convolution's, the GCN with symmetric degree normalisation, gcn_layer; source exercise 4 (generalised into Lab 3 and exercise e9).",
+   "new_material": "Permutation equivariance; Gilmer's general message-passing form; why normalise and the eigenvalue argument; the derivation from message passing to the GCN; the edge-list implementation and its cost; the hand-computed layer on a fault tree; transductive versus inductive splits; the single-point-of-failure task."
+  },
+  {
+   "id": "s8",
+   "title": "Graph neural networks II: attention, depth limits and engineering graphs",
+   "minutes": 17,
+   "target_words": 1200,
+   "purpose": "Weight neighbours by learned attention, explain why GNNs stay shallow and what they cannot distinguish, handle directed and typed edges, and map the family onto engineering graphs.",
+   "must_cover": [
+    "Graph attention (Velickovic et al. 2018): e_vu = LeakyReLU(a^T [W h_v || W h_u]), alpha_vu = softmax over u in N(v) and v itself of e_vu, h_v' = phi(sum_u alpha_vu W h_u); multi-head attention with concatenation or averaging. A transformer layer (Module 06) is attention over the complete graph plus positions; GAT restricts it to the edges.",
+    "Over-smoothing derived: for a connected graph with self-loops, A-hat^k X -> u u^T X as k grows, with u = D-tilde^{1/2} 1 / ||D-tilde^{1/2} 1||, because A-hat u = u (check: D-tilde^{-1/2} A-tilde 1 = D-tilde^{-1/2} d-tilde = D-tilde^{1/2} 1) and every other eigenvalue has |lambda| < 1. The difference decays as |lambda_2|^k; every node's vector becomes sqrt(d-tilde_i) times one common vector, so only degree survives (Li, Han and Wu 2018).",
+    "Without self-loops a tree is bipartite, A-hat has eigenvalue -1, and features oscillate between the two colour classes instead of converging (an edge case in the message-passing explorer).",
+    "Depth in practice: 2-4 layers is typical. Lab 3's plain GCN predicts the majority class for every event at 8 and 16 layers; residual updates H <- H + phi(A-hat H W) restore about 0.95-0.97. Other fixes: normalisation layers, jumping-knowledge connections, fewer but wider layers.",
+    "Over-squashing (Alon and Yahav 2021): an exponentially growing neighbourhood squeezed through bottleneck edges into a fixed-size vector, so long-range dependencies suffer.",
+    "Expressivity: with identical initial features, message passing cannot separate graphs that the 1-Weisfeiler-Lehman test cannot (Xu et al. 2019, where GIN with sum aggregation reaches that bound). Example: one 6-cycle against two triangles. Fixes: structural features (degree, cycle counts), positional encodings, random node identifiers.",
+    "Directed and typed edges: fault trees are directed (input to gate) and gates have types; a symmetric A-hat mixes a node's gate with its siblings and its own inputs. A relational GCN (Schlichtkrull et al. 2018) gives each edge type and direction its own weight matrix. Lab 3: the undirected GCN tops out around 0.94-0.96 on single points of failure; a direction-aware layer reaches 1.000 at four layers.",
+    "Engineering graphs: molecular property prediction from the bond graph; learned simulators on meshes, MeshGraphNets (Pfaff et al. 2021), with encode-process-decode, mesh edges carrying relative positions, trained to step a PDE in time; system models, where a fault tree, a GSN safety argument and a SysML model are graphs, and a network that reads them as graphs rather than flattened text is the natural tool for checking or completing them.",
+    "Graph-level tasks: pool node vectors by sum or mean for a whole-graph label (for example, whether a tree's top-event probability exceeds a target)."
+   ],
+   "worked_examples": [
+    "Attention weights: a node with three neighbours whose scores are e = (0.5, 1.0, -0.2): exp(e) = (1.6487, 2.7183, 0.8187), sum 5.1857, alpha = (0.318, 0.524, 0.158). The best-scoring neighbour gets half the weight; a GCN would have weighted the three by degree alone.",
+    "Over-smoothing on Section 7's five-node tree: the eigenvalues of A-hat are 1, 0.7655, 0.5, 0.0974 and -0.2795. The mean pairwise cosine similarity of the rows of A-hat^k X is 0.846 at k = 1, 0.933 at 2, 0.976 at 4, 0.997 at 8 and 1.000 at 16, as |lambda_2|^k = 0.586, 0.343, 0.118 and 0.014 (k = 2, 4, 8, 16) predicts. The limit u u^T X has u proportional to sqrt(d-tilde) = (sqrt 3, 2, sqrt 2, sqrt 2, sqrt 2).",
+    "A 1-WL failure: in a 6-cycle and in two triangles every node has degree 2 and the same feature, so every message-passing step gives every node the same vector in both graphs; no number of layers separates a graph with one 6-cycle from a graph with two 3-cycles."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-18",
+     "description": "GAT on one node: three neighbour arrows with thickness proportional to alpha = (0.318, 0.524, 0.158), beside the same node under a GCN with weights set by degree."
+    },
+    {
+     "id": "fig-05-19",
+     "description": "Over-smoothing curves from the message-passing explorer's reference numbers: mean pairwise cosine similarity of A-hat^k X against k = 0..40 on the 12-node cooling-system tree for symmetric normalisation (0.455 at k = 0; 0.856, 0.967, 0.993, 0.999 at k = 1, 4, 8, 16), random-walk normalisation, and symmetric normalisation without self-loops (oscillating, settling near 0.976)."
+    },
+    {
+     "id": "fig-05-20",
+     "description": "Two graphs message passing cannot tell apart: a hexagon and two triangles, all nodes the same colour, with the identical node vectors after one and two rounds shown side by side."
+    }
+   ],
+   "widget": "message-passing-explorer",
+   "checks": [
+    "As k grows, what does A-hat^k X converge to, and what information is left? -> u u^T X with u proportional to D-tilde^{1/2} 1: every row is one common vector scaled by sqrt(d-tilde_i), so only degree survives.",
+    "Why does Lab 3's direction-aware model beat the GCN on single points of failure? -> The property depends only on the gates above an event; separate weights for messages from the gate and from the inputs let the model pass 'all gates above are OR' downward, while a symmetric A-hat mixes it with information from siblings and inputs.",
+    "In the explorer, set the normalisation to 'none'. What happens to the feature values, and why? -> They explode. With P = A-tilde, each step multiplies the features' component along the top eigenvector of A-tilde by its eigenvalue, 3.392, so the growth factor after 8 steps is 3.392^8 = 1.75e4. The explorer's readout, the largest single feature value at k = 8, is 1.22e4: smaller than the growth factor because only part of the one-hot starting features lies along that eigenvector. Unnormalised sums explode."
+   ],
+   "from_source": "Source section 4, second half: graph attention networks weight neighbours by learned attention; L layers give an L-hop receptive field; over-smoothing beyond a few layers limits depth; uses (molecule property prediction, MeshGraphNets stepping a PDE on a mesh, reasoning over fault trees, GSN cases and SysML models as graphs); source section 9 ('a GNN of ten layers with every node's features identical'); reference Pfaff et al. 2021.",
+   "new_material": "The GAT equations with a numeric example; the eigenvector proof of over-smoothing with computed eigenvalues and cosine curves; bipartite oscillation without self-loops; the residual fix with Lab 3's numbers; over-squashing; 1-WL expressivity with the hexagon and two triangles; directed and typed edges and the relational GCN; graph-level readout; the message-passing explorer."
+  },
+  {
+   "id": "s9",
+   "title": "Physics-informed neural networks",
+   "minutes": 24,
+   "target_words": 1700,
+   "purpose": "Train a network to satisfy a known differential equation by penalising its residual, show the loss terms and how to balance them, and be honest about when this beats a classical solver and when it does not.",
+   "must_cover": [
+    "The problem shape: the equation is known and the data are sparse; represent the solution by a network u_theta(x, t).",
+    "The composite loss, reproducing the source's equation: a data term (1/N_d) sum (u_theta(x_i, t_i) - u_i)^2, a residual term (1/N_c) sum (N[u_theta](x_j, t_j))^2 at collocation points, and a boundary/initial term (1/N_b) sum (B[u_theta](x_k, t_k))^2, with weights lambda_d, lambda_r, lambda_b.",
+    "Derivatives of the network with respect to its inputs by reverse-mode autodiff (Module 02): torch.autograd.grad(u, t, grad_outputs=torch.ones_like(u), create_graph=True)[0], applied twice for u''. create_graph=True records the derivative computation so the loss on u'' can itself be differentiated with respect to theta. Smooth activations (tanh), because ReLU's second derivative is zero almost everywhere.",
+    "The worked ODE: u'' + 2 zeta w0 u' + w0^2 u = 0 with u(0) = 1, u'(0) = 0; residual r(t) = u_theta'' + 2 zeta w0 u_theta' + w0^2 u_theta; exact solution u(t) = exp(-zeta w0 t)[cos(wd t) + (zeta w0/wd) sin(wd t)], wd = w0 sqrt(1 - zeta^2). Lab 4 uses w0 = 2 pi rad/s (1 Hz) and zeta = 0.1 on [0, 2] s.",
+    "The trivial solution: u = 0 has zero residual for a homogeneous equation, and only the initial or boundary terms exclude it. At initialisation in dimensional units the residual loss is 52.5 against an initial-condition loss of 1.36; the optimiser reduces the large term first and lands on zero (Lab 4: relative error 0.998 with lambda_ic = 1).",
+    "Three fixes, measured in Lab 4: raise lambda_ic to 100 (error 0.004 after 10,000 steps); non-dimensionalise with t-hat = w0 t so the equation becomes u'' + 2 zeta u' + u = 0 with coefficients of order 1 (error 0.0004; initial residual loss 0.034); impose the conditions by construction, u_theta(t) = 1 + t^2 N_theta(t) (Lagaris et al. 1998), which removes the trivial solution but not the poor scaling (error 0.09 in dimensional units after 10,000 steps).",
+    "Inverse problems: unknown coefficients become trainable parameters (zeta through log zeta). Lab 4 recovers zeta = 0.0987 from 12 noisy readings (true 0.1), matching a least-squares fit of the closed form (0.0977 +/- 0.0015). The PINN earns its cost where there is no closed form, or where a whole field must be recovered from a PDE.",
+    "Failure modes beyond the trivial solution: stiffness and multiscale behaviour, with loss terms of very different sizes (Wang, Teng and Perdikaris 2021 analyse the gradient imbalance and propose adaptive weights); spectral bias, networks fitting low frequencies first (Rahaman et al. 2019), so oscillatory or sharp solutions converge slowly (Fourier-feature inputs, Tancik et al. 2020); long time windows fitted out of causal order (time-marching over subintervals helps); PDE regimes where training fails outright (Krishnapriyan et al. 2021, convection at high speed); hand-tuned loss weights; and ill-posed set-ups, where a missing boundary condition leaves infinitely many solutions (exercise e12).",
+    "The honest comparison: for forward problems on a known geometry a finite-element or finite-difference solver is usually faster and more accurate; claims for learned PDE solvers should be checked against strong classical baselines (McGreivy and Hakim 2024). PINNs earn their place in data assimilation and inverse problems (sparse measurements plus a known equation), on awkward domains without a mesh, and where a differentiable model of the parameters is wanted."
+   ],
+   "worked_examples": [
+    "The residual of a near miss, by hand, with Lab 4's values w0 = 2 pi rad/s and zeta = 0.1: try the undamped solution u(t) = cos(w0 t), which meets both initial conditions exactly. u'' = -w0^2 cos(w0 t) cancels w0^2 u, leaving r(t) = -2 zeta w0^2 sin(w0 t) = -0.8 pi^2 sin(2 pi t) = -7.90 sin(2 pi t). At t = 0.25 s, r = -7.90; over [0, 2] s, two whole periods, the mean of r^2 is (0.8 pi^2)^2 / 2 = 31.2 (31.0 on Lab 4's 200 evenly spaced collocation points). The trivial solution u = 0 has zero residual and an initial-condition loss of (0 - 1)^2 + 0^2 = 1. With lambda_ic = 1 the loss therefore rates a curve that only lacks the damping 31 times worse than zero: the trivial-solution failure in miniature. With lambda_ic = 100, zero costs 100 against the near miss's 31.2 and the ranking flips, which is Lab 4's first fix.",
+    "Why non-dimensionalising works: with t-hat = w0 t the equation becomes u'' + 2 zeta u' + u = 0, with coefficients 1, 2 zeta = 0.2 and 1. The same near miss, u = cos(t-hat), leaves r = -0.2 sin(t-hat) and a mean r^2 of 0.02 over the same two periods, against 1.0 for zero: the loss now ranks it 50 times better than the trivial solution, with no weight to tune. In dimensional units every term of the residual carries up to w0^2 = 39.5, so a network output of order 1 gives residuals of order 40 and a residual loss of order 10^3, against an initial-condition loss of order 1; Lab 4's freshly initialised network starts at 52.5 against 1.36 (Figure 5.23). Halving the output halves the residual; sending it to zero removes the residual entirely."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-21",
+     "description": "PINN schematic: input t (and x) -> MLP -> u_theta; autodiff branches computing u_theta' and u_theta''; a residual box N[u] = u'' + 2 zeta w0 u' + w0^2 u; three loss terms (residual at collocation points, initial conditions at t = 0, data at measurement times) summed with weights lambda."
+    },
+    {
+     "id": "fig-05-22",
+     "description": "Lab 4 results on one time axis from 0 to 2 s: the exact solution; the PINN with lambda_ic = 1 in dimensional units (flat near zero); lambda_ic = 100 and the non-dimensional PINN (on top of the exact curve); the 12 noisy readings and the inverse-problem fit with zeta = 0.099."
+    },
+    {
+     "id": "fig-05-23",
+     "description": "Loss-term sizes at initialisation for the dimensional and non-dimensional formulations, bar chart on a log scale: residual 52.5 against 0.034; initial conditions 1.36 in both."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why does a PINN for a homogeneous equation need its initial or boundary terms to avoid u = 0? -> Zero satisfies the equation exactly; only the conditions rule it out, and if their weight is small the optimiser finds zero first.",
+    "What does create_graph=True do in the derivative call? -> It records the derivative computation, so the loss built from u' and u'' can be differentiated with respect to the network weights; without it the second derivative and the residual's gradient are not available."
+   ],
+   "from_source": "Source section 5, first paragraph: an engineer often knows the equation and lacks the data; the PINN definition and its composite loss with data, PDE-residual and boundary terms; derivatives by automatic differentiation; elegant, mesh-free, natural for inverse problems with trainable coefficients; slower and less accurate than a finite-element solver for forward problems; trouble with stiff and multiscale problems; loss terms balanced by hand; data assimilation as where it earns its place (generalised); source section 9 ('converges to the trivial solution because the boundary term is underweighted'); source exercise 5 (now e12).",
+   "new_material": "Autodiff mechanics with create_graph; the damped-oscillator problem and exact solution; the hand residual example; the trivial-solution analysis in numbers; three fixes measured in Lab 4 (weighting, non-dimensionalisation, hard constraints); the inverse problem compared with a classical fit; spectral bias, causality and failure-mode references; the honest-baseline paragraph."
+  },
+  {
+   "id": "s10",
+   "title": "Neural operators and surrogate models",
+   "minutes": 11,
+   "target_words": 850,
+   "purpose": "Explain how a network learns the map from an input function to a solution field across a family of problems, and how to judge such a surrogate before using it.",
+   "must_cover": [
+    "Operator learning: G maps a to u, where a is a coefficient field, a forcing, a boundary condition or a geometry and u is the solution; trained on pairs (a_i, u_i) produced by a solver; one forward pass per new instance.",
+    "Surrogates in engineering terms: response surfaces, kriging and Gaussian-process surrogates, reduced-order models by proper orthogonal decomposition, u(y) approx sum_k c_k phi_k(y). Neural operators are the same idea with learned bases.",
+    "DeepONet (Lu et al. 2021): a branch net b(a(y_1), ..., a(y_m)) in R^p reads the input function at m fixed sensors, a trunk net t(y) in R^p reads the query point, and G(a)(y) approx sum_k b_k(a) t_k(y) plus a bias. Its theory goes back to Chen and Chen's 1995 universal approximation theorem for operators. The trunk plays the role of POD modes, the branch of their coefficients.",
+    "Fourier neural operator (Li et al. 2021): lift v_0 = P(a); Fourier layers v_{l+1} = sigma(W v_l + F^{-1}(R_l . F(v_l))) keeping the lowest k_max modes; project u = Q(v_L). The spectral weights do not depend on the grid, so the trained model can be evaluated at another resolution, with caveats (aliasing; the training distribution still bounds validity).",
+    "Validity: a surrogate is valid on the distribution of inputs it was trained on; extrapolation in geometry, material or load regime is unquantified. Before use: check new inputs against the training ranges, validate against fresh solver runs where the surrogate will be used, report the error per regime and a validity domain. Reported speed-ups mean something only against a solver run to the same accuracy (McGreivy and Hakim 2024).",
+    "The practical route to a fast approximate finite-element solver for a family of designs: trained on a few thousand solver runs, it answers a new member of the family in one forward pass, and only inside the family those runs covered.",
+    "On unstructured meshes, graph-network simulators (MeshGraphNets, Section 8) play the operator role."
+   ],
+   "worked_examples": [
+    "Parameters of one 1D Fourier layer with width 32 and k_max = 16 retained modes: the complex tensor R has 16 x 32 x 32 = 16,384 entries, 32,768 real parameters; the pointwise W has 32 x 32 + 32 = 1,056. The spectral part dominates and does not grow with the grid.",
+    "DeepONet shapes for a 1D problem: the input function at m = 100 sensors -> branch net -> p = 64 coefficients; a query point y -> trunk net -> 64 basis values; the output at y is their dot product. A field of 10,000 query points costs one branch evaluation and 10,000 trunk evaluations."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-24",
+     "description": "DeepONet: an input function a(y) drawn as a curve with m sensor dots -> branch net -> vector b; a query point y -> trunk net -> vector t; dot product -> G(a)(y). Beside it, the POD analogy: modes phi_k(y) as curves and coefficients c_k as bars."
+    },
+    {
+     "id": "fig-05-25",
+     "description": "One Fourier layer: v -> FFT -> keep the k_max lowest modes -> multiply by R -> inverse FFT; in parallel v -> W (pointwise linear); sum -> nonlinearity sigma."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "What does a trained neural operator take as input, and what does it return? -> A function (a coefficient field, forcing or boundary condition, sampled at points) and the corresponding solution function, for any member of the trained family, in one forward pass.",
+    "Name two checks before using a surrogate trained on solver output for a new design. -> That the new input lies inside the training ranges; and validation against fresh solver runs in the region where it will be used, with the error reported per regime."
+   ],
+   "from_source": "Source section 5, second paragraph: neural operators (DeepONet, the Fourier neural operator) learn the map from a function to a function across a family of problems, one forward pass per new instance, surrogate models in the engineering sense trained on solver output, and the practical route to a fast approximate solver (generalised); source section 9 ('an operator trained on one geometry family and applied to another; a surrogate's validity is the data it saw'); references Li et al. 2021 and Lu et al. 2021.",
+   "new_material": "The surrogate lineage (response surfaces, Gaussian processes, POD); DeepONet and FNO equations with shapes and parameter counts; the POD analogy; the resolution claim with its caveats; validity checks and the baseline warning."
+  },
+  {
+   "id": "s11",
+   "title": "Contrastive and self-supervised learning",
+   "minutes": 14,
+   "target_words": 1050,
+   "purpose": "Show how an encoder learns useful features from unlabelled data by telling a positive pair apart from negatives, derive InfoNCE as a classification loss, and show that the augmentations decide what is learned.",
+   "must_cover": [
+    "The problem: labels are expensive and structure is free. A pretext task needs no labels; the representation is judged by a linear probe trained on a few labels.",
+    "InfoNCE derived as softmax cross-entropy (the source's equation): among N candidates, one positive and N - 1 negatives, with scores sim(z_i, z_j)/tau, L = -log[exp(sim(z_i, z_i+)/tau) / sum_j exp(sim(z_i, z_j)/tau)] is the cross-entropy of identifying the positive. sim is the cosine similarity of L2-normalised embeddings; the temperature tau sharpens the distribution.",
+    "The mutual-information view (van den Oord et al. 2018): I(x; x+) >= log N - L_InfoNCE, so the estimate can never exceed log N; more negatives (bigger batches) allow larger values.",
+    "SimCLR (Chen et al. 2020): two augmentations of each of the B inputs in a batch give 2B views; each view's positive is its twin and the other 2B - 2 views are negatives, so InfoNCE runs over N = 2B - 1 candidates per view (the NT-Xent loss). A projection head g sits on top of the representation h; probe h, not z, because the head learns to discard what the augmentations vary (Lab 5: probe on z 0.61 against h 0.93 with 5 labels per class).",
+    "Alignment and uniformity (Wang and Isola 2020): the loss pulls positives together and spreads all embeddings over the sphere. Collapsed embeddings (all equal) make every candidate equally likely and give the loss log(2B - 1) = log N, so the bound certifies no information; the negatives prevent it. Non-contrastive methods such as BYOL (Grill et al. 2020) avoid negatives with asymmetric networks.",
+    "The augmentations are the supervision: they say which differences the encoder must ignore. Lab 5: removing the time-shift augmentation drops the 5-label probe from 0.93 to 0.58, near the untrained encoder's 0.49.",
+    "An augmentation removes task information only if the classes differ in nothing it leaves intact. Cases where it does: 180-degree rotations make 6 and 9 the same digit; colour jitter removes the colour that identifies corrosion. In Lab 5 a 16-fold gain range did not hurt, because the classes also differ in harmonic ratios and signal-to-noise ratio.",
+    "CLIP (Radford et al. 2021): image and text encoders trained with a symmetric InfoNCE over a batch of B image-caption pairs (a B x B similarity matrix with positives on the diagonal, each row and each column an InfoNCE over B candidates) on 400 million pairs; zero-shot classification by embedding prompts such as 'a photo of a {label}' and taking the nearest; the embeddings behind text-to-image conditioning and many retrieval systems (retrieval-augmented generation is covered in the AI Agents series).",
+    "Masked modelling, the other branch: hide part of the input and predict it. BERT's masked tokens (Module 06), masked autoencoders for images with 75% of patches hidden (He et al. 2022); next-token prediction, the objective of Modules 07 and 08, is self-supervised in the same sense.",
+    "The general lesson (source): a pretext task with no labels can produce a representation that transfers to tasks with few labels. Engineering use: pretrain on months of unlabelled sensor logs, then fit a classifier on a handful of labelled faults; embeddings for retrieving similar past incidents or documents."
+   ],
+   "worked_examples": [
+    "InfoNCE with N = 4 candidates and cosine similarities s = (0.9, 0.2, 0.1, -0.3), positive first. tau = 1: the positive's probability is e^0.9 / (e^0.9 + e^0.2 + e^0.1 + e^-0.3) = 2.460/5.527 = 0.445; loss 0.810; mutual-information bound log 4 - 0.810 = 0.577 nats. tau = 0.1: logits (9, 2, 1, -3), the positive's probability 0.9987, loss 0.0013, bound 1.385, essentially log 4 = 1.386: the bound is capped at log N.",
+    "Lab 5 in numbers (linear probe with 5 / 20 / 100 labels per class): raw waveform 0.376 / 0.447 / 0.485; FFT magnitude 0.790 / 0.890 / 0.975; untrained encoder 0.494 / 0.733 / 0.882; contrastive encoder 0.929 / 0.989 / 0.996. With 5 labels per class the pretrained features beat the classical spectral features by 14 points; with 100 the gap is 2 points."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-26",
+     "description": "SimCLR pipeline: one vibration window -> two augmentations (time shift, gain, noise) -> shared encoder f -> h -> projection head g -> z on a unit circle; the positive pair pulled together, other batch members pushed apart; an arrow from h to 'linear probe'."
+    },
+    {
+     "id": "fig-05-27",
+     "description": "CLIP's B x B similarity matrix for a batch of B image-caption pairs with the diagonal highlighted as positives; row-wise and column-wise softmax arrows showing the two directions of the symmetric loss."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "What is the largest value the InfoNCE lower bound on mutual information can reach with N candidates? -> log N; with 256 candidates, 5.55 nats.",
+    "Why does SimCLR evaluate the representation before the projection head? -> The head learns to discard what the augmentations vary, which can include information the downstream task needs; h keeps more (0.93 against 0.61 in Lab 5 with 5 labels per class)."
+   ],
+   "from_source": "Source section 6: labels are expensive and structure is free; contrastive methods map two views of the same thing close and different things apart with the InfoNCE loss; SimCLR within images, CLIP between images and text, producing the embeddings behind text-to-image models and zero-shot classification; masked prediction as the other self-supervised family and as language-model pretraining (now Modules 07-08); the transfer lesson; source section 9 (augmentations that remove the information the downstream task needs); references Chen et al. 2020 and Radford et al. 2021.",
+   "new_material": "InfoNCE derived as classification; the mutual-information bound and its log N cap in numbers; NT-Xent, the projection head and why to probe h; alignment, uniformity and collapse; augmentations as the supervision, with Lab 5's numbers; when an augmentation destroys information and when it does not; CLIP's symmetric loss and zero-shot procedure; masked autoencoders; engineering uses."
+  },
+  {
+   "id": "s12",
+   "title": "Mixture of experts",
+   "minutes": 11,
+   "target_words": 850,
+   "purpose": "Show how routing each input to a few of many experts separates parameter count from compute, count both on a published configuration, and explain the routing failures.",
+   "must_cover": [
+    "The layer (the source's equation): y = sum over e in top-k(g(x)) of g_e(x) FFN_e(x), with router g(x) = softmax(W_r x), k = 1 or 2, and the selected weights renormalised to sum to 1. In a transformer (Module 06) it replaces the feed-forward block, an MLP applied to each token; explain this in one sentence here, since Module 06 comes next.",
+    "Origins: Jacobs, Jordan, Nowlan and Hinton (1991), adaptive mixtures of local experts, a soft gate choosing among regressors, familiar to engineers who switch models between operating regimes; Shazeer et al. (2017), the sparsely-gated layer with noisy top-k gating.",
+    "Parameters against compute: parameters grow with E, compute per token with k. Count both on Mixtral 8x7B's published configuration.",
+    "Routing collapse: a feedback loop. An expert that receives more tokens gets more gradient, improves, is chosen more; the starved ones never improve. Symptom: most tokens on one or two experts. Load-balancing loss (Switch Transformer, Fedus et al. 2022): L_bal = lambda_bal * E * sum_e f_e P_e, where f_e is the fraction of tokens dispatched to expert e and P_e the mean router probability for e; its minimum is 1 (times lambda_bal) at uniform routing; Switch used lambda_bal = 0.01.",
+    "Capacity: each expert processes at most capacity factor x (tokens / E) tokens per batch; overflow tokens are dropped (passed on through the residual connection), a source of silent quality loss.",
+    "Other difficulties (source): communication between GPUs when experts are spread across them; instability early in training. A recent alternative: fine-grained plus shared experts and bias-based, auxiliary-loss-free balancing in DeepSeek-V3 (671B parameters in total, 37B active per token). LLM-scale MoE engineering is Module 08's.",
+    "Specialisation is less semantic than the name suggests: the Mixtral authors report no obvious assignment of experts by topic.",
+    "Serving cost: every expert must be in memory although each token uses only k of them (Module 10)."
+   ],
+   "worked_examples": [
+    "Mixtral 8x7B's published configuration: 32 layers, d = 4096, SwiGLU experts with d_ff = 14,336, 8 experts, top-2 routing, attention with 32 query heads and 8 key-value heads of 128 dimensions, vocabulary 32,000 with untied input and output embeddings. Per expert 3 x 4096 x 14,336 = 176.2M parameters; all experts of all layers 8 x 32 x 176.2M = 45.1B. Attention per layer 4096 x 4096 + 2 x 4096 x 1024 + 4096 x 4096 = 41.9M, so 1.34B in all; embeddings 2 x 32,000 x 4096 = 0.26B. Total about 46.7B; active per token 2 x 32 x 176.2M = 11.3B + 1.34B + 0.26B = about 12.9B. The paper reports 47B total and 13B active. (Router and normalisation weights, about 1M, are left out.)",
+    "Load-balancing loss with E = 4: collapsed routing f = (1, 0, 0, 0) with mean router probabilities P = (0.7, 0.1, 0.1, 0.1) gives E sum f_e P_e = 4 x 0.7 = 2.8; uniform routing f = P = (0.25, 0.25, 0.25, 0.25) gives 4 x 4 x 0.0625 = 1.0. The loss is 2.8 times its minimum, and its gradient through P moves router probability toward the starved experts."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-28",
+     "description": "An MoE layer in place of the feed-forward block: token vector -> router (softmax over 8 experts drawn as a bar chart) -> the top-2 experts highlighted and the other six greyed -> weighted sum -> residual add; a side note 'parameters: 8 FFNs; compute: 2 FFNs'."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "A model has 8 experts per layer and routes each token to 2. How does its per-token FFN compute compare with a dense model whose FFN is one expert? -> About twice (two experts run), while its FFN parameters are eight times as many.",
+    "What does the load-balancing loss measure, and what is its minimum? -> E sum f_e P_e, how far the token fractions and router probabilities are concentrated on the same experts; its minimum is 1, at uniform routing."
+   ],
+   "from_source": "Source section 7: E experts and a small router sending each input to the top-k (typically k = 1 or 2); the gated-sum equation; parameter count grows with E while compute per input does not; hundreds of billions of parameters at the per-token cost of a much smaller model, the design behind Mixtral and DeepSeek-V3; routing collapse fixed with a load-balancing loss, communication cost across GPUs, early instability; Module 08 places it among the architecture choices; reference Shazeer et al. 2017.",
+   "new_material": "The router equations and renormalisation; the 1991 origin and the regime-switching analogy; the full Mixtral parameter count; the load-balancing loss with a numeric example; capacity and token dropping; auxiliary-loss-free balancing; the specialisation finding; memory cost at serving."
+  },
+  {
+   "id": "s13",
+   "title": "Choosing a family",
+   "minutes": 8,
+   "target_words": 650,
+   "purpose": "Turn the module into decisions: which family fits which engineering need, what baseline it must beat first, and what it costs.",
+   "must_cover": [
+    "The source's table, every row kept, extended with two columns, 'first baseline to beat' and 'main cost or risk': compress, denoise, detect anomalies in unlabelled data -> autoencoder (PCA and its Q statistic; misses anomalies that resemble normal data); a smooth latent space to sample or interpolate designs -> VAE, diffusion (PCA plus a Gaussian; VAE samples blur, diffusion is slow to sample); the best sample quality with conditioning -> diffusion (a GAN or VAE; tens to hundreds of evaluations per sample); the fastest generator -> GAN (diffusion distilled to a few steps; mode collapse); data on a graph or mesh -> GNN (hand-made graph features or the obvious structural rule, e.g. the leaf rule; over-smoothing, edge direction); a known PDE and sparse data, or an inverse problem -> PINN (a classical solver wrapped in a least-squares fit; trivial solutions, stiffness); a fast surrogate for a solver across a family of inputs -> neural operator (a Gaussian-process or POD surrogate, and the solver itself; validity limited to the training family); representations without labels -> contrastive, masked prediction (spectral or engineered features, PCA; the augmentations decide what is learned); capacity without proportional compute -> mixture of experts (a dense model of the same active size; routing collapse, memory).",
+    "Three walk-throughs: (1) vibration monitoring of a pump fleet with no fault labels -> an autoencoder on normal data with a percentile threshold against the PCA Q-statistic baseline, then contrastive pretraining once a few faults are labelled (Lab 5); (2) candidate bracket geometries for a given load case -> conditional diffusion, in a latent space if the geometry is an image or voxel grid, every candidate checked by the solver; (3) stress fields across a family of perforated plates -> a neural operator or mesh GNN trained on solver runs, valid only for the hole sizes and loads it saw.",
+    "The series rule: state the baseline first; a model that does not beat it has learned nothing useful."
+   ],
+   "worked_examples": [
+    "The labs as evidence: Lab 1's autoencoder beats PCA's Q statistic on held-out 9s (AUC 0.952 against 0.791); Lab 3's GCN beats the plausible 'gate is OR' rule (0.551) and the majority class (0.838) only from 3 layers on; Lab 5's contrastive features beat FFT magnitudes with 5 labels per class (0.929 against 0.790) and gain only 2 points with 100 (0.996 against 0.975); Lab 4's PINN matches, and does not beat, a closed-form fit (zeta 0.0987 against 0.0977)."
+   ],
+   "figures": [
+    {
+     "id": "fig-05-29",
+     "description": "Decision flow: 'Is the data a graph or mesh?' -> GNN; 'Is there a governing equation?' -> PINN (sparse data, inverse problem) or neural operator (many solver runs, many queries); 'Do you need to generate?' -> diffusion (quality, conditioning), GAN (speed), VAE (latent space); 'Are labels scarce?' -> contrastive or masked pretraining; 'Need capacity at fixed compute?' -> MoE. Each leaf lists its first baseline in small type."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "You have a known heat-conduction PDE, 15 thermocouple readings and one unknown conductivity. Which family, and what baseline? -> A PINN, as an inverse problem; the baseline is a classical solver wrapped in a least-squares fit of the conductivity."
+   ],
+   "from_source": "Source section 8, the 'Choosing' table, all nine rows kept.",
+   "new_material": "The baseline and cost columns; three engineering walk-throughs; the decision-flow figure; the labs' numbers as evidence."
+  }
+ ],
+ "what_goes_wrong": [
+  "VAE samples all look alike and the KL term reads 0.00 nats in every dimension -> posterior collapse: the KL weight is too strong for the likelihood term (beta > 1, or an MSE-sum loss that implies sigma_x^2 = 1/2 on [0, 1] pixels), or the decoder can model x without z -> use beta <= 1 with a properly scaled likelihood, warm the KL weight up from 0 or use free bits, and monitor KL per dimension and active units (Lab 1: beta = 4 leaves 0 of 8 active).",
+  "An autoencoder anomaly detector with a high AUC misses many real faults in service -> AUC averages over all thresholds, and anomalies that resemble normal data reconstruct well -> report the detection rate at the operating threshold (Lab 1: AUC 0.95 but 58% detected at 4% false alarms), compare with the PCA Q-statistic baseline, evaluate on known faults, and recalibrate the threshold when operating conditions change.",
+  "A GAN that 'trained fine' produces the same six images -> mode collapse: nothing in the adversarial loss rewards covering the data -> measure diversity (modes covered, recall-style nearest-neighbour distances from held-out data to samples), not only sample quality; stabilise with a gradient penalty or spectral normalisation, or use a diffusion model.",
+  "Diffusion samples look washed out and never reach extreme values, or sampling blows up on the first reverse step -> a schedule endpoint is wrong: alpha-bar_T far from 0 (Ho et al.'s beta range with T = 200 instead of 1,000 leaves alpha-bar_T = 0.13), so sampling starts from noise the network never saw; or beta_T near 1 (the cosine clip at 0.999), so the first update multiplies errors by 1/sqrt(alpha_T) = 31.6 and guidance amplifies them -> check alpha-bar_T and the largest beta before training; use a cosine schedule or zero-terminal-SNR rescaling; cap beta (0.5 in Lab 2) or clip x-hat_0 to the data range.",
+  "Samples are blurred or off the data with a fast sampler, or oversaturated and all alike with strong guidance -> too few sampling steps (Lab 2: DDIM precision distance 0.023 at 200 steps, 0.045 at 5, 1.57 at 1) or too large a guidance scale (recall distance 0.022 at w = 1, 0.046 at w = 7) -> use 20-50 DDIM steps or a distilled sampler, and choose w on a diversity measure as well as on appearance.",
+  "A generative model produces near-copies of training items -> memorisation, more likely with small or duplicated training sets and long training -> deduplicate the data, compare each sample's distance to its nearest training item with held-out distances, and give generated designs the same checks as any other (Carlini et al. 2023).",
+  "A GNN of ten layers gives every node the same features and predicts one class -> over-smoothing: repeated averaging drives all node vectors to one direction at rate |lambda_2|^k, and a deep plain stack also trains poorly -> use 2-4 layers or residual connections (Lab 3: 16 plain layers give 0.838, the majority class; with residuals about 0.95-0.97) and measure feature similarity layer by layer.",
+  "A GNN plateaus on a property that depends on edge direction or type, such as what lies above a node in a fault tree -> a symmetric normalised adjacency mixes parents, children and siblings -> give each edge direction or type its own weights (relational GCN) or add edge features (Lab 3: about 0.94-0.96 undirected against 1.000 direction-aware).",
+  "A GNN scores well in evaluation and badly on new graphs -> nodes of the same graph were split between training and test, so test nodes' neighbourhoods were seen in training -> split by graph (whole fault trees, whole meshes) whenever the model will meet new graphs.",
+  "A PINN converges to u = 0, or to a smooth curve that ignores the initial or boundary data -> zero satisfies the homogeneous equation and the condition terms are outweighed (Lab 4: residual loss 52.5 against 1.36 at the start, final error 0.998) -> non-dimensionalise (error 0.0004), raise the condition weights (0.004), or impose the conditions by construction.",
+  "A PINN fits slow trends but not oscillations, sharp fronts or late times, or a small residual hides a wrong answer -> spectral bias, stiffness and loss imbalance, or an ill-posed set-up (exercise e12: without boundary conditions the heat equation has infinitely many solutions, and the PINN found one with error 0.82 at a residual of 4e-5) -> Fourier-feature inputs, adaptive loss weights, time-marching over subintervals, a check that the problem is fully posed, or a classical solver, usually faster and more accurate for forward problems.",
+  "A neural operator or other surrogate gives confident, wrong answers for a new design -> the input lies outside the family it was trained on (another geometry family, load regime or material) -> check inputs against the training ranges, validate against fresh solver runs where the surrogate is used, and report the error per regime and a validity domain.",
+  "A contrastive encoder is useless for the downstream task, or its loss sits at log(2B - 1) for a batch of B ->the augmentations removed the information the task needs (a 180-degree rotation makes 6 and 9 one class; colour jitter removes the colour of corrosion), or the embeddings collapsed -> choose augmentations from the task's real invariances, check per-class probe accuracy, and remember that the augmentations are the supervision (Lab 5: without the time shift 0.58 instead of 0.93).",
+  "A mixture-of-experts layer sends most tokens to one or two experts -> routing collapse from rich-get-richer feedback -> add a load-balancing loss or bias-based balancing, and monitor per-expert token fractions and the number of dropped tokens."
+ ],
+ "labs": [
+  {
+   "id": "lab1",
+   "title": "Autoencoders, a VAE and an anomaly detector on 8x8 digits",
+   "minutes": 40,
+   "goal": "Compare a nonlinear autoencoder with PCA, train the source's VAE and inspect its latent space, cause posterior collapse on purpose, and build a reconstruction-error anomaly detector with an honestly chosen threshold.",
+   "data": "scikit-learn built-in load_digits (1,797 images of 8x8 pixels with values 0-16; ships with the package, no download), scaled to [0, 1]; stratified 80/20 split with random_state=0: 1,437 training and 360 test images.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 2,
+   "steps": [
+    "Load and split: X = (X / 16.0).astype(float32); train_test_split(test_size=0.2, stratify=y, random_state=0); torch.manual_seed(0); print the shapes (1437, 64) (360, 64).",
+    "PCA baseline: sklearn PCA with 2 and 8 components fitted on the training set; reconstruct the test set with inverse_transform(transform(X)); print the test MSE per pixel: about 0.0532 (2 components) and 0.0246 (8).",
+    "Undercomplete autoencoder: encoder Linear(64, 128)-GELU-Linear(128, d_z), decoder Linear(d_z, 128)-GELU-Linear(128, 64)-sigmoid; MSE loss; a shared train() helper (Adam lr 1e-3, batch 64, 200 epochs, shuffling with a seeded torch.Generator); d_z = 2 and 8; print the test MSE per pixel: about 0.037 and 0.011, below PCA at both sizes; about 7 s per model.",
+    "VAE: the source's class with the decoder output used as Bernoulli logits (binary_cross_entropy_with_logits summed over pixels, averaged over the batch), the closed-form KL kept per dimension, and a beta attribute multiplying the KL; d_z = 2, beta = 1, same optimiser and epochs. Print on the test set -ELBO, reconstruction, KL and KL per dimension: about 24.9 = 22.6 + 2.3 nats, per dimension about (1.1, 1.2).",
+    "Latent space: scatter the test-set means mu(x) coloured by digit and save the figure; print the 5-nearest-neighbour accuracy of a classifier fitted on training-set codes and scored on test-set codes: PCA-2 0.617, AE-2 0.839, VAE-2 0.750 (raw 64 pixels: 0.978, for reference). Decode a 10 x 10 grid of z on [-2.5, 2.5]^2 from the VAE and a grid over the bounding box of the AE's training codes; save both.",
+    "Samples and interpolation: decode 16 draws of z ~ N(0, I), and an 8-step linear interpolation between the latent means of one test '1' and one test '7'; save the figures.",
+    "Posterior collapse on purpose: train the d_z = 8 VAE with beta = 0.5, 1 and 4; print total KL, KL per dimension, reconstruction and active units (dimensions with variance of mu_j(x) over the test set above 0.01): beta 0.5 -> KL about 6.5, 8 active; beta 1 -> about 3.6, 6 active; beta 4 -> 0.00, 0 active, reconstruction about 27.2 nats against 21.0 at beta 1. Then train beta = 1 with the source's MSE-sum loss (implied sigma_x^2 = 1/2): KL about 0.6, 3 active.",
+    "Anomaly detector: train the d_z = 8 autoencoder on training digits 0-8 only, with 20% of them held out (random_state=0) for validation; threshold = 95th percentile of the validation errors (about 0.026 per pixel); print the false-alarm rate on test digits 0-8 (about 0.04), the detection rate on test 9s (about 0.58) and ROC AUC (about 0.95); repeat with PCA (8 components) reconstruction error, the classical Q statistic: AUC about 0.79, detection about 0.22 at a false-alarm rate of about 0.08."
+   ],
+   "expected_observations": [
+    "The autoencoder beats PCA at equal code size (0.037 against 0.053 at d_z = 2) because digits lie on a curved manifold; at d_z = 8 the gap is more than twofold.",
+    "The VAE's 2D codes overlap more than the plain autoencoder's (5-NN accuracy 0.75 against 0.84) because the KL term pulls every code toward N(0, I); in exchange every point of the VAE's grid decodes to a plausible digit, while the autoencoder's grid has implausible regions between clusters.",
+    "The KL weight controls collapse: at beta = 4 every dimension has KL 0.00, the decoder ignores z and outputs an average digit. The source's MSE-sum loss acts like a weak reconstruction term (sigma_x^2 = 1/2) and leaves only 3 of 8 dimensions active.",
+    "An AUC of 0.95 does not mean 95% detection: at a threshold that gives about 5% false alarms only about 58% of 9s are caught, because many 9s resemble digits the model reconstructs well. The PCA baseline is clearly worse, which is the comparison that justifies the network."
+   ],
+   "extensions": [
+    "KL warm-up: ramp beta linearly from 0 to 1 over the first 50 epochs; active units rise from 6 to 8 (the two extra carry little KL). Ramp to beta = 4 instead and the model still collapses: warm-up fixes collapse caused by the optimisation path, not collapse that is the optimum of the objective.",
+    "Source exercise 2: train the VAE with d_x = 2 and d_z = 2 on 3,000 points from three 2D Gaussian clusters (means (-2, 0), (2, 0), (0, 2.5), standard deviation 0.3) with a Gaussian decoder, and plot the latent means coloured by cluster; then set d_z = 1 and see whether the clusters stay apart.",
+    "Change the anomalous digit: holding out 8 gives detection about 0.83 (AUC 0.96) and holding out 0 about 1.00 (AUC 0.999) at the same false-alarm setting; explain which digits are hard anomalies and why."
+   ]
+  },
+  {
+   "id": "lab2",
+   "title": "A diffusion model on two moons, with classifier-free guidance",
+   "minutes": 45,
+   "goal": "Implement the DDPM forward process, train a noise-prediction network on 2D data, sample with the reverse process and with DDIM, and measure what classifier-free guidance and the number of steps do to fidelity and diversity.",
+   "data": "Synthetic: sklearn make_moons(n_samples=10000, noise=0.05, random_state=0), standardised with its own mean and standard deviation; a reference set make_moons(5000, noise=0.05, random_state=1) on the same scale for evaluation; the moon label is the condition.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 3,
+   "steps": [
+    "Schedule: cosine (s = 0.008) with T = 200 and beta_t = min(1 - alpha-bar_t/alpha-bar_{t-1}, 0.5); print alpha-bar_1 (about 0.99975), alpha-bar_100 (about 0.494), alpha-bar_200 (about 6.8e-5) and the last three uncapped betas (0.5555, 0.75, 1.0) to show why the cap is there; plot alpha-bar_t.",
+    "Forward process: one fixed noise draw per point; scatter x_t = sqrt(alpha-bar_t) x_0 + sqrt(1 - alpha-bar_t) eps at t = 0, 50, 100, 150, 175 and 200 (figure).",
+    "Model: an MLP eps_theta(x_t, t, c) whose input is x_t (2 numbers) concatenated with [32-dimensional sinusoidal embedding of t plus a learned 32-dimensional embedding of c in {0, 1, 2 = null}]; three hidden layers of 128 with SiLU; output 2. Print the parameter count, 37,858.",
+    "Training: QUICK = False runs 20,000 steps, QUICK = True 8,000; batches of 512 from the 10,000 points; t uniform on {1..200}; the condition replaced by null with probability 0.2; loss = MSE between eps and eps_theta; Adam lr 1e-3 with cosine decay to 0. Print the loss at every 20% of training (noisy, settling between about 0.28 and 0.34). The full run takes about 0.5-2 minutes on a laptop CPU.",
+    "Ancestral sampling (Ho et al.'s Algorithm 2) with the null condition: 2,000 samples, recording x_t before the update at t = 200, 150, 100, 50, 20 and 5, and the final x_0 (figure). Print mean nearest-neighbour distances: samples to reference (precision-like) about 0.020, against 0.013 for fresh data and 0.242 for N(0, I) draws; reference to samples (recall-like) about 0.021, against 0.021 for fresh data and 0.051 for noise; and the precision-like distance at each snapshot (about 0.246, 0.234, 0.211, 0.134, 0.056, 0.025). With QUICK = True expect precision about 0.04 and recall about 0.027.",
+    "Classifier-free guidance: 1,000 samples of class 0 with eps-tilde = eps_theta(x_t, t, null) + w (eps_theta(x_t, t, 0) - eps_theta(x_t, t, null)) for w = 0, 1, 3, 7; a 15-NN classifier fitted on the reference set labels each sample. Print the fraction in class 0 (about 0.50, 1.00, 1.00, 1.00), the precision-like distance (about 0.021, 0.014, 0.013, 0.033) and the recall-like distance to the class-0 reference points (about 0.032, 0.022, 0.029, 0.046); figure with four panels.",
+    "DDIM: the deterministic update x-hat_0 = (x_t - sqrt(1 - alpha-bar_t) eps_theta)/sqrt(alpha-bar_t), x_{t'} = sqrt(alpha-bar_{t'}) x-hat_0 + sqrt(1 - alpha-bar_{t'}) eps_theta, on K evenly spaced steps from 200 to 0, unconditional, K = 200, 50, 20, 10, 5, 2, 1. Print the precision- and recall-like distances (about 0.023/0.023, 0.025/0.024, 0.030/0.027, 0.037/0.035, 0.045/0.045, 0.10/0.08, 1.57/0.07) and the sampling time for each K."
+   ],
+   "expected_observations": [
+    "Structure appears late in the reverse process: samples are indistinguishable from noise until about t = 50, and most of the precision is gained in the last 20 steps.",
+    "The unconditional samples are almost as close to the data as fresh data are (0.020 against 0.013) and cover both moons (recall 0.021 against 0.021).",
+    "Guidance trades diversity for fidelity: w = 1 already puts every sample on the requested moon; w = 3 and 7 squeeze the samples toward the densest part of the moon (the recall distance doubles by w = 7), and at w = 7 precision starts to worsen as samples overshoot.",
+    "DDIM with 20-50 steps is close to the 200-step ancestral sampler; below about 10 steps quality falls quickly, and a single step returns a scaled-up posterior mean far from the data: the cost of diffusion is its number of steps.",
+    "With the uncapped cosine schedule (beta_T = 0.999) the first reverse step multiplies errors by 31.6; in a prototype run this made the w = 7 samples diverge (precision distance 1.34). The cap at 0.5 keeps the factor at 1.41."
+   ],
+   "extensions": [
+    "Restore the cap to 0.999 and repeat the guidance step; then keep the 0.999 cap but compute x-hat_0, clip it to [-3, 3] and use the posterior-mean update instead.",
+    "Train the non-saturating GAN of Section 4 (generator and discriminator: MLPs with three hidden layers of 128, Adam lr 1e-3, betas (0.5, 0.999)) on the same standardised moons for 6,000 steps and compare its precision and recall distances with the diffusion model's; note it needs one forward pass per sample.",
+    "Replace the schedule by Ho et al.'s linear range at T = 200 (alpha-bar_T = 0.13) and compare; on these standardised 2D data the damage is small (a prototype run gave precision 0.021 and recall 0.022). Explain why 2D standardised data hide a problem that matters for images."
+   ]
+  },
+  {
+   "id": "lab3",
+   "title": "A graph convolutional network from scratch: single points of failure in fault trees",
+   "minutes": 35,
+   "goal": "Build the normalised adjacency and message passing by hand, train GCNs of increasing depth to find single points of failure in synthetic fault trees, compare them with honest baselines, and see over-smoothing and the value of direction-aware messages.",
+   "data": "Synthetic: a fault-tree generator written in the lab (300 trees from numpy default_rng(0); 200 for training and 100 for testing, split by tree), plus the 12-node cooling-system tree of Section 8 built by hand. No graph library is needed.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 2,
+   "steps": [
+    "Generator: the top event is a gate (OR with probability 0.6, else AND); every gate has 2-4 inputs, uniformly; an input is a gate with probability 0.6 at depths 0-1 and 0.35 at depth 2, never below depth 3, otherwise a basic event. Features: one-hot [OR, AND, BASIC] plus a TOP flag (4 numbers). Label for each basic event: 1 if every gate on its path to the top is OR (a single point of failure), else 0; gates are not scored. Print: about 28.1 nodes per tree (3 to 95); 5,536 training and 2,903 test nodes; 3,740 training basic events (22.0% single points of failure) and 1,971 test basic events (16.2%); test basic events by depth {1: 124, 2: 213, 3: 583, 4: 1051}.",
+    "Check the labeller on the hand-built cooling-system tree: it must return E1, E5 and E6.",
+    "Baselines on the test basic events: majority class (never a single point of failure) 0.838; 'the event's own gate is OR' 0.551, a plausible rule that is worse than the majority class because most such events have an AND gate higher up.",
+    "Normalised adjacency as an edge list: both edge directions plus self-loops, weights 1/sqrt(d-tilde_i d-tilde_j); propagate(H) = torch.zeros_like(H).index_add_(0, i, w[:, None] * H[j]). Verify on the 12-node tree against the dense D-tilde^{-1/2}(A + I)D-tilde^{-1/2} @ H: maximum absolute difference about 1e-7.",
+    "GCN: Linear(4, 32) input layer, L layers of H <- ReLU(A-hat H W), Linear(32, 2) output; full-batch Adam lr 1e-2, weight decay 5e-4, 200 epochs, cross-entropy on the training basic events only; L = 1, 2, 3, 4, 8, 16. Print test accuracy and accuracy by depth: about 0.88, 0.88-0.89, 0.91, 0.94-0.96, 0.838, 0.838 (values in the 0.9s move by a point or two with thread count and PyTorch version).",
+    "Over-smoothing without training: on the largest test tree (72 nodes) print the mean pairwise cosine similarity of the rows of A-hat^k X for k = 1, 2, 4, 8, 16, 32, 64 (about 0.82, 0.88, 0.91, 0.94, 0.96, 0.98, 0.99). Then train L = 16 with residual updates H <- H + ReLU(A-hat H W): about 0.95-0.97.",
+    "Direction-aware layer: H <- ReLU(W_s H + (message from the node's gate) W_p + (mean of the messages from its inputs) W_c), two index_add_ calls on the directed edge list; L = 2, 3, 4: about 0.916, 0.963, 1.000, with accuracy 1.0 at every depth up to L.",
+    "Apply the L = 4 direction-aware model to the 12-node cooling-system tree and print the predicted single points of failure: E1, E5 and E6 (a prototype run also found the undirected L = 4 GCN correct on this small tree)."
+   ],
+   "expected_observations": [
+    "Accuracy by depth shows the receptive field: an L-layer model is reliable only for events at most L hops below the top; the direction-aware model makes this exact.",
+    "The undirected GCN improves up to about 4 layers; the plain 8- and 16-layer models then predict the majority class for every event. Their node features are nearly identical (the untrained A-hat^k X similarity climbs toward 1), and with no residual path a deep stack also trains poorly; residual connections restore it.",
+    "A symmetric adjacency gives each event a mixture of its gate, its siblings and, two hops away, their gate's other inputs; the property depends only on the gates above. Separate parent and child weights let the network compute 'every gate above is OR' exactly.",
+    "The rule that sounds right ('its gate is OR', 0.551) is worse than the majority class (0.838); every model must be compared with both."
+   ],
+   "extensions": [
+    "Split by node instead of by tree (a random 70/30 split over all nodes of all 300 trees) and compare; explain why per-node splits flatter a model that will be used on new trees.",
+    "Add each node's depth as a fifth feature and retrain the undirected GCN with L = 4; does it close the gap to the direction-aware model?",
+    "The source's question, best tried after exercise e9: train a 2-layer GCN to predict whether a node is a basic event, and compare it with the baseline you named in e9. What has the GCN learned?"
+   ]
+  },
+  {
+   "id": "lab4",
+   "title": "A physics-informed network for a damped oscillator: forward, failure, fixes and an inverse problem",
+   "minutes": 40,
+   "goal": "Train a PINN on an ODE with a known exact solution, reproduce the trivial-solution failure, fix it three ways, and recover an unknown damping ratio from twelve noisy readings, comparing with a classical fit.",
+   "data": "Synthetic: the exact solution of u'' + 2 zeta w0 u' + w0^2 u = 0 with w0 = 2 pi rad/s, zeta = 0.1, u(0) = 1, u'(0) = 0 on t in [0, 2] s; 12 'measurements' at random times (torch.Generator seed 1) with Gaussian noise of standard deviation 0.02.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 3,
+   "steps": [
+    "Set-up: torch.manual_seed(0); torch.set_num_threads(1), because a network this small gains nothing from more threads (about 1.2 ms per training step with one thread or four in a prototype) and one thread avoids large slowdowns when other programs compete for the cores (a prototype run slowed from about 1.2 to 30 ms per step under such contention); exact(t) = exp(-zeta w0 t)(cos(wd t) + (zeta w0/wd) sin(wd t)); 1,000 test times; a relative L2 error helper; plot the exact solution.",
+    "Network and derivatives: u_theta(t) an MLP 1 -> 32 -> 32 -> 32 -> 1 with tanh and the input divided by t_end; d(u, t) = torch.autograd.grad(u, t, torch.ones_like(u), create_graph=True)[0]; 200 evenly spaced collocation points with requires_grad; loss = mean residual^2 + lambda_ic[(u(0) - 1)^2 + u'(0)^2]; Adam lr 1e-3.",
+    "Dimensional residual u'' + 2 zeta w0 u' + w0^2 u, lambda_ic = 1, 3,000 steps: print both loss terms at step 0 (residual about 52.5, initial conditions about 1.36) and at the end; final residual about 6e-3 and initial-condition term about 0.99; relative L2 error about 0.999 and max |u| about 0.006, the trivial solution.",
+    "lambda_ic = 0, 3,000 steps: residual about 5e-6, max |u| about 1e-4, error 1.000; zero satisfies the equation exactly.",
+    "lambda_ic = 100, 10,000 steps: error about 0.015 at 5,000 steps and 0.004 at 10,000.",
+    "Non-dimensional: t-hat = w0 t on [0, 4 pi], residual u'' + 2 zeta u' + u with derivatives in t-hat, lambda_ic = 1, 10,000 steps: residual at step 0 about 0.034; error about 0.06 at 5,000, 0.008 at 7,500 and 0.0004 at 10,000 steps.",
+    "Inverse problem: zeta unknown, parameterised as log zeta from a starting value of 0.5 and optimised with the network; loss = non-dimensional residual + initial conditions + 10 x mean squared error on the 12 readings; 10,000 steps. Print zeta every 1,000 steps (about 0.42, 0.24, 0.17, ..., 0.12 at 5,000 and 0.0987 at 10,000) and the solution's error (about 0.02).",
+    "Classical baseline: scipy.optimize.curve_fit of the closed-form solution to the same 12 readings: zeta about 0.0977 +/- 0.0015."
+   ],
+   "expected_observations": [
+    "In dimensional units the residual term starts about 40 times larger than the initial-condition term, and the optimiser drives the network to zero, which satisfies the equation: the loss is small and the answer is wrong.",
+    "Weighting the initial conditions fixes it; non-dimensionalising fixes it better, because the equation's terms become of order 1 and the loss terms comparable without hand-tuned weights.",
+    "The inverse problem recovers zeta to within a few per cent from 12 noisy readings, as a least-squares fit of the closed form does: when a closed form exists, use it; the PINN earns its cost when it does not.",
+    "Second derivatives through autograd cost several forward passes each, yet a network this small trains 10,000 steps in about 15 s on a desktop CPU (well under a minute on a laptop); the whole lab runs in about one to three minutes."
+   ],
+   "extensions": [
+    "Hard constraint: use u = 1 + (t/t_end)^2 N_theta(t), drop the initial-condition term and train in dimensional units for 10,000 steps: no trivial solution is possible, yet the error is still about 0.09 because the scaling problem remains.",
+    "Spectral bias: set w0 = 8 pi (eight periods in 2 s) in the non-dimensional form and train again; then feed Fourier features [sin(k t-hat), cos(k t-hat)] for k = 1, 2, 4 as extra inputs and compare.",
+    "Exercise e12 starts from this code and moves to the heat equation."
+   ]
+  },
+  {
+   "id": "lab5",
+   "title": "Contrastive pretraining on unlabelled vibration signals",
+   "minutes": 30,
+   "goal": "Pretrain an encoder with InfoNCE on unlabelled machine-vibration windows, measure with a linear probe how much it helps when only a few faults are labelled, compare it with raw and spectral features, and show that the augmentations decide what is learned.",
+   "data": "Synthetic, generated in the lab with numpy default_rng(0): 1-second windows sampled at 256 Hz, four classes; 4,000 windows for pretraining (labels kept aside for probing) and 2,000 test windows.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Generator: shaft speed f_r uniform on 9-11 Hz; healthy = 1.0 sin(2 pi f_r t + phi_1) + 0.2 sin(2 pi 2 f_r t + phi_2); imbalance: 1x amplitude 2.5; misalignment: 1x, 2x and 3x amplitudes 1.0, 1.5 and 0.5; bearing defect: healthy plus impulses repeating at 3.57 f_r, each a 60 Hz oscillation of amplitude 1.5 decaying at 30 per second; random phases; sensor gain uniform on 0.8-1.2; additive noise of standard deviation 0.3. Plot one window per class and its magnitude spectrum.",
+    "Probe protocol: StandardScaler + LogisticRegression(max_iter=5000) fitted on 5, 20 or 100 labelled windows per class drawn from the pretraining pool (5 random draws, averaged), scored on the 2,000 test windows.",
+    "Baselines: raw waveform about 0.376 / 0.447 / 0.485 (5 / 20 / 100 labels per class); FFT magnitude (129 bins) about 0.790 / 0.890 / 0.975; an untrained encoder's h about 0.494 / 0.733 / 0.882.",
+    "Loss: nt_xent(z1, z2, tau) = cross-entropy over the 2B x 2B cosine-similarity matrix (B the batch) divided by tau, with the diagonal set to -infinity and the twin view as target. Sanity check: F.cross_entropy(torch.tensor([[0.9, 0.2, 0.1, -0.3]]) / tau, torch.tensor([0])) gives 0.810 for tau = 1 and 0.0013 for tau = 0.1 (Section 11's worked example).",
+    "Pretraining: encoder MLP 256 -> 256 -> 128 (h) and projection head ReLU -> 64 (z, L2-normalised); augmentations: random circular time shift, gain log-uniform on 0.8-1.25, added noise of standard deviation 0.1; tau = 0.2, batch B = 256 (510 negatives per view), Adam lr 1e-3, 60 epochs (900 steps, about 8 s). Print the final loss (about 2.39) against log(2B - 1) = log 511 = 6.24, the loss of collapsed embeddings.",
+    "Probe h: about 0.929 / 0.989 / 0.996; probe z: about 0.609 / 0.919 / 0.998. Repeat pretraining with seeds 1 and 2: 5-label accuracy about 0.926 and 0.919.",
+    "Ablation: pretrain without the time shift (gain and noise only): about 0.576 / 0.865 / 0.973; with no augmentation: about 0.540 / 0.803 / 0.951. Print the 100-label confusion matrix of the no-shift model: misalignment mistaken for imbalance (about 36 of 482) and bearing defects for healthy (about 18 of 518)."
+   ],
+   "expected_observations": [
+    "A linear classifier on the raw waveform is near chance: with random phases no fixed linear combination of samples identifies a class. Spectral magnitudes, the classical engineering feature, remove phase by construction and do well once there are enough labels.",
+    "Contrastive pretraining with a time-shift augmentation learns a phase-invariant representation without labels: with 5 labels per class it beats the FFT features by about 14 points; with 100 they are within 2 points.",
+    "The augmentation is the supervision: without the time shift the learned features are barely better than an untrained encoder's.",
+    "The projection head absorbs what the augmentations vary; probing z with few labels is far worse than probing h, which is why SimCLR keeps h.",
+    "The InfoNCE loss stays well above zero (about 2.39) but far below log(2B - 1) = 6.24, the value for embeddings that carry no information."
+   ],
+   "extensions": [
+    "Widen the gain augmentation to 0.25-4: the probe barely changes (about 0.952 / 0.993 / 0.997), because healthy and imbalance windows also differ in harmonic ratios and signal-to-noise ratio. Design an augmentation that does destroy a class distinction in these data and confirm it with the confusion matrix.",
+    "Vary tau over 0.05, 0.5 and 1.0 (5-label accuracy about 0.90, 0.95 and 0.95 in a prototype run) and the batch size over 64 and 512.",
+    "Add a fifth class to the test set only (mechanical looseness: many harmonics of f_r with decaying amplitudes) and check whether the pretrained h separates it in a 2D PCA plot without retraining."
+   ]
+  }
+ ],
+ "exercises": [
+  {
+   "id": "e1",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "An autoencoder maps 64-pixel images to a 128-dimensional code and back, with no other constraint, and its training reconstruction error reaches zero. Explain why the code is useless as a representation, and name two changes that would force the network to learn the structure of the data.",
+   "solution_sketch": "With d_z >= d_x the network can learn the identity (or any invertible map) and reconstruct perfectly without capturing which inputs are likely. Fixes: a bottleneck d_z < d_x; a denoising objective (corrupt or mask the input, reconstruct the clean one), which forces it to map points back to the data; a sparsity penalty on z; or a VAE's KL term, which limits the information z can carry."
+  },
+  {
+   "id": "e2",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 12,
+   "prompt": "(a) Starting from log p_theta(x) = log of the integral of p_theta(x|z) p(z) dz, insert q_phi(z|x)/q_phi(z|x), apply Jensen's inequality and obtain the ELBO E_q[log p_theta(x|z)] - D_KL(q_phi(z|x) || p(z)). (b) Without Jensen, show that log p_theta(x) - ELBO = D_KL(q_phi(z|x) || p_theta(z|x)), and say when the bound is tight. (c) Show that D_KL(N(mu, sigma^2) || N(0, 1)) = (1/2)(mu^2 + sigma^2 - log sigma^2 - 1) and that for a diagonal Gaussian the KL is a sum over dimensions; evaluate it for mu = (0.3, -1.5, 0.0), sigma = (0.8, 1.0, 2.0), and say what each dimension pays for.",
+   "solution_sketch": "(a) log p(x) = log E_q[p(x|z)p(z)/q(z|x)] >= E_q[log p(x|z) + log p(z) - log q(z|x)] = E_q[log p(x|z)] - D_KL(q || p(z)), since log is concave. (b) For any z, p(x) = p(x|z)p(z)/p(z|x); take logs and the expectation under q: log p(x) = E_q[log(p(x|z)p(z)/q)] + E_q[log(q/p(z|x))] = ELBO + D_KL(q || p(z|x)) >= ELBO, tight exactly when q(z|x) = p_theta(z|x). (c) D_KL = E_q[log q - log p] = E_q[-(1/2)log sigma^2 - (z - mu)^2/(2 sigma^2) + z^2/2] = -(1/2)log sigma^2 - 1/2 + (1/2)(mu^2 + sigma^2); independent dimensions have additive log densities, so the KLs add. Numbers: (1/2)(0.09 + 0.64 + 0.4463 - 1) = 0.0881, (1/2)(2.25 + 1 - 0 - 1) = 1.125 and (1/2)(0 + 4 - 1.3863 - 1) = 0.8069, total 2.020 nats. The second dimension pays only for its mean, the third only for its width (a posterior wider than the prior costs too), the first a little for both."
+  },
+  {
+   "id": "e3",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A VAE with d_z = 8 reports these per-dimension KL values on the test set, in nats: (2.1, 1.7, 0.003, 0.002, 1.2, 0.001, 0.004, 0.002). How many latent dimensions carry information about x? What does the decoder do with the rest? Name two changes you would try if the task needs more of them.",
+   "solution_sketch": "Three (dimensions 1, 2 and 5). In the others q(z_j|x) is essentially N(0, 1) for every x, so z_j is noise independent of the input and the decoder learns to ignore it: partial posterior collapse. Fixes: lower the KL weight (beta < 1) or warm it up from 0; free bits; a likelihood that weights reconstruction properly (Bernoulli for [0, 1] pixels, or a smaller decoder variance than the sigma_x^2 = 1/2 implied by an MSE-sum loss); a less powerful decoder."
+  },
+  {
+   "id": "e4",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "(a) For fixed G, the GAN value is V = integral of [p_data(x) log D(x) + p_g(x) log(1 - D(x))] dx. Maximise the integrand pointwise to obtain D*(x). (b) Substitute D* and show that V(G, D*) = -log 4 + 2 JSD(p_data || p_g), where JSD(p || q) = (1/2)KL(p || m) + (1/2)KL(q || m) and m = (p + q)/2. (c) Check your result on three points: p_data = (0.6, 0.3, 0.1), p_g = (0.2, 0.3, 0.5).",
+   "solution_sketch": "(a) f(y) = a log y + b log(1 - y) has f'(y) = a/y - b/(1 - y) = 0 at y = a/(a + b), a maximum since f is concave: D* = p_data/(p_data + p_g). (b) V = E_p[log(p/(p + q))] + E_q[log(q/(p + q))] = E_p[log(p/m)] - log 2 + E_q[log(q/m)] - log 2 = KL(p || m) + KL(q || m) - log 4 = 2 JSD - log 4. (c) D* = (0.75, 0.5, 0.1667); V = (0.6 log 0.75 + 0.3 log 0.5 + 0.1 log 0.1667) + (0.2 log 0.25 + 0.3 log 0.5 + 0.5 log 0.8333) = -0.5597 - 0.5764 = -1.1361; m = (0.4, 0.3, 0.3), JSD = 0.1251, and -1.3863 + 2(0.1251) = -1.1361."
+  },
+  {
+   "id": "e5",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A GAN trained on cross-section images of turbine blades produces samples an engineer cannot tell from real ones, and its discriminator's accuracy hovers around 50%. Describe one measurement that would reveal mode collapse: what you compute, what you compare it with, and what result would indicate collapse. Then explain why the discriminator's 50% accuracy is no evidence against it.",
+   "solution_sketch": "Measure coverage, not realism. Embed held-out real sections and an equal number of generated ones in a feature space (or describe each by a vector of geometric parameters); for each held-out real section compute the distance to its nearest generated sample (recall-like), and compare with the same distance computed to an equally large set of other real sections. Collapse shows as a recall-like distance well above that real-to-real reference, concentrated in some kinds of section, or as clusters of the real data with no samples near them; the precision-like distance, samples to data, stays small, which is why realism cannot reveal it. Distances from samples to the training set also flag near-copies. The 50% accuracy says only that D cannot separate samples from data where the samples fall: regions of p_data the generator never visits contribute nothing to the loss G sees, and a cycling discriminator can sit near 50% while G hops between a few modes."
+  },
+  {
+   "id": "e6",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "Show that the per-step forward process q(x_t | x_{t-1}) = N(sqrt(1 - beta_t) x_{t-1}, beta_t I) gives q(x_t | x_0) = N(sqrt(alpha-bar_t) x_0, (1 - alpha-bar_t) I) with alpha-bar_t = product over s <= t of (1 - beta_s). Write x_t = sqrt(alpha_t) x_{t-1} + sqrt(1 - alpha_t) eps_t, assume the result for t - 1, and use the fact that a sum of independent zero-mean Gaussians is Gaussian with the sum of the variances.",
+   "solution_sketch": "Base case t = 1: x_1 = sqrt(alpha_1) x_0 + sqrt(1 - alpha_1) eps_1, mean sqrt(alpha-bar_1) x_0, variance 1 - alpha-bar_1. Step: if x_{t-1} = sqrt(alpha-bar_{t-1}) x_0 + sqrt(1 - alpha-bar_{t-1}) eps-bar, then x_t = sqrt(alpha_t alpha-bar_{t-1}) x_0 + sqrt(alpha_t) sqrt(1 - alpha-bar_{t-1}) eps-bar + sqrt(1 - alpha_t) eps_t. The two noise terms are independent with variances alpha_t (1 - alpha-bar_{t-1}) and 1 - alpha_t, summing to 1 - alpha_t alpha-bar_{t-1} = 1 - alpha-bar_t; the mean is sqrt(alpha-bar_t) x_0. So x_t = sqrt(alpha-bar_t) x_0 + sqrt(1 - alpha-bar_t) eps with a single eps ~ N(0, I)."
+  },
+  {
+   "id": "e7",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "Ho et al.'s linear schedule runs beta_t evenly from 1e-4 to 0.02 over T = 1000 steps. (a) Estimate alpha-bar_T using log(1 - beta) approx -beta and compare with the exact product, 4.04e-5. (b) Someone keeps the same beta range but sets T = 100. Estimate alpha-bar_T and sqrt(alpha-bar_T). (c) Explain what goes wrong when that model is sampled from x_T ~ N(0, I), and give two fixes.",
+   "solution_sketch": "(a) sum of beta_t = 1000 x 0.01005 = 10.05, so alpha-bar_T approx e^-10.05 = 4.3e-5, close to the exact 4.04e-5 (the second-order term -sum beta^2/2 accounts for most of the difference). (b) sum = 100 x 0.01005 = 1.005, alpha-bar_T approx e^-1.005 = 0.366 (exact 0.364), sqrt(alpha-bar_T) approx 0.60: at the noisiest step 60% of the signal amplitude remains. (c) The network never saw pure noise at t = T, but sampling starts from it: a train-test mismatch at the first step that propagates (on images, models trained this way cannot produce very bright or very dark images, Lin et al. 2024). Fixes: rescale beta so that alpha-bar_T is near 0 (for example scale the range by 1000/T), use the cosine schedule, or rescale the schedule to zero terminal SNR."
+  },
+  {
+   "id": "e8",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "A gate with three basic-event inputs forms a star graph: centre c joined to leaves a, b and d. (a) Write A-hat = D-tilde^{-1/2}(A + I)D-tilde^{-1/2}. (b) With the scalar feature x = (1, 0, 0, 0) (centre first), compute A-hat x and A-hat^2 x. (c) Find the limit of A-hat^k x as k grows, using the eigenvector u proportional to D-tilde^{1/2} 1, and the ratio of the centre's value to a leaf's. (d) The eigenvalues of A-hat are 1, 0.5, 0.5 and -0.25, and the eigenvectors for 0.5 are zero at the centre and sum to zero over the leaves. How fast does A-hat^k x approach its limit for this x, and why not as 0.5^k?",
+   "solution_sketch": "(a) d-tilde = (4, 2, 2, 2): A-hat_cc = 1/4, A-hat_c,leaf = 1/sqrt(8) = 0.3536, A-hat_leaf,leaf = 1/2, zero between leaves. (b) A-hat x = (0.25, 0.3536, 0.3536, 0.3536); A-hat^2 x = (0.25 x 0.25 + 3 x 0.3536^2, 0.3536 x 0.25 + 0.5 x 0.3536, ...) = (0.4375, 0.2652, 0.2652, 0.2652). (c) u = (2, sqrt 2, sqrt 2, sqrt 2)/sqrt 10 = (0.6325, 0.4472, 0.4472, 0.4472); the limit is u (u^T x) = 0.6325 u = (0.4, 0.2828, 0.2828, 0.2828), ratio sqrt(d-tilde_c/d-tilde_leaf) = sqrt 2. (d) x takes the same value (0) on every leaf, so it has no component along the two lambda = 0.5 eigenvectors. What separates it from its limit, x - u(u^T x) = (0.6, -0.2828, -0.2828, -0.2828), lies entirely along the lambda = -0.25 eigenvector (proportional to (-2.121, 1, 1, 1)), so the error shrinks by a factor of 4 at every step and flips sign: relative errors ||A-hat^k x - limit|| / ||limit|| of 0.306, 0.0765, 0.0191 and 0.0048 for k = 1 to 4, below 1% from k = 4. The second-largest |lambda| bounds the rate for general features; the actual rate is set by the eigenvectors the features touch. A leaf's feature, x = (0, 1, 0, 0), does have a lambda = 0.5 component and converges as 0.5^k: relative error 0.935 at k = 1, 0.114 at k = 4 and 0.0071 at k = 8, below 1% only from k = 8."
+  },
+  {
+   "id": "e9",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A colleague trains a two-layer GCN to predict which nodes of fault trees are basic events, with node degree among the features, and reports 99% test accuracy. What baseline should the result be compared with, what does that baseline score, and what task would actually test whether a GNN has learned something about fault-tree structure?",
+   "solution_sketch": "In a fault tree the basic events are exactly the leaves: every non-top node with one neighbour is a basic event, and every gate has at least two inputs. The leaf rule scores 100%, so the GCN has learned nothing the structure did not give for free, and does slightly worse. A meaningful task needs information several hops away, such as single points of failure (every gate on the path to the top is OR; Lab 3), evaluated with a split by tree, not by node."
+  },
+  {
+   "id": "e10",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "Graph P is the complete bipartite graph K_{3,3}: two rows of three nodes, each node joined to all three nodes of the other row. Graph Q is the triangular prism: two triangles with corresponding corners joined. Every node has the same feature vector. Explain why any message-passing GNN (GCN, GAT, GIN) gives every node the same embedding in both graphs, whatever the number of layers, and why a sum or mean readout cannot tell P from Q. Propose one input feature that would.",
+   "solution_sketch": "Both graphs have 6 nodes and 9 edges, and every node has exactly three neighbours. With identical initial features every node receives three identical messages at the first layer and computes the same update, and by induction all twelve nodes stay identical at every layer: GCN's weights are all 1/sqrt(4 x 4) = 1/4, GAT's attention is uniform over identical neighbours, GIN's sum is the same everywhere. A sum or mean over six identical node vectors is then the same for P and Q. This is the 1-Weisfeiler-Lehman limit: colour refinement never splits the nodes of a regular graph, and message passing is bounded by that test. Yet the graphs differ, since the prism contains two triangles and K_{3,3}, being bipartite, none. Features that break the tie: the number of triangles through each node (1 in Q, 0 in P), the length of the shortest cycle through it (3 against 4), random node identifiers, or a spectral positional encoding (the adjacency eigenvalues are 3, 0, 0, 0, 0, -3 for P and 3, 1, 0, 0, -2, -2 for Q)."
+  },
+  {
+   "id": "e11",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "For u'' + 2 zeta w0 u' + w0^2 u = 0 with u(0) = 1, u'(0) = 0, a student proposes the trial solution u(t) = exp(-zeta w0 t) cos(w0 t): decaying, but at the undamped frequency. (a) Compute the residual r(t) symbolically. (b) Evaluate r(0) and the initial-condition terms (u(0) - 1)^2 and u'(0)^2 for zeta = 0.1 and w0 = 2 pi. (c) What two changes give the exact solution, and how would a PINN's loss report the trial function's error?",
+   "solution_sketch": "(a) With a = zeta w0: u' = -exp(-at)(a cos(w0 t) + w0 sin(w0 t)), u'' = exp(-at)((a^2 - w0^2) cos(w0 t) + 2 a w0 sin(w0 t)); substituting, the sine terms cancel and r(t) = -zeta^2 w0^2 exp(-zeta w0 t) cos(w0 t). (b) r(0) = -zeta^2 w0^2 = -0.395; (u(0) - 1)^2 = 0; u'(0) = -zeta w0 = -0.628, so u'(0)^2 = 0.395. (c) Use the damped frequency wd = w0 sqrt(1 - zeta^2) and add (zeta w0/wd) sin(wd t) so that u'(0) = 0. A PINN's loss would show the error in two terms: a residual that starts at r(0) = -0.39 and decays with the envelope, giving a residual loss (the mean of r^2 over [0, 2] s) of about 0.029, and an initial-velocity term u'(0)^2 = 0.39; the initial-position term is 0."
+  },
+  {
+   "id": "e12",
+   "level": 3,
+   "kind": "coding",
+   "minutes": 25,
+   "prompt": "Adapt Lab 4's code to the heat equation u_t = u_xx on x in [0, 1], t in [0, 0.2], with u(x, 0) = sin(pi x) and u(0, t) = u(1, t) = 0. Use a tanh MLP (2 -> 32 -> 32 -> 32 -> 1) with inputs (x, t/0.2), 1,000 random collocation points redrawn every step, 100 initial-condition points and 100 points on each boundary, Adam lr 1e-3, 8,000 steps, every loss weight 1, torch.set_num_threads(1). Report the relative L2 error against the exact solution exp(-pi^2 t) sin(pi x) on a 101 x 51 grid. Then remove the boundary term, train again from the same seed, and report the error and the values u(0, 0.2), u(0.5, 0.2) and u(1, 0.2). Explain what the network converged to.",
+   "solution_sketch": "With the boundary term the error is about 0.005 after 8,000 steps (a prototype run gave 0.022 at 2,000 steps, 0.012 at 4,000 and 0.0047 at 8,000), and u(0.5, 0.2) is about 0.137 against the exact 0.139; each run takes under a minute on one thread. Without the boundary term the PDE residual is just as small (about 4e-5) and the initial condition is still met, but the answer is wrong: in the prototype the relative error was 0.82, with u(0, 0.2) about -0.71, u(0.5, 0.2) about -0.24 and u(1, 0.2) about -0.73 (the exact digits depend on the seed). On a bounded interval the heat equation with only an initial condition has infinitely many solutions, since heat can flow in or out through the ends, and the network picked one in which the ends cool. A small residual certifies that the equation holds, not that the problem was posed completely."
+  },
+  {
+   "id": "e13",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "Choose a family for each need and name the first baseline it must beat: (a) a surrogate for the steady temperature field of a finned heat sink across fin heights of 10-30 mm and inlet air speeds of 1-5 m/s, trained on 2,000 CFD runs; (b) the same surrogate is asked about an inlet speed of 12 m/s; (c) 50,000 unlabelled thermal images of weld seams from a production line and 20 labelled defects of four types; (d) a 30-node system architecture model in which some components may be single points of failure.",
+   "solution_sketch": "(a) A neural operator, or a mesh-based graph network if each design has its own mesh; the baselines are a Gaussian-process or POD surrogate fitted to the same 2,000 runs, and the CFD solver itself (accuracy, and run time at equal accuracy). (b) 12 m/s lies outside the training family, and the flow may be in a different regime there, so the surrogate's error is unknown: run the solver (or extend the training runs) and state the validity range. (c) Self-supervised pretraining (contrastive or masked) on the unlabelled images, then a linear probe on the 20 labels; the baseline is the same probe, with the same 20 labels, on features that need no pretraining on these images: engineered intensity and texture statistics, or a CNN pretrained on generic images (transfer learning, Module 03). Choose augmentations that keep the temperature pattern, which is the evidence. With no labels at all, an autoencoder trained on good welds would be the anomaly detector. (d) The exact graph algorithm (minimal cut sets) is the baseline and, at this size, the right tool; a direction-aware GNN pays off only when the property cannot be computed exactly or the graphs are many and large."
+  },
+  {
+   "id": "e14",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "For each case, say whether the augmentation is safe for the downstream task, and why: (a) random 90-degree rotations when pretraining on top-down images of composite plies whose fibre direction (0, +45, -45 or 90 degrees) is to be classified; (b) random resized crops (crop 30-100% of the area, then rescale to the full image size) when pretraining on metallographic micrographs for grain-size estimation; (c) random circular time shifts when pretraining on engine-vibration windows that each start at top dead centre, where faults are told apart by the crank angle at which an impact occurs; (d) added Gaussian noise of standard deviation 0.1, on signals of amplitude about 1, for the same engine windows.",
+   "solution_sketch": "(a) Unsafe: a quarter-turn maps 0 degrees to 90 and +45 to -45, so the encoder is taught to treat different classes alike. A half-turn would be safe, because a fibre direction is an axis and is unchanged by 180 degrees. (b) Unsafe: rescaling a crop to full size changes the apparent grain size, which is the quantity to be estimated; crop without rescaling. (c) Unsafe here, although the same augmentation was the essential one in Lab 5: these windows are aligned to the engine cycle, so the timing of the impact within the window is the evidence, and a circular shift destroys it. In Lab 5 the window start was arbitrary. Whether an augmentation is safe depends on the task's evidence, not on the augmentation. (d) Safe in moderation: sensor noise is not evidence, and noise this small leaves the impacts visible; much more noise could bury small impacts, so check per-class probe accuracy."
+  },
+  {
+   "id": "e15",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A top-1 mixture-of-experts layer with 8 experts is trained without a load-balancing loss. After 2,000 steps, 71% of tokens go to expert 3 and two experts receive none. Explain the feedback loop that produced this, compute the Switch-style balancing term E sum_e f_e P_e if the mean router probabilities equal the token fractions f = (0.05, 0.08, 0.71, 0.06, 0.05, 0.05, 0, 0), and say what the term's gradient does.",
+   "solution_sketch": "An expert that receives more tokens gets more gradient, improves faster, scores higher in the router and receives still more; starved experts never improve (routing collapse). With P = f: sum f_e^2 = 0.0025 + 0.0064 + 0.5041 + 0.0036 + 0.0025 + 0.0025 = 0.5216, times 8 = 4.17, against a minimum of 1.0 at uniform routing. The term is differentiable through P (f is a count), and its gradient lowers the router probability of each expert in proportion to its token load, pushing tokens toward the starved experts."
+  }
+ ],
+ "quiz": [
+  {
+   "question": "Which statement about the KL divergence D_KL(q||p) is true?",
+   "options": [
+    "It is symmetric: D_KL(q||p) = D_KL(p||q).",
+    "It satisfies the triangle inequality, so it is a distance.",
+    "It is bounded above by log 2.",
+    "It is non-negative, and zero only when q = p."
+   ],
+   "answer": 3,
+   "explanation": "Jensen's inequality gives D_KL >= 0 with equality iff q = p. It is not symmetric (1.153 against 0.597 nats in Section 1's example) and not a metric; the Jensen-Shannon divergence, not the KL, is bounded by log 2."
+  },
+  {
+   "question": "In a VAE, log p_theta(x) - ELBO equals:",
+   "options": [
+    "the reconstruction error",
+    "D_KL(q_phi(z|x) || p(z))",
+    "D_KL(q_phi(z|x) || p_theta(z|x))",
+    "zero whenever the decoder is Gaussian"
+   ],
+   "answer": 2,
+   "explanation": "The identity log p(x) = ELBO + D_KL(q || p(z|x)) makes the gap the KL to the true posterior. D_KL(q || p(z)) is a term inside the ELBO, not the gap; the reconstruction term is the other ELBO term; the gap is zero only when q equals the posterior, whatever the decoder."
+  },
+  {
+   "question": "Why does a VAE need the reparameterisation trick?",
+   "options": [
+    "Because drawing z ~ N(mu, sigma^2) is not a differentiable function of mu and sigma; writing z = mu + sigma * eps with eps an input makes it one.",
+    "Because the KL divergence between Gaussians has no closed form.",
+    "Because the decoder cannot take random inputs.",
+    "To force the approximate posterior to equal the prior."
+   ],
+   "answer": 0,
+   "explanation": "Gradients must flow from the reconstruction term back to the encoder through the sample; the reparameterisation moves the randomness into eps. The Gaussian KL does have a closed form; decoders take random inputs at sampling time anyway; forcing q to the prior would be posterior collapse."
+  },
+  {
+   "question": "Why is the non-saturating generator loss -log D(G(z)) used instead of log(1 - D(G(z)))?",
+   "options": [
+    "It has a different optimum, which prevents mode collapse.",
+    "It makes the discriminator train faster.",
+    "It turns the Jensen-Shannon divergence into a Wasserstein distance.",
+    "Early in training D(G(z)) is near 0, where log(1 - D) has almost no gradient with respect to D's logit, while -log D has a gradient near -1."
+   ],
+   "answer": 3,
+   "explanation": "At D(G(z)) = 0.01 the two logit gradients are -0.01 and -0.99. Both losses share the fixed point p_g = p_data, so the change affects the dynamics, not the optimum; it neither prevents mode collapse nor changes the divergence, and it concerns G's update, not D's."
+  },
+  {
+   "question": "During DDPM training, how is the noisy input x_t obtained for a randomly drawn t?",
+   "options": [
+    "It must be computed by running the t noising steps from x_0 in sequence.",
+    "In one step, x_t = sqrt(alpha-bar_t) x_0 + sqrt(1 - alpha-bar_t) eps.",
+    "x_t = x_0 + beta_t eps.",
+    "x_t = (1 - alpha-bar_t) x_0 + alpha-bar_t eps."
+   ],
+   "answer": 1,
+   "explanation": "A composition of Gaussian steps is Gaussian, so one draw gives x_t exactly and running the steps is unnecessary. beta_t is the variance of a single step, and the formula with (1 - alpha-bar_t) x_0 swaps signal and noise and uses linear rather than square-root weights."
+  },
+  {
+   "question": "With classifier-free guidance eps-tilde = eps_theta(x_t, null) + w [eps_theta(x_t, c) - eps_theta(x_t, null)], which statement is correct?",
+   "options": [
+    "w = 0 gives the conditional model.",
+    "Guidance needs a separately trained noisy-image classifier.",
+    "w = 1 gives the conditional model; w > 1 increases fidelity to c at the cost of diversity.",
+    "Guidance halves the number of network evaluations per step."
+   ],
+   "answer": 2,
+   "explanation": "w = 0 is the unconditional model and w = 1 the conditional one; above 1 the prediction is extrapolated toward c (Lab 2: recall distance 0.022 at w = 1, 0.046 at w = 7). Classifier-free guidance needs no classifier, and it doubles the evaluations per step (conditional and unconditional)."
+  },
+  {
+   "question": "In a GCN with self-loops, what is A-hat_ij for an edge between a node with 3 neighbours and a node with 1 neighbour?",
+   "options": [
+    "1/sqrt(4 x 2) = 0.354",
+    "1/sqrt(3 x 1) = 0.577",
+    "1/4 = 0.25",
+    "1"
+   ],
+   "answer": 0,
+   "explanation": "Self-loops add 1 to each degree, giving 4 and 2, and A-hat_ij = 1/sqrt(d-tilde_i d-tilde_j). 0.577 forgets the self-loops; 0.25 is the random-walk weight seen from the hub; 1 is the unnormalised adjacency."
+  },
+  {
+   "question": "Repeatedly applying A-hat = D-tilde^{-1/2}(A + I)D-tilde^{-1/2} to the node features of a connected graph makes them converge to:",
+   "options": [
+    "zero",
+    "the original features",
+    "one common direction for every node, scaled by sqrt(d-tilde_i)",
+    "one-hot vectors of each node's community"
+   ],
+   "answer": 2,
+   "explanation": "A-hat has eigenvalue 1 with eigenvector D-tilde^{1/2} 1 and all other eigenvalues below 1 in magnitude, so A-hat^k X tends to u u^T X: every row is the same vector scaled by sqrt(d-tilde_i). Nothing goes to zero, the original features are lost, and community structure is washed out, not sharpened."
+  },
+  {
+   "question": "A PINN for u'' + w^2 u = 0 with u(0) = 1, u'(0) = 0 converges to u = 0. The most likely cause is:",
+   "options": [
+    "too many collocation points",
+    "the initial-condition term is too weak relative to the residual term, and zero satisfies the equation exactly",
+    "the tanh activation",
+    "a learning rate that is too small"
+   ],
+   "answer": 1,
+   "explanation": "Zero has zero residual for a homogeneous equation; only the condition terms exclude it (Lab 4: residual loss 52.5 against 1.36 at the start in dimensional units). More collocation points and tanh are standard; a small learning rate slows training but does not select the trivial solution."
+  },
+  {
+   "question": "A DeepONet trained on solver runs for one family of boundary conditions is applied to a boundary condition far outside that family. What should you expect?",
+   "options": [
+    "Unknown accuracy: a surrogate is validated only on the distribution it was trained on, so check against the solver.",
+    "The same accuracy, because an operator is learned for all input functions.",
+    "Exact results, because the trunk network is a basis.",
+    "A shape error, because the branch network rejects new inputs."
+   ],
+   "answer": 0,
+   "explanation": "Operator learning approximates the map on the training distribution; outside it the error is unquantified. The trunk's basis is learned from the same data, and the input shape (m sensor values) is unchanged, so the network runs and returns a confident, unvalidated answer."
+  },
+  {
+   "question": "With InfoNCE over N = 256 candidates, the largest value the lower bound log N - L on mutual information can certify is about:",
+   "options": [
+    "2.4 nats",
+    "5.55 nats",
+    "256 nats",
+    "unbounded"
+   ],
+   "answer": 1,
+   "explanation": "The loss is at least 0, so log N - L <= log 256 = 5.545 nats; certifying more information needs more candidates. 2.4 is a typical loss value rather than a bound, and 256 confuses N with log N."
+  },
+  {
+   "question": "A layer has 8 experts and routes each token to its top 2. Compared with one dense FFN of the size of a single expert, it has:",
+   "options": [
+    "2 times the parameters and 8 times the compute",
+    "8 times the parameters and 8 times the compute",
+    "the same parameters and a quarter of the compute",
+    "8 times the parameters and about 2 times the compute per token"
+   ],
+   "answer": 3,
+   "explanation": "All 8 experts are stored, but only 2 run for each token, plus a negligible router; that separation of parameters from compute is the point of MoE (Mixtral: 47B total, 13B active)."
+  }
+ ],
+ "papers": [
+  {
+   "citation": "Ho, J., Jain, A., Abbeel, P. \"Denoising diffusion probabilistic models.\" NeurIPS, 2020.",
+   "minutes": 20,
+   "why": "The paper that made diffusion practical: it ties the variational bound to denoising score matching and shows that a simplified noise-prediction loss gives the best samples. Sections 5-6 and Lab 2 follow it closely.",
+   "read": "Read the background section (forward process, variational bound, the closed form for q(x_t | x_0)), the section relating diffusion models to denoising autoencoders, especially the reverse-process parameterisation and the simplified training objective, Algorithms 1 and 2, and the ablation table in the experiments that compares parameterisations and objectives. Skim the sample-quality results. Skip progressive coding, interpolation and the appendices, except the derivation of the bound if you want the full algebra.",
+   "questions": [
+    "Find the equation for q(x_t | x_0). Which symbol corresponds to this module's alpha-bar_t?",
+    "What does the network predict in their best model, and what does the ablation table show for predicting the mean mu-tilde instead, with the true bound and with the simplified objective?",
+    "What T and beta schedule do they use? Compute alpha-bar_T and compare it with the value in Section 5.",
+    "Map Algorithms 1 and 2 line by line onto Lab 2's training loop and sampler. Where do they differ?",
+    "Why, according to the authors, does the simplified objective improve sample quality? Relate their argument to the weights computed in Section 5 (0.50 at t = 1, about 0.01 at t = 100)."
+   ]
+  },
+  {
+   "citation": "Kipf, T. N., Welling, M. \"Semi-supervised classification with graph convolutional networks.\" ICLR, 2017.",
+   "minutes": 12,
+   "why": "Short and clear: it derives the GCN layer from spectral graph convolution in two approximations and shows it working with very few labels; its depth experiment anticipates over-smoothing.",
+   "read": "Read the section on fast approximate convolutions on graphs (the first-order approximation and the renormalisation trick), the two-layer model for semi-supervised node classification with its forward-model equation, the comparison of propagation models in the results, and the appendix on model depth. On a first reading skip the spectral details if graph Laplacians are new to you, the related work and the dataset statistics.",
+   "questions": [
+    "What is the 'renormalisation trick', and which numerical problem does it address?",
+    "Write their two-layer forward model and identify each factor in Lab 3's code.",
+    "Which propagation model wins in their comparison, and by how much over the first-order model without the renormalisation?",
+    "What happens to training and test accuracy as depth grows in the appendix experiment, with and without residual connections? Compare with Lab 3 at 8 and 16 layers."
+   ]
+  },
+  {
+   "citation": "Raissi, M., Perdikaris, P., Karniadakis, G. E. \"Physics-informed neural networks: a deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations.\" Journal of Computational Physics, 2019.",
+   "minutes": 13,
+   "why": "The paper that named the method and set its pattern: a residual computed by automatic differentiation, collocation points, and inverse problems with trainable coefficients. Reading it after Lab 4 lets you judge its claims against failure modes you have reproduced.",
+   "read": "Read the introduction, the problem set-up, the continuous-time data-driven solution of PDEs with its Burgers' equation example, and the set-up of the continuous-time data-driven discovery problem (the Navier-Stokes example). Skip the discrete-time Runge-Kutta models and the Korteweg-de Vries example.",
+   "questions": [
+    "How many initial and boundary training points and how many collocation points does the Burgers example use, and what error do the authors report?",
+    "Write their residual f for Burgers' equation and map it onto the residual function of Lab 4.",
+    "In the discovery problem, which coefficients are learned, from how much data, with what noise, and how accurately are they recovered?",
+    "Which claims about accuracy or cost would you check against a classical solver before relying on them, and how (Section 9; McGreivy and Hakim 2024)?"
+   ]
+  }
+ ],
+ "widgets": [
+  {
+   "name": "diffusion-explorer",
+   "section": "s5",
+   "teaching_point": "The forward process turns any data distribution into N(0, I) along a path set by the noise schedule, and the cosine schedule keeps structure longer than the linear one; running the process backwards with an exact denoiser recreates the data, badly when the sampler takes too few steps.",
+   "controls": [
+    "select: dataset - 'ring of 8 Gaussians' (default), 'two moons', 'single Gaussian'",
+    "slider: timestep t, integer 0-1000, default 500, applied to both panels",
+    "button: play/pause - animates t from 0 to 1000 over 5 s, then stops",
+    "button: resample noise - new seed for the fixed per-point noise",
+    "select: reverse sampler - 'DDPM ancestral, 1000 steps', 'DDIM 50 steps' (default), 'DDIM 10 steps', 'DDIM 3 steps'",
+    "button: run reverse - starts both panels from fresh N(0, I) points and animates the reverse process",
+    "toggle: show the data components' means as faint crosses (default on)"
+   ],
+   "displays": [
+    "two side-by-side square scatter plots (canvas, axes -4 to 4), left 'linear schedule' and right 'cosine schedule', showing the same 1,000 points at the same t; they stack vertically below 640 px width",
+    "readouts under each panel: t, alpha-bar_t, signal scale sqrt(alpha-bar_t), noise scale sqrt(1 - alpha-bar_t), SNR = 10 log10(alpha-bar_t / (1 - alpha-bar_t)) dB",
+    "a shared small line chart of alpha-bar_t against t for both schedules, a vertical marker at the current t and a dotted line at alpha-bar = 0.01",
+    "under each panel, a histogram of the points' x-coordinates (40 bins on [-4, 4]) with the standard normal density overlaid",
+    "after a reverse run, for each panel: 'precision' = fraction of final points within 3 sigma of the nearest component mean, and 'components hit' = number of components with at least one such point"
+   ],
+   "defaults": "Ring of 8 Gaussians at t = 500: the left (linear, alpha-bar = 0.079) panel is already a round blob while the right (cosine, alpha-bar = 0.494) still shows eight clusters, so the schedule difference is visible before any interaction.",
+   "spec": "Data: every dataset is an equal-weight Gaussian mixture with isotropic component standard deviation sigma. Ring: 8 means at 2(cos(2 pi k/8), sin(2 pi k/8)), sigma = 0.1. Two moons: 24 means, (cos th_j, sin th_j) and (1 - cos th_j, 0.5 - sin th_j) for th_j = pi j/11, j = 0..11, then standardised by subtracting (0.5, 0.25) and dividing by (0.8898, 0.4807) per axis; sigma = 0.08. Single Gaussian: mean (1.5, -1.0), sigma = 0.3. Draw N = 1,000 points x_0 per dataset with a seeded PRNG (mulberry32, seed 1; Box-Muller for normals) and one fixed eps_i ~ N(0, I) per point. Schedules with T = 1000: linear beta_t = 1e-4 + (0.02 - 1e-4)(t - 1)/999; cosine alpha-bar_t = f(t)/f(0), f(t) = cos^2(((t/1000) + 0.008)/1.008 * pi/2), beta_t = min(1 - alpha-bar_t/alpha-bar_{t-1}, 0.999); for both alpha-bar_0 = 1 and alpha-bar_t = product of (1 - beta_s); precompute arrays in double precision. Forward: x_t = sqrt(alpha-bar_t) x_0 + sqrt(1 - alpha-bar_t) eps, with no loop, so the slider moves points continuously. Reverse, per panel: start from 1,000 fresh N(0, I) points; the exact posterior mean for the mixture is computed with v_t = alpha-bar_t sigma^2 + 1 - alpha-bar_t, log r_k = -||x_t - sqrt(alpha-bar_t) mu_k||^2 / (2 v_t) normalised by log-sum-exp, m_k = mu_k + (sqrt(alpha-bar_t) sigma^2 / v_t)(x_t - sqrt(alpha-bar_t) mu_k), x-hat_0 = sum_k r_k m_k. DDPM: for t = 1000..1, x_{t-1} = c0 x-hat_0 + c1 x_t + sqrt(beta-tilde_t) z with c0 = sqrt(alpha-bar_{t-1}) beta_t / (1 - alpha-bar_t), c1 = sqrt(1 - beta_t)(1 - alpha-bar_{t-1}) / (1 - alpha-bar_t), beta-tilde_t = (1 - alpha-bar_{t-1}) beta_t / (1 - alpha-bar_t), and no noise at t = 1. DDIM with K steps: times tau_i = round(1000(1 - i/K)), i = 0..K; eps-hat = (x_t - sqrt(alpha-bar_t) x-hat_0) / sqrt(1 - alpha-bar_t); x_{tau_{i+1}} = sqrt(alpha-bar_{tau_{i+1}}) x-hat_0 + sqrt(1 - alpha-bar_{tau_{i+1}}) eps-hat. Animate about 60 frames whatever K is (draw every (K/60)-th step for DDPM). Cost: 1000 steps x 1000 points x 24 components is about 2.4e7 exponentials; run in chunks with requestAnimationFrame so the page stays responsive. Expected results from a Python reference implementation (seed-dependent within about 0.02): ring, DDPM-1000 precision about 0.99 on both schedules with 8 of 8 components hit; DDIM-10 about 0.85 (linear) against 0.98 (cosine); DDIM-3 about 0.02 (linear) against 0.40 (cosine), points landing between modes; two moons DDIM-3 about 0.30 with 10 of 24 components hit (linear) against 0.37 and 24 of 24 (cosine); single Gaussian 0.99-1.00 with every sampler, because the exact denoiser of one Gaussian is linear. Forward reference values: alpha-bar at t = 250 is 0.524 (linear) and 0.847 (cosine); at t = 500, 0.0786 and 0.494; at t = 750, 0.00335 and 0.144; at t = 1000 the mean distance of the ring points from the origin is 1.24 for both, close to sqrt(pi/2) = 1.25 for N(0, I). Edge cases: t = 0 shows the data exactly; cosine alpha-bar_1000 is 2.4e-9, so never divide by sqrt(alpha-bar_t) (the posterior-mean form above does not); clip drawing to the plot area; arrow keys move t by 1 and Shift+arrow by 50; respect prefers-reduced-motion by disabling autoplay; theme-aware colours with the two schedules distinguishable without colour (solid and dashed lines in the chart)."
+  },
+  {
+   "name": "message-passing-explorer",
+   "section": "s8",
+   "teaching_point": "Each propagation step replaces a node's features by a degree-weighted average over its neighbourhood: after k steps a node carries information from k hops away, and after many steps every node of a connected graph points the same way (over-smoothing) at a rate set by |lambda_2|; unnormalised sums explode, and graphs that message passing cannot distinguish stay identical.",
+   "controls": [
+    "slider: propagation steps k, integer 0-40, default 2",
+    "select: graph - 'cooling-system fault tree (12 nodes)' (default), 'path (12 nodes)', 'hexagon + two triangles (12 nodes)'",
+    "select: normalisation - 'symmetric D^-1/2 (A+I) D^-1/2' (default), 'random walk D^-1 (A+I)', 'none (A+I)'",
+    "checkbox: add self-loops (default on)",
+    "click a node: pin it to the feature panel (up to three; defaults E1, E2, E7)"
+   ],
+   "displays": [
+    "SVG drawing of the graph at fixed coordinates; node fill = RGB from the node's 3-component feature vector after k steps, each vector divided by its own largest component so that colour shows the mix (OR red, AND blue, basic event green); node label = name",
+    "feature panel: the 3 numbers of each pinned node at step k, to 3 decimals",
+    "line chart: mean pairwise cosine similarity of node features for k = 0..40, with the current k marked",
+    "eigenvalue strip: the eigenvalues of the propagation matrix, sorted, with lambda_1 and |lambda_2| highlighted and the readout |lambda_2|^k",
+    "readout: largest absolute feature value at step k (shows the explosion under 'none')"
+   ],
+   "defaults": "Cooling-system fault tree, symmetric normalisation with self-loops, k = 2: the basic events under OR gates (E1, E5, E6) are already tinted red and those under AND gates (E2-E4, E7, E8) blue, and the cosine chart shows the climb toward 1 that is still to come.",
+   "spec": "Graph 1, the cooling-system fault tree: nodes 0 TOP 'Loss of cooling' (OR), 1 G1 'All pumps fail' (AND), 2 G2 'Flow path blocked' (OR), 3 E1 'Power supply fails', 4 E2 'Pump A fails', 5 E3 'Pump B fails', 6 E4 'Pump C fails', 7 E5 'Valve V1 stuck closed', 8 E6 'Pipe blocked', 9 G3 'Both controllers fail' (AND), 10 E7 'Controller C1 fails', 11 E8 'Controller C2 fails'; undirected edges (0,1), (0,2), (0,3), (1,4), (1,5), (1,6), (2,7), (2,8), (2,9), (9,10), (9,11). Layout in a 680 x 360 viewBox: TOP (340, 40); G1 (130, 130), E1 (340, 130), G2 (530, 130); E2 (50, 230), E3 (130, 230), E4 (210, 230), E5 (450, 230), E6 (530, 230), G3 (610, 230); E7 (570, 320), E8 (650, 320). Features one-hot [OR, AND, basic]; gates drawn as rounded squares labelled OR/AND, basic events as circles. The single points of failure are E1, E5 and E6 (as in Lab 3). Graph 2, path: 12 nodes in a line, node 0 = (1, 0, 0), node 11 = (0, 0, 1), the others (0, 1, 0). Graph 3: two triangles (nodes 0-2 and 3-5) and a hexagon (nodes 6-11 in a ring), every feature (0.5, 0.5, 0.5). Propagation: A-tilde = A + I with self-loops, else A; d-tilde = row sums of A-tilde; symmetric P = D-tilde^-1/2 A-tilde D-tilde^-1/2; random walk P = D-tilde^-1 A-tilde; none P = A-tilde. H_0 = X, H_k = P H_{k-1}; precompute H_0..H_40 (12 x 3 each). Cosine: mean over the 66 node pairs of h_i . h_j / (|h_i| |h_j|). Eigenvalues: Jacobi rotations on the symmetric matrix (for random walk use the symmetric matrix, which has the same eigenvalues). No node has degree 0 in these graphs. Reference values for graph 1 from a Python implementation: symmetric with self-loops, eigenvalues 1, 0.9408, 0.8101, 0.7017, 0.5 (four times), 0.1242, -0.0496, -0.2553, -0.3718; cosine 0.455 (k = 0), 0.856 (1), 0.929 (2), 0.967 (4), 0.993 (8), 0.999 (16), 1.000 (24); at k = 1, E1 = (0.354, 0, 0.5), E2 = (0, 0.316, 0.5), E5 = (0.316, 0, 0.5), E7 = (0, 0.354, 0.5); at k = 40, E1 = (0.175, 0.176, 0.471), E2 = (0.173, 0.177, 0.472), E7 = (0.179, 0.175, 0.469), and every row equals sqrt(d-tilde_i) times one common vector. Random walk: cosine 0.780 (1), 0.943 (4), 0.987 (8), 0.998 (16); the rows become identical. None: largest eigenvalue 3.392; largest feature 3 (k = 1), 26 (3), 1.05e3 (6), 1.22e4 (8), 1.2e21 (40), shown in scientific notation with the colour scale capped. Symmetric without self-loops: the tree is bipartite, the eigenvalues include -1, and the cosine oscillates 0.455, 0.384, 0.762, 0.661, 0.832 (k = 0-4), settling near 0.976 and never reaching 1. Graph 3: all nodes identical at every k under every setting; show the note 'message passing cannot tell a hexagon from two triangles'. Accessibility: colour is never the only cue (pinned nodes show numbers; every node has an aria-label with its name and current vector); theme-aware strokes and text."
+  }
+ ],
+ "terms": [
+  {
+   "en": "autoencoder",
+   "zh": "自编码器"
+  },
+  {
+   "en": "latent space",
+   "zh": "潜在空间"
+  },
+  {
+   "en": "denoising autoencoder",
+   "zh": "去噪自编码器"
+  },
+  {
+   "en": "anomaly detection",
+   "zh": "异常检测"
+  },
+  {
+   "en": "variational autoencoder (VAE)",
+   "zh": "变分自编码器"
+  },
+  {
+   "en": "evidence lower bound (ELBO)",
+   "zh": "证据下界"
+  },
+  {
+   "en": "KL divergence",
+   "zh": "KL 散度"
+  },
+  {
+   "en": "reparameterisation trick",
+   "zh": "重参数化技巧"
+  },
+  {
+   "en": "posterior collapse",
+   "zh": "后验坍塌"
+  },
+  {
+   "en": "generative adversarial network (GAN)",
+   "zh": "生成对抗网络"
+  },
+  {
+   "en": "generator / discriminator",
+   "zh": "生成器 / 判别器"
+  },
+  {
+   "en": "mode collapse",
+   "zh": "模式坍塌"
+  },
+  {
+   "en": "Wasserstein distance (earth mover's distance)",
+   "zh": "Wasserstein 距离（推土机距离）"
+  },
+  {
+   "en": "diffusion model",
+   "zh": "扩散模型"
+  },
+  {
+   "en": "noise schedule",
+   "zh": "噪声调度"
+  },
+  {
+   "en": "score function",
+   "zh": "分数函数"
+  },
+  {
+   "en": "classifier-free guidance",
+   "zh": "无分类器引导"
+  },
+  {
+   "en": "latent diffusion",
+   "zh": "潜在扩散"
+  },
+  {
+   "en": "graph neural network (GNN)",
+   "zh": "图神经网络"
+  },
+  {
+   "en": "message passing",
+   "zh": "消息传递"
+  },
+  {
+   "en": "graph convolutional network (GCN)",
+   "zh": "图卷积网络"
+  },
+  {
+   "en": "graph attention network (GAT)",
+   "zh": "图注意力网络"
+  },
+  {
+   "en": "over-smoothing",
+   "zh": "过平滑"
+  },
+  {
+   "en": "fault tree / single point of failure",
+   "zh": "故障树 / 单点故障"
+  },
+  {
+   "en": "physics-informed neural network (PINN)",
+   "zh": "物理信息神经网络"
+  },
+  {
+   "en": "collocation points",
+   "zh": "配点"
+  },
+  {
+   "en": "neural operator / surrogate model",
+   "zh": "神经算子 / 代理模型"
+  },
+  {
+   "en": "contrastive learning / self-supervised learning",
+   "zh": "对比学习 / 自监督学习"
+  },
+  {
+   "en": "mixture of experts / router",
+   "zh": "混合专家 / 路由器"
+  },
+  {
+   "en": "load-balancing loss",
+   "zh": "负载均衡损失"
+  }
+ ],
+ "references": [
+  "Kingma, D. P., Welling, M. \"Auto-encoding variational Bayes.\" ICLR, 2014. The VAE, the ELBO estimator and the reparameterisation trick (source reference).",
+  "Rezende, D. J., Mohamed, S., Wierstra, D. \"Stochastic backpropagation and approximate inference in deep generative models.\" ICML, 2014. The same idea, found independently.",
+  "Baldi, P., Hornik, K. \"Neural networks and principal component analysis: learning from examples without local minima.\" Neural Networks, 1989. The linear autoencoder recovers the PCA subspace.",
+  "Vincent, P., Larochelle, H., Bengio, Y., Manzagol, P.-A. \"Extracting and composing robust features with denoising autoencoders.\" ICML, 2008. Denoising autoencoders.",
+  "Vincent, P. \"A connection between score matching and denoising autoencoders.\" Neural Computation, 2011. Denoising estimates the score; the bridge to diffusion.",
+  "Bowman, S. R. et al. \"Generating sentences from a continuous space.\" CoNLL, 2016. Posterior collapse with powerful decoders; KL annealing.",
+  "Burda, Y., Grosse, R., Salakhutdinov, R. \"Importance weighted autoencoders.\" ICLR, 2016. Defines active units.",
+  "Kingma, D. P. et al. \"Improved variational inference with inverse autoregressive flow.\" NeurIPS, 2016. Introduces free bits.",
+  "Higgins, I. et al. \"beta-VAE: learning basic visual concepts with a constrained variational framework.\" ICLR, 2017. The KL weight beta.",
+  "Goodfellow, I. et al. \"Generative adversarial nets.\" NeurIPS, 2014. The GAN game, the optimal discriminator and the JSD (source reference).",
+  "Metz, L., Poole, B., Pfau, D., Sohl-Dickstein, J. \"Unrolled generative adversarial networks.\" ICLR, 2017. Mode collapse and mode hopping on a ring of Gaussians.",
+  "Arjovsky, M., Chintala, S., Bottou, L. \"Wasserstein GAN.\" ICML, 2017. The earth-mover distance and the critic (source reference).",
+  "Gulrajani, I. et al. \"Improved training of Wasserstein GANs.\" NeurIPS, 2017. The gradient penalty.",
+  "Miyato, T. et al. \"Spectral normalization for generative adversarial networks.\" ICLR, 2018. A Lipschitz constraint per layer.",
+  "Sohl-Dickstein, J. et al. \"Deep unsupervised learning using nonequilibrium thermodynamics.\" ICML, 2015. The first diffusion model.",
+  "Song, Y., Ermon, S. \"Generative modeling by estimating gradients of the data distribution.\" NeurIPS, 2019. Score-based generation.",
+  "Ho, J., Jain, A., Abbeel, P. \"Denoising diffusion probabilistic models.\" NeurIPS, 2020. DDPM and the simplified noise-prediction loss (source reference; guided reading).",
+  "Song, Y. et al. \"Score-based generative modeling through stochastic differential equations.\" ICLR, 2021. The continuous-time view uniting scores and diffusion.",
+  "Nichol, A., Dhariwal, P. \"Improved denoising diffusion probabilistic models.\" ICML, 2021. The cosine schedule.",
+  "Song, J., Meng, C., Ermon, S. \"Denoising diffusion implicit models.\" ICLR, 2021. DDIM, deterministic sampling with fewer steps.",
+  "Dhariwal, P., Nichol, A. \"Diffusion models beat GANs on image synthesis.\" NeurIPS, 2021. Classifier guidance; the point where diffusion overtook GANs.",
+  "Ho, J., Salimans, T. \"Classifier-free diffusion guidance.\" arXiv:2207.12598, 2022 (first presented at a NeurIPS 2021 workshop). Guidance without a classifier.",
+  "Rombach, R. et al. \"High-resolution image synthesis with latent diffusion models.\" CVPR, 2022. Diffusion in an autoencoder's latent space (source reference).",
+  "Salimans, T., Ho, J. \"Progressive distillation for fast sampling of diffusion models.\" ICLR, 2022. Few-step samplers; the v-parameterisation.",
+  "Song, Y., Dhariwal, P., Chen, M., Sutskever, I. \"Consistency models.\" ICML, 2023. One- and few-step generation.",
+  "Lin, S. et al. \"Common diffusion noise schedules and sample steps are flawed.\" WACV, 2024. Non-zero terminal SNR and its symptoms.",
+  "Carlini, N. et al. \"Extracting training data from diffusion models.\" USENIX Security, 2023. Memorisation in diffusion models.",
+  "Gilmer, J. et al. \"Neural message passing for quantum chemistry.\" ICML, 2017. The general message-passing framework.",
+  "Kipf, T. N., Welling, M. \"Semi-supervised classification with graph convolutional networks.\" ICLR, 2017. The GCN (source reference; guided reading).",
+  "Velickovic, P. et al. \"Graph attention networks.\" ICLR, 2018. Learned neighbour weights.",
+  "Li, Q., Han, Z., Wu, X.-M. \"Deeper insights into graph convolutional networks for semi-supervised learning.\" AAAI, 2018. GCN as Laplacian smoothing; over-smoothing.",
+  "Xu, K., Hu, W., Leskovec, J., Jegelka, S. \"How powerful are graph neural networks?\" ICLR, 2019. The 1-WL bound and GIN.",
+  "Schlichtkrull, M. et al. \"Modeling relational data with graph convolutional networks.\" ESWC, 2018. One weight matrix per edge type and direction.",
+  "Alon, U., Yahav, E. \"On the bottleneck of graph neural networks and its practical implications.\" ICLR, 2021. Over-squashing.",
+  "Pfaff, T. et al. \"Learning mesh-based simulation with graph networks.\" ICLR, 2021. MeshGraphNets (source reference).",
+  "Lagaris, I. E., Likas, A., Fotiadis, D. I. \"Artificial neural networks for solving ordinary and partial differential equations.\" IEEE Transactions on Neural Networks, 1998. Trial solutions that satisfy the conditions by construction.",
+  "Raissi, M., Perdikaris, P., Karniadakis, G. E. \"Physics-informed neural networks: a deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations.\" Journal of Computational Physics, 2019. The PINN (source reference; guided reading).",
+  "Rahaman, N. et al. \"On the spectral bias of neural networks.\" ICML, 2019. Networks fit low frequencies first.",
+  "Tancik, M. et al. \"Fourier features let networks learn high frequency functions in low dimensional domains.\" NeurIPS, 2020. The Fourier-feature remedy.",
+  "Wang, S., Teng, Y., Perdikaris, P. \"Understanding and mitigating gradient flow pathologies in physics-informed neural networks.\" SIAM Journal on Scientific Computing, 2021. Loss imbalance and adaptive weights.",
+  "Krishnapriyan, A. S. et al. \"Characterizing possible failure modes in physics-informed neural networks.\" NeurIPS, 2021. Regimes where PINN training fails.",
+  "McGreivy, N., Hakim, A. \"Weak baselines and reporting biases lead to overoptimism in machine learning for fluid-related partial differential equations.\" Nature Machine Intelligence, 2024. Why learned PDE solvers need strong classical baselines.",
+  "Chen, T., Chen, H. \"Universal approximation to nonlinear operators by neural networks with arbitrary activation functions and its application to dynamical systems.\" IEEE Transactions on Neural Networks, 1995. The theorem behind DeepONet.",
+  "Lu, L. et al. \"Learning nonlinear operators via DeepONet based on the universal approximation theorem of operators.\" Nature Machine Intelligence, 2021. DeepONet (source reference).",
+  "Li, Z. et al. \"Fourier neural operator for parametric partial differential equations.\" ICLR, 2021. FNO (source reference).",
+  "van den Oord, A., Li, Y., Vinyals, O. \"Representation learning with contrastive predictive coding.\" arXiv, 2018. InfoNCE and its mutual-information bound.",
+  "Chen, T. et al. \"A simple framework for contrastive learning of visual representations.\" ICML, 2020. SimCLR and the projection head (source reference).",
+  "Wang, T., Isola, P. \"Understanding contrastive representation learning through alignment and uniformity on the hypersphere.\" ICML, 2020. What the contrastive loss optimises.",
+  "Grill, J.-B. et al. \"Bootstrap your own latent: a new approach to self-supervised learning.\" NeurIPS, 2020. BYOL, without negatives.",
+  "Radford, A. et al. \"Learning transferable visual models from natural language supervision.\" ICML, 2021. CLIP (source reference).",
+  "He, K. et al. \"Masked autoencoders are scalable vision learners.\" CVPR, 2022. Masked modelling for images.",
+  "Jacobs, R. A., Jordan, M. I., Nowlan, S. J., Hinton, G. E. \"Adaptive mixtures of local experts.\" Neural Computation, 1991. The original mixture of experts.",
+  "Shazeer, N. et al. \"Outrageously large neural networks: the sparsely-gated mixture-of-experts layer.\" ICLR, 2017. Sparse top-k gating (source reference).",
+  "Fedus, W., Zoph, B., Shazeer, N. \"Switch transformers: scaling to trillion parameter models with simple and efficient sparsity.\" JMLR, 2022. Top-1 routing, the load-balancing loss, capacity.",
+  "Jiang, A. Q. et al. \"Mixtral of experts.\" arXiv, 2024. The configuration counted in Section 12 and the routing analysis.",
+  "DeepSeek-AI. \"DeepSeek-V3 technical report.\" arXiv, 2024. Fine-grained and shared experts; auxiliary-loss-free balancing."
+ ],
+ "generalised_refs": [
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Uses in engineering: predicting properties of molecules from their bond graph; learned simulators on meshes (MeshGraphNets) ... ('here' referred to a private codebase; the public text names engineering in general)."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Engineering models are graphs: a fault tree (events and gates), a safety argument in Goal Structuring Notation (claims, strategies, evidence) and a SysML model (parts and connectors). A network that reads them as graphs rather than as flattened text is the natural tool for checking or completing them; Lab 3 does this for single points of failure in fault trees. (No reference to any particular tool's checkers.)"
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Where it earns its place is data assimilation and inverse problems: sparse measurements plus a known equation, for example a damping ratio from a dozen accelerometer readings (Lab 4), a thermal conductivity from a few thermocouples, or a material parameter from a handful of strain gauges."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "They are surrogate models in the sense engineering has used the word for decades, trained on solver output, and the practical route to a fast approximate finite-element solver for a family of designs: trained on a few thousand solver runs, they answer a new member of the family in one forward pass, and only inside the family those runs covered."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Lab 3 writes a self-contained fault-tree generator (OR and AND gates, basic events) and trains GCNs to find single points of failure against the majority-class and 'gate is OR' baselines; exercise e9 keeps the original question on public data ('a GCN predicts which nodes are basic events: what is the baseline?'; answer: the leaf rule, 100%)."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Cross-references use the public series' naming and link to the module pages: 'Modules 07 and 08' for language-model pretraining and 'Module 08' for MoE as an architecture choice."
+  }
+ ],
+ "writer_notes": "GENERAL. This module is wide: seven families in thirteen sections. Depth is uneven by design: Sections 3 (VAE), 5-6 (diffusion), 7-8 (GNN) and 9 (PINN) are the deep ones; GANs, contrastive learning and MoE are shorter but still derive their one central result. Every section follows the series order: the problem, intuition, the formalism with the derivation written out, a worked example in numbers, code or the lab link, failure modes. Equations in this outline are in plain-text shorthand (alpha-bar_t, sqrt, ||.||); write them in LaTeX with the series notation (bold vectors and matrices, theta for parameters, natural logs).\n\nNOTATION (shared by all writers). Autoencoder: encoder f_phi, decoder g_theta, data dimension d_x, code dimension d_z (do not use E and D for encoder and decoder: D is the discriminator and the degree matrix). VAE: q_phi(z|x), p_theta(x|z), prior p(z) = N(0, I); beta with no subscript is the KL weight. GAN: G, D, p_g. Diffusion: beta_t (always subscripted), alpha_t = 1 - beta_t, alpha-bar_t = prod alpha_s, T steps, t in {1..T}, eps_theta(x_t, t, c), x-hat_0; guidance scale w with w = 1 the conditional model (state once that Ho and Salimans write (1 + w)). Graphs: G = (V, E) in calligraphic letters, n nodes, A, A-tilde = A + I, D-tilde (bold), A-hat, H^(l), N(v). PINN: u_theta, residual operator N[u], condition operator B[u], weights lambda; dimensionless time is t-hat (not tau, which is the contrastive temperature). Contrastive: sim = cosine, tau temperature, N candidates per anchor, B the batch (the series fixes B for the batch: SimCLR's B inputs give 2B views, so N = 2B - 1 and collapse gives log(2B - 1); CLIP's similarity matrix is B x B). MoE: E experts (italic E, distinct from the calligraphic edge set), k active, router g, lambda_bal.\n\nRUNNING EXAMPLES, used across sections, so keep the numbers identical. (1) The exact linear-Gaussian model p(z) = N(0, 1), p(x|z) = N(z, 1), x = 2: Section 1's KL values 1.1534 and 0.5966 are the ELBO gap and KL term of Section 3. (2) 8x8 digits: Section 2's anomaly numbers and Section 3's collapse numbers come from Lab 1. (3) Two moons (Lab 2, Sections 5-6) and the ring of 8 Gaussians (diffusion explorer, GAN schematic). (4) Fault trees: the five-node tree (Section 7's hand computation, Section 8's over-smoothing numbers), the 12-node cooling-system tree (message-passing explorer, Lab 3 step 2 and step 8, single points of failure E1, E5, E6), and the Lab 3 generator. (5) The damped oscillator w0 = 2 pi rad/s, zeta = 0.1, everywhere: Section 9's two hand examples, Lab 4, e11, and the heat-equation exercise e12 that starts from Lab 4's code. Do not switch to w0 = 2 rad/s for easier arithmetic; at t = 0.25 s the residual of cos(w0 t) is still a hand calculation (sin(pi/2) = 1, r = -0.8 pi^2 = -7.90). (6) Synthetic vibration windows (Section 11, Lab 5, Section 13); e14(c) contrasts Lab 5's arbitrary window starts with engine windows aligned to the cycle.\n\nSESSIONS AND EXERCISES. No run of reading in the study plan exceeds about 40 minutes: e1 follows Sections 1-2, e2 follows Section 3, and e6 sits between Sections 5 and 6. Exercises test transfer, so none reuses a worked example's numbers or cases, and no check or lab extension answers an exercise: e2's KL values, e10's K_{3,3} and prism, e13's heat sink and weld images and e14's ply, micrograph and engine cases are deliberately new; Section 4's checks leave e5 to the reader, 'What goes wrong' quotes T = 200 rather than e7's T = 100, and Lab 3's last extension points to e9 instead of stating the leaf rule. Keep it that way when writing.\n\nNUMBERS. Every number in this outline was computed: the worked examples with exact arithmetic, the lab numbers from prototype runs (Python 3.11, PyTorch 2.x CPU build, scikit-learn 1.x, a desktop CPU). Later phases execute the labs and replace expected outputs with the real ones; when they differ in the last digits, the prose that cites lab numbers (Sections 2, 3, 6, 8, 9, 11, 13 and 'What goes wrong') must be updated to match. Some lab quantities are fragile and are given as ranges: the undirected-GCN accuracies in Lab 3 move by one or two points with the thread count (L = 4 gave 0.962 on two threads and 0.944 on four); phenomena, not digits, are the contract. Say 'last digits may differ' at each expected output.\n\nDEPARTURES FROM THE EDITOR'S SUGGESTIONS, with reasons. (a) Lab 5 is contrastive learning on synthetic vibration signals, not on digits and not a GAN. A prototype SimCLR on 8x8 digits barely beat raw pixels (linear probe 0.659 against 0.639 with one label per class), so it taught nothing; a prototype non-saturating GAN on a ring of 8 Gaussians covered all 8 modes on three seeds and WGAN-GP failed to train at lr 1e-3, so mode collapse is too setting-sensitive to promise as a lab output. GANs therefore get a schematic figure (fig-05-9, labelled as illustrative), exercises e4 and e5, quiz question 4, and an optional Lab 2 extension. Never state measured mode-collapse numbers. (b) Lab 3 uses synthetic fault trees rather than Zachary's karate club: networkx is not in the lab environment, the engineering flavour is required, and the task (single points of failure) has an instructive baseline and a clean depth story. (c) A second widget (message-passing explorer) makes over-smoothing visible. (d) Lab 4 is the damped-oscillator ODE; the source's heat-equation exercise stays as the starred-three exercise e12. (e) Diffusion takes two sections, and neural operators get their own short section. (f) Lab 2 uses a cosine schedule with T = 200 and beta capped at 0.5 (not the paper's 0.999): with the 0.999 cap the first reverse step multiplies errors by 31.6 and the w = 7 guided samples diverged in a prototype. Explain the cap in Lab 2 and in 'What goes wrong'. (g) Section 1 gathers the shared mathematical toolkit.\n\nAUGMENTATION CLAIMS. The source's failure mode (augmentations that remove the information the task needs) is kept as a conceptual point with the 6/9 rotation and corrosion-colour examples. Do not claim that Lab 5 demonstrates it: prototype attempts (gain 0.25-4 and 0.1-10, random low-pass filtering, time-stretch 0.5-2) did not hurt the probe on h, because the classes differ in several cues; a rotation-augmented encoder on 8x8 digits did not confuse 6 and 9 either. Lab 5 demonstrates the converse (removing the needed time-shift augmentation) and reports the wide-gain result honestly as an extension.\n\nPUBLIC-SITE RULES (BRIEF.md). The source was written inside a private codebase. Do not mention it, its file paths, its tools, its plans or its checkers. The generic replacements are in generalised_refs; the source's named finite-element package becomes 'a finite-element solver'. GSN and SysML are public notations and may be named; spell out Goal Structuring Notation at first use.\n\nCROSS-MODULE LINKS. Module 01: maximum likelihood, cross-entropy, PCA, baselines and leakage (the split-by-tree rule). Module 02: autodiff (PINN derivatives), Adam, training loops, debugging. Module 03: weight sharing (GCN analogy), U-Net (diffusion backbone), 1D convolution. Module 04: Bahdanau attention (GAT), anomaly detection from forecasting residuals. Module 06 comes after this one: explain the transformer FFN and attention locally in one sentence where Sections 8, 11 and 12 need them, and link forward rather than assuming them. Module 07-08: next-token prediction as self-supervision; LLM-scale MoE engineering (expert parallelism, capacity at scale) is Module 08's, so Section 12 stays at the concept and counting level. Module 10: MoE memory at serving and the cost of many sampling steps. The AI Agents series (../agent/index.html) covers retrieval-augmented generation; Section 11 links it in one sentence for CLIP-style embeddings and does not cover retrieval.\n\nFACTS AND DATES. Date landscape statements 'as of 2026' (GANs versus diffusion; MoE in current large models). Use only the model facts given here: Mixtral 8x7B's configuration and its reported 47B total / 13B active; DeepSeek-V3's 671B total / 37B active and its auxiliary-loss-free balancing; CLIP's 400 million pairs; MAE's 75% masking; Ho et al.'s T = 1000 and beta range; Nichol and Dhariwal's s = 0.008 and 0.999 clip; Switch's lambda_bal = 0.01; latent diffusion's factor-8, 4-channel latent as one configuration of Rombach et al. Refer to paper sections by name, not number. Do not quote numbers from the guided-reading papers in the module text; the reading questions ask the reader to find them.\n\nLABS. Each lab is self-contained (run its code blocks in order in one session), fixes seeds (torch.manual_seed(0), numpy default_rng(0), seeded torch.Generator for shuffling), prints the quantities named in its steps in the order given, and saves figures with matplotlib. Lab 4 calls torch.set_num_threads(1) and says why: a network this small gains nothing from threads, and one thread avoids oversubscription slowdowns (prototype: about 1.2 ms per step either way when alone, 30 ms with four threads while other jobs ran). Lab 2 offers QUICK = True (8,000 steps); all labs run in under 5 minutes on a laptop CPU, so no lab needs the 15-minute allowance. No lab downloads anything; networkx and graph libraries are not used.\n\nWIDGETS. Both widgets are fully specified in 'widgets', including reference values computed with a Python implementation of the same maths, which the JS developer should reproduce as tests. The diffusion explorer sits in Section 5 and is referred to again in Section 6 (step counts); the message-passing explorer sits in Section 8 and is referred to in Section 7 (the explosion without normalisation).\n\nVOICE TRAPS. British spelling (normalisation, parameterisation, optimiser, modelling, behaviour). No hype; GAN, PINN and neural-operator claims are always paired with how they fail and what baseline to check. Do not open sections with rhetorical questions."
+}

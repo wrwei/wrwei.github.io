@@ -1,0 +1,1528 @@
+{
+ "module": 6,
+ "title": "The transformer",
+ "title_em": "transformer",
+ "lead": "This module takes attention apart until you can compute it by hand, differentiate it, tile it the way FlashAttention does and rotate it with RoPE; then it assembles the modern decoder-only block, counts its parameters and FLOPs against published models, and trains a small GPT on a laptop CPU whose loss curve and attention heads you can read.",
+ "prerequisites": [
+  "Module 01: softmax regression, and cross-entropy as the negative log-likelihood of a categorical model",
+  "Module 02: backpropagation and the softmax Jacobian diag(p) - p p^T, the softmax/cross-entropy gradient, the activation functions (ReLU, GELU, SiLU), layer normalisation and RMSNorm, AdamW with warmup and cosine decay, gradient clipping, a PyTorch training loop",
+  "Module 04: sequence-to-sequence models, Bahdanau and Luong attention, why recurrence is sequential in time",
+  "Linear algebra: matrix products and transposes, rank, block-diagonal matrices, 2x2 rotation matrices and orthogonality",
+  "Complex numbers: Euler's formula exp(i*phi) = cos(phi) + i sin(phi), the conjugate, and Re(z * conj(w)) as the dot product of two 2D vectors",
+  "Probability: expectation and variance of a sum of independent random variables",
+  "Python: NumPy arrays and broadcasting; PyTorch tensors, nn.Module and autograd"
+ ],
+ "outcomes": [
+  "By the end you can compute scaled dot-product attention by hand for a three-token example, with and without a causal mask and with and without the 1/sqrt(d_k) scale, and state every score, weight and output to three decimals.",
+  "By the end you can apply the softmax Jacobian diag(p) - p p^T (derived in Module 02) to an attention row, derive the variance argument for 1/sqrt(d_k), and use the two to explain why unscaled attention saturates and learns slowly.",
+  "By the end you can push a gradient back through one attention row by hand and check it against autograd.",
+  "By the end you can track the shape of every tensor through multi-head and grouped-query attention, from (B, T, d) to (B, h, T, d_k) and back, and explain the residual-stream view of a transformer.",
+  "By the end you can write the pre-norm block in equations and code, and explain why it trains stably at depth where post-norm needs a learning-rate warmup.",
+  "By the end you can prove that RoPE makes the attention score depend on positions only through t - s, implement it, and verify the property numerically.",
+  "By the end you can derive the online softmax and implement tiled (FlashAttention-style) attention that matches naive attention to floating-point rounding without forming the T x T matrix.",
+  "By the end you can count the parameters of a decoder from its configuration (12Ld^2 plus embeddings, with GQA and SwiGLU corrections), reproducing published model sizes exactly, and its FLOPs under the convention the whole series uses: 2 N_matmul per token plus 4Ldt for attention at context t (2LdT averaged over a causal sequence of length T), three times that for training, and 6N only as a labelled estimate.",
+  "By the end you can compute the KV-cache size per token, in bytes and in KiB, for multi-head, grouped-query and multi-query configurations.",
+  "By the end you can train a character-level decoder-only transformer on a CPU, check that its initial loss is log V, sample from it, diagnose a missing causal mask from its loss curve, and find an induction head in a small trained model."
+ ],
+ "software": [
+  "Python 3.11+",
+  "NumPy",
+  "PyTorch 2.4 or later (nn.RMSNorm and F.scaled_dot_product_attention); CPU build is enough",
+  "matplotlib",
+  "Hugging Face transformers (optional, Lab 4 cross-check only; builds models on the meta device, no download)",
+  "A GPU is optional throughout; Google Colab is the free option for the GPU part of exercise e15"
+ ],
+ "sessions": [
+  {
+   "n": 1,
+   "title": "Attention, by hand",
+   "activities": [
+    {
+     "what": "Read sections 1-2: drop the recurrence; scaled dot-product attention",
+     "kind": "read",
+     "minutes": 36,
+     "refs": [
+      "s1",
+      "s2"
+     ]
+    },
+    {
+     "what": "Exercises e1 and e3: the first row under a causal mask; why unscaled attention learns slowly",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e1",
+      "e3"
+     ]
+    },
+    {
+     "what": "Read section 3 and work the attention calculator",
+     "kind": "read",
+     "minutes": 20,
+     "refs": [
+      "s3"
+     ]
+    },
+    {
+     "what": "Lab 1: attention by hand, checked against PyTorch",
+     "kind": "lab",
+     "minutes": 30,
+     "refs": [
+      "lab1"
+     ]
+    },
+    {
+     "what": "Exercises e2 and e4",
+     "kind": "exercises",
+     "minutes": 20,
+     "refs": [
+      "e2",
+      "e4"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "title": "Heads, blocks and position",
+   "activities": [
+    {
+     "what": "Read section 4: multi-head attention and the residual stream",
+     "kind": "read",
+     "minutes": 22,
+     "refs": [
+      "s4"
+     ]
+    },
+    {
+     "what": "Read section 5: the block",
+     "kind": "read",
+     "minutes": 18,
+     "refs": [
+      "s5"
+     ]
+    },
+    {
+     "what": "Exercise e5",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e5"
+     ]
+    },
+    {
+     "what": "Read section 6 and explore the RoPE widget",
+     "kind": "read",
+     "minutes": 26,
+     "refs": [
+      "s6"
+     ]
+    },
+    {
+     "what": "Lab 2: RoPE, numerically",
+     "kind": "lab",
+     "minutes": 25,
+     "refs": [
+      "lab2"
+     ]
+    },
+    {
+     "what": "Guided reading: Su et al., RoFormer",
+     "kind": "papers",
+     "minutes": 13,
+     "refs": [
+      "paper2"
+     ]
+    },
+    {
+     "what": "Exercises e6-e7",
+     "kind": "exercises",
+     "minutes": 15,
+     "refs": [
+      "e6",
+      "e7"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "title": "Shapes, the modern block and FlashAttention",
+   "activities": [
+    {
+     "what": "Read sections 7-8: three shapes of model; the vision transformer",
+     "kind": "read",
+     "minutes": 23,
+     "refs": [
+      "s7",
+      "s8"
+     ]
+    },
+    {
+     "what": "Exercise e8",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e8"
+     ]
+    },
+    {
+     "what": "Read section 9: the modern decoder block",
+     "kind": "read",
+     "minutes": 17,
+     "refs": [
+      "s9"
+     ]
+    },
+    {
+     "what": "Exercise e9",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e9"
+     ]
+    },
+    {
+     "what": "Read section 10: FlashAttention and the online softmax",
+     "kind": "read",
+     "minutes": 20,
+     "refs": [
+      "s10"
+     ]
+    },
+    {
+     "what": "Lab 3: online softmax and tiled attention",
+     "kind": "lab",
+     "minutes": 30,
+     "refs": [
+      "lab3"
+     ]
+    },
+    {
+     "what": "Exercise e11",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e11"
+     ]
+    },
+    {
+     "what": "Guided reading: Dao et al., FlashAttention",
+     "kind": "papers",
+     "minutes": 17,
+     "refs": [
+      "paper3"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "title": "Counting, then training",
+   "activities": [
+    {
+     "what": "Read section 11: counting parameters and FLOPs",
+     "kind": "read",
+     "minutes": 22,
+     "refs": [
+      "s11"
+     ]
+    },
+    {
+     "what": "Lab 4: a parameter and FLOP counter checked against published models",
+     "kind": "lab",
+     "minutes": 25,
+     "refs": [
+      "lab4"
+     ]
+    },
+    {
+     "what": "Exercise e12",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e12"
+     ]
+    },
+    {
+     "what": "Read section 12: training a tiny GPT",
+     "kind": "read",
+     "minutes": 17,
+     "refs": [
+      "s12"
+     ]
+    },
+    {
+     "what": "Lab 5: train a tiny GPT, sample from it, then remove the mask",
+     "kind": "lab",
+     "minutes": 50,
+     "refs": [
+      "lab5"
+     ]
+    },
+    {
+     "what": "Exercise e14: diagnosing a leak",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e14"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "title": "Inside a trained model, and review",
+   "activities": [
+    {
+     "what": "Lab 6: find an induction head",
+     "kind": "lab",
+     "minutes": 30,
+     "refs": [
+      "lab6"
+     ]
+    },
+    {
+     "what": "Guided reading: Vaswani et al., Attention is all you need",
+     "kind": "papers",
+     "minutes": 20,
+     "refs": [
+      "paper1"
+     ]
+    },
+    {
+     "what": "Read: what goes wrong",
+     "kind": "read",
+     "minutes": 6,
+     "refs": [
+      "what_goes_wrong"
+     ]
+    },
+    {
+     "what": "Exercises e10, e13, e15",
+     "kind": "exercises",
+     "minutes": 45,
+     "refs": [
+      "e10",
+      "e13",
+      "e15"
+     ]
+    },
+    {
+     "what": "Self-check quiz",
+     "kind": "quiz",
+     "minutes": 15,
+     "refs": [
+      "quiz"
+     ]
+    },
+    {
+     "what": "Summary and review: redo the worked example from memory; list the six choices of the modern block and the reason for each",
+     "kind": "review",
+     "minutes": 10,
+     "refs": [
+      "review"
+     ]
+    }
+   ]
+  }
+ ],
+ "sections": [
+  {
+   "id": "s1",
+   "title": "Drop the recurrence",
+   "minutes": 14,
+   "target_words": 950,
+   "purpose": "State the two costs of recurrence that the transformer removes, recast attention as a soft dictionary lookup, and name the two things that must be added back.",
+   "must_cover": [
+    "One-paragraph recap of Module 04: Bahdanau attention computes e_{t,j} = v^T tanh(W_s s_{t-1} + W_h h_j), alpha_{t,j} = softmax_j(e_{t,j}), a_t = sum_j alpha_{t,j} h_j; Luong replaced the score by a dot product s^T W h. Link to Module 04 rather than re-deriving.",
+    "The two costs of recurrence, with numbers: (1) step t needs h_{t-1}, so a 10,000-token training sequence is 10,000 dependent steps whatever the hardware; (2) information from position j reaches t through t - j lossy steps. Self-attention: every position attends to every (allowed) position in one matrix multiply, and the path between any two positions is one layer long.",
+    "The trade, as a small table from Vaswani et al. (Table 1): per-layer cost O(T d^2) recurrent vs O(T^2 d) self-attention; sequential operations O(T) vs O(1); maximum path length O(T) vs O(1). Self-attention is cheaper per layer when T < d and pays a T^2 price beyond that; forward pointers to Section 10 (FlashAttention, which removes the T^2 memory but not the T^2 arithmetic) and to Module 04's state-space models.",
+    "Attention as a soft dictionary lookup. A Python dict returns the value whose key equals the query exactly. Attention scores the query against every key with a dot product, turns the scores into weights with a softmax, and returns the weighted average of the values. Two limits: scaling all scores up makes the softmax approach an argmax (a hard lookup); equal scores give the plain average. Because every step is differentiable, the queries, keys and values can be learned.",
+    "What must be added back: order, because a set of weighted sums has no notion of position (Section 6, exercise e4), and for generation a mask that stops a position from seeing its future (Section 2)."
+   ],
+   "worked_examples": [
+    "Soft lookup with the module's running numbers: query q = (1, 1); keys k1 = (1, 0), k2 = (0, 1), k3 = (1, 1) labelled 'pump', 'valve', 'tank'; values v1 = (1, 0), v2 = (0, 2), v3 = (3, 3). Scores q.k = (1, 1, 2); divided by sqrt(2): (0.707, 0.707, 1.414); softmax weights (0.248, 0.248, 0.503); output 0.248(1,0) + 0.248(0,2) + 0.503(3,3) = (1.759, 2.007). A hard lookup (argmax) would return (3, 3) exactly; equal scores would return the average (1.333, 1.667). Say explicitly that this is row 3 of the worked example in Section 3."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-1",
+     "description": "Two panels over the same six tokens x1..x6. Left, 'recurrent': a chain of boxes h1 -> h2 -> ... -> h6 with arrows only between neighbours; the path from x1 to h6 highlighted (5 steps); caption labels 'T sequential steps', 'path length t - j'. Right, 'self-attention (causal)': each output position 1..6 drawn with arrows from every position at or before it (21 arrows in total, a lower-triangular fan), all drawn in one colour to show they are computed at once; labels 'one parallel step', 'path length 1', 'T(T+1)/2 = 21 scored pairs'."
+    },
+    {
+     "id": "fig-06-2",
+     "description": "Hard versus soft lookup. Top row: a dictionary with three keys 'pump', 'valve', 'tank' and a query 'tank'; an arrow selects exactly one value. Bottom row: query vector q = (1, 1) compared with key vectors (1,0), (0,1), (1,1); three bars show the softmax weights 0.248, 0.248, 0.503; the output (1.759, 2.007) drawn as the weighted blend of the three value vectors. Label the two limits on a small slider graphic: 'scores x large -> hard lookup', 'all scores equal -> plain average'."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why can an RNN not process the 10,000 positions of a training sequence in parallel? -> Step t needs h_{t-1}, which needs h_{t-2}, and so on.",
+    "In the soft lookup above, what does the output become if the three scores are equal? -> The plain average of the values, (1.333, 1.667)."
+   ],
+   "from_source": "Section 1 'Drop the recurrence' in full (the 10,000-token example, path length, the two things to add back).",
+   "new_material": "The recap of Module 04's equations, the complexity table, the soft-dictionary framing with numbers and its hard/average limits."
+  },
+  {
+   "id": "s2",
+   "title": "Scaled dot-product attention",
+   "minutes": 22,
+   "target_words": 1400,
+   "purpose": "Define attention exactly, apply the softmax Jacobian (derived in Module 02) to one attention row, derive the variance argument for 1/sqrt(d_k), and define the causal and padding masks.",
+   "must_cover": [
+    "Projections Q = X W_Q, K = X W_K, V = X W_V for X in R^{T x d} (tokens as rows), W_Q, W_K in R^{d x d_k}, W_V in R^{d x d_v}; the roles: a query is what a position looks for, a key what it offers to be matched against, a value what it hands over if matched (source wording).",
+    "Attention(Q, K, V) = softmax(Q K^T / sqrt(d_k)) V. S = Q K^T / sqrt(d_k) is T x T, one score per (query position, key position); softmax along each row; P = softmax(S) has non-negative rows summing to 1; output row i = sum_j P_ij v_j is a convex combination of value rows, so it lies in their convex hull (picture in Section 3).",
+    "The softmax Jacobian, recalled in one paragraph with a link to Module 02, Section 3, where it is derived; do not re-derive it here: J = diag(p) - p p^T, entries dp_i/ds_j = p_i (delta_ij - p_j). Name in one clause each the three properties this section uses: every row sums to zero (adding the same constant to all scores leaves p unchanged); J -> 0 as p approaches one-hot; J is largest when p is spread out.",
+    "Gradient through one attention row: with g_j = dL/dp_j = (dL/do) . v_j, the chain rule through J gives dL/ds_j = p_j (g_j - sum_k p_k g_k): a key's score is pushed up when its value improves the loss more than the current weighted average does. Section 3 evaluates this with numbers.",
+    "Why sqrt(d_k), derived: if the entries of q and k are independent with mean 0 and variance 1, E[q.k] = sum_i E[q_i]E[k_i] = 0 and Var(q.k) = sum_i Var(q_i k_i) = sum_i E[q_i^2] E[k_i^2] = d_k, so the standard deviation is sqrt(d_k): 11.3 at d_k = 128 (the source's 'standard deviation of 11'). Dividing by sqrt(d_k) restores unit variance. State the assumption (unit-variance projections of a normalised input at initialisation) and that training is free to change the scale afterwards.",
+    "Connect the two: unscaled scores at d_k = 128 put the softmax in its saturated regime, where J is nearly zero, so the gradients reaching W_Q and W_K are tiny at initialisation. Quote the simulation of Lab 1: d_k = 128, 16 keys, 5,000 draws: unscaled median largest weight 0.978, mean entropy 0.28 nats; scaled median largest weight 0.224, mean entropy 2.36 nats (uniform would be ln 16 = 2.77).",
+    "One sentence on QK-normalisation (normalising q and k before the dot product) as a stability device used in some large runs, with a pointer to Module 08; no further detail here.",
+    "The causal mask: set S_ij = -inf for j > i before the softmax, so exp(-inf) = 0 exactly and the weights on the future are exactly zero, not small. Training then gives T next-token predictions from one forward pass of a T-token sequence (contrast with Module 04's decoder, which ran step by step even under teacher forcing). Implementation: an additive mask of -inf (or the dtype's most negative finite value) or a boolean mask; PyTorch's is_causal=True.",
+    "Padding masks: in a batch of unequal lengths, padded key positions are masked for every query, typically a boolean tensor of shape (B, 1, 1, T) broadcast over heads and query positions; the outputs at padded query positions are computed but meaningless and must be excluded from the loss.",
+    "Numerical safety: compute the softmax as exp(s - max(s)) / sum (the overflow example comes in Section 10); a row whose every key is masked divides 0 by 0, so a hand-written softmax returns NaN and some fused kernels return zeros; never rely on either, make sure every query has at least one valid key."
+   ],
+   "worked_examples": [
+    "Jacobian of row 3 of the running example, p = (0.248, 0.248, 0.503): J = [[0.187, -0.062, -0.125], [-0.062, 0.187, -0.125], [-0.125, -0.125, 0.250]]; each row sums to 0 (check one row aloud).",
+    "Saturation in numbers: scores (11.3, 0, 0) (a one-standard-deviation gap at d_k = 128, unscaled) give p = (0.999975, 0.000012, 0.000012) and J_11 = p_1(1 - p_1) = 2.5e-5; the scaled scores (1, 0, 0) give p = (0.576, 0.212, 0.212) and J_11 = 0.244, about ten thousand times larger.",
+    "Variance check (from Lab 1, 100,000 draws): the standard deviation of q.k is 1.43, 3.99, 7.99 and 11.33 for d_k = 2, 16, 64 and 128, against sqrt(d_k) = 1.41, 4, 8 and 11.31."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-3",
+     "description": "Dataflow of scaled dot-product attention with shapes on every arrow: X (T x d) splits into three linear maps W_Q, W_K, W_V giving Q (T x d_k), K (T x d_k), V (T x d_v); Q and K^T meet in a matmul giving S (T x T); a box '/ sqrt(d_k)'; a 'mask' box drawn as a T x T grid with the upper triangle greyed out and labelled -inf; a 'softmax (each row)' box giving P (T x T, rows sum to 1); P and V meet in a matmul giving the output (T x d_v). Use T = 5 in the grid drawings."
+    },
+    {
+     "id": "fig-06-4",
+     "description": "Why scale. Left: three overlaid histograms of q.k for unit-variance entries at d_k = 2, 16, 128 (standard deviations 1.4, 4.0, 11.3) on a shared x-axis from -40 to 40. Right: two histograms over 5,000 draws of the largest softmax weight among 16 keys at d_k = 128, unscaled (mass piled near 1, median 0.978) and scaled (mass near 0.2, median 0.224), x-axis 0 to 1. Data generated in Lab 1."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why does the gradient reaching W_Q and W_K almost vanish when one key dominates a row? -> dL/ds = J g with J = diag(p) - p p^T, and J tends to zero as p approaches one-hot, whatever g is.",
+    "With d_k = 64 and unit-variance entries, what is the standard deviation of an unscaled score? -> sqrt(64) = 8.",
+    "How many entries of a T x T score matrix does a causal mask remove? -> Those with j > i: T(T - 1)/2."
+   ],
+   "from_source": "Section 2: the projections and the roles of query, key and value; the attention formula and the row-wise softmax; 'Why sqrt(d_k)'; 'The causal mask' and the padding-mask sentence.",
+   "new_material": "The softmax Jacobian (recalled from Module 02) applied to an attention row and to the running example, the gradient interpretation, the variance derivation written out, the simulated saturation numbers, mask shapes and the fully-masked-row trap, the QK-norm pointer."
+  },
+  {
+   "id": "s3",
+   "title": "The worked example, by hand",
+   "minutes": 20,
+   "target_words": 1250,
+   "purpose": "Compute attention on three tokens with and without the mask and the scale, see the outputs as points in the convex hull of the values, and push one gradient back through it.",
+   "must_cover": [
+    "The source's set-up kept exactly: three tokens, d_k = d_v = 2, projected vectors taken directly: Q = K = [[1,0],[0,1],[1,1]], V = [[1,0],[0,2],[3,3]]. Scores QK^T = [[1,0,1],[0,1,1],[1,1,2]]; divided by sqrt(2): [[0.707,0,0.707],[0,0.707,0.707],[0.707,0.707,1.414]].",
+    "Causal case, row by row as in the source, with exact three-decimal values: row 1 [1, 0, 0]; row 2 scores [0, 0.707] -> [0.330, 0.670, 0]; row 3 scores [0.707, 0.707, 1.414] -> [0.248, 0.248, 0.503]. Outputs: token 1 (1, 0); token 2 0.330(1,0) + 0.670(0,2) = (0.330, 1.340); token 3 0.248(1,0) + 0.248(0,2) + 0.503(3,3) = (1.759, 2.007). The weights in row 3 sum to 0.999 only because of rounding; say so in a footnote.",
+    "The source's interpretation kept: token 3's query (1,1) matched its own key best, and the output is pulled toward its own value.",
+    "Unmasked case: row 1 [0.401, 0.198, 0.401] -> (1.604, 1.599); row 2 [0.198, 0.401, 0.401] -> (1.401, 2.006); row 3 unchanged (1.759, 2.007), because the mask removes nothing from the last row. Point out that the weights of rows 1 and 2 mirror each other (swap the first two entries) because Q = K is symmetric under swapping tokens 1 and 2; the outputs differ because v1 and v2 differ.",
+    "Unscaled causal case: row 2 [0.269, 0.731] -> (0.269, 1.462); row 3 [0.212, 0.212, 0.576] -> (1.940, 2.152): larger score gaps, sharper weights, outputs pulled further toward the best-matching value. Even at d_k = 2 the effect is visible; at d_k = 128 it is the saturation of Section 2.",
+    "Geometry: each output is a convex combination of the value rows it may see, so token 1's output is v1, token 2's lies on the segment v1-v2, token 3's lies inside the triangle v1 v2 v3 (figure). Attention can only mix values; it cannot extrapolate beyond them, which is one reason the FFN and the residual path exist.",
+    "The backward pass by hand, causal case, for the scalar L = o_{3,2} (the second component of token 3's output, 2.007): dL/dV has column 2 equal to row 3 of P, (0.248, 0.248, 0.503), and column 1 zero; g_j = v_{j,2} = (0, 2, 3); dL/ds_{3j} = p_j (g_j - 2.007) = (-0.498, -0.002, 0.500), summing to zero as Section 2 promised; dL/dq_3 = sum_j dL/ds_{3j} k_j / sqrt(2) = (0.001, 0.352); dL/dk_j = dL/ds_{3j} q_3 / sqrt(2) = (-0.352, -0.352), (-0.001, -0.001), (0.354, 0.354). Interpretation: raising the second component of q_3 increases its match with keys 2 and 3, whose values have large second components.",
+    "Closing paragraph from the source: that is all attention does, a soft, learned lookup; everything else is arranging many of them."
+   ],
+   "worked_examples": [
+    "Causal: P = [[1,0,0],[0.330,0.670,0],[0.248,0.248,0.503]], O = [[1,0],[0.330,1.340],[1.759,2.007]].",
+    "Unmasked: P = [[0.401,0.198,0.401],[0.198,0.401,0.401],[0.248,0.248,0.503]], O = [[1.604,1.599],[1.401,2.006],[1.759,2.007]].",
+    "Unscaled causal: P rows 2-3 = [0.269,0.731,0], [0.212,0.212,0.576]; O rows 2-3 = (0.269,1.462), (1.940,2.152).",
+    "Gradient of L = o_{3,2}: dL/ds_3 = (-0.498, -0.002, 0.500); dL/dq_3 = (0.001, 0.352); dL/dk = (-0.352,-0.352), (-0.001,-0.001), (0.354,0.354); dL/dV column 2 = (0.248, 0.248, 0.503). Lab 1 confirms with finite differences and torch autograd."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-5",
+     "description": "Three linked panels. (a) The 3 x 3 scaled score matrix with the three masked cells grey and labelled -inf. (b) The causal weight matrix P as a heat map (sequential single-hue scale 0 to 1) with each cell printed to three decimals. (c) A 2D plot (x from -0.5 to 3.5, y from -0.5 to 3.5) of the value points v1 = (1,0), v2 = (0,2), v3 = (3,3) as labelled dots joined by a light triangle, and the three outputs as hollow markers: o1 = (1, 0) on v1, o2 = (0.330, 1.340) on the segment v1-v2, o3 = (1.759, 2.007) inside the triangle; thin lines from each visible value to o3 with thickness proportional to the weights 0.248, 0.248, 0.503."
+    }
+   ],
+   "widget": "attention-calculator",
+   "checks": [
+    "Why is token 3's output the same with and without the causal mask? -> The last row is never masked; it already sees every key.",
+    "In the unscaled case, why does token 3's output move toward (3, 3)? -> The score gap between key 3 and the others grows from 0.707 to 1, so the softmax puts more weight on v3.",
+    "Why must dL/ds_3 sum to zero? -> It is the Jacobian (whose rows sum to zero) applied to g."
+   ],
+   "from_source": "Section 2 'A worked example' in full: the matrices, the scores, the causal rows, the outputs and the closing interpretation (row 3's rounding corrected).",
+   "new_material": "The unmasked and unscaled variants, the convex-hull picture, the backward pass with numbers, and the attention-calculator widget."
+  },
+  {
+   "id": "s4",
+   "title": "Multi-head attention and the residual stream",
+   "minutes": 22,
+   "target_words": 1550,
+   "purpose": "Run h attentions in parallel with every tensor shape tracked, and read a transformer as a set of layers that read from and write to one shared residual stream.",
+   "must_cover": [
+    "The source formula: MHA(X) = [head_1; ...; head_h] W_O with head_i = Attention(X W_Q^(i), X W_K^(i), X W_V^(i)), d_k = d_v = d/h; with d = 4096 and h = 32 each head works in 128 dimensions (source).",
+    "Shape bookkeeping exactly as the source code does it: x (B, T, d) -> wq(x) (B, T, d) -> .view(B, T, h, d_k) -> .transpose(1, 2) (B, h, T, d_k); scores q @ k.transpose(-2, -1) (B, h, T, T); weights @ v (B, h, T, d_k); .transpose(1, 2) (B, T, h, d_k); .reshape(B, T, d) (reshape, not view, because the transpose made the tensor non-contiguous); W_O (B, T, d). All heads are computed by one batched matrix multiply; the head index is just another batch dimension.",
+    "Concatenate-then-project equals a sum of per-head writes: [h_1; ...; h_h] W_O = sum_i h_i W_O^(i), where W_O^(i) is the i-th block of d_k rows of W_O. Each head writes its own d_k-dimensional result into the d-dimensional output through its own slice.",
+    "Two low-rank circuits per head: the score between positions i and j is x_i W_Q^(i) W_K^(i)T x_j^T / sqrt(d_k), a bilinear form with a d x d matrix of rank at most d_k (the 'QK circuit', deciding where to look); W_V^(i) W_O^(i) is a d x d matrix of rank at most d_k (the 'OV circuit', deciding what to write). Terminology from Elhage et al. (2021).",
+    "Why several heads: one softmax gives each query one distribution; h heads let a position attend to several places for different reasons at the same total cost, since h d_k = d.",
+    "Counting (source): the four projections are d x d, so 4d^2 parameters per layer; per token the projections cost 8d^2 FLOPs (2 FLOPs per multiply-add), and a token at context t pays 4td for the scores and the mixing (2td for its row of Q K^T, 2td for P V); summed over a sequence the cost is O(T^2 d), quadratic in length. Say that Section 11 turns these counts into the FLOP convention the series uses (with the causal average), and say nothing more about it here.",
+    "The residual-stream view: x_0 is the token embedding; every attention layer and every FFN reads from the stream (through a normalisation) and adds its output back; the logits are a linear read-out of the normalised final stream. Layers communicate only through this d-dimensional stream, which is why its width is a shared resource. Forward pointer to Section 5, where the residual connection appears as an equation.",
+    "What heads learn, accessibly: a previous-token head attends from t to t - 1; an induction head (Olsson et al. 2022) completes a pattern '... A B ... A -> B' by attending from the current token A to the token that followed the earlier A, which needs two heads in two layers (a previous-token head writes 'the token before me was A' into each position; the induction head's query looks for that). They are a mechanism for copying from context, form fairly abruptly during training, and Lab 6 trains a model in which they appear. Mention the source's examples (matching brackets, the subject of a sentence).",
+    "Caution: an attention map shows where information was read from, not why; claims about what a head does need interventions such as zeroing the head and measuring the loss (Lab 6 does this). Cite Jain and Wallace (2019) for the general warning."
+   ],
+   "worked_examples": [
+    "Shapes for B = 2, T = 16, d = 256, h = 8 (d_k = 32), the source model's width: (2, 16, 256) -> (2, 16, 8, 32) -> (2, 8, 16, 32) -> scores (2, 8, 16, 16) -> (2, 8, 16, 32) -> (2, 16, 256). Lab 1 prints exactly these.",
+    "Per-head write with numbers: d = 4, h = 2, d_k = 2, head outputs h_1 = (1, 2), h_2 = (0, 1), W_O = I_4. Concatenation gives (1, 2, 0, 1) W_O = (1, 2, 0, 1); the sum of per-head writes gives h_1 W_O[rows 1-2] + h_2 W_O[rows 3-4] = (1, 2, 0, 0) + (0, 0, 0, 1) = (1, 2, 0, 1).",
+    "Cost per layer at d = 4,096 for the last token of a 4,096-token context: projections 8d^2 = 134 MFLOP; scores and mixing 4td = 67 MFLOP. Averaged over a causally masked 4,096-token sequence the second figure halves to 34 MFLOP (Section 11)."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-6",
+     "description": "Multi-head attention with shapes for B = 2, T = 16, d = 256, h = 8. Left to right: x (2,16,256) -> three linear boxes -> reshape/transpose box -> eight parallel lanes (one per head), each lane showing q, k, v of (2,16,32) -> a 16 x 16 score grid -> softmax -> output (2,16,32); the lanes merge in a 'transpose + reshape' box to (2,16,256) -> W_O -> (2,16,256). The head dimension drawn as a stack of eight coloured sheets."
+    },
+    {
+     "id": "fig-06-7",
+     "description": "The residual stream as a vertical bar running from 'token embedding' at the bottom to 'norm -> unembedding -> logits' at the top. Along it, alternating side boxes 'attention layer l' and 'FFN l' for two layers; each box has an arrow out of the stream through a small 'norm' box and an arrow back into a circled plus on the stream. Inside one attention box, four small head boxes, each with its own arrow back to the stream labelled 'W_O^(i)', illustrating the per-head writes."
+    },
+    {
+     "id": "fig-06-8",
+     "description": "Two attention heat maps (query position on the vertical axis, key position on the horizontal) from the model trained in Lab 6 on one sequence whose segment of length n = 20 repeats: (a) the strongest previous-token head, bright just below the diagonal; (b) the strongest induction head, bright on the off-diagonal stripe at key = query - n + 1 in the repeated half. Under (b), a token strip '... A B ... A -> ?' with an arrow from the second A to the B after the first A."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "What is the shape of the attention weights for B = 4, h = 12, T = 128? -> (4, 12, 128, 128).",
+    "Why does the code call .reshape rather than .view after transpose(1, 2)? -> The transpose makes the tensor non-contiguous, and view needs contiguous memory.",
+    "What is the largest possible rank of W_Q^(i) W_K^(i)T for d = 4096 and h = 32? -> d_k = 128."
+   ],
+   "from_source": "Section 3 in full: the MHA formula, the d = 4096 / h = 32 example, the sentence on what heads learn, and the counting paragraph.",
+   "new_material": "Step-by-step shape bookkeeping tied to the code, the per-head-write identity, the QK and OV circuits, the residual-stream view, previous-token and induction heads, and the interpretability caution."
+  },
+  {
+   "id": "s5",
+   "title": "The block: residuals, normalisation and the feed-forward network",
+   "minutes": 18,
+   "target_words": 1300,
+   "purpose": "Assemble attention and the feed-forward network into a block, explain why pre-norm trains stably, and say what the feed-forward network contributes.",
+   "must_cover": [
+    "The pre-norm block (source): X <- X + MHA(Norm(X)); X <- X + FFN(Norm(X)). The post-norm block of the original paper: X <- Norm(X + MHA(X)); X <- Norm(X + FFN(X)).",
+    "Why pre-norm is stable, written out: unrolling pre-norm gives x_L = x_0 + sum_l F_l(Norm(x_l)), so dx_L/dx_l = I + sum_{m >= l} dF_m/dx_l: an identity path carries the gradient from the loss to every layer untouched. In post-norm every Norm sits on the main path, so the gradient passes through L normalisation Jacobians. Xiong et al. (2020) show that at initialisation the gradients of the parameters near the output of a post-norm transformer are large and do not shrink with depth, while in pre-norm they shrink as depth grows; post-norm therefore needs a learning-rate warmup and diverges without one, pre-norm can train with little or none. Pre-norm has been the standard since about 2020 (source).",
+    "Pre-norm's costs: each layer adds to the stream, so its norm grows with depth and later layers change it proportionally less; a final normalisation before the unembedding is required (the code's self.norm). GPT-2 scales the initial weights of the layers that write into the residual stream by 1/sqrt(N), N the number of residual layers, to keep the growth in check.",
+    "Normalisation, recalled in one paragraph with a link to Module 02, Section 10, which owns the definitions, the worked examples and the PyTorch modules (do not repeat its examples): LayerNorm(x) = gamma * (x - mean) / std + beta; RMSNorm(x) = gamma * x / sqrt(mean(x^2) + eps), with no mean subtraction and no bias (Zhang and Sennrich 2019), cheaper and as good in transformers. Add the one property this module needs, with its one-line proof: RMSNorm is scale-invariant, RMSNorm(c x) = RMSNorm(x) for c > 0 when eps is negligible, because mean((c x)^2) = c^2 mean(x^2); so each sublayer of a pre-norm block reads only the direction of the residual stream, never its size.",
+    "The FFN (source): applied to each position independently, FFN(x) = W_2 phi(W_1 x), inner width d_ff = 4d in the original, 2 x d x 4d = 8d^2 parameters per layer, twice the attention. Attention moves information between positions; the FFN transforms it within a position.",
+    "The FFN as a key-value memory (Geva et al. 2021): write FFN(x) = sum_{i=1}^{d_ff} phi(k_i . x) v_i with k_i the i-th row of W_1 and v_i the i-th column of W_2. Each of the d_ff units is a 'memory' that fires when the input matches its key and adds its value direction to the stream. Geva et al. found keys that respond to recognisable input patterns (shallow in lower layers, more semantic in upper ones) and values that raise the probability of plausible next tokens; Meng et al. (2022) located factual associations in mid-layer FFNs. This is why the source says knowledge 'appears to be stored' there: it is an empirical reading, not a design.",
+    "SwiGLU (source): FFN_SwiGLU(x) = W_2(SiLU(W_1 x) * W_3 x) with SiLU(z) = z sigmoid(z) (recalled in one clause; SiLU and its comparison with ReLU and GELU are in Module 02, Section 5); the gate multiplies two linear branches elementwise, so each unit can switch its output on, off or negative depending on the input; three matrices, so d_ff ~ (8/3) d keeps 3 x d x (8/3)d = 8d^2. Shazeer (2020) reports lower perplexity for GLU variants than ReLU or GELU FFNs at matched size (quote numbers only from its Table 1)."
+   ],
+   "worked_examples": [
+    "The growing stream, in numbers sized to a transformer (new; Module 02's small normalisation examples and its activation table are not repeated): RMSNorm(c x) = RMSNorm(x), so a stream that has grown to RMS 8 hands its sublayers the same normalised input as a stream of RMS 1 pointing the same way. Suppose a sublayer writes an update of RMS 1 orthogonal to the stream: a stream of RMS 1 turns by arctan(1/1) = 45 degrees, a stream of RMS 8 by arctan(1/8) = 7.1 degrees. The next RMSNorm passes on only the direction, so the same write moves the grown stream about six times less. This is pre-norm's cost in one line, and the reason for GPT-2's 1/sqrt(N) scaling and the final norm.",
+    "SwiGLU width in a real model: d = 4096 gives (8/3)d = 10,922.7, rounded up to a multiple of 256: d_ff = 11,008 (Llama-2-7B). Parameters 3 x 4096 x 11,008 = 135.3M per layer, against 2 x 4096 x 16,384 = 134.2M for a 4d GELU FFN."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-9",
+     "description": "Post-norm and pre-norm blocks side by side, drawn bottom to top. Post-norm: x -> attention -> circled plus (skip from x) -> Norm -> FFN -> circled plus -> Norm -> out. Pre-norm: x -> branch through Norm -> attention -> back into circled plus on the main line -> branch through Norm -> FFN -> circled plus -> out. In the pre-norm diagram the main line from bottom to top is drawn thick and labelled 'identity path: no Norm on it'; in post-norm the Norm boxes interrupt the thick line."
+    },
+    {
+     "id": "fig-06-10",
+     "description": "The FFN as a key-value memory. Left: input x (a column of d cells) compared with d_ff key rows k_1..k_dff (draw six), giving six scalars passed through phi (some zero, some positive); each scalar scales a value column v_i; the scaled values are summed into the output. Right: the SwiGLU variant with two parallel branches W_1 x -> SiLU and W_3 x, an elementwise-multiply node, then W_2. Inset: SiLU on z from -3 to 3, the activation inside the gate (its comparison with ReLU and GELU belongs to Module 02)."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Where must a pre-norm model put one extra normalisation, and why? -> After the last block, before the unembedding, because the residual stream itself is never normalised.",
+    "Why does SwiGLU use d_ff of about 8d/3 rather than 4d? -> It has three d x d_ff matrices instead of two; 3 x (8/3) = 8 keeps the 8d^2 parameter count."
+   ],
+   "from_source": "Section 4 in full: the pre-norm equations, the post-norm history and warmup remark, RMSNorm, the FFN formula with d_ff = 4d, the SwiGLU formula with 8/3, the 8d^2 count and the knowledge-storage remark.",
+   "new_material": "The post-norm equations, the identity-path argument and Xiong et al.'s result, pre-norm's growing stream with RMSNorm's scale invariance and the 45-versus-7.1-degree example, GPT-2's 1/sqrt(N) scaling, the key-value-memory reading of the FFN, SwiGLU width rounding."
+  },
+  {
+   "id": "s6",
+   "title": "Position",
+   "minutes": 26,
+   "target_words": 1800,
+   "purpose": "Inject order into a permutation-equivariant operation, derive RoPE with its complex-number proof, and explain at concept level how a trained context is extended.",
+   "must_cover": [
+    "Permutation equivariance (source): shuffle the input rows and the outputs shuffle with them, because Q, K, V are computed row by row and the softmax is applied per row; the two-line argument here, the full proof in exercise e4. A causal mask breaks the symmetry partly (a position can count how many tokens it sees), so decoder-only models without any positional encoding still learn some position information (Haviv et al. 2022); the encodings below do it deliberately.",
+    "Sinusoidal encodings (source formula): PE(t, 2i) = sin(t omega_i), PE(t, 2i+1) = cos(t omega_i), omega_i = 10000^(-2i/d); wavelengths from 2 pi to 2 pi x 10000; added to the token embeddings once at the input. Derive the shift property from the angle-addition formulas: sin((t+k)w) = sin(tw)cos(kw) + cos(tw)sin(kw), cos((t+k)w) = cos(tw)cos(kw) - sin(tw)sin(kw), so each (sin, cos) pair at t + k is a fixed 2 x 2 rotation [[cos kw, sin kw], [-sin kw, cos kw]] of the pair at t: PE(t + k) = M_k PE(t), a linear function independent of t.",
+    "Learned absolute embeddings (source): one trained vector per position (GPT-2: 1,024 positions, a 1,024 x 768 table of 786,432 parameters; BERT: 512); nothing exists, or nothing trained exists, beyond the training length, so they cannot extrapolate.",
+    "RoPE (source formula): pair the dimensions (q_{2i}, q_{2i+1}) and rotate the pair by t theta_i with theta_i = 10000^(-2i/d_k); the same for keys at their own position s; values are not rotated; applied inside every attention layer, not once at the input.",
+    "The complex-number proof, written out: represent a pair as z = x_{2i} + i x_{2i+1}. For two pairs a and b, Re(a conj(b)) = a_x b_x + a_y b_y, their 2D dot product (show the one-line expansion). Rotation by angle phi is multiplication by exp(i phi). So the pair's contribution to the score is Re(z_q exp(i t theta) conj(z_k exp(i s theta))) = Re(z_q conj(z_k) exp(i (t - s) theta)), which depends on t and s only through t - s. Summing over the d_k/2 pairs, q'_t . k'_s depends only on q, k and t - s. Matrix form left to exercise e6.",
+    "Properties: no parameters; norms are preserved (rotations are orthogonal); the fast pairs (small i) encode fine position, the slow pairs coarse position; for aligned q and k the score decays on average with distance (the 'long-term decay' of RoFormer), with oscillations.",
+    "Wavelengths 2 pi / theta_i: for d_k = 128 and base 10,000 they run from 6.28 tokens to 54,410 tokens; 18 of the 64 pairs have a wavelength longer than 4,096 tokens, so a model trained at 4k context never sees those pairs complete a rotation. These are the pairs that meet unfamiliar angles when the context is extended.",
+    "ALiBi (source; Press et al. 2022): no position vectors at all; add -m_h (t - s) to the score of head h; slopes form a geometric sequence, for 8 heads 1/2, 1/4, ..., 1/256; large-slope heads become local, small-slope heads see far; extrapolates beyond the training length at the price of a built-in recency bias.",
+    "Context extension, concept level only (source mentions NTK scaling and YaRN): position interpolation (Chen et al. 2023) divides positions by the extension factor kappa = L_target / L_train (written kappa, because s is the key position in this module) so every angle stays inside the trained range, then fine-tunes briefly; NTK-aware scaling raises the base instead, b' = b kappa^(d_k/(d_k - 2)), chosen so that the slowest pair is slowed by exactly kappa while the fastest is unchanged (derive in two lines from theta_last = b^(-(d_k-2)/d_k)); YaRN (Peng et al. 2024) interpolates only the pairs whose wavelength exceeds the trained context, leaves the fast ones alone, ramps between, and adds a small temperature to the logits. Models now also train with a larger base from the start: Llama 3 uses 500,000 (Grattafiori et al. 2024). Pointers: Module 07 (the context window) and Module 08 (long-context mid-training)."
+   ],
+   "worked_examples": [
+    "Sinusoidal, d = 4 (omega = 1 and 0.01): PE(0) = (0, 1, 0, 1); PE(1) = (0.841, 0.540, 0.010, 1.000); PE(2) = (0.909, -0.416, 0.020, 1.000). Check the shift on the first pair: [[cos 1, sin 1], [-sin 1, cos 1]] (0.841, 0.540) = (0.540 x 0.841 + 0.841 x 0.540, -0.841 x 0.841 + 0.540 x 0.540) = (0.909, -0.416) = PE(2) first pair.",
+    "RoPE on one pair with theta = 1: q = (1, 0), k = (0, 1). Rotated: q'_t = (cos t, sin t), k'_s = (-sin s, cos s); score = sin t cos s - cos t sin s = sin(t - s). (t, s) = (3, 1): 0.909; (7, 5): 0.909; (1, 3): -0.909; (5, 5): 0. The sign of t - s matters because q is not equal to k.",
+    "RoPE on two pairs, d_k = 4, base 10,000 (theta = 1 and 0.01), q = k = (1, 0, 1, 0): score(Delta) = cos(Delta) + cos(0.01 Delta): Delta = 0 -> 2.000; 1 -> 1.540; 2 -> 0.584; 10 -> 0.156; 100 -> 1.403; 300 -> -1.012. The fast pair oscillates every 6.3 tokens; the slow pair varies over hundreds.",
+    "Long-term decay, q = k = all ones, d_k = 128, base 10,000, score divided by its value at offset 0 (each pair contributes 2 cos(Delta theta_i), so 128 at offset 0): Delta = 1: 0.970; 16: 0.620; 128: 0.333; 1,024: 0.204; 4,096: -0.053 (Lab 2).",
+    "ALiBi, 8 heads, distance 100: head 1 subtracts 50 (weight factor exp(-50) = 2e-22); head 8 subtracts 0.39 (factor 0.68). At distance 1,000 head 8 subtracts 3.9 (factor 0.020).",
+    "NTK-aware base for kappa = 4, d_k = 128: 10,000 x 4^(128/126) = 40,890."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-11",
+     "description": "Heat map of sinusoidal encodings PE(t, j) for positions t = 0..127 (vertical axis) and dimensions j = 0..63 (horizontal axis), d = 64, diverging colour scale from -1 to 1: rapid stripes on the left (high frequency), slow bands on the right (low frequency)."
+    },
+    {
+     "id": "fig-06-12",
+     "description": "RoPE as rotation. Two unit-circle panels for one dimension pair. Panel 1: q rotated to angle t theta and k rotated to angle s theta for t = 3, s = 1, the angle between them marked (t - s) theta. Panel 2: the same with t = 8, s = 6: both arrows have moved, the angle between them is unchanged. Caption: 'the score sees only the difference'."
+    },
+    {
+     "id": "fig-06-13",
+     "description": "RoPE score versus offset: normalised score q'.k'/128 (its value at offset 0) for q = k = all ones, d_k = 128, against Delta on a log x-axis from 1 to 16,384; solid line base 10,000, dashed line base 500,000; horizontal reference at 0. Data from Lab 2."
+    },
+    {
+     "id": "fig-06-14",
+     "description": "ALiBi biases. Left: the T x T bias matrix for T = 12 and slope 1/2 (lower triangle shaded by -m(t - s)). Right: bias versus distance (0 to 100) as eight straight lines for the slopes 1/2 ... 1/256, y-axis from -50 to 0."
+    },
+    {
+     "id": "fig-06-15",
+     "description": "Context extension seen through wavelengths. A bar per RoPE pair i = 0..63 (d_k = 128) showing log10 of the wavelength 2 pi / theta_i; a horizontal line at 4,096 ('trained context') and one at 16,384 ('target context'). Three overlaid markers per bar: original (base 10^4), position interpolation with kappa = 4 (every bar raised by log10 4), NTK-aware base 40,890 (slow bars raised by up to log10 4, fast bars unchanged). A note that YaRN raises only the bars above the trained-context line."
+    }
+   ],
+   "widget": "rope-explorer",
+   "checks": [
+    "Why are the values not rotated? -> Position should change where a query looks, not what is carried; rotating values would make the output depend on absolute position.",
+    "A model trained at 4,096 tokens with base 10,000 is run at 16,384. Which pairs see angles they never saw in training? -> The slow pairs whose wavelength exceeds 4,096: 18 of 64 at d_k = 128.",
+    "Which ALiBi head behaves most like a local window? -> The one with the largest slope, 1/2."
+   ],
+   "from_source": "Section 5 in full: permutation equivariance, the sinusoidal formula and its linear-shift claim, learned absolute embeddings, RoPE's formula and its relative property, the mention of NTK scaling and YaRN, ALiBi; exercise 3's complex-number hint.",
+   "new_material": "The shift-property derivation, the written-out complex proof, RoPE numbers on one and two pairs, the wavelength analysis, ALiBi slopes and numbers, PI/NTK/YaRN with the NTK base derivation, the Llama 3 base, the NoPE remark, and the rope-explorer widget."
+  },
+  {
+   "id": "s7",
+   "title": "Three shapes of model",
+   "minutes": 15,
+   "target_words": 1100,
+   "purpose": "Distinguish encoder-only, decoder-only and encoder-decoder transformers by their masks and objectives, and explain why decoder-only became the default.",
+   "must_cover": [
+    "Encoder-decoder (source; the original model and T5): an encoder reads the input with bidirectional attention; a decoder generates with causal self-attention plus cross-attention, Q = X_dec W_Q, K = H_enc W_K, V = H_enc W_V, score shape (B, h, T_dec, T_enc). Cross-attention has no causal mask (the whole input is known before decoding starts), only a padding mask on encoder positions; the encoder's K and V are computed once per input and reused at every decoding step. Each decoder layer has three sublayers, so 16d^2 parameters against an encoder layer's 12d^2. Uses: translation, summarisation (source).",
+    "Encoder-only (source; BERT): bidirectional attention, trained by masked language modelling: 15% of positions are selected, of which 80% are replaced by [MASK], 10% by a random token and 10% left unchanged, and the loss is taken on the selected positions only. Produces contextual representations (a [CLS] vector or mean-pooled states) for classification, retrieval and embeddings; cannot generate (exercise e8). BERT-Base: 12 layers, d = 768, 110M parameters.",
+    "Decoder-only (source; GPT): causal attention, next-token loss at every position; generates; with enough scale does the other shapes' tasks by being prompted (source).",
+    "The prefix LM in one sentence: bidirectional attention over a prompt, causal over the continuation; a middle ground explored in the T5 study.",
+    "Why decoder-only won, with the source's reasons expanded and each supported: every position is a training target (T - 1 targets per sequence against about 15% for masked LM); one objective and one architecture cover every task once the task is written as text (GPT-2's zero-shot and GPT-3's few-shot results; in-context learning is Module 07); generation is the task people want (source); one stack and one KV cache (Section 9) over prompt and answer make serving simple; the scaling-law evidence of Module 07 was gathered on this shape.",
+    "The honest counterpoint: in controlled comparisons the answer depends on the evaluation. Raffel et al. (2020) found an encoder-decoder with a denoising objective best at equal compute for fine-tuned tasks; Wang et al. (2022) found a causal decoder trained on plain next-token prediction best for zero-shot use straight after pretraining. Generality and simplicity won the market. Encoders remain the efficient choice for embeddings and retrieval; cross-link to the AI Agents series (retrieval-augmented generation) for how they are used.",
+    "The masks are the cleanest way to tell the shapes apart (figure): full square (encoder), lower triangle (decoder), full rectangle T_dec x T_enc (cross-attention)."
+   ],
+   "worked_examples": [
+    "The original base model from this module's counts: d = 512, d_ff = 2,048 = 4d, 6 encoder + 6 decoder layers. Encoder layer 12d^2 = 3.15M; decoder layer 16d^2 = 4.19M; layers total 6 x 3.15M + 6 x 4.19M = 44.0M; one embedding matrix shared by encoder input, decoder input and output projection, about 37,000 x 512 = 18.9M; total about 63M against the 65M the paper reports (Table 3). The remaining 3% is not itemised in the paper; say so rather than inventing a reason.",
+    "Training signal from one 512-token sequence: decoder-only 511 next-token targets; BERT about 77 (15% of 512)."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-16",
+     "description": "Three columns titled 'encoder-only (BERT)', 'decoder-only (GPT)', 'encoder-decoder (T5, the original)'. Each shows a block stack and beneath it its attention mask(s) as 6 x 6 grids with allowed cells filled: encoder full square; decoder lower triangle; encoder-decoder shows the encoder's full square, the decoder's lower triangle, and the cross-attention's full 5 x 6 rectangle (decoder queries by encoder keys). Under each column, its training objective in one line: 'fill in masked tokens', 'predict the next token', 'map input to output text'. A small inset shows the prefix-LM mask (full over the first three positions, causal after)."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "In cross-attention, which side supplies the queries and which the keys and values? -> The decoder supplies the queries; the encoder's output supplies the keys and values.",
+    "Why is cross-attention not causally masked? -> The whole input sequence is known before decoding starts; only the decoder's own future is hidden."
+   ],
+   "from_source": "Section 6 in full (the three bullets and the reason decoder-only won); the BERT, GPT and T5 references.",
+   "new_material": "Cross-attention equations, shapes and reuse of encoder K and V; the 16d^2 decoder layer; masked-LM details; the prefix LM; the supported list of reasons and the T5 and Wang et al. counterpoints; the mask diagrams; the base-model parameter estimate."
+  },
+  {
+   "id": "s8",
+   "title": "The vision transformer",
+   "minutes": 8,
+   "target_words": 550,
+   "purpose": "Show that nothing in the transformer is specific to text: an image becomes a sequence of patch tokens.",
+   "must_cover": [
+    "Patches as tokens (Dosovitskiy et al. 2021): a 224 x 224 x 3 image cut into 16 x 16 patches gives 14 x 14 = 196 patches; each is flattened to 16 x 16 x 3 = 768 numbers and mapped to width d by one linear layer (equivalently a convolution with kernel 16 and stride 16); a learned [CLS] token is prepended (197 tokens); learned position embeddings are added; an encoder-only stack follows; the class is read from the final [CLS] vector.",
+    "ViT-Base/16 counted with Section 11's rules: 12 layers, d = 768, 12 heads, MLP 3,072; transformer body 12Ld^2 = 84.9M (85.1M with biases and norms), patch embedding 768 x 768 + 768 = 590,592 parameters (0.59M; this module owns the worked example, and Module 03 points here rather than repeating it), positions 197 x 768 = 0.15M, a 1,000-class head 0.77M: about 86M, as published.",
+    "Inductive bias: no locality or translation equivariance is built in (contrast Module 03's convolutions), so a ViT must learn them from data; trained on ImageNet-sized data alone it trails comparable CNNs, and it needs large-scale pretraining, or strong augmentation and distillation (DeiT, Touvron et al. 2021), to match or beat them.",
+    "Cost: tokens grow with the square of the resolution and attention with the square of the tokens, so doubling the resolution multiplies the attention cost per layer by about 16.",
+    "Where it is used: CLIP's image encoder (Module 05); multimodal language models project a vision encoder's patch outputs into the token stream (Module 07)."
+   ],
+   "worked_examples": [
+    "Tokens at 224 x 224: 197; at 448 x 448: 28 x 28 + 1 = 785. Score entries per head per layer: 197^2 = 38,809 versus 785^2 = 616,225, a factor of 15.9."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-17",
+     "description": "A 224 x 224 photograph-like placeholder (a pump housing outline, drawn schematically) overlaid with a 14 x 14 grid; three patches pulled out, each flattened into a strip of 768 cells, passed through one shared 'linear projection' box, plus a '[CLS]' token at the front and a row of '+ position' tags; the 197 tokens enter a stack labelled 'transformer encoder x 12'; the [CLS] output goes to a 'class' box."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "How many tokens does a 384 x 384 image give with 16 x 16 patches and a [CLS] token? -> 24^2 + 1 = 577."
+   ],
+   "from_source": "Only the reference to Dosovitskiy et al. (the source has no ViT text).",
+   "new_material": "The whole section."
+  },
+  {
+   "id": "s9",
+   "title": "The modern decoder block, part by part",
+   "minutes": 17,
+   "target_words": 1200,
+   "purpose": "Walk through the choices in a current open decoder layer and the reason for each, introducing the KV cache that grouped-query attention exists to shrink.",
+   "must_cover": [
+    "The source's table kept verbatim (component / choice / reason): normalisation RMSNorm pre-norm (stable at depth, cheaper than layer norm); position RoPE (relative, parameter-free, extendable); attention grouped-query; activation SwiGLU (better loss at equal parameters than ReLU/GELU FFNs); biases none (marginal; removed for stability and simplicity); attention kernel FlashAttention. Each row points to the section that justified it (5, 6, this section, 5, this section, 10).",
+    "The KV cache (key-value cache), introduced only (depth in Module 10): when a model generates, each new token's query must attend to the keys and values of every earlier token in every layer; storing them avoids recomputing the whole prefix at every step. Size per token: bytes = 2 x L x n_kv x d_head x bytes per value (the 2 is K and V). State the module's unit convention here, at its first size in bytes, once: sizes computed from tensor shapes are given in binary units (1 KiB = 1,024 B, 1 MiB = 2^20 B, 1 GiB = 2^30 B), quoted hardware figures in the vendor's decimal units (GB, TB/s), and a size that recurs in Modules 07-10, which work in decimal GB, is given in both forms.",
+    "Grouped-query attention (source; Ainslie et al. 2023): keep all h query heads but give each group of h / n_kv query heads one shared key-value head; the cache and the K and V projections shrink by the group size, with quality close to full multi-head attention; 8 query heads per KV head is common (source). Multi-query attention (Shazeer 2019) is the extreme, one KV head. Ainslie et al. also show how to convert ('uptrain') an existing multi-head checkpoint. The FLOPs of Q K^T do not change: every query head still scores every key.",
+    "How the code shares heads: k.repeat_interleave(h // n_kv, dim=1), so query heads 0-3 use KV head 0 and 4-7 use KV head 1 when h = 8 and n_kv = 2; repeat (which would give 0, 1, 0, 1, ...) is the classic bug, silent because the shapes still match (source's failure mode).",
+    "No biases, and tied embeddings: the source code ties the input embedding to the output projection, common in small models where the V x d matrix is a large share (Section 11); large models often untie.",
+    "Sliding-window attention (source): each position attends only to the last w positions, cost O(Tw) instead of O(T^2); with a window of w positions including itself, each layer extends the reach by w - 1, so L layers reach back about L w (the source's 'effective receptive field'). Mistral 7B used w = 4,096 with 32 layers, a theoretical span of about 131k tokens (Jiang et al. 2023). The KV cache becomes a rolling buffer of w entries per layer. Used alone or alternated with full-attention layers (source). One sentence on attention sinks: models put large weight on the first few tokens, so a streaming window that evicts them degrades; keeping those few tokens' keys and values fixes it (Xiao et al. 2024).",
+    "FlashAttention in one paragraph (source): the same attention, computed in tiles without storing the T x T matrix; the derivation is the next section.",
+    "What has not changed since 2017: the attention formula and the residual structure. Everything in the table is a refinement of Sections 2-6."
+   ],
+   "worked_examples": [
+    "KV cache per token in bf16 with L = 32 and d_head = 128: multi-head (32 KV heads, the Llama-2-7B layout) 2 x 32 x 32 x 128 x 2 B = 524,288 B (512 KiB); GQA with 8 KV heads (the Llama-3-8B layout) 131,072 B (128 KiB); MQA 16,384 B (16 KiB). For one 4,096-token sequence: 2 GiB (2.15 GB), 512 MiB (0.54 GB), 64 MiB (0.067 GB). Module 10 repeats the calculation for the case-study model, in decimal units.",
+    "Head mapping with h = 8, n_kv = 2: repeat_interleave gives KV heads [0,0,0,0,1,1,1,1] for query heads 0..7; repeat would give [0,1,0,1,0,1,0,1].",
+    "Sliding window w = 4 on T = 8: position 7 sees positions 4-7 in layer 1; through 3 layers it reaches back 3 x (4 - 1) = 9 positions, so every earlier position."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-18",
+     "description": "One modern decoder layer drawn bottom to top with each choice annotated: x -> RMSNorm -> three projections (W_Q to 8 query heads, W_K and W_V to 2 KV heads, shown in two colours for the two groups) -> 'RoPE on q and k' -> 'scaled_dot_product_attention (fused kernel)' -> W_O -> circled plus -> RMSNorm -> W_1 and W_3 branches -> SiLU and multiply -> W_2 -> circled plus. Shapes for the source model: d = 256, h = 8, n_kv = 2, d_head = 32, d_ff = 682. A tag 'no biases' on each linear box."
+    },
+    {
+     "id": "fig-06-19",
+     "description": "Three groupings side by side: MHA (8 query heads each wired to its own KV head), GQA (8 query heads wired in groups of 4 to 2 KV heads), MQA (8 query heads all wired to 1 KV head). Under each, the KV-cache size per token for L = 32, d_head = 128 in bf16 with 32, 8 and 1 KV heads: 524,288 B (512 KiB), 131,072 B (128 KiB), 16,384 B (16 KiB) (state that the bars use the 32-head scale of a 7B model, not the 8 heads drawn)."
+    },
+    {
+     "id": "fig-06-20",
+     "description": "Sliding-window attention. Left: an 8 x 8 mask with a band of width 4 below and including the diagonal. Right: a three-layer cone over positions 0..7 showing that position 7 in layer 3 depends on positions 4-7 in layer 2, 1-7 in layer 1 and 0-7 at the input."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Does grouped-query attention reduce the FLOPs of Q K^T? -> No; every query head still scores every key. It reduces the K and V projections and the cache.",
+    "Why does a sliding-window model need fewer cache entries? -> Only the last w tokens of each layer can ever be attended to again."
+   ],
+   "from_source": "Section 7 in full: the table, GQA with the 8-to-1 example and MQA, the FlashAttention paragraph (summarised here, derived in s10), sliding-window attention with the Lw receptive field.",
+   "new_material": "The KV-cache formula and sizes, GQA head mapping and the repeat bug, the unchanged FLOPs of QK^T, tying, the receptive-field arithmetic, the Mistral 7B numbers, attention sinks."
+  },
+  {
+   "id": "s10",
+   "title": "FlashAttention and the online softmax",
+   "minutes": 20,
+   "target_words": 1250,
+   "purpose": "Derive the online softmax and show how it lets attention be computed exactly in tiles, without storing the T x T matrix.",
+   "must_cover": [
+    "Why standard attention is limited by memory traffic, not arithmetic, on a GPU (source): implemented as three steps it writes S (T x T) to the GPU's main memory (HBM), reads it back for the softmax, writes P, reads P back for P V. The softmax does a handful of FLOPs per element it moves. On an A100, HBM moves 1.5-2.0 TB/s while on-chip SRAM (192 KB per streaming multiprocessor, 108 of them) moves about 19 TB/s (figures as quoted by Dao et al. 2022, Section 2.1); dense bf16 arithmetic peaks at 312 TFLOP/s (NVIDIA's specification for the A100). The roofline model that makes this precise is in Module 10.",
+    "The size that hurts: for T = 8,192 and h = 32 in bf16, S for one layer is 32 x 8,192^2 x 2 B = 4 GiB, and a backward pass would need P for every layer.",
+    "Safe softmax: exp(s - m) / sum exp(s - m) with m = max(s) gives the same result and cannot overflow (the example: softmax of (1000, 1001, 1002) computed naively is NaN; safely, (0.090, 0.245, 0.665)). It needs the maximum before the sum: two passes over the scores.",
+    "Online softmax (Milakov and Gimelshein 2018), derived: keep a running maximum m and a running sum l = sum exp(s_j - m) over the scores seen so far. When a block with maximum m_b and local sum l_b = sum_{j in block} exp(s_j - m_b) arrives: m' = max(m, m_b); l' = l exp(m - m') + l_b exp(m_b - m'). Proof by induction that after the last block l = sum_j exp(s_j - m_final): each stored term exp(s_j - m) becomes exp(s_j - m') after multiplying by exp(m - m').",
+    "The same trick for the output: keep an unnormalised accumulator a = sum exp(s_j - m) v_j; on a new block a' = a exp(m - m') + sum_{j in block} exp(s_j - m') v_j; at the end the output is a / l, which equals sum_j softmax(s)_j v_j. One pass, no stored scores.",
+    "The tiled algorithm (Dao et al. 2022, Algorithm 1, in words): split Q into row blocks of B_r rows and K, V into blocks of B_c rows; for each query block, loop over key/value blocks, compute the B_r x B_c tile of scores in SRAM, update m, l and a per row as above, discard the tile; write the output block once. Under a causal mask, tiles entirely above the diagonal are skipped (about half). Extra memory is O(T) (m and l per row) instead of O(T^2) (source).",
+    "The backward pass recomputes instead of storing: keep only the per-row log-sum-exp (m + log l) and recompute each tile of S and P when it is needed; more FLOPs, far fewer bytes, faster overall (source's 'several-fold').",
+    "Exact, not approximate: the same arithmetic in a different order, equal up to floating-point rounding (Lab 3: 5.6e-16 in float64, 3.4e-7 in float32). Contrast sliding-window or sparse attention, which change the function (exercise e10).",
+    "Descendants in one sentence each: FlashAttention-2 (Dao 2024) parallelises better over the sequence; later versions target newer GPUs; PyTorch's F.scaled_dot_product_attention dispatches to a fused kernel when the inputs allow (the source code's comment); paged attention is serving, Module 10."
+   ],
+   "worked_examples": [
+    "Row 3 of the running example in two blocks: block 1 = keys 1-2 (scores 0.707, 0.707): m = 0.707, l = 2.000, a = (1, 0) + (0, 2) = (1, 2). Block 2 = key 3 (score 1.414): m' = 1.414; rescale factor exp(0.707 - 1.414) = 0.493; l' = 2.000 x 0.493 + 1 = 1.986; a' = (1, 2) x 0.493 + (3, 3) = (3.493, 3.986); output a'/l' = (1.759, 2.007), identical to Section 3.",
+    "Memory for T = 8,192, h = 32, bf16: materialised scores 4 GiB per layer; FlashAttention's per-row statistics 32 x 8,192 x 4 B = 1 MiB (log-sum-exp kept in fp32).",
+    "Causal tiling of T = 1,024 in 64 x 64 tiles: 16 x 17 / 2 = 136 of 256 tiles computed (Lab 3 counts them)."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-21",
+     "description": "Tiled attention. The T x T score grid divided into a 16 x 16 array of tiles; tiles above the diagonal hatched 'skipped (causal)'; one tile highlighted and drawn again inside a box labelled 'SRAM: one B_r x B_c tile'; beside each query-row block, a thin column labelled 'm, l per row (O(T))'; Q blocks on the left edge, K and V blocks along the top. Caption contrasts 'standard: whole grid in HBM, O(T^2)' with 'tiled: one tile at a time, O(T)'."
+    },
+    {
+     "id": "fig-06-22",
+     "description": "Trace table of the online softmax for row 3 of the running example: columns 'block', 'scores', 'm', 'rescale exp(m - m')', 'l', 'accumulator a', 'a / l'; rows: start (-inf, -, 0, (0,0)), after block 1 (0.707, -, 2.000, (1,2), (0.5, 1.0)), after block 2 (1.414, 0.493, 1.986, (3.493, 3.986), (1.759, 2.007))."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why must the accumulator be multiplied by exp(m - m') when a block raises the maximum? -> Its terms were exponentiated relative to the old maximum; the factor re-expresses them relative to the new one.",
+    "Is FlashAttention an approximation of attention? -> No; it is exact up to floating-point rounding. It changes where the numbers live, not what is computed."
+   ],
+   "from_source": "Section 7's FlashAttention paragraph (tiling, running normaliser, O(T^2) to O(T), memory-bound) and Section 9's fp16 bullet (moved to what goes wrong).",
+   "new_material": "The memory-traffic argument with A100 figures, the 4 GiB example, the safe and online softmax derivations, the output accumulator, the tiled algorithm, recomputation in the backward pass, exactness, the trace on the running example."
+  },
+  {
+   "id": "s11",
+   "title": "Counting parameters and FLOPs",
+   "minutes": 22,
+   "target_words": 1500,
+   "purpose": "Derive a decoder's parameter count and per-token compute from its configuration, check the formulas against published models, and fix the FLOP convention that the rest of the series links to.",
+   "must_cover": [
+    "Per layer (source): attention 4d^2 with full multi-head attention, 2d^2 + 2 d n_kv d_head with GQA; FFN 8d^2 (2 x d x 4d, or 3 x d x (8/3)d for SwiGLU); norms 2d, negligible; total about 12d^2, so about 12 L d^2 for L layers.",
+    "Embeddings (source): V x d, twice if the output projection is not tied to the input; plus T_max x d for learned positions if any.",
+    "The source's check on the Llama 7B layout, made exact: d = 4,096, L = 32, 32 heads (multi-head), d_ff = 11,008, V = 32,000, untied. Per layer 67,108,864 (attention) + 135,266,304 (FFN) + 8,192 (norms) = 202,383,360; x 32 = 6,476,267,520; embeddings 2 x 32,000 x 4,096 = 262,144,000; final norm 4,096; total 6,738,415,616, the published 6.7B. The rule 12Ld^2 + 2Vd gives 6.44B + 0.26B = 6.70B, within 0.6% (source's 'about 6.7 billion').",
+    "Small models are different (table from Lab 4): GPT-2 small 124,439,808, SmolLM2-135M 134,515,008, Qwen2.5-0.5B 494,032,768, Llama-2-7B 6,738,415,616, Llama-3-8B 8,030,261,248, each matching its published size; the embedding share is 32%, 21%, 28%, 3.9% and 13%; the non-embedding count differs from 12Ld^2 by factors 1.00, 0.89, 1.55, 1.005 and 1.08 because of GQA and FFN width. Count from the configuration, not from the rule.",
+    "Two parameter counts, named here once for the whole series: N_total, every parameter, which sets memory (bytes = N_total x bytes per value) and is the N of the scaling laws (Module 07); and N_matmul, the parameters that take part in a matrix multiply for every token, which is N_total minus the lookup tables: an untied input embedding (V d) and any learned position table. Norm gains and biases stay in (they are negligible). With tied embeddings the shared V x d matrix counts once in both, because it is used once, as the output head. Llama-2-7B: N_total = 6,738,415,616 and N_matmul = 6,607,343,616.",
+    "FLOPs: a product of an (m x n) and an (n x p) matrix costs 2mnp FLOPs (one multiply and one add per term). Per token each parameter in N_matmul takes part in one multiply-add, so the matrix multiplies cost 2 N_matmul FLOPs per token; the input embedding is a lookup and costs nothing, while the output projection costs 2Vd even when tied. Attention adds, per layer, 2td for a token's row of Q K^T and 2td for mixing the values when the token sits at context t (it attends to t positions; h d_head = d, and GQA does not change this): 4Ldt per token. Over a causally masked sequence of length T, t runs from 1 to T, so the average is 4Ld(T + 1)/2, about 2LdT per token. This assumes the kernel skips the masked half, as FlashAttention's causal tiling does (Section 10); a kernel that computes the full T x T square pays 4LdT per token. 2LdT is the form in Kaplan et al. (2020).",
+    "The crossover, derived: for one token at context t, attention equals the matrix multiplies when 4Ldt = 2 x 12Ld^2, that is at t = 6d: 24,576 tokens for d = 4,096 and 4,608 for d = 768; averaged over a causal sequence the crossing moves to T = 12d. This is why 2N is the rule of thumb 'until the context gets long' (source).",
+    "Training costs three times the forward pass, derived (this module owns the derivation; Module 02 keeps only the argument that the backward pass costs about twice the forward, and Modules 07, 08 and 10 link here): for a layer Y = XW the forward pass is one product; the backward pass needs dX = dY W^T and dW = X^T dY, each the size of the forward product; the input embedding's backward is a scatter-add of d numbers per token, negligible. So training costs 6 N_matmul + 12Ldt per token at context t, or 6 N_matmul + 6LdT per token averaged over a causal sequence, and C = (6 N_matmul + 6LdT) D for D training tokens. The familiar C = 6ND, with N = N_total and no attention term, is an estimate: quote it only labelled as one, with its error (for Llama-2-7B at T = 4,096 it is 5.7% low). Planning a budget with it is Module 08; fitting the Chinchilla law is Module 07.",
+    "The convention, as one boxed summary that Modules 02, 07, 08 and 10 link to instead of restating it: (1) memory and the scaling-law N use N_total; (2) forward FLOPs per token are 2 N_matmul + 4Ldt at context t, which averages to 2 N_matmul + 2LdT over a causal sequence of length T; (3) the input embedding is excluded because it is a lookup; (4) training costs three times the forward pass; (5) 2 N_total and 6 N_total may be quoted only as labelled estimates.",
+    "Memory per parameter, one line as a preview: weights take N_total x bytes per value; Llama-2-7B in bf16 is 6,738,415,616 x 2 B = 13.5 GB (12.6 GiB), given in both units because Modules 07-10 quote weights in decimal GB. Full accounting of optimiser states and activations is Module 08, of inference memory Module 10."
+   ],
+   "worked_examples": [
+    "Llama-2-7B, exact: N_total = 6,738,415,616 parameters, as itemised above; removing the 131,072,000-parameter input embedding leaves N_matmul = 6,607,343,616.",
+    "Llama-2-7B forward FLOPs per token: 2 N_matmul = 13.21 GFLOP for the matrix multiplies. Attention for one token at context t = 512, 4,096 and 32,768 (4Ldt): 0.27, 2.15 and 17.18 GFLOP, that is 2%, 14% and 57% of that token's total (or +2%, +16% and +130% on top of the matrix multiplies). Averaged over a causally masked 4,096-token training sequence (2LdT): 1.07 GFLOP, +8%. The +16% applies to the last token of a 4,096-token context, or to a kernel that computes the masked half; a training sequence pays +8%.",
+    "The source's tiny decoder (V = 4,096, d = 256, 4 layers, 8 heads, 2 KV heads, d_ff = 682, tied): 3,801,344 parameters, against 12Ld^2 = 3,145,728 plus 1,048,576 of embeddings; exercise e12 itemises it.",
+    "Training Llama-2-7B, per token at T = 4,096, under the convention: 6 N_matmul = 39.64 GFLOP plus 6LdT = 3.22 GFLOP, 42.87 GFLOP in all. The quick 6 N_total = 40.43 GFLOP is 5.7% low: it counts the input embedding (0.79 GFLOP that is never spent) and leaves out attention (3.22 GFLOP). Exercise e13 turns this into a compute budget and a utilisation."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-23",
+     "description": "Horizontal stacked bars, one per model (GPT-2 small, SmolLM2-135M, Qwen2.5-0.5B, Llama-2-7B, Llama-3-8B), each normalised to 100%, split into embeddings (input plus output if untied), attention, FFN and norms; the total parameter count printed at the end of each bar. Data from Lab 4."
+    },
+    {
+     "id": "fig-06-24",
+     "description": "Forward FLOPs per token for Llama-2-7B against context length on a log x-axis from 512 to 131,072: a flat line at 13.21 GFLOP ('matrix multiplies, 2 N_matmul'); a rising solid line for the attention paid by one token at context t, 4Ldt, and the sum of the two; a dashed line for attention averaged over a causal sequence of length T, 2LdT. Mark where each attention line crosses the flat line, at t = 25,205 and T = 50,410 (exact), with the rule-of-thumb values 6d = 24,576 and 12d = 49,152 noted beside them. Data from Lab 4."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why does a tied embedding still cost 2Vd FLOPs per token? -> The output projection is still computed; tying shares the parameters, not the arithmetic.",
+    "For one token at context t in a model with d = 768, at what t does attention cost as much as the matrix multiplies, by the 12Ld^2 rule? -> t = 6d = 4,608 tokens.",
+    "Why does a causally masked training sequence pay about half the attention FLOPs per token that its last token pays? -> Position t attends to t keys, and t averages (T + 1)/2 over the sequence, provided the kernel skips the masked entries."
+   ],
+   "from_source": "Section 3's counting paragraph (4d^2, 8d^2 FLOPs, 4Td, O(T^2 d)); Section 4's 'Counting a whole model' with the 32-layer check and the 2N rule.",
+   "new_material": "The exact Llama-2-7B count, the GQA and SwiGLU corrections, the comparison with five published models and the embedding shares, N_total and N_matmul, the 2mnp rule, attention per token at context t and its causal average, the two crossovers, the derivation of the three-times-forward training cost, the series' FLOP convention as a box, the memory line in both units."
+  },
+  {
+   "id": "s12",
+   "title": "Training a tiny GPT",
+   "minutes": 17,
+   "target_words": 1150,
+   "purpose": "Walk through the eighty-line decoder, train it at character level on a CPU, sample from it, and read its loss curve, including the curve of a model with the mask removed.",
+   "must_cover": [
+    "The source code, kept (with one added line, below), toured against the sections: rope() (Section 6), Attention with GQA via repeat_interleave (Sections 4 and 9), F.scaled_dot_product_attention(..., is_causal=True) (Sections 2 and 10), Block with pre-norm and SwiGLU (Section 5), Decoder with tied embeddings and a final RMSNorm (Sections 5 and 11). The printed parameter count is 3,801,344 (source's '~3.8M').",
+    "The loss at initialisation should be log V: with small weights the logits are nearly equal, the softmax nearly uniform, and the cross-entropy -log(1/V) = log V; slightly more in practice, about log V + sigma^2/2 for logits with a small standard deviation sigma. For V = 4,096, log V = 8.318.",
+    "The added line, told as a lesson: nn.Embedding initialises its weights N(0, 1), and the output projection shares them, so the final normalised state of position t, which still resembles its own input embedding, has a dot product of about d = 256 with that embedding. The model as first written predicts its current token with a logit near 236 and starts at a loss of 231, not 8.3. Initialising the embedding with standard deviation 0.02 (GPT-2's choice) gives 8.33-8.45 across seeds. Rule: check the step-0 loss against log V before training anything.",
+    "Inputs and targets: tokens[:, :-1] predict tokens[:, 1:] (the shift); every position is a training example; a batch is a set of random windows of T + 1 characters.",
+    "The corpus of Lab 5: a generated plant-maintenance log, one record per line, e.g. 'P-104 pump pressure 4.2 bar OK end P-104', in which the status follows from the value and the identifier at the end repeats the one at the start. Reference levels in nats per character: log V = 3.829 (V = 46); unigram entropy 3.410; bigram conditional entropy 1.717; the generator's true entropy 0.330; and 0.500 if the repeated identifier is treated as unpredictable. Each number is computed in the lab.",
+    "Training (the loop of Module 02): AdamW with beta = (0.9, 0.95) and weight decay 0.1, learning rate 3e-3 with 50 warmup steps and cosine decay, gradient clipping at 1.0, batches of 32 windows of 128 characters; a 0.73M-parameter model (d = 128, 4 layers, 4 heads, 2 KV heads).",
+    "Sampling: feed a newline, take the last position's logits, divide by a temperature (0.8 here; decoding strategies are Module 07), sample, append, crop the context to the last 128 characters, repeat. Without a KV cache every step recomputes the whole window; the cache of Section 9 removes that, and Module 10 builds it.",
+    "Reading the curve: the loss falls through the unigram and bigram levels within about 100 steps and flattens near 0.5: the model has the format, the vocabulary and the status rule, and treats the closing identifier as unpredictable. Getting below 0.5 requires copying the identifier from about 35 characters back, which is an induction-style mechanism (Section 4, Lab 6). Lab 5's FULL run (1,500 steps) shows that step happening: after about 1,000 steps on the plateau the loss drops within about 200 steps to about 0.40, and from then on almost every sampled line closes with the identifier it opened with. When the drop comes is not reproducible to the step: it depends on the learning-rate schedule and even on the machine's arithmetic (prototype runs of the same 1,500-step schedule on 2, 3, 4, 6 and 8 CPU threads began the drop anywhere between steps 600 and 1,000, and all ended at 0.395-0.397), and a schedule that is too short can end in the middle of it (a 1,300-step schedule stopped at 0.44 with 14% of identifiers copied). That the drop is abrupt when it comes is the robust part. The remaining gap to 0.330 is the value distributions, which the model has not learned exactly.",
+    "Removing the mask (source): retrain with is_causal=False and the training loss falls to about 0.02 within 150-200 steps, because every position can read its target through attention; the validation loss falls just as far, because the leak is in the architecture, not in the data split; samples are garbage; scoring each next character from its prefix alone (as generation does) gives 1.27 nats for the leaky model against 0.53 for the causal model after QUICK and 0.40 after FULL (both settings train the unmasked model for the same 200 steps); the leaky model still beats the bigram level only because the last position of each training window cannot see its target. The off-by-one shift bug produces a similar too-good curve (source)."
+   ],
+   "worked_examples": [
+    "Initial loss: V = 4,096: log V = 8.318; the code as first written prints 231.4 (seed 0), 236.2 and 239.5 (seeds 1, 2); with the 0.02 initialisation 8.39, 8.33, 8.45. Lab corpus: V = 46, log V = 3.829, observed 3.884 at step 0.",
+    "Recomputation without a cache: generating 128 characters from a single newline reprocesses the whole prefix each step, 1 + 2 + ... + 128 = 8,256 position-forwards, against 128 with a KV cache, a factor of 64.5."
+   ],
+   "figures": [
+    {
+     "id": "fig-06-25",
+     "description": "Lab 5's training curves: loss (nats per character) against step on a log x-axis. Solid line: the causal model from the FULL run, starting at 3.88, crossing the unigram and bigram levels within 100 steps, sitting between 0.52 and 0.57 until about step 1,000, dropping to 0.40 by step 1,200 and ending at 0.397 (validation) at step 1,500; dashed line: the same model trained without the causal mask for 200 steps, plunging to 0.024 (validation) by step 150 and 0.019 at step 200. Horizontal reference lines labelled log V = 3.83, unigram 3.41, bigram 1.72, 'no-copy floor' 0.50 and 'true entropy' 0.33."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "A model with V = 256 reports a loss of 12.7 at step 0. What do you check first? -> The scale of the initial logits (embedding and output-projection initialisation), since log 256 = 5.55.",
+    "Why does a validation set not reveal a missing causal mask? -> The leak is present on every split; only generation or prefix-only scoring exposes it."
+   ],
+   "from_source": "Section 8 in full (the code, the parameter count, the log V remark, the is_causal remark and the zero-loss failure); Section 9's first bullet; Section 10's exercise 5.",
+   "new_material": "The initialisation fix and its explanation, the generated corpus with its reference entropies, the training settings, the reading of the curve, the leak's validation-loss and prefix-only diagnostics."
+  }
+ ],
+ "what_goes_wrong": [
+  "Training and validation loss collapse to near zero within a few hundred steps and generation is garbage -> the causal mask is missing, or the target shift is off by one, so each position reads its answer -> restore is_causal=True and the tokens[:, :-1] / tokens[:, 1:] shift; test by changing token t + 1 and checking that the logits at position t do not change, or by prefix-only scoring (Lab 5: 1.27 against 0.53 nats).",
+  "The loss at step 0 is far above log V (231 instead of 8.3 for V = 4,096) -> the logits are large at initialisation; a tied embedding initialised N(0, 1) makes each position predict its own token -> initialise the embedding with standard deviation 0.02 or scale the logits; always compare the step-0 loss with log V.",
+  "A deep post-norm model diverges in the first hundred steps -> large gradients near the output at initialisation (Xiong et al. 2020) -> use pre-norm, or a learning-rate warmup.",
+  "The loss becomes inf or NaN at long contexts in fp16 -> scores overflow fp16's maximum of 65,504 (with entries of q and k around 30, the 128 products of 900 each already sum to 115,200) -> use bf16, compute the softmax in fp32, or normalise q and k.",
+  "A RoPE model trains worse than expected and extrapolates badly -> RoPE was applied to the values, or to only one of q and k, so the score is no longer a function of t - s (Lab 2: diagonal deviation about 11 instead of 2e-14) -> rotate exactly q and k, with the same positions.",
+  "A converted checkpoint produces fluent-looking nonsense -> RoPE pairing conventions differ (adjacent pairs, as in the code here, versus the first and second halves of the head dimension in other implementations), so q and k are rotated with the wrong partners -> permute the q and k projection rows to match the convention, and compare one layer's scores with the reference implementation.",
+  "Long-context quality degrades in a model computed in bf16 -> positions or angles were computed in bf16, where positions 4,090 to 4,099 all round to 4,096, so neighbouring tokens get identical rotations -> compute positions and angles in fp32.",
+  "Batched generation continues from padding -> sequences were right-padded for a causal model -> left-pad for generation and pass the attention mask and correct position ids.",
+  "A model degrades slowly and confusingly as it generates -> positions in the KV cache were miscounted after the prompt, so RoPE angles are wrong for generated tokens -> the position of a generated token is the prompt length plus the number generated so far (Module 10).",
+  "Grouped-query attention costs quality with no error message -> KV heads repeated in the wrong order (repeat instead of repeat_interleave), so query heads use another group's keys -> unit-test against the ungrouped case by copying weights into a model with n_kv = h.",
+  "NaN appears for some sequences in a padded batch -> a query row has every key masked, and the softmax divides 0 by 0 -> make sure every query has at least one valid key, or zero those rows explicitly.",
+  "Perplexity explodes beyond the training length -> RoPE angles for the slow pairs, or absolute positions, were never seen in training -> apply position interpolation, NTK-aware scaling or YaRN with a short fine-tune, or stay within the trained length.",
+  "A head is declared to 'do' something because its attention map looks like it -> attention weights show where information was read, not what it was used for -> test with an intervention: zero the head and measure the loss (Lab 6)."
+ ],
+ "labs": [
+  {
+   "id": "lab1",
+   "title": "Attention by hand, checked against PyTorch",
+   "minutes": 30,
+   "goal": "Reproduce every number of the worked example in NumPy, confirm them with PyTorch's fused attention and autograd, and measure the effect of the 1/sqrt(d_k) scale.",
+   "data": "Synthetic: the worked example's 3 x 2 matrices, and standard-normal random vectors (numpy.random.default_rng(0)).",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Define Q = K = [[1,0],[0,1],[1,1]] and V = [[1,0],[0,2],[3,3]] as float64 arrays; write softmax(s) with max subtraction and attention(Q, K, V, causal=True, scale=True) that returns S, P, O, masking with -inf where j > i. Print S, P and O for the causal scaled case: P row 2 = [0.330 0.670 0.000], row 3 = [0.248 0.248 0.503]; O = [[1.000 0.000] [0.330 1.340] [1.759 2.007]].",
+    "Call it for the three other combinations and print the O matrices side by side: unmasked [[1.604 1.599] [1.401 2.006] [1.759 2.007]]; causal unscaled [[1.000 0.000] [0.269 1.462] [1.940 2.152]]; unmasked unscaled [[1.689 1.578] [1.422 2.112] [1.940 2.152]].",
+    "Verify with torch.nn.functional.scaled_dot_product_attention on float64 tensors of shape (1, 1, 3, 2), with is_causal=True and without: print the maximum absolute difference from the NumPy outputs (of order 1e-16).",
+    "Padding mask: stack the example twice into a batch, mark the third token of the second sequence as padding, build a boolean attn_mask of shape (2, 1, 3, 3) as (causal AND key-is-real), call SDPA and print the outputs. The first sequence is unchanged; the padded query row of the second prints (0.500, 1.000), a value that exists but must be excluded from any loss.",
+    "Softmax Jacobian of row 3: compute J = diag(p) - p p^T, print it ([[0.187 -0.062 -0.125] [-0.062 0.187 -0.125] [-0.125 -0.125 0.250]]) and its row sums (0), then compare with central finite differences (step 1e-6): maximum difference about 5e-11.",
+    "Gradient: with torch tensors requiring gradients, compute O by SDPA (causal) and backpropagate L = O[2, 1]. Print Q.grad (row 3 = [0.001 0.352], other rows 0), K.grad ([[-0.352 -0.352] [-0.001 -0.001] [0.354 0.354]]) and V.grad (column 2 = [0.248 0.248 0.503], column 1 = 0), matching Section 3.",
+    "Scale experiment: for d_k in (2, 16, 64, 128) draw 100,000 pairs of standard-normal vectors and print the standard deviation of q.k beside sqrt(d_k): 1.43/1.41, 3.99/4.00, 7.99/8.00, 11.33/11.31.",
+    "Saturation: for d_k = 128 and 16 keys, 5,000 draws, print the median largest softmax weight and the mean entropy, unscaled and scaled: 0.978 and 0.28 nats versus 0.224 and 2.36 nats (uniform: 2.77). Save the two histograms of the largest weight (this is fig-06-4, right panel).",
+    "Multi-head shapes: x = torch.randn(2, 16, 256), h = 8; print the shape after the projection's view (2, 16, 8, 32), after transpose(1, 2) (2, 8, 16, 32), of the scores (2, 8, 16, 16), of the per-head output (2, 8, 16, 32) and after merging (2, 16, 256)."
+   ],
+   "expected_observations": [
+    "The NumPy and PyTorch outputs agree to about 1e-16 in float64: the hand calculation, the formula and the fused kernel are the same computation.",
+    "Every output row is a convex combination of the value rows it may see; with the mask, row 1 is exactly v1 whatever Q and K are.",
+    "Removing the scale sharpens every row (row 3's largest weight rises from 0.503 to 0.576); at d_k = 128 the unscaled softmax is nearly one-hot in most draws, so its Jacobian, and the gradient reaching W_Q and W_K, nearly vanish.",
+    "The gradient with respect to the row-3 scores sums to zero, and only q_3, the keys and V's second column receive gradient from L = O[2, 1]."
+   ],
+   "extensions": [
+    "Multiply Q by 10 and watch row 3 approach (0, 0, 1) and its output approach v3 = (3, 3): the hard-lookup limit.",
+    "Mask every key of one query (a fully padded row) and observe the result of your NumPy softmax (NaN) and of SDPA; then guard against it.",
+    "Write multi-head attention with an explicit Python loop over heads and check it against the batched version to 1e-6."
+   ]
+  },
+  {
+   "id": "lab2",
+   "title": "RoPE, numerically",
+   "minutes": 25,
+   "goal": "Implement rotary position embedding, verify numerically that scores depend only on relative position, see what breaks it, and look at wavelengths, long-term decay, interpolation and ALiBi.",
+   "data": "Synthetic: hand-chosen and random query and key vectors (numpy.random.default_rng(0), torch.manual_seed(0)).",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Write rope_np(x, positions, base=10000.0) for arrays of shape (n, d) that rotates adjacent pairs (x[..., 0::2], x[..., 1::2]) by position x theta_i, theta_i = base^(-2i/d), exactly as the module's torch rope(). Print the one-pair example with theta = 1, q = (1, 0), k = (0, 1): scores 0.909 at (3, 1), 0.909 at (7, 5), -0.909 at (1, 3), 0.000 at (5, 5).",
+    "Place one random q and one random k (d = 64) at every position 0..63, build the 64 x 64 score matrix, and print the largest deviation of any diagonal from its own mean: about 2e-14 in float64. The matrix is Toeplitz: the score depends only on t - s.",
+    "Print the change in vector norm after rotation (about 1e-15): rotations preserve length.",
+    "Break it: rotate only q and rebuild the matrix; the diagonal deviation jumps to about 11.",
+    "Check the module's torch rope() against complex multiplication (torch.view_as_complex on adjacent pairs times torch.polar(1, angle)): maximum difference about 2e-7 in float32. Repeat the Toeplitz test in float32 at T = 256: deviation about 4e-5, the rounding of large angles in single precision.",
+    "Long-term decay: q = k = ones(128); compute the score divided by its value at offset 0 (128) for offsets 1 to 16,384 for base 10,000 and 500,000; print selected values for base 10,000 (1: 0.970, 16: 0.620, 128: 0.333, 1,024: 0.204, 4,096: -0.053) and plot both curves on a log x-axis (fig-06-13).",
+    "Wavelengths for d = 128: print the fastest and slowest (6.28 and 54,410 tokens for base 10,000) and the number of pairs longer than 4,096 tokens (18 of 64 for base 10,000; 32 for base 500,000).",
+    "Position interpolation: compute the score matrix for 256 positions with positions divided by 4, and confirm that its entries at multiples of 4 equal the original 64 x 64 matrix (difference 0.0).",
+    "ALiBi: build the bias tensor -m_h max(0, t - s) for 8 heads and T = 6; print head 1's matrix (steps of -0.5 below the diagonal) and the slopes [0.5 0.25 0.125 0.0625 0.03125 0.015625 0.0078125 0.00390625]."
+   ],
+   "expected_observations": [
+    "Rotating both q and k makes the score matrix constant along every diagonal to rounding error; rotating only one destroys the property.",
+    "Fast pairs wrap every few tokens, slow pairs barely turn within thousands; the score for aligned q and k decays with distance on average, with oscillations.",
+    "Position interpolation maps a longer range of positions onto angles already seen in training, which is why it needs only a short fine-tune."
+   ],
+   "extensions": [
+    "Compute the NTK-aware base for kappa = 4 (40,890) and plot the 64 wavelengths before and after on a log scale with a line at 4,096.",
+    "Implement the 'rotate half' convention (pair dimension i with i + d/2) and show it also gives a Toeplitz matrix but different numbers for the same q and k: the source of checkpoint-conversion bugs.",
+    "Add RoPE to Lab 1's attention and confirm that shifting all positions by the same amount leaves every output unchanged."
+   ]
+  },
+  {
+   "id": "lab3",
+   "title": "Online softmax and tiled attention",
+   "minutes": 30,
+   "goal": "Implement the online softmax and a FlashAttention-style tiled forward pass in NumPy, and show they equal the naive computation while never holding more than one tile of scores.",
+   "data": "Synthetic: random scores and random Q, K, V (numpy.random.default_rng(0)); the worked example.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Naive versus safe softmax on (1000, 1001, 1002): the naive version overflows and prints [nan nan nan] (silence NumPy's warning with np.errstate); the safe version prints [0.090 0.245 0.665].",
+    "Write online_softmax_stats(s) that streams once through s keeping (m, l) with the update m' = max(m, s_j), l' = l exp(m - m') + exp(s_j - m'). On 10,000 scores drawn with standard deviation 5, turn (m, l) into probabilities and compare with the safe softmax: maximum difference about 9e-16.",
+    "Trace row 3 of the worked example with blocks of two keys, printing m, l and the accumulator after each block: after block 1 m = 0.707, l = 2.000, a = [1, 2]; after block 2 m = 1.414, rescale 0.493, l = 1.986, a = [3.493, 3.986]; output a / l = [1.759, 2.007].",
+    "Write tiled_attention(Q, K, V, Br=64, Bc=64, causal=True) following Algorithm 1: outer loop over query blocks; per row running m, l and accumulator; inner loop over key/value blocks, stopping at the diagonal block when causal and masking inside it; output acc / l. On T = 1,024, d = 64 float64 inputs, print the maximum difference from naive attention (about 5.6e-16), the same in float32 against the float64 reference (about 3.4e-7, the same as naive float32), and unmasked (about 1.7e-16).",
+    "Print the bookkeeping: tiles computed 136 of 256 under the causal mask; the largest score block held 64 x 64 x 8 B = 32 KiB, against 1,024^2 x 8 B = 8 MiB for the naive score matrix.",
+    "Run the worked example through tiled_attention with Br = 1, Bc = 2 and confirm it prints [[1, 0], [0.330, 1.340], [1.759, 2.007]].",
+    "Time both functions once and remark that on a CPU in NumPy the timing says nothing about a GPU: the benefit of tiling is fewer bytes moved between HBM and on-chip memory, which this lab counts rather than measures."
+   ],
+   "expected_observations": [
+    "The online and tiled computations equal the naive ones to rounding error; reordering the arithmetic changes nothing that matters.",
+    "The rescaling factor exp(m - m') is the only new idea; dropping it (try it) gives wrong outputs whenever a later block holds a larger score.",
+    "Under a causal mask about half the tiles are never computed, and memory for scores stays at one tile however long the sequence."
+   ],
+   "extensions": [
+    "Implement the backward pass by recomputation: store only the log-sum-exp per row, recompute each tile of P, and check dQ, dK, dV against PyTorch autograd on T = 128.",
+    "Use unequal tiles (Br = 32, Bc = 128) and confirm the output does not change.",
+    "Count element reads and writes of Q, K, V, S, P and O for the naive and tiled versions as a function of an assumed on-chip capacity M, and compare with the Theta(T d + T^2) and Theta(T^2 d^2 / M) of Dao et al."
+   ]
+  },
+  {
+   "id": "lab4",
+   "title": "A parameter and FLOP counter for Llama-style models",
+   "minutes": 25,
+   "goal": "Write a counter for decoder parameters, FLOPs under Section 11's convention and KV-cache size from a configuration, and check it against PyTorch, against the module's Decoder and against five published models.",
+   "data": "Configurations of published models hard-coded in the lab from their config.json files (no download); optional cross-check with transformers on PyTorch's meta device (no download, no memory).",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Write a dataclass Cfg(name, V, d, L, h, n_kv, d_ff, tied, glu=True, bias='none'|'qkv'|'all', learned_pos=0, norm_bias=False) and count(cfg) returning a dict with embeddings, per-layer attention, per-layer MLP, norms, the total (N_total) and n_matmul (the total minus an untied input embedding and any learned position table), following Section 11.",
+    "Check it against the module's Decoder built in PyTorch: both give 3,801,344.",
+    "Count six configurations and print a table (model, count, 12Ld^2, non-embedding / 12Ld^2, embedding share, published size, KV-cache bytes per token in bf16 with KiB in brackets): source tiny decoder 3,801,344 / 3,145,728 / 0.875 / 27.6% / - / 1,024 (1.0); GPT-2 small (V 50,257, d 768, L 12, 12 heads, d_ff 3,072, GELU MLP, biases, 1,024 learned positions, LayerNorm with bias, tied) 124,439,808 / 84,934,656 / 1.001 / 31.6% / 124M / 36,864 (36.0); SmolLM2-135M (V 49,152, d 576, L 30, 9 heads, 3 KV, d_ff 1,536, tied) 134,515,008 / 119,439,360 / 0.889 / 21.0% / 135M / 23,040 (22.5); Qwen2.5-0.5B (V 151,936, d 896, L 24, 14 heads, 2 KV, d_ff 4,864, q/k/v biases, tied) 494,032,768 / 231,211,008 / 1.548 / 27.6% / 0.49B / 12,288 (12.0); Llama-2-7B (V 32,000, d 4,096, L 32, 32 heads, 32 KV, d_ff 11,008, untied) 6,738,415,616 / 6,442,450,944 / 1.005 / 3.9% / 6.7B / 524,288 (512.0); Llama-3-8B (V 128,256, d 4,096, L 32, 32 heads, 8 KV, d_ff 14,336, untied) 8,030,261,248 / 6,442,450,944 / 1.083 / 13.1% / 8B / 131,072 (128.0).",
+    "Optional cross-check: build each Llama-family configuration with transformers.LlamaConfig and LlamaForCausalLM inside 'with torch.device(\"meta\"):' (and Qwen2Config/Qwen2ForCausalLM, GPT2Config()/GPT2LMHeadModel) and sum p.numel(): identical counts, built in seconds without allocating weights.",
+    "Write flops_per_token(cfg, t, causal_avg=False, train=False) implementing Section 11's convention: 2 n_matmul + 4Ldt, or 2 n_matmul + 2Ldt when causal_avg (t is then the sequence length T), times 3 when train. For Llama-2-7B print 2 n_matmul = 13.21 GFLOP; the attention paid by one token at t = 512, 4,096 and 32,768 (0.27, 2.15, 17.18 GFLOP; 2.0%, 14.0%, 56.5% of that token's total); the causal average at T = 4,096 (1.07 GFLOP, +8.1% on the matrix multiplies); and the exact crossovers t = 25,205 and T = 50,410 beside the rule's 6d = 24,576 and 12d = 49,152.",
+    "Training FLOPs per token for Llama-2-7B at T = 4,096: 6 n_matmul + 6LdT = 39.64 + 3.22 = 42.87 GFLOP, beside the quick 6 N_total = 40.43 GFLOP (5.7% low). Exercise e13 multiplies by the training tokens.",
+    "Plot the parameter breakdown as stacked bars (fig-06-23) and FLOPs against context (fig-06-24)."
+   ],
+   "expected_observations": [
+    "The counter reproduces every published size exactly; the 12Ld^2 rule is within 1% for the multi-head 7B model but off by -11% to +55% for small models with GQA or wide FFNs.",
+    "Embeddings are a fifth to a third of a small model and under 4% of a 7B multi-head model.",
+    "Attention FLOPs are a rounding error at short context; for a single token they overtake the matrix multiplies beyond about 6d tokens of context, and averaged over a causal sequence beyond about 12d."
+   ],
+   "extensions": [
+    "Add a mixture-of-experts option (E experts, top-k routing) and print total versus active parameters per token (concept in Module 05, engineering in Module 08).",
+    "Fetch the configuration of HuggingFaceTB/SmolLM2-360M with transformers.AutoConfig (a download of about 1 KB) and confirm 361,821,120 parameters.",
+    "Add a function for KV-cache bytes against context length and plot it for MHA, GQA-8 and MQA at the Llama-2-7B shape."
+   ]
+  },
+  {
+   "id": "lab5",
+   "title": "Train a tiny GPT, sample from it, then remove the mask",
+   "minutes": 50,
+   "goal": "Train the module's decoder at character level on a laptop CPU, confirm that the step-0 loss is log V, read the loss curve against reference entropies, sample and score the samples, then remove the causal mask and explain the curve that results.",
+   "data": "Generated by the lab: 12,000 seeded lines of a synthetic plant-maintenance log (486,841 characters, V = 46), split 90/10 into training and validation by position. No download.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 3,
+   "steps": [
+    "Set QUICK = True at the top: 300 causal steps and 200 without the mask, about 2 minutes on the prototype machine and about 3 on a laptop CPU. QUICK = False runs FULL_STEPS = 1,500 causal steps (a named constant) and the same 200 steps without the mask: about 5 minutes on the prototype machine (about 7 under load) and up to about 11 on a laptop, inside the 15-minute cap. Fix every seed: random.Random(0) for the corpus, torch.manual_seed(0) before building each model, torch.Generator seeds 1 (training batches), 2 (validation batches), 3 (sampling) and 5 (prefix-only evaluation).",
+    "Generate the corpus. For each of 12,000 lines draw, in this order, a letter from 'PTCHV', an identifier number 0-999 (printed with three digits) and a value from the letter's range: P pump pressure uniform 0.5-7.5 bar printed to one decimal (LOW below 2.0, HIGH above 6.0); T tank level integer 2-99 % (LOW below 10, HIGH above 90); C compressor speed integer 2,400-3,300 rpm (LOW below 2,600, HIGH above 3,100); H exchanger outlet integer 35-95 C (LOW below 40, HIGH above 85); V valve position integer 0-100 % (always OK). Write each line as 'P-104 pump pressure 4.2 bar OK end P-104'. Print the size (486,841 characters, 12,000 lines), V = 46 and the first three lines: 'H-776 exchanger outlet 91 C HIGH end H-776', 'H-041 exchanger outlet 51 C OK end H-041', 'V-497 valve position 51 % OK end V-497'.",
+    "Print reference levels in nats per character: log V = 3.829; unigram entropy 3.410 and bigram conditional entropy 1.717 (plug-in estimates from training-split counts); from the generator's own distribution, the true entropy 0.330 (13.39 nats per line over 40.57 characters per line: letter ln 5, three digits 3 ln 10, value 4.875 on average) and the floor for a model that cannot copy the closing identifier, 0.500 (20.30 nats per line).",
+    "Build the module's Decoder with vocab = 46, d = 128, 4 layers, 4 heads, 2 KV heads (d_ff = 341; 727,424 parameters) and a causal flag passed down to the attention's is_causal. First as written: print the loss on one batch, about 120 against log V = 3.83. Then add nn.init.normal_(model.emb.weight, std=0.02) and print it again: 3.884.",
+    "Train with AdamW (lr 3e-3, betas (0.9, 0.95), weight decay 0.1), a linear warmup over 50 steps then cosine decay to zero at the last step, gradient clipping at 1.0, batches of 32 random windows of 129 characters (128 inputs and 128 shifted targets). Print the training loss, the validation loss (mean of 10 batches) and the elapsed time at step 1 and every 100 steps, in both settings.",
+    "Sample 32 sequences of 240 characters at temperature 0.8, each starting from a newline, cropping the context to the last 128 characters, and print the first. Parse every complete line with ^([PTCHV])-(\\d{3}) (\\w+) (\\w+) (\\d+(?:\\.\\d)?) (\\S+) (OK|LOW|HIGH) end ([PTCHV]-\\d{3})$, require kind, quantity and unit to match the letter, and print three shares: well-formed lines; among them, lines whose closing identifier equals the opening one; and lines whose status is right for the value.",
+    "Remove the mask: rebuild with causal=False from the same seed and train 200 steps (in both settings) with the same optimiser and schedule; print the losses, sample once, and score both models on 200 prefix-only predictions from the validation split (a random window, a random prefix length 8-127, the next character scored from the last position only, which is what generation does).",
+    "Plot both training curves on a log step axis with horizontal lines at log V, the unigram and bigram entropies, 0.500 and 0.330 (fig-06-25)."
+   ],
+   "expected_observations": [
+    "QUICK, causal: step 1 train 3.884 / validation 3.855; step 100 0.558 / 0.567; step 200 0.551 / 0.545; step 300 0.532 / 0.536. The loss passes the unigram and bigram levels within 100 steps and flattens just above the 0.500 floor. Samples look right ('P-201 pump pressure 5.6 bar OK end P-828'), with the odd slip ('247r rpm'): 98.3% of 174 lines well-formed, statuses right for 87.1%, but the closing identifier copied in 0.0%: the model has learned the format and most of the status rule, and treats the closing identifier as random.",
+    "FULL, causal (1,500 steps): the plateau holds (0.565 / 0.572 at step 100, 0.539 / 0.531 at 500, 0.527 / 0.525 at 900), then the loss drops within about 200 steps: 0.504 / 0.508 at step 1,000, 0.425 / 0.418 at 1,100, 0.404 / 0.403 at 1,200, ending at 0.396 / 0.397 at 1,500. The drop is the model learning to copy the closing identifier from about 35 characters back, an induction-style mechanism (Lab 6): of 172 sampled lines 99.4% are well-formed, 98.2% close with their opening identifier and 99.4% have the right status ('P-201 pump pressure 5.6 bar OK end P-201'; the next line, 'C-143 compressor speed 3096 rpm OK end C-193', is one of the rare misses). The loss stays above the true 0.330 because the value distributions are not learned exactly. When the drop starts varies between machines: run on 2, 3, 6 and 8 threads instead of 4, the same schedule began its drop between steps 600 and 900 and still ended at 0.395-0.396 with 99-100% of identifiers copied. If a FULL run ends with the loss still between 0.50 and 0.40, the drop was under way when the learning rate ran out: set FULL_STEPS = 2,000 and rerun (about a third longer). The unmasked run is QUICK's 200 steps; prefix-only scoring gives 1.27 nats for the leaky model against 0.396 for the FULL causal model.",
+    "Without the mask (QUICK): step 50 0.976 / 0.906; step 100 0.274 / 0.261; step 150 0.027 / 0.024; step 200 0.018 / 0.019. The validation loss falls with the training loss because the leak is in the model, not the split. Samples are runs of one repeated letter; 2 of 53 lines parse, by chance. Scored from prefixes alone, the leaky model loses 1.27 nats per character against 0.53 for the causal model: it learned to read its answer, not to predict it. It still beats the bigram level (1.72) because the last position of every training window cannot see its target, so one position in 128 was trained honestly.",
+    "On the prototype machine (a desktop CPU limited to 4 threads, with other jobs running) a causal step took 160-350 ms depending on load; QUICK finished in 122 s end to end (183 ms per causal step), and FULL (1,500 + 200 steps) in about 5 minutes at 171 ms per causal step, which would be about 7 minutes at the 246 ms per step measured under heavier load. Expect up to about one and a half times longer on a laptop, about 11 minutes for FULL; the last digits of every loss may differ between machines, and so may the step at which FULL's drop begins."
+   ],
+   "extensions": [
+    "Train on a plain-text file of your own (0.2-2 MB: notes, a public-domain book, a source file). Report log V, the unigram and bigram entropies, the final validation loss and a sample; then remove the mask and explain the curve.",
+    "Predict, then test: with a context window of 32 characters the closing identifier is about 35 characters after the opening one. What floor should the loss stop at, however long you train? (0.500.)",
+    "Sample at temperatures 0.3 and 1.5 and recount the three shares (decoding strategies are Module 07)."
+   ]
+  },
+  {
+   "id": "lab6",
+   "title": "Find an induction head",
+   "minutes": 30,
+   "goal": "Train a two-layer attention-only transformer on sequences that repeat, watch the copying ability appear abruptly, identify the previous-token and induction heads by their attention, and confirm their role by ablation.",
+   "data": "Synthetic: sequences of 64 tokens over a 64-token vocabulary in which a random segment of random length 10-32 is immediately repeated (torch.Generator seeded 1; evaluation seeded 9 and 11).",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 3,
+   "steps": [
+    "Generator: draw 64 random tokens; draw n uniformly from 10 to 32; overwrite positions n..2n-1 with positions 0..n-1; mark positions n+1..2n-1 as predictable (the first token of the copy cannot be predicted). Varying n stops the model from solving the task with a fixed positional offset.",
+    "Model: embedding (std 0.02), two layers of pre-RMSNorm multi-head attention (d = 64, 4 heads, RoPE, explicit softmax so the weights can be returned), no FFN, final RMSNorm, untied output layer. Write the attention by hand rather than with SDPA so that the weights are available.",
+    "Train 1,500 steps, batch 64, AdamW lr 1e-3, no weight decay; every 100 steps print the mean loss on predictable and on unpredictable positions. Expected: unpredictable stays at about 4.2-4.4 (ln 64 = 4.16); predictable falls slowly to 3.34 at step 500, then 2.68 at 600, 1.34 at 700, 0.79 at 800, 0.48 at 1,000 and 0.32 at 1,500.",
+    "Score every head on 256 fresh sequences: previous-token score = mean weight from t to t - 1; induction score = mean weight from a predictable position t to t - n + 1. Expected: layer 0 heads previous-token 0.04, 0.39, 0.20, 0.35 and induction about 0; layer 1 heads induction 0.88, 0.63, 0.89, 0.89.",
+    "Plot the attention pattern of the strongest previous-token head and the strongest induction head on one sequence (fig-06-8).",
+    "Ablation: zero one head's output before W_O and re-measure the predictable-position loss on 512 fresh sequences. Expected: baseline 0.34; zeroing any single layer-0 head 1.25-1.78; zeroing any single layer-1 head 0.75-1.95; zeroing all of layer 0 4.95 and all of layer 1 4.57, worse than guessing.",
+    "Control: retrain with one layer; the predictable-position loss stays near 3.3 (it learns that tokens seen earlier are likely to recur, not which one comes next) and no head's induction score exceeds 0.1."
+   ],
+   "expected_observations": [
+    "The copying ability appears in a few hundred steps after a long plateau, the abrupt formation that Olsson et al. describe.",
+    "Two layers are necessary: the induction head in layer 1 needs the previous-token information that layer 0 writes into each position; one layer cannot do it.",
+    "Attention maps suggest the roles; the ablations confirm them. Every head of layer 0 matters, including the one whose previous-token score is low, which is a reminder that a single score is a summary, not an explanation."
+   ],
+   "extensions": [
+    "Add SwiGLU FFNs and see whether the transition moves earlier or later.",
+    "Fix n = 32 for every sequence and show that a one-layer model now succeeds, because a fixed offset can be found by position alone.",
+    "Apply the induction score to the model trained in Lab 5 FULL mode, using the closing identifier of each line as the copied segment."
+   ]
+  }
+ ],
+ "exercises": [
+  {
+   "id": "e1",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "Under a causal mask the first position's attention output is exactly v_1, whatever Q and K are. Explain why, and say what this implies for the first position's next-token prediction in a decoder-only model.",
+   "solution_sketch": "Row 1 has one unmasked score; the softmax of a single number is 1, so the output is v_1. Every layer behaves the same way at position 1, so the prediction made at position 1 depends only on the first token (and its position): the model is a bigram predictor there. The loss at position 1 therefore stays high, which is one reason the per-position loss falls with position."
+  },
+  {
+   "id": "e2",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "Add a fourth token to the worked example of Section 3, with q_4 = k_4 = (1, -1), and remove the causal mask. Replace V by the 4 x 4 identity, so that each output row is that row's attention weights. Give the four rows to three decimals and interpret them: what does the new key do to rows 1-3, what weight does a key orthogonal to the query receive, and which rows would a causal mask have left exactly as in Section 3?",
+   "solution_sketch": "Scaled scores Q K^T / sqrt(2): row 1 (0.707, 0, 0.707, 0.707); row 2 (0, 0.707, 0.707, -0.707); row 3 (0.707, 0.707, 1.414, 0); row 4 (0.707, -0.707, 0, 1.414). Only four exponentials occur: e^0.707 = 2.028, e^0 = 1, e^-0.707 = 0.493, e^1.414 = 4.113; the row sums are 7.084, 5.549, 9.169 and 7.634. Weights, which are the outputs because V = I: (0.286, 0.141, 0.286, 0.286); (0.180, 0.365, 0.365, 0.089); (0.221, 0.221, 0.449, 0.109); (0.266, 0.065, 0.131, 0.539). Without a mask every row gains a term in its denominator, so the first three tokens all change: token 3's weight on itself falls from 0.503 to 0.449. Key 4 is orthogonal to q_3 (score 0) and still receives 0.109: the softmax gives every visible key exp(score) > 0, so orthogonal does not mean ignored, and a negative score (row 4 on key 2, -0.707) only means a small weight (0.065). With the causal mask, rows 1-3 would be exactly those of Section 3, because no earlier row can see token 4; only row 4 would be new. With identity values the output is the attention map itself, which is what attention plots show."
+  },
+  {
+   "id": "e3",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "In the soft lookup of Section 1 the scaled weights are (0.248, 0.248, 0.503); without the 1/sqrt(d_k) factor they become (0.212, 0.212, 0.576). Describe what happens to the weights of a typical row at d_k = 128 with unit-variance queries and keys, and why this slows the learning of W_Q and W_K.",
+   "solution_sketch": "The scores have standard deviation sqrt(128) = 11.3, so typical gaps between scores are around 10 and the softmax is nearly one-hot (median largest weight 0.978 over 16 keys). The Jacobian diag(p) - p p^T is then nearly zero (J_11 = 2.5e-5 for scores (11.3, 0, 0)), so dL/ds and hence the gradients reaching W_Q and W_K are tiny; the model starts with an almost fixed, arbitrary attention pattern and learns to change it slowly."
+  },
+  {
+   "id": "e4",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "Let P be a T x T permutation matrix. (a) Show that unmasked self-attention without position information is permutation-equivariant: Attention(PX) = P Attention(X). (b) Show that permuting keys and values together, but not the queries, leaves the output unchanged. (c) Does (a) still hold with a causal mask? Conclude why position must be injected.",
+   "solution_sketch": "(a) Q' = PXW_Q = PQ, K' = PK, V' = PV; S' = P Q K^T P^T / sqrt(d_k) = P S P^T. A row-wise softmax commutes with permuting rows, and with permuting the columns of every row by the same permutation, so softmax(P S P^T) = P softmax(S) P^T; the output is P softmax(S) P^T P V = P softmax(S) V, using P^T P = I. (b) softmax(S P^T) P V = softmax(S) P^T P V = softmax(S) V. (c) No: the mask depends on position, so permuting the input changes which keys each query may see; a causal model can infer some position from how many tokens it sees. Without a mask the model treats its input as a set, so 'dog bites man' and 'man bites dog' produce the same outputs in permuted order."
+  },
+  {
+   "id": "e5",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "Write the residual update of a pre-norm and of a post-norm block. In which is there an unbroken identity path from the embedding to the last layer, and what does that imply for the gradient at initialisation?",
+   "solution_sketch": "Pre-norm: x <- x + F(Norm(x)). Post-norm: x <- Norm(x + F(x)). Pre-norm has the identity path: x_L = x_0 + sum_l F_l(Norm(x_l)), so dx_L/dx_l = I + (terms through the layers), and the gradient reaches every layer at least through the identity. In post-norm each Norm's Jacobian sits on the path, so gradients are rescaled L times; at initialisation those near the output are large (Xiong et al. 2020), which is why post-norm needs warmup."
+  },
+  {
+   "id": "e6",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "Section 6 proved in complex form that one RoPE pair contributes a score depending only on t - s. (a) Write R_t, the d_k x d_k block-diagonal matrix of 2 x 2 rotations by t theta_i, and prove R_t^T R_s = R_{s-t}, hence (R_t q)^T (R_s k) = q^T R_{s-t} k. (b) Show that RoPE preserves vector norms. (c) Show that rotating the values too would make the attention output depend on absolute position.",
+   "solution_sketch": "(a) Each block is R(t theta_i) = [[cos, -sin], [sin, cos]]; R(a)^T = R(-a) and R(a)R(b) = R(a + b), so block by block R(t theta_i)^T R(s theta_i) = R((s - t) theta_i); then (R_t q)^T (R_s k) = q^T R_t^T R_s k = q^T R_{s-t} k, a function of q, k and s - t only. (b) R_t is orthogonal: ||R_t q||^2 = q^T R_t^T R_t q = q^T q. (c) The output at t would be sum_s p_ts R_s v_s: each value carries the rotation of its absolute position s, so the same content at shifted positions gives differently rotated vectors and the downstream layers see absolute position."
+  },
+  {
+   "id": "e7",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A model trained with learned absolute position embeddings for 1,024 positions is given a 2,000-token input. What happens? Why does a RoPE model degrade more gracefully, and why does it still degrade?",
+   "solution_sketch": "Positions 1,024 and beyond have no embedding row (an index error) or, if the table is larger, untrained vectors; the model has no meaningful input for them. RoPE defines a rotation for every position and the score depends only on t - s, so every relative offset up to 1,023 was seen in training; offsets beyond that put the slow pairs at angles never seen, and quality falls (Section 6, context extension)."
+  },
+  {
+   "id": "e8",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "BERT is trained to fill in masked tokens with bidirectional attention. Give two reasons it cannot be used as it stands to generate text left to right.",
+   "solution_sketch": "It was never trained to predict the next token from a prefix: during training it always had context on both sides, and at generation time the right-hand context does not exist. Its loss covered only the 15% of selected positions, so its outputs elsewhere are not trained next-token distributions. (Also, with no causal mask, every generated token would change every earlier representation, so each step re-encodes the whole sequence.)"
+  },
+  {
+   "id": "e9",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "Llama-3-8B has 32 query heads and 8 key-value heads with head dimension 128 at d = 4,096. Compared with a multi-head version of the same model, which weight matrices are smaller and by what factor, and which inference-time tensor shrinks by the same factor? Which costs do not change?",
+   "solution_sketch": "W_K and W_V map d = 4,096 to n_kv d_head = 1,024 dimensions instead of 4,096, so each is a quarter of its multi-head size; W_Q, W_O and the FFN are unchanged. The KV cache per token shrinks by the same factor of 4 (Section 9: from 524,288 B (512 KiB) to 131,072 B (128 KiB) in bf16 at L = 32). The FLOPs of Q K^T and P V do not change, because every query head still attends over every key, and neither do those of W_Q, W_O and the FFN."
+  },
+  {
+   "id": "e10",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "FlashAttention and sliding-window attention both reduce the memory of attention. Explain in one sentence each why one of them leaves the model's outputs unchanged and the other does not, and what that means for using each with an existing trained model.",
+   "solution_sketch": "FlashAttention computes exactly the same softmax(QK^T/sqrt(d_k))V in a different order (tiles with running maxima and sums), so outputs agree to rounding and it can replace the standard kernel in any trained model. Sliding-window attention masks keys further back than w, which changes the function itself, so a model must be trained (or at least fine-tuned) with the window it will be served with."
+  },
+  {
+   "id": "e11",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "Online softmax by hand: process scores s = (2, 1, 3, 0) with scalar values v = (1, 2, 3, 4) in two blocks of two. Write m, l and the unnormalised accumulator a after each block, give the output a / l, and check it against the direct softmax-weighted average.",
+   "solution_sketch": "Block 1, s = (2, 1): m = 2, l = 1 + e^-1 = 1.368, a = 1 x 1 + e^-1 x 2 = 1.736. Block 2, s = (3, 0): m' = 3, rescale e^(2-3) = 0.368; l' = 1.368 x 0.368 + e^0 + e^-3 = 0.503 + 1 + 0.050 = 1.553; a' = 1.736 x 0.368 + 1 x 3 + 0.050 x 4 = 0.639 + 3 + 0.199 = 3.838; output 3.838 / 1.553 = 2.471. Direct: softmax(2, 1, 3, 0) = (0.237, 0.087, 0.644, 0.032); weighted average 0.237 + 0.174 + 1.932 + 0.128 = 2.471."
+  },
+  {
+   "id": "e12",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "Count the parameters of the module's Decoder (vocab = 4,096, d = 256, 4 layers, 8 heads, 2 KV heads, d_ff = int(8 x 256 / 3), tied embeddings, RMSNorm with a weight and no bias) by hand: embeddings, per-layer attention, per-layer FFN, norms, final norm. Compare with the printed number and with 12Ld^2, and explain the difference.",
+   "solution_sketch": "Embeddings 4,096 x 256 = 1,048,576 (counted once: tied). d_k = 32, KV width 2 x 32 = 64. Attention: wq 65,536 + wk 16,384 + wv 16,384 + wo 65,536 = 163,840. d_ff = 682; FFN 3 x 256 x 682 = 523,776. Norms 2 x 256 = 512. Per layer 688,128; four layers 2,752,512; final norm 256. Total 3,801,344, as printed. 12Ld^2 = 3,145,728 assumes full multi-head attention (4d^2 = 262,144 per layer) and an FFN of exactly 8d^2 = 524,288: GQA saves 98,304 per layer and the rounding of 682.7 down to 682 saves 512; the norms add 512 per layer; the embeddings add 1,048,576."
+  },
+  {
+   "id": "e13",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 15,
+   "prompt": "Llama 2 7B (N_total = 6,738,415,616 parameters, of which the untied input embedding is V d = 131,072,000; L = 32, d = 4,096) was pretrained on 2.0 trillion tokens in sequences of 4,096; its paper reports 184,320 A100 GPU-hours for this model. (a) Estimate the training compute twice: with the quick C = 6 N_total D, and with Section 11's convention, C = (6 N_matmul + 6LdT) D. (b) Turn each into a sustained FLOP/s per GPU and a fraction of the A100's dense bf16 peak of 312 TFLOP/s (NVIDIA's specification). (c) Why does the quick estimate land close, and what does even the convention leave out?",
+   "solution_sketch": "(a) Quick: 6 x 6.738e9 x 2.0e12 = 8.09e22 FLOPs. Convention: N_matmul = 6,607,343,616, so 6 N_matmul D = 7.93e22; causal attention 6LdT D = 6 x 32 x 4,096 x 4,096 x 2.0e12 = 6.44e21, 8.1% on top of the matrix multiplies; C = 8.57e22. (b) GPU-seconds 184,320 x 3,600 = 6.64e8; 8.09e22 / 6.64e8 = 1.22e14 FLOP/s per GPU, 39% of peak; 8.57e22 / 6.64e8 = 1.29e14 FLOP/s, 41%. (c) The quick form counts the input embedding, which costs no FLOPs (1.6e21), and omits attention (6.4e21); the two errors partly cancel and it lands 5.7% low. Attention adds about 8%, not 16%: 16% is what the last token of a 4,096-token context pays, or what a kernel that also computes the masked half would spend (utilisation would then come out at about 45%). Neither form counts recomputed activations, evaluation, restarts or lost steps, which used GPU-hours without adding model FLOPs, so the arithmetic units were busier than 41% while the job ran. Module 08 plans H100 runs at an assumed 40% (4e14 FLOP/s sustained), the same order."
+  },
+  {
+   "id": "e14",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A colleague's character-level causal transformer reaches a training loss of 0.02 nats per character after 150 steps, and the validation loss is just as low. Name two bugs that produce exactly this, and one check that separates a real model from a leak.",
+   "solution_sketch": "A missing or wrong causal mask (is_causal=False, a mask of the wrong orientation), or a target that is not shifted (targets equal inputs, or the input includes the target). Checks: generate text (a leak generates garbage); score each next character from its prefix alone (Lab 5: 1.27 nats for the leaky model against 0.53 for the causal one); or change token t + 1 and confirm the logits at t do not move. The validation loss cannot tell, because the leak is in the model, not the split."
+  },
+  {
+   "id": "e15",
+   "level": 3,
+   "kind": "coding",
+   "minutes": 25,
+   "prompt": "Replace F.scaled_dot_product_attention in the module's Attention class by an explicit implementation that builds the (B, h, T, T) score matrix, masks the upper triangle with -inf and applies the softmax. (a) Check that the outputs agree with the fused call to within 1e-5. (b) With B = 1, h = 8, d_k = 64 in float32, time both versions at T = 512, 2,048 and 4,096 on your machine and compute the size of the score matrix at each T. (c) On a GPU (Colab), measure torch.cuda.max_memory_allocated for both at T = 512, 2,048 and 8,192. Then restore the fused call.",
+   "solution_sketch": "Explicit: s = q @ k.transpose(-2, -1) / sqrt(d_k); s = s.masked_fill(torch.triu(torch.ones(T, T, dtype=torch.bool), 1), float('-inf')); y = s.softmax(-1) @ v. Maximum difference about 6e-7. Score matrix B h T^2 x 4 bytes: 8 MiB, 128 MiB, 512 MiB (and 2 GiB at 8,192). On the prototype CPU (4 threads) the explicit version took about 0.009, 0.11 and 0.50 s against 0.003, 0.014 and 0.048 s fused; the explicit time grows roughly as T^2 and is dominated by writing and reading the score matrix. On a GPU the explicit version's peak memory grows as T^2 (gigabytes at 8,192) while the fused kernel's stays nearly linear in T, which is the point of Section 10. Expect different absolute times on your hardware."
+  }
+ ],
+ "quiz": [
+  {
+   "question": "For a batch of B sequences of length T with h heads of width d_k, what is the shape of the attention-weight tensor?",
+   "options": [
+    "(B, T, d)",
+    "(B, h, T, d_k)",
+    "(B, h, T, T)",
+    "(B, T, T, h)"
+   ],
+   "answer": 2,
+   "explanation": "Each head scores every query position against every key position, giving a T x T matrix per head per sequence: (B, h, T, T). (B, h, T, d_k) is the shape of q, k, v and the per-head output; (B, T, d) is the shape entering and leaving the layer; (B, T, T, h) is a legal layout but not the one the code produces."
+  },
+  {
+   "question": "Why are the scores divided by sqrt(d_k)?",
+   "options": [
+    "To keep the scores at roughly unit variance, so the softmax does not saturate and its gradient does not vanish at initialisation",
+    "To make each row of attention weights sum to one",
+    "To reduce the number of FLOPs in Q K^T",
+    "To make attention independent of the sequence length"
+   ],
+   "answer": 0,
+   "explanation": "With independent unit-variance entries, q.k has variance d_k; dividing by sqrt(d_k) restores variance 1. The softmax already makes rows sum to one, the division adds FLOPs rather than removing them, and it has nothing to do with T."
+  },
+  {
+   "question": "Under a causal mask, what is the attention weight of position 3 on position 5?",
+   "options": [
+    "A small positive number that training drives towards zero",
+    "Exactly zero",
+    "Equal to the weight of position 5 on position 3",
+    "1/T"
+   ],
+   "answer": 1,
+   "explanation": "The score is set to -inf before the softmax, and exp(-inf) = 0 exactly. Nothing is learned about it; the future is structurally invisible. Attention is not symmetric, and 1/T is the uniform weight without a mask."
+  },
+  {
+   "question": "An unmasked transformer layer with no positional encoding receives a sentence, and then the same sentence with its tokens shuffled. How do the two sets of output vectors compare?",
+   "options": [
+    "Identical, in the same order",
+    "Entirely different",
+    "The same vectors, shuffled in the same way as the input",
+    "They differ only by a scale factor"
+   ],
+   "answer": 2,
+   "explanation": "Self-attention without position is permutation-equivariant: Attention(PX) = P Attention(X). The model sees a set, which is why order must be injected. The outputs are not in the original order, nor different vectors."
+  },
+  {
+   "question": "Which tensors does RoPE rotate?",
+   "options": [
+    "The token embeddings, once, at the input",
+    "Queries, keys and values",
+    "Only the attention output",
+    "Queries and keys, in every attention layer"
+   ],
+   "answer": 3,
+   "explanation": "RoPE rotates q and k so that their dot product depends only on t - s; values are untouched, and the rotation is applied inside every layer. Adding a vector at the input is what sinusoidal and learned absolute encodings do."
+  },
+  {
+   "question": "A decoder has L = 32 layers of width d = 4,096 with multi-head attention and an FFN of 8d^2 parameters. About how many parameters are in its layers, excluding embeddings?",
+   "options": [
+    "0.5 billion",
+    "6.4 billion",
+    "2.1 billion",
+    "12.9 billion"
+   ],
+   "answer": 1,
+   "explanation": "12 L d^2 = 12 x 32 x 4,096^2 = 6.44e9: 4d^2 for attention and 8d^2 for the FFN per layer. 2.1B counts only the attention (4 L d^2); 12.9B counts every layer twice; 0.5B would need a width of about 1,100 at the same depth."
+  },
+  {
+   "question": "For a dense decoder at short context, with N_matmul parameters in its matrix multiplies, the forward pass costs about how many FLOPs per token, and a training step about how many per token?",
+   "options": [
+    "2 N_matmul and 6 N_matmul",
+    "N_matmul and 3 N_matmul",
+    "2 N_matmul and 4 N_matmul",
+    "6 N_matmul and 18 N_matmul"
+   ],
+   "answer": 0,
+   "explanation": "Each such weight takes part in one multiply-add per token in the forward pass (2 FLOPs); the backward pass computes two products of the same size per layer (gradients with respect to inputs and weights), so training costs three times the forward pass. At long context add attention, 4Ldt per token at context t (2LdT averaged over a causal sequence), also times three for training."
+  },
+  {
+   "question": "Compared with multi-head attention, grouped-query attention with 32 query heads and 8 key-value heads reduces:",
+   "options": [
+    "The number of query heads to 8",
+    "The FLOPs of Q K^T by a factor of 4",
+    "The FFN width",
+    "The KV cache and the K and V projection weights by a factor of 4"
+   ],
+   "answer": 3,
+   "explanation": "Groups of four query heads share one KV head, so K and V projections and the cache shrink four-fold. All 32 query heads remain and each still scores every key, so the FLOPs of Q K^T are unchanged; the FFN is unaffected."
+  },
+  {
+   "question": "How does FlashAttention reduce attention's memory from O(T^2) to O(T)?",
+   "options": [
+    "By approximating the softmax with a low-rank kernel",
+    "By computing attention tile by tile with a running maximum and running sum, so the T x T matrix is never stored",
+    "By restricting each query to a sliding window of keys",
+    "By storing scores in 8-bit integers"
+   ],
+   "answer": 1,
+   "explanation": "The online softmax lets each tile be folded into running statistics and an output accumulator, then discarded; the result is exact. Low-rank kernels and sliding windows change the function; quantising scores would reduce memory by a constant, not change its order."
+  },
+  {
+   "question": "A character-level model with V = 46 reports a loss of 3.88 at step 0. What does this indicate?",
+   "options": [
+    "The model is broken: the loss at initialisation should be near zero",
+    "The model has already learned the bigram statistics",
+    "The initial logits are nearly uniform, as they should be: ln 46 = 3.83",
+    "The learning rate is too high"
+   ],
+   "answer": 2,
+   "explanation": "A model that knows nothing should spread its probability evenly, giving a cross-entropy of log V; small random logits add a little (about sigma^2/2). The bigram entropy of that corpus is 1.72, so nothing has been learned yet; no training step has happened for the learning rate to matter."
+  },
+  {
+   "question": "Which statement about pre-norm transformers is correct?",
+   "options": [
+    "The normalisation is applied after the residual addition",
+    "They make residual connections unnecessary",
+    "Their residual path from input to output contains no normalisation, so gradients reach every layer directly, and they train stably without a long warmup",
+    "They double the number of normalisation parameters"
+   ],
+   "answer": 2,
+   "explanation": "Pre-norm normalises the input of each sublayer, x + F(Norm(x)), leaving an identity path. Normalising after the addition is post-norm. Residuals are essential to both; the parameter count of the norms is the same."
+  },
+  {
+   "question": "Which is the best summary of why the decoder-only shape became the default for large language models?",
+   "options": [
+    "Every token is a training target, one next-token objective covers every task written as text, and generation is the product",
+    "It has the lowest cost per token of the three shapes at any size",
+    "Encoders cannot be scaled beyond a billion parameters",
+    "Cross-attention cannot be implemented with FlashAttention"
+   ],
+   "answer": 0,
+   "explanation": "The reasons are training signal, generality and the product. Costs per token are similar across shapes at equal size; encoders scale fine; fused kernels handle cross-attention."
+  }
+ ],
+ "papers": [
+  {
+   "citation": "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., Polosukhin, I. \"Attention is all you need.\" NeurIPS, 2017.",
+   "minutes": 20,
+   "why": "The original; with this module behind you, every equation in its model section is familiar, and the differences from the modern block (post-norm, sinusoids, ReLU, encoder-decoder) become visible.",
+   "read": "Read Section 3 (Model Architecture) in full and Section 4 (Why Self-Attention) with Table 1. Skim Section 5 (Training), stopping at the learning-rate formula with its warmup. Look only at Table 3's 'base' and 'big' rows in Section 6; skip the remaining results and the conclusion.",
+   "questions": [
+    "Find the footnote that justifies the 1/sqrt(d_k) scale. What assumption does it make, and is it the one used in Section 2 of this module?",
+    "Table 1 compares complexity per layer. For which sequence lengths n (relative to d) is a self-attention layer cheaper than a recurrent one?",
+    "Is the paper's block pre-norm or post-norm? Quote the sublayer equation and connect it to the warmup in the learning-rate formula.",
+    "Estimate the base model's parameters with this module's rules (d = 512, d_ff = 2,048, 6 encoder layers at 12d^2, 6 decoder layers at 16d^2, one shared embedding of about 37,000 x 512) and compare with the 65M of Table 3. (About 63M.)",
+    "Which of the three shapes of Section 7 is this model, and where do its cross-attention keys and values come from?"
+   ]
+  },
+  {
+   "citation": "Su, J., Lu, Y., Pan, S., Murtadha, A., Wen, B., Liu, Y. \"RoFormer: Enhanced transformer with rotary position embedding.\" arXiv:2104.09864, 2021.",
+   "minutes": 13,
+   "why": "The derivation of RoPE by its authors, in the complex form Section 6 used, with the long-term decay property that Lab 2 plotted.",
+   "read": "Read the formulation of the goal (a score that depends only on the relative position), the 2D derivation with complex numbers, the general form with the block-diagonal rotation matrix, and the efficient element-wise implementation and the long-term decay property. Skip the combination with linear attention and the experiments.",
+   "questions": [
+    "The paper asks for functions f_q, f_k with <f_q(x_m, m), f_k(x_n, n)> = g(x_m, x_n, m - n). Write this in this module's notation (q, k, t, s).",
+    "Compare the paper's element-wise implementation with the module's rope() function. Which dimensions does each pair together, and why does the convention matter when weights are moved between implementations?",
+    "State the long-term decay property in your own words and compare it with Lab 2's curve for q = k = all ones."
+   ]
+  },
+  {
+   "citation": "Dao, T., Fu, D. Y., Ermon, S., Rudra, A., Ré, C. \"FlashAttention: Fast and memory-efficient exact attention with IO-awareness.\" NeurIPS, 2022.",
+   "minutes": 17,
+   "why": "The paper that made attention's memory linear in sequence length without approximation; its Algorithm 1 is Lab 3, and its background section is the clearest short account of why attention is memory-bound.",
+   "read": "Read Section 2 (the GPU memory hierarchy, the standard implementation as Algorithm 0) and Section 3.1 (tiling, recomputation, Algorithm 1), and the statement of the IO-complexity theorem in Section 3.2 without its proof. Skim the block-sparse extension and look at one speed-up figure in the experiments.",
+   "questions": [
+    "Map Algorithm 1's updates of m and l onto the online-softmax recurrences of Section 10. Which line performs the rescaling by exp(m - m')?",
+    "The paper gives Theta(N d + N^2) HBM accesses for standard attention and Theta(N^2 d^2 / M) for FlashAttention, with M the SRAM size. Show that the ratio is about M / d^2 when N >> d, and evaluate it for d = 64 and M = 100 KB of fp16 values (about 51,200 elements): about 12.",
+    "Why does the backward pass recompute S and P instead of reading them, and why is that faster although it performs more FLOPs?",
+    "What bandwidths does the paper give for HBM and on-chip SRAM on an A100?"
+   ]
+  }
+ ],
+ "widgets": [
+  {
+   "name": "attention-calculator",
+   "section": "s3",
+   "teaching_point": "Each row of softmax(QK^T / sqrt(d_k)) is a probability distribution over the keys a query may see, and the output row is the matching mixture of value rows; the mask zeroes the future exactly and the scale sets how sharp the lookup is.",
+   "controls": [
+    "editable number grids for Q (T x d_k), K (T x d_k) and V (T x d_v): numeric inputs, step 0.1, clamped to [-10, 10]; preloaded with the worked example",
+    "segmented buttons: T = 2, 3 or 4 tokens; d_k = d_v = 1, 2, 3 or 4 (resizing keeps existing cells and fills new ones with 0)",
+    "toggle: causal mask (default on)",
+    "toggle: divide by sqrt(d_k) (default on)",
+    "slider: sharpness multiplier c applied to the scores, 0.1 to 20, logarithmic, default 1",
+    "preset buttons: 'worked example', 'unmasked', 'unscaled', 'V = identity' (sets d_v = T and V = I), 'hard lookup' (c = 20), 'reset'",
+    "row selector: click a row of the weight heat map, or use the arrow keys, to choose the query row (default row 3)",
+    "toggle: show gradient (default off)"
+   ],
+   "displays": [
+    "the raw score matrix QK^T and the scaled matrix c QK^T / sqrt(d_k), masked cells shown as '-inf' on a grey background",
+    "the weight matrix P as a heat map (one hue, light to dark for 0 to 1), each cell labelled to three decimals, with each row's sum (1.000) beside it",
+    "the output matrix O = P V, three decimals",
+    "for the selected row when d_v = 2: a 2D plot of the value rows as labelled points, the convex hull of the visible ones shaded, the output as a hollow marker, and a line from each visible value to the output with width proportional to its weight; when d_v is not 2, a bar chart of the row's weights instead",
+    "for the selected row: the largest weight, the entropy in nats beside log(number of visible keys), and a 'saturated' badge when the largest weight exceeds 0.99",
+    "with 'show gradient' on: the row's Jacobian diag(p) - p p^T over the visible keys as a small table, and dL/ds for L = the last component of the selected output row, with the sum of dL/ds (always 0.000)"
+   ],
+   "defaults": "The worked example: Q = K = [[1,0],[0,1],[1,1]], V = [[1,0],[0,2],[3,3]], causal on, scaling on, c = 1, row 3 selected. On load the reader sees P row 3 = (0.248, 0.248, 0.503) and O row 3 = (1.759, 2.007) as a point inside the triangle of values, exactly the numbers of Section 3.",
+   "spec": "Compute in double precision. S = Q K^T (T x T); if scaling, divide by sqrt(d_k); multiply by c; if causal, S_ij = -Infinity for j > i. Row-wise safe softmax: m_i = max of the unmasked S_ij; P_ij = exp(S_ij - m_i) / sum over unmasked j of exp(S_ij - m_i); P_ij = 0 where masked. O = P V. A causal row always keeps its diagonal and an unmasked row keeps everything, so no row is ever empty. Display numbers with toFixed(3) and masked scores as '-inf'. Inputs: parse with Number(); if the result is NaN or the field is empty, restore the previous value; clamp to [-10, 10]. Resizing keeps the top-left block. 'V = identity' sets d_v = T and V = I_T and leaves d_k alone. Gradient panel for selected row i: g_j = V[j][d_v - 1] (because L = O[i][d_v - 1]); dL/ds_ij = P_ij (g_j - sum_k P_ik g_k) for visible j; Jacobian entries P_ij (delta_jk - P_ik). Test values to hard-code in a self-check: with the defaults, row 2 = (0.330, 0.670, 0), O row 2 = (0.330, 1.340); unmasked row 1 = (0.401, 0.198, 0.401); unscaled row 3 = (0.212, 0.212, 0.576); gradient on with row 3 selected: dL/ds = (-0.498, -0.002, 0.500). Heat-map colour: interpolate from the page background (weight 0) to a strong tone of one hue (weight 1) using theme tokens for light and dark themes; switch the label colour above weight 0.6 for contrast. Every control is keyboard-operable with a visible focus ring; grid inputs carry labels such as 'Q row 2, column 1' for screen readers. Vanilla JavaScript and SVG, no libraries; recompute and redraw everything on each input event (the computation is tiny). Below 600 px wide, stack the matrices vertically; nothing may require horizontal scrolling of the page except the matrices' own container."
+  },
+  {
+   "name": "rope-explorer",
+   "section": "s6",
+   "teaching_point": "RoPE rotates each two-dimensional pair of q and k by an angle proportional to position, at frequencies that fall geometrically across the pairs, so the score depends only on t - s; fast pairs wrap within a few tokens while slow pairs barely turn inside the training context, which is where context-extension methods intervene.",
+   "controls": [
+    "slider: query position t, 0 to 4,096, integer",
+    "slider: key position s, 0 to 4,096, integer",
+    "checkbox: lock offset (moving t moves s by the same amount, keeping t - s fixed); default off",
+    "select: head dimension d_k in {8, 16, 64, 128}; default 128",
+    "slider: base, 100 to 1,000,000, logarithmic; default 10,000",
+    "select: vectors 'q = k = all ones' (default), 'q = (1,0,1,0,...), k = (0,1,0,1,...)', 'random (seed 1)'",
+    "select: extension 'none' (default), 'position interpolation', 'NTK-aware base', with a slider for the extension factor kappa from 1 to 8 (default 4), enabled when an extension is chosen",
+    "number input: training context length, default 4,096 (used to shade the wavelength chart)"
+   ],
+   "displays": [
+    "a grid of small dials, one per pair i = 0 .. d_k/2 - 1 (64 dials in rows of 16 at d_k = 128), each showing the q-pair arrow at angle t theta_i, the k-pair arrow at angle s theta_i and the angle between them",
+    "a line chart of the normalised score against the offset Delta = t - s from 0 to 4,096 (a toggle switches to a log x-axis from 1 to 16,384), with a marker at the current offset",
+    "a readout: score(t, s), score(t + 100, s + 100) and their difference (0.000 at display precision)",
+    "a bar chart of log10 of the wavelength 2 pi / theta_i for every pair, with a horizontal line at the training context; bars above the line shaded and labelled 'never completes a rotation in training'; when an extension is active, ghost bars show the original wavelengths"
+   ],
+   "defaults": "d_k = 128, base 10,000, q = k = all ones, t = 10, s = 3, no extension, training context 4,096. The curve starts at 1.0, reads 0.970 at offset 1, 0.620 at 16 and about 0.2 by 1,024; the readout shows equal scores for (10, 3) and (110, 103); 18 of the 64 bars are shaded.",
+   "spec": "theta_i = base^(-2i/d_k) for i = 0 .. d_k/2 - 1. With 'position interpolation' use positions t/kappa and s/kappa (fractions allowed) and the original base; with 'NTK-aware base' use base' = base x kappa^(d_k/(d_k - 2)) and the original positions. For each pair let a_i = q_{2i} k_{2i} + q_{2i+1} k_{2i+1} and b_i = q_{2i+1} k_{2i} - q_{2i} k_{2i+1}; the score at offset Delta is sum_i [a_i cos(Delta theta_i) - b_i sin(Delta theta_i)], equal to the dot product of the rotated vectors (state the derivation from Re(z_q conj(z_k) exp(i Delta theta)) in a code comment). Normalise the plotted score by sum_i sqrt((q_{2i}^2 + q_{2i+1}^2)(k_{2i}^2 + k_{2i+1}^2)) so it lies in [-1, 1]; show the raw score in the readout as well. Evaluate the curve at every integer offset 0 .. 4,096 (or 200 log-spaced offsets for the log axis): at most about 262,000 cosines per redraw. Self-check values with the defaults: normalised score 0.970 at offset 1, 0.620 at 16, 0.333 at 128; NTK base for kappa = 4 at d_k = 128 is 40,890; with q = (1,0,...), k = (0,1,...) and d_k = 2, base irrelevant (theta_0 = 1), score(3, 1) = sin 2 = 0.909. 'random (seed 1)' uses a mulberry32 generator seeded 1 with Box-Muller normals, regenerated when d_k changes. Dials are SVG circles with two arrows in two theme colours; draw them larger at d_k = 8 or 16. Wavelength axis: log10 from 0 to 7. With lock offset on, clamp both positions to [0, 4,096] when the pair would leave it. Theme-aware colours; sliders keyboard-operable with aria-valuetext; below 600 px wide the panels stack. Vanilla JavaScript; SVG for dials and bars, canvas or SVG for the curve."
+  }
+ ],
+ "terms": [
+  {
+   "en": "self-attention",
+   "zh": "自注意力"
+  },
+  {
+   "en": "query / key / value",
+   "zh": "查询 / 键 / 值"
+  },
+  {
+   "en": "scaled dot-product attention",
+   "zh": "缩放点积注意力"
+  },
+  {
+   "en": "causal mask",
+   "zh": "因果掩码"
+  },
+  {
+   "en": "padding mask",
+   "zh": "填充掩码"
+  },
+  {
+   "en": "permutation equivariance",
+   "zh": "置换等变性"
+  },
+  {
+   "en": "multi-head attention",
+   "zh": "多头注意力"
+  },
+  {
+   "en": "residual stream",
+   "zh": "残差流"
+  },
+  {
+   "en": "induction head",
+   "zh": "归纳头"
+  },
+  {
+   "en": "feed-forward network",
+   "zh": "前馈网络"
+  },
+  {
+   "en": "SwiGLU (gated linear unit)",
+   "zh": "SwiGLU（门控线性单元）"
+  },
+  {
+   "en": "pre-norm / post-norm",
+   "zh": "前置归一化 / 后置归一化"
+  },
+  {
+   "en": "RMSNorm (root-mean-square normalisation)",
+   "zh": "均方根归一化（RMSNorm）"
+  },
+  {
+   "en": "positional encoding",
+   "zh": "位置编码"
+  },
+  {
+   "en": "rotary position embedding (RoPE)",
+   "zh": "旋转位置编码（RoPE）"
+  },
+  {
+   "en": "ALiBi (attention with linear biases)",
+   "zh": "线性偏置注意力（ALiBi）"
+  },
+  {
+   "en": "context extension, position interpolation",
+   "zh": "上下文扩展，位置插值"
+  },
+  {
+   "en": "encoder-only / decoder-only",
+   "zh": "仅编码器 / 仅解码器"
+  },
+  {
+   "en": "encoder-decoder, cross-attention",
+   "zh": "编码器-解码器，交叉注意力"
+  },
+  {
+   "en": "masked language modelling",
+   "zh": "掩码语言建模"
+  },
+  {
+   "en": "grouped-query attention / multi-query attention",
+   "zh": "分组查询注意力 / 多查询注意力"
+  },
+  {
+   "en": "KV cache (key-value cache)",
+   "zh": "KV cache"
+  },
+  {
+   "en": "FlashAttention",
+   "zh": "FlashAttention（IO 感知注意力）"
+  },
+  {
+   "en": "GPU kernel, fused kernel",
+   "zh": "kernel，融合 kernel"
+  },
+  {
+   "en": "online softmax",
+   "zh": "在线 softmax"
+  },
+  {
+   "en": "sliding-window attention",
+   "zh": "滑动窗口注意力"
+  },
+  {
+   "en": "vision transformer, patch embedding",
+   "zh": "视觉 Transformer，图像块嵌入"
+  },
+  {
+   "en": "tied embeddings",
+   "zh": "嵌入权重共享（权重绑定）"
+  },
+  {
+   "en": "floating-point operations (FLOPs)",
+   "zh": "浮点运算次数（FLOPs）"
+  }
+ ],
+ "references": [
+  "Vaswani, A. et al. \"Attention is all you need.\" NeurIPS, 2017. The original transformer; guided reading 1.",
+  "Bahdanau, D., Cho, K., Bengio, Y. \"Neural machine translation by jointly learning to align and translate.\" ICLR, 2015. The attention the transformer kept (Module 04).",
+  "Devlin, J. et al. \"BERT: Pre-training of deep bidirectional transformers for language understanding.\" NAACL, 2019. Encoder-only, masked language modelling.",
+  "Radford, A. et al. \"Improving language understanding by generative pre-training.\" 2018; \"Language models are unsupervised multitask learners.\" 2019. GPT and GPT-2: decoder-only, learned positions, the 1/sqrt(N) residual initialisation.",
+  "Brown, T. et al. \"Language models are few-shot learners.\" NeurIPS, 2020. GPT-3; in-context learning as the argument for one decoder-only model.",
+  "Raffel, C. et al. \"Exploring the limits of transfer learning with a unified text-to-text transformer.\" JMLR, 2020. T5; the controlled comparison of shapes and objectives.",
+  "Wang, T. et al. \"What language model architecture and pretraining objective work best for zero-shot generalization?\" ICML, 2022. Causal decoders win for zero-shot use after self-supervised pretraining.",
+  "Xiong, R. et al. \"On layer normalization in the transformer architecture.\" ICML, 2020. Why pre-norm trains without warmup.",
+  "Zhang, B., Sennrich, R. \"Root mean square layer normalization.\" NeurIPS, 2019. RMSNorm.",
+  "Shazeer, N. \"GLU variants improve transformer.\" arXiv, 2020. SwiGLU and its relatives.",
+  "Geva, M., Schuster, R., Berant, J., Levy, O. \"Transformer feed-forward layers are key-value memories.\" EMNLP, 2021.",
+  "Meng, K., Bau, D., Andonian, A., Belinkov, Y. \"Locating and editing factual associations in GPT.\" NeurIPS, 2022. Factual recall localised in mid-layer FFNs.",
+  "Elhage, N. et al. \"A mathematical framework for transformer circuits.\" Transformer Circuits Thread, 2021. The residual stream, QK and OV circuits.",
+  "Olsson, C. et al. \"In-context learning and induction heads.\" Transformer Circuits Thread, 2022. Induction heads and their abrupt formation (Lab 6).",
+  "Jain, S., Wallace, B. C. \"Attention is not explanation.\" NAACL, 2019. Why attention maps need interventions behind them.",
+  "Su, J. et al. \"RoFormer: Enhanced transformer with rotary position embedding.\" arXiv, 2021. RoPE; guided reading 2.",
+  "Press, O., Smith, N. A., Lewis, M. \"Train short, test long: attention with linear biases enables input length extrapolation.\" ICLR, 2022. ALiBi.",
+  "Haviv, A., Ram, O., Press, O., Izsak, P., Levy, O. \"Transformer language models without positional encodings still learn positional information.\" Findings of EMNLP, 2022.",
+  "Chen, S., Wong, S., Chen, L., Tian, Y. \"Extending context window of large language models via positional interpolation.\" arXiv, 2023.",
+  "Peng, B., Quesnelle, J., Fan, H., Shippole, E. \"YaRN: Efficient context window extension of large language models.\" ICLR, 2024. Also traces the history of NTK-aware scaling.",
+  "Shazeer, N. \"Fast transformer decoding: One write-head is all you need.\" arXiv, 2019. Multi-query attention.",
+  "Ainslie, J. et al. \"GQA: Training generalized multi-query transformer models from multi-head checkpoints.\" EMNLP, 2023.",
+  "Beltagy, I., Peters, M. E., Cohan, A. \"Longformer: The long-document transformer.\" arXiv, 2020. Sliding-window plus global attention.",
+  "Jiang, A. Q. et al. \"Mistral 7B.\" arXiv, 2023. Sliding-window attention with GQA in an open model.",
+  "Xiao, G., Tian, Y., Chen, B., Han, S., Lewis, M. \"Efficient streaming language models with attention sinks.\" ICLR, 2024.",
+  "Milakov, M., Gimelshein, N. \"Online normalizer calculation for softmax.\" arXiv, 2018. The online softmax.",
+  "Dao, T., Fu, D. Y., Ermon, S., Rudra, A., Ré, C. \"FlashAttention: Fast and memory-efficient exact attention with IO-awareness.\" NeurIPS, 2022. Guided reading 3.",
+  "Dao, T. \"FlashAttention-2: Faster attention with better parallelism and work partitioning.\" ICLR, 2024.",
+  "Kaplan, J. et al. \"Scaling laws for neural language models.\" arXiv, 2020. The per-token FLOP accounting used in Section 11.",
+  "Touvron, H. et al. \"LLaMA: Open and efficient foundation language models.\" arXiv, 2023. The reference decoder recipe; the 6.7B configuration.",
+  "Touvron, H. et al. \"Llama 2: Open foundation and fine-tuned chat models.\" arXiv, 2023. Training tokens and GPU-hours used in exercise e13.",
+  "Grattafiori, A. et al. \"The Llama 3 herd of models.\" arXiv, 2024. GQA with 8 KV heads; RoPE base 500,000.",
+  "Dosovitskiy, A. et al. \"An image is worth 16x16 words: Transformers for image recognition at scale.\" ICLR, 2021. The vision transformer.",
+  "Touvron, H. et al. \"Training data-efficient image transformers and distillation through attention.\" ICML, 2021. DeiT.",
+  "Phuong, M., Hutter, M. \"Formal algorithms for transformers.\" arXiv, 2022. Precise pseudocode for every variant in this module; a good companion to Section 12's code."
+ ],
+ "generalised_refs": [
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Module 04 ended with attention as a fix for the encoder-decoder bottleneck: ... (every 'Tutorial NN' in the source becomes a linked 'Module NN' in the series at wrwei.github.io/tutorials/ai/)."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Keep the first sentence; replace the second with: 'Modules 07 to 10 are about this shape, and follow one hypothetical worked case through it: an open-weight model of about 9.5B parameters adapted to draft and check safety-case arguments for the pressure-relief system of a reactor vessel.' Do not give that model a configuration here; Modules 07-10 own it."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "The KV cache, introduced in Section 9 with its size formula and treated in depth in Module 10, stores K and V for every past token, every layer, every KV head."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "The normalisation is layer norm or, in current models, RMSNorm (defined in Module 02, with its worked examples; Section 5 recalls it in one paragraph and adds its scale invariance)."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Lab 5 trains it with the training loop of Module 02 on a generated maintenance-log corpus whose entropy is known; Module 07 explains what the loss means and Module 08 how the same loop runs at scale."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Same text with '(Module 10)'."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "'... make engineering decisions about models with judgement rather than by recipe.' Omit the second quoted sentence altogether. Note: the source tutorial 06 itself names no private repository, file path, agent, verifier or model provider; the entries above are cross-reference conversions."
+  }
+ ],
+ "writer_notes": "RUNNING EXAMPLE. The three-token example Q = K = [[1,0],[0,1],[1,1]], V = [[1,0],[0,2],[3,3]], d_k = 2 runs through the module: s1 (row 3 as a soft dictionary lookup), s2 (Jacobian of row 3), s3 (all variants and the gradient), s10 (online softmax in two blocks), Labs 1 and 3, the attention-calculator widget, exercises e1 and e3. Exercise e2 extends it with a fourth token (q_4 = k_4 = (1, -1)) so that its answer is not a table already printed in s3. Use exactly these three-decimal values: scaled scores 0.707 and 1.414; causal rows (1,0,0), (0.330,0.670,0), (0.248,0.248,0.503); outputs (1,0), (0.330,1.340), (1.759,2.007). The source text rounded row 3 to (0.25, 0.25, 0.5) and the output to (1.75, 2.0); the published text uses the exact values and says nothing about the earlier rounding. CODE. Keep the source's eighty-line decoder verbatim with two changes: (1) in Decoder.__init__, after tying, add nn.init.normal_(self.emb.weight, std=0.02); without it the model as written predicts its own input token (logit about 236) and prints a step-0 loss of 231 (seeds 0, 1, 2: 231.4, 236.2, 239.5) instead of the commented 8.3; s12 tells this as the lesson 'check the step-0 loss against log V', and what-goes-wrong lists it. (2) An optional causal=True argument threaded from Decoder through Block to Attention and passed to is_causal, for Lab 5's mask-removal run. The printed parameter count 3,801,344 matches the source's '~3.8M'. nn.RMSNorm needs PyTorch 2.4 or later. NOTATION. Row-vector convention as in the source: X in R^{T x d} with tokens as rows, Q = X W_Q, W_Q in R^{d x d_k}. Shapes (B, T, d) and per head (B, h, T, d_k), B always the batch; d_head = d_k = d/h; n_kv for the number of KV heads; L layers; d_ff the FFN width; V the vocabulary size in italic, distinct from the bold value matrix V (say 'vocabulary size V' where the two could be confused). theta_i is reserved for RoPE frequencies in this module; refer to model parameters in words to avoid the clash with the series' theta. b is the RoPE base in s6, and kappa = L_target / L_train the context-extension factor (not s, which is the key position). N_total and N_matmul as defined in s11. Natural logarithms; losses in nats (per character in Lab 5). UNITS. One multiply-add = 2 FLOPs; an (m x n)(n x p) product = 2mnp FLOPs. Sizes computed from tensor shapes in KiB/MiB/GiB (powers of two); decimal GB and TB/s for quoted hardware figures; bf16 = 2 bytes. The text states this convention once, in s9 at the first size in bytes. Where a quantity recurs in Modules 07-10, which work in decimal GB, give both forms: Llama-2-7B's KV cache '524,288 B (512 KiB)' per token and '2 GiB (2.15 GB)' per 4,096-token sequence; its bf16 weights '13.5 GB (12.6 GiB)'. Hardware figures are labelled where they are used: the A100 bandwidths as quoted by Dao et al. (2022), the 312 TFLOP/s dense bf16 peak as NVIDIA's specification. No prices appear in this module. FLOP CONVENTION. This module owns it, in s11, and states it once as a boxed summary that Modules 02, 07, 08 and 10 link to rather than restate. N_total: every parameter; it sets memory and is the scaling-law N. N_matmul: N_total minus the lookup tables (an untied input embedding V d, learned position tables). Forward FLOPs per token: 2 N_matmul + 4Ldt at context t, averaging to 2 N_matmul + 2LdT over a causally masked sequence of length T (when the kernel skips the masked half; 4LdT when it does not). Training: three times the forward. 2 N_total and 6 N_total appear only as labelled estimates with their error. Llama-2-7B reference values: N_total 6,738,415,616; N_matmul 6,607,343,616; 2 N_matmul 13.21 GFLOP; attention for one token at t = 4,096 2.15 GFLOP (+16%), averaged over a causal 4,096-token sequence 1.07 GFLOP (+8%); training per token at T = 4,096 42.87 GFLOP against 6 N_total = 40.43 (5.7% low). Do not use the case-study model's numbers (Modules 07-10) here. TOPIC BOUNDARIES. The KV cache is introduced in s9 only (formula, one worked size, why GQA); paging, batching, prefix caching and quantised caches are Module 10. Decoding strategies are Module 07 (s12 samples at temperature 0.8 and says so). This module owns the FLOP convention and the 6N/6ND derivation (s11); scaling laws and the Chinchilla fit are Module 07; planning a compute budget with 6ND, mixed precision, QK-norm at scale, long-context mid-training and MoE engineering are Module 08. Module 02 owns the softmax Jacobian, the activation functions and the normalisation definitions with their worked examples: s2 and s5 recall them in one paragraph each, with a link, and do not repeat Module 02's examples ((3, 4), (1, 2, 3, 6), the activation table). This module owns the vision transformer, including the 590,592-parameter patch-embedding example in s8; Module 03 only points here. Bahdanau and Luong attention are Module 04 (s1 recaps in one paragraph). CNN inductive biases are Module 03 and CLIP is Module 05 (s8 refers to both). For prompting, retrieval and agents link the AI Agents series (../agent/index.html) instead of explaining them. CASE STUDY. Module 06 is not part of the running case study of Modules 07-10. It may point forward to it once (see generalised_refs), calling it hypothetical and using the series' wording ('safety-case arguments'), but must not define the case-study model's configuration or quote its numbers. Lab 4 and s11 use published configurations only. LAB 5 CORPUS. The generator, seeds and hyperparameters in Lab 5's steps are the contract: draw letter, identifier, value in that order from random.Random(0); 12,000 lines; 90/10 split by position; the reference entropies (3.829, 3.410, 1.717, 0.330, 0.500) follow from it. The corpus is deliberately engineering-flavoured and fully synthetic, so no data needs downloading and the entropy of the source is known exactly, which is what lets s12 read the loss curve against a true floor. LAB 5 FULL LENGTH. FULL was cut from 2,000 + 300 steps (about 9.4 minutes on the prototype machine under load and 14-15 on a laptop, at the 15-minute cap) to 1,500 causal steps plus the same 200 unmasked steps as QUICK. Prototype runs (final validation loss, share of closing identifiers copied) show why it stops at 1,500: 1,500 steps completed the drop on 2, 3, 4, 6 and 8 CPU threads (the drop began between steps 600 and 1,000; 0.395-0.397; 98-100%); 1,200 steps completed on 2 and 4 threads (0.404, 0.398) but stalled halfway on 8 (0.432, 38%); 1,300 stalled halfway on 4 (0.441, 14%); 2,000 and 3,000 completed on 4. The thread count changes the order of floating-point sums, so it stands in for a different machine. Keep FULL_STEPS a named constant, and keep the advice to rerun with 2,000 if a run ends between 0.50 and 0.40. EXPECTED OUTPUTS. All numbers given for Labs 1-6 come from prototype runs of this outline's code on a desktop CPU (Python 3.11, PyTorch 2.x CPU build, NumPy 2.x, 4 threads, other jobs running). Paste them as expected outputs with the usual remark that the last digits may differ; a later phase re-runs every lab. Runtimes: Lab 5 QUICK took 122 s under load; its FULL run (1,500 + 200 steps) about 5 minutes at 171 ms per causal step, about 7 at the 246 ms per step measured under heavier load; Lab 6 took 1-4.5 minutes; Labs 1, 2, 3 and 4 take seconds. SESSION REFS. In the study plan, 'paper1' to 'paper3' refer to the papers list in order (Vaswani; Su; Dao), 'what_goes_wrong' to the failure-mode section, 'quiz' and 'review' to those blocks. Labs are numbered in the order the sessions run them: Lab 1 in S1, Lab 2 in S2, Lab 3 in S3, Labs 4 and 5 in S4, Lab 6 in S5. FIGURES. fig-06-4, 06-8, 06-13, 06-23, 06-24 and 06-25 are drawn from lab outputs, and the lab code that produces each belongs in the lab. Diagrams use the shapes and numbers given in their descriptions. FACTS TO CHECK BEFORE PUBLISHING. The 184,320 A100 GPU-hours for Llama 2 7B (Touvron et al. 2023b, Table 2); the published configurations in Lab 4 against each model's config.json; Mistral 7B's 4,096-token window and '131k' span (Jiang et al. 2023); the A100 bandwidth figures as quoted in Dao et al. (2022, Section 2.1); Llama 3's RoPE base of 500,000; YaRN's venue (ICLR 2024, cited the same way in Module 08). Do not quote perplexities from Shazeer (2020) unless copied from its table; do not attribute window sizes or local/global patterns to other named models. INTERPRETABILITY. In s4 and Lab 6, describe heads by what they attend to and what ablating them does; avoid claims about what a head 'knows' or 'means'. STYLE. British spelling (normalisation, initialisation, behaviour, modelling); derivations written out, with any skipped step named; every number traceable to a calculation in the text or a lab; no hype words; exercise solutions are full worked solutions in the published text (the sketches here give the key steps and answers). SERIES RULES. No session reads for more than about 40 minutes without an activity (S1 puts exercises e1 and e3 between s2 and s3). Star grades: ★ is conceptual (about 5 minutes) and every calculation or derivation is ★★; e9 asks for factors, not counts, to stay conceptual. Exercises do not reuse a worked example's numbers: e2 adds a fourth token, and s11's training example stops at the per-token cost so that e13's budget and utilisation are new. In the Chinese edition 'KV cache' stays in English (never 键值缓存) and a GPU 'kernel' stays 'kernel'. DEPARTURES FROM THE EDITOR'S SUGGESTIONS. (1) Lab 6 (induction heads) is a full 30-minute lab, not optional: it is the only place the module shows with evidence what heads learn, it runs in a few minutes, and it explains the copying that Lab 5's FULL run discovers on its own. (2) FlashAttention has its own section (s10) after the modern block (s9): the online-softmax derivation is the module's second long derivation; s9 keeps the source's one-paragraph summary and points forward. (3) The vision transformer sits after the three shapes (s8), as an encoder-only example. (4) Lab 5 trains on a generated corpus with a known entropy instead of an embedded text, so the loss curve can be read against exact floors (0.500 without copying, 0.330 true entropy) and samples can be scored by a parser; the source's 'text file of your choice' becomes Lab 5's first extension. (5) The source's six exercises map to e2 (unmasked, V = I, with a fourth token added), e4 (permutation), e6 (RoPE, matrix form, since the complex form is now in the text), e12 (counting the Decoder), Lab 5 (train, then remove is_causal) and e15 (explicit attention and memory). (6) Two widgets, the suggested attention calculator and a RoPE explorer, because rotation is the hardest idea in the module to see on a page. (7) No exercise implements a KV cache; that is Module 10's. PLACEMENT. The 'What goes wrong' section follows s12; exercises, quiz, guided reading, terms and references follow in that order. Widgets: attention-calculator inside s3 after the causal case; rope-explorer inside s6 after the complex-number proof."
+}

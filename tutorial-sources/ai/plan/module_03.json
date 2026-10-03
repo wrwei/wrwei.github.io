@@ -1,0 +1,1660 @@
+{
+ "module": 3,
+ "title": "Convolutional networks",
+ "title_em": "Convolutional",
+ "lead": "The convolutional network built from the operation up: a convolution computed by hand and in code, the cost of every layer counted, the residual connection that made depth trainable, and the same machinery used to detect objects, to segment images and volumes into measured surfaces, and to check what a classifier is actually looking at.",
+ "prerequisites": [
+  "Module 01: the supervised learning set-up, cross-entropy from maximum likelihood, train, validation and test splits with leakage, and the bias–variance decomposition.",
+  "Module 02: MLPs, backpropagation in matrix form, He initialisation, Adam and AdamW with learning-rate schedules, batch and layer normalisation, and the overfit-one-batch debugging habit.",
+  "Linear algebra: matrix–vector products, transposes, and sparse and banded matrices.",
+  "Calculus: partial derivatives and the chain rule over indexed sums.",
+  "Python: NumPy slicing and broadcasting, a PyTorch `nn.Module`, and the training loop of Module 02, Section 13."
+ ],
+ "outcomes": [
+  "Compute a 2D convolution (in deep learning, a cross-correlation) by hand on a small image, implement it in NumPy with explicit loops and with im2col, and match `torch.nn.functional.conv2d` to floating-point round-off.",
+  "Derive the output size $\\lfloor (H + 2p - d(k-1) - 1)/s \\rfloor + 1$ for any padding, stride and dilation, compute a network's receptive field layer by layer, and explain why the effective receptive field is smaller.",
+  "Count the parameters, multiply-accumulates, FLOPs and activation memory of a standard, $1 \\times 1$, grouped or depthwise-separable convolution, and say which convention a paper's \"FLOPs\" follow.",
+  "Derive why identity shortcuts keep the gradient alive in a deep network, and reproduce the degradation of a 55-layer plain network and its residual fix.",
+  "Name the one idea that each of LeNet, AlexNet, VGG, Inception, ResNet, DenseNet, MobileNet, EfficientNet and ConvNeXt contributed, check their headline parameter counts, and place the vision transformer relative to them.",
+  "Choose label-preserving augmentations, a normalisation suited to the batch size and a transfer strategy (which layers to keep, linear probe or fine-tuning) for a small dataset, and justify each choice with measurements.",
+  "Compute IoU, non-maximum suppression and average precision by hand, and explain anchors, the focal loss and the difference between one-stage and two-stage detectors.",
+  "Train a U-Net, evaluate it with Dice and IoU ($D = 2J/(1 + J)$), and turn a predicted mask into area, perimeter, volume and surface-area measurements whose biases you can state.",
+  "Compute Grad-CAM from its definition, use it to expose a classifier that relies on a spurious cue, and state what such maps cannot show.",
+  "Estimate the parameter, compute and memory cost of 1D and 3D convolutional networks, including why 3D models train on patches with group normalisation."
+ ],
+ "software": [
+  "Python 3.11 or later.",
+  "PyTorch 2.x; the CPU build is enough.",
+  "NumPy.",
+  "SciPy (`scipy.signal`, `scipy.ndimage`, `scipy.special`).",
+  "scikit-learn, for `load_digits` and `train_test_split`; nothing is downloaded.",
+  "matplotlib, with `contourpy` (installed with it) for marching squares.",
+  "Optional: scikit-image, for the marching-cubes step of Exercise 14.",
+  "Optional, for a Lab 4 extension that is shown but not executed: `torchvision` and a 44.7 MB download of ResNet-18 weights.",
+  "Optional, for a Lab 3 extension that is shown but not executed: the CIFAR-10 dataset (about 170 MB, through `torchvision`) and a free GPU on Google Colab."
+ ],
+ "sessions": [
+  {
+   "n": 1,
+   "title": "Convolution, by hand",
+   "activities": [
+    {
+     "what": "Read Sections 1–2 with the convolution explorer: why images need their own architecture, and the convolution operation.",
+     "kind": "read",
+     "minutes": 33,
+     "refs": [
+      "s1",
+      "s2"
+     ]
+    },
+    {
+     "what": "Lab 1, steps 1–4: a convolution by explicit loops, checked by hand, against SciPy and for translation equivariance.",
+     "kind": "lab",
+     "minutes": 12,
+     "refs": [
+      "lab1"
+     ]
+    },
+    {
+     "what": "Read Section 3 with the receptive-field builder: output size, padding, stride, dilation and the receptive field.",
+     "kind": "read",
+     "minutes": 18,
+     "refs": [
+      "s3"
+     ]
+    },
+    {
+     "what": "Exercise 1: output sizes, and the rows a window never reads.",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e1"
+     ]
+    },
+    {
+     "what": "Read Section 4: channels, parameters, MACs and FLOPs.",
+     "kind": "read",
+     "minutes": 17,
+     "refs": [
+      "s4"
+     ]
+    },
+    {
+     "what": "Lab 1, steps 5–8: every padding, stride and dilation against PyTorch, im2col, and what the loop costs.",
+     "kind": "lab",
+     "minutes": 18,
+     "refs": [
+      "lab1"
+     ]
+    },
+    {
+     "what": "Exercises 2–3: three ways to a $9 \\times 9$ receptive field, and the receptive field of ResNet-18.",
+     "kind": "exercises",
+     "minutes": 20,
+     "refs": [
+      "e2",
+      "e3"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "title": "Pooling, cheaper convolutions and the classic networks",
+   "activities": [
+    {
+     "what": "Read Sections 5–6: pooling and invariance, then $1 \\times 1$, grouped and depthwise-separable convolutions.",
+     "kind": "read",
+     "minutes": 27,
+     "refs": [
+      "s5",
+      "s6"
+     ]
+    },
+    {
+     "what": "Exercise 5: the cost ratio of a depthwise-separable layer, and why larger depthwise kernels are cheap.",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e5"
+     ]
+    },
+    {
+     "what": "Lab 2: a CNN against an MLP at equal parameter count, with permuted, shifted and translated digits.",
+     "kind": "lab",
+     "minutes": 30,
+     "refs": [
+      "lab2"
+     ]
+    },
+    {
+     "what": "Exercise 4: why global average pooling beat a flatten head in Lab 2.",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e4"
+     ]
+    },
+    {
+     "what": "Read Sections 7–8: the classic architectures from LeNet to Inception, then residual networks.",
+     "kind": "read",
+     "minutes": 33,
+     "refs": [
+      "s7",
+      "s8"
+     ]
+    },
+    {
+     "what": "Exercise 6: the gradient through the original residual block.",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e6"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "title": "Depth in practice, modern designs and training",
+   "activities": [
+    {
+     "what": "Lab 3: inside a ResNet, counting its cost, measuring its receptive fields and reproducing the depth experiment.",
+     "kind": "lab",
+     "minutes": 35,
+     "refs": [
+      "lab3"
+     ]
+    },
+    {
+     "what": "Guided reading: He et al. (2016), \"Deep residual learning for image recognition\".",
+     "kind": "papers",
+     "minutes": 25,
+     "refs": [
+      "reading"
+     ]
+    },
+    {
+     "what": "Read Sections 9–10: efficient and modern CNNs, then augmentation, normalisation and transfer learning.",
+     "kind": "read",
+     "minutes": 31,
+     "refs": [
+      "s9",
+      "s10"
+     ]
+    },
+    {
+     "what": "Lab 4: transfer learning layer by layer, from digits 0–4 to digits 5–9.",
+     "kind": "lab",
+     "minutes": 25,
+     "refs": [
+      "lab4"
+     ]
+    },
+    {
+     "what": "Exercises 7–8: augmentations that keep the label, and which layers transfer.",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e7",
+      "e8"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "title": "Detection and segmentation",
+   "activities": [
+    {
+     "what": "Read Section 11: detection with boxes, anchors, IoU, non-maximum suppression and average precision.",
+     "kind": "read",
+     "minutes": 17,
+     "refs": [
+      "s11"
+     ]
+    },
+    {
+     "what": "Exercises 9–10: why the focal loss, and IoU, NMS and average precision by hand.",
+     "kind": "exercises",
+     "minutes": 15,
+     "refs": [
+      "e9",
+      "e10"
+     ]
+    },
+    {
+     "what": "Read Section 12: segmentation with the FCN, the transposed convolution, U-Net and Dice.",
+     "kind": "read",
+     "minutes": 17,
+     "refs": [
+      "s12"
+     ]
+    },
+    {
+     "what": "Lab 5: a U-Net on synthetic images with and without skips, and from mask to measurement.",
+     "kind": "lab",
+     "minutes": 45,
+     "refs": [
+      "lab5"
+     ]
+    },
+    {
+     "what": "Guided reading: Ronneberger et al. (2015), \"U-Net\".",
+     "kind": "papers",
+     "minutes": 20,
+     "refs": [
+      "reading"
+     ]
+    },
+    {
+     "what": "Exercise 11: leakage between the slices of one volume.",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e11"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "title": "Volumes, looking inside, and review",
+   "activities": [
+    {
+     "what": "Read Section 13: 1D and 3D convolution, and from masks to measured surfaces.",
+     "kind": "read",
+     "minutes": 18,
+     "refs": [
+      "s13"
+     ]
+    },
+    {
+     "what": "Exercises 12–14: normalisation for small batches, 3D activation memory at batch 4, and a second ellipsoid's error budget.",
+     "kind": "exercises",
+     "minutes": 40,
+     "refs": [
+      "e12",
+      "e13",
+      "e14"
+     ]
+    },
+    {
+     "what": "Read Section 14: filters, saliency maps and Grad-CAM.",
+     "kind": "read",
+     "minutes": 15,
+     "refs": [
+      "s14"
+     ]
+    },
+    {
+     "what": "Lab 6: Grad-CAM catches a classifier that learned a shortcut.",
+     "kind": "lab",
+     "minutes": 25,
+     "refs": [
+      "lab6"
+     ]
+    },
+    {
+     "what": "Exercise 15: what a Grad-CAM map does and does not prove.",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e15"
+     ]
+    },
+    {
+     "what": "Self-check quiz.",
+     "kind": "quiz",
+     "minutes": 15,
+     "refs": [
+      "quiz"
+     ]
+    },
+    {
+     "what": "Review the summary, the what-goes-wrong list and the key terms.",
+     "kind": "review",
+     "minutes": 10,
+     "refs": [
+      "summary",
+      "wrong",
+      "terms"
+     ]
+    }
+   ]
+  }
+ ],
+ "sections": [
+  {
+   "id": "s1",
+   "title": "Images are not vectors",
+   "minutes": 14,
+   "target_words": 950,
+   "purpose": "Show why a dense network is the wrong architecture for images and derive the convolution layer from two assumptions, locality and stationarity, with the parameter counts that make the case.",
+   "must_cover": [
+    "The count from the source: a 224x224 colour image is 224*224*3 = 150,528 numbers; a dense first layer of 1,000 units has 150,528*1,000 + 1,000 = 150,529,000 parameters (602,116,000 bytes in float32, 574 MiB), and it must learn separately that an edge at the top left and the same edge at the bottom right are the same thing.",
+    "Locality: a pixel's meaning depends far more on its neighbours than on distant pixels; support it with the measured correlation-versus-distance numbers on load_digits (worked example).",
+    "Stationarity: the statistics of small patches are the same everywhere in the image, so a detector useful at one position is useful at every position; this licenses weight sharing.",
+    "The progression at a fixed output of 224x224x64 from a 224x224x3 input with 3x3 windows: dense layer 150,528 x 3,211,264 = 4.83e11 weights; locally connected (each output unit sees its own 3x3x3 window with its own 27 weights) 3,211,264 x 27 = 86,704,128 weights; convolution (the 27 weights shared across positions, one set per output channel) 64*27 + 64 = 1,792 parameters. Locality removes the first factor; weight sharing divides by the 50,176 positions. The parameter count of a convolution no longer depends on the image size.",
+    "Statistical strength: every shared weight receives a gradient contribution from all 50,176 positions of every training image, so one image informs a filter as much as tens of thousands of examples would inform an untied weight.",
+    "Definitions written out: a translation T_tau shifts an image by tau = (tau1, tau2); f is equivariant if f(T_tau x) = T_tau f(x) and invariant if f(T_tau x) = f(x). Convolution is equivariant (proved in s2); pooling and global averaging give approximate invariance (s5). Classification wants invariance; segmentation and detection want equivariance.",
+    "The inductive-bias trade: a convolution is a dense layer whose matrix is constrained to be sparse and weight-tied, so it represents fewer functions; that is the point, because the functions it drops are ones images do not need. Preview Lab 2: shuffling the pixel order with one fixed permutation leaves an MLP's accuracy unchanged and hurts a CNN.",
+    "Where the assumptions hold and where they do not: grids with local, stationary statistics (images, signals, volumes, spectra; s13) benefit; tabular rows, whose column order is arbitrary, do not."
+   ],
+   "worked_examples": [
+    "Dense first layer on a 224x224x3 image with 1,000 hidden units: 150,528 x 1,000 + 1,000 = 150,529,000 parameters; at 4 bytes each, 602,116,000 bytes (574 MiB, or 602 MB in decimal units) for one layer.",
+    "Dense -> locally connected -> convolutional, output 224x224x64, 3x3 windows: 4.83e11 -> 86,704,128 -> 1,792 parameters; the ratio of locally connected weights to shared weights, 86,704,128 / 1,728 = 50,176, is exactly the number of output positions.",
+    "Locality measured on scikit-learn's digits (1,797 images of 8x8 pixels; pixels whose standard deviation exceeds 0.5 on the 0-16 scale): mean correlation between pixels at distance 1 is +0.42, at sqrt(2) +0.17, at 2 -0.04, at 2-3 -0.06, beyond 3 about -0.04. Neighbours carry information about each other; pixels two or more apart carry almost none. Include the ten-line NumPy snippet (np.corrcoef over pixel columns, pairs binned by Euclidean distance) so the reader can redo it."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-1",
+     "description": "Three panels for one output unit over a 6x6 input grid. 'Dense': lines from all 36 input pixels to the unit. 'Locally connected': lines from a 3x3 window only, with a second unit at another position whose 9 lines carry different labels (w1..w9 versus v1..v9). 'Convolutional': the same two windows, both labelled w1..w9. Caption gives the counts for 224x224x3 -> 224x224x64: 4.83e11, 86.7 million, 1,792."
+    },
+    {
+     "id": "fig-03-2",
+     "description": "Bar chart of mean pixel correlation against distance on load_digits: bins 1, sqrt(2), 2, (2,3], (3,4.5], >4.5 with values +0.42, +0.17, -0.04, -0.06, -0.04, -0.04; horizontal zero line; caption names the dataset and the standard-deviation filter."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "A layer maps a 32x32x3 image to 32x32x16 with 5x5 windows. How many parameters as a convolution with biases, and how many weights as a locally connected layer? -> Convolution 16*5*5*3 + 16 = 1,216; locally connected 32*32*16 = 16,384 output units x 75 weights = 1,228,800 (plus 16,384 biases).",
+    "Should a classifier that answers 'is there a crack in this image?' be equivariant or invariant to shifts? And a network that segments the crack? -> The classifier should be invariant (the label does not move); the segmentation network should be equivariant (the mask moves with the image)."
+   ],
+   "from_source": "Section 1: the 150,528-number image, the 150-million-weight first layer, locality and translation equivariance, small shared filters whose parameter count does not depend on image size and which pool statistical strength across positions.",
+   "new_material": "The dense -> locally connected -> convolutional count at a fixed output; the measured locality statistic; formal definitions of equivariance and invariance; the inductive-bias framing and the case where convolution does not help."
+  },
+  {
+   "id": "s2",
+   "title": "The convolution operation",
+   "minutes": 19,
+   "target_words": 1250,
+   "purpose": "Define the operation exactly, compute it by hand, prove its translation equivariance, and write it as a matrix so that its backward pass and the transposed convolution follow.",
+   "must_cover": [
+    "The single-channel definition with bias, indices from 0 and the output index at the window's top-left corner: Y_{i,j} = b + sum_{u=0}^{k-1} sum_{v=0}^{k-1} K_{u,v} X_{i+u, j+v} (the source's equation).",
+    "Cross-correlation versus convolution: the mathematical convolution (K * X)_{i,j} = sum K_{u,v} X_{i-u, j-v} flips the kernel; the two differ only by K_{u,v} -> K_{k-1-u, k-1-v}. Because K is learned, the flipped kernel is learned instead and nothing is lost; every framework computes cross-correlation and calls it convolution. Consequences: scipy.signal.convolve2d does not match torch.nn.functional.conv2d unless the kernel is flipped (Lab 1 checks it); symmetric kernels (blur) give identical results; antisymmetric ones (Sobel, [1, 0, -1]) differ by a sign.",
+    "Hand-designed kernels and the sum-of-weights rule: box blur (all 1/9, sum 1, preserves flat regions), Gaussian blur (1/16)[[1,2,1],[2,4,2],[1,2,1]] (sum 1), sharpen [[0,-1,0],[-1,5,-1],[0,-1,0]] (sum 1: identity minus a Laplacian), Sobel-x [[-1,0,1],[-2,0,2],[-1,0,1]] (sum 0: zero on flat regions, responds to horizontal change, i.e. vertical edges), Laplacian [[0,1,0],[1,-4,1],[0,1,0]] (sum 0). Learned first-layer filters look like these (s14 shows Lab 2's).",
+    "Equivariance proved in two lines: with (T_tau X)_{i,j} = X_{i-tau1, j-tau2}, (K star T_tau X)_{i,j} = sum K_{u,v} X_{i+u-tau1, j+v-tau2} = (K star X)_{i-tau1, j-tau2} = (T_tau (K star X))_{i,j}. It holds exactly on an infinite grid or with circular padding, and away from the borders with zero padding (Lab 1 measures both).",
+    "The convolution as a matrix: in 1D a length-5 input and the kernel (1, 2, 3) give the 3x5 banded (Toeplitz) matrix with rows (1,2,3,0,0), (0,1,2,3,0), (0,0,1,2,3); in 2D a doubly block-Toeplitz matrix. A convolution layer is a dense layer whose matrix has k^2 nonzeros per row and tied values.",
+    "The backward pass follows from the matrix form: if y = Mx then dL/dx = M^T dL/dy, and applying M^T is a 'full' convolution with the kernel, the transposed convolution (named here, used for upsampling in s12). The weight gradient dL/dK_{u,v} = sum_{i,j} dL/dY_{i,j} X_{i+u, j+v} is a cross-correlation of the input with the output gradient. A convolution's backward pass is two more convolutions, about twice the forward cost (the argument of Module 02, Section 3).",
+    "Borders previewed: without padding a k x k kernel gives H - k + 1 outputs per axis; padding modes follow in s3."
+   ],
+   "worked_examples": [
+    "Hand computation. X = [[1,2,0,1,3],[0,1,3,2,1],[2,0,1,4,0],[1,3,2,0,1],[0,1,1,2,2]], K = [[1,0,-1],[1,0,-1],[1,0,-1]], no padding, stride 1. Y[0,0] = (1+0+2) - (0+3+1) = -1 and Y[1,2] = (3+1+2) - (1+0+1) = 4, both written out term by term; full result Y = [[-1,-4,0],[-3,-2,4],[-1,-2,1]]. The true (flipped) convolution gives the negative, [[1,4,0],[3,2,-4],[1,2,-1]].",
+    "The same X with the Gaussian blur gives [[1.125,1.6875,1.875],[1.25,1.75,1.8125],[1.5,1.5625,1.375]] (values pulled toward the local mean); with the sharpen kernel [[0,11,1],[-7,-4,17],[11,5,-9]].",
+    "Matrix form in 1D: kernel (1,2,3), x = (1,0,2,1,3): Mx = (7,7,13), identical to np.correlate(x, w, 'valid'). Backward: for an output gradient g = (1,-1,2), M^T g = (1,1,3,1,6), identical to np.convolve(g, w, 'full'): the transposed convolution."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-3",
+     "description": "The sliding window on the 5x5 example: the input grid with the 3x3 window highlighted at output (0,0) and again at (1,2), the kernel beside it, the nine products written inside the window cells, and arrows to the matching cells of the 3x3 output [[-1,-4,0],[-3,-2,4],[-1,-2,1]]."
+    },
+    {
+     "id": "fig-03-4",
+     "description": "Gallery: the 12x12 'letter F' test image used by the widget and its responses to box blur, sharpen, Sobel-x, Sobel-y and Laplacian, on a diverging colour map centred at zero; each panel labelled with its kernel and the sum of its weights."
+    },
+    {
+     "id": "fig-03-5",
+     "description": "The 1D convolution as the 3x5 banded matrix M (1,2,3 along the diagonals) times x = (1,0,2,1,3) giving (7,7,13); beside it M^T (5x3) times the gradient (1,-1,2) giving (1,1,3,1,6), labelled 'transposed convolution'."
+    }
+   ],
+   "widget": "convolution-explorer",
+   "checks": [
+    "Why does F.conv2d match scipy.signal.correlate2d but not scipy.signal.convolve2d? -> Frameworks compute cross-correlation; convolve2d flips the kernel. Flip it (K[::-1, ::-1]) and they agree.",
+    "A kernel's weights sum to zero. What does it output on a constant image, away from the borders? -> Zero, since sum K_{u,v} c = c sum K_{u,v} = 0: such kernels respond only to change.",
+    "For an input of length 6 and a 3-tap kernel without padding, what is the shape of M and how many entries can be nonzero? -> 4x6, with 12 nonzeros (three per row)."
+   ],
+   "from_source": "Section 2: the single-channel equation, and the remark that the mathematical convolution flips the kernel, that the distinction is immaterial for a learned kernel, and that every framework uses the cross-correlation form.",
+   "new_material": "The hand-worked 5x5 example with flipped and unflipped results; the kernel gallery and the sum-of-weights rule; the equivariance proof and where it fails; the Toeplitz view; the backward pass as two convolutions and the first appearance of the transposed convolution."
+  },
+  {
+   "id": "s3",
+   "title": "Output size, padding, stride, dilation and the receptive field",
+   "minutes": 18,
+   "target_words": 1200,
+   "purpose": "Derive the shape arithmetic every architecture diagram relies on, and compute how far each output unit can see.",
+   "must_cover": [
+    "Derive the output size by counting window positions along one axis: after padding there are H + 2p positions; a kernel of size k with dilation d spans d(k-1) + 1 of them; valid start positions are 0, s, 2s, ... up to H + 2p - d(k-1) - 1; so H_out = floor((H + 2p - d(k-1) - 1)/s) + 1, which reduces to the source's floor((H + 2p - k)/s) + 1 at d = 1.",
+    "'Same' padding: s = 1 and p = d(k-1)/2 keep H_out = H; it needs d(k-1) even, so odd kernels; an even kernel cannot be padded symmetrically (PyTorch's padding='same' then pads one side more).",
+    "Stride 2 with k = 3 and p = 1 maps an even H to H/2 (floor((H-1)/2) + 1 = H/2) and an odd H to (H+1)/2: 'stride 2 halves it' (source), with the odd case stated.",
+    "The floor discards input silently: H = 11, k = 3, p = 0, s = 3 gives 3 outputs that read columns 0-8; columns 9 and 10 are never read and no framework warns.",
+    "Padding modes: zero (the default), reflect, replicate, circular. Zero padding lets the network detect the border, which leaks absolute position into an otherwise equivariant layer.",
+    "Dilation: the kernel samples every d-th input; parameters are unchanged while the span grows to d(k-1) + 1.",
+    "The receptive field: the set of input positions that can influence one output unit. Derive the recurrence with the jump Delta_l (the distance, in input pixels, between adjacent units of layer l): r_0 = 1, Delta_0 = 1; r_l = r_{l-1} + (k_l - 1) d_l Delta_{l-1}; Delta_l = Delta_{l-1} s_l. Pooling layers enter with their window and stride.",
+    "Stacked small kernels (source: VGG's whole insight): n stacked 3x3 stride-1 layers have r = 2n + 1, so two 3x3 layers see what one 5x5 sees with 18C^2 instead of 25C^2 weights (28% fewer) and three see what one 7x7 sees with 27C^2 instead of 49C^2 (45% fewer), with a nonlinearity between each.",
+    "Downsampling multiplies the jump: after one stride-2 layer every 3x3 adds 4 pixels instead of 2 (source: strides and pooling grow the field faster). Dilated stacks grow exponentially: 3x3 layers with d = 1, 2, 4, 8 reach 31; dilations sharing a common factor leave gaps (gridding).",
+    "The theoretical receptive field is an upper bound. The effective receptive field (Luo et al. 2016), where the gradient of an output actually lands, is roughly Gaussian and much smaller: for SmallResNet's last stage (theoretical 49x49), Lab 3 measures about 44% of the input-gradient mass inside the central 9x9 and 89% inside 25x25.",
+    "Why it matters: a network whose effective receptive field is smaller than the object classifies texture rather than shape (source failure mode; Geirhos et al. 2019 measured a texture bias in ImageNet CNNs). Compute it; the recurrence makes this a five-minute task."
+   ],
+   "worked_examples": [
+    "Output sizes for H = 11, k = 3 and (p, s, d) = (0,1,1) -> 9; (1,1,1) -> 11; (1,2,1) -> 6; (0,2,1) -> 5; (2,1,2) -> 11; (0,1,2) -> 7; (0,3,1) -> 3, reading columns 0-8 only. These seven are the configurations Lab 1 checks against PyTorch.",
+    "ResNet's stem on 224x224: a 7x7 convolution with stride 2 and padding 3 gives floor((224 + 6 - 7)/2) + 1 = 112; a 3x3 max pool with stride 2 and padding 1 gives floor((112 + 2 - 3)/2) + 1 = 56. Its receptive field: 7 after the convolution (jump 2), 7 + 2*2 = 11 after the pool (jump 4).",
+    "VGG-16's receptive field layer by layer: conv1_1 3, conv1_2 5, pool1 6 (jump 2), conv2_1 10, conv2_2 14, pool2 16 (jump 4), conv3_1 24, conv3_2 32, conv3_3 40, pool3 44 (jump 8), conv4_1 60, conv4_2 76, conv4_3 92, pool4 100 (jump 16), conv5_1 132, conv5_2 164, conv5_3 196, pool5 212 (jump 32).",
+    "Dilated 3x3 stack with d = 1, 2, 4, 8: r = 3, 7, 15, 31 in four layers; an undilated stack needs 15 layers to reach 31."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-6",
+     "description": "Output-size geometry on one axis: a strip of H = 7 input cells with p = 1 hatched padding cells at each end, a k = 3 window drawn at each of its valid start positions for s = 2 (0, 2, 4, 6), braces labelling H + 2p, k and s, and the formula with numbers floor((7 + 2 - 3)/2) + 1 = 4."
+    },
+    {
+     "id": "fig-03-7",
+     "description": "Receptive-field growth in 1D, three panels of dot rows (input at the bottom, three layers above) with the cone of one top unit: three 3-tap stride-1 layers reach 7 inputs; with the middle layer at stride 2 the cone reaches 9 (r = 3, 5, 9) and the jump is labelled; with dilations 1, 2, 4 it reaches 15."
+    },
+    {
+     "id": "fig-03-8",
+     "description": "Theoretical versus effective receptive field: a 96x96 heat map of the absolute input gradient of the centre unit of SmallResNet's last stage (from Lab 3), the 49x49 theoretical square outlined, and contours enclosing 50% and 90% of the gradient mass."
+    }
+   ],
+   "widget": "receptive-field-builder",
+   "checks": [
+    "Input 64, k = 5, p = 2, s = 2, d = 1: output size? -> floor((64 + 4 - 5)/2) + 1 = 32.",
+    "Four stacked 3x3 layers, the second with stride 2: receptive field after each? -> 3, 5, 9, 13 (the jump becomes 2 after the second layer).",
+    "Why can SmallResNet's theoretical receptive field (49) exceed its 32x32 input? -> The windows extend over padding; every last-stage unit can see the whole image plus border, but its effective field is concentrated near its centre."
+   ],
+   "from_source": "Section 2: the padding-and-stride formula, 'same' padding p = (k-1)/2, stride 2 halves the size, the receptive field, two 3x3 layers equal one 5x5 with 18 weights instead of 25 and a nonlinearity between (VGG's insight), strides and pooling growing the field faster, dilated convolutions; Section 10's 'compute it, a five-minute exercise'.",
+   "new_material": "The derivation including dilation; the unread-columns trap; padding modes and position leakage; the recurrence with jumps; the ResNet stem and VGG-16 worked through; exponential growth with dilation and gridding; the effective receptive field with Lab 3's measurements."
+  },
+  {
+   "id": "s4",
+   "title": "Channels, parameters and FLOPs",
+   "minutes": 17,
+   "target_words": 1150,
+   "purpose": "Generalise to many channels, write the layer as one matrix multiply, and count parameters, multiply-accumulates, FLOPs and memory so that any architecture table can be checked.",
+   "must_cover": [
+    "The multi-channel equation (source): Y_{c,i,j} = b_c + sum_{c'=1}^{C_in} sum_{u,v} K_{c,c',u,v} X_{c', i+u, j+v}; the weight tensor has shape (C_out, C_in, k, k) and activations (B, C, H, W) in PyTorch (TensorFlow defaults to channels-last).",
+    "Each output channel is one filter spanning all input channels; a feature map is one output channel; a layer is C_out filters.",
+    "im2col: unfold every k x k x C_in window into a column of length C_in k^2, giving a (C_in k^2) x (H_out W_out) matrix; the layer is then one matrix multiply (C_out x C_in k^2)(C_in k^2 x H_out W_out). This is how CPU libraries and many GPU kernels compute convolutions (FFT and Winograd methods exist; name them only). The cost: each input value is copied up to k^2 times (9x memory for 3x3 at stride 1).",
+    "Counting: parameters k^2 C_in C_out + C_out; multiply-accumulates (MACs) k^2 C_in C_out H_out W_out; FLOPs = 2 x MACs (one multiply and one add each: the counting behind the 2N FLOPs per forward pass of Module 02, Section 2). ResNet, EfficientNet and ConvNeXt report multiply-adds and call them FLOPs (MobileNet calls them Mult-Adds): check the convention before comparing.",
+    "Conventions, stated once for the module: counts are MACs, and FLOPs = 2 x MACs, with bias additions and activations left out unless stated; memory computed from tensor sizes is in binary units (1 MiB = 2^20 bytes, 1 GiB = 2^30 bytes) and download sizes are decimal MB as published, so where the two forms differ both are given once (s1: 574 MiB, 602 MB). The series' FLOP convention for transformers is Module 06's (Module 06, Section 11); nothing in this module needs it.",
+    "Where parameters and compute live (source: parameters are cheap in convolutions; compute is spent on the spatial extent): parameters do not depend on H and W; compute is proportional to H_out W_out. Early high-resolution layers dominate compute; late wide layers and dense heads dominate parameters (VGG-16 numbers).",
+    "Activation memory: an output of shape (C, H, W) in float32 takes 4CHW bytes per image, and training keeps it for the backward pass (Module 02: training memory scales with depth times batch).",
+    "Backward cost: the input gradient and the weight gradient are each a convolution of the same size as the forward one (s2), so a training step costs about 3x the forward FLOPs.",
+    "Bias and normalisation: with batch normalisation directly after a convolution the bias is redundant (BN subtracts the mean), hence bias=False in the source's code."
+   ],
+   "worked_examples": [
+    "The source's layer: 3x3, 64 -> 128 channels, 56x56 output. Parameters 3*3*64*128 + 128 = 73,728 + 128 = 73,856. MACs 73,728 x 3,136 = 231,211,008. FLOPs 2 x 231,211,008 = 462,422,016, about 462 million; adding the 128 x 3,136 = 401,408 bias additions gives 462,823,424, the source's '463 MFLOPs'. State the convention with every count.",
+    "The same layer by im2col: the column matrix has 576 x 3,136 = 1,806,336 entries (7,225,344 bytes, 6.9 MiB, in float32), 9.0 times the 200,704-entry input; the multiply is (128 x 576)(576 x 3,136).",
+    "Activation memory of that layer's output: 128 x 56 x 56 x 4 = 1,605,632 bytes, 1.53 MiB per image, and 392 MiB (411 MB) for a batch of 256.",
+    "VGG-16 at 224x224, counted from its layer list with a short script: 138,357,544 parameters, of which 123,642,856 (89%) are in the three dense layers; 15.35 G multiply-adds in the convolutions against 0.12 G in the dense layers (0.8%).",
+    "ResNet-18 at 224x224, counted the same way: 11,689,512 parameters and 1.81 G multiply-adds; the paper's Table 1 reports '1.8 x 10^9 FLOPs', so its 'FLOPs' are multiply-adds."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-9",
+     "description": "A multi-channel convolution as blocks: an input tensor C_in x H x W, one C_in x k x k filter sliding through it to produce one output map, C_out filters stacked to give the C_out x H_out x W_out output; the weight tensor's shape (C_out, C_in, k, k) labelled."
+    },
+    {
+     "id": "fig-03-10",
+     "description": "im2col: a 3-channel 4x4 input with two overlapping 2x2 windows highlighted; those windows unfolded as two columns of length 12 in the 12 x 9 column matrix; the C_out x 12 weight matrix times the column matrix giving C_out x 9, reshaped to C_out x 3 x 3."
+    },
+    {
+     "id": "fig-03-11",
+     "description": "VGG-16 per layer: two bar series on log scales, parameters and multiply-adds for each of the 16 weight layers, showing compute concentrated in the early convolutions and parameters in fc6."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Parameters of a 5x5 convolution from 3 to 16 channels with bias? -> 5*5*3*16 + 16 = 1,216.",
+    "Doubling the input's height and width changes a convolution layer's parameters and FLOPs how? -> Parameters unchanged; FLOPs x4.",
+    "A paper says a network costs '4 GFLOPs'; your script counts 8 x 10^9 floating-point operations. What do you check first? -> Whether the paper counts multiply-adds: 4 G MACs is 8 GFLOPs."
+   ],
+   "from_source": "Section 2: the channels equation, the counting formulas, and the 64 -> 128 example (73,856 parameters, 463 MFLOPs) with 'parameters are cheap in convolutions; compute is spent on the spatial extent'; Section 9's bias=False convolutions before batch norm.",
+   "new_material": "Tensor layout; im2col with its memory cost; the MAC-versus-FLOP convention and where the source's 463 comes from; activation memory; backward cost; the VGG-16 and ResNet-18 counts; the module's counting and unit conventions, stated once."
+  },
+  {
+   "id": "s5",
+   "title": "Pooling, downsampling and invariance",
+   "minutes": 13,
+   "target_words": 850,
+   "purpose": "Explain how networks reduce resolution, why that buys only approximate translation invariance, and how global average pooling lets a network take any input size.",
+   "must_cover": [
+    "Max pooling, 2x2 with stride 2 (source): halves H and W, keeps the strongest response, has no parameters; its backward pass routes each window's gradient entirely to the position that held the maximum.",
+    "Average pooling; global average pooling (GAP) collapses each channel's map to one number, C x H x W -> C, replacing the giant dense layers of early networks and letting the network accept any input size (source). Compare VGG-16's fc6 (25,088 x 4,096 + 4,096 = 102,764,544 parameters) with a GAP head of 512 x 1,000 + 1,000 = 513,000.",
+    "Strided convolution as learned downsampling (source: modern networks often downsample with a strided convolution, letting the layer learn what to keep): ResNet's stage transitions, ConvNeXt's separate downsampling layers.",
+    "Invariance is approximate: a stride-2 operation is equivariant only to shifts by multiples of 2, and a one-pixel shift can change every pooled value (worked example). Subsampling without low-pass filtering aliases, as in signal processing; Zhang (2019) blurs before subsampling ('anti-aliased' pooling) and reports more shift-stable outputs; Azulay and Weiss (2019) document predictions changing under one-pixel shifts.",
+    "Measured in Lab 2: on 8x8 digits a CNN with two 2x2 max pools and a flatten-dense head drops from about 98.4% to 67% accuracy when test images move one pixel to the right (the MLP drops to 42%); on digits placed at random on a 16x16 canvas, the CNN with GAP reaches about 93% and the same convolutions with a flatten head about 89%. Equivariant layers do not make an invariant classifier; the head and the training data decide.",
+    "Why downsample: each 2x reduction cuts the FLOPs of later layers by 4; it doubles the jump and so speeds receptive-field growth; and the convention of halving H and W while doubling C keeps per-layer compute roughly constant across stages."
+   ],
+   "worked_examples": [
+    "Max pooling X = [[1,3,2,0],[4,2,1,1],[0,1,5,2],[2,2,3,4]] gives [[4,2],[2,5]]. Shift the input one column left (drop the first column, append zeros): [[3,2,0,0],[2,1,1,0],[1,5,2,0],[2,3,4,0]] pools to [[3,1],[5,4]] - every output changes. Shift by two columns: [[2,0],[5,0]], the original right column moved one cell left.",
+    "GAP head versus VGG-16's flatten head: 513,000 parameters against 102,764,544 for fc6 alone.",
+    "SmallResNet on 32x32 (Lab 3): the second convolution of every stage costs 9,437,184 multiply-adds (9*32*32*32*32 = 9*64*64*16*16 = 9*128*128*8*8 = 9*256*256*4*4) - halving H and W while doubling C keeps it constant."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-12",
+     "description": "Max pooling and its fragility: the 4x4 example with its pooled output, the one-column shift with a completely different pooled output, and the two-column shift whose output is the original moved by one cell."
+    },
+    {
+     "id": "fig-03-13",
+     "description": "Two classifier heads compared: flatten + dense (C*H*W inputs, position-specific weights; VGG-16's 7x7x512 = 25,088 -> 4,096, 102.8 M parameters) versus global average pooling + dense (C inputs; 512 -> 1,000, 0.5 M)."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Where does the gradient go in the backward pass of 2x2 max pooling? -> Entirely to the position that held each window's maximum; the other three receive zero.",
+    "A GAP network trained on 32x32 images is given 48x48 ones. Does it run, and can you trust the answer? -> It runs (GAP returns C numbers at any size), but objects now sit at a different scale relative to the receptive fields, so test before trusting."
+   ],
+   "from_source": "Section 3: max, average and global average pooling; a small amount of translation invariance; GAP replacing the dense layers and accepting any input size; strided convolutions instead of pooling.",
+   "new_material": "Max-pool backward routing; the numerical fragility example; aliasing and anti-aliased pooling; Lab 2's measured shift sensitivity and GAP-versus-flatten numbers; the channel-doubling convention with constant per-stage compute."
+  },
+  {
+   "id": "s6",
+   "title": "Cheaper convolutions: 1x1, grouped and depthwise-separable",
+   "minutes": 14,
+   "target_words": 950,
+   "purpose": "Show how to mix channels cheaply and how to factorise a convolution, with the cost saving derived, because every efficient architecture in s7-s9 is built from these pieces.",
+   "must_cover": [
+    "1x1 convolution (source): Y_{c,i,j} = b_c + sum_{c'} W_{c,c'} X_{c',i,j}, a dense layer applied independently at every pixel; C_in C_out + C_out parameters; changes the channel count and adds a per-pixel nonlinearity (Lin et al. 2014, Network in Network).",
+    "Bottlenecks (source: Inception and later designs): reduce channels with a 1x1 before an expensive k x k and expand after; the cost of a k x k convolution at fixed resolution scales with C_in C_out, so reducing both sides by r divides it by r^2.",
+    "Grouped convolution (AlexNet's two-GPU split; ResNeXt): the C_in channels are split into g groups, each convolved only with its own C_out/g filters: k^2 C_in C_out / g parameters.",
+    "Depthwise convolution: g = C_in = C_out, one k x k filter per channel, k^2 C parameters.",
+    "Depthwise-separable convolution (source): depthwise k x k followed by pointwise 1x1. Derive per output position: standard k^2 C_in C_out MACs; separable k^2 C_in + C_in C_out; ratio 1/C_out + 1/k^2, about 1/9 for 3x3 kernels on wide layers (the source's 'a factor of roughly k^2').",
+    "What is given up: each output channel's spatial filter becomes a combination of C_in fixed per-channel spatial filters, a restricted family. MobileNet's Table 4 puts the price at about one point of ImageNet accuracy for about 8.5x less compute (70.6% with 569 M multiply-adds and 4.2 M parameters, against 71.7%, 4,866 M and 29.3 M with full convolutions).",
+    "FLOPs are not run time: depthwise layers do few operations per byte moved, so on GPUs they often run well below peak and the speed-up is smaller than the FLOP ratio. Measure on the target hardware."
+   ],
+   "worked_examples": [
+    "Depthwise-separable replacement of the s4 layer (3x3, 64 -> 128, 56x56): depthwise 3*3*64 = 576 weights, pointwise 64*128 = 8,192, total 8,768 (8,960 with both biases) against 73,728 (73,856). MACs 8,768 x 3,136 = 27,496,448, i.e. 55.0 MFLOPs against 462.4. Ratio 73,728 / 8,768 = 8.41 = 1/(1/128 + 1/9).",
+    "GoogLeNet's inception (3a) 5x5 branch at 28x28 with 192 input channels and 32 outputs: direct 5*5*192*32 = 153,600 weights and 120.4 M MACs; with a 1x1 reduction to 16 channels first, 192*16 + 5*5*16*32 = 3,072 + 12,800 = 15,872 weights and 12.4 M MACs, 9.7x cheaper.",
+    "SmallResNet with every block convolution replaced by a depthwise-separable pair (Lab 3 extension): 187,018 parameters instead of 1,228,970, 6.6x fewer - less than 8x because the stem, the 1x1 shortcut projections, the batch norms and the head are unchanged and the first stage has only 32 channels."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-14",
+     "description": "Standard versus depthwise-separable convolution as blocks: on the left one k x k x C_in filter per output channel (C_out of them); on the right C_in separate k x k x 1 filters producing C_in maps, then C_out 1 x 1 x C_in filters mixing them; each annotated with its MACs per position, k^2 C_in C_out versus k^2 C_in + C_in C_out."
+    },
+    {
+     "id": "fig-03-15",
+     "description": "The inception (3a) module: four parallel branches from a 28x28x192 input - 1x1 (64); 1x1 (96) -> 3x3 (128); 1x1 (16) -> 5x5 (32); 3x3 max pool -> 1x1 (32) - concatenated to 28x28x256, the 1x1 reductions highlighted, and the 5x5 branch's cost with and without reduction (120.4 M versus 12.4 M multiply-adds)."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Cost ratio of a depthwise-separable 3x3 to a standard 3x3 with C_in = C_out = 256? -> 1/256 + 1/9 = 0.115, about 8.7x cheaper.",
+    "A 1x1 convolution from 256 to 64 channels on a 14x14 map: parameters with bias, and MACs? -> 256*64 + 64 = 16,448; 16,384 x 196 = 3,211,264 MACs."
+   ],
+   "from_source": "Section 2: 1x1 convolutions as a linear layer per pixel, for changing channel counts cheaply and as bottlenecks in Inception and later designs; Section 7: depthwise-separable convolution, the per-position cost k^2 C_in C_out -> k^2 C_in + C_in C_out, roughly k^2 cheaper for wide layers, MobileNet on a phone; Section 11 exercise 3 (the separable SmallResNet, now a Lab 3 extension).",
+   "new_material": "Grouped and depthwise convolutions as one family; the ratio 1/C_out + 1/k^2 derived; inception (3a) numbers; what the factorisation gives up with MobileNet's own comparison; FLOPs versus run time."
+  },
+  {
+   "id": "s7",
+   "title": "The classic architectures: LeNet, AlexNet, VGG and Inception",
+   "minutes": 16,
+   "target_words": 1150,
+   "purpose": "Read the first four landmark networks as a sequence of single ideas, each checkable with the counting tools of s3-s6.",
+   "must_cover": [
+    "How to read an architecture table: per layer, output shape, kernel and stride, parameters and MACs, each confirmed with the formulas of s3-s4.",
+    "LeNet-5 (LeCun et al. 1998), the pattern conv -> subsample -> conv -> subsample -> dense (source): 32x32 input; C1 6@28x28 (5x5); S2 6@14x14 (2x2 subsampling with one trainable coefficient and bias per map); C3 16@10x10 with a partial connection table (each map sees 3, 4 or 6 of the S2 maps); S4 16@5x5; C5 120 (a 5x5 convolution on a 5x5 map, i.e. a dense layer); F6 84; 10 output units. It read bank cheques for a decade (source).",
+    "AlexNet (Krizhevsky et al. 2012): five convolutional and three dense layers, about 60 million parameters, trained on two GPUs (its grouped convolutions are that split); ReLU (their Figure 1: a four-layer CNN reached 25% training error on CIFAR-10 six times faster than with tanh); dropout 0.5 in the first two dense layers; augmentation with random 224x224 crops of 256x256 images, horizontal flips and PCA colour jitter; overlapping 3x3 max pooling. ILSVRC-2012 top-5 test error 15.3% against 26.2% for the next entry - state it this way rather than 'halved'.",
+    "VGG (Simonyan and Zisserman 2015): only 3x3 convolutions (stride 1, padding 1) and 2x2 max pools, channels 64 -> 512, 16-19 weight layers; the stacked-3x3 argument of s3; VGG-16 has 138 M parameters (89% in the dense layers) and about 15.5 G multiply-adds; simple, and still a common backbone and feature extractor (source).",
+    "Inception / GoogLeNet (Szegedy et al. 2015): parallel 1x1, 3x3 and 5x5 branches plus pooling, concatenated; 1x1 bottlenecks keep it cheap; 22 layers deep; the paper states it uses 12 times fewer parameters than AlexNet; winner of ILSVRC-2014 classification with 6.67% top-5 error; auxiliary classifiers on intermediate layers helped gradients reach early layers, a pre-ResNet fix for depth.",
+    "How the headline numbers are defined (Russakovsky et al. 2015): ILSVRC has 1.2 million training images in 1,000 classes, 50,000 validation and 100,000 test images; top-5 error counts a prediction correct when the true class is among the five highest scores; competition entries were often ensembles.",
+    "The thread: each network is its predecessor plus one idea, and error fell while parameters did not have to rise (VGG-16, 138 M; GoogLeNet, a few million)."
+   ],
+   "worked_examples": [
+    "LeNet-5 counted layer by layer: C1 6*(5*5*1 + 1) = 156; S2 6*2 = 12; C3 (6*3 + 9*4 + 1*6) = 60 kernel-input pairs x 25 + 16 biases = 1,516; S4 16*2 = 32; C5 120*(5*5*16 + 1) = 48,120; F6 84*(120 + 1) = 10,164; total 60,000 trainable parameters. Connections (multiply-adds): C1 28*28*156 = 122,304; S2 14*14*6*5 = 5,880; C3 10*10*1,516 = 151,600; S4 5*5*16*5 = 2,000; C5 48,120; F6 10,164; output 840; total 340,908, the figures LeCun et al. give. Weight sharing makes the connections 5.7 times the parameters.",
+    "A modern PyTorch 'LeNet-5' with full C3 connectivity and a linear 10-way output has 156 + 2,416 + 48,120 + 10,164 + 850 = 61,706 parameters, the number most tutorials print.",
+    "VGG-16 shapes at 224x224: 224 (64 channels) -> 112 (128) -> 56 (256) -> 28 (512) -> 14 (512) -> pool to 7x7x512 = 25,088 features into fc6 (102,764,544 parameters)."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-16",
+     "description": "Timeline 1998-2022, one box per network - LeNet-5, AlexNet, VGG-16, GoogLeNet, ResNet, DenseNet, MobileNet, EfficientNet, ViT, ConvNeXt - each with its one idea in three to five words and, where stated in the text, its parameter count; ViT marked with an arrow 'Module 06'."
+    },
+    {
+     "id": "fig-03-17",
+     "description": "LeNet-5 in the style of the 1998 paper: 32x32 input -> C1 6@28x28 -> S2 6@14x14 -> C3 16@10x10 -> S4 16@5x5 -> C5 120 -> F6 84 -> 10 outputs, each block labelled with its trainable parameters (156, 12, 1,516, 32, 48,120, 10,164)."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why does VGG-16's fc6 hold 102.8 million parameters? -> Its input is the flattened 7x7x512 = 25,088 map and it has 4,096 outputs: 25,088 x 4,096 + 4,096 = 102,764,544.",
+    "Two stacked 3x3 layers against one 5x5, both 256 -> 256 channels, no bias: weights? -> 2 x 9 x 256^2 = 1,179,648 against 25 x 256^2 = 1,638,400."
+   ],
+   "from_source": "Section 4's table rows for LeNet-5 (the pattern; cheques for a decade), AlexNet (ReLU, dropout, GPU training, augmentation; started the field), VGG (only stacked 3x3; depth 16-19; still a common backbone) and Inception (parallel branches, 1x1 bottlenecks, far fewer parameters).",
+   "new_material": "LeNet-5's exact parameter and connection counts; AlexNet's precise ILSVRC numbers; VGG's parameter and compute split; inception (3a) (from s6) placed in context; how ILSVRC results are defined."
+  },
+  {
+   "id": "s8",
+   "title": "Residual networks",
+   "minutes": 17,
+   "target_words": 1200,
+   "purpose": "Explain the degradation problem, the residual block and the gradient argument for why depth stopped being an obstacle, using the block every later architecture, the transformer included, reuses.",
+   "must_cover": [
+    "The degradation problem (He et al. 2016, Figure 1): on CIFAR-10 a 56-layer plain network has higher training error than a 20-layer one, so the failure is optimisation, not overfitting. A deeper network could copy the shallower one and set its extra layers to the identity; the optimiser does not find that solution.",
+    "The residual block (source): h_{l+1} = h_l + F(h_l), with F two 3x3 convolution-BN(-ReLU) layers (basic block) or 1x1-3x3-1x1 (bottleneck); ReLU after the addition in the original design; a strided 1x1 projection on the shortcut when the shape changes (the source's skip). The block learns the change from its input.",
+    "Identity is easy (source): initialise the last layer of F near zero - in practice set the last batch norm's gamma to 0 (Goyal et al. 2017) - and the block starts as the identity, so a deep ResNet begins as a shallow network and grows into its depth.",
+    "The gradient argument written out (He et al. 2016b, identity mappings), for pre-activation blocks with nothing after the addition: summing h_{i+1} - h_i = F_i(h_i) gives h_L = h_l + sum_{i=l}^{L-1} F_i(h_i), hence dL/dh_l = dL/dh_L (I + d/dh_l sum_i F_i(h_i)). The identity term carries the top gradient to every layer unchanged (source: the gradient reaches early layers along a path of additions rather than a product of Jacobians); to vanish, the second term would have to cancel the identity exactly. Contrast the plain network's product of Jacobians (Module 02) and note that a ReLU after the addition gates the highway, which motivated the pre-activation form.",
+    "Scalar illustration: per-layer gain 0.9 over 50 layers gives 0.9^50 = 0.0052; gain 1.1 gives 117; a residual layer whose branch derivative is +0.01 or -0.01 gives 1.01^50 = 1.64 or 0.99^50 = 0.61 - near 1 without tuning.",
+    "Measured in Lab 3 on 8x8 digits (16-channel 3x3 layers): at initialisation without normalisation, the gradient reaching the stem of a plain network is 1.4e-5 at 9 layers, 9e-10 at 19 and underflows to 0 at 55, while the residual network's stays between 0.02 and 0.09; with batch norm the 55-layer plain network's stem gradient is about 190 (it explodes instead) against 0.8 with shortcuts. After 12 epochs the plain 55-layer network's training loss is still about 2.0 (chance is ln 10 = 2.30) while the residual one reaches 0.07; at 19 layers plain already trails (0.40 against 0.07).",
+    "The bottleneck block for deep ResNets (50, 101, 152 layers): 256 -> 1x1 -> 64 -> 3x3 -> 64 -> 1x1 -> 256.",
+    "Results (He et al. 2016): ResNet-152 on ImageNet; ILSVRC-2015 classification winner with 3.57% top-5 error (an ensemble); on CIFAR-10, 110 layers with 1.7 M parameters reach 6.43% error and 1,202 layers train but test worse (7.93%) - overfitting, not degradation. Depth stopped being an obstacle (source).",
+    "DenseNet briefly (Huang et al. 2017): every layer of a block receives the concatenation of all earlier layers' outputs and adds k new channels (growth rate; k = 32 in DenseNet-121, about 8 M parameters); strong accuracy per parameter, at the cost of activation memory for the concatenations. Concatenation (DenseNet, U-Net) keeps features separate and grows width; addition (ResNet) keeps width fixed.",
+    "The same form, x + F(x), wraps every attention and feed-forward sublayer of the transformer (source; Module 06).",
+    "Present the source's Block and SmallResNet code here, verbatim, with its arithmetic printed; its correct parameter count is 1,228,970."
+   ],
+   "worked_examples": [
+    "SmallResNet counted (Lab 3): stem 928; blocks 18,560, 57,728, 230,144 and 919,040; head 2,570; total 1,228,970 parameters; 63,801,856 multiply-adds (127.6 MFLOPs) for one 32x32 image.",
+    "Bottleneck versus basic at 256 channels: 256*64 + 9*64*64 + 64*256 = 16,384 + 36,864 + 16,384 = 69,632 weights against 2 x 9 x 256 x 256 = 1,179,648, 17x fewer.",
+    "Gradient factors over 50 layers: 0.9^50 = 0.0052, 1.1^50 = 117.4, 1.01^50 = 1.64, 0.99^50 = 0.61."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-18",
+     "description": "The residual block: input h_l splits into the identity path (a straight line, or a strided 1x1 projection when shapes differ) and the branch conv3x3-BN-ReLU-conv3x3-BN, meeting at an addition followed by ReLU; a second panel shows the pre-activation variant (BN-ReLU-conv twice, nothing after the addition)."
+    },
+    {
+     "id": "fig-03-19",
+     "description": "Degradation reproduced (Lab 3): training loss on a log axis against epoch for plain and residual networks with 7, 19 and 55 convolution layers on load_digits; plain-55 flat near 2.0, plain-19 above plain-7, the three residual curves together near 0.05-0.07."
+    },
+    {
+     "id": "fig-03-20",
+     "description": "Gradient flow along five blocks: the backward signal drawn twice, once through the residual branches (multiplied by each Jacobian) and once along the identity highway (unchanged), with dL/dh_l = dL/dh_L (I + ...) written underneath."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "A residual block with an identity shortcut has its last batch norm's gamma set to 0. What does the block compute at initialisation? -> ReLU(h) with the original post-addition ReLU, which is h for the non-negative inputs a previous ReLU produces: the identity.",
+    "Why is Figure 1 of the ResNet paper evidence of an optimisation problem rather than overfitting? -> The deeper plain network's training error is higher too, not only its test error."
+   ],
+   "from_source": "Section 4: the ResNet row (residual connections; 152 layers trained; batch norm throughout), 'the residual block is the one to understand', h_{l+1} = h_l + F(h_l), learning the change, near-zero initialisation of F's last layer, the gradient along additions, depth no longer an obstacle, the same form in every transformer block; Section 9: the Block and SmallResNet code.",
+   "new_material": "The degradation problem with its evidence; the identity-mapping derivation; scalar gains; Lab 3's measured gradients and training curves; the bottleneck count; the corrected SmallResNet count; DenseNet and concatenation versus addition."
+  },
+  {
+   "id": "s9",
+   "title": "Efficient and modern CNNs, and where vision transformers fit",
+   "minutes": 14,
+   "target_words": 950,
+   "purpose": "Show how the post-ResNet designs trade accuracy against cost, how training recipes confound architecture comparisons, and where the vision transformer sits relative to CNNs.",
+   "must_cover": [
+    "MobileNet (Howard et al. 2017): depthwise-separable blocks throughout (s6); a width multiplier alpha (channels x alpha, cost about x alpha^2) and a resolution multiplier rho (cost x rho^2); MobileNet-224 has 4.2 M parameters and 569 M multiply-adds at 70.6% ImageNet top-1. It runs on a phone (source).",
+    "MobileNetV2 (Sandler et al. 2018): the inverted residual - expand with a 1x1 (x6), depthwise 3x3, project with a linear 1x1 (no ReLU on the narrow output) - with the shortcut between the narrow ends.",
+    "EfficientNet (Tan and Le 2019), compound scaling (source: scale depth, width and resolution together by a fixed ratio): depth d = alpha^phi, width w = beta^phi, resolution r = gamma^phi, with FLOPs proportional to d w^2 r^2 because a convolution's cost scales with C_in C_out and H W; the constraint alpha beta^2 gamma^2 = 2 makes each unit of phi double the FLOPs; alpha = 1.2, beta = 1.1, gamma = 1.15 were found by grid search on the small B0. EfficientNet-B0: 5.3 M parameters, 0.39 B FLOPs (multiply-adds), 76.3% top-1 (Table 2 of the ICML paper; a later arXiv revision reports 77.1%, so quote the version you cite).",
+    "ConvNeXt (Liu et al. 2022; source: a ResNet modernised with the transformer era's training recipe, matching ViT): start from ResNet-50, first apply the modern recipe (AdamW, 300 epochs, mixup, CutMix, RandAugment, random erasing, stochastic depth, label smoothing), then change the architecture step by step. ImageNet-1k top-1 after each step, from the paper's Appendix C, Table 10 (ResNet-50 regime, rounded to 0.1; Figure 2 plots the same values): original recipe 76.1; modern recipe 78.8; stage ratio (3, 3, 9, 3) 79.4; 4x4 stride-4 'patchify' stem 79.5; depthwise convolution 78.3, then width 64 -> 96 80.5; inverted bottleneck 80.6; depthwise layer moved up 79.9, then 7x7 kernels 80.6; GELU 80.6; fewer activations 81.3; fewer normalisations 81.4; layer norm instead of batch norm 81.5; separate downsampling layers 82.0 (81.97 +/- 0.06). Table 1 reports the finished ConvNeXt-T at 82.1% (28.6 M parameters, printed as 29M; 4.5 G multiply-adds) against 81.3% for the Swin-T transformer (28 M, 4.5 G). Say which table each number comes from.",
+    "The lesson for reading papers: compare architectures only under the same training recipe; an improvement over a baseline trained with an older recipe may be mostly recipe.",
+    "The vision transformer, as a pointer only: two sentences and a link to Module 06, Section 8, which owns it, including the patch-embedding parameter count. ViT (Dosovitskiy et al. 2021; source: patches as tokens, no convolution, wins with enough data) cuts the image into 16x16 patches, embeds each as a token with what amounts to a 16x16 stride-16 convolution, and runs a transformer over them; with less built in than a CNN, it trails comparable ResNets trained on ImageNet-1k alone and matches or beats them after pretraining on far larger sets, Lab 2's inductive-bias lesson at scale.",
+    "A dated, conservative judgement (as of 2026): CNNs remain a default where data are scarce, inputs are large (high resolution, 3D), latency or power is constrained, or dense outputs are needed, and hybrids of convolution and attention are common."
+   ],
+   "worked_examples": [
+    "EfficientNet's constraint: alpha beta^2 gamma^2 = 1.2 x 1.1^2 x 1.15^2 = 1.2 x 1.21 x 1.3225 = 1.92, about 2; at phi = 3 depth grows x1.73, width x1.33, resolution x1.52, and FLOPs about x1.92^3 = 7.1.",
+    "MobileNet's width multiplier alpha = 0.5: both C_in and C_out halve in the pointwise layers, which dominate the cost, so multiply-adds fall to about alpha^2 = 0.25 of the original (the depthwise part falls only to 0.5).",
+    "Recipe against architecture in ConvNeXt's numbers (Table 10): the recipe moves ResNet-50 from 76.1% to 78.8% (+2.7 points) and the architectural steps from 78.8% to 82.0% (+3.2). Compared naively with the 76.1% baseline, the published ConvNeXt-T (82.1%, Table 1) would credit the architecture with 6.0 points, 45% of which is recipe."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-21",
+     "description": "Accuracy against cost: ImageNet top-1 (%) against multiply-adds on a log axis, one labelled point per model, each value stated in this section and taken from the cited table: MobileNet-224 0.57 G / 70.6 (Howard et al. 2017, Table 4); EfficientNet-B0 0.39 G / 76.3 (Tan and Le 2019, ICML version, Table 2); ConvNeXt-T 4.5 G / 82.1 (Liu et al. 2022, Table 1); ResNet-50 at 4.1 G as an arrow from 76.1 with the original recipe to 78.8 with the modern one (Liu et al. 2022, Table 10). The caption names each source table and warns that the training recipes differ."
+    },
+    {
+     "id": "fig-03-22",
+     "description": "The ConvNeXt roadmap as horizontal bars of ImageNet-1k top-1 in the ResNet-50/Swin-T regime, values from Liu et al. 2022, Appendix C, Table 10, rounded to 0.1 (Figure 2 of the paper plots the same values), each bar labelled with its accuracy and GFLOPs in the paper's order: ResNet-50, original recipe 76.1 (4.1); modern training recipe 78.8 (4.1), coloured differently from the architecture bars; stage ratio 79.4 (4.5); 'patchify' stem 79.5 (4.4); depthwise convolution 78.3 (2.4); width 64 -> 96 80.5 (5.3); inverted bottleneck 80.6 (4.6); depthwise layer moved up 79.9 (4.1); 7x7 kernel 80.6 (4.2); ReLU -> GELU 80.6 (4.2); fewer activations 81.3 (4.2); fewer normalisations 81.4 (4.2); BN -> LN 81.5 (4.5); separate downsampling layers 82.0 (4.5). The two intermediate steps that lose accuracy (depthwise convolution before widening; moving the depthwise layer up before enlarging its kernel) are hatched. The final bar, in a third colour, is 'ConvNeXt-T as published (Table 1)' at 82.1 (4.5), so the figure ends on the number in the text; a vertical reference line marks Swin-T at 81.3. The caption cites Table 10 and Table 1, gives the roadmap's last step as 81.97 +/- 0.06, and notes that kernel sizes 5, 9 and 11 (80.4, 80.6, 80.5) are not drawn."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why do width and resolution enter EfficientNet's FLOP constraint squared but depth only linearly? -> A convolution's FLOPs scale with C_in C_out (both proportional to width) and with H W (both proportional to resolution), but linearly with the number of layers.",
+    "A paper reports a new architecture at 80.5% against a ResNet-50 baseline at 76.1%. What do you check first? -> Whether both used the same training recipe: the recipe alone moves ResNet-50 to 78.8%."
+   ],
+   "from_source": "Section 4's table rows for MobileNet (depthwise-separable convolutions), EfficientNet (scale depth, width and resolution together), Vision Transformer (patches as tokens; wins with enough data; Module 06) and ConvNeXt (a modernised ResNet matching ViT).",
+   "new_material": "Width and resolution multipliers; inverted residuals; compound scaling derived; the recipe-versus-architecture lesson with ConvNeXt's roadmap checked step by step against its Table 10; a two-sentence pointer to the vision transformer of Module 06; a dated judgement on where CNNs remain the default."
+  },
+  {
+   "id": "s10",
+   "title": "Training a CNN: augmentation, normalisation and transfer learning",
+   "minutes": 17,
+   "target_words": 1250,
+   "purpose": "Give the practical recipe for training a CNN on a small engineering dataset, with measurements that show when each ingredient helps and when it does not.",
+   "must_cover": [
+    "Augmentation as the most effective regulariser for images (source), with the rule that every transform must leave the label true (source: a vertical flip of a digit is a different digit). Geometric: random crops (pad-and-crop, random-resized crop), flips, small rotations and scalings, elastic deformations (U-Net's key augmentation for microscopy); photometric: brightness, contrast, colour jitter, noise, blur. Rotations only where the label is rotation-invariant (source). For segmentation the mask receives the same geometric transform, with nearest-neighbour interpolation.",
+    "Mixing methods (source): mixup x~ = lambda x_i + (1 - lambda) x_j, y~ = lambda y_i + (1 - lambda) y_j with lambda ~ Beta(a, a), a around 0.2; CutMix pastes a rectangle of x_j into x_i and mixes the labels in proportion to area. Both make targets soft.",
+    "Augmentation must describe variation the deployment data contain. Lab 2's extension measures both sides: on centred 8x8 digits, +/-1-pixel shifts and +/-10 degree rotations lower validation accuracy from about 0.90 to about 0.83 at 20 images per class (the shifts are an eighth of the image, absent from the centred test set, and the 1,898-parameter network cannot absorb them); on the 16x16 canvas where digits really do move, re-placing each digit at a fresh random position every epoch raises test accuracy from 0.36 to 0.66 at 5 images per class and from 0.76 to 0.90 at 20.",
+    "Input normalisation (source): subtract the training set's per-channel mean and divide by its standard deviation; with a pretrained backbone use its statistics (source) - for torchvision's ImageNet models, RGB in [0, 1], mean (0.485, 0.456, 0.406), standard deviation (0.229, 0.224, 0.225) - and also its channel order, value range and resize convention.",
+    "Batch normalisation in CNNs (source; Module 02 owns the mechanics): statistics per channel over (B, H, W); conv -> BN -> ReLU was ResNet's recipe; below about 16 examples per batch the statistics become unreliable and group norm (Wu and He 2018: per example, over groups of channels) or layer norm replace it. It is the number of independent examples, not the number of values, that matters. When fine-tuning with small batches, keep a pretrained backbone's BN layers in eval mode, and remember that requires_grad=False does not stop running statistics from updating in train mode.",
+    "Transfer learning (source): a backbone pretrained on a large generic dataset has learned edge, texture and shape detectors that transfer; replace the final layer with one for your labels and fine-tune - first the new layer at a normal learning rate, then the whole network at about a tenth of it (source's recipe). The options, in increasing order of data needed: keep early layers only; linear probe (frozen backbone); full fine-tuning; discriminative learning rates (smaller for earlier layers); training from scratch.",
+    "Which layers transfer (Yosinski et al. 2014: early layers general, later layers specific), measured in Lab 4 with a narrow source (digits 0-4, 675 images) and a target of digits 5-9: at 5 labelled images per class, scratch 0.90, keeping only the pretrained first block 0.92, a frozen backbone with a new linear head 0.65, the probe followed by fine-tuning everything at a tenth of the rate 0.83; at 20 per class, 0.95, 0.97, 0.78 and 0.96. A narrow source transfers only its early layers; ImageNet's 1.28 million images in 1,000 classes are why its whole backbone transfers (Lab 4 shows a torchvision ResNet-18 version as an extension that is not executed; no number here depends on it). The values are means over five seeds; at n = 20 every option but the linear probe lies within the seed-to-seed spread (0.01-0.03) of the others, so the argument rests on n = 5 and on the probe.",
+    "When pretraining helps less: He, Girshick and Dollar (2019) matched ImageNet-pretrained detectors trained from scratch on COCO given longer schedules; Raghu et al. (2019) found small accuracy gains from ImageNet pretraining on large medical-imaging datasets, with faster convergence. With a few hundred labelled images pretraining remains the default starting point, including for scientific images that look nothing like the pretraining set (source).",
+    "Small-data checklist: pretrained backbone or at least pretrained early layers; strong label-preserving augmentation; a small head; early stopping on a validation set split by specimen; results reported over several seeds and folds. Optimisers, schedules and the overfit-one-batch test are Module 02's; train with crops, flips where valid, and a cosine schedule (source)."
+   ],
+   "worked_examples": [
+    "Mixup with lambda = 0.7 between a 'cat' and a 'dog' image: the input is 0.7 x_cat + 0.3 x_dog pixel by pixel and the target (0.7, 0.3); the cross-entropy against this soft target is minimised by predicting exactly 0.7 and 0.3.",
+    "ImageNet normalisation: a white pixel (1, 1, 1) becomes ((1 - 0.485)/0.229, (1 - 0.456)/0.224, (1 - 0.406)/0.225) = (2.25, 2.43, 2.64) and a black one (-2.12, -2.04, -1.80). Skipping normalisation feeds 1.0 and 0.0 where the backbone expects these values; feeding 0-255 integers feeds 255. In Lab 4, feeding unnormalised pixels to the pretrained digit backbone drops the linear probe from about 0.72 to about 0.51 at 10 images per class.",
+    "Lab 4's transfer table (seeds 0-4; mean accuracy on the 224 held-out images of digits 5-9): n = 5 per class - scratch 0.898, first block kept and frozen 0.921, first two blocks frozen 0.899, linear probe 0.645, probe then fine-tune 0.826, first block then fine-tune 0.926; n = 20 - 0.954, 0.970, 0.967, 0.779, 0.963, 0.978."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-23",
+     "description": "Augmentation gallery for one digit and one synthetic micrograph: original, random crop, horizontal flip, vertical flip, rotation by 10 degrees, elastic deformation, brightness and contrast change, mixup with a second image, CutMix; each tile marked 'keeps the label' or 'changes the label' for the digit (a vertically flipped 6 is not a 6)."
+    },
+    {
+     "id": "fig-03-24",
+     "description": "Transfer strategies on a three-block backbone: (a) scratch; (b) first block kept and frozen (padlock), the rest new; (c) linear probe, the whole backbone frozen; (d) fine-tuning, head first and then all blocks at a tenth of the learning rate; each annotated with Lab 4's accuracy at 5 images per class (0.90, 0.92, 0.65, 0.83)."
+    },
+    {
+     "id": "fig-03-25",
+     "description": "Lab 2 extension curves, two panels: centred digits at 20 images per class (training and validation loss with and without shift-and-rotate augmentation; augmentation lowers accuracy) and the 16x16 canvas at 20 per class (test accuracy with fixed versus re-sampled positions; augmentation raises it)."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "You set requires_grad=False on a pretrained backbone and train a new head with the whole model in train mode. What in the backbone still changes? -> Its batch-norm running means and variances, updated from your batches; put those layers in eval mode.",
+    "Horizontal flips, vertical flips and 90-degree rotations for top-down images of solar panels inspected for cracks: label-preserving? -> All three, if the crack labels carry no orientation; if a label encodes direction (e.g. 'crack parallel to the busbar'), the label must be transformed with the image."
+   ],
+   "from_source": "Section 5: augmentation as the most effective regulariser (random crops, flips, colour jitter, rotations where the label is rotation-invariant, mixup and CutMix; transforms must keep the label true; the digit flip), batch norm after every convolution before the nonlinearity and its unreliability below about 16 with group or layer norm as replacements, transfer learning (new head first at a normal rate, then the whole network at a tenth; the default starting point even for scientific images), input normalisation with the backbone's statistics; Section 9's training note (random crops and flips, cosine schedule); Section 11 exercise 4 (now the Lab 2 extension).",
+   "new_material": "Domain judgement for augmentation and mask handling; mixup's formula; measured cases where augmentation hurts and helps; ImageNet statistics with numbers; the 'independent examples' point about BN and frozen-BN fine-tuning; the transfer strategies with Lab 4's layer-by-layer measurements; evidence on when pretraining helps less; a small-data checklist."
+  },
+  {
+   "id": "s11",
+   "title": "Detection: boxes, anchors, IoU and NMS",
+   "minutes": 17,
+   "target_words": 1200,
+   "purpose": "Show how a CNN becomes an object detector, with the geometry, the losses and the post-processing written out, so that a detection paper's design choices can be read.",
+   "must_cover": [
+    "The task (source: detection places boxes around objects): output a set of (box, class, score); boxes as corners (x1, y1, x2, y2) or centre and size (x, y, w, h).",
+    "Intersection over union: IoU = |A intersect B| / |A union B|, the intersection's corners being the larger of the two minima and the smaller of the two maxima. A detection is a true positive if its IoU with an unmatched ground-truth box of the same class is at least 0.5 (PASCAL VOC); COCO averages over IoU thresholds 0.50, 0.55, ..., 0.95.",
+    "Anchors: at each feature-map position, k reference boxes of several scales and aspect ratios (Faster R-CNN: 3 scales x 3 ratios = 9). For each anchor the network predicts class scores and offsets t = ((x - x_a)/w_a, (y - y_a)/h_a, ln(w/w_a), ln(h/h_a)); the logarithm keeps widths positive and makes scale errors relative. A feature map of about 60x40 positions gives about 2,400 x 9, roughly 20,000 anchors (Faster R-CNN's figure for a 1000x600 image).",
+    "The loss (source: classification plus box regression): a classification term over all anchors (cross-entropy or focal) plus a box term (smooth L1 on t, or an IoU-based loss) over anchors matched to objects.",
+    "Two-stage detectors (source: propose regions and classify them; Faster R-CNN): a region proposal network keeps a few hundred to a couple of thousand boxes, RoI pooling (RoI align in later versions) extracts a fixed-size feature map for each, and a second head classifies and refines. Accurate, slower.",
+    "One-stage detectors (source: predict boxes on a grid in one pass; YOLO, RetinaNet; also SSD): class and box at every cell or anchor in one pass; fast. YOLO v1's output is a 7x7 grid with 2 boxes of 5 numbers and 20 class probabilities per cell, 7x7x30. The roughly 20,000 mostly-background anchors swamp the loss; RetinaNet's focal loss FL(p_t) = -alpha_t (1 - p_t)^gamma ln p_t with gamma = 2 (alpha = 0.25 in the paper) silences easy examples.",
+    "Non-maximum suppression: sort by score; keep the highest; delete remaining boxes of the same class whose IoU with it exceeds a threshold (0.5 is common); repeat. It fails in crowds (true neighbours suppressed) and leaves duplicates if the threshold is too high; Soft-NMS decays scores instead of deleting.",
+    "Average precision: rank detections by score, compute precision and recall at each rank, AP = area under the interpolated precision-recall curve; mAP averages over classes (and, for COCO, over IoU thresholds).",
+    "DETR (Carion et al. 2020): a transformer predicts a fixed-size set of boxes, matched one-to-one to the ground truth by the Hungarian algorithm inside the loss; no anchors and no NMS (Module 06 explains the transformer). Instance segmentation as detection plus a mask head (Mask R-CNN) links to s12."
+   ],
+   "worked_examples": [
+    "IoU: A = (0,0,10,10), B = (1,1,11,11): intersection 9 x 9 = 81, union 100 + 100 - 81 = 119, IoU 0.681. A and D = (5,5,15,15): 25/175 = 0.143. B and D: 36/164 = 0.220.",
+    "NMS at 0.5 on A (score 0.9), B (0.8), C = (20,20,30,30) (0.7) and D (0.6): keep A; delete B (0.681 > 0.5); keep C (IoU 0 with A); keep D (0.143 with A; B is already gone): A, C, D. At threshold 0.1, D also goes: A, C.",
+    "Anchor offsets: anchor centre (50, 50), 32x32; ground truth centre (54, 46), 40x24: t = (0.125, -0.125, ln 1.25 = 0.223, ln 0.75 = -0.288).",
+    "Focal loss with gamma = 2: an easy negative at p_t = 0.99 has cross-entropy 0.01005 and focal loss 1.0e-6 (factor 1e-4); p_t = 0.5: 0.693 against 0.173; a hard example at p_t = 0.1: 2.303 against 1.865 (factor 0.81).",
+    "Average precision: five detections ranked by score are TP, TP, FP, TP, FP against 4 ground-truth objects. Precision 1, 1, 0.667, 0.75, 0.6; recall 0.25, 0.5, 0.5, 0.75, 0.75. All-point interpolated AP = 0.25 x 1 + 0.25 x 1 + 0.25 x 0.75 = 0.6875; recall never reaches 1, so the last quarter contributes nothing."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-26",
+     "description": "IoU geometry: two overlapping boxes with the intersection shaded and its corners labelled max(x1), max(y1), min(x2), min(y2); beneath, three box pairs at IoU 0.14, 0.50 and 0.68 to calibrate the eye."
+    },
+    {
+     "id": "fig-03-27",
+     "description": "Anchors and NMS: left, one feature-map cell with its 9 anchors (3 scales x 3 aspect ratios) drawn over an image; right, the A-D example before and after NMS at 0.5 with scores, B greyed out."
+    },
+    {
+     "id": "fig-03-28",
+     "description": "Pipelines as block diagrams: one-stage (backbone -> dense head with class and box per anchor -> NMS), two-stage (backbone -> region proposal network -> RoI pooling/align -> classification and box refinement -> NMS), and DETR (backbone -> transformer -> N box predictions -> Hungarian matching, training only)."
+    },
+    {
+     "id": "fig-03-29",
+     "description": "Precision-recall curve for the five-detection example: the raw step curve, its interpolated envelope, and the shaded area 0.6875."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why predict ln(w/w_a) rather than w - w_a? -> It keeps the predicted width positive and makes errors relative: 10 pixels matter more on a 20-pixel box than on a 400-pixel one.",
+    "Two adjacent people produce true boxes with IoU 0.55. What does NMS at 0.5 do, and what are the options? -> It deletes the lower-scoring person; raise the threshold, use Soft-NMS, or use a set-prediction detector without NMS."
+   ],
+   "from_source": "Section 6's detection paragraph: boxes around objects; two-stage methods propose regions and classify them (Faster R-CNN); one-stage methods predict boxes on a grid in one pass (YOLO, RetinaNet); a loss combining classification and box regression.",
+   "new_material": "IoU and its use in evaluation; anchors and the box parameterisation; NMS and its failure in crowds; average precision with a worked example; focal loss with numbers; YOLO's output tensor; DETR's set prediction."
+  },
+  {
+   "id": "s12",
+   "title": "Segmentation: FCN, transposed convolution, U-Net and Dice",
+   "minutes": 17,
+   "target_words": 1150,
+   "purpose": "Show how a CNN labels every pixel, why U-Net's skip connections preserve boundaries, and how segmentation is trained and scored.",
+   "must_cover": [
+    "Semantic segmentation labels every pixel (source); instance segmentation separates objects of the same class (Mask R-CNN). The output is a (C, H, W) map of logits and the basic loss is per-pixel cross-entropy averaged over pixels.",
+    "The fully convolutional network (Long et al. 2015; source: downsample then upsample): replace the dense head by 1x1 convolutions (a dense layer is a 1x1 convolution on a 1x1 map), so the classifier runs at every position; the output is coarse (stride 32) and is upsampled, with earlier, finer maps fused in.",
+    "Upsampling (source): interpolation followed by a convolution, or a transposed convolution, which scatters each input value through the kernel - the gradient of a strided convolution with respect to its input (s2), run forwards. Output size H_out = (H - 1)s - 2p + d(k - 1) + output_padding + 1. Checkerboard artefacts arise when k is not divisible by s because output positions receive unequal numbers of contributions (Odena et al. 2016); k = 2 or 4 with s = 2, or resize-then-convolve, avoid them (source: the former avoids the artefacts).",
+    "U-Net (Ronneberger et al. 2015; source): a contracting path (two 3x3 convolutions with ReLU, then 2x2 max pooling, channels doubling 64 -> 1,024) and an expanding path (2x2 up-convolution halving the channels, concatenation with the encoder map of the same resolution, two 3x3 convolutions), then a 1x1 convolution to class scores. The skip connections carry high-resolution detail the bottleneck has lost, so fine boundaries survive (source). The original used unpadded convolutions: 572x572 in, 388x388 out, with encoder maps cropped before concatenation; modern versions pad, so output equals input when the size is divisible by 2^depth.",
+    "Measured in Lab 5 (synthetic images; segment the circles, not the rectangles of the same brightness; Dice and IoU pooled over all validation pixels, so every pair quoted obeys D = 2J/(1 + J)): a tuned global threshold reaches Dice 0.64 (IoU 0.47) because it cannot tell shapes apart; in full mode the U-Net reaches Dice 0.966 and IoU 0.934, the same network without skips 0.953 and 0.909; the larger difference is near boundaries, where pixel accuracy within 2 pixels of the true edge is 0.950 with skips against 0.918 without.",
+    "Losses and metrics: Dice D = 2|P intersect G|/(|P| + |G|) = 2TP/(2TP + FP + FN); IoU (Jaccard) J = TP/(TP + FP + FN); D = 2J/(1 + J), so D >= J and both rank models identically. The soft Dice loss L = 1 - (2 sum p_i g_i + eps)/(sum p_i + sum g_i + eps) on probabilities (Milletari et al. 2016 square the denominator terms); its gradient dD/dp_i = (2 g_i (P + G) - 2I)/(P + G)^2 with I = sum p_i g_i, P = sum p_i, G = sum g_i; Dice plus cross-entropy is the common combination.",
+    "Imbalance: background dominates; an all-background prediction can score 99% pixel accuracy and Dice 0. Empty masks make Dice 0/0: the eps term, or computing Dice over the batch, defines it - state how empty images are scored.",
+    "U-Net is the standard architecture for biomedical segmentation (source); its output is a label mask, the input a meshing step expects (s13). The 3D U-Net follows in s13."
+   ],
+   "worked_examples": [
+    "U-Net sizes with unpadded convolutions: 572 -> 570 -> 568, pool 284 -> 282 -> 280, pool 140 -> 138 -> 136, pool 68 -> 66 -> 64, pool 32 -> 30 -> 28; up 56 -> 52, up 104 -> 100, up 200 -> 196, up 392 -> 388. The first skip crops 568 to 392, 88 pixels from each side.",
+    "Transposed convolution sizes: H = 16, k = 4, s = 2, p = 1 gives 15*2 - 2 + 3 + 1 = 32; k = 3, s = 2, p = 1, output_padding = 1 gives 30 - 2 + 2 + 1 + 1 = 32. Contributions per output position along one axis, for an all-ones input and kernel: k = 3 gives 1, 1, 2, 1, 2, 1, ... (uneven: a checkerboard in 2D); k = 4 gives 2 everywhere inside; k = 2 gives 1 everywhere.",
+    "Dice and IoU: TP = 80, FP = 20, FN = 20 gives Dice 160/200 = 0.80 and IoU 80/120 = 0.667, and 2(0.667)/1.667 = 0.80.",
+    "Soft Dice on four pixels, p = (0.9, 0.8, 0.3, 0.1), g = (1, 1, 0, 0): I = 1.7, P = 2.1, G = 2, D = 3.4/4.1 = 0.829, loss 0.171; the gradient of D is +0.286 on each foreground pixel and -0.202 on each background pixel.",
+    "Imbalance: a 20x20 object in a 256x256 image is 400/65,536 = 0.61% of the pixels; predicting all background scores 99.4% pixel accuracy and Dice 0."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-30",
+     "description": "U-Net in the style of the original: encoder blocks descending with map sizes (568, 280, 136, 64, 28 after their convolutions) and channels (64, 128, 256, 512, 1,024), decoder blocks ascending, grey copy-and-crop arrows for the skips, red arrows for 2x2 max pooling, green arrows for 2x2 up-convolution, a final 1x1 convolution to the class map."
+    },
+    {
+     "id": "fig-03-31",
+     "description": "Why skips matter, from Lab 5: one validation image, its ground-truth mask, the U-Net prediction and the no-skip prediction, errors coloured (false positives red, false negatives blue); the writer picks an image where the no-skip model's errors form a band along the object boundaries, as the boundary-band accuracies (0.950 against 0.918) predict."
+    },
+    {
+     "id": "fig-03-32",
+     "description": "Transposed convolution with k = 3, s = 2 in 1D: four input cells each scattering a 3-cell copy of the kernel into the output, with the overlap counts written beneath, and the resulting 2D checkerboard for an all-ones input."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Dice is 0.9. What is the IoU? -> J = D/(2 - D) = 0.9/1.1 = 0.818.",
+    "A padded U-Net with four 2x2 poolings receives a 100x100 image. What goes wrong, and the fix? -> 100 -> 50 -> 25 -> 12 -> 6; upsampling gives 12 then 24, which cannot be concatenated with the 25x25 encoder map. Pad to a multiple of 16 (112) and crop the output."
+   ],
+   "from_source": "Section 6: segmentation labels every pixel; an FCN downsamples then upsamples; U-Net (Ronneberger et al. 2015) with skip connections from each encoder resolution so fine boundaries survive the bottleneck; the standard for biomedical segmentation; its output is a label mask consumed by a meshing step (generalised; see generalised_refs); the upsampling paragraph on interpolation plus convolution versus transposed convolution and checkerboard artefacts.",
+   "new_material": "FCN's 1x1 head; the transposed-convolution size formula and overlap counts; U-Net's sizes traced; Lab 5's measured effect of skips; Dice and IoU with their relation and the soft Dice gradient; imbalance and empty masks."
+  },
+  {
+   "id": "s13",
+   "title": "Signals and volumes: 1D and 3D convolution, and from masks to surfaces",
+   "minutes": 18,
+   "target_words": 1250,
+   "purpose": "Carry convolution to signals and volumes, count what 3D costs, and follow an engineering pipeline from a microscopy or CT volume to a measured surface with its error budget.",
+   "must_cover": [
+    "1D convolution slides a kernel along a signal (source): sensor streams, the observation series of a digital twin, spectra. Causal convolution pads (k - 1)d on the left only, so the output at time t sees only inputs up to t (required for forecasting). The receptive-field arithmetic is the same (source).",
+    "Dilated causal stacks (source: WaveNet's design covers thousands of samples with few layers): kernel 2 with dilations 1, 2, 4, ..., 512 gives a receptive field of 1,024 in 10 layers. Temporal convolutional networks (Bai et al. 2018) are strong baselines against recurrent networks for sequence tasks (source: a serious competitor to recurrent networks for time series before transformers). Module 04, Exercise 15 (e15) replaces an LSTM forecaster with a dilated causal stack and compares the two.",
+    "3D convolution (source): a k x k x k kernel through a volume; parameters k^3 C_in C_out + C_out and MACs k^3 C_in C_out D_out H_out W_out, an extra factor of k over 2D. The 3D U-Net (Cicek et al. 2016) uses 3x3x3 convolutions and was trained from sparsely annotated slices.",
+    "Present the source's Down3D block (Conv3d - GroupNorm(8) - ReLU twice, then max_pool3d, returning the pre-pool map for the skip) and count it for 1 -> 32 channels: 896 + 64 + 27,680 + 64 = 28,704 parameters. Group norm because a volume batch is usually one or two stacks, where batch norm's statistics are meaningless (source).",
+    "Memory is the binding constraint in 3D (worked example): volumes are processed in patches (source) with batch 1-2, which is why group norm replaces batch norm.",
+    "Patch-based (sliding-window) inference: tile the volume with overlapping patches, predict, and blend the overlaps (average or Gaussian-weighted) to avoid seams; the U-Net paper's overlap-tile strategy is the 2D version.",
+    "Anisotropic voxels: confocal stacks are often 0.5 x 0.5 micrometres in plane and 2 micrometres between slices. Options: resample to isotropic, use anisotropic kernels (e.g. 1x3x3 in early layers), or per-slice 2D models. The spacing must travel with the data.",
+    "Cheaper 3D: the (2+1)D factorisation (a 1x3x3 spatial convolution followed by a 3x1x1 axial one) costs 9C^2 + 3C^2 = 12C^2 weights instead of 27C^2 at the same width; depthwise 3D convolutions as in s6.",
+    "From mask to surface (generalised from the source's image-to-mesh example): a U-Net trained on annotated microscopy or CT produces a voxel mask or probability volume; volume = voxel count x voxel volume; the surface is extracted as an isosurface by marching cubes (Lorensen and Cline 1987): visit each cube of 8 neighbouring voxel centres, classify the corners as inside or outside (2^8 = 256 cases, 15 up to rotation and complement), and place triangle vertices on cube edges by linear interpolation of the probability at level 0.5; mesh area and enclosed volume follow. Counting exposed voxel faces instead overestimates the area by a factor that does not shrink with resolution: 1.5 for a sphere (the faces add up to the projected areas on the three axis planes, twice each: 6 pi r^2 against 4 pi r^2), and 4/pi = 1.27 in 2D for a disc's perimeter (8r against 2 pi r).",
+    "The error budget for a measured volume, using Module 01's decomposition: bias from discretisation (the staircase), from the threshold level and from systematic segmentation errors; variance from noise and from where the object falls on the voxel grid; a gross error if the spacing is wrong. Evaluate segmentation models with splits by specimen (source failure mode)."
+   ],
+   "worked_examples": [
+    "WaveNet-style receptive field: kernel 2, dilations 1, 2, 4, ..., 512: r = 1 + sum (k - 1)d = 1 + 1,023 = 1,024 samples in 10 layers; three such blocks reach 3,070; undilated kernel-2 layers would need 1,023 layers.",
+    "3D against 2D parameters: a 3x3x3 convolution from 32 to 32 channels has 27*32*32 + 32 = 27,680 parameters against 9,248 for 3x3 in 2D.",
+    "Activation memory, float32, batch 1, a 128^3 patch, a four-level encoder with 32/64/128/256 channels and six stored tensors per level (two convolution outputs, two normalisation outputs, two activations): one 32-channel map is 128^3 x 32 x 4 B = 256 MiB; the levels hold 1,536 + 384 + 96 + 24 = 2,040 MiB, about 2.0 GiB, before the decoder, which costs about as much again. One 32-channel map of a 512x512 2D slice is 32 MiB.",
+    "Measurement on ideal shapes (NumPy and contourpy): a digital disc of radius 8 pixels has 201 pixels (pi x 64 = 201.1), a pixel-edge perimeter of 64 (= 8r, +27%), a marching-squares perimeter of 52.9 on the binary mask (+5%) and 50.2 on a slightly blurred mask (2 pi r = 50.3). A digital sphere of radius 10 voxels has 4,199 voxels (4,188.8 expected) and an exposed-face area of 1,884 against 4 pi r^2 = 1,256.6 (ratio 1.50; 1.51 at r = 5, 1.50 at r = 20).",
+    "On predicted masks (Lab 5, full mode, 221 isolated circles): area by pixel count averages 0.996 of pi r^2 (standard deviation 0.056); pixel-edge perimeter 1.27 times 2 pi r; the 0.5 iso-contour of the predicted probability 1.036 (standard deviation 0.041).",
+    "An anisotropic ellipsoid (semi-axes 12, 9, 7 micrometres; spacing 0.5 x 0.5 x 2.0; voxel volume 0.5 cubic micrometres): 6,372 voxels give 3,186.0 against 4/3 pi x 12 x 9 x 7 = 3,166.7 (+0.6%); over 20 random grid offsets the mean is 3,169.6 (bias +0.1%) and the standard deviation 29.5 (0.9%); the exposed-face area is 1,610 against the exact 1,083.1 square micrometres (+48.6%); marching cubes on the binary mask (scikit-image) still reports about 1,317 (+22%), because the 2-micrometre slices leave terraces in the mesh, against about 1,136 (+5%) after a 0.5-micrometre Gaussian blur, so mesh a probability volume or a lightly smoothed mask; the same mask read with spacing 1 x 1 x 1 reports 6,372, twice the truth. Exercise e14 repeats the analysis on a second ellipsoid at another spacing."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-33",
+     "description": "A dilated causal stack: four rows of dots (input and three layers, dilations 1, 2, 4, kernel 2), the connections of one output at time t fanning back to inputs t-7 ... t, none reaching the future; receptive field 8 labelled."
+    },
+    {
+     "id": "fig-03-34",
+     "description": "From volume to measured surface, five steps left to right: (1) a CT or confocal stack with its voxel spacing (0.5 x 0.5 x 2.0 micrometres) in a header box; (2) a 3D U-Net applied to overlapping patches; (3) the probability volume and thresholded mask; (4) a marching-cubes mesh; (5) a measurements table (volume, surface area, each with its uncertainty). An arrow carries the spacing from step 1 to steps 4 and 5."
+    },
+    {
+     "id": "fig-03-35",
+     "description": "Staircase against isosurface: left, a digital disc of radius 8 with its pixel-edge boundary (64), its marching-squares contour (50.2) and the true circle (50.3); right, a cut-away voxelised sphere beside its smooth marching-cubes mesh; beneath, small icons of the 15 marching-cubes base cases."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "How much left padding does a causal 1D convolution with k = 3 and d = 4 need to keep the output as long as the input? -> (k - 1)d = 8.",
+    "Why does the exposed-face area of a voxelised sphere not converge to 4 pi r^2 as voxels shrink? -> Every face is axis-aligned; the faces sum to twice the projected area on each axis plane, 6 pi r^2, at any resolution: refinement makes the staircase finer, not flatter.",
+    "Group norm with 16 groups on 64 channels of a 32^3 patch: how many values enter each mean? -> 4 channels x 32^3 = 131,072, all from one example."
+   ],
+   "from_source": "Section 7: 1D convolutions for sensor streams, digital-twin observation series and spectra; dilated 1D stacks after WaveNet covering thousands of samples and competing with recurrent networks; 3D kernels whose parameters and FLOPs grow by k; patches. Section 6: the 3D U-Net and microscopy stacks; masks turned into measured surfaces (generalised). Section 9: the Down3D block with GroupNorm and its justification. Section 10: the spacing and leakage failure modes. Section 11: exercise 5 (now e14).",
+   "new_material": "Causal padding; the 3D memory budget computed; sliding-window inference; anisotropic voxels; (2+1)D factorisation; marching cubes explained; staircase bias numbers in 2D and 3D; measurement errors on predicted masks; the ellipsoid error budget."
+  },
+  {
+   "id": "s14",
+   "title": "Looking inside: filters, saliency and Grad-CAM",
+   "minutes": 15,
+   "target_words": 1050,
+   "purpose": "Give the cheap tools for checking what a CNN uses, derive Grad-CAM, and state what such maps can and cannot show.",
+   "must_cover": [
+    "Early filters learn edges and colour blobs; later layers respond to textures, parts and objects (source; Krizhevsky et al. 2012, Figure 3; Zeiler and Fergus 2014). First-layer filters can be shown directly as small images; deeper filters cannot, so look at feature maps for a given input (source) or at the input patches that activate a unit most.",
+    "The saliency map (source; Simonyan et al. 2014): S_{ij} = max over colour channels of |dy^c/dx_{c,i,j}|, the gradient of the class score with respect to the input pixels; high-resolution but noisy.",
+    "Grad-CAM derived (Selvaraju et al. 2017; source: weights the last convolutional maps by their gradient): for class score y^c (before softmax) and the last convolutional maps A^k (k = 1..K, each with Z = H x W positions), alpha_k^c = (1/Z) sum_{ij} dy^c/dA^k_{ij} and L^c = ReLU(sum_k alpha_k^c A^k), upsampled to the input. The ReLU keeps regions whose features raise the class score.",
+    "Relation to CAM (Zhou et al. 2016), derived: with a global-average-pooling + linear head, y^c = sum_k w_k^c (1/Z) sum_{ij} A^k_{ij} + b^c, so dy^c/dA^k_{ij} = w_k^c/Z and alpha_k^c = w_k^c/Z: Grad-CAM equals CAM up to the constant 1/Z and the ReLU. Lab 6 confirms it to about 3e-10 (float32 round-off).",
+    "Resolution: the map is as coarse as the last convolutional layer (7x7 for ResNet-50 at 224x224; 16x16 for Lab 6's 32x32 inputs), so it says roughly where, not which pixels.",
+    "The use that matters (source): the sanity check that a classifier is looking at the object and not at a background it happened to co-occur with, the most common way an image classifier fails silently. Shortcut learning (Geirhos et al. 2020); a documented case: pneumonia classifiers on chest X-rays that partly identified the hospital system and generalised worse to other hospitals (Zech et al. 2018).",
+    "Lab 6's measured shortcut: when every training square carries a 3x3 bright corner marker, the model scores 1.00 on marker-correlated data, 0.68 on clean images and 0.64 when the marker is random; Grad-CAM puts 26% of its mass in the 6x6 corner (3.5% of the image) against 4% for a model trained on clean data; the saliency map's corner shares are 9% and 3%.",
+    "Caveats: (1) explanations can look plausible yet ignore the model - Adebayo et al. (2018) found some saliency methods barely change when the weights are randomised; run that test (Lab 6: Grad-CAM after re-initialising the last convolution and the head correlates 0.10 with the trained map, so it passes). (2) A map shows where evidence was found, not what feature or why. (3) A clean map on the images you looked at is not proof: use counterfactual tests (move or remove the object, change the background) and data from a different source."
+   ],
+   "worked_examples": [
+    "Grad-CAM by hand: K = 2 maps of 2x2, A^1 = [[1,0],[2,1]], A^2 = [[0,3],[1,0]]; gradients dy/dA^1 = [[0.2,0.2],[0.4,0.0]], dy/dA^2 = [[-0.1,-0.3],[0.0,0.0]]. alpha^1 = (0.2 + 0.2 + 0.4 + 0)/4 = 0.2, alpha^2 = (-0.1 - 0.3 + 0 + 0)/4 = -0.1. Sum alpha A = [[0.2,-0.3],[0.3,0.2]]; after ReLU [[0.2,0],[0.3,0.2]].",
+    "The CAM identity with Lab 6's numbers: the head averages 16 x 16 = 256 positions, so alpha_k^c = w_k^c/256; the lab prints max |alpha - w/256| of about 3e-10.",
+    "Lab 6's shortcut numbers as stated above, used as the section's case study."
+   ],
+   "figures": [
+    {
+     "id": "fig-03-36",
+     "description": "Grad-CAM pipeline: input -> CNN -> last convolutional maps A^1..A^K (a stack) -> global average pooling + linear head -> class score y^c; a backward arrow from y^c to the maps, global-averaged into the weights alpha_k^c; the weighted sum and ReLU give a coarse 16x16 map, upsampled and overlaid on the input."
+    },
+    {
+     "id": "fig-03-37",
+     "description": "Lab 6 results in a 2x3 grid: rows 'shortcut model' and 'clean model'; columns input (a square carrying the corner marker), saliency map, Grad-CAM overlay; the shortcut model's Grad-CAM lit on the top-left corner, the clean model's on the square."
+    },
+    {
+     "id": "fig-03-38",
+     "description": "First-layer filters of Lab 2's CNN (8 filters of 3x3, enlarged greyscale tiles) beside the hand-designed Sobel and Laplacian kernels of s2."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why does Grad-CAM apply a ReLU to the weighted sum? -> To keep only regions whose features increase the class score; negative regions are evidence for other classes.",
+    "Grad-CAM on a ResNet-50 at 224x224 gives a 7x7 map. Can it tell which of two adjacent 10-pixel cracks the classifier used? -> No: each cell covers 32x32 input pixels; use an earlier layer, a saliency map or an occlusion test."
+   ],
+   "from_source": "Section 8: early filters as edges and colour blobs and later layers as textures, parts and objects; feature-map visualisation; the saliency map as the gradient of a class score with respect to the input; Grad-CAM weighting the last convolutional maps by their gradient into a coarse heat map; the background-co-occurrence failure. Section 10: 'Grad-CAM would have shown it in an afternoon'.",
+   "new_material": "Grad-CAM and CAM derived and related; a hand-computed Grad-CAM; resolution limits; Lab 6's shortcut experiment with numbers; the weight-randomisation sanity check; counterfactual testing; a documented medical case."
+  }
+ ],
+ "what_goes_wrong": [
+  "Transfer learning 'does not work': the fine-tuned model is worse than one trained from scratch -> the pretrained backbone's input preprocessing was skipped (its mean and standard deviation, channel order, 0-1 versus 0-255 range or resize convention) -> apply exactly the backbone's preprocessing and print one batch's per-channel mean and standard deviation, which should be near 0 and 1 (Lab 4: 0.72 -> 0.51 without it).",
+  "Noisy training, and test accuracy that changes with batch composition, in a 3D or high-resolution model -> batch norm with a batch of one or two volumes, whose statistics are unreliable and differ from the running averages used at test time -> group norm or layer norm, or a pretrained network's frozen BN statistics; batch norm wants roughly 16 or more independent examples per batch.",
+  "A backbone that was meant to be frozen drifts during fine-tuning -> requires_grad=False stops weight updates, but batch-norm running statistics still update in train mode -> put the frozen blocks' BN layers in eval mode, and again after every model.train() call.",
+  "The network classifies texture, not shape, and fails on objects larger than in training -> the effective receptive field is smaller than the object -> compute the receptive field (s3), look at the effective one with a gradient map (Lab 3), add downsampling or dilation, or rescale the input.",
+  "Accuracy on some classes collapses after adding augmentation -> the augmentation changed the label (flips of chiral objects, rotations of oriented parts or of digits such as 6 and 9), or a geometric transform was applied to the image but not to its mask -> keep only label-preserving transforms for this domain and apply geometric transforms to masks with nearest-neighbour interpolation.",
+  "Augmentation lowers accuracy even though every transform preserves the label -> it adds variation the deployment data do not contain, or is too strong for the image size or the model's capacity (Lab 2: shifts and rotations on centred 8x8 digits, 0.90 -> 0.83) -> match the augmentation to the variation expected at test time and check it against a validation set drawn like the deployment data.",
+  "Excellent test scores that do not survive new specimens -> leakage: slices of one volume, frames of one video or tiles of one slide on both sides of the split -> split by specimen, patient, video or slide (grouped cross-validation), and keep a held-out acquisition site if possible.",
+  "The classifier is right for the wrong reason: high accuracy that collapses on data from a new source -> it learned a co-occurring background, marker or acquisition artefact (shortcut learning) -> inspect Grad-CAM on correct and incorrect predictions, run counterfactual tests (move the object, change the background), and fix the data (Lab 6).",
+  "Segmented volumes or areas off by a constant factor on another scanner -> the model was trained at one voxel spacing and applied at another, or the spacing was dropped along the pipeline -> carry the spacing with every volume and mask, resample to the training spacing, and have the measurement step refuse a mask without a spacing rather than assume 1 x 1 x 1 (s13: the wrong spacing doubled a volume).",
+  "Shape-mismatch error at a U-Net concatenation for some image sizes -> the input size is not divisible by 2^(number of poolings), so the encoder's floors and the decoder's doublings disagree -> pad the input to a multiple of 2^depth and crop the output, or crop or pad the skip tensors.",
+  "Checkerboard patterns in segmented or generated outputs -> a transposed convolution whose kernel size is not divisible by its stride gives uneven overlap -> use k divisible by s (k = 2 or 4 with s = 2) or bilinear upsampling followed by a 3x3 convolution.",
+  "Dice loss is NaN, or the model predicts all background on images without objects -> Dice is 0/0 on empty masks, and tiny denominators give huge gradients early in training -> add a smoothing eps to numerator and denominator, compute Dice over the batch, and combine it with cross-entropy.",
+  "Pixel accuracy of 99% while objects are missed -> class imbalance: background dominates the pixel count -> report Dice or IoU per class (per object for small objects) and train with Dice or focal losses.",
+  "Predictions flip when the image moves by one pixel, or a detector misses one of two overlapping objects -> strided pooling aliases and is not shift-invariant; an NMS threshold that is too low suppresses true neighbours (too high keeps duplicates) -> augment with shifts and consider anti-aliased downsampling; tune the NMS IoU threshold per class on validation data or use Soft-NMS."
+ ],
+ "labs": [
+  {
+   "id": "lab1",
+   "title": "Convolution from scratch",
+   "minutes": 30,
+   "goal": "Implement a 2D convolution layer twice in NumPy - with explicit loops and with im2col and one matrix multiply - and show that both match torch.nn.functional.conv2d for every padding, stride and dilation, together with the output-size formula, cross-correlation versus convolution, and translation equivariance. Steps 1-4 need only Section 2 and steps 5-8 Sections 3 and 4; the study plan splits the lab there.",
+   "data": "Synthetic: seeded NumPy random arrays (np.random.default_rng(0)) and the 5x5 worked example of s2. No download.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Write out_size(H, k, p=0, s=1, d=1) = (H + 2p - d(k-1) - 1)//s + 1 (derived in s3; with p = 0, s = 1 and d = 1 it is s2's H - k + 1) and conv2d_naive(x, w, b=None, stride=1, padding=0, dilation=1) for x of shape (B, C_in, H, W) and w of shape (C_out, C_in, k, k) with explicit Python loops over batch, output channel, output row, output column, input channel and both kernel offsets, reading Xp[i*s + u*d, j*s + v*d]; pad with np.pad.",
+    "Run it on the s2 example (X5 as shape (1,1,5,5), the edge kernel [[1,0,-1]]*3 as (1,1,3,3)) and print [[-1,-4,0],[-3,-2,4],[-1,-2,1]], the hand result of s2.",
+    "Cross-correlation versus convolution: on a random 6x6 image and the kernel [[1,2,0],[0,1,-1],[3,0,1]], print the maximum differences between F.conv2d and scipy.signal.correlate2d (about 4e-16), scipy.signal.convolve2d (large, about 11) and convolve2d with the kernel flipped (about 9e-16).",
+    "Equivariance: roll a random 32x32 image by (2, 3) with torch.roll. With circular padding (F.pad(..., mode='circular')) the output of the shifted image equals the shifted output exactly (print 0.0); with zero padding print the maximum error in the interior (0.0) and over the whole map (several units, e.g. 4.4, all in the border rows and columns).",
+    "Output sizes: print out_size for the seven (p, s, d) configurations of s3 with H = 11, k = 3: 9, 11, 6, 5, 11, 7, 3; then run conv2d_naive on the s2 example with padding 1 and stride 2 and print [[-3,0,3],[-4,-2,6],[-4,2,2]].",
+    "Write im2col(x, k, stride, padding, dilation) that builds the (B, C_in*k*k, H_out*W_out) column array from k^2 strided slices of the padded input (no loop over output positions), and conv2d_im2col(x, w, b, ...) = (w.reshape(C_out, -1) @ cols) reshaped to (B, C_out, H_out, W_out), plus the bias.",
+    "Check both against F.conv2d in float64 on random x (2, 3, 11, 11), w (4, 3, 3, 3), b (4,) for the seven configurations; print a table of p, s, d, PyTorch output width, formula, max |naive - torch| and max |im2col - torch|: all errors are at round-off (about 1e-15).",
+    "Timing on the s4 layer (input (1, 64, 56, 56), 128 output channels, 3x3, padding 1, float32): time conv2d_naive on a small layer (1, 8, 16, 16) -> 16 channels (294,912 MACs; about 0.08 s, i.e. about 0.3 microseconds per MAC) and extrapolate to the big layer's 231,211,008 MACs (over a minute; do not run it); time conv2d_im2col (milliseconds) and F.conv2d (about a millisecond); print the column array's shape (576, 3136), its 1,806,336 entries and the ratio 9.0 to the input size."
+   ],
+   "expected_observations": [
+    "Both implementations agree with PyTorch to round-off, and the formula predicts every output width, including 3 for stride 3, where input columns 9 and 10 are never read.",
+    "F.conv2d is a cross-correlation: it matches correlate2d, and matches convolve2d only after the kernel is flipped.",
+    "Equivariance is exact with circular padding and fails only in the border rows and columns with zero padding.",
+    "The naive loop costs about 0.3 microseconds per multiply-accumulate, so the 64 -> 128 layer would take over a minute; im2col turns the layer into one matrix multiply that runs in milliseconds at the price of a 9x larger intermediate array; PyTorch's kernel is faster again. Times depend on the machine; the ratios are the point."
+   ],
+   "extensions": [
+    "Add a groups argument to conv2d_im2col and check a depthwise convolution (groups = C_in) against F.conv2d.",
+    "Write the backward pass of conv2d_im2col (dW = dY cols^T; dX by scattering W^T dY back through col2im) and check it with finite differences, as in Module 02.",
+    "Check the adjoint numerically: <conv2d(x), y> equals <conv_transpose2d(y), x> for random x and y with the same kernel (F.conv2d and F.conv_transpose2d)."
+   ]
+  },
+  {
+   "id": "lab2",
+   "title": "A CNN against an MLP: what the inductive bias buys",
+   "minutes": 30,
+   "goal": "Measure, at equal parameter count, what convolution's assumptions are worth on digits, by breaking them (a fixed pixel permutation, one-pixel shifts) and by making them matter (digits at random positions).",
+   "data": "scikit-learn load_digits (1,797 images of 8x8 pixels, shipped with the package); train_test_split(test_size=0.25, stratify=y, random_state=0) gives 1,347 training and 450 test images. No download.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 2,
+   "steps": [
+    "Load the digits, scale pixels to [0, 1], split as stated, standardise with the training mean and standard deviation, reshape to (N, 1, 8, 8).",
+    "Define CNN: Conv2d(1,8,3,padding=1)-ReLU-MaxPool2 -> Conv2d(8,16,3,padding=1)-ReLU-MaxPool2 -> flatten (64) -> Linear(64,10): 80 + 1,168 + 650 = 1,898 parameters. Define MLP: 64 -> 25 -> 10 with ReLU: 1,885 parameters. Print both counts.",
+    "Train each with Adam (lr 3e-3, batch 64, 60 epochs, cross-entropy on logits) for seeds 0-4; print mean and standard deviation of test accuracy: CNN about 0.984 +/- 0.003, MLP about 0.972 +/- 0.005.",
+    "Permutation test: apply one fixed random permutation of the 64 pixels (np.random.default_rng(0).permutation(64)) to training and test images and retrain both: CNN about 0.960 +/- 0.008, MLP about 0.976 +/- 0.003 (unchanged within noise).",
+    "Shift test: evaluate the step-3 models on test images shifted one pixel right with zero fill: CNN about 0.67 +/- 0.05, MLP about 0.42 +/- 0.01.",
+    "Translated digits: place each 8x8 digit at a random offset (0-8 in each direction) on a 16x16 canvas, with rng seeds 1 (train) and 2 (test). Define CNN-GAP: Conv(1,8)-ReLU-pool -> Conv(8,16)-ReLU-pool -> Conv(16,32)-ReLU -> global average pool -> Linear(32,10), 6,218 parameters; CNN-flatten with the same convolutions and Linear(512,10), 11,018 parameters; MLP 256 -> 23 -> 10, 6,151 parameters. Train 40 epochs with seeds 0-2; print CNN-GAP about 0.93 +/- 0.01, CNN-flatten about 0.89 +/- 0.01, MLP about 0.44 +/- 0.03.",
+    "Plot the 8 first-layer filters of one step-3 CNN as enlarged 3x3 greyscale tiles and save the figure (used for fig-03-38)."
+   ],
+   "expected_observations": [
+    "At equal size the CNN makes fewer errors on centred digits (about 1.6% against 2.8%); a modest gain, because 8x8 images are tiny.",
+    "A fixed permutation cannot hurt the MLP, which has no notion of neighbouring pixels, but it hurts the CNN, whose locality assumption is now false: the assumption is what makes it a CNN.",
+    "Neither network is shift-invariant on 8x8 images: the CNN's dense head has position-specific weights, so equivariant layers do not give an invariant classifier.",
+    "When position varies, the GAP CNN keeps its accuracy with the same parameter budget while the MLP has to learn every digit at each of 81 positions from 1,347 examples and fails: the inductive bias paying for itself."
+   ],
+   "extensions": [
+    "Data efficiency on centred digits: train both with 5, 10, 20 and 50 images per class (150 epochs, batch 32). They stay within about a point of each other (about 0.80 at 5 per class, 0.96 at 50): nothing about centred 8x8 digits needs translation equivariance.",
+    "Augmentation, part 1 (centred digits, 20 images per class, 300 epochs): train the step-2 CNN with and without random rotations within +/-10 degrees (scipy.ndimage.rotate, order=1) and +/-1-pixel shifts (pad by 1, random 8x8 crop) - never flips. Without augmentation the training loss falls to about 2e-4 while validation loss rises from 0.34 to 0.46 and validation accuracy sits near 0.90; with it the training loss stays near 0.3 and validation accuracy is about 0.83. Plot both curves and explain.",
+    "Augmentation, part 2 (the 16x16 canvas, CNN-GAP, 150 epochs, seeds 0-2): train on 5 or 20 images per class with each digit at one fixed position, then with each digit re-placed at a fresh random position every epoch. Test accuracy rises from about 0.36 to 0.66 at 5 per class and from about 0.76 to 0.90 at 20. Compare with part 1 and state the rule.",
+    "Replace the flatten head of step 2 with global average pooling and repeat the shift test."
+   ]
+  },
+  {
+   "id": "lab3",
+   "title": "Inside a ResNet: counting, receptive fields and depth",
+   "minutes": 35,
+   "goal": "Check the module's counting formulas on SmallResNet with forward hooks, compute its receptive field in code and empirically, and reproduce the degradation problem and its residual fix.",
+   "data": "Synthetic tensors (zeros and ones) for counting and receptive fields; scikit-learn load_digits with Lab 2's split for the depth experiment. No download.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 3,
+   "steps": [
+    "Paste the Block and SmallResNet classes from s8 (the source code, unchanged). Print the total parameter count, 1,228,970, and the parts: stem 928; blocks 18,560, 57,728, 230,144, 919,040; head 2,570.",
+    "Register forward hooks on every Conv2d and Linear that record the output shape and MACs = k_h * k_w * (C_in/groups) * C_out * H_out * W_out (in_features * out_features for Linear); run one zero image of shape (1, 3, 32, 32) in eval mode; print the table and the totals, 63,801,856 MACs = 127.6 MFLOPs. Check one row by hand: stages.0.c1 is 9*32*32*32*32 = 9,437,184.",
+    "Write receptive_field(layers) implementing r <- r + (k - 1) d jump, jump <- jump s over the main-path convolutions (stem, then c1 and c2 of each block) and print r: 3, 5, 7, 9, 13, 17, 25, 33, 49 with jumps 1, 1, 1, 2, 2, 4, 4, 8, 8.",
+    "Empirical receptive field: build a fresh SmallResNet, set every conv weight to 1/fan-in so all paths are positive, switch to eval mode, take x = torch.ones(1, 3, 96, 96, requires_grad=True) (zeros would give no gradient, since ReLU'(0) = 0 in PyTorch), backpropagate the channel sum of the centre unit (6, 6) of the 12x12 last-stage map, and print the extent of the nonzero input gradient: 49 x 49.",
+    "Effective receptive field: normalise the absolute input gradient to sum 1 and print the mass inside centred windows of 9, 17, 25, 33 and 49 pixels: about 0.44, 0.72, 0.89, 0.98, 1.00; repeat with the default random initialisation (about 0.46, 0.70, 0.86, 0.97, 1.00). Plot the map with the 49x49 square outlined (fig-03-8).",
+    "Gradient at initialisation: networks of a 3x3 stem plus n blocks of two 16-channel 3x3 convolutions on 8x8 digits (3, 9, 19 and 55 convolution layers), with and without identity shortcuts, with and without batch norm; one forward and backward pass on 256 training images; print the stem's weight-gradient norm. Expected pattern: without BN, plain 5e-3, 1.4e-5, 9e-10 and 0 (underflow), residual 0.02-0.09; with BN, plain rising to about 190 at 55 layers, residual 0.07-0.8.",
+    "Depth experiment: SGD (momentum 0.9, weight decay 1e-4) with a one-cycle cosine schedule peaking at 0.05, batch 64, 12 epochs, seed 0; plain and residual networks with BN at 7, 19 and 55 convolution layers; print the training loss per epoch and, at the end in eval mode, training loss and test accuracy. Expected (seed 0): plain 0.048 / 0.980, 0.40 / 0.867, 2.10 / 0.182; residual 0.067 / 0.976, 0.071 / 0.971, 0.075 / 0.969. Plot the loss curves (fig-03-19)."
+   ],
+   "expected_observations": [
+    "Every hook count matches the formulas of s4 - and contradicts a code comment that claims 2.8 million parameters; counting in code is how such errors are caught.",
+    "The recurrence's 49 is exactly the extent of the nonzero gradient, but most of the gradient sits in the middle: the effective receptive field is far smaller than the theoretical one.",
+    "Without normalisation the plain network's gradient vanishes geometrically with depth: PyTorch's default convolution initialisation has weight variance 1/(3 fan-in), a sixth of He's 2/fan-in (Module 02). With batch norm alone the deep plain network's gradient explodes instead. Identity shortcuts keep it of order one in both cases.",
+    "Degradation: the deeper plain network has a higher training loss - an optimisation failure, not overfitting - and at 55 layers barely leaves chance (ln 10 = 2.30), while the residual versions reach the same low loss at every depth."
+   ],
+   "extensions": [
+    "Depthwise-separable blocks: replace c1 and c2 in Block by a depthwise 3x3 followed by a 1x1 (SepBlock). Parameters fall from 1,228,970 to 187,018 (6.6x; subtract 576 from each count if the stem takes 1 channel). Train both on Lab 2's 16x16 translated digits (stem with 1 input channel) for 10 epochs and compare accuracy and time per epoch; explain why the time does not fall 6.6-fold.",
+    "Zero-initialise the last BN gamma of every residual branch (nn.init.zeros_(block.b2.weight)) and repeat the 55-layer run; compare the first two epochs.",
+    "Remove batch norm and use He initialisation (nn.init.kaiming_normal_) in the plain network: how deep can it go before training stalls?",
+    "Shown as a python norun block that the lab runner skips (it needs torchvision's CIFAR-10 loader, a download of about 170 MB, and is best run on a free Google Colab GPU): train SmallResNet on CIFAR-10 for 30 epochs with random crops, horizontal flips and a cosine schedule, with and without augmentation, and plot both validation curves. No number in the module depends on it."
+   ]
+  },
+  {
+   "id": "lab4",
+   "title": "Transfer learning, layer by layer",
+   "minutes": 25,
+   "goal": "Pretrain a small CNN on digits 0-4, adapt it to digits 5-9 from 5 or 20 labelled images per class, and measure which layers transfer - early blocks kept, a frozen backbone (linear probe), fine-tuning at a tenth of the learning rate, training from scratch - then reproduce the input-normalisation mistake.",
+   "data": "scikit-learn load_digits with Lab 2's split: source = the 675 training images of digits 0-4; target training sets of 5 or 20 images per class of digits 5-9 drawn with seeds 0-4; target test set = all 224 held-out images of digits 5-9. No download (an extension that is not executed uses torchvision's 44.7 MB ResNet-18 weights).",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 2,
+   "steps": [
+    "Standardise all images with the source training mean and standard deviation; define the backbone as three blocks - Conv(1,16,3)-BN-ReLU; Conv(16,32,3)-BN-ReLU-MaxPool2; Conv(32,64,3)-BN-ReLU-global average pool - 23,408 parameters, followed by a linear head.",
+    "Pretrain on digits 0-4 (Adam, lr 3e-3, batch 32, 30 epochs) and print the source test accuracy (about 0.996).",
+    "Write fit(model, X, y, epochs, lr, frozen_blocks) that sets requires_grad=False on the frozen blocks, passes only trainable parameters to Adam, and puts the frozen blocks back in eval mode after every model.train() call.",
+    "For n = 5 and n = 20 images per class and seeds 0-4 (five seeds; under a minute for the whole lab on the 4-thread desktop used here), train a 5-way head (batch 16) in six ways: (a) scratch, all random, 100 epochs at 3e-3; (b) block 1 copied and frozen, blocks 2-3 random, 100 epochs; (c) blocks 1-2 copied and frozen; (d) all three blocks copied and frozen - the linear probe; (e) (d) followed by fine-tuning everything at 3e-4 for 100 epochs; (f) (b) followed by fine-tuning everything at 3e-4 for 100 epochs. Print mean and standard deviation of target test accuracy as a table.",
+    "Normalisation mistake: repeat (d) at n = 10 feeding raw [0, 1] pixels to the backbone that was trained on standardised ones; print the accuracy next to the correct one."
+   ],
+   "expected_observations": [
+    "Means over seeds 0-4: at n = 5 - scratch 0.898, block 1 frozen 0.921, blocks 1-2 frozen 0.899, linear probe 0.645, probe then fine-tune 0.826, block 1 then fine-tune 0.926; at n = 20 - 0.954, 0.970, 0.967, 0.779, 0.963 and 0.978. Seed-to-seed standard deviations are about 0.01-0.03 (0.06 for the probe at n = 5), so at n = 20 only the probe stands apart.",
+    "The first block (stroke and edge detectors) transfers and, at n = 5, beats training from scratch; the last block is specific to digits 0-4, so the frozen backbone is a poor feature extractor for 5-9: early layers general, later layers specific (Yosinski et al. 2014). A narrow source transfers only its early layers; ImageNet's breadth is why its whole backbone transfers.",
+    "Fine-tuning recovers most of what the frozen probe loses, and the gap to scratch closes as n grows.",
+    "Unnormalised inputs drop the probe from about 0.72 to about 0.51: the 'transfer learning does not work' failure of s10."
+   ],
+   "extensions": [
+    "Discriminative learning rates: fine-tune with 3e-5, 1e-4 and 3e-4 for blocks 1, 2 and 3 and 3e-3 for the head (parameter groups in Adam); compare with (e).",
+    "Leave the frozen blocks in train mode by mistake; print one BN layer's running mean before and after training the head, and compare the accuracy.",
+    "Pretrain on digits 0-4 placed on the 16x16 canvas of Lab 2 and repeat on the canvas: the linear probe stays weak (about 0.49 at n = 5, against about 0.88 for scratch training with position re-sampling) - the same lesson.",
+    "Shown as a python norun block that the lab runner skips (it needs torchvision and a 44.7 MB download of ImageNet weights): load resnet18(weights='IMAGENET1K_V1'), upsample the digits to 64x64, repeat them to 3 channels, normalise with the ImageNet mean and standard deviation, and repeat (a), (d) and (e) at n = 5 with the 512-dimensional pooled features. No number in the module depends on it; run it on Colab to see a broad source transfer its whole backbone."
+   ]
+  },
+  {
+   "id": "lab5",
+   "title": "U-Net segmentation on synthetic images, and from mask to measurement",
+   "minutes": 45,
+   "goal": "Train a small U-Net to segment circles but not rectangles in synthetic microscopy-like images, measure what its skip connections contribute at boundaries, evaluate with Dice and IoU, and turn predicted masks into area and perimeter measurements with known bias.",
+   "data": "Synthetic, generated in NumPy: 64x64 images with 2-4 objects each - circles (radius 4-10 px) and rectangles (sides 6-18 px) with the same intensity range 0.5-1.0 - blurred with a Gaussian of sigma 1 px, a random linear illumination ramp (+/-0.3) and Gaussian noise (sigma 0.1); the target mask is the circles only. 1,500 training images (400 when QUICK = True) with seed 0 and 200 validation images with seed 1. No download.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 3,
+   "steps": [
+    "Write make_image(rng) returning (image, mask, circles): pixel centres at (i + 0.5, j + 0.5); a pixel belongs to a circle if its centre lies inside; rectangles are painted but excluded from the mask (later objects overwrite earlier ones). Build the datasets; print shapes and the foreground fraction (about 0.058); show 8 images with their masks.",
+    "Baseline: choose the global intensity threshold that maximises Dice on 300 training images (33 values in [0.1, 0.9]); print about th = 0.40, validation Dice 0.64 and IoU 0.47 (pooled over all validation pixels): a threshold cannot tell circles from rectangles.",
+    "Define cbr(c_in, c_out) = two (Conv3x3 without bias - BatchNorm - ReLU) and UNet(c=(8, 16, 32, 64), skips=True): three encoder levels with 2x2 max pooling, a bottleneck at 8x8, decoder levels with ConvTranspose2d(k=2, s=2) and concatenation of the matching encoder map, a final 1x1 convolution to one logit channel; skips=False drops the concatenations (decoder convolutions then take half the channels). Print 121,033 parameters with skips and 108,937 without.",
+    "Loss = BCE-with-logits + soft Dice (eps = 1, per image, averaged); Adam with OneCycleLR (max lr 3e-3, 10% warm-up), batch 16. QUICK = True: 400 images x 8 epochs (about 15 s per model on the 4-thread desktop used here); full: 1,500 x 15 (about 30 s per model here, so about 1 minute for both models and 2-4 minutes on a laptop). Print every 3 epochs the training loss, validation Dice and IoU at threshold 0.5 (pooled over all validation pixels), and pixel accuracy inside a band of +/-2 pixels around the true boundaries (binary dilation minus erosion of the mask).",
+    "Train with and without skips. Expected, full mode: with skips Dice 0.966, IoU 0.934, boundary-band accuracy 0.950; without skips 0.953, 0.909, 0.918. QUICK: about 0.93 / 0.87 / 0.91 and 0.88 / 0.79 / 0.80.",
+    "Verify on the binarised predictions that Dice = 2 IoU/(1 + IoU) image by image and for the pooled pair (maximum difference at round-off).",
+    "From mask to measurement: label connected components of the U-Net's binarised prediction (scipy.ndimage.label); keep isolated true circles away from the border, match each to the predicted component at its centre, and compute the area (pixel count) against pi r^2 and the perimeter (a) as the number of foreground/background pixel edges and (b) as the length of the 0.5 iso-contour of the predicted probability from contourpy.contour_generator(z=prob).lines(0.5), against 2 pi r. Full mode, 221 circles: area ratio 0.996 (sd 0.056); pixel-edge perimeter 1.27; iso-contour 1.036 (sd 0.041).",
+    "For reference, the same perimeter measures on ideal digital discs (r = 4, 8, 16, 24 at a sub-pixel offset): pixel edges give exactly 8r (+27%) at every radius; marching squares on the binary mask about +5%; on a mask blurred with sigma 1 within 1%."
+   ],
+   "expected_observations": [
+    "A threshold cannot separate circles from rectangles of the same brightness; the U-Net learns shape, because its bottleneck units see the whole object.",
+    "Skip connections change overall Dice by about 1 point but boundary accuracy by about 3 in full mode (about 5 and 10 in QUICK mode): Dice is dominated by object interiors, and the decoder alone cannot recover detail lost in the 8x8 bottleneck.",
+    "Dice and IoU rank the models identically (D = 2J/(1 + J)); report one of them and say which.",
+    "Pixel-count areas are nearly unbiased; pixel-edge perimeters carry a 27% bias at any resolution; the iso-contour of the soft prediction is the accurate measurement - the 2D version of the voxel-face versus marching-cubes comparison of s13."
+   ],
+   "extensions": [
+    "Replace ConvTranspose2d(k=2, s=2) by ConvTranspose2d(k=3, s=2, padding=1, output_padding=1) and look for checkerboard patterns in the predicted probabilities early in training; then use nn.Upsample(scale_factor=2, mode='bilinear') followed by a 3x3 convolution.",
+    "Train with BCE only and with Dice only; compare Dice on small circles (r < 6).",
+    "Feed a 100x100 image to the trained U-Net (three poolings): explain the error and fix it by padding to 104.",
+    "Make it 3D: Conv3d blocks with the source's Down3D design (GroupNorm(8, C)) on synthetic 32^3 volumes of spheres and cubes; measure volumes by voxel count and compare the time per epoch with the 2D model."
+   ]
+  },
+  {
+   "id": "lab6",
+   "title": "Grad-CAM catches a shortcut",
+   "minutes": 25,
+   "goal": "Train two small CNNs to tell circles from squares - one on data where a corner marker gives the answer away, one on clean data - and use a saliency map and Grad-CAM, implemented from their definitions, to see where each model looks.",
+   "data": "Synthetic 32x32 images: one circle or square (radius or half-side 5-9 px, intensity 0.6-1.0), Gaussian blur sigma 0.7, noise sigma 0.1. In the 'spurious' training set every square carries a 3x3 bright patch at rows and columns 1-3; 2,000 training images per set (seed 0); test sets of 500 clean images (seed 1) and 500 with the marker on a random half (seed 2). No download.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 2,
+   "steps": [
+    "Write shape_img(rng, cls, marker) and make(n, seed, rule) with rule 'spurious', 'none' or 'random'; show eight images from each training set.",
+    "Net: Conv(1,16,3)-ReLU-MaxPool2 -> Conv(16,32,3)-ReLU -> Conv(32,32,3)-ReLU (the last map, 32x16x16) -> global average pool -> Linear(32,2); forward returns (logits, A); 14,114 parameters. Train both models with Adam (lr 2e-3, batch 64, 8 epochs).",
+    "Print accuracies: the shortcut model 1.00 on marker-correlated validation data, about 0.68 on the clean test set and 0.64 on the random-marker set; the clean model about 0.998 and 0.988.",
+    "Implement grad_cam(model, x, c): call A.retain_grad(), backpropagate the logit of class c, alpha = A.grad averaged over H and W, cam = ReLU(sum_k alpha_k A_k), bilinear upsampling to 32x32. Implement saliency(model, x, c) = |dy^c/dx|.",
+    "On a square carrying the marker, print the share of Grad-CAM mass inside the 6x6 top-left corner (3.5% of the image): about 0.26 for the shortcut model, about 0.04 for the clean model; saliency shares about 0.09 and 0.03. Plot the 2x3 grid of fig-03-37.",
+    "Check the CAM identity: with Z = H*W = 256 (A.shape[2] * A.shape[3]), print max |alpha - w_c/Z| for the head's weights - about 3e-10.",
+    "Sanity check (Adebayo et al. 2018): copy the shortcut model, re-initialise its head and last convolution (reset_parameters()), recompute Grad-CAM and print its correlation with the trained model's map: about 0.10."
+   ],
+   "expected_observations": [
+    "Validation accuracy drawn from the training distribution says nothing about the shortcut: 1.00 on marker-correlated data, 0.68 on clean data.",
+    "Grad-CAM concentrates on the marker for the shortcut model and on the shape for the clean one; the saliency map shows the same tendency less clearly.",
+    "With a global-average-pooling head, Grad-CAM is CAM: the weights are the classifier weights divided by Z.",
+    "The map changes when the learned weights are destroyed, so it depends on the model; that is necessary, not sufficient, evidence that it explains the model."
+   ],
+   "extensions": [
+    "Occlusion test: slide a 6x6 grey patch over the image, plot the drop in the class score as a map, and compare with Grad-CAM.",
+    "Compute Grad-CAM on Lab 2's digit CNN: its last convolutional map is 4x4, and on 8x8 images the result is too coarse to be useful - say why.",
+    "Retrain the shortcut model with the marker on a random half of all images (decorrelated from the class) and confirm that the Grad-CAM mass in the corner falls."
+   ]
+  }
+ ],
+ "exercises": [
+  {
+   "id": "e1",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "A 7x7 single-channel input is convolved with a 3x3 kernel. (a) Give the output size for (padding, stride, dilation) = (0, 1, 1), (1, 1, 1), (1, 2, 1), (0, 1, 2) and (0, 2, 2). (b) For the two stride-2 cases, list the input rows that each output row reads. Which rows, if any, are never read? (c) What padding keeps the output at 7x7 with dilation 2 and stride 1?",
+   "solution_sketch": "(a) With floor((H + 2p - d(k-1) - 1)/s) + 1: (0,1,1) -> 5; (1,1,1) -> 7; (1,2,1) -> floor(6/2) + 1 = 4; (0,1,2) -> 7 - 4 - 1 + 1 = 3; (0,2,2) -> floor(2/2) + 1 = 2. (b) (1,2,1): windows start at rows -1, 1, 3 and 5 and read {-1,0,1}, {1,2,3}, {3,4,5} and {5,6,7}, where -1 and 7 are padding: every input row is read, rows 1, 3 and 5 twice. (0,2,2): the dilated kernel spans 5 rows; windows start at rows 0 and 2 and read {0,2,4} and {2,4,6}: rows 1, 3 and 5 are never read, because dilation 2 with stride 2 samples only even rows. (c) p = d(k-1)/2 = 2: floor((7 + 4 - 4 - 1)/1) + 1 = 7."
+  },
+  {
+   "id": "e2",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "Show that n stacked k x k convolutions with stride 1 have the receptive field of one convolution of size n(k - 1) + 1. With C input and C output channels in every layer and no biases, compare three ways of reaching a 9x9 field: one 9x9 layer, two 5x5 layers and four 3x3 layers (weights, multiply-accumulates per output position, nonlinearities). Then generalise to n stacked 3x3 layers against one (2n+1)x(2n+1) layer: what fraction of the weights does the stack use as n grows, and what does it give up?",
+   "solution_sketch": "Each stride-1 k x k layer adds k - 1 to the field (s3's recurrence with jump 1), so r = 1 + n(k - 1). For a 9x9 field: one 9x9 layer has 81C^2 weights and one nonlinearity; two 5x5 layers 50C^2 and two; four 3x3 layers 36C^2 and four. At stride 1 every layer keeps the map size, so the multiply-accumulates per output position equal the weights: the deepest stack is the cheapest and the most nonlinear, s3's VGG argument taken one step further. In general the fraction is 9n/(2n + 1)^2, which tends to 9/(4n): 36/81 = 44% at n = 4, 90/441 = 20% at n = 10. The price: without the nonlinearities the stack composes into one convolution, but only into the (2n+1)x(2n+1) kernels that factor as a chain of 3x3 kernels (two 3x3 layers make 25 values per channel pair from 18), so it is a constrained factorisation; the nonlinearities add expressiveness of another kind; and every extra layer stores another activation map for the backward pass and adds depth to train through."
+  },
+  {
+   "id": "e3",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "ResNet-18 at 224x224 begins with the stem of s3's worked example (a 7x7 stride-2 convolution with padding 3, then a 3x3 stride-2 max pool with padding 1) and continues with four stages of two basic blocks, each block two 3x3 convolutions with padding 1; the first convolution of stages 2, 3 and 4 has stride 2. Compute the receptive field and the jump after the pool and after each stage. How large is the last feature map, what is its receptive field, and why can that exceed 224? What is the receptive field through stage 2's first shortcut (a 1x1 stride-2 projection) compared with the main path of that block, and what does a path that takes every shortcut see?",
+   "solution_sketch": "After the pool r = 11 with jump 4 (s3). Stage 1: four 3x3 convolutions at jump 4 add 8 each: 43 (jump 4). Stage 2: the stride-2 convolution adds 2 x 4 = 8 and makes the jump 8; the other three add 16 each: 51, 67, 83, 99. Stage 3: 115, then +32 three times: 211 (jump 16). Stage 4: 243, then +64 three times: 435 (jump 32). The last map is 7x7 (224 -> 112 -> 56 -> 28 -> 14 -> 7) and each unit's theoretical field is 435x435, almost twice the image: the windows run over padding, so every unit can see the whole image, while its effective field is far smaller (as Lab 3 measures for SmallResNet). Through stage 2's projection the field stays 43 (a 1x1 adds nothing; the jump still doubles to 8) while the block's main path reaches 67, so the block's output sums features with different fields. A path that takes every shortcut sees only the stem's 11 pixels: the output mixes paths whose fields range from 11 to 435."
+  },
+  {
+   "id": "e4",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "In Lab 2, on digits placed at random on a 16x16 canvas, a CNN ending in global average pooling reached about 0.93 while the same convolutions with a flatten-and-dense head reached about 0.89 with more parameters (11,018 against 6,218). Explain the difference, and name a task where the flatten head is the better choice.",
+   "solution_sketch": "Global average pooling discards where each feature fired, so the classifier is invariant to the digit's position by construction (up to border and pooling effects); the flatten head has separate weights for every position and must learn each digit at each position from data. When absolute position carries the label - deciding whether a defect lies in the left or the right half of a part, or reading a field at a fixed place on a form - position-specific weights (or explicit coordinates) are what you want."
+  },
+  {
+   "id": "e5",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "Derive the ratio of multiply-accumulates of a depthwise-separable k x k convolution (depthwise, then pointwise) to a standard k x k convolution with C_in input and C_out output channels at the same output size. (a) Evaluate it for a 5x5 convolution from 96 to 192 channels on a 28x28 map, giving both layers' parameters (with biases) and FLOPs. (b) What does the ratio approach as C_out grows, for k = 3 and for k = 5? (c) In the separable version, what share of the cost is the depthwise part, and how much more does the block cost with 5x5 depthwise kernels than with 3x3? What does that suggest about kernel sizes in separable designs?",
+   "solution_sketch": "Per output position: standard k^2 C_in C_out; separable k^2 C_in + C_in C_out; ratio 1/C_out + 1/k^2. (a) 1/192 + 1/25 = 0.0452, 22.1x fewer. Standard: 25 x 96 x 192 = 460,800 weights, 460,992 parameters, 460,800 x 784 = 361.3 M MACs, 722.5 MFLOPs. Separable: 2,400 depthwise + 18,432 pointwise = 20,832 weights, 21,120 parameters with both biases, 16.3 M MACs, 32.7 MFLOPs. (b) 1/k^2: 9x for 3x3 and 25x for 5x5; at C_out = 192 the 3x3 ratio is already 8.6x. (c) The depthwise part is 2,400 of 20,832 weights, 11.5%; with 3x3 depthwise kernels the block has 864 + 18,432 = 19,296, so 5x5 costs only 8% more. The pointwise layer dominates, so larger depthwise kernels are nearly free in FLOPs, which is why separable designs use 5x5 (EfficientNet) and 7x7 (ConvNeXt, s9) depthwise kernels; run time on a GPU is another matter (s6)."
+  },
+  {
+   "id": "e6",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "(a) The original residual block applies a ReLU after the addition: h_{l+1} = ReLU(h_l + F_l(h_l)). Write the Jacobian dh_{l+1}/dh_l and the Jacobian of a stack of such blocks from l to L, and say what takes the place of the identity term of the pre-activation derivation in Section 8. (b) Scalar gradient factors over 100 layers: a plain network whose layers each have gain 0.95, or each 1.05; a residual network whose branches all have derivative +0.02, all -0.02, or alternately +0.02 and -0.02. (c) What would it take for the residual gradient to vanish?",
+   "solution_sketch": "(a) dh_{l+1}/dh_l = D_l (I + dF_l/dh_l), where D_l = diag(1[h_l + F_l(h_l) > 0]) holds the ReLU's 0/1 derivatives. Over a stack, dh_L/dh_l is the product of D_i (I + J_i) for i = l, ..., L-1; expanded, the term with no branch Jacobian is D_{L-1} ... D_l rather than I: a unit's gradient rides the highway only if the unit is active after every addition on the way, so switched-off units block it. The pre-activation form puts nothing after the addition and restores the bare identity (He et al. 2016b). (b) Plain: 0.95^100 = 0.0059 and 1.05^100 = 131.5. Residual: 1.02^100 = 7.2, 0.98^100 = 0.13, and alternating (1.02 x 0.98)^50 = 0.98. Same-sign branch derivatives still compound, but a deviation of 0.02 per block moves the product by a factor of 7 over 100 blocks, where a plain gain error of 0.05 moves it by a factor of more than 100 either way; with mixed signs the deviations largely cancel (random signs give a logarithm with standard deviation 0.02 x sqrt(100) = 0.2, a factor between about 0.82 and 1.22). (c) The product of the factors (1 + eps_i) would have to approach 0, which needs a branch derivative near -1, cancelling the identity, at some block and for every example: not a generic situation. Small branches at initialisation (the zero-initialised gamma of Section 8) start every eps near 0."
+  },
+  {
+   "id": "e7",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "For each dataset, which of these augmentations preserve the label: horizontal flip, vertical flip, 90-degree rotation, rotation within +/-10 degrees, brightness and contrast jitter, mixup? (a) Handwritten digits. (b) Aerial images of farmland classified by crop. (c) Chest X-rays labelled for pneumonia. (d) Micrographs of cells segmented into nucleus and cytoplasm.",
+   "solution_sketch": "(a) Small rotations and photometric jitter; no flips (mirrored 2s, 3s and 7s are not digits) and no 90-degree rotations (6 and 9); mixup is a regulariser that yields soft labels, not a label-preserving transform. (b) Flips, 90-degree rotations, small rotations and mild jitter are all fine: no canonical orientation. (c) Small rotations and brightness/contrast; a horizontal flip moves the heart to the right (and some findings are lateralised); vertical flips and 90-degree rotations create images never seen in practice. (d) Flips and rotations are fine if applied to image and mask together, with nearest-neighbour interpolation for the mask; photometric jitter on the image only."
+  },
+  {
+   "id": "e8",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "In Lab 4 a network pretrained on digits 0-4 transferred well when only its first block was kept, and badly as a frozen feature extractor. Yet an ImageNet backbone is usually a good frozen feature extractor even for microscopy. Explain the difference, and give two situations in which training from scratch can match a pretrained backbone.",
+   "solution_sketch": "Early layers learn generic detectors (edges, strokes, textures) and transfer; later layers become specific to the source classes (Yosinski et al. 2014). A source of 5 classes and 675 images makes its late layers narrow, so only the first block helps; ImageNet's 1.28 million images in 1,000 classes force its late layers to encode broadly useful parts and shapes. Scratch can match pretraining when the target set is large and training long (He, Girshick and Dollar 2019 on COCO detection), or when the target domain is far from the source and data are plentiful (Raghu et al. 2019 on large medical-imaging sets); pretraining still tends to speed convergence."
+  },
+  {
+   "id": "e9",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A one-stage detector scores about 20,000 anchors per image, of which perhaps 10 overlap an object. (a) Why does plain cross-entropy summed over all anchors train it poorly? (b) The focal loss multiplies each anchor's cross-entropy by (1 - p_t)^gamma. Without computing, say what this does to an anchor the model already classifies confidently and correctly and to one it gets badly wrong, and what gamma = 0 gives back. (c) Why would re-weighting the classes with alpha_t alone not fix the problem? (d) Why do two-stage detectors suffer less from it?",
+   "solution_sketch": "(a) Each easy background anchor contributes little loss and gradient, but twenty thousand of them dominate the total and drown the few positives, pushing the model to be ever more certain about background it already gets right. (b) For a confident correct anchor p_t is near 1, so the factor is near 0 and its loss is all but silenced; for a badly wrong one p_t is small and the factor is near 1, so its loss is kept: training concentrates on hard examples. gamma = 0 gives back (alpha-weighted) cross-entropy. (c) alpha_t re-weights positives against negatives as classes but cannot tell an easy negative from a hard one, and the easy negatives are the bulk of the negative loss; RetinaNet in fact gives the positives the smaller weight (alpha = 0.25) once gamma = 2 has silenced the easy negatives. (d) The region-proposal stage discards most background before the second stage, which trains on sampled mini-batches with a fixed positive-to-negative ratio (for example 1:3)."
+  },
+  {
+   "id": "e10",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "Boxes are (x1, y1, x2, y2), all of one class: A = (0,0,8,8) with score 0.9, B = (2,0,10,8) with 0.85, C = (20,20,28,28) with 0.7, D = (3,3,11,11) with 0.6. (a) Compute IoU(A,B), IoU(A,D) and IoU(B,D). (b) Run NMS with threshold 0.5, then with 0.3. Does D survive at 0.3, although its IoU with B exceeds 0.3? (c) The ground truth is two objects, exactly at A and at C. Rank detections by score and mark each as a true or false positive at IoU >= 0.5 (each object can be matched once). Compute the all-point interpolated AP for the boxes that survive NMS at 0.5 and for all four boxes without NMS. What do the two results say about NMS, and about AP as a summary?",
+   "solution_sketch": "(a) A and B: intersection 6 x 8 = 48, union 64 + 64 - 48 = 80, IoU 0.600; A and D: 5 x 5 = 25, union 103, IoU 0.243; B and D: 7 x 5 = 35, union 93, IoU 0.376. (b) At 0.5: keep A; delete B (0.600); keep C (IoU 0 with A); keep D (0.243 with A) -> A, C, D. At 0.3 the result is the same: D survives because B was deleted before D was considered, and a deleted box suppresses nothing; only below 0.243 does A remove D too. (c) With NMS: A TP, C TP, D FP (0.243 with the object at A); precision 1, 1, 0.667, recall 0.5, 1, 1; AP = 0.5 x 1 + 0.5 x 1 = 1.0. Without NMS: A TP, B FP (a duplicate: its object is already matched by A), C TP, D FP; precision 1, 0.5, 0.667, 0.5, recall 0.5, 0.5, 1, 1; interpolated precision is 1 up to recall 0.5 and 0.667 from there to 1, so AP = 0.5 + 0.333 = 0.833. NMS is worth 0.167 AP here because it removed a duplicate ranked above a true positive. The false positive D ranks below every true positive and costs nothing in AP either way, which is why AP is reported together with the precision at the operating threshold."
+  },
+  {
+   "id": "e11",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A team segments liver tumours on CT: 40 patients with 100 annotated slices each and a 2D U-Net. They shuffle all 4,000 slices and split them 80/20, reporting a Dice of 0.91; on 10 new patients the Dice is 0.74. (The numbers are a scenario.) Explain the gap and how the evaluation should have been set up.",
+   "solution_sketch": "Neighbouring slices of one patient are nearly identical and share anatomy, scanner and contrast phase; a random slice split puts near-duplicates of the test slices into training, so the score measures memorisation of patients (leakage, Module 01). Split by patient (for example 32 training and 8 test patients, or grouped cross-validation with the patient as the group), keep each patient's slices on one side, test on patients from another site or scanner if possible, and report the spread over folds."
+  },
+  {
+   "id": "e12",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A 3D U-Net trains on 64^3 patches with a batch of 2; batch norm gives noisy training and a validation score that depends on batch composition. (a) How many values enter each batch-norm mean of a 32-channel layer, and why are they still too few? (b) With group norm (8 groups) on the same layer, which values enter each mean and variance, and how many are there?",
+   "solution_sketch": "(a) 2 x 64^3 = 524,288 values per channel, but from only two volumes whose voxels are strongly correlated; the statistics swing from batch to batch and differ from the running averages used at test time. What matters is the number of independent examples. (b) Group norm normalises each example separately over groups of 4 channels: 4 x 64^3 = 1,048,576 values per statistic, all from one example, so training and testing compute the same thing and nothing depends on the batch."
+  },
+  {
+   "id": "e13",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "A 3D U-Net encoder has four levels with 32, 64, 128 and 256 channels, each level halving every spatial dimension; training keeps six tensors per level for the backward pass (two convolution outputs, two normalisation outputs, two activations), in float32. (a) Compute the encoder's activation memory for a batch of 4 patches of 96^3 voxels. (b) The decoder costs about as much again; does training fit on a GPU with 8 GiB if weights and optimiser state take 0.5 GiB? (c) Halve the activation memory in two ways, once through the batch and once through a cubic patch size at batch 4 that a network with three poolings accepts. Which would you choose, and why? (d) Compare one 32-channel feature map of a 96^3 patch with one of a 1,024 x 1,024 2D slice.",
+   "solution_sketch": "(a) Level 0: 96^3 x 32 x 4 B = 108 MiB per tensor per patch, x 6 = 648 MiB; each deeper level has 1/8 the voxels and twice the channels, hence 1/4 the memory: 162, 40.5 and 10.1 MiB; 860.6 MiB per patch and 3,442.5 MiB (3.36 GiB) for the batch of 4. (b) About 6.7 GiB of activations plus 0.5 GiB is 7.2 GiB: on paper it fits, but the 0.8 GiB left must hold everything the estimate leaves out (the decoder's concatenated inputs, convolution workspace, allocator fragmentation), so measure the peak with torch.cuda.max_memory_allocated before trusting it, and expect to drop to batch 3 or 2. (c) Batch 2 halves it exactly. At batch 4 the side must shrink by 0.5^(1/3): 96 x 0.794 = 76.2, and sizes must be divisible by 2^3 = 8, so 80 (58% of the memory) or 72 (42%). Prefer the smaller batch: with group norm nothing depends on the batch size (e12), while a smaller patch gives each prediction less context and needs more overlapping tiles at inference. (d) 96^3 x 32 x 4 B = 108 MiB against 1,024^2 x 32 x 4 B = 128 MiB: one 96^3 patch costs about as much per feature map as a 1-megapixel slice, and the 3D network keeps such maps at every level."
+  },
+  {
+   "id": "e14",
+   "level": 3,
+   "kind": "project",
+   "minutes": 25,
+   "prompt": "Volumes from masks, with an error budget, on a second object (s13 worked through a first one). (1) On a grid with voxel spacing 0.4 x 0.4 micrometres in plane and 1.5 micrometres between slices, build the mask of an ellipsoid with semi-axes 10, 8 and 5 micrometres (x, y, z), testing each voxel centre, with the ellipsoid's centre offset from a voxel centre by (0.3, 0.6, 0.2) voxels in (x, y, z). (2) Compute its volume as voxel count x voxel volume and compare with 4/3 pi a b c. (3) Repeat for the 20 sub-voxel offsets np.random.default_rng(0).random((20, 3)) and report the mean and the standard deviation (ddof = 1). (4) Compute the surface area by counting exposed voxel faces, each weighted by its physical area, and compare with the exact area, 730.6 square micrometres (from the elliptic-integral formula; Knud Thomsen's approximation with p = 1.6075 gives 731.1). What does the face count tend to as the voxels shrink? (5) Optional, with scikit-image installed and the mask indexed (z, y, x): run measure.marching_cubes on the binary mask (level 0.5, spacing (1.5, 0.4, 0.4)) and on the mask blurred with a Gaussian of 0.5 micrometres along each axis (scipy.ndimage.gaussian_filter, sigma converted to voxels), and compare their measure.mesh_surface_area with the exact value. (6) A file converter drops the slice spacing and reports isotropic 0.4-micrometre voxels: what volume does the mask then report? (7) Classify each discrepancy, using Module 01's decomposition, as bias, variance or a gross error, and say which shrink with finer voxels.",
+   "solution_sketch": "7,005 voxels x 0.24 = 1,681.2 cubic micrometres against 4/3 pi x 10 x 8 x 5 = 1,675.5 (+0.3%); over the 20 offsets the mean is 1,676.9 (bias +0.1%) and the standard deviation 11.4 (0.7%): variance from where the object falls on the grid, shrinking as voxels shrink. Exposed faces give 1,077 square micrometres, 47.5% above 730.6: every face is axis-aligned, so the faces add up to twice the ellipsoid's projected areas on the three axis planes, which tends to 2 pi (ab + ac + bc) = 1,068.1 (+46%) at any resolution, a bias that refinement does not remove. Marching cubes on the binary mask gives about 887 (+21%): with 1.5-micrometre slices the mesh keeps the terraces of the staircase; on the blurred mask about 756 (+3%), so mesh a probability volume or a lightly smoothed mask (values from scikit-image 0.26). Read with isotropic 0.4-micrometre voxels the mask reports 7,005 x 0.064 = 448.3 cubic micrometres, 27% of the truth: a gross error from lost metadata that no resolution fixes. With a real segmentation, add the model's own bias: a boundary displaced outward by a quarter of a micrometre adds about area x 0.25 = 183 cubic micrometres, 11%."
+  },
+  {
+   "id": "e15",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A colleague shows Grad-CAM maps from a crack classifier on concrete images; every map highlights the crack. Does this establish that the classifier detects cracks for the right reason? Give two limitations of the evidence and two further tests.",
+   "solution_sketch": "No. Grad-CAM has the resolution of the last convolutional layer (a cell may cover 32x32 pixels); it shows where evidence was found but not what feature (the crack, or a stain or shadow that runs along cracks); the maps shown may be the easy successes; and some saliency methods look plausible even for randomised models. Tests: re-initialise the top layers and confirm the map changes (the randomisation check); counterfactuals - paint out the crack, or add a crack-like stain without a crack, and watch the score; inspect maps for false positives and negatives; evaluate on images from another site or camera."
+  }
+ ],
+ "quiz": [
+  {
+   "question": "A 3x3 convolution maps 32 input channels to 64 output channels, with bias. How many parameters does it have?",
+   "options": [
+    "18,432",
+    "18,496",
+    "2,048",
+    "4,718,592"
+   ],
+   "answer": 1,
+   "explanation": "k^2 C_in C_out + C_out = 9 x 32 x 64 + 64 = 18,496. 18,432 forgets the 64 biases; 2,048 ignores the 3x3 spatial extent; 4,718,592 is the multiply-accumulate count on a 16x16 output, which depends on the map size while the parameter count does not."
+  },
+  {
+   "question": "Input width 64, kernel 3, dilation 2, padding 1, stride 1. What is the output width?",
+   "options": [
+    "64",
+    "62",
+    "60",
+    "63"
+   ],
+   "answer": 1,
+   "explanation": "floor((64 + 2 - 2 x 2 - 1)/1) + 1 = 62. The dilated kernel spans d(k - 1) + 1 = 5 inputs, so 'same' padding would need p = 2 (giving 64); 60 is the unpadded result."
+  },
+  {
+   "question": "With circular padding, which of these is exactly equivariant to a one-pixel shift of its input?",
+   "options": [
+    "A 3x3 convolution with stride 1",
+    "A 2x2 max pool with stride 2",
+    "A 3x3 convolution with stride 2",
+    "Flattening followed by a dense layer"
+   ],
+   "answer": 0,
+   "explanation": "A stride-1 convolution commutes with every integer shift. Stride-2 operations are equivariant only to shifts by multiples of 2, so a one-pixel shift changes which windows are sampled. A dense layer on a flattened map has position-specific weights and no equivariance at all."
+  },
+  {
+   "question": "Four 3x3 convolutions are stacked; the second has stride 2, the others stride 1, none is dilated. What is the receptive field of the last layer?",
+   "options": [
+    "9",
+    "11",
+    "13",
+    "17"
+   ],
+   "answer": 2,
+   "explanation": "r = 3 after the first layer, 5 after the second (whose stride makes the jump 2), then each 3x3 adds (3 - 1) x 2 = 4: 9, then 13. With all strides 1 the answer would be 9; 17 needs the third layer at stride 2 as well (3, 5, 9, 17)."
+  },
+  {
+   "question": "A standard 3x3 convolution with 256 input and 256 output channels is replaced by a depthwise 3x3 followed by a 1x1. By roughly what factor do the multiply-accumulates fall?",
+   "options": [
+    "2",
+    "8.7",
+    "Exactly 9",
+    "256"
+   ],
+   "answer": 1,
+   "explanation": "The cost ratio is 1/C_out + 1/k^2 = 1/256 + 1/9 = 0.115, a factor of 8.7. It approaches 9 only as C_out grows without bound; 256 would require channel mixing to cost nothing."
+  },
+  {
+   "question": "In a network of residual blocks h_{l+1} = h_l + F(h_l), why does the gradient reach early layers even when the network is very deep?",
+   "options": [
+    "The residual branches are linear, so their Jacobians are identities",
+    "Each block's Jacobian is I + dF/dh, so the gradient contains a term that passes through every block unchanged",
+    "Batch normalisation rescales the gradient at every block",
+    "Shortcuts reduce the parameter count, so each parameter receives a larger share of the gradient"
+   ],
+   "answer": 1,
+   "explanation": "Unrolling gives dL/dh_l = dL/dh_L (I + d/dh_l sum F_i): an identity term carries the top gradient to every layer. The branches are nonlinear; batch norm alone left a 55-layer plain network with an exploding gradient in Lab 3; and the parameter count is irrelevant."
+  },
+  {
+   "question": "You freeze a pretrained backbone with requires_grad=False, train a new head with the whole model in train mode, and find that the backbone's outputs have drifted. Why?",
+   "options": [
+    "The optimiser still applies weight decay to the frozen weights",
+    "Batch-norm running means and variances are updated in train mode regardless of requires_grad",
+    "Dropout masks are stored in the weights",
+    "The learning-rate schedule re-initialises the backbone"
+   ],
+   "answer": 1,
+   "explanation": "requires_grad=False stops gradient updates, but batch-norm layers in train mode overwrite their running statistics with your batches; put them in eval mode. PyTorch's optimisers skip parameters without gradients (and frozen parameters are usually not passed to them), dropout keeps no state, and schedules do not touch weights."
+  },
+  {
+   "question": "Two 10x10 boxes overlap, one offset from the other by 5 pixels in x and 5 in y. What is their IoU?",
+   "options": [
+    "0.25",
+    "0.143",
+    "0.5",
+    "0.333"
+   ],
+   "answer": 1,
+   "explanation": "Intersection 5 x 5 = 25; union 100 + 100 - 25 = 175; IoU = 25/175 = 0.143. 0.25 is the intersection divided by one box's area, not by the union."
+  },
+  {
+   "question": "What does non-maximum suppression do?",
+   "options": [
+    "Removes every box whose score is below the highest score of its class",
+    "Repeatedly keeps the highest-scoring box and deletes other boxes of the same class that overlap it above an IoU threshold",
+    "Suppresses activations below the maximum in each pooling window",
+    "Averages overlapping boxes into one box"
+   ],
+   "answer": 1,
+   "explanation": "NMS is greedy de-duplication. The first option would delete every other object of the class; the third describes max pooling; averaging boxes is a different method (box fusion)."
+  },
+  {
+   "question": "Why does U-Net concatenate encoder feature maps into its decoder?",
+   "options": [
+    "To reduce the decoder's parameter count",
+    "To give the decoder high-resolution features so that boundaries can be placed precisely",
+    "To make every block residual so that the network trains at depth",
+    "To let the network accept inputs of any size"
+   ],
+   "answer": 1,
+   "explanation": "The bottleneck has lost spatial detail and the skips bring it back at each resolution; in Lab 5 they raised pixel accuracy near boundaries from 0.918 to 0.950 while overall Dice moved from 0.953 to 0.966. Concatenation adds parameters, is not a residual sum, and makes the input-size constraint stricter, not looser."
+  },
+  {
+   "question": "In a dataset where 0.6% of pixels are foreground, a model predicts background everywhere. What are its pixel accuracy and Dice?",
+   "options": [
+    "99.4% and 0",
+    "0.6% and 0",
+    "99.4% and 0.994",
+    "50% and 0.5"
+   ],
+   "answer": 0,
+   "explanation": "Accuracy counts the 99.4% of correctly labelled background pixels; Dice = 2TP/(2TP + FP + FN) with TP = 0 is 0. This is why segmentation is reported with Dice or IoU per class."
+  },
+  {
+   "question": "In Grad-CAM, the weight alpha_k^c of feature map k for class c is:",
+   "options": [
+    "The spatial average of dy^c/dA^k over the map's positions",
+    "The maximum activation of map k",
+    "The gradient of y^c with respect to the input pixels",
+    "Always equal to the classifier weight w_k^c"
+   ],
+   "answer": 0,
+   "explanation": "alpha_k^c = (1/Z) sum_ij dy^c/dA^k_ij. It equals w_k^c/Z (not w_k^c) only for a global-average-pooling + linear head, the CAM case; the gradient with respect to the input pixels is the saliency map."
+  }
+ ],
+ "papers": [
+  {
+   "citation": "He, K., Zhang, X., Ren, S., Sun, J. \"Deep residual learning for image recognition.\" CVPR, 2016.",
+   "minutes": 25,
+   "why": "The paper that made depth trainable. It argues from one experiment (the degradation problem) to one idea, presents clean ablations, and its block reappears in every transformer; it is also where 'FLOPs' meaning multiply-adds became standard in vision papers.",
+   "read": "Read Section 1 with Figure 1; Sections 3.1-3.3 (residual learning, identity shortcuts, the architectures in Figure 3 and Table 1); in Section 4.1, the plain-versus-residual comparison (Figure 4, Table 2), the shortcut options A/B/C (Table 3) and the bottleneck design (Figure 5); Section 4.2 on CIFAR-10 (Figure 6, Table 6). Skim the remaining ImageNet comparison tables. Skip Section 2 (related work) and the detection results (Section 4.3 and the appendix).",
+   "questions": [
+    "Figure 1 shows the 56-layer plain network with higher training error than the 20-layer one. Why does that rule out overfitting, and what argument in Section 1 says a deeper model should do at least as well?",
+    "Section 4 counts 1.81 x 10^9 multiply-adds for ResNet-18; Table 1 says 1.8 x 10^9 FLOPs. What does the paper mean by FLOPs, and why does it matter when you compare with a paper that counts multiplies and adds separately?",
+    "What are shortcut options A, B and C (Table 3), how much do they differ, and why do the authors conclude that projection shortcuts are not essential?",
+    "Count the weights of the bottleneck block of Figure 5 (right) for 256 channels and compare with two 3x3 convolutions at 256 channels (answer: 69,632 against 1,179,648).",
+    "On CIFAR-10 the 1,202-layer network trains to a similar training error as the 110-layer one but tests worse (7.93% against 6.43%). What explains it, and how is this different from the degradation problem?"
+   ]
+  },
+  {
+   "citation": "Ronneberger, O., Fischer, P., Brox, T. \"U-Net: Convolutional networks for biomedical image segmentation.\" MICCAI, 2015.",
+   "minutes": 20,
+   "why": "Eight pages that set the standard architecture for biomedical segmentation; read with the output-size formula in hand, every number in Figure 1 can be checked, and the paper is frank about working from very few annotated images.",
+   "read": "Read Sections 1-3 in full with Figures 1-3 (the architecture, the overlap-tile strategy, the weight map for touching cells) and the data-augmentation paragraph. Skim Section 4 for the number of training images and the metrics used. Skip the details of the comparison tables.",
+   "questions": [
+    "Trace the feature-map sizes of Figure 1 from 572x572 to 388x388 with the output-size formula. How many pixels must be cropped from each side of the first encoder map before concatenation? (568 to 392: 88.)",
+    "What problem does the overlap-tile strategy (Figure 2) solve, and why do the authors mirror the image at its borders?",
+    "What is the weight map w(x) of Equation 2 for, and which failure of plain per-pixel cross-entropy does it address?",
+    "Which augmentation do the authors single out as key when only a few annotated images are available, and why does it suit microscopy?",
+    "The paper's convolutions are unpadded. What would change in the architecture and in tiled inference if they were padded?"
+   ]
+  }
+ ],
+ "widgets": [
+  {
+   "name": "convolution-explorer",
+   "section": "s2",
+   "teaching_point": "One output value is one multiply-accumulate of the kernel with one window; the same kernel slides to every position; padding, stride and dilation decide which windows exist and therefore the output size.",
+   "controls": [
+    "select: input image - 'worked example' (the 5x5 image of s2), 'letter F' (12x12), 'step edge' (12x12), 'diagonal line' (12x12), 'checkerboard' (12x12)",
+    "select: kernel preset - identity, box blur, Gaussian blur, sharpen, Sobel-x (vertical edges), Sobel-y (horizontal edges), Laplacian, edge [1,0,-1] x 3 (the s2 example), custom",
+    "nine number inputs: the 3x3 kernel weights (editing any weight switches the preset to 'custom'); a 'normalise to sum 1' button, disabled when the sum is 0",
+    "checkbox: flip the kernel (true convolution instead of cross-correlation)",
+    "slider: padding p, integer 0-3 (zero padding)",
+    "slider: stride s, integer 1-3",
+    "slider: dilation d, integer 1-3",
+    "buttons: previous step, next step, play/pause (one output position every 400 ms), reset; clicking an output cell jumps to that position; left/right arrow keys step",
+    "toggle: show numbers / show colours only"
+   ],
+   "displays": [
+    "Input grid with pixel values; padding cells hatched with value 0; the current window's sampled cells outlined, separated by d - 1 skipped cells when dilated",
+    "Kernel grid as used (after flipping, if the checkbox is on)",
+    "The multiply-accumulate for the current position written out as nine products and their sum, e.g. 'Y[0,0] = (1)(1) + (0)(2) + (-1)(0) + ... = -1'",
+    "Output grid filling in as the window moves, with values and a diverging colour map centred at 0 (blue negative, white zero, red positive) scaled by the largest |value| of the full output",
+    "Output-size panel: H_out = floor((H + 2p - d(k - 1) - 1)/s) + 1 with the current numbers substituted, for rows and columns; when (H + 2p - d(k - 1) - 1) is not divisible by s, the note 'the last r rows/columns of the padded input are never read' with r computed; when H_out < 1, 'no valid window'",
+    "Side-by-side view of the whole input and whole output as images at equal pixel size"
+   ],
+   "defaults": "Image 'worked example', kernel 'edge [1,0,-1] x 3', p = 0, s = 1, d = 1, window at (0, 0): the first step reproduces s2's hand calculation Y[0,0] = -1 and stepping through fills [[-1,-4,0],[-3,-2,4],[-1,-2,1]]; ticking 'flip' negates every value, and switching to 'letter F' with Sobel-x shows opposite-signed responses on the two sides of the F's vertical stroke.",
+   "spec": "Data: worked example [[1,2,0,1,3],[0,1,3,2,1],[2,0,1,4,0],[1,3,2,0,1],[0,1,1,2,2]]; letter F (12x12): 8 where (2<=r<=9 and 3<=c<=4) or (2<=r<=3 and 3<=c<=9) or (5<=r<=6 and 3<=c<=7), else 1; step edge: 2 for c<6, 8 for c>=6; diagonal: 8 where c==r or c==r+1, else 0; checkerboard: 8 where floor(r/2)+floor(c/2) is even, else 0. Kernels: identity [[0,0,0],[0,1,0],[0,0,0]]; box all 1/9; Gaussian (1/16)[[1,2,1],[2,4,2],[1,2,1]]; sharpen [[0,-1,0],[-1,5,-1],[0,-1,0]]; Sobel-x [[-1,0,1],[-2,0,2],[-1,0,1]]; Sobel-y [[-1,-2,-1],[0,0,0],[1,2,1]]; Laplacian [[0,1,0],[1,-4,1],[0,1,0]]; edge [[1,0,-1],[1,0,-1],[1,0,-1]]. Computation (k = 3 fixed): Xp = X zero-padded by p on every side; K' = K flipped in both axes (K'[u][v] = K[2-u][2-v]) if the checkbox is on, else K; Y[i][j] = sum_{u,v=0..2} K'[u][v] * Xp[i*s + u*d][j*s + v*d]; H_out = floor((H + 2p - 2d - 1)/s) + 1, the same for W. Recompute the whole output on every change (at most 16x16 positions x 9 products) and reveal it progressively in row-major order. Display numbers to 3 significant figures (1/9 as 0.111). Any change of image, p, s or d resets the step to (0,0) and clears the revealed output; play stops at the last position; if H_out < 1 stepping is disabled. Vanilla JS with SVG or canvas, no libraries, one state object; buttons are <button> elements with text labels, and colours always have the numbers available as text."
+  },
+  {
+   "name": "receptive-field-builder",
+   "section": "s3",
+   "teaching_point": "Each layer adds (k - 1) d times the product of earlier strides to the receptive field, so stride-1 stacks grow it slowly, downsampling and dilation grow it fast, and most of the influence still sits at the centre.",
+   "controls": [
+    "layer list (1-10 rows), each with type (conv or pool), kernel size k in {1, 2, 3, 5, 7}, stride s in {1, 2, 3}, dilation d in {1, 2, 4, 8} (conv only); padding defaults to floor(d(k - 1)/2) with a manual override; buttons add, remove, move up, move down",
+    "preset select: 'one 7x7' (7), 'three 3x3' (7), 'VGG blocks 1-2' (conv3, conv3, pool2, conv3, conv3, pool2: 16), 'SmallResNet main path' (9 layers: 49), 'dilated 1-2-4-8' (31), 'ResNet stem' (7x7 stride 2, 3x3 pool stride 2: 11)",
+    "slider: input size H, 8-256 (default 64)",
+    "toggle: show the effective receptive field (path-count weighting)",
+    "click a unit in the top row of the 1D view to choose whose field is shown"
+   ],
+   "displays": [
+    "Table: layer, k, s, d, p, output size H_l, jump Delta_l, receptive field r_l; the last row highlighted",
+    "1D view: one row of dots per layer (input at the bottom) with every connection of the chosen top unit drawn, so the cone is visible; dilated taps drawn as skipping lines",
+    "2D view: the input grid (up to 64x64 drawn; larger inputs scaled) with the theoretical receptive field square outlined and, with the toggle on, each cell shaded by its normalised path count, with contours enclosing 50% and 90% of the total; padding drawn hatched outside the image",
+    "Readouts: r_L, Delta_L, the number of paths per axis (the product of the kernel sizes, in scientific notation above 10^6), the share of the 2D path mass inside the central w x w window (a fraction of the total, not a count; w is defined in the spec), and a warning when r_L exceeds H ('the field extends into padding')"
+   ],
+   "defaults": "Preset 'three 3x3' with H = 64: the table shows r = 3, 5, 7, the cone fans out over 7 inputs, and the shading shows path counts 1, 3, 6, 7, 6, 3, 1 (out of 27) per axis, so the readout shows 49.5% of the 2D path mass in the central 3x3 (19/27 = 0.704 per axis); switching to 'one 7x7' gives the same theoretical field with uniform weight and 18.4% (3/7 per axis), which makes the difference between theoretical and effective fields immediate.",
+   "spec": "Theoretical field: r_0 = 1, Delta_0 = 1; for each layer l, r_l = r_{l-1} + (k_l - 1) d_l Delta_{l-1} and Delta_l = Delta_{l-1} s_l (pool layers use d = 1). Output sizes: H_l = floor((H_{l-1} + 2p_l - d_l(k_l - 1) - 1)/s_l) + 1; if H_l < 1, show 'layer l has no valid output' and stop. Path counts, per axis: start with c_L = one-hot at the chosen unit u (default floor(H_L/2)); for l = L down to 1, c_{l-1}[x] = sum over output positions o and taps t = 0..k_l - 1 with x = o s_l + t d_l - p_l of c_l[o], for 0 <= x < H_{l-1}; positions that fall in padding are accumulated as 'padding mass' and not drawn. The 2D map is the outer product of c_0 with itself (kernels are square and identical on both axes). Label it 'uniform weights, no nonlinearity: an approximation of the effective receptive field'. Counts and what is shown: the per-axis path counts sum to the product of the kernel sizes (for eight 7-tap layers 7^8 = 5,764,801 paths, the 'paths per axis' readout), but no single cell holds that many: the largest per-axis count is 398,567 for eight 7-tap layers at stride 1 without dilation (17,538,157 for ten; strides and dilations spread the same total more thinly). The 2D counts are products of per-axis counts (eight 7-tap layers: 3.3e13 paths in all, 1.6e11 at the centre cell). Use floating point, divide each axis's counts by that axis's total (padding mass included) before forming the outer product, and display only these shares: the shading, the 50% and 90% contours and the central-window readout are fractions of the total path mass, never raw counts. The central window's width w is the odd integer nearest r_L/2, rounding up on a tie (3 for r_L = 7, 25 for r_L = 49). Edge cases: k = 1 layers leave r unchanged; stride larger than the kernel leaves input cells that are never reached, shown in a distinct 'never read' colour; dilations sharing a common factor (e.g. 2, 2, 2) show the gridding pattern of unreached cells. Vanilla JS, SVG for the 1D view and canvas for the 2D map; recompute everything on each change (at most 10 layers x 256 positions x 7 taps)."
+  }
+ ],
+ "terms": [
+  {
+   "en": "convolution; kernel / filter",
+   "zh": "卷积；卷积核 / 滤波器"
+  },
+  {
+   "en": "cross-correlation",
+   "zh": "互相关"
+  },
+  {
+   "en": "local connectivity; weight sharing",
+   "zh": "局部连接；权值共享"
+  },
+  {
+   "en": "translation equivariance / invariance",
+   "zh": "平移等变性 / 平移不变性"
+  },
+  {
+   "en": "inductive bias",
+   "zh": "归纳偏置"
+  },
+  {
+   "en": "feature map; channel",
+   "zh": "特征图；通道"
+  },
+  {
+   "en": "stride; padding; dilation",
+   "zh": "步长；填充；空洞"
+  },
+  {
+   "en": "dilated convolution",
+   "zh": "空洞卷积"
+  },
+  {
+   "en": "receptive field; effective receptive field",
+   "zh": "感受野；有效感受野"
+  },
+  {
+   "en": "pooling; global average pooling",
+   "zh": "池化；全局平均池化"
+  },
+  {
+   "en": "multiply-accumulate (MAC); FLOPs",
+   "zh": "乘加运算（MAC）；浮点运算次数（FLOPs）"
+  },
+  {
+   "en": "1x1 convolution; bottleneck",
+   "zh": "1×1 卷积；瓶颈结构"
+  },
+  {
+   "en": "grouped convolution; depthwise convolution",
+   "zh": "分组卷积；逐通道卷积"
+  },
+  {
+   "en": "depthwise-separable convolution",
+   "zh": "深度可分离卷积"
+  },
+  {
+   "en": "residual block; skip connection; degradation problem",
+   "zh": "残差块；跳跃连接；退化问题"
+  },
+  {
+   "en": "group normalisation",
+   "zh": "组归一化"
+  },
+  {
+   "en": "data augmentation",
+   "zh": "数据增强"
+  },
+  {
+   "en": "transfer learning; fine-tuning; linear probe",
+   "zh": "迁移学习；微调；线性探测"
+  },
+  {
+   "en": "object detection; bounding box",
+   "zh": "目标检测；边界框"
+  },
+  {
+   "en": "anchor box",
+   "zh": "锚框"
+  },
+  {
+   "en": "intersection over union (IoU)",
+   "zh": "交并比"
+  },
+  {
+   "en": "non-maximum suppression (NMS)",
+   "zh": "非极大值抑制"
+  },
+  {
+   "en": "average precision (AP, mAP)",
+   "zh": "平均精度（AP，mAP）"
+  },
+  {
+   "en": "semantic / instance segmentation",
+   "zh": "语义分割 / 实例分割"
+  },
+  {
+   "en": "encoder-decoder; U-Net",
+   "zh": "编码器-解码器；U-Net"
+  },
+  {
+   "en": "transposed convolution; upsampling",
+   "zh": "转置卷积；上采样"
+  },
+  {
+   "en": "Dice coefficient",
+   "zh": "Dice 系数"
+  },
+  {
+   "en": "voxel; voxel spacing",
+   "zh": "体素；体素间距"
+  },
+  {
+   "en": "marching cubes; isosurface",
+   "zh": "移动立方体算法；等值面"
+  },
+  {
+   "en": "saliency map; class activation map (CAM, Grad-CAM)",
+   "zh": "显著图；类激活图"
+  },
+  {
+   "en": "shortcut learning",
+   "zh": "捷径学习"
+  }
+ ],
+ "references": [
+  "LeCun, Y., Bottou, L., Bengio, Y., Haffner, P. \"Gradient-based learning applied to document recognition.\" Proceedings of the IEEE, 1998. LeNet-5; the parameter and connection counts of s7.",
+  "Krizhevsky, A., Sutskever, I., Hinton, G. E. \"ImageNet classification with deep convolutional neural networks.\" NeurIPS, 2012. AlexNet.",
+  "Russakovsky, O. et al. \"ImageNet large scale visual recognition challenge.\" International Journal of Computer Vision, 2015. How the ILSVRC numbers are defined.",
+  "Simonyan, K., Zisserman, A. \"Very deep convolutional networks for large-scale image recognition.\" ICLR, 2015. VGG.",
+  "Lin, M., Chen, Q., Yan, S. \"Network in network.\" ICLR, 2014. 1x1 convolutions and global average pooling.",
+  "Szegedy, C. et al. \"Going deeper with convolutions.\" CVPR, 2015. GoogLeNet and the inception module.",
+  "He, K., Zhang, X., Ren, S., Sun, J. \"Deep residual learning for image recognition.\" CVPR, 2016. ResNet; guided reading.",
+  "He, K., Zhang, X., Ren, S., Sun, J. \"Identity mappings in deep residual networks.\" ECCV, 2016. Pre-activation blocks and the gradient derivation of s8.",
+  "Goyal, P. et al. \"Accurate, large minibatch SGD: Training ImageNet in 1 hour.\" arXiv, 2017. Zero-initialising the last batch-norm scale of each residual branch.",
+  "Xie, S., Girshick, R., Dollar, P., Tu, Z., He, K. \"Aggregated residual transformations for deep neural networks.\" CVPR, 2017. ResNeXt and grouped convolutions.",
+  "Huang, G., Liu, Z., van der Maaten, L., Weinberger, K. Q. \"Densely connected convolutional networks.\" CVPR, 2017. DenseNet.",
+  "Howard, A. G. et al. \"MobileNets: Efficient convolutional neural networks for mobile vision applications.\" arXiv, 2017. Depthwise-separable networks and the cost formula.",
+  "Sandler, M., Howard, A., Zhu, M., Zhmoginov, A., Chen, L.-C. \"MobileNetV2: Inverted residuals and linear bottlenecks.\" CVPR, 2018.",
+  "Tan, M., Le, Q. V. \"EfficientNet: Rethinking model scaling for convolutional neural networks.\" ICML, 2019. Compound scaling; the numbers quoted are from Table 2 of the ICML version (a later arXiv revision reports EfficientNet-B0 at 77.1%).",
+  "Liu, Z., Mao, H., Wu, C.-Y., Feichtenhofer, C., Darrell, T., Xie, S. \"A ConvNet for the 2020s.\" CVPR, 2022. ConvNeXt; the recipe-versus-architecture roadmap (Figure 2, with every step's value in Appendix C, Table 10; ConvNeXt-T in Table 1).",
+  "Dosovitskiy, A. et al. \"An image is worth 16x16 words: Transformers for image recognition at scale.\" ICLR, 2021. The vision transformer; Module 06.",
+  "Wu, Y., He, K. \"Group normalization.\" ECCV, 2018.",
+  "Zhang, H., Cisse, M., Dauphin, Y. N., Lopez-Paz, D. \"mixup: Beyond empirical risk minimization.\" ICLR, 2018.",
+  "Yun, S. et al. \"CutMix: Regularization strategy to train strong classifiers with localizable features.\" ICCV, 2019.",
+  "Yosinski, J., Clune, J., Bengio, Y., Lipson, H. \"How transferable are features in deep neural networks?\" NeurIPS, 2014. General early layers, specific late layers (Lab 4).",
+  "He, K., Girshick, R., Dollar, P. \"Rethinking ImageNet pre-training.\" ICCV, 2019. Training from scratch can match pretraining given data and time.",
+  "Raghu, M., Zhang, C., Kleinberg, J., Bengio, S. \"Transfusion: Understanding transfer learning for medical imaging.\" NeurIPS, 2019.",
+  "Girshick, R., Donahue, J., Darrell, T., Malik, J. \"Rich feature hierarchies for accurate object detection and semantic segmentation.\" CVPR, 2014. R-CNN.",
+  "Ren, S., He, K., Girshick, R., Sun, J. \"Faster R-CNN: Towards real-time object detection with region proposal networks.\" NeurIPS, 2015. Anchors and the region proposal network.",
+  "Redmon, J., Divvala, S., Girshick, R., Farhadi, A. \"You only look once: Unified, real-time object detection.\" CVPR, 2016. YOLO.",
+  "Liu, W. et al. \"SSD: Single shot multibox detector.\" ECCV, 2016.",
+  "Lin, T.-Y., Goyal, P., Girshick, R., He, K., Dollar, P. \"Focal loss for dense object detection.\" ICCV, 2017. RetinaNet.",
+  "Bodla, N., Singh, B., Chellappa, R., Davis, L. S. \"Soft-NMS: Improving object detection with one line of code.\" ICCV, 2017.",
+  "Carion, N. et al. \"End-to-end object detection with transformers.\" ECCV, 2020. DETR.",
+  "He, K., Gkioxari, G., Dollar, P., Girshick, R. \"Mask R-CNN.\" ICCV, 2017. Instance segmentation.",
+  "Everingham, M. et al. \"The PASCAL visual object classes (VOC) challenge.\" International Journal of Computer Vision, 2010. Average precision at IoU 0.5.",
+  "Lin, T.-Y. et al. \"Microsoft COCO: Common objects in context.\" ECCV, 2014. Average precision over IoU thresholds.",
+  "Long, J., Shelhamer, E., Darrell, T. \"Fully convolutional networks for semantic segmentation.\" CVPR, 2015.",
+  "Ronneberger, O., Fischer, P., Brox, T. \"U-Net: Convolutional networks for biomedical image segmentation.\" MICCAI, 2015. Guided reading.",
+  "Cicek, O., Abdulkadir, A., Lienkamp, S. S., Brox, T., Ronneberger, O. \"3D U-Net: Learning dense volumetric segmentation from sparse annotation.\" MICCAI, 2016.",
+  "Milletari, F., Navab, N., Ahmadi, S.-A. \"V-Net: Fully convolutional neural networks for volumetric medical image segmentation.\" 3DV, 2016. The Dice loss.",
+  "Odena, A., Dumoulin, V., Olah, C. \"Deconvolution and checkerboard artifacts.\" Distill, 2016.",
+  "Dumoulin, V., Visin, F. \"A guide to convolution arithmetic for deep learning.\" arXiv, 2016. Output sizes for convolutions and transposed convolutions, with diagrams.",
+  "Yu, F., Koltun, V. \"Multi-scale context aggregation by dilated convolutions.\" ICLR, 2016.",
+  "van den Oord, A. et al. \"WaveNet: A generative model for raw audio.\" arXiv, 2016. Dilated causal convolutions.",
+  "Bai, S., Kolter, J. Z., Koltun, V. \"An empirical evaluation of generic convolutional and recurrent networks for sequence modeling.\" arXiv, 2018. Temporal convolutional networks.",
+  "Lorensen, W. E., Cline, H. E. \"Marching cubes: A high resolution 3D surface construction algorithm.\" SIGGRAPH, 1987.",
+  "Luo, W., Li, Y., Urtasun, R., Zemel, R. \"Understanding the effective receptive field in deep convolutional neural networks.\" NeurIPS, 2016.",
+  "Zhang, R. \"Making convolutional networks shift-invariant again.\" ICML, 2019. Anti-aliased downsampling.",
+  "Azulay, A., Weiss, Y. \"Why do deep convolutional networks generalize so poorly to small image transformations?\" Journal of Machine Learning Research, 2019.",
+  "Zeiler, M. D., Fergus, R. \"Visualizing and understanding convolutional networks.\" ECCV, 2014.",
+  "Simonyan, K., Vedaldi, A., Zisserman, A. \"Deep inside convolutional networks: Visualising image classification models and saliency maps.\" ICLR Workshop, 2014.",
+  "Zhou, B., Khosla, A., Lapedriza, A., Oliva, A., Torralba, A. \"Learning deep features for discriminative localization.\" CVPR, 2016. Class activation maps.",
+  "Selvaraju, R. R. et al. \"Grad-CAM: Visual explanations from deep networks via gradient-based localization.\" ICCV, 2017.",
+  "Adebayo, J. et al. \"Sanity checks for saliency maps.\" NeurIPS, 2018.",
+  "Geirhos, R. et al. \"ImageNet-trained CNNs are biased towards texture; increasing shape bias improves accuracy and robustness.\" ICLR, 2019.",
+  "Geirhos, R. et al. \"Shortcut learning in deep neural networks.\" Nature Machine Intelligence, 2020.",
+  "Zech, J. R. et al. \"Variable generalization performance of a deep learning model to detect pneumonia in chest radiographs: A cross-sectional study.\" PLOS Medicine, 2018.",
+  "Goodfellow, I., Bengio, Y., Courville, A. Deep Learning. MIT Press, 2016. Chapter 9, convolutional networks.",
+  "Zhang, A., Lipton, Z. C., Li, M., Smola, A. J. Dive into Deep Learning. The chapters on convolutional networks and modern CNNs; code-first and kept current."
+ ],
+ "generalised_refs": [
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Its output is a label mask, the input a meshing step expects: a U-Net trained on annotated microscopy produces the voxel mask, and an isosurface algorithm such as marching cubes turns the mask into a surface whose volume and area can be measured, with the error budget of s13."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "A segmentation model trained at one voxel spacing is applied at another. The spacing is part of the input: carry it with every volume and mask, resample to the training spacing, and make the measurement step refuse a mask without a spacing rather than assume 1 x 1 x 1 (in s13 the same mask read at the wrong spacing reports twice the true volume)."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Exercise e14: build a synthetic ellipsoid mask at an anisotropic voxel spacing (or take a mask from a public microscopy dataset), measure its volume by voxel count times voxel volume and its surface by exposed voxel faces and by an isosurface (marching cubes with scikit-image, optional), compare with the analytic values, and classify each discrepancy with Module 01's bias-variance decomposition."
+  }
+ ],
+ "writer_notes": "RUNNING EXAMPLES - keep them identical across parts so numbers cross-reference: (1) the 5x5 image X5 = [[1,2,0,1,3],[0,1,3,2,1],[2,0,1,4,0],[1,3,2,0,1],[0,1,1,2,2]] with the edge kernel [[1,0,-1]] x 3 (s2, Lab 1 steps 2 and 5, the widget's default); (2) the 3x3, 64 -> 128 layer on a 56x56 map (s4 counts, s6 separable version, Lab 1 timing); (3) the source's Block/SmallResNet code, kept verbatim (s8, Lab 3, s3's effective receptive field, s6's separable count); (4) load_digits with train_test_split(test_size=0.25, stratify=y, random_state=0) in Labs 2, 3 and 4; (5) the 16x16 translated-digit canvas (Lab 2 step 6 and extensions, Lab 4 extension); (6) the synthetic image generators of Labs 5 and 6; (7) the anisotropic ellipsoid (semi-axes 12, 9, 7 micrometres; spacing 0.5 x 0.5 x 2.0) of s13; e14 uses a second one (10, 8, 5 micrometres at 0.4 x 0.4 x 1.5) so that its answers are not printed in s13. EXERCISES never reuse a worked example's or a check's numbers: e1, e2 (the 9x9 field), e3 (ResNet-18), e5 (5x5, 96 -> 192), e6 (100 layers, the post-addition ReLU), e10 (new boxes), e13 (96^3 at batch 4) and e14 have numbers of their own, e9 is conceptual, and s13's group-norm check uses a 32^3 patch so that it does not answer e12. Grades: a star is conceptual (about 5 minutes); every calculation or derivation is two stars (10 minutes here). NOTATION: single-channel image X in R^{H x W}, kernel K in R^{k x k}, output Y; with channels X_{c',i,j}, K_{c,c',u,v}, Y_{c,i,j}; i, j output positions, u, v kernel offsets, c output and c' input channel; k kernel size, p padding, s stride, d dilation; receptive field r_l and jump Delta_l (never j for the jump - j is a column index); tensors (B, C, H, W) as in PyTorch, (B, C, D, H, W) in 3D; matrices bold upper case per the series notation when written as matrices (the Toeplitz M, the weight matrix W). Always say MACs (multiply-accumulates) or FLOPs, with FLOPs = 2 x MACs, and say so when a paper's 'FLOPs' are multiply-adds (ResNet, EfficientNet, ConvNeXt; MobileNet calls them Mult-Adds). Use MiB/GiB (2^20, 2^30 bytes) for memory computed from tensor sizes and MB for download sizes as published; s4 states this once, and where the binary and decimal forms differ both are given (s1: 574 MiB, 602 MB; s4: 392 MiB, 411 MB). Module 06 owns the series' FLOP convention for transformers; s4 states this module's (MACs, FLOPs = 2 x MACs) once. Use 'Module NN', never 'Tutorial NN'. CORRECTIONS TO THE SOURCE, to be carried silently (state the right number; never 'the source said'): SmallResNet has 1,228,970 parameters, not ~2.8M; the 64 -> 128 example is 462.4 MFLOPs without bias additions and 462.8 with them (the source's 463); AlexNet cut ILSVRC-2012 top-5 error to 15.3% from 26.2% for the next entry ('halved' is loose). The source's CIFAR-10 claim (about 93% with augmentation and about 85% without for a network of this size) is not reproduced here: drop it, or call it typical and cite instead He et al. 2016, Table 6 (ResNet-20, 0.27 M parameters, 8.75% error; ResNet-110, 1.7 M, 6.43%); CIFAR-10 itself appears only in Lab 3's norun GPU extension (about 170 MB). PAPER NUMBERS: every ImageNet or COCO figure (AlexNet 15.3/26.2; GoogLeNet 6.67%; ResNet 3.57%, CIFAR 6.43%/7.93%; MobileNet Table 4: 70.6% at 569 M Mult-Adds and 4.2 M parameters vs 71.7%, 4,866 M, 29.3 M; EfficientNet-B0 5.3 M, 0.39 B, 76.3% (ICML version, Table 2; a later arXiv revision says 77.1%, so quote the version cited); ConvNeXt's roadmap from Appendix C, Table 10 as listed in s9 and fig-03-22 (76.1 -> 78.8 -> 82.0), ConvNeXt-T 82.1% in Table 1 with 28.6 M parameters (printed as 29M) and 4.5 G, against Swin-T 81.3% (28 M, 4.5 G); DenseNet-121 about 8 M) must be checked against the cited table and the table named in the text or caption; if a value cannot be confirmed, give fewer details rather than a guessed one. Never mix top-1 and top-5. TOPIC OWNERSHIP: backpropagation, initialisation, optimisers, batch/layer normalisation mechanics and dropout are Module 02's (one-line reminders and links only); attention, the transformer and ViT are Module 06's (s9 gives ViT two sentences and a link to Module 06, Section 8, which owns the patch-embedding count); sequence models and the dilated-CNN-versus-LSTM comparison (Module 04, Exercise 15) are Module 04's; autoencoders and diffusion models (which reuse the U-Net) and contrastive pretraining are Module 05's; leakage and honest evaluation are Module 01's. CROSS-LINKS: s8's x + F(x) -> Module 06's block; s9 -> Module 06; s13's 1D convolutions -> Module 04; Lab 3's vanishing gradient -> Module 02's initialisation (PyTorch's default Conv2d initialisation, kaiming_uniform_ with a = sqrt(5), has weight variance 1/(3 fan-in), a sixth of He's 2/fan-in). LABS: all numbers in this outline were measured on a desktop CPU with 4 threads (Python 3.11, PyTorch 2.x CPU, fixed seeds); a laptop is typically 1.5-3x slower; write 'about' and keep two or three significant figures, since later phases replace them with real runs. Lab 5 keeps QUICK = True (400 images, 8 epochs; about 15 s per model) for slow machines. Re-timed during revision on the 4-thread desktop, full mode (1,500 images, 15 epochs) trains each model in about 30 s, about 1 minute for both, so 2-4 minutes on a laptop, inside the 15-minute cap and the 5-minute aim (an earlier estimate of 3.3 minutes per model did not reproduce). Lab 5 reports Dice and IoU pooled over all validation pixels, so the pairs quoted obey D = 2J/(1 + J). Lab 4 runs seeds 0-4 (under a minute here). Seeds: torch.manual_seed and np.random.default_rng with the stated values; torch.set_num_threads(4) makes timings comparable. Every lab saves its figures with matplotlib's Agg backend so the figure phase can reuse them. Every lab is self-contained: the phrases Lab 2's split and Lab 2's canvas mean the lab repeats the same code and seeds, never that it imports another lab's state; Lab 3 re-defines Block and SmallResNet. TRAPS FOR LAB WRITERS: ReLU'(0) = 0 in PyTorch, so Lab 3's empirical receptive field needs a positive input (ones), not zeros; Lab 6's CAM identity uses Z = A.shape[2] * A.shape[3]; Lab 4 must put frozen blocks back in eval mode after every model.train(); Lab 5's input size must be divisible by 8; Lab 1 compares in float64 on both sides; contourpy.contour_generator(z=...).lines(0.5) returns a list of (N, 2) arrays; scipy.signal.convolve2d flips the kernel; scikit-image and torchvision are not part of the lab environment: marching cubes is an optional step of e14, and the pretrained ResNet-18 (Lab 4) and CIFAR-10 (Lab 3) extensions are python norun blocks that the lab runner skips, with no number in the text taken from them; the 2D marching-squares measurement uses contourpy, which ships with matplotlib. HONEST NEGATIVE RESULTS - keep them, they are the judgement this module teaches: shift-and-rotate augmentation lowers accuracy on centred 8x8 digits while position re-sampling raises it on the canvas (Lab 2); a narrow source transfers only its first block and is a poor frozen feature extractor (Lab 4; at n = 5, since at n = 20 everything but the probe is within the seed spread); skip connections move overall Dice less than boundary accuracy (Lab 5). PUBLIC-SITE RULES: no reference to the private source repository; the masks-to-surfaces example is generic microscopy or CT with marching cubes. Exercise e11's Dice values are labelled as a scenario. FIGURES: measured-data figures come from lab runs; fig-03-21 and fig-03-22 take their values from the cited papers' tables and say which; the values in their descriptions were checked against the papers during revision. Dated statements in s9 carry 'as of 2026'. OUTLINE CONVENTIONS: this outline writes mathematics in plain ASCII (x for multiplication, ^ for powers, sum_, d/dh, Delta, eps, pi); the published text uses LaTeX ($...$) with the series notation. VOICE: British spelling; the order problem -> intuition -> formalism with the derivation written out -> worked example with numbers -> code -> failure modes; every number with its origin."
+}

@@ -1,0 +1,1501 @@
+{
+ "module": 1,
+ "title": "Machine learning foundations",
+ "title_em": "foundations",
+ "lead": "What learning from data is, written out as mathematics you can compute: a model, a loss derived from a noise model, an optimiser whose behaviour an eigenvalue predicts, and the habit that separates a model that works from one that only looks as if it does, which is evaluating it honestly.",
+ "prerequisites": [
+  "No earlier module: this is the first module of the series.",
+  "Calculus: partial derivatives, the chain rule and the gradient of a function of several variables.",
+  "Linear algebra: matrix products and transposes, inverse and rank, eigenvalues and eigenvectors of a symmetric matrix, and orthogonality (the SVD is introduced where it is used).",
+  "Probability: random variables, expectation, variance and independence (Section 5 opens with a refresher on the Gaussian, Laplace, Bernoulli and categorical distributions).",
+  "Python: functions, loops and NumPy arrays; no experience of a machine-learning library is assumed."
+ ],
+ "outcomes": [
+  "State any learning method as its five ingredients (data, model, loss, optimiser, evaluation) and name the assumption each one carries.",
+  "Derive the gradient and the normal equations of least squares, and explain the solution as an orthogonal projection onto the column space of $\\mathbf{X}$.",
+  "Predict from the Hessian's eigenvalues whether gradient descent converges at a given learning rate ($\\eta < 2/\\lambda_{\\max}$) and roughly how many steps it needs (in proportion to $\\kappa$), and repair a stalled run by centring and standardising the features.",
+  "Derive squared error, absolute error and cross-entropy as negative log-likelihoods, and ridge and lasso as MAP estimates under Gaussian and Laplace priors, with $\\lambda = \\sigma^2/(N\\tau^2)$ for ridge.",
+  "Derive the gradients of logistic and softmax regression, implement logistic regression in NumPy and check it against scikit-learn.",
+  "Derive the bias–variance decomposition and use validation curves, learning curves and $k$-fold cross-validation to choose model capacity and regularisation strength.",
+  "Design an evaluation free of the common leaks (preprocessing fitted inside the folds, group- and time-aware splits, nested selection, a test set opened once), attach a standard error or bootstrap interval to every reported number, and compare two models on one test set with a paired bootstrap and McNemar's exact test.",
+  "Choose and compute the metric a decision needs (precision, recall, F1, ROC AUC, average precision, expected calibration error, Brier score), including the effect of the base rate and a cost-based threshold.",
+  "Fit a physical model by weighted and nonlinear least squares, read its normalised residuals and $\\chi^2_\\nu$, quantify the uncertainty of its parameters and state the range outside which its predictions are unsupported.",
+  "Say what $k$-NN, decision trees, random forests, gradient boosting, kernel methods and SVMs, Gaussian processes, $k$-means and PCA do, and which to try first as a baseline."
+ ],
+ "software": [
+  "Python 3.11 or later.",
+  "NumPy.",
+  "SciPy (`scipy.optimize.least_squares`, `scipy.stats`, `scipy.special`).",
+  "scikit-learn, using only its built-in datasets (`load_breast_cancer`, `load_diabetes`, `make_friedman1`, `make_moons`), so nothing is downloaded.",
+  "matplotlib.",
+  "Jupyter or any Python REPL (optional); Google Colab is a free alternative, and no GPU is needed.",
+  "PyTorch is not used in this module; it enters in Module 02."
+ ],
+ "sessions": [
+  {
+   "n": 1,
+   "title": "Least squares and gradient descent",
+   "activities": [
+    {
+     "what": "Read Sections 1–2: the learning problem, and least squares with its geometry.",
+     "kind": "read",
+     "minutes": 35,
+     "refs": [
+      "s1",
+      "s2"
+     ]
+    },
+    {
+     "what": "Exercise 1: the five ingredients of two methods.",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e1"
+     ]
+    },
+    {
+     "what": "Read Sections 3–4 with the gradient-descent widget: gradient descent on a quadratic, then stochastic and mini-batch gradient descent.",
+     "kind": "read",
+     "minutes": 37,
+     "refs": [
+      "s3",
+      "s4"
+     ]
+    },
+    {
+     "what": "Lab 1: linear regression by the closed form, gradient descent and SGD, with the learning-rate cliff and feature scaling.",
+     "kind": "lab",
+     "minutes": 35,
+     "refs": [
+      "lab1"
+     ]
+    },
+    {
+     "what": "Exercise 3: step sizes and step counts from eigenvalues.",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e3"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "title": "Likelihood, classification and metrics",
+   "activities": [
+    {
+     "what": "Read Sections 5–6: maximum likelihood, then logistic and softmax regression.",
+     "kind": "read",
+     "minutes": 39,
+     "refs": [
+      "s5",
+      "s6"
+     ]
+    },
+    {
+     "what": "Exercise 4: why cross-entropy and not squared error.",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e4"
+     ]
+    },
+    {
+     "what": "Read Section 7: metrics, thresholds and calibration.",
+     "kind": "read",
+     "minutes": 21,
+     "refs": [
+      "s7"
+     ]
+    },
+    {
+     "what": "Lab 2: logistic regression from scratch against scikit-learn on the breast-cancer data, with the metrics a decision needs.",
+     "kind": "lab",
+     "minutes": 40,
+     "refs": [
+      "lab2"
+     ]
+    },
+    {
+     "what": "Exercises 5–6: the base rate in odds form, and the AUC by counting pairs.",
+     "kind": "exercises",
+     "minutes": 20,
+     "refs": [
+      "e5",
+      "e6"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "title": "Generalisation and regularisation",
+   "activities": [
+    {
+     "what": "Read Section 8 with the polynomial-capacity widget: capacity, bias–variance and cross-validation.",
+     "kind": "read",
+     "minutes": 22,
+     "refs": [
+      "s8"
+     ]
+    },
+    {
+     "what": "Exercise 7: a shrunk estimator that beats the unbiased one.",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e7"
+     ]
+    },
+    {
+     "what": "Read Section 9: ridge, lasso and MAP estimation.",
+     "kind": "read",
+     "minutes": 19,
+     "refs": [
+      "s9"
+     ]
+    },
+    {
+     "what": "Lab 3: polynomials, with the capacity curve, bias–variance by Monte Carlo, the ridge path and cross-validation for $\\lambda$.",
+     "kind": "lab",
+     "minutes": 40,
+     "refs": [
+      "lab3"
+     ]
+    },
+    {
+     "what": "Exercises 2 and 8: one-hot collinearity, then the normal equations and ridge.",
+     "kind": "exercises",
+     "minutes": 15,
+     "refs": [
+      "e2",
+      "e8"
+     ]
+    },
+    {
+     "what": "Guided reading: Belkin et al. (2019) on double descent.",
+     "kind": "papers",
+     "minutes": 15,
+     "refs": [
+      "reading"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "title": "Honest evaluation and the wider toolbox",
+   "activities": [
+    {
+     "what": "Read Section 10: leakage, selection bias, confidence intervals and McNemar's test.",
+     "kind": "read",
+     "minutes": 21,
+     "refs": [
+      "s10"
+     ]
+    },
+    {
+     "what": "Lab 4: the leakage clinic, with three pipelines that look excellent, their honest versions, bootstrap intervals and McNemar's test.",
+     "kind": "lab",
+     "minutes": 35,
+     "refs": [
+      "lab4"
+     ]
+    },
+    {
+     "what": "Exercises 9–11: spot the leak, question a 98% accuracy, and see why the best of many configurations flatters itself.",
+     "kind": "exercises",
+     "minutes": 15,
+     "refs": [
+      "e9",
+      "e10",
+      "e11"
+     ]
+    },
+    {
+     "what": "Read Section 11: the methods beyond linear models.",
+     "kind": "read",
+     "minutes": 24,
+     "refs": [
+      "s11"
+     ]
+    },
+    {
+     "what": "Exercises 12–13: too many features for $k$-NN, and the baseline ladder on tabular data (★★★).",
+     "kind": "exercises",
+     "minutes": 30,
+     "refs": [
+      "e12",
+      "e13"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "title": "An engineering fit, and review",
+   "activities": [
+    {
+     "what": "Read Section 12: fitting a hyperelastic material model.",
+     "kind": "read",
+     "minutes": 18,
+     "refs": [
+      "s12"
+     ]
+    },
+    {
+     "what": "Lab 5: neo-Hookean and Gent fits to a synthetic compression test, with uncertainty, residuals and extrapolation.",
+     "kind": "lab",
+     "minutes": 35,
+     "refs": [
+      "lab5"
+     ]
+    },
+    {
+     "what": "Exercises 14–15: an outlier and its recorded uncertainty, then the loading direction.",
+     "kind": "exercises",
+     "minutes": 15,
+     "refs": [
+      "e14",
+      "e15"
+     ]
+    },
+    {
+     "what": "Read What goes wrong: fifteen failures, each with its symptom, cause and fix.",
+     "kind": "read",
+     "minutes": 7,
+     "refs": [
+      "wrong"
+     ]
+    },
+    {
+     "what": "Guided reading: Kapoor and Narayanan (2023) on leakage, then Domingos (2012) as a synthesis.",
+     "kind": "papers",
+     "minutes": 30,
+     "refs": [
+      "reading"
+     ]
+    },
+    {
+     "what": "Self-check quiz: twelve questions.",
+     "kind": "quiz",
+     "minutes": 15,
+     "refs": [
+      "quiz"
+     ]
+    },
+    {
+     "what": "Summary and review: redo the five-ingredient table for the hyperelastic fit and list the three numbers you would report with it.",
+     "kind": "review",
+     "minutes": 10,
+     "refs": [
+      "summary"
+     ]
+    }
+   ]
+  }
+ ],
+ "sections": [
+  {
+   "id": "s1",
+   "title": "The learning problem",
+   "minutes": 15,
+   "target_words": 1100,
+   "purpose": "State what learning from data is as five explicit choices, fix the notation for the series, and introduce the running examples of this module.",
+   "must_cover": [
+    "The two motivating engineering functions from the source, kept: the sag of a scaffold as a function of material and geometry (a solver exists but took a person-year to build) and the probability that a hazard is controllable (no theory; estimated by people). Learning is obtaining such a function from examples when examples are cheaper than theory.",
+    "Formal set-up: unknown f*, data distribution P over (x, y), sample D = {(x_i, y_i)}, i = 1..N, drawn from P. The goal is good prediction on inputs not yet seen; predicting the examples already held is a lookup table.",
+    "Expected risk R(f) = E_(x,y)~P [ℓ(f(x), y)] against empirical risk L(θ) = (1/N) Σ_i ℓ(f_θ(x_i), y_i). Write both; the gap between them is the subject of Sections 8 and 10. The training loss is biased low because the optimiser chose θ to make it small.",
+    "Three settings: supervised (regression when y is continuous, classification when y is one of K labels), unsupervised (structure without y: k-means and PCA in Section 11, neural forms in Module 05), reinforcement learning (a reward after actions; Module 09 uses it to train language models).",
+    "The five ingredients, each with the reason it matters: data (and the distribution P it came from — the one people forget); model f_θ (hypothesis class; a line has two parameters, a language model billions); loss ℓ ≥ 0 and the empirical risk; optimiser (almost always a variant of gradient descent); evaluation on data the model was not fitted to. A method you cannot state this way is one you do not understand yet.",
+    "Inputs as numbers: the feature vector x ∈ R^d. Categories are one-hot encoded (a K-way category becomes K binary columns), never coded as integers, which impose an order and equal spacing; the exception is a genuinely ordinal scale, and even then integer codes assume equal steps. Then one sentence on learned embeddings: a one-hot vector times a trainable K × m table picks out one row of the table, so an embedding is such a table learned with the rest of the model, and it works the same way for any categorical feature (a part number, a supplier, a sensor ID) as for the tokens of a language model. Link Module 06, Section 4, where the token embedding enters the residual stream (Module 06, Section 11 counts its V × d table); do not say that Module 06 covers embeddings of other categorical features, because it does not.",
+    "A map of the module's running examples so readers recognise them: the synthetic regression with N = 200, d = 3 (Sections 2–4, Lab 1); noisy samples of sin(2πx) (Sections 8–9, Lab 3); the breast-cancer classifier (Sections 6–7, Labs 2 and 4); the hyperelastic compression test (Sections 5 and 12, Lab 5)."
+   ],
+   "worked_examples": [
+    "The five ingredients written out side by side for two methods at the ends of the range. (a) This module's regression: data 200 rows, 3 features, Gaussian noise of standard deviation 0.1; model w·x + b with 4 parameters; loss squared error; optimiser normal equations or gradient descent; evaluation RMSE on held-out rows. (b) The language model of the hypothetical case study in Modules 07–10 (about 9.5 billion parameters): data trillions of tokens of text; model a transformer; loss cross-entropy over the vocabulary at every position; optimiser AdamW; evaluation held-out perplexity and task benchmarks. Same five slots, more than nine orders of magnitude apart in parameter count (4 against about 9.5 billion).",
+    "The hyperelastic fit of Section 12 in the same table: data 16 (stretch, stress, uncertainty) triples from one compression test, P = specimens of this gel tested this way; model P = 2c1(λ − λ⁻²), one parameter; loss weighted squared error; optimiser a closed form; evaluation residuals on held-out strain ranges. Flag that the evaluation slot is where the extrapolation question of Section 12 lives."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-1",
+     "description": "The five ingredients as a pipeline: a box 'Data D drawn from P' feeds 'Model f_θ', which feeds 'Loss L(θ)'; an arrow from the loss to 'Optimiser' loops back to update θ; a separate box 'Evaluation on held-out data' receives the fitted model. A dashed outline encloses 'P (training conditions)' and a second dashed box 'deployment inputs', with a double-headed arrow labelled 'must match' between them."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why is the training loss not a measure of how good the model is? -> The optimiser chose θ to make it small, so it is biased low; only data not used in fitting estimates the expected risk.",
+    "A defect severity {minor, major, critical} is coded 1, 2, 3 in a linear model. What does that assume, and when is it acceptable? -> An order, which is real here, and equal steps: 'major' has an effect exactly halfway between the other two. Keep the integer code only if equal steps are plausible or validation supports them; otherwise one-hot encode, which keeps no order and assumes no spacing. (Exercise e2 takes the unordered case.)"
+   ],
+   "from_source": "Source §1 (the problem, f*, P, D, the three settings, 'predicting the examples we already have is a lookup table'), §2 (the five ingredients, verbatim in spirit), §8 second half (one-hot encoding, never integers, embeddings pointer).",
+   "new_material": "Expected versus empirical risk written as formulas; the ordinal exception; an embedding table as a one-hot vector times a learned matrix, for any categorical feature; the five-ingredient table for a 4-parameter and a 9.5-billion-parameter model; the map of running examples."
+  },
+  {
+   "id": "s2",
+   "title": "Least squares and its geometry",
+   "minutes": 20,
+   "target_words": 1350,
+   "purpose": "Fit linear regression in closed form, read the solution as an orthogonal projection, and know when the problem is ill-posed and how to compute it stably.",
+   "must_cover": [
+    "Set-up: f(x) = w·x + b; absorb b by appending a constant 1, so X ∈ R^(N×(d+1)) has rows x_i and y ∈ R^N. Loss L(w) = (1/N)‖Xw − y‖².",
+    "Gradient derived, not asserted: expand ‖Xw − y‖² = wᵀXᵀXw − 2yᵀXw + yᵀy; use ∇(wᵀAw) = 2Aw for symmetric A and ∇(bᵀw) = b; obtain ∇L = (2/N)Xᵀ(Xw − y). Hessian (2/N)XᵀX is positive semidefinite because vᵀXᵀXv = ‖Xv‖² ≥ 0, so L is convex.",
+    "Normal equations XᵀXw = Xᵀy and w* = (XᵀX)⁻¹Xᵀy when X has full column rank (needs at least d + 1 linearly independent rows).",
+    "Geometry: ŷ = Xw* is the orthogonal projection of y onto the column space of X; the residual r = y − ŷ satisfies Xᵀr = 0, which is what 'normal' (perpendicular) means. Hat matrix H = X(XᵀX)⁻¹Xᵀ is symmetric and idempotent (H² = H) with trace d + 1. With an intercept column the residuals sum to zero. Pythagoras on centred vectors: total sum of squares = explained + residual, which defines R² (used again in Section 7).",
+    "Rank deficiency: duplicated or affinely dependent columns (temperature in °C next to °F with an intercept; all K one-hot columns plus an intercept) make XᵀX singular. Infinitely many w give the same ŷ; the pseudo-inverse X⁺y picks the minimum-norm one. Ridge (Section 9) also removes the ambiguity.",
+    "Computation: never form the inverse. Options: Cholesky of XᵀX (fast, but κ(XᵀX) = κ(X)², so it squares the condition number); QR of X (solve Rw = Qᵀy, conditioning κ(X)); SVD X = UΣVᵀ, w = VΣ⁻¹Uᵀy, which also exposes the conditioning through the singular values. np.linalg.lstsq uses an SVD-based LAPACK driver. Cost about Nd² for forming XᵀX or a QR.",
+    "The source's NumPy example (N = 200, d = 3, w = (1.5, −2.0, 0.5), b = 0.7, noise 0.1·N(0,1), default_rng(0)) reproduced exactly, and the irreducible error: the residual RMS equals the noise level; a model that fits below it is fitting noise."
+   ],
+   "worked_examples": [
+    "Four points by hand: x = (0, 1, 2, 3), y = (1, 3, 2, 5). XᵀX = [[4, 6], [6, 14]], Xᵀy = (11, 22); determinant 20; b = (14·11 − 6·22)/20 = 1.1, w = (4·22 − 6·11)/20 = 1.1. Fitted values (1.1, 2.2, 3.3, 4.4), residuals (−0.1, 0.8, −1.3, 0.6); check Σr = 0 and Σx·r = 0 (both exactly 0). RSS = 2.70, TSS = 8.75, R² = 1 − 2.70/8.75 = 0.691. Trace of the hat matrix = 2.",
+    "Collinearity: add a third column 2x. XᵀX becomes singular (determinant 0). Predictions are unchanged at (1.1, 2.2, 3.3, 4.4); the weights on x and 2x are any (a, c) with a + 2c = 1.1; lstsq returns the minimum-norm pair (0.22, 0.44) with intercept 1.1.",
+    "The source code's output: closed form and 500 steps of gradient descent at η = 0.1 both print [1.491, −2.010, 0.505, 0.696]; residual RMS 0.1000 and the unbiased estimate sqrt(RSS/(N − 4)) = 0.1010 — the noise level, recovered."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-2",
+     "description": "Least squares as projection, in 3-D: a plane through the origin spanned by two column vectors labelled x₍₁₎ and x₍₂₎ (the column space of X); the data vector y rising above the plane; its foot ŷ = Xw* in the plane; the residual r = y − ŷ as a dashed segment with a right-angle mark; caption: 'Xᵀr = 0 are the normal equations'."
+    },
+    {
+     "id": "fig-01-3",
+     "description": "The four-point fit: points (0,1), (1,3), (2,2), (3,5); the line y = 1.1 + 1.1x; vertical residual segments labelled −0.1, +0.8, −1.3, +0.6; legend shows R² = 0.691."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why are they called the normal equations? -> They say Xᵀ(y − Xw) = 0: the residual is normal (perpendicular) to every column of X.",
+    "You add temperature in °F next to temperature in °C, with an intercept. What happens to XᵀX and to the predictions? -> XᵀX becomes singular because °F = 1.8·°C + 32·(intercept column); the weights are no longer unique, but the projection ŷ, and so the predictions, are unchanged.",
+    "Why prefer QR or the SVD to solving XᵀXw = Xᵀy by Cholesky? -> Forming XᵀX squares the condition number; QR and the SVD work with X directly."
+   ],
+   "from_source": "Source §3: set-up, loss, gradient, normal equations, closed form, 'solve rather than invert', QR/SVD remark, the full NumPy code block, the irreducible-error paragraph.",
+   "new_material": "Gradient derivation with the matrix-calculus identities; projection geometry, hat matrix and orthogonal residuals; R² from Pythagoras; rank deficiency and the minimum-norm solution; κ(XᵀX) = κ(X)²; the hand-sized worked example; the source code's actual output."
+  },
+  {
+   "id": "s3",
+   "title": "Gradient descent on a quadratic",
+   "minutes": 21,
+   "target_words": 1350,
+   "purpose": "Derive exactly when and how fast gradient descent converges on the least-squares loss, so that learning rate, conditioning and feature scaling become numbers rather than folklore.",
+   "must_cover": [
+    "Why iterate when a closed form exists, and when not to: the solve costs about Nd² + d³ and needs all the data in memory; a gradient step costs about Nd; every model from Module 02 on has no closed form. State the rule of thumb once: small d, use lstsq; large N or d, or streaming data, use the SGD of Section 4; ill-conditioned, rescale first (below).",
+    "Exact quadratic form and the error recursion: using the normal equations, L(w) = L(w*) + ½(w − w*)ᵀH(w − w*) with H = (2/N)XᵀX (show the expansion). With e_t = w_t − w*, the update w ← w − η∇L gives e_(t+1) = (I − ηH)e_t. Diagonalise H = QΛQᵀ; in eigen-coordinates each component evolves alone, ẽ_(i,t) = (1 − ηλ_i)^t ẽ_(i,0).",
+    "Stability derived: convergence needs |1 − ηλ_i| < 1 for every i, i.e. 0 < η < 2/λ_max. Regimes: η < 1/λ_max monotone; η = 1/λ_max solves the steepest mode in one step; 1/λ_max < η < 2/λ_max the steep mode's factor is negative, so the iterate zig-zags across the valley; η = 2/λ_max neither grows nor decays; η > 2/λ_max diverges geometrically.",
+    "Rate: the flattest mode limits speed at factor 1 − ηλ_min. The best fixed step η* = 2/(λ_max + λ_min) equalises the extreme factors and gives ρ = (κ − 1)/(κ + 1) with κ = λ_max/λ_min. Steps to shrink the error by ε: t = ln(1/ε)/(−ln ρ) ≈ (κ/2)ln(1/ε) for large κ; the loss shrinks as ρ^(2t).",
+    "Conditioning comes from the features: for centred, uncorrelated features with standard deviations s_j, (1/N)XᵀX = diag(s_j²) and κ = (s_max/s_min)². Uncentred features couple to the intercept: a feature with mean 100 and standard deviation 1 next to the constant column gives (1/N)XᵀX = [[1, 100], [100, 10001]], eigenvalues 10002 and 1.0×10⁻⁴, κ ≈ 1.0×10⁸ — centring alone fixes it. Correlation also inflates κ: two standardised features with correlation ρ have eigenvalues 1 ± ρ and κ = (1 + ρ)/(1 − ρ), so 0.9 gives 19 and 0.99 gives 199; standardisation fixes units, not correlation. The source's units example, made explicit: a span length in millimetres with standard deviation 1000 mm next to a modulus in gigapascals with standard deviation 0.001 GPa (1 MPa batch scatter) — ratio 10⁶, κ = 10¹², and at the best fixed step about (κ/2)ln(10⁶) ≈ 6.9×10¹² iterations for six digits; after standardisation κ ≈ 1.",
+    "Standardisation x′ = (x − μ)/s with μ and s from the training set only, applied unchanged to validation and test data (leakage in miniature otherwise; Section 10). Map weights back to original units: w_j = w′_j/s_j, b = b′ − Σ_j μ_j w′_j/s_j.",
+    "Beyond quadratics, in two sentences: near any smooth minimum the loss is approximately quadratic with H the Hessian, so η < 2/λ_max(H) governs local stability in Module 02's networks too. For logistic regression the bound computed from the worst-case curvature is sufficient but not necessary (Section 6 and Lab 2's extension)."
+   ],
+   "worked_examples": [
+    "H = diag(1, 10), κ = 10: η_max = 0.2. At η = 0.1 the factors are 0.9 and 0.0 — the steep mode is solved in one step and the flat mode needs ln(10⁶)/(−ln 0.9) = 131.1, so 132 steps for a 10⁶ error reduction. At η = 0.18 the factors are 0.82 and −0.80 (zig-zag): 69.6, so 70 steps. At η* = 2/11 = 0.182 both factors are ±0.818: 68.8, so 69 steps. At η = 0.21 the steep factor is −1.1 and that component grows 1.1⁵⁰ = 117 times in 50 steps.",
+    "Lab 1's data: H has eigenvalues 1.711, 1.922, 2.126, 2.207, so κ = 1.29, η_max = 0.906 and η* = 0.511. GD needs 76 steps at η = 0.1 and 7 at η* to bring ‖w − w*‖ below 10⁻⁶. Multiplying one feature by 1000 and shifting another by 100 gives κ = 1.0×10¹⁰ (scale alone 1.1×10⁶, offset alone 1.0×10⁸) and η_max = 9.7×10⁻⁷; 100,000 steps at 0.9η_max leave the training MSE at 4.28 against 0.0100 achievable. Standardised: κ = 1.22, converged in 6 steps."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-4",
+     "description": "Contour plot (elliptical level sets) of a 2-D quadratic with κ = 10, eigenvectors rotated 30° from the axes, minimum w* marked. Three GD paths from the same start: η = 0.5/λ_max (smooth, creeping along the valley), η = 1.8/λ_max (zig-zag across the valley), η = 2.1/λ_max (bouncing outward, diverging). Axes w₁, w₂ with equal aspect ratio; legend gives each η and its contraction factors."
+    },
+    {
+     "id": "fig-01-5",
+     "description": "The contraction factor |1 − ηλ| against ηλ from 0 to 2.5: a V with its minimum 0 at ηλ = 1, crossing the horizontal line at 1 when ηλ = 2; stable region shaded. Two vertical markers show the positions of ηλ_min and ηλ_max for one η, with the caption 'λ_max sets the largest stable step; λ_min sets the speed'."
+    }
+   ],
+   "widget": "gd-quadratic",
+   "checks": [
+    "With H = diag(2, 200), what is the largest stable learning rate, and which coordinate limits the speed? -> η < 2/200 = 0.01; the λ = 2 coordinate then shrinks by only 1 − 0.02 = 0.98 per step (κ = 100).",
+    "Why does standardising features not fix ill-conditioning caused by correlated features? -> It rescales axes, but correlation tilts and stretches the ellipse; the correlation matrix's eigenvalues 1 ± ρ stay apart.",
+    "Gradient descent on raw features 'does not learn'. Name the first two things to check. -> Centring and scaling (compute κ of XᵀX/N), then the learning rate against 2/λ_max."
+   ],
+   "from_source": "Source §3 gradient-descent paragraph (update rule, η < 2/λ_max with λ_max of (2/N)XᵀX, condition number, the mm-and-GPa remark), the GD loop of the source code, §8 'Standardise' paragraph (training statistics only; condition number near 1).",
+   "new_material": "Full derivation of the error recursion, stability bound and rate; the optimal fixed step and the iteration-count formula; the effects of centring and correlation on κ; the units example with its numbers stated; the closed-form-versus-iteration rule of thumb; the interactive widget."
+  },
+  {
+   "id": "s4",
+   "title": "Stochastic and mini-batch gradient descent",
+   "minutes": 16,
+   "target_words": 1100,
+   "purpose": "Explain batch, stochastic and mini-batch gradient descent, derive the noise floor that a constant step leaves, and give a practical procedure for choosing the learning rate.",
+   "must_cover": [
+    "The mini-batch update θ ← θ − η(1/B)Σ_(i∈B)∇ℓ_i. With uniform sampling the mini-batch gradient is unbiased, E[g_B] = ∇L, and its covariance is Σ_g/B (derive from independence for sampling with replacement; without replacement it is slightly smaller).",
+    "An epoch is ⌈N/B⌉ updates rather than one, which is why SGD wins on large data; cost per update about Bd. Shuffle each epoch; fix seeds; typical B from 32 to a few thousand; language models use millions of tokens per batch (Module 08).",
+    "The noise floor, derived on a 1-D quadratic with curvature λ and gradient-noise variance s²: θ_(t+1) − θ* = (1 − ηλ)(θ_t − θ*) − ηξ_t with Var ξ = s²/B. The stationary variance V satisfies V = (1 − ηλ)²V + η²s²/B, so V = ηs²/(Bλ(2 − ηλ)) ≈ ηs²/(2Bλ). A constant step does not converge; it hovers, with an excess loss ½λV proportional to η/B.",
+    "Consequences: decay the step (Robbins–Monro conditions Σ_t η_t = ∞ and Σ_t η_t² < ∞, for example η_t = η₀/(1 + t/τ)) or enlarge the batch. Return to the gd-quadratic widget and raise its gradient-noise slider: the loss flattens at the predicted floor, and halving η halves it.",
+    "Choosing η in practice: when the curvature is known, start from 2/λ_max; otherwise run a short log-spaced sweep (for example 10⁻⁴ to 1 in factors of about 3), take the largest η whose loss falls smoothly, then decay. Read the loss curve: rising or NaN means too large; a straight but shallow line on a log plot means too small; a noisy plateau means decay. The learning-rate range test, momentum, Adam and schedules in depth are Module 02's.",
+    "Noise as a regulariser: small batches tend to find flatter minima that generalise better — an empirical observation with a partial theory (Keskar et al. 2017). State it with that hedge.",
+    "Non-convex models: gradient descent finds a local minimum or a saddle with no guarantee of the best; for large networks the minima found are usually good enough and the difficulty lies in conditioning, initialisation and the learning rate (Module 02)."
+   ],
+   "worked_examples": [
+    "Updates per epoch: N = 50,000, B = 64 gives ⌈781.25⌉ = 782 updates (the last batch holds 16 examples); 20 epochs are 15,640 updates; full-batch gradient descent makes 20.",
+    "The floor in numbers (λ = 1, s² = 1): B = 1, η = 0.1 gives V = 0.1/1.9 = 0.0526 and excess loss 0.0263; η = 0.01 gives V = 0.00503 (excess 0.00251); B = 10 at η = 0.1 gives V = 0.00526. A tenfold smaller step or a tenfold larger batch buys about a tenfold lower floor. (A 400,000-step simulation gives V = 0.0526.)",
+    "Lab 1's measurements, averaged over the second half of 50 epochs, against the prediction Σ_i ηs²λ_i/(B(2 − ηλ_i)) with s² = 0.0100: B = 32, η = 0.1: 1.0×10⁻⁴ measured, 1.4×10⁻⁴ predicted; B = 10: 3.1×10⁻⁴ vs 4.4×10⁻⁴; B = 1, η = 0.01: 2.7×10⁻⁴ vs 4.0×10⁻⁴; B = 1, η = 0.1: 9.6×10⁻³ vs 4.4×10⁻³ (the additive-noise model ignores noise that grows with distance from the optimum); with η_t = 0.1/(1 + t/200) the final excess is 3×10⁻⁶."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-6",
+     "description": "Excess training loss (log y-axis) against number of updates (log x-axis) for Lab 1's regression: full-batch GD (smooth, slow per epoch), B = 32 at η = 0.1 (fast, then flat at about 10⁻⁴), B = 1 at η = 0.1 (noisy, flat near 10⁻²), and B = 1 with η_t = 0.1/(1 + t/200) (keeps falling below the constant-step floor). Dashed horizontal lines at each predicted floor. Generated by Lab 1."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Doubling the batch at a fixed step: what happens to the gradient-noise variance and to the floor? -> Both halve, at twice the cost per update.",
+    "Why must the step decay for SGD to converge when full-batch GD converges with a fixed step? -> The gradient noise does not vanish at the minimum; with a fixed η the iterate keeps a stationary variance proportional to η/B."
+   ],
+   "from_source": "Source §5 in full: the mini-batch update, unbiased but noisy, epochs and why SGD wins on large data, the need for a shrinking schedule, small batches and flat minima, B from 32 to thousands and LLM batch sizes, the non-convex paragraph and the pointer to Module 02.",
+   "new_material": "Derivations of unbiasedness, the 1/B variance and the stationary noise floor; Robbins–Monro conditions; a practical learning-rate procedure and loss-curve diagnosis; measured floors from Lab 1 against the prediction; the widget's noise slider."
+  },
+  {
+   "id": "s5",
+   "title": "Where losses come from: maximum likelihood",
+   "minutes": 19,
+   "target_words": 1300,
+   "purpose": "Show, starting from a short probability refresher, that a loss is a negative log-likelihood under a noise model, so that choosing a loss becomes choosing an assumption about the noise.",
+   "must_cover": [
+    "Probability refresher, where it is first needed (about 350 words, not an appendix): random variable; probability mass versus density (a density can exceed 1; only its integral is 1); Gaussian N(y; μ, σ²) = (2πσ²)^(−1/2) exp(−(y − μ)²/(2σ²)); Laplace (2b)⁻¹ exp(−|y − μ|/b) with variance 2b²; Bernoulli p^y(1 − p)^(1−y); categorical Π_k p_k^[y=k]; expectation and variance with E[aX + b] = aE[X] + b and Var(aX + b) = a²Var(X) (used in Sections 8 and 12).",
+    "Independence and the i.i.d. assumption: the joint probability of independent examples is a product. Say what breaks it in engineering data — repeated measurements of one part, consecutive readings of one sensor — and point to group and time leakage in Section 10.",
+    "Likelihood L(θ) = p(D; θ) is a function of θ for fixed data, not a distribution over θ. Take logs because the logarithm is monotone (same maximiser) and because products underflow: 1,000 probabilities of 0.1 multiply to 10⁻¹⁰⁰⁰, which is 0.0 in double precision (smallest normal number about 10⁻³⁰⁸), while the log-likelihood −2302.6 is harmless.",
+    "Gaussian noise gives squared error, derived in full: y = f_θ(x) + ε, ε ~ N(0, σ²); log p(D; θ) = −N ln(√(2π)σ) − (1/(2σ²))Σ_i (y_i − f_θ(x_i))². σ does not move the maximiser over θ. Differentiating with respect to σ² gives the MLE σ̂² = (1/N)Σ r_i², which is biased: for a linear model with p parameters E[RSS] = (N − p)σ², so the unbiased estimate divides by N − p (state; cite Bishop or ESL for the proof).",
+    "Laplace noise gives absolute error, and the best constant under absolute error is the median (the derivative of |r| is sign(r): equal numbers of residuals above and below); hence robustness to outliers. Huber's loss, quadratic near zero and linear beyond, is the usual compromise (Module 02).",
+    "Different noise per point (heteroscedastic Gaussian, σ_i known) gives weighted least squares with weights w_i = 1/σ_i², derived in two lines. This is the likelihood of Section 12's material fit.",
+    "The general recipe as a table: noise model → loss → best constant prediction. Gaussian → squared error → mean; Laplace → absolute error → median; Bernoulli → binary cross-entropy → class frequency; categorical → cross-entropy → class frequencies. Choosing a loss is choosing what you believe about the noise.",
+    "Cross-entropy and KL in one paragraph: the average negative log-likelihood is the cross-entropy H(p_data, p_θ) = H(p_data) + KL(p_data ‖ p_θ), so maximum likelihood moves the model distribution toward the data distribution. Module 07's perplexity is exp of the per-token cross-entropy.",
+    "One-sentence preview: adding a prior over θ turns maximum likelihood into MAP estimation and produces the regularisers of Section 9."
+   ],
+   "worked_examples": [
+    "Three residuals r = (0.1, −0.2, 0.3) under σ = 0.2: log-likelihood = −3 ln(√(2π)·0.2) − (0.01 + 0.04 + 0.09)/(2·0.04) = 2.0715 − 1.75 = 0.3215, positive because the densities exceed 1 (the peak density is 1.995). The MLE σ̂² = 0.14/3 = 0.0467 (σ̂ = 0.216) raises it to 0.3403.",
+    "A sensor glitch: y = (1.0, 1.2, 0.9, 1.1, 5.0). The squared-error constant is the mean, 1.84, dragged by one point; the absolute-error constant is the median, 1.1.",
+    "Cost of an outlier at r = 5 with unit variance: Gaussian negative log-likelihood r²/(2σ²) = 12.5; Laplace with b = 1/√2 (same variance) |r|/b = 7.07. The quadratic penalty is why one bad point can move a least-squares fit."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-7",
+     "description": "Top panel: Gaussian (σ = 1) and Laplace (b = 1/√2, same variance) densities overlaid on r ∈ [−5, 5]; the Laplace is more peaked with heavier tails. Bottom panel: their negative logs, a parabola and a V, with the outlier at r = 5 marked at 12.5 and 7.07."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "A density value of 2.0 comes out of your code. Is something wrong? -> No; densities are not probabilities and exceed 1 when the spread is small; only the integral must equal 1.",
+    "Why does the maximum-likelihood θ under Gaussian noise not depend on σ? -> σ multiplies the sum of squares by a positive constant and adds a θ-independent term, so the minimiser does not move.",
+    "Which loss would you choose if a few readings in every test are glitches of unknown size? -> An absolute-error or Huber loss (heavy-tailed noise model), or explicit outlier handling; squared error lets one glitch move the fit."
+   ],
+   "from_source": "Source §4 first part: the Gaussian likelihood, the log-likelihood sum, 'maximising the likelihood is minimising squared error', Laplacian noise and absolute error, 'a loss is a negative log-likelihood under a noise model'; §10's weighted-least-squares likelihood.",
+   "new_material": "The probability refresher placed where it is first needed; likelihood versus probability; underflow; the MLE of σ² and its bias; the median as the Laplace MLE; the heteroscedastic derivation; the noise-model table; cross-entropy as KL and the link to perplexity."
+  },
+  {
+   "id": "s6",
+   "title": "Logistic and softmax regression",
+   "minutes": 20,
+   "target_words": 1350,
+   "purpose": "Build the linear classifier from the Bernoulli and categorical likelihoods, derive its gradients and convexity, and read its decision boundary — including how it fails on separable data.",
+   "must_cover": [
+    "Model p(y = 1 | x) = σ(wᵀx) with σ(z) = 1/(1 + e^(−z)); properties σ(−z) = 1 − σ(z) and σ′(z) = σ(z)(1 − σ(z)); the logit z = ln(p/(1 − p)) is the log-odds, so logistic regression is linear in the log-odds and a unit change in feature j multiplies the odds by e^(w_j).",
+    "Binary cross-entropy as the Bernoulli negative log-likelihood, ℓ = −[y ln p̂ + (1 − y) ln(1 − p̂)]; derive dℓ/dz = p̂ − y with the chain rule written out; data gradient ∇L = (1/N)Xᵀ(p̂ − y), the same shape as least squares with p̂ in place of ŷ.",
+    "Hessian (1/N)XᵀSX with S = diag(p̂_i(1 − p̂_i)), positive semidefinite, so the loss is convex; there is no closed form, so use gradient descent or Newton's method (iteratively reweighted least squares); scikit-learn's default solver is L-BFGS. Since S ≤ ¼, λ_max(H) ≤ λ_max(XᵀX/N)/4, which gives the sufficient step bound η < 8/λ_max(XᵀX/N). It is not necessary, because the curvature is far below its worst case wherever p̂ is far from ½: Lab 2 computes the bound 0.59, and in its extension the loss still falls at η = 5.",
+    "Why not squared error: with ½(p̂ − y)² the gradient with respect to z is (p̂ − y)p̂(1 − p̂), which vanishes exactly when the model is confidently wrong; squared error through a sigmoid is also non-convex. A confidently wrong model must be able to learn fast.",
+    "Stable computation: ℓ = softplus(z) − yz with softplus(z) = max(z, 0) + ln(1 + e^(−|z|)) (np.logaddexp(0, z)); never take ln σ(z) naively. Module 02 generalises this as log-sum-exp.",
+    "Decision boundary: predict 1 when p̂ ≥ t; at t = 0.5 that is wᵀx + b ≥ 0, a hyperplane with normal w; the signed distance of x from it is (wᵀx + b)/‖w‖, and ‖w‖ sets how fast the probability changes with distance. A threshold t shifts the boundary in parallel to wᵀx + b = ln(t/(1 − t)). Curved boundaries come from features (x₁², x₂², x₁x₂ give ellipses; Module 02's circle data needs them or a network).",
+    "Separable data: if a hyperplane separates the classes, scaling w up lowers every example's loss, the infimum is approached only as ‖w‖ → ∞ and the MLE does not exist; probabilities saturate at 0 and 1. Regularisation (Section 9) or early stopping is required — scikit-learn's default C = 1.0 is an L2 penalty, and Lab 2 shows the weights growing without it.",
+    "Softmax regression: logits z = Wx; p̂_k = e^(z_k)/Σ_j e^(z_j); loss −ln p̂_y = −z_y + ln Σ_j e^(z_j); derive ∂ℓ/∂z_k = p̂_k − [k = y] in two cases; matrix form ∇_W L = (1/N)(P̂ − Y)ᵀX. Adding a constant to all logits changes nothing, so one class's weights can be fixed at zero, and with K = 2 softmax reduces to σ(z₁ − z₀) (show). Decision regions meet where two logits tie, (w_j − w_k)ᵀx + (b_j − b_k) = 0: piecewise-linear boundaries.",
+    "The same output layer serves every classifier in the series: a language model is a K-way softmax classifier over its vocabulary (tens to hundreds of thousands of entries) at every position (Module 07)."
+   ],
+   "worked_examples": [
+    "One example, one step: w = (2, −1), b = 0.5, x = (1, 1), y = 0. z = 1.5, p̂ = σ(1.5) = 0.8176, loss −ln(0.1824) = 1.7014. Gradient with respect to z is 0.8176, so ∇w = (0.8176, 0.8176) and ∇b = 0.8176. One step with η = 0.5 gives w = (1.5912, −1.4088), b = 0.0912, new z = 0.2736, p̂ = 0.5680, loss 0.8393. The point's distance from the boundary was 1.5/√5 = 0.671.",
+    "Threshold shift: requiring p̂ ≥ 0.9 means z ≥ ln 9 = 2.197, a parallel boundary further into the positive side.",
+    "Softmax: z = (2.0, 1.0, 0.1), true class 0. p̂ = (0.6590, 0.2424, 0.0986), loss 0.4170, gradient (−0.3410, 0.2424, 0.0986), which sums to zero.",
+    "Stable loss at extreme logits: for z = 40, y = 1 the loss is 0.0 to machine precision; for z = −40, y = 1 it is 40.0 — computed without overflow by logaddexp."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-8",
+     "description": "Left: σ(z) for z ∈ [−6, 6] with its derivative σ(1 − σ) (peak 0.25 at z = 0). Right: per-example losses against z for y = 0 — binary cross-entropy softplus(z), asymptotically linear with slope 1, and ½σ(z)², which saturates at 0.5 with slope tending to zero; the region z > 4 shaded and labelled 'confidently wrong'."
+    },
+    {
+     "id": "fig-01-9",
+     "description": "Left: logistic regression on two Gaussian blobs in 2-D, with the decision line wᵀx + b = 0, parallel probability contours at 0.1, 0.5 and 0.9, and the weight vector w drawn perpendicular to the line. Right: softmax regression on three blobs, three coloured regions with piecewise-linear boundaries meeting at one point."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Show that softmax with two classes is the sigmoid of z₁ − z₀. -> p₁ = e^(z₁)/(e^(z₀) + e^(z₁)) = 1/(1 + e^(−(z₁ − z₀))).",
+    "On linearly separable data the weights of unregularised logistic regression keep growing. Why? -> Every positive scaling of a separating w lowers every example's loss, so the loss is minimised only in the limit ‖w‖ → ∞; the MLE does not exist."
+   ],
+   "from_source": "Source §4 classification part: the logistic model, binary cross-entropy as the Bernoulli negative log-likelihood, softmax and logits, cross-entropy with the true label, 'the output layer of every classifier in the series, language models included', and the 'why not squared error' argument with its gradients.",
+   "new_material": "Log-odds interpretation; full gradient derivations for the binary and softmax cases; Hessian, convexity and a step bound; numerically stable computation; decision-boundary geometry and thresholds; the separable-data failure; shift invariance and K = 2; a worked gradient step with numbers."
+  },
+  {
+   "id": "s7",
+   "title": "Measuring a model: metrics, thresholds and calibration",
+   "minutes": 21,
+   "target_words": 1450,
+   "purpose": "Choose the metric the decision depends on, read the confusion matrix, ROC and precision–recall curves and calibration, and set a threshold from costs rather than by default.",
+   "must_cover": [
+    "The metric should be the quantity the decision depends on, not the loss (source). Every reported number carries its baseline: an RMSE of 0.3 mm means nothing until you know that predicting the mean gives 1.1 mm and the closed-form solver gives 0.05 mm (source example, kept).",
+    "Regression metrics with formulas: RMSE (units of y), MAE (robust to outliers), R² = 1 − SS_res/SS_tot (from Section 2's Pythagoras; the fraction of variance explained relative to predicting the mean; negative on held-out data for a model worse than the mean). Avoid percentage errors when y can be near zero.",
+    "The confusion matrix and the rates read from it: accuracy, precision TP/(TP + FP), recall (sensitivity, TPR) TP/(TP + FN), specificity TN/(TN + FP), FPR = 1 − specificity, F1 the harmonic mean of precision and recall (why harmonic: it is low when either is low). State the confusion matrix whenever you state a rate.",
+    "Accuracy under imbalance: 99% accuracy at a 1% positive rate is the trivial classifier (source).",
+    "The base rate, derived from Bayes' rule: precision = TPR·π/(TPR·π + FPR·(1 − π)) for prevalence π. A good detector on a rare event floods its users with false alarms.",
+    "ROC curve (TPR against FPR as the threshold sweeps) and AUC; AUC is the probability that a randomly chosen positive is scored above a randomly chosen negative (Mann–Whitney), so it can be computed by counting pairs. AUC is insensitive to prevalence: good for ranking quality, misleading when positives are rare. The precision–recall curve and average precision (baseline = prevalence) show what the user will experience when positives are rare.",
+    "Choosing the threshold for a decision: with calibrated probabilities and costs C_FP and C_FN, predicting positive is cheaper when p·C_FN > (1 − p)·C_FP, i.e. above t* = C_FP/(C_FP + C_FN) (derive in two lines). Or impose a constraint, for example recall ≥ 0.99 at the lowest false-positive rate. Source: cross-entropy minimised, but the decision needed recall at a fixed false-positive rate.",
+    "Calibration, defined here for the whole series: a model is calibrated when P(y = 1 | p̂ = p) = p. Reliability diagram; expected calibration error over equal-width bins of p̂, ECE = Σ_b (n_b/N)|freq_b − conf_b|, with conf_b the mean predicted probability and freq_b the fraction of positives in bin b. For K classes, or for a model's answers, the usual form bins the confidence of the predicted class (its largest probability) and compares it with the accuracy in the bin, ECE = Σ_b (n_b/N)|acc_b − conf_b| (the top-label form of Guo et al. 2017; Modules 02, 07 and 09 use it and link here). State the binning (10 or 15 bins is usual, 5 for a test set of about a hundred): ECE changes with it, and it is biased upward on small samples because even a calibrated model's bin frequencies scatter. ECE measures calibration, not discrimination: predicting the base rate for every case is calibrated and useless, so report ECE with the Brier score (1/N)Σ(p̂ − y)², a proper scoring rule, and with the AUC. Models trained long with cross-entropy are usually overconfident (source); recalibrate on held-out data with Platt scaling or isotonic regression (temperature scaling for networks: Module 02 and Module 07)."
+   ],
+   "worked_examples": [
+    "Weld inspection: 1,000 welds, 50 defective; the model flags 60, of which 40 are defective. TP = 40, FP = 20, FN = 10, TN = 930. Accuracy 0.970, precision 0.667, recall 0.800, F1 0.727, specificity 0.979, FPR 0.021. The trivial 'never defective' rule scores accuracy 0.950 with recall 0.",
+    "Base rate: TPR 0.95, FPR 0.05, prevalence 1% gives precision 0.0095/(0.0095 + 0.0495) = 0.161 — five of six alarms are false. At prevalence 0.1% with TPR 0.9 and FPR 0.01, precision is 0.083.",
+    "AUC by counting: positives scored 0.8 and 0.6, negatives 0.7 and 0.2; of the four positive–negative pairs, three are ordered correctly (0.6 < 0.7 is the miss), so AUC = 0.75.",
+    "Cost-based threshold: if a missed defect costs twenty false alarms (C_FN = 20·C_FP), t* = 1/21 = 0.048.",
+    "ECE with three bins: 50 predictions with mean confidence 0.20 and observed frequency 0.10; 30 with 0.50 and 0.50; 20 with 0.90 and 0.70. ECE = (50·0.10 + 30·0 + 20·0.20)/100 = 0.09.",
+    "Lab 2's breast-cancer test set (143 cases, 53 malignant): at threshold 0.5, TN 90, FP 0, FN 2, TP 51; accuracy 0.986 against a majority baseline of 0.629; AUC 0.996, average precision 0.994; recall 1.0 needs threshold 0.116 and costs precision (0.828).",
+    "Calibrated and useless (Lab 2's test set): predicting the training prevalence 159/426 = 0.373 for every one of the 143 cases puts them all in one bin whose frequency is 53/143 = 0.371, so ECE = 0.003, lower than the fitted model's 0.023, while the AUC is 0.500 and the Brier score 0.233 against the model's 0.023."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-10",
+     "description": "The weld confusion matrix as a 2×2 grid (rows: actual defective / good; columns: flagged / not flagged) with counts TP 40, FN 10, FP 20, TN 930; brackets show precision reading down the 'flagged' column and recall reading across the 'defective' row."
+    },
+    {
+     "id": "fig-01-11",
+     "description": "Side by side for Lab 2's logistic regression on the test set: the ROC curve with the chance diagonal and AUC 0.996 in the legend, and the precision–recall curve with a horizontal baseline at the prevalence 0.371; the operating point for threshold 0.5 marked on both, plus the point for threshold 0.116 (recall 1.0)."
+    },
+    {
+     "id": "fig-01-12",
+     "description": "Reliability diagram: mean predicted probability per bin (x) against observed frequency (y), with the diagonal for perfect calibration; bars for an overconfident model fall below the diagonal at high confidence; an inset histogram shows how many predictions fall in each bin; ECE printed in the title. Use Lab 2's predictions with 5 bins and note the small test set."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "A model has AUC 0.95 and positives are 0.1% of the data. Will its precision be high at 90% recall? -> Not necessarily: at a false-positive rate of even 1%, false alarms outnumber true ones about eleven to one; look at the precision–recall curve.",
+    "Why is F1 a harmonic rather than an arithmetic mean? -> The harmonic mean is dominated by the smaller value, so a classifier cannot score well by maximising one of precision or recall at the expense of the other."
+   ],
+   "from_source": "Source §7: 'the metric should be the quantity the decision depends on'; RMSE, MAE, R² (can be negative, meaningless without its baseline); accuracy under imbalance; precision, recall, F1, ROC and AUC, the confusion matrix; calibration with reliability diagrams and ECE; overconfidence after long training; 'every reported number carries its baseline' with the 0.3 / 1.1 / 0.05 mm example. Also §11 'the loss is not the objective'.",
+   "new_material": "Specificity and FPR; the base-rate derivation with numbers; AUC as a pairwise probability with a counting example; precision–recall curves and average precision; the cost-based threshold; binary and top-label ECE with a numeric example, the effect of binning and the calibrated-but-useless constant predictor; the Brier score; recalibration methods; Lab 2's numbers."
+  },
+  {
+   "id": "s8",
+   "title": "Generalisation: capacity, bias–variance and cross-validation",
+   "minutes": 22,
+   "target_words": 1450,
+   "purpose": "Make overfitting measurable: the three-way split, the capacity curve, the bias–variance decomposition derived, learning curves, k-fold cross-validation and an honest account of double descent.",
+   "must_cover": [
+    "Split before doing anything else (source): training set (what the optimiser sees), validation set (to choose between models and settings), test set (touched once at the end; every look that changes something turns it into a validation set). The test-set discipline is developed in Section 10.",
+    "The capacity experiment, set up exactly as in Lab 3: y = sin(2πx) + ε, ε ~ N(0, 0.3²), N = 20 training points on an evenly spaced grid x_i = i/19, polynomials of degree 0 to 15 fitted by least squares in a Legendre basis. Training RMSE never increases with degree; validation RMSE falls and then rises: underfitting on the left, overfitting on the right. Capacity knobs elsewhere: number of parameters, tree depth, 1/k in k-NN, 1/λ in ridge.",
+    "The bias–variance decomposition derived step by step at a fixed input x: y = f*(x) + ε with E[ε] = 0, Var ε = σ², ε independent of the training set D; write f̂ = f̂_D(x) and f̄ = E_D[f̂]; expand (f̂ − y)² = ((f̂ − f̄) + (f̄ − f*) − ε)²; the cross terms vanish because E_D[f̂ − f̄] = 0 and ε has mean zero and is independent of D; result E[(f̂ − y)²] = (f̄ − f*)² + E[(f̂ − f̄)²] + σ². Average over x for the expected test error.",
+    "Reading it: bias is what the family cannot represent, variance is how much the fit changes with the sample, noise is irreducible. Simple models have high bias and low variance, flexible ones the reverse. The decomposition is exact for squared error; for 0–1 loss there is no clean additive version, only a useful picture.",
+    "Learning curves: training and validation error against N for a fixed model. Both approach bias² + σ² from opposite sides. A large persistent gap means variance (more data helps); both high and close together means bias (more data does not help; more capacity or better features do). The best degree moves right as N grows (source exercise 2).",
+    "k-fold cross-validation (source): split into k folds, train on k − 1, validate on the remaining one, rotate, average. Choices: k = 5 or 10; stratify classes; leave-one-out for tiny data. The mean comes with a standard error sd/√k, which is approximate and optimistic because folds share training data; it is still the only honest way to say that one setting beats another by less than the noise.",
+    "Double descent, honestly: when models are fitted to interpolation and the fitting rule picks the minimum-norm solution, test error can peak where the number of parameters reaches the number of training points (the interpolation threshold) and fall again beyond it (Belkin et al. 2019; Nakkiran et al. 2020 for deep networks). It does not contradict the decomposition, which is an identity; it changes how variance behaves with size when the fitting procedure prefers small-norm solutions. Practical consequence: do not assume a single U; measure on validation data. The guided reading of this session is the Belkin paper."
+   ],
+   "worked_examples": [
+    "One training set (Lab 3, seed 0), train/validation RMSE: degree 0 0.850/0.769; 1 0.655/0.536; 3 0.217/0.354; 4 0.217/0.354; 5 0.183/0.360; 9 0.173/0.365; 12 0.141/0.393; 15 0.112/0.720. Best validation degree 3 or 4 (they tie: sin(2πx) is odd about x = ½, so adding an even-degree term buys almost nothing — bias² falls in pairs).",
+    "Exact decomposition for this fixed design (smoother-matrix formulas; a 200-draw Monte Carlo in Lab 3 agrees): degree 0: bias² 0.4975, variance 0.0045, total 0.5920; degree 1: 0.2051, 0.0086, 0.3037; degree 3: 0.0052, 0.0161, 0.1113 (the minimum); degree 5: 0.0000, 0.0236, 0.1136; degree 9: 0.0000, 0.0422, 0.1322; degree 12: 0.0000, 0.0754, 0.1654; degree 15: 0.0000, 0.8737, 0.9637 (total includes σ² = 0.09).",
+    "Ten times more data (N = 200): degree 3 total 0.0964 (bias² 0.0046, variance 0.0018), degree 5 0.0927 (the new minimum), degree 15 0.0972. Variance fell tenfold, so flexible models stop being punished and the curve flattens.",
+    "A biased estimator can win (preview of Section 9 and exercise e7): estimate a mean μ = 1 from n = 4 readings with σ = 2. The sample mean has bias 0 and variance σ²/n = 1, MSE 1.0; half the sample mean has bias² 0.25 and variance 0.25, MSE 0.5."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-13",
+     "description": "Left: three panels of polynomial fits of degree 1, 3 and 15 to the same 20 noisy samples of sin(2πx), true function dashed, showing underfit, good fit and a wiggly overfit that passes near every point and swings at the ends. Right: training and validation RMSE against degree 0–15 (log y), training monotonically decreasing, validation U-shaped with its minimum at degree 3–4; horizontal dashed line at σ = 0.3; underfitting and overfitting regions shaded."
+    },
+    {
+     "id": "fig-01-14",
+     "description": "Bias², variance, noise σ² and their sum against degree 0–15 (log y) for N = 20 and σ = 0.3, from the exact formulas: bias² falling in steps (pairs of degrees), variance rising slowly then sharply after degree 12, the sum U-shaped with its minimum marked at degree 3."
+    },
+    {
+     "id": "fig-01-15",
+     "description": "Learning curves: expected training and validation MSE against N from 10 to 1000 (log x) for degree 3 and degree 9; both pairs converge toward σ² + bias²; degree 9 has the larger gap at small N and the lower asymptote."
+    },
+    {
+     "id": "fig-01-16",
+     "description": "Schematic double-descent curve: test error against the number of parameters p, the classical U on the left, a peak at the interpolation threshold p = N, and a second descent to the right; regions labelled 'classical regime' and 'interpolating regime'; a note that the right side assumes a minimum-norm fit."
+    },
+    {
+     "id": "fig-01-17",
+     "description": "Five-fold cross-validation as a grid: five rows (rounds), each a bar of five blocks with a different block shaded as validation; a separate test block at the right drawn outside the loop with a padlock symbol."
+    }
+   ],
+   "widget": "polynomial-capacity",
+   "checks": [
+    "A degree-15 polynomial fitted to 16 points has zero training error. What will its validation error be like, and why? -> Large: it interpolates the noise, and variance dominates.",
+    "Your learning curves sit together at a validation MSE of 0.20 with σ² = 0.05 and stay flat as N grows. What do you do? -> High bias: more data will not help; add capacity or better features.",
+    "Why is the cross-validation standard error sd/√k optimistic? -> The k fold estimates are positively correlated because their training sets overlap, so their mean varies more than sd/√k suggests."
+   ],
+   "from_source": "Source §6: the three-way split and the test-set rule, the capacity curve and the definitions of over- and underfitting, the bias–variance formula and its interpretation, the double-descent remark, cross-validation; §12 exercise 2 (polynomials of degree 1–15 on sin(2πx), then ten times more data).",
+   "new_material": "The decomposition derived line by line; exact and Monte Carlo values of each term; the pairing of degrees explained; learning curves; the standard-error caveat for cross-validation; double descent with its minimum-norm condition and a guided reading; the interactive widget."
+  },
+  {
+   "id": "s9",
+   "title": "Regularisation as prior knowledge: ridge, lasso and MAP",
+   "minutes": 19,
+   "target_words": 1300,
+   "purpose": "Trade variance for bias on purpose, and show that ridge and lasso are maximum a posteriori estimates under Gaussian and Laplace priors, with their shrinkage written out.",
+   "must_cover": [
+    "Bayes' rule p(θ | D) ∝ p(D | θ)p(θ); MAP maximises log p(D | θ) + log p(θ); the prior is the regulariser.",
+    "Ridge as MAP, constants kept: Gaussian noise σ² and prior w ~ N(0, τ²I) give the negative log-posterior (1/(2σ²))‖Xw − y‖² + (1/(2τ²))‖w‖² + const; multiplying by 2σ²/N gives (1/N)‖Xw − y‖² + λ‖w‖² with λ = σ²/(Nτ²). More data shrinks the effective penalty; a tighter prior enlarges it.",
+    "Ridge closed form: (2/N)Xᵀ(Xw − y) + 2λw = 0 gives (XᵀX + λNI)w = Xᵀy (source). The eigenvalues of XᵀX + λNI are μ_i + λN ≥ λN > 0, so the system is always solvable, even with more columns than rows.",
+    "SVD view: with X = UΣVᵀ and singular values s_i, the ridge fit is ŷ = Σ_i u_i [s_i²/(s_i² + λN)] u_iᵀy. Each direction is shrunk by its own factor; directions the data barely constrain (small s_i) are pulled to zero instead of being set by noise (source). Effective degrees of freedom df(λ) = Σ_i s_i²/(s_i² + λN) fall from d + 1 to 0. Use s_i² rather than λ_i here to avoid a clash with the regularisation λ.",
+    "Weight decay: the gradient step on the ridge loss is w ← (1 − 2ηλ)w − η∇L, which is why the penalty is called weight decay (source); AdamW's decoupled version is in Module 02.",
+    "Lasso as MAP under a Laplace prior p(w_j) ∝ exp(−|w_j|/b): penalty λ‖w‖₁; it drives coefficients exactly to zero and so selects features (source). Geometry: the L1 ball has corners on the axes, which the elliptical loss contours tend to touch first. Orthonormal design (XᵀX = NI) solved exactly: with ŵ the least-squares solution, ridge gives w_j = ŵ_j/(1 + λ) and lasso gives soft-thresholding w_j = sign(ŵ_j)·max(|ŵ_j| − λ/2, 0) (derive per coordinate). Ridge scales; lasso subtracts and clips. In general the lasso has no closed form (coordinate descent); the elastic net mixes L1 and L2 for correlated features.",
+    "Practice: standardise before penalising (the penalty is not scale-invariant: a coefficient's size depends on its feature's units); do not penalise the intercept (centre y or exclude b); choose λ on a log grid by validation or cross-validation (source); the one-standard-error rule picks the largest λ whose CV error is within one standard error of the best (Hastie et al.).",
+    "Library conventions, so readers can map this λ to code: scikit-learn Ridge minimises ‖y − Xw‖² + α‖w‖², so α = λN; Lasso minimises (1/(2N))‖y − Xw‖² + α‖w‖₁, so α = λ/2; LogisticRegression minimises ½‖w‖² + C·Σ loss_i, so C = 1/(2Nλ).",
+    "Other regularisers (source): early stopping (gradient descent from zero applies filter factors 1 − (1 − ηh_i)^t to the eigendirections, behaving roughly like ridge with λ shrinking as ηt grows); data augmentation; dropout and noise injection (Module 02)."
+   ],
+   "worked_examples": [
+    "Shrinkage factors: XᵀX with eigenvalues 100 and 0.01, λN = 1. Factors 100/101 = 0.990 and 0.01/1.01 = 0.0099: the well-determined direction is untouched, the poorly determined one nearly removed. The condition number of the system falls from 10⁴ to 101/1.01 = 100.",
+    "Ridge against lasso, orthonormal design, ŵ = (3.0, 0.4, −1.2), λ = 1: ridge (1.5, 0.2, −0.6); lasso (2.5, 0.0, −0.7). The small coefficient is removed, the large ones are shifted by 0.5.",
+    "MAP λ: σ = 0.3, τ = 1. N = 20 gives λ = 0.09/20 = 0.0045; N = 200 gives 0.00045.",
+    "Lab 3's ridge path at degree 15 (Legendre basis, constant term unpenalised): λ → 0 gives train/validation RMSE 0.112/0.720; λ = 0.032 gives 0.182/0.335; λ = 10 gives 0.832/0.751. Five-fold CV on the 20 training points picks λ = 0.032, whose test RMSE 0.324 beats the best unregularised degree (degree 3, 0.348) and unregularised degree 15 (0.684). Read as a prior, λ = 0.032 corresponds to τ = σ/√(Nλ) ≈ 0.38 on each Legendre coefficient."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-18",
+     "description": "Two panels in the (w₁, w₂) plane with elliptical least-squares contours centred at the unconstrained solution: left, a disc (L2 ball) touched by a contour at a point with both coordinates non-zero; right, a diamond (L1 ball) touched at its corner on the w₁ axis, so w₂ = 0."
+    },
+    {
+     "id": "fig-01-19",
+     "description": "Coefficient paths on the standardised load_diabetes data (10 features): ridge coefficients shrinking smoothly toward zero as log₁₀λ increases; lasso coefficients reaching zero one at a time; a vertical line at the CV-chosen λ in each panel. x-axis log₁₀λ in this module's convention; caption gives the scikit-learn α mapping."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Doubling N with the prior and noise fixed: what happens to the MAP λ? -> It halves (λ = σ²/(Nτ²)); the data outweigh the prior.",
+    "Why standardise features before ridge or lasso? -> The penalty treats all coefficients alike, but a coefficient's size depends on its feature's units, so without scaling the penalty is arbitrary across features.",
+    "Lasso sets a coefficient exactly to zero; ridge never does. Why, in one sentence? -> The L1 penalty's derivative does not vanish at zero, so small coefficients are clipped; the L2 penalty's derivative 2λw does, so they are only scaled."
+   ],
+   "from_source": "Source §6 regularisation paragraphs: the penalised loss, ridge closed form (XᵀX + λNI)⁻¹Xᵀy, the eigenvalue shift, directions barely constrained shrunk toward zero, weight decay as subtracting 2ηλθ, the lasso selecting features, λ chosen on validation, early stopping and augmentation, dropout pointer; §12 exercise 1.",
+   "new_material": "MAP derivations with λ = σ²/(Nτ²); SVD shrinkage factors and effective degrees of freedom; the soft-thresholding derivation; library parameter conventions; the one-standard-error rule; early stopping as approximate ridge; the CV-chosen λ read as a prior."
+  },
+  {
+   "id": "s10",
+   "title": "Evaluating honestly: leakage, selection and intervals",
+   "minutes": 21,
+   "target_words": 1500,
+   "purpose": "Estimate how a model will do on new data without fooling yourself: the forms leakage takes, the optimism of selection and its remedy, distribution shift, an uncertainty on every reported number, and paired methods when two models are compared. This section is the series' reference for standard errors, the bootstrap and McNemar's test.",
+   "must_cover": [
+    "How noisy a test number is: the standard error of an accuracy (any proportion) is √(p(1 − p)/n), and the 95% interval is about ±1.96 standard errors, a normal approximation that fails when fewer than about ten errors or ten successes are observed (use the bootstrap or an exact binomial interval there). Size the test set for the interval you need, not by a fixed percentage: a half-width h needs n ≈ 1.96²p(1 − p)/h².",
+    "Test-set reuse (source): looking at the test number and changing the model, repeatedly. The remedy is procedural: open the test set once and report the number with the date.",
+    "Selection bias: choosing the best of many configurations on a validation set makes the winner's score optimistic, because the maximum of noisy estimates is biased upward. Nested cross-validation: an inner loop selects, an outer loop scores the whole selection procedure; cost k_outer × k_inner × configurations fits.",
+    "Leakage, with an example and a fix for each: (1) preprocessing fitted on all data — scaling, imputation, feature selection, target encoding; fit them inside each fold with a Pipeline (the selection case is the dramatic one; scaling is usually mild); (2) duplicates and near-duplicates across the split; (3) groups — repeated measurements of one part, specimen, patient or machine split by row; split by group (GroupKFold); (4) time — a shuffled time series lets the model train on the future; use forward-chaining splits with a gap (TimeSeriesSplit); (5) target leakage — a feature recorded after the label was known; (6) test-set reuse. The rule (source): split by the unit that will be new at deployment — a new part, a new patient, a new day — never by row.",
+    "Distribution shift (source): the test set is drawn from the same P as training and deployment is not. Name covariate shift (inputs change), label shift (class proportions change) and concept drift (the input–output relation changes). Evaluate on data from the conditions the model will meet, even if there is less of it; monitor inputs and outputs in production.",
+    "Bootstrap confidence intervals: resample the test set with replacement R = 2,000 times, recompute the metric, take the 2.5th and 97.5th percentiles. Paired bootstrap for comparing two models on the same test set: resample indices once per replicate for both models and take the interval of the difference — far narrower than the overlap of two separate intervals suggests, because the models' errors are correlated. Resample groups, not rows, when the data are grouped (cluster bootstrap). Two caveats: the bootstrap over the test set measures test-sampling noise, not the variability from retraining; and when a difference rests on a handful of cases where the models disagree, the percentile interval is too narrow, because no replicate can contain a disagreement that never occurred. Use McNemar's exact test then.",
+    "McNemar's test, for two classifiers scored on the same n test cases (McNemar 1947; recommended for comparing classifiers by Dietterich 1998): cases both models get right, or both get wrong, say nothing about which is better; only the discordant ones do: n₁₀ cases that A alone gets right and n₀₁ that B alone gets right. If the models are equally good, each discordant case is a fair coin, so n₁₀ ~ Binomial(n₁₀ + n₀₁, ½), and the exact two-sided p-value is min(1, 2·P(X ≤ min(n₁₀, n₀₁))) (scipy.stats.binomtest). The textbook statistic (n₁₀ − n₀₁)²/(n₁₀ + n₀₁), compared with 3.84 for 5% (χ² with one degree of freedom), is a large-count approximation that rejects too easily at moderate counts; its continuity-corrected form (|n₁₀ − n₀₁| − 1)²/(n₁₀ + n₀₁) tracks the exact test. The exact test costs nothing to compute, so use it, and report the two discordant counts with it.",
+    "Modules 07 and 09 apply this section's standard errors, paired bootstrap and McNemar's test to language-model benchmarks and link back here. For evaluating LLM-based applications, which raises its own issues, link to the evaluation module of the AI Agents series rather than repeating it."
+   ],
+   "worked_examples": [
+    "Standard error: n = 200, p = 0.90 gives SE = 0.021 and a 95% interval of about ±0.042; n = 2,000 gives ±0.013. A ±0.02 interval at p = 0.90 needs n = 1.96² × 0.09/0.02² ≈ 865 test cases.",
+    "The best of 200 equals: 200 configurations whose true accuracy is 0.80, each estimated with SE 0.01. The expected maximum of 200 independent standard normals is 2.746 (computed by integration), so the winner shows about 0.827 although none is better than 0.80. Lab 4's extension makes it concrete: on pure-noise data, the best of 200 random 5-feature subsets scores 0.67 by 5-fold CV; nested CV of the same search gives 0.56.",
+    "Lab 4's three leaks in numbers: selection on all 100 rows of pure noise with 5,000 features gives CV accuracy 0.87 ± 0.05 against 0.50 ± 0.10 honestly; 40 specimens × 10 measurements give row-split accuracy 0.95 (random forest) and 1.00 (5-NN) against 0.63 and 0.64 split by specimen; a drifting pump series gives shuffled RMSE 2.33 (noise floor 2.0) against 4.09 with forward chaining. Standardisation fitted on all of load_breast_cancer changes the CV accuracy by less than 0.001.",
+    "Paired versus separate intervals, and McNemar (Lab 4): logistic regression and 15-NN on Lab 2's test set score 0.986 and 0.951; separate 95% intervals [0.965, 1.000] and [0.909, 0.986] overlap, yet the paired difference 0.035 has interval [0.007, 0.070], which excludes zero. Only five cases are discordant, all favouring logistic regression (n₁₀ = 5, n₀₁ = 0), and McNemar's exact test gives p = 2 × 0.5⁵ = 0.0625: suggestive, not significant at 5%. The methods disagree because the evidence is five cases: a replicate shows a difference of zero only by drawing none of the five, with probability (138/143)¹⁴³ = 0.006, and no replicate can show 15-NN ahead. Report the difference, the discordant counts and the exact p-value; a larger test set would settle it.",
+    "The χ² shortcut at moderate counts: n₁₀ = 24 and n₀₁ = 12 give (24 − 12)²/36 = 4.0 > 3.84, p = 0.046, 'significant'; the exact test gives p = 0.065, and the continuity-corrected statistic 11²/36 = 3.36 gives p = 0.067."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-20",
+     "description": "Nested cross-validation: an outer ring of five folds; inside each outer training portion a smaller inner three-fold loop choosing λ; arrows show that the outer validation fold only scores the model chosen by the inner loop."
+    },
+    {
+     "id": "fig-01-21",
+     "description": "Four splitting schemes for data with groups and time, drawn as coloured timelines of rows (train blue, validation orange): random row split (leaky); group split keeping each specimen's rows together; forward-chaining time split with a gap before each validation block; and a split that respects both."
+    },
+    {
+     "id": "fig-01-22",
+     "description": "Bootstrap distributions from Lab 4: histograms of 2,000 replicate accuracies for the two models (overlapping), and the histogram of the paired difference with its 2.5% and 97.5% percentiles marked, clear of zero, and no bar below zero; an annotation gives the discordant counts 5 and 0 and McNemar's exact p = 0.0625."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "You standardise with the mean and variance of the whole dataset before cross-validation. Is it leakage, and does it matter? -> Yes, in principle; for scaling the effect is usually negligible (Lab 4 measures under 0.001), but the same habit with feature selection or target encoding can be large. Fit preprocessing inside each fold.",
+    "Twenty measurements were taken on each of 30 specimens. How do you split? -> By specimen (GroupKFold), so no specimen contributes rows to both training and validation.",
+    "Why compare two models with a paired bootstrap rather than two separate intervals? -> They are scored on the same examples, so their errors are correlated; the paired difference cancels the shared difficulty and has a much narrower interval.",
+    "Two classifiers disagree on six test cases, all six in A's favour. Is A better at the 5% level? -> McNemar's exact two-sided p = 2 × 0.5⁶ = 0.031, so yes, narrowly; five such cases would give 0.0625. With five or fewer discordant cases no split can reach 5%."
+   ],
+   "from_source": "Source §6 (test-set rule, cross-validation as 'the only honest way'), §7 three failures (leakage with duplicates, post-label features and shuffled time series; distribution shift; test-set reuse; 'split by the unit that will be new at deployment'), §8 ('computing μ, s on all the data is leakage in miniature'), §11 (the split by row, the two-hundred-configurations item, non-stationarity).",
+   "new_material": "Standard errors of test metrics and test-set sizing; the selection-bias calculation and nested CV; a leakage taxonomy with fixes and scikit-learn tools; shift types; percentile, paired and cluster bootstrap with Lab 4's numbers; McNemar's exact and χ² tests, and why the bootstrap and the exact test disagree on five discordant cases."
+  },
+  {
+   "id": "s11",
+   "title": "Beyond linear: the methods you will meet",
+   "minutes": 24,
+   "target_words": 1800,
+   "purpose": "Give a working acquaintance with the classical nonlinear methods and two unsupervised workhorses, with enough mechanism to know when each is the right baseline.",
+   "must_cover": [
+    "k-nearest neighbours (source): predict by averaging or voting over the k closest training points; k is a capacity knob (k = 1 interpolates; large k has high bias); needs scaling because distances mix units; no training, prediction cost about Nd per query; a strong baseline in low dimensions. The curse of dimensionality: a sub-cube holding a fraction r of uniformly spread data has edge r^(1/d), so neighbourhoods stop being local as d grows.",
+    "Decision trees: recursive axis-aligned threshold splits chosen to reduce impurity (variance for regression; Gini 1 − Σ_k p_k² or entropy for classification); depth is capacity; invariant to monotone rescaling of features, so no scaling needed; high variance.",
+    "Random forests (source): trees grown on bootstrap samples with a random subset of features considered at each split, then averaged. For M trees of variance σ² and pairwise correlation ρ, the average has variance ρσ² + (1 − ρ)σ²/M (state with a one-line derivation): decorrelating trees matters more than adding them. Out-of-bag error as a free validation estimate.",
+    "Gradient boosting (source): an additive model F_m = F_(m−1) + νh_m in which each small tree h_m is fitted to the negative gradient of the loss at F_(m−1) — for squared error, the residuals. Gradient descent in function space, with ν the learning rate traded against the number of trees and early stopping on validation. Implementations: XGBoost, LightGBM, scikit-learn's HistGradientBoosting (as of 2026). On tabular data of up to a few hundred thousand rows it is very often the best method and the first thing to try (source), needs no scaling, handles missing values natively; cite Grinsztajn et al. (2022) for the benchmark evidence, and say that exercise e13 tests the claim, including a dataset where it loses.",
+    "Kernels and SVMs, about 400 words with the derivation written out: replace x by a feature map φ(x) and stack the mapped inputs as the rows of Φ. Ridge gives w = (ΦᵀΦ + λNI)⁻¹Φᵀy; the push-through identity (ΦᵀΦ + λNI)⁻¹Φᵀ = Φᵀ(ΦΦᵀ + λNI)⁻¹ (one line: (ΦᵀΦ + λNI)Φᵀ = Φᵀ(ΦΦᵀ + λNI), then multiply by both inverses) turns it into w = Φᵀα with α = (K + λNI)⁻¹y and K = ΦΦᵀ, so f(x) = Σ_i α_i k(x_i, x) needs only inner products k(x, x′) = φ(x)ᵀφ(x′): the kernel trick, and kernel ridge regression. The RBF kernel exp(−γ‖x − x′‖²) corresponds to an infinite-dimensional φ that is never formed. Cost O(N³) to fit and N kernel evaluations per prediction. The SVM uses the hinge loss max(0, 1 − y f(x)) with an L2 penalty: a maximum-margin boundary determined by the support vectors, the training points on or inside the margin, so prediction needs only those. State of the art on medium-sized data before deep learning (source).",
+    "Gaussian processes (source): a distribution over functions giving an uncertainty with every prediction; cubic cost in N; surrogate models for expensive engineering simulations and Bayesian optimisation. The GP posterior mean is kernel ridge regression with λN equal to the noise variance.",
+    "Neural networks (source): features are learned; their advantage is on images, text and signals where good features are not known and data are plentiful (the rest of the series).",
+    "k-means: Lloyd's algorithm alternates assigning points to the nearest centre and moving each centre to its cluster mean; the objective Σ‖x − μ_c‖² never increases, but the result depends on the start (use k-means++ and several restarts); choose k by the downstream use, the elbow or silhouette; needs scaling.",
+    "PCA: the directions of maximal variance are the eigenvectors of the sample covariance, equivalently the right singular vectors of the centred data; explained-variance ratio λ_i/Σλ; projection z = V_kᵀ(x − μ). Uses: visualisation, compression, denoising, decorrelating features (which improves conditioning, Section 3). Linear only; sensitive to scaling. Neural forms (autoencoders) are in Module 05.",
+    "No free lunch (source): averaged over all possible problems no method beats another (Wolpert 1996), which is why the evaluation of Sections 7–10 matters more than the choice of method.",
+    "A comparison table: method | capacity knob | needs scaling? | fit cost | prediction cost | handles interactions? | typical first use."
+   ],
+   "worked_examples": [
+    "Curse of dimensionality: the edge holding 1% of the data is 0.01 for d = 1, 0.10 for d = 2, 0.63 for d = 10 and 0.955 for d = 100.",
+    "Gini: a node with 40 defective and 60 good parts has impurity 1 − (0.4² + 0.6²) = 0.48. Splitting into (30 defective, 10 good) and (10 defective, 50 good) gives 0.375 and 0.278, weighted 0.4·0.375 + 0.6·0.278 = 0.317, a decrease of 0.163.",
+    "Forest variance: σ² = 1, ρ = 0.3. M = 10 gives 0.37, M = 100 gives 0.307, and no number of trees goes below 0.3.",
+    "PCA: covariance eigenvalues (4.0, 1.0, 0.5, 0.3, 0.2) sum to 6.0; the first two components explain 5.0/6.0 = 83.3%.",
+    "make_moons (300 points, noise 0.25), 5-fold stratified CV accuracy: logistic regression 0.827, depth-4 tree 0.887, gradient boosting 0.947, 15-NN 0.957, random forest 0.960 — a nonlinear boundary punishes the linear model, and on 2-D data k-NN is as good as anything."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-23",
+     "description": "Decision boundaries of four classifiers on make_moons (300 points, noise 0.25), one panel each: logistic regression (a straight line), 15-NN (a smooth curve), a depth-4 decision tree (an axis-aligned staircase), gradient boosting (a finer staircase). Each panel titled with its 5-fold CV accuracy (0.827, 0.957, 0.887, 0.947)."
+    },
+    {
+     "id": "fig-01-24",
+     "description": "Left: k-means on three Gaussian blobs at iteration 0 (random centres), 1 and convergence, with the cluster boundaries drawn. Right: PCA on a correlated 2-D cloud, the two principal axes drawn as arrows from the mean scaled by the standard deviation along each, labelled with their explained-variance percentages."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why do trees need no feature scaling while k-NN does? -> A tree splits on one feature at a time by thresholds, which are unchanged by monotone rescaling; k-NN measures distances that mix the features' units.",
+    "In gradient boosting with squared error, what is each new tree fitted to? -> The residuals y − F_(m−1)(x), which are the negative gradient of ½(y − F)²."
+   ],
+   "from_source": "Source §9 in full (k-NN, kernel methods and SVMs, trees, forests, boosting with XGBoost and LightGBM and the 'first thing to try' advice, Gaussian processes as engineering surrogates, neural networks, no free lunch); §1's unsupervised setting.",
+   "new_material": "Curse-of-dimensionality numbers; Gini with a worked split; the forest-variance formula; boosting as gradient descent in function space; kernel ridge derived from ridge; the SVM's hinge loss; k-means and PCA; a comparison table; measured accuracies on make_moons; the claim about boosting put to a test in exercise e13."
+  },
+  {
+   "id": "s12",
+   "title": "Engineering case: fitting a hyperelastic material model",
+   "minutes": 18,
+   "target_words": 1300,
+   "purpose": "Apply every ingredient of the module to a realistic engineering fit — a soft hydrogel in uniaxial compression — including weighted and nonlinear least squares, residual analysis, the parameters' uncertainty and the limits of extrapolation.",
+   "must_cover": [
+    "The physics in about 150 words: an incompressible neo-Hookean solid has strain energy W = c₁(I₁ − 3); in uniaxial stretch λ (λ < 1 in compression) the principal stretches are (λ, λ^(−1/2), λ^(−1/2)) and I₁ = λ² + 2/λ; the nominal stress is P = dW/dλ = 2c₁(λ − λ⁻²) = 2c₁g(λ). Shear modulus μ = 2c₁ and small-strain Young's modulus E = 6c₁. Flag the symbol clash: λ is a stretch in this section only.",
+    "Weighted least squares and the coefficient's uncertainty: the model is linear in c₁ once g is computed (source). Each point has a recorded uncertainty σ_i, so the likelihood is Gaussian with a different variance per point (Section 5) and maximising it is weighted least squares: minimise Σ_i w_i(P_i − 2c₁g_i)² with w_i = 1/σ_i². Derive c₁* = Σw_iP_ig_i/(2Σw_ig_i²). The estimate is linear in the P_i, so its uncertainty follows by propagation (source): c₁* = Σa_iP_i with a_i = w_ig_i/(2Σw_jg_j²), so Var(c₁*) = Σa_i²σ_i² = 1/(4Σw_ig_i²), a standard deviation that is a function of the measurements', not an opinion; Lab 5 checks it by Monte Carlo.",
+    "Goodness of fit: normalised residuals r_i = (P_i − P̂_i)/σ_i and the reduced chi-square χ²_ν = Σr_i²/(N − p), about 1 when the model and the σ_i are right; runs of same-signed residuals indicate a wrong model. Report the RMS residual normalised by the largest measured stress (makes different specimens comparable) and the strain range fitted over.",
+    "Extrapolation: a fit over 0–20% says nothing about 40% (source). The parameter interval quantifies noise given the model; it does not include model error. The fitted range travels with the model, and the model is used only where it was evaluated — Section 8 in one sentence.",
+    "Nonlinear least squares, with a richer model: the Gent model P = 2c₁g(λ)/(1 − β(I₁ − 3)), β = 1/J_m ≥ 0 (finite chain extensibility), contains neo-Hookean as β = 0 and is nonlinear in β. Gauss–Newton linearises the residuals, θ ← θ − (JᵀWJ)⁻¹JᵀWr; Levenberg–Marquardt and trust-region methods add damping. scipy.optimize.least_squares on weighted residuals returns J at the solution, and Cov(θ̂) ≈ (JᵀWJ)⁻¹ (scale by χ²_ν if the σ_i are only known up to a factor). Parameters fitted together are correlated; a parameter can be undetermined by data that do not exercise it: I₁ − 3 ≈ 3ε² at small strain ε, so β changes the stress by under 1% below 10% strain.",
+    "The loading direction, and refusing inputs (source, generalised): g is not symmetric about λ = 1, so the direction must be declared; reading compression data as tension gives a wrong coefficient, and over a small range the residuals do not reveal it — a wrong model can fit well. A fitting routine should therefore refuse inputs it cannot honour — a point without an uncertainty, stresses whose sign contradicts the declared direction, a fitted non-positive stiffness — and say why instead of returning a number; that is what a learning method should do when its assumptions are violated. (The case's five-ingredient table is in Section 1 and in the session review; do not repeat it here.)"
+   ],
+   "worked_examples": [
+    "By hand, three points: λ = (0.9, 0.8, 0.7), P = (−6.8, −15.1, −27.2) kPa, σ = (0.2, 0.4, 0.6) kPa. g = (−0.3346, −0.7625, −1.3408); w = (25, 6.25, 2.778); Σw P g = 230.14; Σw g² = 11.426; c₁* = 230.14/22.852 = 10.07 kPa; SD = 1/(2√11.426) = 0.148 kPa; fitted stresses (−6.74, −15.36, −27.01); normalised residuals (−0.31, 0.65, −0.32); χ²_ν = 0.31.",
+    "Lab 5's synthetic test (true material Gent with c₁ = 10 kPa, β = 0.2; 16 stretches 0.975 to 0.600; σ_i = 0.05 kPa + 2% of the stress). Neo-Hookean on strains up to 20% (8 points): c₁ = 10.09 ± 0.10 kPa, χ²_ν = 0.71, normalised RMS residual 1.1% of the largest stress. Extrapolated with its 95% band: at 30% strain −27.06 ± 0.52 kPa against −28.82 (6.1% low); at 40% strain −43.96 ± 0.85 kPa against −50.57 (13.1% low) — the error is about eight times the band.",
+    "The same model on all 16 points: c₁ = 10.55 ± 0.06 kPa, χ²_ν = 4.5, residual signs ++++++++++------ (a run of ten then six). Gent on all 16 by nonlinear least squares: c₁ = 9.95 ± 0.10 kPa, β = 0.208 ± 0.024, correlation −0.78, χ²_ν = 0.40; Monte Carlo SDs 0.099 and 0.025 agree with the linearised ones. Gent on the 20% data only: β = 0.21 ± 0.21 — neo-Hookean (β = 0) cannot be excluded.",
+    "Loading direction: g(0.8) = −0.7625 but g(1.25) = 0.61. Reading the 0–20% data as tension (λ = 1 + ε) gives c₁ = 12.97 kPa, 28.5% high, with χ²_ν = 20.7; over the first 5% the misread fit is clean (χ²_ν = 0.38) and already 8.7% high."
+   ],
+   "figures": [
+    {
+     "id": "fig-01-25",
+     "description": "Nominal stress (kPa, negative in compression) against stretch from 1.0 down to 0.6: the 16 data points with ±σ error bars; the neo-Hookean fit to strains up to 20% drawn solid inside that range and dashed beyond it, with its 95% band (narrow); the Gent fit to all points; the fitted range shaded; annotations showing the 13% gap at 40% strain."
+    },
+    {
+     "id": "fig-01-26",
+     "description": "Normalised residuals (P_i − P̂_i)/σ_i against stretch for two fits to all 16 points: neo-Hookean (a systematic arch, a run of positives then negatives, several beyond ±2) and Gent (scattered within ±2). Horizontal lines at 0 and ±2."
+    },
+    {
+     "id": "fig-01-27",
+     "description": "Approximate 95% confidence ellipses for (c₁, β) from the Gent fit: a long, thin, tilted ellipse for the 0–20% data that crosses β = 0, and a small ellipse for the 0–40% data that excludes it; the line β = 0 (neo-Hookean) drawn."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "The 95% interval of c₁ is ±1%, yet at 40% strain the neo-Hookean prediction is 13% off. Is that a contradiction? -> No: the interval quantifies noise given the model; it is silent about the model being wrong outside the fitted range.",
+    "Why can β not be determined from data below 10% strain? -> I₁ − 3 ≈ 3ε², so β changes the stress by less than 1% there, which is below the noise; the data carry almost no information about β."
+   ],
+   "from_source": "Source §10 in full (the neo-Hookean model P = 2c₁g(λ), weighted least squares and its closed form, the variance by propagation, the residual normalised by the largest stress, the recorded strain range, 'a fit over 0–20% says nothing about 40%', the loading direction and the wrong-but-clean fit, refusing inputs), §11 'the model is asked to extrapolate', §12 exercise 4.",
+   "new_material": "A self-contained synthetic test in place of the source's private example; the derivation of the stress from the strain energy; χ²_ν and runs of residuals; the extrapolation band against the true error; nonlinear least squares with the Gent model, Jacobian-based covariance, correlation and identifiability; a Monte Carlo check; the loading-direction effect measured over two ranges."
+  }
+ ],
+ "what_goes_wrong": [
+  "The loss is minimised but the decisions are poor -> the loss is not the objective: cross-entropy was minimised while the decision needs recall at a fixed false-positive rate -> choose the metric and the operating threshold from the decision's costs or constraints (Section 7) and report performance at that operating point.",
+  "Gradient descent stalls; 'the model does not learn' -> features unscaled or uncentred, so κ(XᵀX) is huge (10¹⁰ in Lab 1) -> centre and standardise with training statistics; compute κ before blaming the model.",
+  "The loss rises or becomes NaN within a few steps -> learning rate above 2/λ_max -> divide η by 3 to 10, or sweep a log grid on a short run and take the largest η whose loss falls smoothly.",
+  "SGD's loss stops improving at a noisy plateau -> the constant-step noise floor, proportional to η/B -> decay the step (Robbins–Monro) or enlarge the batch; do not read the plateau as convergence.",
+  "Logistic regression's weights grow without limit and its probabilities are all 0 or 1 -> linearly separable training data with no penalty -> keep an L2 penalty (scikit-learn's default C = 1) or stop early, then check calibration.",
+  "Excellent cross-validation scores, poor results in service -> rows of the same part, specimen or machine on both sides of the split -> split by the unit that will be new at deployment (GroupKFold).",
+  "A time-series model looks prophetic -> a shuffled split lets it train on the future -> forward-chaining splits with a gap (TimeSeriesSplit); never shuffle across time.",
+  "High accuracy on data that should be unpredictable -> feature selection or another preprocessing step was fitted on all the data before cross-validation (0.87 on pure noise in Lab 4) -> put every fitted step in a Pipeline evaluated inside the folds.",
+  "The validation score of the chosen configuration does not hold up -> the validation set chose among two hundred configurations and the maximum is optimistic by an amount you cannot see -> nested cross-validation, or a test set opened once, with the date of opening recorded.",
+  "Accuracy is high and the model is useless -> class imbalance; the model predicts the majority class -> report the confusion matrix, precision and recall and the precision–recall curve, each against the majority-class baseline.",
+  "'Model A beats model B by half a point' -> the difference is inside the test set's sampling noise -> compare on the same cases: the discordant counts, McNemar's exact test and a paired bootstrap interval of the difference; say so when the interval includes zero, and trust the exact test when only a handful of cases disagree.",
+  "Predicted probabilities do not match observed frequencies -> long cross-entropy training or a shift since training -> reliability diagram and ECE; recalibrate on held-out data (Platt or isotonic).",
+  "A model with an excellent ECE is useless -> calibration is not discrimination: predicting the base rate for every case is calibrated (ECE 0.003 on Lab 2's test set against the model's 0.023) -> report ECE with the Brier score and the AUC, and state the binning.",
+  "The model is asked to extrapolate, and the fit looked clean -> nothing constrains f outside the data's support, and the parameter interval excludes model error (13% at 40% strain in Lab 5) -> store the fitted range with the model; refuse or flag predictions outside it; collect data where candidate models disagree.",
+  "Performance decays months after deployment -> non-stationarity: the process, the sensors or the population changed -> monitor the distributions of inputs and outputs, not only accuracy; retrain or recalibrate on recent data."
+ ],
+ "labs": [
+  {
+   "id": "lab1",
+   "title": "Linear regression three ways: closed form, gradient descent and SGD",
+   "minutes": 35,
+   "goal": "Fit the same linear model by the normal equations, gradient descent and SGD; watch the divergence boundary land exactly at 2/λ_max; make gradient descent fail with badly scaled features and repair it; measure the SGD noise floor.",
+   "data": "Synthetic, as in the source: rng = np.random.default_rng(0); X = rng.normal(size=(200, 3)); y = X @ [1.5, -2.0, 0.5] + 0.7 + 0.1*rng.normal(size=200). No download.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Generate the data exactly as above and append a column of ones (Xb, shape (200, 4)).",
+    "Closed form with np.linalg.solve(Xb.T@Xb, Xb.T@y) and with np.linalg.lstsq; print both rounded to 3 decimals: [1.491, -2.01, 0.505, 0.696]. Print the residual RMS 0.1000 and sqrt(RSS/(N - 4)) = 0.1010: the noise level, recovered.",
+    "Form H = (2/N) Xb.T @ Xb; print its eigenvalues [1.711, 1.922, 2.126, 2.207], κ = 1.29, η_max = 2/λ_max = 0.906 and η* = 2/(λ_max + λ_min) = 0.511.",
+    "Gradient descent from zeros: η = 0.1 for 500 steps prints the same 3-decimal vector as the closed form (the source's loop). Count steps until ‖w − w*‖ < 1e-6: 76 at η = 0.1, 7 at η*.",
+    "Learning-rate sweep for 200 steps at η = f·η_max, f ∈ {0.5, 0.9, 0.99, 1.01, 1.1, 1.5}; print the final training MSE: 0.0100, 0.0100, 0.0104 (still ringing, ‖w − w*‖ = 0.020), 3.8e3, 6.5e31, 3.5e120. Plot loss against step (log y) for f = 0.5, 0.99, 1.01.",
+    "Bad units: copy X, multiply column 0 by 1000 and add 100 to column 1. Print κ = 1.0e10 and η_max = 9.7e-7; print κ with only the scaling (1.1e6) and only the offset (1.0e8). Run 100,000 GD steps at 0.9η_max (under a second): the training MSE is still 4.28 against 0.0100 from lstsq on the same data.",
+    "Standardise with the training mean and standard deviation; print κ = 1.22; GD at η* converges in 6 steps; map the weights back to original units (w_j/s_j and b − Σ μ_j w_j/s_j) and print them equal to the lstsq solution of the badly scaled problem.",
+    "Mini-batch SGD with per-epoch shuffling (permutations from default_rng(1)), 50 epochs, configurations (B, η) = (200, 0.1), (32, 0.1), (10, 0.1), (1, 0.1), (1, 0.03), (1, 0.01) and (1, η_t = 0.1/(1 + t/200)). Record the excess training loss after every update. Print the mean over the second half of updates next to the prediction Σ_i ηs²λ_i/(B(2 − ηλ_i)) with s² = 0.0100 (per-example gradient noise near the optimum ≈ 2s²H): about 1.0e-4 vs 1.4e-4 (B = 32), 3.1e-4 vs 4.4e-4 (B = 10), 2.7e-4 vs 4.0e-4 (B = 1, η = 0.01), 1.3e-3 vs 1.2e-3 (B = 1, η = 0.03), 9.6e-3 vs 4.4e-3 (B = 1, η = 0.1); the decaying schedule ends near 3e-6.",
+    "Plot excess loss against update number (log–log) for full batch, B = 32, B = 1 and B = 1 with decay, with the predicted floors dashed: this is fig-01-6."
+   ],
+   "expected_observations": [
+    "Closed form, lstsq and gradient descent agree to three decimals; the residual RMS equals the noise standard deviation, so nothing recoverable is left.",
+    "The divergence boundary is sharp and lands where the eigenvalue analysis puts it: 0.99η_max converges, 1.01η_max explodes.",
+    "With bad units gradient descent appears not to learn although the model is fine; centring and scaling restore convergence in six steps. The fix is a change of variables, not a new algorithm, and the closed form never noticed the problem.",
+    "Constant-step SGD hovers at a floor roughly proportional to η/B; the predictions agree within about a factor of two (the additive-noise model ignores gradient noise that grows away from the optimum, which matters most at B = 1, η = 0.1); a decaying step goes below every floor."
+   ],
+   "extensions": [
+    "Add a fifth column equal to 0.99·(column 0) + 0.01·noise, standardise everything and watch κ and the GD step count grow: correlation, not units.",
+    "Replace the fixed step by backtracking (halve η until the loss decreases) and compare step counts with η*.",
+    "Time np.linalg.lstsq against 100 GD steps for N = 10⁶, d = 100 and decide which you would use."
+   ]
+  },
+  {
+   "id": "lab2",
+   "title": "Logistic regression from scratch, and the metrics a decision needs",
+   "minutes": 40,
+   "goal": "Implement regularised logistic regression with a numerically stable loss, match scikit-learn, then measure the classifier the way a decision needs: confusion matrix, thresholds for a recall target, ROC and precision–recall curves, calibration — and watch the weights diverge on separable data without a penalty.",
+   "data": "scikit-learn's built-in load_breast_cancer (569 cases, 30 features; ships with the package, no download). Positive class = malignant, so y = 1 − data.target (scikit-learn codes malignant as 0). Stratified 75/25 split with random_state=0: training 426 (159 malignant), test 143 (53 malignant).",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Load, flip the target, print class counts (212 malignant, 357 benign) and split sizes; standardise with training statistics.",
+    "Write the loss mean(np.logaddexp(0, z) − y·z) + λ‖w‖² (intercept unpenalised) with λ = 1/(2NC), C = 1, and its gradient (1/N)Aᵀ(p̂ − y) + 2λw. Print the curvature bound λ_max(AᵀA/N)/4 = 3.39, hence η < 0.59; use η = 0.5.",
+    "Gradient check at a random w with central differences (ε = 1e-6): print the relative error ‖g_num − g‖/‖g_num + g‖ (about 1e-10). This habit returns in Module 02.",
+    "Run 20,000 GD steps (under a second); print the loss at steps 10, 100, 1,000 and 20,000: 0.123, 0.0760, 0.0685, 0.0684.",
+    "Fit LogisticRegression(C=1.0, tol=1e-8, max_iter=10_000) on the same standardised data; print the largest coefficient difference (about 1e-6). Then show that the default tol=1e-4 leaves a difference of 0.016: a stopping rule, not a different model.",
+    "Test-set probabilities; at threshold 0.5 print the confusion matrix [[TN 90, FP 0], [FN 2, TP 51]], accuracy 0.986, precision 1.000, recall 0.962, F1 0.981, and the majority-class baseline 0.629.",
+    "ROC AUC 0.996 and average precision 0.994; plot the ROC and precision–recall curves with the threshold-0.5 point and the PR baseline at prevalence 53/143 = 0.371 (fig-01-11).",
+    "Thresholds for recall targets from precision_recall_curve: recall ≥ 0.98 needs threshold 0.219 (precision 0.852); recall = 1.0 needs 0.116 (precision 0.828). Print the table.",
+    "Calibration: reliability diagram with 5 equal-width bins, Brier score 0.023, ECE 0.023; note that 143 test cases make the bins noisy (fig-01-12). Then score the constant predictor that outputs the training prevalence 159/426 = 0.373 for every case: ECE 0.003, Brier 0.233, AUC 0.500, better calibrated than the model and useless.",
+    "Separable data: rerun gradient descent with λ = 0 and η = 1.0 and print ‖w‖ after 100, 1,000, 10,000 and 100,000 steps: 3.2, 6.2, 16.1, 51.2; the training loss falls toward zero (0.0088) and the training errors reach 0. About one second."
+   ],
+   "expected_observations": [
+    "The from-scratch model and scikit-learn agree once both have converged; disagreements of 10⁻² come from a solver tolerance, which is worth knowing before blaming either.",
+    "AUC 0.996 says the ranking is excellent; the threshold is still a decision: catching every malignant case costs precision 0.83 instead of 1.00.",
+    "Accuracy 0.986 means something only next to the 0.629 baseline.",
+    "Without a penalty on separable data ‖w‖ grows roughly like the logarithm of the step count and the probabilities saturate; the default L2 penalty is what prevents it.",
+    "ECE alone would rank the constant predictor (0.003) above the model (0.023); the Brier score (0.233 against 0.023) and the AUC do not: calibration is not discrimination."
+   ],
+   "extensions": [
+    "Softmax regression on load_iris with your own gradient (P̂ − Y)ᵀX/N; compare with LogisticRegression.",
+    "Repeat step 4 with η = 2 and η = 5: the loss still falls. The bound η < 2/L is sufficient, not necessary, for this non-quadratic loss.",
+    "Recalibrate with CalibratedClassifierCV(method='sigmoid', cv=5) on the training set and compare Brier scores."
+   ]
+  },
+  {
+   "id": "lab3",
+   "title": "Polynomials: capacity, bias–variance and the ridge path",
+   "minutes": 40,
+   "goal": "Reproduce the capacity curve, estimate bias² and variance by Monte Carlo and check them against exact formulas, trace the ridge path at degree 15, and choose λ by five-fold cross-validation.",
+   "data": "Synthetic: f(x) = sin(2πx), σ = 0.3. rng = np.random.default_rng(0); training x = np.linspace(0, 1, 20) (fixed design) with y = f(x) + 0.3·rng.normal(size=20); then validation x = rng.uniform(0, 1, 1000) with its noise; then test x = rng.uniform(0, 1, 10000) with its noise (draw in this order). Features legvander(2x − 1, d) from numpy.polynomial.legendre.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Generate the data; print the condition number of the Legendre design at d = 15 (about 47) next to the monomial Vandermonde in t = 2x − 1 (about 6.7e5): the basis matters numerically.",
+    "Fit degrees 0 to 15 by np.linalg.lstsq; print train/validation RMSE: 0.850/0.769 (d0), 0.655/0.536 (d1), 0.217/0.354 (d3), 0.217/0.354 (d4), 0.183/0.360 (d5), 0.173/0.365 (d9), 0.141/0.393 (d12), 0.112/0.720 (d15). Best validation degree 3–4.",
+    "Plot fits for degrees 1, 3 and 15 and the RMSE-against-degree curve (fig-01-13).",
+    "Monte Carlo: 200 fresh noise draws on the same x; for every degree compute the mean prediction and the variance on 201 grid points; print bias², variance and their sum + σ²: for example d3 0.0052/0.016, d9 0.0002/0.042, d15 about 0.005/0.93. Then compute the exact values with the smoother matrix S = Φ_grid R⁻¹Qᵀ (bias² = mean (S f − f_grid)², variance = σ² mean of row sums of S²): d3 0.0052/0.0161, d9 0.0000/0.0422, d15 0.0000/0.8737. Explain the gap: the Monte Carlo bias² includes variance/200.",
+    "Ridge at degree 15 with the constant term unpenalised: solve (ΦᵀΦ + λN·I′)w = Φᵀy over λ in np.logspace(−10, 1, 23); print train/validation RMSE and ‖w‖: λ → 0 gives 0.112/0.720; λ = 0.032 gives 0.182/0.335; λ = 10 gives 0.832/0.751.",
+    "Five-fold CV on the 20 training points (indices permuted by default_rng(0), np.array_split into 5): CV chooses λ = 0.032 (the one-standard-error rule picks the same here). Test RMSE of the refit model 0.324, against 0.348 for unregularised degree 3 and 0.684 for unregularised degree 15.",
+    "Library check: sklearn.linear_model.Ridge(alpha=λ·N) on the features without the constant column, fit_intercept=True, reproduces the coefficients to about 1e-15.",
+    "Ten times more data (source exercise 2): repeat step 2 with N = 200 (same draw order); the best validation degree moves to about 5, and degrees 5 to 15 all sit within 0.01 of RMSE 0.30."
+   ],
+   "expected_observations": [
+    "Training RMSE never increases with degree; validation RMSE falls to about 0.35 and climbs to 0.72 at degree 15.",
+    "bias² + variance + σ² reproduces the validation MSE; bias² falls in pairs (degrees 1 and 2, 3 and 4) because sin(2πx) is odd about x = ½.",
+    "A regularised degree-15 model (test 0.324) beats the best small unregularised model (0.348): shrinking a flexible model can beat choosing a small one.",
+    "With 200 points the variance term is about ten times smaller and flexible models stop being punished."
+   ],
+   "extensions": [
+    "Use raw monomials xᵏ with the normal equations at d = 15 and watch the solution change with rounding (κ(ΦᵀΦ) = κ(Φ)²).",
+    "Learning curves: expected train and validation MSE for N from 10 to 1,000 at degrees 3 and 9 (fig-01-15).",
+    "Leave-one-out CV (k = 20) against five-fold: compare the chosen λ and the spread of the fold errors."
+   ]
+  },
+  {
+   "id": "lab4",
+   "title": "The leakage clinic",
+   "minutes": 35,
+   "goal": "Build three pipelines that report excellent scores for the wrong reason, repair each, and put bootstrap confidence intervals on honest results, paired where models are compared, with McNemar's exact test on the cases where two models disagree.",
+   "data": "Synthetic generators below plus load_breast_cancer (built in). No download.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Leak 1, selection before cross-validation: rng = default_rng(0); X = rng.normal(size=(100, 5000)); y = rng.integers(0, 2, 100) — pure noise. Leaky: SelectKBest(f_classif, k=20) fitted on all 100 rows, then StratifiedKFold(5, shuffle=True, random_state=0) CV of LogisticRegression(max_iter=1000) on the selected columns: 0.87 ± 0.05. Honest: make_pipeline(SelectKBest, LogisticRegression) under the same CV: 0.50 ± 0.10. Repeat with seeds 1–3: leaky 0.83–0.92, honest 0.45–0.58.",
+    "The mild case: StandardScaler fitted on all of load_breast_cancer before 5-fold CV against the scaler inside the pipeline: 0.9789 in both. The leak exists in principle and is negligible for scaling.",
+    "Leak 2, groups: rng = default_rng(0); 40 specimens with labels rng.integers(0, 2, 40) and fingerprints rng.normal(0, 1, (40, 10)); each specimen gets 10 rows = fingerprint + 0.3·rng.normal(size=(10, 10)), with column 0 shifted by 0.3·(2y − 1) (a weak real signal). Row-wise KFold(5, shuffle=True, random_state=0): random forest (300 trees) 0.95, 5-NN (scaled) 1.00. GroupKFold(5) by specimen: 0.63 ± 0.14 and 0.64 ± 0.14.",
+    "Leak 3, time: a pump's bearing temperature over 120 days, hourly. rng = default_rng(0); t = arange(2880); hour = t % 24; drift = cumsum(rng.normal(0, 0.2, 2880)); temp = 10 + 8 sin(2π(hour − 9)/24) + rng.normal(0, 1, 2880); y = 50 + 0.8·temp + 5 sin(2π·hour/24) + drift + rng.normal(0, 2, 2880). Features (t, hour, temp); RandomForestRegressor(100, min_samples_leaf=2, random_state=0). Shuffled KFold: RMSE 2.33 (R² 0.88). TimeSeriesSplit(5, gap=24): RMSE 4.09 (R² −0.01). The noise floor is 2.0.",
+    "Intervals: on Lab 2's split, fit pipelines StandardScaler + LogisticRegression(C=1) and StandardScaler + KNeighborsClassifier(15); test accuracies 0.986 (2 errors) and 0.951 (7 errors). Percentile bootstrap with R = 2,000 replicates and default_rng(0): [0.965, 1.000] and [0.909, 0.986], overlapping. Paired bootstrap of the difference (same resampled indices for both): 0.035 [0.007, 0.070]; the fraction of replicates with difference ≤ 0 is about 0.006, the chance (138/143)¹⁴³ of drawing none of the discordant cases. Discordant cases 5 versus 0; McNemar's exact test, scipy.stats.binomtest(5, 5, 0.5).pvalue = 0.0625. Print the χ² statistic 5.0 (p = 0.025) and its continuity-corrected form 3.2 (p = 0.074) beside it, to show the large-count formula overstating the evidence.",
+    "Print a summary table: case | leaky score | honest score | the fix."
+   ],
+   "expected_observations": [
+    "Selecting features on all the data manufactures 87% accuracy from noise; inside the pipeline the score returns to chance.",
+    "Split by row, the models recognise specimens rather than learning the property; split by specimen they are near chance with a wide spread, which is the honest picture of 40 specimens and a weak signal.",
+    "The shuffled time-series score is at the noise floor because the forest interpolates the drift from neighbouring hours; forward chaining shows it cannot forecast the drift.",
+    "Separate intervals overlap while the paired interval excludes zero, so comparisons need paired methods. Yet McNemar's exact test (p = 0.0625) does not reject at 5%: with five discordant cases the bootstrap interval is too narrow, and the honest summary is the difference, the counts 5 and 0 and the exact p-value."
+   ],
+   "extensions": [
+    "Selection bias: on pure noise (X of shape (100, 50)) score 200 random 5-feature subsets by 5-fold CV: the best reaches about 0.67; wrap the search in an outer 5-fold loop (nested CV) and get about 0.56 (about 30 s).",
+    "Cluster bootstrap for Leak 2: resample specimens rather than rows and compare the interval width with the row bootstrap.",
+    "Add a 'target leak' column (the label plus small noise) and watch every model become brilliant."
+   ]
+  },
+  {
+   "id": "lab5",
+   "title": "Fitting a hyperelastic material model",
+   "minutes": 35,
+   "goal": "Fit a neo-Hookean coefficient to a synthetic compression test by weighted least squares, verify its uncertainty, see a clean fit fail by extrapolation, detect the misfit with residuals, fit the Gent model by nonlinear least squares, and refuse inputs the fit cannot honour.",
+   "data": "Synthetic compression test of a soft hydrogel. Stretches λ = 1 − 0.025·k, k = 1..16 (0.975 to 0.600, strain 2.5% to 40%). True material: Gent with c₁ = 10 kPa, β = 0.2, i.e. P = 2c₁(λ − λ⁻²)/(1 − β(λ² + 2/λ − 3)). Recorded uncertainty σ_i = 0.05 kPa + 0.02|P_true,i|; P = P_true + σ·default_rng(1).normal(size=16).",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Define g, I₁ − 3, P_NH and P_Gent; generate the data; print the table of λ, P and σ (P from −1.51 to −49.93 kPa).",
+    "check_inputs(λ, P, σ, direction) raises ValueError, with a message, for a missing or non-positive σ, stretches on the wrong side of 1 for the declared direction, and stresses of the wrong sign. Demonstrate three refusals.",
+    "Weighted least squares, closed form, on strains up to 20% (first 8 points): c₁ = 10.09 ± 0.10 kPa, χ²_ν = 0.71, normalised residuals within ±1.3, RMS residual 1.1% of the largest stress. Confirm with scipy.optimize.least_squares on the weighted residuals (same c₁).",
+    "Monte Carlo check: 1,000 refits to the fitted curve plus fresh noise with the same σ_i (default_rng(2)): SD 0.0995 against the formula's 0.0997.",
+    "Extrapolate with a 95% band from Var(c₁): at λ = 0.7, −27.06 ± 0.52 kPa against the true −28.82 (−6.1%); at λ = 0.6, −43.96 ± 0.85 against −50.57 (−13.1%).",
+    "Neo-Hookean on all 16 points: c₁ = 10.55 ± 0.06, χ²_ν = 4.5; print the residual signs ++++++++++------.",
+    "Gent by nonlinear least squares (least_squares, x0 = (5, 0), bounds c₁ ≥ 0 and 0 ≤ β < 1/max(I₁ − 3), x_scale='jac'); covariance (JᵀJ)⁻¹ from the returned Jacobian of the weighted residuals. All 16 points: c₁ = 9.95 ± 0.10, β = 0.208 ± 0.024, correlation −0.78, χ²_ν = 0.40; Monte Carlo SDs 0.099 and 0.025. Strains up to 20% only: β = 0.21 ± 0.21, correlation −0.83.",
+    "Loading direction: refit step 3 with the data read as tension (λ = 1 + strain, |P|): c₁ = 12.97 kPa (+28.5%), χ²_ν = 20.7; over the first 5% only: +8.7% with χ²_ν = 0.38.",
+    "Plots: data with error bars, the 20% neo-Hookean fit and its extrapolation with band, the Gent fit (fig-01-25); normalised residuals for both models on all points (fig-01-26); the (c₁, β) confidence ellipses for the two ranges (fig-01-27)."
+   ],
+   "expected_observations": [
+    "Inside its range the neo-Hookean fit is clean and precise to 1%; outside it the prediction is 13% low, about eight times its own band: the interval measures noise, not model error.",
+    "Long runs of same-signed residuals and χ²_ν well above 1 reveal the wrong model once the data reach the strains where the models differ.",
+    "Linearised uncertainties agree with Monte Carlo for this well-conditioned fit; jointly fitted parameters are correlated, and β is undetermined by data that never exercise it.",
+    "The loading direction is part of the model: misreading it gives 28.5% error over 20% strain, and over a small range the residuals do not betray it."
+   ],
+   "extensions": [
+    "Fit Mooney–Rivlin, P = 2(λ − λ⁻²)(c₁ + c₂/λ), which is linear in (c₁, c₂), and compare its 40% extrapolation with Gent's.",
+    "Experimental design: with 8 points, choose the stretches that minimise SE(β) and recompute; then argue from it where the next test should put its points.",
+    "Replace the σ_i by a single unknown σ estimated from the residuals and compare the parameter intervals."
+   ]
+  }
+ ],
+ "exercises": [
+  {
+   "id": "e1",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "Write down the five ingredients (data, model, loss, optimiser, evaluation) for (a) a linear trendline fitted in a spreadsheet to a strain-gauge calibration, gauge voltage against applied strain, and (b) a k-nearest-neighbour classifier (k = 5) that labels weld radiographs as acceptable or defective from 20 measured features. For (b), which ingredient is degenerate, and what does that imply about where its errors come from?",
+   "solution_sketch": "(a) Data: (voltage, strain) pairs from one calibration run, with P the gauge's operating conditions (temperature, range). Model: strain = a + b·voltage, two parameters. Loss: squared error. Optimiser: closed form (normal equations). Evaluation: residuals at check points not used in the fit or on a second calibration run — the spreadsheet's R² is computed on the fitted points, i.e. training error. (b) Data: labelled radiographs from past inspections, P = welds of this type from this process. Model: majority vote of the 5 nearest stored examples in the 20-D feature space; its 'parameters' are the stored data, plus k and the distance. Loss: 0–1 loss, used only to choose k and the scaling by validation. Optimiser: none — training is storing the data; this is the degenerate ingredient. Evaluation: held-out welds split by weld or batch. Implication: everything rides on the data and the distance, so errors come from unrepresentative data, irrelevant features and unscaled distances, not from optimisation."
+  },
+  {
+   "id": "e2",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A linear model predicts tensile strength from material grade, one of {steel, aluminium, titanium}. (a) What does coding the grade as 1, 2, 3 assume? (b) You one-hot encode the grade into three columns and keep the column of ones for the intercept. Show that XᵀX is singular, and say what happens to the fitted weights and to the predictions. (c) Give two fixes.",
+   "solution_sketch": "(a) That the effect is linear in the code: an order steel < aluminium < titanium and aluminium's effect exactly halfway between the other two. (b) The three one-hot columns sum to the column of ones in every row, so Xv = 0 for v = (−1, 1, 1, 1) over (intercept, steel, aluminium, titanium); then XᵀXv = 0 and XᵀX is singular. Any constant can be moved between the intercept and the three grade weights, so the weights are not unique; the predictions, being the projection of y onto the column space, are unique, and lstsq returns the minimum-norm weights. (c) Drop one grade column (a reference category) or drop the intercept; or add a ridge penalty, which makes XᵀX + λNI invertible."
+  },
+  {
+   "id": "e3",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "The least-squares Hessian of a two-feature problem has eigenvalues 1 and 25. (a) What is the largest stable learning rate? (b) What is the best fixed learning rate, and the error contraction per step it gives? (c) How many steps reduce the error by a factor of 10⁶ at the best rate, and at η = 1/λ_max? (d) After standardisation the eigenvalues are 0.8 and 1.2. Repeat (b) and (c).",
+   "solution_sketch": "(a) η < 2/25 = 0.08. (b) η* = 2/(1 + 25) = 0.0769; ρ = (κ − 1)/(κ + 1) = 24/26 = 0.923. (c) t = ln 10⁶/(−ln 0.923) = 13.82/0.080 = 172.6, so 173 steps. At η = 0.04 the slow mode contracts by 1 − 0.04 = 0.96: 13.82/0.0408 = 338.4, so 339 steps. (d) κ = 1.5; η* = 2/(0.8 + 1.2) = 1.0; factors +0.2 and −0.2, so ρ = 0.2 = 0.5/2.5; t = 13.82/1.609 = 8.6, so 9 steps — about twenty times fewer."
+  },
+  {
+   "id": "e4",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "(a) Show that the gradient of binary cross-entropy with respect to the logit z is p̂ − y, where p̂ = σ(z). (b) Compute the gradient of ½(σ(z) − y)² with respect to z. (c) Evaluate both for a confidently wrong prediction, p̂ = 0.999 with y = 0, and for a confidently right one, p̂ = 0.001 with y = 0. (d) What do the numbers mean for learning?",
+   "solution_sketch": "(a) ℓ = −y ln σ − (1 − y) ln(1 − σ) and dσ/dz = σ(1 − σ), so dℓ/dz = −y(1 − σ) + (1 − y)σ = σ − y. (b) (σ − y)σ(1 − σ). (c) Wrong: cross-entropy 0.999; squared error 0.999 × 0.999 × 0.001 = 0.000998, a ratio of about 1,001. Right: cross-entropy 0.001; squared error 0.001 × 0.001 × 0.999 ≈ 1.0×10⁻⁶. (d) Cross-entropy pushes in proportion to how wrong the model is; squared error through the sigmoid stops pushing exactly when the model is most wrong (saturation), so a confidently wrong model learns about a thousand times more slowly."
+  },
+  {
+   "id": "e5",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "A crack detector has recall 0.90 and false-positive rate 0.03, and cracks are present in 2% of inspected parts. (a) What fraction of flagged parts actually have a crack, and how many false alarms come with each true one? (b) Show that the odds of a crack given an alarm are the prior odds times TPR/FPR, and use this to find the prevalence at which half the alarms are true. (c) Every flagged part goes to a second inspection with the same recall and false-positive rate, whose errors are independent of the first's given the true state. What fraction of twice-flagged parts have a crack, what is the recall of the two stages together, and what fraction of all parts does the second stage inspect? (d) Which numbers in the vendor's brochure would have hidden (a)?",
+   "solution_sketch": "(a) Precision = 0.90 × 0.02/(0.90 × 0.02 + 0.03 × 0.98) = 0.0180/0.0474 = 0.380; each true alarm comes with 0.0294/0.0180 = 1.63 false ones. (b) By Bayes' rule, P(crack | alarm)/P(no crack | alarm) = TPR·π/(FPR·(1 − π)) = [π/(1 − π)]·(TPR/FPR): posterior odds are prior odds times the likelihood ratio, here 0.90/0.03 = 30. Half the alarms are true when the posterior odds are 1, i.e. π/(1 − π) = FPR/TPR, so π = FPR/(TPR + FPR) = 0.03/0.93 = 3.2%. Check on (a): 0.02/0.98 × 30 = 0.612, and 0.612/1.612 = 0.380. (c) The odds are multiplied by 30 again: 0.612 × 30 = 18.4, so 18.4/19.4 = 0.948 of twice-flagged parts have a crack; the recall is 0.90 × 0.90 = 0.81; the second stage inspects the 4.74% of parts the first flags. Independence is optimistic: two inspections that miss the same subtle cracks gain less. (d) Accuracy, 0.969, dominated by the 98% of good parts correctly passed, and ROC AUC, which does not depend on prevalence. Precision and the precision–recall curve at the real prevalence show what the inspectors will live with."
+  },
+  {
+   "id": "e6",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "Six test parts receive scores. Defective: 0.9, 0.7, 0.4. Good: 0.8, 0.3, 0.2. (a) Compute the AUC by counting pairs. (b) Sweep the threshold downward and list the (FPR, TPR) points of the ROC curve; check that the area under the staircase equals (a). (c) At threshold 0.5, give precision and recall. (d) Which single score change would raise the AUC to 1?",
+   "solution_sketch": "(a) Nine positive–negative pairs: 0.9 beats all three (3), 0.7 beats 0.3 and 0.2 (2), 0.4 beats 0.3 and 0.2 (2): AUC = 7/9 = 0.778. (b) (0, 0), (0, 1/3) at 0.9, (1/3, 1/3) at 0.8, (1/3, 2/3) at 0.7, (1/3, 1) at 0.4, (2/3, 1) at 0.3, (1, 1) at 0.2. Area = (1/3)(1/3) + (2/3)(1) = 7/9. (c) Flagged: 0.9, 0.8, 0.7; TP = 2, FP = 1, FN = 1: precision 2/3, recall 2/3. (d) Lower the good part scored 0.8 below 0.4 (for example to 0.35); raising 0.4 alone cannot work because 0.7 would still sit below 0.8."
+  },
+  {
+   "id": "e7",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "You estimate a mean μ from n independent readings of variance σ², using the shrunk estimator μ̂_c = c·ȳ with 0 ≤ c ≤ 1. (a) Derive its bias², variance and mean squared error. (b) Find the c that minimises the MSE. (c) Take σ = 3 and n = 9. Evaluate c* and its MSE for μ = 2 and for μ = 0.5, and compare with the MSE of ȳ. (d) Why can you not use c* directly in practice? Compute the MSE when the c* for μ = 0.5 is used but μ is really 2, and say what this has to do with choosing λ by cross-validation.",
+   "solution_sketch": "(a) E[cȳ] = cμ, so bias² = (1 − c)²μ²; Var = c²σ²/n; MSE = (1 − c)²μ² + c²σ²/n. (b) dMSE/dc = −2(1 − c)μ² + 2cσ²/n = 0 gives c* = μ²/(μ² + σ²/n). Then 1 − c* = (σ²/n)/(μ² + σ²/n), and substituting simplifies the minimum to MSE(c*) = μ²(σ²/n)/(μ² + σ²/n) = c*σ²/n. (c) σ²/n = 1, so ȳ has MSE 1.0. μ = 2: c* = 4/5 = 0.8, MSE 0.8 (bias² 0.16 + variance 0.64). μ = 0.5: c* = 0.25/1.25 = 0.2, MSE 0.2. Shrinking helps most when the signal is small against the noise. (d) c* depends on the unknown μ. Using c = 0.2 when μ = 2 gives 0.8² × 4 + 0.2² × 1 = 2.60, two and a half times the MSE of ȳ: shrinkage chosen without the data can do real harm. In practice the amount of shrinkage is chosen from data by validation or cross-validation, which estimates the error directly — exactly what Lab 3 does for λ."
+  },
+  {
+   "id": "e8",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "(a) Derive the normal equations from the gradient of L(w) = (1/N)‖Xw − y‖². (b) Add the ridge penalty λ‖w‖² and show that the system becomes (XᵀX + λNI)w = Xᵀy. (c) Using the eigenvalues of XᵀX, explain why this system is solvable for every λ > 0, even when X has fewer rows than columns. (d) If XᵀX has eigenvalues 50 and 0.5 and λN = 5, give the shrinkage factor s²/(s² + λN) of each direction and the condition numbers before and after.",
+   "solution_sketch": "(a) ∇L = (2/N)Xᵀ(Xw − y) = 0 gives XᵀXw = Xᵀy. (b) ∇(λ‖w‖²) = 2λw; (2/N)Xᵀ(Xw − y) + 2λw = 0; multiply by N/2: (XᵀX + λNI)w = Xᵀy. (c) XᵀX is symmetric with eigenvalues μ_i ≥ 0 because vᵀXᵀXv = ‖Xv‖² ≥ 0; adding λNI shifts each to μ_i + λN ≥ λN > 0, so every eigenvalue is positive and the matrix is invertible — including when N < d + 1 and some μ_i are zero. (d) 50/55 = 0.909 and 0.5/5.5 = 0.091: the well-determined direction keeps 91% of its least-squares value, the poorly determined one 9%; κ falls from 50/0.5 = 100 to 55/5.5 = 10."
+  },
+  {
+   "id": "e9",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "For each set-up say whether there is leakage, of which kind, and how to fix it. (a) Missing values are imputed with the column mean of the full dataset, then 5-fold cross-validation is run. (b) Vibration spectra from 12 pumps, 500 per pump, are split 80/20 at random. (c) Next-day failure is predicted from features that include 'hours since last maintenance', recorded at the end of the day of the failure. (d) A model is tuned on the test set because the validation set was 'too small'.",
+   "solution_sketch": "(a) Preprocessing leakage, usually mild: the means include validation rows. Impute inside a Pipeline fitted per fold. (b) Group leakage: each pump appears on both sides, so the model can recognise pumps. Split by pump (GroupKFold, for example leave two pumps out). (c) Target and temporal leakage: the maintenance after the failure resets the feature, so it encodes the label. Use only information available at prediction time, with an explicit time cut-off for every feature. (d) Test-set reuse: the test set has become a validation set and its number is optimistic. Tune by cross-validation on the training data and keep or collect an untouched test set."
+  },
+  {
+   "id": "e10",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A colleague reports 98% accuracy for a model that classifies hazards as controllable or not controllable. List the five questions you ask before believing it, and for each the answer that would make you trust the number.",
+   "solution_sketch": "(1) What is the class balance, and what does the majority-class rule score? Trust if 98% is well above it. (2) What are the confusion matrix and the per-class precision and recall? Trust if the errors on the rare, costly class are acceptable. (3) How was the data split — by hazard scenario, system or project, or by row — and were duplicates removed? Trust if split by the unit that will be new in use. (4) How many models and settings were tried, and was the test set opened once after all choices? Trust if one look, recorded. (5) Do the test cases come from the conditions of use (same kinds of system, same labelling practice, recent), and how large is the test set? Trust if they do and the interval (for example from a bootstrap) is narrow. A sixth worth asking: how consistent are the human labels — agreement between labellers caps the accuracy that means anything."
+  },
+  {
+   "id": "e11",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "You run a random search over 120 configurations of a gradient-boosting model, score each by 5-fold cross-validation and report the best score. (a) Why is that score optimistic even if every configuration is equally good? (b) Does the optimism grow or shrink with (i) more configurations, (ii) more data, (iii) configurations so alike that their scores are nearly identical? One sentence each. (c) What is the remedy, and why does it work?",
+   "solution_sketch": "(a) Each cross-validation score is the configuration's true performance plus noise from the particular folds. Picking the largest picks the configuration whose noise happened to be most favourable, so the maximum is biased upward even when no configuration is better than another (Section 10). (b) (i) Grows, but slowly: the expected maximum of n independent noisy scores rises roughly like √(ln n) standard errors. (ii) Shrinks: each score's standard error falls like 1/√N, and the optimism with it. (iii) Shrinks: strongly correlated scores behave like fewer independent draws, so there is less to select from. (c) Nested cross-validation, or a test set opened once after every choice is made: the chosen model is scored on data the selection never saw, so the selection's luck is not counted. Lab 4's extension shows the size of the effect on pure noise."
+  },
+  {
+   "id": "e12",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A k-nearest-neighbour classifier (k = 5, standardised features) detects bearing faults well from 3 vibration features computed on about 3,000 labelled windows. A new data logger adds 47 further features, most of them unrelated to faults, and the cross-validated accuracy falls although no information was removed. (a) Give two reasons, both about distances. (b) Name two remedies. (c) Why would a gradient-boosted tree ensemble lose much less from the same 47 features?",
+   "solution_sketch": "(a) After standardisation each irrelevant feature contributes as much to the squared distance as each informative one, so 47 noise terms swamp 3 signal terms and the 'nearest' neighbours are near in irrelevant directions. And the curse of dimensionality: in 50 dimensions a neighbourhood holding a fixed fraction of the data spans most of every feature's range (Section 11's sub-cube calculation), so the 5 nearest of a few thousand points are not local at all. (b) Select features by validation, inside the folds so as not to repeat Lab 4's leak; reduce d with PCA or domain knowledge; or learn a weighted distance. (c) Each split of a tree uses one feature, chosen for the impurity reduction it buys, so irrelevant features are seldom chosen and no distance ever mixes all 50 of them."
+  },
+  {
+   "id": "e13",
+   "level": 3,
+   "kind": "coding",
+   "minutes": 25,
+   "prompt": "Test the claim that gradient boosting is the baseline to beat on tabular data. With 5-fold cross-validation using the same folds for every model (KFold(5, shuffle=True, random_state=0)), compare the RMSE of: predicting the mean (DummyRegressor); ridge (StandardScaler + RidgeCV(alphas=np.logspace(−3, 3, 13))); k-NN (StandardScaler + KNeighborsRegressor(10)); an RBF support-vector regressor (StandardScaler + SVR(C=10)); a random forest (300 trees, random_state=0); and HistGradientBoostingRegressor(random_state=0), on (a) make_friedman1(n_samples=2000, n_features=10, noise=1.0, random_state=0) and (b) load_diabetes. Report mean ± standard deviation over folds and the fit time. Then compute the fold-wise RMSE differences between the two best models on each dataset and say whether the ranking is supported.",
+   "solution_sketch": "Friedman #1 (2,000 rows, 5 informative features with an interaction and a nonlinearity, 5 irrelevant): mean 5.02 ± 0.09, ridge 2.59 ± 0.09, k-NN 2.52 ± 0.07, random forest 1.79 ± 0.07, SVR 1.40 ± 0.05, boosting 1.34 ± 0.04. SVR minus boosting per fold: 0.092, 0.094, 0.025, 0.014, 0.072 (mean 0.059, SD 0.038): boosting wins in all five folds. Diabetes (442 rows, nearly additive signal): mean 76.9 ± 4.5, ridge 54.6 ± 2.2, SVR 55.6 ± 2.8, k-NN 56.8 ± 3.0, forest 57.8 ± 4.1, boosting 59.0 ± 5.5. SVR minus ridge: 0.11, 0.76, −1.92, 4.79, 1.18 (mean 0.99, SD 2.44) — no supported difference; boosting minus ridge has mean 4.37 with ridge better in four folds of five. Conclusion: boosting wins when the target has interactions and nonlinearity and there are enough rows; on a few hundred rows with an additive signal, a linear model is as good or better. Run the ladder rather than assume, and judge differences fold by fold. The whole script runs in well under a minute (if HistGradientBoosting is unexpectedly slow, limit OpenMP threads with OMP_NUM_THREADS=1 or 2)."
+  },
+  {
+   "id": "e14",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "In Lab 5's neo-Hookean fit over strains up to 20%, change the point at λ = 0.90 from −6.98 kPa to −8.00 kPa. (a) Refit with its recorded σ = 0.185 kPa: how far does c₁ move, what is that point's normalised residual, and what happens to χ²_ν? (b) Refit with that point's σ multiplied by ten. (c) Which behaviour do you want, and what does this say about recording uncertainties?",
+   "solution_sketch": "(a) c₁ moves from 10.09 to 10.29 kPa (+2%, two standard deviations); the point's normalised residual is −6.0; χ²_ν rises from 0.71 to 6.4. The fit is pulled, but the diagnostics flag the point. (b) c₁ = 10.05 kPa, residual −0.7, χ²_ν = 0.54: the point is effectively ignored. (c) If the reading really was that precise, (a) is right and the specimen or the model needs explaining; if a problem was known (slip at the platen, a bubble), a large σ is the honest record. The σ_i are part of the data: a wrong small σ lets one bad point move the answer, and a missing σ makes the check impossible — which is why the fit refuses points without one."
+  },
+  {
+   "id": "e15",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A colleague exports a compression test with the stretches written as 1 + strain and the stresses as positive numbers, and fits the neo-Hookean model with the loading direction declared as tension. (a) Which of Lab 5's input checks fire, and why can no input check catch this mistake? (b) Over the first 5% of strain the misread fit looks clean; over 20% it does not. Explain from the way g(λ) = λ − λ⁻² bends on either side of λ = 1, without computing. (c) What must be stored with the fitted c₁ so that the next user cannot repeat the mistake?",
+   "solution_sketch": "(a) None. Stretches above 1 with positive stresses form a self-consistent tension test, and checks catch only contradictions — a stretch on the wrong side of 1 for the declared direction, a stress of the wrong sign, a missing σ — not a consistent mislabel; only the test record (the platens moved together) can. (b) g has the same slope on both sides of λ = 1 and bends downward, so |g| grows faster than linearly in compression and slower than linearly in tension. To first order in the strain the two branches agree, and misread data look like a slightly stiffer tension test with a clean fit; the second-order difference grows with the strain until it exceeds the noise and the residuals show runs (Section 12: +8.7% with χ²_ν = 0.38 over 5%; +28.5% with χ²_ν = 20.7 over 20%). (c) The loading direction and the strain range fitted over, with the residual diagnostics: the coefficient means something only for the test it came from."
+  }
+ ],
+ "quiz": [
+  {
+   "question": "The normal equations Xᵀ(y − Xw) = 0 say that, at the least-squares solution,",
+   "options": [
+    "the residual vector is orthogonal to every column of X",
+    "the residuals are all zero",
+    "the weight vector is orthogonal to y",
+    "XᵀX is the identity matrix"
+   ],
+   "answer": 0,
+   "explanation": "Xᵀr = 0 means each column of X has zero inner product with the residual r: ŷ is the orthogonal projection of y onto the column space. The residuals are zero only if y lies in that space; nothing makes w orthogonal to y; XᵀX is the identity only for orthonormal columns."
+  },
+  {
+   "question": "Gradient descent runs on L(w) = ½wᵀHw where H has eigenvalues 0.5 and 8. Which learning rate diverges?",
+   "options": [
+    "0.10",
+    "0.20",
+    "0.24",
+    "0.26"
+   ],
+   "answer": 3,
+   "explanation": "Stability needs η < 2/λ_max = 2/8 = 0.25. At 0.26 the steep mode's factor is 1 − 0.26·8 = −1.08, so it grows. 0.24 still converges, oscillating (factor −0.92); 0.10 and 0.20 converge."
+  },
+  {
+   "question": "Two centred, uncorrelated features have standard deviations 1 and 100. The condition number of XᵀX/N is about",
+   "options": [
+    "10",
+    "100",
+    "10,000",
+    "1,000,000"
+   ],
+   "answer": 2,
+   "explanation": "XᵀX/N = diag(1², 100²), so κ = 10⁴ = (ratio of standard deviations)². 100 is the ratio itself, not squared; the other values have no basis."
+  },
+  {
+   "question": "Constant-step SGD has reached its noise floor near a minimum. Halving the learning rate will, approximately,",
+   "options": [
+    "halve the stationary excess loss and slow the approach",
+    "leave the floor unchanged",
+    "double the floor",
+    "make the iterate converge exactly to the minimum"
+   ],
+   "answer": 0,
+   "explanation": "The stationary variance is ηs²/(Bλ(2 − ηλ)) ≈ ηs²/(2Bλ), proportional to η. The floor halves but never reaches zero; exact convergence needs a step that decays (Robbins–Monro) or a growing batch."
+  },
+  {
+   "question": "If the noise in y follows a Laplace distribution, maximum likelihood fits the model with which loss, and what is the best constant prediction?",
+   "options": [
+    "Squared error; the mean",
+    "Absolute error; the median",
+    "Cross-entropy; the mode",
+    "Absolute error; the mean"
+   ],
+   "answer": 1,
+   "explanation": "The Laplace negative log-likelihood is |y − f(x)|/b plus a constant, so the loss is absolute error, whose best constant is the median. Squared error and the mean belong to Gaussian noise; cross-entropy belongs to Bernoulli or categorical outcomes."
+  },
+  {
+   "question": "For binary cross-entropy with p̂ = σ(z), the derivative of the loss with respect to the logit z is",
+   "options": [
+    "(p̂ − y)p̂(1 − p̂)",
+    "p̂ − y",
+    "y − p̂",
+    "−log p̂"
+   ],
+   "answer": 1,
+   "explanation": "The sigmoid's derivative cancels against the logarithm, leaving p̂ − y, which is large when the model is confidently wrong. (p̂ − y)p̂(1 − p̂) is the gradient of ½(p̂ − y)², which vanishes in that case; y − p̂ has the wrong sign; −log p̂ is the loss itself for y = 1."
+  },
+  {
+   "question": "A test has recall 0.8 and false-positive rate 0.01. The condition it detects has prevalence 0.2%. The fraction of positive results that are true is about",
+   "options": [
+    "80%",
+    "50%",
+    "14%",
+    "1%"
+   ],
+   "answer": 2,
+   "explanation": "Precision = 0.8·0.002/(0.8·0.002 + 0.01·0.998) = 0.0016/0.0116 = 0.14. False alarms outnumber true detections about six to one because negatives are 499 times more common."
+  },
+  {
+   "question": "A degree-15 polynomial fitted to 20 noisy points has training RMSE 0.11 and validation RMSE 0.72, against a noise level of 0.3. Which term of the bias–variance decomposition dominates its validation error?",
+   "options": [
+    "Bias²",
+    "Variance",
+    "The noise σ²",
+    "None: the decomposition only holds for linear models"
+   ],
+   "answer": 1,
+   "explanation": "The flexible model follows the noise of its particular training set, so its predictions change a great deal from sample to sample: variance (0.87 of the expected 0.96 in Section 8). Its bias² is near zero. The noise contributes 0.09 whatever the model. The decomposition holds for any model under squared error."
+  },
+  {
+   "question": "Ridge regression is the MAP estimate under which prior on the weights?",
+   "options": [
+    "A zero-mean Gaussian",
+    "A zero-mean Laplace distribution",
+    "A uniform distribution",
+    "No prior: ridge is a maximum-likelihood estimate"
+   ],
+   "answer": 0,
+   "explanation": "A Gaussian prior adds ‖w‖²/(2τ²) to the negative log-posterior, giving λ = σ²/(Nτ²). The Laplace prior gives the lasso's L1 penalty; a uniform prior gives back maximum likelihood; ridge is not maximum likelihood because of the penalty."
+  },
+  {
+   "question": "Which of these is NOT leakage?",
+   "options": [
+    "Fitting a StandardScaler on the training folds only, inside a Pipeline",
+    "Selecting the 20 most correlated features on all the data, then cross-validating",
+    "Splitting repeated measurements of the same specimens by row",
+    "Shuffling a time series before cross-validation"
+   ],
+   "answer": 0,
+   "explanation": "Preprocessing fitted only on training folds sees no validation data. The other three let information from the validation data or the future into training: selection on all data (Lab 4: 0.87 on noise), group leakage, temporal leakage."
+  },
+  {
+   "question": "For which model would rescaling one feature from millimetres to metres leave the fitted predictions unchanged?",
+   "options": [
+    "k-nearest neighbours",
+    "An RBF-kernel SVM",
+    "A gradient-boosted tree ensemble",
+    "Ridge regression"
+   ],
+   "answer": 2,
+   "explanation": "Trees split on one feature at a time by thresholds, which move with the rescaling, so the partitions and predictions are unchanged. k-NN and RBF kernels use distances that mix the units; ridge penalises coefficients whose size depends on the units."
+  },
+  {
+   "question": "A neo-Hookean fit over 0–20% strain has a 95% interval of ±1% on c₁, yet its prediction at 40% strain is 13% low. The best explanation is",
+   "options": [
+    "The interval was computed wrongly",
+    "The interval quantifies noise assuming the model is right; it does not include model error outside the fitted range",
+    "More data inside 0–20% would fix the extrapolation",
+    "The noise is larger at 40% strain"
+   ],
+   "answer": 1,
+   "explanation": "Lab 5's interval agrees with Monte Carlo, so it is not wrong; it is conditional on the model. The material stiffens beyond 20% (it is a Gent solid), which no amount of small-strain data can reveal. Larger noise would widen the band, not bias the prediction by 13%."
+  }
+ ],
+ "papers": [
+  {
+   "citation": "Belkin, M., Hsu, D., Ma, S., Mandal, S. “Reconciling modern machine-learning practice and the classical bias–variance trade-off.” Proceedings of the National Academy of Sciences (PNAS), 2019.",
+   "minutes": 15,
+   "why": "The paper that named double descent. It shows where the classical U-shaped validation curve of Section 8 stops being the whole story, and why the decomposition itself still holds.",
+   "read": "Read the abstract, the introduction up to and including Figure 1, and the section on random Fourier features with its figure. Skip the theoretical analysis and the supplementary material.",
+   "questions": [
+    "What is the interpolation threshold, and where does it sit for random Fourier features?",
+    "Beyond the threshold many parameter vectors fit the training data exactly. Which one do the authors choose, and why does that choice matter for test error?",
+    "Does double descent contradict the bias–variance decomposition you derived in Section 8? Explain in two sentences.",
+    "What does the paper imply for choosing model size by validation in practice?"
+   ]
+  },
+  {
+   "citation": "Kapoor, S., Narayanan, A. “Leakage and the reproducibility crisis in machine-learning-based science.” Patterns, 2023.",
+   "minutes": 15,
+   "why": "A survey of leakage in published machine-learning-based science, with a taxonomy that turns Lab 4's three cases into a checklist, and a case study in which a celebrated advantage of complex models disappears once leakage is fixed.",
+   "read": "Read the introduction, the leakage taxonomy (its table and the definition of each type) and the civil-war prediction case study. Skim the field-by-field survey and the model info sheet.",
+   "questions": [
+    "Place each of Lab 4's three leaky pipelines in the paper's taxonomy.",
+    "What happened to the reported advantage of complex models over logistic regression in the civil-war case once the errors were corrected?",
+    "Which items of the authors' proposed documentation (model info sheets) would have caught the group leak in Lab 4?",
+    "Name one type of leakage in the taxonomy that a test set opened only once does not protect against, and say why."
+   ]
+  },
+  {
+   "citation": "Domingos, P. “A few useful things to know about machine learning.” Communications of the ACM, 2012.",
+   "minutes": 15,
+   "why": "A practitioner's summary of lessons this module derives formally; reading it last tests whether the formal versions stuck, and it is the article to hand a colleague who asks what this module was about.",
+   "read": "Read the sections on learning as representation plus evaluation plus optimisation, on generalisation, on overfitting (with the dartboard figure), on intuition failing in high dimensions, and on more data beating a cleverer algorithm. Skim the rest.",
+   "questions": [
+    "Domingos splits a learner into representation, evaluation and optimisation. Map these onto the five ingredients of Section 1. Which ingredients does he leave implicit?",
+    "Which of his four dartboards corresponds to the unregularised degree-15 polynomial on 20 points in Lab 3, and which to the degree-1 fit?",
+    "He says more data beats a cleverer algorithm. Using the learning curves of Section 8, say when that is true and when it is false.",
+    "Which of his high-dimensional intuitions does Section 11's sub-cube calculation quantify, and which does the k-NN scenario of exercise e12 illustrate?"
+   ]
+  }
+ ],
+ "widgets": [
+  {
+   "name": "gd-quadratic",
+   "section": "s3",
+   "teaching_point": "The learning rate is capped by the steepest direction (η < 2/λ_max) while the speed is set by the flattest (factor 1 − ηλ_min per step), so the number of steps grows with the condition number; with gradient noise a constant step stalls at a floor proportional to η.",
+   "controls": [
+    "slider: learning rate η from 0.01 to 2.5, logarithmic, default 1.8 (λ_max is fixed at 1, so η is read in units of 1/λ_max; tick marks at 1 and 2)",
+    "slider: condition number κ from 1 to 1000, logarithmic, default 20 (λ_min = 1/κ)",
+    "slider: gradient noise σ_g from 0 to 1, linear, default 0 (0 is full-batch gradient descent; used again in Section 4)",
+    "buttons: Step (one iteration), Run/Pause (10 iterations per second, up to 300), Reset",
+    "click on the contour plot: sets the starting point",
+    "dropdown of presets: 'well conditioned (κ = 1, η = 1)', 'standardised but correlated, ρ = 0.8 (κ = 9)', 'units differ tenfold (κ = 100)', 'units differ thirtyfold (κ = 900)', 'zig-zag (κ = 20, η = 1.8)', 'just unstable (κ = 20, η = 2.05)'"
+   ],
+   "displays": [
+    "contour plot of the loss over [−4, 4]² with equal axis scales: 12 level sets drawn analytically as ellipses (semi-axes √(2c/λ_max) and √(2c/λ_min) along the eigenvectors, levels c log-spaced from 10⁻³ to 10), eigen-directions as faint dashed lines, the minimum at the origin, and the iterates joined by a polyline with dots",
+    "loss against iteration on a log axis from 10⁻¹² to 10³, with the envelope L₀ρ^(2t), ρ = max(|1 − η|, |1 − η/κ|), dashed; when σ_g > 0 a horizontal dashed line at the predicted floor Σ_i ησ_g²/(2(2 − ηλ_i))",
+    "two bars showing |1 − ηλ_max| and |1 − ηλ_min| against a red line at 1",
+    "readouts: λ_max = 1, λ_min, κ, η, the two factors, status ('converging', 'oscillating across the valley', 'marginal', 'diverged at step t'), predicted steps for a 10⁶ loss reduction from the envelope, and actual steps"
+   ],
+   "defaults": "κ = 20, η = 1.8, σ_g = 0, start at −3.5 along the flat eigenvector plus 1.5 along the steep one (w₀ ≈ (−3.78, −0.45), L₀ = 1.431). The path zig-zags across the valley (steep factor −0.8) while creeping along it (flat factor 0.91); the loss falls by 10⁶ in 66 steps against an envelope prediction of 73.",
+   "spec": "Loss L(w) = ½(λ_max(v_maxᵀw)² + λ_min(v_minᵀw)²) with λ_max = 1, λ_min = 1/κ, v_min = (cos 30°, sin 30°) (the valley direction), v_max = (−sin 30°, cos 30°); minimum at the origin. Update w ← w − η(Hw + σ_g ξ) with ξ two independent standard normals from a seeded generator (mulberry32 with seed 1, Box–Muller), reseeded on Reset so runs are repeatable. Stop and report 'diverged at step t' when L > 10⁶ or ‖w‖ > 10³; report 'converged in t steps' when σ_g = 0 and L < 10⁻⁶·L₀; at exactly η = 2 report 'marginal: the steep mode neither grows nor decays'. With σ_g > 0 run to 300 steps and show the running mean of L over the last 100 steps next to the predicted floor. Predicted steps = 6 ln 10/(−2 ln ρ) when ρ < 1, '1' when ρ = 0, '∞' when ρ ≥ 1, printed with thousands separators (κ = 1000 at η = 0.01 predicts 690,772). Reference values for testing, from the default start: κ = 1, η = 1 converges in 1 step; κ = 1, η = 1.8 in 31; κ = 20, η = 1.0 in 120; κ = 20, η = 0.5 in 243; κ = 100, η = 1.8 in 299; κ = 1000, η = 1.8 in 2,386; κ = 20, η = 2.05 diverges at step 141. With σ_g = 0.3 and κ = 20 the floor is 0.0681 at η = 1.0, 0.0264 at η = 0.5 and 0.0046 at η = 0.1 (simulation agrees to three figures). Vanilla JavaScript and SVG, no libraries; native range inputs with labels so the widget works from the keyboard; colours from the page's CSS variables so both light and dark themes work; all strings in one object for the Chinese translation."
+  },
+  {
+   "name": "polynomial-capacity",
+   "section": "s8",
+   "teaching_point": "Training error falls with every degree added, while validation error is U-shaped because bias² falls and variance rises; more data shrinks the variance and moves the best degree to the right.",
+   "controls": [
+    "slider: polynomial degree from 0 to 15, integer, default 3 (capped at N − 1)",
+    "segmented buttons: number of training points N = 10, 20, 50 or 200, default 20",
+    "slider: noise σ from 0.05 to 0.6, default 0.3",
+    "button: 'new noise draw' (advances the training-noise seed)",
+    "checkbox: 'show bias² and variance', default on"
+   ],
+   "displays": [
+    "left: training points as filled dots, 60 of the validation points as hollow dots, the true function sin(2πx) dashed and the fitted polynomial solid; y-axis clipped to [−2.5, 2.5] with a small marker where the curve leaves the range",
+    "right top: training and validation RMSE against degree 0–15 on a log axis from 0.01 to 10, a vertical line at the current degree, a dashed horizontal line at σ",
+    "right bottom (when checked): bias², variance, σ² and their sum against degree on a log axis, from exact formulas, with the minimum of the sum marked",
+    "readouts: current training and validation RMSE, best degree on validation, best degree by expected error"
+   ],
+   "defaults": "N = 20, σ = 0.3, degree 3, noise seed 0: the cubic follows the sine. Dragging to degree 15 sends the training RMSE to about 0.1 and the validation RMSE to about 0.7; switching to N = 200 flattens the right-hand side.",
+   "spec": "Fixed design x_i = i/(N − 1), i = 0..N − 1; y_i = sin(2πx_i) + σε_i with ε_i standard normals from mulberry32(seed) and Box–Muller. Validation set: 500 points with x uniform on [0, 1] and their own normals from a fixed seed (12345), scaled by the current σ. Features: Legendre polynomials P_0..P_d of t = 2x − 1 by the recurrence (k + 1)P_(k+1) = (2k + 1)tP_k − kP_(k−1). Fit by least squares with a Householder QR of the N × (d + 1) design — never the normal equations of a monomial basis. Bias and variance exactly, for the fixed design: on a grid of 201 points x_g, the smoother matrix S = Φ_g R⁻¹Qᵀ gives bias²(x_g) = ((S f)_g − f(x_g))² with f the true function at the training x, and variance(x_g) = σ² Σ_j S_gj²; average both over the grid; expected test MSE = mean bias² + mean variance + σ². Recompute all degrees when N, σ or the seed changes (at most 16 QR factorisations of a 200 × 16 matrix). Degrees ≥ N are disabled; at d = N − 1 the fit interpolates and the training RMSE is 0, shown as 'interpolates'. The random draws differ from Lab 3's NumPy draws, but the exact curves are deterministic and must match Lab 3's table for N = 20, σ = 0.3: degree 3 bias² 0.0052 and variance 0.0161 (sum with σ² 0.1113, the minimum); degree 9 variance 0.0422; degree 15 variance 0.8737; for N = 200 the minimum moves to degree 5 (0.0927). Vanilla JavaScript and SVG, keyboard-operable controls, theme colours from CSS variables, strings in one object for translation."
+  }
+ ],
+ "terms": [
+  {
+   "en": "supervised / unsupervised learning",
+   "zh": "监督学习 / 无监督学习"
+  },
+  {
+   "en": "loss function / empirical risk",
+   "zh": "损失函数 / 经验风险"
+  },
+  {
+   "en": "generalisation",
+   "zh": "泛化"
+  },
+  {
+   "en": "least squares / normal equations",
+   "zh": "最小二乘法 / 正规方程"
+  },
+  {
+   "en": "condition number",
+   "zh": "条件数"
+  },
+  {
+   "en": "gradient descent / learning rate",
+   "zh": "梯度下降 / 学习率"
+  },
+  {
+   "en": "stochastic gradient descent / mini-batch / batch size / epoch",
+   "zh": "随机梯度下降 / mini-batch / batch 大小 / 轮次（epoch）"
+  },
+  {
+   "en": "likelihood / maximum likelihood estimation",
+   "zh": "似然 / 极大似然估计"
+  },
+  {
+   "en": "prior / maximum a posteriori (MAP) estimation",
+   "zh": "先验 / 最大后验估计"
+  },
+  {
+   "en": "cross-entropy / softmax / logits",
+   "zh": "交叉熵 / softmax / logits"
+  },
+  {
+   "en": "logistic regression / decision boundary",
+   "zh": "逻辑回归 / 决策边界"
+  },
+  {
+   "en": "overfitting / underfitting",
+   "zh": "过拟合 / 欠拟合"
+  },
+  {
+   "en": "bias–variance trade-off",
+   "zh": "偏差-方差权衡"
+  },
+  {
+   "en": "learning curve / double descent",
+   "zh": "学习曲线 / 双下降"
+  },
+  {
+   "en": "regularisation / weight decay",
+   "zh": "正则化 / 权重衰减"
+  },
+  {
+   "en": "ridge regression / lasso",
+   "zh": "岭回归 / Lasso 回归（套索回归）"
+  },
+  {
+   "en": "training / validation / test set",
+   "zh": "训练集 / 验证集 / 测试集"
+  },
+  {
+   "en": "cross-validation / nested cross-validation",
+   "zh": "交叉验证 / 嵌套交叉验证"
+  },
+  {
+   "en": "data leakage / distribution shift",
+   "zh": "数据泄漏 / 分布偏移"
+  },
+  {
+   "en": "confusion matrix",
+   "zh": "混淆矩阵"
+  },
+  {
+   "en": "precision / recall / F1 score",
+   "zh": "精确率 / 召回率 / F1 分数"
+  },
+  {
+   "en": "ROC curve / AUC / precision–recall curve",
+   "zh": "ROC 曲线 / 曲线下面积（AUC） / 精确率-召回率曲线"
+  },
+  {
+   "en": "calibration / reliability diagram",
+   "zh": "校准 / 可靠性图"
+  },
+  {
+   "en": "bootstrap / confidence interval",
+   "zh": "自助法 / 置信区间"
+  },
+  {
+   "en": "standardisation / one-hot encoding",
+   "zh": "标准化 / 独热编码"
+  },
+  {
+   "en": "k-nearest neighbours / curse of dimensionality",
+   "zh": "k 近邻 / 维数灾难"
+  },
+  {
+   "en": "decision tree / random forest / gradient boosting",
+   "zh": "决策树 / 随机森林 / 梯度提升"
+  },
+  {
+   "en": "support vector machine / kernel",
+   "zh": "支持向量机 / 核函数"
+  },
+  {
+   "en": "k-means clustering / principal component analysis",
+   "zh": "k 均值聚类 / 主成分分析"
+  },
+  {
+   "en": "nonlinear least squares / extrapolation / hyperelastic (neo-Hookean) model",
+   "zh": "非线性最小二乘 / 外推 / 超弹性（新胡克）模型"
+  }
+ ],
+ "references": [
+  "Bishop, C. M. “Pattern Recognition and Machine Learning.” Springer, 2006. Chapters 1, 3 and 4: the probabilistic view of this module.",
+  "Hastie, T., Tibshirani, R., Friedman, J. “The Elements of Statistical Learning,” 2nd ed. Springer, 2009. Chapters 2, 3 and 7: least squares, ridge and lasso, model assessment and the one-standard-error rule.",
+  "James, G., Witten, D., Hastie, T., Tibshirani, R. “An Introduction to Statistical Learning,” 2nd ed. Springer, 2021. The gentler companion to the previous book.",
+  "Goodfellow, I., Bengio, Y., Courville, A. “Deep Learning.” MIT Press, 2016. Chapter 5: machine-learning basics.",
+  "Murphy, K. P. “Probabilistic Machine Learning: An Introduction.” MIT Press, 2022. Maximum likelihood, MAP and logistic regression in one notation.",
+  "Trefethen, L. N., Bau, D. “Numerical Linear Algebra.” SIAM, 1997. QR, the SVD and the conditioning of least squares.",
+  "Nocedal, J., Wright, S. J. “Numerical Optimization,” 2nd ed. Springer, 2006. Convergence rates of gradient descent; Gauss–Newton and Levenberg–Marquardt.",
+  "Robbins, H., Monro, S. “A stochastic approximation method.” Annals of Mathematical Statistics, 1951. The step-size conditions for SGD.",
+  "Bottou, L., Curtis, F. E., Nocedal, J. “Optimization methods for large-scale machine learning.” SIAM Review, 2018. SGD in theory and practice.",
+  "Keskar, N. S. et al. “On large-batch training for deep learning: generalization gap and sharp minima.” ICLR, 2017. The small-batch, flat-minimum observation of Section 4.",
+  "Hoerl, A. E., Kennard, R. W. “Ridge regression: biased estimation for nonorthogonal problems.” Technometrics, 1970.",
+  "Tibshirani, R. “Regression shrinkage and selection via the lasso.” Journal of the Royal Statistical Society, Series B, 1996.",
+  "Belkin, M., Hsu, D., Ma, S., Mandal, S. “Reconciling modern machine-learning practice and the classical bias–variance trade-off.” PNAS, 2019. Double descent; guided reading.",
+  "Nakkiran, P. et al. “Deep double descent: where bigger models and more data hurt.” ICLR, 2020. Double descent in deep networks.",
+  "Wolpert, D. H. “The lack of a priori distinctions between learning algorithms.” Neural Computation, 1996. The no-free-lunch theorem.",
+  "Kaufman, S., Rosset, S., Perlich, C., Stitelman, O. “Leakage in data mining: formulation, detection, and avoidance.” ACM Transactions on Knowledge Discovery from Data, 2012.",
+  "Kapoor, S., Narayanan, A. “Leakage and the reproducibility crisis in machine-learning-based science.” Patterns, 2023. Guided reading.",
+  "Ambroise, C., McLachlan, G. J. “Selection bias in gene extraction on the basis of microarray gene-expression data.” PNAS, 2002. The feature-selection leak of Lab 4.",
+  "Varma, S., Simon, R. “Bias in error estimation when using cross-validation for model selection.” BMC Bioinformatics, 2006. Why nested cross-validation.",
+  "Cawley, G. C., Talbot, N. L. C. “On over-fitting in model selection and subsequent selection bias in performance evaluation.” Journal of Machine Learning Research, 2010.",
+  "Fawcett, T. “An introduction to ROC analysis.” Pattern Recognition Letters, 2006.",
+  "Saito, T., Rehmsmeier, M. “The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets.” PLoS ONE, 2015.",
+  "Niculescu-Mizil, A., Caruana, R. “Predicting good probabilities with supervised learning.” ICML, 2005. Calibration of classical classifiers; Platt and isotonic recalibration.",
+  "Guo, C., Pleiss, G., Sun, Y., Weinberger, K. Q. “On calibration of modern neural networks.” ICML, 2017. Expected calibration error and temperature scaling.",
+  "Efron, B., Tibshirani, R. J. “An Introduction to the Bootstrap.” Chapman & Hall, 1993.",
+  "McNemar, Q. “Note on the sampling error of the difference between correlated proportions or percentages.” Psychometrika, 1947. The paired test of Section 10.",
+  "Dietterich, T. G. “Approximate statistical tests for comparing supervised classification learning algorithms.” Neural Computation, 1998. Why McNemar's test suits comparing two classifiers on one test set.",
+  "Breiman, L. “Random forests.” Machine Learning, 2001.",
+  "Friedman, J. H. “Greedy function approximation: a gradient boosting machine.” Annals of Statistics, 2001.",
+  "Chen, T., Guestrin, C. “XGBoost: a scalable tree boosting system.” KDD, 2016.",
+  "Ke, G. et al. “LightGBM: a highly efficient gradient boosting decision tree.” NeurIPS, 2017.",
+  "Grinsztajn, L., Oyallon, E., Varoquaux, G. “Why do tree-based models still outperform deep learning on typical tabular data?” NeurIPS Datasets and Benchmarks Track, 2022.",
+  "Cortes, C., Vapnik, V. “Support-vector networks.” Machine Learning, 1995.",
+  "Rasmussen, C. E., Williams, C. K. I. “Gaussian Processes for Machine Learning.” MIT Press, 2006.",
+  "Arthur, D., Vassilvitskii, S. “k-means++: the advantages of careful seeding.” SODA, 2007.",
+  "Domingos, P. “A few useful things to know about machine learning.” Communications of the ACM, 2012. Guided reading.",
+  "Holzapfel, G. A. “Nonlinear Solid Mechanics: A Continuum Approach for Engineering.” Wiley, 2000. Neo-Hookean and related strain-energy functions.",
+  "Gent, A. N. “A new constitutive relation for rubber.” Rubber Chemistry and Technology, 1996. The Gent model of Section 12 and Lab 5.",
+  "Bates, D. M., Watts, D. G. “Nonlinear Regression Analysis and Its Applications.” Wiley, 1988. Parameter uncertainty in nonlinear least squares.",
+  "Pedregosa, F. et al. “Scikit-learn: machine learning in Python.” Journal of Machine Learning Research, 2011."
+ ],
+ "generalised_refs": [
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Section 12 'Engineering case: fitting a hyperelastic material model' — a self-contained synthetic compression test that the reader regenerates in Lab 5."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "'An engineer characterising a soft hydrogel fits the neo-Hookean coefficient c₁ to a uniaxial compression test. With g(λ) computed, it is linear regression with everything from this module in it. We use a synthetic test so that every number below can be reproduced (Lab 5).'"
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "'Report the fit's RMS residual normalised by the largest measured stress (1.1% in Lab 5), a convention that makes fits to different specimens comparable, together with the strain range fitted over.'"
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "The lab's own measurement: 'Read as tension (λ = 1 + ε), the 0–20% compression data give c₁ = 12.97 kPa, 28.5% too high, with χ²_ν = 20.7; over the first 5% of strain the misread fit is clean (χ²_ν = 0.38) and already 8.7% high — a wrong model can fit well when the data cannot tell the difference.' The source's 20% figure depended on data that are not public."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "'A fitting routine should refuse inputs it cannot honour — a point without an uncertainty, stresses whose sign contradicts the declared loading direction, a fitted non-positive stiffness — and say why, instead of returning a number.' Lab 5 implements check_inputs with these refusals."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Exercise e14: 'In Lab 5's neo-Hookean fit over strains up to 20%, change the point at λ = 0.90 from −6.98 kPa to −8.00 kPa...', with the measured answers (c₁ 10.09 → 10.29 kPa, normalised residual −6.0, χ²_ν 0.71 → 6.4; with σ × 10, c₁ = 10.05)."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "'Module 02', 'Module 05' and so on, linked to the published module pages; links to the sibling AI Agents series where LLM-application evaluation is mentioned."
+  }
+ ],
+ "writer_notes": "RUNNING EXAMPLES. (1) The synthetic regression of the source (N = 200, d = 3, w = (1.5, −2.0, 0.5), b = 0.7, noise 0.1, default_rng(0)) in Sections 2–4 and Lab 1. (2) sin(2πx) with σ = 0.3 on a FIXED design x = linspace(0, 1, N) in Sections 8–9, Lab 3 and the polynomial widget; random x leaves gaps at the ends, high-degree variance then reaches 10¹³ and swamps every plot. (3) load_breast_cancer with malignant as the positive class in Sections 6–7 and Labs 2 and 4. (4) The hydrogel compression test in Sections 1, 5 and 12 and Lab 5. Engineering vocabulary (welds, cracks, pumps, specimens) for the metrics and leakage examples. All numbers in this outline were computed with the series lab environment (Python 3.11, NumPy 2.4, scikit-learn 1.9, SciPy 1.17); the expected outputs will be replaced by real runs later, so keep the seeds and draw orders exactly as specified.\n\nNOTATION. L(θ) is the MEAN loss (1/N)Σℓ everywhere. Least squares: H = (2/N)XᵀX, stability η < 2/λ_max(H), condition number κ = λ_max/λ_min. Ridge adds λ‖w‖² to the mean loss, giving (XᵀX + λNI)w = Xᵀy; MAP gives λ = σ²/(Nτ²); lasso adds λ‖w‖₁ and soft-thresholds at λ/2 for XᵀX = NI. Library mapping: Ridge α = λN, Lasso α = λ/2, LogisticRegression C = 1/(2Nλ). Use ½(p̂ − y)² for the squared-error-through-sigmoid comparison so its gradient is (p̂ − y)p̂(1 − p̂). λ has three jobs: eigenvalues (λ_i, λ_max, λ_min) in Sections 3–4, regularisation strength in Section 9 (write the eigenvalues of XᵀX there as s_i²), stretch in Section 12 (say so in that section). B is the mini-batch size only (BRIEF): the number of bootstrap replicates is R (as are Lab 3's Monte Carlo draws), the number of trees in a forest or boosted ensemble is M, and McNemar's discordant counts are n₁₀ (A right, B wrong) and n₀₁ (A wrong, B right), because b is already the intercept and the Laplace scale. The Gent parameter is β = 1/J_m; neo-Hookean is β = 0; μ = 2c₁ and E = 6c₁. Use Unicode-light LaTeX consistent with 00-README: bold lower-case vectors, bold upper-case matrices, natural logarithms.\n\nDEPARTURES FROM THE EDITOR'S SUGGESTIONS, AND WHY. (a) SGD (Section 4) comes straight after gradient descent on the quadratic, so Lab 1 covers closed form, GD and SGD after its own reading; the stability bound is derived in Section 3, where the quadratic is. (b) Metrics (Section 7) follow logistic regression directly, so Lab 2 measures what it builds; basic k-fold cross-validation sits in Section 8 so Lab 3 can use it; nested CV, leakage and bootstrap intervals are Section 10. Consequently the editor's labs 2 and 3 are swapped: Lab 2 is logistic regression with metrics, Lab 3 is polynomials. (c) The engineering case generates its data from a Gent material, so the neo-Hookean fit is clean in range and visibly wrong beyond it; this makes residual analysis and extrapolation risk measurable, and the Gent fit makes nonlinear least squares necessary (the neo-Hookean model alone is linear in c₁). (d) The claim that gradient boosting is the baseline to beat is tested in exercise e13, which includes a dataset (load_diabetes) where ridge wins; do not state the claim without that qualification. (e) The probability refresher opens Section 5, where likelihoods first appear; Section 2 introduces least squares geometrically.\n\nCROSS-MODULE LINKS. Module 02: backpropagation, the gradient-check habit, momentum, Adam and AdamW, learning-rate schedules and the range test, log-sum-exp, Huber loss, dropout, early stopping and weight decay for networks. Module 03: data augmentation. Module 05: autoencoders as nonlinear PCA, unsupervised neural methods. Module 06: token embeddings — link Module 06, Section 4, where the token embedding enters the residual stream (Section 11 counts its V × d table); Module 06 has nothing on embeddings of other categorical features, so s1 states in one sentence that an embedding table works the same way for any categorical feature. Module 07: the language model as a softmax classifier over its vocabulary, perplexity as exp(cross-entropy), calibration of LLMs. Modules 02, 07 and 09 recall this module's ECE (s7) and its standard errors, paired bootstrap and McNemar's test (s10) in one line and link here. The case-study model of Modules 07–10 appears once, in s1's worked example (b): about 9.5 billion parameters, hypothetical, no other details. Module 08: batch size at scale. Module 09: reinforcement learning. AI Agents series (../agent/index.html): evaluation of LLM applications, mentioned once in Section 10. Keep one-paragraph reminders, not repetitions.\n\nTRAPS. scikit-learn's breast-cancer target codes malignant as 0: flip it. LogisticRegression's default tol=1e-4 leaves coefficient differences of 0.016 against a converged NumPy solution; use tol=1e-8 when comparing. For logistic regression the bound η < 2/L is sufficient, not necessary (η = 5 still works); do not present it as exact. Use the Legendre basis legvander(2x − 1, d): with standardised monomials even α = 1e-10 already regularises, so the ridge path never shows its overfitting end. The Monte Carlo bias² is inflated by variance/R (0.005 at degree 15 with R = 200); say so where Lab 3 compares it with the exact values. R² on forward-chaining folds can be negative; prefer RMSE when comparing splitting schemes. On the build machine HistGradientBoosting slowed a hundredfold under OpenMP contention; one fit normally takes about 0.1 s, so if it is slow, set OMP_NUM_THREADS to 1 or 2. Double descent is a phenomenon under specific conditions (interpolating fits, minimum-norm solutions), not a law; the U-shaped curve remains the default expectation for classical models. McNemar's χ² form (n₁₀ − n₀₁)²/(n₁₀ + n₀₁) overstates the evidence at moderate counts (24 against 12 gives p = 0.046 against an exact 0.065): compute the exact test with scipy.stats.binomtest and present the χ² form only as the large-count approximation. Every figure that shows data comes from a lab's code; schematic figures (fig-01-1, -2, -16, -17, -18, -20, -21) are drawn as SVG.\n\nPUBLIC-SITE RULES. No reference to the private source repository (see generalised_refs). Present all engineering examples as generic and synthetic. Dates: only the tool landscape in Section 11 needs 'as of 2026'.\n\nOWNERSHIP. This module is the series' reference for expected calibration error (s7: the binary and top-label forms, the effect of binning, the upward bias on small samples, the calibrated-but-useless constant predictor, worked numbers) and for the standard error of a test metric, test-set sizing, the percentile, paired and cluster bootstrap, and McNemar's test (s10: exact and χ² forms, worked numbers). Write the full definitions here; Modules 07 and 09 replace their re-derivations with a one-line recall and a link. In Lab 4 the paired bootstrap excludes zero while McNemar's exact test does not reject (five discordant cases): explain the disagreement, do not hide it; Module 09's Lab 6 meets the same situation and points back here.\n\nEXERCISES AND CHECKS. No exercise reuses a worked example's numbers and no check gives an exercise away: e5, e7, e8(d), e11, e12 and e15 were changed for that reason, and s1's second check uses an ordinal severity scale because e2(a) asks about an unordered grade. ★ means conceptual (about 5 minutes) and every calculation is ★★: e5 is the one former ★ calculation regraded to ★★ (10 minutes); e11, e12 and e15 are now conceptual and must stay free of arithmetic. The exercises total 130 minutes, the top of the allowed range, so an added exercise must replace one.\n\nSECTION LENGTHS AND SESSIONS. s11 is a tour at about 1,800 words: roughly 200 for k-NN and the curse of dimensionality, 450 for trees, forests and boosting, 400 for kernels and SVMs (kernel ridge derived from ridge, as the must-cover item says), 100 for Gaussian processes, 300 for k-means and PCA, and the rest for neural networks, no free lunch and the comparison table. s3 has seven must-cover items and s12 six; do not add items while drafting. Session 3 places exercise e7 between Sections 8 and 9 so that no reading block runs past about 40 minutes.\n\nTERMS (zh). Follow GLOSSARY.md: logits and mini-batch stay in English (逻辑值 reads as 'Boolean value'; 小批量 breaks the rule for batch); batch size is batch 大小; compounds take an ASCII hyphen (偏差-方差权衡, 精确率-召回率曲线); kernel in this module is 核函数; statistical inference is 统计推断."
+}

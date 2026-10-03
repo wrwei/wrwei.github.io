@@ -1,0 +1,1508 @@
+{
+ "module": 4,
+ "title": "Recurrent networks and sequences",
+ "title_em": "sequences",
+ "lead": "Recurrent networks built from the equations up: the state, backpropagation through time and why its gradients vanish, the LSTM and GRU that fixed it, honest forecasting and monitoring of engineering sensor streams, the encoder–decoder whose bottleneck produced attention, and why the transformer replaced recurrence before linear recurrences and state-space models brought it back.",
+ "prerequisites": [
+  "Module 01: the supervised set-up, squared-error and cross-entropy losses, linear regression by least squares, honest evaluation with leakage, and the rule that every number carries its baseline.",
+  "Module 02: backpropagation with error signals, initialisation, Adam and AdamW, gradient clipping, dropout, layer normalisation and debugging a training run.",
+  "Module 03: 1D and dilated convolution, receptive-field arithmetic and residual connections.",
+  "Linear algebra: eigenvalues and eigenvectors, diagonalisation, singular values and the spectral norm.",
+  "Calculus: the multivariate chain rule and Jacobian matrices.",
+  "Complex numbers: modulus, argument and $e^{i\theta}$, for Section 13 only.",
+  "Probability: the softmax, categorical distributions and the log-likelihood.",
+  "Python with NumPy, and basic PyTorch: tensors, autograd, `nn.Module` and a training loop."
+ ],
+ "outcomes": [
+  "Write the vanilla RNN with its shapes, unroll it, and count its parameters for given sizes, including PyTorch's double-bias convention.",
+  "Derive backpropagation through time for a vanilla RNN and compute a three-step gradient by hand that agrees with finite differences.",
+  "Predict from a recurrent matrix's eigenvalues and singular values, and from the nonlinearity, whether gradients vanish or explode over a given lag, and say what clipping and orthogonal initialisation do and do not fix.",
+  "Write the LSTM and GRU equations, show why the cell state's additive update preserves the gradient, and set the forget-gate bias $b_f$ in PyTorch for a target memory half-life $\\ln 0.5/\\ln\\sigma(b_f)$.",
+  "Implement and gradient-check a character-level RNN in NumPy, and diagnose from its samples which structure it has and has not learned.",
+  "Evaluate a forecaster with walk-forward validation against naive, seasonal-naive and linear baselines, find and fix time leakage and level drift, and choose between recursive and direct multi-step forecasting.",
+  "Build a residual-based monitor for a sensor stream, set its thresholds on held-out normal data, and match a detector to each fault type.",
+  "Build an encoder–decoder with Bahdanau attention, train it with teacher forcing, decode it greedily and with beam search, and read its alignment plot.",
+  "Explain with numbers why the transformer replaced recurrent networks (parallelism and path length) and what recurrence keeps (a constant per-token state).",
+  "Show that a linear time-invariant recurrence is a convolution with kernel $\\mathbf{C}\\mathbf{A}^k\\mathbf{B}$, compute its zero-order-hold discretisation, and explain how Mamba's input-dependent step $\\Delta_t$ turns it back into a gated recurrence."
+ ],
+ "software": [
+  "Python 3.11 or later.",
+  "NumPy.",
+  "PyTorch 2.x; the CPU build is enough for every lab.",
+  "matplotlib.",
+  "SciPy, optional, for the normal tail probabilities of Exercise 8.",
+  "Optional: Google Colab as a free GPU; no lab needs one."
+ ],
+ "sessions": [
+  {
+   "n": 1,
+   "title": "State and its gradient",
+   "activities": [
+    {
+     "what": "Read Sections 1–2: sequences and their tasks, and the recurrent network.",
+     "kind": "read",
+     "minutes": 32,
+     "refs": [
+      "s1",
+      "s2"
+     ]
+    },
+    {
+     "what": "Exercise 1: task shapes and causality.",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e1"
+     ]
+    },
+    {
+     "what": "Read Section 3: backpropagation through time.",
+     "kind": "read",
+     "minutes": 20,
+     "refs": [
+      "s3"
+     ]
+    },
+    {
+     "what": "Exercise 2: backpropagation through time by hand.",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e2"
+     ]
+    },
+    {
+     "what": "Lab 1: a character-level RNN from scratch in NumPy.",
+     "kind": "lab",
+     "minutes": 40,
+     "refs": [
+      "lab1"
+     ]
+    },
+    {
+     "what": "Read Section 4 with the gradient-flow explorer: vanishing and exploding gradients.",
+     "kind": "read",
+     "minutes": 21,
+     "refs": [
+      "s4"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "title": "Gates and memory",
+   "activities": [
+    {
+     "what": "Guided reading: Pascanu, Mikolov and Bengio (2013) on the difficulty of training recurrent networks.",
+     "kind": "papers",
+     "minutes": 20,
+     "refs": [
+      "reading"
+     ]
+    },
+    {
+     "what": "Exercise 3: what clipping does and does not fix.",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e3"
+     ]
+    },
+    {
+     "what": "Read Sections 5–6: the LSTM, and the GRU, stacking and bidirectional networks.",
+     "kind": "read",
+     "minutes": 36,
+     "refs": [
+      "s5",
+      "s6"
+     ]
+    },
+    {
+     "what": "Lab 2: watching gradients vanish, and the LSTM that does not.",
+     "kind": "lab",
+     "minutes": 40,
+     "refs": [
+      "lab2"
+     ]
+    },
+    {
+     "what": "Exercises 4–5: the LSTM cell path and forget bias, and parameter counts.",
+     "kind": "exercises",
+     "minutes": 20,
+     "refs": [
+      "e4",
+      "e5"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "title": "Forecasting and monitoring",
+   "activities": [
+    {
+     "what": "Read Section 7: training recurrent networks in practice.",
+     "kind": "read",
+     "minutes": 14,
+     "refs": [
+      "s7"
+     ]
+    },
+    {
+     "what": "Exercise 6: padding and state.",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e6"
+     ]
+    },
+    {
+     "what": "Read Section 8: forecasting time series honestly.",
+     "kind": "read",
+     "minutes": 21,
+     "refs": [
+      "s8"
+     ]
+    },
+    {
+     "what": "Exercise 7: a leakage audit.",
+     "kind": "exercises",
+     "minutes": 5,
+     "refs": [
+      "e7"
+     ]
+    },
+    {
+     "what": "Read Section 9: monitoring sensor streams with forecast residuals.",
+     "kind": "read",
+     "minutes": 14,
+     "refs": [
+      "s9"
+     ]
+    },
+    {
+     "what": "Lab 3: forecasting and monitoring a sensor stream.",
+     "kind": "lab",
+     "minutes": 50,
+     "refs": [
+      "lab3"
+     ]
+    },
+    {
+     "what": "Exercise 8: false-alarm arithmetic.",
+     "kind": "exercises",
+     "minutes": 10,
+     "refs": [
+      "e8"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "title": "Encoder, decoder and attention",
+   "activities": [
+    {
+     "what": "Read Sections 10–11: sequence to sequence, and attention.",
+     "kind": "read",
+     "minutes": 34,
+     "refs": [
+      "s10",
+      "s11"
+     ]
+    },
+    {
+     "what": "Lab 4: sequence to sequence with attention.",
+     "kind": "lab",
+     "minutes": 35,
+     "refs": [
+      "lab4"
+     ]
+    },
+    {
+     "what": "Guided reading: Bahdanau, Cho and Bengio (2015), the paper that introduced attention.",
+     "kind": "papers",
+     "minutes": 15,
+     "refs": [
+      "reading"
+     ]
+    },
+    {
+     "what": "Read Section 12: why the transformer replaced recurrence.",
+     "kind": "read",
+     "minutes": 12,
+     "refs": [
+      "s12"
+     ]
+    },
+    {
+     "what": "Exercises 9–12: exposure bias, beam search by hand, attention by hand, and parallelism against state growth.",
+     "kind": "exercises",
+     "minutes": 30,
+     "refs": [
+      "e9",
+      "e10",
+      "e11",
+      "e12"
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "title": "What came back, and review",
+   "activities": [
+    {
+     "what": "Read Section 13 with the SSM kernel explorer: linear recurrences and state-space models.",
+     "kind": "read",
+     "minutes": 21,
+     "refs": [
+      "s13"
+     ]
+    },
+    {
+     "what": "Lab 5: a diagonal linear recurrence against an RNN and an LSTM.",
+     "kind": "lab",
+     "minutes": 25,
+     "refs": [
+      "lab5"
+     ]
+    },
+    {
+     "what": "Guided reading: Gu and Dao (2023), Mamba.",
+     "kind": "papers",
+     "minutes": 15,
+     "refs": [
+      "reading"
+     ]
+    },
+    {
+     "what": "Exercises 13–15: an SSM kernel and its discretisation, choosing a model, and a TCN against the LSTM.",
+     "kind": "exercises",
+     "minutes": 40,
+     "refs": [
+      "e13",
+      "e14",
+      "e15"
+     ]
+    },
+    {
+     "what": "Self-check quiz of 12 questions.",
+     "kind": "quiz",
+     "minutes": 15,
+     "refs": [
+      "quiz"
+     ]
+    },
+    {
+     "what": "Review the what-goes-wrong list, the summary and the key terms, and return to any check you missed.",
+     "kind": "review",
+     "minutes": 10,
+     "refs": [
+      "wrong",
+      "summary",
+      "terms"
+     ]
+    }
+   ]
+  }
+ ],
+ "sections": [
+  {
+   "id": "s1",
+   "title": "Sequences and the tasks on them",
+   "minutes": 15,
+   "target_words": 1000,
+   "purpose": "Define sequence data and the four task shapes, separate online (causal) from offline tasks, and show why a fixed-window MLP is the wrong default.",
+   "must_cover": [
+    "What makes data sequential: order carries meaning, lengths vary, and dependencies sit at different lags (a vibration sample depends on the excitation a few samples earlier and on an operating mode set hours earlier). Examples: a monitored asset's sensor stream, the observation series of a digital twin, an event or maintenance log, a sentence as characters or tokens, the frames of a time-lapse.",
+    "Notation: x_{1:T} = (x_1, ..., x_T) with x_t in R^{d_in}; targets y_t; batches have shape (B, T, d); T varies between examples.",
+    "Four task shapes, each with an engineering example: many-to-one (classify a whole 10-minute pump recording; loss on the last output only); aligned many-to-many (label every second as normal/fault; forecast the next value at every step); sequence-to-sequence with different lengths (turn a free-text maintenance note into fault codes; translate), which needs the encoder-decoder of Section 10; one-to-many (generate a synthetic trace from an initial condition, sample a log line).",
+    "Online (causal) versus offline: may y_t depend on x_{>t}? Forecasting and monitoring must be causal; labelling a recorded sequence need not be. This decides whether a bidirectional network is allowed (Section 6) and is the source of a classic leak (Section 8).",
+    "The autoregressive factorisation p(x_{1:T}) = prod_t p(x_t | x_{<t}): a model that predicts the next element is a generative model of sequences; trained by summing per-step cross-entropies or squared errors. It is the language-modelling objective of Module 07 and the one-step forecast of Section 8.",
+    "Why a fixed-window MLP is not enough (the source's argument, made quantitative): the window length w is a guess and anything older is invisible; every window position has its own weights, so a pattern learned at position 3 must be relearned at position 7; the first layer grows linearly with w.",
+    "Two inductive biases of recurrence: stationarity (one update rule at every step: weight sharing across time, the analogue of a convolution's translation equivariance in Module 03) and a state (a fixed-size summary of the past). A 1D convolution also shares weights across time but sees a fixed window; a recurrence's receptive field is unbounded in principle.",
+    "Engineering reading: a recurrent network is a learned discrete-time nonlinear state-space model, h_t = f(h_{t-1}, x_t), y_t = g(h_t), the same form as x_{k+1} = f(x_k, u_k) in control. Anyone who has written a Kalman filter has written a recurrence by hand; the RNN learns f and g from data.",
+    "A preview table to be completed in Section 12: window MLP, 1D CNN/TCN, RNN, attention, compared by receptive field, weight sharing and cost."
+   ],
+   "worked_examples": [
+    "Parameter counts: an MLP reading the last w = 64 values of a univariate signal into 32 hidden units needs 64·32 + 32 = 2,080 first-layer parameters; at w = 1,000 it needs 32,032. A recurrent layer with d_in = 1 and H = 32 needs 32·(32 + 1 + 1) = 1,088 parameters (one bias vector) for any sequence length; PyTorch's nn.RNN(1, 32) reports 1,120 because it keeps two bias vectors (Section 2)."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-1",
+     "description": "Four task shapes side by side, each drawn as a row of input boxes x_1..x_T (bottom), a row of recurrent cells (middle) and output boxes (top): many-to-one (single output above the last cell, labelled 'fault class'); aligned many-to-many (an output above every cell, labelled 'next value' or 'normal/fault'); sequence-to-sequence (an encoder row feeding a decoder row of different length, labelled 'note -> fault codes'); one-to-many (one input, outputs fed back as next inputs, labelled 'generate a trace'). A small 'causal / offline' tag under each."
+    },
+    {
+     "id": "fig-04-2",
+     "description": "Left: a window MLP whose 64 input positions each connect to the hidden layer with weights drawn in a different colour per position (annotated '2,080 parameters at w = 64; 32,032 at w = 1,000'). Right: one recurrent cell applied at every step with the same-coloured weights W_x, W_h (annotated '1,088 parameters for any T'). A dashed box on the left marks 'everything before the window is invisible'."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "A model must flag each second of a recorded flight-test vibration trace as normal or flutter after the flight. Which task shape, and may y_t depend on later inputs? -> Aligned many-to-many (sequence labelling); the task is offline, so yes, and a bidirectional model is allowed.",
+    "Why does doubling an MLP forecaster's window double its first-layer parameters while a recurrent layer's count is unchanged? -> The MLP has separate weights for every window position; the recurrent layer applies the same weights at every step."
+   ],
+   "from_source": "Section 1 (the examples: sensor stream, sentence, digital-twin observation series, cell-culture frames; the fixed-window argument; the three task shapes); Section 5's list of uses (forecasting, sequence labelling, language modelling).",
+   "new_material": "Notation; the fourth (one-to-many) shape; the online/offline distinction; the autoregressive factorisation; the parameter-count example; the state-space reading; the comparison table preview."
+  },
+  {
+   "id": "s2",
+   "title": "The recurrent network",
+   "minutes": 17,
+   "target_words": 1200,
+   "purpose": "Define the vanilla (Elman) recurrent network precisely, with shapes, unrolling, a forward pass computed by hand, parameter counts, and the character-level language model used in Lab 1.",
+   "must_cover": [
+    "Equations (from the source): h_t = φ(W_h h_{t-1} + W_x x_t + b), y_t = W_y h_t + c, φ = tanh by default, h_0 = 0 (or a learned vector). Shapes: h_t in R^H, x_t in R^{d_in}, W_h in R^{H×H}, W_x in R^{H×d_in}, W_y in R^{d_out×H}. Name it the Elman network (Elman 1990).",
+    "Batched form in the (B, T, d) layout with row vectors: H_t = φ(H_{t-1} W_h^T + X_t W_x^T + b); one loop over t, two matrix multiplies per step.",
+    "The same weights at every step; unrolled over T steps the network is a T-layer feed-forward network whose layers share weights (figure). Training is backpropagation through that unrolled graph (Section 3).",
+    "Parameter count H(H + d_in + 1) + d_out(H + 1); PyTorch's nn.RNN keeps two bias vectors b_ih and b_hh that simply add (kept for compatibility with cuDNN), so its recurrent part has H(H + d_in + 2).",
+    "Loss: L = sum_t L_t(y_t, target_t) for aligned tasks (often averaged over steps and batch); only L_T for many-to-one.",
+    "The character-level language model: x_t is a one-hot vector over V characters (implemented as a column lookup of W_x, or an embedding), y_t are logits over the next character, loss = mean cross-entropy in nats per character (divide by ln 2 for bits). At initialisation the loss should be about ln V, Module 02's sanity check. Perplexity belongs to Module 07; stay with nats per character here.",
+    "Sampling with temperature: draw x_{t+1} from softmax(y_t / τ) and feed it back; τ < 1 sharpens towards the most probable character, τ > 1 flattens. Generation is the one-to-many shape of Section 1.",
+    "What the state does, in the scalar case (worked example): a small recurrent weight forgets geometrically; a large one latches into saturation. Both settings already shrink the local derivative factors w(1 - h_t^2) that Section 3 multiplies together.",
+    "Context: recurrent networks of the 1990s; the 2013-2015 revival in handwriting and character-level text generation (Graves 2013; Karpathy's 2015 essay on character-level models), the direct ancestors of the language models of Module 07."
+   ],
+   "worked_examples": [
+    "Scalar RNN h_t = tanh(w h_{t-1} + u x_t), u = 1, b = 0, h_0 = 0, input pulse x = (1, 0, 0). With w = 0.5: h = (0.7616, 0.3634, 0.1797), the memory of the pulse roughly halves each step; local factors w(1 - h_t^2) = (0.210, 0.434, 0.484). With w = 2: h = (0.7616, 0.9093, 0.9487), the state latches near 1 (remembered, but saturated); local factors (0.840, 0.347, 0.200).",
+    "Lab 1's model: V = 37 characters, H = 128: W_x 128×37 = 4,736; W_h 128×128 = 16,384; b 128; W_y 37×128 = 4,736; c 37; total 26,021 parameters. Initial loss ln 37 = 3.611 nats per character."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-3",
+     "description": "Left: a folded recurrent cell (a box labelled tanh) with input x_t below, output y_t above and a self-loop labelled W_h carrying h_{t-1} back in. Right: the same cell unrolled over four steps, h_0 entering from the left, arrows h_1 -> h_2 -> h_3 -> h_4, every horizontal arrow labelled W_h, every vertical input arrow W_x and output arrow W_y (same labels everywhere to show sharing), and a per-step loss L_t above each output feeding a sum L."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "An RNN has d_in = 10 and H = 64 with one bias vector. How many recurrent-layer parameters, and how does that change when the sequence length doubles? -> 64·(64 + 10 + 1) = 4,800; unchanged.",
+    "A freshly initialised character model over 37 symbols reports a first loss of 7.2 nats. What does that suggest? -> A bug or a bad initialisation: the loss should be near ln 37 = 3.61; the output layer starts overconfident (initial weights too large) or the loss is summed rather than averaged."
+   ],
+   "from_source": "Section 1's equations and the unrolling paragraph; Section 5's language-modelling bullet (predict the next character or word; sample from the model to generate; the character-level LSTMs of 2015 as the direct ancestors of the language models of Module 07).",
+   "new_material": "Shapes and the batched form; the parameter formula and PyTorch's double bias; the scalar forward pass by hand; the ln V check and temperature; Lab 1's parameter count; historical context."
+  },
+  {
+   "id": "s3",
+   "title": "Backpropagation through time",
+   "minutes": 20,
+   "target_words": 1300,
+   "purpose": "Derive BPTT for the vanilla RNN, show the parameter gradient as a sum over time of products of Jacobians, and introduce truncated BPTT with its memory arithmetic.",
+   "must_cover": [
+    "Set-up: L = sum_t L_t; z_t = W_h h_{t-1} + W_x x_t + b; h_t = φ(z_t); y_t = W_y h_t + c.",
+    "Define δ_t = ∂L/∂h_t, the total derivative through y_t and through h_{t+1}. Backward recursion (column-vector gradients): δ_t = W_y^T ∂L_t/∂y_t + W_h^T (φ'(z_{t+1}) ⊙ δ_{t+1}), with the second term absent at t = T. The pre-activation error g_t = ∂L/∂z_t = φ'(z_t) ⊙ δ_t is Module 02's error signal with layers replaced by time steps.",
+    "Parameter gradients are sums over time because the weights are shared: ∂L/∂W_h = sum_t g_t h_{t-1}^T; ∂L/∂W_x = sum_t g_t x_t^T; ∂L/∂b = sum_t g_t; ∂L/∂W_y = sum_t (∂L_t/∂y_t) h_t^T. Same outer-product form as in Module 02.",
+    "Unroll the recursion: with Jacobian J_k = ∂h_k/∂h_{k-1} = diag(φ'(z_k)) W_h, the contribution of L_T to the state at step t is ∂L_T/∂h_t = J_{t+1}^T J_{t+2}^T ... J_T^T ∂L_T/∂h_T. State the convention explicitly (the source's formula places the transpose inside the product with the factors in the wrong order for column gradients).",
+    "Hence ∂L/∂W_h is a double sum over loss steps T and earlier steps t ≤ T of terms each containing a product of T - t Jacobians: short-range terms (few factors) and long-range terms (many factors). Section 4 is about the long-range ones.",
+    "Cost: forward and backward each take about B·T·H^2 multiply-adds per layer for the recurrent part; the backward pass is sequential in t like the forward; memory O(B·T·H) to keep every h_t (and z_t) for the backward pass.",
+    "Real-time recurrent learning (Williams and Zipser 1989) as the forward-mode alternative: carry ∂h_t/∂θ forward, no storage of the past, but O(H^4) work per step for a full matrix W_h; why it is not used at scale (one paragraph).",
+    "Truncated BPTT (from the source): cut the sequence into chunks of k steps and carry the state forward without gradient across chunk boundaries (h = h.detach() in PyTorch). Memory O(B·k·H) instead of O(B·T·H). The cost: a dependency longer than k never receives a gradient directly, although information can still flow forward through the carried state. Mention the k1/k2 variant (update every k1 steps, backpropagate k2 steps) in one sentence.",
+    "Units, stated once for the module at its first memory figure: memory sizes are decimal (1 kB = 10^3 B, 1 MB = 10^6 B, 1 GB = 10^9 B); binary units are written KiB, MiB and GiB (1 GiB = 2^30 B) and given in brackets where a size is a power of two or recurs in another module.",
+    "Gradient checking a recurrent network: central differences on a tiny model in float64; relative errors around 1e-6 to 1e-9 mean the backward pass is right; above 1e-4 means a bug (Lab 1 step 5)."
+   ],
+   "worked_examples": [
+    "BPTT by hand for the scalar RNN of Section 2 (w = 0.5, u = 1, x = (1, 0, 0), h_0 = 0) with loss L = ½(h_3 - 0.5)^2: h = (0.7616, 0.3634, 0.1797), L = 0.0513. ∂L/∂h_3 = -0.3203; g_3 = -0.3203·(1 - 0.1797^2) = -0.3099; g_2 = g_3·w·(1 - h_2^2) = -0.1345; g_1 = g_2·w·(1 - h_1^2) = -0.02824. ∂L/∂w = g_3 h_2 + g_2 h_1 + g_1 h_0 = -0.1126 - 0.1024 + 0 = -0.2151; ∂L/∂u = g_1 x_1 = -0.02824. The only nonzero input entered two steps before the loss, so its gradient has passed through two Jacobian factors, 0.434 and 0.484 (product 0.21). Central differences give the same values to four digits.",
+    "Truncated BPTT memory: a stream of T = 100,000 sensor samples, batch B = 32, H = 256, float32. Storing every h_t for full BPTT takes 100,000·32·256·4 B = 3.28 GB for h alone (an LSTM keeps about six tensors of that size per step, about 20 GB). With chunks of k = 200 the same buffer is 6.55 MB."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-4",
+     "description": "The unrolled graph of fig-04-3 with forward arrows in grey and backward arrows in red: δ_t arriving from L_t (vertical) and from δ_{t+1} through W_h^T and φ' (horizontal). Below it, a strip showing ∂L/∂W_h as a sum of per-step outer products g_t h_{t-1}^T. A second panel shows a long stream cut into chunks of k steps with scissors icons at the boundaries: the state arrow continues across the cut (forward), the red gradient arrow stops at it ('detach')."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why are an RNN's parameter gradients sums over time steps? -> The same W_h, W_x and b are used at every step; the multivariate chain rule adds the contribution of each use.",
+    "With truncated BPTT of k = 25 steps, can the model use information from 50 steps ago? -> It can carry it in the state, but no gradient tells it to: dependencies longer than k are learned only indirectly, if at all (Lab 1's closing tag)."
+   ],
+   "from_source": "Section 2, first paragraph (BPTT is Module 02's backward pass with layers as time steps; the product-of-Jacobians formula) and the truncated-BPTT paragraph.",
+   "new_material": "The full derivation with the δ recursion and the parameter gradients; the corrected Jacobian convention; cost and memory; RTRL; the hand-worked numbers; the truncated-BPTT memory arithmetic; gradient checking."
+  },
+  {
+   "id": "s4",
+   "title": "Vanishing and exploding gradients",
+   "minutes": 21,
+   "target_words": 1300,
+   "purpose": "Explain quantitatively why the product of Jacobians vanishes or explodes, what the spectrum and the nonlinearity each contribute, and what clipping and initialisation do and do not fix.",
+   "must_cover": [
+    "Scalar linear case: ∂h_T/∂h_t = w^{T-t}; a table of w = 0.5, 0.9, 0.99, 1.01, 1.1, 2 at lags 10, 50, 100.",
+    "Linear vector case: for diagonalisable W_h = QΛQ^{-1}, repeated multiplication by W_h^T scales each eigen-component by λ_i^n: components with |λ_i| < 1 vanish, those with |λ_i| > 1 explode, and the gradient's direction turns towards the dominant eigenvector (it forgets where it came from). The spectral radius ρ(W) = max|λ_i| governs the long-run rate (Gelfand's formula, ||W^n||^{1/n} -> ρ).",
+    "Singular values give the bound: ||J_{t+1}^T ... J_T^T|| ≤ (γ σ_max(W_h))^{T-t} with γ = sup|φ'| (1 for tanh, 1/4 for the logistic sigmoid). Sufficient condition for vanishing: γ σ_max < 1. Necessary condition for exploding: γ σ_max > 1 (Pascanu, Mikolov and Bengio 2013).",
+    "Non-normal matrices (a short box): ρ < 1 with σ_max > 1 gives transient growth before decay. PyTorch's default nn.RNN initialisation for H = 64 has ρ ≈ 0.57 but σ_max ≈ 1.10 (measured in Lab 2).",
+    "The nonlinearity: J_k = diag(φ'(z_k)) W_h with tanh' ≤ 1, equal to 1 only at z = 0. Saturation multiplies in small factors, so even an orthogonal W_h (all singular values exactly 1) loses gradient once units leave the linear region; with tanh, explosion needs ρ well above 1 (the chaotic regime). Quote the widget's default numbers.",
+    "Why vanishing is worse than it looks: the gradient on W_h sums short- and long-range terms; long-range terms are exponentially smaller, so learning is dominated by short-range correlations and the network is never told that a long dependency exists (Hochreiter's 1991 diploma thesis; Bengio, Simard and Frasconi 1994, whose experiments asked a network to latch a bit over growing delays). Lab 1's closing tag, 18-36 characters after the opening tag, is the concrete instance.",
+    "Exploding gradients make cliffs in the loss surface: one step proportional to a huge gradient throws the parameters far away (loss spikes, NaN).",
+    "Global-norm gradient clipping: if ||g|| > c then g <- (c/||g||) g; the direction is kept and the step bounded; c = 1 to 5 for recurrent networks (from the source; Module 02 gives the general rule). Clipping each component (value clipping) changes the direction. Clipping cures exploding gradients and does nothing for vanishing ones: it never enlarges a small gradient.",
+    "Initialisation: orthogonal W_h (Saxe, McClelland and Ganguli 2014) starts with all singular values 1; identity initialisation with ReLU units (Le, Jaitly and Hinton 2015); orthogonal or unitary constraints (Arjovsky, Shah and Bengio 2016) in one sentence. None removes the nonlinearity's factor or stops training from moving W_h. The structural fix is an additive path for the gradient (Section 5), the same remedy as the residual connection across depth in Module 03."
+   ],
+   "worked_examples": [
+    "Scalar factors: 0.5^50 = 8.9e-16; 0.9^50 = 5.2e-3; 0.99^50 = 0.605 and 0.99^500 = 6.6e-3; 1.01^100 = 2.70; 1.1^50 = 117; 2^50 = 1.1e15.",
+    "Symmetric W_h = [[0.8, 0.3], [0.3, 0.8]]: eigenvalues 1.1 and 0.5 with eigenvectors (1, 1)/√2 and (1, -1)/√2. Starting from g = (1, 0): after one step (0.8, 0.3); after 20 steps (3.364, 3.364), norm 4.76; after 50 steps (58.70, 58.70), norm 83.0. The 0.5-component has vanished (0.5^20 = 9.5e-7) and the gradient points along (1, 1). With tanh units sitting at |h| ≈ 0.6 (tanh' = 0.64) the per-step factor along that direction is 1.1·0.64 = 0.704 and the gradient vanishes instead: 0.704^20 = 8.9e-4, 0.704^50 = 2.4e-8.",
+    "Non-normal box: N = [[0.5, 1], [0, 0.5]] has ρ = 0.5 but σ_max = 1.207; ||N^n|| for n = 1..5: 1.207, 1.059, 0.770, 0.508, 0.316; n = 10: 0.0196.",
+    "Clipping: g = (3, 4), norm 5, c = 1 -> (0.6, 0.8). Value clipping of g = (30, 0.4) to [-1, 1] gives (1, 0.4), turning a direction 0.8° off the first axis into one 21.8° off it; norm clipping gives (0.99991, 0.01333), the same direction.",
+    "Widget defaults (H = 32, orthogonal W_h with ρ = 1, tanh, unit-variance inputs): the gradient ratio is 1.8e-2 at lag 10, 5.5e-11 at lag 50 and 5e-21 at lag 100 while the ρ^n reference line stays at 1; with inputs of standard deviation 0.1 (units near the linear region) it is still 1.3e-3 at lag 100. Orthogonal ρ = 1.5 with tanh still vanishes (1.3e-7 at lag 100); ρ = 3 explodes (5.5e8)."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-5",
+     "description": "Log-scale plot of the gradient factor w^n against lag n = 0..100 for w = 0.5, 0.9, 0.99, 1.01, 1.1 (five straight lines on log axes, labelled), with horizontal bands marking 'float32 underflow (below about 1e-38)' and 'useful learning signal (above about 1e-3)'."
+    },
+    {
+     "id": "fig-04-6",
+     "description": "A one-dimensional slice of a recurrent network's loss against one parameter: a gently sloping valley interrupted by a near-vertical wall (the cliff). Two arrows from a point at the foot of the wall: an unclipped gradient step that leaps far off the plot, and a clipped step of bounded length in the same direction that stays in the valley. Caption credits the picture to Pascanu et al. (2013)."
+    }
+   ],
+   "widget": "gradient-flow-explorer",
+   "checks": [
+    "With tanh units and a W_h whose largest singular value is 0.8, can gradients explode? -> No: every Jacobian has norm at most 1 × 0.8, so the product is at most 0.8^n.",
+    "Why does an orthogonal W_h not prevent vanishing gradients in a tanh RNN? -> The Jacobian also contains diag(tanh'(z)) ≤ 1; whenever units leave the linear region each step multiplies by factors below 1.",
+    "Which of clipping and orthogonal initialisation addresses which failure? -> Clipping bounds every update (exploding gradients); orthogonal initialisation starts the singular values at 1 (helps vanishing at the start); neither fixes vanishing once tanh saturates."
+   ],
+   "from_source": "Section 2, second paragraph (product of T - t matrices; largest singular value times the activation's derivative; vanishing versus exploding; clipping cures the second, the first is structural and is what the LSTM fixes); Section 6 ('Clip gradients at a global norm of 1 to 5. Always.'; 'Initialise W_h orthogonally'); Section 9 ('No gradient clipping; a loss of NaN at step 4,000'); exercise 1 (w = 0.5 and w = 2 at lag 50), which the first and last scalar factors of the worked example answer, so exercise e2 uses other values.",
+   "new_material": "The eigen-analysis and Gelfand's formula; the sufficient and necessary conditions with γ; non-normal transient growth; the nonlinearity's role with simulated numbers; why vanishing biases learning to short-range terms; the cliff; value versus norm clipping; initialisation variants; the widget."
+  },
+  {
+   "id": "s5",
+   "title": "The LSTM: an additive memory path",
+   "minutes": 21,
+   "target_words": 1450,
+   "purpose": "Present the LSTM equations, derive why the cell state's additive update preserves gradient, and give the practical facts that decide whether an LSTM trains: the forget-gate bias, PyTorch's conventions and the parameter count.",
+   "must_cover": [
+    "Motivation: give the gradient a path whose per-step factor the network chooses and can hold near 1, instead of a fixed matrix power times φ'.",
+    "Equations (from the source) with [h_{t-1}; x_t] concatenation: f_t, i_t, candidate c̃_t, cell update c_t = f_t ⊙ c_{t-1} + i_t ⊙ c̃_t, output gate o_t, h_t = o_t ⊙ tanh(c_t). W_f in R^{H×(H+d_in)}. Reading: forget = keep, input = write, output = read. Two states: c (the memory) and h (the output and working state).",
+    "Derivation: ∂c_t/∂c_{t-1} = diag(f_t) + terms through h_{t-1}, since f_t, i_t and c̃_t depend on h_{t-1} = o_{t-1} ⊙ tanh(c_{t-1}). Along the direct path ∂c_T/∂c_t = prod_{k=t+1}^{T} diag(f_k): numbers in (0, 1) chosen per step by the network, with no tanh derivative and no fixed matrix power. With f ≈ 1 the gradient passes unchanged: the constant error carousel. The paths through h can still vanish; the cell path carries long-range credit.",
+    "History, corrected: the 1997 LSTM (Hochreiter and Schmidhuber) had input and output gates and a self-connection of fixed weight 1 (the carousel); the forget gate was added by Gers, Schmidhuber and Cummins (2000) and is the form everyone uses. Peephole connections (gates that also see c) came soon after and are rarely used now. Greff et al. (2017) compared eight variants and found none significantly better than the standard LSTM, with the forget gate and the output activation the most important parts.",
+    "Forget-gate bias: σ(b_f) at initialisation is the default memory per step. b_f = 0 gives f ≈ 0.5, a half-life of one step, so the network starts with almost no memory (the source: 'forgets everything for the first thousand updates'). Half-life = ln 0.5 / ln σ(b_f). Jozefowicz, Zaremba and Sutskever (2015) found that a forget bias of 1 closed most of the gap between the LSTM and the GRU; chrono initialisation (Tallec and Ollivier 2018) sets b_f from the expected range of dependency lengths. The source calls it the single most useful LSTM trick.",
+    "PyTorch conventions (writers must get these exactly right): weight_ih_l0 stacks the gates in the order i, f, g, o (g is the candidate c̃); the two bias vectors bias_ih_l0 and bias_hh_l0 add, so the effective forget bias is bias_ih_l0[H:2H] + bias_hh_l0[H:2H]; nn.LSTM initialises every weight and bias from U(-1/√H, 1/√H), so the default forget bias is about 0.",
+    "Parameter count: 4H(H + d_in + 1) with one bias; PyTorch 4H(H + d_in) + 8H; four times a vanilla RNN's. Compute per step: four matrix-vector products of size H×(H + d_in), about 8H(H + d_in) FLOPs per sequence per step.",
+    "What the cells learn: in character models some cells track interpretable quantities such as position in a line or being inside a quotation (Karpathy, Johnson and Fei-Fei 2016); most do not.",
+    "Lab tie-in (expected numbers): with forget bias 0 an LSTM's gradient decays like a vanilla RNN's; with bias 3 it stays near 0.2 out to lag 100; on Lab 1's log the closing-tag accuracy after 2,500 updates is about 16% for a vanilla RNN, 75-79% for an LSTM with forget bias 0 and 93-99% with forget bias 1."
+   ],
+   "worked_examples": [
+    "One LSTM step with a scalar state: c_{t-1} = 1.0; pre-activations forget 2, input 0, candidate 1, output 0 give f = σ(2) = 0.8808, i = 0.5, c̃ = tanh(1) = 0.7616, o = 0.5. Then c_t = 0.8808·1.0 + 0.5·0.7616 = 1.2616 and h_t = 0.5·tanh(1.2616) = 0.5·0.8515 = 0.4258. Along the direct path ∂c_t/∂c_{t-1} = 0.8808.",
+    "Memory products over 20 and 100 steps (half-life in brackets): b_f = 0, f = 0.5: 9.5e-7 and 7.9e-31 (1.0 step); b_f = 1, f = 0.7311: 1.9e-3 and 2.5e-14 (2.2); b_f = 2, f = 0.8808: 0.079 and 3.1e-6 (5.5); b_f = 3, f = 0.9526: 0.378 and 7.8e-3 (14.3); b_f = 4, f = 0.9820: 0.696 and 0.163 (38.2); b_f = 5, f = 0.9933: 0.874 and 0.511 (103).",
+    "Parameter counts: nn.LSTM(1, 32) = 4·32·33 + 8·32 = 4,480. The source's two-layer forecaster nn.LSTM(1, 32, num_layers=2) adds a second layer reading 32 inputs: 4·32·64 + 256 = 8,448, total 12,928; with the Linear(32, 1) head, 12,961 (Lab 3 prints it)."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-7",
+     "description": "The LSTM cell. A horizontal line across the top carries c_{t-1} to c_t through a multiply node (× f_t) and an add node (+ i_t ⊙ c̃_t), drawn thick and highlighted as 'the additive path'. Below it, four small boxes σ, σ, tanh, σ compute f_t, i_t, c̃_t, o_t from [h_{t-1}; x_t]; a tanh on c_t is multiplied by o_t to give h_t. A red dashed arrow runs right-to-left along the top line labelled '∂c_t/∂c_{t-1} = diag(f_t)'."
+    },
+    {
+     "id": "fig-04-8",
+     "description": "Log-scale plot of prod f = σ(b_f)^n against n = 0..200 for b_f = 0, 1, 2, 3, 4, 5 (six lines), with the half-life of each marked by a dot where the line crosses 0.5, and a horizontal reference at 1e-3."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "What is ∂c_t/∂c_{t-1} along an LSTM's direct path, and why does it not vanish the way W_h^n does? -> diag(f_t): each factor is a gate value the network sets per step and can hold near 1, with no tanh derivative and no fixed matrix power.",
+    "You set nn.LSTM's bias_ih_l0[H:2H] = 1 and leave bias_hh_l0 at its default. What is the effective initial forget bias? -> About 1 plus a small U(-1/√H, 1/√H) term per unit, because the two bias vectors add."
+   ],
+   "from_source": "Section 3's LSTM equations and the paragraph 'The cell update is the point' (gradient with respect to c_{t-1} is f_t; the constant error carousel; forget-gate bias 1 or 2 as the most useful trick); Section 9 ('Forget gate bias at zero; the network forgets everything for the first thousand updates'); exercise 2's verification is carried out in Lab 2.",
+   "new_material": "The derivation including the h-paths; the corrected history (1997 carousel, 2000 forget gate, peepholes, Greff et al.); the half-life formula and table; PyTorch's gate order and double bias; parameter and FLOP counts; the worked step; the lab numbers."
+  },
+  {
+   "id": "s6",
+   "title": "The GRU, stacking and bidirectional networks",
+   "minutes": 15,
+   "target_words": 1050,
+   "purpose": "Present the GRU and compare it honestly with the LSTM, then the two ways recurrent layers are composed, stacking and bidirectionality, and when each is allowed.",
+   "must_cover": [
+    "GRU equations (from the source): update gate z_t, reset gate r_t, candidate h̃_t = tanh(W[r_t ⊙ h_{t-1}; x_t]), h_t = (1 - z_t) ⊙ h_{t-1} + z_t ⊙ h̃_t. The direct-path Jacobian diag(1 - z_t) is the same additive trick as the LSTM's cell, with one state instead of two.",
+    "Convention warning: Cho et al. (2014) and PyTorch write h_t = (1 - z_t) ⊙ n_t + z_t ⊙ h_{t-1} (z = keep); the source and this text use z as 'update'. They are the same model with z replaced by 1 - z. PyTorch also applies the reset gate after the hidden matrix multiply, n_t = tanh(W_in x_t + b_in + r_t ⊙ (W_hn h_{t-1} + b_hn)), a minor variant.",
+    "Engineering reading: a first-order low-pass filter (exponential moving average) whose time constant is set per unit and per step by the input; with constant z the memory half-life is ln 0.5 / ln(1 - z) steps.",
+    "Parameter count: 3H(H + d_in + 1) with one bias; PyTorch 3H(H + d_in) + 6H; three quarters of an LSTM's.",
+    "Evidence: comparable on most tasks (Chung et al. 2014); Jozefowicz et al. (2015), after searching thousands of recurrent architectures, found that setting the LSTM's forget-gate bias to 1 closed the gap between the LSTM and the GRU; the LSTM keeps an edge where exact counting or long precise memory matters (Weiss, Goldberg and Yahav 2018: LSTMs learn counting languages such as a^n b^n, GRUs in practice do not). Practical rule: GRU when parameters or speed are tight, LSTM by default; the plain tanh RNN is a textbook model (the source).",
+    "Stacking: layer l reads layer l-1's sequence of h_t; 2-4 layers are typical; dropout between layers; residual connections between stacked layers help deeper stacks (the 8-layer LSTM stacks of Google's 2016 translation system used them).",
+    "Bidirectional networks (Schuster and Paliwal 1997): one RNN reads forward, one backward, and their states are concatenated, [h_fwd_t; h_bwd_t] of width 2H, so each position sees its past and its future. Standard for sequence labelling and for encoders (Bahdanau's encoder, Section 11); unusable for forecasting or any online task, because it has read the future (the source).",
+    "For a many-to-one model on a bidirectional layer, the states that summarise the whole sequence are the forward state at the true last step and the backward state at the first step, not the last position of the concatenated output (whose backward half has seen one token). Lab 4's encoder does exactly this."
+   ],
+   "worked_examples": [
+    "GRU against LSTM: nn.GRU(1, 32) = 3·32·33 + 6·32 = 3,360 parameters against 4,480 for nn.LSTM(1, 32).",
+    "A bidirectional two-layer LSTM, nn.LSTM(16, 64, num_layers=2, bidirectional=True): layer 1 = 2 × [4·64·(16 + 64) + 8·64] = 2 × 20,992 = 41,984; layer 2 reads 2H = 128 inputs: 2 × [4·64·(128 + 64) + 512] = 2 × 49,664 = 99,328; total 141,312.",
+    "Leaky integrator: with a constant update gate z = 0.1, the half-life is ln 0.5 / ln 0.9 = 6.58 steps."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-9",
+     "description": "The GRU cell drawn in the same style as fig-04-7: h_{t-1} enters, splits into a path scaled by (1 - z_t) and a path through the reset gate r_t into the tanh candidate h̃_t scaled by z_t; the two are added to give h_t. The (1 - z_t) path is highlighted as the additive path."
+    },
+    {
+     "id": "fig-04-10",
+     "description": "A stacked bidirectional network over five time steps: two layers, each with a row of forward cells (arrows left to right) and a row of backward cells (arrows right to left); at each step the two states are concatenated (a small join symbol) and passed up to the next layer. At the right, a red cross over a 'forecast x_{t+1}' box with the caption 'the backward row has read x_{t+1}'."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Can a bidirectional GRU forecast tomorrow's bearing temperature? -> No: its backward pass reads inputs after the time being predicted, and at deployment those inputs do not exist.",
+    "Which states summarise the whole sequence in a bidirectional many-to-one model? -> The forward direction's state at the true last step and the backward direction's state at the first step."
+   ],
+   "from_source": "Section 3's GRU equations and verdict ('fewer parameters, comparable results; the LSTM keeps a slight edge on long, precise memory; the plain recurrence is used only in textbooks'); the 'Stacking and direction' paragraph; Section 9 ('A bidirectional model used for forecasting; it has read the future').",
+   "new_material": "The convention warning and PyTorch's reset-gate placement; the low-pass-filter reading; parameter counts; the evidence with citations; residual stacking; which states to use in a bidirectional many-to-one model."
+  },
+  {
+   "id": "s7",
+   "title": "Training recurrent networks in practice",
+   "minutes": 14,
+   "target_words": 1000,
+   "purpose": "Collect the engineering practice that decides whether a recurrent network trains: variable lengths, state handling, initialisation, regularisation, normalisation, clipping and debugging.",
+   "must_cover": [
+    "Variable lengths: pad to the batch maximum and mask the loss (and, later, attention scores); or pack (PyTorch pack_padded_sequence / pad_packed_sequence) so padded steps are not computed. Packing is essential for bidirectional layers: the backward direction must start at each sequence's true last step. Bucket sequences of similar length to waste less. For many-to-one, gather the state at each sequence's true last step.",
+    "A masked loss in one line: loss = (per_step_loss * mask).sum() / mask.sum().",
+    "State handling: stateless training resets h to 0 for every sequence (the default); stateful training carries h across consecutive chunks of one long stream (truncated BPTT), detaches it at chunk boundaries, resets it at stream boundaries and before evaluation, and keeps stream i in batch row i (Lab 1's layout). Carrying state across unrelated sequences teaches the model the batch order (the source).",
+    "Initialisation: orthogonal W_h (Section 4); forget-gate bias (Section 5); small output weights so the initial loss is about ln V or the target variance.",
+    "Regularisation: dropout on inputs and between layers, not on the recurrent connection unless the same mask is used at every step (variational dropout, Gal and Ghahramani 2016); dropping recurrent weights instead (DropConnect on W_h, as in the AWD-LSTM of Merity, Keskar and Socher 2018) in one sentence; weight decay; early stopping on a validation split (on the 3,700-character sonnet corpus of Lab 1's extension the validation loss is best after about 250 updates and then rises while the training loss keeps falling).",
+    "Normalisation: inputs per channel with training statistics (Module 01); per-window normalisation when the level drifts (Section 8); layer normalisation inside recurrent cells (Ba, Kiros and Hinton 2016) where activations drift; batch normalisation is awkward across time.",
+    "Clipping: global norm 1-5, always (Section 4); log the gradient norm, because a rising trend precedes a blow-up.",
+    "Optimiser: Adam or AdamW with a learning rate around 1e-3 to 3e-3 for small recurrent models (Module 02 owns optimisers).",
+    "Speed: on a GPU the fused cuDNN kernels behind nn.LSTM are far faster than a Python loop over nn.LSTMCell; on a CPU, small recurrent models are dominated by per-step overhead, so batch many sequences.",
+    "Debugging checklist: initial loss ≈ ln V (or the target variance); overfit one batch; gradient-check a tiny model (Lab 1); plot gradient norm against lag (Lab 2)."
+   ],
+   "worked_examples": [
+    "Padding: three sequences of lengths 50, 120 and 200 padded to 200 have 370 real positions out of 600, so 38% of the computation is padding. With an unmasked mean loss the padding positions are trained on and the short sequences' real steps carry less weight; with packing the network executes only the 370 real steps."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-11",
+     "description": "Top: a padded batch as a 3 × 8 grid of cells (lengths 2, 5, 8 drawn to scale for 50, 120, 200), real cells filled, padding hatched, with the mask matrix of ones and zeros beside it. Middle: the same batch packed by time step, columns of decreasing height (3, 3, 2, 2, 2, 1, 1, 1 sequences active). Bottom: one long stream cut into chunks for stateful training, with the state arrow passing between chunks and a 'detach' mark at each boundary, and a 'reset' mark at the stream's end."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "A bidirectional encoder is trained on zero-padded batches without packing and then tested on unpadded inputs; short inputs suddenly fail. Why? -> In training the backward direction read the padding before the real tokens; at test it starts on a real token, a state it never saw. Pack the sequences (Lab 4).",
+    "Where can dropout go in an LSTM without damaging its memory? -> On inputs and between layers; on the recurrent connection only with the same mask at every step (variational dropout)."
+   ],
+   "from_source": "Section 6 'Practicalities' (variable lengths with masks or packed sequences; clip at 1-5; orthogonal initialisation; dropout on inputs and between layers, variational form; state handling; normalise inputs with training statistics) and Section 9 ('State carried across unrelated sequences; the model learns the batch order').",
+   "new_material": "Packing for bidirectional encoders with the Lab 4 bug as the example; bucketing; gathering the last real state; the stateful layout; DropConnect; layer normalisation; the debugging checklist; the padding arithmetic."
+  },
+  {
+   "id": "s8",
+   "title": "Forecasting time series honestly",
+   "minutes": 21,
+   "target_words": 1450,
+   "purpose": "Set up forecasting as supervised learning on windows and teach the evaluation discipline that makes its numbers trustworthy: time-ordered splits, walk-forward validation, baselines, per-window normalisation and the multi-step strategies.",
+   "must_cover": [
+    "Framing: from a series x_1..x_N build windows x_{t-W+1..t} with targets x_{t+1} (one step) or x_{t+1..t+h} (h steps); window W, horizon h, stride 1. Exogenous inputs (operating conditions, set-points, known schedules) are extra channels; a multivariate series has shape (B, T, channels).",
+    "Four leaks in time: (1) shuffling overlapping windows before a random split, so near-copies of test windows sit in training (adjacent windows share W - 1 values) and the 'forecast' is interpolation (the source); (2) normalisation statistics from the whole series; (3) features computed with future data (centred moving averages, a bidirectional model); (4) choosing hyperparameters or the stopping epoch on the test period. Module 01's rule: split by the unit that will be new at deployment; here that is the future.",
+    "Walk-forward (rolling-origin) validation: an expanding or sliding training window, a validation block after it, refit, move the origin forward, repeat; leave a gap of at least h between the last training target and the first validation input when h > 1; report the mean and spread over folds (Tashman 2000; Hyndman and Athanasopoulos).",
+    "Baselines: naive or persistence (x̂_{t+h} = x_t, 'tomorrow equals today'); seasonal naive (the same phase one period earlier); a linear autoregression fitted by least squares on the same windows (Module 01's linear regression: the strongest cheap baseline, and the optimal predictor for a linear system with Gaussian noise); the training mean. A scale-free score: MASE = test MAE divided by the in-sample MAE of the one-step naive (or seasonal naive) forecast (Hyndman and Koehler 2006); MASE < 1 beats the naive forecast's in-sample accuracy.",
+    "Normalising per series and per window: z-scoring with training statistics is not enough when the level drifts, because a network cannot extrapolate to a level it never saw. The source's own code is the example (worked example below). Fixes: subtract each window's last value (or mean) from its inputs and add it back to the output; difference the series; reversible instance normalisation (RevIN, Kim et al. 2022); with many series, normalise each by its own statistics.",
+    "Multi-step strategies: recursive (iterate a one-step model, feeding predictions back: errors compound, the forecasting form of exposure bias in Section 10); direct (one model per horizon, or one multi-output model that predicts all h steps at once); hybrids (Ben Taieb et al. 2012). For a least-squares linear model with a long window the two coincide (Lab 3 prints identical numbers); for a nonlinear model they differ, often a lot.",
+    "Point versus probabilistic forecasts: a Gaussian head predicting mean and variance trained with the Gaussian negative log-likelihood, or quantile losses; intervals are what a decision needs and what Section 9's thresholds use. One paragraph.",
+    "Where neural forecasters stand (dated, conservative): on many single series, well-tuned classical methods and linear models remain hard to beat; in the M4 competition (2018, 100,000 series) pure machine-learning entries did poorly and the winner was a hybrid of exponential smoothing and a recurrent network (Makridakis et al. 2020; Smyl 2020). Neural forecasters such as DeepAR (Salinas et al. 2020) earn their place with many related series, exogenous inputs and nonlinear dynamics.",
+    "The code change that fixes the source's forecaster: in forward(), last = x[:, -1:, :]; run the LSTM on x - last; return head(out[:, -1]) + last[:, 0]."
+   ],
+   "worked_examples": [
+    "Naive against seasonal naive, period 4. Training values (10, 14, 12, 8, 11, 15, 13, 9); next four true values (12, 16, 14, 10). Naive forecasts 9, 9, 9, 9: absolute errors 3, 7, 5, 1, MAE 4.0. Seasonal naive forecasts 11, 15, 13, 9: errors 1, 1, 1, 1, MAE 1.0. In-sample one-step naive MAE = (4 + 2 + 4 + 3 + 4 + 2 + 4)/7 = 23/7 = 3.286, so MASE is 1.22 for naive and 0.30 for seasonal naive.",
+    "The source's code, run exactly as published (sin(t) + 0.05t + noise, two-layer LSTM, global z-scoring with training statistics): LSTM test RMSE 1.075 against naive 0.155. The training inputs span -1.92..1.92 after normalisation and the test inputs 1.46..3.10: the test level is one the network never saw, and its predictions are biased low (mean error -0.87). Subtracting each window's last value: LSTM 0.126-0.137 over three seeds against naive 0.155; a least-squares linear autoregression on the same 64-value windows: 0.099, at the noise floor (noise sd 0.1). On a sinusoid plus drift plus noise, a linear model is the right tool; Lab 3 uses a nonlinear system where the LSTM has something to add.",
+    "Overlap arithmetic: windows of W = 64 with stride 1 share 63 values with their neighbours; a random 80/20 split of 3,000 such windows places, for almost every test window, a neighbour that shares 63 of its 64 values in the training set."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-12",
+     "description": "Top: a time axis with four walk-forward folds stacked vertically; in each, a blue expanding training block, a small grey gap, then an orange validation block, the origin moving right fold by fold. Bottom, crossed out in red: a shuffled split, blue and orange windows interleaved along the same axis, with two overlapping windows magnified to show 63 shared samples."
+    },
+    {
+     "id": "fig-04-13",
+     "description": "RMSE against forecast horizon h = 1..20 from Lab 3 (expected values): naive (rising, non-monotonic: 0.34 at h = 1, 1.02 at 5, 0.64 at 10, 0.78 at 20), seasonal naive (flat at about 0.81), linear recursive and linear direct (one line, 0.15 rising to 0.57), LSTM recursive (0.13 rising to about 0.77), LSTM direct (0.14-0.15 rising to about 0.57). Inset: diagrams of the recursive strategy (predictions fed back into the window) and the direct strategy (one network, 20 outputs)."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Your LSTM forecaster's validation RMSE is a third of the naive forecast's, using a random 80/20 split of overlapping windows. What do you check first? -> Leakage: split by time (walk-forward) and compute normalisation statistics on the training part only; the advantage usually shrinks or disappears.",
+    "Why can a seasonal naive forecast beat a sophisticated model at long horizons? -> Its error does not grow with the horizon (it copies the same phase of the last cycle), while a one-step model iterated forward compounds its errors.",
+    "A forecaster scores MASE 0.8. Good or bad? -> It beats the naive forecast's in-sample error by 20%; whether that is good depends on the decision it serves and on whether a linear baseline does better."
+   ],
+   "from_source": "Section 5 'Forecasting' (predict x_{t+1} from x_{≤t}; train on windows, evaluate on the future, never on shuffled rows); Section 8's code (reappears in Lab 3 Part A unchanged and in Part B fixed) and its closing paragraph (the persistence forecast is the baseline; a model that does not beat it has learned nothing); Section 9 ('Trained and tested on shuffled windows of the same period; the forecast is interpolation'); Section 6 ('Normalise inputs, per channel, with training statistics').",
+   "new_material": "Walk-forward validation with gaps; the four leaks; seasonal-naive and linear baselines and MASE; the analysis of the source code's failure under drift and per-window normalisation (RevIN); recursive versus direct forecasting with Lab 3's numbers; probabilistic forecasts; where neural forecasters stand."
+  },
+  {
+   "id": "s9",
+   "title": "Monitoring sensor streams: anomalies from forecast residuals",
+   "minutes": 14,
+   "target_words": 950,
+   "purpose": "Turn a forecaster into a monitor for an asset or its digital twin: residuals, thresholds set on normal data, detectors matched to fault types, and how to measure a detector.",
+   "must_cover": [
+    "The idea (from the source): train a forecaster on normal operation; the residual r_t = x_t - x̂_t is small while behaviour is normal and a large residual is an anomaly. The forecaster is a learned model of normal dynamics, one component of a digital twin; with a physics model the same logic applies to its residual (model-based fault detection, an established control-engineering practice; Isermann 2006).",
+    "Thresholds from held-out normal data (the source), never from training residuals, which are optimistically small. Gaussian tail arithmetic as a guide only: residuals are autocorrelated and heavy-tailed, so use empirical quantiles and persistence rules (k exceedances in n samples).",
+    "Match detectors to fault types (Lab 3): a point test |r_t| > kσ catches spikes and onsets; a rolling RMS of residuals (or a CUSUM, Page 1954) catches sustained changes in dynamics or noise level; a variance floor catches stuck or flat-lined sensors, whose values are perfectly predictable and so produce residuals that are too small; a level shift is seen by a one-step forecaster with per-window normalisation only at its onset and end, because the model re-centres within one step; sustained offsets need a level check against an independent reference (a redundant sensor, the twin's physics prediction) or residuals over a longer horizon from a model that does not re-centre.",
+    "Evaluating a monitor: detection delay; events detected (recall counted over events, not samples); false alarms per day; precision under a low base rate (Module 01). Because real faults are rare, inject synthetic faults of each type into held-out normal data, as Lab 3 does.",
+    "Multivariate monitoring: forecast every channel from all channels, form the residual vector and score it with the Mahalanobis distance under the residual covariance estimated on normal data.",
+    "A published example of the pattern: LSTM forecasting of spacecraft telemetry channels with thresholds on smoothed prediction errors (Hundman et al. 2018); the same pattern serves pumps, bearings and structural monitoring.",
+    "The alternative of reconstruction error from an autoencoder is Module 05's; one sentence and a link."
+   ],
+   "worked_examples": [
+    "Gaussian tails at 1 Hz: a two-sided threshold at 3σ is exceeded with p = 2.70e-3, which is 233 false alarms a day; at 4σ p = 6.33e-5, 5.5 a day; at 5σ p = 5.73e-7, 0.05 a day (one every 20 days). Requiring three consecutive 3σ exceedances would give 0.0017 a day if residuals were independent; they are not, which is why thresholds are set empirically.",
+    "Lab 3's monitor (expected values): residual standard deviation on the normal hold-out about 0.13; point threshold 4σ ≈ 0.52; the spike is flagged at once (plus one or two echo alarms while it sits in the input window); the 0.8 offset is flagged at its onset and at its end only; the doubled excitation is flagged by the 50-sample rolling RMS 30-100 samples after it starts; the stuck sensor is flagged by the variance floor about 20 samples after it sticks; in about 240 normal samples the point test raises no false alarm and the rolling tests at most a few (0-7 samples over two seeds)."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-14",
+     "description": "Top: the monitoring pipeline as boxes: sensor stream -> forecaster -> residual r_t -> three detectors in parallel (point |r| > 4σ; rolling RMS over 50 samples; rolling sd below a floor) -> alarm log. Bottom: four stacked panels from Lab 3 (expected), one per injected fault (spike, offset, excitation increase, stuck sensor): the signal, the residual, the detector statistic with its threshold as a dashed line, the fault interval shaded and alarm ticks along the time axis."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Why set the alarm threshold on held-out normal data rather than on the training residuals? -> Training residuals are optimistically small because the model fitted them; a threshold based on them fires too often in service.",
+    "A stuck sensor produces no alarms from a residual threshold. Why, and what catches it? -> A constant signal is perfectly predictable, so the residuals shrink; test for residual (or signal) variance below a floor."
+   ],
+   "from_source": "Section 5 'Anomaly detection' (train a forecaster on normal operation; a large residual is an anomaly; the threshold is chosen on held-out normal data); the digital-twin observation stream of Sections 1 and 5.",
+   "new_material": "Detectors matched to fault types; tail arithmetic and its limits; evaluation by events, delay and false alarms per day; injected-fault testing; multivariate residuals; the telemetry example; the link to model-based fault detection."
+  },
+  {
+   "id": "s10",
+   "title": "Sequence to sequence: encoder, decoder, teacher forcing and search",
+   "minutes": 17,
+   "target_words": 1250,
+   "purpose": "Build the encoder-decoder for sequence tasks whose lengths differ, explain teacher forcing and exposure bias, and work through greedy and beam search.",
+   "must_cover": [
+    "The encoder-decoder (Sutskever, Vinyals and Le 2014; Cho et al. 2014): an encoder RNN reads x_{1:S} into its final state; a decoder RNN initialised from it generates y_1, ..., y_{T'} one token at a time, conditioned on its state and its previous outputs; begin- and end-of-sequence tokens (BOS, EOS); the model defines p(y_{1:T'} | x) = prod_t p(y_t | y_{<t}, x).",
+    "Training maximises the log-likelihood of the target, L = -sum_t log p(y_t | y_{<t}, x). Teacher forcing (from the source): feed the true previous token as the decoder input, so every input is known in advance and no sampling loop is needed (a transformer decoder then computes all positions in parallel; an RNN still loops, but without sampling).",
+    "Exposure bias (the source; the term is Ranzato et al. 2016's): at test time the decoder conditions on its own outputs, reaches states it never saw in training, and errors compound. Lab 4 measures it: teacher-forced token accuracy 79% against free-running 59% at length 12 for the bottleneck model. Remedies: scheduled sampling (Bengio et al. 2015: feed the model's own prediction with a probability that rises during training), training on the model's own rollouts, sequence-level objectives (the reinforcement-learning methods of Module 09 are the modern form); pointer only.",
+    "Decoding: greedy (argmax at each step) does not find the most probable sequence; exact search over V^T sequences is infeasible; beam search keeps the k best partial sequences by cumulative log-probability, sets finished hypotheses aside and returns the best; k = 4-10 is typical in translation.",
+    "Length bias: summed log-probabilities favour short outputs, and larger beams can produce shorter, worse outputs; length normalisation divides the score by a power of the length (Wu et al. 2016 use a smoothed form). Beam search serves 'the single best output'; sampling (Module 07) serves diverse outputs.",
+    "Sutskever et al. reversed the source sentence, which shortened the first dependencies the decoder needed: a symptom of the bottleneck.",
+    "The bottleneck: the whole source squeezed into one fixed-size vector; quality falls with length (Cho et al. 2014 observed it in translation; Lab 4 measures 100%, 62% and 2% sequence accuracy at lengths 4, 8 and 12 for reversing digit strings). Section 11 is the fix."
+   ],
+   "worked_examples": [
+    "Greedy against beam search on a toy model over {A, B, ⟨e⟩}: step-1 probabilities A 0.5, B 0.4, ⟨e⟩ 0.1; after A: A 0.3, B 0.3, ⟨e⟩ 0.4; after B: A 0.9, B 0.05, ⟨e⟩ 0.05; after any two tokens ⟨e⟩ with probability 1. Greedy chooses A then ⟨e⟩: probability 0.5·0.4 = 0.20. Beam search with k = 2 keeps A (0.5) and B (0.4); the expansions are BA 0.36, A⟨e⟩ 0.20, AA 0.15, AB 0.15, BB 0.02, B⟨e⟩ 0.02; it keeps BA and the finished A⟨e⟩; BA⟨e⟩ = 0.36 wins, 1.8 times as probable as greedy's answer. Log scores: BA⟨e⟩ -1.022, A⟨e⟩ -1.609; length-normalised (divided by length): -0.341 and -0.805."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-15",
+     "description": "Two panels with the same encoder (a row of cells reading 3 9 1 4) and decoder. Training: decoder inputs are BOS 4 1 9 (the true previous tokens, drawn in green) and each output is compared with the target. Inference: decoder inputs are the model's own previous outputs (drawn in orange), with one wrong token highlighted and the following outputs shaded to show errors compounding."
+    },
+    {
+     "id": "fig-04-16",
+     "description": "The beam-search tree of the toy example: root, children A (0.5), B (0.4), ⟨e⟩ (0.1); second level under A and B with probabilities; the two kept hypotheses at each level outlined in bold, pruned ones in grey, the greedy path in dashed blue ending at A⟨e⟩ (0.20) and the beam's answer BA⟨e⟩ (0.36) in bold green."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "Beam search with k = 1 is which algorithm? -> Greedy decoding.",
+    "Why does teacher forcing make training easier but create exposure bias? -> The inputs are the known targets, so there is no sampling loop and every step gets a clean signal; but the model never sees its own mistakes, so at test time one error moves it into unfamiliar states."
+   ],
+   "from_source": "Section 4, first paragraph (encoder reads the source into a final state, decoder generates conditioned on it and its own outputs; Sutskever, Vinyals and Le 2014; teacher forcing makes training parallel over positions but causes exposure bias; greedy versus beam search keeping the k best); Section 9 ('Teacher forcing only; ... drifts after a few steps. Scheduled sampling or a small amount of free running helps').",
+   "new_material": "The likelihood factorisation and special tokens; exposure bias measured in Lab 4; scheduled sampling; the beam-search algorithm with length normalisation and the toy example; the source-reversal trick; the bottleneck measured."
+  },
+  {
+   "id": "s11",
+   "title": "Attention: from a bottleneck to a soft alignment",
+   "minutes": 17,
+   "target_words": 1200,
+   "purpose": "Derive additive (Bahdanau) and multiplicative (Luong) attention as the fix for the encoder-decoder bottleneck and show that it is the bridge to Module 06.",
+   "must_cover": [
+    "The fix (from the source): at each decoder step t, score the decoder state against every encoder annotation, normalise with a softmax, take the weighted sum as a context vector: e_{t,j} = v^T tanh(W_s s_{t-1} + W_h h_j), α_{t,j} = exp(e_{t,j}) / sum_k exp(e_{t,k}), a_t = sum_j α_{t,j} h_j. The decoder reads a_t alongside its state: s_t = f(s_{t-1}, y_{t-1}, a_t), p(y_t | ...) = softmax(W_o [s_t; a_t]) (Lab 4's form). The annotations h_j are bidirectional encoder states (Section 6), as in Bahdanau, Cho and Bengio (2015).",
+    "Shapes and cost: S encoder states of width 2H, decoder state of width H, attention width d_a; W_s in R^{d_a×H}, W_h in R^{d_a×2H}, v in R^{d_a}. Precompute W_h h_j once; each decoder step then costs O(S·d_a), so the whole output costs O(S·T'): the first appearance of attention's quadratic cost.",
+    "Masking: padded encoder positions get score -∞ (in practice -1e9) before the softmax (Lab 4).",
+    "Alignment: α_{t,j} is a soft alignment, which source positions the decoder looks at while producing each output; it can be plotted (Bahdanau et al.'s figures; Lab 4's anti-diagonal for reversal); in translation it is mostly monotonic with local reorderings such as adjective-noun swaps.",
+    "Luong, Pham and Manning (2015): score variants dot s^T h_j, general s^T W h_j and concat (the additive form); attention computed from the current state s_t rather than s_{t-1}; global versus local attention; feeding the previous attentional vector back as input. The dot product's scale grows with the width, which is why Module 06 divides by √d_k (worked example).",
+    "Why it works: every output has a one-step path to every input, for information and for gradients, the same argument as the LSTM's additive path and the residual connection; nothing must be squeezed into one vector.",
+    "From here to Module 06 (the source): drop the recurrence and let every position attend to every other. In the dot form, the decoder state plays the query and the encoder states play the keys and values; self-attention is a sequence attending to itself. Pointer only; Module 06 owns attention in full.",
+    "Caveat: attention weights are not automatically explanations (Jain and Wallace 2019; Wiegreffe and Pinter 2019): treat alignment plots as diagnostics and confirm with interventions.",
+    "Attention pooling over time can replace 'take the last state' in many-to-one recurrent classifiers (one sentence)."
+   ],
+   "worked_examples": [
+    "Dot-product attention by hand: decoder state s = (1, 0); encoder states h_1 = (1, 0), h_2 = (0, 1), h_3 = (1, 1). Scores (1, 0, 1); weights (0.4223, 0.1554, 0.4223); context (0.8446, 0.5777). With s = (3, 0): scores (3, 0, 3), weights (0.4879, 0.0243, 0.4879), context (0.9757, 0.5121): larger scores make the softmax sharper, the reason for Module 06's 1/√d_k.",
+    "Additive score by hand: W_s = I, W_h = [[0.5, -0.5], [1, 0]], v = (1, -1), s_{t-1} = (0.5, -0.5), the same three h_j. W_s s = (0.5, -0.5); W_h h_j = (0.5, 1), (-0.5, 0), (0, 1); sums (1, 0.5), (0, -0.5), (0.5, 0.5); tanh gives (0.7616, 0.4621), (0, -0.4621), (0.4621, 0.4621); scores e = (0.2995, 0.4621, 0); weights (0.3427, 0.4033, 0.2540); context (0.5967, 0.6573).",
+    "Lab 4's numbers (expected): with attention, 100% sequence accuracy at lengths 4, 8 and 12 against 100%, 62% and 2% without; for an 8-digit input the argmax of each alignment row is (7, 6, 5, 4, 3, 2, 1, 0), the anti-diagonal, with peak weights 0.56-0.94."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-17",
+     "description": "Attention at one decoder step: a column of encoder annotation vectors h_1..h_S (bidirectional, drawn as stacked pairs), the decoder state s_{t-1} on the right; lines from s_{t-1} to each h_j through a small 'score' node, a softmax bar chart of α_{t,j} beside the encoder column, a summation node producing a_t, which feeds the decoder cell together with y_{t-1}."
+    },
+    {
+     "id": "fig-04-18",
+     "description": "Left: Lab 4's alignment heat map for an 8-digit reversal (rows: output steps including EOS; columns: input digits as tick labels), bright anti-diagonal. Right: grouped bars of sequence accuracy at lengths 4, 8 and 12 without attention (100, 62, 2%) and with attention (100, 100, 100%)."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "What do the attention weights at one decoder step sum to, and over what? -> To 1, over the encoder positions j.",
+    "Why does attention stop accuracy falling with source length? -> The decoder reads all encoder states at every step through a weighted sum, so nothing has to fit in one vector, and the path from each output to each input is one step long."
+   ],
+   "from_source": "Section 4, second and third paragraphs (the bottleneck; quality falling with sentence length; Bahdanau's score, softmax and weighted sum; soft alignment that can be plotted; Luong's dot-product simplification; from there Module 06 is one step: drop the recurrence). Exercise 4 is carried out in Lab 4.",
+   "new_material": "Indexed equations with shapes and cost; masking; the decoder's output form; Luong's variants and the scaling remark; the path-length argument; the interpretability caveat; two hand-worked examples; Lab 4's numbers."
+  },
+  {
+   "id": "s12",
+   "title": "Why the transformer replaced recurrence",
+   "minutes": 12,
+   "target_words": 850,
+   "purpose": "State precisely the two costs built into recurrence, the convolutional alternative that came first, the trade the transformer made, and what recurrence keeps, with numbers.",
+   "must_cover": [
+    "Cost 1, no parallelism over time (the source): h_t needs h_{t-1}, so a sequence of 10,000 tokens is 10,000 dependent steps per layer however many processors there are. Teacher forcing makes all inputs known, but the nonlinear recurrence still forces a serial loop. Data parallelism across sequences still works; what suffers is the size of each step's matrix multiply and hence hardware utilisation, and long contexts make it worse. (Do not claim a specific training duration.)",
+    "Cost 2, long paths (the source): information from position j reaches t through t - j applications of the recurrence, each lossy; attention connects them in one step; dilated convolutions in about log2 of the distance.",
+    "The convolutional alternative came first: WaveNet (van den Oord et al. 2016) and temporal convolutional networks (Bai, Kolter and Koltun 2018): causal dilated 1D convolutions (Module 03), parallel over time in training, receptive field 1 + (k - 1)·sum of dilations. Bai et al. found a generic TCN matched or beat LSTMs and GRUs on a range of sequence benchmarks. The limit is a fixed receptive field; covering more takes more layers. Exercise e15 tries one in Lab 3.",
+    "The transformer's trade (the source; Module 06): every position computed in parallel in one matrix operation, path length 1, at a cost quadratic in sequence length; the right trade for training on the corpora of Module 08.",
+    "What recurrence keeps (the source): constant compute and constant memory per generated token at inference, where a transformer's key-value cache grows with the context (Module 10 derives it).",
+    "Comparison table (acknowledge the similar table in Vaswani et al. 2017): for each of RNN, TCN and self-attention: sequential operations in training per layer (O(T), O(1), O(1)); maximum path length (O(T), O(log T) with dilations, O(1)); per-token inference memory (fixed state O(d); a buffer per dilation level; KV cache O(T·d)); receptive field (unbounded in principle; fixed; the whole context).",
+    "Linear attention as a recurrence (Katharopoulos et al. 2020): replace the softmax by a kernel feature map and causal attention becomes an RNN with a matrix-valued state: a bridge to Section 13."
+   ],
+   "worked_examples": [
+    "State against cache: a 4-layer LSTM with H = 1,024 in fp32 keeps (h, c) per layer, 2·4·1,024·4 B = 32,768 B = 32.8 kB (32 KiB) per sequence whatever the context length. A 24-layer transformer of width 2,048 without grouped-query attention stores keys and values for every past token: 2·24·2,048·2 B = 196,608 B = 196.6 kB (192 KiB) per token in 16-bit, 6.44 GB (6.0 GiB) at 32,768 tokens. Grouped-query attention divides this by its group factor (Module 10).",
+    "TCN receptive field: kernel 2 with dilations 1, 2, 4, ..., 512 (ten layers) covers 1 + 1·(1 + 2 + 4 + ... + 512) = 1 + 1,023 = 1,024 steps; each added layer doubles the reach, so an input 1,000 steps back reaches the output through ten layers, while in one recurrent layer it passes through 1,000 dependent steps. Exercise e15 sizes the six-layer TCN that matches Lab 3's 64-sample window."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-19",
+     "description": "Three dependency graphs over eight positions: a chain (RNN, path from position 1 to 8 of length 7, highlighted), a dilated binary tree (TCN, path length 3), and a complete graph drawn as an all-to-all fan (self-attention, path length 1). Below, the comparison table of sequential operations, maximum path length, per-token inference memory and receptive field."
+    }
+   ],
+   "widget": null,
+   "checks": [
+    "With teacher forcing every decoder input is known in advance. Why can an LSTM still not process all positions at once? -> h_t depends nonlinearly on h_{t-1}, which must be computed first; knowing the inputs does not break that chain.",
+    "A causal TCN and an LSTM can both process a stream one sample at a time. Whose memory per stream grows with the length of history it can use? -> The TCN's: each layer keeps its last (k - 1)·d inputs, so its buffers add up to about the receptive field per channel; the LSTM keeps one fixed-size state whatever the history."
+   ],
+   "from_source": "Section 7 (the two costs: no parallelism over time, long paths; the transformer's trade, parallel and quadratic; the recurrent network's constant per-step inference cost against the key-value cache) and exercise 5 (why recurrence cannot be trained in parallel and the transformer can), which becomes exercise e12. The source's WaveNet reference anchors the TCN paragraph.",
+   "new_material": "The correction about data parallelism; WaveNet and TCNs with receptive-field arithmetic and Bai et al.'s finding; the comparison table; the state-versus-cache numbers; linear attention as a recurrence."
+  },
+  {
+   "id": "s13",
+   "title": "What came back: linear recurrences and state-space models",
+   "minutes": 21,
+   "target_words": 1450,
+   "purpose": "Explain how dropping the nonlinearity from the recurrence makes it trainable in parallel and stable over long ranges, how S4 and Mamba build on that, where these models stand, and how to choose a sequence model.",
+   "must_cover": [
+    "The key move: make the recurrence linear in the state, h_t = A h_{t-1} + B x_t, y_t = C h_t + D x_t, with the nonlinearities placed between layers (per-step MLPs and gates). Unrolled: h_t = sum_{k=0}^{t-1} A^k B x_{t-k}, so y_t = sum_k K_k x_{t-k} + D x_t with kernel K_k = C A^k B: a causal convolution, the impulse response of a linear time-invariant system (to an engineer, an IIR filter, or the Markov parameters of a state-space model).",
+    "Three ways to compute the same map: recurrent mode (constant cost per step; ideal for generation and streaming); convolution mode (all steps at once via the FFT in O(T log T); ideal for training); the parallel scan: the pairs (a, b) representing h -> a h + b compose associatively, (a2, b2) after (a1, b1) = (a2 a1, a2 b1 + b2), so all prefixes are computed in O(log T) depth (Blelloch 1990), which works even when a varies with t.",
+    "Diagonalisation: A = VΛV^{-1} with complex eigenvalues λ_n turns the system into N independent scalar recurrences h_{t,n} = λ_n h_{t-1,n} + (B̃ x_t)_n. With λ = r e^{iθ}, r sets the memory (half-life ln 0.5 / ln r) and θ the oscillation (period 2π/θ steps). Stability by construction: λ = exp(-exp(ν) + iθ) keeps |λ| < 1 for any real ν (the LRU parameterisation), and an input scaling √(1 - |λ|^2) keeps the state's variance bounded.",
+    "Continuous time and discretisation: dh/dt = A h + B x(t); zero-order hold with step Δ gives Ā = exp(ΔA) and B̄ = A^{-1}(exp(ΔA) - I) B; for a scalar λ, a = e^{λΔ} and b = (e^{λΔ} - 1)/λ. Δ is how much time passes per step: small Δ keeps the state (a ≈ 1), large Δ resets it (a ≈ 0).",
+    "S4 (Gu, Goel and Ré 2022): a structured A initialised from HiPPO (Gu et al. 2020), a principled continuous-time memory of the input's history, with an efficient kernel computation; it outperformed earlier models across the Long Range Arena benchmark (Tay et al. 2021), including its 16,384-step Path-X task, on which earlier models had stayed at chance. Diagonal variants (DSS, S4D) and the Linear Recurrent Unit (Orvieto et al. 2023) showed that a diagonal complex recurrence with careful parameterisation and initialisation near the unit circle is enough; the LRU paper frames it as an RNN made linear and diagonal.",
+    "Mamba (Gu and Dao 2023): selectivity. Δ, B and C become functions of the current input (Δ_t = softplus(linear(x_t))), so the system is no longer time-invariant: there is no fixed kernel and no convolution mode, and the recurrence is computed with a hardware-aware parallel scan. Δ_t acts as a gate: large Δ_t resets the state and writes the current input, small Δ_t keeps the state and ignores the input: the forget and input gates of Section 5 return inside a linear recurrence. Mamba-2 (Dao and Gu 2024) relates selective state-space models to linear attention.",
+    "Where things stand (as of 2026, conservative): state-space and linear-recurrence layers are competitive with transformers at small and medium scale and much cheaper per token at long context; their weakness is exact recall of an arbitrary earlier token, because a fixed-size state must compress the past while attention can look anything up. Hybrids that interleave a few attention layers with many recurrent or state-space layers are a common design (Jamba, 2024, is a published example); the largest language models are still predominantly transformers. xLSTM (Beck et al. 2024) revisited the LSTM itself. The source's verdict stands: the idea did not lose; the 1997 implementation did.",
+    "Lab 5's evidence (expected): the loop and the FFT convolution agree to 2e-6; after 400 updates on delayed recall the diagonal linear recurrence solves lags 25, 100 and 200, the vanilla RNN only 25, and the LSTM depends on its forget bias.",
+    "Choosing a sequence model (closing table): short sequences, little data, or streaming on a small device: GRU/LSTM or a small diagonal recurrence in recurrent mode; offline labelling: bidirectional LSTM or a transformer encoder; forecasting one or a few series: baselines and a linear autoregression first, then LSTM or TCN if walk-forward folds justify it; very long sequences with long-range structure: state-space or linear-recurrence stacks, or a transformer with efficient attention; language modelling at scale: transformer or hybrid (Modules 06-08)."
+   ],
+   "worked_examples": [
+    "Scalar linear recurrence h_t = 0.9 h_{t-1} + x_t, y_t = 0.5 h_t, input x = (1, 2, 0, -1): the recurrence gives y = (0.5, 1.45, 1.305, 0.6745); the kernel is K_k = 0.5·0.9^k = (0.5, 0.45, 0.405, 0.3645); the convolution gives y_4 = 0.5·(-1) + 0.45·0 + 0.405·2 + 0.3645·1 = 0.6745: identical.",
+    "Complex mode λ = 0.95 e^{iπ/8}: Re(λ^k) for k = 0..8 is 1, 0.878, 0.638, 0.328, 0, -0.296, -0.520, -0.645, -0.663: a damped oscillation with period 16 steps and half-life 13.5 steps.",
+    "Zero-order hold for λ = -0.1: Δ = 1 gives a = e^{-0.1} = 0.9048 and b = (0.9048 - 1)/(-0.1) = 0.9516 (forward Euler would give 0.9 and 1.0); Δ = 0.1 gives a = 0.990, b = 0.0995 (keep, write little); Δ = 10 gives a = 0.368, b = 6.32 (mostly forget, write a lot). A Mamba-style gate a_t = exp(-Δ_t): Δ_t = 0.01 gives 0.990 (keep), Δ_t = 5 gives 0.0067 (reset).",
+    "LRU initialisation: ν = ln 0.001 gives |λ| = e^{-0.001} = 0.9990 and a half-life of ln 2 / 0.001 = 693 steps; in general the half-life is ln 2 · e^{-ν}, so ν sets the logarithm of the memory length directly. Lab 5 draws its 64 moduli from the ring [0.9, 0.999], whose endpoints have half-lives of 6.6 and 693 steps; the sampled moduli (0.902-0.998724) give 6.7-543 steps. Near the unit circle the half-life depends on the fifth decimal of the modulus (0.9987 would give 533 steps), while equal steps in ν change the half-life by equal factors, which makes ν a convenient parameter to train.",
+    "Compute: a direct causal convolution of length T = 4,096 needs about T^2/2 = 8.4 million multiply-adds per channel; an FFT-based one about 3·2T·log2(2T) ≈ 0.32 million (order of magnitude). Lab 5's CPU timings (batch 8, N = 64, best of three): loop 4.9 ms against FFT 1.8 ms at T = 256; 18.9 against 5.5 ms at 1,024; 80.8 against 25 ms at 4,096."
+   ],
+   "figures": [
+    {
+     "id": "fig-04-20",
+     "description": "The recurrence-convolution duality. Left: the loop h_t = λ h_{t-1} + b x_t drawn as a cell with a self-loop labelled λ. Right: the same system as a convolution: an input impulse at t = 0 and the output kernel K_k = c λ^k b as a stem plot, for a real λ = 0.9 (monotone decay) and a complex λ = 0.95 e^{iπ/8} (damped oscillation, period 16, envelope ±0.95^k dashed). An equals sign between the two halves."
+    },
+    {
+     "id": "fig-04-21",
+     "description": "Selective recurrence. Top: an input sequence with a highlighted 'important' token; a small network maps each x_t to Δ_t (a bar chart under the sequence: small bars almost everywhere, a large bar at the important token). Middle: the retention a_t = exp(-Δ_t) and the state trace, which resets and stores the important token, then holds it. Bottom: a parallel-scan tree over eight positions combining (a, b) pairs in three levels."
+    }
+   ],
+   "widget": "ssm-kernel-explorer",
+   "checks": [
+    "Why can an S4-style layer be trained as a convolution while a Mamba layer cannot? -> S4's A, B, C and Δ are the same at every step, so the kernel C Ā^k B̄ is one fixed sequence; Mamba's Δ, B and C depend on the input, so there is no single kernel and it uses a parallel scan instead.",
+    "A diagonal recurrence has |λ| = 0.99. After how many steps has an input's influence halved? -> ln 0.5 / ln 0.99 = 69 steps.",
+    "What weakness of a fixed-size recurrent state motivates hybrids with a few attention layers? -> The state must compress the whole past, so exact retrieval of an arbitrary earlier token is hard; attention can address any position directly."
+   ],
+   "from_source": "Section 7's final paragraph (state-space models such as Mamba are recurrences designed to train in parallel through a reformulation, revisiting the parallelism trade; 'The idea did not lose; the 1997 implementation did'); the Gu and Dao (2023) reference.",
+   "new_material": "Almost all of it: the linear recurrence and its convolution form; the parallel scan; diagonal complex parameterisation; zero-order-hold discretisation; S4, HiPPO, LRU; Mamba's selectivity and Mamba-2; the state of the field as of 2026; hybrids; the selection table; the widget; Lab 5's numbers."
+  }
+ ],
+ "what_goes_wrong": [
+  "The forecaster is excellent in validation and poor in service -> overlapping windows were shuffled before a random split and normalisation used the whole series, so the 'forecast' was interpolation -> split by time with walk-forward folds, compute statistics on the training part only, leave a gap of at least the horizon.",
+  "The LSTM forecaster is worse than 'tomorrow equals today' on the newest data (the source's own code: 1.075 against 0.155) -> the level drifted beyond anything seen in training and the network cannot extrapolate a level -> normalise per window (subtract the last value or the window mean; RevIN) or difference the series, and always print the naive baseline beside the model.",
+  "The loss spikes or becomes NaN after thousands of steps -> an exploding gradient on a cliff of the loss surface -> clip the global gradient norm at 1-5, lower the learning rate, look for outliers in the inputs.",
+  "The network ignores anything more than about 20 steps back (Lab 1's closing tag stays near chance) -> vanishing gradients in a vanilla RNN, or a truncated-BPTT window shorter than the dependency -> use an LSTM or GRU, a longer truncation, or a linear-recurrence or attention model.",
+  "An LSTM learns slowly at first and has no memory -> forget-gate bias left at 0, so σ(0) = 0.5 per step -> set the forget bias to 1 or more; in PyTorch remember the gate order i, f, g, o and that bias_ih and bias_hh add.",
+  "Short sequences perform worse at test, or results change with batch composition -> padding without masks or packing: the loss is computed on padding and a bidirectional encoder reads padding first (Lab 4's prototype scored 0% on short inputs this way) -> mask the loss, pack the sequences, take the state at the true last step.",
+  "A stateful model's validation score depends on the order of batches -> state carried across unrelated sequences, or not reset before evaluation -> reset the state between independent sequences; carry it, detached, only across chunks of one stream.",
+  "A bidirectional model reports impossibly good forecasts -> it has read the future -> use causal models for anything online, and test causality by perturbing future inputs and checking that the prediction does not change.",
+  "Generated sequences are fluent for a few tokens and then drift or repeat -> exposure bias: trained only with teacher forcing -> scheduled sampling, some free-running training, sequence-level objectives; at minimum, evaluate in free-running mode (Lab 4: 79% teacher-forced against 59% free-running token accuracy).",
+  "A multi-step forecast diverges after a few steps -> the recursive strategy compounds errors (Lab 3: the best one-step model is as bad as naive at h = 20) -> train a direct multi-output model, or train the recursive model on its own rollouts.",
+  "Beam search returns short or empty outputs, and a larger beam makes it worse -> summed log-probabilities favour short hypotheses -> normalise scores by a power of the length, or set a minimum length.",
+  "A monitor misses a sustained sensor offset after one alarm and never alarms on a stuck sensor -> one-step residuals from a forecaster that re-centres on the last value adapt to a new level within a step, and a flat signal is perfectly predictable -> add a rolling-residual or CUSUM test, a variance-floor test and a level check against an independent reference; test the monitor with injected faults of every type.",
+  "A monitor raises far more false alarms in service than planned -> thresholds set on training residuals, or from Gaussian tail probabilities when residuals are autocorrelated and heavy-tailed -> set thresholds on empirical quantiles of held-out normal residuals, require persistence (k of n), and report false alarms per day on a long normal record.",
+  "An attention plot is presented as the explanation of a decision -> attention weights need not be faithful explanations -> treat alignments as diagnostics and confirm a claimed dependence by intervening on the input."
+ ],
+ "labs": [
+  {
+   "id": "lab1",
+   "title": "A character-level RNN from scratch in NumPy",
+   "minutes": 40,
+   "goal": "Implement the forward pass and backpropagation through time of Sections 2-3 in NumPy, verify the gradients numerically, train with truncated BPTT on a structured maintenance log, compare with n-gram baselines, and find the one rule the network cannot learn.",
+   "data": "Synthetic, no download: a seeded 15-line generator writes 1,500 maintenance-log lines (45,813 characters, 37 distinct characters) such as 'F2 pres 4.0 bar night shift ok /F2'. Each line has an asset tag (P1-P4, F1-F2, C1-C2), a quantity (temp, vib, pres), a value, a unit that must agree with the quantity (C, mm/s, bar), an optional note (after restart, during wash, operator check, night shift; empty with probability 3/7), a status that must agree with the value (high when temp >= 75.0, vib >= 7.1, pres >= 5.0, else ok) and a closing tag that must repeat the opening tag 18-36 characters later. The last 10% of characters (4,581) are the validation text.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 1,
+   "steps": [
+    "Generate the corpus with numpy.random.default_rng(0) (quantity chosen uniformly; value uniform on [40, 90], [0.5, 9.9], [1.0, 6.0] rounded to 0.1). Print the first five lines, the character count (45,813), V = 37, the split (41,232 / 4,581) and ln V = 3.611, the loss to expect at initialisation. Print the fraction of lines whose status is 'ok' (73%), the accuracy of always predicting 'ok'.",
+    "Baselines: interpolated n-gram character models (add-α smoothing, α = 0.1, each order interpolated with the one below) of orders 1, 2, 3 and 5 fitted on the training text; print validation cross-entropy in nats per character: about 3.21, 1.45, 0.66 and 0.45.",
+    "Parameters in a dict with H = 128: W_xh (H×V, N(0, 0.01^2)), W_hh (H×H, N(0, 1/H)), b_h, W_hy (V×H, N(0, 0.01^2)), b_y; print the count, 26,021.",
+    "forward_backward(p, X, Y, h0) for integer arrays X, Y of shape (B, T): the forward loop computes h_t = tanh(W_xh[:, x_t] + W_hh h_{t-1} + b_h) (the one-hot input as a column lookup), stable softmax and the mean cross-entropy; the backward loop over reversed t implements Section 3 (dy = p - onehot, divided by B·T; dh = W_hy^T dy + dh_next; dz = dh ⊙ (1 - h^2); accumulate the gradients, with np.add.at for the input-weight columns; dh_next = W_hh^T dz). Return the loss, the gradients and the last h.",
+    "Gradient check on a tiny model (H = 5, B = 2, T = 4) in float64: central differences with ε = 1e-5 on five random entries of every parameter; print the worst relative error (about 1e-6; anything above 1e-4 is a bug).",
+    "Training with truncated BPTT: the training text is reshaped into B = 32 parallel streams of 1,288 characters; each update takes the next T = 32 characters of every stream; the hidden state is carried to the next chunk without gradient and reset to zero when the streams wrap. Adam (lr 3e-3, β = 0.9, 0.999, written out in four lines), global-norm clipping at 5, 2,000 updates. Every 250 updates print the training loss, the validation loss (the whole validation text in one forward pass from h = 0), the gradient norm and the elapsed time, and keep the parameters with the best validation loss (early stopping).",
+    "Sampling: from h = 0 and a newline, sample 6,000 characters at temperature 0.5 and at 1.0 with numpy.random.default_rng(1); print six sample lines at each temperature.",
+    "Structural audit of the samples with one regular expression: the fraction of well-formed lines and, among those, the fractions whose unit agrees with the quantity, whose status agrees with the value, and whose closing tag matches the opening tag. Print a small table for both temperatures."
+   ],
+   "expected_observations": [
+    "The first loss is about ln 37 = 3.61: the output layer starts uninformative, as it should.",
+    "Training loss falls to about 0.4 within 250 updates; the best validation loss is about 0.39 nats per character, below the 5-gram's 0.45, so the network uses context more than four characters back; the gradient norm stays near 0.2 and clipping almost never triggers. About 15 s on the planning machine, under a minute on a laptop.",
+    "At temperature 0.5 the samples are about 100% well-formed, the unit agrees with the quantity 100% of the time and the status agrees with the value 97-98% of the time (against 73% for always 'ok'): every local rule, including a numerical threshold, has been learned.",
+    "The closing tag matches the opening tag only 20-30% of the time at temperature 0.5 and about 12% at 1.0, against 12.5% for guessing: the tag must survive 18-36 steps of the recurrence, and the truncated backward pass never links the two tags when they fall in different 32-character chunks. This is Section 4's vanishing gradient seen in behaviour; Lab 2 shows an LSTM learning it.",
+    "At temperature 1.0 more lines are malformed (about 90% well-formed) and more statuses are wrong (about 92% correct); lower temperature gives repetitive but valid lines."
+   ],
+   "extensions": [
+    "Set T = 64 (a longer truncation window) and compare the closing-tag accuracy; then try H = 256.",
+    "Replace tanh with ReLU in the forward and backward passes and see whether training is stable without clipping.",
+    "Train on public-domain text instead: six of Shakespeare's sonnets about time (12, 18, 19, 60, 73 and 116; about 3,700 characters, embedded as a string). With so little text the network memorises: training loss falls below 0.2 while the validation loss is best (about 2.46 nats) after roughly 250 updates and then rises; a bigram model scores about 2.45 and an interpolated trigram about 2.26 on the same validation text. Data size, not architecture, is the limit.",
+    "Inside one 32-step chunk of the trained model, plot ||∂L/∂h_t|| against t (a preview of Lab 2)."
+   ]
+  },
+  {
+   "id": "lab2",
+   "title": "Watching gradients vanish, and the LSTM that does not",
+   "minutes": 40,
+   "goal": "Check an LSTM cell written from Section 5's equations against PyTorch, measure gradient norm against time lag for vanilla RNNs and LSTMs, reproduce the source's c_0-gradient experiment, and see the behavioural consequence on Lab 1's maintenance log.",
+   "data": "Synthetic: random Gaussian inputs, and the same seeded maintenance-log generator as Lab 1, regenerated inside this lab so the lab is self-contained.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 2,
+   "steps": [
+    "lstm_cell(x, h, c, W_ih, W_hh, b_ih, b_hh): z = x W_ih^T + b_ih + h W_hh^T + b_hh; chunk into (i, f, g, o) in PyTorch's order; apply σ, σ, tanh, σ; c' = f c + i g; h' = o tanh(c'). Compare with nn.LSTMCell(8, 16) on random (5, 8) inputs and random states: print max |Δh| (about 4e-8) and max |Δc| (about 1e-7), and the parameter count 1,664 = 4·16·(8 + 16) + 2·4·16.",
+    "Gradient profile: x of shape (B = 32, T = 200, d = 8) with requires_grad; L = sum over the batch of v·h_T for a fixed random v; backward; for each time step the norm of ∂L/∂x_t over batch and features, divided by its value at t = T. Models (all H = 64, torch.manual_seed(1) before construction): nn.RNN with default initialisation; nn.RNN with W_hh orthogonal; orthogonal times 1.5; nn.LSTM with forget bias 0, 3 and 5 (set bias_ih_l0[H:2H], zero bias_hh_l0[H:2H]). Print the default W_hh's spectral radius (about 0.57) and largest singular value (about 1.10), then the ratio at lags 1, 10, 25, 50, 100 and 199 for each model.",
+    "Plot the six profiles against lag on a log scale (values of exactly 0, from float32 underflow, drawn at the axis floor 1e-30).",
+    "The source's exercise 2: an nn.LSTMCell(8, 64) with its weights scaled by 0.1 and forget bias b_f in {0, 2, 5, 10}; c_0 requires grad; run 100 steps on random inputs; backward from the sum of c_100; print ||∂c_100/∂c_0||/√H beside σ(b_f)^100. Do the same for a default nn.RNNCell's ||∂h_100/∂h_0||.",
+    "Back to the log: regenerate Lab 1's corpus and train three character models in PyTorch (Embedding 37 -> 32, a recurrent layer with H = 128, Linear 128 -> 37) with exactly Lab 1's truncated-BPTT layout (B = 32 streams, T = 32, state detached at chunk boundaries), Adam 3e-3, clipping at 5, 2,500 updates each: nn.RNN; nn.LSTM with forget bias 0; nn.LSTM with forget bias 1 (print the effective forget bias at initialisation to confirm it). Every 500 updates print the validation loss and the closing-tag accuracy of 4,000 characters sampled at temperature 0.5, using Lab 1's regular expression."
+   ],
+   "expected_observations": [
+    "The hand-written cell matches PyTorch to float32 precision: Section 5's equations are exactly what nn.LSTM computes, with gate order i, f, g, o.",
+    "PyTorch's default RNN initialisation is non-normal (spectral radius about 0.57, largest singular value about 1.10); its gradient ratio is about 1.2, 2e-3, 2e-7, 3e-14 at lags 1, 10, 25, 50 and exactly 0 (underflow) beyond.",
+    "Orthogonal initialisation slows the decay (about 0.35 at lag 10, 1.6e-3 at 50, 2.7e-6 at 100, 4e-12 at 199) but tanh still wins; scaling it by 1.5 makes the gradient explode (about 9.5 at lag 50, 1.2e2 at 100, 2.1e4 at 199): Section 4's two failures from one knob.",
+    "An LSTM with forget bias 0 is no better than a vanilla RNN at initialisation (6e-11 at lag 50); forget bias 3 keeps the ratio near 0.2 from lag 10 to lag 100 (1.4 at 199); forget bias 5 keeps it between 0.17 and 0.73 to lag 100 and lets the earliest inputs dominate (about 38 at lag 199).",
+    "The c_0 gradient tracks σ(b_f)^100: 0 (underflow) against 7.9e-31 for b_f = 0; 5.5e-6 against 3.1e-6 for 2; 0.59 against 0.51 for 5; 1.11 against 0.995 for 10. The vanilla cell's ∂h_100/∂h_0 underflows to 0. The cell path is a product of forget gates.",
+    "On the log, after 2,500 updates (two seeds tried): the vanilla RNN's closing-tag accuracy stays at chance (10-23%, validation loss about 0.40); the LSTM with forget bias 0 reaches 75-79% (about 0.38); with forget bias 1 it reaches 93-99% (about 0.35-0.36), and is ahead at every checkpoint from update 1,500. About 10 s for the RNN and 13 s per LSTM on the planning machine; under a minute each on a laptop."
+   ],
+   "extensions": [
+    "Replace the LSTM with nn.GRU in the last step and compare the tag accuracy and the parameter count (three quarters of the LSTM's).",
+    "Repeat the gradient profile with the trained log models (inputs: embedded log text) and see how training changed it.",
+    "Train the orthogonal-times-1.5 RNN on the log with clipping disabled and log the loss and gradient norm to watch a blow-up; then re-enable clipping."
+   ]
+  },
+  {
+   "id": "lab3",
+   "title": "Forecasting and monitoring a sensor stream",
+   "minutes": 50,
+   "goal": "Forecast a simulated sensor on a mounted machine honestly: walk-forward evaluation against naive, seasonal-naive and linear baselines; reproduce and fix the source code's normalisation failure; compare recursive and direct multi-step forecasts; then turn the forecaster into a monitor that detects four injected faults.",
+   "data": "Synthetic, no download: a forced, damped oscillator with a stiffening spring (a Duffing oscillator, standing for a machine on a mount that stiffens with deflection): x'' + 2ζω0 x' + ω0^2 x + k3 x^3 = A sin(2π t / 5 s) + σ_F ξ(t), with ω0 = π rad/s (natural period 2 s), ζ = 0.05, k3 = 40, A = 3, σ_F = 3 (white-noise forcing), integrated by semi-implicit Euler with dt = 0.01 s (the noise enters as σ_F √dt N(0,1) per substep) and sampled every 0.1 s for 8,000 samples (800 s); the measurement adds a drift of 1e-3 per sample (sensor drift or wear) and noise of standard deviation 0.05; numpy.random.default_rng(0). The periodic load has period P = 50 samples. Simulation takes about 0.1 s.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 2,
+   "steps": [
+    "Set QUICK = False (True: 4 epochs instead of 10 and only the last two walk-forward folds; about a third of the run time). Simulate; plot the whole series and a 300-sample zoom; print its range and standard deviation.",
+    "Part A, the source's mistake: windows of W = 64 and one-step targets; the source's model (two-layer nn.LSTM, hidden 32, dropout 0.1, Linear head on the last state; AdamW 3e-3; clipping at 1; batch 128; 10 epochs; torch.manual_seed(0)) trained on the first 6,000 samples z-scored with their own statistics and tested on the last 2,000. Print the normalised ranges (training about -2.2..2.3, test about 1.1..3.6), the LSTM's RMSE (about 0.49), the naive RMSE (about 0.35) and the mean error (about -0.39): the model under-predicts a level it never saw.",
+    "The fix, three lines in forward(): last = x[:, -1:, :]; out, _ = self.lstm(x - last); return self.head(out[:, -1]) + last[:, 0].",
+    "Part B, walk-forward: folds with origins 4,000, 5,000, 6,000 and 7,000, each validating on the next 1,000 samples; z-scoring statistics recomputed from each fold's training part. For each fold print the RMSE (in original units) of naive, seasonal naive (P = 50), a linear autoregression (least squares on the same 64-value windows with the last value subtracted, plus an intercept) and the fixed LSTM; then the mean and standard deviation over folds.",
+    "Part C, multi-step to h = 20 from origin 6,000, reusing fold 3's one-step LSTM: recursive LSTM (append each prediction to the window and slide); direct LSTM (the same architecture with a 20-output head, trained once on 20-step targets); linear recursive and linear direct; naive; seasonal naive. Print RMSE at h = 1, 5, 10 and 20 and plot RMSE against h for all six.",
+    "Part D, monitoring: copy the clean series and inject four faults in 7,000-7,999: a spike of +1.5 at 7,100; a sensor offset of +0.8 on 7,250-7,349; doubled forcing (σ_F × 2, standing for cavitation or a loose part) on 7,450-7,749, made by re-simulating with the same seed so the series is identical before 7,450 (assert it); a stuck sensor (value frozen) on 7,850-7,949. With fold 3's model compute one-step residuals on the clean hold-out 6,000-6,999 (standard deviation σ about 0.13) and on the faulted segment. Three detectors with thresholds set on the hold-out: point |r_t| > 4σ; rolling RMS over 50 samples above 1.1 times its hold-out maximum; rolling standard deviation over 20 samples below half its hold-out minimum. For each fault print the alarms from each detector within [start, end + 20) and the first-alarm delay; print the false alarms in the normal stretches (excluding 70 samples after each fault); plot the residuals with thresholds, fault intervals shaded."
+   ],
+   "expected_observations": [
+    "Part A: with global normalisation the LSTM is worse than naive (about 0.49 against 0.35 with seed 0; 0.40 against 0.33 with seed 1) and biased low by 0.3-0.4 on the drifted test period: the source code's failure reproduced and explained. The source's own signal behaves the same way when its code is run as published (1.075 against 0.155).",
+    "Part B (mean ± sd over folds, seed 0): naive about 0.38 ± 0.03, seasonal naive about 0.84 ± 0.02, linear about 0.16 ± 0.01, LSTM about 0.13 ± 0.003 (seed 1: 0.32, 0.76, 0.146, 0.130). The LSTM is best in every fold, by roughly 10-20% over the linear model (7-21% across folds and seeds). Seasonal naive is poor here because the random forcing dominates the periodic part: a baseline has to be computed, not assumed.",
+    "The LSTM beats the linear model because the spring is nonlinear; on the source's linear sinusoid-plus-drift signal the linear model wins (0.099 against about 0.13).",
+    "Part C: naive about 0.34, 1.02, 0.64, 0.78 at h = 1, 5, 10, 20 (non-monotonic, because the signal oscillates); seasonal naive flat at about 0.81; linear recursive and linear direct identical to three decimals (about 0.15, 0.39, 0.54, 0.57); LSTM recursive best at h = 1 (about 0.13) but about 0.75-0.78 at h = 20, as bad as naive; LSTM direct about 0.15, 0.37, 0.50, 0.57: errors compound when a one-step model is iterated.",
+    "Part D: the spike is flagged at once by the point test, with one or two echo alarms while it sits in the input window; the offset is flagged by the point test only at its onset and its end (5 alarms in total), because the per-window normalisation re-centres within a step; the doubled excitation raises the residual RMS from about 0.13 to about 0.23 and is flagged by the rolling RMS 30-100 samples after it starts; the stuck sensor is flagged by the variance floor about 21-25 samples after it sticks and by nothing else until it unsticks; in the roughly 240 normal samples the point test raises no false alarm and the other two at most a few (0-7 samples over two seeds, usually one short rolling-RMS episode). Each fault type needs its own detector.",
+    "Run time about 25 s on the planning machine when otherwise idle (up to a minute with other jobs running), so 1-2.5 minutes on a laptop; QUICK about 8 s (it trains 4 epochs, so its Part A failure is even larger: 0.76 against 0.35)."
+   ],
+   "extensions": [
+    "Exercise e15: replace the LSTM with a causal dilated TCN covering 64 steps and compare accuracy and training time.",
+    "Give the model a Gaussian head (mean and log-variance, trained with torch.nn.GaussianNLLLoss) and divide the residuals by the predicted standard deviation before thresholding.",
+    "Make the input bivariate by adding the known periodic load sin(2π t / 5 s) as a second channel and see whether the LSTM's lead over the linear model grows.",
+    "Add a CUSUM on the residuals (Page 1954) and compare its delay with the rolling RMS on the excitation fault."
+   ]
+  },
+  {
+   "id": "lab4",
+   "title": "Sequence to sequence with attention",
+   "minutes": 35,
+   "goal": "Build a GRU encoder-decoder that reverses digit strings, with and without Bahdanau attention; measure the bottleneck, plot the alignment, and compare teacher-forced with free-running accuracy and greedy with beam search.",
+   "data": "Synthetic, no download: random digit strings of length 3-12 generated on the fly with numpy.random.default_rng (tokens 0-9, PAD 10, BOS 11, EOS 12).",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 4,
+   "steps": [
+    "Set QUICK = False (True: 400 training steps instead of 1,500). make_batch(n, rng, minl, maxl): source strings padded to 12 (always to 12, as in training); decoder input BOS + reversed digits; decoder target reversed digits + EOS; PAD elsewhere; also return the true lengths.",
+    "Seq2Seq(attention): source and target embeddings (13 -> 32); a bidirectional nn.GRU encoder (H = 64) run on packed sequences (pack_padded_sequence with enforce_sorted=False, then pad_packed_sequence with total_length 12); initial decoder state tanh(Linear([forward state at the true last position; backward state at position 0])); an nn.GRUCell decoder. With attention: scores e_j = v^T tanh(W_s s + W_h h_j) with W_h h_j precomputed once, PAD positions set to -1e9, softmax, context a = sum_j α_j h_j; the decoder's input is [embedding; context] and its output layer Linear([s; a]) -> 13 logits. Create W_s, W_h and v only when attention is on. Print the parameter counts: 66,381 without attention, 104,973 with (the attention model's decoder cell and output layer are wider because they also read the 128-wide context).",
+    "Train each model with teacher forcing: cross-entropy ignoring PAD, Adam 3e-3, clipping at 1, batch 64, 1,500 steps, torch.manual_seed(0); print the loss every 500 steps.",
+    "Evaluate on 500 strings each of length 4, 8 and 12: greedy sequence accuracy (all digits and EOS correct), teacher-forced token accuracy and free-running token accuracy.",
+    "Beam search (k = 4, one example at a time, cumulative log-probability, finished hypotheses kept until all beams finish) against greedy on 200 strings of length 12 with the model without attention.",
+    "Alignment: decode one 8-digit string with the attention model, stack the α vectors into a 9 × 8 matrix (rows: output steps including EOS; columns: source positions) and plot it as a heat map with the digits as tick labels; print the argmax of each row and the peak weights."
+   ],
+   "expected_observations": [
+    "Losses: the attention model is below 0.01 by step 500; the model without attention is still about 0.3 at step 1,500.",
+    "Sequence accuracy without attention: about 100%, 62% and 2% at lengths 4, 8 and 12. One vector of 64 numbers must hold up to 12 digits in order, and it cannot.",
+    "Teacher-forced against free-running token accuracy without attention: 100% against 100% at length 4, about 95.0% against 87.9% at length 8 and about 79.1% against 58.6% at length 12: exposure bias and compounding errors, growing with length.",
+    "With attention: 100% at every length, teacher-forced and free-running alike.",
+    "Beam search does not rescue the bottleneck model (about 3% against 2%): search cannot fix a model that does not know the answer.",
+    "The alignment is the anti-diagonal: row argmaxes (7, 6, 5, 4, 3, 2, 1, 0) and then 0 for EOS, peak weights 0.56-0.94. The model has found 'look at the mirror position'.",
+    "If the encoder is run without packing and the test strings are not padded the way the training strings were, short strings fail at test (the prototype scored 0% at length 4): the backward GRU learned to read padding first. Section 7's bug, reproduced on purpose in one optional cell.",
+    "Run time about 1.5 minutes on the planning machine, 3-4 minutes on a laptop; QUICK about 1 minute."
+   ],
+   "extensions": [
+    "Scheduled sampling: feed the model's own previous prediction with a probability rising linearly from 0 to 0.5 over training, and compare the free-running accuracy of the model without attention.",
+    "Replace the additive score with Luong's dot product (project the 128-wide encoder states to 64 first) and compare the speed of convergence.",
+    "Test on lengths 13-16, never seen in training, and see where the alignment breaks.",
+    "Date-format conversion ('14 March 2026' -> '2026-03-14') generated with Python's datetime: an alignment that is not monotonic."
+   ]
+  },
+  {
+   "id": "lab5",
+   "title": "A diagonal linear recurrence versus an LSTM",
+   "minutes": 25,
+   "goal": "Implement a diagonal complex linear recurrence in the style of the Linear Recurrent Unit, confirm that its recurrent and convolutional forms compute the same map, time both, and compare it with a vanilla RNN and an LSTM on a recall task at long lags.",
+   "data": "Synthetic, no download: delayed recall. A sequence of length L + 1 whose first token is one of 8 symbols and whose other L tokens are a blank symbol; the target is the first symbol (chance 12.5%). Generated with torch.Generator seeds.",
+   "download_mb": 0,
+   "cpu_runtime_minutes": 2,
+   "steps": [
+    "DiagLinearRecurrence(d_in, d_out, N = 64, r_min = 0.9, r_max = 0.999, max_phase = π/10): parameters ν_log and θ_log with λ = exp(-exp(ν_log) + i·exp(θ_log)), the modulus initialised uniformly on the ring [r_min, r_max] via ν_log = log(-½ log(u(r_max^2 - r_min^2) + r_min^2)) and the phase uniformly in [0, max_phase]; complex B (N × d_in) and C (d_out × N) built from real and imaginary parameters; a real D; input scaling γ = √(1 - |λ|^2). forward_loop: h_t = λ ⊙ h_{t-1} + γ ⊙ (B x_t), y_t = Re(C h_t) + D x_t. forward (parallel): u = x B̃^T of shape (batch, T, N); kernel λ_n^k of shape (T, N); h = IFFT(FFT(u, 2T) · FFT(kernel, 2T)) truncated to T along time (N independent causal convolutions); y = Re(h C^T) + x D^T.",
+    "Equality and timing for T = 256, 1,024 and 4,096 (batch 8, d_in 4, d_out 3, best of three runs): print max |loop - FFT| and both times; print the range of |λ| to six decimals (near 1 the half-life depends on the fifth) and the range of the half-lives ln 0.5 / ln |λ|.",
+    "Recall models, each predicting from the last step: Embedding(9 -> 16) followed by (a) nn.RNN(16, 64), (b) nn.LSTM(16, 64) with forget bias 1, (c) the same with forget bias 5, (d) DiagLinearRecurrence(16, 64, N = 64) followed by GELU and Linear(64, 8).",
+    "Train each for 400 updates (batch 64, AdamW 3e-3, clipping at 1, torch.manual_seed(0)) at lags 25, 100 and 200 (the vanilla RNN only at 25 and 100: at 200 it is slow and it already fails at 100). Print the test accuracy on 1,000 fresh sequences and the first update at which the mean loss over the last 10 updates is below 0.05."
+   ],
+   "expected_observations": [
+    "The loop and the FFT convolution agree to about 2e-6 (float32): one linear time-invariant system, two algorithms.",
+    "Times on the planning machine: loop about 4.9, 18.9 and 80.8 ms against FFT about 1.8, 5.5 and 25 ms at T = 256, 1,024 and 4,096: the loop grows linearly and is several times slower on a CPU; on a GPU the gap is far larger. The 64 moduli drawn from the ring [0.9, 0.999] span about 0.902-0.998724 and their half-lives about 6.7-543 steps (the ring's endpoints would give 6.6 and 693).",
+    "Recall after 400 updates (two seeds tried): the vanilla RNN reaches 100% at lag 25 (after about 240-360 updates) and chance at 100; the LSTM with forget bias 1 reaches only 12-62% at lag 25 and chance beyond; the LSTM with forget bias 5 is the fastest learner at lag 25 (100% after about 60-75 updates), succeeds or fails at lag 100 depending on the seed (11% or 100%), and stays at chance at 200; the linear recurrence reaches 100% at all three lags (after about 120, 260 and about 385 updates).",
+    "A memory length set directly by the eigenvalue moduli at initialisation lets the linear recurrence learn lags an LSTM of the same width does not learn in the same budget; the LSTM's reach is set by its forget bias (half-life 2.2 steps at b_f = 1, 103 at b_f = 5). This is a statement about trainability within a budget, not a claim that LSTMs cannot hold long memories.",
+    "Run time about 50 s on the planning machine, about 2 minutes on a laptop."
+   ],
+   "extensions": [
+    "Replace the blanks with random distractor tokens from a separate set of 8: the linear recurrence still reaches 100% at lags 25 and 100 (checked when planning), because its embedding learns to map distractors near zero, a filter on content at the input. Selectivity matters when what to keep depends on context; build the selective-copying variant, where the symbol to recall is the one that follows a marker at a random position, and compare.",
+    "Compute the recurrence with a parallel scan using the associative operator (a1, b1) then (a2, b2) = (a1 a2, a2 b1 + b2) in log2 T rounds, and check it against the loop.",
+    "Narrow the initial ring to [0.9, 0.95] and watch the long lags fail: here the initialisation is the memory.",
+    "Make the step input-dependent, λ_t = exp(Δ_t log λ) with Δ_t = softplus(w·x_t + c), compute it with the loop, and you have a minimal selective recurrence."
+   ]
+  }
+ ],
+ "exercises": [
+  {
+   "id": "e1",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "For each task, name the task shape (many-to-one, aligned many-to-many, sequence-to-sequence, one-to-many) and say whether the output at step t may depend on inputs after t. (a) Every 10 minutes, estimate a wind turbine's gearbox oil temperature one hour ahead from the last week of its sensor readings. (b) At each sample of a live pipeline-pressure stream, and before the next sample arrives, decide whether a pressure surge is under way, so that a valve can be closed. (c) Turn the sequence of alarm codes raised during a plant trip into a one-sentence summary for the shift log. (d) Once a spot weld is finished, decide from its whole current trace whether it passes or fails. (e) Generate a plausible week of hourly electricity demand for a building, given its floor area and use, to test a control strategy.",
+   "solution_sketch": "(a) Aligned many-to-many forecasting (or many-to-one per window); online, so no. (b) Aligned many-to-many labelling, but online: each decision must be made before later samples exist, so no, and a bidirectional model is ruled out, unlike the labelling of a recorded trace after the fact. (c) Sequence-to-sequence, because the lengths differ; the trip is over, so the encoder may read the whole alarm sequence (bidirectional), while the decoder is causal in its own outputs. (d) Many-to-one; the trace is complete when the decision is made, so yes. (e) One-to-many generation from a fixed conditioning input; each generated value may depend only on the values generated before it, so no."
+  },
+  {
+   "id": "e2",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "For the scalar RNN h_t = tanh(w h_{t-1} + u x_t) with h_0 = 0 and loss L = ½(h_3 - y)^2: (a) write ∂L/∂w for T = 3 as a sum of three terms and show the product of Jacobians ∂h_3/∂h_k = prod_j w(1 - h_j^2) explicitly in each; (b) evaluate everything for w = 0.9, u = 0.5, x = (1, 0, 1), y = 0.5, including ∂L/∂u, and compare the contributions of x_1 and x_3 to ∂L/∂u; (c) for the linear recurrence (tanh replaced by the identity) evaluate ∂h_50/∂h_0 for w = 0.8 and w = 1.25 and say what each means for learning.",
+   "solution_sketch": "(a) ∂L/∂w = (h_3 - y)(1 - h_3^2)[h_2 + w(1 - h_2^2) h_1 + w(1 - h_2^2) w(1 - h_1^2) h_0]: the k-th term carries the Jacobian product from step k to step 3. (b) h = (0.4621, 0.3935, 0.6932), L = 0.01867; g_3 = (h_3 - y)(1 - h_3^2) = 0.1004, g_2 = g_3·w(1 - h_2^2) = 0.07635, g_1 = g_2·w(1 - h_1^2) = 0.05404; ∂L/∂w = g_3 h_2 + g_2 h_1 + g_1 h_0 = 0.03949 + 0.03528 + 0 = 0.07477; ∂L/∂u = g_1 x_1 + g_2 x_2 + g_3 x_3 = 0.05404 + 0 + 0.1004 = 0.1544. The two inputs are equal, but x_1's term is 0.54 times x_3's, because its error signal passed back through the two local factors w(1 - h_2^2) = 0.761 and w(1 - h_1^2) = 0.708; central differences agree to four digits. (c) 0.8^50 = 1.4e-5: an input 50 steps back receives a gradient about 70,000 times smaller than a fresh one, so the dependency is effectively never learned; 1.25^50 = 7.0e4: the same factor the other way, so one update along that direction is 70,000 times too large and wrecks the weights without clipping. The two are reciprocals because 1.25 = 1/0.8."
+  },
+  {
+   "id": "e3",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "In three or four sentences, explain why global-norm gradient clipping cures exploding gradients but not vanishing ones, and why clipping each component to [-c, c] is worse than clipping the norm. Use g = (0.6, -45) and c = 1 as the example; no angles need computing.",
+   "solution_sketch": "Clipping rescales a gradient whose norm exceeds c to norm c: the step is bounded and its direction kept, so a cliff no longer throws the parameters away. A vanishing gradient is small, not large; clipping never enlarges it, and the long-range terms stay swamped by the short-range ones. Component clipping turns (0.6, -45) into (0.6, -1): it shrinks the large component 45-fold and leaves the small one alone, so the ratio of the components changes from 1:75 to 3:5 and the update points somewhere else. Norm clipping divides both components by the same number (the norm, about 45), so their ratio, and the direction, are unchanged."
+  },
+  {
+   "id": "e4",
+   "level": 2,
+   "kind": "derivation",
+   "minutes": 10,
+   "prompt": "(a) From the LSTM equations, derive ∂c_t/∂c_{t-1} and identify the term that does not pass through h_{t-1}. (b) Holding the gates fixed (ignoring the h-paths), compute ∂c_60/∂c_0 per unit when the forget gate equals σ(b_f) for b_f = 1.5, 2.5 and 4.5, and compare with a vanilla tanh RNN whose per-step factor is 0.7. (c) What forget-gate bias gives a memory half-life of 250 steps? (d) Which slice of which PyTorch tensors must you set to apply it?",
+   "solution_sketch": "(a) ∂c_t/∂c_{t-1} = diag(f_t) + [∂(f_t ⊙ c_{t-1} + i_t ⊙ c̃_t)/∂h_{t-1}]·diag(o_{t-1} ⊙ (1 - tanh^2(c_{t-1}))); diag(f_t) is the direct term. (b) σ(1.5) = 0.8176, σ(2.5) = 0.9241 and σ(4.5) = 0.9890, so over 60 steps 0.8176^60 = 5.6e-6, 0.9241^60 = 8.8e-3 and 0.9890^60 = 0.515 (half-lives 3.4, 8.8 and 63 steps, so the last has run for about one half-life); the vanilla factor gives 0.7^60 = 5.1e-10. (c) f = 0.5^{1/250} = 0.99723, so b_f = ln(f/(1 - f)) = 5.89; for long half-lives b_f ≈ ln(t_½ / ln 2) = ln 360.7 = 5.89, the logic of chrono initialisation. (d) PyTorch orders the gates i, f, g, o: set bias_ih_l0[H:2H] and zero bias_hh_l0[H:2H] (or account for it), because the two biases add."
+  },
+  {
+   "id": "e5",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "Count the parameters of a recurrent layer with d_in = 8 and H = 64 for a vanilla RNN, an LSTM and a GRU, first with one bias vector per gate and then as PyTorch counts them. Then count nn.GRU(8, 64, num_layers=2, bidirectional=True) layer by layer, and explain why its second layer is the larger.",
+   "solution_sketch": "One bias: RNN 64·(64 + 8 + 1) = 4,672; LSTM 4 × 4,672 = 18,688; GRU 3 × 4,672 = 14,016. PyTorch: RNN 64·72 + 2·64 = 4,736; LSTM 4·64·72 + 8·64 = 18,944; GRU 3·64·72 + 6·64 = 14,208. Bidirectional two-layer GRU: layer 1 is two directions of 14,208 = 28,416; layer 2 reads the concatenated 2H = 128 features of both directions: 2·(3·64·(128 + 64) + 6·64) = 2·37,248 = 74,496; total 102,912 (sum(p.numel() for p in m.parameters()) confirms it). The second layer is 2.6 times the first because its input is the 128-wide concatenation, not the 8 raw features."
+  },
+  {
+   "id": "e6",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A batch holds three sensor sequences of lengths 30, 90 and 240, zero-padded to 240 and fed to a unidirectional LSTM classifier that uses the output at position 240, together with a per-step auxiliary loss averaged over all 720 positions. List what goes wrong and the fixes.",
+   "solution_sketch": "(1) For the short sequences the classifier reads the state after 210 and 150 steps of zero input, a state polluted by padding: take each sequence's output at its true last step (gather by length) or pack. (2) Half of the 720 positions (360) are padding, so half the auxiliary loss trains the model to predict padding and the real steps' share of the gradient is halved: mask the loss (sum over real positions divided by their number). (3) Half the compute is wasted: pack, or bucket by length. (4) Were the layer bidirectional, the backward direction would read the padding first: pack."
+  },
+  {
+   "id": "e7",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "A colleague's pipeline for a vibration forecaster: (i) z-score the whole two-year series; (ii) cut windows of 128 samples with stride 1; (iii) shuffle the windows and split 80/20 at random; (iv) train with early stopping on the 20%; (v) report the RMSE on the same 20%. Identify every leak and give a corrected pipeline.",
+   "solution_sketch": "(i) uses the future's mean and standard deviation: compute them on the training part only, or normalise per window. (ii) is fine alone, but with (iii) overlapping windows put near-duplicates of test windows in training (neighbours share 127 of 128 values): split by time. (iv) with (v) uses the same data to choose the stopping point and to report the score: test-set reuse. Corrected: time-ordered training, validation (for early stopping) and test blocks, or walk-forward folds with an inner validation block; a gap of at least the horizon between blocks; naive, seasonal-naive and linear baselines reported on the same folds."
+  },
+  {
+   "id": "e8",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "One-step residuals of a forecaster on held-out normal data have standard deviation σ = 0.2 and are roughly Gaussian; the sensor samples at 10 Hz. (a) Compute the expected false alarms per day for a two-sided threshold at 3.5σ, 4.5σ and 5.5σ. (b) If residuals were independent, how many consecutive 3.5σ exceedances would you require to get fewer than one false alarm a month? (c) Give two reasons the real false-alarm rate will be higher than (a) predicts, and say how to set the threshold instead. (d) A sensor offset of +1.2 appears and stays. With a forecaster that subtracts each window's last value, how many samples will a 4σ point test flag, and what would you add?",
+   "solution_sketch": "(a) Two-sided tail probabilities 4.65e-4, 6.80e-6 and 3.80e-8, times 864,000 samples a day: 402, 5.87 and 0.033 false alarms a day (the last about one a month). (b) Two in a row: (4.65e-4)^2 × 864,000 = 0.19 a day, about 5.6 a month; three in a row: 8.7e-5 a day, about 0.003 a month, so three. (c) Residuals are autocorrelated (one exceedance tends to bring another) and heavy-tailed (normal transients); set the threshold from empirical quantiles of held-out normal residuals with the persistence rule applied, and check false alarms per day on a long normal record. (d) The jump is 1.2/0.2 = 6σ, so the onset is flagged (and the end, when the offset disappears); after one step the model has re-centred and the residuals return to normal, so about one or two samples. Add a level check against an independent reference (a redundant sensor or the twin's physics prediction) or a CUSUM over residuals from a model that does not re-centre."
+  },
+  {
+   "id": "e9",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "Explain why teacher forcing lets an RNN decoder be trained without sampling, and what exposure bias is. Using Lab 4's numbers for the model without attention at length 12 (teacher-forced token accuracy 79%, free-running 59%), explain the gap and propose two remedies.",
+   "solution_sketch": "Teacher forcing feeds the true previous token as input, so every step's loss is computed from known inputs in one pass, with a clean signal at every step. Exposure bias: at test time the decoder conditions on its own outputs; one error puts it in a state it never saw in training and errors compound, so free-running accuracy falls below teacher-forced accuracy and the gap grows with length (79% against 59% at 12). Remedies: scheduled sampling; training on the model's own rollouts or with sequence-level objectives; or reducing the error rate itself (with attention both are 100%)."
+  },
+  {
+   "id": "e10",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "A decoder over {A, B, ⟨e⟩} has p(y_1) = (A 0.45, B 0.35, ⟨e⟩ 0.20); p(y_2 | A) = (A 0.40, B 0.35, ⟨e⟩ 0.25); p(y_2 | B) = (A 0.10, B 0.75, ⟨e⟩ 0.15); after two tokens it always emits ⟨e⟩. (a) What does greedy decoding output, with what probability? (b) Run beam search with k = 2 step by step, as in Section 10 (keep the k best of all expansions; a kept hypothesis that has ended is set aside), listing the hypotheses kept and their log-probabilities. (c) Rank all complete sequences by probability; is beam search exact here, and is it exact in general? (d) Compute the length-normalised score (log-probability divided by length, counting ⟨e⟩) of the three most probable sequences; does the ranking change?",
+   "solution_sketch": "(a) A, then A, then ⟨e⟩: 0.45 × 0.40 = 0.18. (b) Step 1: keep A (ln 0.45 = -0.799) and B (-1.050); ⟨e⟩ (-1.609) is pruned. Step 2 expansions: BB 0.2625 (-1.338), AA 0.18 (-1.715), AB 0.1575 (-1.848), A⟨e⟩ 0.1125 (-2.185, finished), B⟨e⟩ 0.0525 (-2.947, finished), BA 0.035 (-3.352); keep BB and AA. Step 3: both end, and BB⟨e⟩ (-1.338) beats AA⟨e⟩ (-1.715). Output BB⟨e⟩ with probability 0.2625, 1.46 times greedy's. (c) BB⟨e⟩ 0.2625 > ⟨e⟩ 0.20 > AA⟨e⟩ 0.18 > AB⟨e⟩ 0.1575 > A⟨e⟩ 0.1125 > B⟨e⟩ 0.0525 > BA⟨e⟩ 0.035 (they sum to 1). Beam search finds the best here because the best sequence's first token, B, was in the top two at step 1; it pruned the empty output ⟨e⟩, the second most probable, at step 1, and in general any sequence whose prefix leaves the top k at some step is lost, so it is not exact. (d) BB⟨e⟩ -1.338/3 = -0.446; ⟨e⟩ -1.609/1 = -1.609; AA⟨e⟩ -1.715/3 = -0.572: normalisation moves the empty output from second to third, the correction for the bias of summed log-probabilities towards short outputs."
+  },
+  {
+   "id": "e11",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "Encoder states h_1 = (1, 1), h_2 = (2, 0), h_3 = (0, -1). (a) With dot-product scores and decoder state s = (1, 0), compute the scores, the attention weights and the context vector. (b) Repeat with s = (3, 0); what changed, and why does it matter for training? (c) Relate (b) to the 1/√d_k factor of Module 06. (d) With additive attention, W_s = I, W_h = [[1, 0], [0.5, -0.5]], v = (1, 0.5) and s_{t-1} = (-0.5, 0.5), compute the weights and the context.",
+   "solution_sketch": "(a) Scores (1, 2, 0); weights (0.2447, 0.6652, 0.0900); context (1.5752, 0.1547). (b) Scores (3, 6, 0); weights (0.0473, 0.9503, 0.0024); context (1.9480, 0.0450): the distribution is sharper, almost all of the weight on h_2; with large scores the softmax saturates and its gradient becomes small. (c) A dot product of two d-dimensional vectors with unit-variance entries has variance d; dividing by √d keeps the scores at unit scale whatever the width. (d) W_s s = (-0.5, 0.5); W_h h_j = (1, 0), (2, 1), (0, 0.5); pre-activations (0.5, 0.5), (1.5, 1.5), (-0.5, 1.0); after tanh (0.4621, 0.4621), (0.9051, 0.9051), (-0.4621, 0.7616); e = (0.6932, 1.3577, -0.0813); α = (0.2937, 0.5709, 0.1354); context (1.4355, 0.1583)."
+  },
+  {
+   "id": "e12",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "In two sentences each: why can a recurrent network not be trained in parallel over time, and why can a transformer? Then, without computing sizes: while generating, a sequence grows from 4,096 to 32,768 tokens. By what factor does an LSTM's per-sequence state grow, and by what factor a transformer's key-value cache? What does that mean for the number of sequences one accelerator's memory can hold at once?",
+   "solution_sketch": "RNN: h_t is a nonlinear function of h_{t-1}, so step t cannot start before step t-1 finishes; even with teacher forcing the T steps form a dependent chain. Transformer: within a layer each position depends on the layer's inputs, which teacher forcing makes known, not on other positions' outputs at that layer, so all positions are computed in one masked matrix operation. State: the LSTM keeps a fixed (h, c) per layer, so its state does not grow (factor 1); the key-value cache stores keys and values for every past token, so it grows in proportion to the context (factor 8). A fixed memory budget for per-sequence state holds the same number of LSTM sequences at any length, but one eighth as many transformer sequences at 32,768 tokens as at 4,096 (Section 12 gives the sizes; Module 10 the consequences for serving)."
+  },
+  {
+   "id": "e13",
+   "level": 2,
+   "kind": "calculation",
+   "minutes": 10,
+   "prompt": "(a) For h_t = 0.8 h_{t-1} + x_t, y_t = 2 h_t, h_0 = 0 and x = (2, -1, 0, 1), compute y by the recurrence and then by convolution with the kernel K_k = c a^k b; show they agree. (b) The continuous system dh/dt = -0.5 h + x(t) is discretised by zero-order hold with step Δ. Compute a and b for Δ = 0.1, 1 and 5, compare with forward Euler at Δ = 1 and Δ = 5, and interpret Δ. (c) For a complex mode λ = 0.98 e^{iπ/12}, give the half-life and the oscillation period of its kernel. (d) Why does making Δ depend on x_t (as Mamba does) remove the convolution form, and what computes the recurrence in parallel instead?",
+   "solution_sketch": "(a) Recurrence: h = (2, 0.6, 0.48, 1.384), y = (4, 1.2, 0.96, 2.768). Kernel K = 2·0.8^k = (2, 1.6, 1.28, 1.024); for example y_4 = 2(1) + 1.6(0) + 1.28(-1) + 1.024(2) = 2.768, and the other three outputs agree too. (b) a = e^{-0.5Δ}, b = (1 - e^{-0.5Δ})/0.5: Δ = 0.1 gives 0.9512 and 0.0975; Δ = 1 gives 0.6065 and 0.7869 (forward Euler, a = 1 - 0.5Δ and b = Δ: 0.5 and 1); Δ = 5 gives 0.0821 and 1.836, while forward Euler gives a = -1.5, an unstable recurrence. Small Δ keeps the state and writes little; large Δ forgets and writes a lot: Δ acts as a gate. Zero-order hold maps a stable pole to |a| < 1 for every Δ; forward Euler is stable here only for Δ < 4. (c) Half-life ln 0.5 / ln 0.98 = 34.3 steps; period 2π/(π/12) = 24 steps. (d) A single kernel C Ā^k B̄ exists only if Ā, B̄ and C are the same at every step; with Δ_t depending on the input, the product Ā_t Ā_{t-1}... differs for every pair of positions. The recurrence is still linear in h, so an associative (parallel) scan computes it in O(log T) depth."
+  },
+  {
+   "id": "e14",
+   "level": 1,
+   "kind": "conceptual",
+   "minutes": 5,
+   "prompt": "Choose a sequence model for each case and justify it in one or two sentences. (a) On-device detection of bearing faults from a 1 kHz accelerometer on a microcontroller with 64 KiB of RAM, with dependencies up to 2 s. (b) Offline labelling of every event in last month's 50,000-line plant log as routine or abnormal. (c) A three-week-ahead forecast of one building's daily energy use from four years of history. (d) A model over sequences of 100,000 sensor samples with structure at all scales, trained on a GPU.",
+   "solution_sketch": "(a) A small GRU/LSTM or diagonal linear recurrence run in recurrent mode: a constant state of a few kB and constant compute per sample; a transformer's cache over 2,000 samples, or a TCN's buffers at every dilation level, cost more memory. (b) Offline, so a bidirectional LSTM or a transformer encoder over windows of the log. (c) Baselines first (seasonal naive with a weekly period, a linear model with calendar features); a neural forecaster only if it beats them on walk-forward folds, which one short series rarely allows. (d) A state-space or linear-recurrence stack (convolution or scan mode in training, linear in length) or a transformer with efficient attention; a plain LSTM would be a serial loop over 100,000 steps."
+  },
+  {
+   "id": "e15",
+   "level": 3,
+   "kind": "coding",
+   "minutes": 25,
+   "prompt": "In Lab 3's forecaster, replace the LSTM with a temporal convolutional network: causal 1D convolutions (Module 03) with kernel size 2 and dilations 1, 2, 4, 8, 16, 32, 32 channels, ReLU, residual connections between layers (a 1×1 convolution lifts the single input channel to 32 for the first residual), and a linear head on the last time step; keep the per-window normalisation. Train it on the same four walk-forward folds with the same optimiser, batch size and epochs. Report (a) the receptive field calculation; (b) the parameter count against the LSTM's 12,961; (c) the mean ± standard deviation of the one-step RMSE over the folds against the LSTM and the linear baseline; (d) the training time per fold for both networks; (e) a paragraph on when you would choose each.",
+   "solution_sketch": "Causal convolution: left-pad by (k - 1)·d with F.pad(x, ((k - 1)*d, 0)) and use nn.Conv1d(dilation=d) on input of shape (B, 1, 64). (a) 1 + (2 - 1)(1 + 2 + 4 + 8 + 16 + 32) = 64 = the window. (b) First layer 1·32·2 + 32 = 96; five 32 -> 32 layers of 2·32·32 + 32 = 2,080, total 10,400; the 1×1 lift 64; head 33; total 10,593. (c) Measured when planning: TCN 0.136 ± 0.009, LSTM 0.132 ± 0.002, linear 0.159 ± 0.009: the TCN is within noise of the LSTM and well ahead of the linear model. (d) About 35% less training time per fold on a CPU (1.6-2.8 s against 2.5-4.3 s on the planning machine), because all 64 positions are computed in parallel; the gap is larger on a GPU. (e) TCN when the needed receptive field is known and bounded and training speed matters; LSTM (or a linear recurrence) when the dependency length is unknown or the model must stream step by step with a small state (a TCN can stream too, with one buffer per dilation level)."
+  }
+ ],
+ "quiz": [
+  {
+   "question": "Unrolled over T steps, a recurrent network is equivalent to:",
+   "options": [
+    "a T-layer feed-forward network whose layers share the same weights",
+    "a single-layer network applied to the concatenated sequence",
+    "a T-layer network with independent weights in every layer",
+    "a convolution whose kernel is T steps wide"
+   ],
+   "answer": 0,
+   "explanation": "The same W_h, W_x and b are applied at every step, so each step is a layer and all layers share weights. Independent weights per layer describes a deep window network, not a recurrence; a convolution is only equivalent for linear time-invariant recurrences (Section 13), and then its kernel is C A^k B, not an arbitrary filter."
+  },
+  {
+   "question": "A linear RNN's recurrent matrix has eigenvalues 0.95 and 1.05. What happens to a gradient propagated 100 steps back from a generic starting vector?",
+   "options": [
+    "It vanishes, because the eigenvalues average to 1",
+    "It stays about the same size",
+    "It grows about 130-fold and turns towards the eigenvector of 1.05",
+    "It oscillates without growing"
+   ],
+   "answer": 2,
+   "explanation": "The two eigen-components scale as 0.95^100 = 0.0059 and 1.05^100 = 131.5; the second dominates and the gradient aligns with its eigenvector. Averaging eigenvalues means nothing here; oscillation would need complex eigenvalues."
+  },
+  {
+   "question": "Global-norm gradient clipping with threshold c:",
+   "options": [
+    "sets every gradient component larger than c to c",
+    "adds noise of size c to small gradients to stop them vanishing",
+    "divides the learning rate by c whenever the loss rises",
+    "rescales the whole gradient to norm c when its norm exceeds c, keeping its direction"
+   ],
+   "answer": 3,
+   "explanation": "Norm clipping bounds the step and keeps the direction. Setting components to c is value clipping, which changes the direction. Clipping never enlarges small gradients, which is why it does nothing for vanishing gradients; the other options are not clipping."
+  },
+  {
+   "question": "In an LSTM, the derivative of c_t with respect to c_{t-1} along the direct (cell) path is:",
+   "options": [
+    "W_f, the forget gate's weight matrix",
+    "diag(f_t)",
+    "diag(o_t ⊙ tanh'(c_t))",
+    "diag(i_t)"
+   ],
+   "answer": 1,
+   "explanation": "c_t = f_t ⊙ c_{t-1} + i_t ⊙ c̃_t; differentiating the first term gives diag(f_t), a per-step gate value the network can hold near 1. The other expressions belong to other paths (through h_{t-1} or to h_t)."
+  },
+  {
+   "question": "How many parameters does PyTorch's nn.LSTM(10, 20) have?",
+   "options": [
+    "2,560",
+    "2,480",
+    "1,920",
+    "640"
+   ],
+   "answer": 0,
+   "explanation": "4·20·(10 + 20) = 2,400 weights plus two bias vectors of 4·20 = 80 each: 2,560. 2,480 is the one-bias count; 1,920 is nn.GRU(10, 20); 640 is a vanilla nn.RNN(10, 20), one gate's worth."
+  },
+  {
+   "question": "For which task is a bidirectional LSTM appropriate?",
+   "options": [
+    "Forecasting the next value of a bearing temperature in real time",
+    "Streaming anomaly detection with a 10 ms latency budget",
+    "Labelling every second of a recorded test as normal or faulty after the test",
+    "Generating text one character at a time"
+   ],
+   "answer": 2,
+   "explanation": "A bidirectional network reads each position's future, so only offline tasks with the whole sequence available may use it. Forecasting, streaming detection and generation are causal; a bidirectional model there has read the future."
+  },
+  {
+   "question": "A sequence-to-sequence model trained only with teacher forcing produces fluent first tokens and then drifts. The most likely cause is:",
+   "options": [
+    "a learning rate that was too high",
+    "a bidirectional encoder",
+    "a beam width that is too large",
+    "exposure bias: the decoder never conditioned on its own predictions during training"
+   ],
+   "answer": 3,
+   "explanation": "With teacher forcing the decoder always saw true previous tokens; at inference its own, sometimes wrong, tokens put it in unfamiliar states and errors compound. A bidirectional encoder is normal; large beams cause length bias, not this pattern."
+  },
+  {
+   "question": "Beam search with beam width k = 1 is:",
+   "options": [
+    "exhaustive search over all sequences",
+    "greedy decoding",
+    "sampling at temperature 1",
+    "length-normalised search"
+   ],
+   "answer": 1,
+   "explanation": "Keeping only the single best partial hypothesis at every step is exactly greedy decoding. Exhaustive search is infeasible; sampling is random; length normalisation is a scoring choice that can be used with any k."
+  },
+  {
+   "question": "In Bahdanau attention, the weights α_{t,j} at decoder step t:",
+   "options": [
+    "are learned parameters, one per source position",
+    "sum to 1 over decoder steps t",
+    "sum to 1 over source positions j and are computed from s_{t-1} and each h_j",
+    "are fixed to the diagonal for monotonic tasks"
+   ],
+   "answer": 2,
+   "explanation": "They are a softmax over j of the scores v^T tanh(W_s s_{t-1} + W_h h_j), recomputed for every input; nothing forces them to be diagonal (Lab 4's alignment is anti-diagonal), and they are not parameters."
+  },
+  {
+   "question": "Which of these is not leakage when evaluating a forecaster?",
+   "options": [
+    "z-scoring with the mean and standard deviation of the whole series",
+    "shuffling overlapping windows before a random 80/20 split",
+    "choosing the number of epochs by the RMSE on the final test period",
+    "recomputing normalisation statistics from the training part of each walk-forward fold"
+   ],
+   "answer": 3,
+   "explanation": "Per-fold statistics from the training part are the correct procedure. Whole-series statistics use the future; shuffled overlapping windows put near-copies of test windows into training; tuning on the test period reuses the test set."
+  },
+  {
+   "question": "A one-step LSTM forecaster that subtracts each window's last value monitors a sensor. A constant offset of +0.8 appears and stays for 100 samples. A residual threshold detector will:",
+   "options": [
+    "alarm continuously for the 100 samples",
+    "alarm at the onset (and at the end) only, because the model re-centres on the new level within a step",
+    "never alarm",
+    "alarm only after 50 samples"
+   ],
+   "answer": 1,
+   "explanation": "The inputs are taken relative to the last value, so after one step the shifted level is the new reference and the residuals return to normal; the change is visible only when it happens and when it ends (Lab 3). Sustained offsets need a level check or residuals from a model that does not re-centre."
+  },
+  {
+   "question": "Why can an S4-style state-space layer be trained in parallel over time while an LSTM cannot?",
+   "options": [
+    "Its recurrence is linear and time-invariant, so its output is a convolution of the input with the kernel C Ā^k B̄, computable for all steps at once",
+    "It has fewer parameters than an LSTM",
+    "It uses attention internally",
+    "It has no hidden state"
+   ],
+   "answer": 0,
+   "explanation": "Linearity and time-invariance turn the unrolled map into a convolution, computed with the FFT; time-varying linear recurrences such as Mamba's use an associative scan instead. An LSTM's gates depend nonlinearly on h_{t-1}, which forces a serial loop. Parameter count, attention and the absence of a state are not the reason (it has a state)."
+  }
+ ],
+ "papers": [
+  {
+   "citation": "Pascanu, R., Mikolov, T., Bengio, Y. \"On the difficulty of training recurrent neural networks.\" ICML, 2013.",
+   "minutes": 20,
+   "why": "The clearest analysis of why recurrent gradients vanish and explode (the product of Jacobians, the dynamical-systems view, the geometry of the cliff) and the origin of gradient-norm clipping, which every recurrent and transformer training run still uses.",
+   "read": "Read the introduction and the section on exploding and vanishing gradients in full: the mechanics with the sufficient condition for vanishing and the necessary condition for exploding, the dynamical-systems view and the geometric interpretation with the 'wall' figure. Then read the subsection on scaling down the gradients (the clipping algorithm). Skim the proposed regulariser for vanishing gradients and the experiments; skip the proofs in the appendix.",
+   "questions": [
+    "State the sufficient condition for vanishing gradients in terms of the largest singular value of W_rec and the bound γ on the activation's derivative. What is γ for tanh and for the logistic sigmoid?",
+    "Why is the corresponding condition for exploding gradients only necessary, not sufficient?",
+    "Describe the 'wall' in the loss surface and explain why rescaling the gradient's norm, rather than its components, helps when a step hits it.",
+    "How do the authors suggest choosing the clipping threshold, and how does that compare with the 1-5 range given in Section 7?"
+   ]
+  },
+  {
+   "citation": "Bahdanau, D., Cho, K., Bengio, Y. \"Neural machine translation by jointly learning to align and translate.\" ICLR, 2015.",
+   "minutes": 15,
+   "why": "The paper that introduced attention as the fix for the encoder-decoder bottleneck: the idea that, with the recurrence removed, became the transformer.",
+   "read": "Read the introduction, the background on the RNN encoder-decoder, and the section on learning to align and translate (the decoder with its alignment model, and the bidirectional encoder that produces the annotations). Look at the figure of translation quality against sentence length and the alignment figures. Skip the experimental settings and most of the appendix, except the definition of the alignment model.",
+   "questions": [
+    "What is an 'annotation' h_j, and why do the authors use a bidirectional RNN to compute it?",
+    "Write their alignment model a(s_{i-1}, h_j) and map each symbol to the notation of Section 11.",
+    "What does the figure of quality against sentence length show for the encoder-decoder without attention and with it?",
+    "Find an alignment in the figures that is not monotonic and explain it from the grammar of the two languages."
+   ]
+  },
+  {
+   "citation": "Gu, A., Dao, T. \"Mamba: Linear-time sequence modeling with selective state spaces.\" 2023 (arXiv:2312.00752).",
+   "minutes": 15,
+   "why": "The paper that made recurrence competitive again for language-scale sequence modelling, by making a state-space model's parameters depend on the input: the clearest current example of the trade discussed in Sections 12-13.",
+   "read": "Read the abstract and the introduction, the section on state-space models (the continuous system, discretisation, the recurrent and convolutional computations, linear time-invariance), and from the section on selective state-space models the motivation (selection as a means of compression, with the selective-copying and induction-head tasks) and the algorithm that contrasts the time-invariant model with the selective one. Skim the description of the hardware-aware scan; skip the experiments except one look at the synthetic-task results.",
+   "questions": [
+    "The authors describe a trade-off between efficiency and effectiveness in terms of how much a model compresses its context into its state. State it, and place the transformer and an LTI state-space model at its two ends.",
+    "Which parameters become functions of the input in the selective model, and why does that rule out the convolutional mode?",
+    "In one sentence, how is the selective recurrence computed efficiently on a GPU?",
+    "The paper connects Δ to the gates of classical recurrent networks. State the connection and compare it with the GRU's update gate in Section 6."
+   ]
+  }
+ ],
+ "widgets": [
+  {
+   "name": "gradient-flow-explorer",
+   "section": "s4",
+   "teaching_point": "Whether a gradient survives n steps back is decided by the per-step Jacobian, the recurrent matrix's spectrum times the nonlinearity's derivative: a spectral radius of exactly 1 is not enough once tanh saturates, while a gated additive path is controlled by one learned number.",
+   "controls": [
+    "slider: spectral radius ρ of W_h, 0.50-3.00, step 0.01 (default 1.00)",
+    "select: matrix type, 'orthogonal (all singular values = ρ)' or 'random Gaussian (non-normal)' (default orthogonal)",
+    "select: nonlinearity, linear | tanh | ReLU (default tanh)",
+    "slider: input standard deviation σ_x, 0-3, step 0.05 (default 1.0)",
+    "select: hidden size H, 8 | 16 | 32 | 64 (default 32)",
+    "slider: maximum lag n_max, 20-200, step 10 (default 100)",
+    "checkbox: show the LSTM cell path (default on)",
+    "slider: forget-gate bias b_f, -2 to 8, step 0.1 (default 4.0)",
+    "slider: forget-gate spread s (input-driven variation of the gate's pre-activation), 0-2, step 0.1 (default 0.5)",
+    "button: new random draw (increments the seed)"
+   ],
+   "displays": [
+    "Main plot: log10 of ||∂L/∂h_{T-n}|| / ||∂L/∂h_T|| against lag n = 0..n_max, y-axis from -30 to +30, values outside clamped with a marker; a dashed reference line n·log10 ρ; for the Gaussian matrix also a dotted line n·log10 σ_max; the LSTM cell path as a second solid curve, log10 of the product of f_k.",
+    "Readouts: ρ (estimated for the Gaussian matrix), σ_max, the mean of |φ'(z)| along the trajectory, the gradient ratio at n = 10, 50 and 100, the 'memory horizon' (the smallest n with ratio below 1e-3, or '> n_max'), and for the LSTM path σ(b_f) and the half-life ln 0.5 / ln σ(b_f).",
+    "A small histogram of the φ'(z) values visited during the forward pass (shows saturation as mass near 0)."
+   ],
+   "defaults": "Orthogonal W_h with ρ = 1.0, tanh, σ_x = 1.0, H = 32, n_max = 100, LSTM path on with b_f = 4.0 and s = 0.5, seed 1. The vanilla curve falls to about 1e-2 by lag 10 and about 1e-20 by lag 100 while the dashed ρ^n line stays at 1 (simulated when planning: 1.8e-2, 5.5e-11 and 5.1e-21 at lags 10, 50 and 100), and the LSTM path sits near 0.1 at lag 100 (σ(4)^100 = 0.163 with no spread). Switching to 'linear' makes the vanilla curve lie exactly on the flat reference line.",
+   "spec": "Vanilla JavaScript with one canvas (or SVG) plot; recompute on every control change (at most 64×64×200 multiply-adds, instant). PRNG: mulberry32(seed) with Box-Muller for N(0,1). Matrix: draw G (H×H) with N(0,1) entries. Orthogonal: QR of G by modified Gram-Schmidt on its columns, flip signs so diag(R) > 0, W = ρ·Q. Gaussian: estimate ρ(G) by the average log growth rate of power iteration (v random unit; for k = 1..512: w = G v, r_k = ||w||, v = w / r_k; ρ̂ = exp(mean of log r_k over k = 257..512)), which converges to the largest eigenvalue modulus even for a complex pair; W = (ρ/ρ̂)·G. σ_max by 200 power iterations on W^T W (square root of the Rayleigh quotient). Forward pass: h_0 = 0; for t = 1..n_max: x_t ~ N(0, σ_x^2 I_H) (W_x = I, b = 0); z_t = W h_{t-1} + x_t; h_t = φ(z_t); store φ'(z_t) (linear: 1; tanh: 1 - tanh^2; ReLU: 1 if z > 0 else 0, matching PyTorch's choice of 0 at z = 0). Backward: g = random unit vector; logsum = 0; for n = 1..n_max: g = W^T (φ'(z_{n_max - n + 1}) ⊙ g); m = ||g||; if m == 0, record -∞ for this and all later lags and show 'gradient exactly zero: every unit inactive'; else logsum += log10 m, g /= m, record logsum (renormalising each step avoids overflow and underflow). LSTM path: f_k = σ(b_f + s·ε_k), ε_k ~ N(0,1) from the same PRNG stream after the forward pass; record the cumulative sum of log10 f_k. Edge cases: σ_x = 0 with tanh gives z = 0 at every step and the curve equals n·log10 ρ exactly; with ReLU and σ_x = 0 every derivative is 0 (show the message); clamp the display to [-30, 30] and label clamped points. Accessibility: keyboard-operable controls, readouts as text, colours distinguishable in grey scale (solid versus dashed)."
+  },
+  {
+   "name": "ssm-kernel-explorer",
+   "section": "s13",
+   "teaching_point": "A linear time-invariant recurrence and a convolution with its impulse response are the same map: the eigenvalue's modulus sets the memory length and its angle the oscillation; making the step size depend on the input (Mamba's selectivity) removes the fixed kernel and turns the step into a gate.",
+   "controls": [
+    "slider: modulus r, 0.50-0.999 on a nonlinear scale so that 0.90-0.999 takes half the travel (default 0.95)",
+    "slider: angle θ, 0-π (default π/8), with tick labels in fractions of π",
+    "select: input signal, 'unit impulse at t = 5' | 'step from t = 5' | 'square pulse t = 5-24' | 'noisy sine (period 30)' | 'two impulses at t = 5 and t = 60' (default impulse)",
+    "slider: sequence length T, 50-400, step 10 (default 120)",
+    "toggle: continuous-time view; when on, the r and θ sliders are replaced by a pole s = -α + iω (α 0.001-1, log scale; ω 0-π) and a step Δ (0.01-10, log scale), and λ = exp(sΔ) by zero-order hold",
+    "toggle: selective step (Mamba-style); when on, Δ_t = softplus(w·x_t + c) with sliders w (-5 to 5, default 3) and c (-5 to 2, default -3), a real decay rate α (as above), a_t = exp(-α Δ_t) and b_t = Δ_t"
+   ],
+   "displays": [
+    "Kernel panel: stem plot of K_k = Re(c λ^k b̄) for k = 0..T-1 with the envelope ±|c b̄| r^k dashed (hidden in selective mode, replaced by the text 'no fixed kernel: the step depends on the input').",
+    "Signal panel: the input x_t in grey; the output by recurrence as a solid line; the output by direct convolution sum_{k ≤ t} K_k x_{t-k} as dots on top of it; a readout 'max |recurrence - convolution|' (about 1e-15 in float64).",
+    "Readouts: λ in polar and Cartesian form, |λ|, half-life ln 0.5 / ln |λ| steps, oscillation period 2π/θ steps (∞ when θ = 0); in the continuous view also the time constant 1/α and how many steps it spans (1/(αΔ)); in selective mode a third trace of the retention a_t under the signal panel."
+   ],
+   "defaults": "r = 0.95, θ = π/8, impulse at t = 5, T = 120, both toggles off. The kernel is a damped oscillation with period 16 steps and half-life 13.5 steps (Re λ^k = 1, 0.878, 0.638, 0.328, 0, -0.296, ...); the output is the kernel shifted to t = 5 and the dots sit exactly on the line.",
+   "spec": "Vanilla JavaScript, two stacked canvases (or SVG). Complex arithmetic with (re, im) pairs in float64. Input coefficient b̄ = 1 and output coefficient c = 1 in the discrete view; in the continuous view b̄ = (e^{sΔ} - 1)/s (complex division; when |sΔ| < 1e-6 use b̄ = Δ(1 + sΔ/2) to avoid 0/0) and λ = e^{sΔ} = e^{-αΔ}(cos ωΔ + i sin ωΔ). Recurrence: h_0 = 0; for t = 0..T-1: h = λ h + b̄ x_t; y_t = Re(c h). Convolution: K_k = Re(c λ^k b̄) (compute λ^k by repeated multiplication), y_t = sum_{k=0}^{t} K_k x_{t-k} by the direct O(T^2) sum (160,000 terms at T = 400, fine). Note in a tooltip that one complex mode with a real output is equivalent to a real two-state system, a damped oscillator. Selective mode: real state, h_t = a_t h_{t-1} + b_t x_t with Δ_t = softplus(w x_t + c), a_t = exp(-α Δ_t), b_t = Δ_t (θ ignored and greyed out); show that with w = 0 the step is constant, the kernel panel returns and the two outputs coincide again. The noisy sine uses mulberry32 with a fixed seed so the trace does not change while sliders move. Clamp r to at most 0.999 (no marginal stability). Accessibility: keyboard-operable controls, numeric readouts as text."
+  }
+ ],
+ "terms": [
+  {
+   "en": "recurrent neural network (RNN)",
+   "zh": "循环神经网络"
+  },
+  {
+   "en": "hidden state",
+   "zh": "隐状态"
+  },
+  {
+   "en": "unrolling in time",
+   "zh": "按时间展开"
+  },
+  {
+   "en": "backpropagation through time (BPTT)",
+   "zh": "随时间反向传播"
+  },
+  {
+   "en": "truncated BPTT",
+   "zh": "截断的随时间反向传播"
+  },
+  {
+   "en": "vanishing / exploding gradient",
+   "zh": "梯度消失 / 梯度爆炸"
+  },
+  {
+   "en": "spectral radius",
+   "zh": "谱半径"
+  },
+  {
+   "en": "gradient clipping",
+   "zh": "梯度裁剪"
+  },
+  {
+   "en": "long short-term memory (LSTM)",
+   "zh": "长短期记忆网络"
+  },
+  {
+   "en": "gated recurrent unit (GRU)",
+   "zh": "门控循环单元"
+  },
+  {
+   "en": "gate",
+   "zh": "门（门控）"
+  },
+  {
+   "en": "cell state",
+   "zh": "细胞状态"
+  },
+  {
+   "en": "forget gate",
+   "zh": "遗忘门"
+  },
+  {
+   "en": "bidirectional RNN",
+   "zh": "双向循环神经网络"
+  },
+  {
+   "en": "sequence to sequence (seq2seq)",
+   "zh": "序列到序列"
+  },
+  {
+   "en": "encoder-decoder",
+   "zh": "编码器-解码器"
+  },
+  {
+   "en": "teacher forcing",
+   "zh": "教师强制"
+  },
+  {
+   "en": "exposure bias",
+   "zh": "暴露偏差"
+  },
+  {
+   "en": "greedy decoding",
+   "zh": "贪心解码"
+  },
+  {
+   "en": "beam search",
+   "zh": "束搜索"
+  },
+  {
+   "en": "attention, alignment",
+   "zh": "注意力，对齐"
+  },
+  {
+   "en": "context vector",
+   "zh": "上下文向量"
+  },
+  {
+   "en": "time series forecasting",
+   "zh": "时间序列预测"
+  },
+  {
+   "en": "walk-forward validation (rolling-origin evaluation)",
+   "zh": "前向滚动验证（滚动起点评估）"
+  },
+  {
+   "en": "naive forecast, seasonal naive forecast",
+   "zh": "朴素预测，季节性朴素预测"
+  },
+  {
+   "en": "anomaly detection, residual",
+   "zh": "异常检测，残差"
+  },
+  {
+   "en": "state-space model",
+   "zh": "状态空间模型"
+  },
+  {
+   "en": "linear recurrence, parallel scan",
+   "zh": "线性循环（线性递推），并行扫描"
+  },
+  {
+   "en": "selective state-space model",
+   "zh": "选择性状态空间模型"
+  },
+  {
+   "en": "temporal convolutional network (TCN)",
+   "zh": "时间卷积网络"
+  }
+ ],
+ "references": [
+  "Elman, J. L. \"Finding structure in time.\" Cognitive Science, 1990. The simple recurrent network of Section 2.",
+  "Werbos, P. J. \"Backpropagation through time: what it does and how to do it.\" Proceedings of the IEEE, 1990. BPTT.",
+  "Williams, R. J., Zipser, D. \"A learning algorithm for continually running fully recurrent neural networks.\" Neural Computation, 1989. Real-time recurrent learning, the forward-mode alternative.",
+  "Bengio, Y., Simard, P., Frasconi, P. \"Learning long-term dependencies with gradient descent is difficult.\" IEEE Transactions on Neural Networks, 1994. The vanishing-gradient problem for recurrent networks.",
+  "Pascanu, R., Mikolov, T., Bengio, Y. \"On the difficulty of training recurrent neural networks.\" ICML, 2013. The spectral conditions and gradient clipping (guided reading).",
+  "Saxe, A. M., McClelland, J. L., Ganguli, S. \"Exact solutions to the nonlinear dynamics of learning in deep linear neural networks.\" ICLR, 2014. Orthogonal initialisation.",
+  "Le, Q. V., Jaitly, N., Hinton, G. E. \"A simple way to initialize recurrent networks of rectified linear units.\" arXiv, 2015. Identity initialisation with ReLU.",
+  "Arjovsky, M., Shah, A., Bengio, Y. \"Unitary evolution recurrent neural networks.\" ICML, 2016. Norm-preserving recurrences.",
+  "Hochreiter, S., Schmidhuber, J. \"Long short-term memory.\" Neural Computation, 1997. The LSTM and the constant error carousel.",
+  "Gers, F. A., Schmidhuber, J., Cummins, F. \"Learning to forget: continual prediction with LSTM.\" Neural Computation, 2000. The forget gate.",
+  "Greff, K. et al. \"LSTM: a search space odyssey.\" IEEE Transactions on Neural Networks and Learning Systems, 2017. Eight variants compared.",
+  "Jozefowicz, R., Zaremba, W., Sutskever, I. \"An empirical exploration of recurrent network architectures.\" ICML, 2015. The forget-gate bias of 1.",
+  "Tallec, C., Ollivier, Y. \"Can recurrent neural networks warp time?\" ICLR, 2018. Chrono initialisation of the gate biases.",
+  "Cho, K. et al. \"Learning phrase representations using RNN encoder-decoder for statistical machine translation.\" EMNLP, 2014. The GRU and the encoder-decoder.",
+  "Chung, J., Gulcehre, C., Cho, K., Bengio, Y. \"Empirical evaluation of gated recurrent neural networks on sequence modeling.\" arXiv, 2014. GRU against LSTM.",
+  "Weiss, G., Goldberg, Y., Yahav, E. \"On the practical computational power of finite precision RNNs for language recognition.\" ACL, 2018. LSTMs can count; GRUs in practice do not.",
+  "Schuster, M., Paliwal, K. K. \"Bidirectional recurrent neural networks.\" IEEE Transactions on Signal Processing, 1997.",
+  "Gal, Y., Ghahramani, Z. \"A theoretically grounded application of dropout in recurrent neural networks.\" NeurIPS, 2016. Variational dropout.",
+  "Merity, S., Keskar, N. S., Socher, R. \"Regularizing and optimizing LSTM language models.\" ICLR, 2018. Dropout on recurrent weights (AWD-LSTM).",
+  "Ba, J. L., Kiros, J. R., Hinton, G. E. \"Layer normalization.\" arXiv, 2016. Includes recurrent networks.",
+  "Graves, A. \"Generating sequences with recurrent neural networks.\" arXiv, 2013. Character-level and handwriting generation.",
+  "Karpathy, A., Johnson, J., Fei-Fei, L. \"Visualizing and understanding recurrent networks.\" ICLR Workshop, 2016. Interpretable LSTM cells.",
+  "Sutskever, I., Vinyals, O., Le, Q. V. \"Sequence to sequence learning with neural networks.\" NeurIPS, 2014.",
+  "Bengio, S., Vinyals, O., Jaitly, N., Shazeer, N. \"Scheduled sampling for sequence prediction with recurrent neural networks.\" NeurIPS, 2015.",
+  "Ranzato, M. et al. \"Sequence level training with recurrent neural networks.\" ICLR, 2016. Names exposure bias.",
+  "Wu, Y. et al. \"Google's neural machine translation system: bridging the gap between human and machine translation.\" arXiv, 2016. Deep residual LSTM stacks; length normalisation in beam search.",
+  "Bahdanau, D., Cho, K., Bengio, Y. \"Neural machine translation by jointly learning to align and translate.\" ICLR, 2015. Additive attention (guided reading).",
+  "Luong, M.-T., Pham, H., Manning, C. D. \"Effective approaches to attention-based neural machine translation.\" EMNLP, 2015. Multiplicative attention.",
+  "Jain, S., Wallace, B. C. \"Attention is not explanation.\" NAACL, 2019; with Wiegreffe, S., Pinter, Y. \"Attention is not not explanation.\" EMNLP, 2019. Reading attention weights with care.",
+  "Vaswani, A. et al. \"Attention is all you need.\" NeurIPS, 2017. Module 06; its complexity table is the model for Section 12's.",
+  "van den Oord, A. et al. \"WaveNet: a generative model for raw audio.\" arXiv, 2016. Dilated causal convolutions.",
+  "Bai, S., Kolter, J. Z., Koltun, V. \"An empirical evaluation of generic convolutional and recurrent networks for sequence modeling.\" arXiv, 2018. Temporal convolutional networks.",
+  "Katharopoulos, A., Vyas, A., Pappas, N., Fleuret, F. \"Transformers are RNNs: fast autoregressive transformers with linear attention.\" ICML, 2020.",
+  "Blelloch, G. E. \"Prefix sums and their applications.\" Technical report CMU-CS-90-190, Carnegie Mellon University, 1990. The parallel scan.",
+  "Gu, A., Dao, T., Ermon, S., Rudra, A., Ré, C. \"HiPPO: recurrent memory with optimal polynomial projections.\" NeurIPS, 2020.",
+  "Gu, A., Goel, K., Ré, C. \"Efficiently modeling long sequences with structured state spaces.\" ICLR, 2022. S4.",
+  "Tay, Y. et al. \"Long Range Arena: a benchmark for efficient transformers.\" ICLR, 2021.",
+  "Gupta, A., Gu, A., Berant, J. \"Diagonal state spaces are as effective as structured state spaces.\" NeurIPS, 2022; and Gu, A., Gupta, A., Goel, K., Ré, C. \"On the parameterization and initialization of diagonal state space models.\" NeurIPS, 2022. DSS and S4D.",
+  "Orvieto, A. et al. \"Resurrecting recurrent neural networks for long sequences.\" ICML, 2023. The Linear Recurrent Unit that Lab 5 follows.",
+  "Gu, A., Dao, T. \"Mamba: linear-time sequence modeling with selective state spaces.\" 2023 (arXiv:2312.00752). Selective state-space models (guided reading).",
+  "Dao, T., Gu, A. \"Transformers are SSMs: generalized models and efficient algorithms through structured state space duality.\" ICML, 2024. Mamba-2.",
+  "Lieber, O. et al. \"Jamba: a hybrid transformer-Mamba language model.\" arXiv, 2024. A published hybrid.",
+  "Beck, M. et al. \"xLSTM: extended long short-term memory.\" NeurIPS, 2024.",
+  "Hyndman, R. J., Athanasopoulos, G. Forecasting: Principles and Practice, 3rd edition. OTexts, 2021. Free online; baselines and time-series cross-validation.",
+  "Hyndman, R. J., Koehler, A. B. \"Another look at measures of forecast accuracy.\" International Journal of Forecasting, 2006. MASE.",
+  "Tashman, L. J. \"Out-of-sample tests of forecasting accuracy: an analysis and review.\" International Journal of Forecasting, 2000. Rolling-origin evaluation.",
+  "Ben Taieb, S., Bontempi, G., Atiya, A. F., Sorjamaa, A. \"A review and comparison of strategies for multi-step ahead time series forecasting based on the NN5 forecasting competition.\" Expert Systems with Applications, 2012. Recursive versus direct.",
+  "Kim, T. et al. \"Reversible instance normalization for accurate time-series forecasting against distribution shift.\" ICLR, 2022. RevIN.",
+  "Makridakis, S., Spiliotis, E., Assimakopoulos, V. \"The M4 Competition: 100,000 time series and 61 forecasting methods.\" International Journal of Forecasting, 2020; and Smyl, S. \"A hybrid method of exponential smoothing and recurrent neural networks for time series forecasting.\" International Journal of Forecasting, 2020.",
+  "Salinas, D., Flunkert, V., Gasthaus, J., Januschowski, T. \"DeepAR: probabilistic forecasting with autoregressive recurrent networks.\" International Journal of Forecasting, 2020.",
+  "Hundman, K. et al. \"Detecting spacecraft anomalies using LSTMs and nonparametric dynamic thresholding.\" KDD, 2018. Forecast-residual monitoring of telemetry.",
+  "Page, E. S. \"Continuous inspection schemes.\" Biometrika, 1954. The CUSUM test.",
+  "Isermann, R. Fault-Diagnosis Systems. Springer, 2006. Model-based fault detection from residuals."
+ ],
+ "generalised_refs": [
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "In engineering practice the observation stream of a monitored asset or its digital twin (temperatures, vibrations and pressures from many sensors) is a multivariate time series; the response curve of a single test, or the cell count of one run of an agent-based tissue simulation, is a short univariate one; and the trajectory of an ODE solver (reaction kinetics, structural dynamics) is what a recurrent surrogate would be trained to emulate when the solver is too slow to call inside an optimisation loop. (Used in Sections 1, 8 and 9.)"
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "Refer to the series' own modules: 'Module 02's backward pass with layers replaced by time steps', 'Module 01's rule that every number carries its baseline', 'the language models of Module 07', 'Module 06 drops the recurrence', 'the corpora of Module 08', 'the key-value cache of Module 10'."
+  },
+  {
+   "source_text": "A passage of the original tutorial that refers to the author's private repository (not reproduced here).",
+   "replacement": "State the constraint without an invented duration: each sequence's T steps run one after another, which keeps every step's matrix multiply small and the hardware underused; data parallelism across sequences still works, but long contexts and very large corpora make the serial chain the bottleneck (Module 08 gives the scale)."
+  }
+ ],
+ "writer_notes": "NOTATION. Column vectors; h_t in R^H, x_t in R^{d_in}, matrices W_h (H×H), W_x (H×d_in), W_y (d_out×H); z_t is the pre-activation; Jacobian J_k = ∂h_k/∂h_{k-1} = diag(φ'(z_k)) W_h; gradients are column vectors, so ∂L_T/∂h_t = J_{t+1}^T ... J_T^T ∂L_T/∂h_T. The source's formula places W_h^T and the diag factor in the order that is wrong for column gradients; Section 3 states the convention and fixes it without comment on the source. Batches are (B, T, d). Use σ for the logistic sigmoid and γ for sup|φ'|. In the LSTM keep the source's gate letters (f, i, c̃, o) and say once that PyTorch calls the candidate g and stacks gates in the order i, f, g, o. In Section 13 and Lab 5 the state-space matrices keep the literature's names, bold A, B, C, D (Ā, B̄ after discretisation), and the batch size stays the italic B of the BRIEF; in Lab 5's code call the batch dimension batch and the input matrix B_in, so the two never share a symbol in one line. UNITS. Memory sizes are decimal (1 kB = 10^3 B, 1 MB = 10^6 B, 1 GB = 10^9 B); binary units are written KiB, MiB and GiB and added in brackets where a size is a power of two or recurs in another module (Section 12: '32.8 kB (32 KiB)', '6.44 GB (6.0 GiB)'). Section 3 states this once, at the module's first memory figure; a microcontroller's RAM (e14) is quoted in KiB. CORRECTIONS TO THE SOURCE that the text must make quietly: (1) the 1997 LSTM had no forget gate; the forget gate is Gers, Schmidhuber and Cummins (2000); (2) the GRU's z convention differs between the source (z multiplies the candidate) and Cho et al./PyTorch (z multiplies h_{t-1}); keep the source's and warn; (3) the source's forecasting code does not beat its own persistence baseline (1.075 against 0.155, measured when planning); Section 8 and Lab 3 Part A present this as a worked failure (level drift outside the training range) and fix it with per-window normalisation; never claim the source code beats naive; (4) do not repeat 'training on the corpora would take years'; see generalised_refs. RUNNING EXAMPLES. (a) The seeded maintenance log (Lab 1, Lab 2 step 5; Sections 2-5): 'F2 pres 4.0 bar night shift ok /F2'; its closing tag is the module's long-dependency example. (b) The stiffening mount under random and periodic forcing with drift (Lab 3; Sections 8-9): the module's 'sensor stream from a monitored asset or digital twin'. (c) Digit-string reversal (Lab 4; Sections 10-11). (d) Delayed recall (Lab 5; Section 13). Use these rather than inventing new examples, so the numbers connect. DEPARTURES FROM THE EDITOR'S SUGGESTIONS, with reasons. Lab 1 trains on a synthetic maintenance log rather than a public-domain text: on 3,715 characters of six Shakespeare sonnets a bigram model (2.45 nats) and an interpolated trigram (2.26) match or beat the RNN's best validation loss (2.46), which would teach the wrong lesson; the log is self-contained, engineering-flavoured, beats a 5-gram, and exposes the vanishing-gradient failure as a measurable behaviour (the closing tag). The sonnets remain as an extension with those numbers. Lab 3's signal is a nonlinear (Duffing) oscillator with periodic and random forcing, drift and noise, rather than a linear damped oscillator, and adds a least-squares linear autoregression as a baseline: on linear signals a linear model is optimal and beat the LSTM when planning (0.099 against 0.13 on the source's signal), so the nonlinearity is what gives the LSTM an honest 10-20% lead. Anomaly detection is Part D of Lab 3, not a separate lab. Lab 5 uses delayed recall, not the adding problem: within a 400-update CPU budget no model solved the adding problem at length 400 and the LSTM failed it even at 100. The optional LSTM gate visualiser is folded into the gradient explorer as the 'LSTM cell path' curve; the second widget is an SSM kernel explorer, because the recurrence-convolution duality is the hardest idea in the module to see without one. NUMBERS. Every lab number in this outline was measured when planning (PyTorch 2.x CPU build, NumPy 2.x, Python 3.11) on a desktop CPU limited to 4 threads, sometimes with other jobs running; laptop times are estimated at 2-3 times longer. The execution phase will replace expected outputs; write the surrounding prose so that it stays true if the last digits change, and state seed-dependent results as ranges (Lab 5's LSTM with forget bias 5 at lag 100 succeeded on one seed and failed on another; Lab 2's closing-tag accuracies are ranges over two seeds). The worked-example numbers in the sections were all checked by script and are exact to the digits given. LAB CODE. Each lab must run top to bottom in one Python session with fixed seeds (numpy.random.default_rng(0), torch.manual_seed(0) unless stated) and complete code, no ellipses. Lab 2 regenerates Lab 1's corpus; Lab 3 and Lab 4 have QUICK flags; Lab 3 is the module's one larger training lab. Plots use matplotlib with the Agg-safe pattern (plt.savefig or plt.show). The forget-bias slices are bias_ih_l0[H:2*H] and bias_hh_l0[H:2*H]. Lab 4's encoder must use pack_padded_sequence; the unpacked bug may be shown only in an optional cell. EXERCISES. No exercise repeats a worked example's or a check's numbers or scenarios: the sections teach a method on one set of numbers and the exercises apply it to another (e1's tasks differ from Section 1's examples and check; the answers to e2, e4, e8, e10, e11 and e13 appear nowhere in the sections; e15 (a) sizes the six-layer TCN while Section 12's example has ten layers). ★ means conceptual, with no arithmetic beyond reading off a ratio; every calculation is ★★, which is why e5 is ★★ and e12 asks for growth factors rather than sizes. e2, e12 and e15 expand the source's exercises 1, 5 and 3; the published text never mentions the source. Lab 5 prints |λ| to six decimals because near 1 the half-life depends on the fifth (0.9987 gives 533 steps, 0.998724 gives 543); with torch.manual_seed(0) and torch.rand(64) as the first draw, the ring [0.9, 0.999] gives 0.90233-0.998724, which is what Section 13 quotes. CROSS-MODULE LINKS. Module 01: baselines, leakage, linear regression (the linear AR baseline), precision under low base rates. Module 02: δ recursion, initialisation, clipping, Adam, layer norm, dropout, debugging; do not re-teach optimisers. Module 03: dilated 1D convolution, receptive field, residual connections (TCN in Section 12 and exercise e15). Module 05: autoencoder anomaly detection (one sentence in Section 9). Module 06 owns attention in full, √d_k scaling and the transformer block; Section 11 stops at the bridge. Module 07 owns the language-modelling objective, perplexity, tokenisation and sampling; Lab 1 reports nats per character and uses temperature without defining perplexity. Module 09 owns RL for sequence-level training (pointer from exposure bias). Module 10 owns the KV cache (Section 12 gives one number and a pointer). The AI Agents series is not needed here. STYLE TRAPS. Keep 'every number comes from somewhere': each quoted number says whether it was computed by hand, by a lab, or comes from a cited paper. Do not reproduce figures from papers; describe them and draw our own. Date the state-of-the-field claims in Section 13 ('as of 2026') and keep them conservative; do not name proprietary models' architectures. Write 'normalise', 'initialise', 'behaviour', 'modelling'. Use 'Module NN', never 'Tutorial NN'."
+}
