@@ -725,8 +725,9 @@ Figure 5.29 puts the same choices as a decision flow.
 Decision flow. "Is the data a graph or mesh?" leads to GNN. "Is there a governing equation?"
 leads to PINN (sparse data, inverse problem) or neural operator (many solver runs, many
 queries). "Do you need to generate?" leads to diffusion (quality, conditioning), GAN (speed) or
-VAE (latent space). "Are labels scarce?" leads to contrastive or masked pretraining. "Need
-capacity at fixed compute?" leads to MoE. Each leaf lists its first baseline in small type.
+VAE (latent space). "Are labels scarce?" leads to contrastive or masked pretraining, or to an
+autoencoder when the aim is to compress, denoise or detect anomalies. "Need capacity at fixed
+compute?" leads to MoE. Each leaf lists its first baseline in small type.
 :::
 
 ### Three walk-throughs
