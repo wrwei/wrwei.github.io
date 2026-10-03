@@ -123,7 +123,8 @@ linear schedule lies below it, $t > 674$, is shaded.
 ::: widget name=diffusion-explorer
 The explorer opens on a ring of eight Gaussians at $t = 500$: the left panel (linear schedule,
 $\bar\alpha = 0.079$) is already a round blob, while the right (cosine, $\bar\alpha = 0.494$) still
-shows eight clusters. Drag $t$ and watch the readouts of signal scale, noise scale and SNR, and the
+shows the ring, with a thinned centre, though its eight clusters have merged. Drag $t$ and watch
+the readouts of signal scale, noise scale and SNR, and the
 histogram of the $x$-coordinates approach the standard normal curve. Press play to animate the
 whole forward process, and switch the dataset to two moons to see the same path from a different
 start. Leave the reverse sampler for [Section 6](#s6).
@@ -186,7 +187,7 @@ L_{t-1} = \frac{\beta_t^2}{2\sigma_t^2\,\alpha_t\,(1-\bar\alpha_t)}\,\big\|\bold
 $$
 
 Every term of the bound is a weighted noise-prediction error. Ho et al. dropped the weights and
-sampled $t$ uniformly, giving the loss of the source tutorial:
+sampled $t$ uniformly, giving the loss that is used in practice:
 
 $$
 \mathcal{L}_{\text{simple}}(\theta) = \E_{t,\,\mathbf{x}_0,\,\boldsymbol{\epsilon}}\Big\|\boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta\big(\sqrt{\bar\alpha_t}\,\mathbf{x}_0 + \sqrt{1-\bar\alpha_t}\,\boldsymbol{\epsilon},\ t\big)\Big\|^2.
@@ -320,7 +321,8 @@ In the diffusion explorer, set $t = 500$. Which schedule still shows the ring, a
 
 ::: answer
 The cosine schedule: $\bar\alpha_{500} = 0.49$, an SNR of about 0 dB, so signal and noise have similar
-variance and the eight clusters are still visible. Under the linear schedule
+variance and the ring is still visible, with a thinned centre (its eight clusters, about
+1.5 noise standard deviations apart, have merged). Under the linear schedule
 $\bar\alpha_{500} = 0.079$ (SNR $-10.7$ dB) and the ring is gone.
 :::
 
@@ -580,7 +582,7 @@ $$
 $$
 
 where the aggregator is a sum, mean or maximum, any function that ignores order. The simplest
-instance, the one in the source tutorial, is
+instance is
 
 $$
 \mathbf{h}_v^{(l+1)} = \phi\Big(\mathbf{W}_{\text{self}}\,\mathbf{h}_v^{(l)} + \sum_{u \in \mathcal{N}(v)} \mathbf{W}_{\text{nbr}}\,\mathbf{h}_u^{(l)}\Big).
@@ -648,7 +650,7 @@ module needs the spectral view; the message-passing derivation arrives at the sa
 
 ### Computing it
 
-The source tutorial's layer is one line on a dense matrix:
+On a dense matrix the layer is one line:
 
 ```python
 def gcn_layer(A_hat, H, W):

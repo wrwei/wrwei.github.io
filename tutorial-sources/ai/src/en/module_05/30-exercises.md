@@ -541,7 +541,7 @@ print(f"share of basic events (majority baseline): {max(share, 1 - share):.4f}")
 ```output
 nodes per tree: min 3 max 58
 leaf rule accuracy: 1.0000
-GCN test accuracy: 0.8276
+GCN test accuracy: 0.8306
 share of basic events (majority baseline): 0.6237
 ```
 
@@ -634,7 +634,7 @@ The result, $u = e^{-at}\big[\cos\omega_d t + (\zeta\omega_0/\omega_d)\sin\omega
 - *Initial velocity*: $u'(0)^2 = 0.395$.
 - *Residual*: the mean of $r^2$ over $[0, 2]$ s. The integral of $\zeta^4\omega_0^4 e^{-2at}\cos^2\omega_0 t$ over the interval, divided by its length 2, is $0.0288$. On 200 evenly spaced collocation points including both ends, as in [Lab 4](#lab4), it is $0.0291$.
 
-So with all weights equal to 1 the loss reports the error mostly as an *initial-velocity* error (0.39), and the residual contributes only 0.03. The equation barely notices the wrong frequency, because the residual is second order in $\zeta$; the initial condition notices it a great deal. Two lessons: a small residual is a weak certificate when the solution is nearly right, and the loss terms live on different scales, which is why the weights matter. Compare the undamped near miss in [Section 9](#s9), whose residual is two orders of magnitude larger.
+So with all weights equal to 1 the loss reports the error mostly as an *initial-velocity* error (0.39), and the residual contributes only 0.03. The equation barely notices the wrong frequency, because the residual is second order in $\zeta$; the initial condition notices it a great deal. Two lessons: a small residual is a weak certificate when the solution is nearly right, and the loss terms live on different scales, which is why the weights matter. Compare the undamped near miss in [Section 9](#s9), whose mean squared residual is about a thousand times larger (31.2 against 0.029).
 
 ```python
 import sympy as sp

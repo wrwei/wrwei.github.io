@@ -894,7 +894,7 @@ seed 2, h, 5 labels per class: 0.944
 
 Read the table by columns. With 5 labels per class, the pretrained $\mathbf{h}$ scores 0.956,
 against 0.850 for the FFT magnitudes, 0.532 for the untrained encoder and 0.371 for the raw
-waveform: ten points above the classical feature, from a network that never saw a label during
+waveform: eleven points above the classical feature, from a network that never saw a label during
 pretraining. The other two seeds give 0.954 and 0.944, so the margin does not depend on one
 lucky initialisation. With 100 labels per class the advantage has nearly gone (0.996 against
 0.974): once labels are plentiful, a good hand-made feature is enough, and what pretraining
@@ -967,7 +967,7 @@ pattern, not the digits, is the point.
 ### What you should see
 
 - A linear classifier on the raw waveform is near chance for four classes at 5 labels per class (0.37, chance 0.25) and reaches only 0.47 at 100: with random phases no fixed linear combination of samples identifies a class. Spectral magnitudes, the classical feature, remove phase by construction and do well (0.85 rising to 0.97).
-- Contrastive pretraining with a time-shift augmentation learns a phase-invariant representation without labels. With 5 labels per class it reaches 0.956, about ten points above the FFT features, and two other pretraining seeds give 0.95 and 0.94; with 100 labels the two are within 2.5 points.
+- Contrastive pretraining with a time-shift augmentation learns a phase-invariant representation without labels. With 5 labels per class it reaches 0.956, about eleven points above the FFT features, and two other pretraining seeds give 0.95 and 0.94; with 100 labels the two are within 2.5 points.
 - The augmentation is the supervision. Without the time shift, the 5-label accuracy falls to 0.62, only a little above an untrained encoder (0.53), although the pretraining loss is lower (1.75 against 2.38). A lower contrastive loss does not mean better features.
 - The projection head absorbs what the augmentations vary: probing $\mathbf{z}$ with 5 labels per class gives 0.62 against 0.956 for $\mathbf{h}$, which is why $\mathbf{h}$ is kept.
 - The InfoNCE loss ends at about 2.4, well above zero and well below $\log(2B - 1) = 6.24$, the value for embeddings that carry no information.
