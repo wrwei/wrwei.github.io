@@ -23,16 +23,16 @@ ZH = dict(yes="是", no="否", base="首个基线：",
                    [("GNN", "", "手工图特征，或显而易见的结构规则")]),
                   ("有控制|方程吗？", PURPLE, F_PURPLE,
                    [("PINN", "数据稀疏、反问题", "经典求解器加最小二乘拟合"),
-                    ("神经算子", "求解器运行多、查询多", "高斯过程或 POD 代理模型，以及求解器本身")]),
+                    ("神经算子", "求解器运行多次、查询多次", "高斯过程或 POD 代理模型，以及求解器本身")]),
                   ("需要|生成吗？", ORANGE, F_ORANGE,
                    [("扩散模型", "质量、条件生成", "GAN 或 VAE"),
                     ("GAN", "速度", "蒸馏到少数几步的扩散模型"),
-                    ("VAE", "潜空间", "PCA 加高斯分布")]),
+                    ("VAE", "潜在空间", "PCA 加高斯分布")]),
                   ("标签|稀缺吗？", BLUE, F_SKY,
                    [("对比或掩码预训练", "", "频谱或工程特征；PCA"),
                     ("自编码器", "压缩、去噪、检测异常", "PCA 及其 Q 统计量")]),
                   ("需要在固定计算量下|增加容量？", AMBER, F_AMBER,
-                   [("混合专家", "", "活跃参数规模相同的稠密模型")])])
+                   [("混合专家", "", "激活参数量相同的稠密模型")])])
 T = EN if l == "en" else ZH
 LH, LG = 40, 4
 GAPS = [14, 14, 14, 14]       # gap after each group           # leaf height, gap between leaves, gap between groups
@@ -67,7 +67,7 @@ for qi, (q, col, fill, leaves) in enumerate(T["groups"]):
         P.append(rect(LX, cy - LH / 2, LW, LH, fill, col, 1.5, 8))
         head = f'<tspan font-weight="700" fill="{col}">{name}</tspan>'
         if cond:
-            head += f'<tspan fill="{NAVY}">  ({cond})</tspan>'
+            head += f'<tspan fill="{NAVY}">' + (f'  ({cond})' if l == 'en' else f'（{cond}）') + '</tspan>'
         P.append(text(LX + 12, cy - 3, head, 13, "start", NAVY))
         P.append(text(LX + 12, cy + 14, T["base"] + base, 11.5, "start", SLATE))
     prev = qc

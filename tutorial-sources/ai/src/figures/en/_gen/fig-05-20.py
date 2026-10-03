@@ -7,9 +7,9 @@ l = lang()
 T = {"en": dict(P="P: one 6-cycle (connected)", Q="Q: two triangles (not connected)", r0="start", r1="after round 1", r2="after round 2",
                 foot1="Every node has d̃ = 3, so every non-zero entry of Â is 1/3 and each row of Â" + B("H") + " is the node's own vector.",
                 foot2="Layer: " + B("H") + " ← ReLU(Â" + B("H") + B("W") + "), " + B("W") + " = [[0.6, 0.4], [0.2, 0.9]] on both graphs; all twelve nodes stay identical."),
-     "zh": dict(P="P：一个 6-环（连通）", Q="Q：两个三角形（不连通）", r0="初始", r1="第 1 轮后", r2="第 2 轮后",
-                foot1="每个节点 d̃ = 3，Â 的非零元均为 1/3，Â" + B("H") + " 的每一行就是节点自身的向量。",
-                foot2="层：" + B("H") + " ← ReLU(Â" + B("H") + B("W") + ")，两图用同一个 " + B("W") + " = [[0.6, 0.4], [0.2, 0.9]]；十二个节点始终相同。")}[l]
+     "zh": dict(P="P：一个 6 节点环（连通）", Q="Q：两个三角形（不连通）", r0="初始", r1="第 1 轮后", r2="第 2 轮后",
+                foot1="每个节点都有 d̃ = 3，因此 Â 的非零元均为 1/3，Â" + B("H") + " 的每一行就是该节点自身的向量。",
+                foot2="层：" + B("H") + " ← ReLU(Â" + B("H") + B("W") + ")，两个图使用同一个 " + B("W") + " = [[0.6, 0.4], [0.2, 0.9]]；十二个节点始终相同。")}[l]
 def ahat(edges, n=6):
     A = np.zeros((n, n))
     for a, b in edges:

@@ -15,18 +15,18 @@ T = {"en": dict(
              "any loss; " + I("k") + " of " + I("E") + " experts"],
         enc="encoder", dec="decoder", fake="fake " + x, real="real " + x, add="add noise",
         den="learned denoiser " + eps + SUB("θ") + ",", den2="tens to hundreds of steps",
-        mp="message passing", res="residual loss", views="two views", encs="encoder",
+        mp="message passing", res="residual loss: ", views="two views", encs="encoder",
         pull="two views pulled together", push="others pushed apart", router="router", topk="top-" + I("k") + ": 2 of 8 experts",
         exp="experts", real_q="real?"),
      "zh": dict(
         t=["变分自编码器", "生成对抗网络", "扩散模型", "图神经网络", "PINN", "对比学习", "混合专家"],
         obj=["最大化 ELBO", "极小极大：min" + SUB("G") + " max" + SUB("D") + " " + I("V") + "(" + I("G") + ", " + I("D") + ")",
-             "预测噪声的平方误差", "节点或图标签上的监督损失", "残差 + 数据 + 边界项", "InfoNCE：在 " + I("N") + " 个中挑出正例",
-             "任意损失；每个输入用 " + I("E") + " 个专家中的 " + I("k") + " 个"],
+             "所加噪声的平方误差", "标签上的监督损失", "残差 + 数据 + 边界项", I("N") + " 个候选上的 InfoNCE",
+             "任意损失；" + I("E") + " 个专家中选 " + I("k") + " 个"],
         enc="编码器", dec="解码器", fake="假 " + x, real="真 " + x, add="加噪声",
         den="学到的去噪器 " + eps + SUB("θ") + "，", den2="几十到几百步",
-        mp="消息传递", res="残差损失", views="两个视图", encs="编码器",
-        pull="拉近", push="其余推开", router="路由器", topk="top-" + I("k") + "：8 个专家选 2 个",
+        mp="消息传递", res="残差损失：", views="两个视图", encs="编码器",
+        pull="两个视图相互拉近", push="其余样本被推开", router="路由器", topk="top-" + I("k") + "：8 个专家选 2 个",
         exp="专家", real_q="真？")}[L]
 
 W, H = 760, 462
@@ -124,7 +124,7 @@ o.append(text(cx, by + 44, "", 11))
 ar(cx, by + 88, cx, by + 122)
 o.append(text(cx + 8, by + 109, "", 11))
 node(cx, by + 142, 110, 34, "𝒩[" + I("u") + "] = 0", "#FFFFFF", NAVY, 14)
-o.append(text(cx, by + 182, T["res"] + ": ‖𝒩[" + I("u") + SUB("θ") + "]‖²", 12, "middle", SLATE))
+o.append(text(cx, by + 182, T["res"] + "‖𝒩[" + I("u") + SUB("θ") + "]‖²", 12, "middle", SLATE))
 
 # Contrastive: input -> two views -> encoder -> circle, positives pulled, others pushed
 X = bx[2]; cy = by + 104

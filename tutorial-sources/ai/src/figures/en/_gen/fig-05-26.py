@@ -9,10 +9,10 @@ T = {"en": dict(win="one vibration", win2="window", aug1="random augmentations:"
                 v1="view 1", v2="view 2", f="encoder", fs="shared", g="head", probe="linear probe",
                 probe2="a few labels", circ="unit circle", pull="positive pair: pulled together",
                 push="other batch members: pushed apart"),
-     "zh": dict(win="一个振动", win2="窗口", aug1="随机增强：", aug2="时移、增益、噪声",
-                v1="视图 1", v2="视图 2", f="编码器", fs="共享", g="投影头", probe="线性探针",
+     "zh": dict(win="一个振动", win2="信号窗口", aug1="随机增强：", aug2="时移、增益、噪声",
+                v1="视图 1", v2="视图 2", f="编码器", fs="共享", g="投影头", probe="线性探测",
                 probe2="少量标签", circ="单位圆", pull="正样本对：拉近",
-                push="批中其他样本：推远")}[l]
+                push="batch 中的其他样本：推远")}[l]
 P = open_svg(740, 360, l, extra_defs=
     '<marker id="ahgr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">'
     '<path d="M0,0 L10,5 L0,10 z" fill="#15803D"/></marker>')

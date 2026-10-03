@@ -6,8 +6,8 @@ T = {"en": dict(pde="(and x for a PDE)", mlp="MLP", mlp2="tanh, weights θ", ad=
                 ic="initial conditions at t = 0", res="residual r(t), squared and averaged", res2="over the collocation points ",
                 data="data misfit", data2="at the measurement times ",
                 sum="sum"),
-     "zh": dict(pde="（PDE 时还有 x）", mlp="MLP", mlp2="tanh，权重 θ", ad="自动微分",
-                ic="t = 0 处的初始条件", res="残差 r(t)，平方后取平均", res2="（在配点 ",
+     "zh": dict(pde="（PDE 还需 x）", mlp="MLP", mlp2="tanh，权重 θ", ad="自动微分",
+                ic="t = 0 处的初始条件", res="残差 r(t)，平方后取平均", res2="（在各配点 ",
                 data="数据误差", data2="在测量时刻 ",
                 sum="求和")}[l]
 P = open_svg(740, 350, l)

@@ -8,8 +8,8 @@ l = lang()
 T = {"en": dict(tok="token", router="router", sm="softmax(", top="the two tallest bars select the experts (top-2)", resid="residual stream",
                 note1="parameters: 8 FFNs", note2="compute: 2 FFNs", out="to the next block", unused="grey: not run",
                 ex="expert"),
-     "zh": dict(tok="词元", router="路由器", sm="softmax(", top="最高的两根柱选出专家（top-2）", resid="残差流",
-                note1="参数：8 个 FFN", note2="计算：2 个 FFN", out="送往下一个块", unused="灰色：不运行",
+     "zh": dict(tok="token", router="路由器", sm="softmax(", top="最高的两根柱选出专家（top-2）", resid="残差流",
+                note1="参数量：8 个 FFN", note2="计算量：2 个 FFN", out="送往下一个块", unused="灰色：未运行",
                 ex="专家")}[l]
 logits = np.array([0.2, -0.5, 1.5, 0.1, -0.7, 1.0, 0.4, -0.2])
 p = np.exp(logits) / np.exp(logits).sum()

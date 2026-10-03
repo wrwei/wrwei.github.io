@@ -6,8 +6,8 @@ import numpy as np
 l = lang()
 T = {"en": dict(left="one layer, for node i = G1", over="sum over the neighbours j of i, and i itself", right="two layers, from E1", self="own vector", sum="sum",
                 hop0="E1 itself", hop1="1 hop", hop2="2 hops", hop3="3 hops", out="E3 is 3 hops away: not seen", OR="OR", AND="AND"),
-     "zh": dict(left="一层，节点 i = G1", over="对 i 的邻居 j 以及 i 自身求和", right="两层，从 E1 出发", self="自身向量", sum="求和",
-                hop0="E1 本身", hop1="1 跳", hop2="2 跳", hop3="3 跳", out="E3 相距 3 跳：看不到", OR="或", AND="与")}[l]
+     "zh": dict(left="一层：节点 i = G1", over="对 i 的各个邻居 j 及 i 自身求和", right="两层，从 E1 出发", self="自身向量", sum="求和",
+                hop0="E1 自身", hop1="1 跳", hop2="2 跳", hop3="3 跳", out="E3 相距 3 跳：看不到", OR="或门", AND="与门")}[l]
 # the tree and its degrees with self-loops
 names = ["T", "G1", "E1", "E2", "E3"]
 edges = [(0, 1), (0, 4), (1, 2), (1, 3)]

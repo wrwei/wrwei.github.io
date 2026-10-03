@@ -7,10 +7,10 @@ T = {"en": dict(img="image", lat="latent", enc="encoder", dec="decoder", den="de
                 ctext="(e.g. text token embeddings)",
                 n1="786,432 values", n2="16,384 values", fewer="786,432 / 16,384 = 48: the denoiser handles 48 times fewer values at every step",
                 once="runs once per image"),
-     "zh": dict(img="图像", lat="潜变量", enc="编码器", dec="解码器", den="去噪器", loop="扩散循环",
+     "zh": dict(img="图像", lat="潜在表示", enc="编码器", dec="解码器", den="去噪器", loop="扩散循环",
                 rep="反复应用，t = T, …, 1", cond="条件", cross="交叉注意力",
-                ctext="（如文本词元嵌入）",
-                n1="786,432 个值", n2="16,384 个值", fewer="786,432 / 16,384 = 48：去噪器每一步处理的值少 48 倍",
+                ctext="（如文本 token 嵌入）",
+                n1="786,432 个值", n2="16,384 个值", fewer="786,432 / 16,384 = 48：去噪器每一步处理的值只有原来的 1/48",
                 once="每张图像只运行一次")}[l]
 W, H = 760, 300
 o = open_svg(W, H, l)

@@ -6,9 +6,9 @@ l = lang()
 T = {"en": dict(OR="OR", AND="AND", basic="basic", ahat="Â", ahx="Â" + B("X"),
                 e3="E3 (0.4082, 0, 0.5): its gate is an OR, so it is a single point of failure",
                 e1="E1 (0, 0.3536, 0.5): its gate is an AND, so it is not"),
-     "zh": dict(OR="或", AND="与", basic="基本", ahat="Â", ahx="Â" + B("X"),
-                e3="E3 (0.4082, 0, 0.5)：所在门为或门，是单点故障",
-                e1="E1 (0, 0.3536, 0.5)：所在门为与门，不是单点故障")}[l]
+     "zh": dict(OR="或门", AND="与门", basic="基本事件", ahat="Â", ahx="Â" + B("X"),
+                e3="E3 (0.4082, 0, 0.5)：所在的门是或门，因此是单点故障",
+                e1="E1 (0, 0.3536, 0.5)：所在的门是与门，因此不是")}[l]
 names = ["T", "G1", "E1", "E2", "E3"]
 edges = [(0, 1), (0, 4), (1, 2), (1, 3)]
 A = np.zeros((5, 5))

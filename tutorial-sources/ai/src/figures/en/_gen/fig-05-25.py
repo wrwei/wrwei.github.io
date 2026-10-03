@@ -7,8 +7,8 @@ l = lang()
 T = {"en": dict(fft="FFT", ifft="inverse FFT", keep="keep the lowest", keep2="modes (here 16)", zero="rest set to 0",
                 mode="mode →", R="learned ", R2="complex matrix per mode", W="pointwise linear map, + bias",
                 sig="σ", kmax="k"),
-     "zh": dict(fft="FFT", ifft="逆 FFT", keep="保留最低的", keep2="个模态（此处 16）", zero="其余置 0",
-                mode="模态 →", R="每个模态一个可学习的 ", R2="复矩阵", W="逐点线性映射，加偏置",
+     "zh": dict(fft="FFT", ifft="逆 FFT", keep="保留最低的", keep2="个模态（此处 16）", zero="其余置为 0",
+                mode="模态 →", R="可学习的 ", R2="复矩阵（每个模态一个）", W="逐点线性映射，加偏置",
                 sig="σ", kmax="k")}[l]
 P = open_svg(740, 280, l)
 V = B("v")
