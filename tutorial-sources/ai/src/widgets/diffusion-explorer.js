@@ -238,7 +238,7 @@ AIW.register('diffusion-explorer', function (el, opts) {
     tr('Signal fraction ', '信号比例 '), h('span', { class: 'math-i' }, '\\bar\\alpha_t'),
     tr(' against t (log scale), both schedules', ' 随 t 的变化（对数坐标），两种调度')))
   el.appendChild(chartWrap)
-  var chart = AIW.canvas(chartWrap, { aspect: 0.3, maxHeight: 210 }, drawChart)
+  var chart = AIW.canvas(chartWrap, { aspect: 0.5, maxHeight: 210 }, drawChart)
   chart.cv.setAttribute('role', 'img')
   chart.cv.setAttribute('aria-label', tr('Line chart of abar_t against t for the linear and cosine schedules', '线性与余弦调度下 ᾱ_t 随 t 变化的折线图'))
   function legendItem(sample, text) { return h('span', { style: { display: 'inline-flex', alignItems: 'center' } }, sample, text) }
