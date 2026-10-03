@@ -131,8 +131,8 @@ p_n(c \mid \text{ctx}) = \frac{\operatorname{count}(\text{ctx}, c) + \alpha\, p_
 $$
 
 where $\text{ctx}'$ is the context with its oldest character dropped and $p_1$ is the unigram
-distribution with add-$\alpha$ smoothing. This is the additive smoothing of
-[Module 01](module_01_EN.html) applied recursively; $\alpha = 0.1$ keeps the counts in charge
+distribution with add-$\alpha$ smoothing. This is additive smoothing applied recursively;
+$\alpha = 0.1$ keeps the counts in charge
 wherever there are enough of them. The cross-entropy on the validation text, in nats per
 character, is the number the network must beat. A 5-gram sees four characters of context.
 
@@ -1300,7 +1300,7 @@ broke the code of [Section 8](#s8).
 [Section 8](#s8) gave a forecaster and a split that look careful. It uses windows of
 $W = 64$ samples and one-step targets, a two-layer `nn.LSTM` with hidden size 32, dropout 0.1
 between the layers and a linear head on the last state. It trains with AdamW at $3\times 10^{-3}$,
-clipping at 1, batches of 128 and 10 epochs. The data is z-scored with the statistics of the
+clipping at 1, batches of 128 and 10 epochs (Section 8's run used 15). The data is z-scored with the statistics of the
 training period only (no leak), and the test period is the future: here the first 6,000 samples
 train and the last 2,000 test. The block below does exactly that. It prints the normalised ranges
 of the inputs the network sees in training and in testing, then the LSTM's RMSE in the series'

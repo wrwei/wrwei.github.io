@@ -181,8 +181,8 @@ set_forget_bias(lstm, 1.0)
 Four matrices of size $H\times(H+d_\text{in})$ and four biases give $4H(H + d_\text{in} + 1)$
 parameters; PyTorch's two bias vectors make it $4H(H + d_\text{in}) + 8H$, four times a plain
 recurrent layer of the same width. Each step computes four matrix-vector products of size
-$H\times(H + d_\text{in})$: about $8H(H + d_\text{in})$ floating-point operations per sequence,
-counting a multiply-add as two.
+$H\times(H + d_\text{in})$: about $8H(H + d_\text{in})$ floating-point operations per step and
+per sequence, counting a multiply-add as two.
 
 ::: worked title="Counting an LSTM's parameters"
 `nn.LSTM(1, 32)`: $4\cdot 32\cdot(32 + 1) + 8\cdot 32 = 4{,}224 + 256 = 4{,}480$.
