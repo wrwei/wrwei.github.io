@@ -1,0 +1,319 @@
+{
+  "title": "其他值得了解的网络",
+  "title_em": "值得了解",
+  "lead": "自编码器与变分自编码器、生成对抗网络、扩散模型、图神经网络、物理信息神经网络与神经算子、对比学习以及混合专家：每一种在优化什么，推导出它的方程，配一个用数字算出的例题和一个能在笔记本电脑上运行的实验，并说明它如何失效。",
+  "prerequisites": [
+    "第 1 模块：最大似然与交叉熵，训练/测试集划分，基线与数据泄漏，PCA。",
+    "第 2 模块：MLP，反向传播与反向模式自动微分，Adam，编写 PyTorch 训练循环。",
+    "第 3 模块：卷积与权重共享（与 GCN 的类比）；知道 U-Net 这个名字。",
+    "第 4 模块：作为 softmax 加权平均的注意力（Bahdanau）；基于预测残差的异常检测。",
+    "概率：高斯密度，期望，条件分布，Jensen 不等式。",
+    "微积分与线性代数：链式法则，对称矩阵的特征值与特征向量，二阶线性常微分方程（阻尼振子）。"
+  ],
+  "outcomes": [
+    "用两种方法推导证据下界，计算高斯分布 KL 散度的闭式解，并根据每个维度的 KL 和活跃单元数发现后验坍塌。",
+    "搭建基于自编码器的异常检测器，在留出的正常数据上设定阈值，并与 PCA 基线对比报告其误报率和检出率。",
+    "推导最优判别器和 Jensen-Shannon 目标，解释非饱和损失和模式坍塌，并说明扩散模型为何在大多数图像任务中取代了生成对抗网络。",
+    "推导扩散模型前向过程的闭式解，分别从证据下界和分数函数解释噪声预测损失，并训练一个二维扩散模型、用无分类器引导从中采样。",
+    "由归一化邻接矩阵手算一层 GCN，从边列表实现消息传递，并用传播矩阵的特征值解释过平滑。",
+    "写出常微分方程或偏微分方程的物理信息神经网络损失，诊断平凡解失效，用无量纲化、加权或硬约束修复它，并求解一个反问题。",
+    "描述 DeepONet 和傅里叶神经算子，并说明代理模型在用于新设计之前需要通过哪些检查。",
+    "把 InfoNCE 推导为带 log N 上界的分类损失，并用线性探测测量在标签稀少时对比预训练带来了什么，以及数据增强如何决定学到的内容。",
+    "计算混合专家模型的总参数量与活跃参数量，并解释路由坍塌和负载均衡损失。",
+    "为一个工程问题在这些模型族之间作出选择，并说出每种选择必须击败的基线。"
+  ],
+  "software": [
+    "Python 3.11 或更高版本。",
+    "PyTorch 2.x（CPU 版本即可；如果想用 GPU，Google Colab 是免费的选择，但没有实验需要它）。",
+    "NumPy。",
+    "scikit-learn（load_digits、make_moons、PCA、LogisticRegression、KNeighborsClassifier、NearestNeighbors、roc_auc_score）。",
+    "SciPy（实验 4 中的 scipy.optimize.curve_fit）。",
+    "matplotlib。"
+  ],
+  "sessions": [
+    {
+      "n": 1,
+      "title": "自编码器与变分自编码器",
+      "activities": [
+        {
+          "what": "阅读第 1–2 节：各模型族的全景图及其共用工具，然后是自编码器与异常检测。",
+          "kind": "read",
+          "minutes": 27,
+          "refs": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "what": "练习 1：不加约束的自编码器学到了什么。",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e1"
+          ]
+        },
+        {
+          "what": "阅读第 3 节：变分自编码器、证据下界与重参数化技巧。",
+          "kind": "read",
+          "minutes": 27,
+          "refs": [
+            "s3"
+          ]
+        },
+        {
+          "what": "练习 2：用两种方法推导证据下界，以及高斯 KL 散度。",
+          "kind": "exercises",
+          "minutes": 12,
+          "refs": [
+            "e2"
+          ]
+        },
+        {
+          "what": "实验 1：在 8×8 数字图像上实现自编码器、变分自编码器和异常检测器。",
+          "kind": "lab",
+          "minutes": 40,
+          "refs": [
+            "lab1"
+          ]
+        },
+        {
+          "what": "练习 3：诊断部分后验坍塌。",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e3"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "title": "对抗模型与扩散模型",
+      "activities": [
+        {
+          "what": "阅读第 4 节：生成对抗网络。",
+          "kind": "read",
+          "minutes": 15,
+          "refs": [
+            "s4"
+          ]
+        },
+        {
+          "what": "练习 4–5：最优判别器与 Jensen–Shannon 散度，以及如何发现模式坍塌。",
+          "kind": "exercises",
+          "minutes": 15,
+          "refs": [
+            "e4",
+            "e5"
+          ]
+        },
+        {
+          "what": "阅读第 5 节并配合扩散探索器：前向过程与训练目标。",
+          "kind": "read",
+          "minutes": 26,
+          "refs": [
+            "s5"
+          ]
+        },
+        {
+          "what": "练习 6：推导前向过程的闭式解。",
+          "kind": "exercises",
+          "minutes": 10,
+          "refs": [
+            "e6"
+          ]
+        },
+        {
+          "what": "阅读第 6 节：采样、引导、潜在扩散与代价。",
+          "kind": "read",
+          "minutes": 17,
+          "refs": [
+            "s6"
+          ]
+        },
+        {
+          "what": "实验 2：在双月数据上训练扩散模型，并使用无分类器引导。",
+          "kind": "lab",
+          "minutes": 45,
+          "refs": [
+            "lab2"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "title": "读扩散原论文；图神经网络",
+      "activities": [
+        {
+          "what": "练习 7：一个不走到纯噪声的噪声调度。",
+          "kind": "exercises",
+          "minutes": 10,
+          "refs": [
+            "e7"
+          ]
+        },
+        {
+          "what": "论文导读：Ho、Jain 和 Abbeel（2020），“Denoising diffusion probabilistic models”。",
+          "kind": "papers",
+          "minutes": 20,
+          "refs": [
+            "reading"
+          ]
+        },
+        {
+          "what": "阅读第 7–8 节并配合消息传递探索器：消息传递与 GCN，然后是注意力、深度限制与工程中的图。",
+          "kind": "read",
+          "minutes": 38,
+          "refs": [
+            "s7",
+            "s8"
+          ]
+        },
+        {
+          "what": "实验 3：从零实现 GCN，找出故障树中的单点故障。",
+          "kind": "lab",
+          "minutes": 35,
+          "refs": [
+            "lab3"
+          ]
+        },
+        {
+          "what": "论文导读：Kipf 和 Welling（2017），“Semi-supervised classification with graph convolutional networks”。",
+          "kind": "papers",
+          "minutes": 12,
+          "refs": [
+            "reading"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "title": "物理信息神经网络与神经算子",
+      "activities": [
+        {
+          "what": "练习 8–10：星形图上的过平滑，找出基本事件的基线，以及消息传递无法区分的两个图。",
+          "kind": "exercises",
+          "minutes": 20,
+          "refs": [
+            "e8",
+            "e9",
+            "e10"
+          ]
+        },
+        {
+          "what": "阅读第 9–10 节：物理信息神经网络，然后是神经算子与代理模型。",
+          "kind": "read",
+          "minutes": 35,
+          "refs": [
+            "s9",
+            "s10"
+          ]
+        },
+        {
+          "what": "实验 4：阻尼振子的物理信息神经网络，它的失效、两种修复以及一个反问题。",
+          "kind": "lab",
+          "minutes": 40,
+          "refs": [
+            "lab4"
+          ]
+        },
+        {
+          "what": "练习 11–12：一个试探解的残差，以及把实验 4 的代码扩展到热传导方程。",
+          "kind": "exercises",
+          "minutes": 35,
+          "refs": [
+            "e11",
+            "e12"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "title": "表示、路由与选择",
+      "activities": [
+        {
+          "what": "论文导读：Raissi、Perdikaris 和 Karniadakis（2019），“Physics-informed neural networks”。",
+          "kind": "papers",
+          "minutes": 13,
+          "refs": [
+            "reading"
+          ]
+        },
+        {
+          "what": "阅读第 11 节：对比学习与自监督学习。",
+          "kind": "read",
+          "minutes": 14,
+          "refs": [
+            "s11"
+          ]
+        },
+        {
+          "what": "实验 5：在无标签振动信号上做对比预训练。",
+          "kind": "lab",
+          "minutes": 30,
+          "refs": [
+            "lab5"
+          ]
+        },
+        {
+          "what": "阅读第 12–13 节和常见问题与排查：混合专家，选择模型族，以及各种失效方式。",
+          "kind": "read",
+          "minutes": 26,
+          "refs": [
+            "s12",
+            "s13",
+            "wrong"
+          ]
+        },
+        {
+          "what": "练习 13–15：选择模型族及其基线，安全的数据增强，以及负载均衡项。",
+          "kind": "exercises",
+          "minutes": 15,
+          "refs": [
+            "e13",
+            "e14",
+            "e15"
+          ]
+        },
+        {
+          "what": "12 道题的自测题。",
+          "kind": "quiz",
+          "minutes": 15,
+          "refs": [
+            "quiz"
+          ]
+        },
+        {
+          "what": "复习小结、常见问题清单和关键术语，并回头完成你漏掉的检验理解。",
+          "kind": "review",
+          "minutes": 10,
+          "refs": [
+            "summary",
+            "wrong",
+            "terms"
+          ]
+        }
+      ]
+    }
+  ],
+  "labs": [
+    {
+      "title": "在 8×8 数字图像上实现自编码器、变分自编码器和异常检测器"
+    },
+    {
+      "title": "在双月数据上训练扩散模型，并使用无分类器引导"
+    },
+    {
+      "title": "从零实现图卷积网络：故障树中的单点故障"
+    },
+    {
+      "title": "阻尼振子的物理信息神经网络：正向求解、失效、修复与反问题"
+    },
+    {
+      "title": "在无标签振动信号上做对比预训练"
+    }
+  ]
+}
