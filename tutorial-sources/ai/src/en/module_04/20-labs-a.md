@@ -1167,8 +1167,8 @@ percentage has a standard error of about 3 to 4 points. Read the pattern, not si
   magnitude, from about $10^{-30}$ at $b_f = 0$ to about 1 at $b_f = 10$, within a factor of 2 to 7
   of the product. The plain cell's state gradient is about $10^{-23}$.
 - **On the log, after 2,500 updates,** the plain RNN's closing-tag accuracy stays at 14 to 25% (the
-  guessing level is 12.5%) while both LSTMs reach 70 to 90%. Each LSTM spends the first 1,500
-  updates near the level of guessing and then rises quickly. The validation loss shows only a small
+  guessing level is 12.5%) while the two LSTMs reach about 64% and 78%. Each LSTM spends the first
+  1,000 updates or more near the level of guessing and then rises. The validation loss shows only a small
   gap.
 - **Run time:** about 10 s per model in the run shown, and up to about 25 s per LSTM and 20 s for
   the RNN on a busier machine (under a few minutes in total for the lab), so the whole lab fits in
@@ -1788,20 +1788,22 @@ normal operation. The faulted residual plot above shows why each fault needs its
   amount in the opposite direction. The rolling RMS also fires and stays above its limit while the
   spike remains in its 50-sample window; the table cuts the count at the end of the alarm window, so the
   full episode is longer than the 21 samples shown.
-- **The offset** is caught by the point test only at its onset and at its end (5 alarms in all). In
-  between, the residual is normal: with per-window normalisation the model re-centres on the new
+- **The offset** is caught by the point test only around its onset and at its end (3 alarms in all:
+  at the onset, 4 samples later, and on the sample where the offset ends). In between, the residual
+  is normal: with per-window normalisation the model re-centres on the new
   level within a step, so a sustained offset is invisible once the window has filled with it
   ([Section 9](#s9)). The rolling RMS fires too, only because each of the two jumps stays in
   its 50-sample window. A forecaster that sees a constant offset as normal needs a reference that
   does not move with the sensor.
-- **The doubled excitation** produces no extreme residual (two point alarms in this run), but the
-  residual RMS rises from 0.135 on the hold-out to about 0.21 during the fault. The rolling RMS crosses
-  its limit about 85 samples after the fault starts (30 to 100 samples in the runs prepared with this lab). The margin is small, which is why the
+- **The doubled excitation** produces few extreme residuals (five point alarms in this run, the first
+  151 samples into the fault), but the residual RMS rises from 0.134 on the hold-out to about 0.21
+  during the fault. The rolling RMS crosses its limit 99 samples after the fault starts (30 to 100 samples in the runs prepared with this lab). The margin is small, which is why the
   delay is long: a smaller change would take longer to detect or be missed.
-- **The stuck sensor** raises no residual alarm: a frozen reading is predicted with an error that is
-  small and nearly constant. The variance floor detects it after the 20-sample window has filled
-  with identical values, about 19 samples after the start, and it keeps firing until the sensor
-  recovers.
+- **The stuck sensor** raises no residual alarm while it is stuck: a frozen reading is predicted with
+  an error that is small and nearly constant. The one point alarm in its row, at +100, is the sample
+  on which the sensor recovers and the reading jumps back from the frozen value. The variance floor
+  detects the fault once the 20-sample window has filled with near-constant residuals, 21 samples
+  after the start, and it keeps firing until the sensor recovers.
 - **False alarms:** none of the three detectors fired in the 239 normal samples. That count is
   too small to estimate a false-alarm rate: by the "rule of three", zero events in 239 samples
   is consistent with a true rate up to about $3/239 \approx 1.3\%$ per sample. A real deployment needs
@@ -1814,19 +1816,19 @@ normal operation. The faulted residual plot above shows why each fault needs its
   about 11 samples riding on it.
 - **Step 2: Section 8's code loses to the naive forecast.** The normalised test inputs lie almost
   wholly above the range of the training inputs (about 1.0 to 3.6 against $-2.2$ to 2.3), and the
-  LSTM's RMSE (about 0.42, naive 0.37) is worse than naive with a negative bias of about 0.3 (0.63
+  LSTM's RMSE (about 0.43, naive 0.36) is worse than naive with a negative bias of about 0.3 (0.63
   with the second seed). The model is not mis-trained; it was asked to extrapolate.
-- **Step 3: per-window normalisation fixes it.** The RMSE falls to about 0.135 and the bias to about
+- **Step 3: per-window normalisation fixes it.** The RMSE falls to about 0.13 and the bias to about
   zero.
-- **Step 4: walk-forward.** Naive about 0.38, seasonal naive about 0.85, linear about 0.16,
-  LSTM about 0.136, each with a spread over folds of 0.005 to 0.02. The LSTM is best in every fold, by
-  roughly 10 to 20% over the linear model; the seasonal-naive baseline is poor because random
+- **Step 4: walk-forward.** Naive about 0.375, seasonal naive about 0.84, linear about 0.155,
+  LSTM about 0.135, each with a spread over folds of 0.006 to 0.03. The LSTM is best in every fold, by
+  12 to 16% over the linear model; the seasonal-naive baseline is poor because random
   forcing dominates the periodic load.
-- **Step 5: multi-step.** Errors compound in the recursive LSTM (0.13 to 0.73 over 20 steps); the direct
-  LSTM and both linear models end near 0.57. Linear recursive and direct are the same.
+- **Step 5: multi-step.** Errors compound in the recursive LSTM (0.13 to 0.78 over 20 steps, worse than
+  naive at $h = 20$); the direct LSTM and both linear models end near 0.55 to 0.56. Linear recursive and direct are the same.
 - **Step 6: the monitor.** The point test catches the spike and the two edges of the offset; the rolling
-  RMS catches the excitation fault after about 85 samples; the variance floor alone catches the stuck
-  sensor; no false alarms in 239 normal samples. Each fault type needs its own detector.
+  RMS catches the excitation fault after 99 samples; the variance floor alone catches the stuck
+  sensor while it is stuck; no false alarms in 239 normal samples. Each fault type needs its own detector.
 - **Run time.** Between half a minute and a minute on the machine used to prepare the lab, depending
   on what else was running, with `QUICK = False` (the simulation takes well under a second), and about
   20 seconds with `QUICK = True`, which trains 4 epochs and only the last two folds; with fewer epochs the Step 2 failure is larger (0.61 against 0.37). Expect two to three times
@@ -1846,7 +1848,7 @@ normal operation. The faulted residual plot above shows why each fault needs its
    Does the lead grow?
 4. **A CUSUM.** Accumulate the standardised squared residuals, $S_t = \max(0, S_{t-1} + r_t^2/\sigma^2 - k)$
    with a reference value $k$ slightly above 1 (Page 1954), and alarm at a limit. Compare its detection
-   delay on the excitation fault with the rolling RMS's 85 samples, at the same false-alarm count.
+   delay on the excitation fault with the rolling RMS's 99 samples, at the same false-alarm count.
 5. **Another seed.** Re-simulate with `seed=1` and re-run. Which of the lab's conclusions (the
    ordering of the four forecasters, the failure of the globally normalised model, the detection delays) hold, and
    by how much do the numbers move?

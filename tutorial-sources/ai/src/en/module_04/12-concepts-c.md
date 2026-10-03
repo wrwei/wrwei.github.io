@@ -80,12 +80,14 @@ rolling standard deviation alarms below half its hold-out minimum. The lab's run
 
 - **Spike**: the point test fires at once, and once more on the next sample, whose input window
   ends in the spike.
-- **Offset**: the point test fires at its onset and its end only (5 alarm samples in all).
-- **Doubled excitation**: no residual is extreme, but the residual RMS rises from 0.135 to about
-  0.21; the rolling RMS alarms 85 samples after the change (30 to 100 samples over the runs made
+- **Offset**: the point test fires around its onset and at its end only (3 alarm samples in all:
+  the onset, 4 samples later, and the end).
+- **Doubled excitation**: few residuals are extreme (five point alarms, the first 151 samples in), but
+  the residual RMS rises from 0.134 to about 0.21; the rolling RMS alarms 99 samples after the change (30 to 100 samples over the runs made
   when the lab was prepared).
-- **Stuck sensor**: no residual alarm; the variance floor fires 19 samples after it sticks, once
-  its window has filled with identical values.
+- **Stuck sensor**: no residual alarm while it is stuck (one point alarm on the sample where it
+  recovers); the variance floor fires 21 samples after it sticks, once its window has filled with
+  near-constant residuals.
 - **Normal stretches** (239 samples): no false alarm from any of the three detectors, too short a
   record to estimate a false-alarm rate.
 :::
