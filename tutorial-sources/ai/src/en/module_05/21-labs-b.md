@@ -217,7 +217,7 @@ plt.show()
      0   5.25e+01    1.3626          1.0914   0.1951
   1000   3.14e-03    0.9922          0.9993   0.0039
   3000   5.92e-03    0.9877          0.9986   0.0063
-3.4 ms per step
+5.1 ms per step
 ```
 
 The loss has fallen to a small number and the answer is wrong. The residual term is tiny, the
@@ -267,9 +267,9 @@ show(log_c)
 ```output
   step   residual   ic term   rel. L2 error   max|u|
      0   5.25e+01    1.3626          1.0914   0.1951
-  1000   5.25e+00    0.0087          0.3317   0.9066
-  5000   1.08e-01    0.0000          0.0153   0.9973
- 10000   1.92e-02    0.0000          0.0039   0.9992
+  1000   5.24e+00    0.0086          0.3306   0.9071
+  5000   1.07e-01    0.0000          0.0152   0.9973
+ 10000   1.89e-02    0.0000          0.0039   0.9992
 ```
 
 The weight works, and slowly: the error is still 33% after 1,000 steps, about 1.5% after 5,000
@@ -305,10 +305,10 @@ print(f"{ms:.1f} ms per step")
   step   residual   ic term   rel. L2 error   max|u|
      0   3.37e-02    1.3623          1.0914   0.1951
   2500   4.67e-03    0.0000          0.3892   0.9946
-  5000   2.96e-04    0.0000          0.0613   1.0018
-  7500   9.22e-06    0.0000          0.0076   1.0016
- 10000   2.11e-07    0.0000          0.0004   0.9999
-3.4 ms per step
+  5000   2.84e-04    0.0000          0.0603   1.0004
+  7500   4.35e-07    0.0000          0.0004   1.0002
+ 10000   9.52e-06    0.0000          0.0073   1.0039
+4.8 ms per step
 ```
 
 The initial residual is now 0.034 rather than 52, so the imbalance of Step 2 has gone, and
@@ -406,13 +406,13 @@ print(f"recovered zeta = {zeta_hat:.4f} (true {ZETA})")
   step   zeta    solution error
      0   0.5000   1.0914
   1000   0.4235   0.2269
-  2000   0.2372   0.1181
+  2000   0.2372   0.1180
   3000   0.1736   0.0806
   4000   0.1400   0.0599
-  5000   0.1201   0.0458
+  5000   0.1201   0.0473
   6000   0.1087   0.0345
-  7000   0.1030   0.0255
-  8000   0.1007   0.0190
+  7000   0.1030   0.0305
+  8000   0.1007   0.0169
   9000   0.0996   0.0181
  10000   0.0987   0.0192
 recovered zeta = 0.0987 (true 0.1)
@@ -825,8 +825,8 @@ plt.show()
 ```
 
 ```output
-900 steps in 7.0 s
-loss at step 0: 6.150, final loss (mean of last 15): 2.375
+900 steps in 12.4 s
+loss at step 0: 6.150, final loss (mean of last 15): 2.376
 loss of collapsed embeddings: log(2B - 1) = 6.236
 ```
 
@@ -879,10 +879,10 @@ labels per class:              5      20     100
 raw waveform:               0.371  0.448  0.473
 FFT magnitude:              0.850  0.899  0.974
 untrained encoder, h:       0.532  0.738  0.895
-contrastive, h:             0.955  0.989  0.997
-contrastive, z (after head):0.605  0.914  0.997
-seed 1, h, 5 labels per class: 0.952
-seed 2, h, 5 labels per class: 0.942
+contrastive, h:             0.956  0.988  0.996
+contrastive, z (after head):0.620  0.920  0.996
+seed 1, h, 5 labels per class: 0.954
+seed 2, h, 5 labels per class: 0.944
 ```
 
 Read the table by columns. With 5 labels per class, the pretrained $\mathbf{h}$ scores 0.955,
@@ -929,17 +929,17 @@ print(f"bearing defect predicted as healthy: {cm[3, 0]} of {cm[3].sum()}")
 ```
 
 ```output
-no time shift         0.628  0.813  0.977
-no augmentation       0.580  0.750  0.944
-with all three        0.955  0.989  0.997
-final losses: full 2.375, no shift 1.745, none 1.696
+no time shift         0.622  0.809  0.977
+no augmentation       0.581  0.747  0.942
+with all three        0.956  0.988  0.996
+final losses: full 2.376, no shift 1.746, none 1.692
 confusion matrix of the no-shift model (100 labels per class; rows = true):
-[[504   0   0   2]
+[[503   0   0   3]
  [  0 531   0   0]
- [  1   8 462   2]
- [ 19   0   1 470]]
-misalignment predicted as imbalance: 8 of 473
-bearing defect predicted as healthy: 19 of 490
+ [  0  18 454   1]
+ [ 13   0   0 477]]
+misalignment predicted as imbalance: 18 of 473
+bearing defect predicted as healthy: 13 of 490
 ```
 
 Two observations. Without the time shift the probe accuracy at 5 labels per class falls from 0.955

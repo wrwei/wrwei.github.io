@@ -136,8 +136,8 @@ for d_z in (2, 8):
 ```
 
 ```output
-AE d_z=2: test MSE per pixel 0.0368 (PCA 0.0532), 8 s
-AE d_z=8: test MSE per pixel 0.0110 (PCA 0.0246), 6 s
+AE d_z=2: test MSE per pixel 0.0368 (PCA 0.0532), 11 s
+AE d_z=8: test MSE per pixel 0.0110 (PCA 0.0246), 10 s
 ```
 
 The autoencoder beats PCA at both sizes. Digits lie on a curved, low-dimensional surface in pixel
@@ -738,7 +738,7 @@ step   8000  mean loss over the last 4000 steps 0.3324
 step  12000  mean loss over the last 4000 steps 0.3294
 step  16000  mean loss over the last 4000 steps 0.3277
 step  20000  mean loss over the last 4000 steps 0.3260
-training time 70 s
+training time 95 s
 ```
 
 The loss is 0.36 over the first fifth and settles near 0.33 afterwards. That is an average over
@@ -836,7 +836,7 @@ plt.show()
 ```output
 fresh data     precision-like 0.013   recall-like 0.021
 N(0, I) noise  precision-like 0.242   recall-like 0.051
-unconditional samples  precision-like 0.022   recall-like 0.022   (0.6 s)
+unconditional samples  precision-like 0.022   recall-like 0.022   (0.5 s)
 precision-like distance of x_t at t = (200, 150, 100, 50, 20, 5) : [0.246, 0.234, 0.212, 0.134, 0.057, 0.027]
 ```
 
@@ -975,13 +975,13 @@ plt.show()
 
 ```output
    K  precision-like  recall-like  seconds
- 200          0.022        0.023     0.56
-  50          0.022        0.024     0.15
-  20          0.025        0.029     0.07
-  10          0.035        0.042     0.04
-   5          0.046        0.067     0.02
+ 200          0.022        0.023     0.84
+  50          0.022        0.024     0.21
+  20          0.025        0.029     0.12
+  10          0.035        0.042     0.07
+   5          0.046        0.067     0.03
    2          0.152        0.120     0.02
-   1          1.714        0.142     0.01
+   1          1.714        0.142     0.02
 ```
 
 Twenty to fifty DDIM steps give samples close to the 200-step ancestral sampler's, at a fifth to
@@ -1019,8 +1019,9 @@ of [Section 8](#s8) happen: accuracy by distance from the top, over-smoothing me
 training, and the repair by residual connections. Last, you replace the symmetric adjacency by a
 direction-aware layer, which uses the one piece of structure the plain GCN throws away. The data
 are synthetic and the lab uses no graph library; it runs in about two minutes on a laptop CPU, and
-needs NumPy, PyTorch and matplotlib. The accuracies in the nineties move by a point or two with the
-thread count and the PyTorch version, so read them as phenomena, not as digits.
+needs NumPy, PyTorch and matplotlib. It runs PyTorch on one thread: on several, the scatter-adds of message passing
+sum in an order that changes from run to run, and so do the accuracies. Even on one thread they
+move by a point or two with the PyTorch version, so read them as phenomena, not as digits.
 
 ### Step 1: a fault-tree generator and its labels
 
@@ -1051,6 +1052,7 @@ import torch.nn.functional as F
 
 np.random.seed(0)
 torch.manual_seed(0)
+torch.set_num_threads(1)    # scatter-adds sum in a fixed order only on one thread
 
 OR, AND, BASIC = 0, 1, 2
 
@@ -1337,11 +1339,11 @@ for L in (1, 2, 3, 4, 6, 8, 12, 16):
 ```output
   L   overall   depth1   depth2   depth3   depth4
   1   0.810    1.000    0.663    0.769    0.843
-  2   0.835    1.000    0.886    0.775    0.843
-  3   0.896    1.000    0.979    0.909    0.858
-  4   0.943    1.000    0.979    0.945    0.926
-  6   0.964    1.000    0.974    0.966    0.956
-  8   0.955    0.984    0.959    0.953    0.952
+  2   0.832    1.000    0.886    0.769    0.843
+  3   0.897    1.000    0.969    0.920    0.854
+  4   0.938    1.000    0.964    0.933    0.929
+  6   0.937    1.000    0.938    0.923    0.939
+  8   0.959    0.984    0.959    0.958    0.956
  12   0.781    0.537    0.663    0.769    0.843
  16   0.781    0.537    0.663    0.769    0.843
 ```
@@ -1413,7 +1415,7 @@ k = 16: mean pairwise cosine similarity of A_hat^k X = 0.976
 k = 32: mean pairwise cosine similarity of A_hat^k X = 0.990
 k = 64: mean pairwise cosine similarity of A_hat^k X = 0.997
 16 layers, plain   : train accuracy 0.779, test accuracy 0.781
-16 layers, residual: train accuracy 0.962, test accuracy 0.956
+16 layers, residual: train accuracy 0.967, test accuracy 0.948
 ```
 
 The similarity starts high, because the four-number features of different nodes are already
