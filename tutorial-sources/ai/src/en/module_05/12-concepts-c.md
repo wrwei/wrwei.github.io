@@ -46,7 +46,7 @@ $\lambda$ and summed into $\mathcal{L}(\theta)$.
 ### Derivatives with respect to the inputs
 
 The residual needs derivatives of the network's output with respect to its *input*, not its
-weights. Reverse-mode automatic differentiation ([Module 02](module_02_EN.html)) computes them
+weights. Reverse-mode automatic differentiation ([Module 02, Section 4](module_02_EN.html#s4)) computes them
 exactly, to floating-point precision, with no finite differences:
 
 ```python
@@ -121,11 +121,13 @@ of $\sin^2$ is $\tfrac12$, so the mean of $r^2$ is $(0.8\pi^2)^2/2 = 62.3/2 = 31
 4's 200 evenly spaced collocation points, which include both ends).
 
 Now the trivial solution $u = 0$: its residual is zero everywhere, and its initial-condition
-loss is $(0 - 1)^2 + 0^2 = 1$.
+loss is $(0 - 1)^2 + 0^2 = 1$. For this problem the boundary-and-initial weight $\lambda_b$ of the
+composite loss weights the initial conditions only, so it is written $\lambda_{\text{ic}}$ from here
+on, as in [Lab 4](#lab4).
 
-With $\lambda_{ic} = 1$ the loss scores the near miss $31.2$ and zero $1$: a curve that lacks
+With $\lambda_{\text{ic}} = 1$ the loss scores the near miss $31.2$ and zero $1$: a curve that lacks
 only the damping is rated 31 times worse than doing nothing. That is the trivial-solution failure
-in miniature. With $\lambda_{ic} = 100$, zero costs 100 against the near miss's 31.2, and the
+in miniature. With $\lambda_{\text{ic}} = 100$, zero costs 100 against the near miss's 31.2, and the
 ranking flips. That is Lab 4's first fix.
 :::
 
@@ -136,14 +138,14 @@ rule zero out, and the optimiser does not know which of its terms expresses what
 wants: it reduces whichever is largest. In [Lab 4](#lab4) a freshly initialised network starts
 with a residual loss of 52.5 against an initial-condition loss of 1.36. The
 quickest way to shrink 52.5 is to shrink the output, and the optimiser takes it. After 3,000
-steps with $\lambda_{ic} = 1$ the residual term is about $6 \times 10^{-3}$, the
-initial-condition term about 0.99, and the relative error 0.998: a flat line near zero. With
-$\lambda_{ic} = 0$ the error is 1.000. The loss is small and the answer is wrong, which is the
+steps with $\lambda_{\text{ic}} = 1$ the residual term is about $6 \times 10^{-3}$, the
+initial-condition term about 0.99, and the relative error 0.999: a flat line near zero. With
+$\lambda_{\text{ic}} = 0$ the error is 1.000. The loss is small and the answer is wrong, which is the
 most important thing to know about PINNs.
 
 ### Three fixes, measured
 
-**Weight the conditions.** With $\lambda_{ic} = 100$ the relative error is about 0.015 after
+**Weight the conditions.** With $\lambda_{\text{ic}} = 100$ the relative error is about 0.015 after
 5,000 steps and 0.004 after 10,000. It works, but the weight was found by trial.
 
 **Non-dimensionalise.** Measure time in units of $1/\omega_0$. This is the fix an engineer
@@ -171,16 +173,18 @@ outputs values well below 1, which is why Lab 4 starts at 52.5 rather than $10^3
 output halves the residual; sending it to zero removes the residual entirely.
 :::
 
-In [Lab 4](#lab4) the non-dimensional PINN starts with a residual loss of 0.034 and reaches a
-relative error of 0.0004 after 10,000 steps, ten times better than the weighted version, with
-$\lambda_{ic} = 1$.
+In [Lab 4](#lab4) the non-dimensional PINN starts with a residual loss of 0.034 and, with
+$\lambda_{\text{ic}} = 1$, reaches a relative error of 0.0004 at 7,500 steps, ten times below the weighted
+version's final 0.0039. At a fixed learning rate it does not stay there: the error jumps
+between about 0.0001 and 0.016 from step to step and reads 0.0073 at 10,000, so keep the best
+checkpoint or decay the learning rate.
 
 **Impose the conditions by construction.** Lagaris, Likas and Fotiadis (1998) wrote the solution
 as a trial function that satisfies the conditions whatever the network does:
 $u_\theta(t) = 1 + t^2 N_\theta(t)$ gives $u_\theta(0) = 1$ and
 $u_\theta'(0) = [2tN_\theta + t^2N_\theta']_{t=0} = 0$. The initial-condition term disappears, and
 zero is no longer reachable. Yet in dimensional units the error is still about 0.09 after
-10,000 steps (a Lab 4 extension), because the badly scaled residual still dominates training.
+10,000 steps (0.090 in a run of Lab 4's first Try-this item), because the badly scaled residual still dominates training.
 The construction removes the trivial solution, not the scaling problem. Scale first.
 
 ### Inverse problems
@@ -219,9 +223,10 @@ handful of strain gauges.
 ### The honest comparison
 
 For forward problems on a known geometry, a finite-element or finite-difference solver is
-usually faster and more accurate. For the oscillator, SciPy's `solve_ivp` (RK45, relative
-tolerance $10^{-8}$) reaches a relative error of about $7 \times 10^{-9}$ in a few milliseconds
-on a desktop CPU; the best PINN above took 10,000 steps, about 15 s, to reach $4 \times 10^{-4}$.
+usually faster and more accurate. For the oscillator, SciPy's `solve_ivp` (RK45, tolerances
+$10^{-8}$ relative and $10^{-10}$ absolute) reaches a relative error of about $7 \times 10^{-9}$
+in about 30 ms on the machine that ran the labs; the best PINN above took 7,500 steps, about 36 s
+at Lab 4's 4.8 ms per step, to reach $4 \times 10^{-4}$.
 Claims for learned PDE solvers should be checked against strong classical baselines run to the
 same accuracy (McGreivy and Hakim 2024). PINNs earn their place in data assimilation and inverse
 problems, on awkward domains where meshing is the bottleneck, and where a differentiable model
@@ -241,7 +246,7 @@ $u = 0$?
 ::: answer
 Zero satisfies the equation exactly, so the residual term alone cannot exclude it. Only the
 conditions rule it out, and if their weight is small relative to the residual term the optimiser
-finds zero first, as Lab 4 does with $\lambda_{ic} = 1$ in dimensional units.
+finds zero first, as Lab 4 does with $\lambda_{\text{ic}} = 1$ in dimensional units.
 :::
 
 ::: check
@@ -452,8 +457,8 @@ InfoNCE runs over $N = 2B - 1$ candidates per view. This is the NT-Xent loss. An
 gives the representation $\mathbf{h}$, and a small projection head $g$ gives $\mathbf{z}$, on
 which the loss is computed. Probe $\mathbf{h}$, not $\mathbf{z}$: the head learns to discard
 whatever the augmentations vary, and that can include what the downstream task needs. In
-[Lab 5](#lab5), with 5 labels per class, a probe on $\mathbf{z}$ scores 0.61 and one on
-$\mathbf{h}$ 0.93. Figure 5.26 shows the pipeline.
+[Lab 5](#lab5), with 5 labels per class, a probe on $\mathbf{z}$ scores 0.62 and one on
+$\mathbf{h}$ 0.96. Figure 5.26 shows the pipeline.
 
 ::: figure id=fig-05-26
 SimCLR pipeline. One vibration window passes through two random augmentations (time shift,
@@ -473,27 +478,27 @@ information. The negatives are what prevent this collapse. Non-contrastive metho
 The augmentations say which differences the encoder must ignore, and so define what it learns.
 In [Lab 5](#lab5) the four classes of machine vibration differ in their spectra, but every window
 starts at a random phase. With a random time shift among the augmentations the encoder learns
-phase invariance; without it the 5-label probe drops from 0.93 to 0.58, near an untrained
-encoder's 0.49.
+phase invariance; without it the 5-label probe drops from 0.96 to 0.62, not far above an untrained
+encoder's 0.53.
 
 ::: worked title="Lab 5 in numbers"
 Linear-probe accuracy with 5 / 20 / 100 labels per class:
 
 | Features | 5 | 20 | 100 |
 |---|---|---|---|
-| Raw waveform | 0.376 | 0.447 | 0.485 |
-| FFT magnitude | 0.790 | 0.890 | 0.975 |
-| Untrained encoder | 0.494 | 0.733 | 0.882 |
-| Contrastive encoder | 0.929 | 0.989 | 0.996 |
+| Raw waveform | 0.371 | 0.448 | 0.473 |
+| FFT magnitude | 0.850 | 0.899 | 0.974 |
+| Untrained encoder | 0.532 | 0.738 | 0.895 |
+| Contrastive encoder | 0.956 | 0.988 | 0.996 |
 
 With 5 labels per class the pretrained features beat the classical spectral features by
-$0.929 - 0.790 = 0.139$, 14 points; with 100 the gap is $0.996 - 0.975 = 0.021$, 2 points.
+$0.956 - 0.850 = 0.106$, 11 points; with 100 the gap is $0.996 - 0.974 = 0.022$, 2 points.
 Pretraining pays most when labels are scarcest.
 :::
 
 An augmentation removes task information only if the classes differ in nothing it leaves intact.
 Rotating by 180 degrees makes a 6 and a 9 the same digit; colour jitter removes the colour that
-identifies corrosion. In Lab 5 a 16-fold gain range did not hurt, because the classes also differ
+identifies corrosion. In Lab 5 a 16-fold gain range did not hurt (Try-this item 1: 0.956, 0.990 and 0.997), because the classes also differ
 in harmonic ratios and signal-to-noise ratio. Choose augmentations from the task's real
 invariances.
 
@@ -535,7 +540,7 @@ Why does SimCLR evaluate the representation before the projection head?
 ::: answer
 The head learns to discard what the augmentations vary, which can include information the
 downstream task needs; $\mathbf{h}$ keeps more. In Lab 5 with 5 labels per class the probe
-scores 0.93 on $\mathbf{h}$ against 0.61 on $\mathbf{z}$.
+scores 0.96 on $\mathbf{h}$ against 0.62 on $\mathbf{z}$.
 :::
 
 ## Mixture of experts {#s12}
@@ -546,7 +551,7 @@ that sends each input to $k$ of them. Only the chosen experts run.
 
 ### The layer
 
-In a transformer ([Module 06](module_06_EN.html)) every block contains a feed-forward network, a
+In a transformer ([Module 06, Section 5](module_06_EN.html#s5)) every block contains a feed-forward network, a
 two-layer MLP applied to each token's vector on its own. An MoE layer replaces it with $E$ such
 MLPs and a router:
 
@@ -752,10 +757,11 @@ Each lab compared its model with a baseline, and the comparisons do not all favo
 
 - [Lab 1](#lab1): the autoencoder beats PCA's Q statistic at detecting held-out 9s, AUC 0.952
   against 0.791.
-- [Lab 3](#lab3): the GCN beats the plausible "gate is OR" rule (0.551) at every depth, but
-  beats the majority class (0.838) only from 3 layers on.
-- [Lab 5](#lab5): contrastive features beat FFT magnitudes by 14 points with 5 labels per class
-  (0.929 against 0.790), and by only 2 with 100 (0.996 against 0.975).
+- [Lab 3](#lab3): the GCN beats the plausible "gate is OR" rule (0.616) at every depth tried,
+  but beats the majority class (0.781) clearly only from 3 layers on (0.897; 0.810 at one layer),
+  and not at all at 12 and 16 layers.
+- [Lab 5](#lab5): contrastive features beat FFT magnitudes by 11 points with 5 labels per class
+  (0.956 against 0.850), and by only 2 with 100 (0.996 against 0.974).
 - [Lab 4](#lab4): the PINN matches, and does not beat, a closed-form fit
   ($\zeta = 0.0987$ against $0.0977$).
 
@@ -820,8 +826,8 @@ $\beta_t$ (0.5 in [Lab 2](#lab2)) or clip $\hat{\mathbf{x}}_0$ to the data range
 ### Blurred samples with a fast sampler, or uniform ones with strong guidance
 
 **Symptom.** Few-step samples land off the data; strongly guided ones are oversaturated and
-alike. **Cause.** Too few steps (Lab 2's DDIM precision-like distance: 0.023 at 200 steps, 0.045
-at 5, 1.57 at 1) or too large a guidance scale (recall-like distance 0.022 at $w = 1$, 0.046 at
+alike. **Cause.** Too few steps (Lab 2's DDIM precision-like distance: 0.022 at 200 steps, 0.046
+at 5, 1.71 at 1) or too large a guidance scale (recall-like distance 0.021 at $w = 1$, 0.043 at
 $w = 7$). **Fix.** Use 20–50 DDIM steps or a distilled sampler, and choose $w$ on a diversity
 measure as well as on appearance.
 
@@ -836,8 +842,8 @@ held-out items' distances, and give generated designs the same checks as any oth
 
 **Symptom.** A ten-layer GNN gives every node nearly the same features. **Cause.**
 Over-smoothing: repeated averaging drives all node vectors to one direction at rate
-$|\lambda_2|^k$, and a deep plain stack also trains poorly. In [Lab 3](#lab3) 16 plain layers
-score 0.838, the majority class; with residual connections, about 0.95–0.97. **Fix.** Use 2–4
+$|\lambda_2|^k$, and a deep plain stack also trains poorly. In [Lab 3](#lab3) 12 and 16 plain layers
+score 0.781, the majority class; 16 layers with residual connections score 0.948. **Fix.** Use 2–4
 layers or residual connections, and measure feature similarity layer by layer.
 
 ### A GNN that plateaus on a direction-dependent property
@@ -845,7 +851,7 @@ layers or residual connections, and measure feature similarity layer by layer.
 **Symptom.** Accuracy stalls on a property that depends on edge direction or type, such as what
 lies above a node in a fault tree. **Cause.** A symmetric normalised adjacency mixes parents,
 children and siblings. **Fix.** Give each edge direction or type its own weights (a relational
-GCN) or add edge features. In Lab 3: about 0.94–0.96 undirected against 1.000 direction-aware.
+GCN) or add edge features. In Lab 3: at best 0.959 undirected (eight layers) against 1.000 direction-aware (four).
 
 ### A GNN that fails on new graphs
 
@@ -858,15 +864,15 @@ were split between training and test, so test nodes' neighbourhoods were seen in
 **Symptom.** The PINN returns $u = 0$, or a smooth curve that ignores the initial or boundary
 data, with a small loss. **Cause.** Zero satisfies the homogeneous equation and the condition
 terms are outweighed: in [Lab 4](#lab4) the residual loss starts at 52.5 against 1.36, and the
-final error is 0.998. **Fix.** Non-dimensionalise (error 0.0004), raise the condition weights
-(0.004), or impose the conditions by construction.
+final error is 0.999. **Fix.** Non-dimensionalise (error 0.0004 at best, with no weight), raise
+the condition weights (0.004 with weight 100), or impose the conditions by construction.
 
 ### A PINN with a small residual and a wrong answer
 
 **Symptom.** Slow trends fit, but oscillations, sharp fronts or late times do not; or the
 residual is tiny and the solution wrong. **Cause.** Spectral bias, stiffness and loss imbalance,
 or an ill-posed set-up: without boundary conditions the heat equation has infinitely many
-solutions, and a PINN found one with error 0.82 at a residual of $4 \times 10^{-5}$
+solutions, and a PINN found one with error 0.75 at a residual of $4 \times 10^{-5}$
 ([Exercise 12](#e12)). **Fix.** Fourier-feature inputs, adaptive loss weights, time-marching, a
 check that the problem is fully posed, or a classical solver, usually faster and more accurate
 for forward problems.
@@ -886,7 +892,7 @@ $\log(2B - 1)$. **Cause.** The augmentations removed information the task needs 
 rotation makes 6 and 9 one class; colour jitter removes the colour of corrosion), or the
 embeddings collapsed. **Fix.** Choose augmentations from the task's real invariances and check
 per-class probe accuracy. The augmentations are the supervision: in [Lab 5](#lab5), without the
-time shift, the 5-label probe scores 0.58 instead of 0.93.
+time shift, the 5-label probe scores 0.62 instead of 0.96.
 
 ### An MoE layer that uses one or two experts
 

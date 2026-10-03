@@ -64,8 +64,8 @@ $$
 x_t = \sqrt{0.5} \times 2 + \sqrt{0.5} \times (-0.4) = 1.4142 - 0.2828 = 1.1314.
 $$
 
-This is the noising step of [Section 1](#s1), now a whole stretch of the forward process. Which
-stretch depends on the schedule: with $T = 1000$, $\bar\alpha_t$ falls to 0.5 at about $t = 260$ under
+[Section 1](#s1) composed two steps by hand; (5.4) does the same for any number of steps, here a
+whole stretch of the forward process. Which stretch depends on the schedule: with $T = 1000$, $\bar\alpha_t$ falls to 0.5 at about $t = 260$ under
 the linear schedule below and at about $t = 497$ under the cosine schedule.
 :::
 
@@ -287,10 +287,10 @@ $\mathbf{v} = \sqrt{\bar\alpha_t}\,\boldsymbol{\epsilon} - \sqrt{1-\bar\alpha_t}
 Each can be converted into the others through (5.4); they differ in how a squared error on them
 weights the noise levels, and so in which steps the network fits best.
 
-For images, $\boldsymbol{\epsilon}_\theta$ is a U-Net ([Module 03](module_03_EN.html)), whose output has the
+For images, $\boldsymbol{\epsilon}_\theta$ is a U-Net ([Module 03, Section 12](module_03_EN.html#s12)), whose output has the
 shape of its input, or a transformer over image patches; in [Lab 2](#lab2) it is a small MLP on two
 coordinates. The time step enters through a sinusoidal embedding of $t$, the same construction as the
-positional encodings of [Module 06](module_06_EN.html), so that one network can behave differently at
+positional encodings of [Module 06, Section 6](module_06_EN.html#s6), so that one network can behave differently at
 each noise level.
 
 ::: check
@@ -363,21 +363,21 @@ def ddpm_sample(eps_model, shape, alpha_bar):
 ```
 
 ::: figure id=fig-05-13
-Lab 2's reverse process: seven scatter panels of 2,000 samples at $t$ = 200, 150, 100, 50, 20, 5
-and 0, each annotated with the mean nearest-neighbour distance from the samples to the data (0.246,
-0.234, 0.211, 0.134, 0.056, 0.025, 0.020). The moons appear only in the last panels: structure
-appears late.
+Lab 2's reverse process: 2,000 samples at $t$ = 200, 150, 100, 50, 20, 5 and 0, each panel annotated with the mean nearest-neighbour distance from the samples to the data (0.246, 0.234, 0.212, 0.134, 0.057, 0.027, 0.022); an eighth panel shows 2,000 fresh draws from the data for reference (0.013). The moons appear only in the last panels: structure appears late.
 :::
 
 Figure 5.13 shows where the work is done. Over the first 100 of Lab 2's 200 steps the distance barely
-moves (0.246 to 0.211; pure Gaussian draws give 0.242); the moons form in the last 50 steps, ending at
-0.020 against 0.013 for fresh data.
+moves (0.246 to 0.212; pure Gaussian draws give 0.242); the moons form in the last 50 steps, ending at
+0.022 against 0.013 for fresh data.
 
 **The first step.** The update divides by $\sqrt{\alpha_t}$, multiplying any error in
 $\boldsymbol{\epsilon}_\theta$; usually $\alpha_t$ is close to 1. The cosine schedule's clip at
 $\beta_T = 0.999$ makes the first step's factor $1/\sqrt{0.001} = 31.6$. Lab 2 therefore caps
 $\beta_t$ at 0.5 with $T = 200$: $\bar\alpha_T$ is still $6.8 \times 10^{-5}$, and the factor is
-$1/\sqrt{0.5} = 1.41$. An equivalent fix keeps the schedule: compute $\hat{\mathbf{x}}_0$, clip it to the
+$1/\sqrt{0.5} = 1.41$. On Lab 2's data the 0.999 clip need not do harm (a copy of the lab retrained
+with it gave a precision-like distance of 0.019 at $w = 7$), but a prototype run with it
+diverged, and the cap costs nothing. An
+equivalent fix keeps the schedule: compute $\hat{\mathbf{x}}_0$, clip it to the
 data range, and step to the posterior mean $\tilde{\boldsymbol{\mu}}_t(\mathbf{x}_t, \hat{\mathbf{x}}_0)$ of (5.5).
 
 ### Fewer steps: DDIM
@@ -393,7 +393,7 @@ $$
 $$
 
 on a strided subsequence of times, say 200, 190, ..., 0. Lab 2's sweep measures what that buys:
-the precision-like distance is 0.023 with 200 steps, 0.030 with 20, 0.045 with 5, and 1.57 with one.
+the precision-like distance is 0.022 with 200 steps, 0.025 with 20, 0.046 with 5, and 1.71 with one.
 A single step from pure noise returns $\hat{\mathbf{x}}_0$, an estimate of the posterior mean given
 noise. Even for a perfect network that is a blur near the data mean, and the trained network's small
 errors are multiplied by $\sqrt{1-\bar\alpha_T}/\sqrt{\bar\alpha_T} = 121$.
@@ -452,9 +452,9 @@ produced $(2.45, 2.9)$; extrapolation invents it, which is how large $w$ pushes 
 :::
 
 Lab 2 requests 1,000 samples of class 0 on two moons. At $w = 0$, 50% land in the requested moon;
-at $w$ = 1, 3 and 7, 100%. The recall-like distance (class-0 data to samples) grows 0.022, 0.029,
-0.046 for $w$ = 1, 3, 7, and the precision-like distance, 0.021, 0.014, 0.013 for $w$ = 0 to 3,
-worsens to 0.033 at $w = 7$ as samples overshoot. Fidelity is bought with diversity, and beyond some
+at $w$ = 1, 3 and 7, 100%. The recall-like distance (class-0 data to samples) grows 0.021, 0.029,
+0.043 for $w$ = 1, 3, 7, and the precision-like distance, 0.023, 0.014, 0.013 for $w$ = 0 to 3,
+worsens to 0.020 at $w = 7$ as samples overshoot. Fidelity is bought with diversity, and beyond some
 $w$ fidelity is lost too.
 
 ### Latent diffusion
@@ -587,7 +587,7 @@ $$
 $$
 
 The weights are shared by every node, as a convolution shares its kernel across positions
-([Module 03](module_03_EN.html)); a graph is like a grid whose neighbourhoods vary in size and have no
+([Module 03, Section 2](module_03_EN.html#s2)); a graph is like a grid whose neighbourhoods vary in size and have no
 order. One layer lets a node see its neighbours; $L$ layers give it an $L$-hop receptive field
 (Figure 5.17).
 
@@ -736,7 +736,7 @@ The GCN paper trained and tested on the nodes of one large graph: some nodes lab
 be predicted. That is **transductive** learning, and the test nodes' features are seen, unlabelled,
 during training. Engineering models are usually **inductive**: the network is trained on some fault
 trees and applied to new ones. Evaluate it the same way, splitting by graph rather than by node,
-the graph version of [Module 01](module_01_EN.html)'s rule against leakage; [Lab 3](#lab3) trains on
+the graph version of [Module 01, Section 10](module_01_EN.html#s10)'s rule against leakage; [Lab 3](#lab3) trains on
 200 trees and tests on 100 others.
 
 ::: check
@@ -847,12 +847,12 @@ step: the features oscillate instead of converging. In the explorer the cosine r
 
 ### Depth in practice
 
-Two to four layers is typical. In [Lab 3](#lab3), plain GCNs improve up to about four layers (test
-accuracy about 0.88 at one, 0.91 at three, 0.94 to 0.96 at four); at 8 and 16 layers they predict
-the majority class, "not a single point of failure", for every event: 0.838. A deep plain stack both
-smooths its features and trains poorly. Residual updates,
-$\mathbf{H} \leftarrow \mathbf{H} + \phi(\hat{\mathbf{A}}\mathbf{H}\mathbf{W})$, restore 16 layers to about 0.95
-to 0.97. Normalisation layers and jumping-knowledge connections (the read-out sees every layer) also
+Two to four layers is typical. In [Lab 3](#lab3), plain GCNs improve quickly up to four layers (test
+accuracy 0.810 at one, 0.897 at three, 0.938 at four) and peak at eight (0.959); at 12 and 16
+layers they predict the majority class, "not a single point of failure", for every event: 0.781.
+A deep plain stack both smooths its features and trains poorly. Residual updates,
+$\mathbf{H} \leftarrow \mathbf{H} + \phi(\hat{\mathbf{A}}\mathbf{H}\mathbf{W})$, restore 16 layers to
+0.948. Normalisation layers and jumping-knowledge connections (the read-out sees every layer) also
 help.
 
 A second limit is **over-squashing** (Alon and Yahav 2021): the number of nodes within $r$ hops can
@@ -894,8 +894,8 @@ a gate like one from an input, and two hops away mixes in siblings. A **relation
 (Schlichtkrull et al. 2018) gives every edge type and direction its own weight matrix:
 $\mathbf{h}_v' = \phi\big(\mathbf{W}_0\mathbf{h}_v + \sum_r \sum_{u \in \mathcal{N}_r(v)} \frac{1}{c_{v,r}}\mathbf{W}_r\mathbf{h}_u\big)$,
 with $c_{v,r}$ a normaliser such as the number of $r$-neighbours. In [Lab 3](#lab3) a direction-aware
-layer, with separate weights for messages from a node's gate and from its inputs, reaches 0.916, 0.963
-and 1.000 at two, three and four layers; the undirected GCN tops out around 0.94 to 0.96.
+layer, with separate weights for messages from a node's gate and from its inputs, reaches 0.853, 0.941
+and 1.000 at two, three and four layers; the undirected GCN tops out at 0.959, with eight layers.
 
 ### Engineering graphs, and whole-graph outputs
 

@@ -12,8 +12,8 @@ equation exactly and the initial conditions not at all. You then repair it two w
 the loss weights and by changing the units (a third repair, building the initial condition into the
 network, is an extension). Last you treat $\zeta$ as unknown, recover it from twelve noisy
 readings, and compare the result with a classical least-squares fit of the closed form. The data
-are generated in the lab, nothing is downloaded, and the lab runs in a few minutes on a laptop
-CPU. You need NumPy, SciPy, PyTorch and matplotlib. Printed numbers may differ from yours in the
+are generated in the lab, nothing is downloaded, and the lab runs in about three minutes on a
+laptop CPU (190 s in the run shown). You need NumPy, SciPy, PyTorch and matplotlib. Printed numbers may differ from yours in the
 last digits.
 
 ### Step 1: the problem and its exact solution
@@ -245,7 +245,7 @@ show(log_b)
   3000   5.07e-06    1.0002          1.0000   0.0001
 ```
 
-The residual falls to about $5	imes10^{-6}$, three orders of magnitude below that of the
+The residual falls to about $5\times10^{-6}$, three orders of magnitude below that of the
 previous run, and the network's amplitude is of order $10^{-4}$. The error is 1.000: the network has found exactly the
 function with zero residual that is easiest to find. A well-posed problem needs its conditions,
 and a loss that does not make the conditions binding has a trivial minimum.
@@ -315,9 +315,16 @@ The initial residual is now 0.034 rather than 52, so the imbalance of Step 2 has
 indeed reversed: the initial-condition term (1.36) is now the larger one, and the optimiser
 satisfies it first and then fits the oscillation. Training is not faster at the start (the error
 is 0.39 after 2,500 steps and 0.06 after 5,000, against 0.015 at 5,000 for the weighted run),
-but it keeps improving and ends at 0.0004, ten times lower than the weighted run and with no
-tuned weight. (The residuals of the two runs cannot be compared directly, because the equations
-differ by the factor $\omega_0^2$.) The lesson is general and transfers beyond this equation:
+but it keeps improving, reaches 0.0004 at 7,500 steps, ten times below the weighted run's final
+0.0039, and does so with no tuned weight. It does not stay there. At step 10,000 the printed error
+is 0.0073, because Adam at a fixed learning rate of $10^{-3}$ keeps kicking the network away from
+the minimum: in a copy of this lab that printed `curve_d`, the error recorded every 100 steps
+jumps between about 0.0001 and 0.016 after step 6,000, and is lowest (0.00006) at step 8,700.
+The weighted run oscillates too, between 0.004 and 0.013 over its last 1,000 steps. A decaying
+learning rate, or keeping the best checkpoint by a validation measure, is the usual remedy; the
+point here is that the non-dimensional form reaches the low error without a weight. (The
+residuals of the two runs cannot be compared directly, because the equations differ by the
+factor $\omega_0^2$.) The lesson is general and transfers beyond this equation:
 before reaching for loss-balancing schemes, put the equation in a form where its terms are of
 order 1.
 
@@ -423,8 +430,8 @@ Starting five times too high, the estimate falls to 0.12 by step 5,000 and settl
 root-mean-square value is 0.44 is a relative error of about 0.046 at the twelve readings, so the
 network's solution is closer to the truth than the readings are: the equation filters the noise.
 Twelve readings and an equation are enough because the equation supplies the shape of the curve
-and the readings only have to pin down one number. The solution error is not as small as in
-Step 6 (0.0004) because the data term pulls the network toward noisy points.
+and the readings only have to pin down one number. The solution error is not as small as Step 6's
+best (0.0004) because the data term pulls the network toward noisy points.
 
 ### Step 8: the classical baseline
 
@@ -477,10 +484,10 @@ check.
 
 ### What you should see
 
-- In dimensional units the residual term starts about 40 times larger than the initial-condition term (52.5 against 1.4). With equal weights the optimiser drives the network to nearly zero: the loss is small (residual 0.006) and the relative error is 0.999. Without initial conditions the result is the same, with a residual of $5	imes10^{-6}$. The trivial solution satisfies the equation exactly.
-- Weighting the initial conditions by 100 fixes it (error 0.0039 after 10,000 steps); non-dimensionalising fixes it better (0.0004) and needs no weight, because the terms of the equation are all of order 1.
+- In dimensional units the residual term starts about 40 times larger than the initial-condition term (52.5 against 1.4). With equal weights the optimiser drives the network to nearly zero: the loss is small (residual 0.006) and the relative error is 0.999. Without initial conditions the result is the same, with a residual of $5\times10^{-6}$. The trivial solution satisfies the equation exactly.
+- Weighting the initial conditions by 100 fixes it (error 0.0039 after 10,000 steps); non-dimensionalising fixes it with no weight, because the terms of the equation are all of order 1, and reaches lower errors (0.0004 at 7,500 steps), though at a fixed learning rate the error jumps about and reads 0.0073 at 10,000.
 - The inverse problem recovers $\zeta = 0.0987$ from twelve noisy readings, within 1.3% of the true value and consistent with the least-squares fit of the closed form (0.0977 $\pm$ 0.0015). When a closed form exists, use it; the PINN earns its cost when it does not.
-- Second derivatives through autograd cost several forward and backward passes, yet this network takes a few milliseconds per step, so the whole lab runs in a couple of minutes on a CPU. The cost is in the number of steps (10,000 to reach 0.0004), not in the step.
+- Second derivatives through autograd cost several forward and backward passes, yet this network takes about 5 ms per step, so the whole lab runs in about three minutes on a CPU. The cost is in the number of steps (7,500 to reach 0.0004), not in the step.
 
 ### Try this
 
@@ -497,7 +504,7 @@ is against the two things an engineer would try first, the raw waveform and its 
 magnitudes, and against an encoder that was never trained. Then you remove the augmentations one
 at a time and watch the representation get worse, which is the point of the lab: in contrastive
 learning the augmentations are the supervision. The vibration data are generated in the lab
-(four classes, random phases), so nothing is downloaded, and the lab runs in a couple of minutes
+(four classes, random phases), so nothing is downloaded, and the lab runs in one to two minutes
 on a laptop CPU. You need NumPy, scikit-learn, PyTorch and matplotlib. Printed numbers may differ
 from yours in the last digits.
 
@@ -885,14 +892,14 @@ seed 1, h, 5 labels per class: 0.954
 seed 2, h, 5 labels per class: 0.944
 ```
 
-Read the table by columns. With 5 labels per class, the pretrained $\mathbf{h}$ scores 0.955,
+Read the table by columns. With 5 labels per class, the pretrained $\mathbf{h}$ scores 0.956,
 against 0.850 for the FFT magnitudes, 0.532 for the untrained encoder and 0.371 for the raw
 waveform: ten points above the classical feature, from a network that never saw a label during
-pretraining. The other two seeds give 0.952 and 0.942, so the margin does not depend on one
-lucky initialisation. With 100 labels per class the advantage has nearly gone (0.997 against
+pretraining. The other two seeds give 0.954 and 0.944, so the margin does not depend on one
+lucky initialisation. With 100 labels per class the advantage has nearly gone (0.996 against
 0.974): once labels are plentiful, a good hand-made feature is enough, and what pretraining
 buys is *label efficiency*. The projection output $\mathbf{z}$ is a different story: at 5 labels
-it reaches only 0.605, far below $\mathbf{h}$, and at 100 it catches up. The head was trained to
+it reaches only 0.620, far below $\mathbf{h}$, and at 100 it catches up. The head was trained to
 be invariant to whatever the augmentations vary, and it throws away more than the class needs;
 this is why SimCLR keeps $\mathbf{h}$ and discards the head. The error bars of this
 protocol are not small (five draws of labelled windows, three pretraining seeds), so a
@@ -942,31 +949,31 @@ misalignment predicted as imbalance: 18 of 473
 bearing defect predicted as healthy: 13 of 490
 ```
 
-Two observations. Without the time shift the probe accuracy at 5 labels per class falls from 0.955
-to 0.628, which is about 0.1 above the untrained encoder's 0.532 and far below the shifted
-model; with no augmentation at all it is 0.580. At 100 labels the gap closes to under 2 points
-(0.977 against 0.997), so the damage is again one of label efficiency: the features are
+Two observations. Without the time shift the probe accuracy at 5 labels per class falls from 0.956
+to 0.622, which is about 0.09 above the untrained encoder's 0.532 and far below the shifted
+model; with no augmentation at all it is 0.581. At 100 labels the gap closes to under 2 points
+(0.977 against 0.996), so the damage is again one of label efficiency: the features are
 usable but they are not organised by class. The final losses are the more instructive
-numbers: 1.75 without the shift and 1.70 with no augmentation, both *lower* than the 2.38 of the
+numbers: 1.75 without the shift and 1.69 with no augmentation, both *lower* than the 2.38 of the
 full recipe. The task of matching two views is easier when the views share their phases, so the
 loss improves while the representation gets worse. A contrastive loss measures how well the
 encoder solves the pretext task, not how good the features are for the downstream one, which is
 why the probe, and not the loss, decides. The confusion matrix of the no-shift model (one probe,
-one draw of 100 labels per class) puts the errors where the physics predicts: bearing defects
-taken for healthy (19 of 490), whose impulses are small compared with the harmonics, and a few
-misalignment windows taken for imbalance (8 of 473). These counts depend on the draw; the
+one draw of 100 labels per class) puts the errors where the physics predicts: misalignment
+windows taken for imbalance (18 of 473), both of which have strong low harmonics, and bearing
+defects taken for healthy (13 of 490), whose impulses are small compared with the harmonics. These counts depend on the draw; the
 pattern, not the digits, is the point.
 
 ### What you should see
 
 - A linear classifier on the raw waveform is near chance for four classes at 5 labels per class (0.37, chance 0.25) and reaches only 0.47 at 100: with random phases no fixed linear combination of samples identifies a class. Spectral magnitudes, the classical feature, remove phase by construction and do well (0.85 rising to 0.97).
-- Contrastive pretraining with a time-shift augmentation learns a phase-invariant representation without labels. With 5 labels per class it reaches 0.955, about ten points above the FFT features and two other pretraining seeds give 0.95 and 0.94; with 100 labels the two are within 2.5 points.
-- The augmentation is the supervision. Without the time shift, the 5-label accuracy falls to 0.63, only a little above an untrained encoder (0.53), although the pretraining loss is lower (1.75 against 2.38). A lower contrastive loss does not mean better features.
-- The projection head absorbs what the augmentations vary: probing $\mathbf{z}$ with 5 labels per class gives 0.61 against 0.955 for $\mathbf{h}$, which is why $\mathbf{h}$ is kept.
+- Contrastive pretraining with a time-shift augmentation learns a phase-invariant representation without labels. With 5 labels per class it reaches 0.956, about ten points above the FFT features, and two other pretraining seeds give 0.95 and 0.94; with 100 labels the two are within 2.5 points.
+- The augmentation is the supervision. Without the time shift, the 5-label accuracy falls to 0.62, only a little above an untrained encoder (0.53), although the pretraining loss is lower (1.75 against 2.38). A lower contrastive loss does not mean better features.
+- The projection head absorbs what the augmentations vary: probing $\mathbf{z}$ with 5 labels per class gives 0.62 against 0.956 for $\mathbf{h}$, which is why $\mathbf{h}$ is kept.
 - The InfoNCE loss ends at about 2.4, well above zero and well below $\log(2B - 1) = 6.24$, the value for embeddings that carry no information.
 
 ### Try this
 
-1. **A wider gain augmentation.** Replace the gain range 0.8 to 1.25 by 0.25 to 4 and probe $\mathbf{h}$ again. The probe barely changes (we measured 0.957, 0.989 and 0.998 for 5, 20 and 100 labels, against 0.955, 0.989 and 0.997), because healthy and imbalance windows also differ in harmonic ratios and in signal-to-noise ratio, so amplitude is not the only cue. Design an augmentation that does destroy a class distinction in these data, and confirm it with the confusion matrix. This is the conceptual failure of [Section 11](#s11), the 6 and the 9 under rotation, made concrete.
+1. **A wider gain augmentation.** Replace the gain range 0.8 to 1.25 by 0.25 to 4 and probe $\mathbf{h}$ again. The probe barely changes (a copy of this lab with the wider range gave 0.956, 0.990 and 0.997 for 5, 20 and 100 labels, against 0.956, 0.988 and 0.996), because healthy and imbalance windows also differ in harmonic ratios and in signal-to-noise ratio, so amplitude is not the only cue. Design an augmentation that does destroy a class distinction in these data, and confirm it with the confusion matrix. This is the conceptual failure of [Section 11](#s11), the 6 and the 9 under rotation, made concrete.
 2. **Temperature and batch size.** Vary $\tau$ over 0.05, 0.5 and 1.0 and the batch size over 64 and 512, keeping the number of epochs. Which settings change the probe's 5-label accuracy, and does the final loss predict that?
 3. **A class the encoder has never seen.** Add a fifth class to the test set only, mechanical looseness (many harmonics of $f_r$ with decaying amplitudes), and plot a two-dimensional PCA of $\mathbf{h}$ for the test windows, coloured by class. Does the pretrained $\mathbf{h}$ separate the new class from the old without any retraining? Compare with the PCA of the FFT magnitudes.
