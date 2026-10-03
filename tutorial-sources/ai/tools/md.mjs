@@ -9,6 +9,9 @@
 //   ```quiz                   -> a multiple-choice quiz (see SPEC.md for the line format)
 import MarkdownIt from 'markdown-it'
 import container from 'markdown-it-container'
+// CommonMark will not close **bold** after full-width punctuation followed by a CJK character
+// ("**定义。**正文"); this plugin applies the CJK-friendly emphasis rules.
+import cjkFriendly from 'markdown-it-cjk-friendly'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -188,6 +191,7 @@ export function makeMd({ lang = 'en', figDirs = [], env: sharedEnv } = {}) {
   const L = LABELS[lang]
   const md = new MarkdownIt({ html: true, linkify: false, typographer: true })
   md.disable(['replacements'])   // keeps "(c)" in "(a) (b) (c)" from becoming a copyright sign
+  md.use(cjkFriendly)
 
   md.inline.ruler.before('escape', 'math_inline', mathInline)
   md.block.ruler.before('fence', 'math_block', mathBlock, { alt: ['paragraph', 'reference', 'blockquote', 'list'] })
