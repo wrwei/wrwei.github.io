@@ -508,7 +508,7 @@ $$
 W(p, q) = \inf_{\gamma \in \Pi(p, q)} \E_{(\mathbf{x}, \mathbf{y}) \sim \gamma}\,\|\mathbf{x} - \mathbf{y}\|,
 $$
 
-其中 $\Pi(p, q)$ 是边缘分布为 $p$ 和 $q$ 的联合分布（耦合）的集合。对耦合取下确界无法直接计算，但 Kantorovich–Rubinstein 对偶把它变成一个对函数的优化：$W(p, q) = \sup_{\|f\|_L \le 1} \E_p[f] - \E_q[f]$，即对 1-Lipschitz 函数 $f$ 取上确界。**Wasserstein GAN**（Arjovsky、Chintala 和 Bottou 2017）训练一个网络 $f$，即评论器（critic），去达到这个上确界，并训练生成器去减小它。难点在于保持 $f$ 的 Lipschitz 性。WGAN 把评论器的权重裁剪到一个小方框内，这样做有效，但限制了评论器。WGAN-GP（Gulrajani 等人 2017）在数据与样本之间的随机插值点 $\hat{\mathbf{x}}$ 处加入惩罚 $\lambda\,\E\big[(\|\nabla f(\hat{\mathbf{x}})\| - 1)^2\big]$。谱归一化（spectral normalisation，Miyato 等人 2018）把每层的权重除以其最大奇异值，把每层的 Lipschitz 常数限制在 1 以内，是另一种常用的稳定手段。
+其中 $\Pi(p, q)$ 是边缘分布为 $p$ 和 $q$ 的联合分布（耦合）的集合。对耦合取下确界无法直接计算，但 Kantorovich–Rubinstein 对偶把它变成一个对函数的优化：$W(p, q) = \sup_{\|f\|_L \le 1} \E_p[f] - \E_q[f]$，即对 1-Lipschitz 函数 $f$ 取上确界。**Wasserstein GAN**（Arjovsky、Chintala 和 Bottou 2017）训练一个网络 $f$，即评判器（critic），去达到这个上确界，并训练生成器去减小它。难点在于保持 $f$ 的 Lipschitz 性。WGAN 把评判器的权重裁剪到一个小方框内，这样做有效，但限制了评判器。WGAN-GP（Gulrajani 等人 2017）在数据与样本之间的随机插值点 $\hat{\mathbf{x}}$ 处加入惩罚 $\lambda\,\E\big[(\|\nabla f(\hat{\mathbf{x}})\| - 1)^2\big]$。谱归一化（spectral normalisation，Miyato 等人 2018）把每层的权重除以其最大奇异值，把每层的 Lipschitz 常数限制在 1 以内，是另一种常用的稳定手段。
 
 ::: worked title="两个点质量"
 设 $p_{\text{data}}$ 是 0 处的点质量，$p_g$ 是 $\theta$ 处的点质量。对每个 $\theta \ne 0$，两个支撑集都不相交，所以 $\mathrm{JSD} = \log 2 = 0.693$，它对 $\theta$ 的导数为零。唯一的耦合把全部质量从 $\theta$ 移到 0，所以 $W = |\theta|$，导数为 $\operatorname{sign}(\theta)$：无论相距多远，它都把生成器指回原点。

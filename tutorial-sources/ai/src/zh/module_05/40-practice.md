@@ -50,7 +50,7 @@
 - [ ] $1/\sqrt{3 \times 1} = 0.577$
 - [ ] $1/4 = 0.25$
 - [ ] $1$
-> 自环使每个度加 1，得到 $\tilde d_i = 4$ 和 $\tilde d_j = 2$，于是 $\hat{A}_{ij} = 1/\sqrt{\tilde d_i \tilde d_j} = 1/\sqrt 8 = 0.354$。0.577 忘了自环；0.25 是从中心节点看过去的随机游走权重；1 是未归一化的邻接矩阵元素。
+> 自环使每个度加 1，得到 $\tilde d_i = 4$ 和 $\tilde d_j = 2$，于是 $\hat{A}_{ij} = 1/\sqrt{\tilde d_i \tilde d_j} = 1/\sqrt 8 = 0.354$。0.577 忘了自环；0.25 是从枢纽节点看过去的随机游走权重；1 是未归一化的邻接矩阵元素。
 
 ? 对一个连通图的节点特征反复作用 $\hat{\mathbf{A}} = \tilde{\mathbf{D}}^{-1/2}(\mathbf{A}+\mathbf{I})\tilde{\mathbf{D}}^{-1/2}$，特征会收敛到：
 - [ ] 零
@@ -160,8 +160,8 @@ Raissi, M., Perdikaris, P., Karniadakis, G. E. "Physics-informed neural networks
 - 扩散模型的**采样**需要多次网络计算；DDIM、蒸馏和一致性模型能减少次数，尺度为 $w$ 的**无分类器引导**以每步两倍的计算量用多样性换取忠实度，而噪声调度必须在 $\bar\alpha_T$ 接近零时结束。
 - **GCN 层**计算 $\mathbf{H}^{(l+1)} = \sigma(\hat{\mathbf{A}}\mathbf{H}^{(l)}\mathbf{W}^{(l)})$，其中 $\hat{\mathbf{A}} = \tilde{\mathbf{D}}^{-1/2}(\mathbf{A}+\mathbf{I})\tilde{\mathbf{D}}^{-1/2}$；反复作用会把所有节点特征推向同一个方向（过平滑），所以除非加入残差连接或归一化，有用的深度很小。
 - 消息传递网络无法区分 Weisfeiler–Lehman 检验区分不了的图，而来自远处节点的信息要挤过狭窄的边（过度挤压）；故障树和安全论证这样的工程模型都是图，而第一个基线永远是一条简单的结构规则。
-- **物理信息网络**最小化由自动微分计算的偏微分方程残差，再加上边界项和初始项；当条件项被压过时，它可能收敛到平凡解，补救办法是无量纲化、给各项加权，或把条件作为硬约束构造进模型。
-- DeepONet 和 Fourier 神经算子这样的**神经算子**从求解器运行结果中学习函数之间的映射；它们是代理模型，只在训练所用的那一族输入上有效，每个模型在用于新设计之前都需要用求解器核对。
+- **物理信息神经网络**最小化由自动微分计算的偏微分方程残差，再加上边界项和初始项；当条件项被压过时，它可能收敛到平凡解，补救办法是无量纲化、给各项加权，或把条件作为硬约束构造进模型。
+- DeepONet 和 傅里叶神经算子这样的**神经算子**从求解器运行结果中学习函数之间的映射；它们是代理模型，只在训练所用的那一族输入上有效，每个模型在用于新设计之前都需要用求解器核对。
 - 基于 InfoNCE 的**对比学习**是 $N$ 个候选上的分类损失，随机猜测时的取值为 $\log N$，所以 $\log N - \mathcal{L}$ 最多只能确认 $\log N$ 奈特的互信息；数据增强决定表示保留什么，线性探测衡量它换来了什么。
 - **混合专家**层存储 $E$ 个专家，但每个 token 只运行 $k$ 个，所以参数随 $E$ 增长，计算量随 $k$ 增长；路由坍塌用负载均衡损失来对抗，一个模型的总参数和激活参数要分开计算。
 
@@ -213,7 +213,7 @@ Raissi, M., Perdikaris, P., Karniadakis, G. E. "Physics-informed neural networks
 - McGreivy, N., Hakim, A. "Weak baselines and reporting biases lead to overoptimism in machine learning for fluid-related partial differential equations." *Nature Machine Intelligence*, 2024. 为什么学习型偏微分方程求解器需要强的经典基线。
 - Chen, T., Chen, H. "Universal approximation to nonlinear operators by neural networks with arbitrary activation functions and its application to dynamical systems." *IEEE Transactions on Neural Networks*, 1995. DeepONet 背后的定理。
 - Lu, L. et al. "Learning nonlinear operators via DeepONet based on the universal approximation theorem of operators." *Nature Machine Intelligence*, 2021. DeepONet。
-- Li, Z. et al. "Fourier neural operator for parametric partial differential equations." *ICLR*, 2021. Fourier 神经算子。
+- Li, Z. et al. "Fourier neural operator for parametric partial differential equations." *ICLR*, 2021. 傅里叶神经算子。
 - van den Oord, A., Li, Y., Vinyals, O. "Representation learning with contrastive predictive coding." arXiv:1807.03748, 2018. InfoNCE 及其互信息下界。
 - Chen, T. et al. "A simple framework for contrastive learning of visual representations." *ICML*, 2020. SimCLR 与投影头。
 - Wang, T., Isola, P. "Understanding contrastive representation learning through alignment and uniformity on the hypersphere." *ICML*, 2020. 对比损失优化的是什么。
