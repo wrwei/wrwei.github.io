@@ -99,7 +99,7 @@ Pascanu, R., Mikolov, T., Bengio, Y. "On the difficulty of training recurrent ne
 
 **Why read it.** It is the clearest analysis of why recurrent gradients vanish and explode: the product of Jacobians, the view of the network as a dynamical system, and the geometry of the cliff in the loss surface. It is also the origin of gradient-norm clipping, which every recurrent and transformer training run still uses. The paper shows which of the claims of [Section 4](#s4) are sufficient conditions and which only necessary ones.
 
-**What to read.** Read the introduction and the section on exploding and vanishing gradients in full: the mechanics, with the sufficient condition for vanishing and the necessary condition for exploding, then the dynamical-systems view and the geometric interpretation with the figure of the "wall". Then read the subsection on scaling down the gradients, which is the clipping algorithm. Skim the proposed regulariser for vanishing gradients and the experiments. Skip the proofs in the appendix.
+**What to read.** Read the introduction and the section on exploding and vanishing gradients in full: the mechanics, with the sufficient condition for vanishing and the necessary condition for exploding, then the dynamical-systems view and the geometric interpretation with the figure of the "wall". Then read the subsection on scaling down the gradients, which is the clipping algorithm. Skim the proposed regulariser for vanishing gradients and the experiments. Skip the derivations, which are in the supplementary material.
 
 **Questions to answer while reading.**
 

@@ -1,5 +1,12 @@
 # Paper check (HANDOVER.md, open issue 4)
 
+**Status (3 October 2026): done**, except four sources this environment could not open. The results,
+with every correction, are in `notes/task-reports/paper-check.json`. Still to check against the
+original text, if access allows: Domingos 2012 (`homes.cs.washington.edu` or `dl.acm.org`),
+Rumelhart et al. 1986 (`www.cs.toronto.edu` or `www.nature.com`), the *Patterns* version of Kapoor
+and Narayanan (`www.cell.com` or `pmc.ncbi.nlm.nih.gov`), and the *JCP* version of Raissi et al.
+(`www.sciencedirect.com`). The concept text's pointers into papers (Modules 01–07) were checked too.
+
 The guided-reading notes of Modules 01–05 point into the papers by section, figure, table, equation,
 proposition and algorithm number, and some name sections. The writers took these from memory
 (`notes/task-reports/`, search "memory"). Check each against the paper itself before publishing.

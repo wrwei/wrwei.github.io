@@ -153,10 +153,12 @@ For each module, in this order. Each step names the guide that governs it.
    6.19, 6.23 and 6.24 from sections not yet written.
 3. **Unverified files**: `src/en/module_05/20-labs-a.md` was written but never run through
    `labrun.py`; the partial Module 06 lab files need finishing and running.
-4. **Paper details**: some guided-reading notes (section names, figure numbers inside papers) were
-   written from memory and flagged for a check against the papers; see `notes/task-reports/`
-   (search for "memory"). `notes/PAPER-CHECK.md` lists every paper, its source and what to check;
-   the session needs network access to the paper hosts it names.
+4. **Paper details** (checked). The guided-reading notes and the concept text's pointers into papers
+   were checked against the papers; eleven statements were corrected (`notes/task-reports/paper-check.json`).
+   Four sources were not reachable and were checked against preprints or secondary sources only:
+   Domingos 2012, Rumelhart et al. 1986, and the journal versions of Kapoor and Narayanan and of
+   Raissi et al. (`notes/PAPER-CHECK.md`). When writing new guided readings, name parts of a paper by
+   topic or check the numbers against the version cited.
 5. **Effort.** With Claude Code agents, finishing a module (write, edit, figures, widgets, labs,
    review, QA, translation) took about 25 agent tasks and several million tokens. Running many
    agents at once hit both the 5-hour and the weekly usage limits, so pace the work (a few agents at a
