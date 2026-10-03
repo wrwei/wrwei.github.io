@@ -155,7 +155,8 @@ For each module, in this order. Each step names the guide that governs it.
    `labrun.py`; the partial Module 06 lab files need finishing and running.
 4. **Paper details**: some guided-reading notes (section names, figure numbers inside papers) were
    written from memory and flagged for a check against the papers; see `notes/task-reports/`
-   (search for "memory").
+   (search for "memory"). `notes/PAPER-CHECK.md` lists every paper, its source and what to check;
+   the session needs network access to the paper hosts it names.
 5. **Effort.** With Claude Code agents, finishing a module (write, edit, figures, widgets, labs,
    review, QA, translation) took about 25 agent tasks and several million tokens. Running many
    agents at once hit both the 5-hour and the weekly usage limits, so pace the work (a few agents at a
