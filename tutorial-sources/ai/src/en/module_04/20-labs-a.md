@@ -463,12 +463,12 @@ print(f"largest gradient norm before clipping: {max(grad_norm_log):.2f}; "
 update  250  train 1.154  val 0.416  grad norm 0.22
 update  500  train 0.408  val 0.391  grad norm 0.20
 update  750  train 0.395  val 0.391  grad norm 0.16
-update 1000  train 0.388  val 0.394  grad norm 0.29
-update 1250  train 0.386  val 0.389  grad norm 0.21
-update 1500  train 0.387  val 0.387  grad norm 0.18
-update 1750  train 0.381  val 0.394  grad norm 0.15
-update 2000  train 0.379  val 0.397  grad norm 0.27
-best validation loss 0.387 at update 1500; 5-gram 0.476
+update 1000  train 0.388  val 0.405  grad norm 0.27
+update 1250  train 0.390  val 0.393  grad norm 0.24
+update 1500  train 0.383  val 0.388  grad norm 0.21
+update 1750  train 0.382  val 0.390  grad norm 0.16
+update 2000  train 0.378  val 0.399  grad norm 0.27
+best validation loss 0.388 at update 1500; 5-gram 0.476
 largest gradient norm before clipping: 1.43; updates clipped: 0
 ```
 
@@ -541,19 +541,19 @@ for tau, generated in samples.items():
 
 ```output
 --- temperature 0.5 ---
-P4 temp 55.6 C ok /P1
-P2 pres 4.0 bar after restart ok /P2
-P1 pres 4.4 bar ok /P2
-P2 vib 2.6 mm/s ok /P1
+P4 temp 55.5 C ok /P1
+P2 pres 4.0 bar after restart ok /P3
+P1 pres 3.3 bar ok /P2
+P2 vib 2.7 mm/s ok /P1
 P1 temp 68.5 C ok /P2
-P2 vib 3.7 mm/s ok /P1
+P2 temp 58.9 C ok /P3
 --- temperature 1.0 ---
 P1 temp 58.5 C ok /C1
-P4 temp 52.8 C ok /P4
-P3 vib 7.4 mm/s night shift high /P3
-F2 temp 64.1 C operator check ok /P2
-P1 pres 5.6 bar operator check high /P3
-P1 temp 57.8 C ok /P3
+P4 temp 52.7 C ok /P4
+P3 vib 8.4 mm/s high /F2
+P2 pres 1.7 bar operator check ok /P1
+C1 temp 84.8 C night shift ok /F1
+C2 pres 1.9 bar night shift ok /P1
 ```
 
 The samples read like the log. Units follow quantities, values are plausible numbers, and statuses
@@ -609,11 +609,11 @@ print("always-ok baseline for the status: about 73%;  guessing the tag: 12.5%")
 
 ```output
                        tau = 0.5 tau = 1.0
-lines                        225       194
-well-formed               100.0%     93.8%
+lines                        225       193
+well-formed               100.0%     95.3%
 unit agrees               100.0%    100.0%
-status agrees              99.1%     98.9%
-closing tag matches        20.9%     12.6%
+status agrees              99.1%     95.7%
+closing tag matches        20.9%     12.0%
 always-ok baseline for the status: about 73%;  guessing the tag: 12.5%
 ```
 
@@ -826,7 +826,7 @@ default W_hh: spectral radius 0.57, largest singular value 1.10
                       lag 1       lag 10      lag 25      lag 50      lag 100     lag 199
 rnn default           5.23e-01    1.66e-03    1.76e-07    2.38e-14    7.83e-28    0.00e+00
 rnn orthogonal        1.23e+00    2.26e-01    3.08e-02    1.50e-03    1.71e-06    3.04e-12
-rnn orthogonal x1.5   1.32e+00    1.74e+00    3.38e+00    9.82e+00    1.18e+02    1.92e+04
+rnn orthogonal x1.5   1.32e+00    1.74e+00    3.38e+00    9.64e+00    1.17e+02    2.02e+04
 lstm b=0              5.05e-01    6.22e-03    4.83e-06    4.24e-11    2.75e-21    6.48e-41
 lstm b=3              4.36e-01    3.34e-01    3.20e-01    2.84e-01    3.36e-01    7.77e+00
 lstm b=5              1.85e-01    1.41e-01    1.50e-01    1.93e-01    3.85e-01    3.41e+01
@@ -1108,20 +1108,20 @@ for name, kind, bias in [("RNN", "rnn", 0.0), ("LSTM b_f=0", "lstm", 0.0),
 ```output
 effective forget bias at initialisation (bias_ih + bias_hh), forget slice: 1.0
 RNN          update  500  val 0.400  closing-tag accuracy 24.7%
-RNN          update 1000  val 0.397  closing-tag accuracy 18.7%
-RNN          update 1500  val 0.388  closing-tag accuracy 14.2%
-RNN          update 2000  val 0.405  closing-tag accuracy 20.1%
-RNN          update 2500  val 0.399  closing-tag accuracy 20.4%
-LSTM b_f=0   update  500  val 0.386  closing-tag accuracy 13.5%
-LSTM b_f=0   update 1000  val 0.395  closing-tag accuracy 15.3%
-LSTM b_f=0   update 1500  val 0.391  closing-tag accuracy 19.3%
-LSTM b_f=0   update 2000  val 0.390  closing-tag accuracy 44.2%
-LSTM b_f=0   update 2500  val 0.377  closing-tag accuracy 79.1%
+RNN          update 1000  val 0.399  closing-tag accuracy 15.0%
+RNN          update 1500  val 0.390  closing-tag accuracy 19.9%
+RNN          update 2000  val 0.406  closing-tag accuracy 14.1%
+RNN          update 2500  val 0.415  closing-tag accuracy 15.0%
+LSTM b_f=0   update  500  val 0.384  closing-tag accuracy 10.9%
+LSTM b_f=0   update 1000  val 0.396  closing-tag accuracy 12.2%
+LSTM b_f=0   update 1500  val 0.383  closing-tag accuracy 21.8%
+LSTM b_f=0   update 2000  val 0.374  closing-tag accuracy 64.6%
+LSTM b_f=0   update 2500  val 0.379  closing-tag accuracy 77.5%
 LSTM b_f=1   update  500  val 0.387  closing-tag accuracy 10.2%
-LSTM b_f=1   update 1000  val 0.393  closing-tag accuracy 19.7%
-LSTM b_f=1   update 1500  val 0.373  closing-tag accuracy 26.8%
-LSTM b_f=1   update 2000  val 0.384  closing-tag accuracy 50.8%
-LSTM b_f=1   update 2500  val 0.375  closing-tag accuracy 86.0%
+LSTM b_f=1   update 1000  val 0.395  closing-tag accuracy 16.7%
+LSTM b_f=1   update 1500  val 0.373  closing-tag accuracy 35.3%
+LSTM b_f=1   update 2000  val 0.396  closing-tag accuracy 39.8%
+LSTM b_f=1   update 2500  val 0.395  closing-tag accuracy 64.2%
 ```
 
 The effective forget bias is 1, as intended. Each curve is one run, and
@@ -1279,8 +1279,8 @@ plt.show()
 ```
 
 ```output
-8000 samples, range -1.00 .. 9.58, standard deviation 2.38
-first 1000 samples: mean 0.49; last 1000: mean 7.49
+8000 samples, range -1.00 .. 9.49, standard deviation 2.38
+first 1000 samples: mean 0.49; last 1000: mean 7.48
 ```
 
 The series rises from a mean of about 0.5 over the first 1,000 samples to about 7.5 over the last
@@ -1376,9 +1376,9 @@ print(f"LSTM  RMSE {rmse(pred, Y_te.numpy()) * sd:.3f}   "
 ```
 
 ```output
-normalised inputs, training: -2.18 .. 2.30   test: 0.98 .. 3.60
+normalised inputs, training: -2.18 .. 2.32   test: 1.02 .. 3.55
 parameters 12,961
-LSTM  RMSE 0.423   naive RMSE 0.373   LSTM mean error -0.315
+LSTM  RMSE 0.427   naive RMSE 0.361   LSTM mean error -0.317
 ```
 
 The test windows, after normalising with the training statistics, lie between 0.98 and 3.60, while
@@ -1432,7 +1432,7 @@ plt.show()
 ```
 
 ```output
-fixed LSTM RMSE 0.135   mean error +0.030
+fixed LSTM RMSE 0.132   mean error +0.024
 ```
 
 The fixed model's RMSE is about 0.135 with a mean error close to zero, a third of the naive error
@@ -1522,13 +1522,13 @@ print("LSTM improvement over linear AR per fold: " + ", ".join(f"{g:.0%}" for g 
 
 ```output
   origin           naive  seasonal naive       linear AR            LSTM
-    4000           0.393           0.870           0.166           0.145
-    5000           0.376           0.820           0.148           0.132
-    6000           0.355           0.855           0.153           0.135
-    7000           0.386           0.861           0.167           0.133
-    mean           0.378           0.851           0.159           0.136
-      sd           0.015           0.019           0.008           0.005
-LSTM improvement over linear AR per fold: 13%, 11%, 12%, 21%
+    4000           0.393           0.869           0.166           0.145
+    5000           0.389           0.844           0.148           0.130
+    6000           0.342           0.791           0.151           0.134
+    7000           0.377           0.854           0.154           0.130
+    mean           0.375           0.840           0.155           0.135
+      sd           0.020           0.029           0.007           0.006
+LSTM improvement over linear AR per fold: 13%, 12%, 12%, 16%
 ```
 
 The ordering is the same in every fold. The naive forecast has an RMSE of about 0.38. The
@@ -1620,12 +1620,12 @@ plt.show()
 ```output
 direct model trained; 981 forecast origins
        RMSE at h =       1       5      10      20
-             naive   0.355   1.071   0.578   0.776
-    seasonal naive   0.857   0.857   0.857   0.854
-  linear recursive   0.153   0.400   0.492   0.576
-     linear direct   0.153   0.400   0.491   0.574
-    LSTM recursive   0.134   0.395   0.483   0.734
-       LSTM direct   0.150   0.399   0.469   0.573
+             naive   0.342   1.018   0.621   0.720
+    seasonal naive   0.792   0.791   0.790   0.789
+  linear recursive   0.151   0.400   0.526   0.551
+     linear direct   0.151   0.400   0.526   0.552
+    LSTM recursive   0.133   0.418   0.531   0.775
+       LSTM direct   0.152   0.402   0.497   0.561
 ```
 
 Look at three things.
@@ -1763,14 +1763,14 @@ plt.show()
 ```
 
 ```output
-hold-out residual sigma 0.131; point threshold 0.525; rolling-RMS limit 0.197; rolling-std floor 0.031
-residual RMS on the clean hold-out 0.135; during the excitation fault 0.206
+hold-out residual sigma 0.131; point threshold 0.525; rolling-RMS limit 0.195; rolling-std floor 0.038
+residual RMS on the clean hold-out 0.134; during the excitation fault 0.210
 
 fault                        point           rolling RMS           rolling std
 spike               2 alarms, first +0       21 alarms, first +0                      none
-offset              5 alarms, first +0       63 alarms, first +4                      none
-excitation        2 alarms, first +151     194 alarms, first +85                      none
-stuck                             none                      none      82 alarms, first +19
+offset              3 alarms, first +0       58 alarms, first +4                      none
+excitation        5 alarms, first +151     208 alarms, first +99                      none
+stuck             1 alarms, first +100                      none      79 alarms, first +21
 
 normal samples in 7,000-7,999: 239; false-alarm samples: point 0, rolling RMS 0, rolling std 0
 ```

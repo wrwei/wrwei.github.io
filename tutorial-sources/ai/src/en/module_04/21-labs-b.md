@@ -225,13 +225,13 @@ train(attn, STEPS)
 
 ```output
 without attention
-  step  500  loss 0.5832
-  step 1000  loss 0.4171
-  step 1500  loss 0.3391
+  step  500  loss 0.5913
+  step 1000  loss 0.4242
+  step 1500  loss 0.3684
 with attention
-  step  500  loss 0.0180
-  step 1000  loss 0.0061
-  step 1500  loss 0.0001
+  step  500  loss 0.0149
+  step 1000  loss 0.0100
+  step 1500  loss 0.0002
 ```
 
 The loss is a mean over real target tokens, in nats. The model with attention is below 0.02 by step
@@ -275,9 +275,9 @@ for name, model in [("no attention", plain), ("attention", attn)]:
 
 ```output
 model         length  sequence  teacher-forced  free-running
-no attention      4     99.2%           99.8%         99.7%
-no attention      8     35.6%           90.6%         78.2%
-no attention     12      0.8%           73.0%         51.1%
+no attention      4     98.4%           99.7%         99.4%
+no attention      8     42.6%           91.4%         80.3%
+no attention     12      1.0%           74.1%         52.7%
 attention         4    100.0%          100.0%        100.0%
 attention         8    100.0%          100.0%        100.0%
 attention        12    100.0%          100.0%        100.0%
@@ -352,8 +352,8 @@ print(f"beam k=4 {beam_ok:3d}/200 correct strings, token accuracy {100 * beam_to
 ```
 
 ```output
-greedy     0/200 correct strings, token accuracy 51.8%
-beam k=4   0/200 correct strings, token accuracy 52.5%
+greedy     0/200 correct strings, token accuracy 52.3%
+beam k=4   0/200 correct strings, token accuracy 49.1%
 ```
 
 Beam search changes almost nothing: no string out of 200 is right under either method, and token
@@ -414,7 +414,7 @@ plt.show()
 source : [1, 1, 7, 4, 5, 6, 7, 0]
 output : [0, 7, 6, 5, 4, 7, 1, 1, 12] (12 = EOS)
 argmax of each row: [7, 6, 5, 4, 3, 2, 1, 0, 0]
-peak weights:       ['0.74', '0.72', '0.72', '0.81', '0.74', '0.79', '0.65', '0.83', '0.25']
+peak weights:       ['0.84', '0.75', '0.66', '0.71', '0.65', '0.79', '0.63', '0.68', '0.26']
 weight on padding:  0.000000
 ```
 
@@ -460,13 +460,13 @@ for name, model in [("unpacked", unpacked), ("packed", packed)]:
 
 ```output
 unpacked encoder
-  step  266  loss 0.0250
-  step  532  loss 0.0108
-  step  798  loss 0.0042
+  step  266  loss 0.0273
+  step  532  loss 0.0194
+  step  798  loss 0.0105
 packed encoder
-  step  266  loss 0.0206
-  step  532  loss 0.0099
-  step  798  loss 0.0065
+  step  266  loss 0.0128
+  step  532  loss 0.0083
+  step  798  loss 0.0054
 unpacked  length 4: padded to 12 100.0%   cut to 4   0.0%
 packed    length 4: padded to 12 100.0%   cut to 4 100.0%
 ```
@@ -675,9 +675,9 @@ plt.show()
 
 ```output
    T   max|loop - fft|   loop ms   fft ms   speed-up
-  256        3.58e-06        1.3      0.4      2.9x
- 1024        1.35e-05        5.0      2.1      2.4x
- 4096        1.48e-05       20.3     17.7      1.1x
+  256        3.10e-06        4.2      3.8      1.1x
+ 1024        1.29e-05       19.8     13.8      1.4x
+ 4096        1.41e-05       79.1     70.0      1.1x
 ```
 
 The two outputs agree to float32 round-off, of the order of $10^{-5}$ on outputs of order 1, a
@@ -804,7 +804,7 @@ for name, kind, fb in configs:
 
 ```output
 model                  lag 25 : acc  solved  lag 100: acc  solved  lag 200: acc  solved
-vanilla RNN                 63.3%       -       75.1%       -     skipped
+vanilla RNN                 77.2%       -      100.0%       -     skipped
 LSTM, forget bias 1         11.8%       -       11.8%       -       11.8%       -
 LSTM, forget bias 5        100.0%      74       12.6%       -       12.6%       -
 diagonal linear            100.0%     124      100.0%     238      100.0%       -
