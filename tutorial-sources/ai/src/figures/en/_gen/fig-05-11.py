@@ -6,8 +6,8 @@ lang = sys.argv[1] if len(sys.argv) > 1 else "en"
 L = {"en": dict(x="step  t", yl="ᾱₜ  (solid, linear scale)", yr="SNR in dB  (dashed)", lin="linear", cos="cosine",
                 ab="ᾱₜ", snr="SNR", thr="ᾱ = 0.01  (SNR ≈ −20 dB)", shade="linear schedule\nbelow ᾱ = 0.01:\nt > 674, 33% of steps",
                 c_lin="t = 674", c_cos="t = 936"),
-     "zh": dict(x="步  t", yl="ᾱₜ（实线，线性刻度）", yr="SNR，dB（虚线）", lin="线性", cos="余弦",
-                ab="ᾱₜ", snr="SNR", thr="ᾱ = 0.01（SNR ≈ −20 dB）", shade="线性调度\n低于 ᾱ = 0.01：\nt > 674，占 33% 的步",
+     "zh": dict(x="时间步 t", yl="ᾱₜ（实线，线性刻度）", yr="SNR（dB，虚线）", lin="线性", cos="余弦",
+                ab="ᾱₜ", snr="SNR", thr="ᾱ = 0.01（SNR ≈ −20 dB）", shade="线性调度\n低于 ᾱ = 0.01：\nt > 674，占 33% 的步数",
                 c_lin="t = 674", c_cos="t = 936")}[lang]
 T = 1000
 t = np.arange(1, T + 1)
@@ -51,4 +51,8 @@ ax.set_zorder(ax2.get_zorder() + 1); ax.patch.set_visible(False)
 # direct labels on the dashed SNR curves (right axis)
 ax2.text(560, db(lin[559]) - 4, L["lin"] + " " + L["snr"], color=figstyle.BLUE, fontsize=10.5, ha="right", va="top")
 ax2.text(830, db(cos[829]) + 4, L["cos"] + " " + L["snr"], color=figstyle.ORANGE, fontsize=10.5, ha="left", va="bottom")
-figstyle.save(fig, "fig-05-11", lang)
+out = figstyle.save(fig, "fig-05-11", lang)
+if lang == "zh":                                                  # root font stack with Chinese fonts
+    s = open(out, encoding="utf-8").read()
+    s = s.replace("<svg ", '<svg font-family="DM Sans, PingFang SC, Microsoft YaHei, Noto Sans SC, system-ui, sans-serif" ', 1)
+    open(out, "w", encoding="utf-8").write(s)

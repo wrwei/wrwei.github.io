@@ -4,7 +4,7 @@ from _common import *
 l = lang()
 T = {"en": dict(data=" from the data", unif="uniform on {1, …, " + I("T") + "}", noise="noise", noisy="noisy input, equation (5.4)",
                 net="network", loss="squared error", target="target: the same " + B("ε"), xt="input", pred="prediction"),
-     "zh": dict(data=" 取自数据", unif="在 {1, …, " + I("T") + "} 上均匀", noise="噪声", noisy="加噪输入，式 (5.4)",
+     "zh": dict(data=" 取自数据", unif="{1, …, " + I("T") + "} 上的均匀分布", noise="噪声", noisy="加噪输入，式（5.4）",
                 net="网络", loss="平方误差", target="目标：同一个 " + B("ε"), xt="输入", pred="预测")}[l]
 W, H = 760, 226
 o = open_svg(W, H, l)

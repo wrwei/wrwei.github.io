@@ -7,7 +7,7 @@ import numpy as np
 import figstyle
 lang = sys.argv[1] if len(sys.argv) > 1 else "en"
 L = {"en": dict(t="t = {}", t0="t = 0 (final sample)", d="NN distance {:.3f}", x="x₁", y="x₂", fresh="fresh data (reference)"),
-     "zh": dict(t="t = {}", t0="t = 0（最终样本）", d="最近邻距离 {:.3f}", x="x₁", y="x₂", fresh="新鲜数据（参照）")}[lang]
+     "zh": dict(t="t = {}", t0="t = 0（最终样本）", d="最近邻距离 {:.3f}", x="x₁", y="x₂", fresh="新抽取的数据（参照）")}[lang]
 STEPS = (200, 150, 100, 50, 20, 5)
 CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fig-05-13.npz")
 
@@ -141,4 +141,6 @@ def shorten(m):
     d = re.sub(r"(\d+\.\d)\d+", r"\1", m.group(0))
     return re.sub(r"M ([-\d.]+) ([-\d.]+) \nL \1 \2 \n", r"M\1 \2h0", d)
 svg = re.sub(r'd="[^"]*"', shorten, svg)
+if lang == "zh":                                                  # root font stack with Chinese fonts
+    svg = svg.replace("<svg ", '<svg font-family="DM Sans, PingFang SC, Microsoft YaHei, Noto Sans SC, system-ui, sans-serif" ', 1)
 open(path, "w", encoding="utf-8").write(svg)

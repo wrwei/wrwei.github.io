@@ -8,8 +8,8 @@ import figstyle
 lang = sys.argv[1] if len(sys.argv) > 1 else "en"
 L = {"en": dict(snap="GAN, snapshot {k}", diff="diffusion", note="Illustrative schematic, not data (after Metz et al. 2017)",
                 modes="GAN snapshots in training order, left to right  ·  grey circles: the eight data modes", cov="covers {n} of 8 modes"),
-     "zh": dict(snap="GAN，快照 {k}", diff="扩散模型", note="示意图，并非实验数据（参照 Metz 等，2017）",
-                modes="GAN 快照按训练顺序从左到右  ·  灰圈：数据的八个模式", cov="覆盖 {n}/8 个模式")}[lang]
+     "zh": dict(snap="GAN，快照 {k}", diff="扩散模型", note="示意图，并非实验数据（参照 Metz 等人，2017）",
+                modes="GAN 快照按训练顺序从左到右排列  ·  灰圈：数据的八个模式", cov="覆盖 {n}/8 个模式")}[lang]
 
 rng = np.random.default_rng(5)
 R, sd = 2.0, 0.12
@@ -42,4 +42,8 @@ for i, ax in enumerate(axes):
     ax.grid(False)
 fig.suptitle(L["note"], fontsize=11.5, color=figstyle.NAVY, fontweight="bold")
 fig.supxlabel(L["modes"], fontsize=10, color=figstyle.SLATE)
-figstyle.save(fig, "fig-05-9", lang)
+out = figstyle.save(fig, "fig-05-9", lang)
+if lang == "zh":                                                  # root font stack with Chinese fonts
+    s = open(out, encoding="utf-8").read()
+    s = s.replace("<svg ", '<svg font-family="DM Sans, PingFang SC, Microsoft YaHei, Noto Sans SC, system-ui, sans-serif" ', 1)
+    open(out, "w", encoding="utf-8").write(s)
