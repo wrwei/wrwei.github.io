@@ -206,7 +206,7 @@ In [Lab 2](#lab2), with forget bias 0 an LSTM's gradient decays with lag like a 
 with bias 3 or 5 the gradient ratio stays between about 0.14 and 0.4 out to lag 100. On
 [Lab 1](#lab1)'s maintenance log, after 2,500 updates, the closing tag (18 to 36 characters
 after its opening tag) is right 14 to 25% of the time for a plain RNN, near the 12.5% of
-guessing, and 74 to 86% for the LSTMs with forget bias 0 and 1 (Lab 2's run and a second seed).
+guessing, and 64 to 96% for the LSTMs with forget bias 0 and 1 (Lab 2's run and a second seed).
 Which of the two LSTMs is ahead changes with the seed; the gap between the gated cells and the
 plain one does not.
 

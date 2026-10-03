@@ -356,10 +356,17 @@ greedy     0/200 correct strings, token accuracy 52.3%
 beam k=4   0/200 correct strings, token accuracy 49.1%
 ```
 
-Beam search changes almost nothing: no string out of 200 is right under either method, and token
-accuracy moves from 51.8% to 52.5%. (Greedy decoding gives 51.8% here against the free-running
-51.1% of Step 4 because this is a different set of 200 strings.) The model without attention does
-not know the answer, and no search over its outputs can supply information it never received. Search helps when the model's
+Beam search does not rescue the model: no string out of 200 is right under either method, and token
+accuracy falls from 52.3% to 49.1%. (Greedy decoding gives 52.3% here against the free-running
+52.7% of Step 4 because this is a different set of 200 strings.) The search itself does its job. In a
+check made when this text was revised (the same run, scoring each output with the model's own
+log-probability), the beam's answer was at least as probable as the greedy one for all 200 strings,
+and it had slightly more of the 12 digits right, 49.9% against 48.6%. The lower token accuracy comes
+from the last position: the beam stops at its `EOS` and the code pads the rest, and it stopped one
+or two tokens early on 122 strings against greedy decoding's 114, while greedy decoding always runs
+13 steps and is credited with the `EOS` position whenever it emits `EOS` there, even after an
+earlier one. A more probable output from a wrong model is not a more accurate one. The model
+without attention does not know the answer, and no search over its outputs can supply information it never received. Search helps when the model's
 distribution is right but its greedy path is unlucky, as in the toy example of
 [Section 10](#s10); it cannot repair a distribution that is wrong.
 
@@ -490,8 +497,8 @@ you pad, test exactly the way you trained, and pack whenever a layer reads backw
   accuracy, by 0.3 points at length 4, 11 at length 8 and 21 at length 12. With attention both are
   at 100%.
 - **Search.** Beam search with $k = 4$ leaves the bottleneck model at 0 correct strings out of
-  200 at length 12, with token accuracy 51.8% against 52.5%: search cannot supply what the model
-  does not know.
+  200 at length 12, as greedy decoding does, and token accuracy falls from 52.3% to 49.1% (the beam
+  stops at `EOS` early slightly more often): search cannot supply what the model does not know.
 - **Alignment.** Row $t$ of the heat map peaks at source position $7 - t$ (and at position 0 for
   `EOS`), with peak weights of 0.63 to 0.84 on the digit rows.
 - **The bug.** The unpacked model is accurate on strings padded as in training and fails on
@@ -684,9 +691,10 @@ The two outputs agree to float32 round-off, of the order of $10^{-5}$ on outputs
 little larger at longer $T$ because the kernel $\lambda^k$ is evaluated in float32 and its phase
 error grows with $k$: this is one function computed two ways, not two approximations of each other.
 The loop costs $T$ sequential steps, so its time grows linearly with $T$. The honest finding on a
-CPU is that the FFT form is only modestly faster, and that the advantage shrinks as $T$ grows:
-over repeated runs it was 2.5 to 5 times faster at $T = 256$ and only 1.1 to 1.4 times faster at
-$T = 4{,}096$. That is
+CPU is that the FFT form is at best modestly faster, and that at the longest length the advantage
+is gone: over five runs on the machine used to prepare this lab it was 1.1 to 1.7 times faster at
+$T = 256$, 1.2 to 1.6 times at $T = 1{,}024$, and 0.7 to 1.1 times at $T = 4{,}096$, slower than the
+loop in three of the five. That is
 no contradiction. The FFT does $O(T\log T)$ work with a large constant (three transforms of length
 $2T$ for each of the 64 modes), the loop does $O(T)$ small operations, and a CPU with a few cores
 has little parallelism for the FFT form to exploit. The convolution form pays off where the
@@ -779,8 +787,8 @@ untrained LSTM output shape: (2, 8)
 ### Step 4: Train, at three lags
 
 Each model trains for 400 updates (batch 64, AdamW at $3\times10^{-3}$, gradient norm clipped at 1)
-at lags 25, 100 and 200. The vanilla RNN is run only at 25 and 100: it is slow at 200 and already
-fails at 100. The table reports the test accuracy on 1,000 fresh sequences and the first update at
+at lags 25, 100 and 200. The vanilla RNN is run only at 25 and 100: it is slow at 200, and at 100
+it succeeds on some seeds and stays at chance on others. The table reports the test accuracy on 1,000 fresh sequences and the first update at
 which the mean loss over the last 10 updates fell below 0.05 (a dash if that never happened).
 Chance accuracy is 12.5%, and the initial loss is near $\ln 8 = 2.08$.
 
@@ -811,20 +819,27 @@ diagonal linear            100.0%     124      100.0%     238      100.0%       
 ```
 
 Each entry comes from one training run, from `torch.manual_seed(0)`. A different seed can change
-which cell in the table succeeds, above all at the edge of a model's reach: an LSTM with forget
-bias 5 learned lag 100 on one of three seeds, and the vanilla RNN's partial scores move by tens of
-points. Read the table for its pattern, not for any single cell. The pattern: a memory that is
-set by a gate bias or by the eigenvalue moduli at initialisation reaches as far as that setting
-allows within the budget, and a model that starts with a short memory (the vanilla RNN, the LSTM
-with bias 1) does not find its way to a long one in 400 updates. A dash in the "solved" column
-means the mean loss never fell below 0.05, which can happen at 100% test accuracy when the
-logits are right but not yet confident.
+which cell in the table succeeds, above all at the edge of a model's reach. In runs with seeds 1
+to 4 (`run_recall(..., seed=s)`, made when this text was revised), the LSTM with forget bias 5
+learned lag 100 on two of the four, and the vanilla RNN reached 100% at lag 100 on one (seed 2)
+and stayed at chance on the other three. Read the table for its pattern, not for any single cell.
+The pattern: a memory set by the eigenvalue moduli at initialisation reaches all three lags on
+every seed; a memory set by a gate bias reaches about as far as that setting allows (bias 5
+always learns lag 25 and never lag 200), and the LSTM with bias 1 never leaves chance. The
+vanilla RNN is the odd row of this run: 100% at lag 100 but only 77% at lag 25, and at lag 100
+its loss is still about 1.1 after 400 updates, so it found the answer late and is not yet
+confident. On three seeds of five it never found it. A model that starts with a short memory
+can find a long one within the budget, but whether it does is a matter of luck. A dash in the
+"solved" column means the mean loss never fell below 0.05, which can happen at 100% test
+accuracy when the logits are right but not yet confident, as for the vanilla RNN here.
 
 ### Step 5: Look at the learning curves
 
 The accuracy table hides how training went. Plot the loss of every model at lag 100: a model that
 succeeds shows a plateau at $\ln 8 = 2.08$ followed by a drop, and a model that fails stays on the
-plateau. The length of the plateau is the time spent finding a gradient to follow.
+plateau. The length of the plateau is the time spent finding a gradient to follow. In the run shown
+the linear recurrence leaves the plateau after about 100 updates, while the vanilla RNN leaves
+it, unsteadily, only after about 200 and is still near 1.1 at update 400.
 
 ```python
 plt.figure(figsize=(7, 4.2))
@@ -847,20 +862,21 @@ plt.show()
 
 - **Equality.** The loop and the FFT convolution agree to a few parts in $10^{6}$ to $10^{5}$ in
   float32.
-- **Speed.** On a CPU the FFT form is faster than the loop at every length but only modestly, and
-  the advantage shrinks as $T$ grows (several times at $T = 256$, 1.1 to 1.4 times at $T = 4{,}096$ over repeated runs; the timings are noisy). The case for
-  convolution mode is parallelism, which a GPU supplies.
+- **Speed.** On a CPU the FFT form is at best modestly faster than the loop (1.1 to 1.7 times at
+  $T = 256$ and 1,024 over five runs) and no faster at $T = 4{,}096$ (0.7 to 1.1 times); the timings
+  are noisy. The case for convolution mode is parallelism, which a GPU supplies.
 - **Memory by initialisation.** The 64 moduli span 0.902–0.998724, with half-lives of about 6.7 to
   543 steps. That range, not anything learned, is why the linear recurrence can reach the first
   token.
-- **Recall.** After 400 updates the linear recurrence reaches 100% at all three lags (seeds 0, 1
-  and 2 all agree on the accuracy; the update at which the loss first drops below 0.05 varies, and
-  at lag 200 it is within the budget on one seed of the three). The vanilla RNN learns lag 25 only
-  partly (63–87% over three seeds) and is erratic at lag 100 (11–75%). The LSTM with forget bias 1
-  stays at chance even at lag 25. The LSTM with forget bias 5 is the fastest learner at lag 25
-  (100% after 56–75 updates on all three seeds), learns lag 100 on one seed of three, and is at
-  chance at lag 200. Seeds 1 and 2 were run once, when this lab was prepared, with
-  `run_recall(..., seed=1)` and `seed=2`; try them.
+- **Recall.** After 400 updates the linear recurrence reaches 100% at all three lags (seeds 0 to 4
+  all agree on the accuracy; the update at which the loss first drops below 0.05 varies, and at
+  lag 200 it is within the budget on three seeds of the five). The vanilla RNN learns lag 25 only
+  partly (62–87% over five seeds) and is erratic at lag 100: 100% on seeds 0 and 2, chance (11–14%)
+  on the other three. The LSTM with forget bias 1 stays at chance even at lag 25, on every seed.
+  The LSTM with forget bias 5 is the fastest learner at lag 25 (100% after 56–83 updates on all
+  five seeds), learns lag 100 on two seeds of five (73% on a third), and is at chance at lag 200.
+  Seeds 1 to 4 were run once, when this text was revised, with `run_recall(..., seed=s)`; try
+  them.
 - **What this does and does not show.** It shows trainability within a budget: a memory length set
   directly at initialisation against one that the LSTM has to find through a gate bias. It does not
   show that an LSTM cannot hold a long memory; with a longer budget, chrono initialisation

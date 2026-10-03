@@ -681,8 +681,8 @@ the forget gate's bias sets how far the LSTM reaches. You then reproduce the
 $\partial\mathbf{c}_{100}/\partial\mathbf{c}_0$ experiment, which compares the measured gradient
 with the product of forget gates that [Section 5](#s5) predicts. Finally you train a plain RNN and
 two LSTMs on the maintenance log with Lab 1's truncated-BPTT layout and watch the closing-tag
-accuracy. The lab uses PyTorch and a few seconds of CPU per model; the whole lab takes about two
-minutes on a laptop. There is no download.
+accuracy. The lab uses PyTorch and about half a minute of CPU per model; the whole lab takes about
+two minutes on a four-thread CPU. There is no download.
 
 ### Step 1: the LSTM cell from its equations
 
@@ -1143,8 +1143,8 @@ percentage has a standard error of about 3 to 4 points. Read the pattern, not si
   differs by 0.02 to 0.04 nats per character while the accuracy differs by a factor of four to
   five: the loss is dominated by the random digits, and the behavioural audit shows what it hides.
 - **Which LSTM is ahead** is not stable. Repeating the run with `torch.manual_seed(7)` in
-  `train_log_model` gave 79% for the bias-0 LSTM and 74% for the bias-1 LSTM at update 2,500, the
-  reverse of the order above, and both again far above the plain RNN at 25%. The robust finding is
+  `train_log_model` gave 73% for the bias-0 LSTM and 96% for the bias-1 LSTM at update 2,500, the
+  reverse of the order above, and both again far above the plain RNN at 24%. The robust finding is
   that the gated cell learns the tag within 2,500 updates and the plain cell does not. The
   forget bias helps in principle, as Step 3 showed, but one run of this size does not measure
   how much.
@@ -1170,9 +1170,8 @@ percentage has a standard error of about 3 to 4 points. Read the pattern, not si
   guessing level is 12.5%) while the two LSTMs reach about 64% and 78%. Each LSTM spends the first
   1,000 updates or more near the level of guessing and then rises. The validation loss shows only a small
   gap.
-- **Run time:** about 10 s per model in the run shown, and up to about 25 s per LSTM and 20 s for
-  the RNN on a busier machine (under a few minutes in total for the lab), so the whole lab fits in
-  the time stated above.
+- **Run time:** about 35 s per model on the machine used to prepare the lab (four CPU threads),
+  and about 105 s for the whole lab, which fits the time stated above.
 
 ### Try this
 
@@ -1201,7 +1200,7 @@ is explained (the signal drifts out of the range the network saw in training), a
 with per-window normalisation. Multi-step forecasts are compared, recursive against direct. The
 forecaster's residuals then feed three detectors, and four injected faults show that each kind of
 fault needs its own detector ([Section 9](#s9)). The data is synthetic, with no download. This is
-the module's one larger training lab: with `QUICK = False` it takes about two minutes on a laptop
+the module's one larger training lab: with `QUICK = False` it takes about two minutes on a four-thread
 CPU, and `QUICK = True` finishes in about a third of that time.
 
 ### Step 1: simulate the machine
@@ -1391,7 +1390,7 @@ RMSE, about 0.43, is *worse* than the naive forecast's 0.36, and its mean error 
 systematically predicts too low, as a network does when its saturating units cannot represent a
 level beyond the training range. The model has learned a map on the range it saw, and does not
 extrapolate it as a linear model would. A second seed (`torch.manual_seed(1)` at the top, and
-`seed=1` in `fit`) gave 0.63 against the same naive 0.37 and a mean error of $-0.57$ when this lab
+`seed=1` in `fit`) gave 0.66 against the same naive 0.36 and a mean error of $-0.59$ when this lab
 was prepared, so the size of the failure varies with the seed and its sign does not.
 
 This is the failure of [Section 8](#s8), reproduced on a nonlinear signal. Nothing in the code is
@@ -1541,7 +1540,7 @@ forcing and the stiffened oscillation, and the value one period ago is almost un
 value now. A baseline has to be computed, not assumed; here the textbook choice for a periodic
 signal is the wrong one. The linear autoregression, at about 0.155, is a strong baseline
 that nobody should skip. The LSTM, at about 0.135 with a standard deviation over folds of about
-0.006, is the best in every fold, by 12 to 16% over the linear model in this run (9 to 17% in
+0.006, is the best in every fold, by 12 to 16% over the linear model in this run (8 to 18% with
 the second seed). That margin is real but modest, and it is the honest size of the benefit of a
 neural forecaster here.
 
@@ -1797,7 +1796,8 @@ normal operation. The faulted residual plot above shows why each fault needs its
   does not move with the sensor.
 - **The doubled excitation** produces few extreme residuals (five point alarms in this run, the first
   151 samples into the fault), but the residual RMS rises from 0.134 on the hold-out to about 0.21
-  during the fault. The rolling RMS crosses its limit 99 samples after the fault starts (30 to 100 samples in the runs prepared with this lab). The margin is small, which is why the
+  during the fault. The rolling RMS crosses its limit 99 samples after the fault starts (85 with the second seed,
+  125 with `QUICK = True`). The margin is small, which is why the
   delay is long: a smaller change would take longer to detect or be missed.
 - **The stuck sensor** raises no residual alarm while it is stuck: a frozen reading is predicted with
   an error that is small and nearly constant. The one point alarm in its row, at +100, is the sample
@@ -1816,7 +1816,7 @@ normal operation. The faulted residual plot above shows why each fault needs its
   about 11 samples riding on it.
 - **Step 2: Section 8's code loses to the naive forecast.** The normalised test inputs lie almost
   wholly above the range of the training inputs (about 1.0 to 3.6 against $-2.2$ to 2.3), and the
-  LSTM's RMSE (about 0.43, naive 0.36) is worse than naive with a negative bias of about 0.3 (0.63
+  LSTM's RMSE (about 0.43, naive 0.36) is worse than naive with a negative bias of about 0.3 (0.66
   with the second seed). The model is not mis-trained; it was asked to extrapolate.
 - **Step 3: per-window normalisation fixes it.** The RMSE falls to about 0.13 and the bias to about
   zero.
@@ -1829,10 +1829,10 @@ normal operation. The faulted residual plot above shows why each fault needs its
 - **Step 6: the monitor.** The point test catches the spike and the two edges of the offset; the rolling
   RMS catches the excitation fault after 99 samples; the variance floor alone catches the stuck
   sensor while it is stuck; no false alarms in 239 normal samples. Each fault type needs its own detector.
-- **Run time.** Between half a minute and a minute on the machine used to prepare the lab, depending
-  on what else was running, with `QUICK = False` (the simulation takes well under a second), and about
-  20 seconds with `QUICK = True`, which trains 4 epochs and only the last two folds; with fewer epochs the Step 2 failure is larger (0.61 against 0.37). Expect two to three times
-  longer on a laptop.
+- **Run time.** About 100 seconds on the machine used to prepare the lab (four CPU threads) with
+  `QUICK = False` (the simulation takes well under a second), and about 35 seconds with
+  `QUICK = True`, which trains 4 epochs and only the last two folds; with fewer epochs the Step 2
+  failure is larger (0.65 against 0.36). A slower laptop takes longer.
 
 ### Try this
 

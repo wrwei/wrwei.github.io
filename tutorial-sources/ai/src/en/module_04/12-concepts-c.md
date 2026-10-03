@@ -83,8 +83,8 @@ rolling standard deviation alarms below half its hold-out minimum. The lab's run
 - **Offset**: the point test fires around its onset and at its end only (3 alarm samples in all:
   the onset, 4 samples later, and the end).
 - **Doubled excitation**: few residuals are extreme (five point alarms, the first 151 samples in), but
-  the residual RMS rises from 0.134 to about 0.21; the rolling RMS alarms 99 samples after the change (30 to 100 samples over the runs made
-  when the lab was prepared).
+  the residual RMS rises from 0.134 to about 0.21; the rolling RMS alarms 99 samples after the change (85 with a
+  second training seed).
 - **Stuck sensor**: no residual alarm while it is stuck (one point alarm on the sample where it
   recovers); the variance floor fires 21 samples after it sticks, once its window has filled with
   near-constant residuals.
@@ -253,8 +253,9 @@ $0 < \alpha \le 1$; Wu et al. (2016) use the smoothed divisor $\big((5+|y|)/6\bi
 minimum length is a cruder guard. Beam search serves tasks that want the single best output; when
 diverse outputs are wanted, sampling serves better ([Module 07](module_07_EN.html)). Nor can search
 repair a model that does not know the answer: in Lab 4, beam search with $k = 4$ leaves the
-bottleneck model at 0 correct strings out of 200 at length 12, as greedy decoding does, and moves
-its token accuracy only from 51.8% to 52.5%.
+bottleneck model at 0 correct strings out of 200 at length 12, as greedy decoding does, and its
+token accuracy falls from 52.3% to 49.1%: the beam finds outputs the model rates as more probable,
+and they are no more correct.
 
 ### The bottleneck
 
@@ -619,9 +620,11 @@ operator: two steps, $\tanh(w\tanh(wh + b_1) + b_2)$, are not one step of the sa
 A direct causal convolution of length $T = 4{,}096$ needs about $T^2/2 = 8.4$ million multiply-adds
 per channel. An FFT-based one, padded to $2T$, needs about $3\times 2T\log_2(2T) = 3\times8{,}192 \times13 \approx 0.32$ million (an order-of-magnitude count). The recurrent loop needs only $T$
 multiply-adds per channel, but they are sequential. On a CPU the counts do not decide the race.
-[Lab 5](#lab5)'s timings (batch 8, $N = 64$, best of three, one run) are 1.4 ms for the loop
-against 0.5 ms for the FFT form at $T = 256$, 5.4 against 2.5 ms at 1,024, and 25.7 against
-18.9 ms at 4,096: the FFT form is faster, but only modestly, and its lead shrinks as $T$ grows.
+[Lab 5](#lab5)'s timings (batch 8, $N = 64$, best of three, the run shown) are 4.2 ms for the loop
+against 3.8 ms for the FFT form at $T = 256$, 19.8 against 13.8 ms at 1,024, and 79.1 against
+70.0 ms at 4,096. Over five runs the FFT form was 1.1 to 1.7 times faster at the two shorter
+lengths and 0.7 to 1.1 times at 4,096: at best modestly faster, and at the longest length no
+faster at all.
 Convolution mode pays off where parallel hardware can absorb its larger, parallel work, on a GPU
 and in training.
 :::
@@ -741,10 +744,11 @@ returns.
 
 [Lab 5](#lab5) builds an LRU-style diagonal recurrence. Its loop and FFT forms agree to float32
 round-off, a few parts in $10^6$ to $10^5$. On delayed recall (remember the first of $L+1$
-tokens), after 400 updates it reaches 100% at lags 25, 100 and 200 on all three seeds tried. The
-vanilla RNN learns lag 25 only partly (63 to 87% over three seeds) and is erratic at lag 100. An
-LSTM depends on its forget bias: with bias 1 it stays at chance even at lag 25; with bias 5 it is
-the fastest learner at lag 25, learns lag 100 on one seed of three, and fails at lag 200. The
+tokens), after 400 updates it reaches 100% at lags 25, 100 and 200 on all five seeds tried. The
+vanilla RNN learns lag 25 only partly (62 to 87% over five seeds) and is erratic at lag 100 (100%
+on two seeds, chance on three). An LSTM depends on its forget bias: with bias 1 it stays at chance
+even at lag 25; with bias 5 it is the fastest learner at lag 25, learns lag 100 on two seeds of
+five, and fails at lag 200. The
 recurrence's memory was set at initialisation by its eigenvalue moduli. This is a statement about
 trainability within a budget, not a proof that LSTMs cannot remember.
 
