@@ -119,10 +119,11 @@ For each module, in this order. Each step names the guide that governs it.
 ## 6. Publishing
 
 1. Translate `src/en/index.md` into `src/zh/index.md`.
-2. Build into the site: `node tools/build.mjs --out ../../docs/tutorials/ai`. This builds every
-   module that has parts, both index pages and the assets. The index lists all ten modules, so
-   publish when all ten are built, or build only finished modules with `--module N` and remove the
-   unfinished cards from the index first.
+2. Build into the site: `node tools/build.mjs --out ../../docs/tutorials/ai --modules 1,2,3,4` with
+   the finished modules. `--modules` builds those modules in both languages, lists only them on the
+   index pages, links each page's previous/next to the nearest published module, and turns links
+   into unpublished modules into plain text, so no page links to a missing file. Without
+   `--modules` it builds every module that has parts.
 3. Add the card to `docs/tutorials/index.md`, next to the AI Agents series:
 
    ```markdown
