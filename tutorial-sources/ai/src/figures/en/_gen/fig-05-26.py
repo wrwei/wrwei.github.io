@@ -9,7 +9,7 @@ T = {"en": dict(win="one vibration", win2="window", aug1="random augmentations:"
                 v1="view 1", v2="view 2", f="encoder", fs="shared", g="head", probe="linear probe",
                 probe2="a few labels", circ="unit circle", pull="positive pair: pulled together",
                 push="other batch members: pushed apart"),
-     "zh": dict(win="一个振动", win2="信号窗口", aug1="随机增强：", aug2="时移、增益、噪声",
+     "zh": dict(win="振动信号的", win2="一个窗口", aug1="随机增强：", aug2="时移、增益、噪声",
                 v1="视图 1", v2="视图 2", f="编码器", fs="共享", g="投影头", probe="线性探测",
                 probe2="少量标签", circ="单位圆", pull="正样本对：拉近",
                 push="batch 中的其他样本：推远")}[l]
