@@ -295,7 +295,7 @@ export function copyAssets() {
     parts.push(`;\n/* ---- ${f} ---- */\n` + fs.readFileSync(path.join(wd, f), 'utf8'))
   fs.writeFileSync(path.join(ad, 'widgets.js'), parts.join('\n'))
   const pd = path.join(ROOT, 'labs', 'plots')
-  if (fs.existsSync(pd)) for (const f of fs.readdirSync(pd).filter(f => f.endsWith('.png'))) fs.copyFileSync(path.join(pd, f), path.join(ad, 'plots', f))
+  if (fs.existsSync(pd)) for (const f of fs.readdirSync(pd).filter(f => f.endsWith('.png') && isPublished(Number((f.match(/^m(\d\d)-/) || [])[1]) || 0))) fs.copyFileSync(path.join(pd, f), path.join(ad, 'plots', f))
 }
 
 // ---------- index pages ----------
@@ -323,6 +323,12 @@ export function renderIndex(lang) {
     cards += `<a class="module-card" href="${fileFor(n, lang)}"><div class="card-num">${ui.module} ${pad(n)}</div><div class="card-title">${escapeHtml(meta.title)}</div><div class="card-desc">${md.renderInline(meta.lead || '', newEnv())}</div><div class="card-meta">${lang === 'zh' ? `约 10 小时 · ${labs} 个实验 · ${ex} 道练习` : `≈ 10 h · ${labs} labs · ${ex} exercises`}</div><div class="card-footer"><span class="card-theme theme-${THEMES[n]}">${THEME_NAMES[lang][THEMES[n]]}</span><span class="card-lang">EN &middot; 中文</span></div></a>`
   }
   cards += '</div>'
+  // a partial publication says which modules are still to come
+  const missing = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(k => !isPublished(k))
+  if (missing.length) {
+    const range = missing.length > 1 ? `${pad(missing[0])}–${pad(missing[missing.length - 1])}` : pad(missing[0])
+    cards += `<p class="index-note">${lang === 'zh' ? `第 ${range} 模块正在编写中，完成后将陆续发布。` : `Modules ${range} are in preparation and will be published as they are finished.`}</p>`
+  }
   const fm = raw.match(/^---\n([\s\S]*?)\n---\n/)
   const head = {}
   if (fm) for (const line of fm[1].split('\n')) { const m = line.match(/^(\w+):\s*(.*)$/); if (m) head[m[1]] = m[2] }

@@ -38,21 +38,30 @@ does not publish it.
 | `labs/plots/`, `labs/module_NN/*.plots.json` | Plots captured from lab runs and where they go on the page |
 | `tools/` | Build, validation, lab runner, rendering and testing tools (section 4) |
 
-## 3. Status (3 October 2026)
+## 3. Status (3 October 2026; Modules 01–04 published)
 
 | Module | English | Chinese |
 |---|---|---|
 | 01 Machine learning foundations | Done: written, edited, figures, widgets, labs verified, technical review, QA | Done |
 | 02 Neural networks and backpropagation | Done | Done |
-| 03 Convolutional networks | Done | Parts 10 and 11 translated; parts 12, 20, 21, 30, 40 and the metadata to do; then Chinese QA |
-| 04 Recurrent networks and sequences | Written, edited, figures and widgets done. To do: verify labs, technical review, QA | To do |
+| 03 Convolutional networks | Done | Done |
+| 04 Recurrent networks and sequences | Done (labs re-run and verified in the current environment, technical review, QA) | Done |
 | 05 Other networks worth knowing | All seven parts written; `20-labs-a.md` (Labs 1–3) is unverified. Figures already cut to 18 (fig-05-1, 2, 4, 5, 7, 9, 11, 12, 13, 15, 16, 17, 20, 21, 25, 26, 28, 29), each cited in the text. To do: verify Labs 1–3, edit, figures, widgets (drafts of both exist), verify labs, technical review, QA | To do |
 | 06 The transformer | Parts 10 and 11 written. `20-labs-a.md` has only Lab 1 (Labs 2, 3 missing) and `21-labs-b.md` only Lab 4 (Labs 5, 6 missing). To do: parts 12, 30, 40, the missing labs, then every later step (drafts of both widgets exist) | To do |
 | 07 Large language models | Parts 10 and 12 written. To do: parts 11, 20, 21, 30, 40, then every later step (one widget draft exists) | To do |
 | 08 LLM pretraining | Parts 10 and 11 written. To do: parts 12, 20, 21, 30, 40, then every later step | To do |
 | 09 LLM post-training | To do: everything | To do |
 | 10 Inference and serving | To do: everything | To do |
-| Index page | `src/en/index.md` written | To do: `src/zh/index.md` |
+| Index page | `src/en/index.md` written | `src/zh/index.md` written |
+
+Modules 01–04 are published at `docs/tutorials/ai/` (built with `--modules 1,2,3,4`), with the
+series card on `docs/tutorials/index.md`. When another module is finished, rebuild with its number
+added to `--modules`.
+
+Lab environment note: the Module 04 labs were re-run with PyTorch 2.14.1, NumPy 2.4.6 and
+scikit-learn 1.9.1 (CPU, 4 threads), and their outputs and prose now match that environment.
+Modules 01–03 still show the outputs of the environment they were verified in; a re-run with
+current packages may print different digits.
 
 ## 4. Setting up
 
