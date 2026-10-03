@@ -293,14 +293,6 @@ Both numbers matter. The network clearly beats the baseline, which justifies it;
 digits the model reconstructs well.
 :::
 
-::: figure id=fig-05-3
-Two panels. Left: the four-point linear-autoencoder example in the plane, with the principal axis
-$(1, 1)/\sqrt2$ drawn through the origin, dashed projection lines from each point to the axis and
-hollow circles marking the reconstructions. Right: [Lab 1](#lab1) histograms of per-pixel
-reconstruction error for normal test digits (0–8) and for 9s, the threshold 0.0261 as a vertical
-line, and the false-alarm (4.0%) and detection (58.3%) fractions annotated.
-:::
-
 The same recipe works with forecasting residuals instead of reconstructions
 ([Module 04](module_04_EN.html)). It fails in three ways. Anomalies that resemble normal data
 reconstruct well and pass, as many of the 9s do. A change of operating
@@ -414,7 +406,7 @@ ELBO $= -1.6689 - 0.5966 = -2.2655 = \log p(x)$. The bound is tight.
 With $q = \mathcal{N}(0, 1)$, a collapsed posterior equal to the prior: reconstruction
 $-0.9189 - \tfrac12(4 + 1) = -3.4189$; KL 0; ELBO $= -3.4189$. The gap is
 $-2.2655 - (-3.4189) = 1.1534 = D_{\KL}\big(\mathcal{N}(0, 1) \,\|\, \mathcal{N}(1, 0.5)\big)$,
-the number computed in [Section 1](#s1), as (5.3) says it must be.
+the number computed in [Section 1](#s1), as (5.3) says it must be. Figure 5.5 draws both cases.
 :::
 
 ::: figure id=fig-05-5
@@ -500,7 +492,8 @@ $$
 The local derivatives are $\partial\mathbf{z}/\partial\boldsymbol{\mu} = (1, 1)$ and
 $\partial\mathbf{z}/\partial\boldsymbol{\sigma} = \boldsymbol{\epsilon} = (0.3, -1.2)$. A gradient
 arriving at $\mathbf{z}$ from the decoder reaches $\boldsymbol{\mu}$ and $\boldsymbol{\sigma}$
-through an ordinary multiply and add; $\boldsymbol{\epsilon}$ is an input, like a data value.
+through an ordinary multiply and add; $\boldsymbol{\epsilon}$ is an input, like a data
+value (Figure 5.4).
 :::
 
 ::: figure id=fig-05-4
@@ -595,13 +588,6 @@ still collapses. Warm-up fixes collapse caused by the path of optimisation, not 
 into the objective. The summed-squared-error row is the $\sigma_x^2 = 1/2$ effect: reconstruction
 is cheap to give up, and only three dimensions stay in use.
 
-::: figure id=fig-05-6
-[Lab 1](#lab1) results in three panels. (a) Test-set latent means of the $d_z = 2$ VAE, coloured
-by digit. (b) A 10 × 10 grid of digits decoded from $\mathbf{z}$ on $[-2.5, 2.5]^2$. (c) Bars of
-KL per latent dimension for the $d_z = 8$ VAE at $\beta = 0.5$, 1 and 4, showing 8, 6 and 0
-active units.
-:::
-
 ### Blurry samples, and what VAEs are for
 
 VAE samples are blurred. A code is consistent with many slightly different images, and a decoder
@@ -661,7 +647,7 @@ $$
 
 $D$ is a binary classifier with cross-entropy loss ([Module 01](module_01_EN.html)), labels 1 for
 data and 0 for samples. $G$ is trained to make that classifier fail. Training alternates a step
-on $D$ with a step on $G$.
+on $D$ with a step on $G$ (Figure 5.7).
 
 ::: figure id=fig-05-7
 GAN training loop: noise $\mathbf{z}$ → $G$ → fake samples; real samples from the data; both into
@@ -720,12 +706,6 @@ disjoint $p_{\text{data}} = (1, 0)$ and $p_g = (0, 1)$, $D^* = (1, 0)$, $V = 0$ 
 $\mathrm{JSD} = \log 2 = 0.6931$, its maximum.
 :::
 
-::: figure id=fig-05-8
-One-dimensional picture: $p_{\text{data}}$ with two bumps, $p_g$ with one bump between them, and
-$D^*(x) = p_{\text{data}}/(p_{\text{data}} + p_g)$ as a dashed curve on a secondary axis from 0 to
-1, near 1 over the data bumps and dipping toward 0 where only $p_g$ has mass.
-:::
-
 ### Saturation and the non-saturating loss
 
 The analysis assumes $D$ is optimal, but training is a sequence of gradient steps, and the
@@ -755,7 +735,8 @@ Nothing in the loss rewards covering all of $p_{\text{data}}$. A generator that 
 $\mathbf{z}$ to the few outputs the current $D$ accepts is doing well by the loss. Then $D$
 adapts, learns to reject those outputs, and $G$ hops to other modes: the two chase each other
 instead of converging. Metz et al. (2017) show this on a ring of eight Gaussians, where a
-standard GAN visits one mode after another. This is **mode collapse**. The loss cannot reveal
+standard GAN visits one mode after another. This is **mode
+collapse** (Figure 5.9). The loss cannot reveal
 it, and neither can looking at single samples, which are individually convincing. Diagnose it
 with diversity measures: the number of known modes covered, distances from held-out data points
 to their nearest sample, and precision and recall of the samples against the data.
