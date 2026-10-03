@@ -411,9 +411,10 @@ the number computed in [Section 1](#s1), as (5.3) says it must be. Figure 5.5 dr
 
 ::: figure id=fig-05-5
 The exact example. Left: on a $z$ axis from −3 to 4, the prior $\mathcal{N}(0, 1)$ and the true
-posterior $\mathcal{N}(1, 0.5)$ for $x = 2$. Right: two stacked bars, each of total height
-$\log p(x) = -2.27$, split into ELBO plus gap: for $q$ equal to the posterior, ELBO −2.27 and gap
-0; for $q$ equal to the prior, ELBO −3.42 and gap 1.15.
+posterior $\mathcal{N}(1, 0.5)$ for $x = 2$. Right: $\log p(x) = \text{ELBO} + \text{gap}$, drawn for
+two choices of $q$ against a dashed line at $\log p(x) = -2.27$: for $q$ equal to the posterior,
+ELBO −2.27 and gap 0; for $q$ equal to the prior, ELBO −3.42 and a gap of 1.15 that brings it
+back up to −2.27.
 :::
 
 ### Amortised inference and the Gaussian encoder
