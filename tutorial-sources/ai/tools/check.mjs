@@ -126,6 +126,10 @@ for (const n of mods) {
     let meta
     try { meta = loadMeta(n, lang) } catch (e) { err(L, '', `cannot read plan/meta: ${e.message}`); continue }
     if (!meta) { if (lang === 'zh') continue; err(L, '', 'no plan'); continue }
+    // a LaTeX command such as \theta or \tau written with one backslash in JSON becomes a control character
+    const ctrl = (x, at) => typeof x === 'string' ? (/[\x00-\x08\x09\x0b\x0c\x0e-\x1f]/.test(x) && err(L, at, `control character in plan/meta text (a LaTeX command with one backslash in JSON?): "${x.slice(0, 80)}"`))
+      : Array.isArray(x) ? x.forEach((y, i) => ctrl(y, `${at}[${i}]`)) : x && typeof x === 'object' ? Object.entries(x).forEach(([k, v]) => ctrl(v, at ? `${at}.${k}` : k)) : null
+    ctrl(meta, '')
     const files = partFiles(n, lang)
     if (!files.length) continue
     // containers balanced per part file; forbidden references
