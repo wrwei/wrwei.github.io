@@ -41,3 +41,11 @@ A 12-module tutorial series on MBSE methodology, the three pillars (language, me
 A 10-module tutorial series on AI agents — what they are, how they work, and how to build them using large language models, tool use, memory, and multi-agent architectures.
 
 [:octicons-arrow-right-24: Go to AI Agent Tutorials](agent/index.html)
+
+---
+
+## AI: From Machine Learning to Large Language Models
+
+A 10-module tutorial series, about ten hours per module, from machine learning foundations through neural networks, CNNs, RNNs and the transformer to large language models: pretraining, post-training and serving. Derivations, runnable labs, graded exercises with solutions and a quiz in every module. English and Chinese. Modules 01–04 (foundations, neural networks, convolutional and recurrent networks) are available now; the rest follow as they are finished.
+
+[:octicons-arrow-right-24: Go to AI Tutorials](ai/index.html)

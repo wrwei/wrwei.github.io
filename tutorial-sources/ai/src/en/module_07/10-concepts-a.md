@@ -719,9 +719,10 @@ Chinchilla's budget is about 32B parameters on 3.0T tokens, 93 tokens per parame
 parameters and 20 tokens per parameter of the Chinchilla model. The familiar 20 comes from
 Approaches 1 and 2, which give $a \approx 0.50$: the paper's Table 3, from Approach 1, pairs 1B
 parameters with 20.2B tokens, 10B with 205.1B and 67B with 1.5T. The parametric exponents are poorly
-determined. Unrounded, they are $\alpha = 0.3392$ and $\beta = 0.2849$, which give
+determined. Unrounded, they are $\alpha = 0.3392$ and $\beta = 0.2849$ (the paper prints 0.34 and
+0.28; Besiroglu et al. (2024) recovered the full values from its source files), which give
 $4.0 \times 10^{10}$ parameters and 59 tokens per parameter at the same budget. Besiroglu et al.
-(2024) reconstructed the paper's data, found the published Approach-3 estimates inconsistent with
+also reconstructed the paper's data, found the published Approach-3 estimates inconsistent with
 it, and judged the paper's interval for $a$ (0.454 to 0.455, in its Table 2) implausibly narrow for
 about 400 runs. Their refit, $E = 1.8172$, $A = 482.01$, $B = 2085.43$, $\alpha = 0.3478$ and
 $\beta = 0.3658$, gives $7.2 \times 10^{10}$ parameters and about 18 tokens per parameter, in line

@@ -117,7 +117,7 @@ Glorot, X., Bengio, Y. "Understanding the difficulty of training deep feedforwar
 
 **Why read it.** It is the experimental paper behind Xavier initialisation. It shows, layer by layer, how activations saturate and gradients shrink in deep sigmoid and tanh networks, and it derives the $2/(n_{\text{in}} + n_{\text{out}})$ variance used in [Section 6](#s6). Read after [Section 10](#s10), it also shows the problem that normalisation layers later solved during training as well as at initialisation.
 
-**What to read.** Read Section 1, the experiments with sigmoid and tanh units in Section 3, and Section 4 on gradients at initialisation, including the theoretical derivation of the normalised initialisation and the histograms of activations and back-propagated gradients. Skim Section 2 (data sets and set-up) and the softsign experiments. Read the conclusions in Section 5.
+**What to read.** Read Section 1, the experiments with sigmoid and tanh units in Section 3, and Section 4 on gradients: the effect of the cost function (4.1), the theoretical derivation of the normalised initialisation (4.2.1), and the histograms of activations and back-propagated gradients at initialisation (4.2.2). Skim Section 2 (data sets and set-up) and the softsign experiments. Read the conclusions in Section 5.
 
 **Questions to answer while reading.**
 

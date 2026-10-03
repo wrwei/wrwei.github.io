@@ -126,6 +126,10 @@ for (const n of mods) {
     let meta
     try { meta = loadMeta(n, lang) } catch (e) { err(L, '', `cannot read plan/meta: ${e.message}`); continue }
     if (!meta) { if (lang === 'zh') continue; err(L, '', 'no plan'); continue }
+    // a LaTeX command such as \theta or \tau written with one backslash in JSON becomes a control character
+    const ctrl = (x, at) => typeof x === 'string' ? (/[\x00-\x08\x09\x0b\x0c\x0e-\x1f]/.test(x) && err(L, at, `control character in plan/meta text (a LaTeX command with one backslash in JSON?): "${x.slice(0, 80)}"`))
+      : Array.isArray(x) ? x.forEach((y, i) => ctrl(y, `${at}[${i}]`)) : x && typeof x === 'object' ? Object.entries(x).forEach(([k, v]) => ctrl(v, at ? `${at}.${k}` : k)) : null
+    ctrl(meta, '')
     const files = partFiles(n, lang)
     if (!files.length) continue
     // containers balanced per part file; forbidden references
@@ -175,6 +179,7 @@ for (const n of mods) {
     if (env.counts.paper < 2) warn(L, '', `${env.counts.paper} guided papers (want 2–3)`)
     if (labIds.length < 4) warn(L, '', `${labIds.length} labs (want 4–6)`)
     if (env.missingFigures.length) warn(L, '', `figures not drawn yet: ${env.missingFigures.join(', ')}`)
+    if (env.figRefsMissing && env.figRefsMissing.length) warn(L, '', `text cites figures with no ::: figure on the page (the number is a figure id): ${[...new Set(env.figRefsMissing)].join(', ')}`)
     for (const w of env.widgets) if (!fs.existsSync(path.join(ROOT, 'src', 'widgets', `${w}.js`))) warn(L, '', `widget "${w}" has no src/widgets/${w}.js yet`)
     // links
     for (const m of src.matchAll(/\]\(([^)\s]+)\)/g)) {

@@ -651,8 +651,10 @@ $$
 and the constraint $\alpha\beta^2\gamma^2 \approx 2$ makes each unit of $\phi$ double the FLOPs. A
 grid search on the small baseline B0 at $\phi = 1$ chose $\alpha = 1.2$, $\beta = 1.1$,
 $\gamma = 1.15$; B1 to B7 scale B0 with larger $\phi$. EfficientNet-B0 has 5.3 million parameters
-and costs 0.39 billion FLOPs, which in this paper are multiply-adds; it reaches 76.3% top-1 in
-Table 2 of the ICML paper. A later arXiv revision reports 77.1%, so quote the version you cite.
+and costs 0.39 billion FLOPs. The paper does not define the term, but the same table lists
+ResNet-152 at 11 billion, the ResNet paper's multiply-add count, so these FLOPs are multiply-adds.
+B0 reaches 76.3% top-1 in Table 2 of the ICML paper. A later arXiv revision reports 77.1%, so
+quote the version you cite.
 
 ::: worked title="EfficientNet's constraint"
 $\alpha\beta^2\gamma^2 = 1.2 \times 1.1^2 \times 1.15^2 = 1.2 \times 1.21 \times 1.3225 = 1.92$,
@@ -667,7 +669,7 @@ ConvNeXt (Liu et al. 2022) set out to measure how much of the vision transformer
 in its training recipe rather than its architecture. The authors took ResNet-50 and first trained
 it with the transformer era's recipe: AdamW, 300 epochs, mixup, CutMix, RandAugment, random
 erasing, stochastic depth and label smoothing. Then they changed the architecture one step at a
-time, measuring ImageNet-1k top-1 after each step. Appendix C, Table 10 of the paper lists every
+time, measuring ImageNet-1k top-1 after each step. Table 10, in Appendix C of the arXiv version, lists every
 step (Figure 2 plots the same values); rounded to 0.1:
 
 | Step | Top-1 (%) |
@@ -690,7 +692,7 @@ step (Figure 2 plots the same values); rounded to 0.1:
 The last value is $81.97 \pm 0.06$. Two steps lose accuracy, and the step after each pays it back:
 the depthwise convolution cuts compute, which the widening then spends; moving the depthwise layer
 up makes room for its larger kernel. The finished ConvNeXt-T (Table 1) reaches 82.1% with 28.6
-million parameters (printed as 29M) and 4.5 G multiply-adds, against 81.3% for the Swin-T
+million parameters (Table 9; Table 1 prints 29M) and 4.5 G multiply-adds, against 81.3% for the Swin-T
 transformer at 28 million and 4.5 G.
 
 ::: worked title="Recipe against architecture"

@@ -131,8 +131,8 @@ p_n(c \mid \text{ctx}) = \frac{\operatorname{count}(\text{ctx}, c) + \alpha\, p_
 $$
 
 where $\text{ctx}'$ is the context with its oldest character dropped and $p_1$ is the unigram
-distribution with add-$\alpha$ smoothing. This is the additive smoothing of
-[Module 01](module_01_EN.html) applied recursively; $\alpha = 0.1$ keeps the counts in charge
+distribution with add-$\alpha$ smoothing. This is additive smoothing applied recursively;
+$\alpha = 0.1$ keeps the counts in charge
 wherever there are enough of them. The cross-entropy on the validation text, in nats per
 character, is the number the network must beat. A 5-gram sees four characters of context.
 
@@ -463,18 +463,18 @@ print(f"largest gradient norm before clipping: {max(grad_norm_log):.2f}; "
 update  250  train 1.154  val 0.416  grad norm 0.22
 update  500  train 0.408  val 0.391  grad norm 0.20
 update  750  train 0.395  val 0.391  grad norm 0.16
-update 1000  train 0.388  val 0.394  grad norm 0.29
-update 1250  train 0.386  val 0.389  grad norm 0.21
-update 1500  train 0.387  val 0.387  grad norm 0.18
-update 1750  train 0.381  val 0.394  grad norm 0.15
-update 2000  train 0.379  val 0.397  grad norm 0.27
-best validation loss 0.387 at update 1500; 5-gram 0.476
+update 1000  train 0.388  val 0.405  grad norm 0.27
+update 1250  train 0.390  val 0.393  grad norm 0.24
+update 1500  train 0.383  val 0.388  grad norm 0.21
+update 1750  train 0.382  val 0.390  grad norm 0.16
+update 2000  train 0.378  val 0.399  grad norm 0.27
+best validation loss 0.388 at update 1500; 5-gram 0.476
 largest gradient norm before clipping: 1.43; updates clipped: 0
 ```
 
 The first window's mean training loss, about 1.15, is dominated by the first few dozen updates,
 when the loss falls from 3.61; by update 500 the network is at about 0.4 on both texts. From
-there the validation loss wanders between about 0.39 and 0.40 while the training loss creeps down
+there the validation loss wanders between about 0.39 and 0.41 while the training loss creeps down
 to about 0.38, so the best checkpoint is simply the lowest of a flat region (the exact update
 may differ from run to run). That best validation loss, about 0.39 nats per character, is clearly
 below the 5-gram's 0.48, so the network uses context beyond four characters. The largest
@@ -541,24 +541,25 @@ for tau, generated in samples.items():
 
 ```output
 --- temperature 0.5 ---
-P4 temp 55.6 C ok /P1
-P2 pres 4.0 bar after restart ok /P2
-P1 pres 4.4 bar ok /P2
-P2 vib 2.6 mm/s ok /P1
+P4 temp 55.5 C ok /P1
+P2 pres 4.0 bar after restart ok /P3
+P1 pres 3.3 bar ok /P2
+P2 vib 2.7 mm/s ok /P1
 P1 temp 68.5 C ok /P2
-P2 vib 3.7 mm/s ok /P1
+P2 temp 58.9 C ok /P3
 --- temperature 1.0 ---
 P1 temp 58.5 C ok /C1
-P4 temp 52.8 C ok /P4
-P3 vib 7.4 mm/s night shift high /P3
-F2 temp 64.1 C operator check ok /P2
-P1 pres 5.6 bar operator check high /P3
-P1 temp 57.8 C ok /P3
+P4 temp 52.7 C ok /P4
+P3 vib 8.4 mm/s high /F2
+P2 pres 1.7 bar operator check ok /P1
+C1 temp 84.8 C night shift ok /F1
+C2 pres 1.9 bar night shift ok /P1
 ```
 
 The samples read like the log. Units follow quantities, values are plausible numbers, and statuses
-agree with values. Look at the closing tags, though: in the six lines at $\tau = 0.5$ above,
-several close with a tag that is not the one that opened the line. The network has learned what a
+mostly agree with values (one line at $\tau = 1$, `C1 temp 84.8 C night shift ok`, should say
+`high`). Look at the closing tags, though: every one of the six lines at $\tau = 0.5$ above closes
+with a tag that is not the one that opened the line. The network has learned what a
 closing tag looks like (a slash, one of the eight tags) but not which one. Counting settles it.
 
 ### Step 8: audit the samples against the rules
@@ -609,16 +610,16 @@ print("always-ok baseline for the status: about 73%;  guessing the tag: 12.5%")
 
 ```output
                        tau = 0.5 tau = 1.0
-lines                        225       194
-well-formed               100.0%     93.8%
+lines                        225       193
+well-formed               100.0%     95.3%
 unit agrees               100.0%    100.0%
-status agrees              99.1%     98.9%
-closing tag matches        20.9%     12.6%
+status agrees              99.1%     95.7%
+closing tag matches        20.9%     12.0%
 always-ok baseline for the status: about 73%;  guessing the tag: 12.5%
 ```
 
 One more thing about the table: the closing-tag figure is computed from about 225 lines at
-$\tau = 0.5$ and 194 at $\tau = 1$, so it carries a sampling error of about 3 percentage
+$\tau = 0.5$ and 193 at $\tau = 1$, so it carries a sampling error of about 3 percentage
 points. Re-run `sample` with another seed to see it move.
 
 ### What you should see
@@ -643,8 +644,8 @@ points. Re-run `sample` with another seed to see it move.
   where the gradient over 18 steps has not yet vanished. This is [Section 4](#s4)'s
   vanishing gradient seen as behaviour. The loss does not show it clearly, because the missing
   memory costs only 0.07 nats per character out of 0.39; the audit does.
-- **Temperature trades validity for variety.** At $\tau = 1$ about 6% of the lines are malformed;
-  at $\tau = 0.5$ almost none are, but the lines repeat the likeliest patterns.
+- **Temperature trades validity for variety.** At $\tau = 1$ about 5% of the lines are malformed
+  and about 4% of the statuses disagree with their values; at $\tau = 0.5$ almost none do, but the lines repeat the likeliest patterns.
 
 ### Try this
 
@@ -680,8 +681,8 @@ the forget gate's bias sets how far the LSTM reaches. You then reproduce the
 $\partial\mathbf{c}_{100}/\partial\mathbf{c}_0$ experiment, which compares the measured gradient
 with the product of forget gates that [Section 5](#s5) predicts. Finally you train a plain RNN and
 two LSTMs on the maintenance log with Lab 1's truncated-BPTT layout and watch the closing-tag
-accuracy. The lab uses PyTorch and a few seconds of CPU per model; the whole lab takes about two
-minutes on a laptop. There is no download.
+accuracy. The lab uses PyTorch and about half a minute of CPU per model; the whole lab takes about
+two minutes on a four-thread CPU. There is no download.
 
 ### Step 1: the LSTM cell from its equations
 
@@ -826,7 +827,7 @@ default W_hh: spectral radius 0.57, largest singular value 1.10
                       lag 1       lag 10      lag 25      lag 50      lag 100     lag 199
 rnn default           5.23e-01    1.66e-03    1.76e-07    2.38e-14    7.83e-28    0.00e+00
 rnn orthogonal        1.23e+00    2.26e-01    3.08e-02    1.50e-03    1.71e-06    3.04e-12
-rnn orthogonal x1.5   1.32e+00    1.74e+00    3.38e+00    9.82e+00    1.18e+02    1.92e+04
+rnn orthogonal x1.5   1.32e+00    1.74e+00    3.38e+00    9.64e+00    1.17e+02    2.02e+04
 lstm b=0              5.05e-01    6.22e-03    4.83e-06    4.24e-11    2.75e-21    6.48e-41
 lstm b=3              4.36e-01    3.34e-01    3.20e-01    2.84e-01    3.36e-01    7.77e+00
 lstm b=5              1.85e-01    1.41e-01    1.50e-01    1.93e-01    3.85e-01    3.41e+01
@@ -845,7 +846,7 @@ The default initialisation has spectral radius 0.57 and largest singular value 1
   not stop it. Every singular value of the matrix is 1; the remaining loss is the tanh derivative,
   which is below 1 wherever a unit is not near zero. This is the point of [Section 4](#s4): the
   matrix is one factor of the Jacobian, and the activation is the other.
-- **Orthogonal times 1.5** explodes: the ratio rises through 1.7, 9.8 and 118 at lags 10, 50 and 100
+- **Orthogonal times 1.5** explodes: the ratio rises through 1.7, 9.6 and 117 at lags 10, 50 and 100
   to about $2\times 10^{4}$ at lag 199, roughly 5% per step. Section 4's two failures come from
   one scale factor. This is the case where gradient clipping would act.
 - **The LSTM with forget bias 0** decays like the plain RNN. A forget gate at $\sigma(0) = 0.5$ halves
@@ -1108,20 +1109,20 @@ for name, kind, bias in [("RNN", "rnn", 0.0), ("LSTM b_f=0", "lstm", 0.0),
 ```output
 effective forget bias at initialisation (bias_ih + bias_hh), forget slice: 1.0
 RNN          update  500  val 0.400  closing-tag accuracy 24.7%
-RNN          update 1000  val 0.397  closing-tag accuracy 18.7%
-RNN          update 1500  val 0.388  closing-tag accuracy 14.2%
-RNN          update 2000  val 0.405  closing-tag accuracy 20.1%
-RNN          update 2500  val 0.399  closing-tag accuracy 20.4%
-LSTM b_f=0   update  500  val 0.386  closing-tag accuracy 13.5%
-LSTM b_f=0   update 1000  val 0.395  closing-tag accuracy 15.3%
-LSTM b_f=0   update 1500  val 0.391  closing-tag accuracy 19.3%
-LSTM b_f=0   update 2000  val 0.390  closing-tag accuracy 44.2%
-LSTM b_f=0   update 2500  val 0.377  closing-tag accuracy 79.1%
+RNN          update 1000  val 0.399  closing-tag accuracy 15.0%
+RNN          update 1500  val 0.390  closing-tag accuracy 19.9%
+RNN          update 2000  val 0.406  closing-tag accuracy 14.1%
+RNN          update 2500  val 0.415  closing-tag accuracy 15.0%
+LSTM b_f=0   update  500  val 0.384  closing-tag accuracy 10.9%
+LSTM b_f=0   update 1000  val 0.396  closing-tag accuracy 12.2%
+LSTM b_f=0   update 1500  val 0.383  closing-tag accuracy 21.8%
+LSTM b_f=0   update 2000  val 0.374  closing-tag accuracy 64.6%
+LSTM b_f=0   update 2500  val 0.379  closing-tag accuracy 77.5%
 LSTM b_f=1   update  500  val 0.387  closing-tag accuracy 10.2%
-LSTM b_f=1   update 1000  val 0.393  closing-tag accuracy 19.7%
-LSTM b_f=1   update 1500  val 0.373  closing-tag accuracy 26.8%
-LSTM b_f=1   update 2000  val 0.384  closing-tag accuracy 50.8%
-LSTM b_f=1   update 2500  val 0.375  closing-tag accuracy 86.0%
+LSTM b_f=1   update 1000  val 0.395  closing-tag accuracy 16.7%
+LSTM b_f=1   update 1500  val 0.373  closing-tag accuracy 35.3%
+LSTM b_f=1   update 2000  val 0.396  closing-tag accuracy 39.8%
+LSTM b_f=1   update 2500  val 0.395  closing-tag accuracy 64.2%
 ```
 
 The effective forget bias is 1, as intended. Each curve is one run, and
@@ -1129,19 +1130,21 @@ the closing-tag accuracy is a noisy measurement: 4,000 characters make about 130
 percentage has a standard error of about 3 to 4 points. Read the pattern, not single values.
 
 - **The plain RNN** stays at 14 to 25% for the whole run, around the level of Lab 1, whatever the
-  number of updates. Its validation loss, about 0.39 to 0.41, does not improve after update 500.
-- **Both LSTMs** show the same shape: a long plateau at the level of guessing, then a rise. The
-  forget-bias-1 LSTM reaches about 86% and the bias-0 LSTM about 79% at update 2,500. The
-  transition is abrupt because the tag needs a unit that stores it *and* an output pathway that
+  number of updates. Its validation loss, about 0.39 to 0.42, does not improve after update 500.
+- **Both LSTMs** show the same shape: a long plateau near the level of guessing, then a rise. The
+  bias-0 LSTM reaches about 78% and the forget-bias-1 LSTM about 64% at update 2,500. The rise is
+  abrupt for bias 0 (22% at update 1,500, 65% at 2,000) and steadier for bias 1. It is abrupt
+  because the tag needs a unit that stores it *and* an output pathway that
   reads it: until both exist the gradient of the closing-tag loss is weak, and once one of them
   starts to form the other follows.
-- **The validation loss** of the two LSTMs ends at about 0.375, against about 0.40 for the plain RNN
-  and just under the 0.378 that Lab 1 computed as the floor for a model that guesses the closing
-  tag. The loss differs by 0.025 nats per character while the accuracy differs by a factor of
-  four: the loss is dominated by the random digits, and the behavioural audit shows what it hides.
+- **The validation loss** of the two LSTMs reaches 0.373 to 0.374 at its best, just under the 0.378
+  that Lab 1 computed as the floor for a model that guesses the closing tag, against 0.390 at best
+  for the plain RNN. At update 2,500 it is 0.379 and 0.395 against the plain RNN's 0.415. The loss
+  differs by 0.02 to 0.04 nats per character while the accuracy differs by a factor of four to
+  five: the loss is dominated by the random digits, and the behavioural audit shows what it hides.
 - **Which LSTM is ahead** is not stable. Repeating the run with `torch.manual_seed(7)` in
-  `train_log_model` gave 79% for the bias-0 LSTM and 74% for the bias-1 LSTM at update 2,500, the
-  reverse of the order above, and both again far above the plain RNN at 25%. The robust finding is
+  `train_log_model` gave 73% for the bias-0 LSTM and 96% for the bias-1 LSTM at update 2,500, the
+  reverse of the order above, and both again far above the plain RNN at 24%. The robust finding is
   that the gated cell learns the tag within 2,500 updates and the plain cell does not. The
   forget bias helps in principle, as Step 3 showed, but one run of this size does not measure
   how much.
@@ -1164,12 +1167,11 @@ percentage has a standard error of about 3 to 4 points. Read the pattern, not si
   magnitude, from about $10^{-30}$ at $b_f = 0$ to about 1 at $b_f = 10$, within a factor of 2 to 7
   of the product. The plain cell's state gradient is about $10^{-23}$.
 - **On the log, after 2,500 updates,** the plain RNN's closing-tag accuracy stays at 14 to 25% (the
-  guessing level is 12.5%) while both LSTMs reach 70 to 90%. Each LSTM spends the first 1,500
-  updates near the level of guessing and then rises quickly. The validation loss shows only a small
+  guessing level is 12.5%) while the two LSTMs reach about 64% and 78%. Each LSTM spends the first
+  1,000 updates or more near the level of guessing and then rises. The validation loss shows only a small
   gap.
-- **Run time:** about 10 s per model in the run shown, and up to about 25 s per LSTM and 20 s for
-  the RNN on a busier machine (under a few minutes in total for the lab), so the whole lab fits in
-  the time stated above.
+- **Run time:** about 35 s per model on the machine used to prepare the lab (four CPU threads),
+  and about 105 s for the whole lab, which fits the time stated above.
 
 ### Try this
 
@@ -1198,7 +1200,7 @@ is explained (the signal drifts out of the range the network saw in training), a
 with per-window normalisation. Multi-step forecasts are compared, recursive against direct. The
 forecaster's residuals then feed three detectors, and four injected faults show that each kind of
 fault needs its own detector ([Section 9](#s9)). The data is synthetic, with no download. This is
-the module's one larger training lab: with `QUICK = False` it takes about two minutes on a laptop
+the module's one larger training lab: with `QUICK = False` it takes about two minutes on a four-thread
 CPU, and `QUICK = True` finishes in about a third of that time.
 
 ### Step 1: simulate the machine
@@ -1279,8 +1281,8 @@ plt.show()
 ```
 
 ```output
-8000 samples, range -1.00 .. 9.58, standard deviation 2.38
-first 1000 samples: mean 0.49; last 1000: mean 7.49
+8000 samples, range -1.00 .. 9.49, standard deviation 2.38
+first 1000 samples: mean 0.49; last 1000: mean 7.48
 ```
 
 The series rises from a mean of about 0.5 over the first 1,000 samples to about 7.5 over the last
@@ -1298,7 +1300,7 @@ broke the code of [Section 8](#s8).
 [Section 8](#s8) gave a forecaster and a split that look careful. It uses windows of
 $W = 64$ samples and one-step targets, a two-layer `nn.LSTM` with hidden size 32, dropout 0.1
 between the layers and a linear head on the last state. It trains with AdamW at $3\times 10^{-3}$,
-clipping at 1, batches of 128 and 10 epochs. The data is z-scored with the statistics of the
+clipping at 1, batches of 128 and 10 epochs (Section 8's run used 15). The data is z-scored with the statistics of the
 training period only (no leak), and the test period is the future: here the first 6,000 samples
 train and the last 2,000 test. The block below does exactly that. It prints the normalised ranges
 of the inputs the network sees in training and in testing, then the LSTM's RMSE in the series'
@@ -1376,19 +1378,19 @@ print(f"LSTM  RMSE {rmse(pred, Y_te.numpy()) * sd:.3f}   "
 ```
 
 ```output
-normalised inputs, training: -2.18 .. 2.30   test: 0.98 .. 3.60
+normalised inputs, training: -2.18 .. 2.32   test: 1.02 .. 3.55
 parameters 12,961
-LSTM  RMSE 0.423   naive RMSE 0.373   LSTM mean error -0.315
+LSTM  RMSE 0.427   naive RMSE 0.361   LSTM mean error -0.317
 ```
 
-The test windows, after normalising with the training statistics, lie between 0.98 and 3.60, while
-the network was trained on inputs between $-2.18$ and 2.30. Almost all of the test period is
+The test windows, after normalising with the training statistics, lie between 1.02 and 3.55, while
+the network was trained on inputs between $-2.18$ and 2.32. Almost all of the test period is
 above the range the network has ever seen: the drift has carried the level out of it. The LSTM's
-RMSE, about 0.42, is *worse* than the naive forecast's 0.37, and its mean error is $-0.3$: it
+RMSE, about 0.43, is *worse* than the naive forecast's 0.36, and its mean error is $-0.3$: it
 systematically predicts too low, as a network does when its saturating units cannot represent a
 level beyond the training range. The model has learned a map on the range it saw, and does not
 extrapolate it as a linear model would. A second seed (`torch.manual_seed(1)` at the top, and
-`seed=1` in `fit`) gave 0.63 against the same naive 0.37 and a mean error of $-0.57$ when this lab
+`seed=1` in `fit`) gave 0.66 against the same naive 0.36 and a mean error of $-0.59$ when this lab
 was prepared, so the size of the failure varies with the seed and its sign does not.
 
 This is the failure of [Section 8](#s8), reproduced on a nonlinear signal. Nothing in the code is
@@ -1432,10 +1434,10 @@ plt.show()
 ```
 
 ```output
-fixed LSTM RMSE 0.135   mean error +0.030
+fixed LSTM RMSE 0.132   mean error +0.024
 ```
 
-The fixed model's RMSE is about 0.135 with a mean error close to zero, a third of the naive error
+The fixed model's RMSE is about 0.13 with a mean error close to zero, a third of the naive error
 and about a third of the globally normalised model's. The plot shows why: that model's forecasts
 (dashed) sit slightly below the measurement at the peaks, the bias that the mean error reports,
 while the fixed model follows both level and shape. The three lines changed what the network is
@@ -1522,23 +1524,23 @@ print("LSTM improvement over linear AR per fold: " + ", ".join(f"{g:.0%}" for g 
 
 ```output
   origin           naive  seasonal naive       linear AR            LSTM
-    4000           0.393           0.870           0.166           0.145
-    5000           0.376           0.820           0.148           0.132
-    6000           0.355           0.855           0.153           0.135
-    7000           0.386           0.861           0.167           0.133
-    mean           0.378           0.851           0.159           0.136
-      sd           0.015           0.019           0.008           0.005
-LSTM improvement over linear AR per fold: 13%, 11%, 12%, 21%
+    4000           0.393           0.869           0.166           0.145
+    5000           0.389           0.844           0.148           0.130
+    6000           0.342           0.791           0.151           0.134
+    7000           0.377           0.854           0.154           0.130
+    mean           0.375           0.840           0.155           0.135
+      sd           0.020           0.029           0.007           0.006
+LSTM improvement over linear AR per fold: 13%, 12%, 12%, 16%
 ```
 
-The ordering is the same in every fold. The naive forecast has an RMSE of about 0.38. The
-seasonal-naive forecast is much worse, about 0.85, worse than naive by a factor of more than two:
+The ordering is the same in every fold. The naive forecast has an RMSE of about 0.375. The
+seasonal-naive forecast is much worse, about 0.84, worse than naive by a factor of more than two:
 the period-50 load is a small part of this signal, the response is dominated by the random
 forcing and the stiffened oscillation, and the value one period ago is almost unrelated to the
 value now. A baseline has to be computed, not assumed; here the textbook choice for a periodic
-signal is the wrong one. The linear autoregression, at about 0.16, is a strong baseline
-that nobody should skip. The LSTM, at about 0.136 with a standard deviation over folds of about
-0.005, is the best in every fold, by 11 to 21% over the linear model in this run (9 to 17% in
+signal is the wrong one. The linear autoregression, at about 0.155, is a strong baseline
+that nobody should skip. The LSTM, at about 0.135 with a standard deviation over folds of about
+0.006, is the best in every fold, by 12 to 16% over the linear model in this run (8 to 18% with
 the second seed). That margin is real but modest, and it is the honest size of the benefit of a
 neural forecaster here.
 
@@ -1620,31 +1622,32 @@ plt.show()
 ```output
 direct model trained; 981 forecast origins
        RMSE at h =       1       5      10      20
-             naive   0.355   1.071   0.578   0.776
-    seasonal naive   0.857   0.857   0.857   0.854
-  linear recursive   0.153   0.400   0.492   0.576
-     linear direct   0.153   0.400   0.491   0.574
-    LSTM recursive   0.134   0.395   0.483   0.734
-       LSTM direct   0.150   0.399   0.469   0.573
+             naive   0.342   1.018   0.621   0.720
+    seasonal naive   0.792   0.791   0.790   0.789
+  linear recursive   0.151   0.400   0.526   0.551
+     linear direct   0.151   0.400   0.526   0.552
+    LSTM recursive   0.133   0.418   0.531   0.775
+       LSTM direct   0.152   0.402   0.497   0.561
 ```
 
 Look at three things.
 
-- **The naive forecast is not monotonic in $h$:** 0.36, 1.07, 0.58 and 0.78 at $h = 1, 5, 10, 20$. It
+- **The naive forecast is not monotonic in $h$:** 0.34, 1.02, 0.62 and 0.72 at $h = 1, 5, 10, 20$. It
   follows the oscillation, whose period is about 11 samples: persistence is worst when the signal has
   turned by half a period (here $h$ around 5) and recovers near a full period ($h$ around 10 to 11).
-  Seasonal naive is flat at about 0.86, because its error does not depend on $h$ for $h \le P$.
-- **Recursion compounds.** The recursive LSTM is the best forecaster at $h = 1$ (0.134), and its error
-  grows to 0.39, 0.48 and 0.73 at $h = 5, 10, 20$. It reads its own predictions as inputs, so it
-  carries its errors forward: [Section 8](#s8)'s forecasting form of exposure bias. By $h = 20$ it
-  is close to the naive forecast's 0.78 and far above the direct LSTM's 0.57.
+  Seasonal naive is flat at about 0.79, because its error does not depend on $h$ for $h \le P$.
+- **Recursion compounds.** The recursive LSTM is the best forecaster at $h = 1$ (0.133), and its error
+  grows to 0.42, 0.53 and 0.78 at $h = 5, 10, 20$, already slightly behind the linear model at $h = 5$.
+  It reads its own predictions as inputs, so it carries its errors forward: [Section 8](#s8)'s
+  forecasting form of exposure bias. By $h = 20$ it is worse than the naive forecast's 0.72 and far
+  above the direct LSTM's 0.56.
 - **For the linear model the two strategies coincide.** Recursive and direct linear forecasts agree
-  to about three decimals (0.576 and 0.574 at $h = 20$), as [Section 8](#s8) predicts when the window
-  holds the system's whole linear state. The direct LSTM (0.15, 0.40, 0.47, 0.57) is slightly worse than
+  to about three decimals (0.551 and 0.552 at $h = 20$), as [Section 8](#s8) predicts when the window
+  holds the system's whole linear state. The direct LSTM (0.15, 0.40, 0.50, 0.56) is slightly worse than
   the recursive one at $h = 1$, where its shared head pays for also predicting 19 other horizons, and
   slightly better than the linear model at $h = 10$; at $h = 20$ it is level with the linear model. Beyond
-  about $h = 10$ nothing in the observed window predicts the random forcing, so every method heads
-  for the same floor, near 0.57.
+  about $h = 10$ nothing in the observed window predicts the random forcing, so the direct LSTM and
+  both linear models head for the same floor, near 0.55.
 
 ### Step 6: from forecaster to monitor
 
@@ -1763,14 +1766,14 @@ plt.show()
 ```
 
 ```output
-hold-out residual sigma 0.131; point threshold 0.525; rolling-RMS limit 0.197; rolling-std floor 0.031
-residual RMS on the clean hold-out 0.135; during the excitation fault 0.206
+hold-out residual sigma 0.131; point threshold 0.525; rolling-RMS limit 0.195; rolling-std floor 0.038
+residual RMS on the clean hold-out 0.134; during the excitation fault 0.210
 
 fault                        point           rolling RMS           rolling std
 spike               2 alarms, first +0       21 alarms, first +0                      none
-offset              5 alarms, first +0       63 alarms, first +4                      none
-excitation        2 alarms, first +151     194 alarms, first +85                      none
-stuck                             none                      none      82 alarms, first +19
+offset              3 alarms, first +0       58 alarms, first +4                      none
+excitation        5 alarms, first +151     208 alarms, first +99                      none
+stuck             1 alarms, first +100                      none      79 alarms, first +21
 
 normal samples in 7,000-7,999: 239; false-alarm samples: point 0, rolling RMS 0, rolling std 0
 ```
@@ -1784,20 +1787,23 @@ normal operation. The faulted residual plot above shows why each fault needs its
   amount in the opposite direction. The rolling RMS also fires and stays above its limit while the
   spike remains in its 50-sample window; the table cuts the count at the end of the alarm window, so the
   full episode is longer than the 21 samples shown.
-- **The offset** is caught by the point test only at its onset and at its end (5 alarms in all). In
-  between, the residual is normal: with per-window normalisation the model re-centres on the new
+- **The offset** is caught by the point test only around its onset and at its end (3 alarms in all:
+  at the onset, 4 samples later, and on the sample where the offset ends). In between, the residual
+  is normal: with per-window normalisation the model re-centres on the new
   level within a step, so a sustained offset is invisible once the window has filled with it
   ([Section 9](#s9)). The rolling RMS fires too, only because each of the two jumps stays in
   its 50-sample window. A forecaster that sees a constant offset as normal needs a reference that
   does not move with the sensor.
-- **The doubled excitation** produces no extreme residual (two point alarms in this run), but the
-  residual RMS rises from 0.135 on the hold-out to about 0.21 during the fault. The rolling RMS crosses
-  its limit about 85 samples after the fault starts (30 to 100 samples in the runs prepared with this lab). The margin is small, which is why the
+- **The doubled excitation** produces few extreme residuals (five point alarms in this run, the first
+  151 samples into the fault), but the residual RMS rises from 0.134 on the hold-out to about 0.21
+  during the fault. The rolling RMS crosses its limit 99 samples after the fault starts (85 with the second seed,
+  125 with `QUICK = True`). The margin is small, which is why the
   delay is long: a smaller change would take longer to detect or be missed.
-- **The stuck sensor** raises no residual alarm: a frozen reading is predicted with an error that is
-  small and nearly constant. The variance floor detects it after the 20-sample window has filled
-  with identical values, about 19 samples after the start, and it keeps firing until the sensor
-  recovers.
+- **The stuck sensor** raises no residual alarm while it is stuck: a frozen reading is predicted with
+  an error that is small and nearly constant. The one point alarm in its row, at +100, is the sample
+  on which the sensor recovers and the reading jumps back from the frozen value. The variance floor
+  detects the fault once the 20-sample window has filled with near-constant residuals, 21 samples
+  after the start, and it keeps firing until the sensor recovers.
 - **False alarms:** none of the three detectors fired in the 239 normal samples. That count is
   too small to estimate a false-alarm rate: by the "rule of three", zero events in 239 samples
   is consistent with a true rate up to about $3/239 \approx 1.3\%$ per sample. A real deployment needs
@@ -1810,23 +1816,23 @@ normal operation. The faulted residual plot above shows why each fault needs its
   about 11 samples riding on it.
 - **Step 2: Section 8's code loses to the naive forecast.** The normalised test inputs lie almost
   wholly above the range of the training inputs (about 1.0 to 3.6 against $-2.2$ to 2.3), and the
-  LSTM's RMSE (about 0.42, naive 0.37) is worse than naive with a negative bias of about 0.3 (0.63
+  LSTM's RMSE (about 0.43, naive 0.36) is worse than naive with a negative bias of about 0.3 (0.66
   with the second seed). The model is not mis-trained; it was asked to extrapolate.
-- **Step 3: per-window normalisation fixes it.** The RMSE falls to about 0.135 and the bias to about
+- **Step 3: per-window normalisation fixes it.** The RMSE falls to about 0.13 and the bias to about
   zero.
-- **Step 4: walk-forward.** Naive about 0.38, seasonal naive about 0.85, linear about 0.16,
-  LSTM about 0.136, each with a spread over folds of 0.005 to 0.02. The LSTM is best in every fold, by
-  roughly 10 to 20% over the linear model; the seasonal-naive baseline is poor because random
+- **Step 4: walk-forward.** Naive about 0.375, seasonal naive about 0.84, linear about 0.155,
+  LSTM about 0.135, each with a spread over folds of 0.006 to 0.03. The LSTM is best in every fold, by
+  12 to 16% over the linear model; the seasonal-naive baseline is poor because random
   forcing dominates the periodic load.
-- **Step 5: multi-step.** Errors compound in the recursive LSTM (0.13 to 0.73 over 20 steps); the direct
-  LSTM and both linear models end near 0.57. Linear recursive and direct are the same.
+- **Step 5: multi-step.** Errors compound in the recursive LSTM (0.13 to 0.78 over 20 steps, worse than
+  naive at $h = 20$); the direct LSTM and both linear models end near 0.55 to 0.56. Linear recursive and direct are the same.
 - **Step 6: the monitor.** The point test catches the spike and the two edges of the offset; the rolling
-  RMS catches the excitation fault after about 85 samples; the variance floor alone catches the stuck
-  sensor; no false alarms in 239 normal samples. Each fault type needs its own detector.
-- **Run time.** Between half a minute and a minute on the machine used to prepare the lab, depending
-  on what else was running, with `QUICK = False` (the simulation takes well under a second), and about
-  20 seconds with `QUICK = True`, which trains 4 epochs and only the last two folds; with fewer epochs the Step 2 failure is larger (0.61 against 0.37). Expect two to three times
-  longer on a laptop.
+  RMS catches the excitation fault after 99 samples; the variance floor alone catches the stuck
+  sensor while it is stuck; no false alarms in 239 normal samples. Each fault type needs its own detector.
+- **Run time.** About 100 seconds on the machine used to prepare the lab (four CPU threads) with
+  `QUICK = False` (the simulation takes well under a second), and about 35 seconds with
+  `QUICK = True`, which trains 4 epochs and only the last two folds; with fewer epochs the Step 2
+  failure is larger (0.65 against 0.36). A slower laptop takes longer.
 
 ### Try this
 
@@ -1842,7 +1848,7 @@ normal operation. The faulted residual plot above shows why each fault needs its
    Does the lead grow?
 4. **A CUSUM.** Accumulate the standardised squared residuals, $S_t = \max(0, S_{t-1} + r_t^2/\sigma^2 - k)$
    with a reference value $k$ slightly above 1 (Page 1954), and alarm at a limit. Compare its detection
-   delay on the excitation fault with the rolling RMS's 85 samples, at the same false-alarm count.
+   delay on the excitation fault with the rolling RMS's 99 samples, at the same false-alarm count.
 5. **Another seed.** Re-simulate with `seed=1` and re-run. Which of the lab's conclusions (the
    ordering of the four forecasters, the failure of the globally normalised model, the detection delays) hold, and
    by how much do the numbers move?

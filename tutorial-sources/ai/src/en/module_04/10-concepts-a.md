@@ -633,7 +633,7 @@ Take a ratio of $10^{-3}$ as the edge of a useful learning signal. It is reached
 $n = \ln 10^{-3} / \ln w$:
 
 $$
-w = 0.5:\ n = \frac{-6.908}{-0.6931} = 10.0, \qquad
+w = 0.5:\ n = \frac{-6.908}{-0.6931} = 9.97, \qquad
 w = 0.9:\ n = \frac{-6.908}{-0.1054} = 65.6, \qquad
 w = 0.99:\ n = \frac{-6.908}{-0.01005} = 687.
 $$
@@ -726,7 +726,9 @@ explodes ($5.5 \times 10^{8}$). Other draws change these by a factor of a few, n
 of magnitude.
 
 ::: widget name=gradient-flow-explorer
-The default is the simulation above. Switch to linear and the curve lies on the flat $\rho^n$
+The default is the simulation above, with the widget's own random draw: the ratio passes
+$6.7 \times 10^{-3}$, $3.1 \times 10^{-11}$ and $1.1 \times 10^{-21}$ at lags 10, 50 and 100.
+Switch to linear and the curve lies on the flat $\rho^n$
 line; switch back and lower $\sigma_x$ to watch the $\phi'$ histogram move to 1. Raise $\rho$ to
 1.5, then 3. Choose the Gaussian matrix, with the linear setting, to see transient growth
 above the dashed line. Compare the LSTM cell path, a

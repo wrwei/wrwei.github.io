@@ -99,7 +99,7 @@ He, K., Zhang, X., Ren, S., Sun, J. "Deep residual learning for image recognitio
 
 **Why read it.** It is the paper that made depth trainable. It argues from one experiment, the degradation problem, to one idea, the residual connection, and backs the idea with clean ablations. Its block, $\mathbf{x} + F(\mathbf{x})$, reappears in every transformer. Its operation counts are multiply-adds, the convention that later vision papers inherited ([Section 4](#s4)).
 
-**What to read.** Read Section 1 with Figure 1. Read Sections 3.1 to 3.3 (residual learning, identity shortcuts, and the architectures of Figure 3 and Table 1). In Section 4.1, read the plain-versus-residual comparison (Figure 4 and Table 2), the shortcut options A, B and C (Table 3) and the bottleneck design (Figure 5). Read Section 4.2 on CIFAR-10 (Figure 6 and Table 6). Skim the remaining ImageNet comparison tables. Skip Section 2 (related work) and the detection and localisation results of Section 4.3 and the appendix.
+**What to read.** Read Section 1 with Figure 1. Read Sections 3.1 to 3.3 (residual learning, identity shortcuts, and the architectures of Figure 3 and Table 1). In Section 4.1, read the plain-versus-residual comparison (Figure 4 and Table 2), the shortcut options A, B and C (Table 3) and the bottleneck design (Figure 5). Read Section 4.2 on CIFAR-10 (Figure 6 and Table 6). Skim the remaining ImageNet comparison tables. Skip Section 2 (related work), the object-detection results of Section 4.3 and, in the arXiv version, the appendix on detection and localisation.
 
 **Questions to answer while reading.**
 
@@ -109,7 +109,7 @@ He, K., Zhang, X., Ren, S., Sun, J. "Deep residual learning for image recognitio
 4. Count the weights of the bottleneck block of Figure 5 (right) for 256 channels, ignoring biases and batch-norm parameters, and compare with two 3 × 3 convolutions at 256 channels. (Answer: 69,632 against 1,179,648.)
 5. On CIFAR-10 the 1,202-layer network reaches a training error similar to the 110-layer one but a higher test error (7.93% against 6.43%). What explains it, and how does that differ from the degradation problem?
 
-**After reading.** Write the residual block of [Section 8](#s8) from memory as a PyTorch module, with the projection shortcut for a change of width, and check it against the paper's Figure 5. Then state in two sentences what [Lab 3](#lab3) reproduced of the paper's claim and what it could not, at 55 layers on 8 × 8 digits instead of 56 layers on CIFAR-10.
+**After reading.** Write the residual block of [Section 8](#s8) from memory as a PyTorch module, with the projection shortcut for a change of width, and check it against the paper's Figure 5 (left) and Equation 2. Then state in two sentences what [Lab 3](#lab3) reproduced of the paper's claim and what it could not, at 55 layers on 8 × 8 digits instead of 56 layers on CIFAR-10.
 :::
 
 ::: paper minutes=20
@@ -117,7 +117,7 @@ Ronneberger, O., Fischer, P., Brox, T. "U-Net: Convolutional networks for biomed
 
 **Why read it.** It is a short paper that set the standard architecture for biomedical segmentation. With the output-size formula of [Section 3](#s3) in hand, every number in its Figure 1 can be checked, and the paper is frank about working from very few annotated images.
 
-**What to read.** Read Sections 1 to 3 in full, with Figures 1 to 3 (the architecture, the overlap-tile strategy, and the weight map for touching cells), including the data-augmentation paragraph. Skim Section 4 for the number of training images and the metrics used. Skip the details of the comparison tables.
+**What to read.** Read Sections 1 to 3 in full, with Figures 1 to 3 (the architecture, the overlap-tile strategy, and the weight map for touching cells), including the data-augmentation subsection (3.1). Skim Section 4 for the number of training images and the metrics used. Skip the details of the comparison tables.
 
 **Questions to answer while reading.**
 
@@ -163,7 +163,7 @@ Ronneberger, O., Fischer, P., Brox, T. "U-Net: Convolutional networks for biomed
 - Howard, A. G. et al. "MobileNets: Efficient convolutional neural networks for mobile vision applications." *arXiv*, 2017. Depthwise-separable networks and the cost formula.
 - Sandler, M., Howard, A., Zhu, M., Zhmoginov, A., Chen, L.-C. "MobileNetV2: Inverted residuals and linear bottlenecks." *CVPR*, 2018. Inverted residual blocks.
 - Tan, M., Le, Q. V. "EfficientNet: Rethinking model scaling for convolutional neural networks." *ICML*, 2019. Compound scaling; the numbers quoted are from Table 2 of the ICML version (a later arXiv revision reports EfficientNet-B0 at 77.1%).
-- Liu, Z., Mao, H., Wu, C.-Y., Feichtenhofer, C., Darrell, T., Xie, S. "A ConvNet for the 2020s." *CVPR*, 2022. ConvNeXt; the recipe-versus-architecture roadmap (Figure 2, with every step's value in Appendix C, Table 10; ConvNeXt-T in Table 1).
+- Liu, Z., Mao, H., Wu, C.-Y., Feichtenhofer, C., Darrell, T., Xie, S. "A ConvNet for the 2020s." *CVPR*, 2022. ConvNeXt; the recipe-versus-architecture roadmap (Figure 2, with every step's value in Table 10, Appendix C of the arXiv version; ConvNeXt-T in Table 1).
 - Dosovitskiy, A. et al. "An image is worth 16x16 words: Transformers for image recognition at scale." *ICLR*, 2021. The vision transformer; see [Module 06](module_06_EN.html).
 - Wu, Y., He, K. "Group normalization." *ECCV*, 2018. Normalisation over channel groups, independent of batch size.
 - Zhang, H., Cisse, M., Dauphin, Y. N., Lopez-Paz, D. "mixup: Beyond empirical risk minimization." *ICLR*, 2018. Augmentation by convex combinations of examples and labels.

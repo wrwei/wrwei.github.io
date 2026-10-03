@@ -2,6 +2,8 @@
 //   node build.mjs                 build every module that has parts, both languages, plus index pages
 //   node build.mjs --module 3      build one module (both languages)
 //   node build.mjs --lang en       one language only
+//   node build.mjs --modules 1,2,3,4   publish only these modules: the index lists them, navigation
+//                                  skips the others, and links into the others become plain text
 // Output: out/ai/ under the series root, or --out <dir> (e.g. --out ../../docs/tutorials/ai to publish)
 import fs from 'node:fs'
 import path from 'node:path'
@@ -16,6 +18,15 @@ const CDN = {
   katexCss: 'https://cdn.jsdelivr.net/npm/katex@0.18.10/dist/katex.min.css',
   katexJs: 'https://cdn.jsdelivr.net/npm/katex@0.18.10/dist/katex.min.js',
   hljs: 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/highlight.min.js',
+}
+// Modules being published; null means all. Set by --modules.
+let PUBLISHED = null
+const isPublished = n => !PUBLISHED || PUBLISHED.includes(n)
+// Links into modules that are not published become plain text, so no page links to a missing file.
+function unlinkUnpublished(html) {
+  if (!PUBLISHED) return html
+  return html.replace(/<a href="module_(\d\d)_(?:EN|ZH)\.html[^"]*"[^>]*>([\s\S]*?)<\/a>/g,
+    (all, nn, text) => isPublished(Number(nn)) ? all : `<span class="xref-pending">${text}</span>`)
 }
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap'
 
@@ -178,7 +189,7 @@ export function renderModule(n, lang, { write = true } = {}) {
     side += `<a href="#${escapeHtml(s.id)}"><span class="num">${s.n}</span><span class="side-t">${md.renderInline(s.title, newEnv())}</span></a>`
   }
 
-  const dropdown = Object.entries(titles).map(([k, t]) =>
+  const dropdown = Object.entries(titles).filter(([k]) => isPublished(Number(k))).map(([k, t]) =>
     `<a href="${fileFor(Number(k), lang)}"${Number(k) === n ? ' class="active"' : ''}>${Number(k)} &mdash; ${escapeHtml(t)}</a>`).join('\n')
 
   // the heading already says "By the end you can", so outcomes start at the verb
@@ -207,11 +218,14 @@ export function renderModule(n, lang, { write = true } = {}) {
   }).join('\n')
   const plan = `<section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">${ui.plan}</h2><span class="plan-total">${fmtDur(totalMin)}</span></div><p class="plan-lead">${ui.planLead}</p><div class="sessions">${sessions}</div></section>`
 
-  const prevHtml = n > 1
-    ? `<a class="mnav prev" href="${fileFor(n - 1, lang)}"><span class="mnav-label">&larr; ${ui.prev}</span><span class="mnav-title">${ui.module} ${n - 1} — ${escapeHtml(titles[n - 1])}</span></a>`
+  const pubs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(isPublished)
+  const prevN = pubs.filter(k => k < n).pop()
+  const nextN = pubs.find(k => k > n)
+  const prevHtml = prevN
+    ? `<a class="mnav prev" href="${fileFor(prevN, lang)}"><span class="mnav-label">&larr; ${ui.prev}</span><span class="mnav-title">${ui.module} ${prevN} — ${escapeHtml(titles[prevN])}</span></a>`
     : `<a class="mnav prev" href="${lang === 'zh' ? 'index_ZH.html' : 'index.html'}"><span class="mnav-label">&larr; ${ui.index}</span><span class="mnav-title">${ui.series}</span></a>`
-  const nextHtml = n < 10
-    ? `<a class="mnav next" href="${fileFor(n + 1, lang)}"><span class="mnav-label">${ui.next} &rarr;</span><span class="mnav-title">${ui.module} ${n + 1} — ${escapeHtml(titles[n + 1])}</span></a>`
+  const nextHtml = nextN
+    ? `<a class="mnav next" href="${fileFor(nextN, lang)}"><span class="mnav-label">${ui.next} &rarr;</span><span class="mnav-title">${ui.module} ${nextN} — ${escapeHtml(titles[nextN])}</span></a>`
     : `<a class="mnav next" href="${lang === 'zh' ? 'index_ZH.html' : 'index.html'}"><span class="mnav-label">${ui.index} &rarr;</span><span class="mnav-title">${ui.series}</span></a>`
 
   const html = `<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
@@ -265,7 +279,7 @@ ${body}
 `
   if (write) {
     fs.mkdirSync(OUT, { recursive: true })
-    fs.writeFileSync(path.join(OUT, fileFor(n, lang)), html)
+    fs.writeFileSync(path.join(OUT, fileFor(n, lang)), unlinkUnpublished(html))
   }
   return { html, env, meta, files, src }
 }
@@ -281,7 +295,7 @@ export function copyAssets() {
     parts.push(`;\n/* ---- ${f} ---- */\n` + fs.readFileSync(path.join(wd, f), 'utf8'))
   fs.writeFileSync(path.join(ad, 'widgets.js'), parts.join('\n'))
   const pd = path.join(ROOT, 'labs', 'plots')
-  if (fs.existsSync(pd)) for (const f of fs.readdirSync(pd).filter(f => f.endsWith('.png'))) fs.copyFileSync(path.join(pd, f), path.join(ad, 'plots', f))
+  if (fs.existsSync(pd)) for (const f of fs.readdirSync(pd).filter(f => f.endsWith('.png') && isPublished(Number((f.match(/^m(\d\d)-/) || [])[1]) || 0))) fs.copyFileSync(path.join(pd, f), path.join(ad, 'plots', f))
 }
 
 // ---------- index pages ----------
@@ -301,6 +315,7 @@ export function renderIndex(lang) {
   }
   let cards = '<div class="index-grid">'
   for (let n = 1; n <= 10; n++) {
+    if (!isPublished(n)) continue
     let meta
     try { meta = loadMeta(n, lang) || loadMeta(n, 'en') } catch { continue }
     const labs = (meta.labs || []).length
@@ -308,6 +323,12 @@ export function renderIndex(lang) {
     cards += `<a class="module-card" href="${fileFor(n, lang)}"><div class="card-num">${ui.module} ${pad(n)}</div><div class="card-title">${escapeHtml(meta.title)}</div><div class="card-desc">${md.renderInline(meta.lead || '', newEnv())}</div><div class="card-meta">${lang === 'zh' ? `约 10 小时 · ${labs} 个实验 · ${ex} 道练习` : `≈ 10 h · ${labs} labs · ${ex} exercises`}</div><div class="card-footer"><span class="card-theme theme-${THEMES[n]}">${THEME_NAMES[lang][THEMES[n]]}</span><span class="card-lang">EN &middot; 中文</span></div></a>`
   }
   cards += '</div>'
+  // a partial publication says which modules are still to come
+  const missing = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(k => !isPublished(k))
+  if (missing.length) {
+    const range = missing.length > 1 ? `${pad(missing[0])}–${pad(missing[missing.length - 1])}` : pad(missing[0])
+    cards += `<p class="index-note">${lang === 'zh' ? `第 ${range} 模块正在编写中，完成后将陆续发布。` : `Modules ${range} are in preparation and will be published as they are finished.`}</p>`
+  }
   const fm = raw.match(/^---\n([\s\S]*?)\n---\n/)
   const head = {}
   if (fm) for (const line of fm[1].split('\n')) { const m = line.match(/^(\w+):\s*(.*)$/); if (m) head[m[1]] = m[2] }
@@ -341,7 +362,7 @@ ${md.render(after || '', env)}
 </body></html>
 `
   fs.mkdirSync(OUT, { recursive: true })
-  fs.writeFileSync(path.join(OUT, lang === 'zh' ? 'index_ZH.html' : 'index.html'), html)
+  fs.writeFileSync(path.join(OUT, lang === 'zh' ? 'index_ZH.html' : 'index.html'), unlinkUnpublished(html))
   return { html, env }
 }
 
@@ -349,7 +370,8 @@ ${md.render(after || '', env)}
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const argv = process.argv.slice(2)
   const get = k => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : null }
-  const mods = get('--module') ? [Number(get('--module'))] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  if (get('--modules')) PUBLISHED = get('--modules').split(',').map(Number)
+  const mods = get('--module') ? [Number(get('--module'))] : (PUBLISHED || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
   const langs = get('--lang') ? [get('--lang')] : ['en', 'zh']
   copyAssets()
   for (const n of mods) for (const lang of langs) {

@@ -9,6 +9,9 @@
 //   ```quiz                   -> a multiple-choice quiz (see SPEC.md for the line format)
 import MarkdownIt from 'markdown-it'
 import container from 'markdown-it-container'
+// CommonMark will not close **bold** after full-width punctuation followed by a CJK character
+// ("**定义。**正文"); this plugin applies the CJK-friendly emphasis rules.
+import cjkFriendly from 'markdown-it-cjk-friendly'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -188,10 +191,13 @@ export function makeMd({ lang = 'en', figDirs = [], env: sharedEnv } = {}) {
   const L = LABELS[lang]
   const md = new MarkdownIt({ html: true, linkify: false, typographer: true })
   md.disable(['replacements'])   // keeps "(c)" in "(a) (b) (c)" from becoming a copyright sign
+  md.use(cjkFriendly)
 
   md.inline.ruler.before('escape', 'math_inline', mathInline)
   md.block.ruler.before('fence', 'math_block', mathBlock, { alt: ['paragraph', 'reference', 'blockquote', 'list'] })
   md.core.ruler.before('inline', 'heading_ids', headingIds)
+  md.core.ruler.after('block', 'figure_numbers', figureNumbers)
+  md.core.ruler.after('inline', 'figure_refs', figureRefs)
 
   const mathOut = (cls, tag) => (toks, i, opts, env) => {
     env && env.math && env.math.push({ tex: toks[i].content, display: cls === 'math-d', line: env.curLine })
@@ -312,10 +318,60 @@ export function flushPlots(env) {
   return html
 }
 
-function figNumber(id) {
-  const m = /^fig-(\d+)-(\d+)$/.exec(id || '')
-  return m ? `${Number(m[1])}.${Number(m[2])}` : ''
+// ---------- figure numbers ----------
+// Figures are numbered by order of appearance, so cutting one leaves no gap. The source names a
+// figure by its id: fig-01-12 is written "Figure 1.12" in the text, and the page shows its number
+// by position (Figure 1.6 if it is the sixth figure). Ids stay stable; numbers follow the page.
+const FIG_ID = /^fig-(\d+)-(\d+)$/
+const idKey = id => { const m = FIG_ID.exec(id || ''); return m ? `${Number(m[1])}.${Number(m[2])}` : '' }
+
+function figureNumbers(state) {
+  if (state.inlineMode) return             // renderInline (quiz, titles) keeps the page's numbers
+  const nums = new Map()
+  const perModule = {}
+  for (const t of state.tokens) {
+    if (t.type !== 'container_figure_open') continue
+    const id = parseAttrs(t.info).id
+    const key = idKey(id)
+    if (!key || nums.has(id)) continue
+    const mod = key.split('.')[0]
+    perModule[mod] = (perModule[mod] || 0) + 1
+    nums.set(id, `${mod}.${perModule[mod]}`)
+  }
+  state.env.figNums = nums
+  state.env.figByKey = new Map([...nums].map(([id, n]) => [idKey(id), n]))
 }
+
+function figNumber(id, env) {
+  return (env.figNums && env.figNums.get(id)) || idKey(id)
+}
+
+// "Figure 1.12", "Figures 1.25 to 1.27", "图 1.25 至 1.27": each number is a figure id, shown as the
+// figure's position. A number with no figure on the page is kept and recorded for check.mjs.
+const FIG_REF = /(Figures?|Fig\.|图)(\s*)(\d+\.\d+(?:\s*(?:to|and|or|至|到|和|与|或|、|,|，|–|-)\s*\d+\.\d+)*)/g
+function figureRefs(state) {
+  const byKey = state.env.figByKey
+  if (!byKey) return
+  const missing = state.env.figRefsMissing = state.env.figRefsMissing || []
+  const mods = new Set([...byKey.keys()].map(k => k.split('.')[0]))
+  const map = list => list.replace(/\d+\.\d+/g, k => {
+    if (byKey.has(k)) return byKey.get(k)
+    if (mods.has(k.split('.')[0])) missing.push(k)   // another module's numbers (or a paper's) are left alone
+    return k
+  })
+  for (const t of state.tokens) {
+    if (t.type !== 'inline' || !t.children) continue
+    let carry = false                        // "Figure" ended the previous line, the number starts this one
+    for (const c of t.children) {
+      if (c.type === 'softbreak') continue
+      if (c.type !== 'text') { carry = false; continue }
+      if (carry) c.content = c.content.replace(FIG_REF_LEAD, map)
+      c.content = c.content.replace(FIG_REF, (all, word, sp, list) => word + sp + map(list))
+      carry = /(Figures?|Fig\.|图)\s*$/.test(c.content)
+    }
+  }
+}
+const FIG_REF_LEAD = /^\s*\d+\.\d+(?:\s*(?:to|and|or|至|到|和|与|或|、|,|，|–|-)\s*\d+\.\d+)*/
 
 function readFigure(id, figDirs, env) {
   for (const d of figDirs) {
@@ -368,7 +424,7 @@ function openContainer(md, kind, a, L, env, figDirs) {
     case 'figure': {
       env.counts.figure++
       env.figures.push(a.id)
-      const num = figNumber(a.id)
+      const num = figNumber(a.id, env)
       return `<figure class="fig"${a.id ? ` id="${escapeHtml(a.id)}"` : ''}><div class="fig-svg">${readFigure(a.id, figDirs, env)}</div><figcaption>${num ? `<span class="fig-num">${L.figure} ${num}</span> ` : ''}`
     }
     case 'widget': {

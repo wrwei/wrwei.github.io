@@ -225,17 +225,17 @@ train(attn, STEPS)
 
 ```output
 without attention
-  step  500  loss 0.5832
-  step 1000  loss 0.4171
-  step 1500  loss 0.3391
+  step  500  loss 0.5913
+  step 1000  loss 0.4242
+  step 1500  loss 0.3684
 with attention
-  step  500  loss 0.0180
-  step 1000  loss 0.0061
-  step 1500  loss 0.0001
+  step  500  loss 0.0149
+  step 1000  loss 0.0100
+  step 1500  loss 0.0002
 ```
 
 The loss is a mean over real target tokens, in nats. The model with attention is below 0.02 by step
-500 and is essentially done. The model without it is still at about 0.34 after 1,500 steps: it gets
+500 and is essentially done. The model without it is still at about 0.37 after 1,500 steps: it gets
 some digits right and makes mistakes elsewhere in the string, which the next step quantifies.
 
 ### Step 4: Accuracy against length, teacher-forced and free-running
@@ -275,9 +275,9 @@ for name, model in [("no attention", plain), ("attention", attn)]:
 
 ```output
 model         length  sequence  teacher-forced  free-running
-no attention      4     99.2%           99.8%         99.7%
-no attention      8     35.6%           90.6%         78.2%
-no attention     12      0.8%           73.0%         51.1%
+no attention      4     98.4%           99.7%         99.4%
+no attention      8     42.6%           91.4%         80.3%
+no attention     12      1.0%           74.1%         52.7%
 attention         4    100.0%          100.0%        100.0%
 attention         8    100.0%          100.0%        100.0%
 attention        12    100.0%          100.0%        100.0%
@@ -285,15 +285,15 @@ attention        12    100.0%          100.0%        100.0%
 
 Three observations, each one a claim of the text that you can now check.
 
-1. **The bottleneck.** Without attention, sequence accuracy collapses with length: about 99% at
-   length 4, 36% at length 8 and 1% at length 12 in this run. One vector of 64 numbers has to carry
+1. **The bottleneck.** Without attention, sequence accuracy collapses with length: about 98% at
+   length 4, 43% at length 8 and 1% at length 12 in this run. One vector of 64 numbers has to carry
    up to 12 digits in order, and a 64-dimensional state trained by gradient descent in 1,500
    updates does not. Most of the damage is at the far end of the string: token accuracy is 91%
-   (teacher-forced) at length 8 and 73% at length 12, so the model gets many digits right and almost
+   (teacher-forced) at length 8 and 74% at length 12, so the model gets many digits right and almost
    never all of them.
 2. **Exposure bias.** Without attention the free-running token accuracy is below the
-   teacher-forced one, and the gap widens with length: none worth the name at length 4, 12 points
-   at length 8 (90.6% against 78.2%) and 22 points at length 12 (73.0% against 51.1%). A wrong
+   teacher-forced one, and the gap widens with length: none worth the name at length 4, 11 points
+   at length 8 (91.4% against 80.3%) and 21 points at length 12 (74.1% against 52.7%). A wrong
    digit pushes the decoder into a state it never saw in training, and the following predictions
    suffer.
 3. **Attention removes both problems.** With it, accuracy is 100% at every length in both
@@ -352,14 +352,21 @@ print(f"beam k=4 {beam_ok:3d}/200 correct strings, token accuracy {100 * beam_to
 ```
 
 ```output
-greedy     0/200 correct strings, token accuracy 51.8%
-beam k=4   0/200 correct strings, token accuracy 52.5%
+greedy     0/200 correct strings, token accuracy 52.3%
+beam k=4   0/200 correct strings, token accuracy 49.1%
 ```
 
-Beam search changes almost nothing: no string out of 200 is right under either method, and token
-accuracy moves from 51.8% to 52.5%. (Greedy decoding gives 51.8% here against the free-running
-51.1% of Step 4 because this is a different set of 200 strings.) The model without attention does
-not know the answer, and no search over its outputs can supply information it never received. Search helps when the model's
+Beam search does not rescue the model: no string out of 200 is right under either method, and token
+accuracy falls from 52.3% to 49.1%. (Greedy decoding gives 52.3% here against the free-running
+52.7% of Step 4 because this is a different set of 200 strings.) The search itself does its job. In a
+check made when this text was revised (the same run, scoring each output with the model's own
+log-probability), the beam's answer was at least as probable as the greedy one for all 200 strings,
+and it had slightly more of the 12 digits right, 49.9% against 48.6%. The lower token accuracy comes
+from the last position: the beam stops at its `EOS` and the code pads the rest, and it stopped one
+or two tokens early on 122 strings against greedy decoding's 114, while greedy decoding always runs
+13 steps and is credited with the `EOS` position whenever it emits `EOS` there, even after an
+earlier one. A more probable output from a wrong model is not a more accurate one. The model
+without attention does not know the answer, and no search over its outputs can supply information it never received. Search helps when the model's
 distribution is right but its greedy path is unlucky, as in the toy example of
 [Section 10](#s10); it cannot repair a distribution that is wrong.
 
@@ -414,15 +421,15 @@ plt.show()
 source : [1, 1, 7, 4, 5, 6, 7, 0]
 output : [0, 7, 6, 5, 4, 7, 1, 1, 12] (12 = EOS)
 argmax of each row: [7, 6, 5, 4, 3, 2, 1, 0, 0]
-peak weights:       ['0.74', '0.72', '0.72', '0.81', '0.74', '0.79', '0.65', '0.83', '0.25']
+peak weights:       ['0.84', '0.75', '0.66', '0.71', '0.65', '0.79', '0.63', '0.68', '0.26']
 weight on padding:  0.000000
 ```
 
 The alignment is the anti-diagonal: to emit the first output digit the decoder looks at the last
 source digit, then at the one before, and so on, and at the first position when it emits `EOS`. The
 model was never told this; the only signal was the cross-entropy of the output. The peak
-weights on the eight digit rows are between 0.65 and 0.83; the `EOS` row is the least sure, with a
-peak of 0.25 on position 0, which is the position the last digit came from. A bright anti-diagonal
+weights on the eight digit rows are between 0.63 and 0.84; the `EOS` row is the least sure, with a
+peak of 0.26 on position 0, which is the position the last digit came from. A bright anti-diagonal
 is what a correct solution of this task looks like.
 
 ### Step 7 (optional): The packing bug, reproduced on purpose
@@ -460,13 +467,13 @@ for name, model in [("unpacked", unpacked), ("packed", packed)]:
 
 ```output
 unpacked encoder
-  step  266  loss 0.0250
-  step  532  loss 0.0108
-  step  798  loss 0.0042
+  step  266  loss 0.0273
+  step  532  loss 0.0194
+  step  798  loss 0.0105
 packed encoder
-  step  266  loss 0.0206
-  step  532  loss 0.0099
-  step  798  loss 0.0065
+  step  266  loss 0.0128
+  step  532  loss 0.0083
+  step  798  loss 0.0054
 unpacked  length 4: padded to 12 100.0%   cut to 4   0.0%
 packed    length 4: padded to 12 100.0%   cut to 4 100.0%
 ```
@@ -483,17 +490,17 @@ you pad, test exactly the way you trained, and pack whenever a layer reads backw
   12,352 of the difference.
 - **Training.** The attention model's loss is near zero within a few hundred steps; the model
   without attention stays far above it after 1,500 steps.
-- **The bottleneck.** Without attention, sequence accuracy is about 99% at length 4, 36% at
+- **The bottleneck.** Without attention, sequence accuracy is about 98% at length 4, 43% at
   length 8 and 1% at length 12. With attention it is 100% at all three. (The numbers of this run;
   another seed moves the middle one by several points.)
 - **Exposure bias.** Without attention, free-running token accuracy trails teacher-forced token
-  accuracy, by 0.1 points at length 4, 12 at length 8 and 22 at length 12. With attention both are
+  accuracy, by 0.3 points at length 4, 11 at length 8 and 21 at length 12. With attention both are
   at 100%.
 - **Search.** Beam search with $k = 4$ leaves the bottleneck model at 0 correct strings out of
-  200 at length 12, with token accuracy 51.8% against 52.5%: search cannot supply what the model
-  does not know.
+  200 at length 12, as greedy decoding does, and token accuracy falls from 52.3% to 49.1% (the beam
+  stops at `EOS` early slightly more often): search cannot supply what the model does not know.
 - **Alignment.** Row $t$ of the heat map peaks at source position $7 - t$ (and at position 0 for
-  `EOS`), with peak weights of 0.65 to 0.83 on the digit rows.
+  `EOS`), with peak weights of 0.63 to 0.84 on the digit rows.
 - **The bug.** The unpacked model is accurate on strings padded as in training and fails on
   strings cut to their true width; the packed model handles both.
 
@@ -675,18 +682,19 @@ plt.show()
 
 ```output
    T   max|loop - fft|   loop ms   fft ms   speed-up
-  256        3.58e-06        1.3      0.4      2.9x
- 1024        1.35e-05        5.0      2.1      2.4x
- 4096        1.48e-05       20.3     17.7      1.1x
+  256        3.10e-06        4.2      3.8      1.1x
+ 1024        1.29e-05       19.8     13.8      1.4x
+ 4096        1.41e-05       79.1     70.0      1.1x
 ```
 
 The two outputs agree to float32 round-off, of the order of $10^{-5}$ on outputs of order 1, a
 little larger at longer $T$ because the kernel $\lambda^k$ is evaluated in float32 and its phase
 error grows with $k$: this is one function computed two ways, not two approximations of each other.
 The loop costs $T$ sequential steps, so its time grows linearly with $T$. The honest finding on a
-CPU is that the FFT form is only modestly faster, and that the advantage shrinks as $T$ grows:
-over repeated runs it was 2.5 to 5 times faster at $T = 256$ and only 1.1 to 1.4 times faster at
-$T = 4{,}096$. That is
+CPU is that the FFT form is at best modestly faster, and that at the longest length the advantage
+is gone: over five runs on the machine used to prepare this lab it was 1.1 to 1.7 times faster at
+$T = 256$, 1.2 to 1.6 times at $T = 1{,}024$, and 0.7 to 1.1 times at $T = 4{,}096$, slower than the
+loop in three of the five. That is
 no contradiction. The FFT does $O(T\log T)$ work with a large constant (three transforms of length
 $2T$ for each of the 64 modes), the loop does $O(T)$ small operations, and a CPU with a few cores
 has little parallelism for the FFT form to exploit. The convolution form pays off where the
@@ -779,8 +787,8 @@ untrained LSTM output shape: (2, 8)
 ### Step 4: Train, at three lags
 
 Each model trains for 400 updates (batch 64, AdamW at $3\times10^{-3}$, gradient norm clipped at 1)
-at lags 25, 100 and 200. The vanilla RNN is run only at 25 and 100: it is slow at 200 and already
-fails at 100. The table reports the test accuracy on 1,000 fresh sequences and the first update at
+at lags 25, 100 and 200. The vanilla RNN is run only at 25 and 100: it is slow at 200, and at 100
+it succeeds on some seeds and stays at chance on others. The table reports the test accuracy on 1,000 fresh sequences and the first update at
 which the mean loss over the last 10 updates fell below 0.05 (a dash if that never happened).
 Chance accuracy is 12.5%, and the initial loss is near $\ln 8 = 2.08$.
 
@@ -804,27 +812,34 @@ for name, kind, fb in configs:
 
 ```output
 model                  lag 25 : acc  solved  lag 100: acc  solved  lag 200: acc  solved
-vanilla RNN                 63.3%       -       75.1%       -     skipped
+vanilla RNN                 77.2%       -      100.0%       -     skipped
 LSTM, forget bias 1         11.8%       -       11.8%       -       11.8%       -
 LSTM, forget bias 5        100.0%      74       12.6%       -       12.6%       -
 diagonal linear            100.0%     124      100.0%     238      100.0%       -
 ```
 
 Each entry comes from one training run, from `torch.manual_seed(0)`. A different seed can change
-which cell in the table succeeds, above all at the edge of a model's reach: an LSTM with forget
-bias 5 learned lag 100 on one of three seeds, and the vanilla RNN's partial scores move by tens of
-points. Read the table for its pattern, not for any single cell. The pattern: a memory that is
-set by a gate bias or by the eigenvalue moduli at initialisation reaches as far as that setting
-allows within the budget, and a model that starts with a short memory (the vanilla RNN, the LSTM
-with bias 1) does not find its way to a long one in 400 updates. A dash in the "solved" column
-means the mean loss never fell below 0.05, which can happen at 100% test accuracy when the
-logits are right but not yet confident.
+which cell in the table succeeds, above all at the edge of a model's reach. In runs with seeds 1
+to 4 (`run_recall(..., seed=s)`, made when this text was revised), the LSTM with forget bias 5
+learned lag 100 on two of the four, and the vanilla RNN reached 100% at lag 100 on one (seed 2)
+and stayed at chance on the other three. Read the table for its pattern, not for any single cell.
+The pattern: a memory set by the eigenvalue moduli at initialisation reaches all three lags on
+every seed; a memory set by a gate bias reaches about as far as that setting allows (bias 5
+always learns lag 25 and never lag 200), and the LSTM with bias 1 never leaves chance. The
+vanilla RNN is the odd row of this run: 100% at lag 100 but only 77% at lag 25, and at lag 100
+its loss is still about 1.1 after 400 updates, so it found the answer late and is not yet
+confident. On three seeds of five it never found it. A model that starts with a short memory
+can find a long one within the budget, but whether it does is a matter of luck. A dash in the
+"solved" column means the mean loss never fell below 0.05, which can happen at 100% test
+accuracy when the logits are right but not yet confident, as for the vanilla RNN here.
 
 ### Step 5: Look at the learning curves
 
 The accuracy table hides how training went. Plot the loss of every model at lag 100: a model that
 succeeds shows a plateau at $\ln 8 = 2.08$ followed by a drop, and a model that fails stays on the
-plateau. The length of the plateau is the time spent finding a gradient to follow.
+plateau. The length of the plateau is the time spent finding a gradient to follow. In the run shown
+the linear recurrence leaves the plateau after about 100 updates, while the vanilla RNN leaves
+it, unsteadily, only after about 200 and is still near 1.1 at update 400.
 
 ```python
 plt.figure(figsize=(7, 4.2))
@@ -847,20 +862,21 @@ plt.show()
 
 - **Equality.** The loop and the FFT convolution agree to a few parts in $10^{6}$ to $10^{5}$ in
   float32.
-- **Speed.** On a CPU the FFT form is faster than the loop at every length but only modestly, and
-  the advantage shrinks as $T$ grows (several times at $T = 256$, 1.1 to 1.4 times at $T = 4{,}096$ over repeated runs; the timings are noisy). The case for
-  convolution mode is parallelism, which a GPU supplies.
+- **Speed.** On a CPU the FFT form is at best modestly faster than the loop (1.1 to 1.7 times at
+  $T = 256$ and 1,024 over five runs) and no faster at $T = 4{,}096$ (0.7 to 1.1 times); the timings
+  are noisy. The case for convolution mode is parallelism, which a GPU supplies.
 - **Memory by initialisation.** The 64 moduli span 0.902–0.998724, with half-lives of about 6.7 to
   543 steps. That range, not anything learned, is why the linear recurrence can reach the first
   token.
-- **Recall.** After 400 updates the linear recurrence reaches 100% at all three lags (seeds 0, 1
-  and 2 all agree on the accuracy; the update at which the loss first drops below 0.05 varies, and
-  at lag 200 it is within the budget on one seed of the three). The vanilla RNN learns lag 25 only
-  partly (63–87% over three seeds) and is erratic at lag 100 (11–75%). The LSTM with forget bias 1
-  stays at chance even at lag 25. The LSTM with forget bias 5 is the fastest learner at lag 25
-  (100% after 56–75 updates on all three seeds), learns lag 100 on one seed of three, and is at
-  chance at lag 200. Seeds 1 and 2 were run once, when this lab was prepared, with
-  `run_recall(..., seed=1)` and `seed=2`; try them.
+- **Recall.** After 400 updates the linear recurrence reaches 100% at all three lags (seeds 0 to 4
+  all agree on the accuracy; the update at which the loss first drops below 0.05 varies, and at
+  lag 200 it is within the budget on three seeds of the five). The vanilla RNN learns lag 25 only
+  partly (62–87% over five seeds) and is erratic at lag 100: 100% on seeds 0 and 2, chance (11–14%)
+  on the other three. The LSTM with forget bias 1 stays at chance even at lag 25, on every seed.
+  The LSTM with forget bias 5 is the fastest learner at lag 25 (100% after 56–83 updates on all
+  five seeds), learns lag 100 on two seeds of five (73% on a third), and is at chance at lag 200.
+  Seeds 1 to 4 were run once, when this text was revised, with `run_recall(..., seed=s)`; try
+  them.
 - **What this does and does not show.** It shows trainability within a budget: a memory length set
   directly at initialisation against one that the LSTM has to find through a gate bias. It does not
   show that an LSTM cannot hold a long memory; with a longer budget, chrono initialisation

@@ -987,8 +987,8 @@ plt.show()
 Twenty to fifty DDIM steps give samples close to the 200-step ancestral sampler's, at a fifth to
 a tenth of the cost; the time column falls almost in proportion to $K$. Below about ten steps
 quality falls quickly. One step is a different kind of failure. At $t = 200$ the signal weight is
-$\sqrt{arlpha_{200}} = 0.008$, so the estimate $\hat{\mathbf{x}}_0$ divides the network's output
-by 0.008, a factor of 121, and any error in $oldsymbol\epsilon_	heta$ is blown up by that
+$\sqrt{\bar\alpha_{200}} = 0.008$, so the estimate $\hat{\mathbf{x}}_0$ divides the network's output
+by 0.008, a factor of 121, and any error in $\boldsymbol\epsilon_\theta$ is blown up by that
 factor. The one-step samples therefore scatter far outside the data, a precision-like distance of
 well over 1, even though their recall-like distance is only 0.14: the data region is covered, by a
 cloud that also covers a great deal more. The cost of diffusion is its number of steps, and what the

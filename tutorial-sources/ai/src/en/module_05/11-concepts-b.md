@@ -69,13 +69,6 @@ stretch depends on the schedule: with $T = 1000$, $\bar\alpha_t$ falls to 0.5 at
 the linear schedule below and at about $t = 497$ under the cosine schedule.
 :::
 
-::: figure id=fig-05-10
-The forward process on Lab 2's two moons: six scatter panels at $t$ = 0, 50, 100, 150, 175 and
-200 under the capped cosine schedule with $T = 200$, each titled with $\bar\alpha_t$ (1, 0.847,
-0.494, 0.144, 0.037 and $6.8 \times 10^{-5}$). The two moons blur, lose their shape and dissolve
-into a round Gaussian cloud.
-:::
-
 ### Schedules
 
 The schedule decides how fast the signal fades. A useful single number is the
@@ -118,7 +111,7 @@ an input is nearly pure noise. The linear schedule crosses it at $t = 674$, so s
 33% of all steps, are spent there. The cosine schedule crosses it at $t = 936$: 6.5% of the steps.
 A step drawn from that region teaches the model little, because the best prediction of $\mathbf{x}_0$
 from almost pure noise is close to the data mean whatever the input. The cosine schedule spends its
-training on noise levels where there is still something to learn.
+training on noise levels where there is still something to learn. Figure 5.11 plots both schedules.
 :::
 
 ::: figure id=fig-05-11
@@ -206,7 +199,7 @@ $1-\bar\alpha_1 = \beta_1$), 0.010 at $t = 100$, 0.0055 at $t = 500$ and 0.010 a
 puts fifty to ninety times more weight on the smallest noise levels, where denoising is easiest and
 matters least to how a sample looks. Relative to the ELBO, $\mathcal{L}_{\text{simple}}$ moves the
 emphasis to the harder, noisier steps; Ho et al. found that it gave better samples, at the price of
-no longer being a bound on the likelihood.
+no longer being a bound on the likelihood. Figure 5.12 shows one training step.
 
 ::: figure id=fig-05-12
 One training step as a diagram: draw $\mathbf{x}_0$ from the data, $t$ uniformly from
@@ -464,13 +457,6 @@ at $w$ = 1, 3 and 7, 100%. The recall-like distance (class-0 data to samples) gr
 worsens to 0.033 at $w = 7$ as samples overshoot. Fidelity is bought with diversity, and beyond some
 $w$ fidelity is lost too.
 
-::: figure id=fig-05-14
-Lab 2's guidance sweep: four panels of class-0 samples at $w$ = 0, 1, 3 and 7 over a faint outline
-of both moons, each titled with the fraction in class 0 and the recall distance (0.50 and 0.032; 1.00
-and 0.022; 1.00 and 0.029; 1.00 and 0.046). The samples move onto one moon and then crowd into its
-densest part.
-:::
-
 ### Latent diffusion
 
 Pixel-space diffusion runs a large network many times over every pixel. **Latent diffusion**
@@ -491,6 +477,8 @@ $$
 
 The denoiser processes 48 times fewer values at every step. The encoder is not needed at sampling
 time, and the decoder's cost is paid once rather than per step.
+Figure 5.15 follows the shapes through the
+pipeline.
 :::
 
 ::: figure id=fig-05-15
@@ -600,7 +588,8 @@ $$
 
 The weights are shared by every node, as a convolution shares its kernel across positions
 ([Module 03](module_03_EN.html)); a graph is like a grid whose neighbourhoods vary in size and have no
-order. One layer lets a node see its neighbours; $L$ layers give it an $L$-hop receptive field.
+order. One layer lets a node see its neighbours; $L$ layers give it an $L$-hop receptive field
+(Figure 5.17).
 
 ::: figure id=fig-05-17
 Message passing for one node: neighbour feature vectors drawn as arrows into the centre node, each
@@ -724,6 +713,7 @@ With $\mathbf{W} = \mathbf{I}$ the ReLU changes nothing. After one layer E3's ve
 gate is an OR, and E1's that its gate is an AND: E3 is a single point of failure, E1 is not, and a
 linear read-out of the first component separates them. For an event deeper in a larger tree the
 answer depends on gates further up, and one layer cannot see them.
+Figure 5.16 shows the tree and both matrices.
 :::
 
 ::: figure id=fig-05-16
@@ -804,12 +794,6 @@ The best-scoring neighbour gets half the weight. A GCN would have weighted the t
 whatever their features said.
 :::
 
-::: figure id=fig-05-18
-GAT on one node: three neighbour arrows with thickness proportional to
-$\alpha = (0.318, 0.524, 0.158)$. Beside it, the same node under a GCN, with arrow thickness set by
-$1/\sqrt{\tilde d_v \tilde d_u}$, the degrees alone.
-:::
-
 ### Over-smoothing
 
 Average a neighbourhood often enough and everything looks the same. $\hat{\mathbf{A}}$ is symmetric,
@@ -847,13 +831,6 @@ $-0.2795$. Measure similarity as the mean cosine over the ten pairs of rows of $
 The distance from the limit shrinks as $|\lambda_2|^k$ predicts. The limit has
 $\mathbf{u}_1 \propto (\sqrt 3, 2, \sqrt 2, \sqrt 2, \sqrt 2)$ for (T, G1, E1, E2, E3): E3, the single
 point of failure, and E1, which is not, end up with identical vectors.
-:::
-
-::: figure id=fig-05-19
-Over-smoothing curves from the message-passing explorer on the 12-node cooling-system tree: mean
-pairwise cosine similarity of $\hat{\mathbf{A}}^k\mathbf{X}$ for $k = 0, \dots, 40$. Symmetric
-normalisation: 0.455 at $k = 0$, then 0.856, 0.967, 0.993, 0.999 at $k$ = 1, 4, 8, 16. Random walk:
-0.780, 0.943, 0.987, 0.998. Symmetric without self-loops: oscillating, settling near 0.976.
 :::
 
 ::: widget name=message-passing-explorer
@@ -898,7 +875,8 @@ computes the same update, so after one layer all twelve nodes hold the same $\ma
 by induction the same $\mathbf{h}^{(k)}$. For a GCN, $\tilde d = 3$ everywhere,
 the non-zero entries of $\hat{\mathbf{A}}$ are $1/3$, and each row of $\hat{\mathbf{A}}\mathbf{X}$ is
 $3 \times \tfrac13\,\mathbf{h}^{(0)} = \mathbf{h}^{(0)}$. No readout, after any number of layers,
-separates one 6-cycle from two 3-cycles, though one graph is connected and the other is not.
+separates one 6-cycle from two 3-cycles, though one graph is connected and the other is
+not (Figure 5.20).
 :::
 
 ::: figure id=fig-05-20

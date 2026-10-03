@@ -1,0 +1,45 @@
+{
+ "summary": "Module 04 (en) technical review done. I recomputed by independent scripts (tools/labpy.sh) every derivation, worked example, check and answer in s1-s13, every exercise solution and every quiz answer and explanation: the parameter counts (2,080/32,032/1,088/1,120; 26,021; 4,480, 12,961, 3,360, 141,312; e5's 4,672/18,944/14,208/102,912; quiz 2,560/2,480/1,920/640; e15's 10,593 and its multiply-add counts), the memory figures (3.28 GB, 6.55 MB, 32,768 B, 196,608 B per token, 6.44 GB = 6.0 GiB, 0.81 GB), the hand BPTT (g = -0.3099, -0.1345, -0.02824; dL/dw = -0.2151, confirmed by central differences), the w^n table, lags, 2x2 eigen-example, non-normal norms, clipping angles, half-life tables, LSTM step, leaky integrator, MASE, Gaussian false-alarm rates, precision, beam-search toy, additive and dot attention, TCN reach, linear-recurrence/convolution identity, FFT counts, complex mode, LRU half-lives, ZOH values. I also re-simulated the s4 tanh gradient experiment (four draws per setting agree in order of magnitude) and approximately reproduced the s8 sinusoid-plus-drift worked example (global z-score LSTM 0.77-0.96 against naive 0.158, linear 0.103, fixed model 0.12-0.13; same failure, consistent with the text's labelled prepared run). The concept parts have no output fences; their display-only code was run and is correct (rnn_forward matches nn.RNN to 6e-8; set_forget_bias gives exactly 1; the packed-sequence gather equals h_n[-1], and h_n[-2]/h_n[-1] are the right bidirectional states). All 10 exercise code blocks were run: 9 reproduce their output fences exactly; e15 reproduces every RMSE and parameter count for seed 0 and the quoted seed-1 and seed-2 figures (0.132 vs 0.138, 0.134 vs 0.134), and differs only in wall-clock timings, which the text already labels as load-dependent, so the fence was left as is. Every lab number quoted in the concept text, What goes wrong, exercises, quiz and summary matches the labs' printed outputs. Cross-references: all in-page section, lab, exercise and figure references resolve (16 figures, all ids present); bare links to Modules 01-03 and 05-07 point at modules that cover the claimed topics, Modules 08-10 per BRIEF ownership (not yet written); there are no AI Agents links. Citations and years checked; the paper-check corrections for M04 are in place. CANONICAL M04 notes are applied (s13 sampled-moduli wording, e5 at two stars, S1/S3 reading runs split in the plan); the M03 note's e15 reference is correct. Exercise budget 7/7/1, 130 minutes. No public-site violations found (no private-terms file is present locally; checker uses its generic list). Seven fixes were made. node tools/check.mjs --module 4 --lang en --words reports 0 errors, 0 warnings.",
+ "changes": [
+  {
+   "file": "src/en/module_04/10-concepts-a.md",
+   "wrong": "s4 worked example 'How far back a recurrent weight reaches': w = 0.5 gives n = -6.908/-0.6931 = 10.0",
+   "now": "= 9.97 (the quotient is 9.966)"
+  },
+  {
+   "file": "src/en/module_04/10-concepts-a.md",
+   "wrong": "gradient-flow-explorer body: 'The default is the simulation above', but the widget's default seed shows 6.7e-3, 3.1e-11, 1.1e-21 at lags 10/50/100 (its task report, verified against numpy), not the text's planning draw 1.8e-2, 5.5e-11, 5.1e-21",
+   "now": "'The default is the simulation above, with the widget's own random draw: the ratio passes 6.7e-3, 3.1e-11 and 1.1e-21 at lags 10, 50 and 100.'"
+  },
+  {
+   "file": "src/en/module_04/11-concepts-b.md",
+   "wrong": "s5 'Parameters and compute': 'about 8H(H + d_in) floating-point operations per sequence' (that is the cost of one step)",
+   "now": "'per step and per sequence'"
+  },
+  {
+   "file": "src/en/module_04/30-exercises.md",
+   "wrong": "e4(d): with the wrong slice ([0:H]) 'the memory would be 0.5^60 for the first line instead'; in fact every line would show it, since the forget gate stays at sigma(0) whatever the bias (verified by running the script with [0:H]: 8.674e-19 on all three lines)",
+   "now": "'the forget gate would stay at sigma(0) = 0.5 and every line would print 0.5^60 = 8.7e-19 (or 0.5^250 for the last), whatever the bias.'"
+  },
+  {
+   "file": "src/en/module_04/20-labs-a.md",
+   "wrong": "Lab 1 Step 2 prose: 'This is the additive smoothing of Module 01 applied recursively'; Module 01 does not cover additive smoothing",
+   "now": "'This is additive smoothing applied recursively' (link removed; lab code and outputs untouched)"
+  },
+  {
+   "file": "src/en/module_04/20-labs-a.md",
+   "wrong": "Lab 3 Step 2 prose attributes '10 epochs' to Section 8's forecaster, whose worked example used 15",
+   "now": "'10 epochs (Section 8's run used 15)'"
+  },
+  {
+   "file": "src/en/module_04/40-practice.md",
+   "wrong": "Pascanu et al. 'Why read it': 'gradient-norm clipping, which every recurrent and transformer training run still uses' (undated overclaim)",
+   "now": "'which is still standard in recurrent and transformer training as of 2026'"
+  }
+ ],
+ "issues": [
+  "s8 worked example (sin t + 0.05t, LSTM RMSE 1.075 vs naive 0.155, linear 0.099, input ranges -1.92..1.92 / 1.46..3.10, mean error -0.87) has no code or noise seed in the module, so it cannot be reproduced exactly; my re-implementation with Lab 3's Forecaster, 15 epochs and default_rng(0) noise gives 0.96 (seed 0) and 0.77 (seed 1) vs naive 0.158, linear 0.103, fixed model 0.13/0.12, ranges -1.89..1.94 / 1.46..3.09. Same conclusion. Proposed fix: state the noise generator in the example (e.g. default_rng(0)) and requote, or keep it labelled as a prepared run as now.",
+  "s4's tanh simulation numbers (1.8e-2, 5.5e-11, 5.1e-21; 1.3e-3; 1.3e-7; 5.5e8) are a planning draw with no stated seed; my four draws per setting agree within a factor of a few, as the text says. If exact traceability is wanted, quote the widget's seed-1 values throughout (the widget report gives 6.7e-3, 3.1e-11, 1.1e-21 and 5.4e8 for rho = 3; the sigma_x = 0.1 and rho = 1.5 values would need reading from the widget).",
+  "e15's output fence and part (d) quote timings (27% shorter; other seeds 50% and 51%). My runs on this machine gave 41%, 11% and 44% for seeds 0-2 with identical RMSEs. The text already says to read the ratio, not the seconds; a later pass might soften '27% less' to a range such as 'roughly 10 to 50% less across runs'."
+ ]
+}

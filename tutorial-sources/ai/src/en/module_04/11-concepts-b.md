@@ -181,8 +181,8 @@ set_forget_bias(lstm, 1.0)
 Four matrices of size $H\times(H+d_\text{in})$ and four biases give $4H(H + d_\text{in} + 1)$
 parameters; PyTorch's two bias vectors make it $4H(H + d_\text{in}) + 8H$, four times a plain
 recurrent layer of the same width. Each step computes four matrix-vector products of size
-$H\times(H + d_\text{in})$: about $8H(H + d_\text{in})$ floating-point operations per sequence,
-counting a multiply-add as two.
+$H\times(H + d_\text{in})$: about $8H(H + d_\text{in})$ floating-point operations per step and
+per sequence, counting a multiply-add as two.
 
 ::: worked title="Counting an LSTM's parameters"
 `nn.LSTM(1, 32)`: $4\cdot 32\cdot(32 + 1) + 8\cdot 32 = 4{,}224 + 256 = 4{,}480$.
@@ -206,7 +206,7 @@ In [Lab 2](#lab2), with forget bias 0 an LSTM's gradient decays with lag like a 
 with bias 3 or 5 the gradient ratio stays between about 0.14 and 0.4 out to lag 100. On
 [Lab 1](#lab1)'s maintenance log, after 2,500 updates, the closing tag (18 to 36 characters
 after its opening tag) is right 14 to 25% of the time for a plain RNN, near the 12.5% of
-guessing, and 74 to 86% for the LSTMs with forget bias 0 and 1 (Lab 2's run and a second seed).
+guessing, and 64 to 96% for the LSTMs with forget bias 0 and 1 (Lab 2's run and a second seed).
 Which of the two LSTMs is ahead changes with the seed; the gap between the gated cells and the
 plain one does not.
 
@@ -635,8 +635,8 @@ The same model then scores about 0.12 to 0.14, depending on the seed, against th
 least-squares linear autoregression on the same windows scores 0.099, at the noise floor (no
 one-step forecast can beat the noise's standard deviation of 0.1 except by chance). On a sinusoid
 plus drift plus noise, a linear model is the right tool. [Lab 3](#lab3) runs the same model on a
-nonlinear signal that also drifts: it loses to persistence there too (RMSE 0.42 against 0.37, mean
-error $-0.32$), the fix brings it to 0.135, and on that signal the LSTM has something to add over
+nonlinear signal that also drifts: it loses to persistence there too (RMSE 0.43 against 0.36, mean
+error $-0.32$), the fix brings it to 0.13, and on that signal the LSTM has something to add over
 the linear model.
 :::
 
@@ -664,9 +664,9 @@ linear model with a long window the two nearly coincide: when the window holds t
 linear state, iterating the best one-step linear predictor gives the best $h$-step one, which is
 what the direct regression estimates. For a nonlinear model they differ, often a lot. Step 5 of
 [Lab 3](#lab3) plots error against horizon for both strategies: the recursive LSTM is the best
-forecaster at $h = 1$ (RMSE 0.13), and at $h = 20$ it is close to the naive forecast (0.73
-against 0.78) and well behind the direct LSTM and both linear models (about 0.57; the two linear
-strategies coincide).
+forecaster at $h = 1$ (RMSE 0.13), and at $h = 20$ it is worse than the naive forecast (0.78
+against 0.72) and well behind the direct LSTM and both linear models (about 0.55 to 0.56; the two
+linear strategies coincide).
 
 ### Point forecasts and intervals
 

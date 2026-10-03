@@ -32,7 +32,7 @@ PINN is a solver; with data and an unknown coefficient it is an estimator.
 
 Nothing here needs a mesh: collocation points are just points. That is the attraction. It is
 also why the method inherits none of the error estimates that come with a mesh-based solver's
-convergence theory.
+convergence theory. Figure 5.21 shows how the pieces fit together.
 
 ::: figure id=fig-05-21
 PINN schematic. The input $t$ (and $\mathbf{x}$ for a PDE) enters an MLP whose output is
@@ -134,19 +134,12 @@ ranking flips. That is Lab 4's first fix.
 The equation is homogeneous, so $u \equiv 0$ satisfies it exactly. Only the initial conditions
 rule zero out, and the optimiser does not know which of its terms expresses what the modeller
 wants: it reduces whichever is largest. In [Lab 4](#lab4) a freshly initialised network starts
-with a residual loss of 52.5 against an initial-condition loss of 1.36 (Figure 5.23). The
+with a residual loss of 52.5 against an initial-condition loss of 1.36. The
 quickest way to shrink 52.5 is to shrink the output, and the optimiser takes it. After 3,000
 steps with $\lambda_{ic} = 1$ the residual term is about $6 \times 10^{-3}$, the
 initial-condition term about 0.99, and the relative error 0.998: a flat line near zero. With
 $\lambda_{ic} = 0$ the error is 1.000. The loss is small and the answer is wrong, which is the
 most important thing to know about PINNs.
-
-::: figure id=fig-05-23
-Bar chart on a logarithmic vertical axis of the loss terms of Lab 4's freshly initialised
-network. Dimensional formulation: residual 52.5, initial conditions 1.36. Non-dimensional
-formulation: residual 0.034, initial conditions 1.36. The residual bar drops by a factor of
-about 1,500 while the initial-condition bars are equal.
-:::
 
 ### Three fixes, measured
 
@@ -205,13 +198,6 @@ least-squares fit. The PINN earns its cost where neither exists, or where a whol
 recovered from a PDE: a damping ratio from a dozen accelerometer readings in a structure with no
 closed form, a thermal conductivity from a few thermocouples, or a material parameter from a
 handful of strain gauges.
-
-::: figure id=fig-05-22
-Lab 4's results on one time axis from 0 to 2 s. The exact solution, a decaying oscillation of
-1 Hz; the dimensional PINN with $\lambda_{ic} = 1$, a flat line near zero; the PINN with
-$\lambda_{ic} = 100$ and the non-dimensional PINN, both lying on the exact curve; the 12 noisy
-readings as dots; and the inverse-problem fit with $\zeta = 0.099$ through them.
-:::
 
 ### Failure modes beyond the trivial solution
 
@@ -321,13 +307,6 @@ the trunk runs 10,000 times (a batch of shape `(10000, 1)` giving `(10000, 64)`)
 output is one matrix–vector product, `(10000, 64) @ (64,)`.
 :::
 
-::: figure id=fig-05-24
-DeepONet. Left: an input function $a(y)$ drawn as a curve with $m$ sensor dots, feeding a branch
-net that outputs a vector $\mathbf{b}$; a query point $y$ feeding a trunk net that outputs a
-vector $\mathbf{t}$; the two meet in a dot product giving $\mathcal{G}(a)(y)$. Right, the POD
-analogy: a few modes $\phi_k(y)$ drawn as curves and their coefficients $c_k$ as bars.
-:::
-
 ### The Fourier neural operator
 
 The Fourier neural operator (FNO; Li et al. 2021) works on a grid. It lifts the input pointwise
@@ -379,6 +358,7 @@ class FourierLayer1d(nn.Module):
 depend on the grid, so a trained FNO can be evaluated at another resolution. The caveats are
 real. Frequencies above $k_{\max}$ are never modelled, a coarse training grid aliases fine
 detail into the retained modes, and a finer grid does not widen the training distribution.
+Figure 5.25 draws one layer.
 
 ::: figure id=fig-05-25
 One Fourier layer. Upper path: $\mathbf{v}$ → FFT → keep the $k_{\max}$ lowest modes (the rest
@@ -473,7 +453,7 @@ gives the representation $\mathbf{h}$, and a small projection head $g$ gives $\m
 which the loss is computed. Probe $\mathbf{h}$, not $\mathbf{z}$: the head learns to discard
 whatever the augmentations vary, and that can include what the downstream task needs. In
 [Lab 5](#lab5), with 5 labels per class, a probe on $\mathbf{z}$ scores 0.61 and one on
-$\mathbf{h}$ 0.93.
+$\mathbf{h}$ 0.93. Figure 5.26 shows the pipeline.
 
 ::: figure id=fig-05-26
 SimCLR pipeline. One vibration window passes through two random augmentations (time shift,
@@ -526,12 +506,6 @@ each column (a caption against $B$ images), averaging the two. Zero-shot classif
 prompts such as "a photo of a {label}" and picks the nearest. These embeddings condition
 text-to-image models and power many retrieval systems; retrieval-augmented generation is covered
 in [AI Agents](../agent/index.html).
-
-::: figure id=fig-05-27
-CLIP's $B \times B$ similarity matrix for a batch of $B$ image–caption pairs, images along the
-rows and captions along the columns, with the diagonal highlighted as the positives. Arrows
-along a row and down a column show the two softmax directions of the symmetric loss.
-:::
 
 The other branch is **masked modelling**: hide part of the input and predict it. BERT predicts
 masked tokens ([Module 06](module_06_EN.html)); masked autoencoders hide 75% of an image's
@@ -644,6 +618,7 @@ same attention and embeddings: $11.3 + 1.34 + 0.26 = 12.9$B.
 The paper reports 47B total and 13B active. The router ($32 \times 8 \times 4096 = 1.05$M) and
 the normalisation weights (about 0.27M) are left out; they change neither figure. A token costs
 about as much as in a 13B dense model, while the model holds 3.6 times the parameters.
+Figure 5.28 shows where the router sits.
 :::
 
 ::: figure id=fig-05-28
@@ -743,6 +718,8 @@ its cost. The table keeps the nine needs and adds both.
 | A fast surrogate for a solver across a family of inputs | Neural operator | a Gaussian-process or POD surrogate, and the solver itself | valid only inside the training family |
 | Representations without labels | Contrastive, masked prediction | spectral or engineered features; PCA | the augmentations decide what is learned |
 | Capacity without proportional compute | Mixture of experts | a dense model of the same active size | routing collapse; memory |
+
+Figure 5.29 puts the same choices as a decision flow.
 
 ::: figure id=fig-05-29
 Decision flow. "Is the data a graph or mesh?" leads to GNN. "Is there a governing equation?"

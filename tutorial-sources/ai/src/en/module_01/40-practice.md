@@ -103,7 +103,7 @@ Belkin, M., Hsu, D., Ma, S., Mandal, S. "Reconciling modern machine-learning pra
 
 **Why read it.** The paper that named double descent. It shows where the classical U-shaped validation curve of [Section 8](#s8) stops being the whole story, and why the decomposition itself still holds.
 
-**What to read and skip.** Read the abstract, the introduction up to and including Figure 1, and the section on random Fourier features with its figure. Skip the theoretical analysis and the supplementary material.
+**What to read and skip.** Read the abstract, the introduction up to and including Figure 1, and the part on random Fourier features in the section on neural networks, with its figure of test risk, coefficient norm and training risk against the number of features. Skip the theoretical analysis and the supplementary material.
 
 **Questions to answer while reading**
 
@@ -120,7 +120,7 @@ Kapoor, S., Narayanan, A. "Leakage and the reproducibility crisis in machine-lea
 
 **Why read it.** A survey of leakage in published machine-learning-based science, with a taxonomy that turns [Lab 4](#lab4)'s three cases into a checklist, and a case study in which a celebrated advantage of complex models disappears once leakage is fixed.
 
-**What to read and skip.** Read the introduction, the leakage taxonomy (its table and the definition of each type) and the civil-war prediction case study. Skim the field-by-field survey and the model info sheet.
+**What to read and skip.** Read the introduction, the taxonomy of eight leakage types (the definition of each type, and the survey table whose columns are the types) and the civil-war prediction case study. Skim the field-by-field survey and the model info sheet.
 
 **Questions to answer while reading**
 

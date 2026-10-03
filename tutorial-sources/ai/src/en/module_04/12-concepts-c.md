@@ -80,12 +80,14 @@ rolling standard deviation alarms below half its hold-out minimum. The lab's run
 
 - **Spike**: the point test fires at once, and once more on the next sample, whose input window
   ends in the spike.
-- **Offset**: the point test fires at its onset and its end only (5 alarm samples in all).
-- **Doubled excitation**: no residual is extreme, but the residual RMS rises from 0.135 to about
-  0.21; the rolling RMS alarms 85 samples after the change (30 to 100 samples over the runs made
-  when the lab was prepared).
-- **Stuck sensor**: no residual alarm; the variance floor fires 19 samples after it sticks, once
-  its window has filled with identical values.
+- **Offset**: the point test fires around its onset and at its end only (3 alarm samples in all:
+  the onset, 4 samples later, and the end).
+- **Doubled excitation**: few residuals are extreme (five point alarms, the first 151 samples in), but
+  the residual RMS rises from 0.134 to about 0.21; the rolling RMS alarms 99 samples after the change (85 with a
+  second training seed).
+- **Stuck sensor**: no residual alarm while it is stuck (one point alarm on the sample where it
+  recovers); the variance floor fires 21 samples after it sticks, once its window has filled with
+  near-constant residuals.
 - **Normal stretches** (239 samples): no false alarm from any of the three detectors, too short a
   record to estimate a false-alarm rate.
 :::
@@ -185,9 +187,9 @@ At test time there is no true previous token; the decoder conditions on its own 
 token puts it in a state no training step produced, the next prediction is less reliable, and
 errors compound. Ranzato et al. (2016) named this **exposure bias**: the model was only ever
 exposed to correct prefixes. [Lab 4](#lab4) measures it. For the model without attention at length
-12, token accuracy is 73% when each step is given the true prefix (teacher-forced) and 51% when the
-model runs on its own outputs (free-running); at length 8, 91% against 78%; at length 4 there is no
-gap worth the name (99.8% against 99.7%).
+12, token accuracy is 74% when each step is given the true prefix (teacher-forced) and 53% when the
+model runs on its own outputs (free-running); at length 8, 91% against 80%; at length 4 there is no
+gap worth the name (99.7% against 99.4%).
 
 **Scheduled sampling** (Bengio et al. 2015) feeds the model's own prediction in place of the true
 token with a probability that rises during training, so it learns to recover from its mistakes.
@@ -251,8 +253,9 @@ $0 < \alpha \le 1$; Wu et al. (2016) use the smoothed divisor $\big((5+|y|)/6\bi
 minimum length is a cruder guard. Beam search serves tasks that want the single best output; when
 diverse outputs are wanted, sampling serves better ([Module 07](module_07_EN.html)). Nor can search
 repair a model that does not know the answer: in Lab 4, beam search with $k = 4$ leaves the
-bottleneck model at 0 correct strings out of 200 at length 12, as greedy decoding does, and moves
-its token accuracy only from 51.8% to 52.5%.
+bottleneck model at 0 correct strings out of 200 at length 12, as greedy decoding does, and its
+token accuracy falls from 52.3% to 49.1%: the beam finds outputs the model rates as more probable,
+and they are no more correct.
 
 ### The bottleneck
 
@@ -262,7 +265,7 @@ substantially. Reversal puts the first source words next to the first target wor
 earliest dependencies the decoder needs are short; that such a trick helps at all is a symptom of
 the bottleneck. Cho, van Merriënboer, Bahdanau and Bengio (2014) observed translation quality
 falling as sentences grew longer. Lab 4 measures it cleanly: reversing digit strings with a GRU
-encoder–decoder whose summary is 64 numbers, sequence accuracy is about 99% at length 4, 36% at
+encoder–decoder whose summary is 64 numbers, sequence accuracy is about 98% at length 4, 43% at
 length 8 and 1% at length 12 (one run; another seed moves the middle value by several points).
 [Section 11](#s11) removes the bottleneck.
 
@@ -376,9 +379,9 @@ producing each output. It can be plotted, and Bahdanau et al.'s plots for Englis
 translation are mostly diagonal, because the languages share word order, with local departures
 where they do not, such as the swapped order of adjective and noun. For digit reversal the
 alignment should be the anti-diagonal, and it is. In [Lab 4](#lab4), for an 8-digit input the
-argmax of each digit row is $(7, 6, 5, 4, 3, 2, 1, 0)$, with peak weights between 0.65 and 0.83:
+argmax of each digit row is $(7, 6, 5, 4, 3, 2, 1, 0)$, with peak weights between 0.63 and 0.84:
 the model has found "look at the mirror position". Lab 4's Step 6 plots the heat map. With
-attention the sequence accuracy is 100% at lengths 4, 8 and 12, against about 99%, 36% and 1%
+attention the sequence accuracy is 100% at lengths 4, 8 and 12, against about 98%, 43% and 1%
 without.
 
 ### Luong's variants, and the scale of a dot product
@@ -617,9 +620,11 @@ operator: two steps, $\tanh(w\tanh(wh + b_1) + b_2)$, are not one step of the sa
 A direct causal convolution of length $T = 4{,}096$ needs about $T^2/2 = 8.4$ million multiply-adds
 per channel. An FFT-based one, padded to $2T$, needs about $3\times 2T\log_2(2T) = 3\times8{,}192 \times13 \approx 0.32$ million (an order-of-magnitude count). The recurrent loop needs only $T$
 multiply-adds per channel, but they are sequential. On a CPU the counts do not decide the race.
-[Lab 5](#lab5)'s timings (batch 8, $N = 64$, best of three, one run) are 1.4 ms for the loop
-against 0.5 ms for the FFT form at $T = 256$, 5.4 against 2.5 ms at 1,024, and 25.7 against
-18.9 ms at 4,096: the FFT form is faster, but only modestly, and its lead shrinks as $T$ grows.
+[Lab 5](#lab5)'s timings (batch 8, $N = 64$, best of three, the run shown) are 4.2 ms for the loop
+against 3.8 ms for the FFT form at $T = 256$, 19.8 against 13.8 ms at 1,024, and 79.1 against
+70.0 ms at 4,096. Over five runs the FFT form was 1.1 to 1.7 times faster at the two shorter
+lengths and 0.7 to 1.1 times at 4,096: at best modestly faster, and at the longest length no
+faster at all.
 Convolution mode pays off where parallel hardware can absorb its larger, parallel work, on a GPU
 and in training.
 :::
@@ -739,10 +744,11 @@ returns.
 
 [Lab 5](#lab5) builds an LRU-style diagonal recurrence. Its loop and FFT forms agree to float32
 round-off, a few parts in $10^6$ to $10^5$. On delayed recall (remember the first of $L+1$
-tokens), after 400 updates it reaches 100% at lags 25, 100 and 200 on all three seeds tried. The
-vanilla RNN learns lag 25 only partly (63 to 87% over three seeds) and is erratic at lag 100. An
-LSTM depends on its forget bias: with bias 1 it stays at chance even at lag 25; with bias 5 it is
-the fastest learner at lag 25, learns lag 100 on one seed of three, and fails at lag 200. The
+tokens), after 400 updates it reaches 100% at lags 25, 100 and 200 on all five seeds tried. The
+vanilla RNN learns lag 25 only partly (62 to 87% over five seeds) and is erratic at lag 100 (100%
+on two seeds, chance on three). An LSTM depends on its forget bias: with bias 1 it stays at chance
+even at lag 25; with bias 5 it is the fastest learner at lag 25, learns lag 100 on two seeds of
+five, and fails at lag 200. The
 recurrence's memory was set at initialisation by its eigenvalue moduli. This is a statement about
 trainability within a budget, not a proof that LSTMs cannot remember.
 
@@ -814,7 +820,7 @@ targets and validation inputs.
 
 **Symptom.** On the newest data the network is worse than persistence: the code of
 [Section 8](#s8)'s worked example scores 1.075 against the naive 0.155, and the same model in
-[Lab 3](#lab3) 0.42 against 0.37. **Cause.** The level drifted
+[Lab 3](#lab3) 0.43 against 0.36. **Cause.** The level drifted
 beyond anything seen in training, and a network does not extrapolate a level: its predictions are
 biased towards the levels it knows. **Fix.** Normalise per window (subtract the last value or the
 window mean; RevIN) or difference the series, and always print the naive baseline beside the model.
@@ -870,14 +876,14 @@ does not change.
 **Symptom.** Output is fluent for a few tokens, then drifts off or loops. **Cause.** Exposure bias:
 the model was trained only with teacher forcing and has never seen its own mistakes
 ([Section 10](#s10)). **Fix.** Scheduled sampling, some free-running training, or sequence-level
-objectives. At minimum, evaluate free-running: in Lab 4, at length 12, the gap is 73%
-teacher-forced against 51% free-running token accuracy.
+objectives. At minimum, evaluate free-running: in Lab 4, at length 12, the gap is 74%
+teacher-forced against 53% free-running token accuracy.
 
 ### A multi-step forecast that diverges after a few steps
 
 **Symptom.** Excellent one-step error, poor error at longer horizons. **Cause.** The recursive
 strategy feeds predictions back as inputs and compounds their errors; in Lab 3 the best one-step
-model, the recursive LSTM, is nearly as bad as naive at $h = 20$ (RMSE 0.73 against 0.78). **Fix.** Train a direct multi-output model, or train the
+model, the recursive LSTM, is worse than naive at $h = 20$ (RMSE 0.78 against 0.72). **Fix.** Train a direct multi-output model, or train the
 recursive model on its own rollouts, and report error against horizon.
 
 ### Beam search that returns short or empty outputs
