@@ -175,6 +175,7 @@ for (const n of mods) {
     if (env.counts.paper < 2) warn(L, '', `${env.counts.paper} guided papers (want 2–3)`)
     if (labIds.length < 4) warn(L, '', `${labIds.length} labs (want 4–6)`)
     if (env.missingFigures.length) warn(L, '', `figures not drawn yet: ${env.missingFigures.join(', ')}`)
+    if (env.figRefsMissing && env.figRefsMissing.length) warn(L, '', `text cites figures with no ::: figure on the page (the number is a figure id): ${[...new Set(env.figRefsMissing)].join(', ')}`)
     for (const w of env.widgets) if (!fs.existsSync(path.join(ROOT, 'src', 'widgets', `${w}.js`))) warn(L, '', `widget "${w}" has no src/widgets/${w}.js yet`)
     // links
     for (const m of src.matchAll(/\]\(([^)\s]+)\)/g)) {

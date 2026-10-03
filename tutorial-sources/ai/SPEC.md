@@ -138,7 +138,11 @@ Because ...
 
 Figures. The SVG is drawn separately, from the plan's description and your caption; you place it
 and caption it. Ids are `fig-NN-k` as in the plan (an extra figure takes the next free number and
-the caption must describe it precisely). Refer to it in the text as "Figure N.k".
+the caption must describe it precisely). Refer to it in the text as "Figure N.k", where k is the
+id's number: `fig-06-12` is "Figure 6.12" in the source. The page numbers figures by order of
+appearance and rewrites each reference to match, so if `fig-06-12` is the ninth figure the reader
+sees "Figure 6.9" in both places. Ids never change when figures are cut, reordered or added, and
+`tools/check.mjs` warns about a reference whose figure is not on the page.
 
 ```text
 ::: figure id=fig-06-2
