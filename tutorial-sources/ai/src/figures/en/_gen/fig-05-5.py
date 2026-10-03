@@ -10,7 +10,7 @@ L = {"en": dict(z="z", dens="density", prior="prior  p(z) = N(0, 1)", post="true
                 elbo="ELBO {v:.2f}", gap="gap {v:.2f}", gap0="gap 0", leg_e="ELBO", ttl="log p(x) = ELBO + KL(q ‖ posterior)"),
      "zh": dict(z="z", dens="密度", prior="先验  p(z) = N(0, 1)", post="真实后验  p(z | x = 2) = N(1, 0.5)",
                 y="奈特", qpost="q = 后验\nN(1, 0.5)", qprior="q = 先验\nN(0, 1)", logp="log p(x)\n= {v:.2f}",
-                elbo="ELBO {v:.2f}", gap="间隙 {v:.2f}", gap0="间隙 0", leg_e="ELBO", ttl="log p(x) = ELBO + KL(q ‖ 后验)")}[lang]
+                elbo="ELBO {v:.2f}", gap="差距 {v:.2f}", gap0="差距 0", leg_e="ELBO", ttl="log p(x) = ELBO + KL(q ‖ 后验)")}[lang]
 
 x = 2.0
 def npdf(z, m, v): return np.exp(-(z - m) ** 2 / (2 * v)) / np.sqrt(2 * np.pi * v)
@@ -48,11 +48,15 @@ for i, (lab, e) in enumerate(cases):
         a2.plot([xc, xc + bw], [logp, logp], color=figstyle.RED, lw=3, solid_capstyle="butt")
         a2.text(xc + 0.02, logp - 0.12, L["gap0"], color=figstyle.RED, fontsize=11, ha="left", va="top")
 a2.axhline(logp, color=figstyle.NAVY, lw=1.3, ls="--", zorder=0)
-a2.text(0.5 * sep + 0.08, logp + 0.1, L["logp"].format(v=logp).replace("-", "−"), color=figstyle.NAVY, fontsize=11, ha="center", va="bottom")
+a2.text(0.5 * sep - 0.05, logp + 0.1, L["logp"].format(v=logp).replace("-", "−"), color=figstyle.NAVY, fontsize=11, ha="center", va="bottom")
 a2.axhline(0, color=figstyle.MUTED, lw=1)
 a2.set_xticks([0, sep]); a2.set_xticklabels([cases[0][0], cases[1][0]])
 a2.set_xlim(-0.55, 2.2); a2.set_ylim(-3.9, 0.15)
 a2.set_ylabel(L["y"])
 a2.set_title(L["ttl"], fontsize=11, color=figstyle.NAVY)
 a2.grid(axis="x", visible=False)
-figstyle.save(fig, "fig-05-5", lang)
+out = figstyle.save(fig, "fig-05-5", lang)
+if lang == "zh":                                                  # root font stack with Chinese fonts
+    s = open(out, encoding="utf-8").read()
+    s = s.replace("<svg ", '<svg font-family="DM Sans, PingFang SC, Microsoft YaHei, Noto Sans SC, system-ui, sans-serif" ', 1)
+    open(out, "w", encoding="utf-8").write(s)

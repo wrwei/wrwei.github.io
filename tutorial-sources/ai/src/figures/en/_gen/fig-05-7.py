@@ -13,9 +13,9 @@ T = {"en": dict(noise="noise " + z, pz="~ " + I("p") + "(" + z + ")", fake="fake
      "zh": dict(noise="噪声 " + z, pz="~ " + I("p") + "(" + z + ")", fake="假样本", real="真样本",
                 pdata=x + " ~ " + I("p") + SUB("data"), prob="“为真”的概率",
                 gl="G 的损失：骗过 " + I("D"), gl2="非饱和：最大化 log " + DGz,
-                dl="D 的损失：区分真与假", dl2="交叉熵，真为 1、假为 0",
-                ug="更新 " + I("G") + "（梯度穿过 " + I("D") + "）", ud="更新 " + I("D"),
-                alt="交替：" + I("D") + " 走一步，" + I("G") + " 走一步")}[L]
+                dl="D 的损失：区分真与假", dl2="交叉熵，标签真为 1、假为 0",
+                ug="更新 " + I("G") + "（梯度经由 " + I("D") + " 回传）", ud="更新 " + I("D"),
+                alt="交替进行：" + I("D") + " 更新一步，" + I("G") + " 更新一步")}[L]
 W, H = 720, 350
 o = open_svg(W, H, L, extra_defs=''.join(
     f'<marker id="{i}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'

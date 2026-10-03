@@ -3,12 +3,12 @@ import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _common import *
 L = lang()
 mu, sg, eps, x, z, xh = B("μ"), B("σ"), B("ε"), B("x"), B("z"), B("x̂")
-T = {"en": dict(enc="encoder", dec="decoder", ext="external input,", ext2="no parameters",
+T = {"en": dict(enc="encoder", dec="decoder", ext="external input, ", ext2="no parameters",
                 rec="reconstruction", kl="KL term", neg="−ELBO", grad="gradient (backward)",
                 nog="no gradient into " + eps, sum="sum", exp="exp(½ ·)"),
-     "zh": dict(enc="编码器", dec="解码器", ext="外部输入，", ext2="没有参数",
-                rec="重建项", kl="KL 项", neg="−ELBO", grad="梯度（反向）",
-                nog="梯度不进入 " + eps, sum="相加", exp="exp(½ ·)")}[L]
+     "zh": dict(enc="编码器", dec="解码器", ext="外部输入，", ext2="不含参数",
+                rec="重建项", kl="KL 项", neg="−ELBO", grad="梯度（反向传播）",
+                nog="梯度不流入 " + eps, sum="相加", exp="exp(½ ·)")}[L]
 W, H = 760, 364
 o = open_svg(W, H, L)
 cy = 180
@@ -34,7 +34,7 @@ box(425, cy, 132, 40, z + " = " + mu + " + " + sg + " ⊙ " + eps, F_GREEN, GREE
 o.append(f'<circle cx="425" cy="306" r="19" fill="#F1F5F9" stroke="{MUTED}" stroke-width="1.6" stroke-dasharray="4 3"/>')
 o.append(text(425, 311, eps, 15, "middle", NAVY))
 o.append(text(452, 302, eps + " ~ 𝒩(" + B("0") + ", " + B("I") + ")", 13, "start", NAVY))
-o.append(text(452, 318, T["ext"] + " " + T["ext2"], 12, "start", SLATE))
+o.append(text(452, 318, T["ext"] + T["ext2"], 12, "start", SLATE))
 box(545, cy, 78, 44, T["dec"], F_ORANGE, ORANGE, 13, I("p") + SUB("θ"), "600")
 o.append(circle(616, cy, 17, F_SKY, SKY, 1.6)); o.append(text(616, cy + 5, xh, 15, "middle", NAVY))
 box(700, cy, 104, 50, T["rec"], "#FFFFFF", NAVY, 12, "−log " + I("p") + SUB("θ") + "(" + x + " | " + z + ")")
