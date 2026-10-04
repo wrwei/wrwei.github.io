@@ -30,7 +30,7 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 | 06 | The transformer | 622 | 12 | 6 | 15 | 12 | 3 | 2 | 18 |
 | 07 | Large language models | 609 | 14 | 6 | 15 | 12 | 2 | 2 | 13 |
 | 08 | LLM pretraining | 627 | 14 | 5 | 15 | 12 | 3 | 2 | 14 |
-| 09 | LLM post-training | 621 | 14 | 6 | 15 | 12 | 3 | 2 | 21 |
+| 09 | LLM post-training | 621 | 14 | 6 | 15 | 12 | 3 | 2 | 18 |
 | 10 | Inference and serving | 615 | 13 | 6 | 15 | 12 | 3 | 2 | 18 |
 
 ## 2. Production status (4 October 2026)
@@ -45,10 +45,10 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 | 06 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 24,351 |
 | 07 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 24,506 |
 | 08 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 21,799 |
-| 09 | 0/7 | – | – | – | – | – | – | – | – | 0 |
+| 09 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 22,460 |
 | 10 | 0/7 | – | – | – | – | – | – | – | – | 0 |
 
-Figures drawn so far: 134, each also in Chinese. Widget files: 16 of 20. English prose words exclude code and maths and include labs, exercises and solutions. A module published on the site in both languages is marked done at every stage.
+Figures drawn so far: 152, each also in Chinese. Widget files: 18 of 20. English prose words exclude code and maths and include labs, exercises and solutions. A module published on the site in both languages is marked done at every stage.
 
 ## 3. The modules
 
@@ -1500,10 +1500,10 @@ Turns a base model into an assistant: supervised fine-tuning and its mechanics, 
 
 - render a conversation with a chat template, write the masked SFT loss over assistant tokens, and diagnose template, end-of-turn and untrained special-token failures.
 - implement LoRA from scratch, count its trainable parameters, merge it exactly into the base weights, and size LoRA and QLoRA training memory for the 9.5B case-study model.
-- derive the Bradley-Terry model, train a reward model on comparisons, and evaluate it for accuracy against the label-noise ceiling, calibration and overoptimisation.
+- derive the Bradley-Terry model, train a reward model on comparisons, and evaluate it for accuracy with a defined label-noise model, calibration and overoptimisation.
 - derive the policy gradient with a baseline and explain PPO's clipped objective and why RLHF with PPO holds four models in memory.
 - derive the closed-form optimum of the KL-regularised objective and the DPO loss from it, implement DPO, and recognise likelihood displacement from off-policy pairs.
-- implement GRPO with group-relative advantages and a KL term, predict which groups carry no signal, and design a verifiable reward that a degenerate output cannot satisfy.
+- implement GRPO with group-relative advantages and a KL term, predict which groups carry no task-advantage signal, and design a verifiable reward that tested degenerate outputs cannot trivially satisfy.
 - build a behavioural evaluation suite with programmatic checkers and report pass rates with bootstrap confidence intervals, paired differences and an exact test.
 - explain how refusals, abstention, honesty and tool use are trained, and how over-refusal, sycophancy and guessing arise from the training signal.
 - plan a post-training recipe for a domain model with explicit data, compute arithmetic and promotion gates, and justify each choice.
@@ -1520,127 +1520,75 @@ Turns a base model into an assistant: supervised fine-tuning and its mechanics, 
 
 **Concept sections.**
 
-- **s1 What post-training is for** (11 min). Say what a base model lacks, what post-training installs, why it is cheap and fragile, and the order in which its three families are usually applied. _2 worked example(s), 1 figure(s)._
-  - A base model (Module 08) is a model of text: it completes 'The three ISO 26262 ASIL parameters are' correctly and continues 'Q: What are they? A:' with something, but …
-  - Post-training installs behaviour on top of knowledge, with thousands to millions of examples against trillions of pretraining tokens: that is why it is cheap, why one …
-  - Evidence that behaviour is cheap relative to capability: labellers preferred the outputs of InstructGPT's 1.3B model to those of the 175B GPT-3, a model 100 times larger …
-  - The three families in their usual order: SFT (demonstrations), preference optimisation (pairs), reinforcement learning (generate, score, push probability toward high …
-  - A table with one row per stage: data unit, training signal, what it teaches, typical scale, what dominates cost (SFT: conversations, token log-likelihood, format and …
-  - Four published pipelines as patterns, not recipes: InstructGPT (SFT, reward model, PPO);
-  - … and 1 more points
-- **s2 Supervised fine-tuning: the data** (14 min). Define an SFT example, list where good ones come from, and show why quality, coverage and distribution match beat volume. _1 worked example(s), 1 figure(s)._
-  - An SFT example is a conversation: a system prompt, one or more user turns, and the assistant turns the model should have produced;
-  - Human-written demonstrations: highest quality and most expensive.
-  - Distillation: a stronger model answers the prompts, its answers are the targets, filtered by a checker or judge.
-  - Self-generation with filtering: the model's own samples, kept when they pass a verifier (Section 8).
-  - Synthetic edits: for behaviours such as 'change only what was asked', apply scripted modifications to real artifacts so that the target is exact.
-  - Quality filters and coverage: exact and near-duplicate removal, length and language checks, verifier pass, judge-score thresholds;
-  - … and 3 more points
-- **s3 Supervised fine-tuning: templates, masking, packing and limits** (21 min). Show how a conversation becomes a training sequence and a loss, which hyperparameters matter, and what SFT can and cannot change in a model. _5 worked example(s), 2 figure(s)._
-  - The chat template renders messages into tokens with special markers per role;
-  - Untrained template tokens: a base tokenizer can reserve chat tokens that pretraining never used (Module 08).
-  - The SFT objective written out: L(theta) = -(1 / sum_t m_t) sum_t m_t log p_theta(x_t \| x_<t), with m_t = 1 on assistant tokens including the end-of-turn token and 0 …
-  - Why mask: the model is not being taught to predict users or system prompts;
-  - Loss normalisation: the mean over all trained tokens in a batch weights long replies more than a per-sequence mean;
-  - Packing: several short conversations concatenated into one training row, with a block-diagonal attention mask and position ids restarting per conversation so that they …
-  - … and 5 more points
-- **s4 Parameter-efficient fine-tuning: LoRA and QLoRA** (23 min). Derive LoRA, size it for the case-study model, and show how QLoRA puts fine-tuning of the 9.5B model on a 24 GB GPU. _7 worked example(s), 2 figure(s)._
-  - The memory problem: full fine-tuning at 16 bytes per parameter (bf16 weights 2, bf16 gradients 2, fp32 master weights 4, Adam moments 4 + 4;
-  - LoRA (Hu et al. 2022): freeze W in R^{d x k} and learn W' = W + (alpha / r) B A with B in R^{d x r}, A in R^{r x k}, r << min(d, k).
-  - Initialisation derived: A random (Gaussian or Kaiming), B = 0, so W' = W at step 0 and training starts from the base exactly.
-  - The alpha / r scaling keeps the size of the update roughly constant as r changes, so the learning rate need not be retuned for each rank;
-  - Parameter count r (d + k) per matrix;
-  - Embeddings and head usually stay frozen;
-  - … and 5 more points
-- **s5 Preferences and reward models** (18 min). Explain why comparisons are collected, derive the Bradley-Terry model that turns them into a scalar reward, and show how a reward model is trained, checked and over-optimised. _4 worked example(s), 2 figure(s)._
-  - A demonstration says what is right;
-  - Collecting preferences: sample two or more responses per prompt from the current model (on-policy), labellers or a judge choose;
-  - Agreement sets a ceiling: InstructGPT reports that its labellers agreed with each other about 73% of the time;
-  - Bradley-Terry derived as a random-utility model: perceived quality u = r(x, y) + epsilon with epsilon independent standard Gumbel;
-  - Shift invariance: adding c(x) to every reward for prompt x changes no probability, so rewards are identified only up to a per-prompt constant;
-  - The reward model: a copy of the language model (initialised from the SFT model) with the unembedding replaced by a scalar head read at the final token;
-  - … and 4 more points
-- **s6 RLHF with PPO** (20 min). State the KL-regularised RL objective, derive the policy gradient it needs, and explain how PPO optimises it with four models in memory. _4 worked example(s), 2 figure(s)._
-  - RLHF as InstructGPT did it: SFT;
-  - The KL term is not decoration: the reward model is accurate only near the distribution it was trained on;
-  - The policy gradient derived: grad_theta E_{y ~ pi_theta}[R(y)] = sum_y R(y) grad pi_theta(y) = E[R(y) grad log pi_theta(y)] (log-derivative trick);
-  - RLHF as a token-level problem: state = prompt plus tokens so far, action = next token, reward = -beta log(pi_theta / pi_ref) at every token plus r_phi(x, y) at the last.
-  - PPO (Schulman et al. 2017): reuse each batch of samples for several gradient steps with the importance ratio rho_t = pi_theta(y_t \| .) / pi_old(y_t \| .), and maximise …
-  - A learned value function V(s) as a per-token baseline;
-  - … and 3 more points
-- **s7 Direct preference optimisation** (25 min). Derive DPO in full from the KL-regularised objective, explain what beta does, and show how DPO fails and what its variants change. _4 worked example(s), 2 figure(s), widget: kl-policy-explorer._
-  - Step 1, the closed-form optimum.
-  - Step 2, invert: r(x, y) = beta log(pi*(y\|x) / pi_ref(y\|x)) + beta log Z(x).
-  - Step 3, substitute into Bradley-Terry: the beta log Z(x) terms cancel in the difference for two responses to the same prompt, leaving p(y_w > y_l \| x) = sigma(beta …
-  - Step 4, fit the policy to the preference data directly, with no reward model and no sampling (Rafailov et al.
-  - The reparameterisation loses no generality (every reward equivalence class under shift contains a reward of this form;
-  - The gradient written out: grad L = -beta E[ sigma(-u) (grad log pi_theta(y_w\|x) - grad log pi_theta(y_l\|x)) ], u the margin;
-  - … and 7 more points
-- **s8 The simplest reinforcement learning: sample, verify, keep** (12 min). Introduce verifiable rewards through best-of-n and rejection-sampling fine-tuning, the RL method that cannot go far wrong, and say where it stops. _4 worked example(s), 1 figure(s)._
-  - Verifiable rewards: in domains where an output can be checked (a mathematics answer against the solution, code against tests, a fault tree or a safety-case argument …
-  - Best-of-n at inference: with per-sample success probability p, P(at least one of n passes) = 1 - (1 - p)^n.
-  - Best-of-n is itself a policy that has moved away from the base by a bounded amount: KL(pi_BoN \|\| pi_ref) <= log n - (n - 1)/n (Stiennon et al.
-  - Rejection-sampling fine-tuning, also called expert iteration, RAFT, ReST, STaR or best-of-n distillation: sample N outputs per prompt from the current model, keep those …
-  - It is an ordinary SFT loop with a data generator in front;
-  - Its weaknesses: it learns only from successes (failures carry information that GRPO uses);
-- **s9 Reinforcement learning with verifiable rewards: GRPO** (24 min). Derive GRPO from the policy gradient, show how its group baseline and KL term work, and show how to design rewards that survive optimisation. _5 worked example(s), 2 figure(s), widget: grpo-group-explorer._
-  - Why verifiable rewards: preference data is expensive and a learned reward is hackable;
-  - GRPO (Shao et al. 2024;
-  - The objective, as in the source: J(theta) = E[ (1/G) sum_i (1/\|y_i\|) sum_t min(rho_{i,t} A_i, clip(rho_{i,t}, 1 - epsilon, 1 + epsilon) A_i) - beta D_KL(pi_theta \|\| …
-  - The KL term is estimated per token with k3 = pi_ref/pi_theta - log(pi_ref/pi_theta) - 1.
-  - The source's grpo_advantages code (a group with zero variance gets zero advantage) and the per-token loss written in a few lines.
-  - Memory: the policy and a frozen reference (with LoRA, one base).
-  - … and 5 more points
-- **s10 Safety, refusal and honesty** (14 min). Treat refusal, abstention and honesty as trainable behaviours with their own failure modes, measurements and reward design. _2 worked example(s), 1 figure(s)._
-  - Refusals are behaviours like any other: demonstrated in SFT, preferred in pairs, rewarded in RL.
-  - Constitutional AI (Bai et al.
-  - Over-refusal: declining benign requests that pattern-match harmful ones ('How do I kill a Python process?').
-  - Red-teaming: manual, by domain experts, and automated, with a language model generating attacks (Perez et al.
-  - Calibration after post-training, with expected calibration error recalled in one line from Module 01, Section 7 (as in Section 5), not re-defined: base models are often …
-  - Abstention as a trained behaviour, with the threshold recalled in one line from Module 07, Section 10, not re-derived: with +1 for a correct answer, 0 for abstaining and …
-  - … and 4 more points
-- **s11 Tools and agents** (8 min). Say what training for tool use adds to SFT and RL, and hand over to the AI Agents series for building agents. _2 worked example(s), 1 figure(s)._
-  - A model that calls tools has been trained on conversations containing tool calls in a fixed format (a JSON object naming the function and its arguments, inside …
-  - Loss masking extends to tools: tool results are produced by the environment, like user turns, and are masked;
-  - Data: demonstrations (human or distilled trajectories) filtered by execution (sample, verify, keep: keep trajectories whose calls execute and whose final answer checks);
-  - The behaviours that matter in an agent loop and need the most examples, because they are rare in naturally occurring data: deciding not to call a tool, reading a tool's …
-  - Robustness of arguments (types, required fields) is trained and also enforced at serving by constrained decoding (Module 10).
-  - An agent loop runs the model in exactly this mode;
-- **s12 Evaluation** (16 min). Say what replaces the loss after post-training, how each kind of evaluation fails, and how to tell a real difference from noise. _4 worked example(s), 2 figure(s)._
-  - The pretraining loss no longer means much after post-training: preference optimisation and RL optimise behaviour, and DPO can lower the likelihood of good answers …
-  - Instruction-following suites with verifiable constraints (IFEval: about 500 prompts with 25 kinds of checkable instruction, such as 'answer in exactly three bullet …
-  - A general-capability battery run before and after, to price the forgetting.
-  - Behavioural suites built from the failure modes you have seen, pass or fail per case with programmatic checkers;
-  - Judged comparisons: a strong model compares two responses (MT-Bench: 80 multi-turn questions;
-  - Contamination control: exact content hashes and n-gram overlap (the GPT-3 paper used 13-grams) between every training set, distillation prompts included, and every …
-  - … and 2 more points
-- **s13 Merging and averaging** (8 min). Explain when averaging weights works, the main merge methods, and how to merge adapters correctly. _2 worked example(s), 1 figure(s)._
-  - Two fine-tuned copies of the same base can be averaged weight by weight, and the average is often better than either (model soups, Wortsman et al.
-  - Uniform soup versus greedy soup (add a model to the average only if held-out accuracy improves);
-  - Task arithmetic (Ilharco et al.
-  - TIES-merging (Yadav et al.
-  - Adapters: the update is the product B A, so merge the products (or concatenate the factors into a higher-rank adapter), never the averaged factors;
-  - None of it is guaranteed, all of it is cheap to try, and every merged candidate is evaluated like any other (Section 12).
-- **s14 The case study: a post-training recipe for a safety-case assistant** (17 min). Walk through a hypothetical post-training design for the running case study, with the reasoning and the arithmetic behind each choice. _4 worked example(s), 1 figure(s)._
-  - Framing: a hypothetical worked case, not anyone's plan or product.
-  - Step 0, baselines: the instruct release, prompted with the deployment's system prompt, on the golden set (parse rate, checker pass rate, judge coverage): the bar every …
-  - Step 1, the starting point, with its rule: if Module 08's baselines showed that continued pretraining was needed, SFT starts from the CPT checkpoint, which is a base …
-  - Step 2, SFT with LoRA from the CPT checkpoint: r = 64, alpha = 128, all linear layers, plus the template tokens' rows of the input embedding and the output head made …
-  - Step 3, RL with verifiable rewards (GRPO) rather than DPO, because a deterministic checker gives exact rewards on the model's own samples, while DPO would need pairs, …
-  - The reward function, generalised from the source: parse_argument(reply) is None -> 0.0 (nothing below is reachable for prose);
-  - … and 3 more points
+- **s1 What post-training is for** (11 min). A base model predicts the next token of a text. _1 worked example(s), 1 figure(s)._
+  - ### Three kinds of signal **Supervised fine-tuning**, or SFT, supplies the answer the assistant should have written.
+  - ### Behaviour can be cheaper than the base [InstructGPT](https://arxiv.org/abs/2203.02155) showed that human evaluators on its prompt distribution could prefer a 1.3B …
+  - ### The running case The hypothetical assistant drafts and checks safety-case arguments for the pressure-relief system of a reactor vessel.
+- **s2 Supervised fine-tuning: the data** (14 min). An **SFT example** contains a conversation and the assistant turns that count as targets. _1 worked example(s), 1 figure(s)._
+  - ### Four sources of demonstrations **Human demonstrations** can encode judgement that is difficult to specify in code.
+  - ### Filtering changes the distribution A filter is also a selection policy.
+  - ### Match the conversation that will be served Distribution match includes the system prompt, tools, languages, length and imperfections of real requests.
+  - ### Preserve general behaviour while specialising A narrow set can improve one task while degrading other abilities.
+- **s3 Supervised fine-tuning: templates, masking, packing and limits** (21 min). A conversation becomes a sequence only after a **chat template** renders its roles and boundaries. _1 worked example(s), 1 figure(s)._
+  - ### A rendering contract Training and serving should render the same test conversations to identical token IDs.
+  - ### The conditional likelihood Write the complete training sequence as $z_1,\ldots,z_T$.
+  - ### Count targets, not padded positions Long replies contribute more terms to a token-mean loss than short ones.
+  - ### Optimise and evaluate the behaviour Learning rate, epochs, batch size and context length depend on the starting point and the data.
+  - ### What the targets do not guarantee SFT uses **teacher forcing**: each target token is conditioned on the correct earlier response tokens.
+- **s4 Parameter-efficient fine-tuning: LoRA and QLoRA** (23 min). Full-weight fine-tuning stores more than model weights. _2 worked example(s), 2 figure(s)._
+  - ### Learn a low-rank change For a frozen projection $\mathbf{W}\in\mathbb{R}^{d\times k}$, **LoRA** learns two factors $\mathbf{A}\in\mathbb{R}^{r\times k}$ and …
+  - ### Count the parameters that actually train A projection adds $r(d+k)$ parameters.
+  - ### Memory savings do not remove the frozen computation Recall the [Module 06 FLOP convention](module_06_EN.html#s11).
+  - ### Quantise the frozen base, train the adapter **QLoRA** keeps the base quantised while training high-precision adapters.
+  - ### Merge the result and test again After training, add $s\mathbf{B}\mathbf{A}$ to the floating-point base matrix.
+- **s5 Preferences and reward models** (18 min). A demonstration gives one acceptable response. _2 worked example(s), 2 figure(s)._
+  - ### From noisy choices to a scalar reward The **Bradley–Terry model** represents a response by a reward $r(x,y)$ and models the probability that one response wins as
+  - ### Fit and check the reward model A common reward model copies the SFT model's trunk, replaces its vocabulary head with a scalar head, and reads that scalar at the …
+  - ### Optimising the proxy exposes its errors The true reward in Lab 3 is a concave quadratic with maximum 2.5 at $(2,1)$.
+- **s6 RLHF with PPO** (20 min). The classical **reinforcement learning from human feedback (RLHF)** pipeline uses demonstrations for SFT, comparisons for a reward model, then sampled responses for policy optimisation. _3 worked example(s), 1 figure(s)._
+  - ### The gradient of a sampling policy For a fixed reward $R(y)$ and one prompt, differentiate the expectation itself:
+  - ### PPO's clipped update In the token view, the state is the prompt and generated prefix, and the action is the next token.
+  - ### Four models and a generation loop PPO-RLHF commonly holds a trained policy, trained value model, frozen reference and frozen reward model.
+- **s7 Direct preference optimisation** (25 min). **Direct preference optimisation (DPO)** fits preference pairs directly with a language model. _2 worked example(s), 2 figure(s), widget: kl-policy-explorer._
+  - ### Solve the regularised objective Fix a prompt, a finite response set and a reference with positive probability on that set.
+  - ### Substitute the optimum into preference probabilities Taking logs and rearranging gives
+  - ### Implement the loss with the right sequence probabilities Each argument below is a batch vector of **summed assistant-token** log-probabilities, including the first …
+  - ### Beta, data and stopping For a **fixed known reward**, smaller $\beta$ makes $\pi^*$ sharper and permits greater departure from the reference.
+- **s8 The simplest reinforcement learning: sample, verify, keep** (12 min). A **verifiable reward** comes from a checker: a numerical answer equals the known solution, code passes tests, or an artifact satisfies structural rules. _2 worked example(s), 1 figure(s)._
+  - ### Turn selected samples into training data **Rejection-sampling fine-tuning** samples responses, keeps accepted ones, applies ordinary SFT, and repeats.
+- **s9 Reinforcement learning with verifiable rewards: GRPO** (24 min). A checker can score a numerical answer, a program or a structured artifact without differentiating through it. _1 worked example(s), 2 figure(s), widget: grpo-group-explorer._
+  - ### A group baseline and its limits Let $\bar r_{-i}$ average the other $G-1$ rewards.
+  - ### Estimate reference KL carefully For one conditional next-token distribution, set $u=\pi_{\mathrm{ref}}(a\mid s)/\pi_\theta(a\mid s)$ and use
+  - ### Which groups teach, and what normalisation changes For independent binary rewards with pass probability $p$, the probability of a group containing both outcomes is
+  - ### The checker is part of the learned behaviour ::: figure id=fig-09-15 Recorded Lab 5 curves show reward, zero-variance groups and KL under two beta settings.
+- **s10 Safety, refusal and honesty** (14 min). **Refusal** is a learned response to an unsuitable request. _1 worked example(s), 1 figure(s)._
+  - ### Evaluate both sides of the boundary [XSTest](https://arxiv.org/abs/2308.01263) contains 250 safe prompts resembling unsafe requests and 200 unsafe contrasts.
+  - ### Confidence and the incentive to guess Calibration asks whether an expressed confidence matches empirical accuracy.
+  - ### Honesty about evidence and actions A completion claim must refer to an observable result.
+- **s11 Tools and agents** (8 min). A tool-using model emits an assistant call in a specified format, receives an environment result, then decides how to continue. _1 worked example(s), 1 figure(s)._
+- **s12 Evaluation** (16 min). After post-training, one loss cannot summarise behaviour. _1 worked example(s), 1 figure(s)._
+  - ### Paired evidence on small suites [Module 01, Section 10](module_01_EN.html#s10) introduces sampling uncertainty: a pass rate has approximate standard error …
+  - ### Judged comparisons need their own audit A model judge can compare responses using a rubric and references.
+  - ### Contamination and promotion Compare all training sources, including distillation prompts and generated targets, against evaluation using content hashes and n-gram …
+- **s13 Merging and averaging** (8 min). Fine-tuned models sharing one base can sometimes be combined by averaging their weights. _1 worked example(s), 1 figure(s)._
+  - ### Merge adapter updates, not separately averaged factors For two adapters, form $\Delta W=\lambda_1s_1B_1A_1+\lambda_2s_2B_2A_2$.
+- **s14 The case study: a post-training recipe for a safety-case assistant** (17 min). This is a **hypothetical worked design**, not a deployed system or evidence that an automated safety decision is correct. _2 worked example(s), 1 figure(s)._
+  - ### Baselines determine the starting point First evaluate the prompted instruct release on the golden suite: parse rate, joint structural pass rate, evidence relevance …
+  - ### SFT, with a gate before RL Use rank-64 LoRA with alpha 128 on all seven projections per layer, plus the needed template-token rows.
+  - ### GRPO on the properties the checker can establish Use 3,000 representative prompts for two sampling epochs, eight responses per prompt and one inner update.
+  - ### Compute the bill under explicit assumptions ::: worked title="SFT and GRPO are more than their response tokens" Two SFT epochs give $10^8$ total token-passes.
 - **What goes wrong.** 14 failure modes, each as symptom, cause and fix.
 
 **Labs.**
 
 | Lab | Minutes | CPU run | Download | Goal |
 |---|---|---|---|---|
-| lab1: SFT of SmolLM2-135M with prompt-token loss masking | 40 | ~10 min | 270 MB | Turn a base model into a minimal assistant with a hand-rendered ChatML template and a masked loss, and measure what changes (stopping, format, per-task accuracy) and what does not. |
-| lab2: LoRA from scratch: wrap, count, train, merge, verify | 30 | ~4 min | none | Implement a LoRA layer in plain PyTorch, apply it to every linear projection of SmolLM2-135M, verify that training starts from the base exactly, train it, merge it, and confirm … |
-| lab3: A Bradley-Terry reward model with a known true reward | 25 | ~1 min | none | Train a reward model on synthetic comparisons generated from a known reward, measure its accuracy against the label-noise ceiling and its calibration, and watch best-of-n … |
-| lab4: DPO from scratch: an exact check, then on-policy and off-policy pairs | 30 | ~2 min | none | Confirm numerically that DPO lands on the closed-form optimum pi* and that beta sets how far it moves, then train a small autoregressive policy with DPO on a verifiable preference … |
-| lab5: RL with verifiable rewards: expert iteration, GRPO and a flawed verifier | 35 | ~2 min | none | Run the simplest RL (sample, verify, keep) and GRPO on the same toy task with an exact verifier, see the KL term and zero-variance groups at work, then watch a slightly wrong … |
-| lab6: An evaluation harness: a behavioural suite with confidence intervals | 25 | ~2 min | 270 MB | Build a small behavioural suite with programmatic checkers, run a base and an instruct model on it, and report per-category pass rates with bootstrap intervals, a paired … |
+| lab1: SFT with assistant-token loss masking | 40 | ~10 min | 270 MB | Fine-tune a released base model on five families of synthetic engineering instructions. |
+| lab2: LoRA from scratch, training and exact merging | 30 | ~4 min | none | Wrap every block projection with a low-rank update, verify the initial function is unchanged, train the factors, and merge them into the frozen weights. |
+| lab3: Learning and overoptimising a comparison reward | 25 | ~1 min | none | Learn a scalar reward from noisy comparisons when the true utility is known. |
+| lab4: DPO from an analytic check to likelihood displacement | 30 | ~2 min | none | Fit an eight-response policy from noisy Bradley–Terry preferences and compare it with the closed-form KL-regularised optimum. |
+| lab5: Expert iteration, GRPO and a verifier that accepts hedges | 35 | ~2 min | none | Compare success-only SFT with group-relative reinforcement learning on the same finite digit task. |
+| lab6: Behavioural checkers and uncertainty in a small suite | 25 | ~2 min | 270 MB | Compare a base and instruct checkpoint on 40 explicit behavioural items. |
 
 **Exercises** (15: 8 ★, 6 ★★, 1 ★★★; 130 minutes).
 
@@ -1660,7 +1608,7 @@ Turns a base model into an assistant: supervised fine-tuning and its mechanics, 
 - e14 ★ conceptual, 5 min: A pairwise judge compares a new model's answers with the incumbent's, each pair shown in both orders.
 - e15 ★ conceptual, 5 min: Two rank-r adapters (B1, A1) and (B2, A2) for the same matrix, each with its alpha / r folded into its B, are to be merged with equal weight.
 
-**Quiz** (12 questions): A model fine-tuned with ChatML ignores its system prompt only in production.; In SFT with loss masking, which tokens carry loss?; LoRA initialises A randomly and B to zero.; A reward model's output for every response to prompt x is increased by 3.; In the KL-regularised objective E[r] - beta KL(pi \|\| pi_ref), what happens to …; In the DPO derivation, why does the partition function Z(x) disappear?; DPO on pairs taken from a very different model reaches 100% pair accuracy and …; GRPO with G = 8 runs on prompts the policy already solves 95% of the time.; Why does rejection-sampling fine-tuning (sample, verify, keep) often plateau …; A grader gives 1 for a correct answer and 0 both for a wrong answer and for 'I …; On 50 shared items, model A passes 8 items that B fails and B passes 3 that A …; Two LoRA adapters trained for different tasks on the same base are to be merged …
+**Quiz** (12 questions): A model fine-tuned with ChatML ignores its system prompt only in production.; In SFT with loss masking, which tokens carry loss?; LoRA initialises A randomly and B to zero.; A reward model's output for every response to prompt x is increased by 3.; In the KL-regularised objective E[r] - beta KL(pi \|\| pi_ref), what happens to …; In the DPO derivation, why does the partition function Z(x) disappear?; DPO on pairs taken from a very different model reaches 100% pair accuracy and …; GRPO with G = 8 runs on prompts the policy already solves 95% of the time.; What limits sample–verify–keep when no response to a hard prompt passes the …; A grader gives 1 for a correct answer and 0 both for a wrong answer and for 'I …; On 50 shared items, model A passes 8 items that B fails and B passes 3 that A …; Two LoRA adapters trained for different tasks on the same base are to be merged …
 
 **Guided reading.**
 

@@ -22,6 +22,7 @@
 <a href="module_06_ZH.html">6 &mdash; Transformer</a>
 <a href="module_07_ZH.html">7 &mdash; 大语言模型</a>
 <a href="module_08_ZH.html">8 &mdash; 大语言模型预训练</a>
+<a href="module_09_ZH.html">9 &mdash; 大语言模型后训练</a>
     </div>
   </div>
   <a href="module_04_EN.html" class="lang-switch" hreflang="en">English</a>
@@ -2372,7 +2373,7 @@ p(y_t \mid y_{&lt;t}, x) &amp;= \softmax(\mathbf{W}_o\mathbf{s}_t + \mathbf{b}_o
 </figcaption></figure>
 <h3>暴露偏差</h3>
 <p>测试时没有真实的上一个 token；解码器以自己的输出为条件。一个错误的 token 就会把它带入任何训练步骤都没产生过的状态，下一个预测随之变得不那么可靠，误差不断累积。Ranzato 等人（2016）把这称为<strong>暴露偏差</strong>（exposure bias）：模型只接触过正确的前缀。<a href="#lab4">实验 4</a> 测量了它。对于不带注意力的模型，在长度 12 时，每一步都给定真实前缀（教师强制）时 token 准确率为 74%，模型以自己的输出运行（自由运行）时为 53%；长度 8 时为 91% 对 80%；长度 4 时差距小到可以忽略（99.7% 对 99.4%）。</p>
-<p><strong>计划采样</strong>（scheduled sampling，Bengio 等人，2015）以一个在训练过程中逐渐升高的概率，用模型自己的预测代替真实 token 作为输入，使模型学会从自己的错误中恢复。在模型自己的展开序列上训练，能更直接地达到同样的目的。<strong>序列级目标</strong>（sequence-level objective）给整个生成的输出打分；<span class="xref-pending">模块 09</span>的强化学习方法就是它们的现代形式。无论怎样训练，都要以自由运行的方式评估：这是部署时唯一的运行方式。</p>
+<p><strong>计划采样</strong>（scheduled sampling，Bengio 等人，2015）以一个在训练过程中逐渐升高的概率，用模型自己的预测代替真实 token 作为输入，使模型学会从自己的错误中恢复。在模型自己的展开序列上训练，能更直接地达到同样的目的。<strong>序列级目标</strong>（sequence-level objective）给整个生成的输出打分；<a href="module_09_ZH.html">模块 09</a>的强化学习方法就是它们的现代形式。无论怎样训练，都要以自由运行的方式评估：这是部署时唯一的运行方式。</p>
 <h3>解码：贪心与束搜索</h3>
 <p>模型每次给出一步的 <span class="math-i">p(y_t \mid y_{&lt;t}, x)</span>。为了产生输出，我们想要概率最大的序列 <span class="math-i">\argmax_{y} p(y \mid x)</span>。<strong>贪心解码</strong>（greedy decoding）在每一步选取概率最大的 token 并把它反馈回去。它找不到概率最大的序列，因为眼下看来最好的 token 可能只能引出糟糕的后续。精确搜索又做不到：词表大小 <span class="math-i">V = 10{,}000</span>、输出 20 个 token 时，候选有 <span class="math-i">V^{20} = 10^{80}</span> 个。</p>
 <p><strong>束搜索</strong>（beam search）是一种折中。保留 <span class="math-i">k</span> 个最好的部分序列（即束），按累积对数概率 <span class="math-i">\sum_t \ln p(y_t \mid y_{&lt;t}, x)</span> 打分。每一步用每个 token 扩展每个假设，给 <span class="math-i">k\cdot V</span> 个扩展打分，保留最好的 <span class="math-i">k</span> 个。输出 EOS 的假设已经完成：把它放到一边，继续处理其余的。当束变空或达到长度上限时停止，返回最好的已完成假设。<span class="math-i">k = 1</span> 时它就是贪心解码；翻译中通常取 <span class="math-i">k = 4</span> 到 10。</p>
@@ -5661,7 +5662,7 @@ for n in (1, 2, 3):
 <p><strong>补救办法</strong>。</p>
 <ul>
 <li><strong>计划采样</strong>（scheduled sampling，Bengio 等人 2015）：训练时，以一个随训练进程上升的概率，用模型自己的前一个预测代替真实 token 作为输入，使解码器学会从自己的错误中恢复。</li>
-<li><strong>在模型自己的生成轨迹上训练，或使用序列级目标</strong>，对完整生成的输出评分（<span class="xref-pending">模块 09</span> 中的强化学习方法）。</li>
+<li><strong>在模型自己的生成轨迹上训练，或使用序列级目标</strong>，对完整生成的输出评分（<a href="module_09_ZH.html">模块 09</a> 中的强化学习方法）。</li>
 <li><strong>降低错误率本身</strong>：对这个任务，最好的修正是注意力（<a href="#s11">第 11 节</a>），它消除了导致最初那些错误的瓶颈。</li>
 </ul>
 <p>无论采用哪种补救办法，都要以自由运行的方式评估，这是部署时唯一的模式。</p>

@@ -245,3 +245,16 @@ What still changes:
 - S2 reads for 47 minutes back to back (13 + 34). Move an exercise between the two blocks; S3 (110 minutes) has room to absorb it.
 - Case-study domain: s11 and the generalised refs draft 'a 20-entry hazard table from a hazard analysis and risk assessment', and Lab 6 uses an insulin pump. Use 'a 20-entry hazard log for the pressure-relief system', as in M07.
 - Paper 3 asks 'why is the smallest draft not always the best?'. In Leviathan et al.'s Table 2, T5-small, the smallest neural draft, gives the largest speed-up in every row. The evidence the question needs is Section 4.2: the bigram draft, with c = 0 and alpha = 0.2, yields only 1.25x. Reword the question to point there.
+
+## Module 09 arithmetic audit (4 October 2026)
+
+Keep earlier two-decimal figures as estimates, but avoid deriving three-decimal precision from
+their rounded inputs. For the canonical configuration, checkpointed activations from the stated
+formula are 3.60710144 GB (2.415919104 GB stored inputs + 1.191182336 GB one-layer workspace).
+The seven linear matrices total 8,304,721,920 parameters; block norms and final norm add 299,008.
+At 4.127 bits per linear weight with bf16 norms and both large tables, the QLoRA base estimate is
+6.77621301248 GB. Module 09 uses 3.607 and 6.776 in its three-decimal illustrations. Temporary
+buffers, kernels, allocator effects and unchunked logits remain outside these estimates.
+The illustrative serving format is a separate estimate: 4-bit block weights plus one fp16 scale
+per 128 weights, and 8-bit tables, about 5.53 GB before packaging. Do not confuse it with QLoRA's
+bf16-table training storage or uniform four-bit storage of every tensor.
