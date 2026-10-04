@@ -19,6 +19,9 @@
 <a href="module_03_EN.html">3 &mdash; Convolutional networks</a>
 <a href="module_04_EN.html">4 &mdash; Recurrent networks and sequences</a>
 <a href="module_05_EN.html">5 &mdash; Other networks worth knowing</a>
+<a href="module_06_EN.html">6 &mdash; The transformer</a>
+<a href="module_07_EN.html">7 &mdash; Large language models</a>
+<a href="module_08_EN.html">8 &mdash; LLM pretraining</a>
     </div>
   </div>
   <a href="module_02_ZH.html" class="lang-switch" hreflang="zh-CN">中文</a>
@@ -1340,7 +1343,7 @@ addition per example. Bias additions and activations cost <span class="math-i">O
 <span class="math-i">Bd_{l-1}d_l</span> for wide layers. This is where the rule of thumb comes from that a large model costs
 about <span class="math-i">2N</span> FLOPs per token for a forward pass.</p>
 <p>The series fixes the convention for such counts once, in
-<span class="xref-pending">Module 06, Section 11</span>: in a FLOP count <span class="math-i">N</span> means the weights used in
+<a href="module_06_EN.html#s11">Module 06, Section 11</a>: in a FLOP count <span class="math-i">N</span> means the weights used in
 matrix products (an embedding lookup costs no FLOPs), attention adds a term that grows with the
 context, and a training step counts as three forward passes (<a href="#s3">Section 3</a> shows why the
 backward pass costs at most two). Memory, by contrast, counts every parameter.</p>
@@ -1799,7 +1802,7 @@ b2 [0.56]
 bias sums cost <span class="math-i">O(Bd_l)</span>. So the backward pass costs at most twice the forward, and a training
 step at most about three forward passes. It costs less than twice when the first layer is a large
 share of the work, because the gradient with respect to the input <span class="math-i">\mathbf{X}</span> is never needed
-and the first layer skips its error product. <span class="xref-pending">Module 06, Section 11</span> turns
+and the first layer skips its error product. <a href="module_06_EN.html#s11">Module 06, Section 11</a> turns
 this argument into the training-FLOP count for transformers.</p>
 <div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">The backward pass of the digits network</div>
 <p>For <span class="math-i">64 \to 128 \to 128 \to 10</span> with <span class="math-i">B = 64</span>, the forward pass costs 3,309,568 FLOPs (Section
@@ -2296,7 +2299,7 @@ derivatives and describes the two ways a unit stops passing gradient: saturation
 </table></div>
 <p><span class="math-i">\Phi</span> is the standard normal CDF and <span class="math-i">\phi_N</span> the standard normal density. As of 2026 most open
 large language models use SiLU inside SwiGLU feed-forward blocks
-(<span class="xref-pending">Module 06, Section 9</span>). PyTorch takes ReLU’s derivative at <span class="math-i">z = 0</span> to be
+(<a href="module_06_EN.html#s9">Module 06, Section 9</a>). PyTorch takes ReLU’s derivative at <span class="math-i">z = 0</span> to be
 0. Figure 2.9 plots all six and their derivatives.</p>
 <figure class="fig" id="fig-02-9"><div class="fig-svg"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="547.2pt" height="324pt" viewBox="0 0 547.2 324" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <defs>
@@ -6837,7 +6840,7 @@ now adds, <span class="math-i">\operatorname{Var}(\mathbf{h}^{(l)}) \approx \ope
 and would double at every block if each branch preserved its input’s variance. Deep residual
 networks therefore scale down or zero-initialise the last layer of each branch, so that every
 block starts close to the identity. <a href="module_03_EN.html#s8">Module 03</a> introduces residual
-connections with ResNet, and <span class="xref-pending">Module 06</span> shows them in every transformer
+connections with ResNet, and <a href="module_06_EN.html#s5">Module 06</a> shows them in every transformer
 block.</p>
 <h3>The output layer</h3>
 <p>A small output scale makes the initial predictions near-uniform, so a <span class="math-i">K</span>-class classifier starts
@@ -8965,7 +8968,7 @@ rotated by 45°, while gradient descent and heavy ball do not change.</p>
 <span class="math-i">4 + 4 + 4 + 4 = 16</span> bytes per parameter; with bf16 weights and gradients plus an fp32 master copy
 it is <span class="math-i">2 + 2 + 4 + 4 + 4 = 16</span> bytes as well. The digits network needs
 <span class="math-i">26{,}122\cdot 16 = 417{,}952</span> bytes, 418 kB; a model of <span class="math-i">7\times 10^9</span> parameters needs 112 GB
-before any activations. <span class="xref-pending">Module 08, Section 8</span> does the full accounting.</p>
+before any activations. <a href="module_08_EN.html#s8">Module 08, Section 8</a> does the full accounting.</p>
 <h3>Weight decay is not L2 under Adam</h3>
 <p>Under SGD the two are the same. Adding <span class="math-i">(\lambda/2)\|\theta\|^2</span> to the loss adds <span class="math-i">\lambda\theta</span> to
 the gradient, and</p>
@@ -9067,7 +9070,7 @@ over <span class="math-i">T</span> steps:</p>
 1–5% of training, a few hundred to a few thousand steps; the cosine then runs over the remaining
 <span class="math-i">T - T_w</span>. Warmup plus cosine to a tenth of the peak or less is the language-model default; as of
 2026, <strong>warmup–stable–decay</strong> schedules, which hold the peak and decay only near the end, are a
-common alternative (<span class="xref-pending">Module 08, Section 6</span>). Figure 2.14 draws three
+common alternative (<a href="module_08_EN.html#s6">Module 08, Section 6</a>). Figure 2.14 draws three
 schedules on one set of axes.</p>
 <div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Warmup plus cosine, step by step</div>
 <p><span class="math-i">\eta_{\max} = 3\times 10^{-3}</span>, <span class="math-i">\eta_{\min} = 3\times 10^{-5}</span> (1% of the peak), <span class="math-i">T = 10{,}000</span>,
@@ -9537,7 +9540,7 @@ gradients and is noisy even after bias correction, so the early steps are errati
 2020). The curvature at initialisation can be high, so a step that is safe later is too large
 then. And large-batch SGD with a scaled-up learning rate needs a ramp: Goyal et al. (2017) scale
 <span class="math-i">\eta</span> linearly with the batch size and warm up over 5 epochs. The large-batch regime belongs to
-<span class="xref-pending">Module 08</span>.</p>
+<a href="module_08_EN.html#s6">Module 08</a>.</p>
 <h3>The range test</h3>
 <p>The peak learning rate is the most important hyperparameter after the architecture. The
 <strong>learning-rate range test</strong> (Smith 2017) finds its scale in minutes: train for a few hundred
@@ -9844,7 +9847,7 @@ four consequences apply. Recurrent networks and transformers use it.</p>
 root mean square:</p>
 <div class="math-d">\mathbf{y} = \boldsymbol{\gamma}\odot\frac{\mathbf{z}}{\sqrt{\operatorname{mean}(\mathbf{z}^2) + \epsilon}} .</div>
 <p>It needs one reduction instead of two, works as well in practice, and is what most large language
-models use as of 2026; <span class="xref-pending">Module 06</span> places it in the block (pre-norm against
+models use as of 2026; <a href="module_06_EN.html#s5">Module 06</a> places it in the block (pre-norm against
 post-norm). PyTorch provides <code>nn.BatchNorm1d</code>, <code>nn.LayerNorm</code> and, from version 2.4, <code>nn.RMSNorm</code>.</p>
 <div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Layer norm and RMSNorm by hand</div>
 <p><span class="math-i">\mathbf{z} = (1, 2, 3, 6)</span>, <span class="math-i">\boldsymbol{\gamma} = \mathbf{1}</span>, <span class="math-i">\boldsymbol{\beta} = \mathbf{0}</span>,
@@ -9946,7 +9949,7 @@ Keeping dropout on at test time and averaging many passes gives a cheap uncertai
 <strong>Monte Carlo dropout</strong> (Gal and Ghahramani 2016).</p>
 <p>Typical <span class="math-i">p</span>: up to 0.5 in older MLPs and in AlexNet’s fully connected layers; 0.1 in transformers.
 Many large language model pretraining runs, as of 2026, use none, because each token is seen about
-once (<span class="xref-pending">Module 08</span>).</p>
+once (<a href="module_08_EN.html">Module 08</a>).</p>
 <h3>Early stopping</h3>
 <p><strong>Early stopping</strong> evaluates the validation loss every epoch, keeps the checkpoint with the lowest
 value, and stops after a <strong>patience</strong> of several epochs without improvement; the best weights are
@@ -10592,7 +10595,7 @@ accuracy difference is about 1.2 times the 0.9-point standard error of a single 
 (<a href="#s14">Section 14</a>), not a finding. These numbers come from Lab 4’s code with the calibration
 extension that its Try-this item 2 describes.</p>
 </div>
-<p><span class="xref-pending">Module 07</span> returns to calibration for language models.</p>
+<p><a href="module_07_EN.html#s10">Module 07</a> returns to calibration for language models.</p>
 <h3>Data augmentation and input noise</h3>
 <p>Data augmentation adds label-preserving transformations of the training data. For images it is
 the single most effective regulariser (<a href="module_03_EN.html#s10">Module 03</a>). For sensor or tabular
@@ -10805,7 +10808,7 @@ losses and normalisation statistics in fp32; <code>torch.autocast</code> chooses
 fp16 also needs <strong>loss scaling</strong>: multiply the loss by <span class="math-i">S</span> (for example <span class="math-i">2^{16}</span>) before
 <code>backward</code> and divide the gradients by <span class="math-i">S</span>, so that small gradients do not underflow (Micikevicius
 et al. 2018). bf16 has fp32’s range and needs none, which is why the first advice for NaN losses
-is to use bf16 rather than fp16. <span class="xref-pending">Module 08</span> covers mixed precision at
+is to use bf16 rather than fp16. <a href="module_08_EN.html#s7">Module 08</a> covers mixed precision at
 scale.</p>
 <p>Compute variances as <span class="math-i">\operatorname{mean}\big((x - \mu)^2\big)</span>, never as
 <span class="math-i">\operatorname{mean}(x^2) - \mu^2</span>, which subtracts two nearly equal large numbers. In fp32, for
@@ -17845,7 +17848,7 @@ for l in range(3):
 layer 2: shape (6, 5), largest difference in W 5.6e-17, in b 5.6e-17
 layer 3: shape (5, 3), largest difference in W 2.8e-17, in b 2.8e-17
 </code></pre></div>
-<p><strong>(c)</strong> Use the convention of <span class="xref-pending">Module 06, Section 11</span>: a product of an
+<p><strong>(c)</strong> Use the convention of <a href="module_06_EN.html#s11">Module 06, Section 11</a>: a product of an
 <span class="math-i">m \times k</span> and a <span class="math-i">k \times n</span> matrix costs <span class="math-i">2mkn</span> FLOPs, and the elementwise operations (the
 <span class="math-i">\tanh</span> derivative, the bias sums) are of lower order and are left out. The forward pass has three
 products:</p>

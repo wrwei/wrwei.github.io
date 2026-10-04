@@ -55,6 +55,29 @@ function katexError(tex, display) {
   }
 }
 
+// Chinese word order can move inline equations, and words inside \text{} may
+// be translated. Every other expression must still occur the same number of times.
+function checkMathParity(enMath, zhMath, tag) {
+  const signature = m => `${m.display ? 'display' : 'inline'}:${m.tex
+    .replace(/\\text\{(?:[^{}]|\{[^{}]*\})*\}/g, '\\text{}')
+    .replace(/\s+/g, '')}`
+  const counts = list => {
+    const result = new Map()
+    for (const m of list) {
+      const key = signature(m)
+      result.set(key, (result.get(key) || 0) + 1)
+    }
+    return result
+  }
+  const en = counts(enMath)
+  const zh = counts(zhMath)
+  for (const key of new Set([...en.keys(), ...zh.keys()])) {
+    if ((en.get(key) || 0) !== (zh.get(key) || 0)) {
+      err(tag, '', `math differs between EN and ZH (${en.get(key) || 0} vs ${zh.get(key) || 0} occurrences): ${key.slice(0, 120)}`)
+    }
+  }
+}
+
 function stripForWords(s) {
   return s.replace(/^```[\s\S]*?^```\s*$/gm, ' ').replace(/\$\$[\s\S]*?\$\$/g, ' ').replace(/\$[^$\n]+\$/g, ' x ')
     .replace(/^:::.*$/gm, ' ').replace(/[#*_`>|]/g, ' ')
@@ -96,6 +119,9 @@ if (get('--part')) {
   const md = makeMd({ lang: 'zh', figDirs: [] })
   const env = newEnv()
   md.render(zh, env)
+  const enEnv = newEnv()
+  makeMd({ lang: 'en', figDirs: [] }).render(en, enEnv)
+  checkMathParity(enEnv.math, env.math, tag)
   for (const e of env.errors) err(tag, '', e.msg)
   for (const m of env.math) {
     const e = katexError(m.tex, m.display)
@@ -217,6 +243,7 @@ for (const n of mods) {
   }
   // parity between languages
   if (perLang.en && perLang.zh) {
+    checkMathParity(perLang.en.env.math, perLang.zh.env.math, tag)
     const a = codeBlocks(perLang.en.src).filter(b => b.info.split(/\s+/)[0] !== 'quiz')
     const b = codeBlocks(perLang.zh.src).filter(b => b.info.split(/\s+/)[0] !== 'quiz')
     if (a.length !== b.length) err(`${tag}`, '', `EN has ${a.length} code/output blocks, ZH has ${b.length}`)

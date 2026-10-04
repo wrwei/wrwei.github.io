@@ -38,17 +38,8 @@ long path, travelled backwards.
 Self-attention removes both. Every position computes a weighted sum over every position it is
 allowed to see, and all positions do so at once, in one matrix multiply: a 10,000-token sequence
 becomes one large matrix operation instead of 10,000 small dependent ones. The path between any
-two positions is one layer long, whatever their distance (Figure 6.1).
+two positions is one layer long, whatever their distance.
 
-::: figure id=fig-06-1
-Recurrence and causal self-attention over the same six tokens $\mathbf{x}_1, \dots, \mathbf{x}_6$.
-Left, recurrent: a chain of states $\mathbf{h}_1 \to \mathbf{h}_2 \to \dots \to \mathbf{h}_6$ with
-arrows only between neighbours, computed in $T$ sequential steps; the highlighted path carries
-$\mathbf{x}_1$ to $\mathbf{h}_6$ through 5 recurrent steps, a path length of $t - j$. Right,
-causal self-attention: each of the six output positions receives an arrow from every position at
-or before it, $T(T+1)/2 = 21$ scored pairs forming a lower-triangular fan, all drawn in one colour
-because they are computed in one parallel step; every path has length 1.
-:::
 
 ### The trade
 
@@ -146,12 +137,10 @@ by learned projections of the tokens ([Section 2](#s2)), and lets training decid
 position looks for and what it offers.
 
 ::: figure id=fig-06-2
-Hard and soft lookup. Top: a dictionary with the keys 'pump', 'valve' and 'tank'; the query
-'tank' selects exactly one value. Bottom: the query vector $\mathbf{q} = (1, 1)$ is compared with
-the key vectors $(1, 0)$, $(0, 1)$ and $(1, 1)$; three bars show the softmax weights 0.248, 0.248
-and 0.503, and the output $(1.759, 2.007)$ is drawn as the weighted blend of the value vectors
-$(1, 0)$, $(0, 2)$ and $(3, 3)$. A small slider marks the two limits: all scores multiplied by a
-large factor give the hard lookup, all scores equal give the plain average.
+Hard and soft lookup. The query `tank` selects one dictionary entry. In the soft
+lookup, $\mathbf{q}=(1,1)$ gives weights 0.248, 0.248 and 0.503 over keys
+$(1,0)$, $(0,1)$ and $(1,1)$. Their values blend into output $(1.759,2.007)$.
+Equal scores give an average; one dominant score approaches hard lookup.
 :::
 
 ### What must be added back
@@ -223,14 +212,10 @@ $\mathbf{o}_i = \sum_j P_{ij}\mathbf{v}_j$, a convex combination of the value ro
 their convex hull ([Section 3](#s3) draws it). Figure 6.3 follows the shapes through.
 
 ::: figure id=fig-06-3
-Scaled dot-product attention with the shape on every arrow, drawn for $T = 5$. $\mathbf{X}$
-$(T \times d)$ passes through three linear maps $\mathbf{W}_Q$, $\mathbf{W}_K$ and $\mathbf{W}_V$,
-giving $\mathbf{Q}$ and $\mathbf{K}$ $(T \times d_k)$ and $\mathbf{V}$ $(T \times d_v)$.
-$\mathbf{Q}$ and $\mathbf{K}^\top$ meet in a matrix product that gives $\mathbf{S}$ $(T \times T)$;
-a box divides by $\sqrt{d_k}$; a mask box shows the $5 \times 5$ grid with its upper triangle
-greyed out and labelled $-\infty$; a softmax over each row gives $\mathbf{P}$ $(T \times T)$,
-whose rows sum to 1; $\mathbf{P}$ and $\mathbf{V}$ meet in a matrix product that gives the
-output $(T \times d_v)$.
+Scaled dot-product attention for $T=5$, with tensor shapes in the boxes. Query
+and key projections form scores $\mathbf{Q}\mathbf{K}^{\top}/\sqrt{d_k}$. The causal
+mask removes the upper triangle before row-wise softmax. Multiplying the resulting
+weights by the values produces an output of shape $T\times d_v$.
 :::
 
 ### The softmax Jacobian, applied to a row
@@ -360,7 +345,7 @@ Why scale. Left: overlaid histograms of $\mathbf{q}\cdot\mathbf{k}$ for unit-var
 $d_k = 2$, 16 and 128, on a shared axis from $-40$ to 40; their standard deviations are 1.4, 4.0
 and 11.3. Right: for 5,000 draws of a query and 16 keys at $d_k = 128$, histograms of the largest
 softmax weight in the row, unscaled (piled up near 1, median 0.978) and scaled (centred near 0.2,
-median 0.224), on an axis from 0 to 1. Data generated in Lab 1.
+median 0.225), on an axis from 0 to 1. Data generated in Lab 1.
 :::
 
 ### The causal mask
@@ -721,8 +706,9 @@ Step by step, for a batch of $B$ sequences:
 - `p @ v` gives the per-head outputs, $(B, h, T, d_k)$.
 - `.transpose(1, 2)` returns to $(B, T, h, d_k)$, and `.reshape(B, T, d)` concatenates the heads.
   It must be `reshape`, not `view`: after the transpose the memory is still laid out head by
-  head, so the tensor is no longer contiguous, and `view` can only reinterpret contiguous memory
-  (here it raises a `RuntimeError`). `reshape` copies when it has to.
+  head, and merging the head dimensions violates `view`'s stride compatibility condition
+  (here it raises a `RuntimeError`). Non-contiguous tensors can still support other compatible
+  views. `reshape` returns a view when possible and copies when it has to.
 - `wo` maps $(B, T, d)$ to $(B, T, d)$.
 
 ::: worked title="Shapes at the width of Section 12's model"
@@ -734,13 +720,10 @@ for each sequence and head. [Lab 1](#lab1) prints exactly these shapes.
 :::
 
 ::: figure id=fig-06-6
-Multi-head attention with the shapes for $B = 2$, $T = 16$, $d = 256$, $h = 8$. From left to
-right: the input $(2, 16, 256)$ passes through three linear boxes and a reshape-and-transpose box
-into eight parallel lanes, drawn as a stack of eight coloured sheets, one per head. In each lane
-$\mathbf{q}$, $\mathbf{k}$ and $\mathbf{v}$ have shape $(2, 16, 32)$, the scores form a
-$16 \times 16$ grid, a softmax follows, and the lane's output is $(2, 16, 32)$. A transpose and
-reshape merge the lanes back into $(2, 16, 256)$, and $\mathbf{W}_O$ gives the output
-$(2, 16, 256)$.
+Multi-head attention with $B=2$, $T=16$, $d=256$ and eight heads. The projected
+tensors split into shape $(2,8,16,32)$. Each head computes its own $16\times16$
+score matrix and weighted values. Merging the head outputs restores shape
+$(2,16,256)$ before the output projection.
 :::
 
 ### Concatenate, then project: a sum of per-head writes
@@ -847,12 +830,10 @@ wrote and later layers will need. [Section 5](#s5) writes the residual connectio
 of a block and explains why the normalisation sits on the branch rather than on the stream.
 
 ::: figure id=fig-06-7
-The residual stream. A vertical bar runs from the token embedding at the bottom to the final
-norm, the unembedding and the logits at the top. Two layers are drawn beside it, each an
-attention box followed by an FFN box; every box reads from the stream through a small norm box
-and adds its output back at a circled plus on the stream. Inside one attention box, four small
-head boxes each have their own arrow back to the stream, labelled $\mathbf{W}_O^{(i)}$: the
-per-head writes.
+Two pre-norm blocks read from and add to one residual stream. Norms sit on the
+update branches. Attention heads write through their respective output-projection
+blocks $\mathbf{W}_O^{(i)}$; the FFN writes another update. The final norm and
+vocabulary projection turn the accumulated stream into logits.
 :::
 
 ### What heads learn
@@ -869,7 +850,8 @@ which token came before it; at the position of B, it writes "the token before me
 later A, the induction head's query asks for a position whose previous token was A, and through
 its QK circuit it matches the key built from what the first head wrote at B. It attends there,
 and its OV circuit copies B's identity into the stream, raising B's logit. The second head's key
-depends on information the first head moved, which is why a single layer cannot do it.
+depends on information the first head moved. This particular circuit needs two sequential
+attention stages; it does not establish that every copying task is impossible for one layer.
 
 Induction heads are a general mechanism for copying from context: names, identifiers, repeated
 phrases. Olsson et al. report that they form fairly abruptly, in a narrow window early in
@@ -886,12 +868,11 @@ needs an intervention: zero the head's output, measure the loss again, and see w
 behaviour attributed to the head goes away. [Lab 6](#lab6) does exactly this.
 
 ::: figure id=fig-06-8
-Two heads of the two-layer model trained in Lab 6, on one sequence whose segment of length
-$n = 20$ repeats; query position on the vertical axis, key position on the horizontal. (a) The
-strongest previous-token head: bright just below the diagonal, each position attending to the
-one before it. (b) The strongest induction head: bright on the off-diagonal stripe
-key = query − $n$ + 1 in the repeated half. Beneath (b), a strip of tokens "… A B … A → ?" with
-an arrow from the second A to the B that followed the first A.
+Measured attention maps from Lab 6's two-layer model on a repeated segment of
+length $n=31$. Layer 0's strongest previous-token head attends just below the
+diagonal. Layer 1's strongest induction head attends along
+$\text{key}=\text{query}-n+1$ in the repeated half. The note summarises the
+lookup pattern; the lab's ablations test the heads' contribution to predictions.
 :::
 
 ::: keyidea
@@ -913,8 +894,9 @@ Why does the code call `.reshape` rather than `.view` after `transpose(1, 2)`?
 :::
 
 ::: answer
-The transpose changes the strides without moving the data, so the tensor is no longer contiguous,
-and `view` works only on contiguous memory. `reshape` makes the copy that merging the heads needs.
+The transpose changes the strides without moving the data. Merging these head dimensions
+violates `view`'s stride compatibility condition, so this merge needs a copy. `reshape` makes
+that copy; in other stride-compatible cases it can return a view, even of a non-contiguous tensor.
 :::
 
 ::: check

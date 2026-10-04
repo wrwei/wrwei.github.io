@@ -233,13 +233,7 @@ cannot close a hazard.
 :::
 
 ::: figure id=fig-07-17
-A trust boundary. Left, the trusted zone: the engineer's request goes to a router that chooses
-the task and the allowed tools; the system prompt. Right, the untrusted zone: hazard-log entries,
-retrieved documents and web pages, entering the model call only inside a delimited data section.
-The model's output passes an output validator, then goes either to a display (allowed) or to a
-write action (blocked unless validated and approved by a human). The lethal trifecta's three legs
-(private data, untrusted content, outbound channel) label the arrows; the outbound channel is
-drawn cut.
+An application-enforced trust boundary. The trusted request selects the task and permitted operations before untrusted documents enter the model. Summaries reach a display; a separate write path requires structured validation and the responsible engineer's approval. The summariser has no outbound or write credential.
 :::
 
 ::: keyidea
@@ -441,26 +435,34 @@ The private set was written after the model's cutoff and never published.
 ## The landscape, dated (October 2026) {#s13}
 
 ::: note
-As of October 2026; the knowledge behind this section ends some months earlier. Check current
-versions before relying on any of it.
+Reviewed on 4 October 2026. The named releases are examples for comparing access,
+licensing and resource requirements. They are not a ranking of the latest models.
+Check the particular release's model card and serving documentation before using it.
 :::
 
 **Closed, served models.** The GPT (OpenAI), Claude (Anthropic) and Gemini (Google) families are
-reached through APIs and sit at the frontier of capability. Versions change several times a
-year, so cite the version and the date with any result.
+reached through APIs. Versions and availability change, so cite the exact checkpoint
+or API version and the evaluation date with any result. The providers' current
+documentation, including [Gemini's model list](https://ai.google.dev/gemini-api/docs/models),
+is the source for supported modalities and limits.
 
 **Open-weight models.** Llama (Meta), Qwen (Alibaba), DeepSeek, Mistral, Gemma (Google), GLM
 (Zhipu AI), Yi (01.AI), InternLM (Shanghai AI Laboratory) and Phi (Microsoft). Licences range
 from Apache-2.0 or MIT to custom licences with use restrictions. Open weights do not mean open
 data or open training code; fully open releases publish those too, for example OLMo from the
-Allen Institute for AI and SmolLM from Hugging Face, the labs' model. The best open models at a
-given size have trailed the frontier by roughly a year.
+Allen Institute for AI and SmolLM from Hugging Face, the labs' model. The
+[OLMo 2 release](https://huggingface.co/allenai/OLMo-2-1124-7B) links its weights,
+training data and code. “Open” is a statement about a particular release's artefacts
+and licence, not a fixed amount of capability or a predictable lag behind a served model.
 
 **Sizes.** Models under 1B parameters run on a device (the labs' SmolLM2-135M and Qwen2.5-0.5B);
 7-14B on one GPU, the case study's class; around 70B on a multi-GPU node, or on one large GPU
 when quantised. **Mixture-of-experts** (MoE) models have hundreds of billions of parameters in
 total but a far smaller active count per token: DeepSeek-V3 has 671B in total and 37B active, so
-it computes per token like a 37B dense model ([Module 05](module_05_EN.html#s12) for the concept,
+its active weight arithmetic is associated with that smaller count. The
+[DeepSeek-V3 report](https://arxiv.org/abs/2412.19437) gives both numbers. Routing,
+attention, memory access and expert communication mean that latency is not the same
+as a 37B dense model's ([Module 05](module_05_EN.html#s12) for the concept,
 [Module 08](module_08_EN.html#s5) for the engineering).
 
 ::: worked title="Weight memory by size class"
@@ -475,21 +477,24 @@ $70 \times 10^9 \times 0.58 = 41$ GB:
 | 70B | 140 GB | 41 GB |
 | 671B-total MoE | 1.34 TB | 0.39 TB |
 
-The MoE must be held in full although only 37B of its parameters compute for each token.
+The full MoE weight collection needs storage even though only a subset is active
+per token. It can be partitioned across devices or offloaded; offloading changes
+the latency calculation rather than making those bytes disappear.
 :::
 
 ::: figure id=fig-07-19
-Size classes on a log axis of parameter count, $10^8$ to $10^{12}$: shaded bands "on-device
-(<1B)", "one GPU (7-14B)", "one node (~70B)" and "MoE (hundreds of B total)". Markers show
-SmolLM2-135M, Qwen2.5-0.5B and the case-study model (9.5B); a 671B-total MoE is a long bar with
-its 37B active part highlighted. Under each band, its bf16 and 4-bit weight memory.
+Weight-storage estimates for illustrative size classes, using 2 bytes per parameter in bf16 and 0.58 bytes per parameter for the stated 4-bit scenario. DeepSeek-V3's 37B active count is marked beside its 671B total. These bars do not assign a model to a particular device or predict latency.
 :::
 
 **Reasoning models** (2024 onward) are trained by reinforcement learning to write long chains of
-thought: stronger on mathematics and code, slower and dearer per answer ([Section 11](#s11)).
+thought or perform more inference-time work. This can improve particular mathematics
+and coding results while increasing token use and latency; measure both the task
+benefit and the resource cost ([Section 11](#s11)).
 **Multimodal models** take text plus images, sometimes audio and video, through separate encoders
-whose outputs are projected into the token stream. As of 2026, 128k-token **contexts** are common
-for open models and some served models advertise a million or more ([Section 9](#s9)).
+whose outputs are projected into the token stream. The advertised **context** limit
+belongs to a particular model version and serving configuration. Long limits,
+including million-token claims, require their own effective-context tests
+([Section 9](#s9)); a capacity number alone does not establish useful recall.
 
 **How the case study would choose.** Shortlist 7-10B open-weight models whose licence allows the
 use, whose tokenizer handles both English and Chinese well ([Section 3](#s3)), and that are
@@ -511,7 +516,8 @@ Why can a 671B MoE model cost per token like a 37B dense model yet need far more
 
 ::: answer
 Only the active experts compute for each token, but any token may be routed to any expert, so
-every expert's weights must be held in memory: 1.34 TB in bf16.
+the full weight collection must be stored somewhere: about 1.34 TB in bf16. Keeping
+it resident avoids offload transfers; active count alone does not determine latency.
 :::
 
 ## Cost from first principles, and the case study's bill {#s14}
@@ -588,9 +594,10 @@ Time per token is weight bytes divided by bandwidth; the ceiling is its inverse.
 | bf16, 19.10 GB | 3.35 TB/s | 5.70 ms | 175 tokens/s |
 | 4-bit, 5.53 GB | 3.35 TB/s | 1.65 ms | 606 tokens/s |
 
-The first row is the source's "about 180"; in bf16 the weights barely fit in 24 GB. The H100
-decodes the same file 3.35 times faster than the smaller card because it has 3.35 times the
-bandwidth; its FLOP/s play no part.
+The first row rounds to about 180; in bf16 the weights barely fit in 24 GB. The H100's
+weight-read ceiling is 3.35 times higher because its assumed bandwidth is 3.35 times
+larger. This is a bound, not a measured speedup. FLOP/s do not enter this particular
+bound; arithmetic, dequantisation, cache traffic and overhead still affect actual latency.
 :::
 
 **Batching** amortises the weight reads: one read serves $B$ sequences in a step, so throughput
@@ -640,13 +647,7 @@ costs more per token than the API.
 :::
 
 ::: figure id=fig-07-20
-The single-stream decode bound and its price. Left: decode ceilings in tokens/s (bandwidth
-divided by weight bytes) for the case-study model: bf16 (19.10 GB) on a 1.0 TB/s card 52, 4-bit
-(5.53 GB) on it 181 with the source's "about 180" marked, bf16 on a 3.35 TB/s H100 175, 4-bit on
-the H100 606. Right: price per million output tokens at batch 1 on the H100 at an assumed USD 2.50
-an hour, with each step also reading a 5,000-token cache: USD 4.11 (bf16) and USD 1.30 (4-bit),
-beside a dashed line at the API's assumed USD 0.80, and a note that batching divides the GPU's
-figure (Module 10).
+Weights-only decode ceilings for two assumed bandwidths, and H100 output-token price estimates including a 5,000-token cache. All throughput values are idealised bounds; USD 2.50 per GPU-hour and USD 0.80 per million API output tokens are scenario inputs.
 :::
 
 ### The case study's bill
@@ -677,12 +678,7 @@ USD 0.0016 of the USD 0.0024, dominates.
 :::
 
 ::: figure id=fig-07-21
-Daily cost against requests per day, 100 to 100,000 on log-log axes, at the assumed prices: the
-API uncached (USD 0.0024 per request) and with the prefix cached (USD 0.00186), both straight
-lines; a dedicated H100 at USD 60 a day, flat, solid up to its batch-1 capacity (about 7,200
-requests a day in bf16, 22,000 at 4 bits) and dashed beyond, labelled "needs batching (Module
-10)". Break-even points at 25,000 (uncached) and 32,300 (cached) requests a day, and the case
-study's 2,000 a day, are marked.
+Daily scenario cost versus request volume. API lines use the stated uncached/cached input prices; a dedicated H100 costs USD 60 per day. Shading marks volumes above the estimated batch-one capacity for bf16 and 4-bit weights, where the flat GPU bill alone does not describe a feasible service.
 :::
 
 The decision follows. At this volume an API is far cheaper than a dedicated GPU, which costs as
@@ -691,10 +687,14 @@ much as about 32,000 cached requests a day and can serve that many only with bat
 safety data that may not leave the site, latency, control over the model version, and the ability
 to fine-tune ([Module 09](module_09_EN.html)). Engineering time is a cost too.
 
-Language changes the bill. In Chinese, the 4,000 input tokens would be about 9,800 with a
-SmolLM2-like tokenizer (×2.46, Lab 2) or 3,200 with a Qwen2.5-like one (×0.80), and the 2,000
-output tokens 4,900 or 1,600; the bill and the decode time scale by the same factors. A bilingual
-tokenizer, like the case-study model's, keeps Chinese at or below the English cost.
+Language changes the bill. As an illustrative scenario, applying the single bilingual
+paragraph's ratios from Lab 2 to the workload gives about 9,800 Chinese input tokens with a
+SmolLM2-like tokenizer (×2.46) or 3,200 with a Qwen2.5-like one (×0.80), and 4,900 or 1,600
+output tokens in place of 2,000. At equal input/output prices per token, each billing component
+scales by its assumed token ratio. Decode time scales approximately that way only if per-token
+throughput stays fixed; context length, KV traffic, batching and hardware can change it.
+A bilingual tokenizer can reduce Chinese token counts, but this paragraph does not guarantee
+Chinese costs at or below English costs. Measure representative inputs and outputs separately.
 
 On the training side, continued pretraining on 2B tokens (1.8B of domain text, 0.2B of general
 replay) at $T = 8{,}192$ costs
@@ -824,8 +824,10 @@ tell which settings explain it. *Cause:* the claim was published without the con
 make it reproducible or comparable. *Fix:* ask the five questions of [Section 12](#s12), and
 report your own results with intervals and a paired comparison.
 
-**Few-shot accuracy swings by 20 points when the examples are reordered.** The same
-demonstrations in a different order give a different accuracy, and the predictions follow the
-last labels shown. *Cause:* order sensitivity, majority-label and recency bias ([Lab 4](#lab4),
-[Section 6](#s6)). *Fix:* balance and shuffle the demonstrations, report the mean and the spread
-over several orders, and evaluate on held-out items.
+**Few-shot accuracy changes with example selection and order.** Lab 4's different eight-shot
+selections span 18.75 accuracy points. Reordering the same four demonstrations changes accuracy
+by 6.25 points and changes the frequency of A predictions substantially. Those predictions do
+not simply follow the final label. *Cause:* example-selection and order sensitivity, with
+label-frequency effects whose mechanism these measurements do not identify ([Lab 4](#lab4),
+[Section 6](#s6), [Exercise 8](#e8)). *Fix:* balance and shuffle the demonstrations, report the
+mean and spread across selections and orders, and evaluate on held-out items.

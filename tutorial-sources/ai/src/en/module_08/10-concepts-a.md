@@ -1,275 +1,198 @@
 ## What pretraining is, and the budget first {#s1}
 
-A **base model** is a decoder-only transformer trained to minimise the next-token cross-entropy on
-as much text as can be gathered and afforded:
+A **base model** learns a distribution of text by minimising next-token
+cross-entropy, usually over a mixture of documents packed into fixed-length
+sequences:
 
 $$
-\mathcal{L}(\theta) = -\frac{1}{|\mathcal{D}|}\sum_{\text{docs}}\sum_{t}\log p_\theta(x_t \mid x_{<t}),
+\mathcal L(\theta)=-\frac1{|\mathcal D|}\sum_{\text{docs}}\sum_t
+\log p_\theta(x_t\mid x_{<t}).
 $$
 
-where $|\mathcal{D}|$ is the number of training tokens and the documents reach the model packed end
-to end into fixed-length sequences ([Section 4](#s4)). The loss is measured in nats per token and
-its exponential is the perplexity; [Module 07, Section 1](module_07_EN.html#s1) explains what the
-objective means and why so much follows from it. **Pretraining** is the run that minimises it.
-There are no labels, no tasks and no instructions. The result is a model of text, not an
-assistant: [Module 09](module_09_EN.html) turns it into one.
+Here $|\mathcal D|$ counts predicted tokens. The tokens provide their own targets;
+the text can contain tasks or instructions, but the objective does not require
+separate human labels. Loss is in nats per token and its exponential is
+perplexity ([Module 07](module_07_EN.html#s1)). Pretraining produces the base;
+[Module 09](module_09_EN.html) adds instruction and preference training.
 
-### Decisions come first
+### Decide before the expensive run
 
-A pretraining run pursues that single objective for weeks under a **compute budget** fixed in
-advance. Almost every decision is made before the run starts, because a restarted run has spent
-its budget for nothing. This module is the list of those decisions:
+Fix the tokenizer, model shape, data policy and schedule before launch. Changing
+them later can require retokenisation, weight migration or a revised training
+phase. Small ablations should settle uncertain choices before the long run pays
+for them. Later mixture changes and batch ramps remain possible if documented.
 
-| Decision | Settled by | Section |
+| Decision | Evidence to obtain | Section |
 |---|---|---|
-| Budget: compute, model size $N$, training tokens $D$ | the FLOP rule and the scaling law | [1](#s1) |
-| Data: sources, filters, deduplication, mixture, tokenizer, packing | small ablations and proxy runs | [2](#s2)–[4](#s4) |
-| Architecture: layers, width, heads, experts | precedent and the parameter count | [5](#s5) |
-| Optimiser, learning rate, schedule, batch size | small sweeps and published recipes | [6](#s6) |
-| Precision and stabilisers | the failure each one prevents | [7](#s7) |
-| Memory and parallel layout | arithmetic first, then measurement | [8](#s8)–[10](#s10) |
-| Checkpointing and monitoring | the failure rate of the cluster | [11](#s11) |
-| Evaluation during the run | benchmark noise and the scaling-law check | [12](#s12) |
-| Small runs, mid-training, continued pretraining | the same pipeline at a fraction of the budget | [13](#s13), [14](#s14) |
-
-Figure 8.1 draws the same decisions as the pipeline they configure.
+| Model size and training tokens | Compute accounting and scaling fits | [1](#s1) |
+| Sources, filters, deduplication and contamination | Audited removals and proxy-model ablations | [2](#s2), [3](#s3) |
+| Mixture, tokenizer and packing | Source exposures and compression tests | [4](#s4) |
+| Shape and optimiser | Parameter counts and small sweeps | [5](#s5), [6](#s6) |
+| Precision and stabilisers | Mechanism-specific diagnostics | [7](#s7) |
+| Memory and parallel layout | Arithmetic followed by measurement | [8](#s8)–[10](#s10) |
+| Recovery and evaluation | Failure logs, held-out losses and task uncertainty | [11](#s11), [12](#s12) |
+| Small runs and domain adaptation | Baselines and a declared acceptance gate | [13](#s13), [14](#s14) |
 
 ::: figure id=fig-08-1
-The pretraining run as a pipeline, left to right: raw sources (web crawl, code, books, papers),
-extraction, language identification, quality filters, deduplication, decontamination, mixture,
-tokenizer, packed shards, the training loop (model, optimiser, parallel layout), checkpoints,
-evaluation and the base model. Under each stage, the section of this module that covers it
-(Sections 2 to 12). A dashed arrow returns from evaluation to the data and the recipe, labelled
-"proxy runs decide, the big run executes".
+The pretraining pipeline, with section references: sources, extraction, language
+identification, filters, deduplication, decontamination, mixture, tokenizer,
+packed shards, training, checkpoints, evaluation and the base model. Short-run
+evaluation informs data and recipe decisions before the main run.
 :::
 
 ### The running case study
 
-The series follows one hypothetical case from [Module 07](module_07_EN.html) onwards: an
-engineering team adapts an open-weight bilingual English–Chinese model, released as base and
-instruct checkpoints, to draft and check safety-case arguments for the pressure-relief system of a
-reactor vessel. The model has $L = 36$ layers, width $d = 4{,}096$, 32 query heads and 8 KV heads of
-dimension 128, a SwiGLU feed-forward network of width $d_{\text{ff}} = 15{,}360$ and a vocabulary of
-$V = 152{,}064$ with untied embeddings: $N = 9{,}550{,}729{,}216$ parameters, counted in
-[Section 5](#s5). Prose calls it the 9.5B model and arithmetic uses $9.55 \times 10^9$; the quick
-table below rounds it to 9.5B, which is 0.5% low. It is a worked case to follow, not anyone's plan
-or product.
+The hypothetical engineering team from Module 07 adopts a bilingual
+English–Chinese model to draft and check safety-case arguments for a reactor
+vessel's pressure-relief system. It has 36 layers, width 4,096, 32 query/8 KV
+heads of dimension 128, SwiGLU width 15,360, vocabulary 152,064, untied embeddings,
+RMSNorm and no biases. Section 5 counts exactly 9,550,729,216 parameters.
+Arithmetic uses this count; the quick table rounds it to 9.5B, about 0.5% low.
+It is a worked scenario, not a released product or an actual training plan.
 
-This module uses it twice. First, as the example of how such a base is made: a 2T-token plan on 80
-H100 GPUs, worked through this section and Sections 4 to 11 (budget, mixture, shape, schedule,
-memory, layout, failures). The team will never run that plan, but it needs it to judge the base it
-adopts: its tokenizer, its data, its context length, the failures its makers had to manage.
-Second, the team's own decision, costed in [Section 14](#s14): whether to continue pretraining the
-base on 2B tokens of safety-engineering text (1.8B of domain text plus 0.2B of general replay,
-1,907 steps), gated by baseline measurements and a go/no-go rule fixed in advance.
-[Module 09](module_09_EN.html) post-trains from the result (the continued-pretraining checkpoint if
-it is kept, otherwise the instruct release) and [Module 10](module_10_EN.html) serves the merged,
-quantised model.
+Use it first to understand how such a base could be made: 2T tokens, context
+8,192, on 80 H100s. The team adopts a released checkpoint rather than running
+that plan. Its own possible run is **continued pretraining** on 1.8B domain
+tokens plus 0.2B general replay, accepted only after the baseline and gate in
+Section 14. Module 09 post-trains the kept checkpoint, or the instruct release
+if adaptation fails; Module 10 serves the result.
 
-### The FLOP rule
+### Use one FLOP convention
 
-[Module 06, Section 11](module_06_EN.html#s11) derives the series' FLOP count; it is recalled here,
-not re-derived. A weight used in a matrix multiply costs 2 FLOPs per token in the forward pass (a
-multiply and an add), and the backward pass costs twice the forward, hence the familiar
-$C \approx 6ND$. The series counts more precisely. The input embedding is a lookup, so the forward
-pass costs $2N_{\text{matmul}}$ per token with $N_{\text{matmul}} = N - Vd$. Attention adds $4Ldt$
-for a token at context position $t$, which averages to $2LdT$ over a causal sequence of length $T$.
-Training costs three times the forward pass, so a run on $D$ tokens costs
+[Module 06](module_06_EN.html#s11) derives the count. A matrix weight costs
+approximately two forward FLOPs per token; backward costs twice forward. The
+input embedding is a lookup, so the untied model has
+$N_{\text{matmul}}=N-Vd$. Causal attention averages $2LdT$ forward FLOPs per
+token over a length-$T$ sequence. The architecture-aware training estimate is
 
 $$
-C = \big(6N_{\text{matmul}} + 6LTd\big)\,D .
+C=(6N_{\text{matmul}}+6LTd)D.
 $$
 
-Every compute figure for the case study in this module uses this rule. Memory
-([Section 8](#s8)) counts all $N$ parameters, and so does the Chinchilla law, whose own accounting
-is $C = 6ND$ over all parameters with no attention term. The shortcut $6ND$ appears elsewhere only
-labelled as an estimate.
+Memory counts all $N$. Chinchilla's published fit uses its own budget
+$C_6=6ND$, without the explicit attention term. Keep that convention for its
+iso-FLOP curves and payback calculations; elsewhere label $6ND$ as a shortcut.
+These are model arithmetic estimates, excluding communication and most
+elementwise operations. Some papers charge full-square attention: PaLM's
+utilisation count uses $6N+12LTd$. A utilisation figure must state its convention.
 
-::: worked title="The case study's FLOPs per token"
-The input embedding has $Vd = 152{,}064 \times 4{,}096 = 622{,}854{,}144$ parameters, so
+::: worked title="The case study's per-token training charge"
+The input table has $152064(4096)=622854144$ parameters, hence
+$N_{\text{matmul}}=8927875072$. At context 8,192:
 
 $$
-N_{\text{matmul}} = 9{,}550{,}729{,}216 - 622{,}854{,}144 = 8{,}927{,}875{,}072 .
+\begin{aligned}
+6N_{\text{matmul}}&=53{,}567{,}250{,}432,\\
+6LTd&=7{,}247{,}757{,}312,\\
+f_{\text{train}}&=60{,}815{,}007{,}744\ \text{FLOPs/token}.
+\end{aligned}
 $$
 
-- Forward pass, weights: $2N_{\text{matmul}} = 1.79 \times 10^{10}$ FLOPs per token.
-- Training, weights: $6N_{\text{matmul}} = 5.36 \times 10^{10}$.
-- Training, causal attention at $T = 8{,}192$: $6LTd = 6 \times 36 \times 8{,}192 \times 4{,}096 = 7.25 \times 10^{9}$,
-  13.5% on top of the weights (6.8% at $T = 4{,}096$, because the term is linear in $T$).
-- Total: $5.36 \times 10^{10} + 0.725 \times 10^{10} = 6.08 \times 10^{10}$ FLOPs per training token.
-
-The shortcut $6N$ over all $9.55 \times 10^9$ parameters gives $5.73 \times 10^{10}$: 7% above the
-weight term, because it charges for the free embedding lookup, and 6% below the total, because it
-leaves out attention. At $T = 131{,}072$ the attention term is $1.16 \times 10^{11}$, 2.2 times the
-weight term, so a long-context token costs $(5.36 + 11.6)/6.08 = 2.8$ times an 8k-context token;
-[Section 14](#s14) uses this when the context is extended.
+Attention adds 13.5% to the weight term. The shortcut $6N=57.30$ billion is
+about 7% high on weights and 6% low overall. At context 131,072, attention is
+sixteen times larger and total cost per token is about 2.8 times the 8k charge.
 :::
 
-Conventions also differ between papers. PaLM's definition of utilisation (Chowdhery et al. 2023)
-charges $6N + 12LTd$ per training token: attention over the full $T \times T$ square, without the
-causal halving. A utilisation figure must therefore say which count it used.
+### Convert compute into elapsed time
 
-### From FLOPs to calendar days
+For sustained per-device rate $r$, GPU-hours are $C/(3600r)$; divide again by
+GPU count for elapsed hours. **Model FLOPs utilisation (MFU)** divides useful
+model FLOP/s by the hardware peak at the precision used. **Hardware FLOPs
+utilisation (HFU)** also counts recomputation, so activation checkpointing can
+raise HFU without improving useful-token throughput.
 
-$$
-\text{GPU-hours} = \frac{C}{\text{peak} \times \text{MFU} \times 3{,}600}
-$$
+The series assumes an H100 SXM dense bf16 peak of 989 TFLOP/s and sustained
+$r=4\times10^{14}$ FLOP/s, approximately 40% MFU. The exact product
+$0.40(989)$ is 395.6 TFLOP/s; use it when the text or widget says exact peak.
+Sparsity-enhanced peak figures do not apply to dense training. These are
+planning assumptions; realised throughput, downtime and the chosen layout
+determine calendar time.
 
-The **peak** is the vendor's dense bf16 tensor-core throughput: 989 TFLOP/s for an H100 SXM, the
-series' assumed peak as of 2026. The datasheet's doubled "with sparsity" figure never applies to
-dense training. **Model FLOPs utilisation (MFU)** is the model FLOPs achieved per second divided by
-the peak; 35–45% is good at scale, and the rest is lost to communication, memory traffic and gaps
-between kernels. At 40%, $0.40 \times 989 = 396$ TFLOP/s, rounded to $4 \times 10^{14}$ FLOP/s
-sustained per H100: the assumption Modules 07 to 09 share. **Hardware FLOPs utilisation (HFU)**
-also counts the forward passes recomputed under activation checkpointing ([Section 8](#s8)), so it
-is higher for the same run. MFU is the figure to quote and compare.
+::: worked title="Five quick budget scenarios"
+Use $6ND$, rounded 9.5B parameters and $r=4\times10^{14}$ FLOP/s throughout
+this table. These rows are hypothetical comparisons, not historical run records.
 
-::: worked title="A quick budget table, with the shortcut throughout"
-A first pass uses $C = 6ND$ with $N$ rounded to 9.5B and no attention term, at
-$4 \times 10^{14}$ FLOP/s per H100, so GPU-hours $= C/(4 \times 10^{14} \times 3{,}600)$:
-
-| Run | $C = 6ND$ (FLOPs) | H100-hours | Calendar time |
-|---|---|---|---|
-| 9.5B on 190B tokens (20 per parameter) | $6 \times 9.5 \times 10^{9} \times 1.9 \times 10^{11} = 1.08 \times 10^{22}$ | 7,521 | 470 h = 19.6 days on 16 GPUs |
-| 9.5B on 2T tokens | $1.14 \times 10^{23}$ | 79,167 | 41.2 days on 80 GPUs |
-| 9.5B on 15T tokens | $8.55 \times 10^{23}$ | 593,750 | 309 days, about 10 months, on 80 GPUs |
-| 1B on 20B tokens | $1.2 \times 10^{20}$ | 83 | 21 h on 4 GPUs: a weekend |
-| 9.5B, continued pretraining on 2B | $1.14 \times 10^{20}$ | 79 | 9.9 h on 8 GPUs |
-
-The compute-optimal row needs under three weeks on 16 GPUs, not a month; the 2T row is the plan
-this module works through, and the last row is the team's own decision.
+| Run | Shortcut FLOPs | GPU-hours | Elapsed time |
+|---|---:|---:|---|
+| 9.5B on 190B tokens | $1.083\times10^{22}$ | 7,521 | 19.6 days on 16 GPUs |
+| 9.5B on 2T | $1.14\times10^{23}$ | 79,167 | 41.2 days on 80 GPUs |
+| 9.5B on 15T | $8.55\times10^{23}$ | 593,750 | 309.2 days on 80 GPUs |
+| 1B on 20B | $1.2\times10^{20}$ | 83.3 | 20.8 hours on four GPUs |
+| 9.5B, continued training on 2B | $1.14\times10^{20}$ | 79.2 | 9.9 hours on eight GPUs |
 :::
 
-::: worked title="The 2T-token plan under the series' rule"
-$C = 6.08 \times 10^{10} \times 2 \times 10^{12} = 1.22 \times 10^{23}$ FLOPs. At
-$4 \times 10^{14}$ FLOP/s that is $1.22 \times 10^{23}/(4 \times 10^{14} \times 3{,}600) = 84{,}465$
-GPU-hours; on 80 GPUs, $84{,}465/80 = 1{,}056$ hours, or 44.0 days. With $6N$ over all parameters
-and no attention the same run is $1.15 \times 10^{23}$ FLOPs and 41.5 days (41.2 with $N$ rounded to
-9.5B, as in the quick table). At the exact peak, 40% of 989 TFLOP/s gives 85,405 GPU-hours and 44.5
-days; at 30% MFU the run takes 59.3 days. MFU is a calendar quantity: the model and the data fix
-the FLOPs, and MFU decides how long they take.
+::: worked title="The architecture-aware 2T-token plan"
+The exact shape costs $60{,}815{,}007{,}744(2\times10^{12})=
+1.2163\times10^{23}$ FLOPs. At the rounded sustained rate this is 84,465
+GPU-hours, or 44.0 days on 80 GPUs. At exactly 40% of the stated peak it is
+85,405 GPU-hours and 44.5 days; at 30% MFU, 59.3 days. At the assumed
+USD 2.50 per GPU-hour, the rounded-rate plan costs about USD 211,000 in GPU
+time, excluding ablations, failed runs, storage and staff. The 2B-token
+continued-training plan costs a thousandth as much at the same context.
 :::
 
-From here on the text uses the series' figures for the case study and says so. The arithmetic is
-why nobody outside a handful of organisations pretrains a competitive model from scratch, and why
-the rest of this module matters anyway: continued pretraining is the same pipeline at about a
-thousandth of the budget (84.5 GPU-hours for the case study, [Section 14](#s14)), and understanding
-the full run is what makes the small one sensible.
+### Allocate the budget for training and serving
 
-### Compute-optimal or over-trained
-
-[Module 07, Sections 4 and 5](module_07_EN.html#s4) derive the compute-optimal allocation and the
-over-training break-even; here they are applied. The Chinchilla fit (Hoffmann et al. 2022) is
-written in this module with its numbers, so that $B$ always means a batch:
+Module 07 derives the Chinchilla allocation. The rounded published parametric
+fit is
 
 $$
-L(N, D) = 1.69 + \frac{406.4}{N^{0.34}} + \frac{410.7}{D^{0.28}} \quad \text{nats per token}.
+\mathcal L(N,D)=1.69+\frac{406.4}{N^{0.34}}+\frac{410.7}{D^{0.28}}.
 $$
 
-About 20 tokens per parameter gives the lowest loss per training FLOP by the paper's first two
-estimation methods, while the fitted law's own minimum sits at 40–80 tokens per parameter for
-$C = 10^{20}$ to $10^{23}$. Over-training, at 100–2,000 tokens per parameter, pays when inference
-dominates, because the lifetime cost is
-
-$$
-C_{\text{life}} = 6ND_{\text{train}} + 2ND_{\text{served}},
-$$
-
-and a smaller model pays less on every token it serves. The fit has two limits: its constants
-belong to one corpus and one tokenizer, and it was fitted on 70M to 16B parameters trained on 5B to
-500B tokens. Figure 8.2 shows how flat it is near its minimum.
+Its constants belong to a particular corpus/tokenizer and fitting experiments
+with 70M–16B parameters and 5B–500B tokens. Twenty tokens per parameter is a
+heuristic associated with the paper's other estimation methods; the parametric
+minimum has a different ratio. Pale curve segments below show extrapolation.
 
 ::: figure id=fig-08-2
-Iso-FLOP curves of the Chinchilla fit: predicted loss against parameters $N$ (log scale, $10^8$ to
-$10^{11}$) for $C = 10^{20}$, $10^{21}$, $10^{22}$ and $10^{23}$ FLOPs counted as $6ND$, one curve
-each. Each curve carries two markers: the 20-tokens-per-parameter point (0.91B, 2.89B, 9.13B and
-28.9B parameters) and the fitted law's minimum (0.64B, 1.82B, 5.16B and 14.6B). The case study
-trained on 190B, 2T and 15T tokens appears as three labelled dots at 9.55B parameters
-($L = 2.140$, 2.002 and 1.938). Near each minimum the curves are flat: at
-$C = 1.15 \times 10^{23}$, halving or doubling $N$ from the minimum raises the predicted loss by
-only 0.007 nats.
+Chinchilla fitted loss at budgets $C_6=10^{20},10^{21},10^{22},10^{23}$.
+Circles mark fitted minima and crosses the twenty-token allocation. Diamonds
+show the 9.55B case model at 190B, 2T and 15T tokens. Curves outside the original
+parameter/token fitting range are pale; none is a measurement of this case model.
 :::
 
-::: worked title="The compute decision at the case study's budget"
-In Chinchilla's accounting the budget is
-$C = 6ND = 6 \times 9.55 \times 10^{9} \times 2 \times 10^{12} = 1.146 \times 10^{23}$ FLOPs. Three
-ways to spend it:
+::: worked title="A small loss difference and a long payback"
+For the exact case shape on 2T tokens, $C_6=1.14609\times10^{23}$:
 
-- The fitted law's minimum ([Module 07, Section 4](module_07_EN.html#s4)):
-  $N^\ast = 1.345\,(C/6)^{0.452} = 15.5\text{B}$ and $D^\ast = C/(6N^\ast) = 1.23\text{T}$, so
-  $L = 1.69 + 0.139 + 0.169 = 1.999$.
-- 20 tokens per parameter: $C = 6N \times 20N = 120N^2$, so $N = \sqrt{C/120} = 30.9\text{B}$ and
-  $D = 618\text{B}$, with $L = 1.69 + 0.110 + 0.205 = 2.005$.
-- The case study: $N = 9.55\text{B}$ and $D = 2\text{T}$, with $L = 1.69 + 0.164 + 0.148 = 2.002$.
+| Allocation | Parameters | Tokens | Fitted loss |
+|---|---:|---:|---:|
+| Case study | 9.551B | 2.000T | 2.00199 |
+| Fixed-budget fitted minimum | 15.526B | 1.230T | 1.99848 |
+| Twenty tokens per parameter | 30.904B | 0.618T | 2.00537 |
 
-The three predictions lie within 0.007 nats of each other. The smallest model is chosen because it
-serves every token for $2N$ FLOPs, 1.6 times fewer than the 15.5B model and 3.2 times fewer than
-the 30.9B one.
-
-The extra training is repaid by that cheaper serving. The compute-optimal model with the same
-predicted loss has 15.0B parameters trained on 1.18T tokens, $C' = 1.065 \times 10^{23}$, 7% less
-than $1.146 \times 10^{23}$. It costs $2 \times (15.0 - 9.55) \times 10^{9} = 1.09 \times 10^{10}$
-more FLOPs per served token, so the break-even is
+The three losses differ by less than 0.007 nats, while approximate serving
+arithmetic $2N$ differs substantially. For an equal-loss comparison, the fitted
+optimum reaches the case loss at 15.018B parameters on 1.182T tokens, costing
+$C'_6=1.065\times10^{23}$. Equating lifetime arithmetic,
+$C_6+2NS=C'_6+2N'S$, gives
 
 $$
-\frac{(1.146 - 1.065) \times 10^{23}}{1.09 \times 10^{10}} = 7.4 \times 10^{11} \ \text{served tokens}.
+S=\frac{C_6-C'_6}{2(N'-N)}=7.439\times10^{11}\ \text{served tokens}.
 $$
 
-At the team's own 12M tokens a day ([Module 07, Section 14](module_07_EN.html#s14): 2,000 requests
-of 4,000 input and 2,000 output tokens) that takes 62,000 days, about 170 years; at $10^{10}$ tokens
-a day it takes 74 days. The comparison is indicative only: 2T tokens lies outside the 5B–500B range
-the law was fitted on.
+At the team's 12M tokens/day that is about 170 years; at ten billion/day it is
+about 74 days. Producers may serve many users, so their lifetime volume can
+change the decision. The comparison extrapolates the fit, assumes equal loss
+means equal quality, and omits attention, quantisation, batching and prices.
+It does not predict a real deployment's latency or task score.
 :::
-
-Over-training is repaid over every token a base serves for all its users, not over one team's
-workload. It is therefore the base producer's decision, and one reason a team adopts an
-over-trained open base rather than training its own.
-
-The plan is set at 2T tokens, about 209 per parameter, for three reasons. Its 84,500 H100-hours
-cost about USD 211,000 of GPU time at the series' assumed USD 2.50 per GPU-hour (an assumption, as
-of 2026, which leaves out ablations, failed runs and staff): a budget a well-funded organisation
-could commit. It sits in the over-trained regime that makes a small model worth serving. And the
-15T row shows the scale at which the strongest open models of this size are trained: Llama 3's 8B
-model saw about 15T tokens.
 
 ::: widget name=compute-budget-planner
-The planner opens on the case study: 9.55B parameters, 2T tokens, 80 H100s at 40% MFU, 44.5 days at
-the exact peak. Untick the series' rule to see the quick $6ND$ estimate; press "Set N, D to the
-fitted law's minimum" and watch the predicted loss fall by only 0.003 nats while the model, and
-with it the cost of every served token, grows by 60%; then drag MFU down to 30% and watch the
-calendar stretch to 59 days.
+Compare architecture-aware compute with the $6ND$ shortcut. Change context,
+MFU and GPU count; then compare fixed-budget allocations and the separate
+equal-loss payback. Read the accounting label beside each result.
 :::
 
 ::: check
-What does the shortcut $6ND$ get wrong for the case study at $T = 8{,}192$?
+Why must a fixed-budget loss minimum be distinguished from an equal-loss
+serving comparison?
 :::
 
 ::: answer
-It charges for the input embedding, a lookup that costs no FLOPs, which makes it 7% high on the
-weight term, and it leaves out causal attention, $6LTd$ per token, 13.5% of the weight term. Net, it
-is 6% low: $5.73 \times 10^{10}$ against $6.08 \times 10^{10}$ FLOPs per token.
-:::
-
-::: check
-A team reports 55% MFU with activation recomputation counted in the FLOPs. Is it comparable with
-another team's 45% MFU?
-:::
-
-::: answer
-No. Counting recomputed FLOPs makes it HFU, inflated by up to a third: one extra forward pass on top
-of the three forward-pass costs the model needs. With full recomputation, 55% HFU is
-$55\% \times 3/4 = 41\%$ MFU. Recompute it from model FLOPs only before comparing.
-:::
-
-::: check
-A 15B model trained on 1.18T tokens would match the case study's predicted loss for 7% less
-training compute. Why is the base trained at 9.55B on 2T tokens?
-:::
-
-::: answer
-Every served token costs $2N$ FLOPs, so the smaller model is cheaper for its whole working life. The
-extra training is repaid after about $7.4 \times 10^{11}$ served tokens: quickly for a base that
-many users serve, never on one team's 12M tokens a day.
+A fixed-budget alternative has a different predicted loss. To ask when extra
+training pays for cheaper serving at equal fitted quality, first solve for an
+alternative with the same loss, then compare its training and serving charges.
 :::
 
 ## Data I: sources, extraction, language and quality filters {#s2}
@@ -313,8 +236,10 @@ both and found that this choice alone gave better models.
 
 Encoding repair belongs here too. UTF-8 text mis-decoded as Windows-1252 turns an em dash into
 `â€”`. This **mojibake** survives every quality rule below, because the words around it are fine.
-[Lab 1](#lab1) finds it in about 6% of the TinyStories stories, and [Lab 2](#lab2)'s model, trained
-on them, learns to emit it.
+[Lab 1](#lab1) flags suspicious patterns in 303 of 5,000 original TinyStories
+documents, about 6%. Only 97 pass its simple whole-string repair probe. These are
+heuristic flags, not a complete encoding audit; leaving artefacts in training data
+can teach a model to reproduce them.
 
 ### Language identification
 
@@ -371,7 +296,9 @@ tokens, then fails three: letters, stop words and duplicated lines. (c) fails tw
 words, and passes the letter rule at exactly 80%. Both junk pages also break the $n$-gram
 repetition limits, since more than half of their characters lie in duplicated 5-grams against a
 limit of 15%; that is how (c), a single line, would be caught even without its hashtags.
-[Lab 1](#lab1) prints these statistics for the same three documents.
+[Lab 1](#lab1) applies an explicit subset of these rules to a larger corpus and
+records the first failure for each document. Its definitions and first-failure
+counts should be inspected before comparing it with a full production filter.
 :::
 
 C4's cleaning (Raffel et al. 2020) is the contrast: it works on lines. It keeps only lines that end
@@ -608,8 +535,10 @@ $(16, 8)$ curve.
 
 Comparing all pairs of $n$ documents takes $n(n - 1)/2$ comparisons. LSH hashes each document into
 $b$ buckets, one per band, and compares only documents that share a bucket. Candidates are then
-verified against a threshold, by exact Jaccard on the shingle sets or by the fraction of agreeing
-signature entries; a false candidate costs verification time, not correctness. Verified pairs are
+verified against a threshold by exact Jaccard on the shingle sets; under this policy, a false
+candidate costs verification time rather than creating a false accepted pair. The fraction of
+agreeing signature entries is an approximate alternative with sampling error, so it can accept
+pairs below the exact threshold. Verified pairs are
 grouped into clusters with union-find, because near-duplication chains (A is near B, B is near C),
 and one document per cluster is kept.
 
@@ -618,7 +547,7 @@ $10^9$ documents form $10^9 \times (10^9 - 1)/2 \approx 5 \times 10^{17}$ pairs.
 makes $16 \times 10^9 = 1.6 \times 10^{10}$ bucket insertions, each a hash of 8 integers, and
 compares only the pairs that share a bucket. [Lab 1](#lab1)'s corpus of 6,400 documents has
 $6{,}400 \times 6{,}399/2 = 20{,}476{,}800$ pairs, about 20.5 million, from which LSH proposes about
-750 candidates.
+780 candidates in the recorded run.
 :::
 
 ### What published pipelines chose
@@ -790,8 +719,8 @@ for in all three.
 
 Documents are joined with an end-of-document token and cut into sequences of length $T$, so that no
 compute is spent on padding. Attention across a document boundary inside a sequence is then either
-allowed, which is simple and slightly harmful (a token attends to an unrelated document), or masked
-with a block-diagonal causal mask, which is correct and slightly more complex (Figure 8.6). Llama 3
+allowed, which is simple but introduces unrelated context, or restricted
+with a block-diagonal causal mask (Figure 8.6). Llama 3
 masked, and found it mattered little in standard pretraining but mattered for very long sequences.
 Long documents are split across sequences; best-fit packing (Ding et al. 2024) assigns whole
 documents to sequences as items are assigned to bins, so that fewer are cut.
@@ -810,7 +739,8 @@ including the end-of-text token (median 194, 90th percentile 333, longest 1,120)
 story to 512 tokens fills on average 222 of 512 positions, so about $1 - 222/512 = 57\%$ of the
 compute is wasted, and the 2.9% of stories longer than 512 tokens are still truncated. Padding to
 256 wastes 23% (the long stories fill their rows) and truncates 19% of the stories. Packing into
-256-token windows wastes nothing and discards nothing; a story that crosses a window boundary is
+256-token windows avoids most padding; a final partial window needs its own policy.
+A story that crosses a window boundary is
 split, and its second part loses the context of its first.
 :::
 

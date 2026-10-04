@@ -19,6 +19,9 @@
 <a href="module_03_ZH.html">3 &mdash; 卷积神经网络</a>
 <a href="module_04_ZH.html">4 &mdash; 循环神经网络与序列</a>
 <a href="module_05_ZH.html">5 &mdash; 其他值得了解的网络</a>
+<a href="module_06_ZH.html">6 &mdash; Transformer</a>
+<a href="module_07_ZH.html">7 &mdash; 大语言模型</a>
+<a href="module_08_ZH.html">8 &mdash; 大语言模型预训练</a>
     </div>
   </div>
   <a href="module_02_EN.html" class="lang-switch" hreflang="en">English</a>
@@ -1202,7 +1205,7 @@ print(H.shape, sum(W.size + b.size for W, b in params))
 </code></pre></div>
 <h3>参数、FLOPs 与内存</h3>
 <p>第 <span class="math-i">l</span> 层有 <span class="math-i">d_{l-1}d_l</span> 个权重和 <span class="math-i">d_l</span> 个偏置，所以网络共有 <span class="math-i">\sum_{l=1}^{L}(d_{l-1}d_l + d_l)</span> 个参数。一个 <span class="math-i">(B\times m)</span> 矩阵与一个 <span class="math-i">(m\times n)</span> 矩阵相乘，要算 <span class="math-i">Bn</span> 个长度为 <span class="math-i">m</span> 的点积：<span class="math-i">Bmn</span> 次乘法和差不多同样多的加法，即 <span class="math-i">2Bmn</span> 次<strong>浮点运算</strong>（floating-point operations，FLOPs）。对各层求和，前向传播约花费权重数的 <span class="math-i">2B</span> 倍：每个权重对每个样本参与一次乘法和一次加法。偏置加法和激活每层花费 <span class="math-i">O(Bd_l)</span>，对宽层而言，与 <span class="math-i">Bd_{l-1}d_l</span> 相比可以忽略。大模型前向传播每个 token 约花费 <span class="math-i">2N</span> FLOPs 的经验法则就来源于此。</p>
-<p>本系列把这类计数的约定一次定下，见<span class="xref-pending">模块 06 第 11 节</span>：在 FLOP 计数中，<span class="math-i">N</span> 指参与矩阵乘法的权重（嵌入查表不花 FLOPs），注意力另加一项，随上下文增长，一个训练步按三次前向传播计（<a href="#s3">第 3 节</a>说明为什么反向传播至多花两次）。相比之下，内存要计入每一个参数。</p>
+<p>本系列把这类计数的约定一次定下，见<a href="module_06_ZH.html#s11">模块 06 第 11 节</a>：在 FLOP 计数中，<span class="math-i">N</span> 指参与矩阵乘法的权重（嵌入查表不花 FLOPs），注意力另加一项，随上下文增长，一个训练步按三次前向传播计（<a href="#s3">第 3 节</a>说明为什么反向传播至多花两次）。相比之下，内存要计入每一个参数。</p>
 <p>反向传播（<a href="#s3">第 3 节</a>）需要每一层的输入 <span class="math-i">\mathbf{H}^{(l-1)}</span> 和预激活 <span class="math-i">\mathbf{Z}^{(l)}</span>（或足以计算 <span class="math-i">\phi'</span> 的信息），所以为训练而做的前向传播要存储 <span class="math-i">O(B\sum_l d_l)</span> 个数。参数只存一份；激活则 batch 中每个样本存一份，这就是为什么激活内存随 batch 大小乘以深度增长。字节单位遵循本系列的约定：kB、MB 和 GB 是十进制（<span class="math-i">10^3</span>、<span class="math-i">10^6</span> 和 <span class="math-i">10^9</span> 字节）；KiB、MiB 和 GiB 是二进制（<span class="math-i">2^{10}</span>、<span class="math-i">2^{20}</span> 和 <span class="math-i">2^{30}</span> 字节）。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">第 2 到 4 节使用的小网络</div>
 <p>两个输入，两个 ReLU 隐藏单元，一个线性输出，平方误差：<span class="math-i">\mathbf{x} = (2, 1)</span>；<span class="math-i">\mathbf{W}^{(1)} = \begin{bmatrix}0.5 &amp; -1.0\\ 0.25 &amp; 0.5\end{bmatrix}</span>（行对应输入，列对应隐藏单元），<span class="math-i">\mathbf{b}^{(1)} = (0.1, 0)</span>；<span class="math-i">\mathbf{W}^{(2)} = \begin{bmatrix}0.8\\ -0.6\end{bmatrix}</span>，<span class="math-i">b^{(2)} = 0.2</span>；目标 <span class="math-i">t = 1</span>；损失 <span class="math-i">(\hat y - t)^2</span>。</p>
@@ -1533,7 +1536,7 @@ W2 [[0.756], [0.0]]
 b2 [0.56]
 </code></pre></div>
 <h3>反向传播的开销</h3>
-<p>第 <span class="math-i">l</span> 层的前向传播是一次乘积 <span class="math-i">\mathbf{H}^{(l-1)}\mathbf{W}^{(l)}</span>，花费 <span class="math-i">2Bd_{l-1}d_l</span> FLOPs。它的反向传播做两次同样大小的乘积：用 <span class="math-i">\boldsymbol{\Delta}^{(l)}\mathbf{W}^{(l)\top}</span> 把误差往下传，用 <span class="math-i">\mathbf{H}^{(l-1)\top}\boldsymbol{\Delta}^{(l)}</span> 求权重梯度。门控和偏置求和花费 <span class="math-i">O(Bd_l)</span>。所以反向传播至多花前向传播的两倍，一个训练步至多约为三次前向传播。当第一层占了很大一部分工作量时，开销会低于两倍，因为不需要对输入 <span class="math-i">\mathbf{X}</span> 求梯度，第一层省去了误差乘积。<span class="xref-pending">模块 06 第 11 节</span>把这一论证推广为 Transformer 的训练 FLOPs 计数。</p>
+<p>第 <span class="math-i">l</span> 层的前向传播是一次乘积 <span class="math-i">\mathbf{H}^{(l-1)}\mathbf{W}^{(l)}</span>，花费 <span class="math-i">2Bd_{l-1}d_l</span> FLOPs。它的反向传播做两次同样大小的乘积：用 <span class="math-i">\boldsymbol{\Delta}^{(l)}\mathbf{W}^{(l)\top}</span> 把误差往下传，用 <span class="math-i">\mathbf{H}^{(l-1)\top}\boldsymbol{\Delta}^{(l)}</span> 求权重梯度。门控和偏置求和花费 <span class="math-i">O(Bd_l)</span>。所以反向传播至多花前向传播的两倍，一个训练步至多约为三次前向传播。当第一层占了很大一部分工作量时，开销会低于两倍，因为不需要对输入 <span class="math-i">\mathbf{X}</span> 求梯度，第一层省去了误差乘积。<a href="module_06_ZH.html#s11">模块 06 第 11 节</a>把这一论证推广为 Transformer 的训练 FLOPs 计数。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">digits 网络的反向传播</div>
 <p>对 <span class="math-i">64 \to 128 \to 128 \to 10</span>，<span class="math-i">B = 64</span>，前向传播花费 3,309,568 FLOPs（第 2 节）。权重梯度花费同样多，3,309,568。第 3 层和第 2 层往下传的误差花费 <span class="math-i">2\cdot 64\cdot(128\cdot 10 + 128\cdot 128) = 163{,}840 + 2{,}097{,}152 = 2{,}260{,}992</span>；第 1 层不往下传任何东西。反向传播花费 <span class="math-i">3{,}309{,}568 + 2{,}260{,}992 = 5{,}570{,}560</span> FLOPs，是前向传播的 1.68 倍，完整的一个训练步是 2.68 次前向传播。</p>
 </div>
@@ -1914,7 +1917,7 @@ False
 </tr>
 </tbody>
 </table></div>
-<p><span class="math-i">\Phi</span> 是标准正态分布的累积分布函数，<span class="math-i">\phi_N</span> 是标准正态分布的密度函数。截至 2026 年，大多数开放权重的大语言模型在 SwiGLU 前馈块中使用 SiLU（<span class="xref-pending">模块 06，第 9 节</span>）。PyTorch 约定 ReLU 在 <span class="math-i">z = 0</span> 处的导数为 0。图 2.9 画出了这六个函数及其导数。</p>
+<p><span class="math-i">\Phi</span> 是标准正态分布的累积分布函数，<span class="math-i">\phi_N</span> 是标准正态分布的密度函数。截至 2026 年，大多数开放权重的大语言模型在 SwiGLU 前馈块中使用 SiLU（<a href="module_06_ZH.html#s9">模块 06，第 9 节</a>）。PyTorch 约定 ReLU 在 <span class="math-i">z = 0</span> 处的导数为 0。图 2.9 画出了这六个函数及其导数。</p>
 <figure class="fig" id="fig-02-9"><div class="fig-svg"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="547.2pt" height="324pt" viewBox="0 0 547.2 324" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <defs>
   <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
@@ -6347,7 +6350,7 @@ L 455.433943 273.466406
 <h3>残差连接</h3>
 <p>深层网络还要再加一种手段。<strong>残差连接</strong>（residual connection）
 <span class="math-i">\mathbf{h}^{(l)} = \mathbf{h}^{(l-1)} + f(\mathbf{h}^{(l-1)})</span> 的雅可比矩阵是
-<span class="math-i">\mathbf{I} + \partial f/\partial\mathbf{h}^{(l-1)}</span>。于是第 3 节的反向连乘中总含有一条恒等路径，梯度沿这条路径不会消失。此时前向方差变成相加，<span class="math-i">\operatorname{Var}(\mathbf{h}^{(l)}) \approx \operatorname{Var}(\mathbf{h}^{(l-1)}) + \operatorname{Var}(f)</span>，如果每个分支都保持其输入的方差，每经过一个块方差就会翻倍。因此深层残差网络会缩小每个分支最后一层的尺度，或者把它初始化为零，使每个块在起始时接近恒等映射。<a href="module_03_ZH.html#s8">模块 03</a>通过 ResNet 引入残差连接，<span class="xref-pending">模块 06</span>则表明每个 Transformer 块里都有它。</p>
+<span class="math-i">\mathbf{I} + \partial f/\partial\mathbf{h}^{(l-1)}</span>。于是第 3 节的反向连乘中总含有一条恒等路径，梯度沿这条路径不会消失。此时前向方差变成相加，<span class="math-i">\operatorname{Var}(\mathbf{h}^{(l)}) \approx \operatorname{Var}(\mathbf{h}^{(l-1)}) + \operatorname{Var}(f)</span>，如果每个分支都保持其输入的方差，每经过一个块方差就会翻倍。因此深层残差网络会缩小每个分支最后一层的尺度，或者把它初始化为零，使每个块在起始时接近恒等映射。<a href="module_03_ZH.html#s8">模块 03</a>通过 ResNet 引入残差连接，<a href="module_06_ZH.html#s5">模块 06</a>则表明每个 Transformer 块里都有它。</p>
 <h3>输出层</h3>
 <p>较小的输出尺度会使初始预测接近均匀分布，所以 <span class="math-i">K</span> 类分类器一开始的损失接近 <span class="math-i">\ln K</span>（数字识别是 <span class="math-i">\ln 10 = 2.303</span>）。检查这一点是<a href="#s14">第 14 节</a>的第一项测试。</p>
 <div class="callout keyidea"><div class="callout-label">核心思想</div>
@@ -8333,7 +8336,7 @@ L 423.401414 78.885314
 </div>
 <p>这一更新对损失的缩放不变：<span class="math-i">\mathbf{g} \to c\mathbf{g}</span> 使 <span class="math-i">\hat{\mathbf{m}} \to c\hat{\mathbf{m}}</span>，<span class="math-i">\sqrt{\hat{\mathbf{v}}} \to |c|\sqrt{\hat{\mathbf{v}}}</span>，比值不变（不计 <span class="math-i">\epsilon</span>）。把损失乘以 1,000，SGD 的步长就变成 1,000 倍，所以凡是原先稳定的 <span class="math-i">\eta</span> 都会发散；Adam 的步长则不变。这就是 Adam 能容忍未缩放损失的原因。它对参数的缩放并不具有不变性，这也是未缩放的输入仍会伤害它的原因（<a href="#e15">练习 15</a>）。</p>
 <p>Adam 还是逐坐标的：它在参数坐标轴方向上均衡尺度，却无法消除旋转方向上的曲率。在 optimiser-paths 控件的峡谷上（<a href="#s7">第 7 节</a>），谷底与坐标轴对齐时它需要约 126 步，谷底旋转 45° 时需要约 214 步，而梯度下降和重球不受影响。</p>
-<p><strong>内存。</strong> Adam 为每个参数多保存两个数。若权重和梯度为 fp32，则每个参数 <span class="math-i">4 + 4 + 4 + 4 = 16</span> 字节；若权重和梯度为 bf16，再加一份 fp32 主副本，则同样是 <span class="math-i">2 + 2 + 4 + 4 + 4 = 16</span> 字节。数字识别网络需要 <span class="math-i">26{,}122\cdot 16 = 417{,}952</span> 字节，即 418 kB；一个有 <span class="math-i">7\times 10^9</span> 个参数的模型在还没算任何激活之前就需要 112 GB。完整的核算见<span class="xref-pending">模块 08，第 8 节</span>。</p>
+<p><strong>内存。</strong> Adam 为每个参数多保存两个数。若权重和梯度为 fp32，则每个参数 <span class="math-i">4 + 4 + 4 + 4 = 16</span> 字节；若权重和梯度为 bf16，再加一份 fp32 主副本，则同样是 <span class="math-i">2 + 2 + 4 + 4 + 4 = 16</span> 字节。数字识别网络需要 <span class="math-i">26{,}122\cdot 16 = 417{,}952</span> 字节，即 418 kB；一个有 <span class="math-i">7\times 10^9</span> 个参数的模型在还没算任何激活之前就需要 112 GB。完整的核算见<a href="module_08_ZH.html#s8">模块 08，第 8 节</a>。</p>
 <h3>在 Adam 下，权重衰减不等于 L2</h3>
 <p>在 SGD 下两者相同。在损失中加上 <span class="math-i">(\lambda/2)\|\theta\|^2</span>，就是在梯度中加上 <span class="math-i">\lambda\theta</span>，于是</p>
 <div class="math-d">\theta \leftarrow \theta - \eta(\mathbf{g} + \lambda\theta) = (1 - \eta\lambda)\,\theta - \eta\mathbf{g},</div>
@@ -8389,7 +8392,7 @@ print(sum(p.numel() for p in decay), sum(p.numel() for p in no_decay))
 <h3>调度方式</h3>
 <p><strong>阶梯衰减</strong>（step decay）在训练的固定比例处，例如 50% 和 75%，把 <span class="math-i">\eta</span> 乘以 0.1。<strong>余弦衰减</strong>（cosine decay，Loshchilov 和 Hutter 2017）在 <span class="math-i">T</span> 步内沿半个余弦曲线从 <span class="math-i">\eta_{\max}</span> 降到 <span class="math-i">\eta_{\min}</span>：</p>
 <div class="math-d">\eta_t = \eta_{\min} + \tfrac12(\eta_{\max} - \eta_{\min})\big(1 + \cos(\pi t/T)\big).</div>
-<p><strong>线性预热</strong>（linear warmup）在前 <span class="math-i">T_w</span> 步内把 <span class="math-i">\eta</span> 从接近 0 升到 <span class="math-i">\eta_{\max}</span>，通常占训练的 1–5%，也就是几百到几千步；之后余弦衰减在剩余的 <span class="math-i">T - T_w</span> 步上进行。预热加余弦、降到峰值的十分之一或更低，是语言模型的默认做法；截至 2026 年，保持峰值、只在接近结束时才衰减的<strong>预热-稳定-衰减</strong>调度也是常见的替代方案（<span class="xref-pending">模块 08，第 6 节</span>）。图 2.14 在同一组坐标轴上画出了三种调度。</p>
+<p><strong>线性预热</strong>（linear warmup）在前 <span class="math-i">T_w</span> 步内把 <span class="math-i">\eta</span> 从接近 0 升到 <span class="math-i">\eta_{\max}</span>，通常占训练的 1–5%，也就是几百到几千步；之后余弦衰减在剩余的 <span class="math-i">T - T_w</span> 步上进行。预热加余弦、降到峰值的十分之一或更低，是语言模型的默认做法；截至 2026 年，保持峰值、只在接近结束时才衰减的<strong>预热-稳定-衰减</strong>调度也是常见的替代方案（<a href="module_08_ZH.html#s6">模块 08，第 6 节</a>）。图 2.14 在同一组坐标轴上画出了三种调度。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">预热加余弦，逐步计算</div>
 <p><span class="math-i">\eta_{\max} = 3\times 10^{-3}</span>，<span class="math-i">\eta_{\min} = 3\times 10^{-5}</span>（峰值的 1%），<span class="math-i">T = 10{,}000</span>，<span class="math-i">T_w = 500</span>，所以余弦部分覆盖 9,500 步，进度为 <span class="math-i">p = (t - 500)/9{,}500</span>。</p>
 <ul>
@@ -8849,7 +8852,7 @@ z
 </svg>
 </div><figcaption><span class="fig-num">图 2.14</span> <p>同一组坐标轴上 10,000 步内的三种调度，<span class="math-i">\eta</span> 为线性纵轴：阶梯衰减从 <span class="math-i">3\times 10^{-3}</span> 出发，在第 5,000 步和第 7,500 步各乘以 <span class="math-i">0.1</span>；不带预热的余弦从 <span class="math-i">3\times 10^{-3}</span> 降到 <span class="math-i">3\times 10^{-5}</span>；500 步线性预热后接余弦，降到 <span class="math-i">3\times 10^{-5}</span>。例题中第 250、5,250 和 10,000 步的数值已标出。</p>
 </figcaption></figure>
-<p>预热有三个理由。起始时 Adam 的 <span class="math-i">\hat{\mathbf{v}}</span> 只由少数几个梯度估计，即便经过偏差修正仍有噪声，所以早期步长不稳定（Liu 等 2020）。初始化时的曲率可能很高，所以后来安全的步长在那时就太大了。此外，大 batch SGD 在放大学习率之后需要一个爬升过程：Goyal 等（2017）把 <span class="math-i">\eta</span> 与 batch 大小成线性比例放大，并用 5 个轮次预热。大 batch 的情形属于<span class="xref-pending">模块 08</span>。</p>
+<p>预热有三个理由。起始时 Adam 的 <span class="math-i">\hat{\mathbf{v}}</span> 只由少数几个梯度估计，即便经过偏差修正仍有噪声，所以早期步长不稳定（Liu 等 2020）。初始化时的曲率可能很高，所以后来安全的步长在那时就太大了。此外，大 batch SGD 在放大学习率之后需要一个爬升过程：Goyal 等（2017）把 <span class="math-i">\eta</span> 与 batch 大小成线性比例放大，并用 5 个轮次预热。大 batch 的情形属于<a href="module_08_ZH.html#s6">模块 08</a>。</p>
 <h3>范围测试</h3>
 <p>峰值学习率是除架构之外最重要的超参数。<strong>学习率范围测试</strong>（learning-rate range test，Smith 2017）几分钟就能找到它的量级：训练几百步，同时把 <span class="math-i">\eta</span> 从约 <span class="math-i">10^{-6}</span> 按几何级数升到 10，记录经指数滑动平均平滑后的损失，并对 <span class="math-i">\log\eta</span> 作图。曲线在 <span class="math-i">\eta</span> 太小时是平的，在大约一个数量级的范围内下降得最快，到达最小值，随后陡然上升。选择比最小值小约 3–10 倍、靠近下降最陡处的值作为峰值：完整训练比测试更长也更嘈杂。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">数字识别网络上的范围测试</div>
@@ -9077,7 +9080,7 @@ eval out for 6: 4.394
 <p>它在训练和评估时完全一致，也与 batch 无关，所以批归一化的那四个后果都不会出现。循环神经网络和 Transformer 使用它。</p>
 <p><strong>均方根归一化</strong>（RMSNorm，Zhang 和 Sennrich 2019）去掉了减均值和偏移，改为除以均方根：</p>
 <div class="math-d">\mathbf{y} = \boldsymbol{\gamma}\odot\frac{\mathbf{z}}{\sqrt{\operatorname{mean}(\mathbf{z}^2) + \epsilon}} .</div>
-<p>它只需一次归约而不是两次，实际效果一样好，截至 2026 年大多数大语言模型都采用它；<span class="xref-pending">第 6 模块</span>说明它在模块中的位置（前置归一化与后置归一化之比较）。PyTorch 提供 <code>nn.BatchNorm1d</code>、<code>nn.LayerNorm</code>，以及自 2.4 版起的 <code>nn.RMSNorm</code>。</p>
+<p>它只需一次归约而不是两次，实际效果一样好，截至 2026 年大多数大语言模型都采用它；<a href="module_06_ZH.html#s5">第 6 模块</a>说明它在模块中的位置（前置归一化与后置归一化之比较）。PyTorch 提供 <code>nn.BatchNorm1d</code>、<code>nn.LayerNorm</code>，以及自 2.4 版起的 <code>nn.RMSNorm</code>。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">手算层归一化和 RMSNorm</div>
 <p><span class="math-i">\mathbf{z} = (1, 2, 3, 6)</span>，<span class="math-i">\boldsymbol{\gamma} = \mathbf{1}</span>，<span class="math-i">\boldsymbol{\beta} = \mathbf{0}</span>，
 <span class="math-i">\epsilon = 0</span>。</p>
@@ -9143,7 +9146,7 @@ eval out for 6: 4.394
 <p><span class="math-i">p = 0.5</span>，<span class="math-i">\mathbf{h} = (2.0, 0.5, 1.0, 3.0)</span>，掩码为 <span class="math-i">(1, 0, 1, 0)</span>。存活的单元放大 <span class="math-i">1/(1 - 0.5) = 2</span> 倍：<span class="math-i">\tilde{\mathbf{h}} = (4.0, 0, 2.0, 0)</span>。每个单元在 16 种掩码中的一半里存活，并被加倍，所以对所有掩码取平均后 <span class="math-i">\tilde{\mathbf{h}} = \mathbf{h}</span>。若 <span class="math-i">p = 0.1</span>，存活单元放大 <span class="math-i">1/0.9 = 1.111</span> 倍。</p>
 </div>
 <p>它为什么有效：没有哪个单元可以依赖，因为任何一个都可能缺席。等价地说，训练是在一个 <span class="math-i">n</span> 单元层的 <span class="math-i">2^n</span> 个共享权重的“瘦身”网络中采样，评估则近似它们的集成：对于接 softmax 的单层，是精确的，等于它们预测的重新归一化的几何平均（Hinton 等 2012）；对更深的网络则是近似的。测试时保持 dropout 开启并对多次前向取平均，可以得到廉价的不确定性估计，即 <strong>Monte Carlo dropout</strong>（Gal 和 Ghahramani 2016）。</p>
-<p>典型的 <span class="math-i">p</span>：旧式 MLP 和 AlexNet 的全连接层中最高到 0.5；Transformer 中为 0.1。截至 2026 年，许多大语言模型的预训练不使用它，因为每个 token 大约只被看到一次（<span class="xref-pending">第 8 模块</span>）。</p>
+<p>典型的 <span class="math-i">p</span>：旧式 MLP 和 AlexNet 的全连接层中最高到 0.5；Transformer 中为 0.1。截至 2026 年，许多大语言模型的预训练不使用它，因为每个 token 大约只被看到一次（<a href="module_08_ZH.html">第 8 模块</a>）。</p>
 <h3>早停</h3>
 <p><strong>早停</strong>（early stopping）每个轮次（epoch）评估一次验证损失，保留验证损失最低的检查点，并在连续若干个轮次没有改进（即<strong>耐心值</strong> patience）之后停止；随后恢复最佳权重。<a href="module_01_ZH.html#s9">第 1 模块</a>说明了它为什么起正则化作用：从零出发做 <span class="math-i">t</span> 步梯度下降，二次函数的第 <span class="math-i">i</span> 个特征方向停在
 <span class="math-i">\big[1 - (1 - \eta\lambda_i)^t\big]\theta^*_i</span>，接近岭回归的
@@ -9761,7 +9764,7 @@ L 108 36
 <p>实验 4 的网络（种子 0，第 34 个轮次的检查点），在 <span class="math-i">[0.05, 5]</span> 上以验证集 NLL 做网格搜索拟合 <span class="math-i">T</span>：得到 <span class="math-i">T = 1.27</span>，说明该模型轻微过度自信。测试集 NLL 从 0.148 降到 0.132，准确率保持 96.9%。期望校准误差（取最高标签形式，15 个等宽分箱，与第 1 模块相同）几乎没有变化，从 0.019 变为 0.018：在 360 张图像上，噪声太大，无法显示这样小的修正。</p>
 <p>同一个网络用 0.1 的标签平滑训练（见下）则是<em>自信不足</em>：平均最高概率为 0.864，测试准确率 98.1%，校准误差 0.117。拟合得到的 <span class="math-i">T = 0.49</span> 使校准误差降到 0.015，测试 NLL 从 0.178 降到 0.061。每种设置只有一个种子：1.1 个百分点的准确率差异约为单次测试准确率 0.9 个百分点标准误的 1.2 倍（<a href="#s14">第 14 节</a>），算不上发现。这些数字来自实验 4 的代码，并加入了其“试一试”第 2 项所述的校准扩展。</p>
 </div>
-<p><span class="xref-pending">第 7 模块</span>会回到语言模型的校准。</p>
+<p><a href="module_07_ZH.html#s10">第 7 模块</a>会回到语言模型的校准。</p>
 <h3>数据增强与输入噪声</h3>
 <p>数据增强是对训练数据做保持标签不变的变换。对图像来说，它是最有效的单一正则化手段（<a href="module_03_ZH.html#s10">第 3 模块</a>）。对传感器数据或表格数据，可选的是输入噪声，以及标签确实对其不变的时间平移或缩放。用小的高斯输入噪声训练，到一阶近似等价于对输出关于输入的导数施加 Tikhonov 惩罚（Bishop 1995）。</p>
 <h3>标签平滑</h3>
@@ -9906,7 +9909,7 @@ tensor([   0., -120.])
 <code>delta</code>），残差为 3 时代价是 2.5 而不是 4.5。绝对误差对应拉普拉斯噪声。</p>
 <p><strong>规约</strong>（reduction）方式同样重要。对 batch 取平均，使梯度的尺度与 <span class="math-i">B</span> 无关；取和则会把梯度乘以 <span class="math-i">B</span>，有效学习率也随之乘以 <span class="math-i">B</span>。PyTorch 默认取平均；改变 batch 大小时要保持一致。</p>
 <h3>混合精度与方差</h3>
-<p>混合精度计算用 bf16 或 fp16 做矩阵乘法，但把主权重、softmax、损失和归一化统计量保留在 fp32 中；<code>torch.autocast</code> 按算子选择精度。fp16 还需要<strong>损失缩放</strong>（loss scaling）：在 <code>backward</code> 之前把损失乘以 <span class="math-i">S</span>（例如 <span class="math-i">2^{16}</span>），再把梯度除以 <span class="math-i">S</span>，使小的梯度不会下溢（Micikevicius 等 2018）。bf16 的范围与 fp32 相同，不需要这样做，这也是遇到 NaN 损失时的第一条建议是用 bf16 而不是 fp16 的原因。<span class="xref-pending">第 8 模块</span>讲述大规模下的混合精度。</p>
+<p>混合精度计算用 bf16 或 fp16 做矩阵乘法，但把主权重、softmax、损失和归一化统计量保留在 fp32 中；<code>torch.autocast</code> 按算子选择精度。fp16 还需要<strong>损失缩放</strong>（loss scaling）：在 <code>backward</code> 之前把损失乘以 <span class="math-i">S</span>（例如 <span class="math-i">2^{16}</span>），再把梯度除以 <span class="math-i">S</span>，使小的梯度不会下溢（Micikevicius 等 2018）。bf16 的范围与 fp32 相同，不需要这样做，这也是遇到 NaN 损失时的第一条建议是用 bf16 而不是 fp16 的原因。<a href="module_08_ZH.html#s7">第 8 模块</a>讲述大规模下的混合精度。</p>
 <p>方差应按 <span class="math-i">\operatorname{mean}\big((x - \mu)^2\big)</span> 计算，绝不要按
 <span class="math-i">\operatorname{mean}(x^2) - \mu^2</span>，后者要把两个几乎相等的大数相减。在 fp32 中，对
 <span class="math-i">x = (10000, 10001, 10002)</span>，前者给出 0.6667，后者恰好给出 0。</p>
@@ -16276,7 +16279,7 @@ for l in range(3):
 layer 2: shape (6, 5), largest difference in W 5.6e-17, in b 5.6e-17
 layer 3: shape (5, 3), largest difference in W 2.8e-17, in b 2.8e-17
 </code></pre></div>
-<p><strong>(c)</strong> 采用<span class="xref-pending">模块 06，第 11 节</span>的约定：<span class="math-i">m \times k</span> 矩阵与 <span class="math-i">k \times n</span> 矩阵的乘积花费 <span class="math-i">2mkn</span> FLOPs，逐元素运算（<span class="math-i">\tanh</span> 的导数、偏置求和）是低阶项，略去不计。前向传播有三个乘积：</p>
+<p><strong>(c)</strong> 采用<a href="module_06_ZH.html#s11">模块 06，第 11 节</a>的约定：<span class="math-i">m \times k</span> 矩阵与 <span class="math-i">k \times n</span> 矩阵的乘积花费 <span class="math-i">2mkn</span> FLOPs，逐元素运算（<span class="math-i">\tanh</span> 的导数、偏置求和）是低阶项，略去不计。前向传播有三个乘积：</p>
 <div class="math-d">F = 2B\,(d_0d_1 + d_1d_2 + d_2d_3).</div>
 <p>反向传播有两种乘积。权重梯度
 <span class="math-i">\mathbf{H}^{(l-1)\top}\boldsymbol{\Delta}^{(l)}</span>（<span class="math-i">l = 1, 2, 3</span>）的形状与前向乘积相同，总共花费同样的 <span class="math-i">F</span>。向下传递的误差

@@ -3,9 +3,11 @@
 How to continue the tutorial series **From Machine Learning to Large Language Models** from where
 it stands. Read this first, then `PLAN.md`.
 
-**In short (4 October 2026):** Modules 01–05 are finished in English and Chinese and live at
-<https://wrwei.github.io/tutorials/ai/>. Modules 06–08 are partly written; 09–10 are not started.
-The next job is Module 06 (the transformer), which Modules 07–10 build on (section 10).
+**Current status (4 October 2026):** Modules 01–08 are complete in English and Simplified
+Chinese. Modules 06–08 have passed whole-module technical/editorial review, full translation,
+code/output/math parity, figure/widget review and publication-build checks. The publication
+package is built in `docs/tutorials/ai/`; merging to `main` deploys it through GitHub Pages.
+Modules 09–10 are not started. Continue with Module 09 after verifying this deployment (section 10).
 
 ## 1. What the series is
 
@@ -42,7 +44,7 @@ does not publish it.
 | `labs/plots/`, `labs/module_NN/*.plots.json` | Plots captured from lab runs and where they go on the page |
 | `tools/` | Build, validation, lab runner, rendering and testing tools, and `live-check.mjs` for the live site (section 4) |
 
-## 3. Status (4 October 2026; Modules 01–05 published and live)
+## 3. Status (4 October 2026; Modules 01–08 complete)
 
 | Module | English | Chinese |
 |---|---|---|
@@ -51,23 +53,28 @@ does not publish it.
 | 03 Convolutional networks | Done | Done |
 | 04 Recurrent networks and sequences | Done (labs re-run and verified in the current environment, technical review, QA) | Done |
 | 05 Other networks worth knowing | Done (labs verified in the current environment, Lab 3 made deterministic; edit, 18 figures, widgets, technical review, QA) | Done |
-| 06 The transformer | Parts 10 and 11 written. `20-labs-a.md` has only Lab 1 (Labs 2, 3 missing) and `21-labs-b.md` only Lab 4 (Labs 5, 6 missing). To do: parts 12, 30, 40, the missing labs, then every later step (drafts of both widgets exist) | To do |
-| 07 Large language models | Parts 10 and 12 written. To do: parts 11, 20, 21, 30, 40, then every later step (one widget draft exists) | To do |
-| 08 LLM pretraining | Parts 10 and 11 written. To do: parts 12, 20, 21, 30, 40, then every later step | To do |
+| 06 The transformer | Done: six executed labs, 15 solved exercises, 12 quiz questions, three readings, 18 figures, two widgets; reviewed and publication QA passed | Done: seven translated parts, metadata, figures, widgets and parity checked |
+| 07 Large language models | Done: six executed labs, 15 solved exercises, 12 quiz questions, two readings, 13 figures, two widgets; reviewed and publication QA passed | Done: full translation and bilingual QA |
+| 08 LLM pretraining | Done: five executed labs, 15 solved exercises, 12 quiz questions, three readings, 14 figures, two planners; reviewed and publication QA passed | Done: full translation and bilingual QA |
 | 09 LLM post-training | To do: everything | To do |
 | 10 Inference and serving | To do: everything | To do |
 | Index page | `src/en/index.md` written | `src/zh/index.md` written |
 
-Modules 01–05 are published at `docs/tutorials/ai/` (built with `--modules 1,2,3,4,5`), with the
-series card on `docs/tutorials/index.md`, and went live through PRs #3 (Modules 01–04) and #4
-(Module 05). Both language pages of every published module were checked on the live site with
-`tools/live-check.mjs`: no KaTeX errors, no untypeset maths, no broken images, widgets present, no
-page script errors. When another module is finished, rebuild with its number added to `--modules`.
+Modules 01–05 went live through PRs #3 and #4. The publication build now includes
+Modules 01–08 (`--modules 1,2,3,4,5,6,7,8`), updates both index pages and activates links
+from earlier modules. Modules 09–10 remain unlinked. Local checks on all six new language
+pages and both indexes found no script/request/KaTeX errors, untypeset maths, broken images,
+missing file/anchor targets or duplicate IDs. See
+`notes/task-reports/m06-m08-translation-publication-2026-10-04.json` for the final review and
+QA record; the earlier progress and read-only review reports are historical snapshots.
 
-What exists for the unfinished modules: Module 06 has drafts of its two widgets
-(`attention-calculator.js`, `rope-explorer.js`) and Module 07 one (`bpe-merge-stepper.js`), none of
-them tested yet. All ten outlines in `plan/` are complete, so Modules 09 and 10 can be written from
-their outlines.
+Module 06's `attention-calculator.js` and `rope-explorer.js`, Module 07's
+`sampling-explorer.js`, and Module 08's two planner widgets now pass English/Chinese
+browser checks. Module 07's `bpe-merge-stepper.js` also passes English/Chinese browser
+checks and numeric/control probes, including the seven merge counts, unknown characters,
+overlapping pairs and edited/free-text corpora. The outlines now use this continuation's
+measured results; Module 07's figure contract has been reduced to its 13 actual figures,
+with the sampling widget covering the filter comparisons.
 
 Lab environment note: the Module 04 and 05 labs were re-run with PyTorch 2.14.1, NumPy 2.4.6 and
 scikit-learn 1.9.1 (CPU, 4 threads), and their outputs and prose now match that environment. Use
@@ -146,7 +153,7 @@ For each module, in this order. Each step names the guide that governs it.
 ## 6. Publishing
 
 1. Translate `src/en/index.md` into `src/zh/index.md`.
-2. Build into the site: `node tools/build.mjs --out ../../docs/tutorials/ai --modules 1,2,3,4,5,6`
+2. Build into the site: `node tools/build.mjs --out ../../docs/tutorials/ai --modules 1,2,3,4,5,6,7,8`
    with the finished modules. `--modules` builds those modules in both languages, lists only them on the
    index pages, links each page's previous/next to the nearest published module, and turns links
    into unpublished modules into plain text, so no page links to a missing file. Without
@@ -181,8 +188,9 @@ For each module, in this order. Each step names the guide that governs it.
 2. **Figure numbers** (fixed). Pages number figures by order of appearance, and the build rewrites
    each "Figure N.k" in the text (k is the figure id's number) to the number shown, so cutting or
    reordering figures leaves no gaps and ids never change (`SPEC.md`, section on figures).
-   `check.mjs` warns about a reference whose figure is not on the page; Module 06 cites Figures
-   6.19, 6.23 and 6.24 from sections not yet written.
+   `check.mjs` warns about a reference whose figure is not on the page. Module 06's
+   formerly missing Figures 6.19, 6.23 and 6.24 now have SVG assets. Module 06 uses
+   18 stable figure ids, with displayed numbering still determined by reading order.
 3. **Loose ends in finished modules** (none block anything):
    - Modules 01–03 lab outputs come from an older environment (section 3); re-running them with
      `labrun.py --update` may change printed digits, and the prose that quotes them would then need
@@ -193,10 +201,26 @@ For each module, in this order. Each step names the guide that governs it.
    - Exercise solutions' output fences are not executed by `labrun.py`; re-check them by hand after a
      package upgrade.
    - `plan/module_05.json` still has outdated planning numbers in fields the build does not display.
+   - The strengthened math-parity checker identifies pre-existing English/Chinese differences
+     in Modules 01, 02 and 05. Review those older translations separately; Modules 06–08
+     match all 2,518 expressions, allowing translated words inside `\text{}`.
    - Mamba (Gu and Dao) is cited by its arXiv number; its COLM 2024 publication was not confirmed.
    - Many figure captions describe the drawing's layout as well as its content; a style choice,
      left as is.
-   - The partial Module 06 lab files need finishing and running.
+   - Module 06's six labs are executed. Lab 5's default output fences describe QUICK;
+     the separately executed FULL run is described in the prose and recorded in
+     `labs/module_06/lab5-full-metrics.json`. FULL copied 155/172 identifiers (90.1%),
+     not the outline prototype's 98.2%. The complete module has now passed technical/editorial review and bilingual QA.
+   - Module 06's 18 English and Chinese SVG assets are drawn and visually checked.
+     Their generators are in `src/figures/en/_gen/`; Figure 6.8 uses captured trained
+     head maps and Figure 6.25 uses recorded FULL metrics. Rebuild both languages
+     after any figure or caption edit.
+   - Module 07 Lab 3's analytic-gradient, strict-tolerance bootstrap gives matching
+     single-start and multi-start intervals. Do not restore the old outline claim
+     that a single start necessarily gives a falsely narrow interval.
+   - Module 08's small-recipe count is 109,529,856 **including** the final RMSNorm.
+     The previous outline added its 768 gains twice; the relevant outline entries and
+     the executed Lab 4 assertion now use the corrected count.
 4. **Paper details** (checked). The guided-reading notes and the concept text's pointers into papers
    were checked against the papers; eleven statements were corrected (`notes/task-reports/paper-check.json`).
    Four sources were not reachable and were checked against preprints or secondary sources only:
@@ -242,15 +266,17 @@ Modules 03–05 were finished in Claude Code cloud sessions. What that environme
 
 ## 10. Next steps, in order
 
-1. **Module 06, the transformer** (English): write parts 12, 30 and 40 and the missing Labs 2, 3, 5
-   and 6; run every lab; then the rest of section 5 (edit, figures, test the two widget drafts,
-   technical review, QA), the Chinese translation, and publish with `--modules 1,2,3,4,5,6`.
-   `check.mjs` already warns about Figures 6.19, 6.23 and 6.24, cited from sections not yet written.
-2. **Module 07** and **Module 08** the same way, from their partial parts.
-3. **Modules 09 and 10** from their outlines.
-4. Optional: the loose ends in section 7, item 3.
-5. Before calling the series done: decide on length (section 7, item 1), then update the series card
-   and the index pages, which say Modules 06–10 are in preparation (the build writes that note).
+1. Complete the Modules 06–08 deployment through the working-branch PR and `main` workflow,
+   then run `node tools/live-check.mjs module_06_EN module_06_ZH module_07_EN module_07_ZH module_08_EN module_08_ZH index index_ZH`.
+   On Windows set `CHROME_PATH` to the installed Chrome executable. All source and local
+   publication checks have passed; no further translation is pending for these modules.
+2. **Module 09, LLM post-training:** follow its outline and the production workflow in section 5.
+   Preserve the measured results and conservative assumptions in Modules 06–08. GPU
+   exercise extensions are optional project work, not executed lab evidence.
+3. **Module 10, inference and serving:** follow its outline after Module 09.
+4. Optional: review the older translation/math differences and other loose ends in section 7.
+5. Before calling the series done: decide on length (section 7, item 1), then update the series
+   card and index pages. The build currently marks only Modules 09–10 as in preparation.
 
 ## 11. The next series
 

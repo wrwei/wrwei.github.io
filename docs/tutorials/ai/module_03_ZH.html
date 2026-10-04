@@ -19,6 +19,9 @@
 <a href="module_03_ZH.html" class="active">3 &mdash; 卷积神经网络</a>
 <a href="module_04_ZH.html">4 &mdash; 循环神经网络与序列</a>
 <a href="module_05_ZH.html">5 &mdash; 其他值得了解的网络</a>
+<a href="module_06_ZH.html">6 &mdash; Transformer</a>
+<a href="module_07_ZH.html">7 &mdash; 大语言模型</a>
+<a href="module_08_ZH.html">8 &mdash; 大语言模型预训练</a>
     </div>
   </div>
   <a href="module_03_EN.html" class="lang-switch" hreflang="en">English</a>
@@ -1363,7 +1366,7 @@ True
 \text{FLOPs} = 2 \times \text{MACs}.</div>
 <p>因子 2 就是<a href="module_02_ZH.html#s2">模块 02，第 2 节</a>“每次前向传播 2N FLOPs”背后的计数方式。</p>
 <div class="callout note"><div class="callout-label">注意</div>
-<p><strong>本模块的约定。</strong>计数以 MAC 给出，FLOPs = 2 × MACs；除非另有说明，偏置加法、激活、归一化和池化均不计入。许多论文报告的是乘加次数却称之为 FLOPs，ResNet、EfficientNet 和 ConvNeXt 都是如此；MobileNet 称之为 Mult-Adds。把一篇论文的数字与你自己的比较之前，先核对它的约定。由张量大小算出的内存采用二进制单位（1 MiB = 2²⁰ 字节，1 GiB = 2³⁰ 字节）；下载大小采用已发布的十进制 MB；两者差别明显时，只给出一次两种单位（<a href="#s1">第 1 节</a>中的 574 MiB 与 602 MB）。本系列对 Transformer 的 FLOP 约定见<span class="xref-pending">模块 06，第 11 节</span>；本模块用不到它。</p>
+<p><strong>本模块的约定。</strong>计数以 MAC 给出，FLOPs = 2 × MACs；除非另有说明，偏置加法、激活、归一化和池化均不计入。许多论文报告的是乘加次数却称之为 FLOPs，ResNet、EfficientNet 和 ConvNeXt 都是如此；MobileNet 称之为 Mult-Adds。把一篇论文的数字与你自己的比较之前，先核对它的约定。由张量大小算出的内存采用二进制单位（1 MiB = 2²⁰ 字节，1 GiB = 2³⁰ 字节）；下载大小采用已发布的十进制 MB；两者差别明显时，只给出一次两种单位（<a href="#s1">第 1 节</a>中的 574 MiB 与 602 MB）。本系列对 Transformer 的 FLOP 约定见<a href="module_06_ZH.html#s11">模块 06，第 11 节</a>；本模块用不到它。</p>
 </div>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">一个层，四种算法</div>
 <p>一个从 64 到 128 通道、输出 56 × 56 特征图的 3 × 3 卷积（填充 1，步长 1）。</p>
@@ -2071,7 +2074,7 @@ torch.Size([1, 10])
 <p>He 等人在 ImageNet 上训练了最深 152 层的 ResNet，它们的集成以 3.57% 的 top-5 误差赢得了 ILSVRC-2015 分类任务。在 CIFAR-10 上，有 170 万个参数的 ResNet-110 达到 6.43% 的测试误差（ResNet-20，27 万个参数：8.75%）。一个 1,202 层的网络达到了与 110 层网络相近的训练误差，但测试结果更差，为 7.93%：这是过拟合（5 万张训练图像上有 1,940 万个参数），而不是退化。深度已不再是障碍。</p>
 <h3>DenseNet：拼接而非相加</h3>
 <p>DenseNet（Huang 等人，2017）把一个块中的每一层与之前的每一层相连：第 <span class="math-i">\ell</span> 层接收此前所有输出沿通道轴的拼接，并新增 <span class="math-i">k</span> 个通道，即<strong>增长率</strong>（growth rate）。在 DenseNet-121 中，<span class="math-i">k = 32</span>，进入第一个块的有 64 个通道，该块的第六层读取 <span class="math-i">64 + 5 \cdot 32 = 224</span> 个通道，块的输出为 <span class="math-i">64 + 6 \cdot 32 = 256</span> 个。DenseNet-121 约有 800 万个参数，每个参数的精度很强；代价是激活内存，因为每个拼接而成的特征图都要保留到反向传播。拼接（DenseNet，以及<a href="#s12">第 12 节</a>的 U-Net）让特征保持分离并增加宽度；相加（ResNet）让宽度不变并把它们合并。</p>
-<p>同样的形式 <span class="math-i">\mathbf{x} + F(\mathbf{x})</span> 包裹着 Transformer 的每个注意力和前馈子层（<span class="xref-pending">模块 06 第 5 节</span>），上面的推导正是 Transformer 能够堆叠几十层深的原因。</p>
+<p>同样的形式 <span class="math-i">\mathbf{x} + F(\mathbf{x})</span> 包裹着 Transformer 的每个注意力和前馈子层（<a href="module_06_ZH.html#s5">模块 06 第 5 节</a>），上面的推导正是 Transformer 能够堆叠几十层深的原因。</p>
 <div class="check"><div class="check-label">检验理解</div>
 <p>一个带恒等捷径的残差块，其最后一个批归一化的 <span class="math-i">\gamma</span> 被设为 0。该块在初始化时计算什么？</p>
 </div>
@@ -2179,7 +2182,7 @@ torch.Size([1, 10])
 </div>
 <p>读论文的教训是：只在相同的训练配方下比较架构。相对于用旧配方训练的基线所得的提升，可能大半是配方的功劳。</p>
 <h3>视觉 Transformer 的位置</h3>
-<p>视觉 Transformer（Dosovitskiy 等人，2021）把图像切成 16 × 16 的图像块，把每个图像块嵌入为一个 token（其实质是步长为 16 的 16 × 16 卷积），然后在这些 token 上运行 Transformer，不再使用其他卷积。由于内置的东西比 CNN 少，在只用 ImageNet-1k 训练时，它落后于同等规模的 ResNet；而在更大规模的数据集上预训练之后，它与 ResNet 持平或更好：这是<a href="#lab2">实验 2</a> 的归纳偏置（inductive bias）一课在大规模下的体现，<span class="xref-pending">模块 06 第 8 节</span>会全面展开。</p>
+<p>视觉 Transformer（Dosovitskiy 等人，2021）把图像切成 16 × 16 的图像块，把每个图像块嵌入为一个 token（其实质是步长为 16 的 16 × 16 卷积），然后在这些 token 上运行 Transformer，不再使用其他卷积。由于内置的东西比 CNN 少，在只用 ImageNet-1k 训练时，它落后于同等规模的 ResNet；而在更大规模的数据集上预训练之后，它与 ResNet 持平或更好：这是<a href="#lab2">实验 2</a> 的归纳偏置（inductive bias）一课在大规模下的体现，<a href="module_06_ZH.html#s8">模块 06 第 8 节</a>会全面展开。</p>
 <h3>CNN 仍是默认选择的地方</h3>
 <p>截至 2026 年，在带标签数据稀缺、输入很大（高分辨率图像、三维体数据）、时延或功耗受限，以及输出是稠密的（每个像素或体素一个值）的场合，卷积网络仍然是默认选择。把卷积与注意力相结合的混合模型很常见。</p>
 <div class="check"><div class="check-label">检验理解</div>
@@ -2648,7 +2651,7 @@ t_w &amp;= \ln(40/32) = \ln 1.25 = 0.223, &amp; t_h &amp;= \ln(24/32) = \ln 0.75
 <p>插值精确率在召回率 0.5 之前为 1，在 0.5 到 0.75 之间为 0.75，所以全点 AP 为 <span class="math-i">0.25 \times 1 + 0.25 \times 1 + 0.25 \times 0.75 = 0.6875</span>。召回率从未达到 1，所以最后四分之一没有贡献。VOC 2007 的 11 点规则在同一列表上给出 0.682：引用 AP 时要说明用的是哪条规则。</p>
 </div>
 <h3>集合预测</h3>
-<p>DETR（Carion 等人，2020）在 CNN 骨干网络上接一个 Transformer（<span class="xref-pending">模块 06</span>），输出固定数目的（框，类别）预测，其中大多数是“无目标”。在损失内部，匈牙利算法以最低总代价把预测与真实框一一匹配，于是每个目标恰好被一个预测认领，重复的预测在训练中被消除：不需要锚框，也不需要 NMS。Mask R-CNN 的掩码分支把检测扩展到实例分割（<a href="#s12">第 12 节</a>）。</p>
+<p>DETR（Carion 等人，2020）在 CNN 骨干网络上接一个 Transformer（<a href="module_06_ZH.html">模块 06</a>），输出固定数目的（框，类别）预测，其中大多数是“无目标”。在损失内部，匈牙利算法以最低总代价把预测与真实框一一匹配，于是每个目标恰好被一个预测认领，重复的预测在训练中被消除：不需要锚框，也不需要 NMS。Mask R-CNN 的掩码分支把检测扩展到实例分割（<a href="#s12">第 12 节</a>）。</p>
 <div class="callout keyidea"><div class="callout-label">核心思想</div>
 <p>检测器是在锚框或单元上的稠密分类器加框回归器；IoU 定义了什么算匹配，NMS 把稠密预测变成一个集合，AP 给这个排好序的集合打分。</p>
 </div>
@@ -10144,7 +10147,7 @@ boundary +0.25 um: volume 1859.6 (+11.0%)
 <li>同样的机制也适用于一维和三维。掩码只有借助体素间距才能成为测量值，所以间距要随数据一起传递，而测得的表面积和体积带有误差预算（按错误的间距读取一个各向异性的椭球，报告的体积是真实值的两倍）。</li>
 <li>显著图和 Grad-CAM 显示分类器的输出依赖哪些输入区域，却不能说明原因。Grad-CAM 的权重为 <span class="math-i">\alpha_k^c = \frac{1}{Z}\sum_{i,j}\partial y^c/\partial A^k_{ij}</span>，它在实验 6 中揭露了一个依赖虚假线索的分类器；在任何人信任一张图之前，都需要先做合理性检验。</li>
 </ul>
-<p><a href="module_04_ZH.html">模块 04</a> 保留了使卷积奏效的想法，即在各个位置之间共享权重，但把它沿时间而不是沿空间应用：循环网络在每一步都复用同一组权重，所以它的梯度是同一个矩阵的多次连乘，这正是你在实验 3 中测得的梯度消失与爆炸，只是换了一副面孔。<a href="#s13">第 13 节</a>的一维卷积是两者之间的桥梁，模块 04 会把它们与循环直接比较。<span class="xref-pending">模块 06</span> 随后用能够自己选择邻居的注意力取代固定的局部窗口，它的 Transformer 块原封不动地沿用了<a href="#s8">第 8 节</a>的残差连接。</p>
+<p><a href="module_04_ZH.html">模块 04</a> 保留了使卷积奏效的想法，即在各个位置之间共享权重，但把它沿时间而不是沿空间应用：循环网络在每一步都复用同一组权重，所以它的梯度是同一个矩阵的多次连乘，这正是你在实验 3 中测得的梯度消失与爆炸，只是换了一副面孔。<a href="#s13">第 13 节</a>的一维卷积是两者之间的桥梁，模块 04 会把它们与循环直接比较。<a href="module_06_ZH.html">模块 06</a> 随后用能够自己选择邻居的注意力取代固定的局部窗口，它的 Transformer 块原封不动地沿用了<a href="#s8">第 8 节</a>的残差连接。</p>
 <span class="section-anchor" id="terms"></span>
 <div class="section-header" data-sec="terms"><span class="section-num">26</span><h2>关键术语</h2></div>
 <div class="table-wrap"><table>
@@ -10299,7 +10302,7 @@ boundary +0.25 um: volume 1859.6 (+11.0%)
 <li>Sandler, M., Howard, A., Zhu, M., Zhmoginov, A., Chen, L.-C. “MobileNetV2: Inverted residuals and linear bottlenecks.” <em>CVPR</em>, 2018. 倒残差块。</li>
 <li>Tan, M., Le, Q. V. “EfficientNet: Rethinking model scaling for convolutional neural networks.” <em>ICML</em>, 2019. 复合缩放；文中引用的数字出自 ICML 版的表 2（后来的 arXiv 修订版报告 EfficientNet-B0 为 77.1%）。</li>
 <li>Liu, Z., Mao, H., Wu, C.-Y., Feichtenhofer, C., Darrell, T., Xie, S. “A ConvNet for the 2020s.” <em>CVPR</em>, 2022. ConvNeXt；配方与架构对比的路线图（图 2，每一步的数值见 arXiv 版附录 C 的表 10；ConvNeXt-T 见表 1）。</li>
-<li>Dosovitskiy, A. et al. “An image is worth 16x16 words: Transformers for image recognition at scale.” <em>ICLR</em>, 2021. 视觉 Transformer；见<span class="xref-pending">模块 06</span>。</li>
+<li>Dosovitskiy, A. et al. “An image is worth 16x16 words: Transformers for image recognition at scale.” <em>ICLR</em>, 2021. 视觉 Transformer；见<a href="module_06_ZH.html">模块 06</a>。</li>
 <li>Wu, Y., He, K. “Group normalization.” <em>ECCV</em>, 2018. 在通道组上做归一化，与 batch 大小无关。</li>
 <li>Zhang, H., Cisse, M., Dauphin, Y. N., Lopez-Paz, D. “mixup: Beyond empirical risk minimization.” <em>ICLR</em>, 2018. 以样本和标签的凸组合做数据增强。</li>
 <li>Yun, S. et al. “CutMix: Regularization strategy to train strong classifiers with localizable features.” <em>ICCV</em>, 2019. 在图像之间粘贴图像块的数据增强。</li>

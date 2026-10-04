@@ -89,9 +89,9 @@ A model gives the actual next tokens of a short text the probabilities 0.50, 0.2
 
 1. Per-token losses: $-\ln 0.50 = 0.693$, $-\ln 0.25 = 1.386$, $-\ln 0.125 = 2.079$ and
    $-\ln 0.80 = 0.223$ nats.
-2. Mean: $(0.693 + 1.386 + 2.079 + 0.223)/4 = 4.382/4 = 1.095$ nats per token.
-3. In bits: $1.095/0.693 = 1.580$ bits per token.
-4. Perplexity: $e^{1.095} = 2.99$.
+2. Mean: using the unrounded logarithms gives 1.095507, or 1.096 nats per token.
+3. In bits: $1.095507/\ln2 = 1.580$ bits per token.
+4. Perplexity: $e^{1.095507} = 2.99$.
 5. Check through the geometric mean: $(0.50 \times 0.25 \times 0.125 \times 0.80)^{1/4} = 0.0125^{1/4} = 0.334$,
    and $1/0.334 = 2.99$.
 
@@ -100,12 +100,7 @@ makes a low probability on what actually happens expensive.
 :::
 
 ::: figure id=fig-07-1
-Autoregressive factorisation, with the worked example's illustrative probabilities. The tokens
-'The', ' relief', ' valve', ' opens' and ' at' enter one box labelled 'decoder (causal mask)'. Above
-each of the first four positions, a bar chart of five candidate next tokens highlights the token
-that actually follows, with its probability and loss beneath: p = 0.50, 0.25, 0.125 and 0.80;
-−log p = 0.69, 1.39, 2.08 and 0.22 nats. A bracket over the row gives the mean: loss = 1.095 nats
-= 1.58 bits per token; perplexity = e^1.095 = 2.99.
+Autoregressive next-token prediction with four illustrative target probabilities. Each target loss is minus its log probability; their mean is 1.096 nats, giving perplexity 2.99. The probabilities are a worked example, not model measurements.
 :::
 
 ::: worked title="Before and after training"
@@ -141,32 +136,29 @@ and model B scores 2.3 nats per token at 4.8 bytes per token.
 - Per byte: $\text{BPB}_A = 2.0/(4.0 \times 0.693) = 0.721$ and
   $\text{BPB}_B = 2.3/(4.8 \times 0.693) = 0.691$.
 
-B needs fewer bits for the same text, so B is the better model. Its per-token numbers are worse only
+B needs fewer bits for this text, so B models this example better. Its per-token numbers are worse only
 because each of its tokens carries 20% more text.
 :::
 
 ### What the numbers mean
 
-The loss falls as a model learns spelling, then syntax, then facts, then reasoning-like
-regularities, in roughly that order and with no boundary between them. [Lab 1](#lab1) measures where
-real texts sit for SmolLM2-135M (Figure 7.2). A public-domain sentence the model has memorised costs
-0.13 bits per byte; English engineering prose 0.90; Python code 0.95; the same prose with its words
+Falling loss can reflect improved spelling, syntax, factual associations and other
+regularities; the aggregate alone does not identify which improved. [Lab 1](#lab1) measures where
+real texts sit for SmolLM2-135M (Figure 7.2). The familiar public-domain sentence costs
+0.13 bits per byte, consistent with frequent exposure; English engineering prose 0.90;
+the lab's six-line Python code 0.75; the same prose with its words
 shuffled 1.88, because every word is familiar but their order is not; and random characters 5.53,
 more than the 5.21 bits ($\log_2 37$) of the 37-symbol source they were drawn from, because the
-model's prior expects language and pays for every surprise. At larger scale, a model of about 100M
-parameters trained on English web text ends near 3.0 nats per token, a perplexity of about 20
-([Module 08, Section 13](module_08_EN.html#s13)), and the Chinchilla fit of [Section 4](#s4) puts
-the floor of its own corpus at $E = 1.69$ nats per token, a perplexity of 5.4. These per-token
+model's prior expects language and pays for every surprise. Entropy bounds expected
+coding cost across draws; an individual random sample can fall below its source entropy.
+The illustrative small-run recipe in [Module 08, Section 13](module_08_EN.html#s13)
+uses loss around 3.0 nats as a planning target, not a result measured here. The
+Chinchilla fit of [Section 4](#s4) has fitted asymptote $E=1.69$, motivated by the
+corpus's irreducible uncertainty but not a proof of its exact entropy. These per-token
 values belong to different corpora and tokenizers and do not compare with one another.
 
 ::: figure id=fig-07-2
-Bits per byte of SmolLM2-135M on seven texts from Lab 1, as horizontal bars sorted by value:
-memorised public-domain sentence 0.13; the engineering paragraph read twice 0.48; English
-engineering prose 0.90; Python code 0.95; the prose with its words shuffled 1.88; its Chinese
-translation 1.88; random characters 5.53. A dashed vertical line at log2 37 = 5.21 bits marks the
-entropy of the random text's source. Each bar is annotated with its per-token perplexity (1.55,
-5.64, 25.8, 5.18, 873, 8.40, 166): per token the Chinese looks three times easier than the English;
-per byte it is twice as hard.
+Measured bits per byte on the seven embedded Lab 1 texts, with token perplexity beside each bar. The dashed line is the 37-symbol random generator's source entropy, an expected coding-cost bound rather than a bound on every finite sample.
 :::
 
 ### Base and instruct models
@@ -299,11 +291,7 @@ merges 1 to 7. Merge 8 would be a six-way tie at 7 (`c` + `o`, `l` + `ed_`, `o` 
 :::
 
 ::: figure id=fig-07-3
-BPE on the weld corpus in eight stacked panels: the start and merges 1 to 7. Each panel shows the
-six words as rows of symbol boxes with their counts at the left; the pair merged at that step is
-outlined in the colour of the new symbol; a side table lists the three largest pair counts with the
-winner in bold. A strip along the bottom plots corpus length in symbols against merge number: 257,
-226, 196, 170, 150, 134, 124, 115.
+The initial weighted weld corpus and the seven learned merges. Each ledger row records the winning pair, its weighted count and the corpus length after applying the merge. The widget shows every intermediate corpus and competing pair count.
 :::
 
 ::: widget name=bpe-merge-stepper
@@ -484,10 +472,7 @@ measure such disparities across many languages and argue that they are unfair to
 speakers.
 
 ::: figure id=fig-07-4
-Tokens for the same content under three tokenizers (Lab 2). x axis: GPT-2, SmolLM2 and Qwen2.5, with
-their vocabulary sizes beneath (50,257; 49,152; 151,665). For each, two bars: the 80-word English
-paragraph (89, 89 and 89 tokens) and its 119-character Chinese translation (256, 219 and 71 tokens).
-The Chinese-to-English ratio is printed above each pair: 2.88, 2.46 and 0.80.
+Measured token counts for one English paragraph and its Chinese translation under three pinned tokenizers. English uses 89 tokens in all three; Chinese uses 256, 219 and 71. Ratios describe these texts only.
 :::
 
 ::: worked title="Chinese in a context window"
@@ -518,9 +503,7 @@ Letters are invisible. ' strawberry' is a single token in all three tokenizers, 
 r's it contains asks about characters the model never sees directly.
 
 ::: figure id=fig-07-5
-How three tokenizers split '1234567' and ' SAFETY': one row per tokenizer, one coloured box per
-token with its text inside. '1234567': GPT-2 123 | 45 | 67; SmolLM2 and Qwen2.5 1 | 2 | 3 | 4 | 5 |
-6 | 7. ' SAFETY': GPT-2 and SmolLM2 ' SAF' | 'ET' | 'Y'; Qwen2.5 ' SAF' | 'ETY'.
+Token boundaries for the digit string `1234567` and the text ` SAFETY`, including its leading space, under the three tokenizers tested in Lab 2.
 :::
 
 ### Glitch tokens
@@ -627,8 +610,9 @@ L(N, D) = E + \frac{A}{N^{\alpha}} + \frac{B}{D^{\beta}},
 \qquad E = 1.69,\ A = 406.4,\ B = 410.7,\ \alpha = 0.34,\ \beta = 0.28,
 $$
 
-in nats per token on their corpus with their tokenizer. $E$ is the **irreducible loss**, the entropy
-floor of Section 1 for that corpus and tokenizer. $A/N^{\alpha}$ is the cost of finite capacity,
+in nats per token on their corpus with their tokenizer. $E$ is the **fitted asymptotic loss**,
+motivated by the irreducible uncertainty of Section 1. Its fitted value does not establish the
+corpus's exact entropy. $A/N^{\alpha}$ is the cost of finite capacity,
 which vanishes as the model grows; $B/D^{\beta}$ is the cost of finite data, which vanishes as
 training lengthens. The constants keep the paper's names $E$, $A$, $B$, $\alpha$ and $\beta$ in the
 scaling-law material (this section, [Section 5](#s5), Lab 3 and Exercises 6 and 7); everywhere else
@@ -650,12 +634,7 @@ would do it.
 :::
 
 ::: figure id=fig-07-6
-IsoFLOP curves of the published parametric law. x axis: N from 10^7 to 10^12 parameters (log
-scale); y axis: predicted loss in nats per token. One curve per budget, C = 10^19, 10^20, 10^21,
-10^22, 10^23 and 5.76×10^23 FLOPs, each the law evaluated along D = C/(6N), with its minimum marked
-by a dot; a dashed line joins the minima, the compute-optimal frontier. Gopher (280B parameters on
-300B tokens) and Chinchilla (70B on 1.4T) are marked at their predicted losses, 1.993 and 1.937;
-Gopher sits slightly above the 5.76×10^23 curve because 6ND counts its run at 5.0×10^23 FLOPs.
+Published parametric-law IsoFLOP curves, evaluated along D = C/(6N), with computed minima and the Gopher/Chinchilla allocations. Pale curve segments lie outside the original fit's N or D range. Losses are predictions under the law, not measured model evaluations.
 :::
 
 ### The compute-optimal allocation, derived
@@ -737,15 +716,7 @@ $10^{0.73} = 5.4$ and leaves $D$ only $10^{0.27} = 1.9$ times more.
 :::
 
 ::: figure id=fig-07-7
-Compute-optimal model size against training compute on log-log axes, C from 10^18 to 10^26 FLOPs:
-straight lines of slope 0.73 (Kaplan et al.), 0.50 (Approaches 1 and 2), 0.452 (the published
-Approach-3 fit) and 0.513 (the replication's refit). The two Approach-3 lines are drawn from their
-formulas, N_opt = G(C/6)^a, and nearly coincide at 10^18 FLOPs (8×10^7 parameters); the Approach 1-2
-line passes through Table 3's 67B parameters at 5.76×10^23 FLOPs; Kaplan's line, whose constant
-counts non-embedding parameters on another corpus, starts from the Approach-3 lines' common point at
-10^18 FLOPs, so that only its slope is compared. Chinchilla (70B) and Gopher (280B) are points at
-5.76×10^23. The lines diverge as they are extrapolated: at 10^26 FLOPs the three Chinchilla-based
-lines alone span 3.3×10^11 to 1.0×10^12 parameters.
+Compute-optimal size under the published parametric constants, replication constants, and a square-root guide anchored to Table 3. A Kaplan-slope guide shares the published line's value at 10^18 FLOPs to compare slopes; it is not Kaplan's fitted intercept. Dashed segments extrapolate the original training-budget range.
 :::
 
 ### Kaplan against Chinchilla
@@ -807,7 +778,8 @@ What does $E = 1.69$ mean, as a perplexity?
 :::
 
 ::: answer
-It is the loss no model can beat on that corpus with that tokenizer, the entropy floor of
-Section 1. As a perplexity it is $e^{1.69} = 5.4$: even a perfect model of that text would remain as
-uncertain as a choice among about five tokens.
+It is the fitted law's asymptotic loss on its training distribution and tokenizer. Under that
+extrapolation, the limiting perplexity is $e^{1.69} = 5.4$, equivalent to uncertainty among
+about five equally likely tokens. The fit does not prove that the true source entropy is
+exactly 1.69 or that no model can beat that measured loss (Section 1 and [Exercise 7](#e7)).
 :::

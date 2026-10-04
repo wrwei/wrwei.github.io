@@ -19,6 +19,9 @@
 <a href="module_03_ZH.html">3 &mdash; 卷积神经网络</a>
 <a href="module_04_ZH.html" class="active">4 &mdash; 循环神经网络与序列</a>
 <a href="module_05_ZH.html">5 &mdash; 其他值得了解的网络</a>
+<a href="module_06_ZH.html">6 &mdash; Transformer</a>
+<a href="module_07_ZH.html">7 &mdash; 大语言模型</a>
+<a href="module_08_ZH.html">8 &mdash; 大语言模型预训练</a>
     </div>
   </div>
   <a href="module_04_EN.html" class="lang-switch" hreflang="en">English</a>
@@ -208,7 +211,7 @@
 <h3>预测下一个元素</h3>
 <p>概率的链式法则可以精确地分解序列上的任意分布：</p>
 <div class="math-d">p(\mathbf{x}_{1:T}) = \prod_{t=1}^{T} p(\mathbf{x}_t \mid \mathbf{x}_{&lt;t}).</div>
-<p>因此，一个给定过去预测下一个元素的模型就是一个完整的生成模型：采样 <span class="math-i">\mathbf{x}_1</span>，反馈回去，采样 <span class="math-i">\mathbf{x}_2</span>，依此类推。极大似然训练它的方式是：对符号把每步的交叉熵相加，对带高斯噪声的实数值把每步的平方误差相加（<a href="module_01_ZH.html">模块 01</a>）。这就是<span class="xref-pending">模块 07</span> 的语言建模目标，也是<a href="#s8">第 8 节</a>的一步预测。</p>
+<p>因此，一个给定过去预测下一个元素的模型就是一个完整的生成模型：采样 <span class="math-i">\mathbf{x}_1</span>，反馈回去，采样 <span class="math-i">\mathbf{x}_2</span>，依此类推。极大似然训练它的方式是：对符号把每步的交叉熵相加，对带高斯噪声的实数值把每步的平方误差相加（<a href="module_01_ZH.html">模块 01</a>）。这就是<a href="module_07_ZH.html">模块 07</a> 的语言建模目标，也是<a href="#s8">第 8 节</a>的一步预测。</p>
 <h3>为什么固定窗口不够</h3>
 <p>显而易见的替代方案是把最后 <span class="math-i">w</span> 个值送入<a href="module_02_ZH.html">模块 02</a> 的多层感知机。它是值得拟合的基线，但有三个缺陷。窗口是一种猜测：更早的一切都看不见。每个窗口位置有自己的权重，所以在位置 3 学到的模式必须在位置 7 重新学一遍。而且第一层随 <span class="math-i">w</span> 线性增长。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">窗口 MLP 与循环层的参数量</div>
@@ -411,7 +414,7 @@ h_3 &amp;= \tanh(2 \cdot 0.9093) = \tanh(1.8186) = 0.9487.
 </div>
 <h3>字符级语言模型</h3>
 <p>实验 1 训练这个网络，预测一份合成维护日志的下一个字符，日志的各行形如 <code>F2 pres 4.0 bar night shift ok /F2</code>。词表有 <span class="math-i">V</span> 个字符。输入 <span class="math-i">\mathbf{x}_t</span> 是一个<strong>独热</strong>（one-hot）向量，除当前字符的索引处为 1 外全为零，所以 <span class="math-i">\mathbf{W}_x\mathbf{x}_t</span> 就是 <span class="math-i">\mathbf{W}_x</span> 中对应该字符的那一列：这个乘法实现为按列查表，而这正是嵌入层的本质。输出 <span class="math-i">\mathbf{y}_t \in \R^{V}</span> 保存下一个字符的 <strong>logits</strong>，softmax 把它们变成概率，损失是相对于实际出现的下一个字符的平均交叉熵，单位为每字符奈特（nats）（除以 <span class="math-i">\ln 2</span> 得到比特）。</p>
-<p>初始化时，输出权重很小，logits 接近零，softmax 接近均匀分布，每个字符都是 <span class="math-i">1/V</span>，所以第一个损失应当接近 <span class="math-i">-\ln(1/V) = \ln V</span>。这就是<a href="module_02_ZH.html">模块 02</a> 的合理性检查：第一个损失远离 <span class="math-i">\ln V</span>，说明在任何训练发生之前就已经有 bug。（<span class="xref-pending">模块 07</span> 把这个量转换为困惑度；本模块始终使用每字符奈特。）</p>
+<p>初始化时，输出权重很小，logits 接近零，softmax 接近均匀分布，每个字符都是 <span class="math-i">1/V</span>，所以第一个损失应当接近 <span class="math-i">-\ln(1/V) = \ln V</span>。这就是<a href="module_02_ZH.html">模块 02</a> 的合理性检查：第一个损失远离 <span class="math-i">\ln V</span>，说明在任何训练发生之前就已经有 bug。（<a href="module_07_ZH.html">模块 07</a> 把这个量转换为困惑度；本模块始终使用每字符奈特。）</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">实验 1 的模型，逐项计数</div>
 <p><span class="math-i">V = 37</span> 个字符，<span class="math-i">H = 128</span> 个状态单元，一个偏置向量：</p>
 <div class="table-wrap"><table>
@@ -460,7 +463,7 @@ h_3 &amp;= \tanh(2 \cdot 0.9093) = \tanh(1.8186) = 0.9487.
 <h3>带温度的采样</h3>
 <p>训练好的模型按<a href="#s1">第 1 节</a>的一对多形态生成文本：送入一个起始字符，从预测的分布中抽取下一个字符，把它反馈回去，重复。<strong>温度</strong>（temperature）<span class="math-i">\tau</span> 在 softmax 之前去除 logits，所以下一个字符从 <span class="math-i">\softmax(\mathbf{y}_t / \tau)</span> 中抽取。<span class="math-i">\tau &lt; 1</span> 时，分布向最可能的字符锐化；<span class="math-i">\tau &gt; 1</span> 时，分布变平。对 logits <span class="math-i">(2, 1, 0)</span>，<span class="math-i">\tau = 1</span> 时概率为 <span class="math-i">(0.665, 0.245, 0.090)</span>，<span class="math-i">\tau = 0.5</span> 时为 <span class="math-i">(0.867, 0.117, 0.016)</span>，<span class="math-i">\tau = 2</span> 时为 <span class="math-i">(0.506, 0.307, 0.186)</span>。低温度给出重复但格式良好的文本；高温度给出多样性，也带来更多错误。实验 1 对两者都做了测量。</p>
 <h3>由来</h3>
-<p>这类循环网络在整个 1990 年代都有研究，它们的训练问题（<a href="#s4">第 4 节</a>的主题）在那个十年的中期就已为人理解。它们的复兴发生在 2013–2015 年：门控循环网络生成了令人信服的手写笔迹和字符级文本（Graves 2013），Karpathy 2015 年关于字符级模型的文章展示了一个小网络逐字符写出看似合理的散文、源代码和标记文本。那些字符模型是<span class="xref-pending">模块 07</span> 中语言模型的直接祖先。</p>
+<p>这类循环网络在整个 1990 年代都有研究，它们的训练问题（<a href="#s4">第 4 节</a>的主题）在那个十年的中期就已为人理解。它们的复兴发生在 2013–2015 年：门控循环网络生成了令人信服的手写笔迹和字符级文本（Graves 2013），Karpathy 2015 年关于字符级模型的文章展示了一个小网络逐字符写出看似合理的散文、源代码和标记文本。那些字符模型是<a href="module_07_ZH.html">模块 07</a> 中语言模型的直接祖先。</p>
 <div class="check"><div class="check-label">检验理解</div>
 <p>一个 RNN 的 <span class="math-i">d_{\text{in}} = 10</span>、<span class="math-i">H = 64</span>，有一个偏置向量。它的循环层有多少个参数？序列长度加倍时，这个数如何变化？</p>
 </div>
@@ -2227,7 +2230,7 @@ p(y_t \mid y_{&lt;t}, x) &amp;= \softmax(\mathbf{W}_o\mathbf{s}_t + \mathbf{b}_o
 <h3>用教师强制训练</h3>
 <p>训练最大化给定源序列时目标序列的对数似然：</p>
 <div class="math-d">\mathcal{L} = -\sum_{t=1}^{T'} \ln p(y_t \mid y_{&lt;t}, x).</div>
-<p>采用<strong>教师强制</strong>（teacher forcing）时，解码器在第 <span class="math-i">t</span> 步的输入是<em>真实的</em>上一个 token <span class="math-i">y_{t-1}</span>，而不是模型自己的猜测。这样，前向传播开始之前，解码器的每一个输入都是已知的：不需要采样循环，每一步都在干净的前缀上用普通的交叉熵训练。于是 Transformer 解码器可以并行计算所有位置（<span class="xref-pending">模块 06</span>）。RNN 解码器仍然要循环，因为 <span class="math-i">\mathbf{s}_t</span> 需要 <span class="math-i">\mathbf{s}_{t-1}</span>，但它的循环不生成任何东西。图 4.11 把训练和推理并排画出。</p>
+<p>采用<strong>教师强制</strong>（teacher forcing）时，解码器在第 <span class="math-i">t</span> 步的输入是<em>真实的</em>上一个 token <span class="math-i">y_{t-1}</span>，而不是模型自己的猜测。这样，前向传播开始之前，解码器的每一个输入都是已知的：不需要采样循环，每一步都在干净的前缀上用普通的交叉熵训练。于是 Transformer 解码器可以并行计算所有位置（<a href="module_06_ZH.html">模块 06</a>）。RNN 解码器仍然要循环，因为 <span class="math-i">\mathbf{s}_t</span> 需要 <span class="math-i">\mathbf{s}_{t-1}</span>，但它的循环不生成任何东西。图 4.11 把训练和推理并排画出。</p>
 <figure class="fig" id="fig-04-15"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 516" width="720" height="516" font-family="DM Sans, PingFang SC, Microsoft YaHei, Noto Sans SC, system-ui, sans-serif">
 <defs><marker id="fig-04-15__ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="fig-04-15__ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker><marker id="fig-04-15__ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/></marker><marker id="fig-04-15__ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94A3B8"/></marker></defs>
 <text x="8" y="24" font-size="14" text-anchor="start" fill="#1A2E4A" font-weight="700">训练：教师强制</text>
@@ -2450,7 +2453,7 @@ p(y_t \mid y_{&lt;t}, x) &amp;= \softmax(\mathbf{W}_o\mathbf{s}_t + \mathbf{b}_o
 </svg>
 </div><figcaption><span class="fig-num">图 4.12</span> <p>玩具示例的束搜索树。根节点有子节点 <span class="math-i">A</span>（0.5）、<span class="math-i">B</span>（0.4）和 <span class="math-i">\langle e\rangle</span>（0.1）；第二层显示 <span class="math-i">A</span> 和 <span class="math-i">B</span> 各自的三个子节点及其序列概率。每一层保留的两个假设用粗线框出，被剪掉的显示为灰色。贪心路径为蓝色虚线，终止于 <span class="math-i">A\langle e\rangle</span>（0.20）；束搜索的答案 <span class="math-i">BA\langle e\rangle</span>（0.36）为绿色粗线。</p>
 </figcaption></figure>
-<p>束搜索有一个已知的偏差。每个 token 都把概率乘以一个小于 1 的数，所以对数概率之和偏爱短的输出；而更大的束搜索得更努力，会找到更多短而得分高的假设：超过某一点后，加宽束反而得到更短、更差的输出。<strong>长度归一化</strong>（length normalisation）把得分除以长度的某个幂，<span class="math-i">\ln p(y\mid x)/|y|^\alpha</span>，其中 <span class="math-i">0 &lt; \alpha \le 1</span>；Wu 等人（2016）使用平滑过的除数 <span class="math-i">\big((5+|y|)/6\big)^\alpha</span>。设置最小长度是一种更粗糙的防护。束搜索适用于只想要单个最佳输出的任务；需要多样的输出时，采样更合适（<span class="xref-pending">模块 07</span>）。搜索也修复不了一个不知道答案的模型：在实验 4 中，<span class="math-i">k = 4</span> 的束搜索与贪心解码一样，让瓶颈模型在长度 12 时 200 个字符串中一个都没答对，而它的 token 准确率还从 52.3% 降到 49.1%：束找到了模型认为概率更高的输出，但它们并没有更正确。</p>
+<p>束搜索有一个已知的偏差。每个 token 都把概率乘以一个小于 1 的数，所以对数概率之和偏爱短的输出；而更大的束搜索得更努力，会找到更多短而得分高的假设：超过某一点后，加宽束反而得到更短、更差的输出。<strong>长度归一化</strong>（length normalisation）把得分除以长度的某个幂，<span class="math-i">\ln p(y\mid x)/|y|^\alpha</span>，其中 <span class="math-i">0 &lt; \alpha \le 1</span>；Wu 等人（2016）使用平滑过的除数 <span class="math-i">\big((5+|y|)/6\big)^\alpha</span>。设置最小长度是一种更粗糙的防护。束搜索适用于只想要单个最佳输出的任务；需要多样的输出时，采样更合适（<a href="module_07_ZH.html">模块 07</a>）。搜索也修复不了一个不知道答案的模型：在实验 4 中，<span class="math-i">k = 4</span> 的束搜索与贪心解码一样，让瓶颈模型在长度 12 时 200 个字符串中一个都没答对，而它的 token 准确率还从 52.3% 降到 49.1%：束找到了模型认为概率更高的输出，但它们并没有更正确。</p>
 <h3>瓶颈</h3>
 <p>解码器对源序列所知道的一切，都要通过一个固定大小的向量。Sutskever 等人发现，把源句子的顺序反转能显著改善他们的翻译。反转使源句的头几个词紧挨着目标句的头几个词，于是解码器最先需要的依赖都很短；这样的技巧居然有用，本身就是瓶颈的一种症状。Cho、van Merriënboer、Bahdanau 和 Bengio（2014）观察到，翻译质量随句子变长而下降。实验 4 干净地测出了这一点：用摘要为 64 个数的 GRU 编码器-解码器反转数字串，序列准确率在长度 4 时约为 98%，长度 8 时为 43%，长度 12 时为 1%（一次运行；换一个种子，中间的那个值会变动几个百分点）。<a href="#s11">第 11 节</a>消除了这个瓶颈。</p>
 <div class="callout keyidea"><div class="callout-label">核心思想</div>
@@ -2593,12 +2596,12 @@ p(y_t \mid y_{&lt;t}, x) = \softmax\big(\mathbf{W}_o[\mathbf{s}_t; \mathbf{a}_t]
 <p>解码器状态 <span class="math-i">\mathbf{s} = (1, 0)</span>；注释向量仍为 <span class="math-i">(1,0)</span>、<span class="math-i">(0,1)</span>、<span class="math-i">(1,1)</span>。</p>
 <p>得分 <span class="math-i">\mathbf{s}^\top\mathbf{h}_j = (1, 0, 1)</span>。指数 <span class="math-i">(2.7183, 1, 2.7183)</span>，总和 <span class="math-i">6.4366</span>；权重 <span class="math-i">(0.4223, 0.1554, 0.4223)</span>。上下文 <span class="math-i">0.4223(1,0) + 0.1554(0,1) + 0.4223(1,1) = (0.8446, 0.5777)</span>。</p>
 <p>现在取 <span class="math-i">\mathbf{s} = (3, 0)</span>，方向相同，长度是三倍。得分 <span class="math-i">(3, 0, 3)</span>；指数 <span class="math-i">(20.086, 1, 20.086)</span>，总和 <span class="math-i">41.171</span>；权重 <span class="math-i">(0.4879, 0.0243, 0.4879)</span>；上下文 <span class="math-i">(0.9757, 0.5121)</span>。<span class="math-i">\mathbf{h}_2</span> 上的权重从 0.155 降到 0.024。</p>
-<p>得分越大，softmax 越尖锐。对于 <span class="math-i">d</span> 个分量相互独立、均值为零、方差为 1 的向量，<span class="math-i">\operatorname{Var}(\mathbf{s}^\top\mathbf{h}) = \sum_{i=1}^{d} \mathbb{E}[s_i^2]\,\mathbb{E}[h_i^2] = d</span>，所以典型的得分按 <span class="math-i">\sqrt d</span> 增长，宽模型的 softmax 会饱和，梯度随之消失。<span class="xref-pending">模块 06</span> 正是出于这个原因把得分除以 <span class="math-i">\sqrt{d_k}</span>。</p>
+<p>得分越大，softmax 越尖锐。对于 <span class="math-i">d</span> 个分量相互独立、均值为零、方差为 1 的向量，<span class="math-i">\operatorname{Var}(\mathbf{s}^\top\mathbf{h}) = \sum_{i=1}^{d} \mathbb{E}[s_i^2]\,\mathbb{E}[h_i^2] = d</span>，所以典型的得分按 <span class="math-i">\sqrt d</span> 增长，宽模型的 softmax 会饱和，梯度随之消失。<a href="module_06_ZH.html">模块 06</a> 正是出于这个原因把得分除以 <span class="math-i">\sqrt{d_k}</span>。</p>
 </div>
 <h3>它为什么有效</h3>
 <p>现在每个输出到每个输入都有一条一步长的路径，信息和梯度都走这条路。没有什么需要被挤进一个向量，从某个输出到它所需的源位置的梯度，只经过一次加权求和，而不必穿过其间的每一个编码器和解码器步骤。这与 LSTM 的加性路径（<a href="#s5">第 5 节</a>）和残差连接是同一个论证：给信号一条短路。同样的手段也可以替代多对一循环分类器中的“取最后一个状态”：用一个学习得到的查询向量，对所有状态做注意力加权平均，在时间上做池化。</p>
 <h3>从这里到模块 06</h3>
-<p>在点积形式中，解码器状态扮演<strong>查询</strong>（query）的角色，编码器状态既扮演被打分的<strong>键</strong>（key），也扮演被平均的<strong>值</strong>（value）。去掉循环，让序列中的每个位置都对同一序列中的所有其他位置发出查询，结果就是<strong>自注意力</strong>（self-attention），即 Transformer 的核心。<span class="xref-pending">模块 06</span> 从这里接着讲。</p>
+<p>在点积形式中，解码器状态扮演<strong>查询</strong>（query）的角色，编码器状态既扮演被打分的<strong>键</strong>（key），也扮演被平均的<strong>值</strong>（value）。去掉循环，让序列中的每个位置都对同一序列中的所有其他位置发出查询，结果就是<strong>自注意力</strong>（self-attention），即 Transformer 的核心。<a href="module_06_ZH.html">模块 06</a> 从这里接着讲。</p>
 <div class="callout pitfall"><div class="callout-label">陷阱</div>
 <p>对齐图不是解释。注意力权重可以大幅改变而不改变模型的预测，不同的权重模式也可以给出相同的输出（Jain 和 Wallace，2019；Wiegreffe 和 Pinter，2019 对它们何时可以提供信息给出了限定条件）。应把对齐当作诊断工具，并通过干预输入来证实所声称的依赖关系。</p>
 </div>
@@ -2619,7 +2622,7 @@ p(y_t \mid y_{&lt;t}, x) = \softmax\big(\mathbf{W}_o[\mathbf{s}_t; \mathbf{a}_t]
 <div class="sec-meta">≈ 12 分钟阅读</div>
 <p>循环网络有两项开销是其结构所固有的。更好的单元消除不了其中任何一项，二者合起来解释了为什么序列建模先转向卷积，再转向 Transformer。</p>
 <h3>两项开销</h3>
-<p><strong>时间上无法并行。</strong> <span class="math-i">\mathbf{h}_t</span> 需要 <span class="math-i">\mathbf{h}_{t-1}</span>，所以一个 10,000 个 token 的序列在每一层都是 10,000 个相互依赖的步骤，无论有多少处理器可用。教师强制让每个输入都事先已知，但这无济于事：<span class="math-i">\mathbf{h}_t</span> <em>非线性地</em>依赖于 <span class="math-i">\mathbf{h}_{t-1}</span>，后者必须先算出来。跨序列的数据并行仍然可行；受影响的是每一步计算的规模。每一步对 batch 中的每个序列只是一个小的矩阵乘积，太少，不足以让现代加速器保持繁忙，而长上下文又让这条链更长。对于<span class="xref-pending">模块 08</span> 所描述的那种规模的语料，这条串行链就成了瓶颈。</p>
+<p><strong>时间上无法并行。</strong> <span class="math-i">\mathbf{h}_t</span> 需要 <span class="math-i">\mathbf{h}_{t-1}</span>，所以一个 10,000 个 token 的序列在每一层都是 10,000 个相互依赖的步骤，无论有多少处理器可用。教师强制让每个输入都事先已知，但这无济于事：<span class="math-i">\mathbf{h}_t</span> <em>非线性地</em>依赖于 <span class="math-i">\mathbf{h}_{t-1}</span>，后者必须先算出来。跨序列的数据并行仍然可行；受影响的是每一步计算的规模。每一步对 batch 中的每个序列只是一个小的矩阵乘积，太少，不足以让现代加速器保持繁忙，而长上下文又让这条链更长。对于<a href="module_08_ZH.html">模块 08</a> 所描述的那种规模的语料，这条串行链就成了瓶颈。</p>
 <p><strong>路径很长。</strong> 位置 <span class="math-i">j</span> 的信息要经过 <span class="math-i">t - j</span> 次循环才能到达位置 <span class="math-i">t</span>，每一次都有损失（<a href="#s4">第 4 节</a>）。注意力一步就把它们连起来；一叠空洞卷积大约需要 <span class="math-i">\log_2(t-j)</span> 步。</p>
 <h3>卷积方案先出现</h3>
 <p>WaveNet（van den Oord 等人，2016）用一叠<strong>因果空洞一维卷积</strong>（causal dilated 1D convolution，<a href="module_03_ZH.html">模块 03</a>）生成音频：每个输出只看过去，第 <span class="math-i">l</span> 层在相邻抽头之间跳过 <span class="math-i">d_l - 1</span> 个样本。Bai、Kolter 和 Koltun（2018）把这种设计提炼成通用的<strong>时间卷积网络</strong>（temporal convolutional network，TCN），发现它在一系列标准序列基准上达到或超过了 LSTM 和 GRU。TCN 在训练中可以在时间上并行，因为每个输出都是已知输入的卷积。卷积核大小为 <span class="math-i">k</span>、空洞率为 <span class="math-i">d_1, \dots, d_L</span> 时，它的感受野为 <span class="math-i">1 + (k-1)\sum_l d_l</span> 个样本。</p>
@@ -2628,7 +2631,7 @@ p(y_t \mid y_{&lt;t}, x) = \softmax\big(\mathbf{W}_o[\mathbf{s}_t; \mathbf{a}_t]
 </div>
 <p>它的局限是固定的感受野：比感受野更早的东西不能影响输出，要覆盖更长的历史就得加层。</p>
 <h3>Transformer 的取舍，以及循环保留下来的东西</h3>
-<p>Transformer（<span class="xref-pending">模块 06</span>）用少数几个大的矩阵乘积并行计算每个位置，任意两个位置之间的路径长度为 1。代价是与序列长度成二次关系的开销，因为每个位置都要给其他每个位置打分。对于在大规模语料上训练，这个取舍是对的。</p>
+<p>Transformer（<a href="module_06_ZH.html">模块 06</a>）用少数几个大的矩阵乘积并行计算每个位置，任意两个位置之间的路径长度为 1。代价是与序列长度成二次关系的开销，因为每个位置都要给其他每个位置打分。对于在大规模语料上训练，这个取舍是对的。</p>
 <p>到了推理时，取舍反了过来。循环网络以恒定的计算量和固定大小的状态生成每个 token。Transformer 则要存储每个过去 token 的键和值，即<span class="xref-pending">模块 10</span> 推导的 <strong>KV cache</strong>，它随上下文增长。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">状态与缓存</div>
 <p>一个 <span class="math-i">H = 1{,}024</span>、fp32 的 4 层 LSTM 每层保存 <span class="math-i">(\mathbf{h}, \mathbf{c})</span>：每个序列 <span class="math-i">2\times4\times1{,}024\times4\ \text{B} = 32{,}768</span> B <span class="math-i">= 32.8</span> kB（32 KiB），与上下文长度无关。</p>
@@ -3319,7 +3322,7 @@ p(y_t \mid y_{&lt;t}, x) = \softmax\big(\mathbf{W}_o[\mathbf{s}_t; \mathbf{a}_t]
 </tr>
 <tr>
 <td>大规模语言建模</td>
-<td>Transformer 或混合架构（<span class="xref-pending">模块 06</span>–<span class="xref-pending">08</span>）</td>
+<td>Transformer 或混合架构（<a href="module_06_ZH.html">模块 06</a>–<a href="module_08_ZH.html">08</a>）</td>
 </tr>
 </tbody>
 </table></div>
@@ -3723,7 +3726,7 @@ plt.tight_layout()
 plt.show()
 </code></pre>
 <h3>步骤 7：从训练好的网络中采样</h3>
-<p>采样就是<a href="#s1">第 1 节</a>的一对多形态。从 <span class="math-i">\mathbf{h} = \mathbf{0}</span> 和一个换行符开始，算出 logits，除以温度 <span class="math-i">\tau</span>，取 softmax，用设定了种子的生成器抽取一个字符，再把它反馈回去。温度的解释见<a href="#s2">第 2 节</a>；<span class="xref-pending">模块 07</span> 讨论一般的采样。<span class="math-i">\tau = 0.5</span> 时，分布向最可能的字符锐化；<span class="math-i">\tau = 1</span> 时，就是模型自己的分布。</p>
+<p>采样就是<a href="#s1">第 1 节</a>的一对多形态。从 <span class="math-i">\mathbf{h} = \mathbf{0}</span> 和一个换行符开始，算出 logits，除以温度 <span class="math-i">\tau</span>，取 softmax，用设定了种子的生成器抽取一个字符，再把它反馈回去。温度的解释见<a href="#s2">第 2 节</a>；<a href="module_07_ZH.html">模块 07</a> 讨论一般的采样。<span class="math-i">\tau = 0.5</span> 时，分布向最可能的字符锐化；<span class="math-i">\tau = 1</span> 时，就是模型自己的分布。</p>
 <figure class="lab-plot"><img src="assets/plots/m04-lab1-b7-1.png" alt="上方代码生成的图" loading="lazy"><figcaption>上方代码生成的图</figcaption></figure>
 <pre><code class="language-python">def sample(p, n_chars, temperature, seed):
     rng = np.random.default_rng(seed)
@@ -5817,7 +5820,7 @@ k = 2
 <p>编码器状态为 <span class="math-i">\mathbf{h}_1 = (1, 1)</span>、<span class="math-i">\mathbf{h}_2 = (2, 0)</span>、<span class="math-i">\mathbf{h}_3 = (0, -1)</span>。</p>
 <p>(a) 用点积打分，解码器状态 <span class="math-i">\mathbf{s} = (1, 0)</span>，计算得分、注意力权重和上下文向量。</p>
 <p>(b) 对 <span class="math-i">\mathbf{s} = (3, 0)</span> 重做一遍。什么变了？为什么这对训练很重要？</p>
-<p>(c) 把 (b) 与<span class="xref-pending">模块 06</span> 中的 <span class="math-i">1/\sqrt{d_k}</span> 因子联系起来。</p>
+<p>(c) 把 (b) 与<a href="module_06_ZH.html">模块 06</a> 中的 <span class="math-i">1/\sqrt{d_k}</span> 因子联系起来。</p>
 <p>(d) 用加性注意力，<span class="math-i">\mathbf{W}_a = \mathbf{I}</span>、<span class="math-i">\mathbf{U}_a = \begin{bmatrix}1 &amp; 0\\ 0.5 &amp; -0.5\end{bmatrix}</span>、<span class="math-i">\mathbf{v}_a = (1, 0.5)</span>，<span class="math-i">\mathbf{s}_{t-1} = (-0.5, 0.5)</span>，计算权重和上下文。</p>
 </div>
 <details class="solution"><summary>查看解答</summary><div class="details-body">
@@ -5828,7 +5831,7 @@ k = 2
 <p><strong>(b)</strong> 当 <span class="math-i">\mathbf{s} = (3, 0)</span> 时，得分为 <span class="math-i">(3, 6, 0)</span>，是原来的三倍。于是 <span class="math-i">\exp(e) = (20.086,\ 403.43,\ 1)</span>，和为 <span class="math-i">424.51</span>，所以</p>
 <div class="math-d">\alpha = (0.0473,\ 0.9503,\ 0.0024), \qquad \mathbf{a} = (1.9480,\ 0.0450).</div>
 <p>方向相同、长度变为三倍，使分布尖锐得多：95% 的权重落在 <span class="math-i">\mathbf{h}_2</span> 上，而原来是 67%。把每个得分乘以 3，等同于把 softmax 的温度除以 3。这对训练很重要，因为 softmax 会<em>饱和</em>：权重对得分的敏感度为 <span class="math-i">\partial\alpha_j/\partial e_j = \alpha_j(1 - \alpha_j)</span>，在 (a) 中为 <span class="math-i">(0.185,\ 0.223,\ 0.082)</span>，在 (b) 中为 <span class="math-i">(0.045,\ 0.047,\ 0.0024)</span>。对第三个注释向量，梯度缩小了 35 倍。饱和的 softmax 几乎不向打分网络或产生这些得分的状态传递梯度，训练就会停滞。</p>
-<p><strong>(c)</strong> 对宽度为 <span class="math-i">d_k</span> 的查询和键，若各分量相互独立、均值为零、方差为 1，则点积 <span class="math-i">\sum_i q_ik_i</span> 的方差为 <span class="math-i">\sum_i\mathbb{E}[q_i^2]\,\mathbb{E}[k_i^2] = d_k</span>。因此典型的得分按 <span class="math-i">\sqrt{d_k}</span> 增长，宽模型在初始化时就处于 (b) 那样的饱和区，梯度趋于消失。把得分除以 <span class="math-i">\sqrt{d_k}</span>，无论宽度如何都能恢复单位方差（<span class="xref-pending">模块 06</span>）。对 20,000 个随机对的模拟给出 <span class="math-i">d = 4</span>、64 和 1,024 时的方差分别为 4.0、64.5 和 1,023.5（脚本见下），而像这里这样宽度为 2 时，得分的标准差只有 <span class="math-i">\sqrt2</span>，所以要显现这一效应，需要像因子 3 这样的夸大。</p>
+<p><strong>(c)</strong> 对宽度为 <span class="math-i">d_k</span> 的查询和键，若各分量相互独立、均值为零、方差为 1，则点积 <span class="math-i">\sum_i q_ik_i</span> 的方差为 <span class="math-i">\sum_i\mathbb{E}[q_i^2]\,\mathbb{E}[k_i^2] = d_k</span>。因此典型的得分按 <span class="math-i">\sqrt{d_k}</span> 增长，宽模型在初始化时就处于 (b) 那样的饱和区，梯度趋于消失。把得分除以 <span class="math-i">\sqrt{d_k}</span>，无论宽度如何都能恢复单位方差（<a href="module_06_ZH.html">模块 06</a>）。对 20,000 个随机对的模拟给出 <span class="math-i">d = 4</span>、64 和 1,024 时的方差分别为 4.0、64.5 和 1,023.5（脚本见下），而像这里这样宽度为 2 时，得分的标准差只有 <span class="math-i">\sqrt2</span>，所以要显现这一效应，需要像因子 3 这样的夸大。</p>
 <p><strong>(d)</strong> 加性注意力为 <span class="math-i">e_j = \mathbf{v}_a^\top\tanh(\mathbf{W}_a\mathbf{s}_{t-1} + \mathbf{U}_a\mathbf{h}_j)</span>（<a href="#s11">第 11 节</a>）。分步计算：</p>
 <ol>
 <li><span class="math-i">\mathbf{W}_a\mathbf{s}_{t-1} = \mathbf{s}_{t-1} = (-0.5, 0.5)</span>，因为 <span class="math-i">\mathbf{W}_a = \mathbf{I}</span>。</li>
@@ -5881,7 +5884,7 @@ d = 1024: variance of q.k = 1023.5
 </div>
 <details class="solution"><summary>查看解答</summary><div class="details-body">
 <p><strong>循环神经网络</strong>。状态 <span class="math-i">\mathbf{h}_t</span> 是 <span class="math-i">\mathbf{h}_{t-1}</span> 的非线性函数，所以第 <span class="math-i">t</span> 步必须等第 <span class="math-i">t-1</span> 步完成后才能开始。教师强制使<em>输入</em>提前已知，但并不能打破这条链：无论有多少处理器空闲，这 <span class="math-i">T</span> 步仍是一个相互依赖的序列（<a href="#s12">第 12 节</a>）。</p>
-<p><strong>Transformer</strong>。在一层之内，每个位置依赖的是该层的<em>输入</em>，而教师强制使这些输入已知；它不依赖于同一层其他位置的输出。因此所有位置可以一起计算，每层一次带掩码的矩阵运算（<span class="xref-pending">模块 06</span>）。</p>
+<p><strong>Transformer</strong>。在一层之内，每个位置依赖的是该层的<em>输入</em>，而教师强制使这些输入已知；它不依赖于同一层其他位置的输出。因此所有位置可以一起计算，每层一次带掩码的矩阵运算（<a href="module_06_ZH.html">模块 06</a>）。</p>
 <p><strong>状态与缓存</strong>。LSTM 每层保存一个固定的 <span class="math-i">(\mathbf{h}, \mathbf{c})</span>，无论上下文多长：倍数为 <strong>1</strong>。KV cache 为每个过去的 token 存储一个键和一个值，所以它与上下文成正比增长：倍数为 $32{,}768/4{,}096 = $ <strong>8</strong>。在<a href="#s12">第 12 节</a>的例子中，缓存在 4,096 个 token 时为 0.81 GB，在 32,768 个 token 时为 6.44 GB。</p>
 <p><strong>后果</strong>。对于存放权重之后剩余的固定显存预算，同时处理的序列数等于预算除以每条序列的状态。LSTM 在任何长度下都能容纳<em>同样</em>多的序列。如果缓存占主导，Transformer 在 32,768 个 token 时能容纳的序列数只有 4,096 个 token 时的八分之一。这就是<a href="#s12">第 12 节</a>的权衡：Transformer 在训练中得到的好处，要在推理时付出代价，<span class="xref-pending">模块 10</span> 推导了它对部署服务的影响。</p>
 </div></details>
@@ -6225,7 +6228,7 @@ TCN training time is 27% shorter
 </div>
 <div class="paper"><div class="paper-label">论文 · 15 分钟</div>
 <p>Bahdanau, D., Cho, K., Bengio, Y. “Neural machine translation by jointly learning to align and translate.” <em>International Conference on Learning Representations (ICLR)</em>, 2015 (arXiv:1409.0473).</p>
-<p><strong>为什么读它。</strong> 它引入了注意力，用来解决编码器-解码器的瓶颈。去掉循环之后，这个想法就成了 Transformer，所以<span class="xref-pending">模块 06</span> 的机制正是在这篇论文中首次出现的，形式是加性注意力。</p>
+<p><strong>为什么读它。</strong> 它引入了注意力，用来解决编码器-解码器的瓶颈。去掉循环之后，这个想法就成了 Transformer，所以<a href="module_06_ZH.html">模块 06</a> 的机制正是在这篇论文中首次出现的，形式是加性注意力。</p>
 <p><strong>读哪些部分。</strong> 读引言、关于 RNN 编码器-解码器的背景，以及关于联合学习对齐与翻译的那一节：带对齐模型的解码器，以及产生注释向量（annotation）的双向编码器。看一看翻译质量随句子长度变化的图，以及各张对齐图。跳过实验设置和附录的大部分内容，但对齐模型的定义除外。</p>
 <p><strong>阅读时要回答的问题。</strong></p>
 <ol>
@@ -6265,7 +6268,7 @@ TCN training time is 27% shorter
 <li>单个摘要向量是一个瓶颈（在实验 4 中，数字反转的整串正确率从长度 4 时的约 98% 降到长度 12 时的约 1%），注意力消除了这个瓶颈：解码器对所有编码器状态做 softmax 加权平均，使每个输出到每个输入都只有一步的路径，而这些权重构成的对齐是一种诊断手段，而不是解释。</li>
 <li>Transformer 取代了循环，因为非线性循环需要 <span class="math-i">T</span> 个相互依赖的步骤，路径长度为 <span class="math-i">O(T)</span>，而注意力的路径只有一步，代价是平方级的；循环保持恒定大小的状态（宽度为 1,024 的 4 层 LSTM 为 32.8 kB，而宽度为 2,048 的 24 层 Transformer 在 32,768 个 token 时的 KV cache 为 6.44 GB），线性时不变的循环是一种可以并行训练的卷积，而 Mamba 依赖输入的步长又把它变回了一个门。</li>
 </ul>
-<p><a href="module_05_ZH.html">模块 05</a> 把视野从序列扩展到其他值得了解的网络家族：自编码器与 VAE、GAN、扩散模型、图网络、物理信息网络和对比学习，其中有几种会在后续模块的大模型中再次出现。<span class="xref-pending">模块 06</span> 随后取出<a href="#s11">第 11 节</a>的注意力，彻底去掉循环，构建出 Transformer：同样的查询-键-值查找，由每个位置对其他每个位置施加，带有<a href="#s11">第 11 节</a>所论证的缩放因子 <span class="math-i">\sqrt{d_k}</span>，以及循环原本免费提供的位置信息。</p>
+<p><a href="module_05_ZH.html">模块 05</a> 把视野从序列扩展到其他值得了解的网络家族：自编码器与 VAE、GAN、扩散模型、图网络、物理信息网络和对比学习，其中有几种会在后续模块的大模型中再次出现。<a href="module_06_ZH.html">模块 06</a> 随后取出<a href="#s11">第 11 节</a>的注意力，彻底去掉循环，构建出 Transformer：同样的查询-键-值查找，由每个位置对其他每个位置施加，带有<a href="#s11">第 11 节</a>所论证的缩放因子 <span class="math-i">\sqrt{d_k}</span>，以及循环原本免费提供的位置信息。</p>
 <span class="section-anchor" id="terms"></span>
 <div class="section-header" data-sec="terms"><span class="section-num">24</span><h2>关键术语</h2></div>
 <div class="table-wrap"><table>

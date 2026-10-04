@@ -1,0 +1,349 @@
+{
+  "title": "Transformer",
+  "lead": "本模块逐步拆解注意力，让你能够手算、求导、像 FlashAttention 那样分块计算，并用 RoPE 旋转位置；随后组装现代解码器块，对照公开模型统计参数与 FLOPs，再在笔记本 CPU 上训练小型 GPT，解读其损失曲线与注意力头。",
+  "prerequisites": [
+    "第 01 模块：softmax 回归，交叉熵作为分类模型的负对数似然",
+    "第 02 模块：反向传播、softmax 雅可比 diag(p) - p p^T、softmax/交叉熵梯度、ReLU/GELU/SiLU、LayerNorm/RMSNorm、带预热与余弦衰减的 AdamW、梯度裁剪，以及 PyTorch 训练循环",
+    "第 04 模块：序列到序列模型、Bahdanau/Luong 注意力，以及循环计算为何在时间维度上必须串行",
+    "线性代数：矩阵乘积、转置、秩、块对角矩阵、2 × 2 旋转矩阵与正交性",
+    "复数：欧拉公式 exp(i*phi) = cos(phi) + i sin(phi)、共轭，以及 Re(z * conj(w)) 表示两个二维向量的点积",
+    "概率：独立随机变量之和的期望与方差",
+    "Python：NumPy 数组与广播，PyTorch 张量、nn.Module、autograd"
+  ],
+  "outcomes": [
+    "能够手算三 token 示例的缩放点积注意力，比较有无因果掩码、有无 1/sqrt(d_k) 缩放的情况，将各分数、权重、输出计算到三位小数。",
+    "能够将第 02 模块的 softmax 雅可比 diag(p) - p p^T 用于注意力行，推导 1/sqrt(d_k) 的方差依据，并解释未缩放注意力为何饱和、学习缓慢。",
+    "能够手算一行注意力的反向梯度，并与自动求导核对。",
+    "能够追踪多头与分组查询注意力的各张量形状，从 (B, T, d) 到 (B, h, T, d_k) 再返回，并从残差流角度解释 Transformer。",
+    "能够用方程与代码写出前置归一化块，解释恒等路径为何常能减少预热需求，以及学习率、深度、初始化对稳定性的影响。",
+    "能够证明 RoPE 的注意力分数只通过 t - s 依赖位置，编写实现，并用数值验证。",
+    "能够推导在线 softmax，实现 FlashAttention 式分块注意力，在浮点舍入精度内与直接实现一致，且无需构造 T × T 矩阵。",
+    "能够按解码器配置统计参数（12Ld^2 加嵌入，再修正 GQA/SwiGLU），复现公开模型规模；按本系列约定计算 FLOPs：前向每 token 为 2 N_matmul 加上下文 t 的 4Ldt，或长度 T 因果序列平均的 2LdT，训练约为三倍，6N 仅为标明假设的估计。",
+    "能够计算多头、分组查询、多查询布局下每 token 的 KV cache 字节数与 KiB。",
+    "能够在 CPU 上训练字符级仅解码器 Transformer，检查初始损失是否接近 log V，进行采样，诊断缺失因果掩码，并在小模型中寻找归纳头。"
+  ],
+  "software": [
+    "Python 3.11+",
+    "NumPy",
+    "PyTorch 2.4 或以上（nn.RMSNorm、F.scaled_dot_product_attention），CPU 版本即可",
+    "matplotlib",
+    "Hugging Face Transformers（可选，仅实验 4 的独立核对；在 meta 设备上构造模型，无需下载）",
+    "GPU 可选；练习 e15 的 GPU 部分可使用 Google Colab"
+  ],
+  "title_em": "Transformer",
+  "sessions": [
+    {
+      "n": 1,
+      "title": "手算注意力",
+      "activities": [
+        {
+          "what": "阅读第 1-2 节：摆脱循环计算；缩放点积注意力",
+          "kind": "read",
+          "minutes": 36,
+          "refs": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "what": "练习 e1 和 e3：因果掩码下的第一行；为什么未缩放注意力学习缓慢",
+          "kind": "exercises",
+          "minutes": 10,
+          "refs": [
+            "e1",
+            "e3"
+          ]
+        },
+        {
+          "what": "阅读第 3 节并使用注意力计算器",
+          "kind": "read",
+          "minutes": 20,
+          "refs": [
+            "s3"
+          ]
+        },
+        {
+          "what": "实验 1：手算注意力，并与 PyTorch 核对",
+          "kind": "lab",
+          "minutes": 30,
+          "refs": [
+            "lab1"
+          ]
+        },
+        {
+          "what": "练习 e2 和 e4",
+          "kind": "exercises",
+          "minutes": 20,
+          "refs": [
+            "e2",
+            "e4"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "title": "头、块与位置",
+      "activities": [
+        {
+          "what": "阅读第 4 节：多头注意力和残差流",
+          "kind": "read",
+          "minutes": 22,
+          "refs": [
+            "s4"
+          ]
+        },
+        {
+          "what": "阅读第 5 节：块",
+          "kind": "read",
+          "minutes": 18,
+          "refs": [
+            "s5"
+          ]
+        },
+        {
+          "what": "练习 e5",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e5"
+          ]
+        },
+        {
+          "what": "阅读第 6 节并探索 RoPE 小部件",
+          "kind": "read",
+          "minutes": 26,
+          "refs": [
+            "s6"
+          ]
+        },
+        {
+          "what": "实验 2：用数值检验 RoPE",
+          "kind": "lab",
+          "minutes": 25,
+          "refs": [
+            "lab2"
+          ]
+        },
+        {
+          "what": "论文导读：Su et al., RoFormer",
+          "kind": "papers",
+          "minutes": 13,
+          "refs": [
+            "reading"
+          ]
+        },
+        {
+          "what": "练习 e6-e7",
+          "kind": "exercises",
+          "minutes": 15,
+          "refs": [
+            "e6",
+            "e7"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "title": "架构、现代块与 FlashAttention",
+      "activities": [
+        {
+          "what": "阅读第 7-8 节：模型的三种形状；视觉 Transformer",
+          "kind": "read",
+          "minutes": 23,
+          "refs": [
+            "s7",
+            "s8"
+          ]
+        },
+        {
+          "what": "练习 e8",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e8"
+          ]
+        },
+        {
+          "what": "阅读第 9 节：现代解码器块",
+          "kind": "read",
+          "minutes": 17,
+          "refs": [
+            "s9"
+          ]
+        },
+        {
+          "what": "练习 e9",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e9"
+          ]
+        },
+        {
+          "what": "阅读第 10 节：FlashAttention 和在线 softmax",
+          "kind": "read",
+          "minutes": 20,
+          "refs": [
+            "s10"
+          ]
+        },
+        {
+          "what": "实验 3：在线 softmax 与分块注意力",
+          "kind": "lab",
+          "minutes": 30,
+          "refs": [
+            "lab3"
+          ]
+        },
+        {
+          "what": "练习 e11",
+          "kind": "exercises",
+          "minutes": 10,
+          "refs": [
+            "e11"
+          ]
+        },
+        {
+          "what": "论文导读：Dao 等人，FlashAttention",
+          "kind": "papers",
+          "minutes": 17,
+          "refs": [
+            "reading"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "title": "计数与训练",
+      "activities": [
+        {
+          "what": "阅读第 11 节：计算参数和 FLOP 数",
+          "kind": "read",
+          "minutes": 22,
+          "refs": [
+            "s11"
+          ]
+        },
+        {
+          "what": "实验 4：Llama 类模型的参数与 FLOP 计数器",
+          "kind": "lab",
+          "minutes": 25,
+          "refs": [
+            "lab4"
+          ]
+        },
+        {
+          "what": "练习 e12",
+          "kind": "exercises",
+          "minutes": 10,
+          "refs": [
+            "e12"
+          ]
+        },
+        {
+          "what": "阅读第 12 节：训练一个小型 GPT",
+          "kind": "read",
+          "minutes": 17,
+          "refs": [
+            "s12"
+          ]
+        },
+        {
+          "what": "实验 5：训练小型 GPT、采样并移除掩码",
+          "kind": "lab",
+          "minutes": 50,
+          "refs": [
+            "lab5"
+          ]
+        },
+        {
+          "what": "练习 e14：诊断泄漏",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e14"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "title": "分析训练后的模型，并复习",
+      "activities": [
+        {
+          "what": "实验 6：寻找归纳头",
+          "kind": "lab",
+          "minutes": 30,
+          "refs": [
+            "lab6"
+          ]
+        },
+        {
+          "what": "论文导读：Vaswani 等人，注意力就是你所需要的",
+          "kind": "papers",
+          "minutes": 20,
+          "refs": [
+            "reading"
+          ]
+        },
+        {
+          "what": "阅读：常见问题与排查",
+          "kind": "read",
+          "minutes": 6,
+          "refs": [
+            "wrong"
+          ]
+        },
+        {
+          "what": "练习 e10、e13、e15",
+          "kind": "exercises",
+          "minutes": 45,
+          "refs": [
+            "e10",
+            "e13",
+            "e15"
+          ]
+        },
+        {
+          "what": "自测题",
+          "kind": "quiz",
+          "minutes": 15,
+          "refs": [
+            "quiz"
+          ]
+        },
+        {
+          "what": "总结与回顾：凭记忆重算算例；列出现代块的六种选择以及每个选择的原因",
+          "kind": "review",
+          "minutes": 10,
+          "refs": [
+            "summary"
+          ]
+        }
+      ]
+    }
+  ],
+  "labs": [
+    {
+      "title": "手算注意力，并与 PyTorch 核对"
+    },
+    {
+      "title": "用数值检验 RoPE"
+    },
+    {
+      "title": "在线 softmax 与分块注意力"
+    },
+    {
+      "title": "Llama 类模型的参数与 FLOP 计数器"
+    },
+    {
+      "title": "训练小型 GPT、采样并移除掩码"
+    },
+    {
+      "title": "寻找归纳头"
+    }
+  ]
+}

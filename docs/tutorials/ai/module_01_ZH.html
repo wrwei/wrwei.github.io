@@ -19,6 +19,9 @@
 <a href="module_03_ZH.html">3 &mdash; 卷积神经网络</a>
 <a href="module_04_ZH.html">4 &mdash; 循环神经网络与序列</a>
 <a href="module_05_ZH.html">5 &mdash; 其他值得了解的网络</a>
+<a href="module_06_ZH.html">6 &mdash; Transformer</a>
+<a href="module_07_ZH.html">7 &mdash; 大语言模型</a>
+<a href="module_08_ZH.html">8 &mdash; 大语言模型预训练</a>
     </div>
   </div>
   <a href="module_01_EN.html" class="lang-switch" hreflang="en">English</a>
@@ -150,7 +153,7 @@ u</span>，量化参数的不确定性，并说明在哪个范围之外模型的
 </div>
 <h3>输入是数</h3>
 <p>模型看到的是一个<strong>特征输入向量</strong>（feature vector）<span class="math-i">\mathbf{x} \in \R^d</span>。测得的量本身就是数；类别则不是，例如材料牌号、供应商或缺陷类型。把 <span class="math-i">K</span> 类的类别编码成<strong>独热编码</strong>（one-hot）：<span class="math-i">K</span> 个二值列，观测到的类别所在列为 1，其余为 0。绝不要把它编码成整数 <span class="math-i">1, \dots, K</span>：线性模型会把类别当作一个量，这就强加了顺序，并且相邻编码之间间距相等。例外是真正的有序量表，例如从轻微到严重的严重程度，其顺序是真实的；即便如此，整数编码也假设各级之间等距，这是需要检验的建模选择，而不是事实。</p>
-<p>独热编码也能解释学到的表示。独热行向量 <span class="math-i">\mathbf{e}_k^\top</span> 乘以一张可训练的 <span class="math-i">K \times m</span> 表，取出的是表的第 <span class="math-i">k</span> 行，所以<strong>嵌入</strong>（embedding）就是随模型其余部分一起学习的这样一张表，它对任何类别特征（零件编号、供应商、传感器 ID）的作用方式，与对语言模型的 token 相同。<span class="xref-pending">模块 06 第 4 节</span>展示了 token 嵌入如何进入 Transformer 的残差流，<span class="xref-pending">模块 06 第 11 节</span>则统计了它的 <span class="math-i">V \times d</span> 表的大小。</p>
+<p>独热编码也能解释学到的表示。独热行向量 <span class="math-i">\mathbf{e}_k^\top</span> 乘以一张可训练的 <span class="math-i">K \times m</span> 表，取出的是表的第 <span class="math-i">k</span> 行，所以<strong>嵌入</strong>（embedding）就是随模型其余部分一起学习的这样一张表，它对任何类别特征（零件编号、供应商、传感器 ID）的作用方式，与对语言模型的 token 相同。<a href="module_06_ZH.html#s4">模块 06 第 4 节</a>展示了 token 嵌入如何进入 Transformer 的残差流，<a href="module_06_ZH.html#s11">模块 06 第 11 节</a>则统计了它的 <span class="math-i">V \times d</span> 表的大小。</p>
 <h3>贯穿全模块的示例</h3>
 <p>本模块反复出现四个示例，使每个新概念都落在已经熟悉的东西上：</p>
 <ul>
@@ -2312,7 +2315,7 @@ L 202.255469 416.96582
 <p>即逐示例梯度的离散程度。由期望的线性性，<span class="math-i">\E[\mathbf{g}_{\mathcal{B}}] = \nabla\mathcal{L}</span>：mini-batch 梯度是<strong>无偏的</strong>。独立性使 <span class="math-i">B</span> 项的协方差相加，而因子 <span class="math-i">1/B</span> 是以平方形式进入的：</p>
 <div class="math-d">\operatorname{Cov}(\mathbf{g}_{\mathcal{B}}) = \frac{1}{B^2}\cdot B\,\boldsymbol{\Sigma}_g = \frac{\boldsymbol{\Sigma}_g}{B}.</div>
 <p>batch 大四倍，噪声的标准差减半，代价却是四倍。无放回抽样（如对数据洗牌后依次遍历）会把协方差乘以 <span class="math-i">(N - B)/(N - 1)</span>：略小一些，并且在 <span class="math-i">B = N</span> 时恰为零，此时 batch 就是整个数据集。</p>
-<p>遍历一遍数据，即一个<strong>轮次</strong>（epoch），是 <span class="math-i">\lceil N/B\rceil</span> 次更新而不是一次，对线性模型而言每次更新的代价约为 <span class="math-i">Bd</span> 而不是 <span class="math-i">Nd</span> 次运算。远离最小值点时，各示例的梯度大体一致，所以一步 mini-batch 更新几乎取得与完整一步相同的进展，而代价只是其一小部分；这就是 SGD 在大数据上取胜的原因。实践中：每个轮次都重新洗牌，因为按顺序存放的数据（按类别、按时间、按机器）否则会给出并非整体样本的 batch；固定随机种子以便复现运行；<span class="math-i">B</span> 取在 32 到几千之间。语言模型用数百万 token 的 batch 来训练，原因见<span class="xref-pending">模块 08 第 6 节</span>。</p>
+<p>遍历一遍数据，即一个<strong>轮次</strong>（epoch），是 <span class="math-i">\lceil N/B\rceil</span> 次更新而不是一次，对线性模型而言每次更新的代价约为 <span class="math-i">Bd</span> 而不是 <span class="math-i">Nd</span> 次运算。远离最小值点时，各示例的梯度大体一致，所以一步 mini-batch 更新几乎取得与完整一步相同的进展，而代价只是其一小部分；这就是 SGD 在大数据上取胜的原因。实践中：每个轮次都重新洗牌，因为按顺序存放的数据（按类别、按时间、按机器）否则会给出并非整体样本的 batch；固定随机种子以便复现运行；<span class="math-i">B</span> 取在 32 到几千之间。语言模型用数百万 token 的 batch 来训练，原因见<a href="module_08_ZH.html#s6">模块 08 第 6 节</a>。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">数一数更新次数</div>
 <p>在 N = 50,000 个示例、<span class="math-i">B = 64</span> 的情况下，<span class="math-i">N/B = 781.25</span>，所以一个轮次是 <span class="math-i">\lceil 781.25\rceil = 782</span> 次更新，最后一次的 batch 只有 <span class="math-i">50{,}000 - 781\cdot64 = 16</span> 个示例。二十个轮次共 15,640 次更新。同样遍历二十遍数据，全 batch 梯度下降只做 20 次更新。</p>
 </div>
@@ -9979,7 +9982,7 @@ print(f&quot;{np.log(probs).sum():.1f}&quot;)        # the log-likelihood is an 
 <div class="math-d">\E_{y\sim p_\text{data}}\big[-\ln p_\theta(y)\big]
 = \underbrace{\E\big[-\ln p_\text{data}(y)\big]}_{H(p_\text{data})}
 + \underbrace{\E\left[\ln\frac{p_\text{data}(y)}{p_\theta(y)}\right]}_{\KL(p_\text{data}\,\|\,p_\theta)} .</div>
-<p>左边是<strong>交叉熵</strong> <span class="math-i">H(p_\text{data}, p_\theta)</span>。它分成两部分：数据的熵，任何 <span class="math-i">\theta</span> 的选择都无法改变它；以及 <strong>Kullback–Leibler 散度</strong>（KL 散度），它永不为负，仅当 <span class="math-i">p_\theta = p_\text{data}</span> 时为零。因此最大化似然会把模型的分布推向数据的分布。<span class="xref-pending">模块 07 第 1 节</span>用困惑度（perplexity）报告语言模型的质量，它正是这个交叉熵（对留出文本、按每个 token 计算）的 <span class="math-i">\exp</span>。</p>
+<p>左边是<strong>交叉熵</strong> <span class="math-i">H(p_\text{data}, p_\theta)</span>。它分成两部分：数据的熵，任何 <span class="math-i">\theta</span> 的选择都无法改变它；以及 <strong>Kullback–Leibler 散度</strong>（KL 散度），它永不为负，仅当 <span class="math-i">p_\theta = p_\text{data}</span> 时为零。因此最大化似然会把模型的分布推向数据的分布。<a href="module_07_ZH.html#s1">模块 07 第 1 节</a>用困惑度（perplexity）报告语言模型的质量，它正是这个交叉熵（对留出文本、按每个 token 计算）的 <span class="math-i">\exp</span>。</p>
 <p>对 <span class="math-i">\theta</span> 加上先验分布，极大似然就变成最大后验（MAP）估计，先验的对数则成为对参数的惩罚：<a href="#s9">第 9 节</a>用这种方式推导岭回归和 Lasso 回归。</p>
 <div class="check"><div class="check-label">检验理解</div>
 <p>你的代码算出了 2.0 这个密度值。有问题吗？</p>
@@ -15200,7 +15203,7 @@ z
 <p>梯度之和为零，这是平移不变性所要求的：三个 logit 一起平移不会改变损失，所以梯度在 <span class="math-i">(1, 1, 1)</span> 方向上没有分量。</p>
 </div>
 <h3>整个系列共用的一个输出层</h3>
-<p>logit、softmax 和交叉熵损失构成了本系列中每个分类器的输出层。语言模型就是这样一个分类器，它的类别是词表中的条目（几万到几十万个），在文本的每个位置上预测下一个 token（<span class="xref-pending">模块 07</span>）。梯度 <span class="math-i">\hat p - y</span>、它在可分数据上造成的过度自信，以及稳定计算对数的需要，都原样适用。</p>
+<p>logit、softmax 和交叉熵损失构成了本系列中每个分类器的输出层。语言模型就是这样一个分类器，它的类别是词表中的条目（几万到几十万个），在文本的每个位置上预测下一个 token（<a href="module_07_ZH.html">模块 07</a>）。梯度 <span class="math-i">\hat p - y</span>、它在可分数据上造成的过度自信，以及稳定计算对数的需要，都原样适用。</p>
 <div class="check"><div class="check-label">检验理解</div>
 <p>证明两类的 softmax 就是 <span class="math-i">z_1 - z_0</span> 的 sigmoid。</p>
 </div>
@@ -15354,7 +15357,7 @@ Brier 0.1750
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">校准了，却没有用</div>
 <p>在实验 2 的测试集上，对 143 个样本全部预测训练集中的阳性率 <span class="math-i">159/426 = 0.373</span>。它们全部落在同一个分箱里，该分箱的观测频率为 <span class="math-i">53/143 = 0.371</span>，所以 ECE <span class="math-i">= \lvert 0.371 - 0.373\rvert = 0.003</span>，低于拟合模型的 0.023。然而每个得分都相同，所以 AUC 为 0.500，而布里尔分数为 <span class="math-i">(53\times0.627^2 + 90\times0.373^2)/143 = 0.233</span>，拟合模型则为 0.023。</p>
 </div>
-<p>长时间用交叉熵训练的模型往往过度自信，因为损失会持续奖励那些已被正确分类的训练样本上更大的 logit。补救办法是在留出数据上重新校准。<strong>普拉特缩放</strong>（Platt scaling）拟合一个从模型得分到标签的单特征逻辑回归；<strong>保序回归</strong>（isotonic regression）拟合一个非递减的阶梯函数，它更灵活，也需要更多数据。对网络而言，标准方法是温度缩放（temperature scaling），即把所有 logit 除以一个拟合出的常数（<a href="module_02_ZH.html#s11">模块 02 第 11 节</a>，<span class="xref-pending">模块 07 第 10 节</span>）。误校准的方向应当测量，而不是假设：实验 2 的 L2 正则化模型，其预测类别的平均置信度为 0.956，准确率为 0.986，错的方向略有不同，是偏保守。</p>
+<p>长时间用交叉熵训练的模型往往过度自信，因为损失会持续奖励那些已被正确分类的训练样本上更大的 logit。补救办法是在留出数据上重新校准。<strong>普拉特缩放</strong>（Platt scaling）拟合一个从模型得分到标签的单特征逻辑回归；<strong>保序回归</strong>（isotonic regression）拟合一个非递减的阶梯函数，它更灵活，也需要更多数据。对网络而言，标准方法是温度缩放（temperature scaling），即把所有 logit 除以一个拟合出的常数（<a href="module_02_ZH.html#s11">模块 02 第 11 节</a>，<a href="module_07_ZH.html#s10">模块 07 第 10 节</a>）。误校准的方向应当测量，而不是假设：实验 2 的 L2 正则化模型，其预测类别的平均置信度为 0.956，准确率为 0.986，错的方向略有不同，是偏保守。</p>
 <figure class="fig" id="fig-01-12"><div class="fig-svg"><svg xmlns:xlink="http://www.w3.org/1999/xlink" width="374.4pt" height="345.6pt" viewBox="0 0 374.4 345.6" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <defs>
   <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
@@ -23095,7 +23098,7 @@ L 515.39976 221.74978
 <div class="section-header" data-sec="s10"><span class="section-num">10</span><h2>诚实评估：泄漏、选择与区间</h2></div>
 <div class="sec-meta">≈ 21 分钟阅读</div>
 <p>只有当测试样本没有参与模型的构建、与服务中遇到的样本相似，并且读数时考虑了抽样噪声，测试得分才是<a href="#s1">第 1 节</a>中期望风险的公平估计。
-本节是本系列中关于标准误、自助法与 McNemar 检验的参考；模块 <span class="xref-pending">07</span> 和 <span class="xref-pending">09</span> 把它们用于语言模型的基准测试。</p>
+本节是本系列中关于标准误、自助法与 McNemar 检验的参考；模块 <a href="module_07_ZH.html">07</a> 和 <span class="xref-pending">09</span> 把它们用于语言模型的基准测试。</p>
 <h3>测试数字有多大噪声</h3>
 <p>用一个真实准确率为 <span class="math-i">p</span> 的模型给 <span class="math-i">n</span> 个独立样本评分。答对的个数服从二项分布，
 所以观测准确率 <span class="math-i">\hat p</span> 的方差为 <span class="math-i">p(1 - p)/n</span>，<strong>标准误</strong>（standard error）为</p>

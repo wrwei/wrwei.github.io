@@ -723,7 +723,7 @@
       ctx.fillText(t('component 1', '分量 1'), pad.l + pw / 2, H - 4)
       ctx.save(); ctx.translate(12, pad.t + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText(t('component 2', '分量 2'), 0, 0); ctx.restore()
       ctx.textAlign = 'left'; ctx.fillStyle = C.navy
-      ctx.fillText(t('Row ' + (i + 1) + ': the output is a weighted mix of the visible values', '第 ' + (i + 1) + ' 行：输出是可见值向量的加权混合'), pad.l, 16)
+      ctx.fillText(t('Row ' + (i + 1) + ': weighted output', '第 ' + (i + 1) + ' 行：加权输出'), pad.l, 16)
       // clip the data layer to the plot area
       ctx.save()
       ctx.beginPath(); ctx.rect(pad.l, pad.t, pw, ph); ctx.clip()
@@ -1325,6 +1325,176 @@ AIW.register('bpe-merge-stepper', function (el, opts) {
 
   rebuild()
   render()
+})
+
+;
+/* ---- compute-budget-planner.js ---- */
+/* Module 08: model-compute budget and the published parametric scaling fit. */
+AIW.register('compute-budget-planner', function (el) {
+  'use strict'
+  var h = AIW.h, tr = AIW.t, C = AIW.C
+  var st = { N: 9550729216, D: 2e12, gpu: '989', custom: 989, count: 80,
+    mfu: 0.4, rule: true, embedding: 622854144, L: 36, T: 8192, d: 4096, price: '' }
+  var controls = h('div', { class: 'w-controls' }), readout = h('div', {
+    class: 'w-readout', 'aria-live': 'polite' }), payback = h('p', { class: 'w-note' })
+  var chartWrap = h('div'), chart, result
+  function fmt(v) { return v.toPrecision(3).replace('e+', 'e') }
+  function law(N, D) { return 1.69 + 406.4 / Math.pow(N, 0.34)
+    + 410.7 / Math.pow(D, 0.28) }
+  function optimum(budget) {
+    var N = Math.pow(0.34 * 406.4 / (0.28 * 410.7), 1 / 0.62)
+      * Math.pow(budget / 6, 0.28 / 0.62)
+    return { N: N, D: budget / (6 * N) }
+  }
+  function change(key, value) { st[key] = value; update() }
+  function slider(key, label, min, max, step, log, format) {
+    var control = AIW.slider({ label: label, min: min, max: max, step: step,
+      log: log, value: st[key], fmt: format || fmt,
+      onInput: function (v) { change(key, v) } })
+    controls.appendChild(control); return control
+  }
+  function number(key, label, min, max) {
+    var input = h('input', { type: 'number', min: min, max: max, value: st[key],
+      style: { width: '14ch', maxWidth: '100%' },
+      oninput: function () {
+        change(key, Math.max(min, Math.min(max, Number(input.value) || min)))
+      } })
+    controls.appendChild(h('label', { class: 'w-ctl' }, label, input))
+    return input
+  }
+  var nSlider = slider('N', tr('Parameters N', '参数量 N'), 1e8, 1e12, null, true)
+  var dSlider = slider('D', tr('Training tokens D', '训练 token 数 D'), 1e9, 1e14, null, true)
+  controls.appendChild(AIW.select({ label: tr('Assumed dense bf16 peak', '假定稠密 bf16 峰值'),
+    options: [['312', 'A100 80 GB: 312 TFLOP/s'], ['989', 'H100 SXM: 989 TFLOP/s'],
+      ['h200', 'H200: 989 TFLOP/s'], ['custom', tr('Custom', '自定义')]],
+    value: st.gpu, onChange: function (v) { change('gpu', v) } }))
+  var custom = number('custom', tr('Custom peak (TFLOP/s)', '自定义峰值（TFLOP/s）'), 1, 100000)
+  number('count', tr('GPU count', 'GPU 数量'), 1, 100000)
+  slider('mfu', tr('Model FLOP utilisation', '模型 FLOP 利用率'), 0.1, 0.6, 0.01, false,
+    function (v) { return (100 * v).toFixed(0) + '%' })
+  controls.appendChild(AIW.checkbox(tr('Use Module 06 FLOP rule', '使用模块 06 的 FLOP 规则'),
+    st.rule, function (v) { change('rule', v) }))
+  number('embedding', tr('Input lookup parameters Vd', '输入查表参数 Vd'), 0, 5e11)
+  number('L', tr('Layers L', '层数 L'), 1, 512)
+  number('T', tr('Sequence length T', '序列长度 T'), 1, 1000000)
+  number('d', tr('Width d', '宽度 d'), 1, 100000)
+  var price = h('input', { type: 'number', min: 0, step: 0.01, placeholder: '2.50',
+    oninput: function () { st.price = price.value; update() } })
+  controls.appendChild(h('label', { class: 'w-ctl' },
+    tr('Assumed USD / GPU-hour (optional)', '假定 USD / GPU 小时（可选）'), price))
+  function setAllocation(target) {
+    if (target.N < 1e8 || target.N > 1e12 || target.D < 1e9 || target.D > 1e14) return
+    st.N = target.N; st.D = target.D
+    nSlider.set(st.N); dSlider.set(st.D); update()
+  }
+  var twentyButton = AIW.button(tr('Set 20 tokens / parameter at fixed 6ND',
+    '固定 6ND，设为每参数 20 个 token '), function () { setAllocation(result.twenty) })
+  var optimumButton = AIW.button(tr('Set fitted minimum at fixed 6ND',
+    '固定 6ND，设为拟合最优点'), function () { setAllocation(result.optimal) })
+  controls.appendChild(twentyButton); controls.appendChild(optimumButton)
+  el.appendChild(controls); el.appendChild(readout); el.appendChild(chartWrap)
+  el.appendChild(h('p', { class: 'w-note' }, tr(
+    'Curve: L = 1.69 + 406.4/N^0.34 + 410.7/D^0.28, with C₆ = 6ND fixed. '
+      + 'Shaded regions extrapolate outside N = 70M–16B or D = 5B–500B. '
+      + 'The cost readout uses the selected FLOP rule; the curve and payback use 6ND.',
+    '曲线：L = 1.69 + 406.4/N^0.34 + 410.7/D^0.28，固定 C₆ = 6ND。'
+      + '阴影区域表示超出 N = 7000 万–160 亿或 D = 50 亿–5000 亿的外推。'
+      + '成本读数采用所选 FLOP 规则；曲线和回本计算采用 6ND。')))
+  el.appendChild(payback)
+  function calculate() {
+    var budget6 = 6 * st.N * st.D, embedding = Math.min(st.embedding, st.N / 2)
+    var perToken = st.rule ? 6 * (st.N - embedding) + 6 * st.L * st.T * st.d : 6 * st.N
+    var compute = perToken * st.D
+    var peak = st.gpu === 'custom' ? st.custom : st.gpu === 'h200' ? 989 : Number(st.gpu)
+    var hours = compute / (peak * 1e12 * st.mfu) / 3600
+    var N20 = Math.sqrt(budget6 / 120)
+    return { compute: compute, budget6: budget6, hours: hours,
+      days: hours / st.count / 24, loss: law(st.N, st.D),
+      forwardWeight: 2 * (st.rule ? st.N - embedding : st.N),
+      twenty: { N: N20, D: 20 * N20 }, optimal: optimum(budget6) }
+  }
+  chart = AIW.canvas(chartWrap, { aspect: 0.8, maxHeight: 350 }, function (ctx, w, height) {
+    if (!result) return
+    var points = [], ymin = Infinity, ymax = 0
+    for (var i = 0; i <= 200; i++) {
+      var x = 7 + 6 * i / 200, N = Math.pow(10, x), D = result.budget6 / (6 * N)
+      if (D < 1e8) continue
+      var loss = law(N, D); ymin = Math.min(ymin, loss); ymax = Math.max(ymax, loss)
+      points.push({ x: x, y: loss, N: N, D: D })
+    }
+    var padding = Math.max(0.01, (ymax - ymin) * 0.08)
+    var axes = AIW.axes(ctx, { w: w, h: height, x0: 7, x1: 13,
+      y0: ymin - padding, y1: ymax + padding, xticks: 6,
+      xlabel: tr('Parameters N (log axis)', '参数量 N（对数轴）'),
+      ylabel: tr('Predicted nats /token', '预测损失（奈特 /token ）'),
+      xfmt: function (v) { return '1e' + v.toFixed(0) } })
+    ctx.save(); ctx.beginPath(); ctx.rect(axes.X(7), axes.Y(ymax + padding),
+      axes.X(13) - axes.X(7), axes.Y(ymin - padding) - axes.Y(ymax + padding)); ctx.clip()
+    points.forEach(function (point) {
+      if (point.N < 7e7 || point.N > 1.6e10 || point.D < 5e9 || point.D > 5e11) {
+        ctx.fillStyle = 'rgba(148,163,184,0.18)'
+        ctx.fillRect(axes.X(point.x), axes.Y(ymax + padding),
+          axes.X(point.x + 0.03) - axes.X(point.x), axes.Y(ymin - padding))
+      }
+    })
+    ctx.strokeStyle = C.blue; ctx.lineWidth = 2; ctx.beginPath()
+    points.forEach(function (point, i) {
+      if (i === 0) ctx.moveTo(axes.X(point.x), axes.Y(point.y))
+      else ctx.lineTo(axes.X(point.x), axes.Y(point.y))
+    }); ctx.stroke()
+    ;[{ N: st.N, D: st.D, colour: C.orange },
+      { N: result.twenty.N, D: result.twenty.D, colour: C.purple },
+      { N: result.optimal.N, D: result.optimal.D, colour: C.green }].forEach(function (point) {
+        ctx.fillStyle = point.colour; ctx.beginPath()
+        ctx.arc(axes.X(Math.log10(point.N)), axes.Y(law(point.N, point.D)), 4, 0, 2 * Math.PI)
+        ctx.fill()
+      })
+    ctx.restore()
+  })
+  function pointText(label, point) {
+    return label + ': N ' + fmt(point.N) + ', D ' + fmt(point.D)
+      + ', L ' + law(point.N, point.D).toFixed(4)
+  }
+  function update() {
+    result = calculate(); custom.disabled = st.gpu !== 'custom'
+    readout.textContent = 'C = ' + fmt(result.compute) + ' FLOP; '
+      + fmt(result.hours) + tr(' GPU-hours; ', ' GPU 小时；')
+      + result.days.toFixed(1) + tr(' days; D/N = ', ' 天；D/N = ')
+      + (st.D / st.N).toFixed(1) + '; L = ' + result.loss.toFixed(4)
+      + tr('; forward weight FLOP/token = ', '；每 token 前向权重 FLOP = ')
+      + fmt(result.forwardWeight) + (st.rule ? '' : tr(' (quick estimate)', '（快速估计）'))
+      + (st.price !== '' && Number(st.price) >= 0 ? tr('; assumed cost USD ', '；假定成本 USD ')
+        + (result.hours * Number(st.price)).toFixed(2) : '')
+    var low = 15, high = 28
+    for (var i = 0; i < 60; i++) {
+      var middle = (low + high) / 2, point = optimum(Math.pow(10, middle))
+      if (law(point.N, point.D) > result.loss) low = middle
+      else high = middle
+    }
+    var equalBudget = Math.pow(10, (low + high) / 2), equal = optimum(equalBudget)
+    payback.textContent = pointText(tr('Green: fitted minimum', '绿色：拟合最优点'), result.optimal)
+      + '\n' + pointText(tr('Purple: 20-token point', '紫色：20 token 点'), result.twenty)
+      + '\n' + pointText(tr('Equal-loss optimum', '等损失最优点'), equal)
+      + '; C′ = ' + fmt(equalBudget) + '. '
+      + (st.N < equal.N * (1 - 1e-8) ? tr('Served-token break-even S* = ', '服务 token 回本点 S* = ')
+        + fmt((result.budget6 - equalBudget) / (2 * (equal.N - st.N)))
+        : st.N > equal.N * (1 + 1e-8) ? tr(
+          'This model costs more to train and serve than the equal-loss optimum.',
+          '本模型训练和服务成本均高于等损失最优点。') : tr(
+          'Already at the equal-loss optimum.', '已在等损失最优点。'))
+      + '\n' + tr('These are fitted predictions and hardware/price assumptions, not measured '
+        + 'quality or elapsed time. Inference attention, extra overhead and time variation are omitted.',
+        '这些是拟合预测以及硬件和价格假设，并非实测质量或耗时。未计入推理注意力、额外开销和耗时波动。')
+      + (result.days > 60 ? '\n' + tr('Calendar estimate: ', '日历耗时估计：')
+        + (result.days / 30.44).toFixed(1) + tr(' months (30.44 days each).', ' 个月（每月 30.44 天）。') : '')
+    payback.style.whiteSpace = 'pre-line'
+    ;[[twentyButton, result.twenty], [optimumButton, result.optimal]].forEach(function (pair) {
+      pair[0].disabled = pair[1].N < 1e8 || pair[1].N > 1e12
+        || pair[1].D < 1e9 || pair[1].D > 1e14
+    })
+    chart.redraw()
+  }
+  update()
 })
 
 ;
@@ -3051,6 +3221,169 @@ AIW.register('gradient-flow-explorer', function (el) {
     if (st.lstm) legend.appendChild(leg(C.green, 'solid', S.legL))
     legend.appendChild(h('span', null, S.clampNote))
     plot.redraw(); hist.redraw()
+  }
+  update()
+})
+
+;
+/* ---- memory-planner.js ---- */
+/* Module 08: explicit component estimates, not an allocator peak prediction. */
+AIW.register('memory-planner', function (el) {
+  'use strict'
+  var h = AIW.h, tr = AIW.t, C = AIW.C
+  var st = { L: 36, d: 4096, heads: 32, kv: 8, ff: 15360, V: 152064,
+    tied: false, power: 13, batch: 1, ranks: 8, tp: 1, scheme: '16',
+    checkpoint: 'none', flash: true, memory: 80 }
+  var controls = h('div', { class: 'w-controls' }), readout = h('div', {
+    class: 'w-readout', 'aria-live': 'polite' }), note = h('p', { class: 'w-note' })
+  var chartWrap = h('div'), table = h('table', { class: 'w-table' }), chart, result
+  function change(key, value) { st[key] = value; update() }
+  function slider(key, label, min, max, step, format) {
+    controls.appendChild(AIW.slider({ label: label, min: min, max: max, step: step,
+      value: st[key], fmt: format, onInput: function (v) { change(key, v) } }))
+  }
+  function number(key, label, min, max) {
+    var input = h('input', { type: 'number', min: min, max: max, step: 1,
+      style: { width: '14ch', maxWidth: '100%' },
+      value: st[key], oninput: function () {
+        change(key, Math.max(min, Math.min(max, Math.round(Number(input.value) || min))))
+      } })
+    controls.appendChild(h('label', { class: 'w-ctl' }, label, input))
+  }
+  function select(key, label, options) {
+    controls.appendChild(AIW.select({ label: label, options: options, value: st[key],
+      onChange: function (v) { change(key, v) } }))
+  }
+  slider('L', tr('Layers L', '层数 L'), 2, 128, 1, String)
+  slider('d', tr('Width d', '宽度 d'), 256, 16384, 128, String)
+  number('heads', tr('Query heads', '查询头数'), 1, 256)
+  number('kv', tr('KV heads', 'KV 头数'), 1, 256)
+  number('ff', tr('FFN width', '前馈网络宽度'), 128, 262144)
+  number('V', tr('Vocabulary V', '词表大小 V'), 1, 1000000)
+  controls.appendChild(AIW.checkbox(tr('Tied embeddings', '绑定嵌入'), st.tied,
+    function (v) { change('tied', v) }))
+  slider('power', tr('Sequence length T', '序列长度 T'), 9, 17, 1,
+    function (v) { return String(Math.pow(2, v)) })
+  slider('batch', tr('Micro-batch per GPU', '每 GPU 微批量'), 1, 32, 1, String)
+  number('ranks', tr('Sharding degree', '分片度'), 1, 1024)
+  select('tp', tr('Tensor parallelism (sequence parallel)', '张量并行（含序列并行）'),
+    [1, 2, 4, 8].map(function (v) { return [String(v), String(v)] }))
+  select('scheme', tr('State precision', '模型状态精度'), [
+    ['16', tr('bf16 + fp32 master + Adam: 16 B', 'bf16 + fp32 主权重 + Adam：16 B')],
+    ['18', tr('fp32 gradients: 18 B', 'fp32 梯度：18 B')],
+    ['10', tr('8-bit Adam states: 10 B', '8 位 Adam 状态：10 B')]])
+  select('checkpoint', tr('Activation checkpointing', '激活检查点'), [
+    ['none', tr('None', '无')], ['selective', tr('Selective', '选择性')],
+    ['full', tr('Full', '完整')]])
+  controls.appendChild(AIW.checkbox(tr('FlashAttention', 'FlashAttention'), st.flash,
+    function (v) { change('flash', v) }))
+  select('memory', tr('GPU allocation (decimal GB)', 'GPU 容量（十进制 GB）'),
+    [24, 40, 80, 141, 192].map(function (v) { return [String(v), v + ' GB'] }))
+  el.appendChild(controls); el.appendChild(readout); el.appendChild(chartWrap)
+  el.appendChild(h('p', { class: 'w-note' }, tr(
+    'Blue: weights; orange: gradients; green: optimiser; purple: activations; sky: fp32 logits. '
+      + 'Hatching marks the subtotal above capacity. Long bars are capped at 3× capacity.',
+    '蓝色：权重；橙色：梯度；绿色：优化器；紫色：激活；浅蓝色：fp32 logits。'
+      + '斜线表示超过容量的部分；过长的柱最多显示到容量的 3 倍。')))
+  el.appendChild(table); el.appendChild(note)
+  function calculate() {
+    var T = Math.pow(2, st.power), dh = Math.round(st.d / st.heads)
+    var kvWidth = st.kv * dh, queryWidth = st.heads * dh
+    var N = st.L * (2 * st.d * queryWidth + 2 * st.d * kvWidth
+      + 3 * st.d * st.ff + 2 * st.d) + st.V * st.d * (st.tied ? 1 : 2) + st.d
+    var P = N / Number(st.tp), g = st.scheme === '18' ? 4 : 2
+    var optimiser = st.scheme === '10' ? 6 : 12
+    var A = (12 * st.d + 4 * kvWidth + 6 * st.ff) / Number(st.tp)
+    var activation = st.checkpoint === 'full'
+      ? 2 * st.d * st.batch * T * st.L / Number(st.tp) + A * st.batch * T
+      : A * st.batch * T * st.L
+    if (!st.flash && st.checkpoint === 'none') {
+      activation += 2 * st.heads * T * T * st.batch * st.L / Number(st.tp)
+    }
+    var logits = 4 * st.batch * T * st.V / Number(st.tp)
+    var states = [[2 * P, g * P, optimiser * P],
+      [2 * P, g * P, optimiser * P / st.ranks],
+      [2 * P, g * P / st.ranks, optimiser * P / st.ranks],
+      [2 * P / st.ranks, g * P / st.ranks, optimiser * P / st.ranks]]
+    var bars = states.map(function (parts) {
+      return parts.concat([activation, logits]).map(function (bytes) { return bytes / 1e9 })
+    })
+    var extra = st.checkpoint === 'full' ? 1 / 3 : st.checkpoint === 'selective'
+      ? 2 * st.L * T * st.d / (6 * N + 6 * st.L * T * st.d) : 0
+    return { N: N, dh: dh, A: A, bars: bars, extra: extra,
+      communication: st.ranks === 1 ? [0, 0, 0, 0]
+        : [4 * P / 1e9, 4 * P / 1e9, 4 * P / 1e9, 6 * P / 1e9] }
+  }
+  function gb(value) { return value >= 1000 ? (value / 1000).toFixed(2) + ' TB'
+    : value.toFixed(1) + ' GB' }
+  chart = AIW.canvas(chartWrap, { aspect: 1.05, maxHeight: 360 }, function (ctx, w, height) {
+    if (!result) return
+    var capacity = Number(st.memory), max = 3 * capacity
+    var axes = AIW.axes(ctx, { w: w, h: height, x0: 0, x1: 4, y0: 0, y1: max,
+      ylabel: tr('GB per GPU', '每 GPU 的 GB'),
+      xticks: 4, xfmt: function () { return '' },
+      yfmt: function (v) { return String(Math.round(v)) },
+      pad: { l: 48, r: 8, t: 28, b: 36 } })
+    var colours = [C.blue, C.orange, C.green, C.purple, C.sky]
+    result.bars.forEach(function (parts, i) {
+      var total = parts.reduce(function (sum, x) { return sum + x }, 0)
+      var x = axes.X(i + 0.18), bw = axes.X(i + 0.82) - x, base = 0
+      parts.forEach(function (value, j) {
+        var top = Math.min(max, base + value), bottom = Math.min(max, base)
+        ctx.fillStyle = colours[j]
+        ctx.fillRect(x, axes.Y(top), bw, axes.Y(bottom) - axes.Y(top)); base += value
+      })
+      if (total > capacity) {
+        ctx.save(); ctx.beginPath(); ctx.rect(x, axes.Y(Math.min(max, total)), bw,
+          axes.Y(capacity) - axes.Y(Math.min(max, total))); ctx.clip()
+        ctx.strokeStyle = C.navy; ctx.lineWidth = 1
+        for (var y = 0; y < height + bw; y += 8) {
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + bw, y - bw); ctx.stroke()
+        }
+        ctx.restore()
+      }
+      ctx.fillStyle = C.navy; ctx.font = '11px system-ui'; ctx.textAlign = 'center'
+      ctx.fillText(gb(total), x + bw / 2, Math.max(16, axes.Y(Math.min(total, max)) - 7))
+      ctx.fillText(i === 0 ? 'DP' : 'ZeRO-' + i, x + bw / 2, height - 12)
+    })
+    ctx.strokeStyle = C.red; ctx.lineWidth = 2; ctx.setLineDash([5, 3])
+    ctx.beginPath(); ctx.moveTo(axes.X(0), axes.Y(capacity))
+    ctx.lineTo(axes.X(4), axes.Y(capacity)); ctx.stroke(); ctx.setLineDash([])
+  })
+  function update() {
+    result = calculate()
+    readout.textContent = 'N = ' + result.N.toLocaleString('en-GB')
+      + '; dₕ = ' + result.dh + '; d_ff/d = ' + (st.ff / st.d).toFixed(2)
+      + tr('; activation bytes/token/layer = ', '；每 token 每层激活字节 = ')
+      + result.A.toFixed(0) + tr('; state B/parameter = ', '；每参数状态字节 = ')
+      + st.scheme + tr('; recomputation estimate +', '；重计算估计 +')
+      + (100 * result.extra).toFixed(1) + '%'
+    table.textContent = ''
+    table.appendChild(h('tr', null, h('th', null, tr('Strategy', '策略')),
+      h('th', null, tr('Subtotal', '小计')), h('th', null, tr('Capacity', '容量'))))
+    result.bars.forEach(function (parts, i) {
+      var total = parts.reduce(function (sum, x) { return sum + x }, 0)
+      table.appendChild(h('tr', null, h('td', null, i === 0 ? 'DP' : 'ZeRO-' + i),
+        h('td', null, gb(total)), h('td', null, total <= Number(st.memory)
+          ? tr('Within subtotal', '小计在容量内') : tr('Does not fit', '无法容纳'))))
+      var labels = [tr('Weights ', '权重 '), tr('gradients ', '梯度 '),
+        tr('optimiser ', '优化器 '), tr('activations ', '激活 '), 'logits ']
+      table.appendChild(h('tr', null, h('td', { colspan: 3 },
+        parts.map(function (value, j) { return labels[j] + gb(value) }).join('; '))))
+      table.appendChild(h('tr', null, h('td', { colspan: 3 },
+        tr('Approx. bf16 communication: ', '近似 bf16 通信量：')
+        + gb(result.communication[i]) + (i === 3 ? tr(' / micro-batch', ' / 微批量')
+          : tr(' / optimiser step', ' / 优化器步')))))
+    })
+    var warning = st.d % st.heads || st.heads % st.kv || st.kv > st.heads
+    note.textContent = (warning ? tr(
+      'Warning: heads do not divide the requested shape; dₕ is rounded for this illustration. ',
+      '警告：头数不能整除所选形状；本示例对 dₕ 取整。') : '') + tr(
+      'These component estimates omit peak gathered weights, communication buffers, allocator '
+        + 'overhead and uneven tensor partitions. Measure the peak before claiming a run fits.',
+      '这些分项估计未包含权重聚集峰值、通信缓冲区、分配器开销和不均匀张量分片。'
+        + '判断能否运行前需要实测峰值。')
+    chart.redraw()
   }
   update()
 })
@@ -6136,6 +6469,218 @@ AIW.register('rope-explorer', function (el, opts) {
   if (window.ResizeObserver) { var ro = new ResizeObserver(onResize); ro.observe(dialBox); ro.observe(barBox) }
   else window.addEventListener('resize', onResize)
   update()
+})
+
+;
+/* ---- sampling-explorer.js ---- */
+/* Module 07: temperature and sequential support filters over twelve saved logits. */
+AIW.register('sampling-explorer', function (el) {
+  'use strict'
+  var h = AIW.h, tr = AIW.t, C = AIW.C
+  var presets = [
+    { context: 'After the test, the engineer reported that the valve was',
+      tokens: ['not', 'leaking', 'working', 'in', 'operating', 'still',
+        'failing', '"', 'functioning', 'defective', 'too', 'open'],
+      logits: [25.702, 25.316, 25.124, 24.617, 24.426, 24.379,
+        24.278, 24.235, 24.152, 24.045, 23.971, 23.905] },
+    { context: 'The safety case argues that the system is acceptably',
+      tokens: ['safe', 'secure', 'robust', 'reliable', 'good', 'stable',
+        'well', 'effective', 'clean', 'designed', 'simple', 'low'],
+      logits: [27.664, 24.510, 24.286, 24.007, 23.536, 23.348,
+        22.975, 22.792, 22.789, 22.778, 22.728, 22.695] }
+  ]
+  var st = { preset: 0, tau: 1, greedy: false, k: 0, p: 1, minp: 0, seed: 1 }
+  var random, samples = [], current, chart, curve
+  function reseed() {
+    var a = st.seed >>> 0
+    random = function () {
+      a = (a + 0x6D2B79F5) | 0
+      var x = Math.imul(a ^ a >>> 15, a | 1)
+      x ^= x + Math.imul(x ^ x >>> 7, x | 61)
+      return ((x ^ x >>> 14) >>> 0) / 4294967296
+    }
+  }
+  function entropy(p) {
+    return -p.reduce(function (sum, x) { return sum + (x ? x * Math.log2(x) : 0) }, 0)
+  }
+  function probabilities(tau) {
+    return AIW.softmax(presets[st.preset].logits.map(function (z) { return z / tau }))
+  }
+  function distribution() {
+    var q = probabilities(st.tau), kept = q.map(function () { return true })
+    var removed = q.map(function () { return '' })
+    if (st.greedy) q = q.map(function (_, i) { return i === 0 ? 1 : 0 })
+    function drop(i, cause) { kept[i] = false; removed[i] = cause }
+    function renormalise() {
+      var mass = q.reduce(function (sum, x, i) { return sum + (kept[i] ? x : 0) }, 0)
+      return q.map(function (x, i) { return kept[i] ? x / mass : 0 })
+    }
+    if (st.greedy) {
+      for (var i = 1; i < q.length; i++) drop(i, tr('greedy', '贪心'))
+    }
+    if (st.k > 0) {
+      var boundary = q.slice().sort(function (a, b) { return b - a })[st.k - 1]
+      q.forEach(function (x, i) {
+        if (kept[i] && x < boundary) drop(i, 'top-k')
+      })
+    }
+    if (st.p < 1) {
+      var r = renormalise(), total = 0
+      var order = r.map(function (_, i) { return i }).filter(function (i) {
+        return kept[i]
+      }).sort(function (a, b) { return r[b] - r[a] || a - b })
+      order.forEach(function (i, j) {
+        if (j > 0 && total >= st.p) drop(i, 'top-p')
+        total += r[i]
+      })
+    }
+    if (st.minp > 0) {
+      var filtered = renormalise(), limit = st.minp * Math.max.apply(null, filtered)
+      filtered.forEach(function (x, i) {
+        if (kept[i] && x < limit) drop(i, 'min-p')
+      })
+    }
+    if (!kept.some(Boolean)) kept[0] = true
+    return { q: q, final: renormalise(), removed: removed,
+      count: kept.filter(Boolean).length,
+      mass: q.reduce(function (sum, x, i) { return sum + (kept[i] ? x : 0) }, 0) }
+  }
+  var controls = h('div', { class: 'w-controls' })
+  function change(key, value) { st[key] = value; samples = []; update() }
+  var preset = AIW.select({ label: tr('Saved distribution', '保存的分布'),
+    options: [['0', tr('A: broad', 'A：较平坦')], ['1', tr('B: peaked', 'B：较集中')]],
+    value: 0, onChange: function (v) { change('preset', Number(v)) } })
+  var tau = AIW.slider({ label: tr('Temperature τ', '温度 τ'), min: 0.05, max: 5,
+    log: true, value: 1, fmt: function (v) { return v.toFixed(2) },
+    onInput: function (v) { change('tau', v) } })
+  var greedy = AIW.checkbox(tr('Greedy (τ → 0)', '贪心（τ → 0）'), false,
+    function (v) { change('greedy', v) })
+  var k = AIW.slider({ label: tr('Top-k (0 = off)', 'Top-k（0 = 关闭）'),
+    min: 0, max: 12, step: 1, value: 0, fmt: String,
+    onInput: function (v) { change('k', v) } })
+  var p = AIW.slider({ label: tr('Top-p (1 = off)', 'Top-p（1 = 关闭）'),
+    min: 0.05, max: 1, step: 0.01, value: 1,
+    onInput: function (v) { change('p', v) } })
+  var minp = AIW.slider({ label: tr('Min-p (0 = off)', 'Min-p（0 = 关闭）'),
+    min: 0, max: 0.5, step: 0.01, value: 0,
+    onInput: function (v) { change('minp', v) } })
+  var seed = h('input', { type: 'number', value: 1, step: 1,
+    oninput: function () {
+      st.seed = Math.trunc(Number(seed.value) || 0); reseed(); samples = []; update()
+    } })
+  var sample = AIW.button(tr('Sample 20', '采样 20 次'), function () {
+    samples = []
+    for (var i = 0; i < 20; i++) {
+      var u = random(), sum = 0, index = current.final.length - 1
+      for (var j = 0; j < current.final.length; j++) {
+        sum += current.final[j]
+        if (u < sum) { index = j; break }
+      }
+      samples.push(index)
+    }
+    update()
+  })
+  var reset = AIW.button(tr('Reset', '重置'), function () {
+    st = { preset: 0, tau: 1, greedy: false, k: 0, p: 1, minp: 0, seed: 1 }
+    preset.querySelector('select').value = '0'
+    tau.set(1); k.set(0); p.set(1); minp.set(0)
+    greedy.querySelector('input').checked = false
+    seed.value = 1; samples = []; reseed(); update()
+  }, true)
+  ;[preset, tau, greedy, k, p, minp,
+    h('label', { class: 'w-ctl' }, tr('Seed', '随机种子'), seed), sample, reset]
+    .forEach(function (control) { controls.appendChild(control) })
+  var context = h('p', { class: 'w-note' })
+  var readout = h('div', { class: 'w-readout', 'aria-live': 'polite' })
+  var chartWrap = h('div'), curveWrap = h('div')
+  var table = h('table', { class: 'w-table', style: { width: '100%' } })
+  var sampleList = h('ol', { style: { overflowWrap: 'anywhere' } })
+  el.appendChild(controls); el.appendChild(context); el.appendChild(readout)
+  el.appendChild(h('p', { class: 'w-note' }, tr(
+    'SmolLM2-135M saved logits; probabilities are renormalised over these twelve candidates. '
+      + 'Pale = temperature only; blue = final; hatched = removed. Token order is fixed.',
+    '使用 SmolLM2-135M 保存的 logits；概率仅在这十二个候选词之间重新归一化。'
+      + '浅色表示仅调温度，蓝色表示最终分布，斜线表示被移除。词的顺序固定。')))
+  el.appendChild(chartWrap); el.appendChild(curveWrap); el.appendChild(table)
+  el.appendChild(h('p', { class: 'w-note' }, tr(
+    'Try top-k = 3, then compare presets with top-p = 0.9 or min-p = 0.1. '
+      + 'Each sample click continues the seeded random stream; a setting change clears the sample.',
+    '先尝试 top-k = 3，再用 top-p = 0.9 或 min-p = 0.1 比较两个预设。'
+      + '每次点击采样都延续随机数流；改变设置会清空样本。')))
+  el.appendChild(sampleList)
+  function hatch(ctx, x, y, w, height) {
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, height); ctx.clip()
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1
+    for (var a = -height; a < w; a += 7) {
+      ctx.beginPath(); ctx.moveTo(x + a, y + height)
+      ctx.lineTo(x + a + height, y); ctx.stroke()
+    }
+    ctx.restore()
+  }
+  chart = AIW.canvas(chartWrap, { aspect: 1.8, maxHeight: 450 }, function (ctx, w) {
+    if (!current) return
+    var left = 86, right = 8, scale = (w - left - right) / 1
+    ctx.font = '12px system-ui'; ctx.textBaseline = 'middle'
+    for (var i = 0; i < 12; i++) {
+      var y = 17 + i * 34
+      ctx.fillStyle = C.navy; ctx.textAlign = 'right'
+      ctx.fillText(presets[st.preset].tokens[i], left - 8, y + 8)
+      ctx.fillStyle = C.skyLight
+      ctx.fillRect(left, y, scale * current.q[i], 18)
+      ctx.fillStyle = C.blue
+      ctx.fillRect(left, y + 5, scale * current.final[i], 8)
+      if (current.removed[i]) hatch(ctx, left, y, scale * current.q[i], 18)
+    }
+    ctx.fillStyle = C.slate; ctx.textAlign = 'left'
+    ctx.fillText(tr('Probability: 0 → 1', '概率：0 → 1'), left, 436)
+  })
+  curve = AIW.canvas(curveWrap, { aspect: 0.62, maxHeight: 220 }, function (ctx, w, height) {
+    var axes = AIW.axes(ctx, { w: w, h: height, x0: Math.log10(0.05),
+      x1: Math.log10(5), y0: 0, y1: Math.log2(12),
+      xlabel: tr('Temperature τ (log axis)', '温度 τ（对数轴）'),
+      ylabel: tr('Unfiltered entropy (bits)', '未截断熵（比特）'),
+      xfmt: function (x) { return Math.pow(10, x).toFixed(2) } })
+    ctx.strokeStyle = C.blue; ctx.lineWidth = 2; ctx.beginPath()
+    for (var i = 0; i <= 120; i++) {
+      var x = Math.log10(0.05) + 2 * i / 120
+      var y = entropy(probabilities(Math.pow(10, x)))
+      if (i === 0) ctx.moveTo(axes.X(x), axes.Y(y))
+      else ctx.lineTo(axes.X(x), axes.Y(y))
+    }
+    ctx.stroke(); ctx.fillStyle = C.orange; ctx.beginPath()
+    ctx.arc(axes.X(Math.log10(st.tau)), axes.Y(entropy(probabilities(st.tau))),
+      4, 0, Math.PI * 2); ctx.fill()
+  })
+  function update() {
+    current = distribution()
+    context.textContent = presets[st.preset].context + ' …'
+    readout.textContent = tr('Entropy: final ', '熵：最终 ')
+      + entropy(current.final).toFixed(3) + tr(' bits; temperature only ', ' 比特；仅温度 ')
+      + entropy(current.q).toFixed(3) + tr(' bits; maximum 3.585 bits. Kept ',
+        ' 比特；最大 3.585 比特。保留 ')
+      + current.count + '/12' + tr('; retained mass ', '；保留概率质量 ')
+      + current.mass.toFixed(3)
+    table.textContent = ''
+    table.appendChild(h('tr', null, h('th', null, tr('Token', '候选词')),
+      h('th', null, tr('Before → final', '截断前 → 最终')),
+      h('th', null, tr('Draws / expected', '次数 / 期望'))))
+    var tally = current.final.map(function () { return 0 })
+    samples.forEach(function (i) { tally[i]++ })
+    current.final.forEach(function (p, i) {
+      table.appendChild(h('tr', null, h('td', null, presets[st.preset].tokens[i]),
+        h('td', null, current.q[i].toFixed(3) + ' → ' + p.toFixed(3)
+          + (current.removed[i] ? ' (' + current.removed[i] + ')' : '')),
+        h('td', null, (samples.length ? String(tally[i]) : '—')
+          + ' / ' + (20 * p).toFixed(2))))
+    })
+    sampleList.textContent = ''
+    samples.forEach(function (i) {
+      sampleList.appendChild(h('li', null,
+        presets[st.preset].context + ' ' + presets[st.preset].tokens[i]))
+    })
+    chart.redraw(); curve.redraw()
+  }
+  reseed(); update()
 })
 
 ;
