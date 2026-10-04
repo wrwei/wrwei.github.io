@@ -4,6 +4,14 @@ A collection of tutorials on software engineering and computer science topics.
 
 ---
 
+## Computer Science Fundamentals
+
+A beginner-friendly series covering computation, programming, mathematics, algorithms, data structures, computer architecture, operating systems, networks, databases, and the limits of computation. English and Chinese editions, with worked examples, runnable Python labs, exercises with solutions, and self-check quizzes. Module 01 is available; the overview includes the full 14-module roadmap.
+
+[:octicons-arrow-right-24: Go to Computer Science Tutorials](cs/index.html)
+
+---
+
 ## Object Oriented Design
 
 A comprehensive tutorial series covering the fundamentals of Object Oriented Design, with examples in Python.

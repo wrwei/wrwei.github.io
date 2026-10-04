@@ -1,0 +1,101 @@
+<h2 id="s1">Computation starts with a question</h2>
+<p>You have four books on a shelf and want to know where <em>The Hobbit</em> is. You could look along the shelf, read each title and stop when you find it. That simple activity contains the ingredients of computation: information, a precise question, a sequence of steps and a result.</p>
+<p><strong>Computation</strong> transforms information according to rules. The information can describe numbers, text, pictures, movements or relationships. A computer performs those rules using a physical machine; a person can carry out the same small computation with pencil and paper. Computer science studies how to represent problems, construct and analyse procedures, organise systems and understand what computation can and cannot achieve.</p>
+<p>Programming is one way to express a procedure so a machine can execute it. Computer science also asks whether the procedure answers the right question, whether it always finishes, how much work it requires and how it fits into a larger system. These questions remain relevant when the programming language changes.</p>
+<div class="worked"><h3>A question made precise</h3><p>Our catalogue is an ordered list: <code>["Dune", "Foundation", "The Hobbit", "Dune"]</code>. The question is: <strong>what is the index of the first title exactly equal to the target?</strong> Count positions from zero. For <code>"The Hobbit"</code>, the answer is <code>2</code>. For <code>"Dune"</code>, it is <code>0</code>. For <code>"Solaris"</code>, we choose <code>-1</code> to mean “absent”.</p></div>
+<p>Notice the decisions already made: order matters, matching is exact, duplicates are possible, and missing books have an explicit result. “Find a book” did not specify any of those. Much of good computing begins with resolving such ambiguities.</p>
+{{CHECK1}}
+
+<h2 id="s2">Specify inputs, outputs and assumptions</h2>
+<p>A <strong>problem specification</strong> states the required relationship between inputs and outputs. An <strong>algorithm</strong> is a procedure for achieving it. A <strong>program</strong> implements a procedure in a language with defined execution rules. There can be many algorithms for one problem and many programs implementing one algorithm.</p>
+<table><thead><tr><th>Part</th><th>Our search contract</th></tr></thead><tbody>
+<tr><td>Input</td><td>A finite ordered list of titles and a target title.</td></tr>
+<tr><td>Assumptions</td><td>Titles are strings. The list does not change during this search. Equality is exact and case-sensitive.</td></tr>
+<tr><td>Output when present</td><td>The smallest index whose title equals the target.</td></tr>
+<tr><td>Output when absent</td><td><code>-1</code>, including when the list is empty.</td></tr>
+<tr><td>Side effects</td><td>The search does not modify the list.</td></tr>
+</tbody></table>
+<p>The assumptions are <strong>preconditions</strong>: what must hold before the procedure runs. The promised output and unchanged input are <strong>postconditions</strong>: what must hold after it returns. Together they make a contract. Later modules will use contracts for data structures, network protocols and database transactions.</p>
+<div class="callout pitfall"><div class="callout-label">A sentinel needs care</div><p>Here <code>-1</code> is a <strong>sentinel</strong>, a chosen value representing absence. Python also permits negative indexing: <code>books[-1]</code> reads the last book. Check whether a result is <code>-1</code> before using it as an index. A future implementation might return <code>None</code> instead; that would be a different contract.</p></div>
+<p>A library user might expect “dune” to match “Dune”. That would require a new matching rule, for example case-insensitive comparison. Do not quietly change the meaning while claiming the original contract still holds.</p>
+{{CHECK2}}
+
+<h2 id="s3">Describe an algorithm and trace its state</h2>
+<p><strong>Linear search</strong> checks items in their given order. In pseudocode, which expresses the steps without depending on a particular programming language:</p>
+<pre><code class="language-text">FOR each position i, from first to last:
+    IF title at i equals target:
+        RETURN i
+RETURN -1</code></pre>
+<p>The final return happens only after all items have been examined. The return inside the loop ends the entire search immediately. That immediate stop gives us the <em>first</em> matching index even when a title occurs twice.</p>
+<p>The procedure has <strong>state</strong>: the information needed to describe where it is in its execution. Here the changing state is the current position and, when we measure work, the number of comparisons. A <strong>trace</strong> records that state step by step.</p>
+<table><thead><tr><th>Position</th><th>Title</th><th>Equals The Hobbit?</th><th>Next action</th></tr></thead><tbody><tr><td>0</td><td>Dune</td><td>No</td><td>Advance</td></tr><tr><td>1</td><td>Foundation</td><td>No</td><td>Advance</td></tr><tr><td>2</td><td>The Hobbit</td><td>Yes</td><td>Return 2</td></tr></tbody></table>
+<p>The fourth title is never inspected in this run. Predict a trace before running code: doing so forces you to distinguish what you expect from what the program actually does.</p>
+{{WIDGET}}
+<p>Try three experiments. Search for Dune and explain why index 3 is never reached. Search for Solaris and count the comparisons. Select the empty catalogue and explain why returning -1 requires no title comparisons. The demonstration shows the final “list exhausted” step separately; that step is not a title comparison.</p>
+{{CHECK3}}
+
+<h2 id="s4">Why it is correct, why it finishes, what it costs</h2>
+<p>Examples show particular executions. An argument about the procedure covers every input satisfying the contract. We will develop formal proofs later; a short reasoning pattern is enough here.</p>
+<h3>Correctness: what stays true?</h3>
+<p>Just before we inspect position <code>i</code>, <strong>none of the earlier positions contains the target</strong>. This is a <strong>loop invariant</strong>, a statement preserved as the loop advances. It is initially true because there are no earlier positions at index 0. If the current title does not match, adding that title to the inspected prefix preserves the statement. If it matches, the invariant tells us that no earlier match exists, so returning <code>i</code> satisfies the contract. If the list is exhausted, every title was unequal, so returning <code>-1</code> satisfies the contract.</p>
+<h3>Termination: what makes progress?</h3>
+<p>For a list with <code>n</code> entries, each unsuccessful iteration advances one position. The number of uninspected entries decreases by one and cannot decrease forever below zero. A match ends the search even sooner. A finite list that remains unchanged therefore guarantees termination.</p>
+<h3>Cost: count a defined operation</h3>
+<p>Choose one title-equality check as the operation to count. For a nonempty list, a first-position match costs one comparison. A last-position match or an absent target costs <code>n</code> comparisons. An empty list costs zero comparisons. Doubling the number of entries doubles the worst-case comparison count.</p>
+<p>This count is a model, not elapsed time. Comparing two long strings may require examining many characters; a title comparison is not necessarily constant-time when title length varies. The computer, implementation and data also affect seconds on a clock. Module 05 develops these distinctions and introduces Big O. Here, specify the operation and count it accurately.</p>
+<div class="callout keyidea"><div class="callout-label">Three separate questions</div><p>Does it return the required answer? Does it finish? How much work does it do? A fast wrong answer is still wrong, and a correct answer promised by an infinite loop never arrives.</p></div>
+{{CHECK4}}
+
+<h2 id="s5">Abstraction and the layers of a computer</h2>
+<p>An <strong>abstraction</strong> exposes the properties needed for a task while hiding other details. Treating the catalogue as an ordered list lets us reason about positions without knowing how a particular machine stores strings. Treating search as a function lets another part of a program use the result without repeating the search steps.</p>
+<p>An abstraction must retain what matters. If we replace the ordered list with a collection that has no meaningful order, “first index” loses its meaning. If we keep only titles and discard authors, we cannot answer an author query without adding information.</p>
+<figure class="fig"><ol class="layer-stack"><li><strong>Problem and application</strong>A user asks where a title appears in the catalogue.</li><li><strong>Algorithm and program</strong>Linear search describes the steps; Python expresses them as executable code.</li><li><strong>Language implementation</strong>The Python runtime executes operations on lists and strings.</li><li><strong>Operating system</strong>Manages processes, memory and access to files or devices.</li><li><strong>Hardware</strong>CPU instructions operate on data stored in memory.</li></ol><figcaption>A simplified view of the layers involved in running our program. These are responsibilities, not a claim that every operation calls every layer. Modules 09–11 examine the boundaries in detail.</figcaption></figure>
+<p>When you run a script, the CPU does not directly understand a book title or the English phrase “find the first match”. A language implementation and machine instructions connect that meaning to physical operations. You can learn to reason about the search before learning all those mechanisms.</p>
+<p>The same separation helps with faults. A requirement might ask for the wrong matching rule; the algorithm might skip index 0; the program might place <code>return -1</code> inside the loop; the environment might fail to open a file. Identify the responsibility that failed before changing the code.</p>
+{{CHECK5}}
+
+<h2 id="wrong">Common misconceptions</h2>
+<table><thead><tr><th>Misconception</th><th>What to check instead</th></tr></thead><tbody><tr><td>“Computation is only arithmetic.”</td><td>Searching text and following a route also transform information according to rules.</td></tr><tr><td>“An algorithm is a Python file.”</td><td>Distinguish the procedure from its language-specific implementation.</td></tr><tr><td>“It worked once, so it is correct.”</td><td>Check edge cases and reason about all valid inputs.</td></tr><tr><td>“Index zero means not found.”</td><td>Zero is a valid position. Our missing sentinel is -1.</td></tr><tr><td>“Four titles means four comparisons.”</td><td>An early match stops the search; the actual cost depends on the target.</td></tr><tr><td>“All bugs belong in the algorithm.”</td><td>Separate requirements, procedure, implementation and environment.</td></tr></tbody></table>
+
+<h2 id="setup">Set up the labs</h2>
+<p>Use Python 3.11 or later, a text editor and a terminal. The labs use only Python's standard features; no packages or datasets are needed. Download each script below or copy its code into a file with the same name. In a terminal opened in that folder, run <code>python lab1_trace.py</code>. On Windows, <code>py -3 lab1_trace.py</code> is another option. On systems where Python is named <code>python3</code>, use that command.</p>
+<p>A quoted value such as <code>"Dune"</code> is a string; square brackets hold a list. <code>for</code> repeats the indented block. <code>enumerate</code> supplies an index and an item. <code>if</code> selects a block when a condition is true. <code>==</code> compares values; <code>=</code> assigns a value to a name. Indentation is part of Python's syntax. The labs introduce only the notation needed here; Module 03 teaches programming systematically.</p>
+
+<h2 id="lab1">Lab 1 — Read an execution trace</h2>
+<p><strong>Goal:</strong> connect pseudocode, state and actual execution. <strong>Time:</strong> 30 minutes. First predict which lines will print. Then run the script and compare your prediction with the captured output.</p>
+{{LAB1}}
+<p><code>found = -1</code> sets the absent result before searching. <code>break</code> exits the loop after a match; the final print still runs. The <code>f</code> before a quoted string lets the print include values inside braces.</p>
+<ol><li>Change the target to Dune, then Solaris. Write the predicted traces before running.</li><li>Set <code>books = []</code>. Explain why the loop body does not run.</li><li>Remove <code>break</code> and search for Dune. Why does the result become 3? Which part of the contract fails?</li><li>Restore the original code. Explain the difference between “exit this loop” and “return from this function”.</li></ol>
+<details class="solution"><summary>Lab discussion</summary><div class="details-body"><p>Dune inspects only index 0; Solaris inspects all four indices and keeps the result -1. An empty list produces only <code>result: -1</code>. Without the break, both occurrences of Dune update <code>found</code>, so the last occurrence wins. That violates the first-match contract. A break leaves the loop; a return leaves the function that contains it.</p></div></details>
+
+<h2 id="lab2">Lab 2 — Turn the contract into checks</h2>
+<p><strong>Goal:</strong> test empty, missing, boundary and duplicate cases. <strong>Time:</strong> 35 minutes. A <code>def</code> block defines a function. A <code>return</code> supplies its result and ends that call. <code>assert</code> stops the script if its condition is false. Run normally, without Python's <code>-O</code> option, which disables assertions.</p>
+{{LAB2}}
+<ol><li>Explain why the five cases exercise different parts of the contract.</li><li>Add <code>(["Dune"], "dune", -1)</code> to confirm exact, case-sensitive matching.</li><li>Move <code>return -1</code> inside the loop, immediately after the <code>if</code> block. Predict which checks will fail or which result will change, then run.</li><li>Repair the function. Add a check that the input list is unchanged after a call.</li></ol>
+<details class="solution"><summary>Lab discussion</summary><div class="details-body"><p>The cases cover an empty list, the first position, an absent target, the last position and duplicate titles. With return -1 inside the loop, an empty list falls through and returns <code>None</code>; the first assertion fails. A later-position match is also missed because the search returns after its first nonmatch. To check mutation, save <code>before = items.copy()</code>, call the function and check <code>assert items == before</code>. Passing these examples is useful evidence, but the invariant argument is what covers every valid input.</p></div></details>
+
+<h2 id="lab3">Lab 3 — Measure work, not clock speed</h2>
+<p><strong>Goal:</strong> distinguish input size from work in a particular run. <strong>Time:</strong> 35 minutes. This script returns a pair: result and comparison count. <code>range(size)</code> produces integers from zero up to, but excluding, <code>size</code>; <code>list</code> collects them. The same equality-search procedure applies to numbers. <code>+= 1</code> increases a counter by one.</p>
+{{LAB3}}
+<ol><li>Predict both counts for a list of length 32.</li><li>Add a last-position target using <code>size - 1</code>. For size 0, the target remains absent.</li><li>Search for the middle position of a 16-entry list: target 8. Why are there nine comparisons?</li><li>State the best and worst comparison counts for a nonempty list. Explain why elapsed time alone would not establish those formulas.</li></ol>
+<details class="solution"><summary>Lab discussion</summary><div class="details-body"><p>For size 32, absent costs 32 comparisons and first costs 1. Last costs <code>size</code> for a nonempty list and 0 for an empty one. Index 8 is the ninth position because counting begins at zero. Best is 1 and worst is n for n greater than zero. Timing depends on many machine and data details; these exact counts follow from the procedure.</p></div></details>
+
+<h2 id="exercises">Exercises with worked solutions</h2>
+<p>Try each question before opening its solution. ★ means a direct application; ★★ combines ideas; ★★★ asks you to change the contract or construct an argument.</p>
+{{EXERCISES}}
+
+<h2 id="quiz">Self-check quiz</h2>
+<p>Choose an answer to see feedback. The score counts answered questions; reset to try again. If scripts are disabled, open the answer key below.</p>
+{{QUIZ}}
+
+<h2 id="reading">Guided reading</h2>
+<p>Read the official <a href="https://docs.python.org/3/tutorial/introduction.html#lists">Python introduction to lists</a> and the <a href="https://docs.python.org/3/tutorial/controlflow.html#for-statements">sections on for statements, range, break and defining functions</a>. Focus on the constructs used in the labs; you can skip the other control-flow features for now.</p>
+<p>Write down why an empty list causes zero loop iterations, why range excludes its endpoint and what return does. Then explain how those language rules support our search algorithm. The distinction between a language rule and a problem requirement is the purpose of this reading.</p>
+
+<h2 id="summary">Review and the next step</h2>
+<p>You can now turn a vague search request into a contract, trace a procedure, explain its first-match property, show why it terminates and count its comparisons. You have also located that computation within the layers of a running computer.</p>
+<p>Close the page and reproduce the pseudocode from memory. Trace an empty list, a duplicate match and an absent title. Explain which assumption makes the termination argument work. If one explanation is uncertain, revisit that section before checking off your last session.</p>
+<p>The next planned module is <strong>Representing information</strong>: how bits encode integers and text, and why some numbers cannot be represented exactly. The course overview shows the remaining roadmap.</p>
+
+<h2 id="terms">Key terms</h2>
+<table><thead><tr><th>Term</th><th>Meaning in this module</th></tr></thead><tbody><tr><td>Computation</td><td>Transformation of information according to rules.</td></tr><tr><td>Specification</td><td>The required relationship between input and output.</td></tr><tr><td>Algorithm / program</td><td>A procedure / an implementation in a programming language.</td></tr><tr><td>State / trace</td><td>Current execution information / a sequence recording it.</td></tr><tr><td>Contract</td><td>Preconditions and postconditions for an operation.</td></tr><tr><td>Invariant</td><td>A property preserved at a chosen point through iterations.</td></tr><tr><td>Termination</td><td>The procedure eventually finishes.</td></tr><tr><td>Abstraction</td><td>A model exposing relevant properties while hiding details.</td></tr><tr><td>Sentinel</td><td>A chosen value representing a special outcome such as absence.</td></tr></tbody></table>
