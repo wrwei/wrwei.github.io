@@ -5,9 +5,8 @@ it stands. Read this first, then `PLAN.md`.
 
 **Current status (4 October 2026):** Modules 01–08 are complete in English and Simplified
 Chinese. Modules 06–08 have passed whole-module technical/editorial review, full translation,
-code/output/math parity, figure/widget review and publication-build checks. The publication
-package is built in `docs/tutorials/ai/`; merging to `main` deploys it through GitHub Pages.
-Modules 09–10 are not started. Continue with Module 09 after verifying this deployment (section 10).
+code/output/math parity, figure/widget review and publication-build checks. Published at <https://wrwei.github.io/tutorials/ai/> through PR #5; the deployment and all
+eight live-page checks passed. Modules 09–10 are not started. Continue with Module 09 (section 10).
 
 ## 1. What the series is
 
@@ -60,13 +59,15 @@ does not publish it.
 | 10 Inference and serving | To do: everything | To do |
 | Index page | `src/en/index.md` written | `src/zh/index.md` written |
 
-Modules 01–05 went live through PRs #3 and #4. The publication build now includes
+Modules 01–05 went live through PRs #3 and #4. PR #5 published Modules 06–08. The publication build includes
 Modules 01–08 (`--modules 1,2,3,4,5,6,7,8`), updates both index pages and activates links
 from earlier modules. Modules 09–10 remain unlinked. Local checks on all six new language
 pages and both indexes found no script/request/KaTeX errors, untypeset maths, broken images,
 missing file/anchor targets or duplicate IDs. See
 `notes/task-reports/m06-m08-translation-publication-2026-10-04.json` for the final review and
-QA record; the earlier progress and read-only review reports are historical snapshots.
+QA record, deployment link and live verification; the earlier progress and read-only review
+reports are historical snapshots. All six new pages and both indexes passed live browser
+checks, and the served HTML matched the publication files exactly after line-ending normalisation.
 
 Module 06's `attention-calculator.js` and `rope-explorer.js`, Module 07's
 `sampling-explorer.js`, and Module 08's two planner widgets now pass English/Chinese
@@ -266,16 +267,13 @@ Modules 03–05 were finished in Claude Code cloud sessions. What that environme
 
 ## 10. Next steps, in order
 
-1. Complete the Modules 06–08 deployment through the working-branch PR and `main` workflow,
-   then run `node tools/live-check.mjs module_06_EN module_06_ZH module_07_EN module_07_ZH module_08_EN module_08_ZH index index_ZH`.
-   On Windows set `CHROME_PATH` to the installed Chrome executable. All source and local
-   publication checks have passed; no further translation is pending for these modules.
-2. **Module 09, LLM post-training:** follow its outline and the production workflow in section 5.
-   Preserve the measured results and conservative assumptions in Modules 06–08. GPU
-   exercise extensions are optional project work, not executed lab evidence.
-3. **Module 10, inference and serving:** follow its outline after Module 09.
-4. Optional: review the older translation/math differences and other loose ends in section 7.
-5. Before calling the series done: decide on length (section 7, item 1), then update the series
+1. **Module 09, LLM post-training:** follow its outline and the production workflow in section 5.
+   Preserve the measured results and conservative assumptions in Modules 06–08. Their review,
+   translation, publication and live checks are complete. GPU exercise extensions are optional
+   project work, not executed lab evidence.
+2. **Module 10, inference and serving:** follow its outline after Module 09.
+3. Optional: review the older translation/math differences and other loose ends in section 7.
+4. Before calling the series done: decide on length (section 7, item 1), then update the series
    card and index pages. The build currently marks only Modules 09–10 as in preparation.
 
 ## 11. The next series
