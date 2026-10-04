@@ -128,16 +128,17 @@ aes = {}
 for d_z in (2, 8):
     torch.manual_seed(0)
     t0 = time.time()
-    aes[d_z] = train(AutoEncoder(d_z=d_z), Xtr_t, ae_loss)
+    ae = train(AutoEncoder(d_z=d_z), Xtr_t, ae_loss)
+    aes[d_z] = ae
     with torch.no_grad():
-        test_mse = mse_per_pixel(aes[d_z](Xte_t).numpy(), X_te)
+        test_mse = mse_per_pixel(ae(Xte_t).numpy(), X_te)
     print(f"AE d_z={d_z}: test MSE per pixel {test_mse:.4f} "
           f"(PCA {pca_mse[d_z]:.4f}), {time.time() - t0:.0f} s")
 ```
 
 ```output
-AE d_z=2: test MSE per pixel 0.0368 (PCA 0.0532), 8 s
-AE d_z=8: test MSE per pixel 0.0110 (PCA 0.0246), 6 s
+AE d_z=2: test MSE per pixel 0.0368 (PCA 0.0532), 12 s
+AE d_z=8: test MSE per pixel 0.0110 (PCA 0.0246), 10 s
 ```
 
 The autoencoder beats PCA at both sizes. Digits lie on a curved, low-dimensional surface in pixel
@@ -396,8 +397,9 @@ beta=1, squared error  KL  0.48  active 3  reconstruction   4.3
 
 The KL weight sets how much information the code may carry. At $\beta = 0.5$ the code carries
 6.5 nats and all eight dimensions are used. At $\beta = 1$, the true ELBO, it carries 3.6 nats
-and four dimensions hold nearly all of it; the other four sit near the prior, and two of them
-still vary a little with the input, which is why six units count as active. At $\beta = 4$ every dimension has a KL of zero: the encoder outputs the
+and five dimensions hold nearly all of it (3.55 of the 3.57 nats); the other three sit near the
+prior, and one of them still varies a little with the input, which is why six units count as
+active. At $\beta = 4$ every dimension has a KL of zero: the encoder outputs the
 prior for every image and the decoder produces one average digit, whatever $\mathbf{z}$ is. This is
 posterior collapse, and here it is not a training accident. The objective itself prefers it: the
 reconstruction gain from using the code is smaller than four times its KL cost
@@ -495,7 +497,7 @@ would be an artefact of the choice. Choose on validation data, report on test da
 
 ### Try this
 
-1. **KL warm-up.** Ramp $\beta$ linearly from 0 to 1 over the first 50 epochs in the $d_z = 8$ VAE and count active units: expect them to rise from 6 to 8, the two extra carrying little KL. Ramp to $\beta = 4$ instead and the model still collapses. Warm-up repairs collapse that comes from the path of optimisation, not collapse that is the optimum of the objective.
+1. **KL warm-up.** Ramp $\beta$ linearly from 0 to 1 over the first 50 epochs in the $d_z = 8$ VAE and count active units: expect them to rise from 6 to 8, the two extra carrying little KL (a run of this extension gave 8 active units and a KL of 3.48 nats, the two new dimensions at 0.01 and 0.04). Ramp to $\beta = 4$ instead and the model still collapses (KL 0.01, no active units). Warm-up repairs collapse that comes from the path of optimisation, not collapse that is the optimum of the objective.
 2. **Clusters in two dimensions.** Generate 3,000 points from three 2D Gaussian clusters with means $(-2, 0)$, $(2, 0)$, $(0, 2.5)$ and standard deviation 0.3. Train the VAE with $d_x = 2$, $d_z = 2$ and a Gaussian decoder, and plot the latent means coloured by cluster. Then set $d_z = 1$ and see whether the clusters stay apart.
 3. **Another anomaly.** Hold out the digit 8 instead of 9, then the digit 0, with the same threshold rule. Detection rises sharply for one of them. Which digits are hard anomalies for this model, and why does it depend on which digits remain in the normal class?
 
@@ -508,8 +510,8 @@ the deterministic DDIM sampler with fewer steps. The data are the two interleave
 `make_moons`, a 2D distribution whose quality can be measured with nearest-neighbour distances
 instead of judged by eye. You will see the structure of a sample appear late in the reverse
 process, see guidance trade diversity for fidelity, and see quality fall as steps are removed.
-The data are synthetic, there is no download, and the lab runs in about two to three minutes on a
-laptop CPU: the network has 37,858 parameters, and training is a minute or so of that. Set
+The data are synthetic, there is no download, and the lab runs in about two minutes on a laptop
+CPU (105 s in the run shown): the network has 37,858 parameters, and training is 95 s of that. Set
 `QUICK = True` in the first block to train for 8,000 steps instead of 20,000 and finish in about
 a minute. Printed numbers may differ from
 yours in the last digits.
@@ -738,7 +740,7 @@ step   8000  mean loss over the last 4000 steps 0.3324
 step  12000  mean loss over the last 4000 steps 0.3294
 step  16000  mean loss over the last 4000 steps 0.3277
 step  20000  mean loss over the last 4000 steps 0.3260
-training time 70 s
+training time 95 s
 ```
 
 The loss is 0.36 over the first fifth and settles near 0.33 afterwards. That is an average over
@@ -836,7 +838,7 @@ plt.show()
 ```output
 fresh data     precision-like 0.013   recall-like 0.021
 N(0, I) noise  precision-like 0.242   recall-like 0.051
-unconditional samples  precision-like 0.022   recall-like 0.022   (0.6 s)
+unconditional samples  precision-like 0.022   recall-like 0.022   (0.5 s)
 precision-like distance of x_t at t = (200, 150, 100, 50, 20, 5) : [0.246, 0.234, 0.212, 0.134, 0.057, 0.027]
 ```
 
@@ -852,7 +854,7 @@ between $t = 50$ and $t = 5$. That is why the last steps matter most for quality
 removing steps is costly in Step 7.
 
 With `QUICK = True` expect a precision-like distance of about 0.04 and a recall-like distance of
-about 0.025: visibly fuzzier moons, with stray points near the moons. The model has been trained for fewer steps, and every step it
+about 0.025 (a run with `QUICK = True` gave 0.039 and 0.025): visibly fuzzier moons, with stray points near the moons. The model has been trained for fewer steps, and every step it
 takes in the reverse chain compounds its error.
 
 ### Step 6: classifier-free guidance
@@ -975,17 +977,17 @@ plt.show()
 
 ```output
    K  precision-like  recall-like  seconds
- 200          0.022        0.023     0.56
-  50          0.022        0.024     0.15
-  20          0.025        0.029     0.07
-  10          0.035        0.042     0.04
-   5          0.046        0.067     0.02
+ 200          0.022        0.023     0.84
+  50          0.022        0.024     0.21
+  20          0.025        0.029     0.12
+  10          0.035        0.042     0.07
+   5          0.046        0.067     0.03
    2          0.152        0.120     0.02
-   1          1.714        0.142     0.01
+   1          1.714        0.142     0.02
 ```
 
-Twenty to fifty DDIM steps give samples close to the 200-step ancestral sampler's, at a fifth to
-a tenth of the cost; the time column falls almost in proportion to $K$. Below about ten steps
+Twenty to fifty DDIM steps give samples close to the 200-step ancestral sampler's, with a quarter
+to a tenth of its network evaluations; the time column falls almost in proportion to $K$. Below about ten steps
 quality falls quickly. One step is a different kind of failure. At $t = 200$ the signal weight is
 $\sqrt{\bar\alpha_{200}} = 0.008$, so the estimate $\hat{\mathbf{x}}_0$ divides the network's output
 by 0.008, a factor of 121, and any error in $\boldsymbol\epsilon_\theta$ is blown up by that
@@ -1000,13 +1002,13 @@ steps buy is the gradual commitment to structure that you saw in Step 5.
 - The unconditional samples are almost as close to the data as fresh data are (about 0.022 against 0.013) and cover both moons (recall-like distance 0.022 against 0.021).
 - Guidance trades diversity for fidelity. $w = 1$ already puts every sample on the requested moon. $w = 3$ and $w = 7$ squeeze the samples toward the densest part of the moon, the recall-like distance doubling by $w = 7$, and at $w = 7$ the precision-like distance starts to worsen as samples overshoot.
 - DDIM with 20 to 50 steps is close to the 200-step ancestral sampler. Below about 10 steps quality falls quickly, and a single step returns a smeared estimate far from the data.
-- The cap on $\beta_t$ matters. With the paper's cap of 0.999 the first reverse step multiplies the network's error by 31.6; in a prototype run this made the $w = 7$ samples diverge (a precision-like distance of 1.34). The cap at 0.5 keeps the factor at 1.41.
+- The cap on $\beta_t$ is a safeguard. With the paper's cap of 0.999 the first reverse step multiplies the network's error by 31.6, against 1.41 with the cap at 0.5. Whether that hurts depends on the run: in a prototype made when the module was planned the $w = 7$ samples diverged (a precision-like distance of 1.34), while a copy of this lab retrained with the 0.999 cap in the current environment gave 0.019 at $w = 7$, as good as the capped model. The cap removes the risk at no cost.
 
 ### Try this
 
 1. **Restore the cap.** Set the cap to 0.999 and repeat Step 6. Then keep the 0.999 cap but compute $\hat{\mathbf{x}}_0$, clip it to $[-3, 3]$, and use the posterior-mean update $\tilde\mu_t$ from $\hat{\mathbf{x}}_0$ instead. This is how the original implementations survive the uncapped schedule.
 2. **A GAN on the same data.** Train the non-saturating GAN of [Section 4](#s4) (generator and discriminator: MLPs with three hidden layers of 128, Adam with learning rate $10^{-3}$ and $\beta = (0.5, 0.999)$) on the same standardised moons for 6,000 steps. Compare its precision-like and recall-like distances with the diffusion model's. It needs one forward pass per sample; the diffusion model needs 200.
-3. **The linear schedule.** Replace the schedule by the linear range of Ho et al., $\beta_t$ from $10^{-4}$ to 0.02, kept at $T = 200$, which ends at $\bar\alpha_T = 0.13$ (a prototype run gave a precision-like distance of 0.021 and a recall-like distance of 0.022). On these 2D standardised data the damage is small. Explain why two-dimensional standardised data hide a problem that matters for images: what does $\bar\alpha_T = 0.13$ leave in the starting sample?
+3. **The linear schedule.** Replace the schedule by the linear range of Ho et al., $\beta_t$ from $10^{-4}$ to 0.02, kept at $T = 200$, which ends at $\bar\alpha_T = 0.13$ (a copy of this lab retrained with it gave a precision-like distance of 0.020 and a recall-like distance of 0.022). On these 2D standardised data the damage is small. Explain why two-dimensional standardised data hide a problem that matters for images: what does $\bar\alpha_T = 0.13$ leave in the starting sample?
 
 ## Lab 3 — A graph convolutional network from scratch: single points of failure in fault trees {#lab3}
 
@@ -1018,9 +1020,11 @@ graph convolutional networks ([Section 7](#s7)) of increasing depth, and watch t
 of [Section 8](#s8) happen: accuracy by distance from the top, over-smoothing measured without any
 training, and the repair by residual connections. Last, you replace the symmetric adjacency by a
 direction-aware layer, which uses the one piece of structure the plain GCN throws away. The data
-are synthetic and the lab uses no graph library; it runs in about two minutes on a laptop CPU, and
-needs NumPy, PyTorch and matplotlib. The accuracies in the nineties move by a point or two with the
-thread count and the PyTorch version, so read them as phenomena, not as digits.
+are synthetic and the lab uses no graph library; it runs in about three minutes on a laptop CPU
+(168 s in the run shown), and needs NumPy, PyTorch and matplotlib. It runs PyTorch on one thread:
+on several, the scatter-adds of message passing sum in an order that changes from run to run, and
+so do the accuracies. Even on one thread they
+move by a point or two with the PyTorch version, so read them as phenomena, not as digits.
 
 ### Step 1: a fault-tree generator and its labels
 
@@ -1051,6 +1055,7 @@ import torch.nn.functional as F
 
 np.random.seed(0)
 torch.manual_seed(0)
+torch.set_num_threads(1)    # scatter-adds sum in a fixed order only on one thread
 
 OR, AND, BASIC = 0, 1, 2
 
@@ -1337,11 +1342,11 @@ for L in (1, 2, 3, 4, 6, 8, 12, 16):
 ```output
   L   overall   depth1   depth2   depth3   depth4
   1   0.810    1.000    0.663    0.769    0.843
-  2   0.835    1.000    0.886    0.775    0.843
-  3   0.896    1.000    0.979    0.909    0.858
-  4   0.943    1.000    0.979    0.945    0.926
-  6   0.964    1.000    0.974    0.966    0.956
-  8   0.955    0.984    0.959    0.953    0.952
+  2   0.832    1.000    0.886    0.769    0.843
+  3   0.897    1.000    0.969    0.920    0.854
+  4   0.938    1.000    0.964    0.933    0.929
+  6   0.937    1.000    0.938    0.923    0.939
+  8   0.959    0.984    0.959    0.958    0.956
  12   0.781    0.537    0.663    0.769    0.843
  16   0.781    0.537    0.663    0.769    0.843
 ```
@@ -1353,8 +1358,9 @@ above 0.92. This is the receptive field. A basic event at depth $d$ has the gate
 $0, \dots, d-1$ above it, the topmost $d$ hops away, so a model with $L$ layers cannot see enough
 to label events deeper than $L$ exactly.
 
-Then read the rows. Accuracy keeps rising past $L = 4$, because the symmetric layers mix siblings
-and gates together and extra layers help to separate them again, and then it falls off a cliff. The
+Then read the rows. Accuracy stays near 0.94 at $L = 4$ and 6 and is best at $L = 8$ (0.959),
+because the symmetric layers mix siblings and gates together and extra layers help to separate
+them again, and then it falls off a cliff. The
 12- and 16-layer models score the majority-class accuracy at every depth: they predict "not a
 single point of failure" for every event. That is not overfitting, and the next step looks at
 why.
@@ -1367,7 +1373,7 @@ features of the largest test tree and measure the mean cosine similarity over al
 1 means every node points the same way. No weights are involved, so this is a property of the
 graph and the normalisation alone.
 
-The remedy tried here is the one from deep networks in general ([Module 03](module_03_EN.html)): a
+The remedy tried here is the one from deep networks in general ([Module 03, Section 8](module_03_EN.html#s8)): a
 residual connection, $\mathbf{H} \leftarrow \mathbf{H} + \mathrm{ReLU}(\hat{\mathbf{A}}\mathbf{H}\mathbf{W})$,
 so that each node keeps its own features alongside the smoothed ones and the gradient has a direct
 path through 16 layers.
@@ -1399,7 +1405,7 @@ plt.figure(figsize=(6, 3.8))
 plt.semilogx(curve_k, curve_cos, marker=".")
 plt.xlabel("propagation steps k")
 plt.ylabel("mean pairwise cosine similarity")
-plt.title("Over-smoothing: node features of one 72-node tree under $\\hat{A}^k X$")
+plt.title(f"Over-smoothing: node features of one {biggest.n}-node tree under $\\hat{{A}}^k X$")
 plt.show()
 ```
 
@@ -1413,12 +1419,12 @@ k = 16: mean pairwise cosine similarity of A_hat^k X = 0.976
 k = 32: mean pairwise cosine similarity of A_hat^k X = 0.990
 k = 64: mean pairwise cosine similarity of A_hat^k X = 0.997
 16 layers, plain   : train accuracy 0.779, test accuracy 0.781
-16 layers, residual: train accuracy 0.962, test accuracy 0.956
+16 layers, residual: train accuracy 0.967, test accuracy 0.948
 ```
 
 The similarity starts high, because the four-number features of different nodes are already
 alike, and climbs toward 1: after 16 steps the rows of $\hat{\mathbf{A}}^k\mathbf{X}$ are nearly
-parallel. Only the degree of a node, through the factor $\sqrt{	ilde d_i}$ of the dominant
+parallel. Only the degree of a node, through the factor $\sqrt{\tilde d_i}$ of the dominant
 eigenvector, still differs, and the type of the node has been averaged away. Over-smoothing is a
 property of the graph and the normalisation, and no weights can undo it entirely.
 
@@ -1427,8 +1433,8 @@ majority rate: it has not learned the training set. It is an optimisation failur
 been averaged through many layers with ReLUs and weight decay leaves a gradient that points
 nowhere useful, and training stays on the plateau where every event is called negative. Residual
 connections give each node a direct path for its own features and the gradient a direct path
-through the stack, and the same 16 layers then train and reach the accuracy of the best shallow
-models. Depth was not the problem. Smoothing without a path for the node's own features was.
+through the stack, and the same 16 layers then train and reach 0.948, between the 4- and the
+8-layer plain models (0.938 and 0.959). Depth was not the problem. Smoothing without a path for the node's own features was.
 
 ### Step 7: a direction-aware layer
 
@@ -1552,7 +1558,7 @@ trees and the hand-drawn one follow the same rules.
 ### What you should see
 
 - Accuracy by depth shows the receptive field: an $L$-layer model is reliable only for events at most $L$ hops below the top. The direction-aware model makes this exact: accuracy 1.0 at every depth up to $L$.
-- The undirected GCN improves up to about 4 layers. The plain 8- and 16-layer models then predict the majority class for every event. Their node features are nearly identical (the untrained $\hat{\mathbf{A}}^k\mathbf{X}$ similarity climbs toward 1), and with no residual path a deep stack also trains poorly. Residual connections restore it.
+- The undirected GCN improves up to about 4 layers (0.938) and peaks at 8 (0.959). The plain 12- and 16-layer models then predict the majority class for every event. Their node features are nearly identical (the untrained $\hat{\mathbf{A}}^k\mathbf{X}$ similarity climbs toward 1), and with no residual path a deep stack also trains poorly. Residual connections restore it.
 - A symmetric adjacency gives each event a mixture of its gate, its siblings and, two hops away, their gate's other inputs. The property depends only on the gates above. Separate parent and child weights let the network compute "every gate above is OR" exactly.
 - The rule that sounds right ("its gate is OR") is worse than the majority class. Every model must be compared with both.
 

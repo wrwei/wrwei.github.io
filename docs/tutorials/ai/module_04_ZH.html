@@ -18,6 +18,7 @@
 <a href="module_02_ZH.html">2 &mdash; 神经网络与反向传播</a>
 <a href="module_03_ZH.html">3 &mdash; 卷积神经网络</a>
 <a href="module_04_ZH.html" class="active">4 &mdash; 循环神经网络与序列</a>
+<a href="module_05_ZH.html">5 &mdash; 其他值得了解的网络</a>
     </div>
   </div>
   <a href="module_04_EN.html" class="lang-switch" hreflang="en">English</a>
@@ -2196,7 +2197,7 @@ last = out[torch.arange(len(lengths)), lengths - 1]  # equals h_n[-1] for one di
 <h3>评价一个监测器</h3>
 <p>评价监测器看四个数：从故障开始到第一次报警的<strong>检测延迟</strong>（detection delay）；<strong>检出的事件数</strong>，按故障事件而不是按样本计数；在一段很长的正常记录上的<strong>每天误报次数</strong>；以及<strong>精确率</strong>，它会被很低的基础率摧毁（<a href="module_01_ZH.html">模块 01</a>）。每天 5.5 次误报、每月一次真实故障，意味着每一次真实故障对应 <span class="math-i">30\times5.5 = 165</span> 次误报，精确率接近 <span class="math-i">1/166 = 0.6\%</span>。真实故障太少，无法用来测量这些指标，所以要像实验 3 那样，把每种类型的合成故障注入留出的正常数据中。</p>
 <h3>多通道</h3>
-<p>用全部通道预测每一个通道，构成残差向量 <span class="math-i">\mathbf{r}_t\in\mathbb{R}^m</span>，再用<strong>马氏距离</strong>（Mahalanobis distance）<span class="math-i">d_t^2 = \mathbf{r}_t^\top\boldsymbol{\Sigma}^{-1} \mathbf{r}_t</span> 给它打分，其中 <span class="math-i">\boldsymbol{\Sigma}</span> 是正常数据上的残差协方差。即使没有哪个通道单独看起来异常，它也能抓住破坏了通道间通常相关性的模式。高斯残差给出 <span class="math-i">d_t^2 \sim \chi^2_m</span>；实践中，阈值同样取经验分位数。Hundman 等人（2018）把这一模式用于航天器遥测，用 LSTM 做预测，并对平滑后的预测误差设阈值；它同样适用于泵、轴承和结构。对自编码器的重构误差打分是<span class="xref-pending">模块 05</span>给出的另一种做法。</p>
+<p>用全部通道预测每一个通道，构成残差向量 <span class="math-i">\mathbf{r}_t\in\mathbb{R}^m</span>，再用<strong>马氏距离</strong>（Mahalanobis distance）<span class="math-i">d_t^2 = \mathbf{r}_t^\top\boldsymbol{\Sigma}^{-1} \mathbf{r}_t</span> 给它打分，其中 <span class="math-i">\boldsymbol{\Sigma}</span> 是正常数据上的残差协方差。即使没有哪个通道单独看起来异常，它也能抓住破坏了通道间通常相关性的模式。高斯残差给出 <span class="math-i">d_t^2 \sim \chi^2_m</span>；实践中，阈值同样取经验分位数。Hundman 等人（2018）把这一模式用于航天器遥测，用 LSTM 做预测，并对平滑后的预测误差设阈值；它同样适用于泵、轴承和结构。对自编码器的重构误差打分是<a href="module_05_ZH.html">模块 05</a>给出的另一种做法。</p>
 <div class="check"><div class="check-label">检验理解</div>
 <p>为什么报警阈值要设在留出的正常数据上，而不是训练残差上？</p>
 </div>
@@ -6264,7 +6265,7 @@ TCN training time is 27% shorter
 <li>单个摘要向量是一个瓶颈（在实验 4 中，数字反转的整串正确率从长度 4 时的约 98% 降到长度 12 时的约 1%），注意力消除了这个瓶颈：解码器对所有编码器状态做 softmax 加权平均，使每个输出到每个输入都只有一步的路径，而这些权重构成的对齐是一种诊断手段，而不是解释。</li>
 <li>Transformer 取代了循环，因为非线性循环需要 <span class="math-i">T</span> 个相互依赖的步骤，路径长度为 <span class="math-i">O(T)</span>，而注意力的路径只有一步，代价是平方级的；循环保持恒定大小的状态（宽度为 1,024 的 4 层 LSTM 为 32.8 kB，而宽度为 2,048 的 24 层 Transformer 在 32,768 个 token 时的 KV cache 为 6.44 GB），线性时不变的循环是一种可以并行训练的卷积，而 Mamba 依赖输入的步长又把它变回了一个门。</li>
 </ul>
-<p><span class="xref-pending">模块 05</span> 把视野从序列扩展到其他值得了解的网络家族：自编码器与 VAE、GAN、扩散模型、图网络、物理信息网络和对比学习，其中有几种会在后续模块的大模型中再次出现。<span class="xref-pending">模块 06</span> 随后取出<a href="#s11">第 11 节</a>的注意力，彻底去掉循环，构建出 Transformer：同样的查询-键-值查找，由每个位置对其他每个位置施加，带有<a href="#s11">第 11 节</a>所论证的缩放因子 <span class="math-i">\sqrt{d_k}</span>，以及循环原本免费提供的位置信息。</p>
+<p><a href="module_05_ZH.html">模块 05</a> 把视野从序列扩展到其他值得了解的网络家族：自编码器与 VAE、GAN、扩散模型、图网络、物理信息网络和对比学习，其中有几种会在后续模块的大模型中再次出现。<span class="xref-pending">模块 06</span> 随后取出<a href="#s11">第 11 节</a>的注意力，彻底去掉循环，构建出 Transformer：同样的查询-键-值查找，由每个位置对其他每个位置施加，带有<a href="#s11">第 11 节</a>所论证的缩放因子 <span class="math-i">\sqrt{d_k}</span>，以及循环原本免费提供的位置信息。</p>
 <span class="section-anchor" id="terms"></span>
 <div class="section-header" data-sec="terms"><span class="section-num">24</span><h2>关键术语</h2></div>
 <div class="table-wrap"><table>
@@ -6461,7 +6462,7 @@ TCN training time is 27% shorter
 </ul>
 
 </div>
-<nav class="module-nav"><a class="mnav prev" href="module_03_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 3 — 卷积神经网络</span></a><a class="mnav next" href="index_ZH.html"><span class="mnav-label">系列总览 &rarr;</span><span class="mnav-title">从机器学习到大语言模型</span></a></nav>
+<nav class="module-nav"><a class="mnav prev" href="module_03_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 3 — 卷积神经网络</span></a><a class="mnav next" href="module_05_ZH.html"><span class="mnav-label">下一模块 &rarr;</span><span class="mnav-title">模块 5 — 其他值得了解的网络</span></a></nav>
   </main>
 </div>
 <footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p></footer>

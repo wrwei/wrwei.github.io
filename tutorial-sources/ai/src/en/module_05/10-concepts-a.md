@@ -115,15 +115,20 @@ $b \sim \mathcal{N}(0, s_b^2)$ give $a + b \sim \mathcal{N}(0, s_a^2 + s_b^2)$: 
 For $\epsilon \sim \mathcal{N}(0, 1)$, $c\,\epsilon \sim \mathcal{N}(0, c^2)$. And any Gaussian
 sample can be written $\mu + \sigma \epsilon$.
 
-::: worked title="One noising step"
-Shrink the data point $x_0 = 2$ by $\sqrt{0.5}$ and add noise of variance 0.5:
+::: worked title="Two noising steps make one"
+Shrink the data point $x_0 = 2$ by $\sqrt{0.8}$ and add noise of variance 0.2:
 
 $$
-x = \sqrt{0.5}\, x_0 + \sqrt{0.5}\, \epsilon = 1.4142 + 0.7071\,\epsilon \sim \mathcal{N}(1.4142,\ 0.5).
+x_1 = \sqrt{0.8}\, x_0 + \sqrt{0.2}\, \epsilon_1 = 1.7889 + 0.4472\,\epsilon_1 \sim \mathcal{N}(1.7889,\ 0.2).
 $$
 
-With the draw $\epsilon = -0.4$: $x = 1.4142 - 0.2828 = 1.1314$. The forward process of
-[Section 5](#s5) is this step repeated.
+With the draw $\epsilon_1 = 0.5$: $x_1 = 1.7889 + 0.2236 = 2.0125$. Apply the same step again,
+$x_2 = \sqrt{0.8}\, x_1 + \sqrt{0.2}\, \epsilon_2$. Given $x_0$, the mean of $x_2$ is
+$0.8 \times 2 = 1.6$ and its variance is $0.8 \times 0.2 + 0.2 = 0.36$, because the first step's
+noise is shrunk with the signal and the variances add. So $x_2 \sim \mathcal{N}(1.6,\ 0.36)$,
+which is $\sqrt{0.64}\, x_0 + \sqrt{0.36}\, \epsilon$ with a single draw $\epsilon$: two steps
+are one step with the signal factors multiplied. The forward process of [Section 5](#s5) is this
+step repeated, and its closed form (5.4) is this composition for any number of steps.
 :::
 
 ### Monte Carlo, and the gradient it cannot take
@@ -144,9 +149,9 @@ the expectation is $\mu^2 + 1$, with gradient $2\mu$; differentiating a sampled 
 respect to $\mu$ gives 0, because a sample carries no record of where it came from. [Section 3](#s3) solves this.
 
 Three earlier tools are used without re-derivation: maximum likelihood and its losses
-([Module 01](module_01_EN.html)), reverse-mode automatic differentiation
-([Module 02](module_02_EN.html)), and principal component analysis
-([Module 01](module_01_EN.html)).
+([Module 01, Section 5](module_01_EN.html#s5)), reverse-mode automatic differentiation
+([Module 02, Section 4](module_02_EN.html#s4)), and principal component analysis
+([Module 01, Section 11](module_01_EN.html#s11)).
 
 ::: check
 Why is $D_{\KL}(q \,\|\, p)$ never negative?
@@ -182,7 +187,7 @@ $$
 No labels are needed; the input is its own target. The code lives in the **latent space**, and
 what makes it worth having is a constraint. An **undercomplete** autoencoder has $d_z < d_x$,
 a **bottleneck**: the code cannot hold everything, so training must decide what to keep, and it
-keeps what most reduces the error over the whole dataset. An overcomplete autoencoder
+keeps what most reduces the error over the whole dataset (Figure 5.2). An overcomplete autoencoder
 ($d_z \ge d_x$) with no other constraint can learn the identity, reconstruct perfectly and learn
 nothing about which inputs are likely.
 
@@ -294,7 +299,7 @@ digits the model reconstructs well.
 :::
 
 The same recipe works with forecasting residuals instead of reconstructions
-([Module 04](module_04_EN.html)). It fails in three ways. Anomalies that resemble normal data
+([Module 04, Section 9](module_04_EN.html#s9)). It fails in three ways. Anomalies that resemble normal data
 reconstruct well and pass, as many of the 9s do. A change of operating
 condition, a new load case or a sensor replaced, shifts normal errors above the threshold and
 floods the operator with false alarms. And anomalies hidden in the "normal" training data are
@@ -339,7 +344,7 @@ $$
 p_\theta(\mathbf{x}) = \int p_\theta(\mathbf{x} \mid \mathbf{z})\, p(\mathbf{z})\, d\mathbf{z}.
 $$
 
-Maximum likelihood ([Module 01](module_01_EN.html)) needs $\log p_\theta(\mathbf{x}_i)$ for every
+Maximum likelihood ([Module 01, Section 5](module_01_EN.html#s5)) needs $\log p_\theta(\mathbf{x}_i)$ for every
 training point, and this integral has a neural network inside it and $d_z$ dimensions to cover.
 Averaging $p_\theta(\mathbf{x} \mid \mathbf{z})$ over codes drawn from the prior is unbiased but
 hopeless: almost every code decodes to something unrelated to $\mathbf{x}$. The codes that matter
@@ -411,9 +416,10 @@ the number computed in [Section 1](#s1), as (5.3) says it must be. Figure 5.5 dr
 
 ::: figure id=fig-05-5
 The exact example. Left: on a $z$ axis from −3 to 4, the prior $\mathcal{N}(0, 1)$ and the true
-posterior $\mathcal{N}(1, 0.5)$ for $x = 2$. Right: two stacked bars, each of total height
-$\log p(x) = -2.27$, split into ELBO plus gap: for $q$ equal to the posterior, ELBO −2.27 and gap
-0; for $q$ equal to the prior, ELBO −3.42 and gap 1.15.
+posterior $\mathcal{N}(1, 0.5)$ for $x = 2$. Right: $\log p(x) = \text{ELBO} + \text{gap}$, drawn for
+two choices of $q$ against a dashed line at $\log p(x) = -2.27$: for $q$ equal to the posterior,
+ELBO −2.27 and gap 0; for $q$ equal to the prior, ELBO −3.42 and a gap of 1.15 that brings it
+back up to −2.27.
 :::
 
 ### Amortised inference and the Gaussian encoder
@@ -575,16 +581,17 @@ and a better-scaled likelihood.
 
 | Setting | Total KL (nats) | Active units | Reconstruction (nats) |
 |---|---|---|---|
-| $\beta = 0.5$ | 6.5 | 8 | — |
+| $\beta = 0.5$ | 6.5 | 8 | 18.9 |
 | $\beta = 1$ | 3.6 | 6 | 21.0 |
 | $\beta = 4$ | 0.00 | 0 | 27.2 |
-| $\beta = 1$, summed squared error | 0.6 | 3 | not comparable (another likelihood) |
+| $\beta = 1$, summed squared error | 0.5 | 3 | not comparable (another likelihood) |
 
 At $\beta = 4$ collapse is the optimum, not an accident of training. The $\beta = 1$ solution,
 scored under the $\beta = 4$ objective, costs $21.0 + 4 \times 3.6 = 35.4$ nats; the collapsed one
 costs $27.2 + 4 \times 0 = 27.2$. Using the code saves 6.2 nats of reconstruction but costs
-14.4 in weighted KL. That is why warm-up does not rescue it: in Lab 1 a ramp to $\beta = 4$
-still collapses. Warm-up fixes collapse caused by the path of optimisation, not collapse built
+14.4 in weighted KL. That is why warm-up does not rescue it: in Lab 1's first Try-this item a ramp to $\beta = 4$
+still collapses (KL 0.01 nats, no active units), while a ramp to $\beta = 1$ raises the active
+units from 6 to 8. Warm-up fixes collapse caused by the path of optimisation, not collapse built
 into the objective. The summed-squared-error row is the $\sigma_x^2 = 1/2$ effect: reconstruction
 is cheap to give up, and only three dimensions stay in use.
 
@@ -645,7 +652,7 @@ $$
 + \E_{\mathbf{z} \sim p(\mathbf{z})}\big[\log\big(1 - D(G(\mathbf{z}))\big)\big].
 $$
 
-$D$ is a binary classifier with cross-entropy loss ([Module 01](module_01_EN.html)), labels 1 for
+$D$ is a binary classifier with cross-entropy loss ([Module 01, Section 6](module_01_EN.html#s6)), labels 1 for
 data and 0 for samples. $G$ is trained to make that classifier fail. Training alternates a step
 on $D$ with a step on $G$ (Figure 5.7).
 

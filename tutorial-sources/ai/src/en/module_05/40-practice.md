@@ -43,7 +43,7 @@ Twelve questions, one correct answer each, about fifteen to twenty minutes in al
 - [ ] Guidance needs a separately trained classifier of noisy images.
 - [x] $w = 1$ gives the conditional model; $w > 1$ increases fidelity to $c$ at the cost of diversity.
 - [ ] Guidance halves the number of network evaluations per step.
-> $w = 0$ is the unconditional model and $w = 1$ the conditional one; above 1 the prediction is extrapolated away from the unconditional one and towards $c$. In [Lab 2](#lab2) the recall-like distance grows from 0.022 at $w = 1$ to 0.046 at $w = 7$ as the samples crowd together. Classifier-free guidance needs no classifier, which is its point, and it doubles the evaluations per step, one conditional and one unconditional.
+> $w = 0$ is the unconditional model and $w = 1$ the conditional one; above 1 the prediction is extrapolated away from the unconditional one and towards $c$. In [Lab 2](#lab2) the recall-like distance grows from 0.021 at $w = 1$ to 0.043 at $w = 7$ as the samples crowd together. Classifier-free guidance needs no classifier, which is its point, and it doubles the evaluations per step, one conditional and one unconditional.
 
 ? In a GCN with self-loops, what is $\hat{A}_{ij}$ for an edge between a node with 3 neighbours and a node with 1 neighbour?
 - [x] $1/\sqrt{4 \times 2} = 0.354$
@@ -128,7 +128,7 @@ Kipf, T. N., Welling, M. "Semi-supervised classification with graph convolutiona
 1. What is the "renormalisation trick", and which numerical problem does it address?
 2. Write their two-layer forward model and identify each factor in the code of [Lab 3](#lab3).
 3. Which propagation model wins in their comparison, and by how much over the first-order model without the renormalisation?
-4. What happens to training and test accuracy as depth grows in the appendix experiment, with and without residual connections? Compare with [Lab 3](#lab3) at 8 and 16 layers.
+4. What happens to training and test accuracy as depth grows in the appendix experiment, with and without residual connections? Compare with [Lab 3](#lab3) at 8, 12 and 16 layers.
 
 **After reading.** Rewrite the propagation rule for a five-node graph of your own and compute one layer by hand, as in [Section 7](#s7). If the arithmetic reproduces the structure in the paper's equation, you have the paper.
 :::
@@ -159,7 +159,7 @@ Raissi, M., Perdikaris, P., Karniadakis, G. E. "Physics-informed neural networks
 - A **diffusion model** noises data with a fixed Gaussian process whose marginal is $\mathbf{x}_t = \sqrt{\bar\alpha_t}\,\mathbf{x}_0 + \sqrt{1-\bar\alpha_t}\,\boldsymbol\epsilon$, and is trained by regressing the noise; the simplified loss reweights the variational bound towards harder, noisier steps.
 - **Sampling** a diffusion model takes many network evaluations; DDIM, distillation and consistency models cut the count, **classifier-free guidance** with scale $w$ trades diversity for fidelity at twice the evaluations per step, and the noise schedule must end with $\bar\alpha_T$ near zero.
 - A **GCN layer** computes $\mathbf{H}^{(l+1)} = \sigma(\hat{\mathbf{A}}\mathbf{H}^{(l)}\mathbf{W}^{(l)})$ with $\hat{\mathbf{A}} = \tilde{\mathbf{D}}^{-1/2}(\mathbf{A}+\mathbf{I})\tilde{\mathbf{D}}^{-1/2}$; repeated application drives all node features towards one direction (over-smoothing), so useful depth is small unless residual connections or normalisation are added.
-- Message-passing networks cannot distinguish graphs that the Weisfeiler–Leman test cannot, and information from distant nodes is squeezed through narrow edges (over-squashing); engineering models such as fault trees and safety arguments are graphs, and the first baseline is always a simple structural rule.
+- Message-passing networks cannot distinguish graphs that the Weisfeiler–Lehman test cannot, and information from distant nodes is squeezed through narrow edges (over-squashing); engineering models such as fault trees and safety arguments are graphs, and the first baseline is always a simple structural rule.
 - A **physics-informed network** minimises a PDE residual computed by automatic differentiation plus boundary and initial terms; it can converge to the trivial solution when the condition terms are outweighed, and the fixes are non-dimensionalising, weighting the terms or building the conditions in as a hard constraint.
 - **Neural operators** such as DeepONet and the Fourier neural operator learn a map between functions from solver runs; they are surrogates that are valid only on the family of inputs they were trained on, and each needs a check against the solver before it is used on a new design.
 - **Contrastive learning** with InfoNCE is a classification loss over $N$ candidates whose value at chance is $\log N$, so $\log N - \mathcal{L}$ can certify at most $\log N$ nats of mutual information; the augmentations decide what the representation keeps, and a linear probe measures what it bought.
@@ -200,7 +200,7 @@ Everything in this module is a way of putting structure in the model, in the los
 - Kipf, T. N., Welling, M. "Semi-supervised classification with graph convolutional networks." *ICLR*, 2017. The GCN; guided reading.
 - Velickovic, P. et al. "Graph attention networks." *ICLR*, 2018. Learned neighbour weights.
 - Li, Q., Han, Z., Wu, X.-M. "Deeper insights into graph convolutional networks for semi-supervised learning." *AAAI*, 2018. The GCN as Laplacian smoothing; over-smoothing.
-- Xu, K., Hu, W., Leskovec, J., Jegelka, S. "How powerful are graph neural networks?" *ICLR*, 2019. The Weisfeiler–Leman bound and GIN.
+- Xu, K., Hu, W., Leskovec, J., Jegelka, S. "How powerful are graph neural networks?" *ICLR*, 2019. The Weisfeiler–Lehman bound and GIN.
 - Schlichtkrull, M. et al. "Modeling relational data with graph convolutional networks." *ESWC*, 2018. One weight matrix per edge type and direction.
 - Alon, U., Yahav, E. "On the bottleneck of graph neural networks and its practical implications." *ICLR*, 2021. Over-squashing.
 - Pfaff, T. et al. "Learning mesh-based simulation with graph networks." *ICLR*, 2021. MeshGraphNets, learned simulators on meshes.

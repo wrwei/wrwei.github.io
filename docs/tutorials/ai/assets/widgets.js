@@ -1943,7 +1943,7 @@ AIW.register('diffusion-explorer', function (el, opts) {
     tr('Signal fraction ', '信号比例 '), h('span', { class: 'math-i' }, '\\bar\\alpha_t'),
     tr(' against t (log scale), both schedules', ' 随 t 的变化（对数坐标），两种调度')))
   el.appendChild(chartWrap)
-  var chart = AIW.canvas(chartWrap, { aspect: 0.3, maxHeight: 210 }, drawChart)
+  var chart = AIW.canvas(chartWrap, { aspect: 0.5, maxHeight: 210 }, drawChart)
   chart.cv.setAttribute('role', 'img')
   chart.cv.setAttribute('aria-label', tr('Line chart of abar_t against t for the linear and cosine schedules', '线性与余弦调度下 ᾱ_t 随 t 变化的折线图'))
   function legendItem(sample, text) { return h('span', { style: { display: 'inline-flex', alignItems: 'center' } }, sample, text) }
@@ -3420,22 +3420,22 @@ AIW.register('message-passing-explorer', function (el, opts) {
 
   function renderTable(g, Hk, pins) {
     while (table.firstChild) table.removeChild(table.firstChild)
-    var lab = compLabels(g.key), left = { textAlign: 'left' }
-    table.appendChild(h('tr', null, h('th', { style: left }, ''), h('th', { style: left }, t('node', '节点')),
-      h('th', null, swatch(PURE[0], g.key !== 'tree'), lab[0]), h('th', null, swatch(PURE[1], g.key !== 'tree'), lab[1]),
-      h('th', null, swatch(PURE[2], true), lab[2])))
+    var lab = compLabels(g.key), left = { textAlign: 'left' }, nw = { whiteSpace: 'nowrap' }
+    table.appendChild(h('tr', null, h('th', { style: left }, t('node', '节点')),
+      h('th', { style: nw }, swatch(PURE[0], g.key !== 'tree'), lab[0]), h('th', { style: nw }, swatch(PURE[1], g.key !== 'tree'), lab[1]),
+      h('th', { style: nw }, swatch(PURE[2], true), lab[2])))
     if (!pins.length) {
-      table.appendChild(h('tr', null, h('td', { colspan: '5', style: left }, t('Click a node to pin it here.', '点击节点即可固定到这里。'))))
+      table.appendChild(h('tr', null, h('td', { colspan: '4', style: left }, t('Click a node to pin it here.', '点击节点即可固定到这里。'))))
       return
     }
     pins.forEach(function (i, p) {
       var nd = g.nodes[i], v = Hk[i]
       table.appendChild(h('tr', null,
-        h('td', { style: { textAlign: 'left', whiteSpace: 'nowrap' } },
-          h('span', { style: { display: 'inline-block', width: '1.35em', height: '1.35em', lineHeight: '1.35em', borderRadius: '50%', textAlign: 'center',
-            background: ink.navy, color: '#fff', fontWeight: '600', marginRight: '.3rem' } }, String(p + 1)),
-          swatch(colourOf(v).css, !(nd.type === OR || nd.type === AND))),
-        h('td', { style: left }, h('b', null, nd.id), h('br'),
+        h('td', { style: left },
+          h('span', { style: { whiteSpace: 'nowrap' } },
+            h('span', { style: { display: 'inline-block', width: '1.35em', height: '1.35em', lineHeight: '1.35em', borderRadius: '50%', textAlign: 'center',
+              background: ink.navy, color: '#fff', fontWeight: '600', marginRight: '.3rem' } }, String(p + 1)),
+            swatch(colourOf(v).css, !(nd.type === OR || nd.type === AND)), h('b', null, nd.id)), h('br'),
           h('span', { style: { fontFamily: 'var(--font-body)', fontSize: '.7rem', color: ink.slate } }, nd.desc)),
         h('td', null, fx(v[0])), h('td', null, fx(v[1])), h('td', null, fx(v[2]))))
     })
@@ -3455,7 +3455,7 @@ AIW.register('message-passing-explorer', function (el, opts) {
       ne.shape.style.stroke = p >= 0 ? ink.navy : ink.slate
       ne.shape.style.strokeWidth = p >= 0 ? 3 + sz.u : 1.25 + 0.5 * sz.u
       ne.badge.style.display = p >= 0 ? '' : 'none'
-      ne.badgeT.textContent = String(p + 1)
+      ne.badgeT.textContent = p >= 0 ? String(p + 1) : ''
       ne.halo.style.display = field && field[i] ? '' : 'none'
       var vec = lab[0] + ' ' + fx(v[0]) + ', ' + lab[1] + ' ' + fx(v[1]) + ', ' + lab[2] + ' ' + fx(v[2])
       var label = nd.id + t(', ', '，') + nd.desc + t(', ', '，') + typeName(nd.type) + t('; features at k = ', '；第 ') + k + t(': ', ' 步特征：') + vec +
@@ -3503,8 +3503,8 @@ AIW.register('message-passing-explorer', function (el, opts) {
 
     // note for the setting
     var msgs = []
-    if (g.key === 'hex') msgs.push(t('Message passing cannot tell a hexagon from two triangles: every node has degree 2 and the same starting vector, so every node keeps the same vector at every k under every setting. (λ = 1 appears three times, once per connected component.)',
-      '消息传递无法区分一个六边形和两个三角形：每个节点的度都是 2，初始向量也相同，所以在任何设置下、任何 k 时，所有节点的向量都相同。（λ = 1 出现三次，每个连通分量一次。）'))
+    if (g.key === 'hex') msgs.push(t('Message passing cannot tell a hexagon from two triangles: every node has degree 2 and the same starting vector, so every node keeps the same vector at every k under every setting. (The largest eigenvalue, λ₁ = ' + fx(l1) + ', appears three times, once per connected component.)',
+      '消息传递无法区分一个六边形和两个三角形：每个节点的度都是 2，初始向量也相同，所以在任何设置下、任何 k 时，所有节点的向量都相同。（最大特征值 λ₁ = ' + fx(l1) + ' 出现三次，每个连通分量一次。）'))
     else {
       if (state.norm === 'none') msgs.push(t('No normalisation: each step multiplies by Ã, whose largest eigenvalue is λ₁ = ' + fx(l1) + ', so the features grow like λ₁^k. The colours are scaled per node, so they still show only the mix.',
         '不归一化：每一步都乘以 Ã，其最大特征值 λ₁ = ' + fx(l1) + '，所以特征按 λ₁^k 增长。颜色按节点各自缩放，因此仍然只显示分量的比例。'))
@@ -3524,7 +3524,7 @@ AIW.register('message-passing-explorer', function (el, opts) {
 
   function drawChart(ctx, w, hh) {
     var r = R(), k = state.k
-    var ax = AIW.axes(ctx, { w: w, h: hh, x0: 0, x1: KMAX, y0: 0, y1: 1, xticks: 8, yticks: 4,
+    var ax = AIW.axes(ctx, { w: w, h: hh, x0: 0, x1: KMAX, y0: 0, y1: 1, xticks: 8, yticks: 4, pad: { l: 54, r: 12, t: 12, b: 34 },
       xlabel: t('propagation steps k', '传播步数 k'), ylabel: t('mean cosine', '余弦相似度均值'),
       xfmt: function (x) { return String(Math.round(x)) }, yfmt: function (y) { return y.toFixed(2) } })
     function line(ys, colour, width, dash) {
@@ -3589,8 +3589,15 @@ AIW.register('message-passing-explorer', function (el, opts) {
       ctx.fillStyle = ink.orange; ctx.textAlign = 'right'; ctx.fillText('λ₁', tops[1].x - 1, tops[1].y - 9)
       ctx.fillStyle = ink.purple; ctx.textAlign = 'left'; ctx.fillText(' λ₂', tops[1].x - 1, tops[1].y - 9)
     } else {
-      if (tops[1]) { ctx.fillStyle = ink.orange; ctx.textAlign = 'center'; ctx.fillText('λ₁', tops[1].x, tops[1].y - 9) }
-      if (tops[2]) { ctx.fillStyle = ink.purple; ctx.textAlign = 'center'; ctx.fillText('λ₂', tops[2].x, tops[2].y - 9) }
+      var near = tops[1] && tops[2] && Math.abs(tops[1].x - tops[2].x) < 26
+      if (near) {                                     // too close to centre both: lambda_2 to the left, lambda_1 to the right
+        var ly = Math.min(tops[1].y, tops[2].y) - 9
+        ctx.fillStyle = ink.orange; ctx.textAlign = 'left'; ctx.fillText('λ₁', Math.max(tops[1].x, tops[2].x) + 1, ly)
+        ctx.fillStyle = ink.purple; ctx.textAlign = 'right'; ctx.fillText('λ₂', Math.min(tops[1].x, tops[2].x) - 1, ly)
+      } else {
+        if (tops[1]) { ctx.fillStyle = ink.orange; ctx.textAlign = 'center'; ctx.fillText('λ₁', tops[1].x, tops[1].y - 9) }
+        if (tops[2]) { ctx.fillStyle = ink.purple; ctx.textAlign = 'center'; ctx.fillText('λ₂', tops[2].x, tops[2].y - 9) }
+      }
     }
     ctx.restore()
   }

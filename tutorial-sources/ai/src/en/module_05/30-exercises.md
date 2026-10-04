@@ -541,7 +541,7 @@ print(f"share of basic events (majority baseline): {max(share, 1 - share):.4f}")
 ```output
 nodes per tree: min 3 max 58
 leaf rule accuracy: 1.0000
-GCN test accuracy: 0.8276
+GCN test accuracy: 0.8306
 share of basic events (majority baseline): 0.6237
 ```
 
@@ -634,7 +634,7 @@ The result, $u = e^{-at}\big[\cos\omega_d t + (\zeta\omega_0/\omega_d)\sin\omega
 - *Initial velocity*: $u'(0)^2 = 0.395$.
 - *Residual*: the mean of $r^2$ over $[0, 2]$ s. The integral of $\zeta^4\omega_0^4 e^{-2at}\cos^2\omega_0 t$ over the interval, divided by its length 2, is $0.0288$. On 200 evenly spaced collocation points including both ends, as in [Lab 4](#lab4), it is $0.0291$.
 
-So with all weights equal to 1 the loss reports the error mostly as an *initial-velocity* error (0.39), and the residual contributes only 0.03. The equation barely notices the wrong frequency, because the residual is second order in $\zeta$; the initial condition notices it a great deal. Two lessons: a small residual is a weak certificate when the solution is nearly right, and the loss terms live on different scales, which is why the weights matter. Compare the undamped near miss in [Section 9](#s9), whose residual is two orders of magnitude larger.
+So with all weights equal to 1 the loss reports the error mostly as an *initial-velocity* error (0.39), and the residual contributes only 0.03. The equation barely notices the wrong frequency, because the residual is second order in $\zeta$; the initial condition notices it a great deal. Two lessons: a small residual is a weak certificate when the solution is nearly right, and the loss terms live on different scales, which is why the weights matter. Compare the undamped near miss in [Section 9](#s9), whose mean squared residual is about a thousand times larger (31.2 against 0.029).
 
 ```python
 import sympy as sp
@@ -770,29 +770,29 @@ print(f"exact u(0.5, 0.2) = {exact(0.5, 0.2):.3f}")
 with boundary term
   step 2000: loss 1.55e-03, rel L2 error 0.0359
   step 4000: loss 6.06e-04, rel L2 error 0.0215
-  step 8000: loss 5.42e-04, rel L2 error 0.0163
-  48 s
-  final rel L2 error 0.0163
-  fresh-point losses: residual 6.5e-04, initial 8.5e-06, boundary 4.2e-05
-  u(0, 0.2) = -0.006   u(0.5, 0.2) = +0.144   u(1, 0.2) = -0.005
+  step 8000: loss 3.15e-04, rel L2 error 0.0102
+  69 s
+  final rel L2 error 0.0102
+  fresh-point losses: residual 3.5e-04, initial 7.5e-06, boundary 4.0e-05
+  u(0, 0.2) = -0.011   u(0.5, 0.2) = +0.139   u(1, 0.2) = -0.008
 without boundary term
   step 2000: loss 4.42e-04, rel L2 error 0.7804
-  step 4000: loss 2.21e-04, rel L2 error 0.8247
-  step 8000: loss 2.57e-03, rel L2 error 0.7676
-  48 s
-  final rel L2 error 0.7676
-  fresh-point losses: residual 2.0e-03, initial 1.3e-04, boundary 1.9e-01
-  u(0, 0.2) = -0.673   u(0.5, 0.2) = -0.222   u(1, 0.2) = -0.681
+  step 4000: loss 1.62e-04, rel L2 error 0.8204
+  step 8000: loss 1.99e-04, rel L2 error 0.7515
+  72 s
+  final rel L2 error 0.7515
+  fresh-point losses: residual 3.6e-05, initial 1.5e-04, boundary 1.9e-01
+  u(0, 0.2) = -0.663   u(0.5, 0.2) = -0.213   u(1, 0.2) = -0.677
 exact u(0.5, 0.2) = 0.139
 ```
 
-(Run on one CPU thread, each training takes under a minute. Last digits may differ with the PyTorch build and the machine; the phenomenon below does not.)
+(Run on one CPU thread, each training takes about 70 s. Last digits may differ with the PyTorch build and the machine; the phenomenon below does not.)
 
 **Reading the results.**
 
-*With the boundary term* the error falls steadily, $0.036 \to 0.022 \to 0.016$ at 2,000, 4,000 and 8,000 steps: the network reproduces the decay of the sine, with $u(0.5, 0.2) = 0.144$ against the exact $0.139$ and the ends held near zero ($-0.006$ and $-0.005$). The error is about 1.6%, which is respectable and no better: a finite-element solver would reach this accuracy in milliseconds and go well below it, the honest comparison of [Section 9](#s9). The error has not stopped improving at 8,000 steps, and the noisy loss from resampled points limits how far this learning rate takes it.
+*With the boundary term* the error falls steadily, $0.036 \to 0.022 \to 0.010$ at 2,000, 4,000 and 8,000 steps: the network reproduces the decay of the sine, with $u(0.5, 0.2) = 0.139$, the exact value to three decimals, and the ends held near zero ($-0.011$ and $-0.008$). The error is about 1%, which is respectable and no better: a finite-element solver would reach this accuracy in milliseconds and go well below it, the honest comparison of [Section 9](#s9). The error has not stopped improving at 8,000 steps, and the noisy loss from resampled points limits how far this learning rate takes it.
 
-*Without the boundary term* the relative error is $0.77$, stuck at that level from step 2,000 on, and the answer is qualitatively wrong. $u(0.5, 0.2)$ is $-0.22$, where heat can only have decayed from $+1$ to $+0.139$; the ends sit at about $-0.67$ and $-0.68$, not zero. The residual ($2.0\times10^{-3}$) and the initial-condition loss ($1.3\times10^{-4}$) on fresh points are of the same order of magnitude as the good run's ($6.5\times10^{-4}$ and $8.5\times10^{-6}$), so by the two terms that remain, this network satisfies the equation about as well as the correct one does. Only the boundary term, now unobserved by the optimiser but still computable, gives it away: $0.19$ against $4.2\times10^{-5}$.
+*Without the boundary term* the relative error is $0.75$, stuck between 0.75 and 0.82 from step 2,000 on, and the answer is qualitatively wrong. $u(0.5, 0.2)$ is $-0.21$, where heat can only have decayed from $+1$ to $+0.139$; the ends sit at about $-0.66$ and $-0.68$, not zero. On fresh points its residual ($3.6\times10^{-5}$) is ten times *smaller* than the good run's ($3.5\times10^{-4}$), and its initial-condition loss ($1.5\times10^{-4}$) is small too (the good run's is $7.5\times10^{-6}$), so by the two terms that remain this network satisfies the equation at least as well as the correct one does. Only the boundary term, now unobserved by the optimiser but still computable, gives it away: $0.19$ against $4.0\times10^{-5}$.
 
 (One more observation: the loss of the no-boundary run is higher at step 8,000 than at step 4,000, a spike of the noisy stochastic loss that the logs show, and a reminder not to read a single printed loss as convergence.)
 
