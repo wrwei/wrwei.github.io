@@ -1,4 +1,4 @@
-"""Build the bilingual CS overview and Module 01; run labs for captured outputs.
+"""Build the complete bilingual CS series; run labs for captured outputs.
 
 From the repository root: python tutorial-sources/cs/build.py
 Only writes the CS pages and their downloadable labs.
@@ -119,13 +119,14 @@ def index(lang):
     how = choose(("Each module combines concepts and worked examples, a timed study plan, runnable Python labs, exercises with solutions and a self-check quiz. Selected interactive demonstrations make execution visible. Progress is saved in your browser and shared between language editions on the same browser and site.", "每个模块包含概念与示例、学习时间安排、可运行的 Python 实验、带解答的练习和自测。部分交互演示展示执行过程。进度保存在当前浏览器中，同一浏览器与站点中的两种语言共享进度。"), lang)
     prereq = choose(("No programming experience or university mathematics is assumed. We introduce the notation as needed. You need a browser, a text editor and Python 3.11 or later; Module 01 uses no third-party packages.", "无需编程经验或大学数学基础。必要的记法会随内容介绍。需要浏览器、文本编辑器与 Python 3.11 或更新版本；模块 01 不需要第三方包。"), lang)
     project = choose(("A small library catalogue connects the series: represent books, search and sort records, choose data structures, store data in SQLite and expose it through a local server. Other examples teach topics where the catalogue is a poor fit.", "一个小型图书目录贯穿课程：表示图书、搜索与排序、选择数据结构、用 SQLite 保存数据，并通过本地服务器提供访问。不适合目录项目的主题会使用其他例子。"), lang)
-    availability = choose(("Module 01 is available in both languages. Modules 02–14 are planned; their cards describe the roadmap and do not link to unfinished lessons. Allow roughly 5–7 hours per module as the series develops.", "模块 01 已提供中英文版本。模块 02–14 处于计划阶段；卡片介绍路线，不会链接到未完成的课程。后续模块预计各需约 5–7 小时。"), lang)
+    availability = choose(("All 14 modules are available in English and Chinese, including the persistent catalogue capstone. Each module has a five-hour core study plan; allow 5–7 hours including extensions and extra practice. Follow the sequence or use the prerequisite links in each lesson.", "全部 14 个模块已提供中英文版本，包含持久目录综合项目。每模块有五小时核心计划，包含拓展和额外练习可安排 5–7 小时。可依次学习或按各课先修链接选择。"), lang)
     cards = []
     for module in PLAN["modules"]:
         available = module["status"] == "available"
         tag = f'a href="module_{module["number"]:02}_{suffix}.html"' if available else 'article'
         close = "a" if available else "article"
-        status = choose(("Available · 5 h · 3 labs · 8 exercises", "已提供 · 5 小时 · 3 个实验 · 8 道练习"), lang) if available else choose(("Planned · approximately 5–7 h", "计划中 · 约 5–7 小时"), lang)
+        labs_count = 3 if module["number"] == 1 else 2
+        status = choose((f"Available · 5 h · {labs_count} labs · 8 exercises", f"已提供 · 5 小时 · {labs_count} 个实验 · 8 道练习"), lang) if available else choose(("Planned · approximately 5–7 h", "计划中 · 约 5–7 小时"), lang)
         cards.append(f'''<{tag} class="module-card{' planned' if not available else ''}">
 <div class="card-num">{choose(("Module", "模块"), lang)} {module["number"]:02}</div>
 <div class="card-title">{escape(module["title"][lang])}</div>
@@ -135,7 +136,7 @@ def index(lang):
 <a class="skip-link" href="#main">{choose(("Skip to content", "跳到正文"), lang)}</a>
 <nav class="site-nav" aria-label="{choose(("Course navigation", "课程导航"), lang)}"><a class="nav-brand" href="../../tutorials/">Ran <span>Wei</span></a><span class="nav-sep">/</span><span class="nav-crumb">{choose(("CS Series", "计算机科学系列"), lang)}</span><a class="lang-switch" href="{other}" hreflang="{'en' if zh else 'zh-CN'}">{'English' if zh else '中文'}</a></nav>
 <main id="main" style="max-width:none;padding:0">
-<div class="index-hero"><h1>{choose(("Computer Science <em>Fundamentals</em>", "计算机科学<em>基础</em>"), lang)}</h1><p class="lead">{lead}</p><div class="hero-tags"><span class="tag tag-module">{choose(("Beginner-friendly", "面向初学者"), lang)}</span><span class="tag tag-theme">{choose(("14-module roadmap", "14 个模块路线"), lang)}</span><span class="tag tag-time">EN / 中文</span></div></div>
+<div class="index-hero"><h1>{choose(("Computer Science <em>Fundamentals</em>", "计算机科学<em>基础</em>"), lang)}</h1><p class="lead">{lead}</p><div class="hero-tags"><span class="tag tag-module">{choose(("Beginner-friendly", "面向初学者"), lang)}</span><span class="tag tag-theme">{choose(("14 modules · 70 core hours", "14 个模块 · 70 核心小时"), lang)}</span><span class="tag tag-time">EN / 中文</span></div></div>
 <div class="index-body"><h2>{choose(("How the series works", "课程结构"), lang)}</h2><p>{how}</p><h2>{choose(("Before you start", "开始之前"), lang)}</h2><p>{prereq}</p><h2>{choose(("One project, many perspectives", "一个项目，多种视角"), lang)}</h2><p>{project}</p><h2 id="modules">{choose(("The modules", "课程模块"), lang)}</h2><p>{availability}</p></div>
 <div class="index-grid">{''.join(cards)}</div></main>{footer(lang)}</body></html>'''
     (DEST / filename).write_text(page, encoding="utf-8")
@@ -219,15 +220,16 @@ def module(lang, labs):
         "Recognise abstractions and the layers used to run a program."], [
         "区分问题规约、算法与程序。", "明确搜索约定，涵盖空列表、缺失目标与重复值。", "跟踪线性搜索并解释状态变化。", "分别解释正确性、终止性与比较次数。", "识别抽象与运行程序涉及的层次。"]), lang)
     before = choose(("No earlier module or programming experience. Read the small Python notation guide before the labs. You need a browser, a text editor and Python 3.11 or later. No third-party packages are used.", "无需先修模块或编程经验。实验前阅读简短的 Python 记法介绍。需要浏览器、文本编辑器与 Python 3.11 或更新版本，不使用第三方包。"), lang)
+    menu = ''.join(f'<a href="module_{m["number"]:02}_{suffix}.html"' + (' class="active" aria-current="page"' if m["number"] == 1 else '') + f'>{m["number"]:02} — {m["title"][lang]}</a>' for m in PLAN["modules"])
     page = head(title + " — " + choose(("Computer Science Fundamentals", "计算机科学基础"), lang), lead, lang) + f'''<body data-module="1">
 <a class="skip-link" href="#main">{choose(("Skip to content", "跳到正文"), lang)}</a><div id="progress-bar"></div>
 <header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="{overview}" class="crumb">{choose(("CS Series", "计算机科学系列"), lang)}</a><span class="sep">/</span><span class="crumb crumb-now">{choose(("Module 01", "模块 01"), lang)}</span>
-<div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">{choose(("Module 1 of 14", "模块 1 / 14"), lang)}</button><div class="dropdown-menu" id="module-menu"><a class="active" href="module_01_{suffix}.html" aria-current="page">{title}</a><a href="{overview}#modules">{choose(("Full roadmap — Modules 02–14 planned", "完整路线 — 模块 02–14 计划中"), lang)}</a></div></div><a class="lang-switch" href="module_01_{other}.html" hreflang="{'en' if lang else 'zh-CN'}">{'English' if lang else '中文'}</a></header>
+<div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">{choose(("Module 1 of 14", "模块 1 / 14"), lang)}</button><div class="dropdown-menu" id="module-menu">{menu}</div></div><a class="lang-switch" href="module_01_{other}.html" hreflang="{'en' if lang else 'zh-CN'}">{'English' if lang else '中文'}</a></header>
 <div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">{choose(("Progress", "进度"), lang)}: <span class="side-progress-n">0</span>/4 {choose(("sessions done", "个时段已完成"), lang)}</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">{choose(("Contents", "目录"), lang)}</div><nav aria-label="{choose(("Contents", "目录"), lang)}">{toc}</nav></aside>
 <main id="main"><div class="module-hero"><div class="series">{choose(("Computer Science Fundamentals", "计算机科学基础"), lang)} — Ran Wei</div><h1 class="module-title">{title}</h1><p class="module-lead">{lead}</p><div class="hero-chips"><span class="chip chip-time">{choose(("≈ 5 hours", "约 5 小时"), lang)}</span><span class="chip">{choose(("4 sessions", "4 个时段"), lang)}</span><span class="chip">{choose(("3 labs", "3 个实验"), lang)}</span><span class="chip">{choose(("8 exercises", "8 道练习"), lang)}</span><span class="chip">{choose(("8 quiz questions", "8 道自测题"), lang)}</span></div></div>
 <section class="glance"><div class="glance-col"><h2 class="glance-h">{choose(("By the end you can", "完成后你能够"), lang)}</h2><ul class="outcomes">{''.join('<li>' + x + '</li>' for x in outcomes)}</ul></div><div class="glance-col"><h2 class="glance-h">{choose(("Before you start", "开始之前"), lang)}</h2><p>{before}</p></div></section>
 <details class="mobile-toc"><summary>{choose(("Contents", "目录"), lang)}</summary><nav aria-label="{choose(("Mobile contents", "移动端目录"), lang)}">{mobile_toc}</nav></details>
-{study_plan(lang)}<div class="content">{content}</div><div class="module-nav"><a href="{overview}">{choose(("← Course overview and roadmap", "← 课程概览与路线"), lang)}</a></div>{footer(lang)}</main></div>
+{study_plan(lang)}<div class="content">{content}</div><div class="module-nav"><a href="{overview}">{choose(("← Course overview and roadmap", "← 课程概览与路线"), lang)}</a><a href="module_02_{suffix}.html">{choose(("Next module →", "下一模块 →"), lang)}</a></div>{footer(lang)}</main></div>
 <script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>'''
     (DEST / f"module_01_{suffix}.html").write_text(page, encoding="utf-8")
 
@@ -240,10 +242,12 @@ def main():
         labs.append((path.name, path.read_text(encoding="utf-8"), output))
         shutil.copyfile(path, DEST / "labs" / path.name)
     assert len(labs) == 3
+    from series import build_remaining
+    count = build_remaining(SOURCE, DEST, PLAN, head, footer)
     for lang in (0, 1):
         index(lang)
         module(lang, labs)
-    print("Built 2 overview pages and 2 Module 01 pages; executed and copied 3 labs.")
+    print(f"Built 2 overview pages and 28 lesson pages; executed and copied {count + 3} labs.")
 
 
 if __name__ == "__main__":

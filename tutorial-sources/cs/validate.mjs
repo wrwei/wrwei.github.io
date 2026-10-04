@@ -85,14 +85,57 @@ try {
     const index = lang === 'EN' ? 'index.html' : 'index_ZH.html';
     await page.goto(base + index, {waitUntil: 'networkidle0'});
     assert.equal(await page.$$eval('.module-card', els => els.length), 14);
-    assert.equal(await page.$$eval('a.module-card', els => els.length), 1);
-    assert.equal(await page.$$eval('article.module-card.planned', els => els.length), 13);
+    assert.equal(await page.$$eval('a.module-card', els => els.length), 14);
+    assert.equal(await page.$$eval('article.module-card.planned', els => els.length), 0);
     await page.setViewport({width: 360, height: 900});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'Mobile overview fits');
     await page.screenshot({path: resolve(tmpdir(), `wrwei-cs-overview-${lang}-mobile.png`), fullPage: true});
   }
+  for (let number = 2; number <= 14; number++) {
+    for (const lang of ['EN', 'ZH']) {
+      const file = `module_${String(number).padStart(2, '0')}_${lang}.html`;
+      await page.goto(base + file, {waitUntil: 'domcontentloaded'});
+      assert.equal(await page.$$eval('.output', els => els.length), 2, file);
+      assert.equal(await page.$$eval('.exercise', els => els.length), 8, file);
+      assert.equal(await page.$$eval('#module-menu a', els => els.length), 14, file);
+      const missing = await page.evaluate(() => [...document.querySelectorAll('a[href^="#"]')]
+        .map(a => a.hash.slice(1)).filter(id => !document.getElementById(id)));
+      assert.deepEqual(missing, [], file);
+      for (const width of [360, 768, 1280]) {
+        await page.setViewport({width, height: 900});
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${file} fits ${width}`);
+      }
+      await page.$eval('.exercise + details summary', el => el.click());
+      assert.equal(await page.$eval('.exercise + details', el => el.open), true, 'Worked solutions open');
+      for (const question of await page.$$('.quiz-q')) {
+        const answer = await question.evaluate(el => el.dataset.answer);
+        await question.$eval(`[data-i="${answer}"]`, el => el.click());
+      }
+      assert.match(await page.$eval('.quiz-score', el => el.textContent), /6 \/ 6/, file);
+      await page.$eval('.session-done input', el => { el.checked = true; el.dispatchEvent(new Event('change')); });
+      await page.reload({waitUntil: 'domcontentloaded'});
+      assert.equal(await page.$eval('.session-done input', el => el.checked), true, file);
+      if (number === 2) {
+        await page.$eval('#bit-explorer input', el => { el.value = '255'; el.dispatchEvent(new Event('input')); });
+        assert.match(await page.$eval('#bit-explorer [role="status"]', el => el.textContent), /11111111.*-1/);
+        await page.$eval('#bit-explorer input', el => { el.value = '256'; el.dispatchEvent(new Event('input')); });
+        assert.match(await page.$eval('#bit-explorer [role="status"]', el => el.textContent), /0.*255/);
+      }
+      if (number === 9) {
+        for (let i = 0; i < 4; i++) await page.$eval('#cpu-explorer [data-action="step"]', el => el.click());
+        assert.match(await page.$eval('#cpu-explorer [role="status"]', el => el.textContent), /PC=4, ACC=4, memory\[0\]=4/);
+        assert.equal(await page.$eval('#cpu-explorer [data-action="step"]', el => el.disabled), true);
+        await page.$eval('#cpu-explorer [data-action="reset"]', el => el.click());
+        assert.match(await page.$eval('#cpu-explorer [role="status"]', el => el.textContent), /PC=0, ACC=0/);
+      }
+      if ([2, 8, 14].includes(number)) {
+        await page.evaluate(() => document.fonts.ready);
+        await page.screenshot({path: resolve(tmpdir(), `wrwei-cs-module-${number}-${lang}.png`)});
+      }
+    }
+  }
   assert.deepEqual(errors, [], 'No browser runtime errors');
-  console.log('PASS: bilingual pages, roadmap, traces, edge cases, quiz feedback/reset, persisted progress, language switching, and responsive layouts.');
+  console.log('PASS: all 28 lesson pages, overview links, search/bit/CPU widgets, quiz scoring, solutions, persisted progress, language switching and responsive layouts.');
   console.log(`Screenshots: ${tmpdir()}/wrwei-cs-*.png`);
 } finally {
   if (browser) await browser.close();

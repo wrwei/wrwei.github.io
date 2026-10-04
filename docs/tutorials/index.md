@@ -6,7 +6,7 @@ A collection of tutorials on software engineering and computer science topics.
 
 ## Computer Science Fundamentals
 
-A beginner-friendly series covering computation, programming, mathematics, algorithms, data structures, computer architecture, operating systems, networks, databases, and the limits of computation. English and Chinese editions, with worked examples, runnable Python labs, exercises with solutions, and self-check quizzes. Module 01 is available; the overview includes the full 14-module roadmap.
+A complete 14-module beginner-friendly series covering computation, programming, mathematics, algorithms, data structures, computer architecture, operating systems, networks, databases, and the limits of computation. English and Chinese editions, with 29 runnable Python labs, 112 exercises with worked solutions, self-check quizzes, and a persistent local catalogue capstone.
 
 [:octicons-arrow-right-24: Go to Computer Science Tutorials](cs/index.html)
 
