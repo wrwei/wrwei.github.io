@@ -33,22 +33,22 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 | 09 | LLM post-training | 621 | 14 | 6 | 15 | 12 | 3 | 2 | 21 |
 | 10 | Inference and serving | 615 | 13 | 6 | 15 | 12 | 3 | 2 | 18 |
 
-## 2. Production status (3 October 2026)
+## 2. Production status (4 October 2026)
 
 | # | EN parts | edited | figures | widgets | labs run | tech review | EN QA | 中文 parts | 中文 QA | English prose words |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 01 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 39,134 |
-| 02 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 37,329 |
-| 03 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | – | – | 39,444 |
-| 04 | 7/7 | ✓ | ✓ | ✓ | – | – | – | – | – | 38,925 |
-| 05 | 7/7 | – | – | – | – | – | – | – | – | 38,828 |
+| 01 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 39,162 |
+| 02 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 37,334 |
+| 03 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 39,478 |
+| 04 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 39,370 |
+| 05 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 38,930 |
 | 06 | 4/7 | – | – | – | – | – | – | – | – | 15,332 |
-| 07 | 2/7 | – | – | – | – | – | – | – | – | 12,349 |
+| 07 | 2/7 | – | – | – | – | – | – | – | – | 12,365 |
 | 08 | 2/7 | – | – | – | – | – | – | – | – | 10,349 |
 | 09 | 0/7 | – | – | – | – | – | – | – | – | 0 |
 | 10 | 0/7 | – | – | – | – | – | – | – | – | 0 |
 
-Figures drawn so far: 71, each also in Chinese. Widgets built: 13 of 20. English prose words exclude code and maths and include labs, exercises and solutions.
+Figures drawn so far: 89, each also in Chinese. Widget files: 13 of 20. English prose words exclude code and maths and include labs, exercises and solutions. A module published on the site in both languages is marked done at every stage.
 
 ## 3. The modules
 
@@ -599,7 +599,7 @@ The convolutional network built from the operation up: a convolution computed by
 
 Recurrent networks built from the equations up: the state, backpropagation through time and why its gradients vanish, the LSTM and GRU that fixed it, honest forecasting and monitoring of engineering sensor streams, the encoder–decoder whose bottleneck produced attention, and why the transformer replaced recurrence before linear recurrences and state-space models brought it back.
 
-**Before you start:** Module 01: the supervised set-up, squared-error and cross-entropy losses, linear regression by least squares, honest evaluation with leakage, and the rule that every number carries its baseline; Module 02: backpropagation with error signals, initialisation, Adam and AdamW, gradient clipping, dropout, layer normalisation and debugging a training run; Module 03: 1D and dilated convolution, receptive-field arithmetic and residual connections; Linear algebra: eigenvalues and eigenvectors, diagonalisation, singular values and the spectral norm; Calculus: the multivariate chain rule and Jacobian matrices; Complex numbers: modulus, argument and $e^{i	heta}$, for Section 13 only; Probability: the softmax, categorical distributions and the log-likelihood; Python with NumPy, and basic PyTorch: tensors, autograd, `nn.Module` and a training loop.
+**Before you start:** Module 01: the supervised set-up, squared-error and cross-entropy losses, linear regression by least squares, honest evaluation with leakage, and the rule that every number carries its baseline; Module 02: backpropagation with error signals, initialisation, Adam and AdamW, gradient clipping, dropout, layer normalisation and debugging a training run; Module 03: 1D and dilated convolution, receptive-field arithmetic and residual connections; Linear algebra: eigenvalues and eigenvectors, diagonalisation, singular values and the spectral norm; Calculus: the multivariate chain rule and Jacobian matrices; Complex numbers: modulus, argument and $e^{i\theta}$, for Section 13 only; Probability: the softmax, categorical distributions and the log-likelihood; Python with NumPy, and basic PyTorch: tensors, autograd, `nn.Module` and a training loop.
 
 **You will be able to:**
 
@@ -798,11 +798,11 @@ Autoencoders and VAEs, GANs, diffusion models, graph networks, physics-informed 
 
 | Session | Activities (minutes) |
 |---|---|
-| 1. Autoencoders and variational autoencoders | Read sections 1-2: the map of the families and the shared toolkit; autoencoders and anomaly detection (27); Exercise e1: what an unconstrained autoencoder learns (5); Read section 3: variational autoencoders (27); Exercise e2: the ELBO two ways and the Gaussian KL (12); Lab 1: autoencoders, a VAE and an anomaly detector on 8x8 digits (40); Exercise e3: diagnosing partial posterior collapse (5) |
-| 2. Adversarial and diffusion models | Read section 4: generative adversarial networks (15); Exercises e4-e5 (15); Read section 5: diffusion, the forward process and the training objective (with the diffusion explorer) (26); Exercise e6: derive the closed-form forward process (10); Read section 6: sampling, guidance, latent diffusion and cost (17); Lab 2: a diffusion model on two moons, with classifier-free guidance (45) |
-| 3. Diffusion in the original; graph networks | Exercise e7: a schedule that stops short of pure noise (10); Guided reading: Ho, Jain and Abbeel (2020), DDPM (20); Read sections 7-8: message passing, the GCN, attention, depth limits (with the message-passing explorer) (38); Lab 3: a GCN from scratch for single points of failure in fault trees (35); Guided reading: Kipf and Welling (2017), GCN (12) |
-| 4. Physics-informed networks and operators | Exercises e8-e10 (20); Read sections 9-10: physics-informed networks; neural operators and surrogates (35); Lab 4: a physics-informed network for a damped oscillator (40); Exercises e11-e12 (e12 extends the Lab 4 code to the heat equation) (35) |
-| 5. Representations, routing and choosing | Guided reading: Raissi, Perdikaris and Karniadakis (2019), PINNs (13); Read section 11: contrastive and self-supervised learning (14); Lab 5: contrastive pretraining on unlabelled vibration signals (30); Read sections 12-13 and 'What goes wrong': mixture of experts, choosing a family, failure modes (26); Exercises e13-e15 (15); Self-check quiz (15); Summary and review: the choosing table, the 14 failure modes, the outcomes list (10) |
+| 1. Autoencoders and variational autoencoders | Read Sections 1–2: the map of the families with their shared toolkit, then autoencoders and anomaly detection. (27); Exercise 1: what an unconstrained autoencoder learns. (5); Read Section 3: variational autoencoders, the ELBO and the reparameterisation trick. (27); Exercise 2: the ELBO two ways and the Gaussian KL. (12); Lab 1: autoencoders, a VAE and an anomaly detector on 8×8 digits. (40); Exercise 3: diagnosing partial posterior collapse. (5) |
+| 2. Adversarial and diffusion models | Read Section 4: generative adversarial networks. (15); Exercises 4–5: the optimal discriminator and the Jensen–Shannon divergence, and how to detect mode collapse. (15); Read Section 5 with the diffusion explorer: the forward process and the training objective. (26); Exercise 6: derive the closed-form forward process. (10); Read Section 6: sampling, guidance, latent diffusion and cost. (17); Lab 2: a diffusion model on two moons, with classifier-free guidance. (45) |
+| 3. Diffusion in the original; graph networks | Exercise 7: a schedule that stops short of pure noise. (10); Guided reading: Ho, Jain and Abbeel (2020), "Denoising diffusion probabilistic models". (20); Read Sections 7–8 with the message-passing explorer: message passing and the GCN, then attention, depth limits and engineering graphs. (38); Lab 3: a GCN from scratch for single points of failure in fault trees. (35); Guided reading: Kipf and Welling (2017), "Semi-supervised classification with graph convolutional networks". (12) |
+| 4. Physics-informed networks and operators | Exercises 8–10: over-smoothing on a star graph, the baseline for finding basic events, and two graphs message passing cannot tell apart. (20); Read Sections 9–10: physics-informed networks, then neural operators and surrogate models. (35); Lab 4: a physics-informed network for a damped oscillator, its failure, two fixes and an inverse problem. (40); Exercises 11–12: the residual of a trial solution, and Lab 4's code extended to the heat equation. (35) |
+| 5. Representations, routing and choosing | Guided reading: Raissi, Perdikaris and Karniadakis (2019), "Physics-informed neural networks". (13); Read Section 11: contrastive and self-supervised learning. (14); Lab 5: contrastive pretraining on unlabelled vibration signals. (30); Read Sections 12–13 and What goes wrong: mixture of experts, choosing a family, and the failure modes. (26); Exercises 13–15: choosing a family and its baseline, safe augmentations, and the load-balancing term. (15); Self-check quiz of 12 questions. (15); Review the summary, the what-goes-wrong list and the key terms, and return to any check you missed. (10) |
 
 **Concept sections.**
 
@@ -912,10 +912,10 @@ Autoencoders and VAEs, GANs, diffusion models, graph networks, physics-informed 
 | Lab | Minutes | CPU run | Download | Goal |
 |---|---|---|---|---|
 | lab1: Autoencoders, a VAE and an anomaly detector on 8x8 digits | 40 | ~2 min | none | Compare a nonlinear autoencoder with PCA, train the source's VAE and inspect its latent space, cause posterior collapse on purpose, and build a reconstruction-error anomaly … |
-| lab2: A diffusion model on two moons, with classifier-free guidance | 45 | ~3 min | none | Implement the DDPM forward process, train a noise-prediction network on 2D data, sample with the reverse process and with DDIM, and measure what classifier-free guidance and the … |
-| lab3: A graph convolutional network from scratch: single points of failure in fault trees | 35 | ~2 min | none | Build the normalised adjacency and message passing by hand, train GCNs of increasing depth to find single points of failure in synthetic fault trees, compare them with honest … |
+| lab2: A diffusion model on two moons, with classifier-free guidance | 45 | ~2 min | none | Implement the DDPM forward process, train a noise-prediction network on 2D data, sample with the reverse process and with DDIM, and measure what classifier-free guidance and the … |
+| lab3: A graph convolutional network from scratch: single points of failure in fault trees | 35 | ~3 min | none | Build the normalised adjacency and message passing by hand, train GCNs of increasing depth to find single points of failure in synthetic fault trees, compare them with honest … |
 | lab4: A physics-informed network for a damped oscillator: forward, failure, fixes and an inverse problem | 40 | ~3 min | none | Train a PINN on an ODE with a known exact solution, reproduce the trivial-solution failure, fix it three ways, and recover an unknown damping ratio from twelve noisy readings, … |
-| lab5: Contrastive pretraining on unlabelled vibration signals | 30 | ~1 min | none | Pretrain an encoder with InfoNCE on unlabelled machine-vibration windows, measure with a linear probe how much it helps when only a few faults are labelled, compare it with raw … |
+| lab5: Contrastive pretraining on unlabelled vibration signals | 30 | ~2 min | none | Pretrain an encoder with InfoNCE on unlabelled machine-vibration windows, measure with a linear probe how much it helps when only a few faults are labelled, compare it with raw … |
 
 **Exercises** (15: 8 ★, 6 ★★, 1 ★★★; 127 minutes).
 

@@ -1,4 +1,5 @@
 """Write PLAN.md: a readable plan of the AI series from the ten module outlines, with production status."""
+import datetime
 import json
 import os
 import re
@@ -7,6 +8,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # task completion markers: done/ while a workflow runs, notes/task-reports/ in the repo
 DONE_DIR = os.path.join(ROOT, "done") if os.path.isdir(os.path.join(ROOT, "done")) else os.path.join(ROOT, "notes", "task-reports")
 DONE = set(f[:-5] for f in os.listdir(DONE_DIR))
+# a module whose pages are on the site in both languages has finished every stage
+SITE = os.path.join(ROOT, "..", "..", "docs", "tutorials", "ai")
+
+
+def published(n):
+    return all(os.path.isfile(os.path.join(SITE, f"module_{n:02d}_{l}.html")) for l in ("EN", "ZH"))
 
 
 def esc(s):
@@ -78,7 +85,7 @@ for p in plans:
       f"{len(p['exercises'])} | {len(p['quiz'])} | {len(p['papers'])} | {len(p.get('widgets', []))} | {figs} |")
 
 w("")
-w("## 2. Production status (3 October 2026)")
+w(f"## 2. Production status ({datetime.date.today().day} {datetime.date.today():%B %Y})")
 w("")
 stages = [("EN parts", "write"), ("edited", "edit"), ("figures", "fig"), ("widgets", "widget"),
           ("labs run", "labs"), ("tech review", "review"), ("EN QA", "qa-en"), ("中文 parts", "zh-"),
@@ -91,6 +98,9 @@ for p in plans:
     parts = sorted(os.listdir(d)) if os.path.isdir(d) else []
     cells = []
     for _, key in stages:
+        if published(n) and key != "write":
+            cells.append("✓")
+            continue
         if key == "write":
             cells.append(f"{len(parts)}/7")
             continue
@@ -102,8 +112,9 @@ for p in plans:
 w("")
 nfig = len([f for f in os.listdir(os.path.join(ROOT, "src", "figures", "en")) if f.endswith(".svg")])
 nwid = len([f for f in os.listdir(os.path.join(ROOT, "src", "widgets")) if f.endswith(".js")])
-w(f"Figures drawn so far: {nfig}, each also in Chinese. Widgets built: {nwid} of 20. English prose words "
-  "exclude code and maths and include labs, exercises and solutions.")
+w(f"Figures drawn so far: {nfig}, each also in Chinese. Widget files: {nwid} of 20. English prose words "
+  "exclude code and maths and include labs, exercises and solutions. A module published on the site in both "
+  "languages is marked done at every stage.")
 
 w("")
 w("## 3. The modules")

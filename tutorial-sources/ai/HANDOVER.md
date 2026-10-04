@@ -3,6 +3,10 @@
 How to continue the tutorial series **From Machine Learning to Large Language Models** from where
 it stands. Read this first, then `PLAN.md`.
 
+**In short (4 October 2026):** Modules 01–05 are finished in English and Chinese and live at
+<https://wrwei.github.io/tutorials/ai/>. Modules 06–08 are partly written; 09–10 are not started.
+The next job is Module 06 (the transformer), which Modules 07–10 build on (section 10).
+
 ## 1. What the series is
 
 Ten modules, each a self-study unit of about ten hours, expanding ten concise tutorials kept in the
@@ -11,7 +15,7 @@ derivations and worked examples, runnable labs whose printed outputs come from r
 exercises with full solutions, a 12-question quiz, guided paper reading, figures and two interactive
 widgets. Every module is published in English and Simplified Chinese.
 
-The pages will be published at `docs/tutorials/ai/` of this site (built HTML, in the same visual
+The pages are published at `docs/tutorials/ai/` of this site (built HTML, in the same visual
 style as the SysML v2, MBSE and AI Agents series), with a card on `docs/tutorials/index.md`. This
 folder (`tutorial-sources/ai/`) holds the sources and the tools; it is outside `docs/`, so MkDocs
 does not publish it.
@@ -36,9 +40,9 @@ does not publish it.
 | `src/widgets/` | Interactive demos (JavaScript), one file per widget |
 | `src/assets/` | Page stylesheet, page script, widget framework |
 | `labs/plots/`, `labs/module_NN/*.plots.json` | Plots captured from lab runs and where they go on the page |
-| `tools/` | Build, validation, lab runner, rendering and testing tools (section 4) |
+| `tools/` | Build, validation, lab runner, rendering and testing tools, and `live-check.mjs` for the live site (section 4) |
 
-## 3. Status (3 October 2026; Modules 01–05 published)
+## 3. Status (4 October 2026; Modules 01–05 published and live)
 
 | Module | English | Chinese |
 |---|---|---|
@@ -55,11 +59,22 @@ does not publish it.
 | Index page | `src/en/index.md` written | `src/zh/index.md` written |
 
 Modules 01–05 are published at `docs/tutorials/ai/` (built with `--modules 1,2,3,4,5`), with the
-series card on `docs/tutorials/index.md`. When another module is finished, rebuild with its number
-added to `--modules`.
+series card on `docs/tutorials/index.md`, and went live through PRs #3 (Modules 01–04) and #4
+(Module 05). Both language pages of every published module were checked on the live site with
+`tools/live-check.mjs`: no KaTeX errors, no untypeset maths, no broken images, widgets present, no
+page script errors. When another module is finished, rebuild with its number added to `--modules`.
+
+What exists for the unfinished modules: Module 06 has drafts of its two widgets
+(`attention-calculator.js`, `rope-explorer.js`) and Module 07 one (`bpe-merge-stepper.js`), none of
+them tested yet. All ten outlines in `plan/` are complete, so Modules 09 and 10 can be written from
+their outlines.
 
 Lab environment note: the Module 04 and 05 labs were re-run with PyTorch 2.14.1, NumPy 2.4.6 and
-scikit-learn 1.9.1 (CPU, 4 threads), and their outputs and prose now match that environment.
+scikit-learn 1.9.1 (CPU, 4 threads), and their outputs and prose now match that environment. Use
+these versions for new modules too, so that all printed outputs come from one environment. Module
+05's Lab 3 calls `torch.set_num_threads(1)`, because multithreaded `index_add_` changes the
+summation order and so the results from run to run; do the same in any lab that scatters or adds by
+index.
 Modules 01–03 still show the outputs of the environment they were verified in; a re-run with
 current packages may print different digits.
 
@@ -76,6 +91,9 @@ python -m venv .venv
 .venv/Scripts/pip install torch --index-url https://download.pytorch.org/whl/cpu   # .venv/bin/pip on macOS/Linux
 .venv/Scripts/pip install -r tools/requirements-labs.txt
 ```
+
+If `download.pytorch.org` is not reachable (as in Claude Code cloud sessions), `pip install torch`
+from PyPI works too; on Linux it pulls CUDA libraries, which are large but harmless on a CPU.
 
 `tools/labpy.sh` runs Python in that environment (or in `$AIS_PYTHON`) with the settings the labs
 assume (non-interactive plots, four threads, the Hugging Face cache in `.hf/`). Rendering checks need
@@ -128,8 +146,8 @@ For each module, in this order. Each step names the guide that governs it.
 ## 6. Publishing
 
 1. Translate `src/en/index.md` into `src/zh/index.md`.
-2. Build into the site: `node tools/build.mjs --out ../../docs/tutorials/ai --modules 1,2,3,4` with
-   the finished modules. `--modules` builds those modules in both languages, lists only them on the
+2. Build into the site: `node tools/build.mjs --out ../../docs/tutorials/ai --modules 1,2,3,4,5,6`
+   with the finished modules. `--modules` builds those modules in both languages, lists only them on the
    index pages, links each page's previous/next to the nearest published module, and turns links
    into unpublished modules into plain text, so no page links to a missing file. Without
    `--modules` it builds every module that has parts.
@@ -148,7 +166,11 @@ For each module, in this order. Each step names the guide that governs it.
 
 4. Check with the real site build from the repository root: `pip install -r requirements.txt` then
    `mkdocs build`, and open `site/tutorials/ai/index.html`.
-5. Commit and push.
+5. Commit, push the working branch, open a pull request and merge it into `main`. Every push to
+   `main` runs `.github/workflows/deploy.yml` (`mkdocs gh-deploy`), and the pages are live about a
+   minute later.
+6. Check the live pages: `node tools/live-check.mjs module_06_EN module_06_ZH index index_ZH`
+   (it exits non-zero on any problem).
 
 ## 7. Open issues and decisions
 
@@ -161,8 +183,20 @@ For each module, in this order. Each step names the guide that governs it.
    reordering figures leaves no gaps and ids never change (`SPEC.md`, section on figures).
    `check.mjs` warns about a reference whose figure is not on the page; Module 06 cites Figures
    6.19, 6.23 and 6.24 from sections not yet written.
-3. **Unverified files**: `src/en/module_05/20-labs-a.md` was written but never run through
-   `labrun.py`; the partial Module 06 lab files need finishing and running.
+3. **Loose ends in finished modules** (none block anything):
+   - Modules 01–03 lab outputs come from an older environment (section 3); re-running them with
+     `labrun.py --update` may change printed digits, and the prose that quotes them would then need
+     reconciling, as was done for Modules 04 and 05.
+   - Module 05, Lab 4: at a fixed learning rate the physics-informed network's error oscillates near
+     the end (0.0004 at 7,500 steps, 0.0073 at 10,000); the text says so. A decaying learning rate
+     would settle it, but would change every Lab 4 number quoted in the text.
+   - Exercise solutions' output fences are not executed by `labrun.py`; re-check them by hand after a
+     package upgrade.
+   - `plan/module_05.json` still has outdated planning numbers in fields the build does not display.
+   - Mamba (Gu and Dao) is cited by its arXiv number; its COLM 2024 publication was not confirmed.
+   - Many figure captions describe the drawing's layout as well as its content; a style choice,
+     left as is.
+   - The partial Module 06 lab files need finishing and running.
 4. **Paper details** (checked). The guided-reading notes and the concept text's pointers into papers
    were checked against the papers; eleven statements were corrected (`notes/task-reports/paper-check.json`).
    Four sources were not reachable and were checked against preprints or secondary sources only:
@@ -176,7 +210,9 @@ For each module, in this order. Each step names the guide that governs it.
 
 ## 8. Continuing with Claude Code
 
-`tools/workflows/ai-series-build.js` is the workflow script that produced Modules 01–05. It runs,
+`tools/workflows/ai-series-build.js` is the workflow script that produced Modules 01–02 and the
+drafts of 03–05 (Modules 03–05 were finished in later sessions by single agents following section 5,
+and their reports in `notes/task-reports/` use coarser keys such as `m05-qa-zh`). It runs,
 per module and at a capped concurrency: the missing writer parts, the editor, then figures, widgets,
 lab verification and a technical review in parallel, then English QA, translation and Chinese QA.
 Each task records a completion marker in `done/<task-key>.json` (for example `m05-edit`), so a
@@ -184,7 +220,39 @@ stopped run resumes without repeating finished tasks. To reuse it, set `WS` in t
 folder, copy `notes/task-reports/*.json` into `done/`, and pass the remaining modules as arguments
 (the `missing` parts per module, as in section 3).
 
-## 9. The next series
+## 9. Working in a Claude Code cloud session
+
+Modules 03–05 were finished in Claude Code cloud sessions. What that environment needed:
+
+- **Network.** The session's allowed domains must include the paper hosts listed in
+  `notes/PAPER-CHECK.md` for checking papers, and `wrwei.github.io` for checking the live site.
+  `download.pytorch.org` and the jsDelivr KaTeX CDN were blocked: install torch from PyPI (section 4);
+  `tools/live-check.mjs` serves KaTeX from `tools/node_modules` when the CDN fails, and for local
+  rendering checks point the page at that copy.
+- **TLS proxy.** Outbound HTTPS goes through an intercepting proxy. Chromium needs its CA's SPKI hash,
+  passed to `live-check.mjs` in `LIVE_SPKI`; do not disable certificate checks.
+- **Chromium** is at `/opt/pw-browsers/chromium`; set `CHROME_PATH` to it.
+- **Parallel agents** must each write to their own scratch folder; shared scratch files were
+  overwritten when two translators ran at once. Check each translated part's section ids against the
+  English (`check.mjs` parity) before trusting it.
+- **Commits.** The session's stop hook asks for every change to be committed and pushed, so unfinished
+  work was committed with "WIP" in the message; the PRs were squash-merged to keep `main` clean.
+- **Labs** take a few minutes each on 4 CPU threads; Module 05's Lab 3 once hit the runner's 900 s
+  timeout while other agents competed for the CPU, so run labs when the machine is otherwise quiet.
+
+## 10. Next steps, in order
+
+1. **Module 06, the transformer** (English): write parts 12, 30 and 40 and the missing Labs 2, 3, 5
+   and 6; run every lab; then the rest of section 5 (edit, figures, test the two widget drafts,
+   technical review, QA), the Chinese translation, and publish with `--modules 1,2,3,4,5,6`.
+   `check.mjs` already warns about Figures 6.19, 6.23 and 6.24, cited from sections not yet written.
+2. **Module 07** and **Module 08** the same way, from their partial parts.
+3. **Modules 09 and 10** from their outlines.
+4. Optional: the loose ends in section 7, item 3.
+5. Before calling the series done: decide on length (section 7, item 1), then update the series card
+   and the index pages, which say Modules 06–10 are in preparation (the build writes that note).
+
+## 11. The next series
 
 The scope of the next series, **Mathematical Foundations for AI** (ten modules in the same format,
 starting from school algebra and first-year calculus), was agreed on 1 October 2026 and is in
