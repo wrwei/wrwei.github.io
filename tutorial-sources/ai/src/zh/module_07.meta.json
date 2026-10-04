@@ -1,0 +1,355 @@
+{
+  "title": "大语言模型",
+  "lead": "大语言模型计算什么，如何用数字分析它：下一 token 目标及其单位、分词、缩放定律、提示与解码、上下文窗口、失败机制、模型能力声明的评估，以及运行成本。一个约 9.5B 参数的假想双语模型，用于起草和检查安全案例论证，贯穿本模块并延续到模块 08–10。",
+  "prerequisites": [
+    "模块 06（Transformer）：注意力、因果掩码、现代解码器块、参数计数、FLOP 规则（每 token、每矩阵乘法权重，前向 2 FLOP，训练 6 FLOP，另加注意力）以及 KV cache",
+    "模块 01：最大似然和交叉熵；校准与期望校准误差（第 7 节）；可信评估、泄漏、标准误、配对 bootstrap 和 McNemar 检验（第 10 节）",
+    "模块 02：softmax、数值稳定的 log-softmax、AdamW 和学习率调度（用于缩放定律实验）",
+    "概率：离散分布的熵、期望、方差，以及二项分布标准误",
+    "微积分：通过代入法，在约束下最小化二元函数",
+    "Python、NumPy 和 PyTorch 张量操作，达到模块 06 代码的程度"
+  ],
+  "outcomes": [
+    "在奈特、比特、困惑度和每字节比特数之间换算语言模型损失，解释为何不能比较不同分词器下的每 token 困惑度。",
+    "在六词语料上手算训练 BPE，用学到的合并编码新词，预测分词器训练混合如何改变英文和中文的 token 数。",
+    "用缩放定律的近似计数 C_6 = 6ND 推导最优 N、D 分配，计算已发表的拟合常数，并区分该近似与模块 06 考虑架构的训练计算量。",
+    "计算在更多 token 上训练的较小模型何时比计算最优模型具有更低生命周期成本，并解释精确匹配指标为何会使平滑改善看似涌现。",
+    "基于模型 logits 实现贪心、温度、top-k、top-p 和 min-p 解码，推导 dH/dτ = Var_p(z)/τ³，为结构化产物和开放文本选择设置。",
+    "可信地测量少样本准确率，考察示例数量、顺序、标签以及模型所需聊天模板的影响。",
+    "估算请求上下文的 token 数、KV cache 内存和预填充 FLOP，并判断指令应放在何处。",
+    "从机制解释幻觉、校准不足、知识截止、迎合和提示注入，并设计确定性检查及模型周围的信任边界。",
+    "为基准比较计算置信区间并做配对检验，对已发表的能力声明提出五个关键问题。",
+    "用内存带宽估计单流解码速度上限，推导每百万 token 的成本，比较案例研究中的 API 与专用 GPU。"
+  ],
+  "software": [
+    "Python 3.11+",
+    "PyTorch 2.x（CPU 版本即可；Google Colab 提供免费 GPU 选项）",
+    "NumPy、SciPy、matplotlib",
+    "Hugging Face transformers 和 tokenizers（本系列环境使用 5.x；4.x 的差异见 writer_notes）",
+    "tiktoken（可选，仅用于实验 2 中标为 norun 的补充代码，正文数值均不依赖它）",
+    "下载：HuggingFaceTB/SmolLM2-135M（269 MB）、Qwen/Qwen2.5-0.5B-Instruct（988 MB）、gpt2 分词器文件（2.9 MB）"
+  ],
+  "title_em": "语言模型",
+  "sessions": [
+    {
+      "n": 1,
+      "title": "语言模型计算什么、读取什么",
+      "activities": [
+        {
+          "what": "阅读第 1 节：下一 token 目标、单位和贯穿案例",
+          "kind": "read",
+          "minutes": 19,
+          "refs": [
+            "s1"
+          ]
+        },
+        {
+          "what": "实验 1：SmolLM2-135M 对七类文本的困惑度",
+          "kind": "lab",
+          "minutes": 30,
+          "refs": [
+            "lab1"
+          ]
+        },
+        {
+          "what": "阅读第 2 节，逐步操作 BPE 合并组件",
+          "kind": "read",
+          "minutes": 21,
+          "refs": [
+            "s2"
+          ]
+        },
+        {
+          "what": "实验 2：从头实现 BPE，比较三个分词器处理英文和中文",
+          "kind": "lab",
+          "minutes": 40,
+          "refs": [
+            "lab2"
+          ]
+        },
+        {
+          "what": "练习 1–2：手算 BPE 与数字分词策略",
+          "kind": "exercises",
+          "minutes": 10,
+          "refs": [
+            "e1",
+            "e2"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "title": "实际分词与缩放定律",
+      "activities": [
+        {
+          "what": "阅读第 3 节：实际分词",
+          "kind": "read",
+          "minutes": 15,
+          "refs": [
+            "s3"
+          ]
+        },
+        {
+          "what": "练习 3–4：译文的比特成本与双语上下文窗口",
+          "kind": "exercises",
+          "minutes": 20,
+          "refs": [
+            "e3",
+            "e4"
+          ]
+        },
+        {
+          "what": "阅读第 4 节：从 Kaplan 到 Chinchilla 的缩放定律",
+          "kind": "read",
+          "minutes": 22,
+          "refs": [
+            "s4"
+          ]
+        },
+        {
+          "what": "实验 3：在合成实验上拟合 Chinchilla 定律",
+          "kind": "lab",
+          "minutes": 30,
+          "refs": [
+            "lab3"
+          ]
+        },
+        {
+          "what": "阅读第 5 节：过度训练与涌现",
+          "kind": "read",
+          "minutes": 13,
+          "refs": [
+            "s5"
+          ]
+        },
+        {
+          "what": "练习 5–7：平滑曲线与涌现、案例预算的计算最优分配、损失预测及达到目标的最小模型",
+          "kind": "exercises",
+          "minutes": 25,
+          "refs": [
+            "e5",
+            "e6",
+            "e7"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "title": "提示与解码",
+      "activities": [
+        {
+          "what": "阅读第 6 节：上下文学习、提示与聊天格式",
+          "kind": "read",
+          "minutes": 15,
+          "refs": [
+            "s6"
+          ]
+        },
+        {
+          "what": "实验 4：Qwen2.5-0.5B-Instruct 的聊天模板与上下文学习",
+          "kind": "lab",
+          "minutes": 35,
+          "refs": [
+            "lab4"
+          ]
+        },
+        {
+          "what": "阅读第 7 节，操作采样探索组件",
+          "kind": "read",
+          "minutes": 22,
+          "refs": [
+            "s7"
+          ]
+        },
+        {
+          "what": "阅读第 8 节：确定性、结构化输出与每 token 成本",
+          "kind": "read",
+          "minutes": 11,
+          "refs": [
+            "s8"
+          ]
+        },
+        {
+          "what": "实验 5：在 SmolLM2-135M 上从头实现采样",
+          "kind": "lab",
+          "minutes": 35,
+          "refs": [
+            "lab5"
+          ]
+        },
+        {
+          "what": "练习 8：解读少样本结果",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e8"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "title": "上下文窗口及模型的局限",
+      "activities": [
+        {
+          "what": "练习 9–10：熵与温度、截断支持集、温度为 0 时的变化",
+          "kind": "exercises",
+          "minutes": 15,
+          "refs": [
+            "e9",
+            "e10"
+          ]
+        },
+        {
+          "what": "论文导读：Holtzman 等（2020）的核采样论文",
+          "kind": "papers",
+          "minutes": 20,
+          "refs": [
+            "reading"
+          ]
+        },
+        {
+          "what": "阅读第 9 节：上下文窗口",
+          "kind": "read",
+          "minutes": 14,
+          "refs": [
+            "s9"
+          ]
+        },
+        {
+          "what": "练习 11：长请求中的指令位置与 KV cache",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e11"
+          ]
+        },
+        {
+          "what": "阅读第 10 节：幻觉、校准与知识截止",
+          "kind": "read",
+          "minutes": 15,
+          "refs": [
+            "s10"
+          ]
+        },
+        {
+          "what": "练习 12：惩罚错误答案的评分规则",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e12"
+          ]
+        },
+        {
+          "what": "阅读第 11 节：推理局限、迎合与提示注入",
+          "kind": "read",
+          "minutes": 15,
+          "refs": [
+            "s11"
+          ]
+        },
+        {
+          "what": "练习 13：提示注入小项目及其信任边界",
+          "kind": "exercises",
+          "minutes": 25,
+          "refs": [
+            "e13"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "title": "评估能力声明、模型概况与成本",
+      "activities": [
+        {
+          "what": "阅读第 12 节：评估能力声明",
+          "kind": "read",
+          "minutes": 17,
+          "refs": [
+            "s12"
+          ]
+        },
+        {
+          "what": "练习 14–15：五个问题、区间与配对检验",
+          "kind": "exercises",
+          "minutes": 15,
+          "refs": [
+            "e14",
+            "e15"
+          ]
+        },
+        {
+          "what": "阅读第 13 节：注明时间的模型概况",
+          "kind": "read",
+          "minutes": 8,
+          "refs": [
+            "s13"
+          ]
+        },
+        {
+          "what": "阅读第 14 节：从基本原理估算成本及案例账单",
+          "kind": "read",
+          "minutes": 17,
+          "refs": [
+            "s14"
+          ]
+        },
+        {
+          "what": "实验 6：案例研究成本计算器",
+          "kind": "lab",
+          "minutes": 20,
+          "refs": [
+            "lab6"
+          ]
+        },
+        {
+          "what": "论文导读：Hoffmann 等（2022）的 Chinchilla 论文，作为待评估的声明阅读",
+          "kind": "papers",
+          "minutes": 25,
+          "refs": [
+            "reading"
+          ]
+        },
+        {
+          "what": "自测题",
+          "kind": "quiz",
+          "minutes": 15,
+          "refs": [
+            "quiz"
+          ]
+        },
+        {
+          "what": "总结与回顾：一页整理模块公式、数值及常见错误",
+          "kind": "review",
+          "minutes": 10,
+          "refs": [
+            "wrong"
+          ]
+        }
+      ]
+    }
+  ],
+  "labs": [
+    {
+      "title": "困惑度：损失能告诉我们什么"
+    },
+    {
+      "title": "从头实现 BPE，比较英文与中文的三个分词器"
+    },
+    {
+      "title": "拟合 Chinchilla 缩放定律"
+    },
+    {
+      "title": "提示小型指令模型：聊天模板与上下文学习"
+    },
+    {
+      "title": "从头实现采样"
+    },
+    {
+      "title": "案例研究成本计算器"
+    }
+  ]
+}

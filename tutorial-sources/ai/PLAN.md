@@ -27,9 +27,9 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 | 03 | Convolutional networks | 616 | 14 | 6 | 15 | 12 | 2 | 2 | 38 |
 | 04 | Recurrent networks and sequences | 620 | 13 | 5 | 15 | 12 | 3 | 2 | 21 |
 | 05 | Other networks worth knowing | 612 | 13 | 5 | 15 | 12 | 3 | 2 | 29 |
-| 06 | The transformer | 622 | 12 | 6 | 15 | 12 | 3 | 2 | 25 |
-| 07 | Large language models | 609 | 14 | 6 | 15 | 12 | 2 | 2 | 21 |
-| 08 | LLM pretraining | 627 | 14 | 5 | 15 | 12 | 3 | 2 | 22 |
+| 06 | The transformer | 622 | 12 | 6 | 15 | 12 | 3 | 2 | 18 |
+| 07 | Large language models | 609 | 14 | 6 | 15 | 12 | 2 | 2 | 13 |
+| 08 | LLM pretraining | 627 | 14 | 5 | 15 | 12 | 3 | 2 | 14 |
 | 09 | LLM post-training | 621 | 14 | 6 | 15 | 12 | 3 | 2 | 21 |
 | 10 | Inference and serving | 615 | 13 | 6 | 15 | 12 | 3 | 2 | 18 |
 
@@ -42,13 +42,13 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 | 03 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 39,478 |
 | 04 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 39,370 |
 | 05 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 38,930 |
-| 06 | 4/7 | – | – | – | – | – | – | – | – | 15,332 |
-| 07 | 2/7 | – | – | – | – | – | – | – | – | 12,365 |
-| 08 | 2/7 | – | – | – | – | – | – | – | – | 10,349 |
+| 06 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 24,351 |
+| 07 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 24,506 |
+| 08 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 21,799 |
 | 09 | 0/7 | – | – | – | – | – | – | – | – | 0 |
 | 10 | 0/7 | – | – | – | – | – | – | – | – | 0 |
 
-Figures drawn so far: 89, each also in Chinese. Widget files: 13 of 20. English prose words exclude code and maths and include labs, exercises and solutions. A module published on the site in both languages is marked done at every stage.
+Figures drawn so far: 134, each also in Chinese. Widget files: 16 of 20. English prose words exclude code and maths and include labs, exercises and solutions. A module published on the site in both languages is marked done at every stage.
 
 ## 3. The modules
 
@@ -962,7 +962,7 @@ This module takes attention apart until you can compute it by hand, differentiat
 - apply the softmax Jacobian diag(p) - p p^T (derived in Module 02) to an attention row, derive the variance argument for 1/sqrt(d_k), and use the two to explain why unscaled attention saturates and learns slowly.
 - push a gradient back through one attention row by hand and check it against autograd.
 - track the shape of every tensor through multi-head and grouped-query attention, from (B, T, d) to (B, h, T, d_k) and back, and explain the residual-stream view of a transformer.
-- write the pre-norm block in equations and code, and explain why it trains stably at depth where post-norm needs a learning-rate warmup.
+- write the pre-norm block in equations and code, and explain why its identity path often reduces warmup requirements, while learning rate, depth and initialisation still affect stability.
 - prove that RoPE makes the attention score depend on positions only through t - s, implement it, and verify the property numerically.
 - derive the online softmax and implement tiled (FlashAttention-style) attention that matches naive attention to floating-point rounding without forming the T x T matrix.
 - count the parameters of a decoder from its configuration (12Ld^2 plus embeddings, with GQA and SwiGLU corrections), reproducing published model sizes exactly, and its FLOPs under the convention the whole series uses: 2 N_matmul per token plus 4Ldt for attention at context t (2LdT averaged over a causal sequence of length T), three times that for training, and 6N only as a labelled estimate.
@@ -981,7 +981,7 @@ This module takes attention apart until you can compute it by hand, differentiat
 
 **Concept sections.**
 
-- **s1 Drop the recurrence** (14 min). State the two costs of recurrence that the transformer removes, recast attention as a soft dictionary lookup, and name the two things that must be added back. _1 worked example(s), 2 figure(s)._
+- **s1 Drop the recurrence** (14 min). State the two costs of recurrence that the transformer removes, recast attention as a soft dictionary lookup, and name the two things that must be added back. _1 worked example(s), 1 figure(s)._
   - One-paragraph recap of Module 04: Bahdanau attention computes e_{t,j} = v^T tanh(W_s s_{t-1} + W_h h_j), alpha_{t,j} = softmax_j(e_{t,j}), a_t = sum_j alpha_{t,j} h_j;
   - The two costs of recurrence, with numbers: (1) step t needs h_{t-1}, so a 10,000-token training sequence is 10,000 dependent steps whatever the hardware;
   - The trade, as a small table from Vaswani et al.
@@ -1011,7 +1011,7 @@ This module takes attention apart until you can compute it by hand, differentiat
   - Why several heads: one softmax gives each query one distribution;
   - Counting (source): the four projections are d x d, so 4d^2 parameters per layer;
   - … and 3 more points
-- **s5 The block: residuals, normalisation and the feed-forward network** (18 min). Assemble attention and the feed-forward network into a block, explain why pre-norm trains stably, and say what the feed-forward network contributes. _2 worked example(s), 2 figure(s)._
+- **s5 The block: residuals, normalisation and the feed-forward network** (18 min). Assemble attention and the feed-forward network into a block, explain why pre-norm trains stably, and say what the feed-forward network contributes. _2 worked example(s), 1 figure(s)._
   - The pre-norm block (source): X <- X + MHA(Norm(X));
   - Why pre-norm is stable, written out: unrolling pre-norm gives x_L = x_0 + sum_l F_l(Norm(x_l)), so dx_L/dx_l = I + sum_{m >= l} dF_m/dx_l: an identity path carries the …
   - Pre-norm's costs: each layer adds to the stream, so its norm grows with depth and later layers change it proportionally less;
@@ -1019,7 +1019,7 @@ This module takes attention apart until you can compute it by hand, differentiat
   - The FFN (source): applied to each position independently, FFN(x) = W_2 phi(W_1 x), inner width d_ff = 4d in the original, 2 x d x 4d = 8d^2 parameters per layer, twice …
   - The FFN as a key-value memory (Geva et al.
   - … and 1 more points
-- **s6 Position** (26 min). Inject order into a permutation-equivariant operation, derive RoPE with its complex-number proof, and explain at concept level how a trained context is extended. _6 worked example(s), 5 figure(s), widget: rope-explorer._
+- **s6 Position** (26 min). Inject order into a permutation-equivariant operation, derive RoPE with its complex-number proof, and explain at concept level how a trained context is extended. _6 worked example(s), 4 figure(s), widget: rope-explorer._
   - Permutation equivariance (source): shuffle the input rows and the outputs shuffle with them, because Q, K, V are computed row by row and the softmax is applied per row;
   - Sinusoidal encodings (source formula): PE(t, 2i) = sin(t omega_i), PE(t, 2i+1) = cos(t omega_i), omega_i = 10000^(-2i/d);
   - Learned absolute embeddings (source): one trained vector per position (GPT-2: 1,024 positions, a 1,024 x 768 table of 786,432 parameters;
@@ -1041,7 +1041,7 @@ This module takes attention apart until you can compute it by hand, differentiat
   - Inductive bias: no locality or translation equivariance is built in (contrast Module 03's convolutions), so a ViT must learn them from data;
   - Cost: tokens grow with the square of the resolution and attention with the square of the tokens, so doubling the resolution multiplies the attention cost per layer by …
   - Where it is used: CLIP's image encoder (Module 05);
-- **s9 The modern decoder block, part by part** (17 min). Walk through the choices in a current open decoder layer and the reason for each, introducing the KV cache that grouped-query attention exists to shrink. _3 worked example(s), 3 figure(s)._
+- **s9 The modern decoder block, part by part** (17 min). Walk through the choices in a current open decoder layer and the reason for each, introducing the KV cache that grouped-query attention exists to shrink. _3 worked example(s), 1 figure(s)._
   - The source's table kept verbatim (component / choice / reason): normalisation RMSNorm pre-norm (stable at depth, cheaper than layer norm);
   - The KV cache (key-value cache), introduced only (depth in Module 10): when a model generates, each new token's query must attend to the keys and values of every earlier …
   - Grouped-query attention (source;
@@ -1049,7 +1049,7 @@ This module takes attention apart until you can compute it by hand, differentiat
   - No biases, and tied embeddings: the source code ties the input embedding to the output projection, common in small models where the V x d matrix is a large share …
   - Sliding-window attention (source): each position attends only to the last w positions, cost O(Tw) instead of O(T^2);
   - … and 2 more points
-- **s10 FlashAttention and the online softmax** (20 min). Derive the online softmax and show how it lets attention be computed exactly in tiles, without storing the T x T matrix. _3 worked example(s), 2 figure(s)._
+- **s10 FlashAttention and the online softmax** (20 min). Derive the online softmax and show how it lets attention be computed exactly in tiles, without storing the T x T matrix. _3 worked example(s)._
   - Why standard attention is limited by memory traffic, not arithmetic, on a GPU (source): implemented as three steps it writes S (T x T) to the GPU's main memory (HBM), …
   - The size that hurts: for T = 8,192 and h = 32 in bf16, S for one layer is 32 x 8,192^2 x 2 B = 4 GiB, and a backward pass would need P for every layer.
   - Safe softmax: exp(s - m) / sum exp(s - m) with m = max(s) gives the same result and cannot overflow (the example: softmax of (1000, 1001, 1002) computed naively is NaN;
@@ -1129,7 +1129,7 @@ What a large language model computes and how to reason about it with numbers: th
 
 - Convert a language-model loss between nats, bits, perplexity and bits per byte, and explain why per-token perplexities of models with different tokenizers cannot be compared.
 - Train byte-pair encoding by hand on a six-word corpus, encode a new word with the learned merges, and predict how a tokenizer's training mixture changes the token count of English and Chinese text.
-- Use C ≈ 6ND (derived in Module 06) to derive the compute-optimal allocation N_opt(C), D_opt(C) from the Chinchilla parametric law, evaluate it, and explain why the published fit does not reproduce the 20-tokens-per-parameter rule.
+- Use the approximate scaling-law count C_6 = 6ND to derive the optimal N and D allocation, evaluate the published parametric constants, and distinguish that approximation from Module 06's architecture-aware training count.
 - Compute when a smaller model trained on more tokens is cheaper over its life than a compute-optimal one, and explain why exact-match metrics can make a smooth improvement look emergent.
 - Implement greedy, temperature, top-k, top-p and min-p decoding on a model's logits, derive dH/dτ = Var_p(z)/τ³, and choose settings for a structured artifact versus open-ended text.
 - Measure few-shot accuracy honestly: its dependence on the number, order and labels of demonstrations, and the chat template the model expects.
@@ -1181,14 +1181,14 @@ What a large language model computes and how to reason about it with numbers: th
   - Evaluate it honestly.
   - Kaplan against Chinchilla: Kaplan's runs used a learning-rate schedule whose length was not matched to each run, counted non-embedding parameters and stopped at smaller …
   - … and 2 more points
-- **s5 Beyond compute-optimal: over-training and emergence** (13 min). Explain why practice departs from compute-optimal training, and why the loss is predictable while capabilities are not. _3 worked example(s), 2 figure(s)._
+- **s5 Beyond compute-optimal: over-training and emergence** (13 min). Explain why practice departs from compute-optimal training, and why the loss is predictable while capabilities are not. _3 worked example(s)._
   - Compute-optimal is not deployment-optimal (source): lifetime cost ≈ 6N·D for training plus 2N·D_inf for serving D_inf tokens, in Chinchilla's accounting (N the total …
   - Practice: Llama 3's 8B model was trained on about 15T tokens, roughly 1,900 per parameter (Grattafiori et al.
   - Diminishing returns: halving the data term B/D^β takes 2^(1/β) = 11.9 times more tokens with β = 0.28.
   - The data wall: good text is finite.
   - Emergent abilities (Wei et al.
   - Keep the source's conclusion: what is not argued is that the loss curve is the thing to plan around, and Module 08 does.
-- **s6 In-context learning, prompting and the chat format** (15 min). Explain what conditioning on a prompt does, why few-shot learning works and fails, and how chat models are prompted through a template. _3 worked example(s), 1 figure(s)._
+- **s6 In-context learning, prompting and the chat format** (15 min). Explain what conditioning on a prompt does, why few-shot learning works and fails, and how chat models are prompted through a template. _3 worked example(s)._
   - Zero-shot (a description of the task) and few-shot (k demonstrations) in-context learning: the output distribution changes with no gradient step (source).
   - Why it works, as accounts rather than settled facts: the pretraining corpus contains many documents with repeated patterns (lists, question-and-answer pages, tables), …
   - What demonstrations contribute: format and label space matter;
@@ -1196,7 +1196,7 @@ What a large language model computes and how to reason about it with numbers: th
   - Chain of thought (Wei et al.
   - Base versus chat (source): a raw base model continues text rather than answering and 'will as happily continue a question with another question'.
   - … and 3 more points
-- **s7 Decoding: from logits to text** (22 min). Derive what each decoding rule does to the next-token distribution, and choose settings by task. _5 worked example(s), 2 figure(s), widget: sampling-explorer._
+- **s7 Decoding: from logits to text** (22 min). Derive what each decoding rule does to the next-token distribution, and choose settings by task. _5 worked example(s), widget: sampling-explorer._
   - Setup: logits z ∈ R^V and p = softmax(z) at each step;
   - Greedy: take the argmax.
   - Beam search (basics in Module 04): keep the w best partial sequences (w is the beam width) by summed log-probability, with length normalisation.
@@ -1204,7 +1204,7 @@ What a large language model computes and how to reason about it with numbers: th
   - Derive temperature's effect on entropy: with β = 1/τ, log p_i = βz_i − log Z(β), so H = log Z(β) − β E_p[z];
   - Top-k: keep the k most probable tokens and renormalise.
   - … and 5 more points
-- **s8 Determinism, structured output and the cost of each token** (11 min). Explain why temperature 0 is not reproducible in practice, what constrained decoding does and does not guarantee, and why generation is sequential and costly. _1 worked example(s), 1 figure(s)._
+- **s8 Determinism, structured output and the cost of each token** (11 min). Explain why temperature 0 is not reproducible in practice, what constrained decoding does and does not guarantee, and why generation is sequential and costly. _1 worked example(s)._
   - Floating-point addition is not associative: in float32, (1e8 + 1) − 1e8 = 0 but (1e8 − 1e8) + 1 = 1;
   - Batch invariance: kernels choose reduction orders and tilings by tensor shape, so a request's logits can depend on what else is in the batch.
   - Engineering stance: design for non-determinism.
@@ -1212,7 +1212,7 @@ What a large language model computes and how to reason about it with numbers: th
   - Constrained decoding, in one paragraph (source;
   - Stop conditions (source: stop sequences end generation): end-of-sequence or end-of-turn tokens (<\|im_end\|> for Qwen2.5's chat format), stop strings, and max_new_tokens.
   - … and 1 more points
-- **s9 The context window** (14 min). Quantify what a long context costs, and how position and caching change what the model does with it. _2 worked example(s), 2 figure(s)._
+- **s9 The context window** (14 min). Quantify what a long context costs, and how position and caching change what the model does with it. _2 worked example(s)._
   - What is in the context (source): the system prompt, the conversation, retrieved documents, tool results, and the model's own output so far.
   - Length is fixed at training (the maximum position) and extended afterwards with RoPE base scaling and long-document mid-training (Modules 06 and 08).
   - Memory (source: 'long is not free'): the KV cache holds keys and values for every past token in every layer: bytes per token = 2 · L · n_kv · d_head · bytes per value.
@@ -1290,7 +1290,7 @@ What a large language model computes and how to reason about it with numbers: th
 - e14 ★ conceptual, 5 min: (The source's exercise 5.) Take a published claim of the form 'Model X scores 85.2% on benchmark Y, beating model Z'.
 - e15 ★★ calculation, 10 min: On HumanEval's 164 problems model A solves 102 and model B 97.
 
-**Quiz** (12 questions): A model gives the four actual next tokens of a sentence probabilities 0.50, …; Why does byte-level BPE never need an unknown token?; SmolLM2-135M has a per-token perplexity of 25.8 on an English paragraph and 8.4 …; With the published Chinchilla exponents α = 0.34 and β = 0.28, by what factor …; Why are recent 8B models trained on about 15T tokens, far beyond about 20 …; Which statement about the temperature τ is true?; For preset B (safe 0.849, secure 0.036, robust 0.029, reliable 0.022, ...), …; A team sends the same prompt 1,000 times at temperature 0 to a hosted model and …; For the case-study model (36 layers, 8 KV heads of dimension 128, bf16), how …; Which measure actually defends a document summariser against prompt injection?; On GSM8K's 1,319 problems model A solves 943 (71.5%) and model B 903 (68.5%).; An evaluation scores +1 for a correct answer, −1 for a wrong one and 0 for 'I …
+**Quiz** (12 questions): A model gives the four actual next tokens of a sentence probabilities 0.50, …; Why does byte-level BPE never need an unknown token?; SmolLM2-135M has a per-token perplexity of 25.8 on an English paragraph and 8.4 …; With the published Chinchilla exponents α = 0.34 and β = 0.28, by what factor …; Why might a team train an 8B model on 15T tokens, far beyond 20 tokens per …; Which statement about the temperature τ is true?; For preset B (safe 0.849, secure 0.036, robust 0.029, reliable 0.022, ...), …; A model returns different completions for identical requests with sampling …; For the case-study model (36 layers, 8 KV heads of dimension 128, bf16), how …; Which measure actually defends a document summariser against prompt injection?; On GSM8K's 1,319 problems model A solves 943 (71.5%) and model B 903 (68.5%).; An evaluation scores +1 for a correct answer, −1 for a wrong one and 0 for 'I …
 
 **Guided reading.**
 
@@ -1407,7 +1407,7 @@ Everything between a pile of text and a base model: the compute budget, the data
   - Hybrid sharding (HSDP): shard within a node over fast links, replicate across nodes, and all-reduce only each shard's gradients across nodes once per optimiser step.
   - Bandwidths to reason with (typical as of 2026;
   - … and 1 more points
-- **s10 Tensor, pipeline and context parallelism; choosing a layout** (18 min). Split single layers, stacks of layers and long sequences across GPUs, derive what each costs, and combine them into a layout for a given model and cluster. _4 worked example(s), 3 figure(s)._
+- **s10 Tensor, pipeline and context parallelism; choosing a layout** (18 min). Split single layers, stacks of layers and long sequences across GPUs, derive what each costs, and combine them into a layout for a given model and cluster. _4 worked example(s)._
   - Tensor parallelism (Megatron-LM, Shoeybi et al.
   - Sequence parallelism (Korthikanti et al.
   - Pipeline parallelism: layers split into p stages;
@@ -1415,7 +1415,7 @@ Everything between a pile of text and a base model: the compute budget, the data
   - A summary table of communication per GPU at case-study scale: DP all-reduce, 2N elements per optimiser step;
   - Choosing a layout, as a procedure: (1) does the model, with ZeRO over the node and a micro-batch of one sequence, fit with its activations? (2) if FSDP across nodes is …
   - … and 1 more points
-- **s11 What breaks, and how a long run is operated** (16 min). Recognise how a long run fails (numerically, in its data, in its hardware) and set up the checkpoints and monitoring that make each failure recoverable. _3 worked example(s), 1 figure(s)._
+- **s11 What breaks, and how a long run is operated** (16 min). Recognise how a long run fails (numerically, in its data, in its hardware) and set up the checkpoints and monitoring that make each failure recoverable. _3 worked example(s)._
   - Loss spikes: the loss jumps and either recovers or diverges.
   - Divergence: the loss climbs steadily or becomes NaN;
   - NaN and inf: sources (log of zero, division by a zero norm, fp16 overflow, a corrupted input);
@@ -1423,21 +1423,21 @@ Everything between a pile of text and a base model: the compute budget, the data
   - Hardware: GPU failures, nodes dropping out, network and filesystem stalls.
   - Silent data corruption: a device that computes wrong numbers without raising an error (Dixit et al.
   - … and 4 more points
-- **s12 Evaluation during the run, and the base-model checkpoint** (13 min). Decide what to measure while the run is going so that a bad run is caught early, and describe what the finished base model is and is not. _2 worked example(s), 1 figure(s)._
+- **s12 Evaluation during the run, and the base-model checkpoint** (13 min). Decide what to measure while the run is going so that a bad run is caught early, and describe what the finished base model is and is not. _2 worked example(s)._
   - Held-out perplexity per source, every few hundred steps, on data removed from the mixture before training;
   - Downstream tasks for a base model, scored by log-likelihood: for each multiple-choice item compute the sum of log p(option tokens \| context) for each option, optionally …
   - Noise: an accuracy on n items has standard error sqrt(p(1 - p)/n);
   - The scaling-law check: predict the final loss from small runs, or fit L(D) = L_inf + a D^-gamma to the run's own early curve (not Chinchilla's letters, so B stays the …
   - Choosing and averaging checkpoints: evaluate several late checkpoints;
   - The base-model checkpoint (source s9, kept): weights, tokenizer, configuration, training log, data manifest with the decontamination record, evaluation curves.
-- **s13 A small run you can actually do** (11 min). Turn the source's 125M-parameter recipe into a costed plan for one GPU, and connect it to the laptop-scale run of Lab 2. _4 worked example(s), 1 figure(s)._
+- **s13 A small run you can actually do** (11 min). Turn the source's 125M-parameter recipe into a costed plan for one GPU, and connect it to the laptop-scale run of Lab 2. _4 worked example(s)._
   - The source's recipe, kept as a block: data, a public cleaned web corpus (a FineWeb-Edu sample), 2-3B tokens, with a 32k BPE trained on it;
   - The corrected parameter count: with a 32,000-token vocabulary the model has 109.5M parameters (85.0M in the blocks, 24.6M in the tied embedding), not 125M;
   - The cost: 6ND = 1.64 x 10^18 FLOPs, 1.93 x 10^18 with attention at T = 2,048 (+17%);
   - The expected loss: the source's 'about 3.0 nats per token on English web text (perplexity near 20)' kept as an order of magnitude, with two caveats: per-token losses …
   - What Module 06's tiny-GPT Decoder lacks for this run: the data pipeline and a loader with state, the schedule, mixed precision, checkpointing, logging and evaluation, …
   - The laptop version, Lab 2: 5.8M parameters, 2.46M tokens of TinyStories, about 10 minutes on a CPU with QUICK mode in about 3;
-- **s14 Mid-training and continued pretraining** (20 min). Explain the two cheaper relatives of pretraining (annealing on high-quality data with context extension, and continuing a released base model on a domain) and cost, in full, the case study's decision to continue … _4 worked example(s), 2 figure(s)._
+- **s14 Mid-training and continued pretraining** (20 min). Explain the two cheaper relatives of pretraining (annealing on high-quality data with context extension, and continuing a released base model on a domain) and cost, in full, the case study's decision to continue … _4 worked example(s)._
   - Mid-training: a stage between pretraining and post-training on a smaller, higher-quality mixture (more code and mathematics, curated reference text, synthetic …
   - Context extension: pretrain at 4k-8k, then train on long documents at 32k-128k with the RoPE base raised or positions interpolated;
   - Continued pretraining (CPT): start from released base weights and continue next-token training on a domain corpus;
@@ -1465,7 +1465,7 @@ Everything between a pile of text and a base model: the compute budget, the data
 - e4 ★★ derivation, 10 min: Derive the probability that a pair with Jaccard similarity s becomes an LSH candidate with b bands of r rows.
 - e5 ★ conceptual, 5 min: C4's cleaning removed every page containing a curly bracket.
 - e6 ★ conceptual, 5 min: A 2T-token run gives a 15B-token mathematics source 3% of its tokens, so the run sees it four times.
-- e7 ★ conceptual, 5 min: Show that the cross-entropy loss is unchanged when the same constant c is added to every logit, and explain what z-loss adds and why a long bf16 run …
+- e7 ★ conceptual, 5 min: Show common-logit-shift invariance of cross-entropy, derive the z-loss gradient and explain why it can improve numerical stability;
 - e8 ★★ derivation, 10 min: Starting from Delta L_opt(B) = Delta L_max / (1 + B_noise/B), derive the number of steps S and tokens D needed to reach a fixed loss as functions of …
 - e9 ★★ calculation, 10 min: Llama 3 8B's shape (s5): L = 32, d = 4,096, 32 query and 8 KV heads of 128 (h_kv = 1,024), SwiGLU d_ff = 14,336, V = 128,256, untied, 8,030,261,248 …
 - e10 ★ conceptual, 5 min: A pipeline-parallel run with GPipe scheduling spends a third of its time idle in the bubble.

@@ -19,6 +19,9 @@
 <a href="module_03_ZH.html">3 &mdash; 卷积神经网络</a>
 <a href="module_04_ZH.html">4 &mdash; 循环神经网络与序列</a>
 <a href="module_05_ZH.html" class="active">5 &mdash; 其他值得了解的网络</a>
+<a href="module_06_ZH.html">6 &mdash; Transformer</a>
+<a href="module_07_ZH.html">7 &mdash; 大语言模型</a>
+<a href="module_08_ZH.html">8 &mdash; 大语言模型预训练</a>
     </div>
   </div>
   <a href="module_05_EN.html" class="lang-switch" hreflang="en">English</a>
@@ -6360,7 +6363,7 @@ z
 <h3>它为什么好训练，网络长什么样</h3>
 <p>式 (5.6) 是对一个分布固定的目标做普通回归：噪声由训练循环抽取，不会随网络的学习而移动。没有对手，也没有博弈，所以损失虽然在 batch 之间有波动，却稳定下降，并且在整个训练过程中含义不变。这比什么都更能解释扩散模型为何取代了 GAN（<a href="#s4">第 4 节</a>）。</p>
 <p>预测 <span class="math-i">\boldsymbol{\epsilon}</span> 只是携带相同信息的三种选择之一。网络也可以直接预测 <span class="math-i">\mathbf{x}_0</span>，或预测<strong>速度</strong>（velocity）<span class="math-i">\mathbf{v} = \sqrt{\bar\alpha_t}\,\boldsymbol{\epsilon} - \sqrt{1-\bar\alpha_t}\,\mathbf{x}_0</span>（Salimans 和 Ho，2022）。三者都可以通过 (5.4) 互相转换；区别在于对它们取平方误差时各噪声水平的权重不同，因而网络拟合得最好的步也不同。</p>
-<p>对图像而言，<span class="math-i">\boldsymbol{\epsilon}_\theta</span> 是一个输出形状与输入相同的 U-Net（<a href="module_03_ZH.html#s12">模块 03 第 12 节</a>），或一个作用于图像块的 Transformer；在<a href="#lab2">实验 2</a> 中，它是一个作用于两个坐标的小 MLP。时间步通过 <span class="math-i">t</span> 的正弦嵌入输入网络，构造方式与<span class="xref-pending">模块 06 第 6 节</span>的位置编码相同，这样同一个网络可以在每个噪声水平上表现不同。</p>
+<p>对图像而言，<span class="math-i">\boldsymbol{\epsilon}_\theta</span> 是一个输出形状与输入相同的 U-Net（<a href="module_03_ZH.html#s12">模块 03 第 12 节</a>），或一个作用于图像块的 Transformer；在<a href="#lab2">实验 2</a> 中，它是一个作用于两个坐标的小 MLP。时间步通过 <span class="math-i">t</span> 的正弦嵌入输入网络，构造方式与<a href="module_06_ZH.html#s6">模块 06 第 6 节</a>的位置编码相同，这样同一个网络可以在每个噪声水平上表现不同。</p>
 <div class="check"><div class="check-label">检验理解</div>
 <p>为什么训练时可以直接抽取 <span class="math-i">\mathbf{x}_t</span>，而不必运行 <span class="math-i">t</span> 步加噪？</p>
 </div>
@@ -7390,7 +7393,7 @@ L 532.1 273.5
 </div>
 <p>实验 2 在双月数据上请求 1,000 个类别 0 的样本。<span class="math-i">w = 0</span> 时，50% 落在所请求的那个月牙上；<span class="math-i">w</span> = 1、3 和 7 时为 100%。类召回率距离（从类别 0 的数据到样本）在 <span class="math-i">w</span> = 1、3、7 时依次增长为 0.021、0.029、0.043；类精确率距离在 <span class="math-i">w</span> = 0 到 3 时为 0.023、0.014、0.013，在 <span class="math-i">w = 7</span> 时因样本冲过头而变差到 0.020。保真度是用多样性换来的，而 <span class="math-i">w</span> 超过某个值后，保真度也会丢失。</p>
 <h3>潜在扩散</h3>
-<p>像素空间的扩散要在每个像素上多次运行一个大网络。<strong>潜在扩散</strong>（latent diffusion，Rombach 等人，2022）先训练一个自编码器（像 VAE 那样带一个小的 KL 项，并用感知损失和对抗损失保持清晰），把图像压缩成小得多的潜变量。扩散在潜变量上运行；解码器只在最后运行一次。文本条件通过交叉注意力（cross-attention）进入去噪器（从潜变量的各个位置注意文本的 token 嵌入，即<span class="xref-pending">模块 06</span> 的机制）。</p>
+<p>像素空间的扩散要在每个像素上多次运行一个大网络。<strong>潜在扩散</strong>（latent diffusion，Rombach 等人，2022）先训练一个自编码器（像 VAE 那样带一个小的 KL 项，并用感知损失和对抗损失保持清晰），把图像压缩成小得多的潜变量。扩散在潜变量上运行；解码器只在最后运行一次。文本条件通过交叉注意力（cross-attention）进入去噪器（从潜变量的各个位置注意文本的 token 嵌入，即<a href="module_06_ZH.html">模块 06</a> 的机制）。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">潜变量省下了什么</div>
 <p>在 Rombach 等人的一种配置中，<span class="math-i">512 \times 512 \times 3</span> 的图像映射为 <span class="math-i">64 \times 64 \times 4</span> 的潜变量（下采样因子 8，4 个通道）：</p>
 <div class="math-d">512 \times 512 \times 3 = 786{,}432 \text{ 个值}, \qquad 64 \times 64 \times 4 = 16{,}384 \text{ 个值}, \qquad
@@ -7717,7 +7720,7 @@ def propagate(H, i, j, w):
 <div class="math-d">e_{vu} = \operatorname{LeakyReLU}\big(\mathbf{a}^\top[\mathbf{W}\mathbf{h}_v \,\|\, \mathbf{W}\mathbf{h}_u]\big), \qquad
 \alpha_{vu} = \frac{\exp(e_{vu})}{\sum_{k \in \mathcal{N}(v) \cup \{v\}} \exp(e_{vk})}, \qquad
 \mathbf{h}_v' = \phi\Big(\sum_{u \in \mathcal{N}(v) \cup \{v\}} \alpha_{vu}\,\mathbf{W}\mathbf{h}_u\Big),</div>
-<p>其中 <span class="math-i">\|</span> 表示拼接，<span class="math-i">\mathbf{a}</span> 是一个学习得到的向量。多个头并行运行；隐藏层把各头的输出拼接起来，最后一层则取平均。Transformer 层（<span class="xref-pending">模块 06</span>）就是在其 token 构成的完全图上做注意力，再加上位置信息；GAT 则是限制在边上的注意力。</p>
+<p>其中 <span class="math-i">\|</span> 表示拼接，<span class="math-i">\mathbf{a}</span> 是一个学习得到的向量。多个头并行运行；隐藏层把各头的输出拼接起来，最后一层则取平均。Transformer 层（<a href="module_06_ZH.html">模块 06</a>）就是在其 token 构成的完全图上做注意力，再加上位置信息；GAT 则是限制在边上的注意力。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">一个节点的注意力权重</div>
 <p>一个节点有三个邻居，分数为 <span class="math-i">e = (0.5, 1.0, -0.2)</span>；为了让算术简短，略去它的自环。</p>
 <div class="math-d">\exp(e) = (1.6487,\ 2.7183,\ 0.8187), \qquad \text{总和} = 5.1857, \qquad
@@ -8304,7 +8307,7 @@ class FourierLayer1d(nn.Module):
 <p>只有当各类别在增强保持不变的那些方面毫无差别时，增强才会移除任务信息。旋转 180 度会让 6 和 9 成为同一个数字；颜色抖动会移除识别腐蚀所依赖的颜色。在实验 5 中，16 倍的增益范围并没有造成损害（“动手试试”第 1 项：0.956、0.990 和 0.997），因为各类别在谐波比和信噪比上也有差别。要根据任务真实的不变性来选择增强。</p>
 <h3>CLIP、掩码建模，以及其中的教训</h3>
 <p>CLIP（Radford 等人，2021）在 4 亿个图像-说明文字对上同时训练一个图像编码器和一个文本编码器。对一个含 <span class="math-i">B</span> 对的 batch，它构造 <span class="math-i">B \times B</span> 的相似度矩阵，正样本位于对角线上，并对每一行（一张图像对 <span class="math-i">B</span> 条说明文字）和每一列（一条说明文字对 <span class="math-i">B</span> 张图像）应用 InfoNCE，再取两者的平均。零样本分类把“a photo of a {label}”这类提示词嵌入，然后选出最近的那个。这些嵌入为文本到图像模型提供条件，也支撑着许多检索系统；检索增强生成在 <a href="../agent/index.html">AI 智能体</a>系列中讲解。</p>
-<p>另一个分支是<strong>掩码建模</strong>（masked modelling）：遮住输入的一部分，再预测它。BERT 预测被掩码的 token（<span class="xref-pending">模块 06</span>）；掩码自编码器遮住一幅图像 75% 的图像块，再把它们重构出来（He 等人，2022）。下一个 token 预测，即<span class="xref-pending">模块 07</span> 和 <span class="xref-pending">08</span> 的目标，在同样的意义上也是自监督的。</p>
+<p>另一个分支是<strong>掩码建模</strong>（masked modelling）：遮住输入的一部分，再预测它。BERT 预测被掩码的 token（<a href="module_06_ZH.html">模块 06</a>）；掩码自编码器遮住一幅图像 75% 的图像块，再把它们重构出来（He 等人，2022）。下一个 token 预测，即<a href="module_07_ZH.html">模块 07</a> 和 <a href="module_08_ZH.html">08</a> 的目标，在同样的意义上也是自监督的。</p>
 <p>普遍的教训是：一个没有标签的前置任务，可以产生一种能迁移到只有少量标签的任务上的表示。在工程中：先在几个月的无标签传感器日志上做预训练，再在少数几个标注过的故障上拟合分类器；或者把事故报告嵌入，以检索相似的历史案例。</p>
 <div class="check"><div class="check-label">检验理解</div>
 <p>有 <span class="math-i">N</span> 个候选时，InfoNCE 给出的互信息下界最大能达到多少？</p>
@@ -8323,7 +8326,7 @@ class FourierLayer1d(nn.Module):
 <div class="sec-meta">≈ 11 分钟阅读</div>
 <p>稠密网络对每个输入都运行它的全部参数，所以容量和计算量一起增长。<strong>混合专家</strong>（mixture of experts，MoE）把二者分开：保留 <span class="math-i">E</span> 个专家网络和一个小的<strong>路由器</strong>（router），把每个输入送到其中 <span class="math-i">k</span> 个。只有被选中的专家运行。</p>
 <h3>这一层</h3>
-<p>在 Transformer 中（<span class="xref-pending">模块 06 第 5 节</span>），每个块都包含一个前馈网络，即一个对每个 token 的向量单独作用的两层 MLP。MoE 层用 <span class="math-i">E</span> 个这样的 MLP 和一个路由器取代它：</p>
+<p>在 Transformer 中（<a href="module_06_ZH.html#s5">模块 06 第 5 节</a>），每个块都包含一个前馈网络，即一个对每个 token 的向量单独作用的两层 MLP。MoE 层用 <span class="math-i">E</span> 个这样的 MLP 和一个路由器取代它：</p>
 <div class="math-d">\mathbf{y} = \sum_{e \in \text{top-}k(\mathbf{g}(\mathbf{x}))} \tilde g_e(\mathbf{x})\, \mathrm{FFN}_e(\mathbf{x}),
 \qquad \mathbf{g}(\mathbf{x}) = \softmax(\mathbf{W}_r\mathbf{x}),
 \qquad \tilde g_e = \frac{g_e}{\sum_{e' \in \text{top-}k} g_{e'}},</div>
@@ -8450,7 +8453,7 @@ class MoE(nn.Module):
 </div>
 <p><strong>容量</strong>（capacity）是另一个控制手段。每个专家在每个 batch 中最多处理 <span class="math-i">\text{容量因子} \times (\text{token 数}/E)</span> 个 token。溢出的 token 被丢弃：它们跳过这一层，经由残差连接继续传下去。什么都不会报错，所以被丢弃的 token 是一种无声的质量损失；要统计它们。</p>
 <h3>其他难点</h3>
-<p>当专家分布在多个加速器上时，每个 MoE 层都要把 token 送到它们的专家那里再送回来，这需要通信开销；训练在早期也容易不稳定。DeepSeek-V3（总参数 671B，每个 token 激活 37B）把许多细粒度专家与每个 token 都会使用的共享专家结合起来，并通过调整路由得分中每个专家的偏置来均衡负载，不需要辅助损失。截至 2026 年，MoE 是公开资料最充分的那些最大语言模型中的一种常见设计；它在这一规模上的工程实现，包括专家并行，属于<span class="xref-pending">模块 08</span> 的内容。</p>
+<p>当专家分布在多个加速器上时，每个 MoE 层都要把 token 送到它们的专家那里再送回来，这需要通信开销；训练在早期也容易不稳定。DeepSeek-V3（总参数 671B，每个 token 激活 37B）把许多细粒度专家与每个 token 都会使用的共享专家结合起来，并通过调整路由得分中每个专家的偏置来均衡负载，不需要辅助损失。截至 2026 年，MoE 是公开资料最充分的那些最大语言模型中的一种常见设计；它在这一规模上的工程实现，包括专家并行，属于<a href="module_08_ZH.html">模块 08</a> 的内容。</p>
 <p>专家的专门化并不像名字所暗示的那样有语义：Mixtral 的作者报告，没有发现按主题分配专家的明显规律。而且节省的是计算，不是内存。尽管每个 token 只用其中 <span class="math-i">k</span> 个专家，所有专家都必须加载：Mixtral 的 46.7B 个参数按每个 2 字节计约占 93 GB，而一个 13B 的稠密模型只占 26 GB（<span class="xref-pending">模块 10</span>）。</p>
 <div class="check"><div class="check-label">检验理解</div>
 <p>一个模型每层有 8 个专家，每个 token 路由到 2 个。它每个 token 的 FFN 计算量与一个 FFN 只有一个专家大小的稠密模型相比如何？</p>
@@ -11208,7 +11211,7 @@ exact u(0.5, 0.2) = 0.139
 <li>基于 InfoNCE 的<strong>对比学习</strong>是 <span class="math-i">N</span> 个候选上的分类损失，随机猜测时的取值为 <span class="math-i">\log N</span>，所以 <span class="math-i">\log N - \mathcal{L}</span> 最多只能确认 <span class="math-i">\log N</span> 奈特的互信息；数据增强决定表示保留什么，线性探测衡量它换来了什么。</li>
 <li><strong>混合专家</strong>层存储 <span class="math-i">E</span> 个专家，但每个 token 只运行 <span class="math-i">k</span> 个，所以参数随 <span class="math-i">E</span> 增长，计算量随 <span class="math-i">k</span> 增长；路由坍塌用负载均衡损失来对抗，一个模型的总参数和激活参数要分开计算。</li>
 </ul>
-<p>本模块的所有内容，都是在模型、损失或数据中加入结构的方法：瓶颈、噪声过程、图、方程、数据增强、路由器。下一个模块，<span class="xref-pending">模块 06</span>，取出其中一种结构——注意力——并把它完整地构建出来。Transformer 用序列中所有位置之间学到的、依赖于内容的权重，取代了<a href="module_04_ZH.html">模块 04</a> 的循环和本模块图网络的固定邻域。它是本模块所见的扩散主干网络、CLIP 编码器和混合专家层背后的架构，也是模块 07 到 10 中语言模型背后的架构。</p>
+<p>本模块的所有内容，都是在模型、损失或数据中加入结构的方法：瓶颈、噪声过程、图、方程、数据增强、路由器。下一个模块，<a href="module_06_ZH.html">模块 06</a>，取出其中一种结构——注意力——并把它完整地构建出来。Transformer 用序列中所有位置之间学到的、依赖于内容的权重，取代了<a href="module_04_ZH.html">模块 04</a> 的循环和本模块图网络的固定邻域。它是本模块所见的扩散主干网络、CLIP 编码器和混合专家层背后的架构，也是模块 07 到 10 中语言模型背后的架构。</p>
 <span class="section-anchor" id="terms"></span>
 <div class="section-header" data-sec="terms"><span class="section-num">24</span><h2>关键术语</h2></div>
 <div class="table-wrap"><table>
@@ -11403,7 +11406,7 @@ exact u(0.5, 0.2) = 0.139
 </ul>
 
 </div>
-<nav class="module-nav"><a class="mnav prev" href="module_04_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 4 — 循环神经网络与序列</span></a><a class="mnav next" href="index_ZH.html"><span class="mnav-label">系列总览 &rarr;</span><span class="mnav-title">从机器学习到大语言模型</span></a></nav>
+<nav class="module-nav"><a class="mnav prev" href="module_04_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 4 — 循环神经网络与序列</span></a><a class="mnav next" href="module_06_ZH.html"><span class="mnav-label">下一模块 &rarr;</span><span class="mnav-title">模块 6 — Transformer</span></a></nav>
   </main>
 </div>
 <footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p></footer>

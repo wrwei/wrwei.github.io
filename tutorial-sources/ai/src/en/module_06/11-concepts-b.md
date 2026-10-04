@@ -69,9 +69,11 @@ from the top to layer $l$ passes through $L - l$ such factors. Each divides by t
 layer's activations, and a product of many can grow or shrink a great deal. Xiong et al. (2020)
 showed that at initialisation the gradients of the parameters near the output of a post-norm
 transformer are large and do not shrink with depth, while in pre-norm they shrink as depth grows.
-A post-norm model trained at the full learning rate from step one therefore diverges; the
-original paper ramped the learning rate up over the first 4,000 steps, a **warmup**
-([Module 02, Section 9](module_02_EN.html#s9)). Pre-norm trains with little or none
+A post-norm model can therefore become unstable when trained at a large learning rate from
+step one. The original paper ramped the learning rate up over the first 4,000 steps, a **warmup**
+([Module 02, Section 9](module_02_EN.html#s9)). Pre-norm often reduces the warmup requirement,
+and Xiong et al. demonstrated recipes that train without it. Neither layout guarantees stability
+at every learning rate; depth, initialisation and the rest of the recipe still matter
 ([Exercise 5](#e5)).
 
 ### Normalisation, recalled
@@ -155,21 +157,13 @@ $$
 
 Each hidden unit is a memory slot: it fires when the input matches its key and adds its value
 direction to the stream in proportion. Unlike attention, the keys and values are parameters, and
-$\phi$ is not normalised across slots, so any number can fire at once (Figure 6.10). Geva et al.
+$\phi$ is not normalised across slots, so any number can fire at once. Geva et al.
 (2021) found keys in trained language models that respond to recognisable input patterns, shallow
 in the lower layers and more semantic in the upper ones, and values that raise the probability of
 tokens plausibly following those patterns. Meng et al. (2022) located the recall of facts about
 an entity in mid-layer FFNs and edited single facts by changing one FFN's weights. Knowledge
 *appears* to be stored in the FFNs: an empirical reading of trained models, not a design.
 
-::: figure id=fig-06-10
-The FFN as a key-value memory. Left: an input $\mathbf{x}$ (a column of $d$ cells) is compared
-with six key rows $\mathbf{k}_1, \dots, \mathbf{k}_6$ standing for all $d_{\text{ff}}$; the six
-dot products pass through $\phi$, some coming out zero, some positive; each scales its value
-column $\mathbf{v}_i$, and the scaled values are summed into the output. Right: the SwiGLU
-variant, branches $\mathbf{W}_1\mathbf{x}$ → SiLU and $\mathbf{W}_3\mathbf{x}$ meeting at an
-elementwise multiply, then $\mathbf{W}_2$. Inset: $\operatorname{SiLU}(z)$ for $z$ from $-3$ to 3.
-:::
 
 ### SwiGLU
 
@@ -357,15 +351,8 @@ $$
 using $\overline{e^{\mathrm{i}\varphi}} = e^{-\mathrm{i}\varphi}$. The right-hand side depends on
 the positions only through $t - s$. Summing over the $d_k/2$ pairs, $\mathbf{q}'_t\cdot\mathbf{k}'_s$
 depends only on $\mathbf{q}$, $\mathbf{k}$ and $t - s$: relative position enters the score with no
-parameters (Figure 6.12). [Exercise 6](#e6) gives the same proof in matrix form.
+parameters. [Exercise 6](#e6) gives the same proof in matrix form.
 
-::: figure id=fig-06-12
-RoPE as rotation, for one dimension pair, in two unit-circle panels. Panel 1: the query arrow
-rotated to angle $t\theta$ and the key arrow rotated to angle $s\theta$ for $t = 3$, $s = 1$, with
-the angle between them marked $(t - s)\theta$. Panel 2: the same for $t = 8$, $s = 6$; both arrows
-have moved round the circle, and the angle between them is unchanged. A label under the panels
-reads "the score sees only the difference".
-:::
 
 ::: worked title="RoPE on one pair"
 Take $d_k = 2$, so there is one pair with $\theta_0 = 10000^{0} = 1$, and $\mathbf{q} = (1, 0)$,
@@ -517,8 +504,8 @@ Context extension seen through wavelengths. One bar per RoPE pair $i = 0, \dots,
 ($d_k = 128$), its height $\log_{10}$ of the wavelength $2\pi/\theta_i$, with horizontal lines at
 4,096 ("trained context") and 16,384 ("target context"). Three markers per bar: original (base $10^4$);
 position interpolation with $\kappa = 4$, every bar raised by $\log_{10}4$; NTK-aware base 40,890,
-slow bars raised by up to $\log_{10}4$, fast bars unchanged. A note: YaRN raises only the bars
-above the trained-context line.
+slow pairs raised by up to $\log_{10}4$, the fastest pair unchanged. YaRN's separate
+wavelength-dependent ramp is discussed in the text; it is not plotted here.
 :::
 
 ::: keyidea
@@ -702,11 +689,10 @@ pixel would give $224^2 = 50{,}176$ tokens and about $2.5\times10^9$ score entri
 layer; 197 tokens give 38,809.
 
 ::: figure id=fig-06-17
-A $224\times224$ image, drawn schematically as the outline of a pump housing, overlaid with a
-$14\times14$ grid. Three patches are pulled out, each flattened into a strip of 768 cells and
-passed through one shared "linear projection" box; a "[CLS]" token stands at the front of the
-sequence and a row of "+ position" tags is added beneath. The 197 tokens enter a stack labelled
-"transformer encoder × 12", and the [CLS] output goes to a "class" box.
+A schematic pump image splits into 196 patches of shape $16\times16\times3$.
+Flattening gives 768 numbers per patch; one shared linear map projects each into
+model width $d$. Adding a class token gives 197 tokens, with position embeddings,
+for a twelve-layer transformer encoder. Classification reads the class-token output.
 :::
 
 ::: worked title="Counting ViT-Base/16"

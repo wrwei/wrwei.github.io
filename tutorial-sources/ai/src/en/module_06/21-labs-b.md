@@ -105,7 +105,7 @@ def count(cfg):
     # Feed-forward: W_1 and W_3 (d x d_ff) and W_2 (d_ff x d), or W_1 and W_2 only.
     mlp = (3 if cfg.glu else 2) * cfg.d * cfg.d_ff
     if cfg.bias == "all":
-        mlp += cfg.d_ff + cfg.d
+        mlp += (2 if cfg.glu else 1) * cfg.d_ff + cfg.d
 
     # Two norms per layer (before attention, before the FFN) and one at the end.
     one_norm = 2 * cfg.d if cfg.norm_bias else cfg.d
@@ -753,3 +753,832 @@ multiplies alone.
    sequence as a function of its length and plot it for the Llama-2-7B shape with 32, 8 and 1 KV
    heads, from 1,000 to 128,000 tokens, with a horizontal line at the 12.6 GiB of the weights.
    Read off the context length at which one sequence's cache outweighs the model in each layout.
+
+## Lab 5 — Train a tiny GPT, sample from it, then remove the mask {#lab5}
+
+**Goal.** Train a character-level decoder on generated maintenance records, compare its
+loss with source entropies, and test generated records. Then train the same architecture
+without a causal mask. Prefix-only scoring will reveal a failure that held-out window
+loss misses. The lab is self-contained and downloads no data.
+
+### Step 1: generate the records
+
+`QUICK = True` trains for 300 causal steps and 200 unmasked steps. Set it to `False`
+for `FULL_STEPS = 1500` causal steps and the same 200 unmasked steps. Four CPU threads
+keep the run comparable with the other labs; runtime depends on the machine. A full
+run can take several minutes. The longer run gives copying more time to develop.
+
+```python
+import collections
+import json
+import math
+import random
+import re
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+QUICK = True
+FULL_STEPS = 1500
+torch.set_num_threads(4)
+torch.manual_seed(0)
+np.random.seed(0)
+source_rng = random.Random(0)
+specs = {
+    "P": ("pump", "pressure", "bar", 0.5, 7.5, 2.0, 6.0),
+    "T": ("tank", "level", "%", 2, 99, 10, 90),
+    "C": ("compressor", "speed", "rpm", 2400, 3300, 2600, 3100),
+    "H": ("exchanger", "outlet", "C", 35, 95, 40, 85),
+    "V": ("valve", "position", "%", 0, 100, None, None),
+}
+
+
+def status_for(letter, value):
+    low, high = specs[letter][-2:]
+    if low is None:
+        return "OK"
+    return "LOW" if value < low else "HIGH" if value > high else "OK"
+
+
+lines = []
+for _ in range(12000):
+    letter = source_rng.choice("PTCHV")
+    identifier = f"{letter}-{source_rng.randint(0, 999):03d}"
+    kind, quantity, unit, low, high, _, _ = specs[letter]
+    value = (source_rng.uniform(low, high) if letter == "P"
+             else source_rng.randint(low, high))
+    shown = f"{value:.1f}" if letter == "P" else str(value)
+    # Status is determined by the displayed value so records can be checked exactly.
+    status = status_for(letter, float(shown))
+    lines.append(f"{identifier} {kind} {quantity} {shown} {unit} "
+                 f"{status} end {identifier}\n")
+corpus = "".join(lines)
+alphabet = sorted(set(corpus))
+encode = {character: index for index, character in enumerate(alphabet)}
+tokens = torch.tensor([encode[c] for c in corpus], dtype=torch.long)
+split = int(0.9 * len(tokens))
+train_data, valid_data = tokens[:split], tokens[split:]
+vocab = len(alphabet)
+print(f"mode: {'QUICK' if QUICK else 'FULL'}")
+print(f"characters {len(corpus):,}, lines {len(lines):,}, vocabulary {vocab}")
+print("".join(lines[:3]), end="")
+```
+
+```output
+mode: QUICK
+characters 486,841, lines 12,000, vocabulary 46
+H-776 exchanger outlet 91 C HIGH end H-776
+H-041 exchanger outlet 51 C OK end H-041
+V-497 valve position 51 % OK end V-497
+```
+
+Each closing identifier repeats the opening one. The status is a deterministic function
+of the displayed value. Thus the generator introduces uncertainty only in the record
+type, identifier and value. A split by character position may cut one record; it does
+not expose validation targets to training windows because windows stay within each split.
+
+### Step 2: reference entropies
+
+Unigram and bigram entropy below are plug-in estimates from training characters. The
+generator entropy is calculated from the actual distribution of record types, numbers
+and rounded pressure values. Rounding a uniform pressure gives half-width bins at the
+two endpoints, rather than making all 71 printed values equally likely.
+
+```python
+def entropy(probabilities):
+    p = np.asarray(probabilities, dtype=float)
+    p = p[p > 0]
+    return float(-(p * np.log(p)).sum())
+
+
+training_text = corpus[:split]
+counts = collections.Counter(training_text)
+unigram = entropy(np.array(list(counts.values())) / len(training_text))
+pairs = collections.Counter(zip(training_text[:-1], training_text[1:]))
+previous = collections.Counter(training_text[:-1])
+bigram = -sum(n / (len(training_text) - 1) * math.log(n / previous[a])
+              for (a, b), n in pairs.items())
+mean_length, value_entropy = 0., 0.
+for letter, (kind, quantity, unit, low, high, _, _) in specs.items():
+    if letter == "P":
+        values = np.arange(5, 76) / 10
+        probabilities = np.full(71, 1 / 70)
+        probabilities[[0, -1]] /= 2
+    else:
+        values = np.arange(low, high + 1)
+        probabilities = np.full(len(values), 1 / len(values))
+    value_entropy += entropy(probabilities) / 5
+    for value, probability in zip(values, probabilities):
+        shown = f"{value:.1f}" if letter == "P" else str(int(value))
+        record = (f"{letter}-000 {kind} {quantity} {shown} {unit} "
+                  f"{status_for(letter, float(value))} end {letter}-000\n")
+        mean_length += len(record) * probability / 5
+line_entropy = math.log(5) + math.log(1000) + value_entropy
+true_floor = line_entropy / mean_length
+no_copy_floor = (line_entropy + math.log(1000)) / mean_length
+print(f"uniform {math.log(vocab):.3f}, unigram {unigram:.3f}, bigram {bigram:.3f}")
+print(f"generator: {line_entropy:.3f} nats/line, {mean_length:.3f} chars/line")
+print(f"true entropy {true_floor:.3f}, no-copy reference {no_copy_floor:.3f} nats/char")
+```
+
+```output
+uniform 3.829, unigram 3.410, bigram 1.717
+generator: 13.392 nats/line, 40.558 chars/line
+true entropy 0.330, no-copy reference 0.501 nats/char
+```
+
+The no-copy reference assumes that the equipment letter is known from the record but
+the repeated three digits are predicted afresh. It adds `log(1000)` per line. It is a
+reference for a restricted predictor, rather than the entropy of the complete source.
+
+### Step 3: the complete decoder and initialisation check
+
+The model code is repeated here so this lab does not need variables from Lab 4. RoPE
+uses adjacent pairs and both key and value heads are expanded in contiguous groups.
+
+```python
+def rope(x, base=10000.0):
+    """x: (B, h, T, dk). Rotate pairs of dims by position-dependent angles."""
+    B, h, T, dk = x.shape
+    theta = base ** (-torch.arange(0, dk, 2, device=x.device) / dk)   # (dk/2,)
+    ang = torch.arange(T, device=x.device)[:, None] * theta[None, :]   # (T, dk/2)
+    cos, sin = ang.cos()[None, None], ang.sin()[None, None]
+    x1, x2 = x[..., 0::2], x[..., 1::2]
+    return torch.stack([x1 * cos - x2 * sin, x1 * sin + x2 * cos], dim=-1).flatten(-2)
+
+
+class Attention(nn.Module):
+    def __init__(self, d, n_heads, n_kv_heads, causal=True):
+        super().__init__()
+        self.h, self.kv, self.dk = n_heads, n_kv_heads, d // n_heads
+        self.causal = causal
+        self.wq = nn.Linear(d, d, bias=False)
+        self.wk = nn.Linear(d, n_kv_heads * self.dk, bias=False)
+        self.wv = nn.Linear(d, n_kv_heads * self.dk, bias=False)
+        self.wo = nn.Linear(d, d, bias=False)
+
+    def forward(self, x):
+        B, T, d = x.shape
+        q = self.wq(x).view(B, T, self.h, self.dk).transpose(1, 2)    # (B, h, T, dk)
+        k = self.wk(x).view(B, T, self.kv, self.dk).transpose(1, 2)
+        v = self.wv(x).view(B, T, self.kv, self.dk).transpose(1, 2)
+        q, k = rope(q), rope(k)
+        k = k.repeat_interleave(self.h // self.kv, dim=1)    # grouped-query: share KV
+        v = v.repeat_interleave(self.h // self.kv, dim=1)
+        y = F.scaled_dot_product_attention(q, k, v, is_causal=self.causal)
+        return self.wo(y.transpose(1, 2).reshape(B, T, d))
+
+
+class Block(nn.Module):
+    def __init__(self, d, n_heads, n_kv_heads, d_ff, causal=True):
+        super().__init__()
+        self.n1, self.n2 = nn.RMSNorm(d), nn.RMSNorm(d)
+        self.attn = Attention(d, n_heads, n_kv_heads, causal)
+        self.w1 = nn.Linear(d, d_ff, bias=False)
+        self.w3 = nn.Linear(d, d_ff, bias=False)
+        self.w2 = nn.Linear(d_ff, d, bias=False)
+
+    def forward(self, x):
+        x = x + self.attn(self.n1(x))                           # pre-norm residual
+        h = self.n2(x)
+        return x + self.w2(F.silu(self.w1(h)) * self.w3(h))    # SwiGLU feed-forward
+
+
+class Decoder(nn.Module):
+    def __init__(self, vocab, d=256, layers=4, n_heads=8, n_kv_heads=2, d_ff=None,
+                 causal=True):
+        super().__init__()
+        d_ff = d_ff or int(8 * d / 3)
+        self.emb = nn.Embedding(vocab, d)
+        self.blocks = nn.ModuleList(Block(d, n_heads, n_kv_heads, d_ff, causal)
+                                    for _ in range(layers))
+        self.norm = nn.RMSNorm(d)
+        self.head = nn.Linear(d, vocab, bias=False)
+        self.head.weight = self.emb.weight                          # tied embeddings
+        nn.init.normal_(self.emb.weight, std=0.02)    # keeps step-0 logits small
+
+    def forward(self, tokens):                                  # tokens: (B, T) ints
+        x = self.emb(tokens)
+        for b in self.blocks:
+            x = b(x)
+        return self.head(self.norm(x))                          # logits: (B, T, vocab)
+
+
+def make_model(causal):
+    torch.manual_seed(0)
+    return Decoder(vocab=vocab, d=128, layers=4, n_heads=4, n_kv_heads=2,
+                   causal=causal)
+
+
+def batch(data, generator, B=32, T=128):
+    starts = torch.randint(len(data) - T, (B,), generator=generator)
+    windows = data[starts[:, None] + torch.arange(T + 1)]
+    return windows[:, :-1], windows[:, 1:]
+
+
+x0, y0 = batch(train_data, torch.Generator().manual_seed(1))
+bad = make_model(True)
+with torch.no_grad():
+    nn.init.normal_(bad.emb.weight, std=1.0)
+    bad_loss = F.cross_entropy(bad(x0).reshape(-1, vocab), y0.reshape(-1)).item()
+good = make_model(True)
+with torch.no_grad():
+    good_loss = F.cross_entropy(good(x0).reshape(-1, vocab), y0.reshape(-1)).item()
+print(f"parameters: {sum(p.numel() for p in good.parameters()):,}")
+print(f"unit-scale tied embeddings: {bad_loss:.3f}")
+print(f"std 0.02 embeddings: {good_loss:.3f}; uniform baseline {math.log(vocab):.3f}")
+assert sum(p.numel() for p in good.parameters()) == 727424
+del bad, good
+```
+
+```output
+parameters: 727,424
+unit-scale tied embeddings: 115.321
+std 0.02 embeddings: 3.881; uniform baseline 3.829
+```
+
+The unit-scale counterexample deliberately reinitialises the shared table; its exact
+number depends on the draw. It demonstrates why an initial loss far above `log(vocab)`
+deserves investigation before a training run.
+
+### Step 4: causal training
+
+Validation uses ten fixed held-out batches each time, while training has its own random
+generator. The model has no dropout. Losses therefore compare the same validation
+windows across checkpoints. Elapsed time is omitted from the printed output so machine
+load does not obscure the numerical comparison.
+
+```python
+@torch.no_grad()
+def validation_loss(model):
+    model.eval()
+    generator = torch.Generator().manual_seed(2)
+    losses = []
+    for _ in range(10):
+        x, y = batch(valid_data, generator)
+        losses.append(F.cross_entropy(model(x).reshape(-1, vocab), y.reshape(-1)).item())
+    return float(np.mean(losses))
+
+
+def train(causal, steps):
+    model = make_model(causal)
+    optimiser = torch.optim.AdamW(model.parameters(), lr=3e-3,
+                                 betas=(0.9, 0.95), weight_decay=0.1)
+    generator = torch.Generator().manual_seed(1)
+    curve = []
+    for step in range(1, steps + 1):
+        progress = max(0, (step - 50) / (steps - 50))
+        scale = step / 50 if step <= 50 else 0.5 * (1 + math.cos(math.pi * progress))
+        for group in optimiser.param_groups:
+            group["lr"] = 3e-3 * scale
+        model.train()
+        x, y = batch(train_data, generator)
+        loss = F.cross_entropy(model(x).reshape(-1, vocab), y.reshape(-1))
+        optimiser.zero_grad(set_to_none=True)
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        optimiser.step()
+        if step == 1 or step % 100 == 0 or step == steps:
+            held_out = validation_loss(model)
+            curve.append((step, loss.item(), held_out))
+            print(f"step {step:4d}: train {loss.item():.3f}, validation {held_out:.3f}",
+                  flush=True)
+    return model, curve
+
+
+causal, causal_curve = train(True, 300 if QUICK else FULL_STEPS)
+```
+
+```output
+step    1: train 3.881, validation 3.858
+step  100: train 0.562, validation 0.567
+step  200: train 0.540, validation 0.542
+step  300: train 0.533, validation 0.532
+```
+
+QUICK need not learn the long-range copying rule. The longer schedule lets the loss
+move below the no-copy reference, if the model learns to reuse the opening identifier.
+Transition timing varies with floating-point arithmetic and schedule. If a full run
+ends during the transition, try `FULL_STEPS = 2000` and report the extra compute.
+
+### Step 5: sample and parse
+
+Sample 32 independent sequences with a fixed sampling generator at temperature 0.8.
+Exclude the incomplete last line of each sample. Report malformed lines separately;
+identifier and status accuracy are conditional on the lines that satisfy the format.
+
+```python
+@torch.no_grad()
+def sample(model, count=32, steps=240):
+    model.eval()
+    generator = torch.Generator().manual_seed(3)
+    sequence = torch.full((count, 1), encode["\n"], dtype=torch.long)
+    for _ in range(steps):
+        probabilities = (model(sequence[:, -128:])[:, -1] / 0.8).softmax(-1)
+        next_token = torch.multinomial(probabilities, 1, generator=generator)
+        sequence = torch.cat((sequence, next_token), dim=1)
+    return ["".join(alphabet[i] for i in row) for row in sequence.tolist()]
+
+
+pattern = re.compile(
+    r"^([PTCHV])-(\d{3}) (\w+) (\w+) (\d+(?:\.\d)?) (\S+) "
+    r"(OK|LOW|HIGH) end ([PTCHV]-\d{3})$")
+
+
+def score_samples(texts):
+    complete = [line for text in texts for line in text.split("\n")[1:-1]]
+    parsed, copied, correct_status = 0, 0, 0
+    for line in complete:
+        match = pattern.fullmatch(line)
+        if match is None:
+            continue
+        letter, digits, kind, quantity, shown, unit, status, closing = match.groups()
+        spec = specs[letter]
+        if (kind, quantity, unit) != spec[:3]:
+            continue
+        parsed += 1
+        copied += closing == f"{letter}-{digits}"
+        correct_status += status == status_for(letter, float(shown))
+    print(f"complete {len(complete)}, well-formed {parsed} "
+          f"({parsed / max(1, len(complete)):.1%})")
+    print(f"among well-formed: identifier copied {copied / max(1, parsed):.1%}, "
+          f"correct status {correct_status / max(1, parsed):.1%}")
+    return dict(complete=len(complete), parsed=parsed, copied=copied,
+                correct_status=correct_status)
+
+
+causal_samples = sample(causal)
+print(causal_samples[0])
+causal_scores = score_samples(causal_samples)
+```
+
+```output
+P-201 pump pressure 4.6 bar OK end P-828
+C-143 compressor speed 3096 rpm HIGH end C-583
+T-238 tank level 40 % OK end T-413
+P-172 pump pressure 4.7 bar OK end P-495
+T-280 tank level 79 % OK end T-998
+C-987 compressor speed 3325 rpm HIGH end
+complete 176, well-formed 170 (96.6%)
+among well-formed: identifier copied 0.0%, correct status 90.0%
+```
+
+Format, copying and status are distinct success criteria. A plausible record can have
+the wrong closing identifier. This synthetic parser establishes correctness only for
+the rules written here, rather than for a real maintenance decision.
+
+### Step 6: train without the mask and evaluate prefixes
+
+Use the same initialisation and training-batch seed. Changing the causal flag is the
+only architecture change. A random held-out window supplies each prefix-only prediction
+with between eight and 127 actual prefix characters, never its target.
+
+```python
+unmasked, unmasked_curve = train(False, 200)
+unmasked_samples = sample(unmasked)
+print("unmasked sample:")
+print(unmasked_samples[0])
+unmasked_scores = score_samples(unmasked_samples)
+
+
+@torch.no_grad()
+def prefix_loss(model, predictions=200):
+    model.eval()
+    generator = torch.Generator().manual_seed(5)
+    losses = []
+    for _ in range(predictions):
+        start = int(torch.randint(len(valid_data) - 129, (), generator=generator))
+        length = int(torch.randint(8, 128, (), generator=generator))
+        prefix = valid_data[start:start + length][None]
+        target = valid_data[start + length][None]
+        losses.append(F.cross_entropy(model(prefix)[:, -1], target).item())
+    return float(np.mean(losses))
+
+
+causal_prefix, unmasked_prefix = prefix_loss(causal), prefix_loss(unmasked)
+print(f"prefix-only loss: causal {causal_prefix:.3f}, unmasked {unmasked_prefix:.3f}")
+print(f"window validation: causal {validation_loss(causal):.3f}, "
+      f"unmasked {validation_loss(unmasked):.3f}")
+```
+
+```output
+step    1: train 3.907, validation 3.860
+step  100: train 0.336, validation 0.338
+step  200: train 0.011, validation 0.014
+unmasked sample:
+
+-iitir rrrerl rr aar e er 88888888888888888888878888  an e H-888 H-888 excharer r 89 % OK end T-888
+H-78 exchanger outlet 888 C LOW end H-888
+H-888 exchGH-8888 lve bale C OK end H-888
+T-888 tanr level 88 % OK end T-880
+H-883 exchanger outle
+complete 83, well-formed 0 (0.0%)
+among well-formed: identifier copied 0.0%, correct status 0.0%
+prefix-only loss: causal 0.521, unmasked 1.291
+window validation: causal 0.532, unmasked 0.014
+```
+
+The unmasked model can read most targets during window evaluation. The final input
+position is an exception, since its next-character target lies beyond the window.
+Prefix-only evaluation removes the leakage at every tested position. No held-out split
+can compensate for using future input when predicting a target.
+
+### Step 7: compare the curves
+
+```python
+fig, ax = plt.subplots(figsize=(8, 4.5))
+for name, curve, style in (("causal", causal_curve, "-"),
+                            ("unmasked", unmasked_curve, "--")):
+    values = np.asarray(curve)
+    ax.plot(values[:, 0], values[:, 2], style, label=f"{name}, validation")
+for level, name in ((math.log(vocab), "uniform"), (unigram, "unigram"),
+                    (bigram, "bigram"), (no_copy_floor, "no-copy reference"),
+                    (true_floor, "generator entropy")):
+    ax.axhline(level, linewidth=0.8, alpha=0.5, label=f"{name}: {level:.3f}")
+ax.set_xscale("log")
+ax.set_xlabel("training step")
+ax.set_ylabel("loss (nats per character)")
+ax.set_title(f"Maintenance records: {'QUICK' if QUICK else 'FULL'} run")
+ax.legend(fontsize=8)
+plt.tight_layout()
+plt.show()
+metrics = dict(mode="QUICK" if QUICK else "FULL", causal_curve=causal_curve,
+               unmasked_curve=unmasked_curve, causal_scores=causal_scores,
+               unmasked_scores=unmasked_scores, causal_prefix=causal_prefix,
+               unmasked_prefix=unmasked_prefix, true_floor=true_floor,
+               no_copy_floor=no_copy_floor)
+with open("m06-lab5-metrics.json", "w", encoding="utf-8") as stream:
+    json.dump(metrics, stream, indent=2)
+```
+
+### What you should see
+
+The causal loss crosses the unigram and bigram references while format and local
+regularities improve. Compare the measured copying share with whether loss crosses the
+no-copy reference. The unmasked model's window loss can become much lower while its
+prefix-only loss and generated records expose the information leak. The printed outputs
+are from the executed QUICK run; FULL observations are reported separately in the text.
+
+With `QUICK = False`, the executed 1500-step causal run reached validation loss 0.399
+and prefix-only loss 0.394. It generated 172 complete lines: all parsed, 155 copied
+the opening identifier correctly (90.1%), and 171 had the correct status (99.4%).
+Its validation loss fell below the no-copy reference after about 1000 steps. The
+unmasked control remained at window loss 0.014 and prefix-only loss 1.291, and none
+of its 83 complete generated lines parsed. The QUICK output fences above are retained
+so the default code and displayed outputs describe the same run.
+
+### Try this
+
+1. Use a public-domain text of 0.2–2 MB; recompute the vocabulary and empirical entropies.
+2. Reduce the context to 32 characters and inspect which parts of the opening identifier
+   remain visible when each closing character is predicted. Do not assume one floor
+   applies to every record length: this corpus contains different formats and lengths.
+3. Repeat sampling at temperatures 0.3 and 1.5 and score format, copying and status again.
+
+## Lab 6 — Find an induction head {#lab6}
+
+**Goal.** Train an attention-only transformer on repeated random segments, measure
+previous-token and induction attention, and intervene on the heads. Compare a two-layer
+model with a one-layer control. Everything is generated locally; no model is downloaded.
+
+### Step 1: generate a task whose copy distance varies
+
+Draw a 64-token sequence and a segment length from 10 through 32. Repeat the first
+segment immediately after itself. The first token of the repetition is not predictable
+from its prefix; subsequent repeated tokens are. Targets are shifted one token ahead,
+so a predictable target at position `j` is evaluated from query position `j - 1`.
+
+```python
+import json
+import numpy as np
+import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+np.random.seed(0)
+torch.manual_seed(0)
+torch.set_num_threads(4)
+VOCAB, LENGTH, STEPS = 64, 64, 1500
+
+
+def repeated_batch(generator, count=64):
+    tokens = torch.randint(VOCAB, (count, LENGTH), generator=generator)
+    segment = torch.randint(10, 33, (count,), generator=generator)
+    predictable = torch.zeros_like(tokens, dtype=torch.bool)
+    for row, n in enumerate(segment.tolist()):
+        tokens[row, n:2 * n] = tokens[row, :n].clone()
+        predictable[row, n + 1:2 * n] = True
+    return tokens[:, :-1], tokens[:, 1:], predictable[:, 1:], segment
+
+
+x, y, predictable, segment = repeated_batch(torch.Generator().manual_seed(1))
+print("inputs", tuple(x.shape), "targets", tuple(y.shape))
+print("segment lengths:", segment[:8].tolist())
+print(f"predictable target share: {predictable.float().mean():.3f}")
+assert all(torch.equal(x[row, n:2 * n - 1], x[row, :n - 1])
+           for row, n in enumerate(segment.tolist()))
+```
+
+```output
+inputs (64, 63) targets (64, 63)
+segment lengths: [13, 13, 21, 25, 16, 22, 13, 14]
+predictable target share: 0.295
+```
+
+A fixed copy distance could be solved by a position-based rule. Varying the distance
+makes the model find a matching earlier token and use the token that followed it.
+Random token collisions can still make the next token ambiguous; this is a task
+distribution, rather than a guarantee that every repeated token has a unique match.
+
+### Step 2: attention with accessible weights and head outputs
+
+Explicit softmax lets the lab inspect attention and zero head outputs before the
+output projection. Ablation removes the whole head's contribution, not just one
+entry of its attention map. The model has no feed-forward sublayers.
+
+```python
+def rotary(x):
+    T, dk = x.shape[-2:]
+    frequencies = 10000.0 ** (-torch.arange(0, dk, 2) / dk)
+    angles = torch.arange(T)[:, None] * frequencies[None]
+    cosine, sine = angles.cos()[None, None], angles.sin()[None, None]
+    first, second = x[..., 0::2], x[..., 1::2]
+    return torch.stack((first * cosine - second * sine,
+                        first * sine + second * cosine), dim=-1).flatten(-2)
+
+
+class InspectableBlock(nn.Module):
+    def __init__(self, width=64, heads=4):
+        super().__init__()
+        self.heads, self.dk = heads, width // heads
+        self.norm = nn.RMSNorm(width)
+        self.qkv = nn.Linear(width, 3 * width, bias=False)
+        self.output = nn.Linear(width, width, bias=False)
+
+    def forward(self, x, zero_heads=()):
+        B, T, d = x.shape
+        q, k, v = (a.reshape(B, T, self.heads, self.dk).transpose(1, 2)
+                   for a in self.qkv(self.norm(x)).chunk(3, dim=-1))
+        q, k = rotary(q), rotary(k)
+        scores = q @ k.transpose(-1, -2) / self.dk ** 0.5
+        future = torch.ones(T, T, dtype=torch.bool).triu(1)
+        weights = scores.masked_fill(future, -torch.inf).softmax(-1)
+        head_output = weights @ v
+        if zero_heads:
+            head_output = head_output.clone()
+            head_output[:, list(zero_heads)] = 0
+        merged = head_output.transpose(1, 2).reshape(B, T, d)
+        return x + self.output(merged), weights
+
+
+class CopyModel(nn.Module):
+    def __init__(self, layers):
+        super().__init__()
+        self.embedding = nn.Embedding(VOCAB, 64)
+        nn.init.normal_(self.embedding.weight, std=0.02)
+        self.blocks = nn.ModuleList(InspectableBlock() for _ in range(layers))
+        self.norm = nn.RMSNorm(64)
+        self.head = nn.Linear(64, VOCAB, bias=False)
+
+    def forward(self, tokens, ablate=None):
+        x, maps = self.embedding(tokens), []
+        for layer, block in enumerate(self.blocks):
+            x, weights = block(x, (ablate or {}).get(layer, ()))
+            maps.append(weights)
+        return self.head(self.norm(x)), maps
+
+
+model = CopyModel(2)
+print(f"two-layer parameters: {sum(p.numel() for p in model.parameters()):,}")
+```
+
+```output
+two-layer parameters: 41,152
+```
+
+### Step 3: train and separate predictable targets
+
+Train on every target, not just the repeated region. Report predictable and unpredictable
+losses on fixed fresh batches. The latter provide a useful control: random non-copy
+targets should remain difficult even after copying improves.
+
+```python
+@torch.no_grad()
+def evaluate(model, count=256, seed=9, ablate=None):
+    model.eval()
+    x, y, predictable, segment = repeated_batch(
+        torch.Generator().manual_seed(seed), count)
+    logits, maps = model(x, ablate)
+    losses = F.cross_entropy(logits.reshape(-1, VOCAB), y.reshape(-1),
+                             reduction="none").reshape_as(y)
+    return (losses[predictable].mean().item(),
+            losses[~predictable].mean().item(), maps, predictable, segment, x)
+
+
+def fit(layers):
+    torch.manual_seed(0)
+    model = CopyModel(layers)
+    optimiser = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0)
+    generator = torch.Generator().manual_seed(1)
+    curve = []
+    for step in range(1, STEPS + 1):
+        model.train()
+        x, y, _, _ = repeated_batch(generator)
+        logits, _ = model(x)
+        loss = F.cross_entropy(logits.reshape(-1, VOCAB), y.reshape(-1))
+        optimiser.zero_grad(set_to_none=True)
+        loss.backward()
+        optimiser.step()
+        if step == 1 or step % 100 == 0:
+            repeated, random_loss, *_ = evaluate(model, count=64)
+            curve.append((step, repeated, random_loss))
+            print(f"layers {layers}, step {step:4d}: copy {repeated:.3f}, "
+                  f"other {random_loss:.3f}", flush=True)
+    return model, curve
+
+
+two_layer, two_curve = fit(2)
+```
+
+```output
+layers 2, step    1: copy 4.290, other 4.307
+layers 2, step  100: copy 3.917, other 4.211
+layers 2, step  200: copy 3.771, other 4.221
+layers 2, step  300: copy 3.639, other 4.231
+layers 2, step  400: copy 3.524, other 4.256
+layers 2, step  500: copy 3.401, other 4.281
+layers 2, step  600: copy 2.871, other 4.346
+layers 2, step  700: copy 1.197, other 4.513
+layers 2, step  800: copy 0.829, other 4.424
+layers 2, step  900: copy 0.579, other 4.361
+layers 2, step 1000: copy 0.436, other 4.332
+layers 2, step 1100: copy 0.374, other 4.324
+layers 2, step 1200: copy 0.346, other 4.305
+layers 2, step 1300: copy 0.374, other 4.285
+layers 2, step 1400: copy 0.338, other 4.287
+layers 2, step 1500: copy 0.304, other 4.288
+```
+
+### Step 4: quantify where heads attend
+
+The previous-token score averages weight from query `t` to key `t - 1` over all
+non-initial queries. For a predictable query `t`, the earlier successor is key
+`t - n + 1`, with `n` the segment length. The induction score averages weight on
+that key. Compute scores over 256 fresh sequences, rather than selecting a flattering
+single example.
+
+```python
+@torch.no_grad()
+def head_scores(model):
+    repeated, random_loss, maps, predictable, segment, x = evaluate(model)
+    previous_scores, induction_scores = [], []
+    batch_ids, query_ids = predictable.nonzero(as_tuple=True)
+    key_ids = query_ids - segment[batch_ids] + 1
+    for layer, weights in enumerate(maps):
+        previous = weights.diagonal(offset=-1, dim1=-2, dim2=-1).mean(dim=(0, 2))
+        induction = weights[batch_ids, :, query_ids, key_ids].mean(dim=0)
+        previous_scores.append(previous.numpy())
+        induction_scores.append(induction.numpy())
+        print(f"layer {layer}: previous "
+              + " ".join(f"{v:.3f}" for v in previous.tolist()))
+        print(f"layer {layer}: induction "
+              + " ".join(f"{v:.3f}" for v in induction.tolist()))
+    print(f"held-out copy loss {repeated:.3f}, other loss {random_loss:.3f}")
+    return previous_scores, induction_scores, maps, segment
+
+
+previous, induction, maps, segments = head_scores(two_layer)
+previous_head = int(np.argmax(previous[0]))
+induction_head = int(np.argmax(induction[1]))
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+for ax, layer, head, title in (
+        (axes[0], 0, previous_head, "strongest layer-0 previous-token score"),
+        (axes[1], 1, induction_head, "strongest layer-1 induction score")):
+    pattern = maps[layer][0, head].numpy()
+    image = ax.imshow(pattern, vmin=0, vmax=1, origin="upper", cmap="Blues")
+    ax.set_xlabel("key position")
+    ax.set_ylabel("query position")
+    ax.set_title(f"{title}\nhead {head}, segment length {int(segments[0])}", fontsize=9)
+    fig.colorbar(image, ax=ax, fraction=0.046)
+plt.tight_layout()
+plt.show()
+```
+
+```output
+layer 0: previous 0.631 0.300 0.119 0.110
+layer 0: induction 0.000 0.000 0.001 0.001
+layer 1: previous 0.052 0.035 0.041 0.037
+layer 1: induction 0.927 0.920 0.935 0.922
+held-out copy loss 0.286, other loss 4.297
+```
+
+### Step 5: intervene on every head
+
+Evaluate each intervention on the same 512 fresh sequences. A larger loss means the
+head's contribution mattered to this trained model on this distribution. It does not
+prove that the head is the unique implementation of a human-defined concept.
+
+```python
+baseline = evaluate(two_layer, count=512, seed=11)[0]
+print(f"baseline copy loss {baseline:.3f}")
+ablations = []
+for layer in range(2):
+    for head in range(4):
+        loss = evaluate(two_layer, count=512, seed=11, ablate={layer: [head]})[0]
+        ablations.append((layer, head, loss))
+        print(f"zero layer {layer}, head {head}: {loss:.3f}, change {loss - baseline:+.3f}")
+    loss = evaluate(two_layer, count=512, seed=11, ablate={layer: list(range(4))})[0]
+    print(f"zero all heads in layer {layer}: {loss:.3f}")
+```
+
+```output
+baseline copy loss 0.270
+zero layer 0, head 0: 2.866, change +2.596
+zero layer 0, head 1: 1.373, change +1.103
+zero layer 0, head 2: 2.855, change +2.585
+zero layer 0, head 3: 2.811, change +2.541
+zero all heads in layer 0: 4.518
+zero layer 1, head 0: 2.265, change +1.995
+zero layer 1, head 1: 1.986, change +1.716
+zero layer 1, head 2: 2.513, change +2.242
+zero layer 1, head 3: 1.873, change +1.603
+zero all heads in layer 1: 4.399
+```
+
+Removing a whole layer is an intervention outside the trained state distribution.
+Compare it with single-head interventions and the attention scores instead of treating
+any one loss change as a complete explanation.
+
+### Step 6: a one-layer control
+
+Use the same batch generator, training steps and optimiser. A one-layer model has fewer
+parameters and only one attention stage, so the comparison changes both capacity and
+available computation. It tests this particular setup, not a universal impossibility
+theorem about one-layer transformers.
+
+```python
+one_layer, one_curve = fit(1)
+one_previous, one_induction, _, _ = head_scores(one_layer)
+fig, ax = plt.subplots(figsize=(8, 4))
+for name, curve in (("two layers", two_curve), ("one layer", one_curve)):
+    curve = np.asarray(curve)
+    ax.plot(curve[:, 0], curve[:, 1], label=f"{name}, predictable")
+ax.axhline(math_log_vocab := float(np.log(VOCAB)), color="grey", linestyle=":",
+           label=f"uniform guess: {math_log_vocab:.2f}")
+ax.set_xlabel("training step")
+ax.set_ylabel("held-out loss (nats per token)")
+ax.set_title("Copying a variable-distance repeated segment")
+ax.legend()
+plt.tight_layout()
+plt.show()
+metrics = dict(two_curve=two_curve, one_curve=one_curve,
+               previous=[a.tolist() for a in previous],
+               induction=[a.tolist() for a in induction],
+               ablations=ablations, baseline=baseline,
+               one_induction=[a.tolist() for a in one_induction])
+with open("m06-lab6-metrics.json", "w", encoding="utf-8") as stream:
+    json.dump(metrics, stream, indent=2)
+```
+
+```output
+layers 1, step    1: copy 4.259, other 4.303
+layers 1, step  100: copy 4.068, other 4.172
+layers 1, step  200: copy 3.681, other 4.218
+layers 1, step  300: copy 3.547, other 4.223
+layers 1, step  400: copy 3.474, other 4.234
+layers 1, step  500: copy 3.436, other 4.232
+layers 1, step  600: copy 3.433, other 4.224
+layers 1, step  700: copy 3.378, other 4.242
+layers 1, step  800: copy 3.378, other 4.237
+layers 1, step  900: copy 3.353, other 4.244
+layers 1, step 1000: copy 3.339, other 4.240
+layers 1, step 1100: copy 3.331, other 4.248
+layers 1, step 1200: copy 3.337, other 4.242
+layers 1, step 1300: copy 3.334, other 4.243
+layers 1, step 1400: copy 3.324, other 4.240
+layers 1, step 1500: copy 3.317, other 4.240
+layer 0: previous 0.025 0.031 0.024 0.032
+layer 0: induction 0.068 0.065 0.068 0.063
+held-out copy loss 3.338, other loss 4.243
+```
+
+### What you should see
+
+Compare the copying-loss curves, attention scores and ablation effects. In this task
+the two-layer architecture can compose earlier-token information with a later lookup.
+The one-layer control tests how much that composition helps. Heads with modest attention
+scores can still affect outputs through their value and output projections; a heat map
+alone is incomplete evidence. The printed numbers above come from this lab's execution,
+and may differ in the last digits or transition timing on another machine.
+
+### Try this
+
+1. Fix the segment length at 32 and compare the one-layer control with variable distance.
+2. Add SwiGLU sublayers and compare loss curves at both equal width and similar parameter
+   count. Report which comparison is being made.
+3. Repeat training with seeds 1 and 2. Check whether copying appears and which heads
+   carry the measured patterns; head numbers need not have stable roles across seeds.

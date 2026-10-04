@@ -557,7 +557,7 @@
       ctx.fillText(t('component 1', '分量 1'), pad.l + pw / 2, H - 4)
       ctx.save(); ctx.translate(12, pad.t + ph / 2); ctx.rotate(-Math.PI / 2); ctx.fillText(t('component 2', '分量 2'), 0, 0); ctx.restore()
       ctx.textAlign = 'left'; ctx.fillStyle = C.navy
-      ctx.fillText(t('Row ' + (i + 1) + ': the output is a weighted mix of the visible values', '第 ' + (i + 1) + ' 行：输出是可见值向量的加权混合'), pad.l, 16)
+      ctx.fillText(t('Row ' + (i + 1) + ': weighted output', '第 ' + (i + 1) + ' 行：加权输出'), pad.l, 16)
       // clip the data layer to the plot area
       ctx.save()
       ctx.beginPath(); ctx.rect(pad.l, pad.t, pw, ph); ctx.clip()
