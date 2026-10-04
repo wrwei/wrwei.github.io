@@ -1,0 +1,216 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模块 14: 软件、安全与综合实践</title><meta name="description" content="整合目录为持久本地服务，定义不变式、测试失败与重试，区分验证、认证与授权。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css"></head><body data-module="14"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div>
+<header id="topbar"><a class="brand" href="../../tutorials/">Ran <span>Wei</span></a><span class="sep">/</span><a class="crumb" href="index_ZH.html">计算机科学系列</a><span class="sep">/</span><span class="crumb crumb-now">14</span><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 14 / 14</button><div class="dropdown-menu" id="module-menu"><a href="module_01_ZH.html">01 — 什么是计算？</a><a href="module_02_ZH.html">02 — 信息表示</a><a href="module_03_ZH.html">03 — 程序设计基础</a><a href="module_04_ZH.html">04 — 数学基础</a><a href="module_05_ZH.html">05 — 算法与效率</a><a href="module_06_ZH.html">06 — 核心数据结构</a><a href="module_07_ZH.html">07 — 递归、树与图</a><a href="module_08_ZH.html">08 — 算法设计</a><a href="module_09_ZH.html">09 — 计算机体系结构</a><a href="module_10_ZH.html">10 — 操作系统</a><a href="module_11_ZH.html">11 — 网络与 Web</a><a href="module_12_ZH.html">12 — 数据库</a><a href="module_13_ZH.html">13 — 语言与计算的边界</a><a href="module_14_ZH.html" class="active" aria-current="page">14 — 软件、安全与综合实践</a></div></div><a class="lang-switch" href="module_14_EN.html" hreflang="en">English</a></header>
+<div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#s1"><span class="num">1</span><span>需求与模块边界</span></a><a href="#s2"><span class="num">2</span><span>边界验证与资源限制</span></a><a href="#s3"><span class="num">3</span><span>认证与授权</span></a><a href="#s4"><span class="num">4</span><span>事务与幂等重试</span></a><a href="#s5"><span class="num">5</span><span>测试与运行证据</span></a><a href="#wrong"><span class="num">6</span><span>常见误解</span></a><a href="#setup"><span class="num">7</span><span>实验准备</span></a><a href="#lab1"><span class="num">8</span><span>实验 1 — 验证边界</span></a><a href="#lab2"><span class="num">9</span><span>实验 2 — 持久目录综合项目</span></a><a href="#exercises"><span class="num">10</span><span>练习与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>自测</span></a><a href="#reading"><span class="num">12</span><span>引导阅读</span></a><a href="#summary"><span class="num">13</span><span>复习与下一步</span></a><a href="#terms"><span class="num">14</span><span>关键术语</span></a></nav></aside>
+<main id="main"><div class="module-hero"><div class="series">计算机科学基础 — Ran Wei</div><h1 class="module-title">模块 14: 软件、安全与综合实践</h1><p class="module-lead">整合目录为持久本地服务，定义不变式、测试失败与重试，区分验证、认证与授权。</p><div class="hero-chips"><span class="chip chip-time">约 5 小时</span><span class="chip">4 个时段</span><span class="chip">2 个实验</span><span class="chip">8 道练习</span><span class="chip">6 道自测题</span></div></div>
+<section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>分离服务职责。</li><li>验证不可信输入。</li><li>强制身份与权限范围。</li><li>实现幂等重试。</li><li>跨 HTTP 测试库存与持久化。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>建议先修模块: <a href="module_03_ZH.html">03</a>, <a href="module_10_ZH.html">10</a>, <a href="module_11_ZH.html">11</a>, <a href="module_12_ZH.html">12</a>, <a href="module_13_ZH.html">13</a>.</p><p>了解 HTTP、SQL 事务与异常。综合项目仅用标准库，默认有限自测，也可启动持久本地服务器。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="移动端目录"><a href="#s1">需求与模块边界</a><a href="#s2">边界验证与资源限制</a><a href="#s3">认证与授权</a><a href="#s4">事务与幂等重试</a><a href="#s5">测试与运行证据</a><a href="#wrong">常见误解</a><a href="#setup">实验准备</a><a href="#lab1">实验 1 — 验证边界</a><a href="#lab2">实验 2 — 持久目录综合项目</a><a href="#exercises">练习与完整解答</a><a href="#quiz">自测</a><a href="#reading">引导阅读</a><a href="#summary">复习与下一步</a><a href="#terms">关键术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">5 小时</span></div><p class="plan-lead">四个 75 分钟时段，包含练习。拓展任务或不熟悉的先修知识可能需要更多时间。进度本地保存，两种语言共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">75 分钟</span></div><div class="session-title">概念与示例</div><ul class="acts"><li class="act act-read"><span class="act-what"><a href="#s1">阅读第 1–3 节并回答检查题</a></span><span class="act-min">40</span></li><li class="act act-read"><span class="act-what"><a href="#e1">完成练习 1–3，说明理由</a></span><span class="act-min">35</span></li></ul><label class="session-done"><input type="checkbox" data-key="cs-series:m14:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">75 分钟</span></div><div class="session-title">构建与探究</div><ul class="acts"><li class="act act-read"><span class="act-what"><a href="#s4">阅读第 4–5 节与常见误解</a></span><span class="act-min">25</span></li><li class="act act-read"><span class="act-what"><a href="#lab1">实验 1、预测与变体</a></span><span class="act-min">50</span></li></ul><label class="session-done"><input type="checkbox" data-key="cs-series:m14:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">75 分钟</span></div><div class="session-title">应用与拓展</div><ul class="acts"><li class="act act-read"><span class="act-what"><a href="#lab2">实验 2 及变体</a></span><span class="act-min">50</span></li><li class="act act-read"><span class="act-what"><a href="#e4">完成练习 4–5</a></span><span class="act-min">25</span></li></ul><label class="session-done"><input type="checkbox" data-key="cs-series:m14:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">75 分钟</span></div><div class="session-title">推理与复习</div><ul class="acts"><li class="act act-read"><span class="act-what"><a href="#e6">完成练习 6–8</a></span><span class="act-min">35</span></li><li class="act act-read"><span class="act-what"><a href="#reading">引导阅读</a></span><span class="act-min">15</span></li><li class="act act-read"><span class="act-what"><a href="#quiz">自测并解释错题</a></span><span class="act-min">15</span></li><li class="act act-read"><span class="act-what"><a href="#summary">凭记忆复习</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="cs-series:m14:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span><div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>需求与模块边界</h2></div><p>目录需列出搜索图书并借阅可用副本。不变式为可用副本加已提交借阅等于总数。Catalogue 管 SQL 与事务，Handler 管 HTTP、身份与响应，运行器管启动清理。明确职责帮助定位故障。教学服务单线程且负载有界，公网部署还需生产服务器、TLS、运维监控与完整身份生命周期。</p><div class="check"><div class="check-label">检查理解</div><p>哪层应拥有原子库存更新？</p></div><details class="answer"><summary>完整解答</summary><div class="details-body"><p>目录数据库服务，而非 HTTP 展示代码。</p></div></details><span class="section-anchor" id="s2"></span><div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>边界验证与资源限制</h2></div><p>JSON 可解析仍是不可信输入。修改状态前检查结构、精确字段、类型、范围与大小。bool 是 int 子类，因此严格 type 检查排除 True 图书 ID。拒绝未知字段，不静默接受 admin。限制请求长度和读取超时，先规范化再验证语义。这些检查执行约定，不决定谁有权限。</p><div class="check"><div class="check-label">检查理解</div><p>虽然 True 属于 int，为何拒绝作为书 ID？</p></div><details class="answer"><summary>完整解答</summary><div class="details-body"><p>API 约定要求整数标识，而非布尔值。</p></div></details><span class="section-anchor" id="s3"></span><div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>认证与授权</h2></div><p>认证识别调用者，授权决定操作权限。项目把随机 bearer 凭据映射到会员与权限范围。缺失或错误凭据为 401，有效只读身份借阅为 403。会员来自认证身份而非 JSON。持有 bearer 即可使用，应避免日志记录并在本地实验外保护传输。若使用密码，应采用带盐专用密码哈希，而非普通快速哈希。</p><div class="check"><div class="check-label">检查理解</div><p>请求体 member='admin' 可安全选择身份吗？</p></div><details class="answer"><summary>完整解答</summary><div class="details-body"><p>不能，身份必须来自已验证凭据。</p></div></details><span class="section-anchor" id="s4"></span><div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>事务与幂等重试</h2></div><p>借阅具有请求 ID。在 BEGIN IMMEDIATE 中先检查是否已提交。相同图书会员重放返回已有结果，不再次扣减；同 ID 不同输入冲突。新请求条件扣正库存并同事务插借阅。这样处理模块 11 的超时歧义。幂等记录需持久化，不可仅用重启丢失缓存。项目分别测试正确与不匹配重放。</p><div class="check"><div class="check-label">检查理解</div><p>相同请求重放应再消耗副本吗？</p></div><details class="answer"><summary>完整解答</summary><div class="details-body"><p>不，应返回已提交结果而不改库存。</p></div></details><span class="section-anchor" id="s5"></span><div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>测试与运行证据</h2></div><p>单元检查隔离验证，集成检查让真实 HTTP 穿过身份、解析、SQL 与响应。测试成功、缺凭据、权限不足、类型错、注入形数据、重复 ID、无库存及重开持久性，再用 SQL 独立检查不变式。默认启动临时服务检查后关闭，--serve 使用指定文件持续至中断。这些证据不等于生产负载或多进程并发测试。</p><div class="check"><div class="check-label">检查理解</div><p>为何 HTTP 测试后独立查询库存？</p></div><details class="answer"><summary>完整解答</summary><div class="details-body"><p>看似正确响应可能掩盖错误数据库状态。</p></div></details><span class="section-anchor" id="wrong"></span><div class="section-header" data-sec="wrong"><span class="section-num">6</span><h2>常见误解</h2></div><div class="callout pitfall"><ul><li>不要从调用者提交字段推导权限。</li><li>幂等记录需把请求 ID 绑定到完整操作含义。</li></ul></div><span class="section-anchor" id="setup"></span><div class="section-header" data-sec="setup"><span class="section-num">7</span><h2>实验准备</h2></div><p>下载脚本，在终端中使用 Python 3.11 或更新版本运行：<code>python m14_validation.py</code>. Windows 也可使用 py -3；部分系统使用 python3。实验仅用标准库。先预测结果，再运行并完成变体。不要使用 -O，以保留断言。下方输出由构建器实际运行捕获，两种语言使用相同代码与输出。</p><span class="section-anchor" id="lab1"></span><div class="section-header" data-sec="lab1"><span class="section-num">8</span><h2>实验 1 — 验证边界</h2></div><p>验证器返回规范数据，不修改输入，拒绝空书名、布尔数量、负数和额外字段。</p><p><a href="labs/m14_validation.py" download>下载 m14_validation.py</a></p><pre><code class="language-python">&quot;&quot;&quot;Boundary validation, normalisation and mutation-free failure cases.&quot;&quot;&quot;
+def validate_book(record):
+    if not isinstance(record, dict) or set(record) != {&quot;title&quot;, &quot;copies&quot;}:
+        raise ValueError(&quot;exactly title and copies required&quot;)
+    if not isinstance(record[&quot;title&quot;], str): raise ValueError(&quot;text title required&quot;)
+    title = record[&quot;title&quot;].strip()
+    if not 1 &lt;= len(title) &lt;= 100: raise ValueError(&quot;title length 1..100 required&quot;)
+    if type(record[&quot;copies&quot;]) is not int or not 0 &lt;= record[&quot;copies&quot;] &lt;= 100:
+        raise ValueError(&quot;copies must be an integer in 0..100&quot;)
+    return {&quot;title&quot;: title, &quot;copies&quot;: record[&quot;copies&quot;]}
+
+good = {&quot;title&quot;: &quot;  Dune  &quot;, &quot;copies&quot;: 2}
+print(&quot;normalised:&quot;, validate_book(good))
+assert good[&quot;title&quot;] == &quot;  Dune  &quot;
+bad = [{&quot;title&quot;: &quot; &quot;, &quot;copies&quot;: 1}, {&quot;title&quot;: &quot;Dune&quot;, &quot;copies&quot;: True},
+       {&quot;title&quot;: &quot;Dune&quot;, &quot;copies&quot;: -1}, {&quot;title&quot;: &quot;Dune&quot;, &quot;copies&quot;: 1, &quot;admin&quot;: True}]
+for record in bad:
+    try: validate_book(record)
+    except ValueError: print(&quot;rejected:&quot;, repr(record))
+    else: raise AssertionError(&quot;invalid record accepted&quot;)
+</code></pre><div class="output"><div class="output-label">实际运行输出</div><pre><code class="language-text">normalised: {&#x27;title&#x27;: &#x27;Dune&#x27;, &#x27;copies&#x27;: 2}
+rejected: {&#x27;title&#x27;: &#x27; &#x27;, &#x27;copies&#x27;: 1}
+rejected: {&#x27;title&#x27;: &#x27;Dune&#x27;, &#x27;copies&#x27;: True}
+rejected: {&#x27;title&#x27;: &#x27;Dune&#x27;, &#x27;copies&#x27;: -1}
+rejected: {&#x27;title&#x27;: &#x27;Dune&#x27;, &#x27;copies&#x27;: 1, &#x27;admin&#x27;: True}
+</code></pre></div><ol><li>加长度百与百一书名。</li><li>测试数量零与百。</li><li>解释验证与授权区别。</li></ol><details class="solution"><summary>完整解答</summary><div class="details-body"><p>百接受、百一拒绝，零与百为有效边界。验证检查数据契约，授权检查调用者是否可执行。</p></div></details><span class="section-anchor" id="lab2"></span><div class="section-header" data-sec="lab2"><span class="section-num">9</span><h2>实验 2 — 持久目录综合项目</h2></div><p>先运行默认有限集成检查，跟踪 HTTP 至事务再返回，测试凭据随机生成且不打印。</p><p><a href="labs/m14_capstone.py" download>下载 m14_capstone.py</a></p><pre><code class="language-python">&quot;&quot;&quot;Local catalogue capstone: SQLite, HTTP, scoped bearer tokens and idempotent loans.
+
+Default: finite integration checks in a temporary directory.
+To keep a local server running, set CS_CATALOGUE_TOKEN (32+ characters), then:
+python m14_capstone.py --serve --db catalogue.sqlite --port 8000
+This single-threaded http.server application is for local study, not public hosting.
+&quot;&quot;&quot;
+import argparse, json, os, re, secrets, sqlite3, tempfile
+from contextlib import closing
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+from threading import Thread
+from urllib.error import HTTPError
+from urllib.parse import parse_qs, urlsplit
+from urllib.request import Request, urlopen
+
+class Conflict(Exception):
+    pass
+
+class Catalogue:
+    def __init__(self, path):
+        self.path = path
+        with closing(self.connect()) as db, db:
+            db.executescript(&quot;&quot;&quot;
+              CREATE TABLE IF NOT EXISTS books(id INTEGER PRIMARY KEY, title TEXT NOT NULL,
+                copies INTEGER NOT NULL CHECK(copies&gt;=0), total INTEGER NOT NULL CHECK(copies&lt;=total));
+              CREATE TABLE IF NOT EXISTS loans(request_id TEXT PRIMARY KEY,
+                book_id INTEGER NOT NULL REFERENCES books(id), member TEXT NOT NULL);
+              CREATE INDEX IF NOT EXISTS title_index ON books(title);
+            &quot;&quot;&quot;)
+            db.execute(&quot;INSERT OR IGNORE INTO books VALUES(1,&#x27;Dune&#x27;,2,2)&quot;)
+            db.execute(&quot;INSERT OR IGNORE INTO books VALUES(2,&#x27;Foundation&#x27;,1,1)&quot;)
+    def connect(self):
+        db = sqlite3.connect(self.path, timeout=3)
+        db.execute(&quot;PRAGMA foreign_keys=ON&quot;)
+        return db
+    def search(self, query):
+        with closing(self.connect()) as db:
+            # SQLite lower() has ASCII semantics here; literal substring, not LIKE wildcards.
+            rows = db.execute(&quot;SELECT id,title,copies FROM books WHERE instr(lower(title),lower(?))&gt;0 ORDER BY title,id LIMIT 100&quot;, (query,)).fetchall()
+            return [dict(zip((&quot;id&quot;, &quot;title&quot;, &quot;copies&quot;), row)) for row in rows]
+    def borrow(self, request_id, book_id, member):
+        with closing(self.connect()) as db, db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            previous = db.execute(&quot;SELECT book_id,member FROM loans WHERE request_id=?&quot;, (request_id,)).fetchone()
+            if previous:
+                if previous != (book_id, member): raise Conflict(&quot;request ID reused with different inputs&quot;)
+                return 200, {&quot;request_id&quot;: request_id, &quot;book_id&quot;: book_id, &quot;member&quot;: member}
+            if db.execute(&quot;UPDATE books SET copies=copies-1 WHERE id=? AND copies&gt;0&quot;, (book_id,)).rowcount != 1:
+                raise Conflict(&quot;book unavailable&quot;)
+            db.execute(&quot;INSERT INTO loans VALUES(?,?,?)&quot;, (request_id, book_id, member))
+            return 201, {&quot;request_id&quot;: request_id, &quot;book_id&quot;: book_id, &quot;member&quot;: member}
+
+class Handler(BaseHTTPRequestHandler):
+    def setup(self):
+        super().setup(); self.connection.settimeout(5)
+    def log_message(self, *args):
+        pass  # do not log credentials or request bodies
+    def reply(self, status, value):
+        body = json.dumps(value).encode(&quot;utf-8&quot;)
+        self.send_response(status)
+        if status == 401: self.send_header(&quot;WWW-Authenticate&quot;, &#x27;Bearer realm=&quot;catalogue&quot;&#x27;)
+        self.send_header(&quot;Content-Type&quot;, &quot;application/json; charset=utf-8&quot;)
+        self.send_header(&quot;Content-Length&quot;, str(len(body)))
+        self.end_headers(); self.wfile.write(body)
+    def identity(self, scope):
+        header = self.headers.get(&quot;Authorization&quot;, &quot;&quot;)
+        if not header.startswith(&quot;Bearer &quot;):
+            self.reply(401, {&quot;error&quot;: &quot;authentication required&quot;}); return None
+        supplied = header[7:].encode(&quot;utf-8&quot;)
+        for token, (member, scopes) in self.server.tokens.items():
+            if secrets.compare_digest(token.encode(&quot;utf-8&quot;), supplied):
+                if scope not in scopes:
+                    self.reply(403, {&quot;error&quot;: &quot;permission denied&quot;}); return None
+                return member
+        self.reply(401, {&quot;error&quot;: &quot;invalid credential&quot;}); return None
+    def do_GET(self):
+        if self.identity(&quot;read&quot;) is None: return
+        url = urlsplit(self.path)
+        if url.path != &quot;/books&quot;: self.reply(404, {&quot;error&quot;: &quot;unknown route&quot;}); return
+        params = parse_qs(url.query, keep_blank_values=True)
+        if set(params) - {&quot;q&quot;} or len(params.get(&quot;q&quot;, [])) &gt; 1:
+            self.reply(400, {&quot;error&quot;: &quot;only one q parameter allowed&quot;}); return
+        query = params.get(&quot;q&quot;, [&quot;&quot;])[0].strip()
+        if len(query) &gt; 100 or (&quot;q&quot; in params and not query):
+            self.reply(400, {&quot;error&quot;: &quot;invalid query&quot;}); return
+        self.reply(200, self.server.catalogue.search(query))
+    def do_POST(self):
+        member = self.identity(&quot;borrow&quot;)
+        if member is None: return
+        if self.path != &quot;/loans&quot;: self.reply(404, {&quot;error&quot;: &quot;unknown route&quot;}); return
+        if self.headers.get(&quot;Content-Type&quot;, &quot;&quot;).split(&quot;;&quot;)[0].strip() != &quot;application/json&quot;:
+            self.reply(415, {&quot;error&quot;: &quot;JSON required&quot;}); return
+        if self.headers.get(&quot;Transfer-Encoding&quot;):
+            self.reply(400, {&quot;error&quot;: &quot;chunked bodies not supported&quot;}); return
+        lengths = self.headers.get_all(&quot;Content-Length&quot;, [])
+        try:
+            if len(lengths) != 1: raise ValueError(&quot;one body length required&quot;)
+            length = int(lengths[0])
+            if not 1 &lt;= length &lt;= 1024: raise ValueError(&quot;body length out of range&quot;)
+            raw = self.rfile.read(length)
+            if len(raw) != length: raise ValueError(&quot;truncated body&quot;)
+            record = json.loads(raw.decode(&quot;utf-8&quot;))
+            if not isinstance(record, dict) or set(record) != {&quot;request_id&quot;, &quot;book_id&quot;}: raise ValueError(&quot;invalid fields&quot;)
+            if type(record[&quot;book_id&quot;]) is not int or record[&quot;book_id&quot;] &lt;= 0: raise ValueError(&quot;positive integer ID required&quot;)
+            if not isinstance(record[&quot;request_id&quot;], str) or not re.fullmatch(r&quot;[A-Za-z0-9_-]{1,64}&quot;, record[&quot;request_id&quot;]): raise ValueError(&quot;invalid request ID&quot;)
+        except (ValueError, UnicodeError, TimeoutError):
+            self.reply(400, {&quot;error&quot;: &quot;invalid body&quot;}); return
+        try:
+            status, value = self.server.catalogue.borrow(record[&quot;request_id&quot;], record[&quot;book_id&quot;], member)
+            self.reply(status, value)
+        except Conflict as error:
+            self.reply(409, {&quot;error&quot;: str(error)})
+        except sqlite3.OperationalError:
+            self.reply(503, {&quot;error&quot;: &quot;database unavailable&quot;})
+
+def make_server(path, tokens, port=0):
+    catalogue = Catalogue(path)
+    server = HTTPServer((&quot;127.0.0.1&quot;, port), Handler)
+    server.catalogue, server.tokens = catalogue, tokens
+    return server
+
+def self_test():
+    token, guest = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
+    with tempfile.TemporaryDirectory() as folder:
+        path = str(Path(folder) / &quot;catalogue.sqlite&quot;)
+        server = make_server(path, {token: (&quot;reader&quot;, {&quot;read&quot;, &quot;borrow&quot;}), guest: (&quot;guest&quot;, {&quot;read&quot;})})
+        thread = Thread(target=server.serve_forever); thread.start()
+        base = f&quot;http://127.0.0.1:{server.server_port}&quot;
+        def request(route, body=None, credential=token):
+            headers = {&quot;Content-Type&quot;: &quot;application/json&quot;}
+            if credential: headers[&quot;Authorization&quot;] = &quot;Bearer &quot; + credential
+            req = Request(base + route, data=json.dumps(body).encode() if body is not None else None, headers=headers)
+            try:
+                with urlopen(req, timeout=5) as response: return response.status, json.load(response)
+            except HTTPError as error:
+                with error: return error.code, json.load(error)
+        try:
+            assert request(&quot;/books&quot;, credential=None)[0] == 401
+            assert request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;a&quot;, &quot;book_id&quot;:1}, guest)[0] == 403
+            assert request(&quot;/books?q=Dune&quot;)[1][0][&quot;copies&quot;] == 2
+            assert request(&quot;/books?q=%27%20OR%201%3D1%20--&quot;)[1] == []
+            assert request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;bad&quot;, &quot;book_id&quot;:True})[0] == 400
+            first = request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;a&quot;, &quot;book_id&quot;:1})
+            replay = request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;a&quot;, &quot;book_id&quot;:1})
+            assert first[0] == 201 and replay[0] == 200 and first[1] == replay[1]
+            assert request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;a&quot;, &quot;book_id&quot;:2})[0] == 409
+            assert request(&quot;/books?q=Dune&quot;)[1][0][&quot;copies&quot;] == 1
+            assert request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;b&quot;, &quot;book_id&quot;:1})[0] == 201
+            assert request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;c&quot;, &quot;book_id&quot;:1})[0] == 409
+            print(&quot;PASS: authentication, scopes, validation, bound SQL, idempotent replay and stock limits&quot;)
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=5); assert not thread.is_alive()
+        reopened = Catalogue(path)
+        assert reopened.search(&quot;Dune&quot;)[0][&quot;copies&quot;] == 0
+        with closing(reopened.connect()) as db:
+            total, copies = db.execute(&quot;SELECT total,copies FROM books WHERE id=1&quot;).fetchone()
+            loans = db.execute(&quot;SELECT COUNT(*) FROM loans WHERE book_id=1&quot;).fetchone()[0]
+            assert total == copies + loans == 2
+        print(&quot;PASS: restart persistence and inventory invariant&quot;)
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(&quot;--serve&quot;, action=&quot;store_true&quot;)
+    parser.add_argument(&quot;--db&quot;, default=&quot;catalogue.sqlite&quot;)
+    parser.add_argument(&quot;--port&quot;, type=int, default=8000)
+    args = parser.parse_args()
+    if not args.serve: self_test(); return
+    token = os.environ.get(&quot;CS_CATALOGUE_TOKEN&quot;, &quot;&quot;)
+    if len(token) &lt; 32: parser.error(&quot;set CS_CATALOGUE_TOKEN to a random 32+ character credential&quot;)
+    server = make_server(args.db, {token: (&quot;reader&quot;, {&quot;read&quot;, &quot;borrow&quot;})}, args.port)
+    print(f&quot;Local catalogue: http://127.0.0.1:{server.server_port}/books (Bearer credential required)&quot;)
+    try: server.serve_forever()
+    except KeyboardInterrupt: pass
+    finally: server.server_close()
+
+if __name__ == &quot;__main__&quot;: main()
+</code></pre><div class="output"><div class="output-label">实际运行输出</div><pre><code class="language-text">PASS: authentication, scopes, validation, bound SQL, idempotent replay and stock limits
+PASS: restart persistence and inventory invariant
+</code></pre></div><ol><li>检查首次与重放借阅状态及相同体。</li><li>扩展空查询、重复查询及跨身份 ID 碰撞测试。</li><li>本地持久运行：把 CS_CATALOGUE_TOKEN 设为至少 32 字符随机凭据，再用 --serve --db catalogue.sqlite --port 8000，GET /books 附 Bearer 认证头。</li><li>设计具有独立幂等键与事务的归还操作。</li></ol><details class="solution"><summary>完整解答</summary><div class="details-body"><p>新借阅 201，重放 200 且记录相同。空或重复查询 400，跨身份重用 ID 冲突。归还需原子标记有效借阅已还并增库存，不能每次都直接递增。应增加已还标记与保存归还请求，重启同数据库验证已提交库存。</p></div></details><span class="section-anchor" id="exercises"></span><div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>练习与完整解答</h2></div><p>先尝试，再展开解答。★ 应用概念；★★ 结合概念；★★★ 进行设计或证明。</p><div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1 — 身份</span><span class="stars">★</span></div><p>缺凭据与有效只读身份借阅各怎样？</p></div><details class="solution"><summary>完整解答</summary><div class="details-body"><p>缺认证 401，权限不足 403。</p></div></details><div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2 — 验证</span><span class="stars">★</span></div><p>为何拒绝额外 admin 字段？</p></div><details class="solution"><summary>完整解答</summary><div class="details-body"><p>模式未赋予含义，接受会隐藏客户端错或引入意外批量赋值。</p></div></details><div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3 — 重放</span><span class="stars">★★</span></div><p>同 ID 同输入发送三次，扣几次？</p></div><details class="solution"><summary>完整解答</summary><div class="details-body"><p>首次成功提交后仅一次，后续返回保存结果。</p></div></details><div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4 — 改变输入</span><span class="stars">★★</span></div><p>同 ID 不同书应怎样？</p></div><details class="solution"><summary>完整解答</summary><div class="details-body"><p>409 冲突，不创建新借阅，也不误重放。</p></div></details><div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5 — 库存不变式</span><span class="stars">★★</span></div><p>总三、有效借阅二，可用多少？</p></div><details class="solution"><summary>完整解答</summary><div class="details-body"><p>一，假定每借阅占一副本且无模型外操作。</p></div></details><div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6 — 归还设计</span><span class="stars">★★★</span></div><p>设计安全幂等归还。</p></div><details class="solution"><summary>完整解答</summary><div class="details-body"><p>验证身份权限与 ID，同事务重放已保存相同归还，或标记有效借阅已还并增库存，保存结果，拒绝不匹配键与不等价重复归还。</p></div></details><div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7 — 失败注入</span><span class="stars">★★★</span></div><p>扣库存后插入失败如何验证回滚？</p></div><details class="solution"><summary>完整解答</summary><div class="details-body"><p>事务内更新后插入前故意抛异常，再独立查库存借阅，均应等于调用前已提交状态。</p></div></details><div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8 — 证据限制</span><span class="stars">★★</span></div><p>有限项目检查不能证明什么？</p></div><details class="solution"><summary>完整解答</summary><div class="details-body"><p>不能证明生产扩展、公网 TLS、无所有安全缺陷或多进程争用，需另行设计验证。</p></div></details><span class="section-anchor" id="quiz"></span><div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>自测</h2></div><p>选择答案查看反馈，重置后可重做。无需 JavaScript 也可阅读答案表。</p><div class="quiz"><div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><p>认证确定什么？</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">调用者身份</button></li><li><button class="quiz-opt" type="button" data-i="1">仅输入大小</button></li><li><button class="quiz-opt" type="button" data-i="2">SQL 顺序</button></li></ol><div class="quiz-expl" hidden>授权确定权限。</div></div><div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><p>布尔值作为整数 ID 应怎样？</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">转管理员</button></li><li><button class="quiz-opt" type="button" data-i="1">本约定拒绝</button></li><li><button class="quiz-opt" type="button" data-i="2">自动接受</button></li></ol><div class="quiz-expl" hidden>类型继承不改变 API 含义。</div></div><div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><p>幂等重放应怎样？</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">总消耗副本</button></li><li><button class="quiz-opt" type="button" data-i="1">删除旧借阅</button></li><li><button class="quiz-opt" type="button" data-i="2">返回保存结果不再扣减</button></li></ol><div class="quiz-expl" hidden>同已提交操作不重复应用。</div></div><div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><p>参数化 SQL 代替权限吗？</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">不能</button></li><li><button class="quiz-opt" type="button" data-i="1">能</button></li><li><button class="quiz-opt" type="button" data-i="2">仅 GET</button></li></ol><div class="quiz-expl" hidden>数据安全与访问控制不同。</div></div><div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><p>项目默认执行怎样？</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">删用户数据库</button></li><li><button class="quiz-opt" type="button" data-i="1">有限自测与清理</button></li><li><button class="quiz-opt" type="button" data-i="2">永久公网服务</button></li></ol><div class="quiz-expl" hidden>使用临时本地环境。</div></div><div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><p>持久性测试应怎样？</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">仅看打印</button></li><li><button class="quiz-opt" type="button" data-i="1">每次重置库存</button></li><li><button class="quiz-opt" type="button" data-i="2">重开验证已提交状态</button></li></ol><div class="quiz-expl" hidden>重启不能抹有效状态。</div></div><div class="quiz-bar"><span class="quiz-score" role="status" aria-live="polite"></span><button class="quiz-reset" type="button">重置自测</button></div></div><details><summary>答案表</summary><div class="details-body"><ol><li>A — 授权确定权限。</li><li>B — 类型继承不改变 API 含义。</li><li>C — 同已提交操作不重复应用。</li><li>A — 数据安全与访问控制不同。</li><li>B — 使用临时本地环境。</li><li>C — 重启不能抹有效状态。</li></ol></div></details><span class="section-anchor" id="reading"></span><div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>引导阅读</h2></div><ul><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html">OWASP 授权指南</a> — 阅读默认拒绝与逐请求权限检查，指出项目边界。</li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html">OWASP SQL 注入防护</a> — 阅读参数查询例子并区分验证。</li></ul><span class="section-anchor" id="summary"></span><div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>复习与下一步</h2></div><p>你已从表示与算法到操作系统、网络与持久化构建研究系统。展示项目约定、模块图、不变式、失败案例及证据限制，再在保留保证下扩展归还或多作者。</p><span class="section-anchor" id="terms"></span><div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>关键术语</h2></div><div class="table-scroll" tabindex="0" role="region" aria-label="数据表格"><table><thead><tr><th>术语</th><th>含义</th></tr></thead><tbody><tr><td>信任边界</td><td>数据或权限跨越不同可信上下文的位置。</td></tr><tr><td>权限范围</td><td>身份被允许的一类操作。</td></tr><tr><td>集成测试</td><td>跨协作组件及边界的检查。</td></tr></tbody></table></div></div><div class="module-nav"><a href="module_13_ZH.html">← 上一模块</a><a href="index_ZH.html">课程概览</a></div><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div>
+<script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script><script src="assets/series-widgets.js" defer></script></body></html>
