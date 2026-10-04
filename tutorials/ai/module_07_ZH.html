@@ -22,6 +22,7 @@
 <a href="module_06_ZH.html">6 &mdash; Transformer</a>
 <a href="module_07_ZH.html" class="active">7 &mdash; 大语言模型</a>
 <a href="module_08_ZH.html">8 &mdash; 大语言模型预训练</a>
+<a href="module_09_ZH.html">9 &mdash; 大语言模型后训练</a>
     </div>
   </div>
   <a href="module_07_EN.html" class="lang-switch" hreflang="en">English</a>
@@ -53,7 +54,7 @@
 <span class="section-anchor" id="s1"></span>
 <div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>什么是语言模型</h2></div>
 <div class="sec-meta">≈ 19 分钟阅读</div>
-<p><strong>大语言模型（large language model，LLM）</strong>是仅解码器 Transformer（<a href="module_06_ZH.html">第 06 模块</a>），在极大文本语料上训练，预测下一个 token。这就是定义。回答问题、编写代码、遵循指令、拒绝请求等行为，都源于这一目标、训练规模，以及 <span class="xref-pending">第 09 模块</span> 的后训练。本节明确该目标，并解释它产生的数值。</p>
+<p><strong>大语言模型（large language model，LLM）</strong>是仅解码器 Transformer（<a href="module_06_ZH.html">第 06 模块</a>），在极大文本语料上训练，预测下一个 token。这就是定义。回答问题、编写代码、遵循指令、拒绝请求等行为，都源于这一目标、训练规模，以及 <a href="module_09_ZH.html">第 09 模块</a> 的后训练。本节明确该目标，并解释它产生的数值。</p>
 <h3>目标</h3>
 <p>模型通过概率链式法则将概率分配给 token <span class="math-i">x_1, \dots, x_T</span> 序列：</p>
 <div class="math-d">p(x_1, \dots, x_T) = \prod_{t=1}^{T} p(x_t \mid x_{&lt;t}).</div>
@@ -534,7 +535,7 @@ L 628.421635 292.794936
 </div><figcaption><span class="fig-num">图 7.2</span> <p>实验 1 七种内置文本的实测 BPB，各条旁标出 token 困惑度。虚线是 37 符号随机生成器的源熵，约束期望编码成本，并非每个有限样本的下界。</p>
 </figcaption></figure>
 <h3>基座模型与指令模型</h3>
-<p>预训练得到的<strong>基座模型（base model）</strong>续写文本：面对问题，它可能回答，也可能再列三个问题，取决于哪种续写在语料中更常见。后训练（<span class="xref-pending">第 09 模块</span>）将其变为<strong>指令模型（instruction model）</strong>或聊天模型，按回合作答并停止。两者仍都预测下一个 token；指令模型额外接受了对话训练。<a href="module_08_ZH.html">第 08 模块</a> 构建基座模型，第 09 模块构建助手。</p>
+<p>预训练得到的<strong>基座模型（base model）</strong>续写文本：面对问题，它可能回答，也可能再列三个问题，取决于哪种续写在语料中更常见。后训练（<a href="module_09_ZH.html">第 09 模块</a>）将其变为<strong>指令模型（instruction model）</strong>或聊天模型，按回合作答并停止。两者仍都预测下一个 token；指令模型额外接受了对话训练。<a href="module_08_ZH.html">第 08 模块</a> 构建基座模型，第 09 模块构建助手。</p>
 <h3>贯穿案例</h3>
 <p>第 07–10 模块围绕一个假设项目展开：工程团队采用约 9.5B 参数的中英双语开放权重模型，分别提供基座和指令版本，用于起草与检查反应堆容器泄压系统的安全论证，包括主张、论证、证据链接。本模块选择模型、确定规模并估计使用价格；第 08 模块说明如何预训练该基座模型，以及用团队领域文本继续预训练的成本；第 09 模块后训练并评估；第 10 模块部署合并、量化后的模型。它是帮助读者理解的工程案例，不对应实际计划或产品。</p>
 <div class="check"><div class="check-label">检验理解</div>
@@ -4320,7 +4321,7 @@ z_i\ge z_{\max}+\tau\ln p_{\min}.</div>
 <div class="math-d">\mathbb{E}[\text{score} \mid \text{answer}] = p \cdot 1 + (1-p)\cdot(-\lambda) = p(1+\lambda) - \lambda .</div>
 <p>弃权得 0，所以只有 <span class="math-i">p(1+\lambda) - \lambda &gt; 0</span> 时回答更有利，即</p>
 <div class="math-d">p &gt; \frac{\lambda}{1+\lambda}.</div>
-<p>二元计分对应 <span class="math-i">\lambda = 0</span>，阈值为零，猜测得分永远不比弃权低，因此这种基准鼓励回答所有问题。Kalai 等建议在评估指令中明确阈值 <span class="math-i">t</span>，并采用匹配惩罚 <span class="math-i">\lambda = t/(1-t)</span>，即由同一关系解出 <span class="math-i">\lambda</span>。本模块推导规则，<span class="xref-pending">第 09 模块</span> 用它训练弃权。</p>
+<p>二元计分对应 <span class="math-i">\lambda = 0</span>，阈值为零，猜测得分永远不比弃权低，因此这种基准鼓励回答所有问题。Kalai 等建议在评估指令中明确阈值 <span class="math-i">t</span>，并采用匹配惩罚 <span class="math-i">\lambda = t/(1-t)</span>，即由同一关系解出 <span class="math-i">\lambda</span>。本模块推导规则，<a href="module_09_ZH.html#s10">第 09 模块</a> 用它训练弃权。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">弃答阈值</div>
 <p>从 <span class="math-i">p &gt; \lambda/(1+\lambda)</span>： <span class="math-i">\lambda = 0</span> 给出阈值 0，所以总是回答； <span class="math-i">\lambda = 1</span> 得到 <span class="math-i">1/2 = 0.5</span>； <span class="math-i">\lambda = 3</span> 得到 <span class="math-i">3/4 = 0.75</span>； <span class="math-i">\lambda = 9</span> 给出 <span class="math-i">9/10 = 0.9</span>。</p>
 <p>设某问题正确概率为 <span class="math-i">p = 0.6</span>，四种规则下回答的期望分数 <span class="math-i">0.6 - 0.4\lambda</span> 分别为 <span class="math-i">+0.6</span>、<span class="math-i">+0.2</span>、<span class="math-i">-0.6</span>、<span class="math-i">-3.0</span>。应在前两种回答，后两种弃权。错误惩罚越重，作答所需置信度越高。</p>
@@ -4981,7 +4982,7 @@ L 667.581244 213.625131
 <h3>算术和计数</h3>
 <p>模型通过 token 上的注意力和 MLP 计算，没有精确加法器。数字的 token 边界由分词器决定（<a href="#s3">第 3 节</a>）：GPT-2 将 1234567 拆为 123|45|67，将 2026 拆为 20|26；同一数位可能落在不同 token 内，模型须从文本学习拼接与进位。小数值可能记住，长数字却会自信出错。写出过程往往更好，因为部分结果进入上下文，下一步能读取（<a href="#s6">第 6 节</a>）。可靠修复是给计算器或代码工具，并要求使用其结果。字母计数也类似：“strawberry”在实验 2 三种分词器中都是单 token，r 是模型未直接看到的字符。</p>
 <h3>推理，以及对书面链的信任程度</h3>
-<p>模型是否推理、推理多少，仍有争论。可测量的是，2024 年起的<strong>推理模型（reasoning model）</strong>经强化学习训练，在作答前生成较长中间 token 链（<span class="xref-pending">第 09 模块</span>），能解决更难的数学与代码任务，代价是更多输出 token。</p>
+<p>模型是否推理、推理多少，仍有争论。可测量的是，2024 年起的<strong>推理模型（reasoning model）</strong>经强化学习训练，在作答前生成较长中间 token 链（<a href="module_09_ZH.html#s9">第 09 模块</a>），能解决更难的数学与代码任务，代价是更多输出 token。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">推理 token 的成本</div>
 <p>200-token 答案之前生成 4,000 个推理 token，总计 4,200，为答案长度的 <span class="math-i">4{,}200/200 = 21</span> 倍。每次解码前向只生成一个 token（<a href="#s8">第 8 节</a>）；50 token/s 下，需要 <span class="math-i">4{,}200/50 = 84</span> 秒而非 <span class="math-i">200/50 = 4</span> 秒，输出账单也增长 21 倍（<a href="#s14">第 14 节</a>）。</p>
 </div>
@@ -5465,7 +5466,7 @@ L 144.472896 32.625045
 </div><figcaption><span class="fig-num">图 7.10</span> <p>在真实测试规模下的假设得分及 95% 区间：HumanEval 60 ± 7.5、GSM8K 80 ± 2.2、MMLU 70 ± 0.76，与低三个百分点的另一模型并列。点和误差线显示 HumanEval 几乎完全重叠，GSM8K 部分重叠，MMLU 不重叠。</p>
 </figcaption></figure>
 <h3>对案例研究的评估</h3>
-<p>案例任务的正确评估需自行构建，不能直接下载；<span class="xref-pending">第 09 模块</span> 完整介绍：</p>
+<p>案例任务的正确评估需自行构建，不能直接下载；<a href="module_09_ZH.html#s12">第 09 模块</a> 完整介绍：</p>
 <ol>
 <li>定义重要的故障模式：不受支持的声明、缺失的危险、错误的证据引用。</li>
 <li>留出全部训练阶段均不可见的任务集，以内容哈希核查。</li>
@@ -7823,7 +7824,7 @@ L 70.007994 87.916632
 </svg>
 </div><figcaption><span class="fig-num">图 7.13</span> <p>每日场景成本随请求量的变化。API 线使用假设无缓存和缓存输入价格；专用 H100 每天固定 60 美元。阴影标出超过 bf16、四比特的 batch 1 容量的区域；固定 GPU 账单本身不代表能完成该服务量。</p>
 </figcaption></figure>
-<p>本例工作量下，API 明显便宜；专用 GPU 要到约每天 32,000 个缓存请求才账面持平，还必须通过 batch（<span class="xref-pending">第 10 模块</span>）才能处理那么多。成本外因素仍可能决定选择：机密数据不允许离开现场、延迟、版本控制、微调（<span class="xref-pending">第 09 模块</span>）。工程时间也要计入。</p>
+<p>本例工作量下，API 明显便宜；专用 GPU 要到约每天 32,000 个缓存请求才账面持平，还必须通过 batch（<span class="xref-pending">第 10 模块</span>）才能处理那么多。成本外因素仍可能决定选择：机密数据不允许离开现场、延迟、版本控制、微调（<a href="module_09_ZH.html">第 09 模块</a>）。工程时间也要计入。</p>
 <p>语言也改变账单。仅作示例，将实验 2 的单段双语文本比例用于工作量：SmolLM2 类分词器（×2.46）约得 9,800 中文输入 token，Qwen2.5 类（×0.80）约得 3,200；原 2,000 输出则变为约 4,900 或 1,600。若各语言单 token 输入、输出单价相同，各账单项按相应假设比例变化。只有 token 吞吐固定时，解码时间才近似同比变化；上下文长度、KV 流量、batch、硬件都会影响。双语分词器可减少中文 token，但不保证中文费用等于或低于英文。应分别测量代表性输入与输出。</p>
 <p>训练方面，使用 2B token（1.8B 领域、0.2B 通用回放）继续预训练，在 <span class="math-i">T = 8{,}192</span> 下约 <span class="math-i">(5.36 \times 10^{10} + 7.25 \times 10^9) \times 2 \times 10^9 = 1.22 \times 10^{20}</span> FLOPs，按假设持续速率需约 84 GPU 小时、211 美元。简化 <span class="math-i">6ND</span> 得 <span class="math-i">1.15 \times 10^{20}</span> 和 80 GPU 小时。<a href="module_08_ZH.html#s14">第 08 模块</a> 规划该运行，第 09、10 模块讨论后训练与服务。</p>
 <div class="callout keyidea"><div class="callout-label">核心思想</div>
