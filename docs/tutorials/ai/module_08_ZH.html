@@ -22,6 +22,7 @@
 <a href="module_06_ZH.html">6 &mdash; Transformer</a>
 <a href="module_07_ZH.html">7 &mdash; 大语言模型</a>
 <a href="module_08_ZH.html" class="active">8 &mdash; 大语言模型预训练</a>
+<a href="module_09_ZH.html">9 &mdash; 大语言模型后训练</a>
     </div>
   </div>
   <a href="module_08_EN.html" class="lang-switch" hreflang="en">English</a>
@@ -56,7 +57,7 @@
 <p><strong>基座模型</strong>通过最小化下一个 token 交叉熵来学习文本的分布，通常是在打包成固定长度序列的文档混合上：</p>
 <div class="math-d">\mathcal L(\theta)=-\frac1{|\mathcal D|}\sum_{\text{docs}}\sum_t
 \log p_\theta(x_t\mid x_{&lt;t}).</div>
-<p>这里 <span class="math-i">|\mathcal D|</span> 统计参与预测的 token 数。token 本身提供监督目标；文本可以包含任务或指令，但目标不需要额外人工标签。损失以每 token 奈特计，取指数后即为困惑度（<a href="module_07_ZH.html#s1">第 07 模块</a>）。预训练得到基座模型；<span class="xref-pending">第 09 模块</span> 再进行指令与偏好训练。</p>
+<p>这里 <span class="math-i">|\mathcal D|</span> 统计参与预测的 token 数。token 本身提供监督目标；文本可以包含任务或指令，但目标不需要额外人工标签。损失以每 token 奈特计，取指数后即为困惑度（<a href="module_07_ZH.html#s1">第 07 模块</a>）。预训练得到基座模型；<a href="module_09_ZH.html">第 09 模块</a> 再进行指令与偏好训练。</p>
 <h3>在昂贵训练开始之前确定方案</h3>
 <p>启动前确定分词器、模型结构、数据策略和调度。后续修改可能需要重新分词、迁移权重或调整训练阶段。应先用小规模消融实验解决不确定选择，再投入长时间训练。只要明确记录，后续仍可调整数据配比或逐步增加 batch 大小。</p>
 <div class="table-wrap"><table>
@@ -1375,7 +1376,7 @@ L 637.816947 79.666998
 <p>主要失败是覆盖范围收窄。分类器编码了标注者的偏好，例如百科式、正式、以英文为中心。因此有价值但风格不同的维修日志、论坛排障讨论、代码注释和其他语言文本，可能因低分被删除。</p>
 <h3>个人数据和安全</h3>
 <p>正则表达式查找邮箱、电话号码和 IP 地址，将它们替换为 <code>&lt;EMAIL&gt;</code> 等占位 token，而非直接删除，以保持文本连贯。姓名难以可靠识别，通常大多保留。过度匹配会损害技术文本：<code>10.2.0.1</code> 这样的版本号就像 IP 地址。</p>
-<p>安全过滤采用 URL 屏蔽列表和分类器，粗糙规则也会带来损害：Dodge 等（2021）发现，C4 词语屏蔽列表不成比例地删除了少数群体撰写或相关的文本。删除所有有害文本，也会削弱模型识别它们的能力，而后训练（<span class="xref-pending">第 09 模块</span>）教模型拒绝时需要这种识别能力。</p>
+<p>安全过滤采用 URL 屏蔽列表和分类器，粗糙规则也会带来损害：Dodge 等（2021）发现，C4 词语屏蔽列表不成比例地删除了少数群体撰写或相关的文本。删除所有有害文本，也会削弱模型识别它们的能力，而后训练（<a href="module_09_ZH.html">第 09 模块</a>）教模型拒绝时需要这种识别能力。</p>
 <h3>按成本排序，并保留日志</h3>
 <p>先运行廉价过滤器：URL 屏蔽列表、语种识别和启发式规则；再对剩余文本运行昂贵的模型分类器及近似重复检测。记录每篇文档被删除的原因。模型日后出现问题时，这些日志就是调试依据，可据此发现某个过滤器删掉了需要的领域文本。</p>
 <div class="check"><div class="check-label">检验理解</div>
@@ -2394,7 +2395,7 @@ L 70.570494 63.583248
 <p>每二十词改一个的副本，相似度仅约 63%；16 个带、每带 8 项的设置只让约三分之一成为候选。每八词改一个（<span class="math-i">J = 0.36</span>）则几乎从不成为候选。若用 13 词 shingle，同样 5% 修改得到 <span class="math-i">s = 0.95^{13} = 0.513</span>、<span class="math-i">J = 0.35</span>。</p>
 </div>
 <h3>去污染</h3>
-<p>测试题进入训练数据后，基准可能测到答案记忆而非解题能力。<strong>去污染（decontamination）</strong>删除与拟报告评估集共享长 <span class="math-i">n</span>-gram 的训练文档。GPT-3（Brown 等，2020）采用 13-gram 重叠，这个长度的偶然匹配很少。应在训练前处理，保留删除清单，并把未经去污染的公开基准视为可能受污染。常见短语、许可文本及著名引文会造成误报；改写或翻译的测试题不共享原题的长 <span class="math-i">n</span>-gram，会造成漏报。对案例中的双语模型，译成中文的英文测试题可通过所有 <span class="math-i">n</span>-gram 检查。<a href="module_07_ZH.html#s12">第 07 模块，第 12 节</a> 讨论如何解读可能污染的能力声明，<span class="xref-pending">第 09 模块</span> 讨论后训练数据污染。</p>
+<p>测试题进入训练数据后，基准可能测到答案记忆而非解题能力。<strong>去污染（decontamination）</strong>删除与拟报告评估集共享长 <span class="math-i">n</span>-gram 的训练文档。GPT-3（Brown 等，2020）采用 13-gram 重叠，这个长度的偶然匹配很少。应在训练前处理，保留删除清单，并把未经去污染的公开基准视为可能受污染。常见短语、许可文本及著名引文会造成误报；改写或翻译的测试题不共享原题的长 <span class="math-i">n</span>-gram，会造成漏报。对案例中的双语模型，译成中文的英文测试题可通过所有 <span class="math-i">n</span>-gram 检查。<a href="module_07_ZH.html#s12">第 07 模块，第 12 节</a> 讨论如何解读可能污染的能力声明，<a href="module_09_ZH.html">第 09 模块</a> 讨论后训练数据污染。</p>
 <div class="check"><div class="check-label">检验理解</div>
 <p>为什么 MinHash 碰撞概率恰好是 Jaccard 相似度？</p>
 </div>
@@ -2494,7 +2495,7 @@ L 70.570494 63.583248
 <p>数据占比为 <span class="math-i">q = (0.80, 0.15, 0.05)</span>。当 <span class="math-i">\alpha = 0.3</span> 时，<span class="math-i">0.80^{0.3} = 0.935</span>、<span class="math-i">0.15^{0.3} = 0.566</span>、<span class="math-i">0.05^{0.3} = 0.407</span> 合计 1.909，得到 <span class="math-i">p = (0.490, 0.297, 0.213)</span>。当 <span class="math-i">\alpha = 0.5</span> 时，<span class="math-i">p = (0.594, 0.257, 0.149)</span>；当 <span class="math-i">\alpha = 0.7</span> 时，<span class="math-i">p = (0.688, 0.213, 0.099)</span>。在 <span class="math-i">\alpha = 0.3</span> 下，最小语言的采样概率是自然占比的 <span class="math-i">0.213/0.05 = 4.3</span> 倍，最大语言为 <span class="math-i">0.490/0.80 = 0.61</span> 倍，所以最小语言的重复频率约为最大语言的七倍，在最大语言完成首轮前已达到四轮。</p>
 </div>
 <h3>分词器</h3>
-<p>BPE 算法见 <a href="module_07_ZH.html#s2">第 07 模块</a>，这里把分词器作为数据流程决策。先在最终数据混合的样本上训练，因为预算、来源权重和上下文长度都以其 token 计。词表大小 <span class="math-i">V</span> 带来嵌入参数 <span class="math-i">Vd</span>（不共享时加倍）及输出 softmax 开销（前向每 token <span class="math-i">2dV</span> FLOP），同时换取较短序列：词表越大，文本通常切成更少 token。32k 适合英文；双语或多语言语料常用 100k–150k，让各语言都能学到自己的合并。压缩效率决定各语言的上下文和计算成本：每字符需要两倍 token，就需约两倍文档成本，窗口只能放入一半文本。其他选择由实验确定：逐位分数字以改善算术、字节回退保证覆盖、提前保留聊天模板所需特殊 token（<span class="xref-pending">第 09 模块</span>），以及将 <span class="math-i">V</span> 填充到 64 或 128 的倍数以提高 kernel 效率；案例的 152,064 即 <span class="math-i">1{,}188 \times 128</span>。</p>
+<p>BPE 算法见 <a href="module_07_ZH.html#s2">第 07 模块</a>，这里把分词器作为数据流程决策。先在最终数据混合的样本上训练，因为预算、来源权重和上下文长度都以其 token 计。词表大小 <span class="math-i">V</span> 带来嵌入参数 <span class="math-i">Vd</span>（不共享时加倍）及输出 softmax 开销（前向每 token <span class="math-i">2dV</span> FLOP），同时换取较短序列：词表越大，文本通常切成更少 token。32k 适合英文；双语或多语言语料常用 100k–150k，让各语言都能学到自己的合并。压缩效率决定各语言的上下文和计算成本：每字符需要两倍 token，就需约两倍文档成本，窗口只能放入一半文本。其他选择由实验确定：逐位分数字以改善算术、字节回退保证覆盖、提前保留聊天模板所需特殊 token（<a href="module_09_ZH.html">第 09 模块</a>），以及将 <span class="math-i">V</span> 填充到 64 或 128 的倍数以提高 kernel 效率；案例的 152,064 即 <span class="math-i">1{,}188 \times 128</span>。</p>
 <div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">d = 4,096 时的词表成本</div>
 <div class="table-wrap"><table>
 <thead>
@@ -5976,9 +5977,9 @@ z
 <p>反复在小验证集选最高分检查点，会对验证集过拟合。用它指导开发，另保留最终测试集。若证据不足以区分噪声，微小表观改善不应成为大幅修改方案的理由。</p>
 <h3>预测运行自身分布的损失</h3>
 <p>相同分词器和数据上的试训可支持损失预测。一种时间序列形式为 <span class="math-i">\mathcal{L}(D)=\mathcal{L}_{\infty}+aD^{-\gamma}</span>，其中 <span class="math-i">D</span> 表示已用 token。训练中拟合参数并检查残差。偏离预测可能表示配比变化、重复数据或优化问题，但仅凭偏差无法确定原因。早期数据范围窄，也难以约束渐近值，因此应展示对拟合窗口的敏感性。</p>
-<p>评估若干较晚检查点。附近权重平均或指数移动平均可能有益，但必须用相同协议评估。只平均参数布局兼容的模型，检查是否退步。<span class="xref-pending">第 09 模块</span> 进一步讨论模型合并。</p>
+<p>评估若干较晚检查点。附近权重平均或指数移动平均可能有益，但必须用相同协议评估。只平均参数布局兼容的模型，检查是否退步。<a href="module_09_ZH.html">第 09 模块</a> 进一步讨论模型合并。</p>
 <h3>基座模型发布应包含什么</h3>
-<p>有用的发布包含权重、配置、分词器、训练日志、数据清单、去污染记录和评估曲线。公开发布可能省略其中部分，留下下游测量需解决的不确定性。基座模型用于续写文本；仅在混合文档上训练，并不能提供可靠助手协议或拒绝策略，尽管语料可能让它偶然表现出类似指令遵循的行为。<span class="xref-pending">第 09 模块</span> 讨论受控后训练行为及评估。</p>
+<p>有用的发布包含权重、配置、分词器、训练日志、数据清单、去污染记录和评估曲线。公开发布可能省略其中部分，留下下游测量需解决的不确定性。基座模型用于续写文本；仅在混合文档上训练，并不能提供可靠助手协议或拒绝策略，尽管语料可能让它偶然表现出类似指令遵循的行为。<a href="module_09_ZH.html">第 09 模块</a> 讨论受控后训练行为及评估。</p>
 <p>假想安全案例团队取得开放基座模型后，先测量领域语言损失、术语碎片化和任务表现，再考虑继续预训练。通用基准分数不足以证明工程陈述可靠。测量结果决定 <a href="#s14">第 14 节</a> 的下一步。</p>
 <div class="check"><div class="check-label">检验理解</div>
 <p>两个检查点在同样 500 题上得分 41% 和 44%。评估改善需要哪些信息？</p>
@@ -8348,7 +8349,7 @@ plt.show()
 <li>评估固定留出分布及配对任务结果；仅训练损失下降或小幅通用基准改善并不足够。</li>
 <li>继续预训练在领域适配与通用保留之间取舍，查看结果前必须声明验收门槛。</li>
 </ul>
-<p>保留的基座检查点是一个分布模型。<span class="xref-pending">第 09 模块</span> 通过监督微调和偏好训练，把它转向指令遵循。案例团队只有在领域及通用门槛都通过时，才采用继续预训练检查点；否则保留已发布检查点。</p>
+<p>保留的基座检查点是一个分布模型。<a href="module_09_ZH.html">第 09 模块</a> 通过监督微调和偏好训练，把它转向指令遵循。案例团队只有在领域及通用门槛都通过时，才采用继续预训练检查点；否则保留已发布检查点。</p>
 <span class="section-anchor" id="terms"></span>
 <div class="section-header" data-sec="terms"><span class="section-num">25</span><h2>关键术语</h2></div>
 <div class="table-wrap"><table>
@@ -8542,7 +8543,7 @@ plt.show()
 </ul>
 
 </div>
-<nav class="module-nav"><a class="mnav prev" href="module_07_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 7 — 大语言模型</span></a><a class="mnav next" href="index_ZH.html"><span class="mnav-label">系列总览 &rarr;</span><span class="mnav-title">从机器学习到大语言模型</span></a></nav>
+<nav class="module-nav"><a class="mnav prev" href="module_07_ZH.html"><span class="mnav-label">&larr; 上一模块</span><span class="mnav-title">模块 7 — 大语言模型</span></a><a class="mnav next" href="module_09_ZH.html"><span class="mnav-label">下一模块 &rarr;</span><span class="mnav-title">模块 9 — 大语言模型后训练</span></a></nav>
   </main>
 </div>
 <footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p></footer>

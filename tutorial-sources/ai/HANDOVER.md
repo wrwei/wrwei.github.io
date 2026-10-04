@@ -3,10 +3,11 @@
 How to continue the tutorial series **From Machine Learning to Large Language Models** from where
 it stands. Read this first, then `PLAN.md`.
 
-**Current status (4 October 2026):** Modules 01–08 are complete in English and Simplified
-Chinese. Modules 06–08 have passed whole-module technical/editorial review, full translation,
-code/output/math parity, figure/widget review and publication-build checks. Published at <https://wrwei.github.io/tutorials/ai/> through PR #5; the deployment and all
-eight live-page checks passed. Modules 09–10 are not started. Continue with Module 09 (section 10).
+**Current status (4 October 2026):** Modules 01–08 are published and live-verified.
+Module 09 is now complete in English and Simplified Chinese, with six executed labs,
+18 bilingual figure pairs, two bilingual widgets and full technical/editorial, translation
+and publication QA. Its publication package is prepared; deployment and live verification
+are the remaining steps. Module 10 is not started. Continue with section 10.
 
 ## 1. What the series is
 
@@ -43,7 +44,7 @@ does not publish it.
 | `labs/plots/`, `labs/module_NN/*.plots.json` | Plots captured from lab runs and where they go on the page |
 | `tools/` | Build, validation, lab runner, rendering and testing tools, and `live-check.mjs` for the live site (section 4) |
 
-## 3. Status (4 October 2026; Modules 01–08 complete)
+## 3. Status (4 October 2026; Modules 01–09 complete)
 
 | Module | English | Chinese |
 |---|---|---|
@@ -55,13 +56,13 @@ does not publish it.
 | 06 The transformer | Done: six executed labs, 15 solved exercises, 12 quiz questions, three readings, 18 figures, two widgets; reviewed and publication QA passed | Done: seven translated parts, metadata, figures, widgets and parity checked |
 | 07 Large language models | Done: six executed labs, 15 solved exercises, 12 quiz questions, two readings, 13 figures, two widgets; reviewed and publication QA passed | Done: full translation and bilingual QA |
 | 08 LLM pretraining | Done: five executed labs, 15 solved exercises, 12 quiz questions, three readings, 14 figures, two planners; reviewed and publication QA passed | Done: full translation and bilingual QA |
-| 09 LLM post-training | To do: everything | To do |
+| 09 LLM post-training | Complete: six executed labs, full review, 18 figures, two widgets and publication QA; live verification pending | Complete: seven translated parts, metadata and bilingual parity/visual QA |
 | 10 Inference and serving | To do: everything | To do |
 | Index page | `src/en/index.md` written | `src/zh/index.md` written |
 
 Modules 01–05 went live through PRs #3 and #4. PR #5 published Modules 06–08. The publication build includes
-Modules 01–08 (`--modules 1,2,3,4,5,6,7,8`), updates both index pages and activates links
-from earlier modules. Modules 09–10 remain unlinked. Local checks on all six new language
+Modules 01–09 (`--modules 1,2,3,4,5,6,7,8,9`), updates both index pages and activates links
+from earlier modules. Module 09 is activated in the new publication package; Module 10 remains unlinked. Local checks on all six new language
 pages and both indexes found no script/request/KaTeX errors, untypeset maths, broken images,
 missing file/anchor targets or duplicate IDs. See
 `notes/task-reports/m06-m08-translation-publication-2026-10-04.json` for the final review and
@@ -267,14 +268,21 @@ Modules 03–05 were finished in Claude Code cloud sessions. What that environme
 
 ## 10. Next steps, in order
 
-1. **Module 09, LLM post-training:** follow its outline and the production workflow in section 5.
-   Preserve the measured results and conservative assumptions in Modules 06–08. Their review,
-   translation, publication and live checks are complete. GPU exercise extensions are optional
-   project work, not executed lab evidence.
-2. **Module 10, inference and serving:** follow its outline after Module 09.
+1. Finish Module 09 publication: merge its scoped PR, verify the deployment and live pages,
+   then record the publication proof in `notes/task-reports/m09-review-translation-publication-2026-10-04.json`.
+2. **Module 10, inference and serving:** follow its outline and section 5 after Module 09 is live.
+   Preserve the canonical 9.55B configuration and the serving format's explicit tensor precisions:
+   4-bit block weights with 4.125 bits including scales, 8-bit tables, about 5.53 GB before packaging.
 3. Optional: review the older translation/math differences and other loose ends in section 7.
 4. Before calling the series done: decide on length (section 7, item 1), then update the series
-   card and index pages. The build currently marks only Modules 09–10 as in preparation.
+   card and index pages. Only Module 10 remains in preparation in the new build.
+
+Module 09's displayed outputs are real sequential CPU runs. Lab 1 has separately executed FULL,
+no-row-initialisation and unmasked controls. The digit experiments use a closed 100-prompt task;
+do not describe them as unseen-problem generalisation. GPU and multi-seed extensions remain optional.
+The outline now reflects final prose and observed evidence rather than earlier prototype predictions.
+Whole-module and all seven part checks pass with zero errors/warnings. See the final report for
+paper checks, numerical probes and browser checks.
 
 ## 11. The next series
 
