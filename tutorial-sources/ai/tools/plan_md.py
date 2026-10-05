@@ -40,6 +40,7 @@ def words_of(path):
 
 
 plans = [json.load(open(os.path.join(ROOT, "plan", f"module_{n:02d}.json"), encoding="utf-8")) for n in range(1, 11)]
+report_date = datetime.date.fromisoformat(os.environ["AIS_PLAN_DATE"]) if os.environ.get("AIS_PLAN_DATE") else datetime.date.today()
 L = []
 w = L.append
 
@@ -47,7 +48,7 @@ w("# Plan: From Machine Learning to Large Language Models")
 w("")
 w("A ten-module AI tutorial series for Ran Wei's home page (`docs/tutorials/ai/`), alongside the SysML v2, "
   "MBSE, DevOps and AI Agents series. Each module expands one of ten concise tutorials kept in "
-  "the author's private repository into a self-study unit of about ten hours, in English and Simplified Chinese.")
+  "the author's private repository into a self-study unit of 10–15 hours, in English and Simplified Chinese.")
 w("")
 w("This document is generated from the ten module outlines (`plan/module_NN.json`), the detailed contracts "
   "the writers follow. It summarises them; the outlines are about ten times longer.")
@@ -58,7 +59,7 @@ w("**Audience.** Engineers and postgraduates who know calculus, linear algebra a
   "not worked in machine learning. The aim: read a modern model paper, understand what a training run does to "
   "a model, and make engineering decisions about models with judgement.")
 w("")
-w("**Shape of a module: about 600 minutes, in five study sessions of about two hours.**")
+w("**Shape of a module: about 600 scheduled minutes in five study sessions; allow 10–15 hours including derivations, lab reruns and review.**")
 w("")
 w("| Activity | Minutes | Volume |")
 w("|---|---|---|")
@@ -85,7 +86,7 @@ for p in plans:
       f"{len(p['exercises'])} | {len(p['quiz'])} | {len(p['papers'])} | {len(p.get('widgets', []))} | {figs} |")
 
 w("")
-w(f"## 2. Production status ({datetime.date.today().day} {datetime.date.today():%B %Y})")
+w(f"## 2. Production status ({report_date.day} {report_date:%B %Y})")
 w("")
 stages = [("EN parts", "write"), ("edited", "edit"), ("figures", "fig"), ("widgets", "widget"),
           ("labs run", "labs"), ("tech review", "review"), ("EN QA", "qa-en"), ("中文 parts", "zh-"),

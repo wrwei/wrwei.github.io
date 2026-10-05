@@ -62,6 +62,6 @@ A 10-module tutorial series on AI agents — what they are, how they work, and h
 
 ## AI: From Machine Learning to Large Language Models
 
-A 10-module tutorial series, about ten hours per module, from machine learning foundations through neural networks, CNNs, RNNs and the transformer to large language models: pretraining, post-training and serving. Derivations, runnable labs, graded exercises with solutions and a quiz in every module. English and Chinese. Modules 01–05 (foundations, neural networks, convolutional and recurrent networks, and the other families worth knowing: autoencoders, GANs, diffusion, graph and physics-informed networks) are available now; the rest follow as they are finished.
+A complete 10-module tutorial series, with 10–15 hours of study per module, from machine learning foundations through neural networks, CNNs, RNNs and the transformer to large language models: pretraining, post-training and serving. Every module includes derivations, runnable CPU labs, exercises with full solutions, interactive demonstrations, paper guides and a self-check quiz. All ten modules are available in English and Simplified Chinese.
 
 [:octicons-arrow-right-24: Go to AI Tutorials](ai/index.html)

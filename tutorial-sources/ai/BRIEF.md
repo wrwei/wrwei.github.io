@@ -40,6 +40,11 @@ make engineering decisions about models with judgement rather than by recipe.
 
 ## What "10 hours" means
 
+The published series describes 10–15 hours per module, or 100–150 hours overall.
+The five-session activity plan retains its roughly ten-hour core budget; derivation,
+lab reruns and review take additional time, especially in the longer early modules.
+This resolves the length decision recorded in `HANDOVER.md`; retain the complete material.
+
 600 minutes of notional learning time per module (plus or minus 30), made explicit in a study
 plan of five sessions of about two hours. The budget:
 
