@@ -36,6 +36,7 @@ A tutorial series covering the fundamentals of SysML v2, the next-generation sys
 
 ---
 
+<!-- DEVOPS-DISABLED: hidden while the DevOps series is being revised; uncomment to restore
 ## DevOps
 
 A 10-module tutorial series on DevOps practices including Unix tools, Git, CI/CD, containers, and automation.
@@ -43,6 +44,8 @@ A 10-module tutorial series on DevOps practices including Unix tools, Git, CI/CD
 [:octicons-arrow-right-24: Go to DevOps Tutorials](devops/index.html)
 
 ---
+
+-->
 
 ## Model-Based Systems Engineering
 
