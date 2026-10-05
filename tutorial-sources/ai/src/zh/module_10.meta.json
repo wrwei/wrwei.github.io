@@ -1,0 +1,337 @@
+{
+  "title": "推理与部署服务",
+  "title_em": "部署服务",
+  "lead": "从第一原理估算时延与容量：预填充、解码、屋顶线模型、KV cache、连续批处理与分页、量化和投机解码。通过可运行 CPU 实验检验机制，再为贯穿案例核算服务等级目标、成本与可靠性。",
+  "prerequisites": [
+    "模块 06：注意力、多头与分组查询注意力、RoPE、现代解码器块、参数与 FLOP 计数（每 token 为 2·N_matmul FLOPs 加注意力，内存按全部 N 参数计算），以及其中介绍的 KV cache",
+    "模块 07：语言建模目标与困惑度、分词、解码与采样（贪心、温度、top-p）、上下文窗口、从第一原理计算成本，以及贯穿案例的模型、负载与假设价格",
+    "模块 08：训练浮点格式（fp32、bf16、fp16、fp8）、内存核算，以及张量与流水线并行的概念",
+    "模块 09：对话模板、LoRA 与 QLoRA、评估测试集，以及案例后训练，最终得到本模块量化并部署的合并模型",
+    "数学：矩阵向量与矩阵矩阵乘法的运算计数；离散概率（分布求和、期望与有限几何级数）",
+    "具备模块 02 和模块 06 实验所需的 Python 与 PyTorch 基础"
+  ],
+  "outcomes": [
+    "推导矩阵向量与矩阵矩阵乘法的算术强度，用屋顶线模型判断给定加速器上的预填充或解码受计算还是带宽限制。",
+    "根据参数量、每权重字节、FLOP/s 与内存带宽，估算首 token 和每输出 token 时延，解释为什么批处理提高解码吞吐量，却不提高单用户速度。",
+    "推导 KV cache 大小 2·L·n_kv·d_head·b·T·B，从模型配置计算，并转换为 GPU 可容纳的并发序列数。",
+    "解释连续批处理、分块预填充、分页注意力与前缀缓存，根据负载或提示布局预测各自是否有益。",
+    "以逐张量、逐通道和分组粒度，用绝对最大值与零点方案将权重矩阵量化到 int8、int4，统计含缩放因子的每权重位数，测量困惑度影响，解释 GPTQ、AWQ 和 SmoothQuant 的改进。",
+    "推导投机采样接受规则，证明其保留目标输出分布，根据接受率、草稿长度和成本计算期望加速比。",
+    "为 24 GB GPU 上案例 9.5B 模型的混合 int4 部署格式规划权重、缓存预算、并发数、低负载与满负载时延、吞吐量、每百万 token 成本，以及实际利用率的成本影响。",
+    "定义 TTFT、TPOT、token 间时延、吞吐量、有效吞吐量和百分位；设计开环负载测试，设置服务等级目标，并寻找其下可持续请求率。",
+    "明确自行部署模型的可靠性措施：哈希版本、来源记录、健康检查、超时、重试、演练的备用路径、计量与保护隐私的日志，并说明确定性限制。",
+    "采用注明日期、保守的推理，为负载选择硬件与部署引擎，并读取规格表中的三个关键数字。"
+  ],
+  "software": [
+    "Python 3.11+",
+    "PyTorch 2.x（CPU 版本即可；CPU 模型使用 float32）",
+    "NumPy",
+    "matplotlib",
+    "Hugging Face transformers 与 huggingface_hub",
+    "pandas 与 pyarrow（实验 4 读取一个 parquet 文件）",
+    "可选：仅实验 6 的 GPU 扩展需要 vLLM、受支持 GPU 和相应模型下载",
+    "可选：GPU，或 Google Colab 免费 GPU，用于 GPU 扩展"
+  ],
+  "labs": [
+    {
+      "title": "屋顶线与容量计算器"
+    },
+    {
+      "title": "小解码器的 KV cache 与手工前缀缓存"
+    },
+    {
+      "title": "连续批处理模拟器"
+    },
+    {
+      "title": "从零量化：权重、离群值与激活"
+    },
+    {
+      "title": "从零实现投机解码"
+    },
+    {
+      "title": "CPU 批量生成：吞吐量与确定性"
+    }
+  ],
+  "sessions": [
+    {
+      "n": 1,
+      "title": "时间花在哪里",
+      "activities": [
+        {
+          "what": "阅读第 1–2 节：回答提示的两个阶段与屋顶线模型",
+          "kind": "read",
+          "minutes": 35,
+          "refs": [
+            "s1",
+            "s2"
+          ]
+        },
+        {
+          "what": "实验 1：屋顶线与容量计算器，以及自己机器的屋顶线",
+          "kind": "lab",
+          "minutes": 25,
+          "refs": [
+            "lab1"
+          ]
+        },
+        {
+          "what": "阅读第 3 节：深入理解 KV cache",
+          "kind": "read",
+          "minutes": 19,
+          "refs": [
+            "s3"
+          ]
+        },
+        {
+          "what": "实验 2：小解码器 KV cache、两种位置缺陷与手工前缀缓存",
+          "kind": "lab",
+          "minutes": 35,
+          "refs": [
+            "lab2"
+          ]
+        },
+        {
+          "what": "练习 1：用 FLOPs 估算解码速度的常见错误",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e1"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "title": "硬件、批处理与内存",
+      "activities": [
+        {
+          "what": "练习 3–4：根据配置计算 KV cache，以及分组查询注意力",
+          "kind": "exercises",
+          "minutes": 15,
+          "refs": [
+            "e3",
+            "e4"
+          ]
+        },
+        {
+          "what": "阅读第 4 节：硬件规格表上的三个数字",
+          "kind": "read",
+          "minutes": 13,
+          "refs": [
+            "s4"
+          ]
+        },
+        {
+          "what": "练习 2：算术强度与两种加速器上的计算平衡 batch",
+          "kind": "exercises",
+          "minutes": 10,
+          "refs": [
+            "e2"
+          ]
+        },
+        {
+          "what": "阅读第 5–6 节：批处理、分页注意力与前缀缓存",
+          "kind": "read",
+          "minutes": 34,
+          "refs": [
+            "s5",
+            "s6"
+          ]
+        },
+        {
+          "what": "实验 3：连续批处理模拟器",
+          "kind": "lab",
+          "minutes": 30,
+          "refs": [
+            "lab3"
+          ]
+        },
+        {
+          "what": "练习 5–6：缓存浪费、块大小与前缀缓存提示布局",
+          "kind": "exercises",
+          "minutes": 10,
+          "refs": [
+            "e5",
+            "e6"
+          ]
+        },
+        {
+          "what": "论文导读：Kwon 等人（2023），PagedAttention",
+          "kind": "papers",
+          "minutes": 15,
+          "refs": [
+            "reading"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "title": "量化",
+      "activities": [
+        {
+          "what": "阅读第 7–8 节：数值格式、量化计算与大语言模型量化",
+          "kind": "read",
+          "minutes": 40,
+          "refs": [
+            "s7",
+            "s8"
+          ]
+        },
+        {
+          "what": "实验 4：从零量化 SmolLM2-135M 的权重与激活",
+          "kind": "lab",
+          "minutes": 40,
+          "refs": [
+            "lab4"
+          ]
+        },
+        {
+          "what": "练习 7–8：选择组大小与手工量化向量",
+          "kind": "exercises",
+          "minutes": 15,
+          "refs": [
+            "e7",
+            "e8"
+          ]
+        },
+        {
+          "what": "论文导读：Lin 等人（2024），AWQ",
+          "kind": "papers",
+          "minutes": 15,
+          "refs": [
+            "reading"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "title": "更快解码与部署引擎",
+      "activities": [
+        {
+          "what": "阅读第 9 节：投机解码及相关方法",
+          "kind": "read",
+          "minutes": 20,
+          "refs": [
+            "s9"
+          ]
+        },
+        {
+          "what": "实验 5：从零投机解码，SmolLM2-135M 为 SmolLM2-360M 起草",
+          "kind": "lab",
+          "minutes": 35,
+          "refs": [
+            "lab5"
+          ]
+        },
+        {
+          "what": "练习 9–10：接受证明、加速比与最佳草稿长度",
+          "kind": "exercises",
+          "minutes": 20,
+          "refs": [
+            "e9",
+            "e10"
+          ]
+        },
+        {
+          "what": "论文导读：Leviathan、Kalman 与 Matias（2023），投机解码",
+          "kind": "papers",
+          "minutes": 15,
+          "refs": [
+            "reading"
+          ]
+        },
+        {
+          "what": "阅读第 10 节：结构化输出与部署引擎",
+          "kind": "read",
+          "minutes": 16,
+          "refs": [
+            "s10"
+          ]
+        },
+        {
+          "what": "实验 6：CPU 批量生成、batch 吞吐量与确定性",
+          "kind": "lab",
+          "minutes": 20,
+          "refs": [
+            "lab6"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "title": "容量规划、测量与运行",
+      "activities": [
+        {
+          "what": "阅读第 11 节：贯穿案例容量规划",
+          "kind": "read",
+          "minutes": 19,
+          "refs": [
+            "s11"
+          ]
+        },
+        {
+          "what": "练习 11：为另外两个模型重算容量表",
+          "kind": "exercises",
+          "minutes": 10,
+          "refs": [
+            "e11"
+          ]
+        },
+        {
+          "what": "阅读第 12–13 节：时延指标、负载测试、服务等级目标与生产可靠性",
+          "kind": "read",
+          "minutes": 29,
+          "refs": [
+            "s12",
+            "s13"
+          ]
+        },
+        {
+          "what": "阅读常见问题",
+          "kind": "read",
+          "minutes": 5,
+          "refs": [
+            "wrong"
+          ]
+        },
+        {
+          "what": "练习 12–14：多调用智能体服务等级目标、确定性、成本与利用率",
+          "kind": "exercises",
+          "minutes": 20,
+          "refs": [
+            "e12",
+            "e13",
+            "e14"
+          ]
+        },
+        {
+          "what": "练习 15：基于实验 1 和 3 的服务等级目标容量规划项目",
+          "kind": "exercises",
+          "minutes": 25,
+          "refs": [
+            "e15"
+          ]
+        },
+        {
+          "what": "自测测验",
+          "kind": "quiz",
+          "minutes": 15,
+          "refs": [
+            "quiz"
+          ]
+        },
+        {
+          "what": "总结与回顾：关键数字、凭记忆重算案例容量，以及遗漏的检查",
+          "kind": "review",
+          "minutes": 10,
+          "refs": [
+            "summary"
+          ]
+        }
+      ]
+    }
+  ]
+}

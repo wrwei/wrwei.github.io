@@ -6982,6 +6982,303 @@ AIW.register('sampling-explorer', function (el) {
 })
 
 ;
+/* ---- serving-calculator.js ---- */
+AIW.register('serving-calculator', function (el) {
+  'use strict'
+  var h = AIW.h, t = AIW.t, C = AIW.C
+  var models = {
+    case: [9.550729216, 8.927875072, 36, 4096, 8, 128],
+    mha: [6.7, 6.61, 32, 4096, 32, 128],
+    gqa: [7.6, 7.07, 28, 3584, 4, 128],
+    smol: [.361821120, .361821120, 32, 960, 5, 64]
+  }
+  var devices = { consumer: [24, 1, 165], l4: [24, .30, 121], l40: [48, .864, 362],
+    a100: [80, 2.039, 312], h100: [80, 3.35, 989], laptop: [16, .09, .5] }
+  var state = { model: 'case', n: models.case[0], mat: models.case[1], layers: 36, d: 4096,
+    kv: 8, head: 128, precision: '4', bits: 4.125, cache: 2, prompt: 4000, output: 2000, batch: 18,
+    device: 'consumer', memory: 24, bw: 1, peak: 165, overhead: 2.5, mfu: .5, fraction: 1 }
+  var controls = h('div', { class: 'w-controls' }), fields = {}
+  var modelSelect, deviceSelect, customBits
+  function number(key, en, zh, min, max, step) {
+    var input = h('input', { type: 'number', min: min, max: max, step: step || 'any', value: state[key],
+      'aria-label': t(en, zh), style: { width: '100%', minWidth: '0', boxSizing: 'border-box' } })
+    input.addEventListener('input', function () {
+      var value = Number(input.value)
+      if (!Number.isFinite(value) || input.value === '') return
+      state[key] = Math.max(min, Math.min(max, value))
+      if (['layers', 'd', 'kv', 'head'].indexOf(key) >= 0) {
+        state[key] = Math.round(state[key]); input.value = state[key]
+      }
+      if (['n', 'mat', 'layers', 'd', 'kv', 'head'].indexOf(key) >= 0) {
+        state.model = 'custom'; modelSelect.querySelector('select').value = 'custom'
+      }
+      if (['memory', 'bw', 'peak'].indexOf(key) >= 0) {
+        state.device = 'custom'; deviceSelect.querySelector('select').value = 'custom'
+      }
+      if (key === 'n' && state.mat > state.n) { state.mat = state.n; fields.mat.value = state.mat }
+      if (key === 'mat' && state.mat > state.n) { state.mat = state.n; input.value = state.mat }
+      render()
+    })
+    fields[key] = input
+    return h('label', { class: 'w-ctl' }, h('span', { text: t(en, zh) }), input)
+  }
+  modelSelect = AIW.select({ label: t('Model preset', '模型预设'), value: 'case', options: [
+    ['case', t('Case study 9.5B', '案例模型 9.5B')], ['mha', t('7B multi-head example', '7B 多头示例')],
+    ['gqa', t('7B GQA example', '7B GQA 示例')], ['smol', 'SmolLM2-360M'], ['custom', t('Custom', '自定义')]],
+    onChange: function (value) {
+      state.model = value
+      if (models[value]) ['n', 'mat', 'layers', 'd', 'kv', 'head'].forEach(function (key, i) {
+        state[key] = models[value][i]; fields[key].value = state[key]
+      })
+      render()
+    } })
+  controls.appendChild(modelSelect)
+  ;[['n', 'Total parameters (billions)', '总参数（十亿）', .1, 1000],
+    ['mat', 'Matrix-FLOP parameters (billions)', '矩阵 FLOP 参数（十亿）', .001, 1000],
+    ['layers', 'Layers L', '层数 L', 1, 200, 1], ['d', 'Model width d', '模型宽度 d', 256, 32768, 1],
+    ['kv', 'KV heads', 'KV 头数', 1, 128, 1], ['head', 'Head dimension', '头维度', 32, 256, 1]]
+    .forEach(function (args) { controls.appendChild(number.apply(null, args)) })
+  controls.appendChild(AIW.select({ label: t('Weight storage', '权重存储'), value: '4', options: [
+    ['16', 'bf16'], ['8', 'int8'], ['4', t('Int4 + group-128 scales', 'int4 + 分组 128 缩放因子')],
+    ['custom', t('Custom bits/weight', '自定义每权重位数')]], onChange: function (v) { state.precision = v; render() } }))
+  customBits = number('bits', 'Custom bits/weight', '自定义每权重位数', 2, 32)
+  controls.appendChild(customBits)
+  controls.appendChild(AIW.select({ label: t('Cache value storage', 'KV cache 值存储'), value: '2',
+    options: [['2', t('bf16 · 2 bytes', 'bf16 · 2 字节')], ['1', t('One-byte · metadata excluded', '一字节 · 不含元数据')]],
+    onChange: function (v) { state.cache = Number(v); render() } }))
+  ;[['prompt', 'Prompt tokens', '提示 token 数', 128, 131072], ['output', 'Output tokens', '输出 token 数', 16, 32768],
+    ['batch', 'Concurrent sequences B', '并发序列 B', 1, 512]].forEach(function (a) {
+    controls.appendChild(AIW.slider({ label: t(a[1], a[2]), min: a[3], max: a[4], value: state[a[0]], log: true,
+      fmt: function (v) { return String(Math.round(v)) }, onInput: function (v) { state[a[0]] = Math.round(v); render() } }))
+  })
+  deviceSelect = AIW.select({ label: t('Accelerator profile', '加速器配置'), value: 'consumer', options: [
+    ['consumer', t('24 GB · 1.0 TB/s · 165 TFLOP/s', '24 GB · 1.0 TB/s · 165 TFLOP/s')],
+    ['l4', 'L4 · 24 GB · 0.30 TB/s'], ['l40', 'L40S · 48 GB · 0.864 TB/s'],
+    ['a100', 'A100 · 80 GB · 2.039 TB/s'], ['h100', 'H100 · 80 GB · 3.35 TB/s'],
+    ['laptop', t('Laptop example · assumed compute', '笔记本示例 · 假设计算性能')], ['custom', t('Custom', '自定义')]],
+    onChange: function (v) { state.device = v; if (devices[v]) ['memory', 'bw', 'peak'].forEach(function (key, i) {
+      state[key] = devices[v][i]; fields[key].value = state[key]
+    }); render() } })
+  controls.appendChild(deviceSelect)
+  ;[['memory', 'Capacity (decimal GB)', '容量（十进制 GB）', 1, 2000],
+    ['bw', 'Bandwidth (TB/s)', '带宽（TB/s）', .001, 100], ['peak', 'Dense compute (TFLOP/s)', '稠密计算（TFLOP/s）', .01, 10000],
+    ['overhead', 'Runtime allowance (GB)', '运行时预留（GB）', 0, 2000],
+    ['mfu', 'Prefill MFU assumption', '预填充 MFU 假设', .1, 1],
+    ['fraction', 'Achieved bandwidth fraction', '实际带宽占峰值比例', .3, 1]].forEach(function (a) { controls.appendChild(number.apply(null, a)) })
+  var readout = h('div', { class: 'w-readout', 'aria-live': 'polite', style: { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' } })
+  var memoryPlot = h('div'), chart = h('div'), note = h('p', { class: 'w-note' }, t(
+    'Decimal units. GPU profiles are dated examples; efficiency and overhead are assumptions. Editing model/device fields selects Custom. Cache scale metadata, prefix sharing, embedding-read refinement and prefill interference are excluded.',
+    '使用十进制单位。GPU 配置是有日期的示例；效率和开销为假设。编辑模型或设备字段会切换为自定义。不计 KV cache 缩放元数据、前缀共享、嵌入查表修正和预填充干扰。'))
+  el.appendChild(controls); el.appendChild(memoryPlot); el.appendChild(readout); el.appendChild(chart); el.appendChild(note)
+  var result
+  function calculate() {
+    var bits = state.precision === 'custom' ? state.bits : (state.precision === '4' ? 4.125 : Number(state.precision))
+    var weights = state.model === 'case' && state.precision === '4' ? 5.5e9 : state.n * 1e9 * bits / 8
+    var kv = 2 * state.layers * state.kv * state.head * state.cache
+    var free = state.memory * 1e9 - weights - state.overhead * 1e9
+    var cacheSequence = kv * (state.prompt + state.output)
+    var maximum = Math.max(0, Math.floor(free / cacheSequence))
+    var mean = state.prompt + state.output / 2
+    var ttft = (2 * state.mat * 1e9 * state.prompt + 2 * state.layers * state.d * state.prompt * state.prompt) /
+      (state.mfu * state.peak * 1e12)
+    function step(b) {
+      var memory = (weights + b * kv * mean) / (state.bw * 1e12 * state.fraction)
+      var compute = (2 * state.mat * 1e9 * b + 4 * state.layers * state.d * mean * b) / (state.peak * 1e12)
+      return { seconds: Math.max(memory, compute), bound: memory >= compute ? 'memory' : 'compute' }
+    }
+    var current = step(state.batch)
+    return { weights: weights, kv: kv, free: free, cacheSequence: cacheSequence, maximum: maximum,
+      ttft: ttft, seconds: current.seconds, bound: current.bound, solo: 1 / current.seconds,
+      aggregate: state.batch / current.seconds, fits: state.batch <= maximum, step: step }
+  }
+  var bar = AIW.canvas(memoryPlot, { aspect: .30, maxHeight: 85 }, function (ctx, w, height) {
+    if (!result) return
+    var total = state.memory * 1e9, x = 8, usable = w - 16
+    var amounts = [result.weights, state.overhead * 1e9, state.batch * result.cacheSequence]
+    var colours = [C.blue, C.orange, result.fits ? C.green : C.red]
+    amounts.forEach(function (a, i) { var width = Math.max(0, Math.min(a / total * usable, w - 8 - x)); ctx.fillStyle = colours[i]; ctx.fillRect(x, 10, width, 22); x += width })
+    ctx.strokeStyle = C.muted; ctx.strokeRect(8, 10, usable, 22)
+    ctx.font = '12px system-ui'; ctx.fillStyle = C.navy
+    ctx.fillText(t('Weights | runtime | requested cache', '权重 | 运行时 | 所需 KV cache'), 8, 52)
+  })
+  var plot = AIW.canvas(chart, { aspect: .60, maxHeight: 340 }, function (ctx, w, height) {
+    if (!result || result.maximum === 0) {
+      ctx.fillStyle = C.red; ctx.font = '13px system-ui'; ctx.fillText(t('No full request fits this budget.', '该预算无法容纳完整请求。'), 12, 35); return
+    }
+    var values = [], max = 1, min = Infinity
+    for (var i = 0; i <= 100; i++) {
+      var b = Math.pow(512, i / 100), sec = result.step(b).seconds
+      values.push([b, 1 / sec, b / sec]); max = Math.max(max, b / sec); min = Math.min(min, 1 / sec)
+    }
+    var a = AIW.axes(ctx, { w: w, h: height, x0: 0, x1: Math.log10(512), y0: min * .7, y1: max * 1.4,
+      logY: true, xlabel: t('B (log scale)', 'B（对数刻度）'), ylabel: t('tokens/s', 'token/s'), xfmt: function (v) { return Math.round(Math.pow(10, v)) } })
+    if (result.maximum < 512) {
+      ctx.fillStyle = 'rgba(220,38,38,.07)'; var boundary = a.X(Math.log10(result.maximum))
+      ctx.fillRect(boundary, 12, a.X(Math.log10(512)) - boundary, height - 46)
+      ctx.strokeStyle = C.red; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(boundary, 12); ctx.lineTo(boundary, height - 34); ctx.stroke(); ctx.setLineDash([])
+    }
+    ;[1, 2].forEach(function (column) {
+      ctx.strokeStyle = column === 1 ? C.blue : C.green; ctx.lineWidth = 2; ctx.beginPath()
+      values.forEach(function (v, i) { var x = a.X(Math.log10(v[0])), y = a.Y(v[column]); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y) }); ctx.stroke()
+      ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.arc(a.X(Math.log10(state.batch)), a.Y(column === 1 ? result.solo : result.aggregate), 4, 0, 2 * Math.PI); ctx.fill()
+    })
+    ctx.font = '12px system-ui'; ctx.fillStyle = C.blue; ctx.fillText(t('Per sequence', '每序列'), 58, 27)
+    ctx.fillStyle = C.green; ctx.fillText(t('Aggregate', '总吞吐量'), 58, 45)
+  })
+  function render() {
+    result = calculate(); fields.bits.disabled = state.precision !== 'custom'
+    var needed = (result.weights + state.overhead * 1e9 + state.batch * result.cacheSequence) / 1e9
+    readout.style.color = result.fits ? C.navy : C.orange
+    readout.textContent = [t('Weights: ', '权重：') + AIW.fmt(result.weights / 1e9, 3) + ' GB',
+      t('KV per token: ', '每 token KV cache：') + result.kv + ' B (' + AIW.fmt(result.kv / 1000, 3) + ' kB)',
+      t('KV per full sequence: ', '每个完整序列 KV cache：') + AIW.fmt(result.cacheSequence / 1e9, 3) + ' GB',
+      t('Maximum concurrent sequences: ', '最大并发序列数：') + result.maximum,
+      t('Prefill / TTFT bound: ', '预填充 / TTFT 估算：') + AIW.fmt(result.ttft, 3) + ' s',
+      t('Decode step: ', '解码步：') + AIW.fmt(result.seconds * 1000, 2) + ' ms · ' + (result.bound === 'memory' ? t('bandwidth-bound', '带宽受限') : t('compute-bound', '计算受限')),
+      t('Per sequence / aggregate: ', '每序列 / 总吞吐量：') + AIW.fmt(result.solo, 1) + ' / ' + AIW.fmt(result.aggregate, 1) + ' tokens/s',
+      t('Decode budget (output × step): ', '解码预算（输出数 × 步长）：') + AIW.fmt(state.output * result.seconds, 2) + ' s',
+      result.fits ? t('Fits the stated memory budget.', '符合所设内存预算。') : t('Does not fit: needs ', '无法容纳：需要 ') + AIW.fmt(needed, 2) + ' GB; ' + t('available ', '可用 ') + state.memory + ' GB',
+      result.free <= 0 ? t('Weights and runtime exceed capacity.', '权重和运行时已超过容量。') : ''
+    ].join('\n')
+    el._result = Object.assign({}, result, { step: undefined }); bar.redraw(); plot.redraw()
+  }
+  render()
+})
+
+;
+/* ---- speculative-speedup.js ---- */
+AIW.register('speculative-speedup', function (el) {
+  'use strict'
+  var h = AIW.h, t = AIW.t, C = AIW.C
+  var state = { alpha: .8, gamma: 4, cost: .05, verification: 1 }
+  var p = [.5, .3, .15, .05], q = [.4, .4, .1, .1], empirical = null
+  var controls = h('div', { class: 'w-controls' })
+  ;[['alpha', 'Acceptance α', '接受率 α', 0, .99, .01], ['gamma', 'Draft length γ', '草稿长度 γ', 1, 16, 1],
+    ['cost', 'Draft cost ratio c', '草稿成本比 c', 0, 1, .01], ['verification', 'Verification cost v', '验证成本 v', 1, 3, .1]].forEach(function (a) {
+    controls.appendChild(AIW.slider({ label: t(a[1], a[2]), min: a[3], max: a[4], step: a[5], value: state[a[0]],
+      onInput: function (v) { state[a[0]] = v; render() } }))
+  })
+  var readout = h('div', { class: 'w-readout', 'aria-live': 'polite', style: { whiteSpace: 'pre-wrap' } }), chart = h('div'), histogram = h('div')
+  el.appendChild(h('p', { class: 'w-note' }, t('A. Independent acceptance and constant per-draft cost model', 'A．独立接受事件与固定单步草稿成本模型')))
+  el.appendChild(controls); el.appendChild(readout); el.appendChild(histogram); el.appendChild(chart)
+  var distributions = h('div'), distributionReadout = h('div', { class: 'w-readout', 'aria-live': 'polite', style: { whiteSpace: 'pre-wrap' } })
+  el.appendChild(h('p', { class: 'w-note' }, t('B. One-position acceptance/residual theorem. Edit a value or drag a bar; the other values rescale.', 'B．单位置接受与残差定理。编辑数值或拖动条形；其余值按比例缩放。')))
+  var inputRows = h('div', { class: 'w-controls' }), fields = []
+  function edit(array, index, value) {
+    var v = Math.max(0, Math.min(1, value)), rest = 1 - array[index]
+    for (var j = 0; j < 4; j++) if (j !== index) array[j] = rest > 1e-14 ? array[j] / rest * (1 - v) : (1 - v) / 3
+    array[index] = v; empirical = null; render()
+  }
+  ;[p, q].forEach(function (array, row) {
+    fields[row] = []
+    array.forEach(function (value, index) {
+      var label = (row === 0 ? t('Target p', '目标 p') : t('Draft q', '草稿 q')) + ' · ' + (index + 1)
+      var input = h('input', { type: 'number', min: 0, max: 1, step: .01, value: value, 'aria-label': label,
+        style: { width: '100%', minWidth: '0', boxSizing: 'border-box' } })
+      input.addEventListener('input', function () { if (input.value !== '' && Number.isFinite(Number(input.value))) edit(array, index, Number(input.value)) })
+      fields[row][index] = input; inputRows.appendChild(h('label', { class: 'w-ctl' }, h('span', { text: label }), input))
+    })
+  })
+  el.appendChild(inputRows); el.appendChild(distributions); el.appendChild(distributionReadout)
+  var simulate = AIW.button(t('Simulate 10,000 steps', '模拟 10,000 步'), function () {
+    var rng = AIW.rng(1), counts = [0, 0, 0, 0], r = theorem().residual
+    function draw(dist) { var u = rng(), sum = 0; for (var j = 0; j < 4; j++) { sum += dist[j]; if (u < sum) return j } return 3 }
+    for (var i = 0; i < 10000; i++) { var token = draw(q); if (rng() >= Math.min(1, p[token] / q[token])) token = draw(r); counts[token]++ }
+    empirical = counts.map(function (v) { return v / 10000 }); render()
+  })
+  el.appendChild(simulate)
+  var proof = h('div'); el.appendChild(proof)
+  function expected(g) { var sum = 1; for (var i = 1; i <= g; i++) sum += Math.pow(state.alpha, i); return sum }
+  function speed(g) { return expected(g) / (g * state.cost + state.verification) }
+  function theorem() {
+    var overlap = p.map(function (v, i) { return Math.min(v, q[i]) }), alpha = overlap.reduce(function (a, b) { return a + b }, 0)
+    var residual = alpha >= 1 - 1e-12 ? [0, 0, 0, 0] : p.map(function (v, i) { return (v - overlap[i]) / (1 - alpha) })
+    return { overlap: overlap, alpha: alpha, residual: residual, output: overlap.map(function (v, i) { return v + (1 - alpha) * residual[i] }) }
+  }
+  var plot = AIW.canvas(chart, { aspect: .58, maxHeight: 300 }, function (ctx, w, height) {
+    var values = [], ymax = 1.5
+    for (var g = 1; g <= 16; g++) { values.push(speed(g)); ymax = Math.max(ymax, speed(g) * 1.15) }
+    var a = AIW.axes(ctx, { w: w, h: height, x0: 1, x1: 16, y0: 0, y1: ymax,
+      xlabel: t('Draft length γ', '草稿长度 γ'), ylabel: t('Speed-up', '加速比') })
+    ctx.strokeStyle = C.muted; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(a.X(1), a.Y(1)); ctx.lineTo(a.X(16), a.Y(1)); ctx.stroke(); ctx.setLineDash([])
+    ctx.strokeStyle = C.blue; ctx.lineWidth = 2; ctx.beginPath()
+    values.forEach(function (v, i) { if (i) ctx.lineTo(a.X(i + 1), a.Y(v)); else ctx.moveTo(a.X(i + 1), a.Y(v)) }); ctx.stroke()
+    var best = values.indexOf(Math.max.apply(null, values)) + 1
+    ;[[state.gamma, C.orange], [best, C.green]].forEach(function (v) { ctx.fillStyle = v[1]; ctx.beginPath(); ctx.arc(a.X(v[0]), a.Y(speed(v[0])), 5, 0, Math.PI * 2); ctx.fill() })
+  })
+  var hist = AIW.canvas(histogram, { aspect: .38, maxHeight: 210 }, function (ctx, w, height) {
+    var g = state.gamma, probs = []
+    for (var k = 1; k <= g; k++) probs.push(Math.pow(state.alpha, k - 1) * (1 - state.alpha))
+    probs.push(Math.pow(state.alpha, g))
+    var a = AIW.axes(ctx, { w: w, h: height, x0: .5, x1: g + 1.5, y0: 0, y1: 1,
+      xlabel: t('Committed tokens per iteration', '每次迭代提交 token 数'), ylabel: t('Probability', '概率') })
+    ctx.fillStyle = C.blue
+    probs.forEach(function (v, i) { ctx.fillRect(a.X(i + .7), a.Y(v), a.X(i + 1.3) - a.X(i + .7), a.Y(0) - a.Y(v)) })
+    ctx.strokeStyle = C.orange; ctx.beginPath(); ctx.moveTo(a.X(expected(g)), a.Y(1)); ctx.lineTo(a.X(expected(g)), a.Y(0)); ctx.stroke()
+  })
+  var bars = AIW.canvas(distributions, { aspect: .62, maxHeight: 320 }, function (ctx, w, height) {
+    var a = AIW.axes(ctx, { w: w, h: height, x0: .5, x1: 4.5, y0: 0, y1: 1,
+      xlabel: t('Vocabulary entry', '词表项'), ylabel: t('Probability', '概率') })
+    ;[p, q].forEach(function (dist, row) { ctx.fillStyle = row === 0 ? C.blue : C.orange
+      dist.forEach(function (v, i) { var x = i + 1 + (row === 0 ? -.23 : .02); ctx.fillRect(a.X(x), a.Y(v), a.X(x + .2) - a.X(x), a.Y(0) - a.Y(v)) }) })
+    if (empirical) { ctx.fillStyle = C.green; empirical.forEach(function (v, i) { ctx.beginPath(); ctx.arc(a.X(i + 1), a.Y(v), 4, 0, Math.PI * 2); ctx.fill() }) }
+    ctx.font = '12px system-ui'; ctx.fillStyle = C.blue; ctx.fillText(t('Target p', '目标 p'), 58, 25)
+    ctx.fillStyle = C.orange; ctx.fillText(t('Draft q', '草稿 q'), 58, 44)
+    if (empirical) { ctx.fillStyle = C.green; ctx.fillText(t('Empirical output', '经验输出'), 58, 63) }
+    bars.geometry = a
+  })
+  var dragging = null
+  var proofPlot = AIW.canvas(proof, { aspect: .48, maxHeight: 270 }, function (ctx, w, height) {
+    var detail = theorem()
+    var a = AIW.axes(ctx, { w: w, h: height, x0: .5, x1: 4.5, y0: 0, y1: 1,
+      xlabel: t('Vocabulary entry', '词表项'), ylabel: t('Probability', '概率') })
+    detail.output.forEach(function (v, i) {
+      var x = i + .78, width = a.X(x + .2) - a.X(x)
+      ctx.fillStyle = C.blue; ctx.fillRect(a.X(x), a.Y(v), width, a.Y(0) - a.Y(v))
+      ctx.fillStyle = C.green; ctx.fillRect(a.X(x), a.Y(detail.overlap[i]), width, a.Y(0) - a.Y(detail.overlap[i]))
+      ctx.fillStyle = C.orange; ctx.fillRect(a.X(i + 1.04), a.Y(detail.residual[i]), width, a.Y(0) - a.Y(detail.residual[i]))
+    })
+    ctx.font = '12px system-ui'; ctx.fillStyle = C.green; ctx.fillText(t('Overlap (green) + correction (blue) = p', '重叠（绿）+ 校正（蓝）= p'), 58, 25)
+    ctx.fillStyle = C.orange; ctx.fillText(t('Conditional residual (orange)', '条件残差分布（橙）'), 58, 44)
+  })
+  bars.cv.style.touchAction = 'none'
+  bars.cv.addEventListener('pointerdown', function (event) {
+    var rect = bars.cv.getBoundingClientRect(), x = event.clientX - rect.left, y = event.clientY - rect.top, a = bars.geometry
+    if (!a) return
+    for (var i = 0; i < 4; i++) for (var row = 0; row < 2; row++) {
+      var xx = i + 1 + (row === 0 ? -.23 : .02)
+      if (x >= a.X(xx) && x <= a.X(xx + .2) && y >= 12 && y <= bars.h - 34) dragging = [row, i]
+    }
+    if (dragging) { bars.cv.setPointerCapture(event.pointerId); move(event) }
+  })
+  function move(event) {
+    if (!dragging) return
+    var rect = bars.cv.getBoundingClientRect(), y = event.clientY - rect.top
+    edit(dragging[0] === 0 ? p : q, dragging[1], (bars.h - 34 - y) / (bars.h - 46))
+  }
+  bars.cv.addEventListener('pointermove', move)
+  bars.cv.addEventListener('pointerup', function () { dragging = null })
+  bars.cv.addEventListener('pointercancel', function () { dragging = null })
+  function render() {
+    var best = 1
+    for (var g = 2; g <= 16; g++) if (speed(g) > speed(best) + 1e-12) best = g
+    var e = expected(state.gamma), detail = theorem()
+    readout.textContent = t('Expected tokens: ', '期望 token 数：') + AIW.fmt(e, 4) + ' · ' + t('Speed-up: ', '加速比：') + AIW.fmt(speed(state.gamma), 3) + '×\n' +
+      t('Best length: ', '最佳长度：') + best + ' (' + AIW.fmt(speed(best), 3) + '×) · ' + t('Wasted proposals: ', '浪费提议数：') + AIW.fmt(state.gamma - (e - 1), 3)
+    ;[p, q].forEach(function (dist, row) { dist.forEach(function (v, i) { fields[row][i].value = v.toFixed(5) }) })
+    var format = function (array) { return array.map(function (v) { return AIW.fmt(v, 4) }).join(', ') }
+    distributionReadout.textContent = 'α = ' + AIW.fmt(detail.alpha, 4) + ' · TV = ' + AIW.fmt(1 - detail.alpha, 4) + '\n' +
+      t('Overlap: ', '重叠质量：') + format(detail.overlap) + '\n' +
+      (detail.alpha >= 1 - 1e-12 ? t('No residual needed.', '无需残差分布。') : t('Residual: ', '残差分布：') + format(detail.residual)) + '\n' +
+      t('Restored output: ', '恢复后的输出：') + format(detail.output) + (empirical ? '\n' + t('Empirical TV to p: ', '经验分布与 p 的 TV：') + AIW.fmt(empirical.reduce(function (sum, v, i) { return sum + Math.abs(v - p[i]) / 2 }, 0), 4) : '')
+    el._result = { expected: e, speedup: speed(state.gamma), best: best, wasted: state.gamma - e + 1,
+      p: p.slice(), q: q.slice(), alpha: detail.alpha, residual: detail.residual, restored: detail.output, empirical: empirical }
+    plot.redraw(); hist.redraw(); bars.redraw(); proofPlot.redraw()
+  }
+  render()
+})
+
+;
 /* ---- ssm-kernel-explorer.js ---- */
 /* ssm-kernel-explorer — Module 04, Section 13: a linear time-invariant recurrence and a convolution with
  * its impulse response are the same map; the eigenvalue's modulus sets the memory and its angle the

@@ -1,6 +1,6 @@
 # Plan: From Machine Learning to Large Language Models
 
-A ten-module AI tutorial series for Ran Wei's home page (`docs/tutorials/ai/`), alongside the SysML v2, MBSE, DevOps and AI Agents series. Each module expands one of ten concise tutorials kept in the author's private repository into a self-study unit of about ten hours, in English and Simplified Chinese.
+A ten-module AI tutorial series for Ran Wei's home page (`docs/tutorials/ai/`), alongside the SysML v2, MBSE, DevOps and AI Agents series. Each module expands one of ten concise tutorials kept in the author's private repository into a self-study unit of 10–15 hours, in English and Simplified Chinese.
 
 This document is generated from the ten module outlines (`plan/module_NN.json`), the detailed contracts the writers follow. It summarises them; the outlines are about ten times longer.
 
@@ -8,7 +8,7 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 
 **Audience.** Engineers and postgraduates who know calculus, linear algebra and basic probability but have not worked in machine learning. The aim: read a modern model paper, understand what a training run does to a model, and make engineering decisions about models with judgement.
 
-**Shape of a module: about 600 minutes, in five study sessions of about two hours.**
+**Shape of a module: about 600 scheduled minutes in five study sessions; allow 10–15 hours including derivations, lab reruns and review.**
 
 | Activity | Minutes | Volume |
 |---|---|---|
@@ -33,7 +33,7 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 | 09 | LLM post-training | 621 | 14 | 6 | 15 | 12 | 3 | 2 | 18 |
 | 10 | Inference and serving | 615 | 13 | 6 | 15 | 12 | 3 | 2 | 18 |
 
-## 2. Production status (4 October 2026)
+## 2. Production status (5 October 2026)
 
 | # | EN parts | edited | figures | widgets | labs run | tech review | EN QA | 中文 parts | 中文 QA | English prose words |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -46,9 +46,9 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 | 07 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 24,506 |
 | 08 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 21,799 |
 | 09 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 22,460 |
-| 10 | 0/7 | – | – | – | – | – | – | – | – | 0 |
+| 10 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 20,204 |
 
-Figures drawn so far: 152, each also in Chinese. Widget files: 18 of 20. English prose words exclude code and maths and include labs, exercises and solutions. A module published on the site in both languages is marked done at every stage.
+Figures drawn so far: 170, each also in Chinese. Widget files: 20 of 20. English prose words exclude code and maths and include labs, exercises and solutions. A module published on the site in both languages is marked done at every stage.
 
 ## 3. The modules
 
@@ -1625,7 +1625,7 @@ Turns a base model into an assistant: supervised fine-tuning and its mechanics, 
 
 ### Module 10: Inference and serving
 
-What happens when a model answers: why output tokens are slow and input tokens are not, how memory decides how many users a GPU can hold, what quantisation and speculative decoding buy, and how to size, measure and run the serving of a model you own at a latency and cost you can predict.
+Derive latency and capacity from first principles: prefill, decode, the roofline model, KV cache, continuous batching and paging, quantisation and speculative decoding. Test the mechanisms in runnable CPU labs, then account for the case study's service objectives, cost and reliability.
 
 **Before you start:** Module 06: attention, multi-head and grouped-query attention, RoPE, the modern decoder block, counting parameters and FLOPs (2·N_matmul FLOPs per token plus attention, with memory counted from all N parameters), and the KV cache as introduced there; Module 07: the language-modelling objective and perplexity, tokenisation, decoding and sampling (greedy, temperature, top-p), the context window, cost from first principles, and the running case study's model, workload and assumed prices; Module 08: floating-point formats for training (fp32, bf16, fp16, fp8), memory accounting, and the idea of tensor and pipeline parallelism; Module 09: chat templates, LoRA and QLoRA, evaluation suites, and the running case study's post-training, which ends with the merged model this module quantises and serves; Mathematics: operation counts of matrix-vector and matrix-matrix products; discrete probability (sums over a distribution, expectations, the finite geometric series); Python and PyTorch at the level of the Module 02 and Module 06 labs.
 
@@ -1637,7 +1637,7 @@ What happens when a model answers: why output tokens are slow and input tokens a
 - Explain continuous batching, chunked prefill, paged attention and prefix caching, and predict from a workload or a prompt layout whether each will help.
 - Quantise a weight matrix to int8 and int4 with absmax and zero-point schemes at per-tensor, per-channel and group-wise granularity, count the bits per weight including scales, measure the effect on perplexity, and explain what GPTQ, AWQ and SmoothQuant add.
 - Derive the speculative-sampling acceptance rule, prove that it leaves the target model's output distribution unchanged, and compute the expected speed-up from the acceptance rate, the draft length and the draft's cost.
-- Size the serving of the case-study 9.5B model at 4 bits on a 24 GB GPU: weights, cache budget, concurrency, latency at low and at full load, throughput, cost per million tokens, and what the real utilisation does to that cost.
+- Size the serving of the case-study 9.5B model in its mixed int4 serving format on a 24 GB GPU: weights, cache budget, concurrency, latency at low and at full load, throughput, cost per million tokens, and what the real utilisation does to that cost.
 - Define TTFT, TPOT, inter-token latency, throughput, goodput and percentiles; design an open-loop load test; set an SLO and find the request rate a server sustains under it.
 - Specify the reliability measures of a self-hosted model (versioning by hash, provenance, health checks, timeouts, retries, exercised fallbacks, metering, privacy-preserving logging) and state the limits of determinism.
 - Choose hardware and a serving engine for a workload with dated, conservative reasoning, reading a datasheet for the three numbers that matter.
@@ -1654,147 +1654,121 @@ What happens when a model answers: why output tokens are slow and input tokens a
 
 **Concept sections.**
 
-- **s1 Two phases: prefill and decode** (15 min). Show that answering a prompt is one parallel pass over the prompt followed by one pass per output token, and estimate the time of each from FLOPs and bytes. _4 worked example(s), 1 figure(s)._
-  - The generation loop: prompt tokens -> forward pass -> logits at the last position -> sample (Module 07) -> append -> repeat until an end-of-sequence token, a stop string …
-  - Prefill: all T_p prompt positions in one forward pass, in parallel;
-  - Decode: one new position per forward pass;
-  - FLOPs, by Module 06's convention, recalled in one paragraph with a link (Module 06 derives it;
-  - Bytes per decode step: the weights plus this sequence's cache (147,456·t bytes for the case-study model at context t, derived in s3).
-  - The time model used throughout the module: TTFT ≈ queueing + prefill FLOPs / (MFU · peak FLOP/s);
-  - … and 2 more points
-- **s2 The roofline model: compute-bound and bandwidth-bound** (20 min). Give the reader one diagram and one ratio, arithmetic intensity against the ridge point, that decide whether an operation is limited by compute or by memory bandwidth, and use it to explain why batching helps decode. _4 worked example(s), 1 figure(s)._
-  - Definitions: arithmetic intensity I = FLOPs performed / bytes moved between off-chip memory and the compute units;
-  - Derive the matrix-vector case: y = Wx with W ∈ R^{m×n} at b bytes per element: FLOPs 2mn;
-  - Derive the matrix-matrix case with B columns (B tokens processed together): Y = WX with X ∈ R^{n×B}: FLOPs 2mnB;
-  - Ridge points from published dense figures: H100 SXM 989 TFLOP/s / 3.35 TB/s = 295 FLOP/byte;
-  - Why batching helps decode: B sequences in one step share a single read of the weights, so the step time stays nearly flat until 2B/b reaches the ridge: bf16 on the H100: …
-  - Decode attention does not batch: each sequence reads its own cache.
-  - … and 2 more points
-- **s3 The KV cache in depth** (19 min). Derive the size of the key-value cache, show that it is the number that decides concurrency, and list the ways to shrink it. _3 worked example(s), 2 figure(s)._
-  - Why caching is exact: under the causal mask the key and value at position i depend only on tokens ≤ i, so they never change once computed.
-  - Derive the size: per token per layer, one key vector and one value vector for each of n_kv heads, each of d_head values, so 2·n_kv·d_head values;
-  - Grouped-query attention (Module 06): n_kv key/value heads shared by n_h > n_kv query heads divide the cache by n_h/n_kv;
-  - The cache against the weights: for the case study one sequence's cache equals the 5.5 GB of weights at about 37,300 tokens;
-  - Other ways to shrink the cache: sliding-window attention caps it at the window (Mistral 7B, 2023: 4,096 tokens);
-  - Implementation: a cache that grows by concatenation copies itself at every step;
+- **s1 Two phases: prefill and decode** (15 min). A language model answers a request by running two different workloads. _1 worked example(s), 1 figure(s)._
+  - Parallel prompt prefill and autoregressive decode;
+  - 2*N_matmul per token plus causal attention;
+  - Decimal units, assumed 50% prefill MFU and peak decode bandwidth;
+  - Input embedding traffic refinement and achieved bandwidth can offset in this example;
+- **s2 The roofline model: compute-bound and bandwidth-bound** (20 min). Arithmetic intensity measures how much computation an operation gets from each byte transferred between off-chip memory and compute units. _1 worked example(s), 1 figure(s)._
+  - Roofline P=min(Ppeak,I*BW), ridge Ppeak/BW;
+  - Derive matrix-vector and finite-width matrix-matrix intensity including activation traffic and accumulation precision.
+  - GQA attention intensity nq/nkv times 2/bytes;
+  - Measured four-thread CPU matrix roofline: 48.24 GB/s, 621.6 GFLOP/s, ridge 12.88;
+- **s3 The KV cache in depth** (19 min). Caching is exact under the causal dependency structure. _1 worked example(s), 2 figure(s)._
+  - Causal cache exactness, projection recomputation saving, and floating-point qualifications.
+  - Derive 2L*nkv*dh*b*T*B;
+  - MHA/GQA/MQA architecture choices;
+  - Capacity versus traffic;
+  - Lab 2 token/logit comparisons, exact 555008-byte cache at 271 positions and frozen-position divergence at output 9.
+- **s4 Hardware: the three numbers on a datasheet** (13 min). Capacity, bandwidth and dense compute answer three different sizing questions. _1 worked example(s), 1 figure(s)._
+  - Capacity, bandwidth, dense compute and interconnect;
+  - Compatible operand/accumulation precision and sparse/dense footnotes;
+  - Dated exemplar devices and computed bandwidth-only bounds;
+  - Backend support, licence constraints, tensor/pipeline communication and CPU/unified-memory trade-offs.
+- **s5 Batching: static, dynamic and continuous** (17 min). One request can leave much of a GPU's arithmetic capacity idle during decode. _2 worked example(s), 2 figure(s)._
+  - Static, dynamic request-level and continuous iteration-level batching;
+  - Derive aggregate throughput B*BW/(W+B*KV*mean_context), cache asymptote and separate capacity/compute ceilings.
+  - Hybrid chunked prefill uses maximum of combined memory and compute time;
+  - Admission limits, reservations versus actual occupancy, growth preemption, finite seeded workload and realised arrivals.
+- **s6 Paged attention and prefix caching** (17 min). Output length is unknown when a request arrives. _2 worked example(s), 1 figure(s)._
+  - PagedAttention historical waste and 2–4x measured baseline gains qualified to studied systems.
+  - Logical block tables, physical pool, block tails, reference counts and copy-on-write;
+  - Prefix hashes include preceding prefix, adapters and inputs;
+  - Stable-prefix ordering and identical token ids;
+  - Lab 2 warm 0.063–0.076 s versus cold 2.413–2.511 s;
+- **s7 Number formats and the arithmetic of quantisation** (19 min). Reducing stored weight bits can cut bandwidth-bound decode traffic and leave more memory for the cache. _1 worked example(s), 2 figure(s)._
+  - Floating range versus resolution;
+  - Symmetric absmax quantisation, rounding bound, uniform-error approximation and outlier amplification.
+  - Min-max zero points, endpoint/clipping/constant-group caveats;
+  - Per-tensor, per-channel and group scales;
+  - Unpacking/dequantisation versus compute format;
+- **s8 Quantising LLMs: outliers, GPTQ, AWQ, SmoothQuant and the cache** (21 min). Small average weight error is not the same as small model-output error. _1 worked example(s), 2 figure(s)._
+  - Lab 4 recorded perplexities: 20.8462 baseline, int8 21.6252/20.9937, int4 tensor 5834512.4874, channel 46.2519, group64 29.1763, zero-point 27.1402.
+  - Disjoint calibration and evaluation windows;
+  - Derive SmoothQuant exact product identity, balancing scales, folding constraints;
+  - Derive GPTQ constrained quadratic compensation;
+  - AWQ activation saliency, effective rounding error and changing group maximum;
+  - KV quantisation metadata/cost/quality, KIVI key/value statistics, and evaluation/hash of the exact converted bilingual task artifact.
+- **s9 Speeding up decode: speculative decoding and its relatives** (20 min). A bandwidth-bound target model can score several positions in a matrix product for much less than the cost of several separate decode steps. _2 worked example(s), 1 figure(s), widget: speculative-speedup._
+  - Derive stochastic acceptance overlap and residual restoration, alpha=1-TV;
+  - Conditional sampler distributions, grammar/filtering, chain verification, bonus tokens and cache rollback/catch-up.
+  - Greedy equality versus floating-point near-ties;
+  - Lab 5 measured gamma4 alpha .865, 3.636 outputs/iteration, 1.123x gain versus predicted 1.268;
+  - Medusa, EAGLE, prompt lookup and lookahead proposals;
+- **s10 Structured output and the serving engine** (16 min). A serving engine does more than call a model forward method. _1 worked example(s), 2 figure(s)._
+  - Grammar/parser states, whole decoded token pieces, indexed masks and renormalisation;
+  - Valid prefixes do not guarantee complete documents, factual correctness or a meaningful severity mapping.
+  - API frontend, tokenizer/template, scheduler, KV manager, model runner, sampler, detokenisation and lifecycle metrics.
+  - Dated engine roles and compatibility: vLLM, SGLang, TensorRT-LLM, TGI maintenance mode, llama.cpp/Ollama.
+  - OpenAI-compatible protocol fields, streamed events, implementation-specific usage/limits and length finish reasons;
+- **s11 Sizing the running case study** (19 min). Now combine parameters, formats, cache, scheduling and prices into one capacity estimate. _1 figure(s), widget: serving-calculator._
+  - Canonical 9550729216 parameters, 8927875072 matrix count;
+  - Serving file: int4 group128 scales, bf16 norms, eight-bit embedding/head before table scales;
+  - 16 GB bf16 cache admits 18 full requests;
+  - Cold/warm prefill .923/.241 s, quiet E2E about 13.4 s;
+  - Prefill-inclusive simple full-load accounting: 1196 requests/hour, 2.39M output/hour rounded 1200/2.4M, saturated E2E 54–55 s.
+  - All prices explicit assumptions;
   - … and 1 more points
-- **s4 Hardware: the three numbers on a datasheet** (13 min). Read an accelerator datasheet for the three numbers that matter, memory capacity, memory bandwidth and dense compute, and turn them into concurrency, decode speed and prefill speed. _3 worked example(s), 1 figure(s)._
-  - Capacity decides the largest model and the number of concurrent sequences;
-  - A dated table ('published datasheet figures, dense, no sparsity, as of 2026'): H100 SXM: 80 GB, 3.35 TB/s, 989 TFLOP/s bf16;
-  - Same memory, different speed: the L4 and the RTX 4090 both have 24 GB, so both hold the case study's 18 sequences, but the L4 decodes about 3.3 times slower (1.0/0.30 = …
-  - Datasheet traps: 'with sparsity' figures are twice the dense ones;
-  - Consumer versus datacentre parts: memory size, ECC, multi-GPU interconnect, cooling and form factor, and driver licence terms that restrict datacentre use of consumer …
-  - Several GPUs: tensor parallelism splits every layer across GPUs, so weights, bandwidth and compute add (two GPUs roughly halve the per-token time) at the cost of an …
-  - … and 2 more points
-- **s5 Batching: static, dynamic and continuous** (17 min). Show how a server keeps the GPU busy with many sequences at once, and what each batching policy does to throughput and to each user's latency. _3 worked example(s), 2 figure(s)._
-  - Static batching: B requests padded to a common length and run together until the longest finishes;
-  - Dynamic (request-level) batching: dispatch when B requests are queued or after a maximum wait τ;
-  - Continuous (iteration-level) batching (Orca, Yu et al.
-  - Prefill-decode interference: a joining request's prefill shares the iteration, so every running sequence sees one long gap (about 0.92 s for a 4,000-token prompt on the …
-  - The throughput-latency trade-off in the bandwidth-bound regime: step time t(B) = (W + B·k·t̄)/BW, with W the weight bytes, k the cache bytes per token and t̄ the mean …
-  - Scheduler controls: maximum running sequences, maximum tokens per iteration, the cache budget for admission;
-- **s6 Paged attention and prefix caching** (17 min). Explain how serving engines allocate the cache in pages so that many sequences of unpredictable length fit, and how they reuse the cache of a shared prefix across requests. _4 worked example(s), 1 figure(s)._
-  - Why contiguous allocation wastes memory: the output length is unknown, so a naive server reserves the maximum length per request;
-  - PagedAttention: the cache is divided into fixed-size blocks (16 tokens by default in vLLM);
-  - Sharing and copy-on-write: sequences that share a prefix (parallel samples of one prompt, beam search) point to the same physical blocks, with reference counts;
-  - Preemption when blocks run out: swap a sequence's blocks to CPU memory, or drop them and recompute later.
-  - Prefix caching: full blocks are identified by a hash of their tokens and of everything before them;
-  - What breaks a hit: any change early in the prompt (a timestamp, a user name, a reordered tool list), a different rendering by the chat template, a prefix that ends …
-  - … and 1 more points
-- **s7 Number formats and the arithmetic of quantisation** (19 min). Give the formats and the exact arithmetic of mapping weights to a few bits, with the storage cost of the scales, so that every scheme in s8 is a variation on one formula. _4 worked example(s), 2 figure(s)._
-  - Why fewer bits: decode time is bytes per step over bandwidth (s1-s2), so every bit saved per weight speeds decode and frees memory for the cache (s3).
-  - Float formats as (sign/exponent/mantissa bits;
-  - Block-scaled formats, dated and conservative: the OCP microscaling (MX) formats share one 8-bit power-of-two scale among 32 elements (MXFP4 elements are E2M1, giving 4 + …
-  - Symmetric (absmax) quantisation: s = max\|w\| / q_max with q_max = 2^(b−1) − 1;
-  - Asymmetric (zero-point, min-max) quantisation: s = (max w − min w)/(2^b − 1);
-  - Granularity: per-tensor (one scale), per-channel (one scale per output row), group-wise (one scale per g consecutive weights along the input dimension, g = 32, 64 or 128).
-  - … and 2 more points
-- **s8 Quantising LLMs: outliers, GPTQ, AWQ, SmoothQuant and the cache** (21 min). Explain why quantising a language model is harder than quantising a random matrix, what the calibrated methods do about it, how to quantise the cache, and how to measure the damage. _3 worked example(s), 2 figure(s)._
-  - What round-to-nearest does to a small model (Lab 4: SmolLM2-135M, perplexity on the first 4,096 tokens of the WikiText-2 test split;
-  - Outliers: weights are well behaved (in SmolLM2-135M the worst per-input-channel max/median ratio is about 12) but activations are not (in Lab 4 one input channel of …
-  - Weight-only (W4A16, W8A16) versus weight-and-activation (W8A8 in int8 or fp8), argued from the roofline: weight-only cuts the bytes of bandwidth-bound decode;
-  - SmoothQuant (Xiao et al.
-  - GPTQ (Frantar et al. 2023): per layer, minimise ‖WX − ŴX‖²_F over quantised Ŵ, each row independently;
-  - AWQ (Lin et al. 2024): about 1% of weight channels are salient, and saliency follows activation magnitude, not weight magnitude;
-  - … and 4 more points
-- **s9 Speeding up decode: speculative decoding and its relatives** (20 min). Derive speculative decoding: why verifying several tokens costs about one step, why the output distribution is exactly the large model's, and how much faster it is. _4 worked example(s), 1 figure(s), widget: speculative-speedup._
-  - The opportunity: a bandwidth-bound target model scores γ + 1 positions in about the time of one (s2), so a cheap draft model proposes γ tokens and the target checks them …
-  - The algorithm (Leviathan, Kalman and Matias 2023;
-  - Proof that the output is distributed as p (write it out): P(output = x) = q(x)·min(1, p(x)/q(x)) + (1 − β)·r(x), where β = Σ_x min(p(x), q(x)) is the probability of …
-  - Greedy special case: accept x_i if and only if it equals the target's argmax;
-  - Expected tokens per iteration: with acceptances independent with probability α, P(at least k drafts accepted) = α^k for k ≤ γ, so E[tokens] = 1 + Σ_{k=1}^{γ} α^k = (1 − …
-  - Walltime: an iteration costs γ draft steps and one verification, (γc + v)·T_target, where c is the draft-to-target step-cost ratio and v ≈ 1 when verification is …
-  - … and 3 more points
-- **s10 Structured output and the serving engine** (16 min). Show how a server can guarantee that output follows a schema, and what a serving engine is made of, so that the reader can choose and configure one. _2 worked example(s), 2 figure(s)._
-  - Constrained decoding (Module 07 introduced it as masking invalid tokens;
-  - What it guarantees and what it does not: syntax, not content.
-  - Engine anatomy: API server (OpenAI-compatible, streaming);
-  - The stacks, as of 2026 (check current documentation): vLLM: the general-purpose GPU server with PagedAttention, continuous batching, prefix caching, many quantised …
-  - The OpenAI-compatible chat-completions API: POST /v1/chat/completions with model, messages (role, content), max_tokens, temperature, top_p, stop, stream, and …
-  - The chat template: the server renders messages into tokens with the template stored with the model's tokenizer;
-  - … and 2 more points
-- **s11 Sizing the running case study** (19 min). Put s1-s10 together to size the serving of the hypothetical 9.5B safety-case model on one 24 GB GPU and on larger cards, ending with cost per million tokens and what the real utilisation does to it. _2 worked example(s), 1 figure(s), widget: serving-calculator._
-  - The case (hypothetical, as in Modules 07-09): the open-weight bilingual (English-Chinese) model of about 9.5B parameters chosen in Module 07 and adapted in Modules 08-09 …
-  - Step 1, weights: recall the count, attention 41,943,040 + feed-forward 188,743,680 + norms 8,192 = 230,694,912 parameters per layer (230.7M), × 36 = 8.305×10⁹, plus 2 × …
-  - Step 2, memory budget: 24 − 5.5 − 2.5 = 16 GB for the cache, where 2.5 GB for the runtime (context, activation workspace, graph buffers) is an assumption to measure on …
-  - Step 3, concurrency: 6,000 × 147,456 B = 0.885 GB per finished request → 18 concurrent;
-  - Step 4, latency at low load: TTFT = 7.61×10¹³ / (0.5 × 165×10¹²) = 0.92 s (0.24 s when the prefix is cached);
-  - Step 5, throughput at full load: B = 18 gives an 18.8 ms step and 959 tokens/s while decoding;
-  - … and 4 more points
-- **s12 Measuring latency: metrics, load tests and SLOs** (15 min). Define the latency metrics of LLM serving, show how load turns into queueing, and explain how to run a load test whose numbers can be trusted. _3 worked example(s), 1 figure(s)._
-  - Metrics: TTFT (request sent to first token received: queueing + prefill + network);
-  - Percentiles: report p50, p90 and p99 computed from raw samples;
-  - Tail amplification (Dean and Barroso 2013): an agent that makes 20 sequential calls, each slower than its p99 with probability 1%, has 1 − 0.99²⁰ = 18.2% of its tasks …
-  - Queueing: utilisation ρ = arrival rate / service rate;
-  - Little's law L = λW holds for any stable system: the mean number of requests in the system equals the arrival rate times the mean time in the system.
-  - Load-test design: open-loop arrivals (Poisson at a set rate) expose overload;
-  - … and 2 more points
-- **s13 Reliability in production** (14 min). List what keeps a self-hosted model trustworthy in service: knowing exactly what is running, failing over cleanly, measuring cost, being honest about determinism, and protecting what users send. _2 worked example(s), 1 figure(s)._
-  - Versioning and provenance: the served artifact is the exact quantised weights file plus the tokenizer, the chat template, the engine version, the sampling defaults and …
-  - Rollout: shadow or canary a new hash with the evaluation suite (Module 09) and live metrics;
-  - Health and capacity: liveness (the process answers) versus readiness (the model is loaded and has capacity);
-  - Timeouts, retries and fallback: a time budget per request;
-  - Metering: tokens in and out per request, per application and per customer or team, in a usage ledger, so cost is measured rather than assumed (s11).
-  - Determinism: temperature 0 makes the sampling rule deterministic, not the arithmetic.
-  - … and 1 more points
+- **s12 Measuring latency: metrics, load tests and SLOs** (15 min). The server is useful only if its users receive answers within the required time. _1 worked example(s), 1 figure(s)._
+  - Client TTFT/E2E, TPOT with D-1, individual ITL, output tokens/s, completed requests/s and explicitly defined goodput.
+  - Raw percentiles and populations, pooled ITL versus per-request maximum gaps;
+  - M/M/1 as illustrative knee, Little law only with stable compatible averages;
+  - Open-loop arrivals versus closed-loop throttling;
+  - Capacity under chosen SLOs rather than maximum output rate;
+- **s13 Reliability in production** (14 min). A serving calculation describes resources. _1 worked example(s), 1 figure(s)._
+  - Hash all output-determining artifacts, configuration and defaults;
+  - Canary/shadow rollout and full-manifest rollback with retained compatible capacity;
+  - Time budgets, bounded jittered retries, interrupted-stream policy, breakers and regularly exercised named fallbacks.
+  - Meter failed attempts/retries and paid utilisation;
+  - Temperature-zero selection versus batch-dependent arithmetic;
 - **What goes wrong.** 14 failure modes, each as symptom, cause and fix.
 
 **Labs.**
 
 | Lab | Minutes | CPU run | Download | Goal |
 |---|---|---|---|---|
-| lab1: A roofline and sizing calculator | 25 | ~1 min | none | Turn the formulas of s1-s4 into a small calculator that sizes any model on any accelerator, reproduce the case study's sizing table, and measure the roofline of your own machine. |
-| lab2: A KV cache for a small decoder, and prefix caching by hand | 35 | ~2 min | 269 MB | Add a KV cache to a small decoder, prove it exact, measure what it saves and how big it is, see how position bugs hide, and reuse a cached prefix on a real model. |
-| lab3: A continuous-batching simulator | 30 | ~1 min | none | Simulate static and continuous batching, cache-admission policies and chunked prefill for the case study on the 24 GB card, and find the knee of the latency-throughput curve and … |
-| lab4: Quantisation from scratch: weights, outliers and activations | 40 | ~3 min | 270 MB | Quantise SmolLM2-135M's linear layers with the schemes of s7, measure the damage as perplexity, find the activation outliers of s8, and repair simulated W8A8 with SmoothQuant. |
-| lab5: Speculative decoding from scratch | 35 | ~3 min | 724 MB | Implement greedy speculative decoding with SmolLM2-135M drafting for SmolLM2-360M, check that it reproduces the target's output, measure the acceptance rate and speed-up against … |
-| lab6: Batched generation on a CPU: throughput and determinism | 20 | ~1 min | 269 MB | Run batched greedy generation with SmolLM2-135M at B = 1, 2, 4, 8 and 16 in plain PyTorch, measure the prefill time, the decode step and the per-sequence and aggregate tokens/s, … |
+| lab1: A roofline and sizing calculator | 25 | ~0.1 min | none | Reproduce the case-study memory and latency bounds, then measure the matrix-product roofline of your own CPU. |
+| lab2: A KV cache for a small decoder, and prefix caching by hand | 35 | ~0.7 min | 269 MB | Check cached logits against a full causal forward pass, measure exact cache bytes and expose position errors that token comparisons miss. |
+| lab3: A continuous-batching simulator | 30 | ~0.7 min | none | Compare scheduling policies on an identical seeded workload, then find capacity under two latency objectives. |
+| lab4: Quantisation from scratch: weights, outliers and activations | 40 | ~0.7 min | 270 MB | Measure the error caused by quantisation and separate weight error from activation error. |
+| lab5: Speculative decoding from scratch | 35 | ~2.3 min | 724 MB | Preserve a target model's greedy output while proposing several tokens at once, then verify the stochastic acceptance theorem separately. |
+| lab6: Batched generation on a CPU: throughput and determinism | 20 | ~0.4 min | 269 MB | Measure what batching does to throughput and to each request's speed, then compare one prompt alone and in a batch. |
 
 **Exercises** (15: 7 ★, 7 ★★, 1 ★★★; 130 minutes).
 
-- e1 ★ conceptual, 5 min: A colleague estimates the single-user decode speed of a 9B model in bf16 on a GPU with 989 TFLOP/s and 3.35 TB/s as 989×10¹² / (2 × 9×10⁹) ≈ 55,000 …
-- e2 ★★ derivation, 10 min: Derive the arithmetic intensity of Y = WX for W ∈ R^{m×n} stored at b_w bytes per element and X ∈ R^{n×B}, Y ∈ R^{m×B} at b_a bytes per element, and …
-- e3 ★★ calculation, 10 min: From their configuration files, SmolLM2-135M has num_hidden_layers 30, hidden_size 576, num_attention_heads 9 and num_key_value_heads 3;
-- e4 ★ conceptual, 5 min: Grouped-query attention with 8 KV heads for 32 query heads cuts the case study's cache by a factor of 4.
-- e5 ★ conceptual, 5 min: A server reserves the maximum length (8,192 tokens) of cache for every request.
-- e6 ★ conceptual, 5 min: Each request to the safety-case assistant is assembled from (a) a line 'Request time: <timestamp>', (b) a 2,500-token system prompt, (c) a …
-- e7 ★ conceptual, 5 min: Two int4 schemes for the case study's 8.305×10⁹ block weights: (a) groups of 128 with an fp16 scale and an fp16 zero-point, 4.25 bits per weight …
-- e8 ★★ calculation, 10 min: Quantise w = (0.62, −0.11, 0.05, −0.90, 0.33, 0.07, −0.25, 0.48) to int4 (a) with symmetric absmax (q in [−7, 7]) and (b) with min-max zero-point (q …
-- e9 ★★ derivation, 10 min: Prove that speculative sampling (draw x ~ q;
-- e10 ★★ calculation, 10 min: With a per-token acceptance rate α, independent across positions, derive the expected number of tokens per speculative iteration with draft length γ.
-- e11 ★★ calculation, 10 min: Redo the sizing table of s11 (24, 48 and 80 GB cards, 2.5 GB runtime overhead, 6,000-token requests, bf16 cache) for (a) a 14B-class model at 8 bits …
-- e12 ★ conceptual, 5 min: An agent makes 20 sequential model calls per task.
-- e13 ★ conceptual, 5 min: Two runs of the same request at temperature 0 give different answers on a busy server and identical answers on an idle one.
-- e14 ★★ calculation, 10 min: Suppose the 24 GB card of Section 11 can be rented for an assumed USD 0.80 per hour (a lower quote than the section's USD 1.00;
-- e15 ★★★ project, 25 min: A capacity plan under an SLO.
+- e1 ★ conceptual, 5 min: A colleague estimates batch-one decode for a 9B bf16 model on a 989 TFLOP/s, 3.35 TB/s device as …
+- e2 ★★ derivation, 10 min: Derive the intensity of $\mathbf Y=\mathbf W\mathbf X$ for $\mathbf W\in\mathbb R^{m\times n}$ at $b_w$ bytes per weight and $\mathbf X\in\mathbb …
+- e3 ★★ calculation, 10 min: Compute bf16 and one-byte KV cache bytes per token, and bf16 memory for one 8,192-token request, from these configs: SmolLM2-135M has 30 layers, …
+- e4 ★ conceptual, 5 min: Why does sharing eight KV heads among 32 query heads quarter the cache but leave attention FLOPs approximately unchanged? Why can it accelerate …
+- e5 ★ conceptual, 5 min: A server reserves 8,192 cache positions for every request.
+- e6 ★ conceptual, 5 min: A prompt is assembled as a changing request timestamp, a 2,500-token system message, a project-shared 1,200-token standard excerpt and a roughly …
+- e7 ★ conceptual, 5 min: Compare int4 block-weight schemes: (a) group-128 with fp16 scale and fp16 zero-point, 4.25 bits/weight;
+- e8 ★★ calculation, 10 min: Quantise $\mathbf w=(0.62,-0.11,0.05,-0.90,0.33,0.07,-0.25,0.48)$ to int4 with (a) symmetric absmax, codes $-7$ through 7;
+- e9 ★★ derivation, 10 min: Prove the acceptance/residual speculative-sampling identity and show acceptance is $1-\mathrm{TV}(p,q)$.
+- e10 ★★ calculation, 10 min: Derive expected speculative output under independent acceptance $\alpha$.
+- e11 ★★ calculation, 10 min: With 2.5 GB overhead, bf16 cache and 6,000-token requests, compute concurrency on 24, 48 and 80 GB budgets for (a) 14 GB weights, 48 layers, eight KV …
+- e12 ★ conceptual, 5 min: An agent makes 20 sequential calls per task.
+- e13 ★ conceptual, 5 min: The same temperature-zero request differs on a busy server but repeats on an idle one.
+- e14 ★★ calculation, 10 min: Assume a lower rental quote of USD 0.80/hour and 2.4 million output tokens per busy hour.
+- e15 ★★★ project, 25 min: Use Lab 3's functions to find the highest nominal rate meeting p99 TTFT at most three seconds and pooled p99 ITL at most 100 ms for four profiles: …
 
-**Quiz** (12 questions): The case-study model's 5.5 GB 4-bit file runs on a GPU with 1.0 TB/s of …; A model has L = 32 layers, 8 KV heads and a head dimension of 128.; Which statement about batching decode is correct?; The main advantage of continuous batching over static batching is that:; Prefix caching never hits on your service.; Quantising SmolLM2-135M's linear weights to int4 with one absmax scale per …; Weight-only int4 quantisation mainly speeds up:; In speculative sampling the draft model is poor (acceptance rate 0.3).; With acceptance rate α = 0.8 and draft length γ = 4, the expected number of …; SmoothQuant makes int8 activation quantisation work by:; At moderate load your p50 TTFT is 0.4 s but p99 is 9 s, while TPOT is normal.; A server completes 0.33 requests/s, and each request spends 55 s in the system …
+**Quiz** (12 questions): Ignoring cache reads, what is the weights-only batch-one decode bound for a 5.5 …; A model has L = 32 layers, 8 KV heads and a head dimension of 128.; Which statement about batching decode is correct?; The main advantage of continuous batching over static batching is that:; Prefix caching never hits on your service.; Quantising SmolLM2-135M's linear weights to int4 with one absmax scale per …; Weight-only int4 quantisation mainly speeds up:; In speculative sampling the draft model is poor (acceptance rate 0.3).; With independent acceptance probability 0.8 and draft length four, what is the …; SmoothQuant makes int8 activation quantisation work by:; At moderate load your p50 TTFT is 0.4 s but p99 is 9 s, while TPOT is normal.; A server completes 0.33 requests/s, and each request spends 55 s in the system …
 
 **Guided reading.**
 
-- Kwon, W. et al., "Efficient memory management for large language model serving with PagedAttention." SOSP, 2023. (15 min). The paper behind vLLM: a clear account of why the KV cache, not compute, limits serving, and how operating-system paging fixes it.
-- Lin, J. et al., "AWQ: Activation-aware weight quantization for LLM compression and acceleration." MLSys, 2024. (15 min). The clearest statement of why activation statistics, not weight magnitudes, decide which weights matter, with an error argument a reader can redo in a few lines;
-- Leviathan, Y., Kalman, M., Matias, Y., "Fast inference from transformers via speculative decoding." ICML, 2023. (15 min). The original statement of speculative sampling with the correctness proof and the walltime analysis that s9 derives;
+- Kwon, W. et al. [“Efficient memory management for large language model serving with PagedAttention.”](https://arxiv.org/abs/2309.06180) *SOSP*, 2023. (15 min). It connects unpredictable sequence lengths to allocator waste and shows how the attention kernel and cache manager must cooperate.
+- Lin, J. et al. [“AWQ: Activation-aware weight quantization for LLM compression and acceleration.”](https://arxiv.org/abs/2306.00978) *MLSys*, 2024. (15 min). The scaling argument makes the distinction between weight magnitude and activation saliency concrete.
+- Leviathan, Y., Kalman, M., Matias, Y. [“Fast inference from transformers via speculative decoding.”](https://arxiv.org/abs/2211.17192) *ICML*, 2023. (15 min). Its probability proof separates preserving a target distribution from obtaining a speed-up.
 
 **Interactive widgets.**
 
