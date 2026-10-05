@@ -1,0 +1,489 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SVD, low-rank approximation, and PCA — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Construct the SVD of rectangular maps, derive pseudoinverse and truncation geometry, prove reconstruction error bounds, and implement centred PCA without fitting held-out data."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="14"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 14</button><div class="dropdown-menu" id="module-menu"><a href="module_14_EN.html" class="active" aria-current="page">SVD, low-rank approximation, and PCA</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="module_14_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>Rectangular maps need singular directions</span></a><a href="#s1"><span class="num">2</span><span>Deriving SVD and keeping three shape conventions distinct</span></a><a href="#s2"><span class="num">3</span><span>Rotation scaling and rotation between different spaces</span></a><a href="#s3"><span class="num">4</span><span>Pseudoinverse weak directions and numerical resolution</span></a><a href="#s4"><span class="num">5</span><span>Truncation reconstruction error and the best-rank theorem</span></a><a href="#s5"><span class="num">6</span><span>Centred PCA scores reconstruction and scatter</span></a><a href="#s6"><span class="num">7</span><span>Scaling leakage and the limits of explained variance</span></a><a href="#misconceptions"><span class="num">8</span><span>Common misconceptions</span></a><a href="#labs"><span class="num">9</span><span>Three CPU labs</span></a><a href="#exercises"><span class="num">10</span><span>Exercises with complete solutions</span></a><a href="#quiz"><span class="num">11</span><span>Ten-question self-check</span></a><a href="#reading"><span class="num">12</span><span>Reading with a purpose</span></a><a href="#summary"><span class="num">13</span><span>Retrieval exit task and next step</span></a><a href="#terms"><span class="num">14</span><span>Notation and bilingual terminology</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">SVD, low-rank approximation, and PCA</h1><p class="module-lead">Construct the SVD of rectangular maps, derive pseudoinverse and truncation geometry, prove reconstruction error bounds, and implement centred PCA without fitting held-out data.</p><div class="hero-chips"><span class="chip chip-time">10 hours</span><span class="chip">4 sessions</span><span class="chip">3 labs</span><span class="chip">12 exercises + 2 extensions</span><span class="chip">10 quiz questions</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Derive an SVD from the symmetric spectral theorem and annotate full, reduced and compact shapes.</li><li>Explain rectangular rotation/reflection–scaling–rotation geometry.</li><li>Derive rank, four spaces, conditioning and the pseudoinverse from singular directions.</li><li>Prove Frobenius and operator-norm best-rank-k error statements.</li><li>Compute training-centred PCA scores, reconstruction and scatter eigenvalues.</li><li>Distinguish variance explained, reconstruction, scaling and prediction usefulness.</li><li>Prevent centring/component leakage and diagnose weak inverse directions.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Module 13: symmetric spectral theorem and positive-semidefinite forms; Modules 11–12: four spaces, projections and minimum-norm least squares. Probability interpretations are deferred to Module 23.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">Rectangular maps need singular directions</a><a href="#s1">Deriving SVD and keeping three shape conventions distinct</a><a href="#s2">Rotation scaling and rotation between different spaces</a><a href="#s3">Pseudoinverse weak directions and numerical resolution</a><a href="#s4">Truncation reconstruction error and the best-rank theorem</a><a href="#s5">Centred PCA scores reconstruction and scatter</a><a href="#s6">Scaling leakage and the limits of explained variance</a><a href="#misconceptions">Common misconceptions</a><a href="#labs">Three CPU labs</a><a href="#exercises">Exercises with complete solutions</a><a href="#quiz">Ten-question self-check</a><a href="#reading">Reading with a purpose</a><a href="#summary">Retrieval exit task and next step</a><a href="#terms">Notation and bilingual terminology</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">10 hours</span></div><p class="plan-lead">Times include practice and are estimates. Split a session when useful. Optional extension exercises add 35 minutes. Progress is stored in this browser and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">150 min</span></div><div class="session-title">SVD construction shapes and geometry</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2 and derive singular directions.</a></span><span class="act-min">76</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Complete Exercises 1–4.</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read SVD shape and geometry selections.</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Explain full, reduced and compact factors without notes.</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m14:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">150 min</span></div><div class="session-title">Pseudoinverse and optimal truncation</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Sections 3–4 and trace the rank-k error proof.</a></span><span class="act-min">55</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Measure generated-matrix truncation error and scalar storage.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e5">Complete proof Exercises 5–7.</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m14:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">150 min</span></div><div class="session-title">Centred PCA and training transforms</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s5">Read Sections 5–6 and separate reconstruction from prediction.</a></span><span class="act-min">61</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Fit PCA on training records and reuse its transform.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Complete application Exercises 8–10.</a></span><span class="act-min">39</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m14:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">150 min</span></div><div class="session-title">Leakage scaling and inverse resolution</div><ul class="acts"><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Diagnose uncentred PCA leakage and pseudoinverse cutoffs.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e11">Diagnose Exercises 11–12.</a></span><span class="act-min">32</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Complete choices and the written PCA contract.</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read official SVD and pseudoinverse return conventions.</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Explore rank truncation and complete the exit task.</a></span><span class="act-min">33</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m14:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>Rectangular maps need singular directions</h2></div>
+<p>Eigenvectors compare a square map’s input and output in the same space. A rectangular design, image matrix or embedding table instead connects different spaces. Even a square nonsymmetric map can lack an orthonormal eigenbasis. The singular value decomposition supplies orthonormal input and output directions for every real finite matrix, with nonnegative strengths connecting them. It extends the useful geometry from the symmetric spectral theorem without claiming that arbitrary eigenvectors are orthogonal.</p>
+<p>This module derives that decomposition, the pseudoinverse and best-rank approximation, then applies them to centred principal component analysis. You will distinguish full, reduced and compact shapes, calculate discarded reconstruction energy, and fit preprocessing on training records before applying it elsewhere. High explained variance measures a particular geometric objective; it does not establish predictive usefulness.</p>
+<p><strong>Retrieval check:</strong> state the real symmetric spectral theorem and explain why AᵀA is positive semidefinite. Revisit <a href="module_13_EN.html#s3">Module 13</a>. Projection, minimum-norm selection and the four spaces come from <a href="module_12_EN.html#s6">Modules 12</a> and <a href="module_11_EN.html#s4">11</a>. The PCA scatter calculations here are algebraic; probability and statistical interpretation return in Module 23. Use <a href="numpy_primer_EN.html">NumPy preparation</a> for labs.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>Deriving SVD and keeping three shape conventions distinct</h2></div>
+<p>For A of shape m×n, AᵀA is an n×n symmetric positive-semidefinite matrix. The spectral theorem supplies an orthonormal basis v₁,…,v_n with nonnegative eigenvalues, sorted from largest to smallest. Define σᵢ as their nonnegative square roots. For each positive σᵢ, set uᵢ=Avᵢ/σᵢ. Then uᵢᵀuⱼ=vᵢᵀAᵀAvⱼ/(σᵢσⱼ), which equals one for i=j and zero otherwise. Thus the nonzero image directions are orthonormal. A zero eigenvalue gives ‖Avᵢ‖²=0, hence Avᵢ=0.</p>
+<p>Expanding any input x in the full v basis now gives Ax=Σ_{σᵢ&gt;0}σᵢuᵢ(vᵢᵀx). This proves A=Σ_{i=1}^rσᵢuᵢvᵢᵀ, where r is the number of positive values. The u’s span the column space and the corresponding v’s span the row space; the remaining v’s span the kernel. Extend the u list to an orthonormal basis of Rᵐ. These constructions yield the <strong>singular value decomposition</strong>, or SVD, A=UΣVᵀ. Its existence follows from the symmetric theorem even if A itself is rectangular or defective.</p>
+<p>The <strong>full SVD</strong> has U of shape m×m, V of shape n×n, and rectangular diagonal Σ of shape m×n. Its first q=min(m,n) diagonal entries are singular values, including zeros when rank is smaller than q. The remaining positions are zero. Full U and V describe complete output and input bases, including directions not used by the map. The formula does not multiply an m×m U by an n×n diagonal array unless m=n; the middle factor’s rectangular shape matters.</p>
+<p>The <strong>reduced SVD</strong> retains q columns on each side: U_q is m×q, V_q is n×q, and the diagonal middle factor is q×q. It still includes zero singular values if r&lt;q. The <strong>compact rank-r SVD</strong> retains only positive directions: U_r is m×r,V_r is n×r,Σ_r is r×r. Reduced and compact are therefore different when the matrix is rank deficient. Library terminology can vary; specify shapes and whether zero directions are present rather than relying on one word.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A tall rank-two matrix has different reduced and compact shapes</div>
+<p>For a 5×3 matrix of rank two, full factors have shapes U5×5,Σ5×3,V3×3. Reduced factors are U_q5×3,Σ_q3×3,V_q3×3, with one zero singular value. Compact factors are U_r5×2,Σ_r2×2,V_r3×2. Every product has shape5×3. In NumPy’s real reduced output, Vh is V_qᵀ with shape3×3, not an array whose columns are the right singular vectors.</p>
+</div>
+<p>The rank-zero case also fits the compact formula: the positive lists are empty and the sum is the zero matrix. Full or reduced factors can still contain arbitrary orthonormal zero-direction bases. Repeated positive singular values permit paired orthonormal rotations of the corresponding u and v lists. Flipping both a u vector and its matching v vector leaves their outer product unchanged. Comparing signed columns without allowing these ambiguities is not an appropriate correctness criterion.</p>
+<p>The construction through AᵀA proves existence, but does not prescribe forming that Gram matrix as a numerical SVD algorithm. As Module 12 showed, squaring weak direction strengths can destroy resolution in floating-point intermediates. A library SVD works through specialised numerical routines. Validate the factor shapes, orthogonality and reconstruction, and record dtype and tolerance when deciding which values are effectively zero.</p>
+<p>An SVD also separates coordinates from invariant quantities. If orthogonal input and output basis changes replace A by PᵀAQ, the Gram matrix becomes QᵀAᵀAQ and has the same eigenvalues. Singular values, rank and the two matrix norms therefore remain unchanged; singular-vector tuples change with the bases. Multiplying the whole map by a scalar α multiplies every strength by |α|. Scaling just one feature generally changes them in a less uniform way because that operation is not an orthogonal coordinate change. These identities let you distinguish a reorientation that preserves Euclidean geometry from a unit conversion that changes its metric.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does full_matrices=False guarantee only r positive directions are returned? Why do zero eigenvalues of AᵀA identify the input kernel?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>No. The reduced dimension is q=min(m,n), which can exceed rank r. A zero eigenvalue gives vᵀAᵀAv=‖Av‖²=0, hence Av=0; the corresponding full right-basis vectors span every kernel direction.</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Rotation scaling and rotation between different spaces</h2></div>
+<p>The full formula acts in three stages. Vᵀ expresses the input in an orthonormal basis, preserving its Euclidean length. Σ scales the matched coordinates and inserts or removes coordinates as required by the rectangular dimensions. U expresses the resulting output coordinates in an orthonormal output basis, again preserving length. Orthogonal factors may be rotations or reflections; calling them both rotations would omit determinant-minus-one possibilities. The middle diagonal strengths are nonnegative, unlike potentially signed or complex eigenvalues.</p>
+<p>For each positive pair, Avᵢ=σᵢuᵢ and Aᵀuᵢ=σᵢvᵢ. The second relation follows from AᵀAvᵢ=σᵢ²vᵢ. Hence uᵢ is also an eigenvector of AAᵀ with value σᵢ². AᵀA and AAᵀ share the positive eigenvalues but generally have different numbers of zeros because their dimensions differ. These are input and output versions of one map’s direction strengths, not a claim that A has the same ordinary eigenvalues.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A rectangular map stretches and embeds a circle</div>
+<p>Let A=[[3,0],[0,1],[0,0]], mapping R² to R³. The coordinate directions are singular vectors, strengths are three and one, and every input unit circle point (cos t,sin t) maps to (3cos t,sin t,0). The output ellipse lies in z=0 with semiaxes three and one. This is an image of a unit sphere under A, whereas Module 13’s quadratic unit contour had inverse-square-root radii. The two geometries answer different questions.</p>
+</div>
+<p>With rank r&lt;n, some input directions vanish. Their coordinates remain part of a full V basis even though they contribute no output. With r&lt;m, the image occupies a proper subspace of the output space and some output directions are unattainable. The last full U directions span the left null space. This makes all four fundamental spaces visible: the first r right directions span the row space, remaining right directions the null space; the first r left directions span the column space, remaining left directions the left null space.</p>
+<p>Singular values directly give the Euclidean operator norm. For a unit input x=Vc, ‖Ax‖²=Σ_{i=1}^rσᵢ²cᵢ²≤σ₁²Σcᵢ²=σ₁². The first right singular vector attains the bound, so ‖A‖₂=σ₁, with norm zero for the zero map. For a square invertible matrix, the smallest value bounds the least stretching and the inverse norm is 1/σ_n. Therefore κ₂(A)=σ₁/σ_n without a symmetry assumption. This repairs the unqualified eigenvalue-ratio shortcut diagnosed in Module 13.</p>
+<p>For a full-column-rank rectangular design X, the ratio σ₁/σ_d measures its least-to-greatest input stretching and the norm of its pseudoinverse. Its Gram matrix has eigenvalues σᵢ², so κ₂(XᵀX)=(σ₁/σ_d)². This proves the conditioning-square mechanism introduced earlier. A rank-deficient design has zero input directions and no finite inverse sensitivity over the full input space, although one can discuss a ratio restricted to positive singular directions if that restriction is stated.</p>
+<p>Storage conventions deserve the same care as geometry. Real NumPy output has s as a one-dimensional array, U as left vectors in columns, and Vh as right vectors in rows. Multiplying U*s broadcasts the values across U’s columns when U has the matching reduced shape. Scaling its rows would represent a different matrix. For complex inputs the returned Vh is a conjugate transpose; this course’s main examples are real, where ordinary transpose suffices. A reconstruction test with the expected shape detects many orientation mistakes before they become misleading interpretations.</p>
+<figure class="fig" id="fig-14-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="Full V transpose changes input basis, rectangular Sigma scales nonnegative strengths, and U changes output basis. Positive directions span row/column spaces; unused directions give kernels."><title>Three stages of an SVD</title><desc>Full V transpose changes input basis, rectangular Sigma scales nonnegative strengths, and U changes output basis. Positive directions span row/column spaces; unused directions give kernels.</desc><defs><marker id="fig-14-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">Rectangular map: input basis → scaling and lost directions → output basis</text><rect x="20" y="95" width="190" height="130" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="115" y="145" text-anchor="middle" font-size="30" fill="#1a2e4a">Vᵀ</text><text x="115" y="197" text-anchor="middle" font-size="23" fill="#1a2e4a">n × n</text><rect x="280" y="95" width="200" height="130" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="145" text-anchor="middle" font-size="30" fill="#1a2e4a">Σ</text><text x="380" y="197" text-anchor="middle" font-size="23" fill="#1a2e4a">m × n</text><rect x="550" y="95" width="190" height="130" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="645" y="145" text-anchor="middle" font-size="30" fill="#1a2e4a">U</text><text x="645" y="197" text-anchor="middle" font-size="23" fill="#1a2e4a">m × m</text><path d="M220,158L270,158" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-14-1__arrow)"/><path d="M490,158L540,158" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-14-1__arrow)"/><text x="380" y="281" text-anchor="middle" font-size="27" fill="#1a2e4a">Avᵢ=σᵢuᵢ;     Aᵀuᵢ=σᵢvᵢ</text><text x="380" y="329" text-anchor="middle" font-size="18" fill="#1a2e4a">Positive directions: row ↔ column; unused directions: null and left null.</text></g></svg></div><figcaption><span class="fig-num">Figure 14.1</span> <p>The input basis, nonnegative rectangular scaling and output basis have distinct jobs. Positive singular directions reveal the row and column spaces; unused directions reveal the two kernels.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why can two matrices have the same positive singular values but different nullities? Does a negative eigenvalue force a negative singular value?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>The kernels also depend on the input/output dimensions, which can differ despite the same r positive values. Singular values are nonnegative square roots of Gram eigenvalues. For a symmetric map, they are absolute eigenvalue magnitudes, with sign absorbed into its left/right direction pairing.</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>Pseudoinverse weak directions and numerical resolution</h2></div>
+<p>For compact A=U_rΣ_rV_rᵀ, define A⁺=V_rΣ_r⁻¹U_rᵀ, where only positive strengths are inverted. Its shape is n×m. It projects an output target onto the column space by taking u coordinates, divides each retained coordinate by its strength, and constructs an input in the row space. This is precisely Module 12’s geometric minimum-norm least-squares map. An ordinary inverse appears as the special square full-rank case, not as a requirement for the formula.</p>
+<p>Multiplying gives AA⁺=U_rU_rᵀ and A⁺A=V_rV_rᵀ, the column- and row-space projections. They are symmetric and idempotent. Consequently AA⁺A=A and A⁺AA⁺=A⁺, recovering all Moore–Penrose conditions. For any y, w_min=A⁺y has prediction U_rU_rᵀy, the unique closest reachable output. Every least-squares minimiser is w_min+n with n in the kernel, and orthogonality makes w_min uniquely smallest in Euclidean norm.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A rank-one map projects before lifting</div>
+<p>Let A=[[1,1],[0,0]]. Its positive singular value is √2, right direction (1,1)/√2 and left direction (1,0). The pseudoinverse is [[1/2,0],[1/2,0]]. For y=(4,3), it returns w=(2,2), with predicted output (4,0) and residual (0,3). Every weight (2+t,2−t) has that same fit. The second target coordinate cannot be recovered because it lies outside the column space, and the minimum-norm rule splits the first equally.</p>
+</div>
+<p>A small positive σ can amplify target noise: a disturbance εuᵢ produces coefficient change (ε/σᵢ)vᵢ when that direction is retained. The input and output norms of those changes are |ε|/σᵢ and |ε| respectively. This is an exact directional sensitivity statement. It explains why a numerical algorithm can be accurate for the supplied targets and yet return unstable coefficients after a measurement perturbation. Singular vectors make the mechanism visible rather than hiding it behind one scalar condition number.</p>
+<p>For diag(1,10⁻¹⁰), the target (1,10⁻¹⁰) gives inverse weights (1,1). Adding (0,10⁻⁸) changes them to (1,101). A numerical pseudoinverse that discards the second direction returns (1,0) instead and leaves a second-coordinate residual. It has deliberately altered the effective inverse problem to limit amplification. That choice is not a proof that the exact second singular value vanished. It trades resolution and fit against parameter response, requiring a stated tolerance and purpose.</p>
+<p>The pinned pseudoinverse interface uses a relative cutoff based on the largest singular value. An absolute rank threshold, a relative pseudoinverse threshold and a measurement-noise policy are not automatically interchangeable. Global scaling interacts with absolute thresholds differently from relative ones, and scaling individual columns also changes the geometry. Report the positive directions retained, the feature units, dtype and tolerance. If a value is close to the cutoff, small input changes can change the selected rank and the returned representative.</p>
+<p>Do not form 1/s blindly when the reduced list includes zeros. Even “multiply by zero afterwards” is unsafe because an infinite intermediate can yield NaN. Build a retained-direction mask or use a library with an explicit cutoff policy. An all-zero matrix has a zero pseudoinverse; there is no positive direction to divide by. A meaningful verification checks the selected projected output and minimum-norm geometry, not just that a numerical call finished without an exception.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does A⁺ undo every output target? If weak directions are discarded, is the result still the exact pseudoinverse of the original real matrix?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>AA⁺y is the column-space projection, equal to y only for reachable targets. A cutoff that removes an exactly nonzero direction computes a pseudoinverse for an effective truncated map, so distinguish that policy from the exact mathematical pseudoinverse of the original matrix.</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>Truncation reconstruction error and the best-rank theorem</h2></div>
+<p>Keep the k strongest terms to define A_k=Σ_{i=1}^kσᵢuᵢvᵢᵀ, with 0≤k≤r. Its rank is k for positive retained values, and A₀=0. This is a low-rank approximation in the original matrix shape. Keeping factors rather than constructing all entries can save storage or computation when k is small. The factor scalar count is k(m+n+1) if both direction factors and k strengths are stored. This must be compared with mn and with actual file-format overhead; low rank alone does not guarantee a smaller stored file.</p>
+<p>The <strong>Frobenius norm</strong> is ‖M‖<em>F=√ΣᵢⱼMᵢⱼ², equivalently the square root of the sum of squared column lengths. Left multiplication by an orthogonal matrix preserves each column length; right orthogonal multiplication also preserves the total, by applying the same reasoning to the transpose. Hence Frobenius norm is unchanged by full orthogonal basis changes. In the SVD coordinates, A−A_k has only discarded strengths on its diagonal, so ‖A−A_k‖<em>F²=Σ</em>{i&gt;k}σᵢ². The operator norm error is the largest discarded value σ</em>{k+1}, with zero after every positive direction is kept.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Three strengths give an exact error budget</div>
+<p>Suppose A has positive singular values six, three and one. Its squared Frobenius norm is 36+9+1=46. Rank-one truncation leaves squared error ten, rank-two leaves one and rank-three leaves zero. Retained energy ratios are 36/46 and 45/46. For the lab’s 8×6 matrix, one, two and three retained terms require 15,30 and45 scalar entries versus48 original entries; these are factor counts, not measured file sizes or task-quality scores.</p>
+</div>
+<p>The <strong>best-rank-k approximation theorem</strong> says no matrix B of rank at most k has smaller Frobenius or operator error than A_k. Here is a complete Frobenius proof. Let P project onto C(B), of dimension t≤k. In each column, the error splits into its component in that space and the perpendicular component, so ‖A−B‖_F²≥‖(I−P)A‖_F²=‖A‖_F²−‖PA‖_F². Using the left singular basis gives ‖PA‖_F²=Σσᵢ²wᵢ, where wᵢ=‖Puᵢ‖² lies between zero and one. Include all full left-basis vectors, assigning zero strength to unused directions. Their weights sum to t, because summing squared projections of an orthonormal basis onto a t-dimensional space counts t unit directions.</p>
+<p>The weighted strength sum is at most Σ_{i≤k}σᵢ². To see this when k&gt;0, bound every tail strength by σ_k² and use the remaining weight budget k−Σ_{i≤k}wᵢ. Then the sum is at most Σ_{i≤k}[σᵢ²wᵢ+σ_k²(1−wᵢ)], no greater than Σ_{i≤k}σᵢ². For k=0 the projection is zero. Thus every candidate error is at least the discarded square sum, which A_k attains. The argument handles arbitrary candidate images rather than assuming their directions already align with A.</p>
+<p>For operator error with k&lt;r, restrict B to the span of the first k+1 right singular vectors. Its rank is at most k, so rank–nullity gives a unit vector z in this subspace with Bz=0. Then ‖(A−B)z‖=‖Az‖≥σ_{k+1}, since all its included strengths are at least that large. The truncated matrix attains equality. This proves the second norm claim. With repeated values at the truncation boundary, several retained subspaces can be optimal; best error need not identify a unique approximation.</p>
+<figure class="fig" id="fig-14-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" role="img" aria-label="Singular values six, three, one have squares 36,9,1. Retaining zero, one, two, three terms leaves squared errors 46,10,1,0."><title>Truncation error budget</title><desc>Singular values six, three, one have squares 36,9,1. Retaining zero, one, two, three terms leaves squared errors 46,10,1,0.</desc><defs><marker id="fig-14-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="380" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">Strengths six, three, one: discarded squared energy is exact</text><rect x="110" y="91" width="110" height="144" fill="#2563eb"/><text x="165" y="265" text-anchor="middle" font-size="23" fill="#1a2e4a">σ₁²=36</text><rect x="320" y="199" width="110" height="36" fill="#2563eb"/><text x="375" y="265" text-anchor="middle" font-size="23" fill="#1a2e4a">σ₂²=9</text><rect x="530" y="231" width="110" height="4" fill="#2563eb"/><text x="585" y="265" text-anchor="middle" font-size="23" fill="#1a2e4a">σ₃²=1</text><text x="380" y="305" text-anchor="middle" font-size="24" fill="#1a2e4a">k=0,1,2,3 → squared errors 46,10,1,0</text><text x="380" y="348" text-anchor="middle" font-size="19" fill="#1a2e4a">Operator error is the largest discarded strength, not the square sum.</text></g></svg></div><figcaption><span class="fig-num">Figure 14.2</span> <p>Discarding strengths has a calculable squared-error budget. Optimality concerns the specified matrix norm, rather than future prediction quality or every alternative task loss.</p>
+</figcaption></figure>
+<div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" data-widget="truncation"></div><div class="widget-caption">
+<p>Move the retained-rank control for a generated small matrix. Compare its reconstructed entries, discarded squared energy and factor storage; include rank zero and full reconstruction.</p>
+</div></div>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does keeping ninety-nine percent of squared singular energy prove ninety-nine percent classification accuracy? Can a rank-three factorisation always save scalar storage?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Neither follows. Energy measures a reconstruction objective, not labelled prediction performance. Storage depends on dimensions and retained rank; compare k(m+n+1) with mn, then account for the actual encoding and overhead.</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>Centred PCA scores reconstruction and scatter</h2></div>
+<p>Let a data matrix X contain m records as rows and d features as columns. Compute the feature mean μ using training rows and form Z=X−1μᵀ, so each column sums to zero. Its right singular vectors are principal feature directions. For k retained columns V_k, <strong>PCA scores</strong> are T=ZV_k, shape m×k. Reconstruction is X_hat=TV_kᵀ+1μᵀ. Subtraction and addition of the mean make this an affine reconstruction of the original records, with a linear projection of their centred displacements.</p>
+<p>The sample scatter matrix is ZᵀZ. Its eigendirections are V and its eigenvalues are σᵢ². With m&gt;1, dividing by m−1 gives the customary sample covariance matrix and eigenvalues σᵢ²/(m−1). At this stage this is an algebraic normalisation convention; distributional estimation claims come later. Scores along orthonormal principal directions have diagonal cross-product matrix diag(σ₁²,…,σ_k²), since TᵀT=V_kᵀZᵀZV_k. This explains the decorrelation of these centred coordinates without claiming statistical independence.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Training mean and a two-feature scatter matrix</div>
+<p>For rows (10,0),(12,1),(14,0),(16,1), μ=(13,0.5). Centred rows are (−3,−0.5),(−1,0.5),(1,−0.5),(3,0.5), and scatter is [[20,2],[2,1]]. Its values are (21±√377)/2. The leading unit direction is approximately (0.994623,0.103562). Its explained squared-energy share is about0.962297, and discarding the other direction leaves squared reconstruction error (21−√377)/2≈0.791756. Sample covariance values divide these scatter values by three.</p>
+</div>
+<p>Explained variance ratios are σᵢ²/Σσⱼ². Their retained sum measures the fraction of centred training squared spread preserved by the projection. If all training records are identical, Z=0 and the denominator is zero; the ratios are undefined rather than automatically perfect. With one record, the sample-covariance denominator is also undefined. State these boundary cases instead of quietly emitting NaN or changing the mathematical definition.</p>
+<p>PCA chooses an orthonormal k-dimensional feature subspace that minimises centred squared reconstruction error. For any candidate orthonormal W, its projection is ZWWᵀ, and retained energy is the sum of the selected direction Rayleigh values of ZᵀZ. The same projection-weight argument from the best-rank theorem bounds this by the top k squared strengths. Taking V_k attains the bound. Its scores reconstruct Z_k=U_kΣ_kV_kᵀ, exactly the truncated SVD of the centred data. Thus variance maximisation and squared-error minimisation are two algebraic views of the same objective.</p>
+<p>Because centring forces 1ᵀZ=0, rank is at most min(d,m−1), not merely min(d,m). This matters for small training sets. A wide dataset cannot produce more than m−1 positive principal components after centring. Repeated scatter eigenvalues also make individual principal directions nonunique, while the corresponding whole eigenspace remains well defined. A sign flip changes scores and basis signs together and leaves reconstruction unchanged.</p>
+<p>For a new mathematical column x, use t=V_kᵀ(x−μ), with t of length k. For a stored row, compute (x−μ)V_k. Reuse the training μ and V_k. The new row need not project with zero residual, and held-out scores need not have mean zero; neither indicates failure. They are measurements in a coordinate system fixed by training data. Refitting that system on each test batch creates a different transformation and changes what the evaluation means.</p>
+<p>For one new centred displacement z, the reconstruction is V_kV_kᵀz. Its discarded part is perpendicular to the retained subspace, so its error square is the sum of its discarded coordinate squares. Training tail strengths give the aggregate training error, but they do not predict this new displacement’s error automatically. A new record can lie largely outside the retained subspace even when training reconstruction was excellent. Evaluate held-out reconstruction separately if that is the intended task.</p>
+<figure class="fig" id="fig-14-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 390" role="img" aria-label="Training fits and saves centre, scales and directions. Held-out records use the saved parameters without test information refitting them."><title>Training-fitted PCA pipeline</title><desc>Training fits and saves centre, scales and directions. Held-out records use the saved parameters without test information refitting them.</desc><defs><marker id="fig-14-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="390" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">Split first, then fit; save and reuse one transform</text><rect x="25" y="75" width="270" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="160" y="113" text-anchor="middle" font-size="25" fill="#1a2e4a">Training records X</text><text x="160" y="147" text-anchor="middle" font-size="20" fill="#1a2e4a">Fit μ and V_k</text><path d="M305,120L440,120" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-14-3__arrow)"/><rect x="450" y="75" width="285" height="90" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="592" y="115" text-anchor="middle" font-size="20" fill="#1a2e4a">Save centre, scales, directions</text><rect x="25" y="220" width="270" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="160" y="260" text-anchor="middle" font-size="24" fill="#1a2e4a">Held-out records X_new</text><path d="M305,265L440,265" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-14-3__arrow)"/><rect x="450" y="220" width="285" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="592" y="260" text-anchor="middle" font-size="25" fill="#1a2e4a">(X_new − μ)V_k</text><path d="M592,165V210" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-14-3__arrow)"/><text x="380" y="354" text-anchor="middle" font-size="21" fill="#1a2e4a">Held-out score means need not be zero; do not refit.</text></g></svg></div><figcaption><span class="fig-num">Figure 14.3</span> <p>Training records determine the centre and principal directions. Held-out records use the same transformation rather than defining a new centre or basis.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why does centred PCA have at most m−1 positive components? Must held-out score means be zero? Does diagonal score covariance prove independence?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>The all-ones left-null vector from centring limits rank. Held-out rows use the training centre and need not share its mean. Diagonal cross-products or covariance express zero linear correlation in those coordinates, not statistical independence without further assumptions.</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>Scaling leakage and the limits of explained variance</h2></div>
+<p>PCA depends on feature units because its Euclidean reconstruction objective adds coordinate squares. Multiplying one feature by a hundred multiplies its contribution to squared spread by ten thousand and alters the scatter cross terms. A largest-spread direction can therefore change even when the underlying physical measurements are the same. In the lab, changing the second feature’s scale rotates the leading direction almost onto that axis and changes its explained-energy share. Those are meaningful consequences of a changed coordinate metric, not automatically a computational error.</p>
+<p>Standardising features by training means and scales can create another justified objective, but it is a modelling choice. A zero-variance feature cannot be divided by its zero standard deviation; remove it or define a documented policy. Scales and any feature-selection decisions belong to the fitted transformation and must also be estimated from training data. A centre, scale and basis have to be kept together for subsequent scores and inverse reconstruction in original units.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Almost all variance can discard every label distinction</div>
+<p>Take centred records (−100,−1),(−100,1),(100,−1),(100,1), with label determined by the sign of the second coordinate. Scatter is diag(40000,4), so the first direction explains 40000/40004≈99.99 percent of spread. Keeping only it maps opposite-label records at each first-coordinate value to identical scores. The small second direction perfectly distinguishes these labels; the large first one does not. Reconstruction energy alone cannot promise classification accuracy.</p>
+</div>
+<p><strong>Leakage</strong> occurs when information reserved for evaluation influences the fitted model or preprocessing. PCA uses no labels, yet fitting its mean or directions on combined training and held-out features still changes the learning procedure. The usual held-out question concerns a transformation trained without those records. In Lab C, adding two distant held-out rows changes the mean from (13,0.5) to about(58.666667,5.333333). Replacing the training centre with that value is already a different transformation, even before its directions are recomputed.</p>
+<p>The operational contract is simple: split records first; fit mean, any scales and components on training only; apply those saved parameters to validation and test records; use validation to choose k or other modelling choices; evaluate the final selected procedure on the reserved test data. In cross-validation, each fold needs its own training-fitted transform. Reusing components fitted on the whole dataset across folds gives each fold access to its held-out features. If a deliberately transductive setting permits using unlabelled evaluation features, state that different task explicitly rather than presenting its result as ordinary inductive evaluation.</p>
+<p>Uncentred SVD is also a different objective. It approximates raw vectors about the origin, combining mean offset and variation. With records far from zero, a leading direction can primarily represent their common location rather than deviations around their mean. Uncentred factorisation can be useful for a stated application, but should not be silently interpreted as centred PCA. The lab compares line projectors to distinguish actual directional changes from arbitrary vector-sign changes.</p>
+<figure class="fig" id="fig-14-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 365" role="img" aria-label="Four combinations of first feature ±100 and second ±1 have labels from the second sign. The first direction explains 99.99% but gives opposite labels identical scores. Vertical scale is magnified for visibility."><title>Variance and label distinctions</title><desc>Four combinations of first feature ±100 and second ±1 have labels from the second sign. The first direction explains 99.99% but gives opposite labels identical scores. Vertical scale is magnified for visibility.</desc><defs><marker id="fig-14-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="365" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">High energy retention need not retain label information</text><path d="M40,170H380M210,80V265" stroke="#94a3b8"/><circle cx="95" cy="125" r="10" fill="#c2410c"/><text x="112" y="131" text-anchor="start" font-size="23" fill="#1a2e4a">+</text><circle cx="95" cy="215" r="10" fill="#2563eb"/><text x="112" y="221" text-anchor="start" font-size="23" fill="#1a2e4a">−</text><circle cx="325" cy="125" r="10" fill="#c2410c"/><text x="342" y="131" text-anchor="start" font-size="23" fill="#1a2e4a">+</text><circle cx="325" cy="215" r="10" fill="#2563eb"/><text x="342" y="221" text-anchor="start" font-size="23" fill="#1a2e4a">−</text><text x="95" y="289" text-anchor="middle" font-size="19" fill="#1a2e4a">x₁=−100</text><text x="325" y="289" text-anchor="middle" font-size="19" fill="#1a2e4a">x₁=100</text><text x="210" y="329" text-anchor="middle" font-size="16" fill="#1a2e4a">Vertical ±1 (magnified for visibility)</text><rect x="435" y="80" width="290" height="230" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="580" y="123" text-anchor="middle" font-size="20" fill="#1a2e4a">Scatter=diag(40000,4)</text><text x="580" y="170" text-anchor="middle" font-size="24" fill="#1a2e4a">First direction: 99.99%</text><text x="580" y="215" text-anchor="middle" font-size="21" fill="#1a2e4a">Same score, both labels</text><text x="580" y="262" text-anchor="middle" font-size="21" fill="#1a2e4a">Second direction distinguishes</text></g></svg></div><figcaption><span class="fig-num">Figure 14.4</span> <p>Variance retained, feature scaling and labelled usefulness are separate decisions. Preprocessing fitted on held-out records changes the procedure being evaluated even when no labels are used.</p>
+</figcaption></figure>
+<p>Low-rank factors can support image approximation, embedding compression and compact parameter updates. The best-rank theorem guarantees the closest matrix under its specified norms, not the best downstream model, fastest implementation or minimum file size. An update UVᵀ has rank at most k when both factors have k columns, but choosing such an update for a learning task introduces optimisation and statistical questions beyond SVD truncation. Keep the algebraic rank statement separate from a claim of task equivalence.</p>
+<p>Finally, numerical rank and principal-component interpretation need a declared resolution. Repeated or near-repeated strengths can make individual directions unstable even when their combined subspace and reconstruction remain stable. A weak inverse direction can magnify noise, while discarding it changes the effective operator. Record selected k, retained strengths, training centre/scales, dtype and tolerances alongside reconstruction error. Those details make the approximation reproducible and its limits assessable without treating one successful decomposition as evidence for every intended use.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does unsupervised PCA fitted on test features avoid leakage? Is uncentred SVD the same objective? What does high explained variance establish?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>For ordinary held-out evaluation, test-fitted preprocessing changes the authorised training procedure even without labels. Uncentred SVD approximates around zero rather than the training mean. High explained variance establishes retained centred squared spread under the chosen feature metric, not prediction accuracy or causal meaning.</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>Common misconceptions</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Correction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reduced SVD always omits zero directions</td>
+<td>It retains q=min(m,n), not necessarily rank r.</td>
+</tr>
+<tr>
+<td>Vh contains right vectors in columns</td>
+<td>In real NumPy output, they are its rows.</td>
+</tr>
+<tr>
+<td>Constructing AᵀA is required for a numerical SVD</td>
+<td>It proves existence but can lose weak-direction resolution.</td>
+</tr>
+<tr>
+<td>Pseudoinverse reaches every target exactly</td>
+<td>It projects onto the column space first.</td>
+</tr>
+<tr>
+<td>Low rank always saves storage</td>
+<td>Compare factor counts with original entries and actual encoding.</td>
+</tr>
+<tr>
+<td>Explained variance means prediction accuracy</td>
+<td>A low-spread direction can contain every label distinction.</td>
+</tr>
+<tr>
+<td>No labels means no preprocessing leakage</td>
+<td>Held-out features can still alter the fitted transform.</td>
+</tr>
+<tr>
+<td>PCA is independent of feature units</td>
+<td>Units change its Euclidean objective and spectrum.</td>
+</tr>
+<tr>
+<td>Zero score covariance proves independence</td>
+<td>It establishes a linear second-moment relation only.</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>Three CPU labs</h2></div>
+<p>Use the Python 3.11 and NumPy baseline in <a href="numpy_primer_EN.html">array preparation</a>. Outputs below come from executing the downloadable scripts. Predict shapes, retained directions and error budgets first. Lab values can differ in harmless signed basis conventions; compare reconstructed maps and subspaces.</p>
+<h3 id="lab1">Lab A Generated-matrix compression</h3>
+<p>The script constructs an 8×6 matrix from three orthonormal direction pairs and strengths six, three and one. Verify those generating directions, then compare reduced dimensions with exact rank. For each retained rank, predict the discarded squared error and factor scalar count before running.</p>
+<p><a href="labs/module_14/lab1_truncation.py" download>Download lab1_truncation.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Generated low-rank matrix with known spectrum and measured truncation error.&quot;&quot;&quot;
+import numpy as np
+left = np.column_stack((np.ones(8), [1,-1,1,-1,1,-1,1,-1], [1,1,-1,-1,1,1,-1,-1]))/np.sqrt(8)
+right = np.column_stack((np.ones(6)/np.sqrt(6), np.array([1,-1,1,-1,1,-1])/np.sqrt(6), np.array([1,1,-2,1,1,-2])/np.sqrt(12)))
+assert np.allclose(left.T@left, np.eye(3)) and np.allclose(right.T@right, np.eye(3))
+A = (left*np.array([6., 3., 1.]))@right.T
+U, s, Vh = np.linalg.svd(A, full_matrices=False)
+print(&quot;A / reduced U / s / Vh shapes:&quot;, A.shape, U.shape, s.shape, Vh.shape)
+print(&quot;Singular values:&quot;, [round(float(v), 9) for v in s])
+print(&quot;Original scalar entries:&quot;, A.size)
+assert np.allclose(s[:3], [6,3,1]) and np.allclose(s[3:], 0)
+for k in range(4):
+    approximation = (U[:, :k]*s[:k])@Vh[:k, :]
+    error_squared = np.linalg.norm(A-approximation, &quot;fro&quot;)**2
+    tail_squared = s[k:]@s[k:]
+    scalar_storage = k*(A.shape[0]+A.shape[1]+1)
+    print(&quot;Rank / squared Frobenius error / discarded sum / factor scalars:&quot;, k, round(float(error_squared), 9), round(float(tail_squared), 9), scalar_storage)
+    assert np.allclose(error_squared, tail_squared)
+assert np.allclose((U*s)@Vh, A)
+print(&quot;Scalar-count savings are distinct from file-format overhead or predictive usefulness.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>A / reduced U / s / Vh shapes: (8, 6) (8, 6) (6,) (6, 6)
+Singular values: [6.0, 3.0, 1.0, 0.0, 0.0, 0.0]
+Original scalar entries: 48
+Rank / squared Frobenius error / discarded sum / factor scalars: 0 46.0 46.0 0
+Rank / squared Frobenius error / discarded sum / factor scalars: 1 10.0 10.0 15
+Rank / squared Frobenius error / discarded sum / factor scalars: 2 1.0 1.0 30
+Rank / squared Frobenius error / discarded sum / factor scalars: 3 0.0 0.0 45
+Scalar-count savings are distinct from file-format overhead or predictive usefulness.
+</code></pre></div>
+<p><strong>Deliverable:</strong> rank, factor shapes, reconstruction error and storage table, with a proof of the tail formula. Explain why a printed zero after rounding does not itself establish exact rank, and why the known construction supplies that exact claim here.</p>
+<h3 id="lab2">Lab B Training-centred PCA</h3>
+<p>Compute the training mean and scatter by hand. Compare their spectrum with squared singular values, then reconstruct one-component training data. Apply the saved training parameters to two held-out batches without refitting. Check score/reconstruction shapes and the aggregate tail-error identity.</p>
+<p><a href="labs/module_14/lab2_training_pca.py" download>Download lab2_training_pca.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Fit mean and principal directions on training records; reuse on held-out rows.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+training = np.array([[10.,0.], [12.,1.], [14.,0.], [16.,1.]])
+test = np.array([[20.,2.], [8.,-1.]])
+mean = training.mean(axis=0)
+centered = training-mean
+U, s, Vh = np.linalg.svd(centered, full_matrices=False)
+directions = Vh.T
+scores = centered@directions[:, :1]
+reconstruction = scores@directions[:, :1].T+mean
+test_scores = (test-mean)@directions[:, :1]
+scatter = centered.T@centered
+variances = s**2/(len(training)-1)
+ratio = s**2/np.sum(s**2)
+assert np.allclose(centered.mean(axis=0), 0)
+assert np.allclose(scatter@directions, directions*s**2)
+print(&quot;Training mean:&quot;, mean)
+print(&quot;Principal directions in columns:&quot;, directions.tolist())
+print(&quot;Sample covariance eigenvalues:&quot;, variances)
+print(&quot;Explained variance ratios:&quot;, ratio)
+print(&quot;Training rank-one reconstruction:&quot;, reconstruction.tolist())
+print(&quot;Held-out scores using training transform:&quot;, test_scores.ravel())
+error_squared = np.linalg.norm(training-reconstruction, &quot;fro&quot;)**2
+print(&quot;Rank-one reconstruction squared error:&quot;, error_squared)
+assert np.allclose(error_squared, s[1]**2)
+changed_test = np.array([[2000.,200.], [-800.,-100.]])
+changed_scores = (changed_test-mean)@directions[:, :1]
+print(&quot;Changed held-out scores using the same training transform:&quot;, changed_scores.ravel())
+print(&quot;Mean reused for both held-out batches:&quot;, mean)
+print(&quot;All-zero centred data variance ratio: undefined; guard division by zero.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Training mean: [13.   0.5]
+Principal directions in columns: [[0.9946229901291114, 0.10356209493161814], [0.10356209493161814, -0.9946229901291114]]
+Sample covariance eigenvalues: [6.736081 0.263919]
+Explained variance ratios: [0.962297 0.037703]
+Training rank-one reconstruction: [[9.980672702257417, 0.18562172467192445], [12.062227727769086, 0.4023573132283918], [13.937772272230914, 0.5976426867716081], [16.019327297742585, 0.8143782753280755]]
+Held-out scores using training transform: [ 7.117704 -5.128458]
+Rank-one reconstruction squared error: 0.7917560805262006
+Changed held-out scores using the same training transform: [1996.976519 -819.036482]
+Mean reused for both held-out batches: [13.   0.5]
+All-zero centred data variance ratio: undefined; guard division by zero.
+</code></pre></div>
+<p><strong>Deliverable:</strong> saved mean and component directions, training scores/reconstruction, held-out scores and explained-energy ratios. State the undefined ratio policy for all-zero centred data and the difference between training and new-record error.</p>
+<h3 id="lab3">Lab C Centring leakage scaling and weak inverse modes</h3>
+<p>Compare centred and uncentred line projectors, then compute the leaked combined mean. Change feature units and explain the rotated principal line. Finally compare two relative pseudoinverse cutoffs under a small target perturbation.</p>
+<p><a href="labs/module_14/lab3_centering_and_pinv_faults.py" download>Download lab3_centering_and_pinv_faults.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Uncentred directions, evaluation leakage, feature units and weak inverse modes.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+training = np.array([[10.,0.], [12.,1.], [14.,0.], [16.,1.]])
+test = np.array([[100.,10.], [200.,20.]])
+mean = training.mean(axis=0)
+centered = training-mean
+_, _, Vh = np.linalg.svd(centered, full_matrices=False)
+_, _, uncentered_Vh = np.linalg.svd(training, full_matrices=False)
+leaked_mean = np.vstack((training, test)).mean(axis=0)
+print(&quot;Correct training mean / leaked combined mean:&quot;, mean, leaked_mean)
+print(&quot;Centred / uncentred leading line projectors:&quot;, np.outer(Vh[0], Vh[0]).tolist(), np.outer(uncentered_Vh[0], uncentered_Vh[0]).tolist())
+assert not np.allclose(mean, leaked_mean)
+assert not np.allclose(np.outer(Vh[0], Vh[0]), np.outer(uncentered_Vh[0], uncentered_Vh[0]))
+rescaled = centered*np.array([1.,100.])
+_, scaled_s, scaled_Vh = np.linalg.svd(rescaled, full_matrices=False)
+print(&quot;After feature two multiplied by 100, leading projector:&quot;, np.outer(scaled_Vh[0], scaled_Vh[0]).tolist())
+print(&quot;Scaled leading explained ratio:&quot;, scaled_s[0]**2/(scaled_s@scaled_s))
+
+A = np.diag([1., 1e-10])
+target = np.array([1., 1e-10])
+perturbed = target+np.array([0.,1e-8])
+for cutoff in [1e-12,1e-8]:
+    inverse = np.linalg.pinv(A, rcond=cutoff)
+    base = inverse@target
+    changed = inverse@perturbed
+    print(&quot;Relative cutoff / base / changed weights / new residual:&quot;, cutoff, base, changed, format(np.linalg.norm(perturbed-A@changed), &quot;.6e&quot;))
+assert np.allclose(np.linalg.pinv(A, rcond=1e-12)@perturbed, [1,101])
+assert np.allclose(np.linalg.pinv(A, rcond=1e-8)@perturbed, [1,0])
+print(&quot;Dropping a weak singular direction trades resolution and residual for reduced amplification; it changes the effective inverse.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Correct training mean / leaked combined mean: [13.   0.5] [58.666667  5.333333]
+Centred / uncentred leading line projectors: [[0.9892748924933744, 0.10300524052492092], [0.10300524052492092, 0.010725107506625487]] [[0.998380120869607, 0.04021511061772047], [0.04021511061772047, 0.0016198791303925755]]
+After feature two multiplied by 100, leading projector: [[0.000401121600379904, 0.02002400314226935], [0.02002400314226935, 0.9995988783996206]]
+Scaled leading explained ratio: 0.998403833102307
+Relative cutoff / base / changed weights / new residual: 1e-12 [1. 1.] [  1. 101.] 1.654361e-24
+Relative cutoff / base / changed weights / new residual: 1e-08 [1. 0.] [1. 0.] 1.010000e-08
+Dropping a weak singular direction trades resolution and residual for reduced amplification; it changes the effective inverse.
+</code></pre></div>
+<p><strong>Deliverable:</strong> identify each changed objective or evaluation procedure, and report the inverse resolution trade-off with actual residuals. Distinguish deliberate weak-mode truncation from a claim that the exact nonzero direction disappeared.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Exercises with complete solutions</h2></div>
+<p>Exercises 1–12 are required; 13–14 add 35 optional minutes. Use real factors and state rank, retained dimension and centring assumptions.</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>For a 5×3 rank-two matrix, list full, reduced and compact SVD shapes, including NumPy Vh and the number of positive values.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Full U5×5,Σ5×3,V3×3; reduced U5×3,Σ3×3,V3×3; compact U5×2,Σ2×2,V3×2. There are two positive values, with one reduced zero. NumPy reduced Vh=Vᵀ is3×3 with right vectors in rows; a compact V_rᵀ would be2×3. Every reconstructed product is5×3.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>For A=[[3,0],[0,1],[0,0]], find its positive singular values, right and left directions, and the image of the input unit circle.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Strengths three and one; right directions are the two R² coordinate units, left directions the first two R³ units. Input (cos t,sin t) maps to (3cos t,sin t,0), an ellipse in z=0 with semiaxes three and one. The left null space is span{(0,0,1)} and the input kernel is zero.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>Compute the pseudoinverse solution for A=[[1,1],[0,0]],y=(4,3), its prediction, and every least-squares minimiser.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>A⁺=[[1/2,0],[1/2,0]],w_min=(2,2),prediction(4,0),residual(0,3),SSE9. Every minimiser is (2+t,2−t), since only the sum four affects the reachable first coordinate. Their norms are 8+2t², uniquely smallest at zero. The second target coordinate is unattainable.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>With strengths six, three, one, give rank-one squared Frobenius error, operator error and retained-energy fraction. For an 8×6 matrix, compare factor scalar count with original count.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Discarded square sum9+1=10; operator error is the next strength three; retained share36/46. One retained pair requires1(8+6+1)=15 scalars versus48 entries. These calculations concern the specified reconstruction and scalar storage, not measured file size or labelled accuracy.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Starting from AᵀA eigenpairs, prove positive left singular vectors uᵢ=Avᵢ/σᵢ are orthonormal and justify zero right directions belonging to the kernel.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>uᵢᵀuⱼ=vᵢᵀAᵀAvⱼ/(σᵢσⱼ)=σⱼ²vᵢᵀvⱼ/(σᵢσⱼ), giving one when i=j and zero otherwise. If σᵢ=0, ‖Avᵢ‖²=vᵢᵀAᵀAvᵢ=0, so Avᵢ=0. Expanding every input in the complete right basis shows the positive pairs reconstruct all of A and the zero directions span its whole kernel.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Derive the discarded-square Frobenius error and prove no rank-at-most-k candidate has less error using projection onto its image.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Orthogonal left/right changes preserve Frobenius norm, so the truncated diagonal gives tail sum Σ_{i&gt;k}σᵢ². For candidate B, project onto C(B) by P. Columnwise Pythagoras gives ‖A−B‖_F²≥‖A‖_F²−‖PA‖_F². The retained term is Σσᵢ²wᵢ with wᵢ=‖Puᵢ‖²∈[0,1] and total≤k. Sorted strengths make this no larger than the sum of the first k squares: bound tail strengths by σ_k² and allocate remaining weight budget to the top k. The error is therefore at least the tail sum, attained by A_k. For k=0 the projection and candidate are zero.</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Prove the SVD pseudoinverse yields the column/row projections and the minimum-norm least-squares representative.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>A=U_rΣ_rV_rᵀ and A⁺=V_rΣ_r⁻¹U_rᵀ give AA⁺=U_rU_rᵀ,A⁺A=V_rV_rᵀ using orthonormal columns. Thus A⁺y lies in the row space and its prediction is the closest column-space projection. Every minimiser differs by n∈N(A). Row/null orthogonality gives ‖A⁺y+n‖²=‖A⁺y‖²+‖n‖², uniquely smallest at n=0. The two projection identities also imply the four Moore–Penrose conditions.</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 min</span></div>
+<p>For training rows (10,0),(12,1),(14,0),(16,1), calculate the centre, scatter and one-component squared reconstruction error.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Centre(13,.5),centred rows(−3,−.5),(−1,.5),(1,−.5),(3,.5). Summing outer products gives scatter[[20,2],[2,1]], trace21,determinant16. Characteristic values(21±√377)/2, so discarded rank-one squared error is(21−√377)/2≈.791756. Sample covariance values divide by m−1=3, and explained ratios divide by total21.</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">Exercise 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 min</span></div>
+<p>Using Exercise8’s training centre and leading direction approximately(.994623,.103562), compute scores for held-out rows(20,2),(8,−1). Must their mean be zero?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Centred rows(7,1.5),(−5,−1.5) give scores7(.994623)+1.5(.103562)≈7.117704 and −5(.994623)−1.5(.103562)≈−5.128458. Their mean need not be zero because the transform uses training centre, not held-out centre. Refitting on these rows would change the evaluated procedure. Reversing direction sign reverses both scores without changing reconstructed points.</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">Exercise 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 min</span></div>
+<p>For records(±100,±1), all four combinations, labels follow the second sign. Compute scatter and leading explained share, then explain what one-component scores lose.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Mean zero; cross terms cancel. Scatterdiag(40000,4). Leading share40000/40004≈.999900. Scores retain only ±100, so each first-coordinate value occurs with both labels and those opposite-label records become identical. The second coordinate alone distinguishes every label. Excellent reconstruction-energy retention need not preserve the information needed by a supervised task.</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">Exercise 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 min</span></div>
+<p>A pipeline calls uncentred raw SVD “centred PCA,” fits its mean/components on training plus test because labels are unused, and reuses this fit across validation folds. Repair the objective and evaluation contract.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Centred PCA subtracts a training-fitted feature mean before SVD; raw SVD approximates vectors about zero and includes their mean offset. Split data first and fit every mean, scale and component on training only for ordinary held-out evaluation. Test features can alter the transformation without labels, so combining them is leakage for that procedure. In cross-validation each fold needs preprocessing fitted on that fold’s training partition. Any transductive alternative using evaluation features must be explicitly identified as a different task.</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">Exercise 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 min</span></div>
+<p>A program treats Vh columns as right vectors, inverts every reduced s including zeros, and declares a cutoff removing10⁻¹⁰ proves exact rank one. Give three repairs.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Real Vh contains right vectors in rows; use its transpose for feature-direction columns and check reconstruction dimensions. Reduced lists can contain zeros, so retain positive/resolved directions before reciprocal operations or use a library cutoff policy; blind division can create infinities/NaN. diag(1,10⁻¹⁰) has exact rank two. Dropping its weak direction is an effective-resolution decision with a residual trade-off, not an exact zero certificate.</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 min</span></div>
+<p>Prove the operator-norm best-rank-k error bound using rank–nullity on the first k+1 right singular directions.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>For k&lt;r, any rank≤k B restricted to the(k+1)-dimensional span of v₁,…,v_{k+1} has a nonzero kernel vector. Normalise it to z. Then Bz=0 and ‖(A−B)z‖=‖Az‖≥σ_{k+1}, since each included strength is at least that value. Thus operator error≥σ_{k+1}. A−A_k retains only the tail and has operator norm exactlyσ_{k+1}, attaining the bound. For k≥r exact reconstruction gives zero.</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">Exercise 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 min</span></div>
+<p>For full-column-rank X, derive κ₂(XᵀX)=(σ₁/σ_d)², then explain why this is a warning about forming a Gram matrix rather than proof every normal-equation computation fails.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>XᵀX=Vdiag(σᵢ²)Vᵀ is positive definite. Its norm isσ₁² and inverse norm1/σ_d², so the condition number is the square ratio. Weak differences therefore enter squared strengths and can lose resolution. But actual numerical errors depend on conditioning, arithmetic and data; a well-conditioned small system can be solved accurately through normal equations. QR/SVD can avoid additional Gram damage without removing sensitivity already present in X or its measurements.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Ten-question self-check</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>What does reduced SVD retain for an m×n rank-r matrix?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">q=min(m,n) directions, potentially including zeros</button></li><li><button type="button" class="quiz-opt" data-i="1">Always exactly r positive directions</button></li><li><button type="button" class="quiz-opt" data-i="2">Only one direction whenever the matrix is rectangular</button></li></ol><div class="quiz-expl" hidden>Compact rank-r factors omit zero directions. Reduced shapes use the smaller matrix dimension regardless of exact rank.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>In real NumPy SVD output, where are right singular vectors stored?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Columns of Vh</button></li><li><button type="button" class="quiz-opt" data-i="1">Rows of Vh</button></li><li><button type="button" class="quiz-opt" data-i="2">Entries of the singular-value array</button></li></ol><div class="quiz-expl" hidden>Vh is Vᵀ; transpose it for feature-direction columns. The one-dimensional array contains nonnegative strengths.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>What are the positive eigenvalues of AᵀA?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Signed ordinary eigenvalues of A</button></li><li><button type="button" class="quiz-opt" data-i="1">Singular values with no squaring</button></li><li><button type="button" class="quiz-opt" data-i="2">Squared positive singular values</button></li></ol><div class="quiz-expl" hidden>The SVD construction defines strengths as nonnegative square roots of the positive Gram spectrum.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>What is the squared Frobenius error of retaining k terms?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Sum of discarded singular-value squares</button></li><li><button type="button" class="quiz-opt" data-i="1">Sum of retained singular values</button></li><li><button type="button" class="quiz-opt" data-i="2">Classification error on future records</button></li></ol><div class="quiz-expl" hidden>Orthogonal invariance reduces the reconstruction discrepancy to its discarded diagonal strengths. It is a matrix-error objective.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>What does the pseudoinverse predict for an arbitrary target?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The target itself in every case</button></li><li><button type="button" class="quiz-opt" data-i="1">Its column-space projection</button></li><li><button type="button" class="quiz-opt" data-i="2">A new target-space dimension invented by the solver</button></li></ol><div class="quiz-expl" hidden>Unreachable components remain as residual. The lift selects minimum-norm weights for the closest reachable prediction.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>Which data should fit PCA mean and directions in ordinary held-out evaluation?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Training plus test because PCA uses no labels</button></li><li><button type="button" class="quiz-opt" data-i="1">Each test batch independently</button></li><li><button type="button" class="quiz-opt" data-i="2">Training data only</button></li></ol><div class="quiz-expl" hidden>Preprocessing is part of the learned procedure. Held-out features can alter it even without their labels.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>All centred training records are zero. What is the explained-variance ratio?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Undefined because total spread is zero</button></li><li><button type="button" class="quiz-opt" data-i="1">Automatically one for every component</button></li><li><button type="button" class="quiz-opt" data-i="2">A proof that future predictions are perfect</button></li></ol><div class="quiz-expl" hidden>The denominator vanishes. Handle this boundary explicitly rather than divide by zero or attach a predictive claim.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>A component retains99.99% of training variance. What follows?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Classification accuracy is99.99%</button></li><li><button type="button" class="quiz-opt" data-i="1">That share of centred squared spread is retained under the chosen metric</button></li><li><button type="button" class="quiz-opt" data-i="2">Feature units cannot affect it</button></li></ol><div class="quiz-expl" hidden>Labels can lie entirely in a low-spread direction. Scaling changes the geometric objective and often the spectrum.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>Dropping a weak nonzero singular value in a numerical pseudoinverse means what?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The exact original rank has been proved smaller</button></li><li><button type="button" class="quiz-opt" data-i="1">Every target is now fitted exactly</button></li><li><button type="button" class="quiz-opt" data-i="2">An effective inverse has been chosen with a resolution/amplification trade-off</button></li></ol><div class="quiz-expl" hidden>The cutoff changes retained directions and can leave extra residual while reducing noise amplification. State the policy.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m14:q10">
+<label for="q10-response">10. Specify a training-centred PCA pipeline for held-out records. Give every shape, the reconstruction-error formula, a zero-spread boundary, and one reason high explained variance need not preserve labels.</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="State which parameters are fitted and reused, then separate geometric and predictive claims."></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> I kept held-out rows out of fitting and included both boundary and interpretation limits.</label>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>For training X of shape m×d,fit μ of length d and SVD of Z=X−1μᵀ. Retain V_k d×k; scores ZV_k are m×k and reconstruction ZV_kV_kᵀ+1μᵀ is m×d. Training squared Frobenius error isΣ_{i&gt;k}σᵢ². Apply the saved mean and directions to new rows without refitting; any scales are also training fitted. Explained ratios divide by totalσ² and are undefined at zero spread. The four(±100,±1) records show that the largest-spread first direction can discard every second-coordinate label distinction. Reconstruction and evaluation claims are separate.</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Reading with a purpose</h2></div>
+<p>Use SVD, pseudoinverse and PCA selections in the authors’ <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning companion</a>. The official NumPy 1.26 <a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.svd.html" target="_blank" rel="noopener">SVD interface</a> and <a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.pinv.html" target="_blank" rel="noopener">pseudoinverse interface</a> specify the numerical shapes and cutoff conventions. The original derivations above prove the geometry and approximation claims.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>Selection and question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session 1 · 20 minutes</td>
+<td>SVD geometry: how do input and output spaces differ for a rectangular map?</td>
+</tr>
+<tr>
+<td>Session 4 · 20 minutes</td>
+<td>Returned factors and cutoffs: where are right vectors, and which exact directions does the numerical policy discard?</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Retrieval exit task and next step</h2></div>
+<p>Without notes, derive positive singular directions from AᵀA, state full/reduced/compact shapes, and recover the four spaces. Prove one optimal rank-k error bound, write the pseudoinverse, and specify a training-only PCA pipeline with a label-information counterexample.</p>
+<p><strong>Exit task:</strong> diag(4,2,0) has rank two. Rank-one squared error is four and operator error two; exact pseudoinverse is diag(1/4,1/2,0). A target’s third coordinate remains residual. Explain why its reduced SVD still has three entries, why zero must not be inverted, and what a cutoff discarding two would change.</p>
+<p><strong>Ready to move on:</strong> you can distinguish exact map geometry, numerical resolution, reconstruction and task evaluation. The next block develops limits, derivatives and optimisation, using this linear-algebra foundation. Check the <a href="index.html">course overview</a> for availability.</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Notation and bilingual terminology</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term or notation</th>
+<th>Meaning</th>
+<th>中文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UΣVᵀ / σᵢ</td>
+<td>Singular direction factors / nonnegative strengths</td>
+<td>奇异值分解、奇异值</td>
+</tr>
+<tr>
+<td>Full / reduced / compact</td>
+<td>Complete bases / q directions / positive r directions</td>
+<td>完整、约化、紧致</td>
+</tr>
+<tr>
+<td>A⁺</td>
+<td>Minimum-norm least-squares map</td>
+<td>伪逆</td>
+</tr>
+<tr>
+<td>A_k / ‖·‖_F</td>
+<td>Rank-k truncation / entrywise squared-energy norm</td>
+<td>低秩截断、弗罗贝尼乌斯范数</td>
+</tr>
+<tr>
+<td>μ / Z</td>
+<td>Training feature mean / centred data</td>
+<td>均值、中心化</td>
+</tr>
+<tr>
+<td>V_k / T</td>
+<td>Principal feature directions / score matrix</td>
+<td>主方向、得分</td>
+</tr>
+<tr>
+<td>Scatter / covariance</td>
+<td>ZᵀZ / conventionally divided by m−1</td>
+<td>散布矩阵、协方差</td>
+</tr>
+<tr>
+<td>Explained ratio</td>
+<td>Retained fraction of centred squared spread</td>
+<td>解释方差比例</td>
+</tr>
+<tr>
+<td>Leakage / cutoff</td>
+<td>Evaluation information in fitting / retained-direction policy</td>
+<td>数据泄漏、阈值</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="module_13_EN.html">← Module 13</a><a href="module_15_EN.html">Module 15 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

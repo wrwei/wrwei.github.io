@@ -4,6 +4,14 @@ A collection of tutorials on software engineering and computer science topics.
 
 ---
 
+## Mathematical Foundations for Computer Science and AI
+
+A complete 32-module series covering mathematical reasoning, discrete mathematics, linear algebra, calculus, optimisation, probability, statistics, information theory, numerical computation and learning theory, with separate CS and AI study routes. English and Chinese editions include worked examples, 90 foundation labs, 420 exercises with solutions, interactive demonstrations and self-checks. Two implemented capstones provide a verified dependency planner and a checked learning pipeline, with actual outputs, plots, proofs and assessment rubrics. An algebra refresher, entry diagnostic, Python primer and NumPy preparation support beginners.
+
+[:octicons-arrow-right-24: Go to Mathematical Foundations Tutorials](math/index.html)
+
+---
+
 ## Computer Science Fundamentals
 
 A complete 14-module beginner-friendly series covering computation, programming, mathematics, algorithms, data structures, computer architecture, operating systems, networks, databases, and the limits of computation. English and Chinese editions, with 29 runnable Python labs, 112 exercises with worked solutions, self-check quizzes, and a persistent local catalogue capstone.

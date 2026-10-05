@@ -1,0 +1,516 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>向量空间、基、秩与可辨识性 — 计算机科学与人工智能的数学基础</title><meta name="description" content="证明子空间与基，计算四个基本空间，推导秩–零化度，区分预测唯一与参数唯一。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="11"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 11</button><div class="dropdown-menu" id="module-menu"><a href="module_11_ZH.html" class="active" aria-current="page">向量空间、基、秩与可辨识性</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_11_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>预测明确，不代表其表示没有冗余</span></a><a href="#s1"><span class="num">2</span><span>向量空间与子空间判据</span></a><a href="#s2"><span class="num">3</span><span>张成、相关与独立信息</span></a><a href="#s3"><span class="num">4</span><span>基、维数与坐标变换</span></a><a href="#s4"><span class="num">5</span><span>四个基本空间及其所在维度</span></a><a href="#s5"><span class="num">6</span><span>秩–零化度与完整解族</span></a><a href="#s6"><span class="num">7</span><span>可辨识性、结构冗余与数值秩</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个 CPU 实验</span></a><a href="#exercises"><span class="num">10</span><span>练习与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自测</span></a><a href="#reading"><span class="num">12</span><span>带着问题阅读</span></a><a href="#summary"><span class="num">13</span><span>检索结业任务与下一步</span></a><a href="#terms"><span class="num">14</span><span>记法与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">向量空间、基、秩与可辨识性</h1><p class="module-lead">证明子空间与基，计算四个基本空间，推导秩–零化度，区分预测唯一与参数唯一。</p><div class="hero-chips"><span class="chip chip-time">10 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>按完整量词与反例检验子空间封闭。</li><li>找张成且独立的基及唯一基坐标。</li><li>区分行、列、零与左零空间及其所在维度。</li><li>证明有限维秩–零化度并用于分类 Ax=b。</li><li>给出预测相同的参数族，限定只在训练集等价的情形。</li><li>区分精确秩与依赖尺度、容差的数值秩。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>模块 04 与 10：证明结构、线性映射、等价行操作、主元与自由变量。数值实验需 NumPy 准备。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">预测明确，不代表其表示没有冗余</a><a href="#s1">向量空间与子空间判据</a><a href="#s2">张成、相关与独立信息</a><a href="#s3">基、维数与坐标变换</a><a href="#s4">四个基本空间及其所在维度</a><a href="#s5">秩–零化度与完整解族</a><a href="#s6">可辨识性、结构冗余与数值秩</a><a href="#misconceptions">常见误解</a><a href="#labs">三个 CPU 实验</a><a href="#exercises">练习与完整解答</a><a href="#quiz">十题自测</a><a href="#reading">带着问题阅读</a><a href="#summary">检索结业任务与下一步</a><a href="#terms">记法与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">10 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">150 分钟</span></div><div class="session-title">空间、张成与独立</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节并证明封闭判据。</a></span><span class="act-min">75</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成熟练练习 1–4。</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读向量空间与基选段。</a></span><span class="act-min">21</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">不看笔记解释零向量、张成与相关。</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m11:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">150 分钟</span></div><div class="session-title">坐标与四个基本空间</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节并追踪所在维度。</a></span><span class="act-min">55</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">运行精确消元并验证零空间基。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m11:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">150 分钟</span></div><div class="session-title">秩–零化度与等价参数</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节并跟随基扩张证明。</a></span><span class="act-min">61</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">在训练与新记录上比较等价权重。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">39</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m11:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">150 分钟</span></div><div class="session-title">数值秩与辨识限制</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">比较精确秩与明确数值容差。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">诊断练习 11–12。</a></span><span class="act-min">32</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择与书面等价论证。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读 NumPy 秩的阈值约定。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">使用张成探索器并完成结业任务。</a></span><span class="act-min">33</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m11:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>预测明确，不代表其表示没有冗余</h2></div>
+<p>矩阵方程可以确定输出，却让若干输入坐标彼此可替换。含摄氏、华氏和截距三列的模型就是例子：三列不可能承载三个独立信息方向。不同权重可以对每一条符合温度换算规则的记录给出相同预测；另一种设计可能只在训练记录上相同，在下一条记录上不同。可辨识性要区分这些主张。</p>
+<p>本课把模块 10 的主元计算转化为空间、坐标和信息的论证。你将证明封闭性，区分张成与独立，计算四个基本空间，并推导秩–零化度，而不只是记忆维数公式。最后连接精确代数、数值秩策略与参数解释。</p>
+<p><strong>检索检查：</strong>解释可逆增广行操作和自由变量。需要时复习<a href="module_10_ZH.html#s3">模块 10</a>及<a href="module_04_ZH.html#s1">证明结构</a>。数值实验参见 <a href="numpy_primer_ZH.html">NumPy 准备</a>。这里的空间和标量均为实数；实验明确区分有理数精确运算与浮点判定。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>向量空间与子空间判据</h2></div>
+<p><strong>向量空间</strong>是带加法与标量乘法的集合 V，满足坐标代数中的熟悉规律：加法结合、交换，存在加法单位元 0，每个向量有加法逆元；标量乘法对向量加法及标量加法分配；连续缩放等于标量乘积的缩放；乘以一不改变向量。两种运算都必须留在 V 内。只有集合还没有定义向量空间，运算与标量域也是定义的一部分。</p>
+<p>实坐标空间逐分量满足这些规律。向量不一定是箭头或数组。次数至多二的实多项式在通常加法、缩放下构成向量空间：系数相加、缩放不会出现三次项。零多项式虽没有通常意义的有限次数，仍属于这个空间。固定定义域上的实函数在逐点运算下也构成空间，其中零向量是零函数。函数相等表示在每个定义域点相等，不只是若干采样输入上相等。</p>
+<p>V 的<strong>子空间</strong> W 使用 V 的相同运算，并且本身为向量空间。一个充要判据是：W 非空，并且对每个 u,v∈W 和每个实数 a,b，au+bv∈W。必要性来自两种运算封闭。充分性中，非空给出一个 u；系数都取零得到 0，取 a=−1 得到负向量，适当选择系数得到加法和缩放。其他代数规律从 V 继承，因为运算没有改变。这个论证说明，空集虽可能空真地满足某种封闭量词，仍不能通过子空间判据。</p>
+<p>齐次线性约束的解集往往是子空间，因为线性映射满足 L(au+bv)=aL(u)+bL(v)。所以 L(v)=0 的解集含零且封闭。若干此类约束的交集也封闭：两个成员的组合仍满足每个约束。任意一族子空间的交集也是子空间；并集则未必。横轴上的向量加上纵轴上的向量，可以离开两轴的并集。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">齐次平面与平移平面</div>
+<p>设 W={(x,y,z):x+y−z=0}。零属于 W，对 u,v∈W，组合 au+bv 的约束值等于 a·0+b·0=0，因此对所有标量封闭。U={(x,y,z):x+y−z=1} 不含零，立即失败。U 是仿射平面：任取一个解 p，例如 (1,0,0)，可写成 p+W，但在继承的运算下不是向量子空间。</p>
+</div>
+<p>齐次子空间与仿射平移的区别影响可行集和模型约束。已知 Av=b 的一个解 p，其他解 v 都满足 A(v−p)=0。反过来，对每个核元素 n，p+n 都解方程。因此解集恰好是 p+N(A)，不是只找到几个解的办法。相容非齐次系统的解集只有在 b=0 时才可能含零；否则不能是子空间。</p>
+<p>不要把判据简化为“看起来平直”。射线虽然直，却不对负标量封闭；有界线段不对任意缩放封闭；球面不含零；过零的两条不同直线的并集不对加法封闭。证明必须覆盖每一对向量与每个标量，而反证只需一个反例。非负正交象限对非负组合封闭，却不是实向量子空间；这种不同结构也有用途，但需要自己的假设。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>满足 p(0)=0 的多项式构成子空间吗？p(0)=1 呢？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>第一种含零，且 (ap+bq)(0)=a·0+b·0=0，因此是子空间。第二种不含零多项式。论证既可用于所有实多项式，也可用于指定次数上界的多项式空间；应说明所在空间。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>张成、相关与独立信息</h2></div>
+<p>v₁,…,vₖ 的<strong>张成</strong>是所有实系数组合 a₁v₁+…+aₖvₖ 的集合。它是子空间：零系数给出零，相加和缩放组合只是改变系数。它也是包含这些向量的最小子空间；任何包含它们的子空间都因封闭性包含全部组合。张成说明表示能够表达哪些方向，系数说明如何表达一个具体向量。</p>
+<p>若只有全部系数为零的组合才能得到零向量，该列表<strong>线性无关</strong>；若存在非零系数向量使组合为零，则<strong>线性相关</strong>。“非零系数向量”指至少一个系数非零，不要求每个系数都非零。选一个非零系数移项，就把对应向量写成其他向量的组合；反过来，这种表达也给出相关关系。因此对非空列表，相关恰好意味着冗余。含零向量的列表相关，重复一个非零向量也相关。</p>
+<p>边界情况同样有一致定义。空列表无关，因为没有非平凡系数选择；采用空和为零的约定，其张成为零子空间。单个非零向量无关：av=0 时，可用一个非零坐标推出 a=0，或在 a≠0 时乘以 1/a 导出 v=0 的矛盾。两个非零向量即使不相同，也可能互为任意标量倍数。独立是整体性质；只检验每一对，不能证明三条或更多向量独立。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">每对都不平行，整体仍冗余</div>
+<p>u=(1,0),v=(0,1),w=(1,1)。没有一对互为标量倍数，但 u+v−w=0 使三向量列表相关。前两个已张成 R²；加入 w 不改变张成或独立方向数。相比之下，u 与 2u 只张成横轴。列出了两条向量，并不自动拥有两个独立方向。</p>
+</div>
+<p>以这些向量为列组成 A，Ac=0 恰好表示 c 的系数给出相关关系。这把定义直接连到消元：齐次系统的非零解就是相关见证。每列都有主元时没有自由系数变量，列无关；存在自由列时，把它对应自由变量设一、其他自由变量设零，就产生非零关系。计算给出具体见证；只报数值“秩”可能掩盖哪些列冗余。</p>
+<p>求张成且独立子列表，可按顺序处理有限生成列表：只有新向量不在已保留向量的张成中时才保留。独立性保持，因为若新关系中新的系数非零，就可把新向量表达为旧向量组合；若其系数为零，则违反旧列表独立性。被拒绝向量已可表示，所以最终列表张成所有生成元，也张成原空间。这个有限贪心论证证明有限生成空间存在基，但不保证唯一偏好的基；顺序与解释目的可以影响选择。</p>
+<p>张成讨论精确可表示性，不自动涉及相似、物理意义或预测质量。两列可以精确独立，却尺度不当或近乎冗余；一个相关特征仍可以是有用的具名量，只是没有添加线性方向。去除冗余能澄清参数，却不能仅凭一个样本、一种表示下的相关就宣称该特征对所有未来任务都无用。</p>
+<figure class="fig" id="fig-11-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" role="img" aria-label="u一零、v零一、w一一三条向量张成二维平面，w是u加v，故列表相关。"><title>生成列表与独立方向</title><desc>u一零、v零一、w一一三条向量张成二维平面，w是u加v，故列表相关。</desc><defs><marker id="fig-11-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="340" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">三条生成向量，两个独立方向</text><path d="M80,255H380M110,285V70" stroke="#94a3b8"/><path d="M110,255L260,255" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-1__arrow)"/><path d="M110,255L110,105" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-1__arrow)"/><path d="M110,255L260,105" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-1__arrow)"/><path d="M260,255V105H110" stroke="#94a3b8" stroke-dasharray="6 5" fill="none"/><text x="275" y="276" text-anchor="start" font-size="20" fill="#1a2e4a">u=(1,0)</text><text x="120" y="88" text-anchor="start" font-size="20" fill="#1a2e4a">v=(0,1)</text><text x="280" y="106" text-anchor="start" font-size="20" fill="#1a2e4a">w=(1,1)</text><rect x="450" y="100" width="270" height="170" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="585" y="151" text-anchor="middle" font-size="28" fill="#1a2e4a">w = u + v</text><text x="585" y="201" text-anchor="middle" font-size="25" fill="#1a2e4a">u + v − w = 0</text><text x="585" y="244" text-anchor="middle" font-size="20" fill="#1a2e4a">张成 R²；维数二</text></g></svg></div><figcaption><span class="fig-num">图 11.1</span> <p>三条向量生成一个平面，但第三条是前两条之和。生成列表长度与独立方向数是不同数量。</p>
+</figcaption></figure>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="spans"></div><div class="widget-caption">
+<p>选择两个生成向量及目标，比较整个平面、一条直线和零子空间。对这些整数预设，得到精确可表示见证或不相容证书。</p>
+</div></div>
+<div class="check"><div class="check-label">检验理解</div>
+<p>为什么一个非零 c 满足 Ac=0 就证明相关，而对十个选定非零 c 检查 Ac≠0 不能证明无关？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>相关要求存在一个见证；无关要求每一个满足 Ac=0 的系数向量都为零。有限样本可能漏掉零方向。精确消元分析整个解集，十次试验只分析十个选择。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>基、维数与坐标变换</h2></div>
+<p><strong>基</strong>是张成且独立的列表。张成保证每个向量有表达，独立保证表达唯一：两种表达相减得到零组合，系数必须逐项相等。两个条件都不可少。冗余张成列表可以给同一向量多种描述；未张成的独立列表无法描述空间所有向量。所以基坐标取决于空间及选定的有序基。</p>
+<p>若 B=(b₁,…,b_d) 为基，用 [v]_B 表示 v=Σcᵢbᵢ 的系数元组。向量与坐标元组通过基映射相关，但不指定 B 就不能互换。在 Rᵈ 的坐标单位基下，元组值恰好与通常坐标一致，容易掩盖区别；换基时元组改变，表示的向量仍相同。重排基会改变坐标次序，缩放一个基向量则需反向缩放对应坐标。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">非标准基改变坐标</div>
+<p>b₁=(1,1),b₂=(1,−1)。解 c₁b₁+c₂b₂=(3,1)，得到 c₁+c₂=3,c₁−c₂=1，所以 [v]_B=(2,1)。基矩阵 P=[[1,1],[1,−1]] 把 B 坐标映到标准坐标，P(2,1)=(3,1)。其逆为 [[1/2,1/2],[1/2,−1/2]]。描述变了，向量没有移动。</p>
+</div>
+<p>为什么基的长度定义良好？需要有限交换论证。设 b₁,…,b_d 张成 V，u₁,…,u_k 无关。用 b 列表表达 u₁；u₁ 非零，至少一个系数非零。解出相应 b，以 u₁ 替换它，新列表仍以 d 条向量张成。假设已插入前 j−1 条 u。用当前张成列表表达 u_j，至少一个剩余原向量的系数非零；否则 u_j 在前面 u 的张成内，违反独立性。以相同移项替换该原向量，每步使用一个剩余位置，因此不能插入超过 d 条独立向量，k≤d。</p>
+<p>对两个基双向应用此界：第一个独立基的长度不超过第二个张成基，反之亦然，所以长度相等。这一共同有限长度就是 V 的<strong>维数</strong>。零空间维数为零，基为空。d 维空间的子空间维数至多 d，因为子空间内独立的列表在所在空间也独立。d 维空间中 d 条独立向量必张成；否则添加张成之外的向量会得到 d+1 条独立向量，违反上界。</p>
+<p>也由此证明基扩张：从有限维空间任意独立列表出发，检查一个已有的有限张成列表，遇到当前张成之外的生成元就加入。过程保持独立，所有生成元处理完即张成。所以子空间的基可扩张成所在空间的基。后面秩–零化度证明要用这个存在论证。在计算中，主元可找到扩张；在定理中，它连接局部约束与整体维数。</p>
+<p>对同一 d 维空间两个基 B,C，坐标变换 T 的第 i 列为 [bᵢ]_C，于是 [v]_C=T[v]_B。两种坐标都唯一，T 可逆。映射的矩阵也依赖输入和输出基：若输入、输出新基矩阵相对原坐标分别为 P,Q，则新表示为 Q⁻¹AP。对同一空间上的映射，两侧采用相同换基时成为 P⁻¹AP。这是一个映射的不同描述；没有同步改变坐标约定而单改 A，可能是在改变映射本身。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>(1,0),(0,1),(1,1) 是 R² 的基吗？第三条向量相对于整个列表有唯一系数吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>它张成但相关，不是基。第三条有系数 (0,0,1) 与 (1,1,0)，实际上有无穷多种。只有选定张成且独立列表才得到唯一坐标。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>四个基本空间及其所在维度</h2></div>
+<p>对 m×n 矩阵 A，<strong>列空间</strong> C(A) 是 Rᵐ 内各列的张成，也即像 {Ax:x∈Rⁿ}；<strong>行空间</strong> R(A) 是把各行看成 Rⁿ 向量后的张成；<strong>零空间</strong> N(A)={x∈Rⁿ:Ax=0} 在输入空间；<strong>左零空间</strong> N(Aᵀ)={z∈Rᵐ:Aᵀz=0} 在输出空间。“左”来自 zᵀA=0，不是一种新的第五类矩阵运算。尤其对矩形矩阵，应先写所在维度再计算。</p>
+<p>可逆行操作保持行空间，因为新行是旧行组合，逆操作又给出反向包含。它保持零空间，因为保持齐次方程解集。它通常改变作为 Rᵐ 子集的列空间。若 E 是行操作矩阵的可逆乘积，化简矩阵为 EA，其列空间是旧列空间在 E 下的像。维数相同不意味着两个集合相同。所以从化简矩阵确定主元列后，应取原矩阵相同列索引，构造 C(A) 的基。</p>
+<p>精确理由如下。阶梯矩阵的主元列独立：从最后主元行向前检查零组合，迫使每个系数为零。每个非主元列都是主元列组合，可在主元行的三角系统中回代解系数，主元以下行全零。因此主元列是化简列空间的基。对关系与独立性应用 E⁻¹，原矩阵同一列索引也构成基。主元数于是等于列空间维数。</p>
+<p>非零阶梯行独立：不同首项位置使零组合系数从最早首项开始逐个为零。它们张成阶梯矩阵行空间，而该空间就是原行空间。因此行空间维数也是主元数。这一共同数是<strong>秩</strong> r。这里证明了行秩与列秩相等，而不是把它当成未经解释的巧合。也得到 r≤min(m,n)，其中零矩阵秩为零。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">一个矩阵，四个空间</div>
+<p>A=[[1,0,1],[0,1,1],[1,1,2]] 的第三行是前两行之和，化简为 [[1,0,1],[0,1,1],[0,0,0]]。原第一、二列 (1,0,1),(0,1,1) 为列基，两条非零化简行为行基。Ax=0 给出 x₁=−x₃,x₂=−x₃，所以 N(A)=span{(−1,−1,1)}。本例 A 对称，左零空间恰有同一基。行、列空间都是平面 z=x+y；两种零空间都是直线。</p>
+</div>
+<p>每个零向量垂直每条行，因为这些点积就是 Ax 的分量；每个左零向量垂直每列，因为这些点积就是 Aᵀz 的分量。这些结论直接来自点积。若 Ax=b，则任意左零 z 必满足 zᵀb=zᵀAx=0。非零值给出不相容证书。本例 b=(2,3,5) 满足条件，b=(2,3,6) 的证书值为一。</p>
+<p>左零条件也充分。以 E 化简 [A|b]，若无解，阶梯形必含系数全零、常数非零的一行。E 中相应行 zᵀ 满足 zᵀA=0,zᵀb≠0。因此若 b 与每个左零向量垂直，就不会有矛盾行，b 属于列空间。这证明 C(A)=N(Aᵀ)⊥；对 Aᵀ 同样论证，得到 R(A)=N(A)⊥。模块 12 将给出正交空间的投影公式；本课已说明它们对相容性的代数作用。</p>
+<figure class="fig" id="fig-11-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 370" role="img" aria-label="四乘三秩二映射，输入侧行空间二维零空间一维，输出侧列空间二维左零空间二维。"><title>输入与输出侧的空间</title><desc>四乘三秩二映射，输入侧行空间二维零空间一维，输出侧列空间二维左零空间二维。</desc><defs><marker id="fig-11-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="370" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">矩形映射的四个基本空间：例 m=4、n=3、r=2</text><rect x="25" y="65" width="290" height="245" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="445" y="65" width="290" height="245" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><path d="M325,155L435,155" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-2__arrow)"/><text x="380" y="138" text-anchor="middle" font-size="24" fill="#1a2e4a">A</text><text x="170" y="105" text-anchor="middle" font-size="22" fill="#1a2e4a">输入 R³</text><text x="590" y="105" text-anchor="middle" font-size="22" fill="#1a2e4a">输出 R⁴</text><text x="170" y="161" text-anchor="middle" font-size="22" fill="#1a2e4a">R(A): dim 2</text><text x="170" y="209" text-anchor="middle" font-size="22" fill="#1a2e4a">N(A): dim 1</text><text x="590" y="161" text-anchor="middle" font-size="22" fill="#1a2e4a">C(A): dim 2</text><text x="590" y="209" text-anchor="middle" font-size="22" fill="#1a2e4a">N(Aᵀ): dim 2</text><text x="170" y="266" text-anchor="middle" font-size="25" fill="#1a2e4a">2 + 1 = 3</text><text x="590" y="266" text-anchor="middle" font-size="25" fill="#1a2e4a">2 + 2 = 4</text><text x="380" y="342" text-anchor="middle" font-size="20" fill="#1a2e4a">行 ⟂ 零；列 ⟂ 左零。所在空间不能互换。</text></g></svg></div><figcaption><span class="fig-num">图 11.2</span> <p>行与零空间在输入侧，列与左零空间在输出侧。维数取决于秩及各侧所在空间的维数。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>能直接用本例化简矩阵的前两列作为原列空间基吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>不能。它们为 (1,0,0),(0,1,0)，张成 z=0，而原列平面为 z=x+y。主元索引告诉我们选哪些原列。行操作保持列关系和秩，但变换了实际列向量。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>秩–零化度与完整解族</h2></div>
+<p>线性映射的<strong>零化度</strong>是核的维数。秩–零化度定理说，从 n 维输入空间出发的线性映射 A 满足 rank(A)+dimN(A)=n。它把输入自由度分为改变输出的方向与消失的方向。输出维数可能为 m；左零化度是 m−r，不是 n−r。混淆这两种计数会误判矩形系统是否相容或唯一。</p>
+<p>不用把“数自由变量”当成未经解释的规则，也可证明。取核基 k₁,…,k_q，用已证有限扩张把它扩成输入基 k₁,…,k_q,u₁,…,u_{n−q}。我们证明 Au₁,…,Au_{n−q} 是像的基。张成方面，把任意输入 x 按扩张基展开，应用 A 后核项消失，Ax 是 Au 的组合。独立方面，若 ΣcᵢAuᵢ=0，则 Σcᵢuᵢ 在核内，所以等于 Σdⱼkⱼ。两式相减得到完整扩张基的零组合，其独立性使所有 cᵢ,dⱼ 为零。因此像基长度为 n−q，即 r+q=n，无需方阵或可逆假设。</p>
+<p>消元给出计算版本。齐次系统有 r 个主元变量、n−r 个自由变量；逐次把一个自由坐标设一、其他自由坐标设零，再解主元变量，得到 n−r 条向量。它们的自由坐标位置为不同单位向量，所以独立；任意自由坐标赋值是这些赋值的组合，主元方程唯一确定其余坐标，所以它们张成。由此得到核的完整基，而不是几个碰巧满足 Ax=0 的样本。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">可解目标对应仿射解族</div>
+<p>对前述 A 与 b=(2,3,5)，一个解是 p=(2,3,0)。每个解为 p+t(−1,−1,1)=(2−t,3−t,t)。任意实 t 代入都得到 (2,3,5)。反过来，Ax=b 给出 x₁+x₃=2,x₂+x₃=3，取 t=x₃ 就得到恰好这一族。解集有一个自由维度，但 b 非零，所以不是向量子空间。</p>
+</div>
+<p>完整分类随之得到：目标可解当且仅当在 C(A) 内；可解时所有解是 p+N(A)，唯一当且仅当核为零，即 r=n。Rᵐ 每个目标可达当且仅当 C(A)=Rᵐ，即 r=m。两种性质同时成立，只能是满秩方阵。高矩阵满列秩可对相容目标确定唯一输入，却不让所有目标相容；宽矩阵满行秩可到达每个目标，却至少保留 n−m 个零方向。说“满秩”时应说明哪一维度是限制。</p>
+<p>正交关系也将任意输入 x 分为行空间成分与核成分。两空间交集只有零：属于二者的向量既在行空间又垂直该空间，因此与自身点积为零。两维数按秩–零化度之和为 n；把两基合起来得到 n 条独立向量，因此是输入空间基。每个 x 都唯一写为 x=u+k，u∈R(A),k∈N(A)。A 对 u 与 x 给同一输出；限制在行空间上时 A 单射，而这些行空间输入到达整个列空间。映射恰好丢掉核中的信息。</p>
+<p>约束求解中，零向量表示找到一个解后仍可作的改变；学习中，表示设计矩阵无法区分的参数变化；压缩或传感中，表示产生相同测量的信号。代数相同，x 的解释不同。若限制输入只来自特殊集合，可辨识性也会改变：两个许可输入有歧义时，其差必须是零向量，但不是每个零位移都会留在许可集合。除非声明其他集合，本课唯一性结论针对不受约束的实输入。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>m=5,n=3 的设计秩为三，零化度与左零化度分别是多少？每个目标可解吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>分别为零与二。每个相容目标有一个输入解，但列空间只在 R⁵ 内占三维，不能覆盖全部目标。满列秩给出单射，不给出对更大输出空间的满射。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>可辨识性、结构冗余与数值秩</h2></div>
+<p>固定设计 X 的线性预测为 Xw。w,w′ 的预测相同，当且仅当 X(w′−w)=0，即差在 N(X) 内。与 w 等价的全部参数构成 w+N(X)。对这里不受约束的线性表示，<strong>参数可辨识性</strong>指不同权重在指定记录上给出不同预测，等价于 X 满列秩。拟合预测唯一可以与权重不唯一同时发生。算法选择一个代表，并不证明数据辨识了它。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">摄氏、华氏与截距</div>
+<p>记录为 (1,C,F)，其中 F=1.8C+32。每条记录都与 n=(−32,−1.8,1) 点积为零，因此 Xn=0。从 w=(5,2,−1) 出发，w′=w+0.5n=(−11,1.1,−0.5)。两者在 C=0,10,20 都预测 −27,−25,−23，在 C=30 都预测 −21。模型实际上约化为 (w₀+32w_F)+(w_C+1.8w_F)C。这两个组合系数可以由不同温度辨识，而原三个权重不能。</p>
+</div>
+<p>单一分类变量的截距加全部独热列也如此。每条记录恰好有一个 K 类指示值为一，指示列之和等于截距，零方向为 (−1,1,…,1)。删一条指示列形成基准类别表示：截距是基准预测，其余系数是相对基准的差。去掉截距、保留全部指示列，则每个类别有自己的预测系数。两种参数化可表示相同预测函数，系数含义不同。满秩还要求观测覆盖保留类别；缺失类别会增加歧义。</p>
+<p>训练预测等价并不总意味着新记录上的函数等价。特征 (1,x,x²) 只在 x=0,1 观测，后两列相同。改变权重 (0,−1,1) 不改变训练预测，却在 x=2 改变 −2+4=2。摄氏–华氏则是在合法换算定义域上的结构特征恒等式，故零方向在该域始终不可见。传感器故障或不同特征生成规则也可能破坏此假设。应说明相关是在样本、声明的输入域，还是所有实特征元组上成立。</p>
+<figure class="fig" id="fig-11-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 370" role="img" aria-label="权重五二负一与负十一一点一负零点五在合法华氏摄氏换算下预测都是负二十七加零点二C。"><title>零方向的参数等价</title><desc>权重五二负一与负十一一点一负零点五在合法华氏摄氏换算下预测都是负二十七加零点二C。</desc><defs><marker id="fig-11-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="370" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">不同权重，相同有效温度预测</text><rect x="35" y="90" width="330" height="75" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="200" y="135" text-anchor="middle" font-size="22" fill="#1a2e4a">w = (5,2,−1)</text><path d="M375,128L470,194" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-3__arrow)"/><rect x="35" y="225" width="330" height="75" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="200" y="270" text-anchor="middle" font-size="22" fill="#1a2e4a">w′ = (−11,1.1,−0.5)</text><path d="M375,263L470,194" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-3__arrow)"/><rect x="480" y="133" width="250" height="120" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="605" y="178" text-anchor="middle" font-size="20" fill="#1a2e4a">共同预测函数</text><text x="605" y="220" text-anchor="middle" font-size="25" fill="#1a2e4a">−27 + 0.2C</text><text x="380" y="345" text-anchor="middle" font-size="20" fill="#1a2e4a">w′ − w = 0.5(−32,−1.8,1);   F = 1.8C + 32</text></g></svg></div><figcaption><span class="fig-num">图 11.3</span> <p>沿零方向的不同参数给出同一预测。结构特征恒等式可在声明定义域保持等价；训练记录中的巧合未必。</p>
+</figcaption></figure>
+<p>精确秩问数学模型中的关系是否严格为零；数值秩问在声明分辨率下哪些方向可区分。[[1,1],[1,1+δ]] 行列式为 δ，只要 δ≠0，精确秩就是二。当 δ=10⁻¹²，它接近 δ=0 的相关情形。小输入或测量扰动可影响微小差异是否实际可分辨。浮点阈值可以有意把它报为一个有效方向，但没有证明精确行列式消失。</p>
+<p>固定 NumPy 秩接口使用模块 14 将讲解的奇异值——非负方向强度量，计算大于容差的数量。默认阈值随最大值、矩阵维度和机器精度缩放。自定绝对阈值有自己的单位，整矩阵缩放可改变结论。实验 3 中，同一近相关矩阵在 10⁻¹⁴ 与 10⁻¹⁰ 阈值下数值秩为二与一；全局乘一百万但绝对阈值不变，判定改变；阈值同比缩放则保持本例结论。记录 dtype、特征单位、容差与目的。阈值应反映计算或测量分辨率，而不是默默声称一个精确定理。</p>
+<figure class="fig" id="fig-11-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 370" role="img" aria-label="精确δ为十的负十二次非零，秩二；实验浮点阈值十负十四与十负十分别给数值秩二与一。"><title>精确秩与数值分辨率</title><desc>精确δ为十的负十二次非零，秩二；实验浮点阈值十负十四与十负十分别给数值秩二与一。</desc><defs><marker id="fig-11-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="370" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">非零差异与解析阈值是两种主张</text><rect x="35" y="75" width="330" height="225" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="395" y="75" width="330" height="225" rx="10" fill="#fff7ed" stroke="#c2410c"/><text x="200" y="115" text-anchor="middle" font-size="22" fill="#1a2e4a">精确有理模型</text><text x="200" y="167" text-anchor="middle" font-size="21" fill="#1a2e4a">A = [[1,1],[1,1+δ]]</text><text x="200" y="216" text-anchor="middle" font-size="25" fill="#1a2e4a">δ = 10⁻¹² ≠ 0</text><text x="200" y="268" text-anchor="middle" font-size="23" fill="#1a2e4a">detA = δ；秩二</text><text x="560" y="115" text-anchor="middle" font-size="21" fill="#1a2e4a">浮点分辨率策略</text><text x="560" y="167" text-anchor="middle" font-size="18" fill="#1a2e4a">容差 10⁻¹⁴ → 数值秩二</text><text x="560" y="218" text-anchor="middle" font-size="18" fill="#1a2e4a">容差 10⁻¹⁰ → 数值秩一</text><text x="560" y="268" text-anchor="middle" font-size="21" fill="#1a2e4a">记录尺度与 dtype</text><text x="380" y="342" text-anchor="middle" font-size="20" fill="#1a2e4a">阈值判定不会把精确非零量改成零。</text></g></svg></div><figcaption><span class="fig-num">图 11.4</span> <p>微小非零特征差使精确秩为二，但选定分辨率可视该方向为未解析。策略与精确命题回答不同问题。</p>
+</figcaption></figure>
+<p>删去精确冗余特征或施加约束，可以选唯一表示，但系数含义取决于该选择。最小范数约定和正则化引入额外标准，后续讲解；它们可稳定或选择参数，却不恢复观测未区分的信息。独立性也不证明因果效应、误差界或泛化；这些需要代数之外的统计和建模假设。应明确矩阵决定什么、留下什么自由度、解释针对哪个定义域。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>求解器为秩亏设计返回一个系数向量，系数就可辨识了吗？数值秩为一就证明精确相关了吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>两者都没有。求解器可能按额外约定选代表；数值秩依赖分辨率策略，精确相关需精确关系或相应定理。预测、选定参数与数据提供的信息是不同主张。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>主张</th>
+<th>修正与见证</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任何直的集合都是子空间</td>
+<td>偏移直线不含零，射线不对负缩放封闭。</td>
+</tr>
+<tr>
+<td>逐对独立就整体独立</td>
+<td>(1,0),(0,1),(1,1) 每对无关，整体有关系。</td>
+</tr>
+<tr>
+<td>张成就有唯一坐标</td>
+<td>还需要独立。</td>
+</tr>
+<tr>
+<td>化简主元列张成原列空间</td>
+<td>应取原矩阵相同索引的列。</td>
+</tr>
+<tr>
+<td>满列秩使每个目标可解</td>
+<td>它使相容输入唯一，满行秩才覆盖全部目标。</td>
+</tr>
+<tr>
+<td>训练预测相同就是相同函数</td>
+<td>x 与 x² 在零、一相同，在二不同。</td>
+</tr>
+<tr>
+<td>阈值秩证明精确相关</td>
+<td>区分精确与有效秩，并声明容差。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个 CPU 实验</h2></div>
+<p>采用 Python 3.11 及<a href="numpy_primer_ZH.html">数组准备</a>中的 NumPy 环境。第一个实验仅用标准库 Fraction。显示输出来自构建时运行可下载脚本的捕获。实验记录应保留形状、零见证和每个声明容差。</p>
+<h3 id="lab1">实验 A 精确空间与证书</h3>
+<p>运行前预测主元索引与四空间维数，追踪每个自由变量如何生成一条零基向量，用乘法验证每条基向量。比较原主元列与化简主元列。说明为何本例左零证书拒绝第二个目标而接受第一个。</p>
+<p><a href="labs/module_11/lab1_exact_spaces.py" download>下载 lab1_exact_spaces.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Exact rational pivots and four spaces; no floating-point zero decisions.&quot;&quot;&quot;
+from fractions import Fraction
+
+def rref(matrix):
+    if not matrix or not matrix[0] or any(len(r) != len(matrix[0]) for r in matrix):
+        raise ValueError(&quot;Need a nonempty rectangular matrix&quot;)
+    rows = [[Fraction(v) for v in row] for row in matrix]
+    pivots, active = [], 0
+    for column in range(len(rows[0])):
+        selected = next((i for i in range(active, len(rows)) if rows[i][column]), None)
+        if selected is None:
+            continue
+        rows[active], rows[selected] = rows[selected], rows[active]
+        pivot = rows[active][column]
+        rows[active] = [v / pivot for v in rows[active]]
+        for i in range(len(rows)):
+            if i != active:
+                factor = rows[i][column]
+                rows[i] = [a - factor * b for a, b in zip(rows[i], rows[active])]
+        pivots.append(column)
+        active += 1
+        if active == len(rows):
+            break
+    return rows, pivots
+
+def null_basis(matrix):
+    rows, pivots = rref(matrix)
+    free = [j for j in range(len(rows[0])) if j not in pivots]
+    basis = []
+    for j in free:
+        vector = [Fraction(0)] * len(rows[0])
+        vector[j] = 1
+        for i, p in enumerate(pivots):
+            vector[p] = -rows[i][j]
+        basis.append(vector)
+    return basis
+
+def matvec(matrix, vector):
+    return [sum(a * b for a, b in zip(row, vector)) for row in matrix]
+
+if __name__ == &quot;__main__&quot;:
+    A = [[1, 0, 1], [0, 1, 1], [1, 1, 2]]
+    reduced, pivots = rref(A)
+    column_basis = [[row[j] for row in A] for j in pivots]
+    row_basis = reduced[:len(pivots)]
+    kernel = null_basis(A)
+    transpose = [list(col) for col in zip(*A)]
+    left_kernel = null_basis(transpose)
+    strings = lambda rows: [[str(v) for v in row] for row in rows]
+    print(&quot;RREF:&quot;, strings(reduced))
+    print(&quot;Original pivot columns:&quot;, column_basis)
+    print(&quot;Row-space basis:&quot;, strings(row_basis))
+    print(&quot;Null / left-null bases:&quot;, strings(kernel), strings(left_kernel))
+    assert all(matvec(A, v) == [0, 0, 0] for v in kernel)
+    assert all(matvec(transpose, v) == [0, 0, 0] for v in left_kernel)
+    assert len(pivots) == 2 and len(kernel) == 1
+    print(&quot;Rank / nullity / left nullity:&quot;, len(pivots), len(kernel), len(left_kernel))
+    for target in [[2, 3, 5], [2, 3, 6]]:
+        certificate = sum(a*b for a, b in zip(left_kernel[0], target))
+        print(&quot;Target / left-null certificate:&quot;, target, str(certificate), &quot;consistent&quot; if certificate == 0 else &quot;inconsistent&quot;)
+    for matrix in [[[0, 0], [0, 0]], [[1, 0], [0, 1]], [[1, 2], [2, 4]]]:
+        _, p = rref(matrix)
+        assert len(p) + len(null_basis(matrix)) == len(matrix[0])
+    print(&quot;Zero, identity, and dependent cases satisfy exact rank-nullity.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>RREF: [['1', '0', '1'], ['0', '1', '1'], ['0', '0', '0']]
+Original pivot columns: [[1, 0, 1], [0, 1, 1]]
+Row-space basis: [['1', '0', '1'], ['0', '1', '1']]
+Null / left-null bases: [['-1', '-1', '1']] [['-1', '-1', '1']]
+Rank / nullity / left nullity: 2 1 1
+Target / left-null certificate: [2, 3, 5] 0 consistent
+Target / left-null certificate: [2, 3, 6] 1 inconsistent
+Zero, identity, and dependent cases satisfy exact rank-nullity.
+</code></pre></div>
+<p><strong>交付：</strong>四空间、所在维度、基与维数表，并证明所给基张成全部声称空间。乘法成功只证明成员关系，主元和自由变量论证才证明完整性。</p>
+<h3 id="lab2">实验 B 相同预测，不同权重</h3>
+<p>手算两个权重向量，在合法特征域检查未见温度，再比较多项式巧合。找出独热设计零方向，说明去冗余的两种办法。</p>
+<p><a href="labs/module_11/lab2_equivalent_features.py" download>下载 lab2_equivalent_features.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Prediction equivalence can be structural or restricted to observed records.&quot;&quot;&quot;
+import numpy as np
+
+np.set_printoptions(precision=6, suppress=True)
+celsius = np.array([0., 10., 20.])
+X = np.column_stack((np.ones(3), celsius, 1.8*celsius + 32))
+w = np.array([5., 2., -1.])
+n = np.array([-32., -1.8, 1.])
+alternative = w + 0.5*n
+assert np.allclose(X@n, 0) and np.allclose(X@w, X@alternative)
+print(&quot;Temperature weights / alternative:&quot;, w, alternative)
+print(&quot;Training predictions:&quot;, X@w, X@alternative)
+new = np.array([1., 30., 86.])
+print(&quot;New valid temperature prediction:&quot;, new@w, new@alternative)
+assert np.allclose(new@w, new@alternative)
+
+categorical = np.column_stack((np.ones(3), np.eye(3)))
+categorical_null = np.array([-1., 1., 1., 1.])
+assert np.allclose(categorical@categorical_null, 0)
+print(&quot;Intercept plus all one-hot columns rank:&quot;, np.linalg.matrix_rank(categorical), &quot;of&quot;, categorical.shape[1])
+print(&quot;One-hot null direction:&quot;, categorical_null)
+assert np.linalg.matrix_rank(categorical[:, :3]) == 3
+
+training = np.array([[1., 0., 0.], [1., 1., 1.]])
+training_null = np.array([0., -1., 1.])
+assert np.allclose(training@training_null, 0)
+unseen = np.array([1., 2., 4.])
+print(&quot;x and x squared: training change / unseen x=2 change:&quot;, training@training_null, unseen@training_null)
+assert unseen@training_null == 2
+print(&quot;A structural temperature identity generalises; a training-only polynomial coincidence does not.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Temperature weights / alternative: [ 5.  2. -1.] [-11.    1.1  -0.5]
+Training predictions: [-27. -25. -23.] [-27. -25. -23.]
+New valid temperature prediction: -21.0 -21.0
+Intercept plus all one-hot columns rank: 3 of 4
+One-hot null direction: [-1.  1.  1.  1.]
+x and x squared: training change / unseen x=2 change: [0. 0.] 2.0
+A structural temperature identity generalises; a training-only polynomial coincidence does not.
+</code></pre></div>
+<p><strong>交付：</strong>区分结构域等价与观测记录等价，给一个破坏训练限定主张的新记录，不从可辨识系数推断因果。</p>
+<h3 id="lab3">实验 C 精确秩与数值秩</h3>
+<p>用精确行列式作为数学证书，把数值库输出作为策略依赖测量。比较两个绝对阈值和全局缩放下一个相对阈值。这里奇异值是库诊断量，模块 14 将推导其分解和几何。</p>
+<p><a href="labs/module_11/lab3_rank_tolerances.py" download>下载 lab3_rank_tolerances.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;An exact nonzero determinant and two numerical rank policies can coexist.&quot;&quot;&quot;
+from fractions import Fraction
+import numpy as np
+
+delta = Fraction(&quot;0.000000000001&quot;)
+exact = [[Fraction(1), Fraction(1)], [Fraction(1), 1+delta]]
+determinant = exact[0][0]*exact[1][1] - exact[0][1]*exact[1][0]
+assert determinant == delta and determinant != 0
+print(&quot;Exact determinant:&quot;, str(determinant), &quot;exact rank: 2&quot;)
+A = np.array([[1., 1.], [1., 1.+float(delta)]])
+singular_values = np.linalg.svd(A, compute_uv=False)
+print(&quot;Singular values:&quot;, [format(v, &quot;.6e&quot;) for v in singular_values])
+for tolerance in [1e-14, 1e-10]:
+    rank = int(np.linalg.matrix_rank(A, tol=tolerance))
+    print(&quot;Absolute tolerance / numerical rank:&quot;, tolerance, rank)
+assert np.linalg.matrix_rank(A, tol=1e-14) == 2
+assert np.linalg.matrix_rank(A, tol=1e-10) == 1
+scaled = 1e6*A
+print(&quot;Scaling by one million at absolute tolerance 1e-10:&quot;, np.linalg.matrix_rank(scaled, tol=1e-10))
+assert np.linalg.matrix_rank(scaled, tol=1e-10) == 2
+for label, matrix in [(&quot;A&quot;, A), (&quot;scaled A&quot;, scaled)]:
+    s = np.linalg.svd(matrix, compute_uv=False)
+    relative_cutoff = 1e-10*s[0]
+    print(&quot;Relative cutoff policy / rank:&quot;, label, int(np.linalg.matrix_rank(matrix, tol=relative_cutoff)))
+    assert np.linalg.matrix_rank(matrix, tol=relative_cutoff) == 1
+print(&quot;The cutoff is a numerical resolution policy, not an exact dependence proof.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Exact determinant: 1/1000000000000 exact rank: 2
+Singular values: ['2.000000e+00', '5.000744e-13']
+Absolute tolerance / numerical rank: 1e-14 2
+Absolute tolerance / numerical rank: 1e-10 1
+Scaling by one million at absolute tolerance 1e-10: 2
+Relative cutoff policy / rank: A 1
+Relative cutoff policy / rank: scaled A 1
+The cutoff is a numerical resolution policy, not an exact dependence proof.
+</code></pre></div>
+<p><strong>交付：</strong>报告精确秩、dtype、尺度、阈值与数值秩。解释什么分辨率假设可以支持舍弃弱方向，不把选定阈值说成精确整数或有理模型已经改变。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>练习与完整解答</h2></div>
+<p>练习 1–12 必做，13–14 额外 35 分钟。封闭或独立主张应写明空间与标量域。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>判断 {(x,y):y=2x}、{(x,y):y=2x+1}、{(x,y):x≥0} 是否实子空间。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>第一种含零，且 (u,2u),(v,2v) 的组合为 (au+bv,2(au+bv))，因此是。第二种不含零。第三种含 (1,0) 却不含其负 (−1,0)，缩放失败。每种拒绝只需一个失败条件。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>求 (1,0,1),(0,1,1),(1,1,2) 张成的基，并在基中表达第三条。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>前两条独立：零组合的第一、二坐标迫使两系数为零。其和为第三条，所以张成全部三条并构成基。第三条基坐标为 (1,1)，张成是二维平面 z=x+y。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>用基 (1,1),(1,−1) 表达 (4,2)，并恢复标准坐标。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>c₁+c₂=4,c₁−c₂=2 得 c₁=3,c₂=1。[[1,1],[1,−1]] 乘 (3,1) 得 (4,2)。元组 (3,1) 属于指定基，不是单位坐标基。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>一个 4×6 矩阵秩三，写四基本空间的维数与所在空间。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>列空间三维，在 R⁴；行空间三维，在 R⁶；零化度 6−3=3，在 R⁶；左零化度 4−3=1，在 R⁴。列空间为真子空间，不是每个输出可达；每个相容目标有三维仿射输入族。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证明次数至多三、满足 p(1)=p(−1)=0 的多项式构成子空间，并求基。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>零属于集合，ap+bq 在任一点的值为 a·0+b·0，故封闭。两点都为根，故含因子 (t−1)(t+1)=t²−1；次数限制使它为 (t²−1)(at+b)。因此 t²−1,t³−t 张成。最高次数不同，零组合的三次系数先为零，然后二次系数为零，所以独立。因子结论可先除以 t−1，再在 −1 代入，因 −2 非零迫使商在该点为零。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证明独立列表对其张成中任意向量至多有一个系数描述，并说明基为何还需张成。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>若 Σaᵢvᵢ=Σbᵢvᵢ，相减得 Σ(aᵢ−bᵢ)vᵢ=0，独立使所有 aᵢ=bᵢ。在张成中，存在性来自定义；对任意所在空间向量未必存在。例如 (1,0) 在 R² 独立，却不能表达 (0,1)。基用张成保证全部向量存在描述，以独立保证描述唯一。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>通过扩张核基推导秩–零化度，分别证明像列表张成与独立。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>核基 k₁,…,k_q 扩为 n 维定义域基，再加 u₁,…,u_{n−q}。A 作用于任意基展开会消除核项，故 Auᵢ 张成像。若 ΣcᵢAuᵢ=0，则 Σcᵢuᵢ 在核内，可写为 Σdⱼkⱼ。完整基独立使所有系数为零。因此像基长度 n−q，秩加零化度为 n。基扩张由不断添加当前张成外的生成元得到。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 分钟</span></div>
+<p>对实验 A 的 A，分类目标 (2,3,5),(2,3,6)，给相容目标的全部解及另一个的不相容证书。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>列平面要求 b₃=b₁+b₂。第一种全部解为 (2−t,3−t,t)，来自前两方程及冗余第三行。第二种取 z=(−1,−1,1)，Aᵀz=0 但 zᵀb=1；假设 Ax=b 将给出 0=zᵀAx=zᵀb=1 的矛盾。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 分钟</span></div>
+<p>含截距、摄氏、华氏的模型，在合法温度记录上求与 (5,2,−1) 等价的全部权重，并写两个组合系数。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>预测为 −27+0.2C。全部权重 (5−32t,2−1.8t,−1+t) 的组合截距 w₀+32w_F=−27、斜率 w_C+1.8w_F=0.2 相同。若域至少有两个不同摄氏值，相等预测迫使两个组合相等，解差值就恰好得到这一族。假设华氏按 1.8C+32 生成。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 分钟</span></div>
+<p>设计含截距和三条穷尽独热类别，类别均被观测。解释零化度与两种满秩参数化。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>列满足 −截距+指示₁+指示₂+指示₃=0；每类均出现，三指示列独立。秩三，零化度 4−3=1。保留全部指示、删截距得到三类预测；保留截距和两指示得到基准预测及两类差值。二者都表达任意三类预测向量，但系数含义不同。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 分钟</span></div>
+<p>报告以化简主元列为原像基，并认为满列秩使每个目标相容。用明确或矩形例诊断。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>实验 A 化简主元列在 z=0，原列空间为 z=x+y，应取原矩阵相同主元索引。满列秩给核为零、相容输入唯一，不填满更大输出空间。A=[[1],[0]] 满列秩一，不能到达 (0,1)。每个目标相容需要满行秩。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 分钟</span></div>
+<p>[[1,1],[1,1+10⁻¹²]] 在阈值 10⁻¹⁰ 下数值秩一。作者宣称精确相关，并说只在零、一观测的 x 与 x² 特征有相同未来预测。修正两主张。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>精确行列式 10⁻¹² 非零，精确秩二。数值结论依赖分辨率、dtype 与尺度，应声明这些。多项式训练设计有零方向 (0,−1,1)，但 x=2 改变预测二。训练等价只在同一特征恒等式成立处延伸，此处并非全部实数。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>不预设维数定义良好，用交换论证证明有限维空间两个基的长度相等。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>给独立 u₁,…,u_k 和张成 b₁,…,b_d，依次在含前面 u 的张成列表表达 u_j。独立迫使至少一个剩余 b 的系数非零，解出它并换成 u_j。列表仍张成且有 d 个位置，所以 k≤d。两基互换角色得到两个不等式，因此长度相等。交换步骤解释为何基长度能一致定义维数。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>用矛盾行证明 C(A)=N(Aᵀ)⊥，说明为何只检查完整左零基就足够判断相容。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>b=Ax 且 Aᵀz=0 时 zᵀb=0，得到包含。若 b 不在列空间，用可逆行操作矩阵 E 化简 [A|b] 会产生零系数非零常数行。E 对应行 zᵀ 满足 zᵀA=0,zᵀb≠0，故 b 不与左零空间垂直。由逆否得到反向包含。若 b 垂直每条完整左零基，线性性使它垂直该空间所有向量，已证等式给出相容。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自测</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>哪个集合在继承运算下为实向量子空间？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">x+y−z=0 的解</button></li><li><button type="button" class="quiz-opt" data-i="1">x+y−z=1 的解</button></li><li><button type="button" class="quiz-opt" data-i="2">欧几里得长度为一的向量</button></li></ol><div class="quiz-expl" hidden>齐次约束含零且保持全部线性组合。偏移平面和单位球面不含零。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>什么证明矩阵列相关？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">各列逐对不同</button></li><li><button type="button" class="quiz-opt" data-i="1">非零系数向量 c 满足 Ac=0</button></li><li><button type="button" class="quiz-opt" data-i="2">一个 c 满足 Ac≠0</button></li></ol><div class="quiz-expl" hidden>非平凡零组合是定义见证。不同列可相关，一个失败关系不排除其他关系。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>什么使每个向量都有唯一基坐标？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">只张成</button></li><li><button type="button" class="quiz-opt" data-i="1">只独立</button></li><li><button type="button" class="quiz-opt" data-i="2">张成且独立</button></li></ol><div class="quiz-expl" hidden>张成给存在，独立使两种描述之差的系数全为零。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>行化简后，哪些列构成原列空间的基？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">原矩阵主元索引的列</button></li><li><button type="button" class="quiz-opt" data-i="1">不反变换的化简主元列</button></li><li><button type="button" class="quiz-opt" data-i="2">包含冗余列的全部原列</button></li></ol><div class="quiz-expl" hidden>行操作变换列向量却保持关系，故取索引对应的原向量。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>m×n 矩阵秩 r，左零化度为？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">n−r</button></li><li><button type="button" class="quiz-opt" data-i="1">m−r</button></li><li><button type="button" class="quiz-opt" data-i="2">m+n−r</button></li></ol><div class="quiz-expl" hidden>左零空间是定义域为 Rᵐ 的 Aᵀ 的核，普通零化度使用输入维数 n。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>满列秩保证什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">每个输出目标可达</button></li><li><button type="button" class="quiz-opt" data-i="1">矩阵必须为方阵</button></li><li><button type="button" class="quiz-opt" data-i="2">每个相容目标有唯一输入</button></li></ol><div class="quiz-expl" hidden>它令输入核为零。高矩阵不必到达输出所在空间所有点。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>什么证明 b 与 Ax=b 不相容？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">左零 z 满足 zᵀb≠0</button></li><li><button type="button" class="quiz-opt" data-i="1">非零输入零向量</button></li><li><button type="button" class="quiz-opt" data-i="2">求解器选一个代表</button></li></ol><div class="quiz-expl" hidden>左乘将得 0=zᵀAx=zᵀb，矛盾。输入零化度讨论相容之后的唯一性。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>训练记录上 Xw=Xw′ 推出什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">每个未来记录预测都相同</button></li><li><button type="button" class="quiz-opt" data-i="1">w′−w 在训练设计零空间</button></li><li><button type="button" class="quiz-opt" data-i="2">w=w′</button></li></ol><div class="quiz-expl" hidden>这是精确训练等价关系。未来记录还需与相同差向量点积为零。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>阈值秩与精确有理秩不同，应如何报告？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">宣称精确行列式为零</button></li><li><button type="button" class="quiz-opt" data-i="1">隐藏阈值和特征单位</button></li><li><button type="button" class="quiz-opt" data-i="2">写出两主张及各自算术模型、尺度、分辨率策略</button></li></ol><div class="quiz-expl" hidden>数值秩可有意将弱方向视为未解析，不能抹掉非零精确行列式。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m11:q10">
+<label for="q10-response">10. 解释训练预测相同为何仍可参数不唯一。给一个结构零方向、一个仅训练集例子，以及未来等价所需假设。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="写 X(w′−w)=0，给出两个例子，限定各自定义域。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我给出了零见证，并在新记录上检查主张。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>训练预测相同等价于 w′−w∈N(X)，零族 w+N(X) 不改变观测。温度特征 (1,C,1.8C+32) 在合法换算域始终消去 (−32,−1.8,1)。特征 (1,x,x²) 在 x=0,1 消去 (0,−1,1)，但 x=2 不消去。未来等价要求每条新特征行与权重差点积为零。选择一个代表是额外约定，并非原观测辨识了它。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>带着问题阅读</h2></div>
+<p>使用作者 <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning 配套网站</a>中线性代数章的空间、基、线性映射选段。数值约定参见官方 <a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.matrix_rank.html" target="_blank" rel="noopener">NumPy 1.26 matrix_rank</a>。本课原创证明和例子可独立学习，阅读用于补充。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>选段与问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>时段 1 · 21 分钟</td>
+<td>空间与基：坐标描述的存在和唯一分别来自哪里？</td>
+</tr>
+<tr>
+<td>时段 4 · 20 分钟</td>
+<td>秩接口：默认阈值如何缩放，绝对容差改变什么？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索结业任务与下一步</h2></div>
+<p>不看笔记证明子空间判据，区分生成列表与基，说明维数为何定义良好。把四空间画在正确输入、输出侧，推导两种零化度。给零空间预测见证并限定未来记录主张。</p>
+<p><strong>结业任务：</strong>A=[[1,2,3],[0,1,1]] 秩二。核为 span{(−1,−1,1)}，因为 x₂=−x₃,x₁=−x₃。每个 b=(b₁,b₂) 可达，全部解为 (b₁−2b₂−t,b₂−t,t)。左零空间为零，列空间为 R²。解释全部目标可达为何不使参数唯一。</p>
+<p><strong>进入下一课：</strong>能够给完整基、维数、解族与解释边界。模块 12 发展正交投影和最小二乘，包括唯一拟合预测与多个最小化权重为何可以并存。开放状态参见<a href="index_ZH.html">课程概览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>记法与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语或记法</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>向量空间、子空间</td>
+<td>封闭线性运算、继承的小空间</td>
+<td>Vector space / subspace</td>
+</tr>
+<tr>
+<td>张成、线性无关</td>
+<td>全部组合、只有平凡零组合</td>
+<td>Span / independence</td>
+</tr>
+<tr>
+<td>基、维数</td>
+<td>独立张成列表、不变长度</td>
+<td>Basis / dimension</td>
+</tr>
+<tr>
+<td>[v]_B</td>
+<td>指定有序基的坐标</td>
+<td>Basis coordinates</td>
+</tr>
+<tr>
+<td>C(A)、R(A)</td>
+<td>列像、行张成</td>
+<td>Column / row space</td>
+</tr>
+<tr>
+<td>N(A)、N(Aᵀ)</td>
+<td>输入核、输出侧核</td>
+<td>Null / left null space</td>
+</tr>
+<tr>
+<td>秩、零化度</td>
+<td>像维数、核维数</td>
+<td>Rank / nullity</td>
+</tr>
+<tr>
+<td>可辨识性</td>
+<td>不同参数给不同指定预测</td>
+<td>Identifiability</td>
+</tr>
+<tr>
+<td>数值秩、容差</td>
+<td>可解析方向数、分辨率阈值</td>
+<td>Numerical rank / tolerance</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_10_ZH.html">← 模块 10</a><a href="module_12_ZH.html">模块 12 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

@@ -1,0 +1,501 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Information theory, entropy, and probabilistic objectives — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Prove finite information identities and KL positivity, connect prediction to likelihood and decoding, and report sequence perplexity with support and scoring units stated."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="27"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 27</button><div class="dropdown-menu" id="module-menu"><a href="module_27_EN.html" class="active" aria-current="page">Information theory, entropy, and probabilistic objectives</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="module_27_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>Information measures connect prediction with coding</span></a><a href="#s1"><span class="num">2</span><span>Surprisal log bases and decodable coding</span></a><a href="#s2"><span class="num">3</span><span>Entropy conditional entropy and chain rules</span></a><a href="#s3"><span class="num">4</span><span>Cross-entropy expected loss likelihood and code length</span></a><a href="#s4"><span class="num">5</span><span>KL divergence positivity equality and support direction</span></a><a href="#s5"><span class="num">6</span><span>Mutual information dependence and processing</span></a><a href="#s6"><span class="num">7</span><span>Sequence likelihood perplexity and a density preview</span></a><a href="#misconceptions"><span class="num">8</span><span>Common misconceptions</span></a><a href="#labs"><span class="num">9</span><span>Three reproducible labs</span></a><a href="#exercises"><span class="num">10</span><span>Fourteen exercises with full solutions</span></a><a href="#quiz"><span class="num">11</span><span>Ten-question self-check</span></a><a href="#reading"><span class="num">12</span><span>Reading with a purpose</span></a><a href="#summary"><span class="num">13</span><span>Retrieval exit task and next step</span></a><a href="#terms"><span class="num">14</span><span>Notation and bilingual terminology</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">Information theory, entropy, and probabilistic objectives</h1><p class="module-lead">Prove finite information identities and KL positivity, connect prediction to likelihood and decoding, and report sequence perplexity with support and scoring units stated.</p><div class="hero-chips"><span class="chip chip-time">10 hours</span><span class="chip">4 sessions</span><span class="chip">3 labs</span><span class="chip">12 exercises + 2 extensions</span><span class="chip">10 quiz questions</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Compute surprisal with declared log units and decodable-code assumptions.</li><li>Derive finite entropy, conditional entropy and chain rules.</li><li>Connect cross-entropy to expected log loss, likelihood and qualified code lengths.</li><li>Prove KL nonnegativity and equality with zero-support conventions.</li><li>Derive mutual information and finite data processing without causal overclaims.</li><li>Report sequence perplexity with matched token units and distinguish differential entropy.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Modules 16, 23 and 25. The optional continuous-density preview uses Module 17. Every lab is a standalone Python standard-library script.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">Information measures connect prediction with coding</a><a href="#s1">Surprisal log bases and decodable coding</a><a href="#s2">Entropy conditional entropy and chain rules</a><a href="#s3">Cross-entropy expected loss likelihood and code length</a><a href="#s4">KL divergence positivity equality and support direction</a><a href="#s5">Mutual information dependence and processing</a><a href="#s6">Sequence likelihood perplexity and a density preview</a><a href="#misconceptions">Common misconceptions</a><a href="#labs">Three reproducible labs</a><a href="#exercises">Fourteen exercises with full solutions</a><a href="#quiz">Ten-question self-check</a><a href="#reading">Reading with a purpose</a><a href="#summary">Retrieval exit task and next step</a><a href="#terms">Notation and bilingual terminology</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">10 hours</span></div><p class="plan-lead">Times include practice and are estimates. Split a session when useful. Optional extension exercises add 35 minutes. Progress is stored in this browser and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">150 min</span></div><div class="session-title">Coding entropy and conditional laws</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2 and derive coding and chain identities.</a></span><span class="act-min">90</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Complete Exercises 1–4.</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read information-measure weights and units.</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Retrieve support and conditional averaging conventions.</a></span><span class="act-min">21</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m27:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">150 min</span></div><div class="session-title">Cross-entropy and KL proofs</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Sections 3–4 and prove likelihood and divergence connections.</a></span><span class="act-min">58</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Calculate finite entropy, support mismatch and noisy-bit information.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e5">Complete proof Exercises 5–7.</a></span><span class="act-min">42</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m27:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">150 min</span></div><div class="session-title">Dependence and sequence prediction</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s5">Read Sections 5–6 and distinguish processing, tokens and density units.</a></span><span class="act-min">70</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Evaluate the fixed held-out unigram model and baseline.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Complete application Exercises 8–10.</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m27:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">150 min</span></div><div class="session-title">Support scoring and information reports</div><ul class="acts"><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Repair probability inputs, units and token comparisons.</a></span><span class="act-min">55</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e11">Complete diagnosis Exercises 11–12.</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Complete choices and write an information-loss derivation.</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read coding assumptions and the optional density preview.</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Complete the exit task and audit log-loss interpretations.</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m27:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>Information measures connect prediction with coding</h2></div>
+<p>Why does probability fitting use logarithmic loss, and what does perplexity actually measure? This module builds finite discrete entropy, conditional entropy, cross-entropy, KL divergence and mutual information from explicit probability models. It proves the relevant inequalities, connects expected loss to decodable codes and likelihood, and finishes with sequence factorisation and a carefully limited continuous preview. Every reported information quantity names its log base, alphabet and averaging unit.</p>
+<p><strong>Retrieval check:</strong> use <a href="module_16_EN.html#s1">Module 16</a> for the logarithm inequality, <a href="module_23_EN.html#s1">Module 23</a> for expectations and joint laws, and <a href="module_25_EN.html#s1">Module 25</a> for likelihood. The optional density preview uses Module 17. All labs are standalone standard-library scripts on a CPU; no external corpus or model download is needed.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>Surprisal log bases and decodable coding</h2></div>
+<p>For an outcome with probability p(x)&gt;0, its surprisal is −log_b p(x), where b&gt;1 is the declared log base. Smaller probability means larger surprisal; a certain outcome has zero surprisal. Base two measures bits and base e measures nats. For independent outcomes, probabilities multiply and surprisals add. More generally a joint probability factors into conditional probabilities, so conditional surprisals add without assuming independent outcomes. The additivity of log turns a probability product into a useful additive information or loss quantity.</p>
+<p>An impossible outcome has infinite surprisal under the model. In an expectation under p, outcomes with p(x)=0 have zero weight; define 0 log 0=0 by the limit t log t→0 as t approaches zero from above. This convention does not let us replace a positive-weight zero predicted probability by a harmless zero term. When p(x)&gt;0 but another model q(x)=0, its expected log-loss contribution is infinite. Support handling therefore belongs in both mathematical definitions and executable implementations.</p>
+<p>Changing log base rescales information. A nats value divided by log 2 becomes bits, because log₂ u=log u/log 2. A numerical loss of one has different meaning in those two units. Probability, code length and log-loss should not share an unlabeled column. When exponentiating a loss later, the exponential base must match the logarithm base; Lab 3 exposes the familiar exp(bits) mistake.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A three-symbol dyadic source has an exact prefix code</div>
+<p>For probabilities (1/2,1/4,1/4), surprisals in bits are (1,2,2). The codewords 0,10,11 have those lengths, and no word is a prefix of another. Their expected length is (1/2)·1+(1/4)·2+(1/4)·2=1.5 bits per symbol, equal to expected surprisal. A two-bit fixed-length code uses 2 bits per symbol for this alphabet, so variable lengths can improve average length while remaining decodable.</p>
+</div>
+<p>A prefix code has no codeword equal to the beginning of another. Reading to the next leaf of its binary tree gives an unambiguous next symbol, then restarts at the root. Assigning each symbol a very short word without preserving unique decoding is not a compression achievement. For example words 0,1,01 are ambiguous because the bit string 01 can mean the third symbol or the first followed by the second. A code’s average length needs a decodability contract, not just an attractive weighted average.</p>
+<p>For a finite binary prefix code with lengths ℓ_i, Kraft’s inequality is Σ2^(−ℓ_i)≤1. One proof associates each binary word with its dyadic subinterval of [0,1): a length-ℓ word identifies an interval of length 2^(−ℓ). Prefix-free words identify disjoint intervals, so their total length is at most one. This finite proof will give the expected-length entropy lower bound in Section 3. The converse existence theorem for valid integer lengths is a named coding result, with further reading linked at the end.</p>
+<p>An ideal surprisal such as −log₂(.3) is generally not an integer codeword length. It is an information quantity; rounding and a code construction are separate steps. Block coding or arithmetic-coding approaches can approach ideal average rates under stated model and decoding conditions, but we do not infer an exact real-number-length code from a fractional logarithm. Likewise entropy does not count the entire storage cost of a file: model description, headers, finite-block effects and implementation overhead also matter.</p>
+<figure class="fig" id="fig-27-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="The root zero branch reaches a; the one branch splits into zero for b and one for c. Codewords zero, one-zero, one-one are prefix-free and average one point five bits."><title>Three-symbol prefix-code tree</title><desc>The root zero branch reaches a; the one branch splits into zero for b and one for c. Codewords zero, one-zero, one-one are prefix-free and average one point five bits.</desc><defs><marker id="fig-27-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">Prefix leaf code 0,10,11</text><path d="M380,70L155,151M380,70L510,151M510,151L420,241M510,151L630,241" fill="none" stroke="#0284c7" stroke-width="3"/><text x="265" y="99" text-anchor="start" font-size="20" fill="#1a2e4a">0</text><text x="463" y="99" text-anchor="start" font-size="20" fill="#1a2e4a">1</text><text x="445" y="198" text-anchor="start" font-size="20" fill="#1a2e4a">0</text><text x="582" y="198" text-anchor="start" font-size="20" fill="#1a2e4a">1</text><circle cx="380" cy="70" r="7" fill="#0284c7"/><circle cx="510" cy="151" r="7" fill="#0284c7"/><circle cx="155" cy="151" r="7" fill="#15803d"/><text x="155" y="183" text-anchor="middle" font-size="19" fill="#1a2e4a">a: 0; p=1/2</text><circle cx="420" cy="241" r="7" fill="#15803d"/><text x="420" y="273" text-anchor="middle" font-size="19" fill="#1a2e4a">b: 10; p=1/4</text><circle cx="630" cy="241" r="7" fill="#15803d"/><text x="630" y="273" text-anchor="middle" font-size="19" fill="#1a2e4a">c: 11; p=1/4</text><text x="380" y="327" text-anchor="middle" font-size="21" fill="#1a2e4a">E[length] = .5×1 + .25×2 + .25×2 = 1.5 bits</text></g></svg></div><figcaption><span class="fig-num">Figure 27.1</span> <p>The prefix code 0,10,11 uses one or two bits according to source probabilities. Its leaf structure preserves decoding; ideal logarithmic lengths are not arbitrary free code assignments.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>What log base gives bits? Which zero-probability term can be skipped in a p-weighted expectation? Why does an average length need a decoding condition?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Base two. Skip outcomes with p=0, but a positive p and zero prediction gives infinite loss. Without unique decoding, a short bit string can represent several source sequences and does not identify the original data.</p>
+</div></details>
+<p>For a nondegenerate finite source with at least two positive-probability symbols, rounded lengths ℓ_i=ceil(−log₂ p_i) are positive integers and satisfy Σ2^(−ℓ_i)≤Σp_i=1. The stated Kraft converse supplies a prefix code with those lengths. Since each rounded length is less than its ideal length plus one, its expected length is less than H₂(p)+1; the lower bound derived later places it at least H₂(p). This brackets average coding cost rather than assigning fractional codewords. Zero-probability symbols may be excluded from the declared source support for this construction, but a prediction system that must handle previously unseen symbols needs a separate support convention. Encoding the sequence length or a termination marker can also add cost if it is not already known to the decoder. The existence theorem is named here; proving its tree construction is a useful follow-on coding exercise, while the finite Kraft necessity and expected-length lower bound are proved in this lesson.</p>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Entropy conditional entropy and chain rules</h2></div>
+<p>For a finite alphabet with probability vector p, entropy H_b(p)=−Σp_i log_b p_i is expected surprisal under that same law. It is a property of the distribution, not the surprise of one realised outcome. Each positive term is nonnegative because probabilities are at most one; entropy is zero exactly for a deterministic variable. For an alphabet of m symbols the maximum is log_b m at the uniform law, proved through KL divergence in Section 4. The bound uses declared alphabet size, while a distribution with smaller support cannot attain the full uniform maximum.</p>
+<p>For a joint law p(x,y), joint entropy averages −log p(x,y). Conditional entropy H(X|Y) averages H(X|Y=y) with weights p(y), considering only y with positive mass. It is not the entropy of one selected conditional group, nor an unweighted average over group labels. On each positive joint cell, p(x,y)=p(y)p(x|y). Taking negative logs, weighting and summing yields H(X,Y)=H(Y)+H(X|Y), the entropy chain rule. The reverse order also holds by the same argument.</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>H</mi><mo stretchy="false">(</mo><mi>X</mi><mo separator="true">,</mo><mi>Y</mi><mo stretchy="false">)</mo><mo>=</mo><mi>H</mi><mo stretchy="false">(</mo><mi>Y</mi><mo stretchy="false">)</mo><mo>+</mo><mi>H</mi><mo stretchy="false">(</mo><mi>X</mi><mo>∣</mo><mi>Y</mi><mo stretchy="false">)</mo><mo>=</mo><mi>H</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo><mo>+</mo><mi>H</mi><mo stretchy="false">(</mo><mi>Y</mi><mo>∣</mo><mi>X</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">H(X,Y)=H(Y)+H(X\mid Y)=H(X)+H(Y\mid X).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></div>
+<p>For independent finite variables the conditional law equals the marginal on positive cases, giving H(X,Y)=H(X)+H(Y). Without independence, the missing amount is mutual information, developed in Section 5. Joint entropy is not usually the sum of marginal entropies. Since discrete conditional entropy is nonnegative, H(X,Y)≥H(Y), and a deterministic function Y=f(X) has H(Y|X)=0. The chain rule then implies H(Y)≤H(X): deterministic processing cannot create new discrete uncertainty about its output.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A noisy copy has conditional uncertainty but less than an independent bit</div>
+<p>Let X be a fair bit and Y=X XOR E with independent Bernoulli(.1) flip E. The joint probabilities at (0,0),(0,1),(1,0),(1,1) are (.45,.05,.05,.45). Both marginals are fair, so each entropy is 1 bit. Given X, Y has binary uncertainty h₂(.1)≈.468996 bits. Thus H(X,Y)=1+h₂(.1)≈1.468996, below the independent sum 2. The difference .531004 becomes their mutual information.</p>
+</div>
+<p>Conditioning reduces entropy on average in finite discrete models: H(X|Y)≤H(X), with equality precisely under independence. This is proved by the mutual-information KL identity below. It does not assert that every individual group entropy is smaller than H(X). For instance Y chooses with probability .9 a deterministic-zero X group, and with probability .1 a fair-bit X group. Marginal P(X=1)=.05 gives entropy about .286397, while the fair group’s conditional entropy is 1. The weighted conditional entropy .1 is nevertheless smaller. The average and selected-case statements have different quantifiers.</p>
+<p>For a sequence, repeatedly apply the chain rule: H(X₁,…,X_T)=ΣH(X_t|X₁,…,X_(t−1)). No token independence is needed. A context model can reduce conditional uncertainty by representing dependence; a unigram model instead uses marginal probabilities. A causal ordering of prediction contexts is a probability factorisation, not automatically a scientific causal claim about interventions. Every conditional term must be evaluated on contexts with positive relevant probability, just as in Module 21’s conditional laws.</p>
+<p>The finite-alphabet setting keeps all entropies finite and makes rearrangement of sums safe. Countably infinite alphabets can have infinite entropy, so subtraction expressions such as infinity minus infinity need extra care even when a relative-information quantity can be defined directly. The labs and proofs here use finite alphabets. State this scope before carrying chain differences into an infinite vocabulary or continuous density model; the same notation can conceal different existence requirements.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Prove the finite chain rule from joint factorisation. Must every selected conditional group have lower entropy? Does sequence entropy addition require independent tokens?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Take logs of p(x,y)=p(y)p(x|y) on positive cells and average. Only the probability-weighted conditional entropy is guaranteed lower; selected groups can be more uncertain. Conditional chain terms work for dependent sequences, while a sum of marginal entropies requires independence.</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>Cross-entropy expected loss likelihood and code length</h2></div>
+<p>For a source p and prediction q on the same ordered finite alphabet, cross-entropy H_b(p,q)=−Σp_i log_b q_i averages predicted surprisal under the actual source. If q_i=0 where p_i&gt;0, it is infinite. A zero p_i contributes zero even if q_i is zero there. Checking matching alphabet semantics is essential: swapping labels in one vector changes the quantity even though each vector still sums to one. Normalisation, nonnegativity and finite numerical input are model checks, not optional formatting.</p>
+<p>Cross-entropy differs from H(q). The former weights predictions by p, whereas the latter uses q as both source and prediction. A model can have very low own entropy by confidently choosing one outcome and still have enormous cross-entropy under a different source. Confidence is therefore not predictive correctness. Similarly a uniform q on m symbols gives cross-entropy log_b m for every p, even though the source entropy changes with p. This provides a useful fixed baseline with an explicit alphabet size.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Predicting the wrong categorical frequencies adds log loss</div>
+<p>For p=(.5,.3,.2) and q=(.25,.5,.25), H₂(p)≈1.485475 bits, while H₂(p,q)=.5·2+.3·1+.2·2=1.7 bits. The excess is about .214525 bits. Using q’s own weights instead would calculate H₂(q)=1.5, a different quantity. Lab 1 also evaluates the reverse mismatch and shows that its excess is not generally the same.</p>
+</div>
+<p>For IID categorical observations x₁,…,x_n from a specified q family, negative log-likelihood is −Σlog q(x_i). If empirical frequencies are p_hat_i=c_i/n, the mean loss equals −Σp_hat_i log q_i=H(p_hat,q). Thus empirical cross-entropy is the average categorical negative log-likelihood. Its expectation under IID source p is H(p,q) for a fixed q, provided the support makes loss finite. A q fitted to those same observations is data-dependent; its training loss is not automatically an unbiased estimate of its future population loss.</p>
+<p>For unconstrained categorical MLE, q_i=p_hat_i maximises the multinomial likelihood, including zero counts as boundary values. Its apparent training optimum can assign zero probability to unseen categories and produce infinite held-out loss if those categories later occur. Additive smoothing such as q_i=(c_i+a)/(n+ma), a&gt;0, gives positive support on a fixed alphabet. This can be interpreted through an appropriate Dirichlet model, beyond the two-category beta update, or simply stated as a specified smoothing rule. It changes the estimator and should be chosen without using held-out labels.</p>
+<p>The code-length connection needs precision. If a complete dyadic model q_i=2^(−ℓ_i) describes integer code lengths of a binary prefix code, its expected source length is exactly H₂(p,q). A generic q does not itself specify integer codewords; ceiling lengths give a coding construction with rounding overhead. Conversely for any finite binary prefix code, let Z=Σ2^(−ℓ_i)≤1 and r_i=2^(−ℓ_i)/Z. Then ℓ_i=−log₂ r_i−log₂ Z, so expected length is H₂(p,r)−log₂ Z. Section 4’s KL bound makes this at least H₂(p), proving the entropy lower bound with its decoding assumption.</p>
+<p>The coding bound is average under the stated source, not a claim that every message uses at least its surprisal or that no individual message compresses exceptionally well. A mismatch p versus q adds average log loss; model overhead and finite-block coding cost remain separate. In prediction, a finite held-out token list estimates its own empirical mean log loss; it does not prove the source’s population entropy or the model’s quality along every dimension. The tiny language-model lab intentionally reports a smoothed frequency model worse than uniform on its fixed test tokens, so fitted training frequencies do not acquire an automatic held-out advantage.</p>
+<figure class="fig" id="fig-27-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="Source probabilities point five, point three, point two weight prediction surprisal two, one, two; cross-entropy one point seven bits splits into source entropy and forward divergence."><title>Cross-entropy and directional mismatch</title><desc>Source probabilities point five, point three, point two weight prediction surprisal two, one, two; cross-entropy one point seven bits splits into source entropy and forward divergence.</desc><defs><marker id="fig-27-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">Source weights multiply predicted surprisal</text><text x="85" y="78" text-anchor="middle" font-size="19" fill="#1a2e4a">Category</text><text x="230" y="78" text-anchor="middle" font-size="19" fill="#1a2e4a">p</text><text x="375" y="78" text-anchor="middle" font-size="19" fill="#1a2e4a">q</text><text x="520" y="78" text-anchor="middle" font-size="19" fill="#1a2e4a">−log₂q</text><text x="665" y="78" text-anchor="middle" font-size="19" fill="#1a2e4a">p(−log₂q)</text><rect x="25" y="98" width="710" height="43" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="85" y="127" text-anchor="middle" font-size="21" fill="#1a2e4a">a</text><text x="230" y="127" text-anchor="middle" font-size="21" fill="#1a2e4a">.5</text><text x="375" y="127" text-anchor="middle" font-size="21" fill="#1a2e4a">.25</text><text x="520" y="127" text-anchor="middle" font-size="21" fill="#1a2e4a">2</text><text x="665" y="127" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><rect x="25" y="149" width="710" height="43" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="85" y="178" text-anchor="middle" font-size="21" fill="#1a2e4a">b</text><text x="230" y="178" text-anchor="middle" font-size="21" fill="#1a2e4a">.3</text><text x="375" y="178" text-anchor="middle" font-size="21" fill="#1a2e4a">.5</text><text x="520" y="178" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><text x="665" y="178" text-anchor="middle" font-size="21" fill="#1a2e4a">.3</text><rect x="25" y="200" width="710" height="43" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="85" y="229" text-anchor="middle" font-size="21" fill="#1a2e4a">c</text><text x="230" y="229" text-anchor="middle" font-size="21" fill="#1a2e4a">.2</text><text x="375" y="229" text-anchor="middle" font-size="21" fill="#1a2e4a">.25</text><text x="520" y="229" text-anchor="middle" font-size="21" fill="#1a2e4a">2</text><text x="665" y="229" text-anchor="middle" font-size="21" fill="#1a2e4a">.4</text><text x="380" y="292" text-anchor="middle" font-size="21" fill="#1a2e4a">H₂(p,q) = 1.7 = H₂(p) + D₂(p||q)</text><text x="380" y="331" text-anchor="middle" font-size="21" fill="#1a2e4a">1.7 = 1.485475 + .214525 bits</text></g></svg></div><figcaption><span class="fig-num">Figure 27.2</span> <p>Cross-entropy uses source weights p with prediction lengths −log q. It equals source entropy plus a directional mismatch cost, not the model’s own entropy.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Which weights define H(p,q)? How does it arise from categorical likelihood? Does an arbitrary real surprisal define an exact integer prefix-code length?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Use source p. Group the summed negative log-likelihood by category and divide by n. Real surprisals need a code construction and possible rounding/block overhead; exact equality holds only under the specified code/model conditions.</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>KL divergence positivity equality and support direction</h2></div>
+<p>For finite probability vectors p,q, define D_b(p||q)=Σ_{p_i&gt;0}p_i log_b(p_i/q_i), with value infinity if any required q_i is zero. A zero p_i contributes zero. When support is compatible, subtract and regroup finite sums to get H_b(p,q)=H_b(p)+D_b(p||q). This identity identifies excess expected log loss and keeps the direction visible: p is the source whose outcomes receive weight. It is not a symmetric distance formula.</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>D</mi><mo stretchy="false">(</mo><mi>p</mi><mi mathvariant="normal">∥</mi><mi>q</mi><mo stretchy="false">)</mo><mo>=</mo><munder><mo>∑</mo><mrow><mi>i</mi><mo>:</mo><msub><mi>p</mi><mi>i</mi></msub><mo>&gt;</mo><mn>0</mn></mrow></munder><msub><mi>p</mi><mi>i</mi></msub><mi>log</mi><mo>⁡</mo><mfrac><msub><mi>p</mi><mi>i</mi></msub><msub><mi>q</mi><mi>i</mi></msub></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>H</mi><mo stretchy="false">(</mo><mi>p</mi><mo separator="true">,</mo><mi>q</mi><mo stretchy="false">)</mo><mo>=</mo><mi>H</mi><mo stretchy="false">(</mo><mi>p</mi><mo stretchy="false">)</mo><mo>+</mo><mi>D</mi><mo stretchy="false">(</mo><mi>p</mi><mi mathvariant="normal">∥</mi><mi>q</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">D(p\Vert q)=\sum_{i:p_i&gt;0}p_i\log\frac{p_i}{q_i},\qquad H(p,q)=H(p)+D(p\Vert q).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mord">∥</span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.5213em;vertical-align:-1.4138em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">:</span><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3281em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="katex-sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mrel mtight">&gt;</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4138em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mord">∥</span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></div>
+<p>Prove nonnegativity using the natural-log inequality −log u≥1−u for u&gt;0. Its difference g(u)=−log u−1+u has derivative 1−1/u, decreases below one, increases above one, and equals zero only at one. For q positive on the support S of p, apply it to u=q_i/p_i, multiply by p_i and sum: D(p||q)≥Σ_S(p_i−q_i)=1−Σ_S q_i≥0. Other bases divide by positive log b. If a required q_i is zero, infinite divergence is also nonnegative.</p>
+<p>Equality requires q_i/p_i=1 on every positive p_i and no q mass outside that support. Since p sums to one, equality on support already uses all q mass, so globally p=q. This completes the zero-handling part often lost in a proof that silently assumes every probability is positive. Taking q uniform on m declared symbols gives D(p||q)=log_b m−H_b(p), hence H_b(p)≤log_b m with equality only for that uniform p. This also proves cross-entropy is minimised at the true source among all finite-alphabet predictions.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Support mismatch can be finite in one direction and infinite in reverse</div>
+<p>Let p=(1,0) and q=(1/2,1/2). D₂(p||q)=log₂2=1 bit because only the first source outcome has weight. D₂(q||p)=infinity because q sometimes produces the second outcome where p predicts zero. Even compatible positive vectors give unequal directions: the lab’s (.5,.3,.2) and (.25,.5,.25) have divergences about .214525 and .198965 bits. Both facts disprove symmetry.</p>
+</div>
+<p>KL also does not satisfy all metric axioms. It is nonnegative and vanishes at equal laws, but lacks symmetry and in general the triangle inequality. For example Bernoulli rates .1,.5,.9 have D₂(.1||.9)≈2.53594 bits, while D₂(.1||.5)+D₂(.5||.9)≈1.26797 bits, so a triangle inequality fails. A square-root or symmetrised alternative requires its own definition and properties; calling an arbitrary symmetrisation a metric without proof is not justified.</p>
+<p>The direction matters in fitting. Minimising D(p||q_θ) over a model family is equivalent to minimising source cross-entropy because H(p) is fixed. Reversing to D(q_θ||p) changes both the weighting and objective, and can be unavailable when p is an unknown data distribution. In a restricted family the minimum may be positive; KL nonnegativity does not guarantee that the family contains p or that an optimiser finds its best member. Model fit, numerical optimisation and the loss’s mathematical lower bound are separate claims.</p>
+<p>Numerically near-equal distributions can produce a tiny negative calculated divergence from rounding even though the theorem says it is nonnegative. Validate probabilities and support first, compute stable logs and sum carefully, and interpret a scale-appropriate rounding discrepancy. Do not silently clamp a large negative value that reveals invalid inputs or a wrong formula. The lab uses finite vectors and exact zero conventions; a floating-point tolerance is disclosed in the normalisation check. All-zero weights cannot be normalised into a probability law.</p>
+<div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" data-widget="information"></div><div class="widget-caption">
+</div></div>
+<p>The explorer explicitly normalises nonnegative category weights into p and q, then reports entropy, both cross-entropies and both KL directions in the selected log unit. A positive source weight against a zero prediction gives a visible infinity message. Matching q to p makes divergence zero; a zero-weight category in both is harmless. The bars depict probabilities, not codeword lengths, and the displayed ideal lengths remain informational quantities unless a decoding scheme is specified.</p>
+<p>Replacing a zero prediction by a small epsilon changes the model and its loss. It can be a disclosed smoothing rule followed by renormalisation, but it cannot be presented as the original distribution’s exact divergence. Keep mathematical infinity and numerical log-domain stability separate.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Which inequality proves nonnegativity? What does equality require when zeros occur? Why does reversing KL change a fitting objective?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Use −log u≥1−u and account for q mass outside p’s support. Equality requires the complete laws to agree. Reversal changes which distribution weights the logs and can demand unknown source probabilities at model-generated outcomes.</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>Mutual information dependence and processing</h2></div>
+<p>Mutual information is I(X;Y)=D(p_XY||p_Xp_Y) for a finite joint law. Any positive joint cell has positive marginals, so its denominator is positive. Expand the log ratio into joint and marginal pieces to obtain I=H(X)+H(Y)−H(X,Y)=H(X)−H(X|Y)=H(Y)−H(Y|X). Nonnegativity follows from the proved KL inequality; equality holds precisely when the joint factors into independent marginals. Mutual information is symmetric even though general KL is directional, because this particular joint-versus-product expression treats X and Y symmetrically.</p>
+<p>The entropy identities prove H(X|Y)≤H(X) on average, and I≤min(H(X),H(Y)) because discrete conditional entropies are nonnegative. A deterministic relation Y=f(X) gives I(X;Y)=H(Y), not necessarily H(X): a many-to-one function can discard information. Invertible relabelling preserves information. The quantities describe statistical dependence under a law; they do not identify causal direction. A common source can induce large mutual information without one measured variable causing the other.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">An independent noisy channel loses information about its input</div>
+<p>The fair-bit noisy copy with independent flip .1 has I(X;Y)=1−h₂(.1)≈.531004 bits. Now replace Y by an independent fair bit Z, ignoring Y entirely. Then X and Z are independent and I(X;Z)=0. At flip probability zero the copy carries one bit; at flip .5 it carries none. Random noise may increase the output’s entropy in other models while decreasing information about the input, so output entropy alone is not a preservation measure.</p>
+</div>
+<p>Conditional mutual information is the p(z)-weighted KL between p(x,y|z) and p(x|z)p(y|z), summed over positive z. Each term is nonnegative. Entropy expansions give the chain identity I(X;Y,Z)=I(X;Y)+I(X;Z|Y). In a finite Markov relation X→Y→Z, meaning X and Z are conditionally independent given Y, I(X;Z|Y)=0. Thus I(X;Y,Z)=I(X;Y). Expanding in the other order gives I(X;Y,Z)=I(X;Z)+I(X;Y|Z)≥I(X;Z). We have proved the finite data-processing inequality I(X;Z)≤I(X;Y) with its conditional-independence assumption.</p>
+<p>The theorem includes deterministic Z=f(Y), and more generally a stochastic channel whose conditional law depends on Y rather than extra access to X. It does not say adding a new sensor with independent information about X cannot help; that violates the stated processing chain. Nor does it say every output entropy must decrease: a stochastic processor can add fresh noise. Distinguish information about X from randomness in Z, and state the input whose information is being compared.</p>
+<p>Mutual information is also different from linear covariance. Zero covariance can coexist with nonlinear dependence as Module 23 showed. For a finite version, let X take −1,0,1 equally and Y=X². Then Cov(X,Y)=0 by symmetry, while Y is a nonconstant deterministic function of X, so I(X;Y)=H(Y)&gt;0. Estimating information from sparse data involves its own statistical bias and support issues; empirical contingency tables are not automatically accurate population laws. Discretising continuous data changes the observable variables and the measured information.</p>
+<figure class="fig" id="fig-27-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="Input X passes through Y to Z, with X and Z conditionally independent given Y; information X-Z does not exceed X-Y, without asserting every output entropy decreases."><title>Finite data-processing relation</title><desc>Input X passes through Y to Z, with X and Z conditionally independent given Y; information X-Z does not exceed X-Y, without asserting every output entropy decreases.</desc><defs><marker id="fig-27-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">State the processing-chain condition</text><rect x="30" y="85" width="210" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="135" y="141" text-anchor="middle" font-size="30" fill="#1a2e4a">X</text><rect x="275" y="85" width="210" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="141" text-anchor="middle" font-size="30" fill="#1a2e4a">Y</text><rect x="520" y="85" width="210" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="625" y="141" text-anchor="middle" font-size="30" fill="#1a2e4a">Z</text><path d="M245,130L265,130" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-27-3__arrow)"/><path d="M490,130L510,130" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-27-3__arrow)"/><text x="380" y="220" text-anchor="middle" font-size="21" fill="#1a2e4a">X and Z are conditionally independent given Y.</text><text x="380" y="266" text-anchor="middle" font-size="25" fill="#1a2e4a">I(X;Z) ≤ I(X;Y)</text><text x="380" y="319" text-anchor="middle" font-size="18" fill="#1a2e4a">Fresh noise can increase H(Z) without increasing information about X.</text></g></svg></div><figcaption><span class="fig-num">Figure 27.3</span> <p>A finite processing chain has conditional independence between input and final output given the intermediate state. Mutual information cannot increase along that chain, even when fresh noise increases output entropy.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why is mutual information zero exactly at independence? Does data processing assert that random output entropy always decreases? Can zero covariance establish zero mutual information?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>KL equality means the joint equals its marginal product. Processing constrains information about the original input; added noise can increase output randomness. Nonlinear dependent variables can have zero covariance and positive information.</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>Sequence likelihood perplexity and a density preview</h2></div>
+<p>For a finite sequence x₁,…,x_T under model q, the probability chain rule gives q(x₁:T)=∏q(x_t|x_&lt;t), with a start-context convention and positive prefixes where conditionals are used. Total negative log-likelihood is the sum of conditional token losses. Independence is unnecessary; an independent unigram model is a restrictive special case. For variable-length generative sequences a termination probability must also be defined for a normalised law over all finite strings. Omitting end tokens can instead define a conditional or partial evaluation score, which should be described that way.</p>
+<p>Mean nats per scored token is L=−(1/T)Σlog q(x_t|x_&lt;t); perplexity is exp L. In bits it is 2^L_bits. Equivalently it is the reciprocal of the geometric mean assigned token probability. It need not be an integer and is not literally the number of candidates the model considered. With a uniform model over m tokens, per-token cross-entropy log m yields perplexity m, providing a useful special-case intuition rather than a universal interpretation.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Changing the token unit changes perplexity without changing string probability</div>
+<p>Suppose two artificial joint models assign the same raw string probability 1/16. Scoring it as two tokens gives mean nats log16/2=log4 and perplexity 4. Scoring it as four tokens gives mean nats log16/4=log2 and perplexity 2. The lower per-token value is entirely a denominator change here, not better raw-string probability. Comparing model perplexities requires matching tokenisation, scoring convention, data, context and probability semantics.</p>
+</div>
+<p>When aggregating unequal-length sequences, token-level corpus mean loss divides total scored loss by total scored tokens. Averaging sequence means instead weights every sequence equally and answers a different question. Include or exclude padding, prompt tokens, start/end tokens and masked positions according to a specified protocol. A model evaluation cannot quietly use a different token denominator from the advertised one. Sequence dependence also means token losses need not supply independent samples for a standard error; use suitable independent sequence or subject units if claiming statistical uncertainty.</p>
+<p>Perplexity measures predictive log-loss under the chosen evaluation distribution. It does not by itself measure truthfulness, usefulness, fairness, reasoning success or every compression overhead. Low average loss can coexist with rare serious failures, and changing the test distribution changes the target. Held-out evaluation and selection rules from Module 26 still apply. A value of infinity from an unsupported required token is a model-support problem, while numerical overflow from exponentiating a huge finite loss is a representation problem; reporting log loss remains meaningful in the latter case.</p>
+<p><strong>Optional continuous preview:</strong> for a density f, differential entropy h(X)=−∫f(x)log f(x)dx when the integral is well defined. It is not discrete entropy on exact real points, whose probability is zero. Uniform(0,a) has density 1/a and differential entropy log a. At a=.25 this is negative in nats because density height 4 exceeds one. Changing units by Y=cX, c≠0, yields h(Y)=h(X)+log|c| when the transformation and integrability conditions hold. Thus nonnegativity and unit invariance of finite discrete entropy cannot be copied to differential entropy.</p>
+<p>In a fine equal-width discretisation with bin width Δ and sufficient regularity, a useful approximation is H(discretised X)≈h(X)−log Δ; it records the resolution cost. This is a qualified approximation, not an identity for arbitrary mixed distributions or infinite-entropy densities. Continuous KL compares two densities with the same reference measure and has additional support/integrability conditions; a coordinate Jacobian cancels in its ratio when both laws transform consistently. Full continuous information theory is follow-on material rather than an assumption hidden in the finite proofs above.</p>
+<figure class="fig" id="fig-27-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="The same raw-string probability one-sixteenth gives perplexity four when scored as two tokens and two when scored as four; string probability has not improved."><title>Perplexity denominator and units</title><desc>The same raw-string probability one-sixteenth gives perplexity four when scored as two tokens and two when scored as four; string probability has not improved.</desc><defs><marker id="fig-27-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">Same string probability, different averaging units</text><text x="380" y="74" text-anchor="middle" font-size="22" fill="#1a2e4a">q(raw string)=1/16; total NLL=log16</text><rect x="30" y="104" width="700" height="68" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="144" text-anchor="start" font-size="21" fill="#1a2e4a">2 scored tokens</text><text x="700" y="144" text-anchor="end" font-size="21" fill="#1a2e4a">mean=log4; perplexity=4</text><rect x="30" y="190" width="700" height="68" rx="10" fill="#faf5ff" stroke="#0ea5e9"/><text x="55" y="230" text-anchor="start" font-size="21" fill="#1a2e4a">4 scored tokens</text><text x="700" y="230" text-anchor="end" font-size="21" fill="#1a2e4a">mean=log2; perplexity=2</text><text x="380" y="311" text-anchor="middle" font-size="19" fill="#1a2e4a">Match tokenisation, base, positions and context before comparing.</text></g></svg></div><figcaption><span class="fig-num">Figure 27.4</span> <p>Perplexity uses the declared log base and scored-token denominator. A continuous density’s entropy additionally depends on coordinate scale and is allowed to be negative.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does sequence factorisation require independence? Which denominator defines corpus token perplexity? Why can differential entropy be negative?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Conditional chain probabilities represent dependent sequences. Use total scored-token count for the token-weighted corpus metric. Density height can exceed one and coordinate scaling changes differential entropy; it is not an exact-point probability entropy.</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>Common misconceptions</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Repair</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One bit and one nat are interchangeable numbers.</td>
+<td>Convert by log 2 and match the exponent base.</td>
+</tr>
+<tr>
+<td>Every zero probability is a harmless zero term.</td>
+<td>Positive source weight against zero prediction gives infinite loss.</td>
+</tr>
+<tr>
+<td>Cross-entropy uses q as its averaging weights.</td>
+<td>H(p,q) averages under p.</td>
+</tr>
+<tr>
+<td>KL is a symmetric metric.</td>
+<td>Direction, support and triangle failures matter.</td>
+</tr>
+<tr>
+<td>Every selected conditional entropy must decrease.</td>
+<td>The inequality concerns the probability-weighted average.</td>
+</tr>
+<tr>
+<td>Mutual information establishes causal direction.</td>
+<td>It describes joint dependence.</td>
+</tr>
+<tr>
+<td>Random processing always decreases output entropy.</td>
+<td>It decreases information about the input under the Markov condition.</td>
+</tr>
+<tr>
+<td>Token perplexities compare across arbitrary tokenisations.</td>
+<td>The scored units and probability conventions must agree.</td>
+</tr>
+<tr>
+<td>Differential entropy is always nonnegative.</td>
+<td>Density units and support width change it.</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>Three reproducible labs</h2></div>
+<h3 id="lab1">Lab 1 · Entropy directional KL and information</h3>
+<p><a href="labs/module_27/lab1_entropy_kl_and_information.py" download>Download lab1_entropy_kl_and_information.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Finite information measures in bits, with explicit support conventions.&quot;&quot;&quot;
+import math
+
+
+def validate(p):
+    if not p or any(not math.isfinite(x) or x &lt; 0 for x in p) or not math.isclose(math.fsum(p), 1., abs_tol=1e-12, rel_tol=0.):
+        raise ValueError(&quot;probabilities must be finite, nonnegative, and sum to one&quot;)
+
+
+def entropy(p):
+    validate(p)
+    return -math.fsum(x*math.log2(x) for x in p if x &gt; 0)
+
+
+def cross_entropy(p, q):
+    validate(p)
+    validate(q)
+    if len(p) != len(q):
+        raise ValueError(&quot;same ordered alphabet required&quot;)
+    if any(x &gt; 0 and y == 0 for x, y in zip(p, q)):
+        return math.inf
+    return -math.fsum(x*math.log2(y) for x, y in zip(p, q) if x &gt; 0)
+
+
+def kl(p, q):
+    return cross_entropy(p, q)-entropy(p)
+
+
+if __name__ == &quot;__main__&quot;:
+    p, q = [.5, .3, .2], [.25, .5, .25]
+    print(f&quot;p={p}; q={q}; same ordered alphabet; units=bits&quot;)
+    print(f&quot;H(p)={entropy(p):.6f}; H(p,q)={cross_entropy(p,q):.6f}; KL(p||q)={kl(p,q):.6f}; KL(q||p)={kl(q,p):.6f}&quot;)
+    assert abs(cross_entropy(p,q)-entropy(p)-kl(p,q)) &lt; 1e-12
+    print(f&quot;KL([1,0]||[.5,.5])={kl([1.,0.],[.5,.5]):.6f}; reverse={kl([.5,.5],[1.,0.])}&quot;)
+    joint = [.45, .05, .05, .45]
+    independent = [.25]*4
+    mi = kl(joint, independent)
+    print(f&quot;Fair binary input, independent flip probability.1: MI={mi:.6f}; H(Y|X)={entropy([.1,.9]):.6f}&quot;)
+    print(f&quot;H(X,Y)={entropy(joint):.6f}; H(X)+H(Y)-H(X,Y)={2-entropy(joint):.6f}&quot;)
+    assert abs(mi-(1-entropy([.1,.9]))) &lt; 1e-12
+    code_p, lengths = [.5,.25,.25], [1,2,2]
+    expected = math.fsum(x*l for x,l in zip(code_p,lengths))
+    print(f&quot;Prefix code0/10/11: expected length={expected:.6f}; entropy={entropy(code_p):.6f}&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>p=[0.5, 0.3, 0.2]; q=[0.25, 0.5, 0.25]; same ordered alphabet; units=bits
+H(p)=1.485475; H(p,q)=1.700000; KL(p||q)=0.214525; KL(q||p)=0.198965
+KL([1,0]||[.5,.5])=1.000000; reverse=inf
+Fair binary input, independent flip probability.1: MI=0.531004; H(Y|X)=0.468996
+H(X,Y)=1.468996; H(X)+H(Y)-H(X,Y)=0.531004
+Prefix code0/10/11: expected length=1.500000; entropy=1.500000
+</code></pre></div>
+<p>Predict the support-infinite direction and prove the entropy/cross-entropy identities. Explain the prefix-code equality and the noisy bit’s conditional entropy.</p>
+<h3 id="lab2">Lab 2 · A tiny held-out frequency model</h3>
+<p><a href="labs/module_27/lab2_frequency_language_model.py" download>Download lab2_frequency_language_model.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A tiny categorical unigram model evaluated on a fixed held-out token list.&quot;&quot;&quot;
+import collections
+import math
+
+
+if __name__ == &quot;__main__&quot;:
+    alphabet = (&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)
+    training = list(&quot;aaaaaabbbc&quot;)
+    test = list(&quot;abcac&quot;)
+    counts = collections.Counter(training)
+    # Alphabet and additive smoothing are specified before examining test tokens.
+    alpha = 1.
+    models = {&quot;uniform&quot;: {t:1/3 for t in alphabet},
+              &quot;training-only smoothed unigram&quot;: {t:(counts[t]+alpha)/(len(training)+alpha*len(alphabet)) for t in alphabet}}
+    print(f&quot;Fixed alphabet={alphabet}; training counts={dict(counts)}; test tokens={test}; smoothing alpha=1&quot;)
+    for name, model in models.items():
+        losses = [-math.log(model[t]) for t in test]
+        nll = math.fsum(losses)
+        average = nll/len(test)
+        bits = average/math.log(2)
+        print(f&quot;{name}: probabilities={[round(model[t],6) for t in alphabet]}&quot;)
+        print(f&quot;  held-out total NLL={nll:.6f}, mean nats/token={average:.6f}, bits/token={bits:.6f}, perplexity={math.exp(average):.6f}&quot;)
+    print(&quot;This fixed unigram approximation ignores order and context. Its poor held-out result cannot be repaired by fitting test counts.&quot;)
+    sequence_probability = .5*.8*.6
+    print(f&quot;Conditional sequence example: .5*.8*.6={sequence_probability:.6f}; chain NLL={-math.log(sequence_probability):.6f}&quot;)
+    print(&quot;The chain factorisation uses conditional probabilities; it does not require independent tokens.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Fixed alphabet=('a', 'b', 'c'); training counts={'a': 6, 'b': 3, 'c': 1}; test tokens=['a', 'b', 'c', 'a', 'c']; smoothing alpha=1
+uniform: probabilities=[0.333333, 0.333333, 0.333333]
+  held-out total NLL=5.493061, mean nats/token=1.098612, bits/token=1.584963, perplexity=3.000000
+training-only smoothed unigram: probabilities=[0.538462, 0.307692, 0.153846]
+  held-out total NLL=6.160338, mean nats/token=1.232068, bits/token=1.777498, perplexity=3.428310
+This fixed unigram approximation ignores order and context. Its poor held-out result cannot be repaired by fitting test counts.
+Conditional sequence example: .5*.8*.6=0.240000; chain NLL=1.427116
+The chain factorisation uses conditional probabilities; it does not require independent tokens.
+</code></pre></div>
+<p>Keep alphabet and smoothing fixed before test evaluation. Derive the unigram probabilities and explain why training frequencies need not beat uniform on this held-out sequence.</p>
+<h3 id="lab3">Lab 3 · Units support and scoring repairs</h3>
+<p><a href="labs/module_27/lab3_units_support_and_tokenisation.py" download>Download lab3_units_support_and_tokenisation.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Challenge units, invalid PMFs, zero support, and per-token comparisons.&quot;&quot;&quot;
+import math
+def validate(p):
+    if not p or any(not math.isfinite(x) or x &lt; 0 for x in p) or not math.isclose(math.fsum(p), 1., abs_tol=1e-12, rel_tol=0.):
+        raise ValueError(&quot;probabilities must be finite, nonnegative, and sum to one&quot;)
+
+
+def cross_entropy(p, q):
+    validate(p)
+    validate(q)
+    if len(p) != len(q):
+        raise ValueError(&quot;same ordered alphabet required&quot;)
+    if any(x &gt; 0 and y == 0 for x, y in zip(p, q)):
+        return math.inf
+    return -math.fsum(x*math.log2(y) for x, y in zip(p, q) if x &gt; 0)
+
+
+if __name__ == &quot;__main__&quot;:
+    for bad in ([.8,.4], [-.1,1.1], [math.nan,1.], [0.,0.]):
+        try:
+            validate(bad)
+        except ValueError:
+            print(f&quot;Rejected invalid probability list: {bad}&quot;)
+    bits = 1.
+    print(f&quot;One bit loss: wrong exp(bits)={math.exp(bits):.6f}; correct 2**bits={2**bits:.6f}&quot;)
+    print(f&quot;Nats conversion={bits*math.log(2):.6f}; exp(nats)={math.exp(bits*math.log(2)):.6f}&quot;)
+    print(f&quot;Required support missing: cross-entropy([.5,.5],[1,0])={cross_entropy([.5,.5],[1.,0.])}&quot;)
+    # Artificial joint models assign the same probability to the same raw string.
+    probability = 1/16
+    nll = -math.log(probability)
+    for tokens in (2,4):
+        ppl = math.exp(nll/tokens)
+        print(f&quot;Same raw-string probability1/16, {tokens} scored tokens: mean nats={nll/tokens:.6f}, perplexity={ppl:.6f}&quot;)
+    print(&quot;A smaller token perplexity here reflects a different unit count, not a better raw-string probability.&quot;)
+    p = .25
+    print(f&quot;Density preview: Uniform(0,.25) density=4, differential entropy nats={math.log(p):.6f}; exact-point probability=0&quot;)
+    print(&quot;Differential entropy can be negative and changes with coordinate units; discrete entropy's nonnegativity does not transfer.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Rejected invalid probability list: [0.8, 0.4]
+Rejected invalid probability list: [-0.1, 1.1]
+Rejected invalid probability list: [nan, 1.0]
+Rejected invalid probability list: [0.0, 0.0]
+One bit loss: wrong exp(bits)=2.718282; correct 2**bits=2.000000
+Nats conversion=0.693147; exp(nats)=2.000000
+Required support missing: cross-entropy([.5,.5],[1,0])=inf
+Same raw-string probability1/16, 2 scored tokens: mean nats=1.386294, perplexity=4.000000
+Same raw-string probability1/16, 4 scored tokens: mean nats=0.693147, perplexity=2.000000
+A smaller token perplexity here reflects a different unit count, not a better raw-string probability.
+Density preview: Uniform(0,.25) density=4, differential entropy nats=-1.386294; exact-point probability=0
+Differential entropy can be negative and changes with coordinate units; discrete entropy's nonnegativity does not transfer.
+</code></pre></div>
+<p>Reject invalid probability lists, repair the bit/nat exponent mismatch and explain identical raw-string probability with different perplexities. The density preview requires Module 17.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Fourteen exercises with full solutions</h2></div>
+<p>Exercises 1–12 are required. Optional Exercises 13–14 add 35 minutes beyond the ten-hour schedule; the continuous alternative requires Module 17.</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>Compute fair-bit entropy and Bernoulli(.1) entropy in bits, then convert the latter to nats.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Fair entropy 1 bit. Binary entropy −.1log₂.1−.9log₂.9≈.468996 bits, times log2≈.325083 nats. The bases change units, not the underlying law.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>For p=(.5,.3,.2), q=(.25,.5,.25), compute H₂(p,q) and D₂(p||q).</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Cross-entropy .5·2+.3·1+.2·2=1.7. Source entropy≈1.485475, so divergence≈.214525 bits. q’s own entropy is a different weighted calculation.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>Compare both KL directions for p=(1,0), q=(.5,.5).</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>D₂(p||q)=1 bit, while D₂(q||p)=infinity because a positive q source mass encounters zero prediction. A zero source weight is skipped; a required zero prediction is not.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>Convert mean loss one bit to perplexity. For a string of probability 1/16, give two-token and four-token perplexities.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>One bit gives 2, equivalently exp(log2). The two denominators give 4 and 2, despite identical raw-string probability. exp(1) is wrong for a one-bit loss.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove finite KL nonnegativity and equality, including zero probabilities, then derive the maximum-entropy bound.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>A required q zero gives infinity. Otherwise apply −log(q_i/p_i)≥1−q_i/p_i on positive-p support and sum to get D≥1−Σ_support q_i≥0. Equality requires matching positive masses and no extra mass, so p=q. Uniform q gives D=log_b m−H_b(p), proving H≤log_b m with equality at uniform.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Derive the entropy chain rule and the joint/product KL expression for mutual information.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>On positive cells log p(x,y)=log p(y)+log p(x|y). Weighted summation gives H(X,Y)=H(Y)+H(X|Y). Expanding log[p(x,y)/(p(x)p(y))] gives I=H(X)+H(Y)−H(X,Y). KL positivity and equality show nonnegative information and zero exactly at independence.</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Derive empirical categorical cross-entropy from IID likelihood, and prove the finite binary prefix-code expected-length lower bound.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Group −Σlog q(x_i) by category counts and divide by n to get H(p_hat,q). For prefix lengths, Kraft gives Z=Σ2^(−ℓ_i)≤1. Define r_i=2^(−ℓ_i)/Z; expected length=H₂(p,r)−log₂Z≥H₂(p). The decoding condition and compatible positive code masses support the bound.</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>For the fair input with independent flip .1, calculate both marginals, joint entropy, conditional entropy and information.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Joint (.45,.05,.05,.45); marginals each fair. H(Y|X)=h₂(.1)≈.468996, H(X,Y)≈1.468996, I≈.531004 bits. The independent flip is part of the model, not inferred from a few observations.</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">Exercise 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>For training counts (6,3,1), fixed three-symbol alphabet and additive smoothing one, derive q and explain the held-out score protocol.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>q=(7,4,2)/13, positive and normalised. Evaluate test token log probabilities without changing counts or smoothing from test labels. On fixed test abcac the model has mean loss≈1.232068 nats/token and perplexity≈3.428310, worse than uniform 3; this finite result does not establish a population ordering.</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">Exercise 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>X is uniform on −1,0,1 and Y=X². Calculate covariance and mutual information, and explain their different diagnoses.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>EX=0, EXY=EX³=0, hence Cov=0. Y has probabilities (1/3,2/3) at 0,1, and is determined by X, so I(X;Y)=H₂(Y)≈.918296 bits. Zero linear covariance does not imply independence or zero information.</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">Exercise 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 min</span></div>
+<p>A report uses q weights for H(p,q), replaces required zero predictions by zero loss, and calls KL symmetric. Repair it.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Average −log q under source p. If p_i&gt;0 and q_i=0, contribution is infinite; only zero-p terms can be skipped. KL direction changes weighting/support, as the finite/infinite example proves. Validate matching labels and normalisation before computing.</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">Exercise 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 min</span></div>
+<p>A corpus averages each sentence’s mean loss equally, omits its token convention, and compares perplexity against a different tokenizer. Repair the claimed token metric.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Sum scored losses and divide by total scored tokens for token-weighted corpus loss. State inclusion of prompts, padding, start/end tokens, context and log base. Compare on matching token/probability conventions, or use a justified common raw-data unit; unequal token denominators can alter perplexity without improved string probability.</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 min</span></div>
+<p>Prove finite data processing for X→Y→Z using conditional information and the chain rule.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Conditional independence gives I(X;Z|Y)=0. Chain expansion yields I(X;Y,Z)=I(X;Y), while the opposite expansion yields I(X;Z)+I(X;Y|Z)≥I(X;Z). Conditional information is a weighted KL and nonnegative, so I(X;Z)≤I(X;Y). A processor using extra access to X is outside the condition.</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">Exercise 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 min</span></div>
+<p>CS: show that a selected conditional group can have entropy larger than marginal entropy while the average is smaller. AI alternative: derive uniform differential entropy and its scaling.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>CS: a .9 deterministic-zero group and .1 fair-bit group give marginal P(X=1)=.05, entropy≈.286397. The fair group has entropy 1, while weighted conditional entropy .1 is smaller. AI: Uniform(0,a) has h=log a; Y=cX changes density by 1/|c|, so substituting in the integral gives h(Y)=h(X)+log|c| under the stated conditions. Negative values for a&lt;1 are valid.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Ten-question self-check</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>Which logarithm gives information in bits?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Base two</button></li><li><button type="button" class="quiz-opt" data-i="1">Natural log without conversion</button></li><li><button type="button" class="quiz-opt" data-i="2">Every base gives the same numerical value</button></li></ol><div class="quiz-expl" hidden>Base choice changes units by a positive scale factor.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>What happens when p_i&gt;0 but q_i=0 in cross-entropy?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">It is a zero contribution</button></li><li><button type="button" class="quiz-opt" data-i="1">It gives infinite expected log loss</button></li><li><button type="button" class="quiz-opt" data-i="2">It establishes a valid short code</button></li></ol><div class="quiz-expl" hidden>A required outcome is assigned zero probability by the prediction model.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>Which distribution weights H(p,q)?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">q always</button></li><li><button type="button" class="quiz-opt" data-i="1">Neither distribution</button></li><li><button type="button" class="quiz-opt" data-i="2">p</button></li></ol><div class="quiz-expl" hidden>It averages predicted surprisal −log q under the source law p.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>What establishes H(p,q)≥H(p) for finite laws?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">KL nonnegativity with support conventions</button></li><li><button type="button" class="quiz-opt" data-i="1">Symmetry of KL</button></li><li><button type="button" class="quiz-opt" data-i="2">Ignoring all zero predictions</button></li></ol><div class="quiz-expl" hidden>H(p,q)=H(p)+D(p||q), including infinite mismatch cases.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>Is KL a symmetric metric?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Yes always</button></li><li><button type="button" class="quiz-opt" data-i="1">No; direction and triangle failures matter</button></li><li><button type="button" class="quiz-opt" data-i="2">Only changing log base makes it symmetric</button></li></ol><div class="quiz-expl" hidden>Positive rescaling does not repair missing metric properties.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>When is finite mutual information zero?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Whenever covariance is zero</button></li><li><button type="button" class="quiz-opt" data-i="1">Whenever marginals look similar</button></li><li><button type="button" class="quiz-opt" data-i="2">Exactly when the joint factors into independent marginals</button></li></ol><div class="quiz-expl" hidden>Apply KL equality to joint versus marginal product.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>What does the stated data-processing inequality constrain?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Information about the original input under a Markov processing chain</button></li><li><button type="button" class="quiz-opt" data-i="1">All output entropies under arbitrary fresh randomness</button></li><li><button type="button" class="quiz-opt" data-i="2">A causal effect automatically</button></li></ol><div class="quiz-expl" hidden>Added noise can increase output randomness while losing input information.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>How is perplexity computed from mean nats/token?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Two raised to that unconverted nats value</button></li><li><button type="button" class="quiz-opt" data-i="1">exp of that value</button></li><li><button type="button" class="quiz-opt" data-i="2">Divide it by vocabulary size</button></li></ol><div class="quiz-expl" hidden>Exponent base must match the log-loss unit.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>Can differential entropy be negative?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">No, because density cannot exceed one</button></li><li><button type="button" class="quiz-opt" data-i="1">Only if the probabilities are invalid</button></li><li><button type="button" class="quiz-opt" data-i="2">Yes; density scale and coordinate units differ from discrete masses</button></li></ol><div class="quiz-expl" hidden>Uniform width less than one gives log width below zero.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m27:q10">
+<label for="q10-response">10. Derive categorical cross-entropy from likelihood and prove its KL excess is nonnegative, including support zeros. Explain the noisy-bit mutual information, conditional sequence factorisation and why a perplexity report needs a log base, token denominator and matched evaluation protocol.</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="State source and prediction laws, weights, support, proof and scoring units."></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> I separated entropy, prediction loss, directional mismatch, dependence and token units.</label>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Group independent categorical log-likelihood terms by counts to get empirical H(p_hat,q). Decompose H(p,q)=H(p)+D(p||q), and apply −log u≥1−u on positive source support; missing required q gives infinity. The noisy fair bit carries 1−h₂(.1) bits. Conditional sequence probabilities factor without token independence. Perplexity exponentiates mean log loss in the matching base, so tokenisation, scored positions, context and weighting must agree before comparison.</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Reading with a purpose</h2></div>
+<p>Use Stanford’s <a href="https://web.stanford.edu/class/ee376a/files/2017-18/lecture_3.pdf" target="_blank" rel="noopener">information-measures notes</a>, <a href="https://web.stanford.edu/class/ee376a/files/2017-18/lecture_5.pdf" target="_blank" rel="noopener">variable-length coding notes</a> and <a href="https://web.stanford.edu/class/ee376a/files/2017-18/lecture_8.pdf" target="_blank" rel="noopener">continuous-information lecture</a>. The finite proofs and original examples above state zero-support assumptions explicitly; continuous theory is an optional follow-on.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>Selection and question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session 1 · 15 minutes</td>
+<td>Information measures: which law weights each logarithm, and where does conditional factorisation enter?</td>
+</tr>
+<tr>
+<td>Session 4 · 15 minutes</td>
+<td>Coding and optional density preview: which decoding, support and unit assumptions support each bound?</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Retrieval exit task and next step</h2></div>
+<p>Compute the finite measures, prove KL positivity and chain identities, derive likelihood loss and a prefix-code lower bound, and give a qualified perplexity report. Explain dependence without confusing information and causation.</p>
+<p><strong>Exit task:</strong> calculate the three-symbol mismatch, identify the infinite support direction, and repair a bit/nat or token-denominator comparison. Trace a dependent sequence’s probability into additive conditional losses.</p>
+<p><strong>Ready to move on:</strong> you can connect probabilistic models to log-loss objectives. Stochastic optimisation next studies how sampled gradients fit such objectives and how regularisation changes training. See the <a href="index.html">course overview</a>.</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Notation and bilingual terminology</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term or notation</th>
+<th>Meaning</th>
+<th>中文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Surprisal / bit / nat</td>
+<td>Negative log probability / log-two / log-e units</td>
+<td>自信息、比特、纳特</td>
+</tr>
+<tr>
+<td>H(p) / H(p,q)</td>
+<td>Source entropy / expected predicted surprisal</td>
+<td>熵、交叉熵</td>
+</tr>
+<tr>
+<td>D(p</td>
+<td></td>
+<td>q) / support</td>
+</tr>
+<tr>
+<td>I(X;Y)</td>
+<td>Joint versus product information</td>
+<td>互信息</td>
+</tr>
+<tr>
+<td>Prefix code / Kraft</td>
+<td>Decodable leaf code / length constraint</td>
+<td>前缀码、Kraft 不等式</td>
+</tr>
+<tr>
+<td>Perplexity / scored token</td>
+<td>Exponentiated mean loss / declared averaging unit</td>
+<td>困惑度、计分词元</td>
+</tr>
+<tr>
+<td>h(X) / density</td>
+<td>Differential entropy / continuous reference density</td>
+<td>微分熵、密度</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="module_26_EN.html">← Module 26</a><a href="module_28_EN.html">Module 28 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

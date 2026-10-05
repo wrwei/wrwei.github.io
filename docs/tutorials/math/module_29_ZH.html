@@ -1,0 +1,495 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>数值计算、条件数与可靠实验 — 计算机科学与人工智能的数学基础</title><meta name="description" content="区分表示、敏感性与算法误差，选择合适求解器、稳定概率损失及尺度导数检查。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="29"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 29</button><div class="dropdown-menu" id="module-menu"><a href="module_29_ZH.html" class="active" aria-current="page">数值计算、条件数与可靠实验</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_29_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#s1"><span class="num">1</span><span>1. 实数运算与有限表示</span></a><a href="#s2"><span class="num">2</span><span>2. 误差、消去、求和与比较</span></a><a href="#s3"><span class="num">3</span><span>3. 条件数与前向、后向误差</span></a><a href="#s4"><span class="num">4</span><span>4. 求解器、分解与迭代法</span></a><a href="#s5"><span class="num">5</span><span>5. 稳定概率目标与导数检查</span></a><a href="#s6"><span class="num">6</span><span>6. 精度、预算与可复现报告</span></a><a href="#misconceptions"><span class="num">7</span><span>常见误解</span></a><a href="#labs"><span class="num">8</span><span>实验：执行、预测与解释</span></a><a href="#exercises"><span class="num">9</span><span>练习与完整解答</span></a><a href="#quiz"><span class="num">10</span><span>十题自测</span></a><a href="#reading"><span class="num">11</span><span>带问题阅读</span></a><a href="#summary"><span class="num">12</span><span>检索结业与下一步</span></a><a href="#terms"><span class="num">13</span><span>符号与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">数值计算、条件数与可靠实验</h1><p class="module-lead">区分表示、敏感性与算法误差，选择合适求解器、稳定概率损失及尺度导数检查。</p><div class="hero-chips"><span class="chip chip-time">12 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>按 dtype 解释间距、舍入、上溢及下溢。</li><li>分析绝对相对误差、消去、求和及比较。</li><li>推线性扰动界，区分残差与前向准确性。</li><li>按秩和成本选择方形、QR/SVD 或迭代求解。</li><li>实施稳定 logit 损失及独立平滑导数扫描。</li><li>报告精度、近似来源、版本及有依据容差。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>需模块 14、18、19，三实验均用固定 NumPy 环境。SciPy 只作选学阅读比较，不是实验依赖。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#s1">1. 实数运算与有限表示</a><a href="#s2">2. 误差、消去、求和与比较</a><a href="#s3">3. 条件数与前向、后向误差</a><a href="#s4">4. 求解器、分解与迭代法</a><a href="#s5">5. 稳定概率目标与导数检查</a><a href="#s6">6. 精度、预算与可复现报告</a><a href="#misconceptions">常见误解</a><a href="#labs">实验：执行、预测与解释</a><a href="#exercises">练习与完整解答</a><a href="#quiz">十题自测</a><a href="#reading">带问题阅读</a><a href="#summary">检索结业与下一步</a><a href="#terms">符号与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">12 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">180 分钟</span></div><div class="session-title">表示误差与比较</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节，区分舍入、消去及容差。</a></span><span class="act-min">110</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">28</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">查看 finfo 及正规次正规约定。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">检索输入、累加和输出精度。</a></span><span class="act-min">22</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m29:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">180 分钟</span></div><div class="session-title">条件性与求解约定</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，证扰动与 Gram 恒等式。</a></span><span class="act-min">85</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">测精度丢失并修复消去式。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m29:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">180 分钟</span></div><div class="session-title">稳定目标与数值证据</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节，推稳定损失与导数检查。</a></span><span class="act-min">94</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">比较求解器、残差及敏感性。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">36</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m29:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">180 分钟</span></div><div class="session-title">数值诊断与复现报告</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">修复上溢并核查差分步长。</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">完成诊断练习 11–12。</a></span><span class="act-min">24</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择并写数值核查。</a></span><span class="act-min">20</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">查看求解阈值及稳定概率参考。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业并说明误差证据依据。</a></span><span class="act-min">56</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m29:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>1. 实数运算与有限表示</h2></div>
+<p>方程在理想数系上定义运算；数值程序存储有限近似，执行一系列舍入运算，再返回方程答案的近似。区分输入表示误差、算法算术误差和模型本身的近似。提高精度可以减少舍入，却不改变错误导数、病态逆问题或统计偏差。调试小数前，先确定数学目标、尺度，以及应用真正关心的误差。</p>
+<p>正规二进制浮点数包含符号、固定 p 位有效二进制数字及有限范围内的指数。在半开区间 [2^e,2^(e+1)) 内，相邻正规数间距为 2^(e−p+1)。间距随量级增加；同一绝对增量能改变小数，却可能在大数加法中消失。指数控制范围，有效数字控制局部相对精度，两者解决不同存储问题。</p>
+<p>常见 IEEE binary16、binary32、binary64 的 p 分别为 11、24、53，包括正规数隐含的首位。NumPy 的 eps 指一上方的间距 2^(1−p)。采用最近舍入且中点取偶时，单位舍入误差 u=eps/2。eps 不是全局最小可分辨变化：间距随量级改变，二的幂上下间距也不同。转换或归约后应检查实际 dtype。</p>
+<p>对结果为正规数且没有上溢、下溢的基本运算，标准模型为 fl(a op b)=(a op b)(1+δ)，|δ|≤u。它描述存储输入上精确运算的舍入，不保证存储 a 等于原始实测量，也不保证长算法总相对误差至多 u。精确结果为零时更适合绝对误差分析。接近下溢范围，次正规数允许渐进的小绝对间距，却可能失去相对精度。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">fl</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>a</mi><mo lspace="0.22em" rspace="0.22em">∘</mo><mi>b</mi><mo stretchy="false">)</mo><mo>=</mo><mo stretchy="false">(</mo><mi>a</mi><mo lspace="0.22em" rspace="0.22em">∘</mo><mi>b</mi><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mn>1</mn><mo>+</mo><mi>δ</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><mi mathvariant="normal">∣</mi><mi>δ</mi><mi mathvariant="normal">∣</mi><mo>≤</mo><mi>u</mi><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\operatorname{fl}(a\mathbin{\circ}b)=(a\mathbin{\circ}b)(1+\delta),\qquad |\delta|\le u.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">fl</span></span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">∘</span></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">∘</span></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0379em;">δ</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.0379em;">δ</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.4306em;"></span><span class="mord mathnormal">u</span><span class="mord">.</span></span></span></span></span></div>
+<p>上溢是结果超过有限范围，可能产生无穷；后续无穷减无穷或无穷除无穷产生 NaN。下溢可能得到次正规数或零。因此模型赋予正质量的极小概率仍可能存成零。NaN 不能当作普通缺失数参与比较，许多比较会返回假。在约定边界检查有限性，并区分模块 27 中缺失预测支撑导致的数学无穷，与算法失败导致的无穷。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">0.1 + 0.2 为何显示不同</div>
+<p>十进制 0.1 和 0.2 都没有有限二进制展开。binary64 分别舍入输入，再舍入和。本机 Python 打印 0.30000000000000004，与存储 float 0.3 相差约 5.55×10^(−17)。十进制数学恒等式仍成立。Decimal 或有理数改变表示约定；仅舍入显示改变的是展示。</p>
+</div>
+<p>将已舍入 binary32 数组转成 binary64，只保留舍入后的值，不能恢复失去的原始位。先用 binary64 累加、最后才存 binary32，则可能保留低精度累加会丢掉的信息。分别声明输入、累加和输出精度。混合精度需要逐阶段的误差论证，不能只因某处出现大 dtype 名称就保证全流程准确。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>binary64 在 2^53 加一能否分辨？之后转换到更高精度能否恢复这一？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>2^53 上方间距为二，中点取偶可保持原值。后续转换保存已舍入结果，不能重建丢弃增量。</p>
+</div></details>
+<figure class="fig" id="fig-29-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="四位有效数字示意，一到二间距八分之一，二到四间距四分之一，局部间距随量级增长。"><title>跨量级的浮点间距</title><desc>四位有效数字示意，一到二间距八分之一，二到四间距四分之一，局部间距随量级增长。</desc><defs><marker id="fig-29-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">示意 p=4：二进制量级越大，间距越大</text><path d="M65,110H700" stroke="#64748b"/><path d="M65,98V122" stroke="#0284c7" stroke-width="2"/><text x="65" y="150" text-anchor="middle" font-size="18" fill="#1a2e4a">1.00</text><path d="M143,98V122" stroke="#0284c7" stroke-width="2"/><path d="M221,98V122" stroke="#0284c7" stroke-width="2"/><text x="221" y="150" text-anchor="middle" font-size="18" fill="#1a2e4a">1.25</text><path d="M299,98V122" stroke="#0284c7" stroke-width="2"/><path d="M377,98V122" stroke="#0284c7" stroke-width="2"/><text x="377" y="150" text-anchor="middle" font-size="18" fill="#1a2e4a">1.50</text><path d="M455,98V122" stroke="#0284c7" stroke-width="2"/><path d="M533,98V122" stroke="#0284c7" stroke-width="2"/><text x="533" y="150" text-anchor="middle" font-size="18" fill="#1a2e4a">1.75</text><path d="M611,98V122" stroke="#0284c7" stroke-width="2"/><path d="M689,98V122" stroke="#0284c7" stroke-width="2"/><text x="689" y="150" text-anchor="middle" font-size="18" fill="#1a2e4a">2.00</text><text x="380" y="75" text-anchor="middle" font-size="21" fill="#1a2e4a">此段间距 0.125</text><path d="M65,240H700" stroke="#64748b"/><path d="M65,228V252" stroke="#0284c7" stroke-width="2"/><text x="65" y="280" text-anchor="middle" font-size="18" fill="#1a2e4a">2.00</text><path d="M143,228V252" stroke="#0284c7" stroke-width="2"/><path d="M221,228V252" stroke="#0284c7" stroke-width="2"/><text x="221" y="280" text-anchor="middle" font-size="18" fill="#1a2e4a">2.50</text><path d="M299,228V252" stroke="#0284c7" stroke-width="2"/><path d="M377,228V252" stroke="#0284c7" stroke-width="2"/><text x="377" y="280" text-anchor="middle" font-size="18" fill="#1a2e4a">3.00</text><path d="M455,228V252" stroke="#0284c7" stroke-width="2"/><path d="M533,228V252" stroke="#0284c7" stroke-width="2"/><text x="533" y="280" text-anchor="middle" font-size="18" fill="#1a2e4a">3.50</text><path d="M611,228V252" stroke="#0284c7" stroke-width="2"/><path d="M689,228V252" stroke="#0284c7" stroke-width="2"/><text x="689" y="280" text-anchor="middle" font-size="18" fill="#1a2e4a">4.00</text><text x="380" y="205" text-anchor="middle" font-size="21" fill="#1a2e4a">此段间距 0.25</text><text x="380" y="327" text-anchor="middle" font-size="19" fill="#1a2e4a">图为简化格式，不是 binary16。</text></g></svg></div><figcaption><span class="fig-num">图 29.1</span> <p>跨二进制量级间距增大；范围限制与有效数字精度不同。</p>
+</figcaption></figure>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>2. 误差、消去、求和与比较</h2></div>
+<p>参考值 q 与近似 q_hat 的绝对误差为 |q_hat−q|；q 非零时除以 |q| 得相对误差。10^(−8) 相对百万很小，相对 10^(−12) 很大。零目标没有相对误差分母，应按应用尺度选择绝对误差。向量要声明范数；分量检查能发现整体相对范数掩盖的小分量错误。</p>
+<p>减法并不必然不准。接近的存储浮点数之差甚至可能精确表示。危险在于操作数已有误差，而所求真差很小；扰动差就可能主导答案。当 |a−b| 远小于 |a|+|b|，即使输入有很多准确位，也未必能确定差的准确位。这种敏感性称消去，不能简单归因于减法指令本身。</p>
+<p>考虑小正 x 的 sqrt(1+x)−1：先形成 1+x 可能抹去 x，再减一得到零。乘共轭得到 x/(sqrt(1+x)+1)，在定义域内是同一实函数。分母接近二，避免近数相减，并且不会先把小 x 加入一。实数代数等价式可以有不同数值行为；改写可消除不必要算法误差而不改变目标。</p>
+<p>n 个存储输入的和 S，其消去敏感性可用 Σ|x_i|/|S| 度量（S≠0）。该比值大时，各输入微扰可以大幅改变最终相对答案。在通常舍入模型下，顺序求和绝对误差至多 γ_(n−1)Σ|x_i|，其中 γ_k=ku/(1−ku)、ku&lt;1。这是带条件的标准界，不能套用于上溢或任意执行规则。除以 |S| 就解释了消去和为何可能有巨大相对误差。</p>
+<p>配对归约将运算依赖深度由 n 降至约 log2 n，在相应条件下改善误差界。补偿方法保存普通加法丢弃的低位。Python math.fsum 可高质量求存储二进制输入的和，却不知道原先十进制意图。线程归约等不同顺序可能改变末位。按量级重排并非通用消去解法，不同归约也不能修复数据问题本身的病态。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">丢掉一个单位，再恢复</div>
+<p>对精确可表示的输入 10^16、1、−10^16，binary64 从左到右相加返回零：大尺度加一时它消失。高质量求和返回一。充分精度的 Decimal.from_float 可参考这些实际二进制输入。由文本 “0.1” 构造 Decimal 则参考十进制输入约定，两个实验回答不同问题。</p>
+</div>
+<p>数值比较要声明参考和尺度。常用规则 |a−b|≤atol+rtol|b| 将 b 作为参考；NumPy allclose 使用这种不对称形式。接近零时 atol 主导。不同物理单位应分开定容差，不能用一个神奇无量纲常数。小 rtol 配大 atol 可能接受完全错误的微小概率。整数计数、任务 ID、形状和布尔约定若数学要求精确，就应精确检查。</p>
+<p>边界与分支尤其要小心。略负特征值既可能来自 PSD 矩阵舍入，也可能反映真正不定输入。结合尺度容差比较，公开容差，并区分数值证据与数学证明。静默裁剪不能使域外输入有效；在取 log 前裁剪概率会把无穷或很大损失改成另一个量，不能称为原目标的稳定求值。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>为何机器减法精确，答案相对原始实数仍可能不准？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>存储操作数已有表示或上游误差。对这些值精确相减保留其误差差值，而它可能大于很小的真实差。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>3. 条件数与前向、后向误差</h2></div>
+<p>条件性属于带明确输入输出度量的数学问题。可微标量 f 在 x、f(x) 都非零时，局部相对条件数为 |x f’(x)/f(x)|，一阶描述相对输入变化到相对输出变化的放大。x² 的条件数为二，x−1 接近一时为 |x/(x−1)|，可极大。零或不可微点需其他绝对或局部定义。</p>
+<p>度量本身很重要。混合米、秒和无量纲系数的向量，没有天然合理的未加权欧氏误差。改变单位可能改变矩阵条件数，却不改变物理实验。先选无量纲坐标或有应用理由的权重。如果科学目标是预测，应单独考察预测敏感性：近共线特征允许系数间不稳定交换，而在观测设计上的合成预测可能相似。新输入离开原设计后又可能暴露不稳定方向。因此应报告目标量，不能以一个条件数裁定整个模型。</p>
+<p>算法稳定性描述特定计算对算术误差的响应。前向误差比较输出与预定存储输入的精确答案；后向误差问输出是否精确解了一个邻近问题，以及输入改变多少。病态问题上，后向稳定算法仍可有很大前向误差：它忠实解出的邻近输入可能有很不同的数学解。准确算术与不敏感数学是独立性质。</p>
+<p>对非奇异 A 的 Ax=b，二范数条件数 κ2(A)=||A||2||A^(−1)||2=σ_max/σ_min。将 A、b 整体乘同一非零常数不改变该数。非均匀行列缩放可以改变坐标度量和条件性，必须说明怎样恢复原模型。奇异矩阵无普通逆，条件数无穷。数值秩依赖声明的阈值和精度。</p>
+<p>固定 A，扰动 b 为 δb，则 δx=A^(−1)δb，故 ||δx||≤||A^(−1)||||δb||。再用 ||b||≤||A||||x||，得到相对解误差至多 κ(A) 倍相对右端扰动。这是最坏方向上界，不是每次扰动等号。沿最小奇异模态的变化放大最多；大条件数说明可能敏感，不证明每次计算必然不准确。</p>
+<p>若 A 也改变，写 (A+ΔA)(x+δx)=b+δb，整理 δx=A^(−1)(δb−ΔA x−ΔA δx)。取范数并移项。在 κ ε_A&lt;1 时，ε_A=||ΔA||/||A||、ε_b=||δb||/||b||，相对误差界为 κ(ε_A+ε_b)/(1−κ ε_A)。分母说明何时扰动论证有用；近奇异处，极小变化也可能使这个看似放心的界失效。</p>
+<p>残差 r=b−A x_hat 无需真 x 即可算。固定 A 时，x_hat 精确解 b−r，所以 b 非零时 ||r||/||b|| 是右端后向误差度量。前向相对误差≤κ(A)||r||/||b||。因此小相对残差要结合条件数才说明解准。应以充分精度算残差；若沿用低精度计算，可能隐藏差异。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi mathvariant="normal">∥</mi><mover accent="true"><mi>x</mi><mo>^</mo></mover><mo>−</mo><mi>x</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub></mrow><mrow><mi mathvariant="normal">∥</mi><mi>x</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub></mrow></mfrac><mo>≤</mo><msub><mi>κ</mi><mn>2</mn></msub><mo stretchy="false">(</mo><mi>A</mi><mo stretchy="false">)</mo><mfrac><mrow><mi mathvariant="normal">∥</mi><mi>b</mi><mo>−</mo><mi>A</mi><mover accent="true"><mi>x</mi><mo>^</mo></mover><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub></mrow><mrow><mi mathvariant="normal">∥</mi><mi>b</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><msub><mi>κ</mi><mn>2</mn></msub><mo stretchy="false">(</mo><mi>A</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><msub><mi>σ</mi><mi>max</mi><mo>⁡</mo></msub><msub><mi>σ</mi><mi>min</mi><mo>⁡</mo></msub></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\frac{\|\hat x-x\|_2}{\|x\|_2}\le\kappa_2(A)\frac{\|b-A\hat x\|_2}{\|b\|_2},\qquad \kappa_2(A)=\frac{\sigma_{\max}}{\sigma_{\min}}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∥</span><span class="mord mathnormal">x</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∥</span><span class="mord katex-accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">x</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">^</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">x</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.363em;vertical-align:-0.936em;"></span><span class="mord"><span class="mord mathnormal">κ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">A</span><span class="mclose">)</span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∥</span><span class="mord mathnormal">b</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">∥</span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">A</span><span class="mord katex-accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">x</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">^</span></span></span></span></span></span></span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">κ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">A</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.9436em;vertical-align:-0.836em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">i</span><span class="mtight">n</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">a</span><span class="mtight">x</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord">.</span></span></span></span></span></div>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">极小残差、大解误差</div>
+<p>A 的两行为 (1,1)、(1,1+ε)，ε=10^(−8)。真 x=(1,1) 给 b=(2,2+ε)。候选 (0,2) 的相对二范数误差为一，残差范数却仅 ε，相对 b 约 3.54×10^(−9)。A 条件数约 4/ε。只改 b 第二分量 ε 就能引起数量级一的解变化。</p>
+</div>
+<figure class="fig" id="fig-29-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="近相关二维矩阵的候选相对误差一，残差仅约三点五四乘十的负九次；大条件数解释放大。"><title>残差与敏感性反例</title><desc>近相关二维矩阵的候选相对误差一，残差仅约三点五四乘十的负九次；大条件数解释放大。</desc><defs><marker id="fig-29-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">一个小残差不等于小前向误差</text><text x="380" y="83" text-anchor="middle" font-size="22" fill="#1a2e4a">A = ((1,1),(1,1+ε)); ε=10⁻⁸</text><rect x="35" y="115" width="690" height="67" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="145" text-anchor="start" font-size="22" fill="#1a2e4a">真解 (1,1)，候选 (0,2)</text><text x="55" y="171" text-anchor="start" font-size="20" fill="#1a2e4a">相对解误差 = 1</text><rect x="35" y="200" width="690" height="67" rx="10" fill="#faf5ff" stroke="#7e22ce"/><text x="55" y="231" text-anchor="start" font-size="22" fill="#1a2e4a">relative residual ≈ 3.54×10⁻⁹</text><text x="55" y="257" text-anchor="start" font-size="20" fill="#1a2e4a">κ₂(A) ≈ 4×10⁸</text><text x="380" y="327" text-anchor="middle" font-size="19" fill="#1a2e4a">残差度量邻近输入，条件数控制解敏感性。</text></g></svg></div><figcaption><span class="fig-num">图 29.2</span> <p>小残差说明一个邻近右端；条件数控制它的解可以移多远。</p>
+</figcaption></figure>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="numerical"></div><div class="widget-caption">
+<p>改变小对角模态、右端扰动和算术精度。交互计算对角例子，区分残差、前向敏感性及输入舍入损失。条件数对展示的理想对角矩阵精确；十进制输入存储仍近似。</p>
+</div></div>
+<div class="check"><div class="check-label">检验理解</div>
+<p>近奇异矩阵的后向稳定解保证系数准确吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>不保证。邻近输入解得准，但大条件数会放大小后向误差。检查奇异值、扰动尺度、残差及系数的目标解释。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>4. 求解器、分解与迭代法</h2></div>
+<p>方形非奇异系统应采用适合的分解求解，而非显式形成逆再乘 b。逆需要额外运算和存储，又多一层舍入。一般稠密求解通常用带主元消去；对称正定系统可用 Cholesky。结构要建立，不能由变量名推断。分解失败可能来自无效数学假设、舍入后近奇异输入，或应分析的阈值判断。</p>
+<p>最小二乘最小化 ||Xw−y||²，X 有 n 行 d 列。满列秩时正规方程为 XᵀXw=Xᵀy。SVD X=UΣVᵀ 给 Gram 的正特征值 σ_i²，故实数满秩矩阵精确满足 κ2(XᵀX)=κ2(X)²。形成 Gram 时可能已经丢掉小模态，随后求解再准也无法恢复。舍入改变矩阵后，计算条件数未必等于原条件数精确平方。</p>
+<p>约化 QR 写 X=QR，Q 列正交归一。将 y 分成 QQᵀy 及正交剩余，勾股定理使目标等价于 ||Rw−Qᵀy||² 加一个常数。R 非奇异时用三角回代解 Rw=Qᵀy，避免形成 Gram 后显式平方奇异值。后向稳定性属于合适实现与条件，不属于所有自称 QR 的手写例程。</p>
+<p>SVD 直接展示秩和敏感方向。满秩解 VΣ^(−1)Uᵀy 中，小 σ_i 将投影噪声乘大倒数。秩亏时伪逆在指定阈值下返回最小范数解。截断小奇异值改变目标，可以作为正则化，却必须说明。固定 NumPy lstsq 显式用 rcond=None，返回秩和奇异值；残差数组可能为空，应直接算残差以统一诊断。</p>
+<p>大型系统可用迭代避免稠密分解。SPD Hessian H 的二次梯度迭代误差 e_(t+1)=(I−ηH)e_t。每个模态乘 1−ηh_i；固定步长严格收缩全部模态当且仅当 0&lt;η&lt;2/h_max。h_min 很小时，安全步长仍可能使该模态慢。共轭梯度利用 SPD 结构，精确算术下至多维数步终止；有限算术、停止容差和预条件会限定此结论。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">曲率与不稳定迭代</div>
+<p>H=diag(1,100)，η=.01 给因子 .99、0，刚性模态一步消失，另一模态慢降。η=.03 给 .97、−2，第二分量交替翻倍。从 (1,1) 二十步后该分量为 2^20。其他坐标的小残差不能为发散迭代提供停止依据。</p>
+</div>
+<p>预条件改变系统，使迭代进展更均衡，同时保留恢复原解的方式。SPD 问题适当对称变换保留求解结构。学习中的标准化也改变坐标并改善曲率不平衡，但若不对应转换惩罚，新坐标惩罚代表不同几何。声明坐标后测条件与收敛；岭这样改变估计量的方法，不应与纯代数求解修复混淆。</p>
+<p>成本也依赖结构。n≥d 稠密 QR 通常为 nd² 量级工作、nd 设计存储；三角求解为 d²。稠密方形分解为 d³，复用分解解其他右端则便宜。稀疏矩阵向量乘可按非零数计成本，但稀疏分解可能产生填充。比较理论操作数与时间前先声明模型和内存形状；硬件、库影响常数和并行。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>QR 为什么可能保留正规方程丢掉的小模态？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>正规方程形成最小模态平方的 Gram，增大相对条件性，并在构造时暴露于舍入。合适 QR 直接作用 X，避免显式平方；它仍不能消除问题本身的敏感性。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>5. 稳定概率目标与导数检查</h2></div>
+<p>σ(z)=1/(1+exp(−z)) 在大负 z 时可内部上溢。非负分支直接算，负分支改为 exp(z)/(1+exp(z))，指数参数都不大于零。有限算术仍可能把微小概率舍入为零，大概率舍入为一。返回合理端点不表示其 log 仍忠实；目标需要 log 概率时，应从 logits 直接求。</p>
+<p>有限 logits 取 m=max z_j。公共 exp(m) 抵消，softmax=exp(z_j−m)/Σexp(z_k−m)，各指数至多一，至少一个等于一。log-sum-exp=m+logΣexp(z_k−m)。类别 c 的 NLL 可更准确写成 logΣexp(z_k−m)−(z_c−m)，避免加回大偏移后再次相减。推导要求非空有限 logits；全 −无穷或 NaN 需要另外的输入约定。</p>
+<p>Bernoulli y∈{0,1} 的 NLL 为 softplus(z)−yz，稳定形式 max(z,0)−yz+log1p(exp(−|z|))。log1p 在 t 很小时保留 log(1+t) 的信息，不先在 1+t 抹去 t。导数为 σ(z)−y。n×d 的 X 与 d 维 w 的均值损失梯度为 Xᵀ(σ(Xw)−y)/n，再加明确惩罚梯度。稳定算术必须保留推导中同一目标和均值归一化。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">ℓ</mi><mo stretchy="false">(</mo><mi>z</mi><mo separator="true">,</mo><mi>y</mi><mo stretchy="false">)</mo><mo>=</mo><mi>max</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>z</mi><mo separator="true">,</mo><mn>0</mn><mo stretchy="false">)</mo><mo>−</mo><mi>y</mi><mi>z</mi><mo>+</mo><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>1</mn><mo>+</mo><msup><mi>e</mi><mrow><mo>−</mo><mi mathvariant="normal">∣</mi><mi>z</mi><mi mathvariant="normal">∣</mi></mrow></msup><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mi mathvariant="normal">∇</mi><mi>w</mi></msub><mi>F</mi><mo>=</mo><mfrac><mrow><msup><mi>X</mi><mi mathvariant="normal">⊤</mi></msup><mo stretchy="false">(</mo><mi>σ</mi><mo stretchy="false">(</mo><mi>X</mi><mi>w</mi><mo stretchy="false">)</mo><mo>−</mo><mi>y</mi><mo stretchy="false">)</mo></mrow><mi>n</mi></mfrac><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\ell(z,y)=\max(z,0)-yz+\log(1+e^{-|z|}),\qquad \nabla_w F=\frac{X^\top(\sigma(Xw)-y)}{n}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">ℓ</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">max</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.188em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.938em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">∣</span><span class="mord mathnormal mtight" style="margin-right:0.044em;">z</span><span class="mord mtight">∣</span></span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0269em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.2121em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.5261em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">n</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">⊤</span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord">.</span></span></span></span></span></div>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">大 logits，无需上溢</div>
+<p>(1000,1001,1002) 减 m=1002 得 (−2,−1,0)，概率约 (.09003057,.24472847,.66524096)。类别零 NLL 为 log(1+exp(−1)+exp(−2))+2≈2.407605964。binary64 原始指数上溢；平移形式计算原有限模型，而非裁剪成另一个模型。</p>
+</div>
+<p>梯度检查把解析导数与同一平滑标量目标的独立数值近似比较。坐标 j 的中心差分为 [F(w+he_j)−F(w−he_j)]/(2h)。有界三阶导的 Taylor 展开给 h² 阶截断误差；函数求值舍入被 h 除，通常为相关函数尺度乘 u/h。无限减小 h 反而变差；良好缩放坐标中粗略平衡建议 u^(1/3) 量级，不是通用固定步长。</p>
+<p>扫多个 h，同时看绝对和尺度相对误差，检查多个坐标或随机方向。方向检查比较 gᵀv 与沿 v 中心差分，高维时便宜，但要声明 v、h 的尺度。先核对形状、目标归约、正则化、截距，再归咎舍入。遗漏 n 因子会在合理 h 范围持续不符，提高精度不解决。同样错误公式的两份实现可能一致，所以检查独立性重要。</p>
+<p>坐标步长也有单位。对百万附近和十亿分之一附近的系数加同一 h，探测的相对变化不同，一个扰动甚至不改变存储值。可在已声明无量纲坐标中从 h_j=h_base max(1,|w_j|) 开始，再扫 h_base，逐项检查。这只是尺度启发式，并非全目标准确性定理。报告实际扰动与有用误差平台；单一通过阈值掩盖截断、舍入和持续代数错误的区别。</p>
+<p>在 abs(0) 等尖点，对称差分可为零，普通导数却不存在。分段分支应在边界外检查，除非明确采用次梯度约定。平滑检查时固定抽样、dropout 掩码和数据顺序，否则各函数求值对应不同随机目标。受控小例子的检查给局部实现证据，不证明所有分支输入或优化器收敛。</p>
+<figure class="fig" id="fig-29-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="大 logits 减最大值后得到有限概率和原模型损失；导数差分需要平衡截断与舍入。"><title>稳定 logits 与差分权衡</title><desc>大 logits 减最大值后得到有限概率和原模型损失；导数差分需要平衡截断与舍入。</desc><defs><marker id="fig-29-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">先稳定求值，再检查同一导数</text><rect x="35" y="65" width="690" height="65" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="92" text-anchor="start" font-size="20" fill="#1a2e4a">原始 logits</text><text x="55" y="118" text-anchor="start" font-size="22" fill="#1a2e4a">(1000,1001,1002)</text><rect x="35" y="145" width="690" height="65" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="172" text-anchor="start" font-size="20" fill="#1a2e4a">减公共最大值</text><text x="55" y="198" text-anchor="start" font-size="22" fill="#1a2e4a">(−2,−1,0)</text><rect x="35" y="225" width="690" height="65" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="252" text-anchor="start" font-size="20" fill="#1a2e4a">概率与零类 NLL</text><text x="55" y="278" text-anchor="start" font-size="22" fill="#1a2e4a">(.09003,.24473,.66524); 2.407606</text><text x="380" y="330" text-anchor="middle" font-size="19" fill="#1a2e4a">差分 h 太大：截断；太小：舍入。</text></g></svg></div><figcaption><span class="fig-num">图 29.3</span> <p>稳定损失保留 logits 模型；导数检查平衡截断与舍入。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>h=10^(−16) 的差分为零，非零解析导数必错吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>不必。扰动输入或函数值可能舍入成相同值。先在平滑、已缩放例子扫 h，核查目标和均值因子。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>6. 精度、预算与可复现报告</h2></div>
+<p>报告应明确方程、存储输入、敏感阶段 dtype、求解或更新规则，以及诊断容差。解释系数时给条件数或奇异值；区分精确恒等式与测得浮点输出。只显示六位小数不能证明十二位误差界。保留机器可读结果或复现脚本，标注平台相关值。先解释失败，再展示修复。</p>
+<p>低精度可能降低内存并提高吞吐，但取决于算术强度、带宽、硬件指令与累加精度。数组存储为 n×d×每元素字节，不含中间量和工作区。转换可能同时保留两份数组；d×d Gram 也可能成瓶颈。对同一问题、停止标准和预算比较数值质量与时间。</p>
+<p>近似误差有不同来源和修复。离散化或有限迭代误差可能随细化及更多步下降，舍入却可能随额外操作增加。Monte Carlo 误差按模块 24 抽样律变化；确定性浮点误差依赖算术与条件性；统计估计不确定性来自数据。将它们统称一个“精度”掩盖意义。声明误差是测量、界还是诊断，以及支撑条件。</p>
+<p>种子要结合生成器、抽样顺序、软件包和输入生成才标识伪随机实验。它不控制所有线程归约，也不使样本独立。库构建可能选择不同算法，改末位；同一种子在不同生成器接口可生成不同数据。浮点量用有理由的容差回归检查，精确约定用精确检查，并加入概率和、秩假设、残差等结构检查。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">可审计的求解比较</div>
+<p>实验 2 固定近相关设计有已知生成系数，可比较 QR、lstsq 系数误差，再算残差与奇异值。本机正规方程系数误差较大，残差仍小。真实数据没有真系数，不能把残差冒充未知前向误差。代数修复改善算术，却不保证科学上可辨识的系数。</p>
+</div>
+<p>记录 Python、包版本、形状、拆分、生成器、阈值、计时是否含生成或分解。相关时区分编译、预热和重复计时，报告时间分布，不能以单次运行作无依据速度声称。教学小型 CPU 例子使推导可核查，不是所有设备精度或最快部署方案的基准证据。</p>
+<figure class="fig" id="fig-29-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="从方程和尺度到精度、条件性、算法，最后声明误差证据容差及版本。"><title>可审计数值实验</title><desc>从方程和尺度到精度、条件性、算法，最后声明误差证据容差及版本。</desc><defs><marker id="fig-29-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">数值报告的五个联系</text><rect x="45" y="48" width="670" height="42" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="76" text-anchor="middle" font-size="20" fill="#1a2e4a">方程、输入约定与目标尺度</text><path d="M380,91L380,102" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-29-4__arrow)"/><rect x="45" y="104" width="670" height="42" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="132" text-anchor="middle" font-size="20" fill="#1a2e4a">输入 / 累加 / 输出精度</text><path d="M380,147L380,158" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-29-4__arrow)"/><rect x="45" y="160" width="670" height="42" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="188" text-anchor="middle" font-size="20" fill="#1a2e4a">奇异值、条件数及秩阈值</text><path d="M380,203L380,214" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-29-4__arrow)"/><rect x="45" y="216" width="670" height="42" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="244" text-anchor="middle" font-size="20" fill="#1a2e4a">算法、预算与停止准则</text><path d="M380,259L380,270" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-29-4__arrow)"/><rect x="45" y="272" width="670" height="42" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="300" text-anchor="middle" font-size="20" fill="#1a2e4a">残差、参考、容差与版本</text></g></svg></div><figcaption><span class="fig-num">图 29.4</span> <p>可靠实验连接模型、精度、条件数、算法和声明的误差证据。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>近奇异设计、上溢 softmax、遗漏均值梯度因子分别怎样修复？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>奇异值诊断设计敏感性，考虑明确正则化或更好数据；softmax 平移 logits；均值目标恢复除 n。增加位数不替代这些不同修复。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">7</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>误说</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>float 就是原始实数。</td>
+<td>声明表示及输入不确定性。</td>
+</tr>
+<tr>
+<td>每次减法都丢位。</td>
+<td>分析操作数误差与真实差尺度。</td>
+</tr>
+<tr>
+<td>小残差证明系数准确。</td>
+<td>加条件性和可用参考。</td>
+</tr>
+<tr>
+<td>正规方程保留 X 条件数。</td>
+<td>满秩时平方二范数条件数。</td>
+</tr>
+<tr>
+<td>差分 h 越小越好。</td>
+<td>平衡截断、舍入和输入尺度。</td>
+</tr>
+<tr>
+<td>裁剪只是稳定 log。</td>
+<td>它改变概率和目标。</td>
+</tr>
+<tr>
+<td>种子保证各平台一致。</td>
+<td>记录生成器、版本、算术和容差。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">8</span><h2>实验：执行、预测与解释</h2></div>
+<h3 id="lab1">实验 A · 舍入、归约及有理化</h3>
+<p>使用固定 NumPy 环境，预测每格式大间距边界丢失一。比较顺序和、fsum 与实际二进制输入的 Decimal 参考，解释有理化式；显示舍入不等于数学修复。</p>
+<p><a href="labs/module_29/lab1_rounding_summation_and_cancellation.py" download>下载 lab1_rounding_summation_and_cancellation.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;CPU rounding experiments; Decimal references the actual binary inputs.&quot;&quot;&quot;
+import math
+from decimal import Decimal, localcontext
+import numpy as np
+
+print('NumPy', np.__version__, '; rounding to nearest on the tested CPU')
+for dtype in (np.float16, np.float32, np.float64):
+    info = np.finfo(dtype)
+    large = dtype(2 ** (info.nmant + 1))
+    terms = [large, dtype(1), -large]
+    total = dtype(0)
+    for term in terms:
+        total = dtype(total + term)
+    print(f'{dtype.__name__}: eps={info.eps:.9e}; spacing(large)={np.spacing(large):g}; sequential={total:g}; exact=1')
+    assert total == 0
+terms = [1e16, 1., -1e16]
+with localcontext() as ctx:
+    ctx.prec = 80
+    exact = sum(map(Decimal.from_float, terms))
+print('binary64 sequential:', sum(terms), '; fsum:', math.fsum(terms), '; binary-input Decimal reference:', exact)
+assert math.fsum(terms) == float(exact) == 1
+x = 1e-16
+naive = math.sqrt(1+x)-1
+stable = x/(math.sqrt(1+x)+1)
+print(f'sqrt(1+x)-1 at x={x:g}: naive={naive:.9e}; rationalised={stable:.9e}')
+assert naive == 0 and stable &gt; 0
+print('0.1+0.2:', repr(.1+.2), '; difference from float(0.3):', (.1+.2)-.3)
+print('Subnormal != normal minimum:', np.finfo(np.float64).smallest_subnormal &lt; np.finfo(np.float64).tiny)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>NumPy 1.26.4 ; rounding to nearest on the tested CPU
+float16: eps=9.765625000e-04; spacing(large)=2; sequential=0; exact=1
+float32: eps=1.192092896e-07; spacing(large)=2; sequential=0; exact=1
+float64: eps=2.220446049e-16; spacing(large)=2; sequential=0; exact=1
+binary64 sequential: 0.0 ; fsum: 1.0 ; binary-input Decimal reference: 1
+sqrt(1+x)-1 at x=1e-16: naive=0.000000000e+00; rationalised=5.000000000e-17
+0.1+0.2: 0.30000000000000004 ; difference from float(0.3): 5.551115123125783e-17
+Subnormal != normal minimum: True
+</code></pre></div>
+<h3 id="lab2">实验 B · 敏感性、残差与求解器</h3>
+<p>计算小右端扰动及放大的解变化；比较精确生成数据的 QR、lstsq 和正规方程。系数数值误差可随库变化；满秩条件性恒等式和小残差反例是数学重点。</p>
+<p><a href="labs/module_29/lab2_solves_conditioning_and_residuals.py" download>下载 lab2_solves_conditioning_and_residuals.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Small deterministic systems: residual, sensitivity and solver choice.&quot;&quot;&quot;
+import numpy as np
+
+epsilon = 1e-8
+A = np.array([[1., 1.], [1., 1.+epsilon]])
+truth = np.ones(2)
+b = A @ truth
+delta = np.array([0., 1e-8])
+x = np.linalg.solve(A, b+delta)
+relative_input = np.linalg.norm(delta)/np.linalg.norm(b)
+relative_error = np.linalg.norm(x-truth)/np.linalg.norm(truth)
+print(f'cond2(A)={np.linalg.cond(A):.6e}; relative RHS perturbation={relative_input:.6e}; relative solution change={relative_error:.6e}')
+wrong = np.array([0., 2.])
+print(f'wrong x relative residual={np.linalg.norm(A@wrong-b)/np.linalg.norm(b):.6e}; relative error={np.linalg.norm(wrong-truth)/np.linalg.norm(truth):.6e}')
+assert relative_input &lt; 1e-8 and relative_error &gt; .9
+t = np.linspace(-1, 1, 30)
+X = np.column_stack([np.ones_like(t), t, t+1e-7*t*t])
+beta = np.array([1., 2., -1.])
+y = X @ beta
+Q, R = np.linalg.qr(X, mode='reduced')
+qr = np.linalg.solve(R, Q.T@y)
+svd, _, rank, singular = np.linalg.lstsq(X, y, rcond=None)
+print(f'X rank={rank}; cond2(X)={singular[0]/singular[-1]:.6e}; computed cond2(Gram)={np.linalg.cond(X.T@X):.6e}')
+for label, estimate in [('QR', qr), ('lstsq', svd)]:
+    print(f'{label}: coefficient error={np.linalg.norm(estimate-beta):.6e}; residual={np.linalg.norm(X@estimate-y):.6e}')
+    assert np.linalg.norm(estimate-beta) &lt; 1e-6
+try:
+    normal = np.linalg.solve(X.T@X, X.T@y)
+    print(f'normal equations: coefficient error={np.linalg.norm(normal-beta):.6e}; residual={np.linalg.norm(X@normal-y):.6e}')
+except np.linalg.LinAlgError:
+    print('normal equations: rounded Gram reported singular')
+print('Exact full-column-rank identity: cond2(Gram)=cond2(X)^2; computed Gram may have lost its smallest mode.')
+H = np.diag([1., 100.])
+for rate in (.01, .03):
+    w = np.ones(2)
+    for _ in range(20):
+        w -= rate * (H@w)
+    print(f'quadratic eta={rate:.2f}; w20={w}; stable={0 &lt; rate &lt; 2/100}')
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>cond2(A)=4.000000e+08; relative RHS perturbation=3.535534e-09; relative solution change=1.000000e+00
+wrong x relative residual=3.535534e-09; relative error=1.000000e+00
+X rank=3; cond2(X)=4.444812e+07; computed cond2(Gram)=2.444580e+15
+QR: coefficient error=3.437643e-09; residual=1.464485e-15
+lstsq: coefficient error=2.904832e-09; residual=6.466036e-15
+normal equations: coefficient error=7.856742e-02; residual=9.681657e-09
+Exact full-column-rank identity: cond2(Gram)=cond2(X)^2; computed Gram may have lost its smallest mode.
+quadratic eta=0.01; w20=[0.81790694 0.        ]; stable=True
+quadratic eta=0.03; w20=[5.43794343e-01 1.04857600e+06]; stable=False
+</code></pre></div>
+<h3 id="lab3">实验 C · 稳定损失与导数扫描</h3>
+<p>修复原始指数上溢，在同一均值目标比较三个差分步长。最小步长因舍入失败。单独诊断遗漏均值因子，解释绝对值不可微例子。</p>
+<p><a href="labs/module_29/lab3_stable_losses_and_gradient_checks.py" download>下载 lab3_stable_losses_and_gradient_checks.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Repair overflow and audit a smooth central-difference gradient check.&quot;&quot;&quot;
+import numpy as np
+
+def sigmoid(z):
+    z = np.asarray(z, dtype=np.float64)
+    out = np.empty_like(z)
+    positive = z &gt;= 0
+    out[positive] = 1/(1+np.exp(-z[positive]))
+    e = np.exp(z[~positive])
+    out[~positive] = e/(1+e)
+    return out
+
+logits = np.array([1000., 1001., 1002.])
+with np.errstate(over='ignore', invalid='ignore'):
+    broken = np.exp(logits)/np.exp(logits).sum()
+shifted = logits-logits.max()
+softmax = np.exp(shifted)/np.exp(shifted).sum()
+loss = np.log(np.exp(shifted).sum())-shifted[0]
+print('raw softmax finite:', bool(np.isfinite(broken).all()))
+print('shifted softmax:', softmax, '; class-0 NLL:', f'{loss:.9f}')
+assert np.isfinite(softmax).all() and np.isclose(softmax.sum(), 1)
+extreme = np.array([-1000., 1000.])
+labels = np.array([1., 0.])
+losses = np.maximum(extreme, 0)-labels*extreme+np.log1p(np.exp(-np.abs(extreme)))
+print('stable sigmoid:', sigmoid(extreme), '; stable Bernoulli losses:', losses)
+assert np.all(losses == 1000)
+X = np.array([[1., .2], [1., -1.], [1., 2.]])
+y = np.array([1., 0., 1.])
+w = np.array([.3, -.4])
+def objective(v):
+    z = X@v
+    return np.mean(np.logaddexp(0, z)-y*z)
+analytic = X.T@(sigmoid(X@w)-y)/len(y)
+for step in (1e-2, 1e-5, 1e-16):
+    numeric = np.array([(objective(w+step*np.eye(2)[j])-objective(w-step*np.eye(2)[j]))/(2*step) for j in range(2)])
+    error = np.linalg.norm(numeric-analytic)
+    print(f'h={step:.0e}; numerical={numeric}; error={error:.6e}')
+    if step == 1e-5:
+        assert error &lt; 1e-9
+print('missing mean factor discrepancy:', np.linalg.norm(3*analytic-analytic))
+print('abs at zero: central difference=0 while derivative does not exist; a symmetric slope is not a differentiability certificate.')
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>raw softmax finite: False
+shifted softmax: [0.09003057 0.24472847 0.66524096] ; class-0 NLL: 2.407605964
+stable sigmoid: [0. 1.] ; stable Bernoulli losses: [1000. 1000.]
+h=1e-02; numerical=[-0.13316435 -0.66738056]; error=2.981183e-06
+h=1e-05; numerical=[-0.13316411 -0.66738353]; error=1.168331e-11
+h=1e-16; numerical=[0. 0.]; error=6.805391e-01
+missing mean factor discrepancy: 1.3610781824396445
+abs at zero: central difference=0 while derivative does not exist; a symmetric slope is not a differentiability certificate.
+</code></pre></div>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">9</span><h2>练习与完整解答</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>p=24，算一和 2^24 上方间距，解释丢失的一次加法。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>分别为 2^(−23)、2。2^24 加一是中点，中点取偶可返回 2^24。正规最近舍入的 u=2^(−24)。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>10^(−12) 的近似为 2×10^(−12)。算绝对相对误差；零参考怎样处理？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>绝对误差 10^(−12)，相对误差一。零处分母为零，应选有意义绝对容差，不静默代换相对值。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>有理化 sqrt(1+x)−1，求 x→0 的主行为。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>乘共轭得 x/(sqrt(1+x)+1)，分母趋二，故渐近 x/2。保留定义域和非零分母，小正存储 x 不必先在 1+x 中抹去。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>算 1000、1001、1002 平移 softmax 与零类损失。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>减 1002，S=exp(−2)+exp(−1)+1。概率约 .090031,.244728,.665241；损失 log S+2≈2.407606。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证明非奇异固定 A 的相对扰动界。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>两方程相减得 δx=A^(−1)δb，范数次乘性给 ||δx||≤||A^(−1)||||δb||。由 ||b||≤||A||||x||，非零 b 时相除得相对误差≤κ(A)||δb||/||b||。这是指定范数的最坏方向界。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>满列秩时证 Gram 条件数平方，并推 QR 最小二乘方程。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>SVD 给 XᵀX=VΣ²Vᵀ，正特征值为奇异值平方，条件比平方。QR 分解 y=QQᵀy+(I−QQᵀ)y，残差平方为 ||Rw−Qᵀy||² 加正交剩余平方；R 非奇异时三角求解令首项零。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>推中心差分截断误差，说明舍入为何使 h→0 不是普遍修复。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>平滑邻域的 F(w±he_j) 展开到三阶，相减除 2h，二阶项抵消；三阶导有界给 h² 误差。求值舍入尺度约 u 乘函数尺度，被 1/h 放大；极小 h 也可能不改变输入。两效应要求按尺度扫描。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>ε=10^(−8) 二维例子，算 x_hat=(0,2) 的相对误差和残差。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>真 x=(1,1)，误差范数 √2，除真解范数 √2 得一。A x_hat−b=(0,ε)，相对残差 ε/√(4+(2+ε)²)≈3.5355×10^(−9)。κ≈4×10^8 解释并存。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>设计均值 logistic 梯度检查，截距不罚、斜率 L2 罚。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>固定小有限 X,y,w，F=mean(logaddexp(0,Xw)−yXw)+λ||w_slopes||²/2。g=Xᵀ(σ(Xw)−y)/n 加截距零罚与斜率 λw。每坐标扫 h，比较绝对相对尺度，固定随机性。遗漏除 n 是约定错误，不是容差问题。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>估计百万行、100 个 binary32 特征存储，指出工作区风险。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>10^8×4=4×10^8 字节，十进制约 400 MB，不含工作区。若同时保留 binary64 转换，多 800 MB。此处 Gram 仅 100² 项，但 d 大时 d² 存储主导；先声明形状。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>求解器报残差 10^(−12)、无穷条件数，却称“十二位准确”。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>绝对残差缺尺度，无穷条件估计提示秩亏或数值奇异。建立秩阈值和解约定，算缩放残差、奇异值，报告系数敏感性。残差不能单独证明前向位数；秩亏可有多解。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>裁剪概率至 10^(−6) 后称 NLL 精确等于有限 logit 目标，并称 abs(0) 零差分证明可微。诊断。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>裁剪改变概率，可大幅改变 NLL。原有限模型应用稳定 logit 损失。abs(0) 左右斜率 −1、1，尽管对称差分零。检查平滑点或明确次梯度规则。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>推 f(x)=x−1 局部相对条件数，解释零输出。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>f’=1，x 与 f(x) 非零时 κ=|x/(x−1)|，接近一发散；一处相对输出误差未定义。绝对敏感性是一，大相对敏感不代表大绝对放大。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>推同时扰动矩阵、右端的界，说明有效条件。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>δx=A^(−1)(δb−ΔA x−ΔA δx) 取范数除 ||x||，用 ||δb||/||x||≤ε_b||A||，得 (1−κ ε_A)||δx||/||x||≤κ(ε_b+ε_A)。仅 κ ε_A&lt;1 可除；分母非正意味着该论证不给有限有效界，不证明发散。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">10</span><h2>十题自测</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>binary64 的 NumPy eps 指：</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">一上方间距 2^(−52)。</button></li><li><button type="button" class="quiz-opt" data-i="1">最小正 binary64。</button></li><li><button type="button" class="quiz-opt" data-i="2">无关尺度的最小绝对误差。</button></li></ol><div class="quiz-expl" hidden>范围、间距和单位舍入不同。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>已舍入 binary32 转 binary64：</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">保留舍入值，不能恢复丢失位。</button></li><li><button type="button" class="quiz-opt" data-i="1">恢复原实数。</button></li><li><button type="button" class="quiz-opt" data-i="2">消除数据不确定性。</button></li></ol><div class="quiz-expl" hidden>后续高精度不能推断失去信息。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>消去危害相对准确性，因为：</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">操作数误差可主导微小真差。</button></li><li><button type="button" class="quiz-opt" data-i="1">每个减法指令都必不精确。</button></li><li><button type="button" class="quiz-opt" data-i="2">小答案数学无效。</button></li></ol><div class="quiz-expl" hidden>分析上游误差和尺度。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>小残差与大条件数说明：</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">前向解准确性仍需分析。</button></li><li><button type="button" class="quiz-opt" data-i="1">系数必有许多准确位。</button></li><li><button type="button" class="quiz-opt" data-i="2">矩阵必奇异。</button></li></ol><div class="quiz-expl" hidden>某些小后向扰动被条件性放大。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">5</span><div>满列秩正规方程条件数：</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">精确算术下 κ2(X) 平方。</button></li><li><button type="button" class="quiz-opt" data-i="1">始终 κ2(X)。</button></li><li><button type="button" class="quiz-opt" data-i="2">始终一。</button></li></ol><div class="quiz-expl" hidden>Gram 正特征值平方奇异值。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">6</span><div>有限 logits softmax 稳定法：</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">指数前减最大值。</button></li><li><button type="button" class="quiz-opt" data-i="1">全部裁剪为零。</button></li><li><button type="button" class="quiz-opt" data-i="2">先算已上溢指数。</button></li></ol><div class="quiz-expl" hidden>公共平移保留概率。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>均值 logistic 梯度：</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Xᵀ(σ(Xw)−y)/n 加声明惩罚。</button></li><li><button type="button" class="quiz-opt" data-i="1">无论归约都不除 n。</button></li><li><button type="button" class="quiz-opt" data-i="2">每个样本一个分量。</button></li></ol><div class="quiz-expl" hidden>核查归约、参数维数和惩罚。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">8</span><div>中心差分 h 应：</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">在平滑输入扫描，平衡截断和舍入。</button></li><li><button type="button" class="quiz-opt" data-i="1">永远最小正 float。</button></li><li><button type="button" class="quiz-opt" data-i="2">证明所有尖点可微。</button></li></ol><div class="quiz-expl" hidden>输入分辨率与平滑性属于检查。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">9</span><div>单独固定种子：</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">不保证跨生成器和数值库相同结果。</button></li><li><button type="button" class="quiz-opt" data-i="1">保证独立数据和硬件一致。</button></li><li><button type="button" class="quiz-opt" data-i="2">替代版本与容差。</button></li></ol><div class="quiz-expl" hidden>复现需完整实验约定。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m29:q10">
+<label for="q10-response">10. 诊断近相关最小二乘及上溢概率损失。区分表示、条件性、稳定性、残差与导数误差，指定修复和容差。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="声明目标、存储输入、奇异值、算法与证据。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我区分了固有敏感性、可避免算术及模型约定错误。</label>
+</div>
+::: answer
+查看 dtype 和奇异值，采用合适 QR/SVD、明确秩阈值及缩放残差。大条件数可使稳定算术后系数仍敏感。原 log 概率用平移 logits/logaddexp，合理 h 下核查均值导数。定尺度容差、记版本生成器，不以残差冒充未知系数前向准确性。
+:::
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">11</span><h2>带问题阅读</h2></div>
+<p>核查官方固定版 <a href="https://numpy.org/doc/1.26/reference/generated/numpy.finfo.html" target="_blank" rel="noopener">NumPy 1.26 finfo</a>、<a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.lstsq.html" target="_blank" rel="noopener">lstsq</a>、<a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.cond.html" target="_blank" rel="noopener">cond</a> 的精度、秩阈值与范数。<a href="https://docs.scipy.org/doc/scipy-1.14.0/reference/generated/scipy.special.logsumexp.html" target="_blank" rel="noopener">SciPy 1.14 logsumexp</a> 是选学库比较；实验只需 NumPy。上面的条件性与导数论证在本课推导。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时段</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 · 20 分钟</td>
+<td>区分 eps、正规最小、次正规最小。</td>
+</tr>
+<tr>
+<td>4 · 20 分钟</td>
+<td>查看秩截断、残差形状与条件范数；比较稳定 logsumexp。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">12</span><h2>检索结业与下一步</h2></div>
+<p><strong>结业任务：</strong>给出间距例子、消去修复、残差敏感性反例、求解器理由、稳定概率计算和平滑导数扫描。</p>
+<p><strong>可以继续：</strong>解释计算建立什么、还剩什么不确定性。泛化下一课连接风险数学与有限数据、核模型。回到<a href="index_ZH.html">课程概览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">13</span><h2>符号与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>eps / u</td>
+<td>一上方间距、单位舍入</td>
+<td>Spacing / unit roundoff</td>
+</tr>
+<tr>
+<td>消去</td>
+<td>小差对操作数误差敏感</td>
+<td>Cancellation</td>
+</tr>
+<tr>
+<td>条件数</td>
+<td>输入输出扰动敏感性</td>
+<td>Condition number</td>
+</tr>
+<tr>
+<td>前向、后向误差</td>
+<td>输出、邻近输入误差</td>
+<td>Forward / backward error</td>
+</tr>
+<tr>
+<td>残差</td>
+<td>b−A x_hat</td>
+<td>Residual</td>
+</tr>
+<tr>
+<td>秩阈值</td>
+<td>保留奇异模态标准</td>
+<td>Rank cutoff</td>
+</tr>
+<tr>
+<td>对数指数和</td>
+<td>稳定指数和的 log</td>
+<td>Log-sum-exp</td>
+</tr>
+<tr>
+<td>中心差分</td>
+<td>对称数值导数近似</td>
+<td>Central difference</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_28_ZH.html">← 模块 28</a><a href="module_30_ZH.html">模块 30 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

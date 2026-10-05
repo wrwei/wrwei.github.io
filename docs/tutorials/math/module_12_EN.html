@@ -1,0 +1,513 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Orthogonality, projections, and least squares — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Derive the closest-point projection and normal equations without calculus, construct QR, distinguish unique fits from unique weights, and diagnose numerical and modelling limits."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="12"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 12</button><div class="dropdown-menu" id="module-menu"><a href="module_12_EN.html" class="active" aria-current="page">Orthogonality, projections, and least squares</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="module_12_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>Approximation becomes a precise geometric problem</span></a><a href="#s1"><span class="num">2</span><span>Inner products orthogonality and Pythagoras</span></a><a href="#s2"><span class="num">3</span><span>Projection onto a line and onto a subspace</span></a><a href="#s3"><span class="num">4</span><span>Gram–Schmidt and the meaning of orthonormal coordinates</span></a><a href="#s4"><span class="num">5</span><span>QR least-squares solves and floating-point limits</span></a><a href="#s5"><span class="num">6</span><span>Deriving normal equations without differentiation</span></a><a href="#s6"><span class="num">7</span><span>Minimum-norm weights and the pseudoinverse geometry</span></a><a href="#misconceptions"><span class="num">8</span><span>Common misconceptions</span></a><a href="#labs"><span class="num">9</span><span>Three CPU labs</span></a><a href="#exercises"><span class="num">10</span><span>Exercises with complete solutions</span></a><a href="#quiz"><span class="num">11</span><span>Ten-question self-check</span></a><a href="#reading"><span class="num">12</span><span>Reading with a purpose</span></a><a href="#summary"><span class="num">13</span><span>Retrieval exit task and next step</span></a><a href="#terms"><span class="num">14</span><span>Notation and bilingual terminology</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">Orthogonality, projections, and least squares</h1><p class="module-lead">Derive the closest-point projection and normal equations without calculus, construct QR, distinguish unique fits from unique weights, and diagnose numerical and modelling limits.</p><div class="hero-chips"><span class="chip chip-time">10 hours</span><span class="chip">4 sessions</span><span class="chip">3 labs</span><span class="chip">12 exercises + 2 extensions</span><span class="chip">10 quiz questions</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Define an inner product and justify orthogonal Pythagorean decompositions.</li><li>Derive vector/subspace projections and their uniqueness.</li><li>Construct Gram–Schmidt and verify a reduced QR factorisation.</li><li>Solve full-column-rank least squares by QR with every shape explicit.</li><li>Prove normal-equation necessity and sufficiency without differentiation.</li><li>Describe rank-deficient minimisers and the unique minimum-norm representative.</li><li>Separate numerical solution quality, coefficient sensitivity and future predictive claims.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Module 11: bases, four fundamental spaces, rank–nullity, and null-space parameter equivalence. Recall the dot product and Euclidean norm from Module 09.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">Approximation becomes a precise geometric problem</a><a href="#s1">Inner products orthogonality and Pythagoras</a><a href="#s2">Projection onto a line and onto a subspace</a><a href="#s3">Gram–Schmidt and the meaning of orthonormal coordinates</a><a href="#s4">QR least-squares solves and floating-point limits</a><a href="#s5">Deriving normal equations without differentiation</a><a href="#s6">Minimum-norm weights and the pseudoinverse geometry</a><a href="#misconceptions">Common misconceptions</a><a href="#labs">Three CPU labs</a><a href="#exercises">Exercises with complete solutions</a><a href="#quiz">Ten-question self-check</a><a href="#reading">Reading with a purpose</a><a href="#summary">Retrieval exit task and next step</a><a href="#terms">Notation and bilingual terminology</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">10 hours</span></div><p class="plan-lead">Times include practice and are estimates. Split a session when useful. Optional extension exercises add 35 minutes. Progress is stored in this browser and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">150 min</span></div><div class="session-title">Inner products and closest points</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2 and prove the closest-point claim.</a></span><span class="act-min">76</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Complete Exercises 1–4.</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read analytic-geometry projection selections.</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Explore projections and explain the chosen metric.</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m12:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">150 min</span></div><div class="session-title">Orthonormal bases and QR</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Sections 3–4 and construct the two-column QR example.</a></span><span class="act-min">55</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Run projection and Gram–Schmidt checks.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e5">Complete proof Exercises 5–7.</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m12:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">150 min</span></div><div class="session-title">Normal equations and nonunique weights</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s5">Read Sections 5–6, including minimum-norm geometry.</a></span><span class="act-min">61</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Fit by QR and analyse a duplicate-feature family.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Complete application Exercises 8–10.</a></span><span class="act-min">39</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m12:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">150 min</span></div><div class="session-title">Rounding sensitivity and interpretation</div><ul class="acts"><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Compare Gram rounding with QR and perturb the target.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e11">Diagnose Exercises 11–12.</a></span><span class="act-min">32</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Complete choices and the written residual proof.</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read the official QR and least-squares contracts.</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Complete the exit task and separate fitting from generalisation.</a></span><span class="act-min">33</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m12:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>Approximation becomes a precise geometric problem</h2></div>
+<p>An equation Xw=y can fail to have a solution while still admitting one uniquely closest predicted vector. The distinction matters whenever measured targets do not lie in the design’s column space. Least squares chooses that closest prediction according to a specified distance. It does not by itself make the coefficients unique, the measurements trustworthy, or the predictions reliable on future records.</p>
+<p>This module derives the geometry before introducing algorithms. You will prove projection formulas, construct an orthonormal basis, solve with QR, and establish the normal equations without differentiation. The last section describes the whole family of rank-deficient minimisers and its minimum-norm representative. The labs compare mathematical equivalence with floating-point computation and data sensitivity.</p>
+<p><strong>Retrieval check:</strong> give the column space and null space of a matrix and explain why a null displacement leaves predictions unchanged. Review <a href="module_11_EN.html#s4">Module 11</a> if needed. Dot products and lengths come from <a href="module_09_EN.html#s3">Module 09</a>. No calculus is assumed; a later lesson will derive the same normal equations by differentiation. Use the pinned environment in <a href="numpy_primer_EN.html">NumPy preparation</a>.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>Inner products orthogonality and Pythagoras</h2></div>
+<p>A real <strong>inner product</strong> assigns a real number ⟨u,v⟩ to two vectors. It is linear in each argument, symmetric, and positive definite: ⟨v,v⟩≥0 with equality only for v=0. These conditions generalise the coordinate dot product while preserving useful geometric reasoning. The associated norm is √⟨v,v⟩. Orthogonality means ⟨u,v⟩=0. It refers to the selected inner product, so changing coordinate weights can change which vectors are orthogonal even though addition and linear dependence remain the same.</p>
+<p>The Euclidean product is uᵀv=Σuᵢvᵢ. A weighted product is uᵀWv for a symmetric positive-definite W. For a diagonal W with entries αᵢ&gt;0, this is Σαᵢuᵢvᵢ. Symmetry and bilinearity follow term by term, and a nonzero vector has at least one nonzero coordinate contributing a strictly positive square. Thus this diagonal construction satisfies every condition. It corresponds to scaling coordinates by √αᵢ before using the ordinary product. A zero weight instead allows a nonzero vector to have zero length, so the expression is only semidefinite and not an inner product on the full coordinate space. Negative weights fail even nonnegativity.</p>
+<p>If u and v are orthogonal, expansion gives ‖u+v‖²=‖u‖²+2⟨u,v⟩+‖v‖²=‖u‖²+‖v‖². This <strong>Pythagorean identity</strong> is the engine of projection and least squares. Without orthogonality the cross term remains, and adding squared lengths is generally wrong. The vectors need not be coordinate axes; any pair perpendicular under the specified product works. A decomposition into mutually orthogonal components extends the identity to any finite sum by the same expansion.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">The inner product changes the perpendicular direction</div>
+<p>Let u=(1,1),r=(1,−1). Their Euclidean dot product is zero. With W=diag(4,1), their weighted product is 4−1=3, so they are not orthogonal in that geometry. The vector s=(1,−4) is weighted-orthogonal to u because 4·1+1·(−4)=0. The vector space and linear relationships have not changed; the measurement of distance and perpendicularity has.</p>
+</div>
+<p>An <strong>orthonormal</strong> list q₁,…,q_r has unit vectors that are pairwise orthogonal. Such a list is automatically independent: dot a zero combination with q_j and its jth coefficient must vanish. For a matrix Q with these columns, QᵀQ=I_r. This identity has dimensions r×r. It does not generally imply QQᵀ=I_m when Q is m×r with r&lt;m; the latter operation will be the projection onto the smaller column space. Calling rectangular Q an orthogonal square matrix would confuse two different contracts.</p>
+<p>In data fitting, a weighted distance encodes a modelling choice about which discrepancies count more. Large weights penalise some coordinate errors more strongly. This can reflect known measurement precision or an application-specific objective, but the weights need justification. Simply declaring a weighted inner product does not supply a statistical noise model. For the main derivations below, use Euclidean geometry unless explicitly labelled otherwise. This keeps the objective, residual-orthogonality condition and algorithm consistent.</p>
+<p>The zero vector is perpendicular to every vector but has no unit normalisation or defined angle. A procedure asking for a direction must guard against dividing by its norm. Similarly, a pair of nonzero vectors is orthogonal exactly when their angle has zero cosine in the Euclidean geometry, but using cosine as a probability would add an interpretation unsupported by these algebraic facts. Here orthogonality is an exact relation that makes a decomposition provable, rather than a vague claim of feature “unrelatedness.”</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does QᵀQ=I imply QQᵀ=I when Q has one unit column in R³? Can weights (1,0,1) define an inner product on R³?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>No. QQᵀ has image a line and cannot be the identity on R³. The zero middle weight gives (0,1,0) zero length, violating positive definiteness. Both conclusions follow from dimensions and definitions, not from an implementation convention.</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Projection onto a line and onto a subspace</h2></div>
+<p>Given a nonzero vector u and a target y, seek its closest point p=cu on the line span{u}. Requiring the residual r=y−cu to be perpendicular to u gives uᵀy−c uᵀu=0. Since uᵀu&gt;0, the unique coefficient is c=(uᵀy)/(uᵀu). This coefficient is a scalar; p is a vector in the original target space. They coincide numerically only in particular coordinate conventions, so an implementation should name them separately.</p>
+<p>Why does the perpendicular choice minimise distance? For any other scalar a, y−au=r+(c−a)u. The two terms are orthogonal, so ‖y−au‖²=‖r‖²+(c−a)²‖u‖². The second term is nonnegative and vanishes exactly at a=c. This is a complete optimality and uniqueness proof without calculus. If the generator is zero, its span is the zero space and the projection is simply zero; the fraction is undefined and unnecessary. Rescaling a nonzero generator changes c inversely and leaves p unchanged, as a subspace projection should.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Projecting a point onto the diagonal line</div>
+<p>For y=(3,2),u=(1,1), c=5/2 and p=(5/2,5/2). The residual is (1/2,−1/2), perpendicular to u. Its squared length is 1/2. Any candidate (a,a) has squared discrepancy 1/2+2(a−5/2)², so the minimum is unique. The target lies outside the line; a nonzero residual is expected rather than evidence that the projection failed.</p>
+</div>
+<p>For a finite-dimensional subspace S with orthonormal basis columns Q, define p=QQᵀy. Its coefficients in that basis are Qᵀy. The residual r=y−p satisfies Qᵀr=Qᵀy−QᵀQ Qᵀy=0, so it is perpendicular to every basis vector and hence every vector of S. For any other s∈S, y−s=r+(p−s), an orthogonal sum. Pythagoras gives ‖y−s‖²=‖r‖²+‖p−s‖², proving existence of a closest point and uniqueness of the predicted vector p. Section 3 supplies the orthonormal-basis construction needed for any finite-dimensional S.</p>
+<p>The projection matrix P=QQᵀ is symmetric and idempotent: Pᵀ=P and P²=Q(QᵀQ)Qᵀ=P. Idempotence means projecting an already projected vector changes nothing. Symmetry reflects Euclidean perpendicularity. The image of P is S, since Py∈S and Ps=s for s∈S. Its kernel is S⊥ because Qᵀy=0 exactly when y is perpendicular to the basis. The complementary projection I−P sends y to its residual. These operations express one unique orthogonal decomposition y=p+r, not an invertible change of coordinates.</p>
+<p>Pythagoras also proves that projection cannot increase Euclidean length: ‖Py‖²≤‖y‖². Applying this to a difference gives ‖Py−Pz‖≤‖y−z‖, since P is linear. Thus fitted observation vectors vary no more than their targets for a fixed subspace, even though recovering coefficient coordinates from them can be very sensitive. This gives a precise reason to discuss stability of predictions separately from stability of parameters.</p>
+<figure class="fig" id="fig-12-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" role="img" aria-label="Target (3,2) projects onto span(1,1) at (2.5,2.5); residual (0.5,−0.5) is perpendicular and has squared norm one half."><title>Orthogonal decomposition at a diagonal projection</title><desc>Target (3,2) projects onto span(1,1) at (2.5,2.5); residual (0.5,−0.5) is perpendicular and has squared norm one half.</desc><defs><marker id="fig-12-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="340" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">Closest point: projection and residual are perpendicular</text><path d="M80,275H385M110,295V50" stroke="#94a3b8"/><path d="M80,305L335,50" stroke="#93c5fd" stroke-width="4"/><path d="M110,275L260,125" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-12-1__arrow)"/><path d="M260,125L290,155" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-12-1__arrow)"/><circle cx="260" cy="125" r="5" fill="#15803d"/><circle cx="290" cy="155" r="5" fill="#1a2e4a"/><text x="170" y="120" text-anchor="start" font-size="21" fill="#1a2e4a">p=(2.5,2.5)</text><text x="300" y="176" text-anchor="start" font-size="21" fill="#1a2e4a">y=(3,2)</text><text x="290" y="100" text-anchor="start" font-size="20" fill="#1a2e4a">r=(0.5,−0.5)</text><rect x="470" y="90" width="260" height="195" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="600" y="139" text-anchor="middle" font-size="26" fill="#1a2e4a">u·r = 0</text><text x="600" y="191" text-anchor="middle" font-size="25" fill="#1a2e4a">‖r‖² = 1/2</text><text x="600" y="246" text-anchor="middle" font-size="17" fill="#1a2e4a">Other candidates add a square</text></g></svg></div><figcaption><span class="fig-num">Figure 12.1</span> <p>The target decomposes into its diagonal-line projection and a perpendicular residual. Every other point on the line adds an orthogonal extra discrepancy.</p>
+</figcaption></figure>
+<p>If U has independent but nonorthonormal columns spanning S, perpendicularity gives Uᵀ(y−Uc)=0. The matrix UᵀU is invertible: cᵀUᵀUc=‖Uc‖² is positive for every nonzero c by independence. Thus c solves (UᵀU)c=Uᵀy, and formally P=U(UᵀU)⁻¹Uᵀ. The formula explains the map; it does not prescribe explicitly calculating an inverse as the best numerical algorithm. QR will compute the same projection without forming that Gram matrix.</p>
+<p>For diagonal positive weights, the line coefficient becomes (uᵀWy)/(uᵀWu), and the residual satisfies uᵀWr=0. With y=(3,2),u=(1,1),W=diag(4,1), it is 14/5, giving p=(2.8,2.8). The residual (0.2,−0.8) is weighted-orthogonal but not Euclidean-orthogonal to u. The closest point changed because the objective changed. To project onto an affine set p₀+S, project y−p₀ onto S then add p₀; an offset feasible set should not be silently treated as a subspace through zero.</p>
+<div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" data-widget="projections"></div><div class="widget-caption">
+<p>Change a two-dimensional target and a nonzero line direction. Read the projection, residual and dot-product check; compare Euclidean and positively weighted distances.</p>
+</div></div>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>If two different orthonormal bases span the same subspace, can their Euclidean projection matrices send a target to different vectors?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>No. Both constructions yield a member of S with residual perpendicular to S, and the closest-point uniqueness proof forces the same member. Basis coefficients may differ; the projected vector and its projection map are basis independent for the specified subspace and inner product.</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>Gram–Schmidt and the meaning of orthonormal coordinates</h2></div>
+<p>Start with independent vectors a₁,…,a_d in Rᵐ. Gram–Schmidt constructs orthonormal vectors with the same successive spans. First take q₁=a₁/‖a₁‖. At step j, remove the components along earlier q’s: v_j=a_j−Σ_{i&lt;j}(qᵢᵀa_j)qᵢ, then set q_j=v_j/‖v_j‖. Dotting v_j with any earlier q_k gives q_kᵀa_j−q_kᵀa_j=0, because the orthonormal cross products remove every other term. Thus the remainder is perpendicular to the existing span.</p>
+<p>The remainder cannot be zero in exact arithmetic for an independent input list. If it were, a_j would already be a combination of earlier q’s and therefore of earlier a’s, contradicting independence. Normalisation consequently creates a well-defined unit vector. Each a_j is a combination of q₁,…,q_j, and each q_j is a combination of a₁,…,a_j, so the successive spans are equal. Induction establishes both the construction and its promised span preservation. This proves every finite-dimensional Euclidean subspace admits an orthonormal basis, starting from any ordinary basis.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A two-column construction</div>
+<p>Take a₁=(1,1,0),a₂=(1,0,1). Then q₁=(1,1,0)/√2 and q₁ᵀa₂=1/√2. The remainder v₂=(1/2,−1/2,1) has length √(3/2), so q₂=(1,−1,2)/√6. Their dot product is zero and both lengths are one. The upper triangular coefficient matrix is R=[[√2,1/√2],[0,√(3/2)]], with columns expressing a₁ and a₂ in the q basis. Q R reconstructs the original columns.</p>
+</div>
+<p>Writing all columns together gives A=QR. For m≥d and independent input columns, reduced Q is m×d with QᵀQ=I_d, while R is d×d upper triangular. Its entries above the diagonal are rᵢⱼ=qᵢᵀa_j and its positive diagonal entries are the remainder lengths. Nonzero diagonal makes R invertible. This triangular structure records the order in which spans were built. Changing the sign of one q column and the matching row of R leaves QR unchanged. A QR returned by a library can therefore differ in signs from the hand construction without being incorrect.</p>
+<p>For dependent columns, the exact zero remainder is a diagnostic. Do not divide by it or claim that d orthonormal directions were obtained. One can skip redundant vectors to construct an r-column basis for the rank-r column space, or use a factorisation designed to handle dependence. In floating-point arithmetic, a very small remainder needs a stated resolution policy; it may reflect exact dependence, near dependence or accumulated error. A fixed absolute threshold changes meaning when column units change. The simple lab guard illustrates the decision but does not provide a general rank-revealing solver.</p>
+<p>Classical Gram–Schmidt computes all removal coefficients against the original a_j and subtracts their combined contribution. Modified Gram–Schmidt removes one component at a time and computes the next coefficient against the current remainder. They give the same exact formulas, because earlier q’s are exactly orthogonal. Floating-point rounding can make the procedures behave differently; sequential removal often preserves orthogonality better, but it is not immune to severe near dependence. Reorthogonalisation or Householder QR can address algorithmic error. Neither creates information missing from an ill-conditioned design.</p>
+<p>An orthonormal basis makes subspace coordinates particularly simple: qᵢᵀy reads the component in direction i, and the sum of squared components equals the squared norm of the projection. The residual norm accounts for the missing perpendicular part. For a square orthogonal Q, these coordinates preserve the entire vector norm because there is no missing part. For a rectangular Q, Qᵀy retains only its coordinates in the smaller column space. This is the geometric difference between a full coordinate change and dimension reduction.</p>
+<figure class="fig" id="fig-12-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="Removing the first-direction component from (1,0,1) yields (1/2,−1/2,1); normalising gives (1,−1,2)/√6, with QR reconstructing the original columns."><title>Two-column Gram–Schmidt</title><desc>Removing the first-direction component from (1,0,1) yields (1/2,−1/2,1); normalising gives (1,−1,2)/√6, with QR reconstructing the original columns.</desc><defs><marker id="fig-12-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">Remove the component, then normalise: preserve the span</text><rect x="25" y="75" width="220" height="180" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="135" y="119" text-anchor="middle" font-size="24" fill="#1a2e4a">a₂=(1,0,1)</text><text x="135" y="173" text-anchor="middle" font-size="20" fill="#1a2e4a">q₁=(1,1,0)/√2</text><text x="135" y="224" text-anchor="middle" font-size="21" fill="#1a2e4a">q₁·a₂=1/√2</text><path d="M255,163L295,163" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-12-2__arrow)"/><rect x="305" y="75" width="200" height="180" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="405" y="119" text-anchor="middle" font-size="26" fill="#1a2e4a">v₂</text><text x="405" y="173" text-anchor="middle" font-size="21" fill="#1a2e4a">(1/2,−1/2,1)</text><text x="405" y="224" text-anchor="middle" font-size="21" fill="#1a2e4a">‖v₂‖=√(3/2)</text><path d="M515,163L550,163" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-12-2__arrow)"/><rect x="560" y="75" width="175" height="180" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="647" y="119" text-anchor="middle" font-size="26" fill="#1a2e4a">q₂</text><text x="647" y="172" text-anchor="middle" font-size="20" fill="#1a2e4a">(1,−1,2)/√6</text><text x="647" y="224" text-anchor="middle" font-size="21" fill="#1a2e4a">q₁·q₂=0</text><text x="380" y="315" text-anchor="middle" font-size="22" fill="#1a2e4a">A = QR;   R = [[√2,1/√2],[0,√(3/2)]]</text></g></svg></div><figcaption><span class="fig-num">Figure 12.2</span> <p>Subtracting the first component leaves a perpendicular remainder; normalising it produces the second orthonormal direction. The triangular coefficients retain reconstruction information.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>If a second column is twice the first, what happens to its Gram–Schmidt remainder? Does replacing a tiny computed remainder by zero prove exact dependence?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>The exact remainder is zero, so it cannot be normalised. Thresholding a tiny computed remainder is a numerical resolution decision, not an exact proof. Report the input model and tolerance, and use exact arithmetic if the intended claim concerns an exact relation.</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>QR least-squares solves and floating-point limits</h2></div>
+<p>For a full-column-rank design X of shape m×d with m≥d, use reduced X=QR. Decompose y as Q Qᵀy+r with Qᵀr=0. Then y−Xw=r+Q(Qᵀy−Rw). Pythagoras and Q’s length preservation on d-dimensional coordinates give ‖y−Xw‖²=‖r‖²+‖Qᵀy−Rw‖². The first term is fixed. Because R is invertible, the second is zero exactly when Rw=Qᵀy. Back substitution solves this d-dimensional triangular system and gives a unique w.</p>
+<p>The shapes are explicit: y is length m, Qᵀy is length d, R is d×d, and w is length d. The predicted vector Q Qᵀy is length m. A library implementation may store y as a column or allow several target columns, but those storage conventions must be declared separately. For multiple targets Y of shape m×k, the same R can solve for d×k weights with RHS QᵀY; each column is its own target problem. Factorisation reuse avoids recomputing geometry unnecessarily.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A line fit to three records</div>
+<p>Fit y≈w₀+w₁x for records (0,1),(1,2),(2,2). X has rows (1,0),(1,1),(1,2). The normal equations, proved next, are 3w₀+3w₁=5 and 3w₀+5w₁=6. Subtracting gives w₁=1/2,w₀=7/6. Fitted values are (7/6,5/3,13/6), residual y−Xw is (−1/6,1/3,−1/6), and SSE is 1/6. Its dot products with the intercept and x columns both vanish. QR computes the same weights without using XᵀX as its numerical input.</p>
+</div>
+<p>Householder QR offers another orthonormal construction. For a unit vector v, H=I−2vvᵀ is symmetric and HᵀH=I, since expansion cancels −4vvᵀ with 4v(vᵀv)vᵀ. It is a norm-preserving reflection. For a nonzero column segment x, take v proportional to x+s‖x‖e₁ where s matches the sign of the first coordinate, choosing s=1 at zero. This avoids subtracting nearly equal leading quantities. The reflection sends x to −s‖x‖e₁. Applying successive reflections to trailing column segments zeros the entries below successive diagonals; their orthogonal product supplies Q. This explains why a practical QR need not use the simple educational Gram–Schmidt routine.</p>
+<p>Avoid forming a Gram matrix when its loss of resolution matters. For X with columns (1,1,1) and (1,1+δ,1−δ), exact XᵀX=[[3,3],[3,3+2δ²]]. The independent difference δ becomes a much smaller squared term in the Gram matrix. With δ=10⁻⁸ and local double-precision arithmetic, 3+2δ² rounds to three in the lab, producing a singular computed matrix. The original floating-point X still retains its distinct column entries, so QR and a least-squares library can use that information. The exact formulas are equivalent; their evaluated numerical intermediates are not.</p>
+<p>This example does not establish that every normal-equation computation fails. A well-conditioned small problem may work accurately, as the hand line-fit calculation does. It demonstrates an avoidable source of damage for near-collinear features. The familiar statement that a Gram matrix squares the two-norm condition number will be derived from singular values in Module 14. Here the δ² term already shows the mechanism explicitly without assuming that theorem.</p>
+<p>Algorithmic stability and problem sensitivity remain separate. A sound QR calculation can return accurate coefficients for the supplied numbers yet produce very different coefficients after a tiny target perturbation along a weak direction. Lab 3 adds (0,δ,−δ) to y, changing weights by approximately (−1,1) while retaining a tiny residual. A small fitted discrepancy establishes agreement with the current targets, not stable recovery of physically true coefficients. Appropriate feature scaling, measurement assumptions and later regularisation can alter the modelling or resolution decisions; they do not change this distinction.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why solve Rw=Qᵀy instead of explicitly constructing R⁻¹? If QR gives a tiny residual, have we proved robustness to perturbed measurements?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>The triangular system directly supplies the required weights with back substitution; an explicit inverse adds unnecessary intermediate work. A tiny residual concerns the supplied data only. The design’s weak directions can still amplify a small data perturbation, even with a stable numerical algorithm.</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>Deriving normal equations without differentiation</h2></div>
+<p>For arbitrary X, minimise the Euclidean objective F(w)=‖y−Xw‖². This is the <strong>least-squares</strong> criterion; the word squares refers to the sum of coordinate residual squares. Dividing by the fixed number of observations or multiplying by a positive constant changes the objective value but not its minimisers. Choosing another metric, adding a penalty or restricting w can change the minimising set, so each altered problem needs its own derivation.</p>
+<p>The column space S=C(X) is finite dimensional. Its orthogonal projection p of y exists and is unique by Section 2. Because p belongs to S, at least one w satisfies Xw=p. These and only these weights minimise F: for any candidate, ‖y−Xw‖²=‖y−p‖²+‖p−Xw‖². Thus existence of minimising weights holds even for a rank-deficient design. The fitted vector is uniquely determined by the subspace and the chosen distance, while the map from weights to that vector may be many-to-one.</p>
+<p>Residual perpendicularity gives the <strong>normal equations</strong> Xᵀ(y−Xw)=0, equivalently XᵀXw=Xᵀy. Necessity can also be proved by a direct scalar variation. If residual r has a nonzero dot product with a column a_j, change only weight j by t. The objective change is t²‖a_j‖²−2t a_jᵀr. The column is nonzero in this situation. Choosing t=(a_jᵀr)/‖a_j‖² gives a strictly negative change, contradicting minimality. Consequently every column dot product is zero. This argument has no derivative and covers all unconstrained real weights.</p>
+<p>For sufficiency, suppose Xᵀr=0. A weight change h gives residual r−Xh, with rᵀXh=0. Expansion yields F(w+h)=F(w)+‖Xh‖²≥F(w). Hence every normal-equation solution is a global minimiser. Equality holds exactly for h∈N(X). We have proved both directions and the entire minimiser family, rather than merely finding a stationary candidate. With full column rank, Xh=0 forces h=0 and the minimiser is unique. Otherwise all weights in w+N(X) minimise with the same fitted vector.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Residuals are perpendicular in observation space</div>
+<p>For the three-record line fit, Xᵀr has two entries: Σrᵢ=0 and Σxᵢrᵢ=0. With r=(−1/6,1/3,−1/6), both identities hold. The residual lives in R³, perpendicular to the two-dimensional plane of possible predictions. In a scatter plot, its three vertical discrepancies are not generally perpendicular to the fitted line drawn in the x–y plane. The normal equations concern observation-vector geometry, a different space.</p>
+</div>
+<p>With an intercept column of ones, residual perpendicularity implies their sum is zero. Without that column, there is no such automatic guarantee. An exact-fit target has residual zero; zero is perpendicular to every column, so the normal equations include interpolation as a special case. The residual can be nonzero while Xᵀr is zero, as in the line-fit example. Confusing the two arrays would make a correct approximate fit appear exact.</p>
+<figure class="fig" id="fig-12-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 365" role="img" aria-label="The scatter plot shows three vertical errors. In R³, residual (−1/6,1/3,−1/6) has zero dot product with both design columns."><title>Regression residuals in two spaces</title><desc>The scatter plot shows three vertical errors. In R³, residual (−1/6,1/3,−1/6) has zero dot product with both design columns.</desc><defs><marker id="fig-12-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="365" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">Vertical segments are coordinates; orthogonality is in observation space</text><text x="210" y="70" text-anchor="middle" font-size="21" fill="#1a2e4a">Scatter plot: x–y plane</text><path d="M75,275H340M100,300V95" stroke="#94a3b8"/><path d="M100,205L280,145" stroke="#2563eb" stroke-width="3"/><path d="M100,215V205" stroke="#c2410c" stroke-width="4"/><circle cx="100" cy="215" r="5" fill="#1a2e4a"/><text x="100" y="300" text-anchor="middle" font-size="18" fill="#1a2e4a">0</text><path d="M190,155V175" stroke="#c2410c" stroke-width="4"/><circle cx="190" cy="155" r="5" fill="#1a2e4a"/><text x="190" y="300" text-anchor="middle" font-size="18" fill="#1a2e4a">1</text><path d="M280,155V145" stroke="#c2410c" stroke-width="4"/><circle cx="280" cy="155" r="5" fill="#1a2e4a"/><text x="280" y="300" text-anchor="middle" font-size="18" fill="#1a2e4a">2</text><rect x="410" y="95" width="320" height="185" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="570" y="133" text-anchor="middle" font-size="22" fill="#1a2e4a">Observation vectors: R³</text><text x="570" y="181" text-anchor="middle" font-size="21" fill="#1a2e4a">r=(−1/6,1/3,−1/6)</text><text x="570" y="228" text-anchor="middle" font-size="25" fill="#1a2e4a">Xᵀr=(0,0)</text><text x="380" y="337" text-anchor="middle" font-size="16" fill="#1a2e4a">Residual ⟂ the design-column plane; individual plot segments need not ⟂ the fit line.</text></g></svg></div><figcaption><span class="fig-num">Figure 12.3</span> <p>Regression projects an observation vector in Rᵐ onto the design’s column space. Vertical scatter-plot residuals represent its coordinates, while perpendicularity is a statement in observation space.</p>
+</figcaption></figure>
+<p>Weighted least squares with symmetric positive-definite W minimises rᵀWr. The same perpendicular-decomposition or variation argument gives XᵀWr=0 and XᵀWXw=XᵀWy. For diagonal weights, one can scale rows of X and y by the square roots of the weights and solve an ordinary Euclidean problem. Zero or negative weights require separate treatment, because the inner-product proof no longer applies unchanged. The numerical shape and interpretation of weights are part of the specification.</p>
+<p>Normal equations describe optimality; they do not require using their Gram matrix as the algorithm. A QR or SVD solution can satisfy them to numerical tolerance while avoiding that intermediate. When testing a computed fit, inspect the residual and Xᵀr with a scale-aware tolerance and the declared rank. A good optimality check establishes that the specified objective was solved well. It still supplies no independent evidence about noise, omitted variables, causal meaning or extrapolation.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why can Xᵀr=0 hold when r≠0? Under what condition does F(w+h)=F(w) for a minimising w?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>A nonzero residual can lie in the left null space, perpendicular to all prediction directions. The objective remains equal exactly when Xh=0, meaning the parameter change lies in the design’s null space. Full column rank excludes any nonzero such change.</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>Minimum-norm weights and the pseudoinverse geometry</h2></div>
+<p>For a rank-deficient design, a least-squares minimiser w₀ determines the family w₀+N(X). To choose one representative, a common additional rule minimises the Euclidean parameter norm. Module 11 gave the orthogonal decomposition of parameter space into R(X) and N(X). Write w₀=u+k with u in the row space and k in the null space. Since Xk=0, Xu=Xw₀, so u is also a least-squares minimiser. Every equivalent minimiser has form u+n with n∈N(X). Orthogonality gives ‖u+n‖²=‖u‖²+‖n‖², uniquely minimised at n=0.</p>
+<p>Thus the <strong>minimum-norm least-squares solution</strong> is the unique minimiser that belongs to the row space. Its uniqueness comes from an added choice of parameter metric, not from information newly supplied by the observations. Reparameterising or rescaling features can change which coefficient vector has smallest ordinary Euclidean norm, even when the possible predictions are unchanged. The coordinate convention therefore matters for this selection rule.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Duplicate features split the identifiable coefficient</div>
+<p>Use X with rows (1,x,x) for x=0,1,2 and targets (1,2,2). The fit requires w₀=7/6 and w₁+w₂=1/2, giving the family (7/6,t,1/2−t). Its norm square is (7/6)²+t²+(1/2−t)²=(7/6)²+1/8+2(t−1/4)². The minimum-norm choice is (7/6,1/4,1/4). Adding any multiple of (0,−1,1) leaves the fit unchanged. Splitting the slope equally is a convention justified by this parameter norm, not evidence that each duplicate feature has half the physical effect.</p>
+</div>
+<p>The map taking y to this unique representative is the <strong>pseudoinverse</strong> X⁺. Its geometry has two stages: project y onto C(X), then apply the inverse of X restricted from R(X) to C(X). That restricted map is bijective by Module 11: its kernel in the row space is zero, and it reaches the whole column space. Projection and this inverse are linear, so their composition is a linear map from Rᵐ to Rᵈ, represented by a d×m matrix. This construction supplies the pseudoinverse without requiring a square inverse of X.</p>
+<p>It satisfies XX⁺=P_C and X⁺X=P_R, the orthogonal projections onto the column and row spaces. The first identity follows because projecting and lifting then remapping returns the projected target. The second follows because any parameter splits into row-space and null-space parts, and the lift selects exactly its row-space part. Therefore XX⁺X=X and X⁺XX⁺=X⁺, and both XX⁺ and X⁺X are symmetric. These four identities are the Moore–Penrose conditions. The geometric construction proves them and explains why the rectangular pseudoinverse is different from an ordinary two-sided inverse. Module 14 will derive its singular-value formula and numerical cutoff issues.</p>
+<figure class="fig" id="fig-12-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" role="img" aria-label="Any target first projects to its closest column-space prediction, then the inverse restricted to the row space lifts it to minimum-norm weights."><title>Projection and lifting in the pseudoinverse</title><desc>Any target first projects to its closest column-space prediction, then the inverse restricted to the row space lifts it to minimum-norm weights.</desc><defs><marker id="fig-12-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="380" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">Pseudoinverse: project the target, then choose weights with no null component</text><rect x="20" y="110" width="185" height="140" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="112.5" y="163" text-anchor="middle" font-size="23" fill="#1a2e4a">y ∈ Rᵐ</text><text x="112.5" y="214" text-anchor="middle" font-size="17" fill="#1a2e4a">Any target</text><rect x="280" y="110" width="200" height="140" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="163" text-anchor="middle" font-size="23" fill="#1a2e4a">p ∈ C(X)</text><text x="380" y="214" text-anchor="middle" font-size="17" fill="#1a2e4a">Closest prediction</text><rect x="555" y="110" width="185" height="140" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="647.5" y="163" text-anchor="middle" font-size="23" fill="#1a2e4a">w_min ∈ R(X)</text><text x="647.5" y="214" text-anchor="middle" font-size="17" fill="#1a2e4a">Minimum-norm representative</text><path d="M215,180L270,180" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-12-4__arrow)"/><path d="M490,180L545,180" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-12-4__arrow)"/><text x="380" y="300" text-anchor="middle" font-size="26" fill="#1a2e4a">XX⁺ = P_C;     X⁺X = P_R</text><text x="380" y="348" text-anchor="middle" font-size="18" fill="#1a2e4a">The kernel remains, and targets outside the column space remain unattainable.</text></g></svg></div><figcaption><span class="fig-num">Figure 12.4</span> <p>Targets first project into the column space. The inverse restricted to the row space then selects a coefficient vector with no null component, producing the minimum-norm representative.</p>
+</figcaption></figure>
+<p>A numerical pseudoinverse may discard sufficiently weak directions according to a tolerance. That changes the effective subspaces used in the calculation. A returned minimum-norm vector concerns that numerical policy and the supplied array; keep the exact mathematical construction separate. In the pinned least-squares interface, rank-deficient designs can also yield an empty returned residual-summary array even when the actual residual is nonzero. Compute y−Xw explicitly to assess the discrepancy rather than treating an empty summary as a proof of exact fit.</p>
+<p>Least squares finally separates three questions. What vector is closest to the observed targets under the objective? Which coefficient representative is selected among equivalent fits? What prediction or interpretation should transfer to new records? Orthogonal projection answers the first, and full rank or an added convention answers the second. The third needs a feature-domain assumption and later statistical evidence. A zero training residual can arise from interpolation and still accompany poor future behaviour; a small residual can coexist with unstable coefficients. Keep these limits with the useful algebra, rather than attaching unsupported conclusions to a successful solver call.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does the pseudoinverse make all targets exactly reachable? Does its unique minimum-norm vector remove a design’s null space?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>No. XX⁺y is the projection, equal to y only when y belongs to the column space. The null space remains a property of X. Minimum norm selects its row-space representative from an existing equivalence family; it does not make the observation map injective.</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>Common misconceptions</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Correction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A projection coefficient is the projected vector</td>
+<td>Multiply the coefficient by its generator.</td>
+</tr>
+<tr>
+<td>Rectangular Q has QQᵀ=I whenever QᵀQ=I</td>
+<td>QQᵀ projects onto Q’s column space.</td>
+</tr>
+<tr>
+<td>Gram–Schmidt can normalise a zero remainder</td>
+<td>Zero signals dependence and requires a guard.</td>
+</tr>
+<tr>
+<td>Normal equations require differentiation</td>
+<td>Perpendicularity or scalar variation proves both directions.</td>
+</tr>
+<tr>
+<td>A scatter-plot residual is perpendicular to its line</td>
+<td>Orthogonality holds in observation-vector space.</td>
+</tr>
+<tr>
+<td>A unique fitted vector implies unique weights</td>
+<td>Null directions leave predictions unchanged.</td>
+</tr>
+<tr>
+<td>An empty residual summary means perfect fit</td>
+<td>Compute the actual residual under the library contract.</td>
+</tr>
+<tr>
+<td>A tiny residual guarantees robust coefficients</td>
+<td>Weak directions can amplify data perturbations.</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>Three CPU labs</h2></div>
+<p>Use the Python 3.11 and NumPy baseline in <a href="numpy_primer_EN.html">array preparation</a>. Outputs below are captured by running the downloadable scripts. Predict the shapes and expected identities first; use tolerances for floating-point equalities and distinguish them from the exact proofs.</p>
+<h3 id="lab1">Lab A Projections and orthonormalisation</h3>
+<p>Compare the Euclidean and weighted diagonal-line projections. Predict which residual dot product should be zero in each geometry. Trace modified Gram–Schmidt, verify QᵀQ and QR, and explain the duplicate-column guard rather than removing it to continue execution.</p>
+<p><a href="labs/module_12/lab1_projections_and_bases.py" download>Download lab1_projections_and_bases.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Projection depends on the inner product; orthonormalisation preserves span.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+
+y = np.array([3., 2.])
+u = np.array([1., 1.])
+coefficient = (u@y)/(u@u)
+projection = coefficient*u
+residual = y-projection
+assert np.allclose(projection, [2.5, 2.5]) and np.isclose(u@residual, 0)
+print(&quot;Euclidean coefficient / projection / residual:&quot;, coefficient, projection, residual)
+weights = np.array([4., 1.])
+weighted_coefficient = (u@(weights*y))/(u@(weights*u))
+weighted_residual = y-weighted_coefficient*u
+print(&quot;Weighted coefficient / residual:&quot;, weighted_coefficient, weighted_residual)
+print(&quot;Weighted / Euclidean residual dot:&quot;, u@(weights*weighted_residual), u@weighted_residual)
+assert np.isclose(weighted_coefficient, 2.8) and np.isclose(u@(weights*weighted_residual), 0)
+
+def modified_gram_schmidt(A, tolerance=1e-12):
+    Q = np.zeros_like(A, dtype=float)
+    R = np.zeros((A.shape[1], A.shape[1]))
+    for j in range(A.shape[1]):
+        remaining = A[:, j].astype(float).copy()
+        for i in range(j):
+            R[i, j] = Q[:, i]@remaining
+            remaining -= R[i, j]*Q[:, i]
+        R[j, j] = np.linalg.norm(remaining)
+        if R[j, j] &lt;= tolerance:
+            raise ValueError(&quot;Dependent or unresolved column: do not normalise zero&quot;)
+        Q[:, j] = remaining/R[j, j]
+    return Q, R
+
+A = np.array([[1., 1.], [1., 0.], [0., 1.]])
+Q, R = modified_gram_schmidt(A)
+print(&quot;Q:&quot;, Q.tolist())
+print(&quot;R:&quot;, R.tolist())
+print(&quot;Orthogonality / reconstruction checks:&quot;, np.allclose(Q.T@Q, np.eye(2)), np.allclose(Q@R, A))
+assert np.allclose(Q.T@Q, np.eye(2)) and np.allclose(Q@R, A)
+try:
+    modified_gram_schmidt(np.ones((3, 2)))
+except ValueError as error:
+    print(&quot;Duplicate-column guard:&quot;, error)
+else:
+    raise AssertionError(&quot;A zero remainder must not be normalised&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Euclidean coefficient / projection / residual: 2.5 [2.5 2.5] [ 0.5 -0.5]
+Weighted coefficient / residual: 2.8 [ 0.2 -0.8]
+Weighted / Euclidean residual dot: 8.881784197001252e-16 -0.5999999999999996
+Q: [[0.7071067811865475, 0.40824829046386313], [0.7071067811865475, -0.40824829046386296], [0.0, 0.8164965809277261]]
+R: [[1.4142135623730951, 0.7071067811865475], [0.0, 1.224744871391589]]
+Orthogonality / reconstruction checks: True True
+Duplicate-column guard: Dependent or unresolved column: do not normalise zero
+</code></pre></div>
+<p><strong>Deliverable:</strong> the two objectives, projected vectors and residual conditions, followed by a two-column factorisation with shapes and reconstruction. Explain why tiny roundoff residual dots are compatible with an exact orthogonality theorem.</p>
+<h3 id="lab2">Lab B QR fitting and the minimum-norm family</h3>
+<p>Fit the three records with reduced QR and the library least-squares solver. Check residual perpendicularity explicitly. Duplicate the x feature, predict the weight family, and verify that the minimum-norm representative is perpendicular to the null direction. Inspect the returned residual summary separately from the computed residual.</p>
+<p><a href="labs/module_12/lab2_qr_and_minimum_norm.py" download>Download lab2_qr_and_minimum_norm.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A unique fitted vector may have an affine family of minimising weights.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+x = np.array([0., 1., 2.])
+X = np.column_stack((np.ones(3), x))
+y = np.array([1., 2., 2.])
+Q, R = np.linalg.qr(X, mode=&quot;reduced&quot;)
+w_qr = np.linalg.solve(R, Q.T@y)
+w_library, returned_residuals, rank, values = np.linalg.lstsq(X, y, rcond=None)
+residual = y-X@w_qr
+assert np.allclose(w_qr, [7/6, 1/2]) and np.allclose(w_qr, w_library)
+assert np.allclose(X.T@residual, 0)
+print(&quot;X / Q / R shapes:&quot;, X.shape, Q.shape, R.shape)
+print(&quot;QR / library weights:&quot;, w_qr, w_library)
+print(&quot;Fitted values / residual:&quot;, X@w_qr, residual)
+print(&quot;Residual sum of squares:&quot;, residual@residual)
+print(&quot;Normal-equation check:&quot;, np.allclose(X.T@residual, 0))
+
+duplicate = np.column_stack((np.ones(3), x, x))
+w_min, library_residuals, duplicate_rank, _ = np.linalg.lstsq(duplicate, y, rcond=None)
+null = np.array([0., -1., 1.])
+alternative = w_min + 2*null
+assert np.allclose(w_min, [7/6, 1/4, 1/4])
+assert np.allclose(duplicate@alternative, duplicate@w_min)
+assert np.isclose(w_min@null, 0)
+assert np.allclose(np.linalg.pinv(duplicate)@y, w_min)
+print(&quot;Duplicate design rank / minimum-norm weights:&quot;, duplicate_rank, w_min)
+print(&quot;Alternative weights / same fit:&quot;, alternative, np.allclose(duplicate@alternative, duplicate@w_min))
+print(&quot;Squared norms:&quot;, w_min@w_min, alternative@alternative)
+print(&quot;Rank-deficient returned residuals:&quot;, library_residuals.tolist())
+print(&quot;Explicit rank-deficient SSE:&quot;, np.linalg.norm(y-duplicate@w_min)**2)
+assert library_residuals.size == 0 and np.linalg.norm(y-duplicate@w_min) &gt; 0
+print(&quot;An empty library residual array does not assert a zero actual residual.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>X / Q / R shapes: (3, 2) (3, 2) (2, 2)
+QR / library weights: [1.166667 0.5     ] [1.166667 0.5     ]
+Fitted values / residual: [1.166667 1.666667 2.166667] [-0.166667  0.333333 -0.166667]
+Residual sum of squares: 0.16666666666666674
+Normal-equation check: True
+Duplicate design rank / minimum-norm weights: 2 [1.166667 0.25     0.25    ]
+Alternative weights / same fit: [ 1.166667 -1.75      2.25    ] True
+Squared norms: 1.4861111111111098 9.48611111111111
+Rank-deficient returned residuals: []
+Explicit rank-deficient SSE: 0.1666666666666668
+An empty library residual array does not assert a zero actual residual.
+</code></pre></div>
+<p><strong>Deliverable:</strong> the unique predicted vector, the full equivalent coefficient family, its minimum-norm member and SSE. Explain why the library’s empty rank-deficient summary does not mean that all records were fitted exactly.</p>
+<h3 id="lab3">Lab C Gram rounding and target sensitivity</h3>
+<p>Write the exact Gram matrix before running. Compare it with the rounded matrix, then compare QR and library weights. Perturb the target along the weak direction and measure the coefficient change and residual. The captured normal-equation result is for this baseline; another arithmetic backend may produce inaccurate solvable coefficients instead of the same exception.</p>
+<p><a href="labs/module_12/lab3_gram_rounding.py" download>Download lab3_gram_rounding.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Forming a Gram matrix can erase a weak direction; QR cannot cure noisy data.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=9, suppress=True)
+delta = 1e-8
+X = np.array([[1., 1.], [1., 1.+delta], [1., 1.-delta]])
+truth = np.array([1., 2.])
+y = X@truth
+gram = X.T@X
+Q, R = np.linalg.qr(X, mode=&quot;reduced&quot;)
+w_qr = np.linalg.solve(R, Q.T@y)
+w_library, _, rank, _ = np.linalg.lstsq(X, y, rcond=None)
+print(&quot;Rounded Gram matrix:&quot;, gram.tolist())
+print(&quot;QR / library weights:&quot;, w_qr, w_library)
+print(&quot;Library rank / condition number of X:&quot;, rank, format(np.linalg.cond(X), &quot;.6e&quot;))
+assert rank == 2 and np.allclose(w_qr, truth, atol=1e-6)
+try:
+    w_normal = np.linalg.solve(gram, X.T@y)
+except np.linalg.LinAlgError:
+    print(&quot;Normal equations: singular after Gram rounding&quot;)
+else:
+    print(&quot;Normal-equation weights / coefficient error:&quot;, w_normal, np.linalg.norm(w_normal-truth))
+perturbed = y + np.array([0., delta, -delta])
+changed = np.linalg.solve(R, Q.T@perturbed)
+print(&quot;Target perturbation norm:&quot;, format(np.linalg.norm(perturbed-y), &quot;.6e&quot;))
+print(&quot;QR weights after target perturbation:&quot;, changed)
+print(&quot;Weight change norm:&quot;, format(np.linalg.norm(changed-w_qr), &quot;.6e&quot;))
+print(&quot;Perturbed residual norm:&quot;, format(np.linalg.norm(perturbed-X@changed), &quot;.6e&quot;))
+assert np.linalg.norm(changed-w_qr) &gt; 1
+assert np.linalg.norm(perturbed-X@changed) &lt; 1e-12
+print(&quot;A stable algorithm avoids avoidable Gram damage; a tiny residual does not guarantee insensitive coefficients.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Rounded Gram matrix: [[3.0, 3.0], [3.0, 3.0]]
+QR / library weights: [0.99999999 2.00000001] [1.000000011 1.999999989]
+Library rank / condition number of X: 2 2.449490e+08
+Normal equations: singular after Gram rounding
+Target perturbation norm: 1.414214e-08
+QR weights after target perturbation: [0.000000001 2.999999999]
+Weight change norm: 1.414214e+00
+Perturbed residual norm: 4.440892e-16
+A stable algorithm avoids avoidable Gram damage; a tiny residual does not guarantee insensitive coefficients.
+</code></pre></div>
+<p><strong>Deliverable:</strong> separate the avoidable Gram-matrix rounding loss from the design’s intrinsic sensitivity to target changes. A stable solver avoids the first issue and cannot remove the second. Explain what a small residual actually certifies.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Exercises with complete solutions</h2></div>
+<p>Exercises 1–12 are required; 13–14 add 35 optional minutes. Unless labelled weighted, every inner product is Euclidean and residual means y−Xw.</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>Project (3,2) onto span{(1,1)} and compute the residual and its squared length.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>c=5/2,p=(5/2,5/2),r=(1/2,−1/2),‖r‖²=1/2. The residual dot (1,1) is zero. Every alternative (a,a) gives discrepancy 1/2+2(a−5/2)², proving the displayed minimum.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>Let Q=(1,0,0) be a single unit column. Compute QᵀQ, QQᵀ, and the projection of (2,3,4).</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>QᵀQ is the 1×1 identity, QQᵀ=diag(1,0,0), and the projection is (2,0,0). The residual (0,3,4) is perpendicular to the line. A one-dimensional projection is not the 3×3 identity.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>In Gram–Schmidt for a₁=(1,1,0),a₂=(1,0,1), compute the first removal coefficient and the second remainder.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>q₁=(1,1,0)/√2, coefficient q₁ᵀa₂=1/√2, and v₂=a₂−(1/2,1/2,0)=(1/2,−1/2,1). Its squared length is 3/2, so q₂=(1,−1,2)/√6. Its dot with q₁ is zero, and q₂ has unit norm.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>For full-column-rank X of shape 7×3 and a single target y, give reduced Q,R,Qᵀy,w,p shapes and the equation to solve.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Q is 7×3,R is 3×3,Qᵀy and w have length three, and p=Xw has length seven. Solve Rw=Qᵀy by triangular back substitution. QᵀQ=I₃, while QQᵀ is a 7×7 projection of rank three.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Prove the subspace projection is the unique closest point from its residual perpendicularity, without differentiation.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Suppose p∈S and r=y−p is perpendicular to S. For any s∈S, p−s∈S, so r and p−s are perpendicular. Therefore ‖y−s‖²=‖r‖²+‖p−s‖²≥‖r‖². Equality requires p−s=0 by positive definiteness, proving uniqueness. Existence is supplied by p=QQᵀy for an orthonormal basis of S; Qᵀr=0 verifies perpendicularity.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Prove both necessity and sufficiency of Xᵀ(y−Xw)=0 for unconstrained least squares using scalar variation and orthogonal expansion.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>If a column a_j has a_jᵀr≠0, changing weight j by t=(a_jᵀr)/‖a_j‖² lowers the objective by (a_jᵀr)²/‖a_j‖², contradicting minimality. Thus every column dot is zero. Conversely, if Xᵀr=0, every change h satisfies rᵀXh=0, giving F(w+h)=F(w)+‖Xh‖²≥F(w). Equality holds exactly for null directions. No differentiation or full-rank assumption is needed.</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Prove a rank-deficient least-squares family has a unique minimum-Euclidean-norm member in the row space.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Decompose one minimiser w₀=u+k into row-space and null-space components. Then Xu=Xw₀, and all equivalent minimisers are u+n,n∈N(X). Row and null spaces are perpendicular, so ‖u+n‖²=‖u‖²+‖n‖². Positive definiteness makes n=0 the unique norm minimum. This is an extra representative-selection rule, not uniqueness of the original least-squares objective’s weights.</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 min</span></div>
+<p>Fit the records (0,1),(1,2),(2,2) by y≈w₀+w₁x; give residuals, SSE and both normal-equation checks.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>XᵀX=[[3,3],[3,5]],Xᵀy=(5,6). The equations give w₁=1/2,w₀=7/6. Predictions (7/6,5/3,13/6) produce residuals (−1/6,1/3,−1/6). SSE=1/36+1/9+1/36=1/6. Their sum is zero and x-weighted sum is 1/3−2/6=0. Full column rank ensures unique weights.</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">Exercise 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 min</span></div>
+<p>Project (3,2) onto span{(1,1)} using W=diag(4,1). Compare the weighted and ordinary residual orthogonality conditions.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>c=(12+2)/(4+1)=14/5,p=(14/5,14/5),r=(1/5,−4/5). The weighted dot is 4/5−4/5=0, while the ordinary dot is −3/5. The changed closest point minimises 4(3−a)²+(2−a)²; the usual Euclidean point (5/2,5/2) solves a different objective.</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">Exercise 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 min</span></div>
+<p>Duplicate the x column in Exercise 8. Give all minimising weights and derive the minimum-norm one.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>All weights are (7/6,t,1/2−t) because only the sum of duplicate-feature weights is identified. Norm square is (7/6)²+1/8+2(t−1/4)², uniquely minimised at t=1/4. Thus w_min=(7/6,1/4,1/4). The null direction is (0,−1,1), and w_min is perpendicular to it. All family members have the same predictions and SSE 1/6.</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">Exercise 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 min</span></div>
+<p>A scatter plot labels vertical residuals perpendicular to the fitted line and asserts every least-squares residual has zero sum. Repair both claims.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Residual orthogonality is r∈Rᵐ perpendicular to C(X), not the geometry of each vertical segment in the x–y plane. Residual sum is zero when the design includes an intercept column of ones. Without it, take X=[[1],[2]],y=(1,0). The fit coefficient is 1/5, residual (4/5,−2/5) has Xᵀr=0 but sum 2/5. Thus the optimality condition alone does not force zero sum for every design.</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">Exercise 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 min</span></div>
+<p>A program reports an empty least-squares residual-summary array as an exact fit, forms XᵀX despite a weak feature direction, and treats a tiny residual as robust coefficient recovery. Give three repairs.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Compute the actual residual y−Xw and its SSE; a rank-deficient library return can have an empty summary despite SSE 1/6 in Lab B. Use QR or an appropriate least-squares solver to avoid avoidable Gram rounding; Lab C’s δ difference enters the Gram matrix as δ² and can disappear. Then perturb the data and analyse conditioning separately: the same QR computation can have a tiny residual while weights change by roughly (−1,1) under target norm change about 1.4×10⁻⁸. Algorithm choice does not certify data insensitivity.</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 min</span></div>
+<p>Find the closest point to y=(3,0) on the affine line (1,0)+span{(1,1)}, and prove the translation rule.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Translate the target to y−p₀=(2,0), whose projection onto the diagonal is (1,1). Add p₀ back to get (2,1), with residual (1,−1). Any affine candidate is p₀+s,s∈S, and ‖y−(p₀+s)‖=‖(y−p₀)−s‖. Thus the ordinary subspace closest-point theorem proves the rule and uniqueness.</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">Exercise 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 min</span></div>
+<p>Show that the product of two orthogonal projections need not be an orthogonal projection. Prove that commuting projections do project onto their intersection.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Take P=[[1,0],[0,0]] and Q=(1/2)[[1,1],[1,1]]. Both are symmetric idempotent. PQ=(1/2)[[1,1],[0,0]] is neither symmetric nor idempotent, so is not an orthogonal projection. If P,Q commute, (PQ)ᵀ=QP=PQ and (PQ)²=P²Q²=PQ. Every image vector PQy is fixed by P and Q, hence in both images. Conversely a vector fixed by both is fixed by PQ. Thus the product is the orthogonal projection onto the intersection; symmetry and idempotence ensure its perpendicular residual decomposition.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Ten-question self-check</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>For nonzero u, what is the projection of y onto span{u}?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">u(uᵀy)/(uᵀu)</button></li><li><button type="button" class="quiz-opt" data-i="1">The scalar uᵀy alone</button></li><li><button type="button" class="quiz-opt" data-i="2">u(uᵀu)/(uᵀy) for every y</button></li></ol><div class="quiz-expl" hidden>The projected vector scales u by its perpendicular-residual coefficient. The reciprocal expression can be undefined and does not satisfy the condition.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>Q is m×d with orthonormal columns and d&lt;m. What is QQᵀ?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The identity on all of Rᵐ</button></li><li><button type="button" class="quiz-opt" data-i="1">The projection onto C(Q)</button></li><li><button type="button" class="quiz-opt" data-i="2">A d×d coordinate identity</button></li></ol><div class="quiz-expl" hidden>QᵀQ is the d×d identity. QQᵀ is m×m and retains only the column-space component.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>A Gram–Schmidt remainder is exactly zero. What follows?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Normalising it yields a new unit direction</button></li><li><button type="button" class="quiz-opt" data-i="1">The vector space has ceased to exist</button></li><li><button type="button" class="quiz-opt" data-i="2">This column adds no new direction to the previous span</button></li></ol><div class="quiz-expl" hidden>A zero remainder expresses the column using earlier directions. Division by its norm is invalid.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>Which reduced QR equation solves full-column-rank least squares?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Rw=Qᵀy</button></li><li><button type="button" class="quiz-opt" data-i="1">Qw=y for every target</button></li><li><button type="button" class="quiz-opt" data-i="2">Rᵀw=Qy with these same shapes</button></li></ol><div class="quiz-expl" hidden>Orthogonal decomposition makes the variable part of the objective ‖Qᵀy−Rw‖². The other equations are generally incompatible or dimensionally invalid.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>The normal equations assert what about residual r=y−Xw?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">r=0 in every fit</button></li><li><button type="button" class="quiz-opt" data-i="1">Xᵀr=0</button></li><li><button type="button" class="quiz-opt" data-i="2">Each scatter-plot segment is perpendicular to its drawn line</button></li></ol><div class="quiz-expl" hidden>Residuals are perpendicular to prediction directions in observation space and may be nonzero.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>When are unconstrained least-squares weights unique?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Whenever the fitted vector is unique</button></li><li><button type="button" class="quiz-opt" data-i="1">Whenever a solver returns one vector</button></li><li><button type="button" class="quiz-opt" data-i="2">When X has full column rank</button></li></ol><div class="quiz-expl" hidden>Null directions produce equivalent minimisers. Projection makes fitted vectors unique even when that kernel is nonzero.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>What selects the minimum-Euclidean-norm representative?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Its null-space component is zero</button></li><li><button type="button" class="quiz-opt" data-i="1">It makes every target exactly reachable</button></li><li><button type="button" class="quiz-opt" data-i="2">It removes the design’s existing kernel</button></li></ol><div class="quiz-expl" hidden>The representative lies in the row space. It adds a selection criterion without altering the map or its reachable targets.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>A rank-deficient library fit returns an empty residual summary. What should be checked?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Assume SSE is zero</button></li><li><button type="button" class="quiz-opt" data-i="1">Compute y−Xw and its norm explicitly</button></li><li><button type="button" class="quiz-opt" data-i="2">Infer full column rank</button></li></ol><div class="quiz-expl" hidden>The return contract can omit this summary for rank-deficient designs. The actual discrepancy needs its own calculation.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>QR avoids Gram rounding in a near-collinear design. What remains possible?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Exact rank must become one</button></li><li><button type="button" class="quiz-opt" data-i="1">All measurements become trustworthy</button></li><li><button type="button" class="quiz-opt" data-i="2">Tiny target changes can still greatly change weights</button></li></ol><div class="quiz-expl" hidden>Algorithmic quality does not remove intrinsic data sensitivity. A tiny residual is not a coefficient-robustness guarantee.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m12:q10">
+<label for="q10-response">10. Derive least-squares optimality without calculus. Explain residual orthogonality, the complete minimiser family, and how the minimum-norm representative is chosen.</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="Use a perpendicular decomposition or scalar variation, then separate predictions from parameters."></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> I proved sufficiency, stated the null family, and explained the extra norm criterion.</label>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Projection p onto C(X) gives y−Xw=(y−p)+(p−Xw), an orthogonal sum; minimisation requires Xw=p. Equivalently r is perpendicular to every column, Xᵀr=0. Then F(w+h)=F(w)+‖Xh‖², so all and only changes in N(X) preserve the optimum. Weights form w+N(X), with unique predictions. Decompose w into row and null components and retain the row component: adding any null component strictly increases its squared norm unless that component is zero. This chooses a minimum-norm representative without making the original map injective.</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Reading with a purpose</h2></div>
+<p>Use orthogonality, projection and linear-regression selections in the authors’ <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning companion</a>. For numerical contracts, read official NumPy 1.26 documentation for <a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.qr.html" target="_blank" rel="noopener">QR</a>, <a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.lstsq.html" target="_blank" rel="noopener">least squares</a>, and <a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.pinv.html" target="_blank" rel="noopener">pseudoinverse</a>. These supplement the original proofs and examples above.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>Selection and question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session 1 · 20 minutes</td>
+<td>Projection: which assumption makes the extra squared-distance term nonnegative and uniquely zero?</td>
+</tr>
+<tr>
+<td>Session 4 · 20 minutes</td>
+<td>QR shapes, rank-dependent residual returns, and pseudoinverse cutoffs: what does each numerical call promise?</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Retrieval exit task and next step</h2></div>
+<p>Without notes, derive the line projection, prove subspace uniqueness, and construct a two-column QR. Derive both directions of the normal equations without calculus. Distinguish fit uniqueness, weight uniqueness and minimum-norm selection, then describe one numerical and one modelling limitation.</p>
+<p><strong>Exit task:</strong> X=[[1],[1],[1]],y=(1,2,3) has weight two, fit (2,2,2), residual (−1,0,1) and SSE two. The residual dot with X’s column vanishes. Duplicating that column yields weights (t,2−t), with minimum norm at (1,1). Explain why the fitted prediction did not change and why neither result supplies a future-data guarantee.</p>
+<p><strong>Ready to move on:</strong> you can identify the relevant spaces, objective and algorithm before interpreting a fit. Module 13 develops eigenvalues and quadratic forms; Module 14 will derive singular values and the computational pseudoinverse. Check the <a href="index.html">course overview</a> for availability.</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Notation and bilingual terminology</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term or notation</th>
+<th>Meaning</th>
+<th>中文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inner product / orthogonal</td>
+<td>Chosen positive-definite bilinear geometry / zero product</td>
+<td>内积、正交</td>
+</tr>
+<tr>
+<td>Q / QᵀQ=I</td>
+<td>Orthonormal columns / coordinate identity</td>
+<td>标准正交列</td>
+</tr>
+<tr>
+<td>P / p / r</td>
+<td>Projection map / fitted vector / target minus fit</td>
+<td>投影、拟合向量、残差</td>
+</tr>
+<tr>
+<td>Gram–Schmidt</td>
+<td>Remove earlier components then normalise</td>
+<td>格拉姆–施密特</td>
+</tr>
+<tr>
+<td>QR / R</td>
+<td>Orthonormal–triangular factorisation / upper triangular factor</td>
+<td>QR 分解、上三角因子</td>
+</tr>
+<tr>
+<td>Xᵀr=0</td>
+<td>Euclidean least-squares optimality</td>
+<td>正规方程</td>
+</tr>
+<tr>
+<td>SSE</td>
+<td>Sum of squared residuals</td>
+<td>残差平方和</td>
+</tr>
+<tr>
+<td>Minimum norm / X⁺</td>
+<td>Extra coefficient-selection rule / pseudoinverse map</td>
+<td>最小范数、伪逆</td>
+</tr>
+<tr>
+<td>Sensitivity / stability</td>
+<td>Data response / numerical algorithm’s error behaviour</td>
+<td>敏感性、稳定性</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="module_11_EN.html">← Module 11</a><a href="module_13_EN.html">Module 13 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>
