@@ -1,0 +1,492 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>极限定理、集中不等式与蒙特卡洛方法 — 计算机科学与人工智能的数学基础</title><meta name="description" content="证明矩界和弱大数法则，限定 CLT 与 Hoeffding 条件，计算样本量，并按实际独立单位报告蒙特卡洛不确定性。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="24"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 24</button><div class="dropdown-menu" id="module-menu"><a href="module_24_ZH.html" class="active" aria-current="page">极限定理、集中不等式与蒙特卡洛方法</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_24_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>样本均值需要明确的不确定性约定</span></a><a href="#s1"><span class="num">2</span><span>抽样假设与平均值的波动</span></a><a href="#s2"><span class="num">3</span><span>Markov 与切比雪夫界的完整初等证明</span></a><a href="#s3"><span class="num">4</span><span>有限方差弱大数法则及其收敛含义</span></a><a href="#s4"><span class="num">5</span><span>中心极限定理标准化均值而非原观测</span></a><a href="#s5"><span class="num">6</span><span>Hoeffding 界、样本量与有限同时声明</span></a><a href="#s6"><span class="num">7</span><span>蒙特卡洛报告、种子与配对降方差</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个可复现实验</span></a><a href="#exercises"><span class="num">10</span><span>十四题与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自测</span></a><a href="#reading"><span class="num">12</span><span>带问题阅读</span></a><a href="#summary"><span class="num">13</span><span>检索结业与下一步</span></a><a href="#terms"><span class="num">14</span><span>符号与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">极限定理、集中不等式与蒙特卡洛方法</h1><p class="module-lead">证明矩界和弱大数法则，限定 CLT 与 Hoeffding 条件，计算样本量，并按实际独立单位报告蒙特卡洛不确定性。</p><div class="hero-chips"><span class="chip chip-time">10 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>按独立及依赖抽样单位计算均值波动。</li><li>列阈值与矩条件，证明 Markov 和切比雪夫。</li><li>推有限方差弱法则并解释依概率收敛。</li><li>陈述 IID CLT，不声称通用有限样本精度。</li><li>应用有界独立 Hoeffding 及有限族并集样本量。</li><li>报告蒙特卡洛不确定性，推带条件共同随机数比较。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>需模块 04、23。连续积分替代需模块 17；CS 分支使用有限事件。三个实验仅需 Python 标准库。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">样本均值需要明确的不确定性约定</a><a href="#s1">抽样假设与平均值的波动</a><a href="#s2">Markov 与切比雪夫界的完整初等证明</a><a href="#s3">有限方差弱大数法则及其收敛含义</a><a href="#s4">中心极限定理标准化均值而非原观测</a><a href="#s5">Hoeffding 界、样本量与有限同时声明</a><a href="#s6">蒙特卡洛报告、种子与配对降方差</a><a href="#misconceptions">常见误解</a><a href="#labs">三个可复现实验</a><a href="#exercises">十四题与完整解答</a><a href="#quiz">十题自测</a><a href="#reading">带问题阅读</a><a href="#summary">检索结业与下一步</a><a href="#terms">符号与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">10 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">150 分钟</span></div><div class="session-title">抽样波动与初等界</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节并证明矩不等式。</a></span><span class="act-min">90</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读均值方差弱法则条件。</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">检索协方差项与概率量词。</a></span><span class="act-min">21</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m24:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">150 分钟</span></div><div class="session-title">弱法则、CLT 与抽样形状</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，区分极限结论。</a></span><span class="act-min">58</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">比较公平及罕见 Bernoulli 重复均值。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">42</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m24:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">150 分钟</span></div><div class="session-title">集中与蒙特卡洛报告</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节，探索精确尾概率与界。</a></span><span class="act-min">70</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">用不同不确定性量报告有限事件或选学积分。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m24:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">150 分钟</span></div><div class="session-title">依赖、种子与带条件保证</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">诊断复制流并比较配对随机数。</a></span><span class="act-min">55</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">完成诊断练习 11–12。</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择题并写不确定性约定。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读 CLT 与有界集中定理范围。</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业并核查抽样条件。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m24:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>样本均值需要明确的不确定性约定</h2></div>
+<p>样本量大，并不自动意味着误差条可靠。关键是：在所声明的抽样机制下，估计量如何波动；依赖、尾部以及选择过程都应计入分析。本课完整证明基本概率界与有限方差弱大数法则，准确陈述中心极限定理和 Hoeffding 不等式，并据此报告蒙特卡洛结果。可复现的一条轨迹不等于无条件的精度保证。</p>
+<p><strong>检索准备：</strong><a href="module_04_ZH.html#s1">模块 04</a>提供证明结构，<a href="module_23_ZH.html#s1">模块 23</a>提供期望、有限矩和协方差。连续积分选学分支需要<a href="module_17_ZH.html#s1">模块 17</a>，计算机科学路线全程有有限事件替代。实验只使用 Python 标准库与局部随机数生成器。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>抽样假设与平均值的波动</h2></div>
+<p>对于观测 X₁,…,X_N，定义样本均值 M_N=(1/N)ΣX_i。数据实现以前，它是随机变量；实现以后，它是一个数值统计量。独立同分布（IID）表示各观测具有同一分布，而且每个有限子集合的联合分布都乘积分解。独立本身不保证共同均值，边缘分布相同本身也不保证独立。有关 M_N 的论断应说明目标总体量以及真正的抽样单位。</p>
+<p>若每项均值为 μ，期望线性给 E[M_N]=μ，无需独立。有限方差时，Var(M_N)=[ΣVar(X_i)+2Σ_{i&lt;j}Cov(X_i,X_j)]/N²。IID 且共同方差为 σ² 时，交叉项消失，得到 σ²/N。估计量的标准差叫标准误（standard error），此处为 σ/√N。它与原观测单位相同，但描述重复抽样中均值的波动，而非单个观测的离散程度。将原始标准差直接当成均值误差条，会漏掉平均的作用。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">复制观测不会缩小其方差</div>
+<p>令 Z 为 Bernoulli(.3)，所有 X_i=Z。每个边缘均值为 .3、方差为 .21，但 M_N=Z，故任意 N 的均值方差都是 .21。独立捷径给 .21/N，显然错误。每对协方差都是 .21，代入完整公式即恢复正确结果。N 行只是一个随机抽样的 N 个副本。</p>
+</div>
+<p>簇内复制介于完全独立与完全复制之间。将 m 个独立抽样各复制 b 次，N=mb 行的均值就等于原来 m 项的均值，方差为 σ²/m=bσ²/N。这个等大小完全复制模型中的独立数是 m；一般聚类数据不一定具有如此简单的有效样本量公式。共同受试者、提示、时间块或设备都可能产生协方差，应按照实际设计分析。</p>
+<p>非同分布但独立的变量仍满足 Var(M_N)=Σσ_i²/N²，均值为 Σμ_i/N。该量可以是有意定义的混合目标，却不自动等于某个固定总体 μ。如果选择过程改变 μ_i，或抽到的群体比例没有代表性，更多数据可能使结果集中在错误目标上。目标偏差与抽样波动不同；小标准误不能消除选择偏差。</p>
+<p>负协方差可能使平均的波动小于独立参照，正协方差则可能增大它。因此独立是一个足够的简化条件，并非所有有效随机设计的定义。第六节刻意在每一对内部引入依赖，以降低差值的方差；不同对之间仍需要合适的抽样约定。诊断依赖时，应指出实际共享来源，而非笼统拒绝所有依赖构造。</p>
+<p>数值实验应记录是否共享生成器流、何时重置以及哪些观测被复用。固定局部种子使一个运行可复现；每个所谓重复实验都重置同一种子，只会得到同一条流。采用多个不同整数种子本身也不是统计独立性的证明。定理针对理想化的随机机制；复现记录实现，不会为复制数据增加随机信息。</p>
+<figure class="fig" id="fig-24-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="三个模型的均值方差分别为 sigma 平方除 N、除独立簇数 m、以及 sigma 平方；复制行不会增加独立信息。"><title>独立与复制均值方差</title><desc>三个模型的均值方差分别为 sigma 平方除 N、除独立簇数 m、以及 sigma 平方；复制行不会增加独立信息。</desc><defs><marker id="fig-24-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">行数与独立抽样数不同</text><rect x="30" y="62" width="700" height="65" rx="10" fill="#f0fdf4" stroke="#0ea5e9"/><text x="55" y="89" text-anchor="start" font-size="21" fill="#1a2e4a">N 个 IID 抽样</text><text x="700" y="113" text-anchor="end" font-size="21" fill="#1a2e4a">Var(M) = σ²/N</text><rect x="30" y="144" width="700" height="65" rx="10" fill="#fff7ed" stroke="#0ea5e9"/><text x="55" y="171" text-anchor="start" font-size="21" fill="#1a2e4a">m 个独立簇，各复制 b 次</text><text x="700" y="195" text-anchor="end" font-size="21" fill="#1a2e4a">Var(M) = σ²/m = bσ²/N</text><rect x="30" y="226" width="700" height="65" rx="10" fill="#fff7ed" stroke="#0ea5e9"/><text x="55" y="253" text-anchor="start" font-size="21" fill="#1a2e4a">一个抽样复制 N 次</text><text x="700" y="277" text-anchor="end" font-size="21" fill="#1a2e4a">Var(M) = σ²</text><text x="380" y="334" text-anchor="middle" font-size="19" fill="#1a2e4a">协方差不能因增加副本而忽略。</text></g></svg></div><figcaption><span class="fig-num">图 24.1</span> <p>IID 均值方差按 1/N 缩小；完全复制和等大小复制簇保留共享协方差，名义行数因此可能夸大独立信息。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>期望线性是否需要独立？哪一个计算必须包含协方差？复制行是否增加独立抽样数？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>共同均值的期望线性不需要独立。均值方差必须包含所有成对协方差。复制保留同一个随机抽样，不能用增加后的行数给出 IID 标准误。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Markov 与切比雪夫界的完整初等证明</h2></div>
+<p>若 W≥0、E[W] 有限且 t&gt;0，Markov 不等式为 P(W≥t)≤E[W]/t。逐点有 W≥t1{W≥t}，取期望得 E[W]≥tP(W≥t)，再除以正 t 即证。无需独立。报告时可将大于 1 的界截为 1。阈值必须正；不能除以零，也不能将任意带负值变量的均值直接放入这个非负性证明。</p>
+<p>对有限方差 X，令 W=(X−μ)²，t=ε²，ε&gt;0。事件 W≥ε² 正好是 |X−μ|≥ε，因此 P(|X−μ|≥ε)≤Var(X)/ε²，即切比雪夫不等式。证明需要二阶矩，不需要高斯形状。独立可能用于前一步均值方差计算，但不是这条不等式的条件。无限方差时，它不给出有限精度信息；小样本方差不能替代总体有限方差假设。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi mathvariant="normal">∣</mi><mi>X</mi><mo>−</mo><mi>E</mi><mo stretchy="false">[</mo><mi>X</mi><mo stretchy="false">]</mo><mi mathvariant="normal">∣</mi><mo>≥</mo><mi>ε</mi><mo stretchy="false">)</mo><mo>≤</mo><mfrac><mrow><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><msup><mi>ε</mi><mn>2</mn></msup></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>ε</mi><mo>&gt;</mo><mn>0.</mn></mrow><annotation encoding="application/x-tex">P(|X-E[X]|\geq\varepsilon)\leq\frac{\operatorname{Var}(X)}{\varepsilon^2},\qquad \varepsilon&gt;0.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">]</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">ε</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.113em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">ε</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">ε</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.6444em;"></span><span class="mord">0.</span></span></span></span></span></div>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">利用已知方差控制 Bernoulli 均值</div>
+<p>IID Bernoulli(.5) 的 σ²=.25。N=1000、ε=.05 时，均值方差为 .00025，偏差概率至多 .00025/.0025=.1。即使 p 未知，也可用 p(1−p)≤1/4 得到这一最坏界。它是在独立且共同 p 条件下的有限样本概率保证，不是每次误差都不超过 .05。</p>
+</div>
+<p>要使界至多 δ，其中 0&lt;δ&lt;1，取 N≥σ²/(δε²)。未知 p 的 Bernoulli 情形可取 N≥1/(4δε²)。ε=.05、δ=.05 时，2000 足够。这是只利用方差界所得的保守充分条件，不是所有估计量、所有特定分布都必须达到的最小数。具体模型可能给更小的有效要求；违背抽样假设则会使整个要求失效。</p>
+<p>仅根据矩的信息，切比雪夫甚至可以达到等号。令 X 以概率 1−q 取 0，以概率 q/2 分别取 ±a，其中 0&lt;q≤1。均值为 0，方差为 qa²。在阈值 a，偏差概率为 q，恰等于方差/a²。不能仅凭“有限方差看起来像高斯”就普遍改进其系数。额外的尾部、支撑或分布信息可以改善界，但必须明确列为新条件。</p>
+<p>概率保证与确定性误差界的量词不同。切比雪夫允许概率至多 δ 的例外样本；数值求积定理则可能为所有满足导数条件的函数确定地控制截断误差。两者都要检查条件和单位，但不能把 P(误差≥ε)≤δ 改写为每次误差都≤ε。</p>
+<p>并集界能组合多个偏差保证，无需失败事件独立。若预先指定 m 个估计，各自失败概率至多 δ/m，则任一失败概率至多 δ。估计可以共享数据，只要单个保证仍有效。看完结果才决定报告哪个估计，会产生选择问题；固定列表定理不能自动覆盖无界的自适应搜索。</p>
+<p>小样本时，正确界也可能无用。Bernoulli 最坏方差 .25、N=20、ε=.2 给界 .3125；更小 ε 可使原始界超过 1。这说明当前条件不能建立小失败概率，并非证明错误。松但有效的上界与实际尾概率回答不同问题；漂亮却无定理的误差带不能替代它。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>证明 Markov 的逐点不等式是什么？切比雪夫是否需要高斯数据？充分样本量没有证明什么？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>W≥t1{W≥t}，条件是 W≥0、t&gt;0。切比雪夫只要求相关有限方差与正阈值。充分样本量既不是必要最小值，也不是每次实现的确定性保证。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>有限方差弱大数法则及其收敛含义</h2></div>
+<p>IID X_i 的均值为 μ、方差为有限 σ² 时，对样本均值应用切比雪夫：P(|M_N−μ|≥ε)≤σ²/(Nε²)→0，对每个固定 ε&gt;0 都成立。这完整证明了有限方差弱大数法则：M_N 依概率收敛到 μ。先固定 ε，再让 N 增长，其尾概率趋零；不是从一条模拟曲线的外观推断定理。</p>
+<p>依概率收敛描述越来越大的实验中固定幅度偏差的概率极限。它不说每个有限误差都变小，不说不会出现坏样本，也不提供一条实现轨迹最终服从的确定性容差规则。几乎必然收敛讨论整个无限样本路径具有极限的概率，是另一种结论。适当条件下确有强大数法则，但此处的切比雪夫证明只建立所声明的弱法则。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">样本量比率描述波动而非单调轨迹</div>
+<p>有限方差 IID 估计在 N=100 时标准误为 σ/10，N=400 时为 σ/20。样本量四倍，标准误减半。不过一次 400 项估计仍可能比其 100 项前缀离 μ 更远。标准误描述重复抽样分布，实现误差只是该分布的一次结果。</p>
+</div>
+<p>这个方差证明可以在比 IID 弱的条件下成立。若各变量共同均值、成对协方差全为零、方差都至多 C，则 Var(M_N)≤C/N，同样由切比雪夫得到依概率收敛。成对不相关不意味着相互独立，也不建立下一节的 IID 中心极限定理。更一般地，无偏均值估计量的方差只要趋零，就能用此概率证明；必须验证的关键是方差确实消失。</p>
+<p>完全复制模型不满足这一条件：方差一直为 σ²。Bernoulli(.3) 复制均值只可能是 0 或 1，与 .3 的距离至少 .3。因此 ε=.1 时，偏差概率每个 N 都是 1。相同边缘和无限行数并不能给弱法则。共同非零偏差也会阻止收敛到目标，即使围绕偏差均值的方差缩小。</p>
+<p>无限方差时此证明不可用。有些有限均值分布仍满足其他大数法则，但不能凭空为 σ²/(Nε²) 填一个有限方差。均值未定义则更没有可以代入的 μ；模块 23 的矩例子区分这些情况。应陈述实际使用的定理版本，不能笼统说平均总会有效。</p>
+<p>固定 ε、δ 时，切比雪夫给出极限以前就可计算的有限充分样本量；渐近弱法则则说明每个目标都有足够大的量，并不说保守界紧。若依据观察结果决定停止，实验改变了。固定 N 保证不能直接用于依赖数据的随机停止时刻；顺序程序需单独分析。实验中的固定检查点也不能把一个幸运结果变成定理。</p>
+<p>独立复制整个模拟实验可检查实现，其均值应总体呈现模型预测的波动。反复重置同一流会产生同一数据和零运行间波动；这诊断的是错误复现方案，而非总体不确定性消失。应记录种子的作用，区分一条累计轨迹与许多独立重复实验。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>方差证明建立哪种收敛？实现误差是否每次下降？成对不相关且方差有界是否能支持弱法则，却不支持这里的 IID CLT？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>它建立每个固定正容差下的依概率收敛，实现误差可以波动。方差≤C/N 足够支持此弱法则；IID CLT 还有额外分布与独立条件。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>中心极限定理标准化均值而非原观测</h2></div>
+<figure class="fig" id="fig-24-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="弱法则固定容差使尾概率趋零，中心极限定理除以标准误使均值波动的分布趋标准高斯。"><title>固定容差与标准化极限</title><desc>弱法则固定容差使尾概率趋零，中心极限定理除以标准误使均值波动的分布趋标准高斯。</desc><defs><marker id="fig-24-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">弱法则与 CLT 使用不同尺度</text><rect x="30" y="60" width="700" height="107" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="91" text-anchor="start" font-size="22" fill="#1a2e4a">固定 ε &gt; 0，N 增长</text><text x="380" y="130" text-anchor="middle" font-size="22" fill="#1a2e4a">P(|M_N − μ| ≥ ε) ≤ σ²/(Nε²) → 0</text><path d="M380,174L380,199" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-24-2__arrow)"/><rect x="30" y="213" width="700" height="98" rx="10" fill="#faf5ff" stroke="#7e22ce"/><text x="55" y="246" text-anchor="start" font-size="22" fill="#1a2e4a">重新缩放波动，而非原观测</text><text x="380" y="282" text-anchor="middle" font-size="22" fill="#1a2e4a">Z_N = √N(M_N − μ)/σ   ⇒   N(0,1)</text><text x="380" y="339" text-anchor="middle" font-size="18" fill="#1a2e4a">CLT 假设 IID，0 &lt; σ² &lt; ∞；这里不给有限误差率。</text></g></svg></div><figcaption><span class="fig-num">图 24.2</span> <p>弱法则让固定容差的尾概率趋零；CLT 则用不断缩小的标准误重新缩放波动。这两个极限回答不同问题。</p>
+</figcaption></figure>
+<p>标准 IID 有限方差中心极限定理假设共同均值 μ 与 0&lt;σ²&lt;∞。它说 Z_N=√N(M_N−μ)/σ 依分布收敛到标准高斯：每个实数 z 都有 P(Z_N≤z)→Φ(z)。这是在此陈述而未完整证明的定理，不能仅由方差恒等式推出。<a href="https://ocw.mit.edu/courses/6-041sc-probabilistic-systems-analysis-and-applied-probability-fall-2013/pages/unit-iv/lecture-20/" target="_blank" rel="noopener">MIT 的 CLT 材料</a>提供带条件的陈述。被标准化的是均值或总和；每个 X_i 保持原来分布。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Z</mi><mi>N</mi></msub><mo>=</mo><mfrac><mrow><msqrt><mi>N</mi></msqrt><mo stretchy="false">(</mo><msub><mi>M</mi><mi>N</mi></msub><mo>−</mo><mi>μ</mi><mo stretchy="false">)</mo></mrow><mi>σ</mi></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo stretchy="false">(</mo><msub><mi>Z</mi><mi>N</mi></msub><mo>≤</mo><mi>z</mi><mo stretchy="false">)</mo><mo>⟶</mo><mi mathvariant="normal">Φ</mi><mo stretchy="false">(</mo><mi>z</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">Z_N=\frac{\sqrt N(M_N-\mu)}{\sigma},\qquad P(Z_N\leq z)\longrightarrow\Phi(z).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.2897em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.6037em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9267em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.109em;padding-left:0.833em;">N</span></span><span style="top:-2.8867em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="1.08em" viewBox="0 0 400000 1080" preserveAspectRatio="xMinYMin slice"><path d="M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1133em;"><span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">μ</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Φ</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></div>
+<p>当大 N 近似适用时，M_N 近似均值 μ、方差 σ²/N 的高斯。μ 两侧约 1.96σ/√N 的带涵盖约 95% 的抽样分布。“约”不能省略：这里的定理没有通用有限 N 误差界或精确 95% 覆盖率。离散性、偏斜及罕见事件都可能令近似差；用估计标准差替代已知 σ 还需额外推理，后续估计与推断模块会讨论。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">有限方差的罕见 Bernoulli 均值仍可大部分为零</div>
+<p>p=.01、N=20 的成功数服从 Binomial(20,.01)，无成功概率 .99²⁰≈.817907。多数均值恰为 0，偶尔跳 .05。光滑高斯曲线不能准确表达这么大的原子。即使 N 增大，原观测仍是二值。实验 1 的 1.96 个已知标准误带内比例不自动等于 .95；精确离散规律说明为何方便的高斯声明要限定。</p>
+</div>
+<p>Z_N 的标准差为 1，M_N 的并不是。漏掉 √N 或把 σ 写成 σ² 会改变尺度和单位。σ²=0 时观测几乎必然等于 μ，没有非退化标准化；无限方差时本 CLT 不可用。不同条件可能导向别的极限规律。长数据或钟形直方图都不能替代均值、方差与依赖条件检查。</p>
+<p>若 X_i 本来就是独立高斯，其均值每个 N 都精确高斯，这是该族的更强特殊性质。一般有限方差变量仅有渐近结论。有限样本正态近似误差定理要求额外矩或分布信息，不能用“N≥30”保证所有总体的准确性。罕见二项计数同时受 Np 和 N(1−p) 影响，常见经验阈值也须与实际误差分析区分。</p>
+<p>连续近似离散计数时要关注边界。连续性修正可把相邻整数间界线移到半整数，它是近似技术，不是精确事件等式，也不普遍修复覆盖率。小例子可计算精确二项概率来检查剩余差异。转换到连续曲线以前，应写清离散支撑及严格或非严格阈值。</p>
+<p>渐近 95% 也不是观察数据后参数位于某个实现区间内的后验概率。它讨论固定总体下估计量的重复抽样。模块 26 严格说明置信覆盖率；模块 25 介绍贝叶斯后验。先区分抽样分布定理与数据实现后的未知参数论断，才能正确解释后续推断。</p>
+<p>要在模拟中查看 CLT，应绘制独立重复实验的均值，而非期待原始 Bernoulli 观测变高斯。实验 1 比较两种率与两种样本量；它能说明尺度与形状，不能证明定理或给通用近似误差。下一节探索器计算完整有限模型，并同时展示真正的上界。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>哪个变量在定理中近似高斯？此有限方差陈述有通用有限样本误差率吗？退化情形为何不能标准化？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>标准化均值，而非各原始观测。此定理只提供渐近分布收敛，没有通用有限量精度保证。方差为零时除以 σ 不可行，而均值几乎必然为常数。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>Hoeffding 界、样本量与有限同时声明</h2></div>
+<p>有界独立变量在许多情形可得到比单纯矩信息强的有限量界。若 X_i 独立，具有确定界 a_i≤X_i≤b_i，且 Σ(b_i−a_i)²&gt;0，Hoeffding 不等式对 t&gt;0 给 P(|Σ(X_i−E[X_i])|≥t)≤2exp(−2t²/Σ(b_i−a_i)²)。这是在此引用的带条件定理，见 <a href="https://ocw.mit.edu/courses/9-520-statistical-learning-theory-and-applications-spring-2006/f195bbc782726fc4580586a67d4fe69c_mathcamp02.pdf" target="_blank" rel="noopener">MIT 概率讲义</a>。全部范围为零时总和确定，正阈值偏差概率为零。</p>
+<p>对 [0,1] 内 IID 观测，取 t=Nε，总平方范围为 N，得 P(|M_N−μ|≥ε)≤2exp(−2Nε²)。报告时至多写 1。有界保证有限矩，但独立仍必要。一般总和版本不要求同分布；没有同分布时，平均针对各均值的平均。公共范围 [a,b] 的尺度会引入 (b−a)²。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi mathvariant="normal">∣</mi><msub><mi>M</mi><mi>N</mi></msub><mo>−</mo><mi>μ</mi><mi mathvariant="normal">∣</mi><mo>≥</mo><mi>ε</mi><mo stretchy="false">)</mo><mo>≤</mo><mn>2</mn><msup><mi>e</mi><mrow><mo>−</mo><mn>2</mn><mi>N</mi><msup><mi>ε</mi><mn>2</mn></msup></mrow></msup><mspace width="1em"/><mtext>for IID values in </mtext><mo stretchy="false">[</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">]</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">P(|M_N-\mu|\geq\varepsilon)\leq2e^{-2N\varepsilon^2}\quad\text{for IID values in }[0,1].</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">μ</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">ε</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.2869em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.0369em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">2</span><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span><span class="mord mtight"><span class="mord mathnormal mtight">ε</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="katex-sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mord text"><span class="mord">for IID values in </span></span><span class="mopen">[</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span><span class="mord">.</span></span></span></span></span></div>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">这里有界数据的充分量小于方差界给的量</div>
+<p>ε=.05、δ=.05 时，解 2exp(−2Nε²)≤δ，得 N≥log40/.005≈737.776，取 738 即可。切比雪夫最坏方差要求 2000。二者都不是每个 Bernoulli p 的必要最小量，都不适用于任意依赖副本。公式使用与指数底一致的自然对数。</p>
+</div>
+<p>对于预先指定的 m 个 [0,1] 均值估计，每个各用 N 个合适独立观测，先用个别界，再并集求和，得到任一偏差概率≤2mexp(−2Nε²)。估计之间可依赖，并集步骤不要求其独立。令它≤δ，得 N≥log(2m/δ)/(2ε²)。m=20、ε=.05、δ=.05 时取 1337。列表应预先指定，或者通过别的正确方法涵盖，才能声称同时有效。</p>
+<p>先检验一个模型，再依据同一批结果从许多模型中挑赢家，会改变声明。有限列表的并集界可以保护整张指定列表，单模型界不能自动跟随所选赢家；模块 30 将用于泛化分析。无穷次检查也不在一个固定 N 的 δ 保证内，需有效并集分配或顺序方法覆盖实际检查事件。</p>
+<p>[0,1] 数据的失败界 δ 对应半径 ε_N=√[log(2/δ)/(2N)]。它不使用估计方差，所以样本无成功时仍正。N=100、δ=.05 时约 .135810。代入标准误 √[p_hat(1−p_hat)/N] 在 p_hat=0 时为零，这不证明总体率为零。合成模型 p=.001 时，100 个零的概率为 .999¹⁰⁰≈.904792。</p>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="sampling"></div><div class="widget-caption">
+</div></div>
+<figure class="fig" id="fig-24-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="二十项公平 Bernoulli 均值偏差至少点二的尾概率约点一一五三，切比雪夫界点三一二五，Hoeffding 界约点四零三八。"><title>尾概率与有效上界</title><desc>二十项公平 Bernoulli 均值偏差至少点二的尾概率约点一一五三，切比雪夫界点三一二五，Hoeffding 界约点四零三八。</desc><defs><marker id="fig-24-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">同一 IID Bernoulli(.5) 事件</text><text x="380" y="66" text-anchor="middle" font-size="22" fill="#1a2e4a">N=20; ε=.20; |M−.5| ≥ .20</text><text x="32" y="113" text-anchor="start" font-size="19" fill="#1a2e4a">有限模型尾概率</text><rect x="245" y="85" width="111.85874938964844" height="38" rx="10" fill="#0ea5e9" stroke="#0ea5e9"/><text x="700" y="113" text-anchor="end" font-size="21" fill="#1a2e4a">0.115318</text><text x="32" y="181" text-anchor="start" font-size="19" fill="#1a2e4a">Chebyshev</text><rect x="245" y="153" width="303.125" height="38" rx="10" fill="#c2410c" stroke="#c2410c"/><text x="700" y="181" text-anchor="end" font-size="21" fill="#1a2e4a">0.312500</text><text x="32" y="249" text-anchor="start" font-size="19" fill="#1a2e4a">Hoeffding</text><rect x="245" y="221" width="391.67924490963145" height="38" rx="10" fill="#7e22ce" stroke="#7e22ce"/><text x="700" y="249" text-anchor="end" font-size="21" fill="#1a2e4a">0.403793</text><text x="380" y="321" text-anchor="middle" font-size="18" fill="#1a2e4a">上界并非实际概率；不同界的条件必须有效。</text></g></svg></div><figcaption><span class="fig-num">图 24.3</span> <p>切比雪夫使用方差信息，Hoeffding 使用有界独立信息。两者可能高于实际尾概率，报告时都可截为 1。</p>
+</figcaption></figure>
+<p>探索器比较 IID Bernoulli 均值与同一个 Bernoulli 抽样的复制行。它数值计算有限模型偏差概率，并用真实方差显示切比雪夫界；只有独立模式才展示 N 观测 Hoeffding 表达式。尾部包含容差等号。整数百分比使事件判定可使用精确整数不等式，然后以浮点加总概率质量。</p>
+<p>不同情形下界的紧松不同。小 N 或已知很小方差时，切比雪夫可能优于通用有界 Hoeffding；较大 N 时指数界经常优于 1/N 方差界。应对同一事件与条件比较有效数值界，不能说某个名称的界永远最好。完整有限模型还能计算实际尾概率，一般定理则无需知道全部质量。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>哪些条件支持 Hoeffding？并集中的估计需相互独立吗？零代入标准误是否说明总体不确定性为零？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>各抽样独立、有确定界、目标均值正确。失败事件之间无需独立。罕见非零率也能高概率产生全零样本，零代入标准误不提供确定性。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>蒙特卡洛报告、种子与配对降方差</h2></div>
+<p>蒙特卡洛通过指定抽样机制下的平均估计期望。有限事件 A 的指示平均估计 p=P(A)，IID 时无偏、方差 p(1−p)/N。代入标准误估计波动，在边界或小计数时须特别解释。合成模型已知 p 可算模型标准误；应用中的未知 p 则不能假装已知。</p>
+<p><strong>需模块 17 的连续选学分支：</strong>I=∫_a^b h(x)dx、U 均匀于 (a,b) 时，I=(b−a)E[h(U)]。IID U_i 且 Var(h(U)) 有限，估计量 (b−a)Σh(U_i)/N 方差为 (b−a)²Var(h(U))/N。h(x)=x²、区间 [0,1] 时目标 1/3，单抽样方差 1/5−1/9=4/45。CS 替代使用有限事件以及相同均值方差逻辑，不需积分。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">共同随机数降低这个差值的波动</div>
+<p>用同一个理想均匀 U 定义 A=1{U&lt;.6}、B=1{U&lt;.55}。均值差 .05，差值只在 .55≤U&lt;.6 时为 1，因此方差 .05(.95)=.0475。若用两个独立均匀数，则方差 .6(.4)+.55(.45)=.4875。10000 个独立对的标准误分别约 .002179 与 .006982。目标相同，正的对内协方差降低差值方差。</p>
+</div>
+<p>一般地 Var(A−B)=Var(A)+Var(B)−2Cov(A,B)。保留相同边缘时，正协方差改善独立参照，负协方差反而增大波动，零协方差不改变它。复用随机数不普遍有效。必须保留各方法边缘，并保证不同重复对之间独立，才能用通常的对均值标准误。在实际比较中，同一输入配对也可能减少干扰波动，但设计与分析必须把一对作为单位。</p>
+<p>报告应列估计量、目标、真正独立单位数、种子方案、方差条件、不确定性量及所用定理或近似。估计标准误、无分布半径与合成测试中才知道的实际绝对误差各不相同。如果每次模拟内部另有确定数值近似，其偏差或截断误差需要另外计入；随机抽样更多不能消除持续存在的内部求解偏差。</p>
+<p>绝对与相对容差的样本量要求也不同。非零 Bernoulli 率下，将模型标准误除以 p 得相对标准误 √[(1−p)/(Np)]。绝对误差 .005 是率 .01 的一半，却只是率 .5 的百分之一。p=0 时相对表达式未定义，不能把零估计除以零。先说明误差尺度再选 N；绝对概率定理不能未经推导改成相对保证。</p>
+<p>比较降方差方案还要计算工作量。一对需要两次模拟时，应在相同评估预算下与独立方案比较。较小的每对方差可能伴随昂贵耦合、存储或计算。这里两个方案每对都需两次指示计算，相同对数的比较有直接意义；其他模拟器应明确预算与目标后再说效率提升。复现也包括这些设计选择，种子不能挽救目标已变的估计量。</p>
+<figure class="fig" id="fig-24-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="相同边缘的独立差值方差点四八七五，共同均匀数产生正协方差点二二后，差值方差降至点零四七五；该收益不是普遍结论。"><title>共同随机数的带条件收益</title><desc>相同边缘的独立差值方差点四八七五，共同均匀数产生正协方差点二二后，差值方差降至点零四七五；该收益不是普遍结论。</desc><defs><marker id="fig-24-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">保持边缘，再比较差值方差</text><text x="380" y="71" text-anchor="middle" font-size="22" fill="#1a2e4a">Var(A−B) = Var(A)+Var(B)−2Cov(A,B)</text><rect x="30" y="104" width="700" height="78" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="135" text-anchor="start" font-size="21" fill="#1a2e4a">独立阈值 .60 与 .55</text><text x="700" y="166" text-anchor="end" font-size="21" fill="#1a2e4a">.24 + .2475 = .4875</text><rect x="30" y="202" width="700" height="87" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="55" y="235" text-anchor="start" font-size="21" fill="#1a2e4a">共同 U，对内 Cov=.22</text><text x="700" y="272" text-anchor="end" font-size="21" fill="#1a2e4a">.4875 − .44 = .0475</text><text x="380" y="332" text-anchor="middle" font-size="18" fill="#1a2e4a">不同对仍需独立；负 Cov 会增大差值方差。</text></g></svg></div><figcaption><span class="fig-num">图 24.4</span> <p>差值方差减去两倍对内协方差；复制整条流则不增加独立重复实验。</p>
+</figcaption></figure>
+<p>实验 1 查看重复均值，实验 2 报告有限事件与选学积分，实验 3 暴露复制种子、复制簇与零代入误差条，并展示保持边缘的正确共同随机数设计。可复现脚本支持精确实验陈述，关联定理仍依赖数学抽样条件。应区分数值证据、极限定理与有限概率保证。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>蒙特卡洛误差与求积截断有何区别？何时配对减小差值方差？复制簇应使用哪个样本量？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>前者随随机抽样波动，后者需要确定近似界。边缘不变且对内协方差正时，差值方差缩小。此等复制模型平均的是独立簇，应用原始独立抽样数而非行数。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>错误说法</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>每行都是新独立观测。</td>
+<td>复制和簇保留协方差。</td>
+</tr>
+<tr>
+<td>切比雪夫需要高斯数据。</td>
+<td>有限方差与正阈值足够。</td>
+</tr>
+<tr>
+<td>弱法则使每次误差单调缩小。</td>
+<td>它描述依概率收敛。</td>
+</tr>
+<tr>
+<td>CLT 使原观测变成高斯。</td>
+<td>它讨论标准化均值或总和。</td>
+</tr>
+<tr>
+<td>N≥30 普遍保证近似精度。</td>
+<td>分布与额外误差条件仍需检查。</td>
+</tr>
+<tr>
+<td>Hoeffding 适用于任意副本。</td>
+<td>它需要独立抽样。</td>
+</tr>
+<tr>
+<td>零估计标准误证明没有不确定性。</td>
+<td>非零率也可产生边界样本。</td>
+</tr>
+<tr>
+<td>配对永远降方差。</td>
+<td>协方差符号决定效果。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个可复现实验</h2></div>
+<h3 id="lab1">实验 1 · 重复均值与有限样本形状</h3>
+<p><a href="labs/module_24/lab1_repeated_sample_means.py" download>下载 lab1_repeated_sample_means.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Repeated IID Bernoulli means: exact variance, finite-sample discreteness.&quot;&quot;&quot;
+from math import sqrt
+import random
+
+if __name__ == &quot;__main__&quot;:
+    generator = random.Random(24024)
+    repeats = 3000
+    for p in (.5, .01):
+        for n in (20, 1000):
+            means = [sum(generator.random() &lt; p for _ in range(n))/n for _ in range(repeats)]
+            empirical_mean = sum(means)/repeats
+            empirical_sd = sqrt(sum((x-empirical_mean)**2 for x in means)/(repeats-1))
+            exact_sd = sqrt(p*(1-p)/n)
+            zeros = sum(x == 0 for x in means)/repeats
+            within = sum(abs(x-p) &lt;= 1.96*exact_sd for x in means)/repeats
+            print(&quot;p=%.2f n=%4d mean=%.6f empiricalSD=%.6f exactSD=%.6f zeroFraction=%.6f exactPzero=%.6f&quot; % (
+                p, n, empirical_mean, empirical_sd, exact_sd, zeros, (1-p)**n))
+            print(&quot;  fraction within1.96 known SD: %.6f (a finite check, not guaranteed95%%)&quot; % within)
+    print(&quot;Original observations stay Bernoulli; CLT concerns standardised sample means.&quot;)
+    print(&quot;Rare p=.01,n20 is mostly zero and poorly represented by a smooth Gaussian.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>p=0.50 n=  20 mean=0.501250 empiricalSD=0.111744 exactSD=0.111803 zeroFraction=0.000000 exactPzero=0.000001
+  fraction within1.96 known SD: 0.959667 (a finite check, not guaranteed95%)
+p=0.50 n=1000 mean=0.500040 empiricalSD=0.016054 exactSD=0.015811 zeroFraction=0.000000 exactPzero=0.000000
+  fraction within1.96 known SD: 0.943667 (a finite check, not guaranteed95%)
+p=0.01 n=  20 mean=0.009617 empiricalSD=0.021684 exactSD=0.022249 zeroFraction=0.823000 exactPzero=0.817907
+  fraction within1.96 known SD: 0.985667 (a finite check, not guaranteed95%)
+p=0.01 n=1000 mean=0.010042 empiricalSD=0.003122 exactSD=0.003146 zeroFraction=0.000000 exactPzero=0.000043
+  fraction within1.96 known SD: 0.966000 (a finite check, not guaranteed95%)
+Original observations stay Bernoulli; CLT concerns standardised sample means.
+Rare p=.01,n20 is mostly zero and poorly represented by a smooth Gaussian.
+</code></pre></div>
+<p>先预测模型标准误、罕见无成功概率及支撑间距。1.96 个标准误带内比例只是有限诊断，不是精确 95% 定理；原始抽样仍是 Bernoulli。</p>
+<h3 id="lab2">实验 2 · 估计与不同不确定性量</h3>
+<p><a href="labs/module_24/lab2_monte_carlo_error.py" download>下载 lab2_monte_carlo_error.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Finite-event Monte Carlo; optional continuous integration requires Module17.&quot;&quot;&quot;
+from math import sqrt, log
+import random
+
+if __name__ == &quot;__main__&quot;:
+    generator = random.Random(24242)
+    hits = 0
+    sum_square = 0.0
+    for n in range(1, 10001):
+        # A weighted finite event with total mass .3, represented by a threshold.
+        hits += generator.random() &lt; .3
+        u = generator.random()
+        sum_square += u*u
+        if n in (100, 1000, 10000):
+            estimate = hits/n
+            plugin_se = sqrt(estimate*(1-estimate)/n)
+            known_se = sqrt(.3*.7/n)
+            radius = sqrt(log(2/.05)/(2*n))
+            print(&quot;CS finite event N=%5d estimate=%.6f exact=.3 estimatedSE=%.6f modelSE=%.6f Hoeffding95%%radius=%.6f&quot; % (
+                n, estimate, plugin_se, known_se, radius))
+            integral = sum_square/n
+            print(&quot;AI integral x^2 on[0,1] N=%5d estimate=%.6f exact=1/3 modelSE=%.6f&quot; % (
+                n, integral, sqrt((4/45)/n)))
+    print(&quot;Quadrupling N halves the IID standard error, not necessarily one realised error.&quot;)
+    print(&quot;Monte Carlo sampling error differs from deterministic quadrature truncation error.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>CS finite event N=  100 estimate=0.230000 exact=.3 estimatedSE=0.042083 modelSE=0.045826 Hoeffding95%radius=0.135810
+AI integral x^2 on[0,1] N=  100 estimate=0.384036 exact=1/3 modelSE=0.029814
+CS finite event N= 1000 estimate=0.284000 exact=.3 estimatedSE=0.014260 modelSE=0.014491 Hoeffding95%radius=0.042947
+AI integral x^2 on[0,1] N= 1000 estimate=0.332519 exact=1/3 modelSE=0.009428
+CS finite event N=10000 estimate=0.298600 exact=.3 estimatedSE=0.004576 modelSE=0.004583 Hoeffding95%radius=0.013581
+AI integral x^2 on[0,1] N=10000 estimate=0.330839 exact=1/3 modelSE=0.002981
+Quadrupling N halves the IID standard error, not necessarily one realised error.
+Monte Carlo sampling error differs from deterministic quadrature truncation error.
+</code></pre></div>
+<p>CS 使用有限事件，AI 另推连续积分及方差。区分模型标准误、代入标准误、Hoeffding 半径和实际误差；解释样本量四倍为何减半标准误，却不能排列所有实现误差。</p>
+<h3 id="lab3">实验 3 · 种子副本、簇与共同随机数</h3>
+<p><a href="labs/module_24/lab3_dependence_seeds_and_pairing.py" download>下载 lab3_dependence_seeds_and_pairing.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Copied streams, clustered observations, zero estimated SE and common random numbers.&quot;&quot;&quot;
+from math import sqrt, log
+import random
+
+if __name__ == &quot;__main__&quot;:
+    n, repeats, p = 1000, 30, .3
+    means = []
+    for _ in range(repeats):
+        generator = random.Random(24)  # Intentional fault: identical stream each time.
+        means.append(sum(generator.random() &lt; p for _ in range(n))/n)
+    print(&quot;copied-seed blocks: unique means=%d mean=%.6f&quot; % (len(set(means)), means[0]))
+    print(&quot;wrong R*N independence SE=%.6f actual copied-block model SE=%.6f&quot; % (
+        sqrt(p*(1-p)/(repeats*n)), sqrt(p*(1-p)/n)))
+    assert len(set(means)) == 1
+    generator = random.Random(24343)
+    clusters, copies = 100, 10
+    distinct = [int(generator.random() &lt; p) for _ in range(clusters)]
+    records = [x for x in distinct for _ in range(copies)]
+    print(&quot;cluster copies: nominalN=%d independentClusters=%d mean=%.6f&quot; % (
+        len(records), clusters, sum(records)/len(records)))
+    print(&quot;wrong row SE=%.6f correct cluster model SE=%.6f&quot; % (
+        sqrt(p*(1-p)/len(records)), sqrt(p*(1-p)/clusters)))
+    N = 100
+    print(&quot;rare-event all-zero dataset: estimatedSE=0; model p=.001 gives P(all0)=%.6f&quot; % (.999**N))
+    print(&quot;bounded independent Hoeffding95%%radius=%.6f despite zero plug-in SE&quot; % sqrt(log(40)/(2*N)))
+    a, b = .6, .55
+    paired_variance = (a-b)*(1-a+b)
+    independent_variance = a*(1-a)+b*(1-b)
+    paired, separate = [], []
+    for _ in range(10000):
+        u = generator.random()
+        paired.append(int(u&lt;a)-int(u&lt;b))
+        separate.append(int(generator.random()&lt;a)-int(generator.random()&lt;b))
+    print(&quot;common-random-number difference mean=%.6f independent difference mean=%.6f target=.05&quot; % (
+        sum(paired)/len(paired), sum(separate)/len(separate)))
+    print(&quot;exact per-pair variance: common=%.6f independent=%.6f&quot; % (paired_variance, independent_variance))
+    print(&quot;exact N10000 SE: common=%.6f independent=%.6f&quot; % (
+        sqrt(paired_variance/10000), sqrt(independent_variance/10000)))
+    print(&quot;PASS: replication is not new information; pairing helps here through positive covariance&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>copied-seed blocks: unique means=1 mean=0.305000
+wrong R*N independence SE=0.002646 actual copied-block model SE=0.014491
+cluster copies: nominalN=1000 independentClusters=100 mean=0.220000
+wrong row SE=0.014491 correct cluster model SE=0.045826
+rare-event all-zero dataset: estimatedSE=0; model p=.001 gives P(all0)=0.904792
+bounded independent Hoeffding95%radius=0.135810 despite zero plug-in SE
+common-random-number difference mean=0.048200 independent difference mean=0.046100 target=.05
+exact per-pair variance: common=0.047500 independent=0.487500
+exact N10000 SE: common=0.002179 independent=0.006982
+PASS: replication is not new information; pairing helps here through positive covariance
+</code></pre></div>
+<p>接受误差条以前找出真正独立单位。修正零标准误确定性说法，并在所指定模型中推导正协方差的配对收益。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>十四题与完整解答</h2></div>
+<p>练习 1–12 必做，选学 13–14 在十小时以外增加 35 分钟。连续替代需模块 17，占用相同时间。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>IID Bernoulli(.3)、N=1000 的均值方差与标准误是多少？所有行复制同一抽样呢？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>IID 方差 .21/1000=.00021，标准误约 .014491。副本方差 .21，标准误约 .458258，与行数无关，因为均值就是原抽样。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>对 IID Bernoulli(.5)、N=1000、ε=.05 应用切比雪夫。失败界 .05 的充分量是多少？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>方差 .00025 除以 .0025 得 .1。充分 N≥.25/(.05·.0025)=2000。这是 IID 条件下的概率界，而非必要最小数。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>IID [0,1] 观测、ε=.05、δ=.05 时求 Hoeffding 充分整数样本量。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>N≥log40/.005≈737.776，向上取整为 738。自然对数与指数式一致，且必须有界、独立。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>N 四倍时 IID 标准误如何变化？Bernoulli(.01)、N=20 无成功的精确概率是多少？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>标准误减半，无成功概率 .99²⁰≈.817907。大零原子说明小样本光滑近似很差；一次实现误差不一定减半。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>证明 Markov 和切比雪夫，列齐符号、矩和阈值条件。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>W≥0、t&gt;0 给 W≥t1{W≥t}，取期望再除以 t 得 P≤EW/t。有限方差 X 时令 W=(X−EX)²、t=ε²、ε&gt;0，得偏差界。无需高斯或独立；独立可能用于均值方差计算。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>推导 IID 均值方差与有限方差弱大数法则。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>线性给均值 μ；独立交叉协方差零，均值方差 σ²/N。切比雪夫给每个固定 ε&gt;0 的尾概率≤σ²/(Nε²)→0。这是依概率收敛，而非单调路径或强法则证明。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>由个别 Hoeffding 定理和并集界推导有限列表保证。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>m 个预指定有效估计的任一失败概率≤Σ2exp(−2Nε²)=2mexp(−2Nε²)。令它≤δ，解得 N≥log(2m/δ)/(2ε²)。失败事件不需独立，但每项抽样约定和列表必须有效。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>m=20、ε=.05、δ=.05 时求同时充分量，并解释未列入的自适应搜索改变什么。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>N≥log800/.005≈1336.923，取 1337。它联合涵盖指定二十项；未列入的自适应搜索是不同事件族，需要正确覆盖或选择分析。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>CS：10000 个 IID 指示估计 p=.3，求已知标准误。AI 替代：估计 ∫_0^1 x²dx，求模型方差及标准误。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>CS 标准误 √(.21/10000)≈.004583。AI 目标 1/3，单抽样方差 4/45，估计量方差 4/(45·10000)，标准误约 .002981。它们是模型已知的重复抽样量，区别于估计标准误和实现误差。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>推阈值 .6 和 .55 的配对及独立差值方差，说明共同随机数何时有效。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>共同 U 的差值是区间 [.55,.6) 的指示，方差 .0475；独立方案为 .24+.2475=.4875。正协方差 .55−.6(.55)=.22 减去 .44。此处配对有效，负协方差则增大差值方差；不同重复对仍应独立。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>三十个数据集每次重置同一种子，均值完全相同，报告把 30000 行视为独立。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>每个 1000 行块都复制相同流，合并均值仍具有原来 1000 项的波动。Bernoulli(.3) 模型标准误约 .014491，而非 30000 项给的 .002646。运行间零波动诊断复制，不证明确定性。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>100 个指示全零，零代入标准误被当成 p=0 和精确 CLT 覆盖率的证明。修正两点。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>p=.001 时该数据概率 .999¹⁰⁰≈.904792，零估计不证明零率。δ=.05 的有界独立半径为 √(log40/200)≈.135810。这里的 CLT 不给通用有限 N 精确 95% 保证，罕见边界尤其需要关注。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>证明共同均值、成对不相关且方差≤C 的变量满足此弱法则；解释为何不是这里的 IID CLT。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>均值方差≤NC/N²=C/N；切比雪夫尾界≤C/(Nε²)→0。成对不相关不保证联合独立或同分布，所以不能推出所述 IID CLT 的条件。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>CS：m 个独立抽样各复制 b 次，求行均值方差。AI 替代：比较 ∫_0^1 x dx 的独立与对偶抽样估计。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>CS 行均值等于 m 项均值，方差 σ²/m=bσ²/N，N=mb。AI 独立 U 均值方差为 1/(12N)；对偶对均值 (U+(1−U))/2=.5，每次都准确，因此线性被积函数的抽样方差为零。这个特殊负协方差总和不能保证其他函数或不同成本也有相同收益。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自测</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>什么条件使 IID 均值的交叉协方差项消失？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">有限方差观测独立</button></li><li><button type="button" class="quiz-opt" data-i="1">行标签相同</button></li><li><button type="button" class="quiz-opt" data-i="2">复制一个记录</button></li></ol><div class="quiz-expl" hidden>均值线性与方差条件不同，交叉项需要正确理由。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>切比雪夫需要什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">高斯形状</button></li><li><button type="button" class="quiz-opt" data-i="1">相关方差有限且偏差阈值正</button></li><li><button type="button" class="quiz-opt" data-i="2">特定种子</button></li></ol><div class="quiz-expl" hidden>对中心平方应用 Markov 即得证明。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>初等弱法则证明建立哪种收敛？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">每次有限误差递减</button></li><li><button type="button" class="quiz-opt" data-i="1">精确确定误差界</button></li><li><button type="button" class="quiz-opt" data-i="2">每个固定正容差下依概率收敛</button></li></ol><div class="quiz-expl" hidden>尾界趋零，不是几乎必然路径证明。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>IID CLT 标准化什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">样本均值或总和</button></li><li><button type="button" class="quiz-opt" data-i="1">每个原观测变高斯</button></li><li><button type="button" class="quiz-opt" data-i="2">模型种子</button></li></ol><div class="quiz-expl" hidden>原 Bernoulli 仍是 Bernoulli。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>此 CLT 是否对所有 N≥30 给精确 95% 覆盖？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">是</button></li><li><button type="button" class="quiz-opt" data-i="1">否，它是带条件的渐近结果</button></li><li><button type="button" class="quiz-opt" data-i="2">只由直方图颜色决定</button></li></ol><div class="quiz-expl" hidden>罕见或偏斜总体可有差的小样本近似，通用阈值没有依据。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>几个有效估计的并集步骤需要估计之间独立吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总需要</button></li><li><button type="button" class="quiz-opt" data-i="1">仅共享记录时需要</button></li><li><button type="button" class="quiz-opt" data-i="2">不需要，并集界不要求它</button></li></ol><div class="quiz-expl" hidden>个别保证仍需有效，事件族须受声明覆盖。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>固定有限方差 IID 模型下，样本量四倍对标准误有何影响？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">减半</button></li><li><button type="button" class="quiz-opt" data-i="1">除以四</button></li><li><button type="button" class="quiz-opt" data-i="2">强制每次误差减半</button></li></ol><div class="quiz-expl" hidden>标准误按 1/√N 缩放，描述重复抽样。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>无成功样本的代入标准误为零，能推出什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">真实率必为零</button></li><li><button type="button" class="quiz-opt" data-i="1">估计处于边界，不确定性仍需有效分析</button></li><li><button type="button" class="quiz-opt" data-i="2">Hoeffding 自动为零</button></li></ol><div class="quiz-expl" hidden>非零罕见率也可高概率得到全零。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>边缘不变时，什么配对降低差值方差？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">任意协方差</button></li><li><button type="button" class="quiz-opt" data-i="1">只有负协方差</button></li><li><button type="button" class="quiz-opt" data-i="2">对内协方差正</button></li></ol><div class="quiz-expl" hidden>Var(A−B)=VarA+VarB−2Cov；对间依赖另需处理。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m24:q10">
+<label for="q10-response">10. 为有限事件蒙特卡洛估计写不确定性约定：推均值方差及切比雪夫或 Hoeffding 样本量，说明独立单位与种子方案，并解释复制流、罕见全零样本和 CLT 近似为何不能提供无条件误差保证。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="列目标、估计量、条件、N、容差、失败概率及定理范围。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我区分了抽样波动、概率界、近似与实际独立信息。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>IID 共同率 p 的指示均值方差 p(1−p)/N，标准误 √[p(1−p)/N]。最坏切比雪夫充分量为 1/(4δε²)，有界 Hoeffding 为 log(2/δ)/(2ε²)。N 统计独立抽样，不统计副本；局部种子记录一条轨迹，复制流不增加实验。非零率可出现零成功，所述 CLT 是渐近而非有限精度证书。报告容差时同时写失败概率与全部模型条件。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>带问题阅读</h2></div>
+<p>参考 <a href="https://ocw.mit.edu/courses/6-041sc-probabilistic-systems-analysis-and-applied-probability-fall-2013/pages/unit-iv/lecture-19/" target="_blank" rel="noopener">MIT 弱法则课</a>、<a href="https://ocw.mit.edu/courses/6-041sc-probabilistic-systems-analysis-and-applied-probability-fall-2013/pages/unit-iv/lecture-20/" target="_blank" rel="noopener">CLT 课</a>和 <a href="https://ocw.mit.edu/courses/9-520-statistical-learning-theory-and-applications-spring-2006/f195bbc782726fc4580586a67d4fe69c_mathcamp02.pdf" target="_blank" rel="noopener">Hoeffding 概率讲义</a>。本课完整推导初等界和均值协方差应用。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>阅读问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一阶段 · 15 分钟</td>
+<td>哪个方差计算使弱法则的概率界消失？</td>
+</tr>
+<tr>
+<td>第四阶段 · 15 分钟</td>
+<td>哪些结论渐近，哪些是有限量保证？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索结业与下一步</h2></div>
+<p>证明 Markov、切比雪夫和有限方差弱法则，带条件陈述 CLT 与 Hoeffding，算样本量并报告蒙特卡洛不确定性，推导配对和复制如何改变波动。</p>
+<p><strong>结业任务：</strong>ε=.05、δ=.05 时比较充分 Bernoulli 样本量 2000 与 738，解释为何二者都不适用于一个抽样的 N 个副本。区分标准误、实现误差与确定性数值界。</p>
+<p><strong>进入下一课的标准：</strong>能够评估抽样声明并报告有依据的估计。下一课推似然、偏差、方差和贝叶斯参数更新，不再将所有率视为已知。返回<a href="index_ZH.html">课程总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>符号与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语或符号</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IID / 抽样单位</td>
+<td>独立同分布 / 实际独立抽样</td>
+<td>IID / sampling unit</td>
+</tr>
+<tr>
+<td>M_N / SE</td>
+<td>样本均值 / 估计量标准差</td>
+<td>Sample mean / standard error</td>
+</tr>
+<tr>
+<td>ε / δ</td>
+<td>容差 / 失败概率界</td>
+<td>Tolerance / failure bound</td>
+</tr>
+<tr>
+<td>弱法则 / CLT</td>
+<td>依概率极限 / 标准化分布极限</td>
+<td>Weak law / central limit theorem</td>
+</tr>
+<tr>
+<td>切比雪夫 / Hoeffding</td>
+<td>方差界 / 有界独立集中</td>
+<td>Chebyshev / Hoeffding</td>
+</tr>
+<tr>
+<td>蒙特卡洛 / 求积</td>
+<td>随机期望估计 / 数值积分近似</td>
+<td>Monte Carlo / quadrature</td>
+</tr>
+<tr>
+<td>配对 / 复制流</td>
+<td>对内耦合 / 重复随机序列</td>
+<td>Pairing / copied stream</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_23_ZH.html">← 模块 23</a><a href="module_25_ZH.html">模块 25 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

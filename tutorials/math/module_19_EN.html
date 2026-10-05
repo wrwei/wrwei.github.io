@@ -1,0 +1,510 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Convexity, gradient methods, and unconstrained optimisation — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Prove convexity and descent statements under explicit assumptions, analyse quadratic eigenmodes and conditioning, and distinguish gradient, Newton and coordinate updates from unreliable stopping heuristics."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="19"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 19</button><div class="dropdown-menu" id="module-menu"><a href="module_19_EN.html" class="active" aria-current="page">Convexity, gradient methods, and unconstrained optimisation</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="module_19_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>An optimisation claim needs an objective and assumptions</span></a><a href="#s1"><span class="num">2</span><span>Objectives domains infima and attained minimisers</span></a><a href="#s2"><span class="num">3</span><span>Convexity Jensen and smooth characterisations</span></a><a href="#s3"><span class="num">4</span><span>Stationarity local classification and global certificates</span></a><a href="#s4"><span class="num">5</span><span>Gradient steps descent bounds and backtracking</span></a><a href="#s5"><span class="num">6</span><span>Quadratic eigenmodes conditioning and coordinate scaling</span></a><a href="#s6"><span class="num">7</span><span>Newton coordinate methods and qualified termination</span></a><a href="#misconceptions"><span class="num">8</span><span>Common misconceptions</span></a><a href="#labs"><span class="num">9</span><span>Three reproducible labs</span></a><a href="#exercises"><span class="num">10</span><span>Fourteen exercises with full solutions</span></a><a href="#quiz"><span class="num">11</span><span>Ten-question self-check</span></a><a href="#reading"><span class="num">12</span><span>Reading with a purpose</span></a><a href="#summary"><span class="num">13</span><span>Retrieval exit task and next step</span></a><a href="#terms"><span class="num">14</span><span>Notation and bilingual terminology</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">Convexity, gradient methods, and unconstrained optimisation</h1><p class="module-lead">Prove convexity and descent statements under explicit assumptions, analyse quadratic eigenmodes and conditioning, and distinguish gradient, Newton and coordinate updates from unreliable stopping heuristics.</p><div class="hero-chips"><span class="chip chip-time">12 hours</span><span class="chip">4 sessions</span><span class="chip">3 labs</span><span class="chip">12 exercises + 2 extensions</span><span class="chip">10 quiz questions</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Distinguish attained minimisers, infima, local/global comparisons and domain boundaries.</li><li>Prove squared-norm convexity and finite Jensen inequalities; state smooth first/second-order criteria.</li><li>Classify stationary points and identify what convexity or strong convexity adds.</li><li>Derive the Lipschitz-gradient descent bound and implement safeguarded backtracking.</li><li>Prove the quadratic eigenmode step interval and explain conditioning and coordinate scaling.</li><li>Solve Newton systems, compare coordinate updates, and diagnose singular curvature and false termination.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Module 13: symmetric eigenmodes and positive-definite curvature; Module 18: column gradients, Hessians and correctly scaled objectives. The descent proof uses Module 16's mean value theorem and does not require an extra integration prerequisite.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">An optimisation claim needs an objective and assumptions</a><a href="#s1">Objectives domains infima and attained minimisers</a><a href="#s2">Convexity Jensen and smooth characterisations</a><a href="#s3">Stationarity local classification and global certificates</a><a href="#s4">Gradient steps descent bounds and backtracking</a><a href="#s5">Quadratic eigenmodes conditioning and coordinate scaling</a><a href="#s6">Newton coordinate methods and qualified termination</a><a href="#misconceptions">Common misconceptions</a><a href="#labs">Three reproducible labs</a><a href="#exercises">Fourteen exercises with full solutions</a><a href="#quiz">Ten-question self-check</a><a href="#reading">Reading with a purpose</a><a href="#summary">Retrieval exit task and next step</a><a href="#terms">Notation and bilingual terminology</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">12 hours</span></div><p class="plan-lead">Times include practice and are estimates. Split a session when useful. Optional extension exercises add 35 minutes. Progress is stored in this browser and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">180 min</span></div><div class="session-title">Convexity objectives and stationary candidates</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2 and prove convex examples.</a></span><span class="act-min">110</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Complete Exercises 1–4.</a></span><span class="act-min">28</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read convexity and first-order characterisations.</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Retrieve minimiser and domain distinctions.</a></span><span class="act-min">22</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m19:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">180 min</span></div><div class="session-title">Descent proofs and quadratic modes</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Sections 3–4 and prove a descent guarantee.</a></span><span class="act-min">75</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Compare interior boundary and unstable steps.</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e5">Complete proof Exercises 5–7.</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m19:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">180 min</span></div><div class="session-title">Conditioning scaling and method choices</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s5">Read Sections 5–6 and explore curvature paths.</a></span><span class="act-min">84</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Compare raw and scaled coordinate iterations.</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Complete application Exercises 8–10.</a></span><span class="act-min">36</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m19:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">180 min</span></div><div class="session-title">Newton safeguards and termination meaning</div><ul class="acts"><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Repair singular/non-descent systems and scaled false stops.</a></span><span class="act-min">75</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e11">Diagnose Exercises 11–12.</a></span><span class="act-min">24</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Complete choices and the written convergence contract.</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read unconstrained minimisation and line-search assumptions.</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Complete the exit task and distinguish proof from training heuristic.</a></span><span class="act-min">46</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m19:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>An optimisation claim needs an objective and assumptions</h2></div>
+<p>A gradient supplies local sensitivity; an optimiser uses that information to seek a smaller objective. Whether a method descends, converges, preserves its domain or reaches a global minimiser depends on additional assumptions. This lesson proves convexity and descent statements, analyses quadratic eigenmodes exactly, and contrasts them with stopping and Newton failures that can appear in a numerical training loop.</p>
+<p><strong>Retrieval check:</strong> use <a href="module_13_EN.html#s1">Module13</a> symmetric eigenmodes and positive-definite quadratic forms, and <a href="module_18_EN.html#s2">Module18</a> column gradients, Hessians and loss reductions. The descent proof uses the mean value theorem from Module16, so an extra integration prerequisite is unnecessary. Labs use NumPy on the tested course baseline.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>Objectives domains infima and attained minimisers</h2></div>
+<p>An optimisation problem specifies an objective f and a feasible domain D, and asks to minimise f(x) over x∈D. In an unconstrained problem D is often all of Rⁿ, or an open natural domain such as positive inputs for a logarithm. “Unconstrained” does not permit evaluating outside the function’s domain. A global minimiser x* belongs to D and has f(x*)≤f(x) for every feasible x. The infimum is the greatest lower bound of objective values and need not be attained by any feasible point. An algorithm approaching that bound does not by itself produce an attained minimiser.</p>
+<p>For f(x)=x on(0,1), the infimum is zero but no minimiser exists. For exp(x) on R, the infimum is also zero and is approached only as x→−∞. Neither example is repaired by a small derivative or a long finite trace. For f(x)=−x² on R, there is no finite lower bound, so the optimisation problem is unbounded below. Conversely, on a nonempty compact feasible set a continuous real objective attains its minimum by the extreme value theorem. Domain, boundedness and attainment are mathematical properties of the problem before a solver is chosen.</p>
+<p>A local minimiser compares feasible points within some neighbourhood; it can have larger objective than another feasible region. Strict local minimality uses strict inequality for nearby distinct feasible points. A stationary point is an interior differentiable point with zero gradient and is only a candidate. A boundary minimiser may instead have a nonzero gradient, and a kink minimiser may lack a classical gradient. Section3 separates these cases, while the next module develops constraints and their boundary conditions systematically.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A well-defined quadratic problem with a unique answer</div>
+<p>Let f(x)=(1/2)xᵀAx−bᵀx on R², with A=[[3,1],[1,3]] and b=(2,−1). Eigenvalues are two and four, so A is positive definite. Solving Ax*=b gives x*=(7/8,−5/8). Expanding about this point cancels the linear term: f(x)−f(x*)=(1/2)(x−x*)ᵀA(x−x*)&gt;0 for any other input. Thus x* is the unique global minimiser and f(x*)=−19/16=−1.1875. This certificate belongs to the objective, independently of whether an iteration reaches it.</p>
+</div>
+<p>Objective scale matters. Multiplying f by a positive constant preserves its minimisers but scales its gradient and Hessian, so a fixed step size or gradient tolerance changes meaning. Adding a constant preserves every derivative and minimiser while altering reported objective values. Two training logs cannot be compared without their reductions and scales; a low numerical objective does not alone imply accurate parameters or good predictions. Mathematical optimisation error is also different from model generalisation, which later statistical modules address.</p>
+<p>Coordinate changes have related but distinct effects. If z=Sx for invertible S and the objective is re-expressed as g(z)=f(S⁻¹z), feasible points and minimisers correspond exactly. Euclidean gradient steps in z generally map back to a matrix-scaled update in x, not the original scalar-step gradient method. If only some terms are transformed, such as features without adjusting a penalty, the objective itself may change. Specify whether a scaling is a reparameterisation of one problem or a new modelling choice.</p>
+<p>An implementation should state its initial point, step selection, accepted objective and termination quantity. A maximum iteration count terminates an attempt; a small update, gradient norm or objective change certifies only what a theorem and tolerance contract connect to it. The labs provide counterexamples before any broad claim about practical neural-network training. Numerical success on a handful of starts does not establish an unconditional global guarantee for arbitrary nonconvex objectives.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does a finite infimum guarantee an attained minimiser? Does positive objective scaling preserve a fixed gradient-tolerance interpretation? Why state the natural domain in an unconstrained problem?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>x on(0,1) and exp on R disprove attainment. Scaling preserves minimisers but rescales derivative thresholds and suitable step sizes. A proposed update can leave a logarithm’s domain even without explicit constraint equations.</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Convexity Jensen and smooth characterisations</h2></div>
+<p>A set D is convex when every segment(1−t)x+ty with x,y∈D,t∈[0,1] stays in D. A function f on a convex domain is convex when f((1−t)x+ty)≤(1−t)f(x)+tf(y). The graph lies below its endpoint chords. Strict convexity makes the inequality strict for distinct points and0&lt;t&lt;1. Convexity is a global segment property and does not require smoothness: |x| is convex despite its kink. Smoothness alone does not imply convexity, as −x² shows.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Squared norms are convex by an exact identity</div>
+<p>For vectors x,y and0≤t≤1, ‖(1−t)x+ty‖²=(1−t)‖x‖²+t‖y‖²−t(1−t)‖x−y‖². The last term is nonnegative before subtraction, giving convexity and strictness for distinct x,y and interior t. Thus a squared Euclidean norm is strictly convex. For f(w)=‖Xw−y‖² the same identity uses residual differences X(w₁−w₂); it proves convexity, but strictness requires X to have no nonzero null direction.</p>
+</div>
+<p>Finite Jensen extends the two-point definition: for nonnegative weights α_i summing to one, f(Σα_i x_i)≤Σα_i f(x_i). Prove by induction: remove zero weights, combine the first k−1 points with their total weight, apply the two-point inequality with the last point, then use the induction hypothesis for the normalised earlier weights. If the earlier total is zero, only the last point contributes and equality is immediate. This is an algebraic weighted-average result here; expectations and infinite mixtures later require their own model and integrability assumptions.</p>
+<p>For differentiable f on an open convex domain, convexity is equivalent to the first-order supporting inequality f(y)≥f(x)+∇f(x)ᵀ(y−x). From convexity, apply the segment inequality at x+t(y−x), rearrange to bound its forward difference quotient by f(y)−f(x), and let t↓0. Conversely, assume the supporting inequality for all pairs. At z=(1−t)x+ty, write it for x and y relative to z, weight the two inequalities, and the gradient terms cancel. This recovers convexity. The criterion is about every pair on the domain, not one tangent sample.</p>
+<p>For C² f on an open convex domain, positive-semidefinite Hessian everywhere is equivalent to convexity. Along any segment, the scalar second derivative is dᵀH(x+td)d≥0, so its first derivative is nondecreasing by the mean value theorem. This supplies the supporting inequality along each segment. Conversely, convexity makes symmetric second differences f(x+td)−2f(x)+f(x−td) nonnegative; division by t² and the second-order limit yield dᵀH(x)d≥0 for every direction. A positive-semidefinite Hessian at one point alone is only local curvature information.</p>
+<p>A function is μ-strongly convex, μ&gt;0, when f−(μ/2)‖x‖² is convex on its convex domain. For differentiable f the supporting inequality becomes f(y)≥f(x)+∇f(x)ᵀ(y−x)+(μ/2)‖y−x‖². C² Hessians satisfying H(x)≽μI everywhere give this property. Strong convexity supplies a uniform quadratic margin, while strict convexity only requires strict chords without a shared μ. For example x⁴ is strictly convex on R but has zero second derivative at zero and is not uniformly strongly convex there with any positive μ.</p>
+<p>Nonnegative sums of convex functions and affine composition preserve convexity by applying the defining inequalities. A negative multiple can reverse the inequality, so weights need their sign condition. The maximum of finitely many convex functions is convex: each function’s segment value is bounded by a weighted endpoint value, and then by the weighted maxima. This explains why useful convex objectives can have nonsmooth boundaries; first-order smooth methods need the additional differentiability conditions stated in their own guarantees.</p>
+<figure class="fig" id="fig-19-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="The square function lies below its endpoint chord and above its tangent at one-half, with strong-convexity constant two."><title>Convexity and first-order support</title><desc>The square function lies below its endpoint chord and above its tangent at one-half, with strong-convexity constant two.</desc><defs><marker id="fig-19-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">Convex chords and supporting tangents</text><defs><clipPath id="fig-19-1__convex-window"><rect x="90" y="65" width="585" height="225"/></clipPath></defs><g clip-path="url(#fig-19-1__convex-window)"><path d="M90,260H675M380,65V290" stroke="#94a3b8"/><path d="M155,88.125L159.49999999999997,94.93124999999998L164,101.6L168.5,108.13124999999997L173.00000000000003,114.52500000000003L177.5,120.78125L181.99999999999997,126.89999999999998L186.5,132.88125000000002L191,138.725L195.50000000000003,144.43125L200,150L204.5,155.43125L209,160.72500000000002L213.5,165.88125L218,170.89999999999998L222.5,175.78125L227,180.525L231.5,185.13125000000002L236,189.59999999999997L240.5,193.93124999999998L245,198.125L249.5,202.18125L254,206.10000000000002L258.5,209.88125L263,213.525L267.5,217.03125L272,220.4L276.5,223.63125000000002L281,226.725L285.5,229.68125L290,232.5L294.5,235.18125L299,237.725L303.5,240.13125L308,242.4L312.5,244.53125L317,246.525L321.5,248.38125L326,250.1L330.5,251.68125L335,253.125L339.5,254.43125L344,255.6L348.5,256.63125L353,257.525L357.5,258.28125L362,258.9L366.5,259.38125L371,259.725L375.5,259.93125L380,260L384.5,259.93125L389,259.725L393.5,259.38125L398,258.9L402.5,258.28125L407,257.525L411.5,256.63125L416,255.6L420.5,254.43125L425,253.125L429.5,251.68125L434,250.1L438.5,248.38125L443,246.525L447.5,244.53125L452,242.4L456.5,240.13125L461,237.725L465.5,235.18124999999998L470,232.5L474.5,229.68125L479,226.725L483.5,223.63125000000002L488,220.39999999999998L492.5,217.03125L497,213.525L501.5,209.88125L506,206.10000000000002L510.5,202.18124999999998L515,198.125L519.5,193.93125000000003L524,189.60000000000002L528.5,185.13124999999997L533,180.52499999999998L537.5,175.78125L542,170.90000000000003L546.5,165.88125000000002L551,160.72499999999997L555.5,155.43124999999998L560,150L564.5,144.43125L569,138.72500000000005L573.5,132.88124999999997L578,126.89999999999998L582.5,120.78125L587,114.52500000000003L591.5,108.13125000000005L596,101.59999999999997L600.5,94.93124999999998L605,88.125" fill="none" stroke="#c2410c" stroke-width="3"/><path d="M200,150H560" stroke="#15803d" stroke-width="3"/><path d="M290,342.5L293.06,340.63L296.12,338.76L299.18,336.89L302.24,335.02L305.3,333.15L308.36,331.28L311.42,329.40999999999997L314.48,327.53999999999996L317.54,325.67L320.6,323.8L323.65999999999997,321.93L326.71999999999997,320.06L329.78,318.19L332.84,316.32L335.9,314.45L338.96,312.58L342.02,310.71L345.08,308.84000000000003L348.14,306.97L351.2,305.1L354.26,303.23L357.32,301.36L360.38,299.49L363.44,297.62L366.5,295.75L369.56,293.88L372.62,292.01L375.68,290.14L378.74,288.27L381.8,286.4L384.85999999999996,284.53000000000003L387.92,282.65999999999997L390.98,280.79L394.03999999999996,278.92L397.1,277.05L400.15999999999997,275.18L403.22,273.31L406.28,271.44L409.34,269.57L412.4,267.7L415.46000000000004,265.83L418.52,263.96L421.58,262.09L424.64,260.22L427.7,258.35L430.76,256.48L433.82,254.61L436.88,252.74L439.94,250.87L443,249L446.06,247.13L449.12,245.26000000000002L452.17999999999995,243.39000000000001L455.24,241.52L458.3,239.65L461.36,237.78L464.41999999999996,235.91000000000003L467.48,234.04L470.53999999999996,232.17000000000002L473.6,230.3L476.65999999999997,228.43L479.71999999999997,226.56L482.78,224.69L485.84000000000003,222.82L488.9,220.95L491.96000000000004,219.07999999999998L495.02,217.21L498.08,215.34L501.14,213.47L504.2,211.60000000000002L507.26,209.73L510.32,207.86L513.38,205.99L516.44,204.12L519.5,202.25L522.56,200.38000000000002L525.62,198.51L528.68,196.64000000000001L531.74,194.77000000000004L534.8,192.89999999999998L537.8599999999999,191.03000000000003L540.9200000000001,189.15999999999997L543.98,187.29L547.04,185.42000000000002L550.1,183.55L553.16,181.68L556.22,179.81L559.28,177.94L562.3399999999999,176.07L565.4,174.2L568.46,172.33L571.52,170.45999999999998L574.5799999999999,168.59L577.64,166.72000000000003L580.7,164.85L583.76,162.98000000000002L586.8199999999999,161.11L589.88,159.24L592.9399999999999,157.37L596,155.5" fill="none" stroke="#2563eb" stroke-width="3"/><circle cx="470" cy="232.5" r="5" fill="#2563eb"/></g><text x="380" y="105" text-anchor="middle" font-size="20" fill="#1a2e4a">Green chord lies above the graph</text><text x="525" y="245" text-anchor="start" font-size="18" fill="#1a2e4a">Tangent at x=.5</text><text x="380" y="325" text-anchor="middle" font-size="18" fill="#1a2e4a">f=x²; blue supporting line x−1/4; strong convexity μ=2.</text></g></svg></div><figcaption><span class="fig-num">Figure 19.1</span> <p>Convex chord inequalities, supporting tangents and a uniform strong-convexity margin are distinct assertions with different hypotheses.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Is every convex function smooth? Is a positive Hessian at one point a global convexity proof? What extra condition makes residual squared loss strictly convex?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Absolute value is a nonsmooth convex counterexample. A global C² convexity certificate needs a positive-semidefinite Hessian throughout the convex domain. Residual differences must distinguish every nonzero parameter displacement, equivalently X has full column rank.</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>Stationarity local classification and global certificates</h2></div>
+<p>At an interior differentiable local minimiser, every directional first-order rate is zero, so the gradient vanishes. For C² objectives, a positive-definite Hessian at a stationary point gives a strict local minimum; a negative-definite Hessian gives a maximum; an indefinite Hessian gives a saddle. These follow from the second-order model and its uniform remainder control. A semidefinite Hessian with zero directions is inconclusive: higher-order terms may decide either way. These tests classify neighbourhood behaviour, not arbitrary distant points.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Zero gradient can certify a saddle or an entire flat family</div>
+<p>For f(x,y)=x²−y² at zero, gradient is zero and Hessian diag(2,−2) is indefinite. Values along the x axis increase and along the y axis decrease, so zero is a saddle. For g(x,y)=x²−2x, the Hessian diag(2,0) is singular and every(1,y) minimises globally with value−1. The zero direction is flat here, while x⁴−y⁴ has zero Hessian at its saddle. A zero-gradient report alone does not distinguish these outcomes.</p>
+</div>
+<p>Convexity changes the certificate. If a differentiable convex objective on an open convex domain has ∇f(x*)=0, its supporting inequality gives f(y)≥f(x*) for every feasible y, so the point is globally optimal. Every local minimiser of a convex function is also global even without differentiability: a lower distant value would force lower values on arbitrarily short segments leaving the alleged local minimum. Strict convexity makes an attained minimiser unique, since two distinct equal minima would have a strictly lower midpoint. None of these properties by itself guarantees that a minimiser exists on an open or unbounded domain.</p>
+<p>Strong convexity adds quantitative control when an unconstrained minimiser x* exists. Apply its supporting inequalities in both directions and add them to obtain (∇f(x)−∇f(x*))ᵀ(x−x*)≥μ‖x−x*‖². Since the minimiser gradient is zero, Cauchy–Schwarz gives ‖x−x*‖≤‖∇f(x)‖/μ. The strong-convexity lower model also gives f(x*)≥f(x)−‖∇f(x)‖²/(2μ), by minimising the quadratic in displacement, hence objective gap≤‖∇f(x)‖²/(2μ). These are error bounds under uniform μ and attainment, not interpretations of any tiny gradient in any model.</p>
+<p>For f(x)=10⁻¹²(x−100)², μ=2·10⁻¹². At x=0 the gradient is−2·10⁻¹⁰, easily below tolerance10⁻⁶, while solution distance is100. The proved distance bound is exactly100. To certify distance≤.01 through this criterion, gradient norm must be≤μ(.01)=2·10⁻¹⁴. The objective gap at zero is numerically small, so a solver may satisfy a stated objective-gap tolerance while failing a parameter-distance tolerance. Decide which quantity the user actually needs rather than declare every small number “converged.”</p>
+<p>For merely convex functions, small gradients need additional scale information to bound objective gap. The supporting inequality gives f(x)−f(x*)≤∇f(x)ᵀ(x−x*)≤‖∇f(x)‖‖x−x*‖. A known distance bound R supplies gap≤R‖∇f(x)‖; without R or stronger structure, the gradient norm alone does not determine a useful uniform gap certificate. Nonconvex stationary points need classification or separate global evidence instead of this convex supporting argument.</p>
+<p>Constraints further change necessary conditions. On[0,∞), f(x)=x is minimised at zero with gradient one; feasible directions cannot point left, so the unconstrained zero-gradient condition is irrelevant. This lesson’s global stationary certificate presumes an interior unconstrained minimiser and a convex domain where its supporting inequality applies. Next module will replace those assumptions with explicit constraint and multiplier conditions, rather than force a boundary optimum to have zero ordinary gradient.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>When does zero gradient certify a global minimiser? Does strong convexity eliminate the need to check attainment? What converts a gradient tolerance into a distance certificate?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>For a differentiable convex objective with a feasible interior zero-gradient point. Strong convexity gives uniqueness of an attained minimiser but domain and existence still need attention. A proved uniform μ&gt;0 and an unconstrained attained minimiser give distance≤gradient norm/μ, with numerical allowances when gradients are computed approximately.</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>Gradient steps descent bounds and backtracking</h2></div>
+<p>Gradient descent uses x_new=x−η∇f(x) with η&gt;0. The negative gradient is a Euclidean steepest first-order direction when nonzero, but a finite step can overshoot or leave the domain. A step rule must control that finite change rather than infer descent from the infinitesimal direction alone. Suppose the gradient is L-Lipschitz, L&gt;0, over a convex region containing the entire segment from x to y: ‖∇f(y)−∇f(x)‖≤L‖y−x‖. Then f(y)≤f(x)+∇f(x)ᵀ(y−x)+(L/2)‖y−x‖², the descent lemma.</p>
+<p>Here is a proof requiring only the mean value theorem. Let d=y−x and φ(t)=f(x+td)−f(x)−t∇f(x)ᵀd−(L/2)t²‖d‖² on[0,1]. Its derivative is[∇f(x+td)−∇f(x)]ᵀd−Lt‖d‖²≤0 by Cauchy–Schwarz and the Lipschitz bound. Hence φ is nonincreasing and φ(1)≤φ(0)=0. This produces the finite-change inequality without an unstated integration prerequisite. The segment must stay in the region where the gradient bound is known.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A sufficient step interval from a finite-change bound</div>
+<p>Put y=x−ηg, g=∇f(x). The lemma gives f(y)≤f(x)−η(1−Lη/2)‖g‖². Thus0&lt;η&lt;2/L certifies strict descent when g≠0 and the whole step segment is valid. For L=4, η=.2 has coefficient.2(1−.4)=.12; the objective decreases by at least.12‖g‖². At η=.5 the coefficient is zero, so this argument gives no strict-decrease certificate. Beyond that value the bound does not certify descent; a quadratic can actually diverge, as the lab shows.</p>
+</div>
+<p>For constant admissible η and an objective bounded below, summing the decrease inequality yields Σ‖g_k‖²≤[f(x₀)−f_inf]/[η(1−Lη/2)]. Therefore gradient norms tend to zero if all assumptions continue to hold. The smallest squared gradient among the first K iterates is at most the same numerator divided by K times the coefficient. This is a stationary-residual guarantee, not proof of a global minimum, convergence of the actual input sequence, or suitability for an arbitrary nonconvex network without the hypotheses.</p>
+<p>Convexity and an attained minimiser add an objective rate. With η=1/L, write e_k=x_k−x*. The squared-distance recurrence and supporting inequality give ‖e_{k+1}‖²≤‖e_k‖²−(2/L)(f_k−f*)+‖g_k‖²/L². Descent bounds the last term by(2/L)(f_k−f_{k+1}), so f_{k+1}−f*≤(L/2)(‖e_k‖²−‖e_{k+1}‖²). Sum over steps; because objectives decrease, the last gap is no larger than their average. Thus f_k−f*≤L‖e₀‖²/(2k), k≥1. This proof states both existence and smooth convexity rather than attaching an O(1/k) label to every experiment.</p>
+<p>If the objective is also μ-strongly convex, Section3 gives ‖g‖²≥2μ(f−f*). Combined with η=1/L descent, the gap shrinks by at most the factor1−μ/L per step. The bound is a theorem under global or invariant-domain hypotheses; an estimated local curvature at one iterate does not automatically establish a uniform μ or L. On a positive-definite quadratic the exact eigenmode analysis below provides a more detailed parameter-error rate.</p>
+<p>Backtracking can choose a step without a known global L. Start with a direction p satisfying gᵀp&lt;0, an initial α&gt;0, shrink factor β∈(0,1) and Armijo constant c∈(0,1). Accept only when the trial is in the domain and f(x+αp)≤f(x)+cαgᵀp. Differentiability makes the directional quotient tend to gᵀp, which is strictly below c gᵀp, so sufficiently small positive α succeeds in an open neighbourhood. This proves finite termination in exact arithmetic under a genuine descent direction; it does not make a non-descent Newton direction acceptable or prove global convergence by itself.</p>
+<figure class="fig" id="fig-19-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="For curvature-four quadratic at one, step 0.2 moves to 0.2 and lowers the objective; step 0.55 overshoots to -1.2 and raises it."><title>Finite change of a gradient step</title><desc>For curvature-four quadratic at one, step 0.2 moves to 0.2 and lowers the objective; step 0.55 overshoots to -1.2 and raises it.</desc><defs><marker id="fig-19-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">A descent direction can overshoot with a large step</text><path d="M100,275H665M380,60V290" stroke="#94a3b8"/><path d="M142.00000000000003,71.16000000000003L146.76000000000002,79.23206400000004L151.52,87.14105600000002L156.28000000000003,94.88697600000003L161.04000000000002,102.46982400000005L165.80000000000004,109.88960000000006L170.56,117.14630399999999L175.32,124.23993600000003L180.08,131.170496L184.84,137.93798400000003L189.60000000000002,144.54240000000001L194.36,150.98374400000003L199.12,157.26201599999996L203.88,163.377216L208.64,169.329344L213.4,175.1184L218.16,180.74438400000003L222.92000000000002,186.207296L227.68,191.507136L232.44,196.64390400000002L237.20000000000002,201.61760000000004L241.96,206.428224L246.72000000000003,211.07577600000002L251.48,215.56025599999998L256.24,219.881664L261,224.04000000000002L265.76,228.035264L270.52,231.867456L275.28,235.536576L280.03999999999996,239.042624L284.8,242.3856L289.56,245.565504L294.32,248.582336L299.08,251.436096L303.84,254.126784L308.6,256.6544L313.36,259.01894400000003L318.12,261.220416L322.88,263.25881599999997L327.64,265.134144L332.40000000000003,266.8464L337.15999999999997,268.395584L341.92,269.781696L346.68,271.004736L351.44,272.064704L356.2,272.9616L360.96,273.695424L365.71999999999997,274.266176L370.48,274.673856L375.24,274.918464L380,275L384.76,274.918464L389.52,274.673856L394.28,274.26617600000003L399.03999999999996,273.695424L403.8,272.9616L408.56,272.064704L413.32,271.004736L418.0799999999999,269.781696L422.84000000000003,268.395584L427.6,266.8464L432.35999999999996,265.134144L437.12,263.25881599999997L441.88,261.220416L446.64,259.01894400000003L451.40000000000003,256.6544L456.15999999999997,254.12678400000001L460.92,251.436096L465.67999999999995,248.58233600000003L470.44,245.565504L475.2,242.3856L479.96,239.04262400000002L484.72,235.536576L489.47999999999996,231.86745600000003L494.24,228.03526399999998L499,224.03999999999996L503.76,219.88166400000003L508.52000000000004,215.56025599999995L513.28,211.07577600000002L518.04,206.42822400000003L522.8000000000001,201.61759999999992L527.56,196.64390400000002L532.3199999999999,191.507136L537.0799999999999,186.207296L541.84,180.74438400000003L546.6,175.1184L551.36,169.329344L556.12,163.377216L560.88,157.26201599999996L565.64,150.98374399999997L570.4,144.54240000000007L575.1600000000001,137.93798399999997L579.92,131.17049600000007L584.68,124.23993600000006L589.4399999999999,117.14630400000007L594.2,109.88959999999994L598.96,102.46982400000005L603.72,94.88697600000003L608.48,87.14105600000002L613.24,79.23206400000004L618,71.16000000000003" fill="none" stroke="#2563eb" stroke-width="3"/><circle cx="550" cy="171" r="6" fill="#1a2e4a"/><circle cx="414" cy="270.84" r="6" fill="#15803d"/><circle cx="176" cy="125.24000000000001" r="6" fill="#c2410c"/><text x="590" y="170" text-anchor="start" font-size="18" fill="#1a2e4a">Start (1,2)</text><text x="430" y="263" text-anchor="start" font-size="18" fill="#1a2e4a">η=.2 → f=.08</text><text x="180" y="106" text-anchor="middle" font-size="18" fill="#c2410c">η=.55 → f=2.88</text><text x="380" y="325" text-anchor="middle" font-size="20" fill="#1a2e4a">f=2x², g(1)=4; next point 1−4η.</text></g></svg></div><figcaption><span class="fig-num">Figure 19.2</span> <p>A tangent direction and a finite-step upper model distinguish local descent from overshooting. Backtracking tests actual sufficient decrease.</p>
+</figcaption></figure>
+<p>Practical line searches use a finite attempt limit and numerical tolerances. If no trial succeeds, report failure rather than mark the last rejected point accepted. A tiny accepted step may reflect steep curvature, domain restrictions or inaccurate direction information; movement alone does not certify a small gradient or solution error. State the accepted inequality and termination reason, especially when objective evaluations have rounding or simulation noise.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>What hypotheses justify the descent lemma? Does vanishing gradient under a nonconvex descent theorem imply global optimality? Why must backtracking begin with a descent direction?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>A Lipschitz gradient on the whole valid step segment supplies the bound. Vanishing gradients can approach stationary saddles or other non-global points. The strict negative directional rate is what makes sufficiently small Armijo trials succeed; an arbitrary direction lacks that argument.</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>Quadratic eigenmodes conditioning and coordinate scaling</h2></div>
+<p>For f(x)=(1/2)xᵀAx−bᵀx with symmetric positive-definite A, its unique minimiser solves Ax*=b and gradient is A(x−x*). Error e_k=x_k−x* obeys e_{k+1}=(I−ηA)e_k. In an orthonormal eigenbasis, each scalar mode evolves as c_{i,k+1}=(1−ηλ_i)c_{i,k}. Convergence for every initial error requires every multiplier’s magnitude below one. Since all λ_i&gt;0, the exact constant-step interval is0&lt;η&lt;2/λ_max. This is a necessary and sufficient guarantee for this full quadratic family, stronger than interpreting a general sufficient bound as necessary everywhere.</p>
+<p>At η=2/λ_max, an excited top mode alternates with unchanged magnitude. Above it that mode grows. An initial error with zero component in an unstable mode may still converge along other modes, so one lucky trace cannot prove global stability. At η=0 no error changes. These boundary cases parallel the scalar Euler factors in Module17 and the matrix dynamics in Module13. The mathematical guarantee quantifies over all starting errors, rather than just the one used in a plot.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">The entire step interval and its best worst-case choice</div>
+<p>For A=[[3,1],[1,3]], eigenvalues are μ=2,L=4. The guaranteed interval is0&lt;η&lt;.5. At η=.2 the mode factors are.6,.2; at η=1/3 they are1/3,−1/3; at η=.5 they are0,−1; at η=.55 they are−.1,−1.2. Lab1’s start excites the top mode, so boundary and oversized steps visibly fail convergence. Choosing1/3 balances the endpoint magnitudes and minimises the worst contraction factor.</p>
+</div>
+<p>Let ρ=max_i|1−ηλ_i|. Orthogonality gives ‖e_k‖≤ρ^k‖e₀‖. Since objective gap is(1/2)Σλ_i c_{i,k}², it is at mostρ^{2k} times the initial gap. With spectral interval[μ,L], the optimal constant worst-case step is2/(μ+L), balancing1−ημ and−(1−ηL). The worst factor becomes(L−μ)/(L+μ)=(κ−1)/(κ+1), where κ=L/μ. Absolute value of an affine multiplier is largest at an interval endpoint, so intermediate eigenvalues do not worsen that bound. If μ=L, step1/L gives zero factor and solves the quadratic in one step.</p>
+<p>Poor conditioning makes scalar steps slow. For A=diag(1,100), using η=1/L=.01 kills the stiff mode immediately but leaves the slow factor.99. After200 steps an initial slow component one is about.13398. The balanced step2/101 instead gives both magnitudes99/101, reducing the full error faster while allowing sign alternation in the stiff mode. A step.1 has stiff factor−9 and diverges even though the low-curvature direction behaves reasonably. One coordinate’s improvement cannot certify the full update.</p>
+<figure class="fig" id="fig-19-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="Eigenvalues two and four give worst magnitudes 0.6, one-third, one and 1.2 for steps 0.2, one-third, 0.5 and 0.55. The strict magnitude bound is essential."><title>Quadratic spectral step table</title><desc>Eigenvalues two and four give worst magnitudes 0.6, one-third, one and 1.2 for steps 0.2, one-third, 0.5 and 0.55. The strict magnitude bound is essential.</desc><defs><marker id="fig-19-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">One step acts on two eigenmodes</text><text x="100" y="83" text-anchor="middle" font-size="19" fill="#1a2e4a">η</text><text x="285" y="83" text-anchor="middle" font-size="19" fill="#1a2e4a">λ=2 factor</text><text x="470" y="83" text-anchor="middle" font-size="19" fill="#1a2e4a">λ=4 factor</text><text x="655" y="83" text-anchor="middle" font-size="19" fill="#1a2e4a">Worst magnitude</text><rect x="25" y="98" width="710" height="40" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="100" y="125" text-anchor="middle" font-size="21" fill="#1a2e4a">.2</text><text x="285" y="125" text-anchor="middle" font-size="21" fill="#1a2e4a">.6</text><text x="470" y="125" text-anchor="middle" font-size="21" fill="#1a2e4a">.2</text><text x="655" y="125" text-anchor="middle" font-size="21" fill="#1a2e4a">.6</text><rect x="25" y="142" width="710" height="40" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="100" y="169" text-anchor="middle" font-size="21" fill="#1a2e4a">1/3</text><text x="285" y="169" text-anchor="middle" font-size="21" fill="#1a2e4a">1/3</text><text x="470" y="169" text-anchor="middle" font-size="21" fill="#1a2e4a">−1/3</text><text x="655" y="169" text-anchor="middle" font-size="21" fill="#1a2e4a">1/3</text><rect x="25" y="186" width="710" height="40" rx="10" fill="#fff7ed" stroke="#0ea5e9"/><text x="100" y="213" text-anchor="middle" font-size="21" fill="#1a2e4a">.5</text><text x="285" y="213" text-anchor="middle" font-size="21" fill="#1a2e4a">0</text><text x="470" y="213" text-anchor="middle" font-size="21" fill="#1a2e4a">−1</text><text x="655" y="213" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><rect x="25" y="230" width="710" height="40" rx="10" fill="#fff7ed" stroke="#0ea5e9"/><text x="100" y="257" text-anchor="middle" font-size="21" fill="#1a2e4a">.55</text><text x="285" y="257" text-anchor="middle" font-size="21" fill="#1a2e4a">−.1</text><text x="470" y="257" text-anchor="middle" font-size="21" fill="#1a2e4a">−1.2</text><text x="655" y="257" text-anchor="middle" font-size="21" fill="#1a2e4a">1.2</text><text x="380" y="319" text-anchor="middle" font-size="20" fill="#1a2e4a">ρ=max|1−ηλ|; every-start convergence needs ρ&lt;1.</text></g></svg></div><figcaption><span class="fig-num">Figure 19.3</span> <p>Separate eigenmodes reveal slow, oscillating and growing components. Conditioning determines how well one scalar step serves every direction.</p>
+</figcaption></figure>
+<p>For z=Sx and g(z)=f(S⁻¹z), the transformed Hessian is S⁻ᵀA S⁻¹. Taking S=diag(1,10) for diag(1,100) makes it identity. A unit gradient step in z solves this quadratic immediately; mapped back, it is x_new=x−S⁻¹S⁻ᵀ∇f(x), a preconditioned update. The transformation preserves the objective’s meaning when every term and parameter interpretation are transformed consistently. It changes the coordinate metric and the algorithm; it is not a claim that every feature normalisation automatically improves every statistical model.</p>
+<p>A positive-semidefinite singular quadratic has different conditions. If b lies in the column space of A, minimisers form x*+N(A); positive eigenmodes can converge with suitable steps while null components of the starting point remain unchanged. If b has a nonzero component along a null vector n, the objective along tn contains the unbounded linear term−t bᵀn, so there is no finite minimiser. Simply inverting nonzero curvature or adding a small diagonal must not conceal that problem-level distinction.</p>
+<div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" data-widget="descent"></div><div class="widget-caption">
+<p>Choose a quadratic curvature preset and step size, then inspect its contour path, spectral multipliers and error after a fixed number of updates. Boundary or unstable factors remain visible.</p>
+</div></div>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why is the strict interval necessary for every-start quadratic convergence? Can an unstable eigenmode be hidden in one trace? Does rescaling coordinates preserve the original scalar-step gradient method?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>An eigenvector initial error isolates each multiplier, so magnitude≥1 defeats a universal guarantee. A zero initial component can hide an unstable mode. Coordinate rescaling preserves a consistently transformed objective but maps the update to a generally different preconditioned method.</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>Newton coordinate methods and qualified termination</h2></div>
+<p>Newton’s method uses a quadratic local model and solves H(x)p=−∇f(x), then proposes x+p. Solve the linear system rather than explicitly forming H⁻¹; this preserves the mathematical action while allowing appropriate numerical solvers. For a symmetric positive-definite H and nonzero gradient, gᵀp=−pᵀHp&lt;0, so the Newton direction descends locally. A full unit step still needs domain and finite-decrease checks away from a regime where a convergence theorem applies.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">One exact quadratic Newton step and an indefinite failure</div>
+<p>For the positive-definite quadratic, H=A and g=A(x−x*). Solving Ap=−g gives p=x*−x, so one full step reaches x* in exact arithmetic. By contrast f(t)=t⁴−3t² at t=.1 has g=−.596 and H=−5.88. Newton p≈−.101360544 has gp&gt;0 and moves toward the local maximum at zero, increasing the objective. The lab replaces this non-descent direction by−g and then tests Armijo decrease. “Newton” alone is not a minimum certificate.</p>
+</div>
+<p>A singular Hessian can give no unique direction or an inconsistent Newton system. In the flat convex example H=diag(2,0),g=(−2,0), a minimum-norm solution p=(1,0) exists; starting at(0,5) reaches the minimiser(1,5), preserving the flat coordinate. Minimum-norm direction is not the same as minimum-norm minimiser. If the gradient has a component outside the Hessian’s image, no exact solution exists. A least-squares direction then solves a different local approximation and requires a descent check before use.</p>
+<p>Damping can replace H by H+δI, chosen to be positive definite, to obtain a descent direction. This modifies the local step model; it does not automatically mean the original objective has been replaced by a ridge-regularised objective. If regularisation is actually added to f, its gradient changes too and must be differentiated consistently. For nonconvex functions, safeguards can prevent an uphill proposal while still offering no unconditional global solution theorem.</p>
+<p>Coordinate descent updates one parameter while holding others fixed. For the positive-definite quadratic, minimising along coordinate i gives x_i_new=x_i−g_i/A_{ii}, since the one-dimensional curvature is A_{ii}&gt;0. Each exact coordinate update decreases f by g_i²/(2A_{ii}), unless that coordinate gradient is zero. A cyclic sweep uses newly updated values in later coordinates, so it is not identical to a simultaneous diagonal-preconditioned gradient step using the old vector everywhere. Convergence conclusions require an appropriate update schedule and problem assumptions, not just coordinatewise progress in a finite run.</p>
+<p>For A=[[3,1],[1,3]],b=(2,−1), starting at zero, coordinate-one minimisation gives x₁=2/3. The next coordinate uses this fresh value and solves x₁+3x₂=−1, yielding x₂=−5/9. The sweep decreases the objective but does not reach(7/8,−5/8) immediately; future sweeps continue. Newton solves the coupled system at once, while gradient descent uses one scalar step across all directions. These methods spend different computational effort per update, so iteration counts alone are not a fair cost comparison.</p>
+<figure class="fig" id="fig-19-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="Gradient uses one scalar step, cyclic coordinates use fresh updates, and Newton solves a coupled curvature system; costs and nonconvex safeguards differ."><title>Gradient coordinate and Newton comparison</title><desc>Gradient uses one scalar step, cyclic coordinates use fresh updates, and Newton solves a coupled curvature system; costs and nonconvex safeguards differ.</desc><defs><marker id="fig-19-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">One objective, different update models</text><rect x="35" y="70" width="215" height="210" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="275" y="70" width="210" height="210" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="510" y="70" width="215" height="210" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="142" y="109" text-anchor="middle" font-size="23" fill="#1a2e4a">Gradient</text><text x="380" y="109" text-anchor="middle" font-size="20" fill="#1a2e4a">Cyclic coordinates</text><text x="617" y="109" text-anchor="middle" font-size="23" fill="#1a2e4a">Newton</text><text x="142" y="163" text-anchor="middle" font-size="22" fill="#1a2e4a">x ← x−ηg</text><text x="380" y="163" text-anchor="middle" font-size="19" fill="#1a2e4a">xᵢ ← xᵢ−gᵢ/Aᵢᵢ</text><text x="617" y="163" text-anchor="middle" font-size="22" fill="#1a2e4a">Hp=−g</text><text x="142" y="218" text-anchor="middle" font-size="19" fill="#1a2e4a">One scalar step</text><text x="380" y="218" text-anchor="middle" font-size="18" fill="#1a2e4a">Use fresh coordinates</text><text x="617" y="218" text-anchor="middle" font-size="19" fill="#1a2e4a">Solve the system</text><text x="380" y="329" text-anchor="middle" font-size="17" fill="#1a2e4a">Compare decrease, total cost and safeguards, as well as iteration counts.</text></g></svg></div><figcaption><span class="fig-num">Figure 19.4</span> <p>Gradient, coordinate and Newton methods act on the same objective with different local models and costs; curvature safeguards remain part of their contracts.</p>
+</figcaption></figure>
+<p>Near a nondegenerate minimiser, Newton can have quadratic local convergence when the Hessian is sufficiently regular, invertible nearby, and the start lies in the valid neighbourhood. This lesson states that qualified result rather than asserting it for singular minima, distant starts or arbitrary networks. The exact quadratic example is stronger and fully proved here because the local quadratic model equals the entire objective. Backtracking may help reach a suitable regime, but a theorem about the local regime is not itself a theorem about reaching it from every start.</p>
+<p>Termination should name the accepted accuracy quantity. Objective change can be tiny because of rounding, flat directions or step damping. A small gradient can reflect objective scaling, as Lab3 demonstrates. A small update can be manufactured by a tiny step. If strong convexity, a curvature interval or another error bound is proved, translate the computed residual into the requested distance or gap and include numerical error allowances. Otherwise report the actual residual, step and reason for stopping as evidence with its stated scope.</p>
+<p>Optimising a training objective also does not settle predictive usefulness. The objective may be misspecified, data may differ at evaluation, and a mathematically global training minimiser can generalise poorly. Those are later modelling and statistical questions. Here the complete outcome is the ability to derive a method’s update, check its domain and curvature assumptions, and distinguish a proved convergence statement from a finite numerical trace or useful heuristic.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why check a nonconvex Newton direction’s gᵀp? Does a minimum-norm step select a minimum-norm minimiser? Why are equal iteration counts insufficient to compare Newton and gradient methods?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Indefinite curvature can make gᵀp positive, so even the local direction increases the objective. A flat coordinate can remain at its starting value despite a minimum-norm step. Newton system solves, gradient evaluations and coordinate updates have different per-iteration costs and information requirements.</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>Common misconceptions</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Repair</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Finite infimum means an attained solution.</td>
+<td>Open and unbounded domains can approach a bound without attaining it.</td>
+</tr>
+<tr>
+<td>Convex means smooth.</td>
+<td>Absolute value is convex with a kink.</td>
+</tr>
+<tr>
+<td>Zero gradient is always a global certificate.</td>
+<td>Convexity or other global evidence is required.</td>
+</tr>
+<tr>
+<td>A descent direction permits every finite step.</td>
+<td>Control the whole step and domain.</td>
+</tr>
+<tr>
+<td>The quadratic boundary2/L converges for every start.</td>
+<td>The top mode can oscillate without decay.</td>
+</tr>
+<tr>
+<td>One successful start proves stability.</td>
+<td>Unexcited unstable modes can be hidden.</td>
+</tr>
+<tr>
+<td>Newton always moves toward a minimum.</td>
+<td>Indefinite curvature can produce an uphill direction.</td>
+</tr>
+<tr>
+<td>Small movement or gradient always means accurate parameters.</td>
+<td>Scaling, damping and flatness can defeat that interpretation.</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>Three reproducible labs</h2></div>
+<h3 id="lab1">Lab1 · Exact quadratic modes and a Newton solve</h3>
+<p><a href="labs/module_19/lab1_quadratic_modes.py" download>Download lab1_quadratic_modes.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Eigenmodes determine the full constant-step interval of a quadratic.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+A = np.array([[3.0,1.0], [1.0,3.0]])
+b = np.array([2.0,-1.0])
+optimum = np.linalg.solve(A, b)
+eigenvalues = np.linalg.eigvalsh(A)
+def objective(x):
+    return 0.5*x@A@x-b@x
+start = np.array([3.0,2.0])
+print(&quot;Eigenvalues / unique optimum / optimal objective:&quot;, eigenvalues, optimum, objective(optimum))
+print(&quot;eta      mode factors           error after 30      objective after 30&quot;)
+for eta in [0.2, 1/3, 0.5, 0.55]:
+    x = start.copy()
+    history = [objective(x)]
+    for _ in range(30):
+        x -= eta*(A@x-b)
+        history.append(objective(x))
+    factors = 1-eta*eigenvalues
+    error = np.linalg.norm(x-optimum)
+    print(f&quot;{eta:.6f}&quot;, factors, f&quot;{error:.10e}&quot;, f&quot;{objective(x):.10f}&quot;)
+    if np.max(np.abs(factors)) &lt; 1:
+        assert error &lt; 1e-5
+        assert all(next_value &lt;= value+1e-12 for value, next_value in zip(history, history[1:]))
+    else:
+        assert error &gt; 1
+print(&quot;Strict interval: 0 &lt; eta &lt; 2/lambda_max =&quot;, 2/eigenvalues[-1])
+newton = start-np.linalg.solve(A, A@start-b)
+print(&quot;Exact quadratic Newton result:&quot;, newton)
+assert np.allclose(newton, optimum, atol=1e-12, rtol=0)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Eigenvalues / unique optimum / optimal objective: [2. 4.] [ 0.875 -0.625] -1.1875
+eta      mode factors           error after 30      objective after 30
+0.200000 [0.6 0.2] 7.8161433852e-08 -1.1875000000
+0.333333 [ 0.333333 -0.333333] 1.6404273111e-14 -1.1875000000
+0.500000 [ 0. -1.] 3.3587572106e+00 21.3750000000
+0.550000 [-0.1 -1.2] 7.9728940561e+02 1271339.6050933360
+Strict interval: 0 &lt; eta &lt; 2/lambda_max = 0.5
+Exact quadratic Newton result: [ 0.875 -0.625]
+</code></pre></div>
+<p>Derive the optimum, eigenvalues and each multiplier before running. Explain the boundary’s persistent top mode, the oversized step’s growth and the exact quadratic Newton result. The finite trace illustrates the already derived all-start interval; it does not substitute for that proof.</p>
+<h3 id="lab2">Lab2 · Curvature conditioning and coordinates</h3>
+<p><a href="labs/module_19/lab2_scaling_conditioning.py" download>Download lab2_scaling_conditioning.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A coordinate change changes curvature and the effective gradient metric.&quot;&quot;&quot;
+import numpy as np
+A = np.diag([1.0,100.0])
+start = np.array([1.0,1.0])
+print(&quot;Raw curvature eigenvalues / condition number:&quot;, np.diag(A), np.linalg.cond(A))
+print(&quot;eta      steps      endpoint                norm&quot;)
+for eta, steps in [(0.01,200), (2/101,200), (0.1,10)]:
+    x = start.copy()
+    for _ in range(steps):
+        x -= eta*(A@x)
+    print(eta, steps, x, np.linalg.norm(x))
+    if eta == 0.1:
+        assert np.linalg.norm(x) &gt; 1e9
+    else:
+        assert np.linalg.norm(x) &lt; np.linalg.norm(start)
+
+# z=S*x, so x=S^-1*z; preserve the mathematical objective under this change.
+S = np.diag([1.0,10.0])
+inverse_S = np.diag([1.0,0.1])
+transformed_A = inverse_S.T@A@inverse_S
+z = S@start
+assert np.allclose(transformed_A, np.eye(2))
+z -= transformed_A@z  # eta_z=1 on identity curvature.
+recovered = inverse_S@z
+print(&quot;Transformed curvature / condition number:&quot;, transformed_A, np.linalg.cond(transformed_A))
+print(&quot;One transformed-coordinate step, mapped back:&quot;, recovered)
+assert np.allclose(recovered, 0, atol=1e-12)
+preconditioned = start-inverse_S@inverse_S.T@(A@start)
+assert np.allclose(preconditioned, recovered)
+print(&quot;Same objective, different coordinate geometry; the equivalent raw update uses a matrix preconditioner.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Raw curvature eigenvalues / condition number: [  1. 100.] 100.0
+eta      steps      endpoint                norm
+0.01 200 [0.13397967 0.        ] 0.13397967485796206
+0.019801980198019802 200 [0.0183132 0.0183132] 0.0258987713130135
+0.1 10 [3.4867844e-01 3.4867844e+09] 3486784401.0
+Transformed curvature / condition number: [[1. 0.]
+ [0. 1.]] 1.0
+One transformed-coordinate step, mapped back: [0. 0.]
+Same objective, different coordinate geometry; the equivalent raw update uses a matrix preconditioner.
+</code></pre></div>
+<p>Predict the slow factor for step.01, the balanced factors for2/101, and the unstable factor for.1. Verify the transformed objective’s identity Hessian and map the update back. Explain why one transformed step is a preconditioned update in the original coordinates.</p>
+<h3 id="lab3">Lab3 · Singular non-descent and stopping faults</h3>
+<p><a href="labs/module_19/lab3_newton_and_stopping_faults.py" download>Download lab3_newton_and_stopping_faults.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Singular or indefinite curvature and small gradients need qualified handling.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+
+H = np.diag([2.0,0.0])
+b = np.array([2.0,0.0])
+x = np.array([0.0,5.0])
+gradient = H@x-b
+try:
+    np.linalg.solve(H, -gradient)
+except np.linalg.LinAlgError:
+    print(&quot;Singular Newton system: direct solve has no unique direction.&quot;)
+direction, *_ = np.linalg.lstsq(H, -gradient, rcond=1e-12)
+next_x = x+direction
+print(&quot;Minimum-norm direction / resulting minimiser:&quot;, direction, next_x)
+assert np.allclose(next_x, [1,5])  # Flat coordinate is preserved, not forced to zero.
+print(&quot;Nonunique minima: first coordinate one, any second coordinate.&quot;)
+
+def f(t):
+    return t**4-3*t*t
+t = 0.1
+g, curvature = 4*t**3-6*t, 12*t*t-6
+newton_direction = -g/curvature
+print(&quot;Nonconvex Newton direction / gradient-dot-direction:&quot;, newton_direction, g*newton_direction)
+print(&quot;Objective before / raw Newton step:&quot;, f(t), f(t+newton_direction))
+assert g*newton_direction &gt; 0 and f(t+newton_direction) &gt; f(t)
+# Replace a non-descent direction by -gradient; backtrack with explicit Armijo c.
+descent, alpha, c = -g, 1.0, 1e-4
+for _ in range(50):
+    if f(t+alpha*descent) &lt;= f(t)+c*alpha*g*descent:
+        break
+    alpha *= 0.5
+else:
+    raise RuntimeError(&quot;No accepted finite backtracking step&quot;)
+print(&quot;Safeguarded step / objective:&quot;, alpha, f(t+alpha*descent))
+assert f(t+alpha*descent) &lt; f(t)
+
+# Zero gradient is not sufficient for a nonconvex minimum.
+print(&quot;Saddle x^2-y^2 at zero: gradient zero, value along (0,0.1) =&quot;, -0.1**2)
+assert -0.1**2 &lt; 0
+
+coefficient, location, target = 1e-12, 0.0, 100.0
+small_gradient = 2*coefficient*(location-target)
+mu = 2*coefficient
+gradient_tolerance = 1e-6
+print(&quot;Scaled objective gradient / tolerance:&quot;, small_gradient, gradient_tolerance)
+print(&quot;Naive gradient test passes / solution error:&quot;, abs(small_gradient)&lt;gradient_tolerance, abs(location-target))
+print(&quot;Strong-convexity error certificate ||gradient||/mu:&quot;, abs(small_gradient)/mu)
+assert abs(small_gradient) &lt; gradient_tolerance and abs(location-target) == 100
+print(&quot;For distance tolerance 0.01, sufficient gradient threshold:&quot;, mu*0.01)
+print(&quot;State which quantity termination certifies; objective scaling changes gradient thresholds.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Singular Newton system: direct solve has no unique direction.
+Minimum-norm direction / resulting minimiser: [1. 0.] [1. 5.]
+Nonunique minima: first coordinate one, any second coordinate.
+Nonconvex Newton direction / gradient-dot-direction: -0.10136054421768709 0.06041088435374151
+Objective before / raw Newton step: -0.029900000000000006 -5.553238278345991e-06
+Safeguarded step / objective: 1.0 -1.218589138944
+Saddle x^2-y^2 at zero: gradient zero, value along (0,0.1) = -0.010000000000000002
+Scaled objective gradient / tolerance: -2e-10 1e-06
+Naive gradient test passes / solution error: True 100.0
+Strong-convexity error certificate ||gradient||/mu: 100.0
+For distance tolerance 0.01, sufficient gradient threshold: 2e-14
+State which quantity termination certifies; objective scaling changes gradient thresholds.
+</code></pre></div>
+<p>Distinguish a minimum-norm direction from the resulting flat-family minimiser. Check the nonconvex Newton directional sign, the safeguarded Armijo acceptance, and the scaled objective’s distance certificate. Explain which error criterion a small objective gap could satisfy even while parameters remain far from their target.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Fourteen exercises with full solutions</h2></div>
+<p>Exercises1–12 are required. Optional Exercises13–14 add35 minutes beyond the twelve-hour core schedule.</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">7 min</span></div>
+<p>For f(x)=x² on(0,∞), identify its infimum, attainment and strong-convexity constant. Explain why these are compatible.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Infimum zero is approached as x↓0 but is not attained in the domain. The Hessian is two, so μ=2 gives strong convexity there. Strong convexity provides uniqueness if a minimiser is attained; it does not close an open domain or supply a missing endpoint. There is no feasible zero-gradient point here.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">7 min</span></div>
+<p>For f(x)=x², x=0,y=2,t=1/4, compute the chord bound and the squared-norm identity’s gap.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The mixture is1/2,with value1/4. Weighted endpoint value is(3/4)0+(1/4)4=1. Gap3/4 equals t(1−t)(x−y)²=(1/4)(3/4)4. The nonnegative gap proves the convex inequality and is strict for these distinct points and interior weight.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">7 min</span></div>
+<p>For a quadratic with eigenvalues2,4, give the full every-start constant-step convergence interval, the balanced step and the worst norm factor.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>0&lt;η&lt;2/4=.5. Balanced step2/(2+4)=1/3 gives factors1/3,−1/3 and worst magnitude1/3. At the upper boundary the top factor is−1 and need not decay; beyond it an excited top component grows.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">7 min</span></div>
+<p>With proved μ=.2 and exact gradient norm.006 at an unconstrained point, what distance and gap bounds follow if a minimiser exists?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Distance≤.006/.2=.03. Gap≤.006²/(2·.2)=.00009. These follow from uniform strong convexity and an attained unconstrained minimiser. Approximate computed gradients require a bound on their error before using the same certificate.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Prove a local minimiser of a convex function on a convex domain is global, without requiring differentiability.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>If a feasible y had f(y)&lt;f(x*), convexity would give f((1−t)x*+ty)≤(1−t)f(x*)+tf(y)&lt;f(x*) for every0&lt;t&lt;1. Such feasible segment points lie arbitrarily near x*, contradicting local minimality. This establishes globality of an existing local minimiser, not existence on every domain.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Derive the descent lemma using the scalar comparison function, then give the gradient-step coefficient.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>For d=y−x defineφ(t)=f(x+td)−f(x)−t∇f(x)ᵀd−Lt²‖d‖²/2. Lipschitz gradient over the valid segment and Cauchy–Schwarz giveφ′≤0, soφ(1)≤0. Setd=−ηg to obtain f_new≤f−η(1−Lη/2)‖g‖². Positive coefficient requires0&lt;η&lt;2/L. Domain and bound validity over the whole step cannot be omitted.</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Prove the SPD quadratic error recurrence and its necessary and sufficient every-start step interval.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Ax*=b,so g=Ae and e_new=(I−ηA)e. In an orthonormal eigenbasis each coefficient is multiplied by1−ηλ_i. All starts converge exactly when every magnitude is&lt;1; an eigenvector start disproves the guarantee if any multiplier has magnitude≥1. With positive eigenvalues, simultaneous inequalities give0&lt;η&lt;2/λ_max. Orthogonality also yields norm≤ρ^k times initial norm, withρ the largest magnitude.</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 min</span></div>
+<p>For A=[[3,1],[1,3]],b=(2,−1), start atzero and perform one cyclic exact coordinate sweep. Compare with a full Newton step.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>First coordinate solves3x₁+x₂=2 withx₂=0, giving2/3. Second uses freshx₁ and solvesx₁+3x₂=−1, giving−5/9. This sweep decreases the objective but is not the optimum(7/8,−5/8). A Newton solve fromzero gives that optimum in one coupled step. Costs differ, so one sweep and one linear-system solve are not interchangeable units of effort.</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">Exercise 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 min</span></div>
+<p>For A=diag(1,100), choose S so z=Sx makes the consistently transformed Hessian identity. Derive the corresponding original-coordinate unit update.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>S=diag(1,10),S⁻¹=diag(1,.1),so S⁻ᵀA S⁻¹=I. Unit descent in z maps to x_new=x−S⁻¹S⁻ᵀAx=x−diag(1,.01)Ax=0 for the zero-linear-term quadratic. It is a matrix-preconditioned update, preserving the re-expressed objective while changing its Euclidean coordinate geometry.</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">Exercise 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 min</span></div>
+<p>For f(t)=t⁴−3t² at.1, calculate the Newton direction’s sign and propose a valid safeguarded descent-direction test.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>g=−.596,H=−5.88,p=−g/H≈−.101360544,gp≈.060410884&gt;0. The direction is locally uphill. Replace it by−g=.596,then accept a positive step only when it stays in the domain and satisfies Armijo f(t+αp)≤f(t)+cαgp for0&lt;c&lt;1. A genuine negative gp supports sufficiently small acceptance; this does not establish a global nonconvex minimiser theorem.</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">Exercise 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 min</span></div>
+<p>A quadratic with eigenvalues1,100 succeeds from a start containing only the first mode atη=.1. The report claims every-start convergence. Repair it.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The first factor is.9, so that particular mode decays. The second factor is−9 and was unexcited by the chosen start. Any nonzero second component grows, disproving every-start convergence. The universal interval is0&lt;η&lt;.02. Report the restricted trace separately from the spectral guarantee and test nontrivial components when illustrating stability.</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">Exercise 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 min</span></div>
+<p>For10⁻¹²(x−100)² atzero, a gradient threshold10⁻⁶ passes. The solver promises parameter error≤.01. Repair the certificate and explain a singular flat Newton case.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Gradient norm2·10⁻¹⁰ andμ=2·10⁻¹² give distance bound100,so the promise is unsupported. The sufficient exact-gradient threshold isμ(.01)=2·10⁻¹⁴. For a flat Hessian, a least-squares minimum-norm step can preserve an arbitrary null coordinate, so a selected minimiser may be nonunique and not minimum-norm. Report the requested error quantity, numerical allowances, and which solution representative the method actually selects.</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 min</span></div>
+<p>Derive the best constant worst-case quadratic step from curvature interval[μ,L] and express its factor usingκ=L/μ.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The maximum of|1−ηλ| over the interval occurs at an endpoint. At the optimum the increasing magnitude from the high endpoint balances the low endpoint:1−ημ=ηL−1. Henceη=2/(μ+L),ρ=(L−μ)/(L+μ)=(κ−1)/(κ+1). Whenμ=L,η=1/L andρ=0,so the quadratic is solved in one step. This is a constant-step worst-mode result, not an unconditional optimal schedule for every nonquadratic objective.</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">Exercise 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 min</span></div>
+<p>For symmetric PSD A, prove the quadratic has minimisers exactly when b lies in C(A), then explain null-mode iteration behaviour.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Symmetry gives C(A)=N(A) perpendicular complement. Ifb has a nonzero null component, choose n∈N(A) withbᵀn≠0; alongtn the quadratic is−t bᵀn and is unbounded below in one direction. Ifb∈C(A),solveAx*=b. Thenf(x)−f(x*)=(1/2)(x−x*)ᵀA(x−x*)≥0,with equality exactly onx*+N(A). Gradient updates do not alter null components because bothAx andb have no null projection. Suitable steps decay positive modes, leaving the starting null component as the selected representative.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Ten-question self-check</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>A function has a finite infimum on an open domain. What follows?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The lower bound need not be attained</button></li><li><button type="button" class="quiz-opt" data-i="1">A minimiser necessarily exists</button></li><li><button type="button" class="quiz-opt" data-i="2">Every stationary point is global</button></li></ol><div class="quiz-expl" hidden>Domain and attainment are separate. x² on positive inputs approaches zero without a feasible minimiser.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>Does convexity imply smoothness?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Always</button></li><li><button type="button" class="quiz-opt" data-i="1">No; absolute value is convex with a kink</button></li><li><button type="button" class="quiz-opt" data-i="2">Only if the function is plotted</button></li></ol><div class="quiz-expl" hidden>Convexity is a segment inequality, while differentiability is a local regularity property.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>When does an interior zero gradient certify global optimality here?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">For every differentiable function</button></li><li><button type="button" class="quiz-opt" data-i="1">Whenever one finite difference is zero</button></li><li><button type="button" class="quiz-opt" data-i="2">For a differentiable convex objective on its convex domain</button></li></ol><div class="quiz-expl" hidden>The supporting inequality supplies the global comparison. Nonconvex zero gradients can be saddles or maxima.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>A gradient is L-Lipschitz on the valid step region. Which constant interval certifies strict descent away from stationarity?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">0&lt;η&lt;2/L</button></li><li><button type="button" class="quiz-opt" data-i="1">Every positive step</button></li><li><button type="button" class="quiz-opt" data-i="2">Onlyη=2/L with equality</button></li></ol><div class="quiz-expl" hidden>The descent coefficientη(1−Lη/2) must be positive. Actual all-start quadratic convergence also has this strict interval.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>An unstable mode is absent from one initial error. What can happen?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That absence proves all-start stability</button></li><li><button type="button" class="quiz-opt" data-i="1">The trace can converge while the universal guarantee fails</button></li><li><button type="button" class="quiz-opt" data-i="2">The eigenvalue disappears from the objective</button></li></ol><div class="quiz-expl" hidden>Initial excitation and method stability are different properties.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>Positive objective scaling changes what?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The set of minimisers necessarily changes</button></li><li><button type="button" class="quiz-opt" data-i="1">Every suitable step and derivative tolerance stays the same</button></li><li><button type="button" class="quiz-opt" data-i="2">Gradient/Hessian scales and associated step/tolerance interpretations</button></li></ol><div class="quiz-expl" hidden>Positive scaling preserves minimisers but rescales derivative information used by an algorithm.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>A nonconvex Newton direction hasgᵀp&gt;0. What follows locally?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">It is an uphill direction and needs a safeguard</button></li><li><button type="button" class="quiz-opt" data-i="1">Every full step is globally optimal</button></li><li><button type="button" class="quiz-opt" data-i="2">An indefinite Hessian is automatically convex</button></li></ol><div class="quiz-expl" hidden>Newton solves a local stationary quadratic model; it need not point toward a minimum when curvature is indefinite.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>A minimum-norm Newton direction on a flat quadratic implies what?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The resulting minimiser must have minimum norm</button></li><li><button type="button" class="quiz-opt" data-i="1">Only the selected step has that norm property; flat starting coordinates may remain</button></li><li><button type="button" class="quiz-opt" data-i="2">The Hessian is invertible</button></li></ol><div class="quiz-expl" hidden>Lab3 reaches(1,5) through step(1,0),while many minimisers exist.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>A very small gradient establishes parameter accuracy when what is supplied?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">No other information</button></li><li><button type="button" class="quiz-opt" data-i="1">A very small applied update alone</button></li><li><button type="button" class="quiz-opt" data-i="2">A valid error bound with its scale and problem assumptions</button></li></ol><div class="quiz-expl" hidden>Strong convexity givesdistance≤gradient norm/μ. A tinyμ can leave a large error despite a tiny gradient.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m19:q10">
+<label for="q10-response">10. Derive the SPD quadratic error recurrence, its every-start step interval and one norm bound. Then explain why a nonconvex zero-gradient report or a small scaled gradient does not supply the same global accuracy certificate.</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="State curvature, eigenmodes, strict bounds, excitation and the requested error quantity."></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> I separated objective assumptions, finite traces and termination certificates.</label>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>For symmetric SPD A andAx*=b,e_new=(I−ηA)e,with mode factors1−ηλ_i. Every-start convergence requires0&lt;η&lt;2/λ_max;ρ=max|1−ηλ_i| gives‖e_k‖≤ρ^k‖e₀‖. At the boundary a top mode can persist, and an unexcited unstable mode can hide in one trace. Nonconvex zero gradients can be saddles. A scaled gradient becomes a distance certificate only through a proved bound such as‖g‖/μ with uniform strong convexity and an attained unconstrained minimiser; a small number alone has no such interpretation.</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Reading with a purpose</h2></div>
+<p>Use convex-function and unconstrained-minimisation selections in the authors’ <a href="https://web.stanford.edu/~boyd/cvxbook/" target="_blank" rel="noopener">Convex Optimization companion</a>. The proofs above derive the particular supporting, descent and spectral bounds used by this lesson, and its labs make each numerical convention explicit.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>Selection and question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session1 · 20 minutes</td>
+<td>Convexity and supporting inequalities: what is global, what is local, and which regularity is required?</td>
+</tr>
+<tr>
+<td>Session4 · 20 minutes</td>
+<td>Unconstrained methods and line search: what makes a direction descend, a step acceptable and a stopping quantity interpretable?</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Retrieval exit task and next step</h2></div>
+<p>Prove a convex example and a local-to-global certificate, derive the Lipschitz-gradient decrease bound, and analyse each quadratic eigenmode. Contrast gradient, cyclic coordinate and Newton updates with their costs and safeguards.</p>
+<p><strong>Exit task:</strong> For curvaturediag(1,100),state the universal interval0&lt;η&lt;.02,balanced step2/101 and its norm factor99/101. Explain whyη=.1 can appear successful from a first-mode-only start while failing generally, and why coordinate scaling changes the update metric.</p>
+<p><strong>Ready to move on:</strong> you can connect optimisation behaviour to stated objective, domain and curvature assumptions. Constrained optimisation next adds feasible directions, multipliers, KKT conditions and dual bounds. See the <a href="index.html">course overview</a>.</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Notation and bilingual terminology</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term or notation</th>
+<th>Meaning</th>
+<th>中文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Infimum / minimiser</td>
+<td>Greatest lower bound / feasible attaining point</td>
+<td>下确界、极小点</td>
+</tr>
+<tr>
+<td>Convex / strict / strong</td>
+<td>Chord inequality / strict chords / uniform quadratic margin</td>
+<td>凸、严格凸、强凸</td>
+</tr>
+<tr>
+<td>L / μ</td>
+<td>Gradient smoothness bound / strong-convexity margin</td>
+<td>光滑常数、强凸常数</td>
+</tr>
+<tr>
+<td>η / Armijo</td>
+<td>Step scale / sufficient-decrease acceptance</td>
+<td>步长、充分下降</td>
+</tr>
+<tr>
+<td>ρ / κ</td>
+<td>Worst mode magnitude / curvature ratio</td>
+<td>收缩因子、条件数</td>
+</tr>
+<tr>
+<td>Preconditioning</td>
+<td>Matrix-scaled update under a chosen coordinate metric</td>
+<td>预条件</td>
+</tr>
+<tr>
+<td>Newton / coordinate step</td>
+<td>Coupled curvature solve / one-coordinate minimisation</td>
+<td>牛顿、坐标下降</td>
+</tr>
+<tr>
+<td>gᵀp / termination</td>
+<td>Directional rate / stated finite stopping decision</td>
+<td>方向变化率、终止</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="module_18_EN.html">← Module 18</a><a href="module_20_EN.html">Module 20 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

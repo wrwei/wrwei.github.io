@@ -1,0 +1,513 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>期望、联合分布、协方差与依赖关系 — 计算机科学与人工智能的数学基础</title><meta name="description" content="算精确联合矩与成本，证期望及条件方差恒等式，诊断非线性不相关依赖，连接选学协方差几何与中心PCA。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="23"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 23</button><div class="dropdown-menu" id="module-menu"><a href="module_23_ZH.html" class="active" aria-current="page">期望、联合分布、协方差与依赖关系</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_23_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>平均与依赖需要联合模型</span></a><a href="#s1"><span class="num">2</span><span>变量 函数及算法成本的期望</span></a><a href="#s2"><span class="num">3</span><span>方差 矩存在与尺度改变</span></a><a href="#s3"><span class="num">4</span><span>联合 边缘与条件分布</span></a><a href="#s4"><span class="num">5</span><span>协方差 相关与零协方差的依赖</span></a><a href="#s5"><span class="num">6</span><span>条件期望 全期望与全方差</span></a><a href="#s6"><span class="num">7</span><span>选学AI 协方差矩阵 Gaussian结构与PCA</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个可复现实验</span></a><a href="#exercises"><span class="num">10</span><span>十四道练习及完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自测</span></a><a href="#reading"><span class="num">12</span><span>有目的的阅读</span></a><a href="#summary"><span class="num">13</span><span>检索 结业任务与下一步</span></a><a href="#terms"><span class="num">14</span><span>记号与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">期望、联合分布、协方差与依赖关系</h1><p class="module-lead">算精确联合矩与成本，证期望及条件方差恒等式，诊断非线性不相关依赖，连接选学协方差几何与中心PCA。</p><div class="hero-chips"><span class="chip chip-time">10 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>按可积与目标检查算加权及函数期望。</li><li>推方差、尺度与矩存在区别。</li><li>构造联合、边缘及正情况条件。</li><li>证Cov和式，反驳零相关独立。</li><li>推全期望、全方差及平方风险条件均值最优。</li><li>AI证Cov PSD与变换，限定Gaussian独立，连接中心PCA与方差。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>所有路线需模块 22，连续积分需模块 17。选学向量Cov用模块 12，PCA回顾模块 14。全部实验标准库。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">平均与依赖需要联合模型</a><a href="#s1">变量 函数及算法成本的期望</a><a href="#s2">方差 矩存在与尺度改变</a><a href="#s3">联合 边缘与条件分布</a><a href="#s4">协方差 相关与零协方差的依赖</a><a href="#s5">条件期望 全期望与全方差</a><a href="#s6">选学AI 协方差矩阵 Gaussian结构与PCA</a><a href="#misconceptions">常见误解</a><a href="#labs">三个可复现实验</a><a href="#exercises">十四道练习及完整解答</a><a href="#quiz">十题自测</a><a href="#reading">有目的的阅读</a><a href="#summary">检索 结业任务与下一步</a><a href="#terms">记号与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">10 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">150 分钟</span></div><div class="session-title">期望、成本及矩存在</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节，推加权成本与矩。</a></span><span class="act-min">90</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读线性与有限矩假设。</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">检索期望、方差及单位。</a></span><span class="act-min">21</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m23:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">150 分钟</span></div><div class="session-title">联合矩与Cov证明</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，推联合表摘要。</a></span><span class="act-min">58</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">算精确矩与条件分解。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">42</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m23:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">150 分钟</span></div><div class="session-title">条件信息与选学几何</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节；CS练有限条件，AI加Cov几何。</a></span><span class="act-min">70</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">比较非线性依赖与独立散点。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">按路线完成应用练习 8–10。</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m23:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">150 分钟</span></div><div class="session-title">依赖诊断与完整恒等式</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">修方差捷径，查适用几何扩展。</a></span><span class="act-min">55</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">完成诊断练习 11–12。</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择及书面条件分解。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读条件期望及Cov边界。</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业，核查联合假设。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m23:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>平均与依赖需要联合模型</h2></div>
+<p>期望把分布变成平均量，方差及协方差描述变异的某些方面，却不替代完整联合模型。本课推精确矩，证明线性无需独立，分解条件变异，并连接协方差与几何，不把零相关误当独立，也不把解释方差误当预测价值。</p>
+<p><strong>检索检查：</strong> <a href="module_22_ZH.html#s1">模块 22</a> 提供随机变量与分布；连续积分需<a href="module_17_ZH.html#s1">模块 17</a>。选学向量协方差用<a href="module_12_ZH.html#s1">模块 12</a>，选学PCA回顾<a href="module_14_ZH.html#s5">模块 14</a>。CS用全部离散例和替代。实验仅用Python标准库，连续与向量输出明确标记。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>变量 函数及算法成本的期望</h2></div>
+<p>有限离散X的期望E[X]=Σ_x x p_X(x)，是X单位下的加权平均，不必为可能实现值：公平Bernoulli期望1/2，观察却仅0或1。函数g的E[g(X)]=Σ_x g(x)p_X(x)，无需先构造输出表；合并相同输出原像得到同结果，证明有限公式。联合表对应E[g(X,Y)]=Σ_{x,y}g(x,y)p(x,y)。</p>
+<p>可数有符号变量的有限期望需E[|X|]=Σ|x|p_X(x)&lt;∞，允许绝对收敛重排。非负变量可有扩展期望+∞；正负部分若都无限，不能相减定义E[X]。对称截断给零不能修复无限减无限。连续分支用密度积分及绝对可积条件，概念相同。</p>
+<p>有限模型线性直接由结果和证明：E[aX+bY]=Σ_ω(aX(ω)+bY(ω))p_ω=aE[X]+bE[Y]。不使用联合分解，所以不需独立。有限个可积变量可按合法和/积分线性延伸。乘积E[XY]=E[X]E[Y]不同，需独立等足够条件及矩存在；线性本身不给它。函数移出期望通常也错：E[X²]不必等(E[X])²。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">线性搜索期望依赖明确的位置分布</div>
+<p>成功搜索按1,…,4检查，目标K质量1/2、1/4、1/8、1/8。比较数为K，E[K]=1/2+2/4+3/8+4/8=15/8=1.875。均匀位置给5/2。同算法不同输入模型平均成本不同，最坏成功成本仍4。若允许搜索失败，须加入失败事件和全扫描成本，不可暗中条件于成功。</p>
+</div>
+<p>指示变量便于平均成本。1_A在A为1其余0，故E[1_A]=P(A)。计数N=Σ1_{A_i}的期望ΣP(A_i)，即使事件依赖。非负整数恒等N=Σ_{k≥1}1{N≥k}给E[N]=ΣP(N≥k)，无限非负交换由单调部分和证明，有限有界只需有限线性。搜索尾1、1/2、1/4、1/8和为15/8。</p>
+<p>有效归一模型也可无限期望。P(X=n)=1/[n(n+1)]，n≥1，前N质量望远镜和1−1/(N+1)，总概率1。但E[X]=Σ1/(n+1)发散，按二的幂分组每块有统一正下贡献。有限模拟平均总有限，不让总体均值变有限。相同大小质量各半分到±n，正负期望都无限，符号均值未定义。</p>
+<p>期望是模型总体性质，样本平均是观察统计量，可在适当抽样设计下估它，但不定义它。重复、选择与依赖能改变统计目标。模块24给有限方差样本均值及极限条件，不把所有大数据平均当通用收敛。解释平均成本或损失前说明可积、目标总体和生成假设。</p>
+<figure class="fig" id="fig-23-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="目标位置一二三四的概率分别二分之一四分之一八分之一八分之一，期望八分之十五，与均匀期望二点五不同。"><title>加权搜索成本</title><desc>目标位置一二三四的概率分别二分之一四分之一八分之一八分之一，期望八分之十五，与均匀期望二点五不同。</desc><defs><marker id="fig-23-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">平均成本依赖输入位置模型</text><text x="100" y="99" text-anchor="middle" font-size="22" fill="#1a2e4a">K=1</text><rect x="170" y="73" width="375" height="34" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="580" y="99" text-anchor="start" font-size="21" fill="#1a2e4a">p=0.5</text><text x="100" y="148" text-anchor="middle" font-size="22" fill="#1a2e4a">K=2</text><rect x="170" y="122" width="187.5" height="34" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="580" y="148" text-anchor="start" font-size="21" fill="#1a2e4a">p=0.25</text><text x="100" y="197" text-anchor="middle" font-size="22" fill="#1a2e4a">K=3</text><rect x="170" y="171" width="93.75" height="34" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="580" y="197" text-anchor="start" font-size="21" fill="#1a2e4a">p=0.125</text><text x="100" y="246" text-anchor="middle" font-size="22" fill="#1a2e4a">K=4</text><rect x="170" y="220" width="93.75" height="34" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="580" y="246" text-anchor="start" font-size="21" fill="#1a2e4a">p=0.125</text><text x="380" y="307" text-anchor="middle" font-size="20" fill="#1a2e4a">E[K]=Σkp(k)=15/8; ΣP(K≥k)=15/8</text><text x="380" y="338" text-anchor="middle" font-size="19" fill="#1a2e4a">均匀位置给5/2；最坏成功成本仍4。</text></g></svg></div><figcaption><span class="fig-num">图 23.1</span> <p>期望成本是加权和或指示概率和。线性允许依赖，但须指定输入位置模型。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>期望必须是可观察值吗？线性需要独立吗？有效概率模型能有无限或未定义均值吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>Bernoulli的1/2不必实现。有限线性无独立分解要求。望远镜正大小模型均值无限，其对称符号版本两部分发散而均值未定义。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>方差 矩存在与尺度改变</h2></div>
+<p>有限二阶矩X的μ=E[X]有限，Var(X)=E[(X−μ)²]≥0，展开得E[X²]−μ²。二阶有限通过与常量1的Cauchy–Schwarz保证一阶绝对可积。标准差√Var保原单位，方差用平方单位。原始二阶矩E[X²]不同于中心矩Var；高阶矩存在性需另检，不继承有限均值。</p>
+<p>方差零意味着X=μ几乎必然，允许零概率结果不同。若某k有P(|X−μ|≥1/k)&gt;0，则平方偏差期望至少该概率乘1/k²，矛盾。所有非零偏差事件是这些阈值事件的可数并。这是模型结论，短样本零方差不证明总体零。有些常量及退化模型确实零方差。</p>
+<p>常a,b给均值aμ+b、Var(aX+b)=a²Var(X)，因为中心化后为a(X−μ)。加常数不改分散，改单位使方差平方缩放、标准差乘|a|。正方差时Z=(X−μ)/σ有均值0、方差1。标准化不制造Gaussian、独立或消除非线性关系，只改两个矩和单位。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">Bernoulli矩不能把平方移出期望</div>
+<p>X为Bernoulli(p)，每结果X²=X，故E[X]=E[X²]=p，Var=p−p²。p=.3时分别.3、.3、.21，但(E[X])²=.09。Y=2X+5均值5.6、方差4(.21)=.84，常数五只移位置。</p>
+</div>
+<p>有限均值不保证有限方差。n≥1质量正比1/n³，按几何块比较归一和有限；一阶系列如Σ1/n²同样收敛，二阶如Σ1/n却发散。离散路线可用块比较，不需积分。应报无限方差，不能把有限截断代入再声称总体有限。</p>
+<p>连续分支Uniform(−1,1)均值0，二阶∫x²/2=1/3，方差1/3、四阶1/5。指数率λ积分给均值1/λ、二阶2/λ²、方差1/λ²，需模块17及边界项。Gaussian μ,σ²有对应均值方差，σ=0作为原子处理。这些性质来自模型，不是只因样本中心和分散匹配。</p>
+<p>观测经验方差常以N除中心平方和；独立同分布有限方差下经典无偏估计用N−1，问题相关却不同。本课经验分布协方差用N，实验3标N−1缩放，模块25再推无偏。任何分母本身都不能修依赖、选择总体或未定义矩。</p>
+<p>数值E[X²]−E[X]²可能减大近数而丢小方差，先中心化再累平方通常减少相消，后续数值课讨论稳定算法。数学非负量可能舍入略负，是数值诊断，不能忽视大不一致。解释分散前检查单位、分母及矩存在。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>方差与标准差单位怎样不同？标准化创造Gaussian吗？有限均值保证二阶有限吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>方差平方单位，标准差原单位。标准化不决定全分布。1/n³模型均值有限而二阶无限。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>联合 边缘与条件分布</h2></div>
+<p>联合PMF p(x,y)=P(X=x,Y=y)非负，在联合支持和1。边缘p_X(x)=Σ_y p(x,y)、p_Y(y)=Σ_x p(x,y)，加保留值兼容的全部结果。两边缘不确定联合，多个耦合可共享。独立为每对p(x,y)=p_X(x)p_Y(y)，包括零及支持限制。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">一个精确联合表给全部边缘与矩</div>
+<p>p(0,0)=1/2、p(0,2)=1/4、p(1,0)=p(1,2)=1/8。P(X=1)=1/4、P(Y=2)=3/8、EX=1/4、EY=3/4、EXY=1/4、VX=3/16、VY=15/16。联合(1,2)=1/8，边缘乘积3/32，故依赖。只读边缘会隐藏它。</p>
+</div>
+<p>p_Y(y)&gt;0时条件PMF p(x,y)/p_Y(y)归一该列。Y=0的X=1率=(1/8)/(5/8)=1/5，Y=2为(1/8)/(3/8)=1/3。条件期望按条件PMF平均，不按原边缘。零y无基本比值，零情况可选版本不改变无条件平均，但不可称唯一确定的比。</p>
+<p>独立可积X,Y的有限乘积期望分解：Σ_xΣ_y xy p_X(x)p_Y(y)=(Σ_x xp_X)(Σ_y yp_Y)。相应可数或密度模型需合法交换及可积。逆不成立：仅产品矩等于均值乘积只是一条约束，而独立约束整个联合；第4节给确定非线性反例。</p>
+<p><strong>连续AI分支：</strong> 联合密度f(x,y)非负、积分1。边缘积分去另坐标，f_Y(y)&gt;0时条件密度可取f(x,y)/f_Y(y)的适当几乎处处版本。这不是P(X∈A,Y=y)/P(Y=y)，绝对连续Y的分母零。对x积分条件密度得1，随y变化说明联合条件律。</p>
+<p>0&lt;x&lt;y&lt;1三角形密度2，面积1/2故归一。边缘f_Y(y)=2y、f_X(x)=2(1−x)，支持各在(0,1)。给内部y，X均匀(0,y)，密度1/y、条件均值y/2。三角支持已耦合变量，不是每个边缘支持对都可出现。积分需模块17，CS用上表。</p>
+<p>联合也可用生成序列：先从边缘抽Y，再从条件抽X，乘因子重建p或密度。逆转顺序需重新算条件，不可直接用原前向机制。实现条件分支时保留潜组，以便计数恢复联合，不混边缘条件目标。</p>
+<p>向量联合覆盖全部坐标，两两表仍可能漏模块21 xor的高阶依赖。协方差概括每对中心积，即使完整矩阵通常也少于全联合信息。生成故事、联合表、低阶摘要目的不同，需标明哪一个支持推断或算法。</p>
+<figure class="fig" id="fig-23-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 365" role="img" aria-label="两行X零一两列Y零二，行和四分之三四分之一，列和八分之五八分之三；列内X一条件分别五分之一三分之一。"><title>精确联合边缘条件表</title><desc>两行X零一两列Y零二，行和四分之三四分之一，列和八分之五八分之三；列内X一条件分别五分之一三分之一。</desc><defs><marker id="fig-23-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="365" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">联合质量先求和 再按情况归一</text><text x="105" y="85" text-anchor="middle" font-size="20" fill="#1a2e4a">X / Y</text><text x="285" y="85" text-anchor="middle" font-size="20" fill="#1a2e4a">0</text><text x="465" y="85" text-anchor="middle" font-size="20" fill="#1a2e4a">2</text><text x="645" y="85" text-anchor="middle" font-size="20" fill="#1a2e4a">行和</text><rect x="25" y="104" width="710" height="44" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="105" y="135" text-anchor="middle" font-size="21" fill="#1a2e4a">0</text><text x="285" y="135" text-anchor="middle" font-size="21" fill="#1a2e4a">1/2</text><text x="465" y="135" text-anchor="middle" font-size="21" fill="#1a2e4a">1/4</text><text x="645" y="135" text-anchor="middle" font-size="21" fill="#1a2e4a">3/4</text><rect x="25" y="156" width="710" height="44" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="105" y="187" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><text x="285" y="187" text-anchor="middle" font-size="21" fill="#1a2e4a">1/8</text><text x="465" y="187" text-anchor="middle" font-size="21" fill="#1a2e4a">1/8</text><text x="645" y="187" text-anchor="middle" font-size="21" fill="#1a2e4a">1/4</text><rect x="25" y="208" width="710" height="44" rx="10" fill="#fff7ed" stroke="#0ea5e9"/><text x="105" y="239" text-anchor="middle" font-size="21" fill="#1a2e4a">列和</text><text x="285" y="239" text-anchor="middle" font-size="21" fill="#1a2e4a">5/8</text><text x="465" y="239" text-anchor="middle" font-size="21" fill="#1a2e4a">3/8</text><text x="645" y="239" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><text x="380" y="309" text-anchor="middle" font-size="20" fill="#1a2e4a">P(X=1|Y=0)=1/5; P(X=1|Y=2)=1/3</text><text x="380" y="339" text-anchor="middle" font-size="17" fill="#1a2e4a">条件分母为对应列和，不是原始X边缘。</text></g></svg></div><figcaption><span class="fig-num">图 23.2</span> <p>求行列和得边缘，正概率列再归一作条件；含两变量的矩用联合质量。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>边缘决定联合吗？条件列分母是什么？EXY=EXEY本身证明独立吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>不同耦合可共享边缘。用该列正Y质量。产品矩等式仅一条件，不是全分布分解。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>协方差 相关与零协方差的依赖</h2></div>
+<p>有限方差变量Cov=E[(X−μ_X)(Y−μ_Y)]=EXY−μ_Xμ_Y。由|ab|≤(a²+b²)/2，二阶有限保证中心积可积。Cov对称，单位为两变量单位乘积，Cov(aX+b,cY+d)=acCov(X,Y)。正负描述线性中心关联而非因果。独立在这些矩假设下给零Cov，逆一般不成立。</p>
+<p>中心和展开给Var(X+Y)=VX+VY+2Cov，差则减2Cov。一般加权和方差Σa_i²VX_i+2Σ_{i&lt;j}a_i a_j Cov。独立许可去交叉项；两两不相关也许可该恒等式简化，却不保证相互独立。精确表Cov=1/4−(1/4)(3/4)=1/16，VarSum=3/16+15/16+2/16=5/4，而错捷径9/8。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo>+</mo><mi>Y</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo><mo>+</mo><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>Y</mi><mo stretchy="false">)</mo><mo>+</mo><mn>2</mn><mi mathvariant="normal">Cov</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo separator="true">,</mo><mi>Y</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\operatorname{Var}(X+Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)+2\operatorname{Cov}(X,Y).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">Cov</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></div>
+<p>两方差正时ρ=Cov/(σ_Xσ_Y)无单位。非负E[(X_c−tY_c)²]，取t=Cov/VY给Cov²≤VX VY，故|ρ|≤1。若方差零，中心变量几乎必然零，Cov零，但普通相关比未定义。应报告退化，不能将0/0写零相关。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">确定平方关系可零协方差</div>
+<p>X等可能−1,0,1，Y=X²。EX0、EY2/3、EXY=EX³=0，故Cov和ρ均零、两方差正。但P(Y=0|X=0)=1而P(Y=0)=1/3，证明依赖。连续AI对应X均匀(−1,1)，对称也给Cov(X,X²)=0且平方关系精确成立。小协方差可与完全确定的非线性响应共存。</p>
+</div>
+<p>正方差下ρ=±1更强：前平方残差界取等使一个中心变量几乎必然为另一个的非零倍数，符号描述倍数正负。确定非线性关系却可零、中间或其他相关。相关专测线性方面，不能发现非线性并非违背定义。</p>
+<p>条件或混合也可改相关，模块21潜组及选中并说明总体关联不必代表各层。正缩放不改ρ却改Cov，负缩放反ρ符号。报告需区分原Cov、无单位ρ、组条件及目标总体，任何系数及符号不建立因果。</p>
+<p>有限样本Cov是估计或经验量，依约定而定；总体精确零通常样本略非零。实验2平方与独立参考都有很小样本Cov，但形状和条件结构显著不同。依赖样本平方残差精确零，不靠舍入系数是否恰零判断非线性。</p>
+<p>数学主张应证明分解或条件差，不能仅视觉。散点提示诊断和模型，有限图无可见模式不是独立证明。高维Cov组织两两摘要，却可能高阶非线性依赖。第6节Gaussian例外需明确联合假设，不因边缘看似钟形就普遍豁免。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>独立何时给零Cov？逆成立吗？一方差零时普通相关怎样？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>有限相关矩使乘积期望合法。平方反例否定逆。零方差使比未定义，尽管Cov零。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>条件期望 全期望与全方差</h2></div>
+<p>离散正质量y定义m(y)=E[X|Y=y]=Σ_x x p(x,y)/p_Y(y)。E[X|Y]=m(Y)本身是随机变量，不是一个数；根据实现Y指定对应条件均值。有限模型都存在，一般版本需可积。零情况选版本不改期望，不能当基本比。更一般条件化可理解为按Y所表示信息平均。</p>
+<p>全期望把正情况相加：E[m(Y)]=Σ_y p_Y(y)Σ_x xp(x,y)/p_Y(y)=Σ_{x,y}xp(x,y)=EX。必须用实际组概率加权，换等权改变目标，除非组原本等质量。任意h(Y)在可积时，同计算给E[h(Y)(X−m(Y))]=0，此正交性解释全方差及预测性质。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">组内与组间变异精确相加</div>
+<p>表中Y=0质量5/8、条件均值1/5、方差4/25；Y=2质量3/8、均值1/3、方差2/9。加权均值1/4，期望条件方差11/60，条件均值方差1/240；和3/16匹配VX。等权会改变均值及分解目标。</p>
+</div>
+<p>有限方差X写X−EX=(X−m(Y))+(m(Y)−EX)，展开平方平均。因E[X−m|Y]=0，交叉项零；第一平方条件平均给EVar(X|Y)，第二Var(m)。所以Var(X)=EVar(X|Y)+Var(EX|Y)，两项非负。不需要X,Y独立，分开给定信息后组内残余与条件均值间变异。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo><mo>=</mo><mi>E</mi><mo stretchy="false">[</mo><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo>∣</mo><mi>Y</mi><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mo>+</mo><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>E</mi><mo stretchy="false">[</mo><mi>X</mi><mo>∣</mo><mi>Y</mi><mo stretchy="false">]</mo><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\operatorname{Var}(X)=E[\operatorname{Var}(X\mid Y)]+\operatorname{Var}(E[X\mid Y]).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mopen">[</span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)]</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">])</span><span class="mord">.</span></span></span></span></span></div>
+<p>条件均值也在所有Y函数预测中极小均方误差。任意平方可积a(Y)，分解X−a=(X−m)+(m−a)，同正交性给E[(X−a)²]=E[(X−m)²]+E[(m−a)²]。后项非负，因此m最优，除零集外唯一。此定理用真实联合及平方损失，拟合预测仅近似m，需数据和估计保证才能继承总体表现。</p>
+<p>损失选择重要。二元标签X的条件均值就是成功概率，在平方损失下为最优概率预测。硬零一决策比较两类条件概率：成功概率大于半时预测一最优，平局任意。连续目标绝对误差通常选条件中位而非均值。因此平均定理不建立适用于所有应用损失的通用预测规则。</p>
+<p>独立可积X,Y的正条件律都等边缘，m(Y)=EX几乎必然；逆“条件均值常数就独立”错。对称X、Y=X²，E[X|Y]=0，却Y决定X大小，条件分布可变而均值不变。高矩和全条件律保留均值没有的信息。</p>
+<p>更多信息的条件化需嵌套塔性质，任意连续条件不能消除。Z是Y函数时再对Z平均E[X|Y]得E[X|Z]，没有此信息嵌套不一般合法。本有限划分证明支持全均值及适当嵌套，不把条件操作当常数乘法或随意交换抵消。</p>
+<p>连续条件均值按定义的条件密度积分。第3节三角m(y)=y/2、Y密度2y，EX=∫(y/2)(2y)dy=1/3，与X边缘一致。CS用有限表及预测展开，不需零点事件密度比理解离散。两分支用同信息平均逻辑和适当分布。</p>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="jointmoments"></div><div class="widget-caption">
+</div></div>
+<p>探索器改变c=P(X=1,Y=2)，保P(X=1)=1/4、P(Y=2)=3/8。四质量.375+c、.375−c、.25−c、c，要求0≤c≤.25；c=3/32独立。观察Cov、条件均值及组内组间分解变化，而两边缘及各自方差不改。</p>
+<figure class="fig" id="fig-23-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="表的期望组内方差六十分之十一与组间二百四十分之一相加为十六分之三，权重为八分之五和八分之三。"><title>全方差分解</title><desc>表的期望组内方差六十分之十一与组间二百四十分之一相加为十六分之三，权重为八分之五和八分之三。</desc><defs><marker id="fig-23-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">全方差 = 组内 + 组间</text><rect x="35" y="65" width="325" height="210" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="400" y="65" width="325" height="210" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="197" y="107" text-anchor="middle" font-size="18" fill="#1a2e4a">期望条件方差</text><text x="562" y="107" text-anchor="middle" font-size="18" fill="#1a2e4a">条件均值的方差</text><text x="197" y="157" text-anchor="middle" font-size="24" fill="#1a2e4a">E[Var(X|Y)]</text><text x="562" y="157" text-anchor="middle" font-size="24" fill="#1a2e4a">Var(E[X|Y])</text><text x="197" y="209" text-anchor="middle" font-size="29" fill="#1a2e4a">11/60</text><text x="562" y="209" text-anchor="middle" font-size="29" fill="#1a2e4a">1/240</text><text x="197" y="250" text-anchor="middle" font-size="18" fill="#1a2e4a">组权5/8与3/8</text><text x="562" y="250" text-anchor="middle" font-size="18" fill="#1a2e4a">均值1/5与1/3</text><text x="380" y="325" text-anchor="middle" font-size="23" fill="#1a2e4a">Var(X)=3/16=11/60+1/240</text></g></svg></div><figcaption><span class="fig-num">图 23.3</span> <p>全方差合期望组内变异及条件均值变异；条件均值有用却不耗尽条件律。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>E[X|Y]是数还是变量？哪些权重给全期望？条件均值常数证明独立吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>它是m(Y)，每实现情况给一个值。用Y边缘权。对称平方条件均值常数而条件分布变，因此不独立。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>选学AI 协方差矩阵 Gaussian结构与PCA</h2></div>
+<p>共享离散成果已完整：期望线性、和含Cov、条件均值方差按权组合。<strong>需模块12的向量扩展：</strong> 有限二阶随机列X∈Rᵈ，μ逐坐标期望，Σ=E[(X−μ)(X−μ)ᵀ]，i,j项为Cov，立刻对称，对角为坐标方差。矩阵记所有中心两两积，不记任意高阶非线性依赖。</p>
+<p>任固定a，aᵀΣa=E[(aᵀ(X−μ))²]=Var(aᵀX)≥0，故半正定。不必正定：坐标精确线性组合产生非零方向零方差。Y=AX+b均值Aμ+b、Cov AΣAᵀ，乘中心外积可证。缩放对应改变单位；本证明用维数及标量方差，不需特征分解。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">奇异Cov仍给合法投影方差</div>
+<p>四中心记录(−2,−1),(−1,−.5),(1,.5),(2,1)，分母4的经验Cov [[2.5,1.25],[1.25,.625]]。a=(2,1)/√5投影方差3.125，垂直(−1,2)/√5方差零，因为全部在y=x/2。矩阵PSD奇异但有效。分母3乘4/3而主方向不改。</p>
+</div>
+<p>中心数据行为Z，经验Cov C_N=ZᵀZ/N；确定表作为经验分布也有该PSD恒等式。独立用于总体估计定理，不是乘积PSD代数所需。未中心化产品为原始二阶矩矩阵而非Cov。N−1约定改变尺度及带抽样假设，模块25展开。</p>
+<p><strong>需模块14的选学PCA：</strong> 单位a的经验投影方差aᵀC_N a，首特征向量最大化Rayleigh商；正交k维投影由领先特征空间最大保留方差，匹配中心SVD。重复特征值允许多基。解释方差衡量平方重建结构，不等于标签相关、因果重要或分类保证。训练拟合中心和方向，留出复用。</p>
+<p><strong>连续Gaussian扩展：</strong> 非退化多元Gaussian均值μ、SPD CovΣ的密度exp(−(x−μ)ᵀΣ⁻¹(x−μ)/2)/[(2π)^{d/2}√detΣ]，具有所写均值Cov，其构造归一扩展一元事实。公式需SPD，奇异Gaussian可在低维仿射支持存在但无全维此密度，不可除零行列式。</p>
+<p>在联合非退化Gaussian中，坐标块零交Cov蕴含独立：块对角Σ的逆块对角，行列式为块积，密度分解两边缘Gaussian。证明依联合形状，不仅每个边缘Gaussian。别的Gaussian边缘耦合可依赖且不相关，普通平方反例在例外外仍成立。</p>
+<p>具体警告：标准Gaussian Z与独立公平符号S，X=Z、Y=SZ。对称给两个边缘标准Gaussian，Cov=E[SZ²]=ES EZ²=0，却每结果|Y|=|X|，所以依赖。联合支持两线y=±x，而非非退化二维Gaussian密度。两个Gaussian边缘或对角Cov不补出缺联合假设；即使Cov正定，也不保证任意联合分布有密度。</p>
+<figure class="fig" id="fig-23-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="四点在y=x除二上，主方向方差三点一二五，垂直方向零；协方差半正定而奇异。"><title>奇异协方差几何</title><desc>四点在y=x除二上，主方向方差三点一二五，垂直方向零；协方差半正定而奇异。</desc><defs><marker id="fig-23-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">PSD允许零投影方差</text><path d="M70,205H420M245,60V300" stroke="#94a3b8"/><path d="M84,285.5L406,124.5" stroke="#15803d" stroke-width="3"/><circle cx="105" cy="275" r="6" fill="#15803d"/><circle cx="175" cy="240" r="6" fill="#15803d"/><circle cx="315" cy="170" r="6" fill="#15803d"/><circle cx="385" cy="135" r="6" fill="#15803d"/><path d="M245,205L175,65" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-23-4__arrow)"/><text x="472" y="100" text-anchor="start" font-size="18" fill="#1a2e4a">经验Cov，分母N</text><text x="472" y="145" text-anchor="start" font-size="21" fill="#1a2e4a">[[2.5,1.25],</text><text x="472" y="176" text-anchor="start" font-size="21" fill="#1a2e4a"> [1.25,.625]]</text><text x="472" y="225" text-anchor="start" font-size="19" fill="#1a2e4a">线方向Var=3.125</text><text x="472" y="267" text-anchor="start" font-size="19" fill="#1a2e4a">垂直方向Var=0</text><text x="380" y="327" text-anchor="middle" font-size="17" fill="#1a2e4a">每方向非负，仍可奇异；几何方差不认证预测。</text></g></svg></div><figcaption><span class="fig-num">图 23.4</span> <p>每个投影方差非负使Cov半正定，零方向可能表示精确线性关系；高保留方差仍是几何摘要。</p>
+</figcaption></figure>
+<p>实验3修Y=X方差捷径，AI检查经验方向；实验2实际散点比较非线性依赖与独立参考，也保有限CS对应。分开数学矩、有限摘要、估计约定及模型假设。下一步用这些有限方差量建立带独立契约的样本均值、集中与蒙特卡洛陈述。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>Cov为何PSD？可奇异吗？零交Cov总给独立，还是Gaussian例外需联合假设？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>每二次投影是非负方差。精确线性关系给零方向。一般逆失败，密度分解要求所写联合Gaussian及非退化结构。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>说法</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>期望必须实现。</td>
+<td>是加权平均，可不在实现支持。</td>
+</tr>
+<tr>
+<td>线性需独立。</td>
+<td>有限可积和无需分解。</td>
+</tr>
+<tr>
+<td>有限均值给有限方差。</td>
+<td>二阶存在独立检查。</td>
+</tr>
+<tr>
+<td>边缘决定依赖。</td>
+<td>还需联合或耦合。</td>
+</tr>
+<tr>
+<td>零相关就是独立。</td>
+<td>确定平方反驳。</td>
+</tr>
+<tr>
+<td>条件均值常量就是独立。</td>
+<td>条件律仍可变。</td>
+</tr>
+<tr>
+<td>Cov矩阵必可逆。</td>
+<td>PSD可有零方向。</td>
+</tr>
+<tr>
+<td>高PCA方差有好预测。</td>
+<td>重建方差不认证目标相关。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个可复现实验</h2></div>
+<h3 id="lab1">实验1 · 精确联合矩与条件分解</h3>
+<p><a href="labs/module_23/lab1_exact_joint_moments.py" download>下载 lab1_exact_joint_moments.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Joint moments and conditional expectation/variance with exact fractions.&quot;&quot;&quot;
+from fractions import Fraction as F
+
+if __name__ == &quot;__main__&quot;:
+    joint = {(0, 0): F(1, 2), (0, 2): F(1, 4), (1, 0): F(1, 8), (1, 2): F(1, 8)}
+    ex = sum((x*p for (x, y), p in joint.items()), F(0))
+    ey = sum((y*p for (x, y), p in joint.items()), F(0))
+    vx = sum(((x-ex)**2*p for (x, y), p in joint.items()), F(0))
+    vy = sum(((y-ey)**2*p for (x, y), p in joint.items()), F(0))
+    cov = sum(((x-ex)*(y-ey)*p for (x, y), p in joint.items()), F(0))
+    vsum = sum(((x+y-ex-ey)**2*p for (x, y), p in joint.items()), F(0))
+    assert sum(joint.values()) == 1
+    print(&quot;joint:&quot;, {xy: str(p) for xy, p in joint.items()})
+    print(&quot;E(X)=%s E(Y)=%s Var(X)=%s Var(Y)=%s Cov=%s&quot; % (ex, ey, vx, vy, cov))
+    print(&quot;Var(X+Y)=%s independent shortcut=%s&quot; % (vsum, vx+vy))
+    assert vsum == vx+vy+2*cov
+    cases = []
+    for y in (0, 2):
+        py = sum((p for (x, yy), p in joint.items() if yy == y), F(0))
+        conditional = sum((x*p/py for (x, yy), p in joint.items() if yy == y), F(0))
+        conditional_var = sum(((x-conditional)**2*p/py for (x, yy), p in joint.items() if yy == y), F(0))
+        cases.append((py, conditional, conditional_var))
+        print(&quot;Y=%d: probability=%s E(X|Y)=%s Var(X|Y)=%s&quot; % (y, py, conditional, conditional_var))
+    total_mean = sum((py*mean for py, mean, var in cases), F(0))
+    within = sum((py*var for py, mean, var in cases), F(0))
+    between = sum((py*(mean-ex)**2 for py, mean, var in cases), F(0))
+    print(&quot;total expectation=%s; within variance=%s between variance=%s total=%s&quot; % (
+        total_mean, within, between, within+between))
+    assert total_mean == ex and within+between == vx
+    positions = {1: F(1, 2), 2: F(1, 4), 3: F(1, 8), 4: F(1, 8)}
+    cost = sum(k*p for k, p in positions.items())
+    print(&quot;specified search-position model E(comparisons)=%s uniform alternative=5/2&quot; % cost)
+    print(&quot;PASS: linearity requires no independence; covariance and conditional mixtures matter&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>joint: {(0, 0): '1/2', (0, 2): '1/4', (1, 0): '1/8', (1, 2): '1/8'}
+E(X)=1/4 E(Y)=3/4 Var(X)=3/16 Var(Y)=15/16 Cov=1/16
+Var(X+Y)=5/4 independent shortcut=9/8
+Y=0: probability=5/8 E(X|Y)=1/5 Var(X|Y)=4/25
+Y=2: probability=3/8 E(X|Y)=1/3 Var(X|Y)=2/9
+total expectation=1/4; within variance=11/60 between variance=1/240 total=3/16
+specified search-position model E(comparisons)=15/8 uniform alternative=5/2
+PASS: linearity requires no independence; covariance and conditional mixtures matter
+</code></pre></div>
+<p>预测两边缘、全部矩、Cov贡献及全方差项。比较均匀搜索前先写位置模型。</p>
+<h3 id="lab2">实验2 · 零Cov与非线性依赖</h3>
+<p><a href="labs/module_23/lab2_zero_covariance_dependence.py" download>下载 lab2_zero_covariance_dependence.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A dependent square relation with near-zero sample covariance; SVG scatter.&quot;&quot;&quot;
+import argparse
+from pathlib import Path
+import random
+
+
+def moments(pairs):
+    n = len(pairs)
+    mx = sum(x for x, y in pairs)/n
+    my = sum(y for x, y in pairs)/n
+    vx = sum((x-mx)**2 for x, y in pairs)/n
+    vy = sum((y-my)**2 for x, y in pairs)/n
+    cov = sum((x-mx)*(y-my) for x, y in pairs)/n
+    return mx, my, vx, vy, cov
+
+
+if __name__ == &quot;__main__&quot;:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(&quot;--output&quot;)
+    args = parser.parse_args()
+    generator = random.Random(23023)
+    xs = [generator.uniform(-1, 1) for _ in range(20000)]
+    dependent = [(x, x*x) for x in xs]
+    independent = [(x, generator.random()) for x in xs]
+    print(&quot;AI continuous population: X uniform(-1,1), Y=X^2&quot;)
+    print(&quot;exact E(X)=0 E(Y)=1/3 Cov(X,Y)=0; Y is determined by X&quot;)
+    for name, pairs in ((&quot;dependent square&quot;, dependent), (&quot;independent reference&quot;, independent)):
+        mx, my, vx, vy, cov = moments(pairs)
+        print(&quot;%s: meanX=%.6f meanY=%.6f covariance=%.6f correlation=%.6f&quot; % (
+            name, mx, my, cov, cov/(vx*vy)**.5))
+    residual = max(abs(y-x*x) for x, y in dependent)
+    print(&quot;square-relation maximum residual:&quot;, residual)
+    assert residual == 0
+    # CS counterpart uses three equiprobable values, no integration prerequisite.
+    discrete = [(-1., 1.), (0., 0.), (1., 1.)]
+    print(&quot;CS discrete counterpart X=-1,0,1 equally likely: covariance=%.1f&quot; % moments(discrete)[4])
+    if args.output:
+        drawing = ['&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 760 390&quot; role=&quot;img&quot; aria-label=&quot;Dependent square relation and independent reference scatter plots&quot;&gt;',
+                   '&lt;rect width=&quot;760&quot; height=&quot;390&quot; fill=&quot;white&quot;/&gt;',
+                   '&lt;g font-family=&quot;system-ui,sans-serif&quot; fill=&quot;#1a2e4a&quot;&gt;']
+        for offset, name, pairs in ((0, &quot;Y=X^2: dependent&quot;, dependent), (380, &quot;Independent reference&quot;, independent)):
+            drawing.append('&lt;text x=&quot;%d&quot; y=&quot;30&quot; font-size=&quot;21&quot; text-anchor=&quot;middle&quot;&gt;%s&lt;/text&gt;' % (offset+190, name))
+            drawing.append('&lt;path d=&quot;M%d,65V320H%d&quot; fill=&quot;none&quot; stroke=&quot;#94a3b8&quot;/&gt;' % (offset+55, offset+330))
+            for x, y in pairs[::50]:
+                px, py = offset+55+(x+1)*137.5, 320-y*250
+                drawing.append('&lt;circle cx=&quot;%.3f&quot; cy=&quot;%.3f&quot; r=&quot;2.1&quot; fill=&quot;#2563eb&quot; opacity=&quot;.55&quot;/&gt;' % (px, py))
+            for t in (-1, 0, 1):
+                drawing.append('&lt;text x=&quot;%.1f&quot; y=&quot;348&quot; text-anchor=&quot;middle&quot; font-size=&quot;16&quot;&gt;%d&lt;/text&gt;' % (offset+55+(t+1)*137.5, t))
+        drawing.append('&lt;text x=&quot;380&quot; y=&quot;378&quot; text-anchor=&quot;middle&quot; font-size=&quot;18&quot;&gt;Small covariance does not exclude a deterministic nonlinear relation.&lt;/text&gt;&lt;/g&gt;&lt;/svg&gt;')
+        Path(args.output).write_text(&quot;\n&quot;.join(drawing), encoding=&quot;utf8&quot;)
+        print(&quot;Scatter figure written; its dependent sample obeys the square relation exactly.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>AI continuous population: X uniform(-1,1), Y=X^2
+exact E(X)=0 E(Y)=1/3 Cov(X,Y)=0; Y is determined by X
+dependent square: meanX=0.002058 meanY=0.336513 covariance=-0.000509 correlation=-0.002920
+independent reference: meanX=0.002058 meanY=0.499427 covariance=-0.000252 correlation=-0.001497
+square-relation maximum residual: 0.0
+CS discrete counterpart X=-1,0,1 equally likely: covariance=0.0
+Scatter figure written; its dependent sample obeys the square relation exactly.
+</code></pre></div>
+<figure class="lab-plot"><img src="assets/m23-lab2_dependency.svg" alt="两个散点比较精确平方关系与独立均匀参考；两样本Cov小，但仅首图落在抛物线。" loading="lazy"><figcaption>可下载的 Python 脚本生成的图像。</figcaption></figure>
+<p>CS三等可能值无需积分，AI用模块17推连续平方。脚本在课程构建时生成实际散点；比较样本近零与总体精确零、非线性关系精确成立。</p>
+<h3 id="lab3">实验3 · 方差错误与选学几何</h3>
+<p><a href="labs/module_23/lab3_variance_and_covariance_geometry.py" download>下载 lab3_variance_and_covariance_geometry.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Repair an independence variance shortcut; optional AI covariance/PCA geometry.&quot;&quot;&quot;
+from fractions import Fraction as F
+from math import sqrt
+
+if __name__ == &quot;__main__&quot;:
+    p = F(3, 10)
+    vx = p*(1-p)
+    cov = vx  # Y=X, not an independent copy.
+    correct = vx+vx+2*cov
+    print(&quot;CS: X Bernoulli(.3), Y=X&quot;)
+    print(&quot;Var(X)=%s Cov(X,Y)=%s Var(X+Y)=%s wrong independent sum=%s&quot; % (
+        vx, cov, correct, 2*vx))
+    assert correct == F(21, 25)
+    data = [(-2., -1.), (-1., -.5), (1., .5), (2., 1.)]
+    n = len(data)
+    mean = [sum(row[i] for row in data)/n for i in range(2)]
+    centered = [[row[i]-mean[i] for i in range(2)] for row in data]
+    covariance = [[sum(row[i]*row[j] for row in centered)/n for j in range(2)] for i in range(2)]
+    principal, orthogonal = [2/sqrt(5), 1/sqrt(5)], [-1/sqrt(5), 2/sqrt(5)]
+    print(&quot;AI geometry (Modules12/14): covariance uses denominator N, training mean only&quot;)
+    print(&quot;mean:&quot;, mean, &quot;covariance:&quot;, covariance)
+    for name, direction, eigenvalue in ((&quot;principal&quot;, principal, 3.125), (&quot;orthogonal&quot;, orthogonal, 0.)):
+        scores = [sum(row[i]*direction[i] for i in range(2)) for row in centered]
+        variance = sum(s*s for s in scores)/n
+        matrix_product = [sum(covariance[i][j]*direction[j] for j in range(2)) for i in range(2)]
+        assert max(abs(matrix_product[i]-eigenvalue*direction[i]) for i in range(2)) &lt; 1e-12
+        assert abs(variance-eigenvalue) &lt; 1e-12
+        print(&quot;%s direction=(%.6f,%.6f) projected variance=%.6f eigenvalue=%.6f&quot; % (
+            name, *direction, variance, eigenvalue))
+    sample_covariance = [[v*n/(n-1) for v in row] for row in covariance]
+    print(&quot;denominator N-1 covariance:&quot;, sample_covariance)
+    print(&quot;Direction unchanged by common scaling; target covariance and estimator convention differ.&quot;)
+    print(&quot;PASS: dependence contributes twice its covariance; PSD covariance can be singular&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>CS: X Bernoulli(.3), Y=X
+Var(X)=21/100 Cov(X,Y)=21/100 Var(X+Y)=21/25 wrong independent sum=21/50
+AI geometry (Modules12/14): covariance uses denominator N, training mean only
+mean: [0.0, 0.0] covariance: [[2.5, 1.25], [1.25, 0.625]]
+principal direction=(0.894427,0.447214) projected variance=3.125000 eigenvalue=3.125000
+orthogonal direction=(-0.447214,0.894427) projected variance=0.000000 eigenvalue=0.000000
+denominator N-1 covariance: [[3.3333333333333335, 1.6666666666666667], [1.6666666666666667, 0.8333333333333334]]
+Direction unchanged by common scaling; target covariance and estimator convention differ.
+PASS: dependence contributes twice its covariance; PSD covariance can be singular
+</code></pre></div>
+<p>修Y=X独立捷径。AI用模块12/14比较投影方差与特征值，明确N分母，解释N−1仅缩放而不改本例方向。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>十四道练习及完整解答</h2></div>
+<p>练习1–12必做，等时路线替代；选做13–14在十小时外增35分钟。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>搜索位置质量1:1/2,2:1/4,3:1/8,4:1/8，算期望比较及均匀假设改变。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>15/8=1.875，亦尾和1+1/2+1/4+1/8。均匀5/2，最坏成功4不改，若失败须另加事件。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>Bernoulli(.3)算E[X²]、Var及Var(2X+5)。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>X²=X，二阶.3，Var=.3−.09=.21，仿射Var=.84，五只改均值。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>精确联合表算Cov及VarSum。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>EX1/4、EY3/4、EXY1/4给Cov1/16。两方差3/16、15/16，总20/16=5/4；漏二倍Cov给9/8。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>X等可能−1,0,1，Y平方，算均值、Cov及一个条件依赖证明。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>EX0、EY2/3、EXY0、Cov0。P(Y0|X0)=1不同于P(Y0)=1/3。两方差正，相关零合法但不独立。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>无独立证明有限期望线性，并推事件计数期望。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>对结果求和(aX+bY)p并分配得aEX+bEY；E1_A=P(A)，故和期望为概率和，允许重叠依赖，不出现联合乘积假设。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>证明和方差并写独立捷径假设。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>中心化平方展开平均得VX+VY+2Cov，有限二阶保项存在。独立给EXY=EXEY、Cov零；不相关也去交叉项但不建立全独立。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>用条件均值残差证明全方差及交叉项零。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>m=EX|Y，X−EX=(X−m)+(m−EX)。两平方平均为EVar(X|Y)、Var(m)，因E[X−m|Y]=0交叉零。需有限方差及实际边缘权。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>算表中Y0、Y2条件均值与总均值。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>列质量5/8、3/8给均值1/5、1/3，权和1/8+1/8=1/4。等权4/15是另一个混合，不是该Y律。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>CS：Bernoulli(.3)且Y=X，算VarSum。AI替代：算线数据Cov主及垂直投影方差。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>CS Var(2X)=4(.21)=.84，Cov.21补交叉。AI主(2,1)/√5给3.125，垂直(−1,2)/√5为零，符合精确线和PSD奇异。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>解释条件均值为何最小平方预测误差，及拟合后还缺什么。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>风险(a)=风险(m)+E[(m−a)²]，正交杀交叉，真条件均值除零集最优。拟合仍需抽样、近似及评估假设，总体定理不认证有限数据表现。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>小相关平方样本被称独立，常量X被赋零相关。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>平方由X确定Y，即使总体Cov零；查条件或关系残差。常量X标准差零，Cov零但相关除零未定义，小样本系数不是独立证书。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>条件均值用等权却组质量不同，所有PSD被称可逆。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>全期望需实际组权，本表5/8、3/8而非半。PSD只给非负投影，线性关系有零方向而奇异，可逆需正定。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>CS证明有限联合平方风险正交展开。AI替代证明Cov变换及PSD。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>CS每正y的条件残差和零，乘m−a再按Y权求和杀交叉。AI中心Y=A中心X，外积期望AΣAᵀ；任v的二次=平方期望≥0。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>CS证明1/[n(n+1)]归一及无限均值，再说对称符号。AI替代证明SPD块对角Gaussian块独立。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>CS前缀1−1/(N+1)→1，均值Σ1/(n+1)按二幂块发散；分符号两部各无限，所以均值未定义，尽管有限对称截断零。AI逆及行列式按块分，联合Gaussian密度为两边缘积，联合假设不可省。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自测</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>有限期望线性需独立吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">不需，可积结果和直接分配</button></li><li><button type="button" class="quiz-opt" data-i="1">总是需要</button></li><li><button type="button" class="quiz-opt" data-i="2">仅不同名字需要</button></li></ol><div class="quiz-expl" hidden>独立涉及乘积，不是有限和线性。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>期望必须可实现吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总是</button></li><li><button type="button" class="quiz-opt" data-i="1">不，公平Bernoulli均值1/2</button></li><li><button type="button" class="quiz-opt" data-i="2">仅离散才必须</button></li></ol><div class="quiz-expl" hidden>加权平均不必在实现支持。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>从联合PMF如何取边缘？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">除另一边缘</button></li><li><button type="button" class="quiz-opt" data-i="1">乘两个标签</button></li><li><button type="button" class="quiz-opt" data-i="2">对另一变量求和</button></li></ol><div class="quiz-expl" hidden>除正情况质量给条件，求和给边缘。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>一般和方差中VX+VY漏什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">2Cov(X,Y)</button></li><li><button type="button" class="quiz-opt" data-i="1">总是仅均值</button></li><li><button type="button" class="quiz-opt" data-i="2">固定无关依赖因子</button></li></ol><div class="quiz-expl" hidden>中心平方展开，零Cov须额外事实。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>零Cov一般给独立吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">无条件给</button></li><li><button type="button" class="quiz-opt" data-i="1">不，对称X的平方反例</button></li><li><button type="button" class="quiz-opt" data-i="2">仅符号重要</button></li></ol><div class="quiz-expl" hidden>Cov是中心积矩，不是全部联合事件。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>常量普通相关是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">除法给全零</button></li><li><button type="button" class="quiz-opt" data-i="1">自动一</button></li><li><button type="button" class="quiz-opt" data-i="2">标准差零，比未定义</button></li></ol><div class="quiz-expl" hidden>Cov零，但0/0无定义。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>全期望怎样合条件均值？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">按条件变量边缘质量权重</button></li><li><button type="button" class="quiz-opt" data-i="1">总等权</button></li><li><button type="button" class="quiz-opt" data-i="2">忽略零分母</button></li></ol><div class="quiz-expl" hidden>权划分恢复原总体而非新混合。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>E[X|Y]常量给独立吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总是</button></li><li><button type="button" class="quiz-opt" data-i="1">不，均值固定时条件律仍可变</button></li><li><button type="button" class="quiz-opt" data-i="2">仅Cov都正时</button></li></ol><div class="quiz-expl" hidden>按平方大小条件的对称X均值零，却依赖。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>PSD Cov保证什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">自动可逆</button></li><li><button type="button" class="quiz-opt" data-i="1">自动有用预测</button></li><li><button type="button" class="quiz-opt" data-i="2">全部线性投影方差非负</button></li></ol><div class="quiz-expl" hidden>可有零方向，几何方差不认证目标相关。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m23:q10">
+<label for="q10-response">10. 从四格联合表推边缘、Cov、VarSum、全期望及两全方差项，再区分不相关与独立、总体矩与有限样本摘要。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="写质量、条件权、有限矩假设及平方反例。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我用联合及实际组权，分开矩与独立。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>X1质量1/4、Y2质量3/8，EX1/4、EY3/4、EXY1/4、Cov1/16；方差3/16、15/16给总5/4。条件均值1/5、1/3按5/8、3/8平均1/4；组内11/60加组间1/240为3/16。对称X与平方Y依赖但Cov零。表矩都有限，样本系数波动，不建立全总体律。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>有目的的阅读</h2></div>
+<p>读<a href="https://ocw.mit.edu/courses/6-041sc-probabilistic-systems-analysis-and-applied-probability-fall-2013/" target="_blank" rel="noopener">MIT 6.041SC</a>期望、联合、条件，AI选作者<a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning配套页</a>Cov及Gaussian。本课给完整初等有限证明与连续先修。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>选读及问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第1次 · 15分钟</td>
+<td>期望与矩：哪些操作需独立、哪些只需可积？</td>
+</tr>
+<tr>
+<td>第4次 · 15分钟</td>
+<td>条件与Cov：低阶摘要保什么信息？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索 结业任务与下一步</h2></div>
+<p>算加权成本及联合矩，证线性与方差，解释零Cov依赖，推全期望方差。AI加PSD与带资格Gaussian分解，连接经验方差与中心PCA。</p>
+<p><strong>结业任务：</strong> 复现3/16=11/60+1/240，解释条件均值为何用5/8及3/8；另给非线性不相关却依赖例。</p>
+<p><strong>可以继续：</strong> 你能将平均与变异附在明确分布及矩假设上。极限定理和蒙特卡洛将用它们描述具有独立和不确定契约的样本均值。见<a href="index_ZH.html">课程总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>记号与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>记号或术语</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E[X]、E[</td>
+<td>X</td>
+<td>]</td>
+</tr>
+<tr>
+<td>Var、σ</td>
+<td>中心二阶、标准差</td>
+<td>Variance, standard deviation</td>
+</tr>
+<tr>
+<td>p(x,y)、边缘</td>
+<td>联合质量、求和保留变量</td>
+<td>Joint, marginal</td>
+</tr>
+<tr>
+<td>Cov、ρ</td>
+<td>中心积、无单位相关</td>
+<td>Covariance, correlation</td>
+</tr>
+<tr>
+<td>E[X</td>
+<td>Y]、全方差</td>
+<td>条件均值变量、组内加组间</td>
+</tr>
+<tr>
+<td>Σ、PSD</td>
+<td>Cov矩阵、投影非负</td>
+<td>Covariance matrix, PSD</td>
+</tr>
+<tr>
+<td>经验分布</td>
+<td>每记录1/N质量</td>
+<td>Empirical distribution</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_22_ZH.html">← 模块 22</a><a href="module_24_ZH.html">模块 24 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

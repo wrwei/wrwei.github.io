@@ -1,0 +1,504 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>参数估计、似然与贝叶斯更新 — 计算机科学与人工智能的数学基础</title><meta name="description" content="推导 Bernoulli 与高斯估计，证明风险恒等式，归一化 beta 更新，并从噪声先验尺度推 MAP 惩罚。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="25"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 25</button><div class="dropdown-menu" id="module-menu"><a href="module_25_ZH.html" class="active" aria-current="page">参数估计、似然与贝叶斯更新</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_25_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>估计是在统计模型下作出的决策</span></a><a href="#s1"><span class="num">2</span><span>模型、参数、估计量与可识别性</span></a><a href="#s2"><span class="num">3</span><span>似然改变的是保持固定的自变量</span></a><a href="#s3"><span class="num">4</span><span>推导最大似然并检查边界</span></a><a href="#s4"><span class="num">5</span><span>偏差、方差、均方误差与一致性</span></a><a href="#s5"><span class="num">6</span><span>正确归一化的 beta–Bernoulli 后验与预测</span></a><a href="#s6"><span class="num">7</span><span>MAP、损失模型与正则化尺度</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个可复现实验</span></a><a href="#exercises"><span class="num">10</span><span>十四题与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自测</span></a><a href="#reading"><span class="num">12</span><span>带问题阅读</span></a><a href="#summary"><span class="num">13</span><span>检索结业与下一步</span></a><a href="#terms"><span class="num">14</span><span>符号与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">参数估计、似然与贝叶斯更新</h1><p class="module-lead">推导 Bernoulli 与高斯估计，证明风险恒等式，归一化 beta 更新，并从噪声先验尺度推 MAP 惩罚。</p><div class="hero-chips"><span class="chip chip-time">12 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>区分模型、参数、估计量、估计值与可识别性。</li><li>构造似然，保留拟合参数相关因子。</li><li>推 Bernoulli 与高斯 MLE，检查端点和存在性。</li><li>证偏差方差 MSE 及样本方差分母恒等式。</li><li>归一化 beta 更新，解释预测与可信区间。</li><li>推 MAP 系数，限定坐标依赖并诊断复用证据。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>需模块 16、17、23、24。即使观测离散，连续参数仍需导数及密度积分。实验只用 Python 标准库。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">估计是在统计模型下作出的决策</a><a href="#s1">模型、参数、估计量与可识别性</a><a href="#s2">似然改变的是保持固定的自变量</a><a href="#s3">推导最大似然并检查边界</a><a href="#s4">偏差、方差、均方误差与一致性</a><a href="#s5">正确归一化的 beta–Bernoulli 后验与预测</a><a href="#s6">MAP、损失模型与正则化尺度</a><a href="#misconceptions">常见误解</a><a href="#labs">三个可复现实验</a><a href="#exercises">十四题与完整解答</a><a href="#quiz">十题自测</a><a href="#reading">带问题阅读</a><a href="#summary">检索结业与下一步</a><a href="#terms">符号与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">12 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">180 分钟</span></div><div class="session-title">模型、似然与识别</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节，识别固定与变化的自变量。</a></span><span class="act-min">110</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">28</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读经典估计条件。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">检索模型空间与似然约定。</a></span><span class="act-min">22</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m25:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">180 分钟</span></div><div class="session-title">MLE 与重复抽样风险</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，推端点与风险恒等式。</a></span><span class="act-min">85</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">计算似然估计与归一化后验。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m25:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">180 分钟</span></div><div class="session-title">后验预测与 MAP 建模</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节，比较似然与后验摘要。</a></span><span class="act-min">94</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">比较两个真率下的精确与经验风险。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">36</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m25:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">180 分钟</span></div><div class="session-title">数值证据与模型修复</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">修复下溢、漏因子和复用数据。</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">完成诊断练习 11–12。</a></span><span class="act-min">24</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择并写带条件估计报告。</a></span><span class="act-min">20</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读贝叶斯摘要与模型到损失条件。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业，区分各不确定性对象。</a></span><span class="act-min">56</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m25:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>估计是在统计模型下作出的决策</h2></div>
+<p>拟合参数不只是找曲线上的最大值。必须说明曲线代表什么数据机制、哪些量未知，以及所报告结果采用什么损失或不确定性解释。本课推导 Bernoulli 与高斯最大似然，区分偏差和方差，完整归一化 beta–Bernoulli 更新，并从噪声和先验推导正则化系数。似然、抽样分布与后验是三个不同数学对象。</p>
+<p><strong>检索准备：</strong><a href="module_16_ZH.html#s1">模块 16</a>的导数、<a href="module_17_ZH.html#s1">模块 17</a>的密度积分、<a href="module_23_ZH.html#s1">模块 23</a>的矩，以及<a href="module_24_ZH.html#s1">模块 24</a>的抽样极限。实验仅使用 Python 标准库。即使观测离散，连续参数与高斯例子仍明确需要微积分。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>模型、参数、估计量与可识别性</h2></div>
+<p>统计模型是一组概率规律 P_θ，以参数 θ∈Θ 索引。模型正确指定时，数据服从其中一个规律。Bernoulli 的 Θ=[0,1]，θ=p 为成功率；已知正方差的高斯位置模型中，Θ 为实数，θ=μ。如果方差也未知，参数是 (μ,σ²)，σ²&gt;0。对 μ 为常数的因子，此时可能依赖未知参数。</p>
+<p>频率学派抽样分析把 θ 视为固定未知量，样本及统计量随机。估计量 T(X₁,…,X_n) 是看数据之前指定的规则，其实现输出 t 是估计值。估计量有随 θ 改变的抽样分布，估计值则只是一次结果。E_θ[T]=θ 不能改写为每次 t 都等于真值；无偏性从不这样保证。</p>
+<p>贝叶斯分析给参数先验，通过联合模型和数据更新。给定参数时各观测可能独立，积分掉共同未知参数后却可能依赖。因此独立声明必须说明条件层次。后验均值也是数据规则，可在每个固定 θ 下计算频率学派抽样风险，而不将该风险等同于后验概率。</p>
+<p>可识别性（identifiability）要求不同参数对应不同可观测规律。若 θ≠θ′ 却 P_θ=P_θ′，再多数据也无法仅凭这个规律识别标签。X∼N(θ²,1)、θ∈R 中，θ 与 −θ 具有相同分布，符号不可识别。将 Θ 限制为非负可使参数到均值的映射单射，但零附近的不确定性仍需认真处理。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">模型能够识别大小，却未必识别符号</div>
+<p>X∼N(θ²,1) 的数据若支持均值约 4，则 θ=2 与 θ=−2 的似然完全相同。优化器选一个根，不会为其符号创造证据。Θ=[0,∞) 时只允许非负根。模型可识别与优化解唯一有关，却都不能仅由程序返回一个数推出。</p>
+</div>
+<p>抽样方案属于模型。IID Bernoulli 似然需要共同率与给定率下的独立试验。复制行或变化率不因数据为零一就满足该乘积模型。依赖未观测结果的选择也会改变观测样本的似然。模型只是现实近似时，拟合参数可能代表模型内最佳近似，而非真实总体机制；后续回归通过残差与校准检查错设证据。</p>
+<p>估计报告应写可观测变量、抽样单位、参数空间、依赖条件、规则和目标。这些内容决定端点是否允许、导数方程是否足够以及偏差由哪个期望定义。无约束公式给出空间外的值无效；合法边界最优也不能仅因没有内部导数零点就被丢弃。</p>
+<figure class="fig" id="fig-25-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="固定参数生成随机数据再应用规则得到估计值；抽样律重复数据，后验在先验模型下固定数据而条件化参数。"><title>参数估计与两种分布</title><desc>固定参数生成随机数据再应用规则得到估计值；抽样律重复数据，后验在先验模型下固定数据而条件化参数。</desc><defs><marker id="fig-25-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">固定什么，重复什么？</text><rect x="30" y="67" width="190" height="73" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="125" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">固定参数 θ</text><text x="125" y="126" text-anchor="middle" font-size="20" fill="#1a2e4a">P_θ</text><path d="M225,103L283,103" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-25-1__arrow)"/><rect x="290" y="67" width="180" height="73" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="111" text-anchor="middle" font-size="22" fill="#1a2e4a">随机数据 X</text><path d="M475,103L533,103" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-25-1__arrow)"/><rect x="540" y="67" width="190" height="73" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="635" y="111" text-anchor="middle" font-size="22" fill="#1a2e4a">T(X) → t</text><text x="380" y="182" text-anchor="middle" font-size="22" fill="#1a2e4a">抽样分布：固定 θ，重新生成 X。</text><rect x="30" y="221" width="700" height="74" rx="10" fill="#faf5ff" stroke="#7e22ce"/><text x="380" y="253" text-anchor="middle" font-size="20" fill="#1a2e4a">后验：固定观察 x，条件化参数分布。</text><text x="380" y="282" text-anchor="middle" font-size="21" fill="#1a2e4a">π(θ|x) ∝ L(θ;x)π(θ)</text></g></svg></div><figcaption><span class="fig-num">图 25.1</span> <p>参数、数据、估计规则和实现值处于模型不同位置。抽样分布在固定参数下重复数据；后验在先验下条件于已观测数据。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>估计量与估计值有何区别？θ² 模型的优化器能识别符号吗？贝叶斯 IID 的独立条件是哪一层？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>估计量是作用于随机数据的规则，估计值是实现输出。±θ 的相同规律使符号不可识别。观测给定共同参数时独立，积分参数后的边缘独立不一定成立。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>似然改变的是保持固定的自变量</h2></div>
+<p>数据 x 已实现时，L(θ;x)=p_θ(x)；离散情形用质量函数，连续情形用相对于共同参考测度的密度。表达式可与概率模型相同，但似然固定 x、改变 θ；概率规律固定 θ、遍历 x。似然在 Θ 上不会自动积分为 1，将其按某参数坐标归一化也是额外建模选择。</p>
+<p>给定参数独立时 L=∏p_θ(x_i)，对数似然 ℓ=Σlog p_θ(x_i)。在正似然处，对数严格递增，所以最大点相同；参数下不可能的数据给 L=0、ℓ=−∞。对数将乘法变加法并避免很多下溢，却不修复错误独立条件。端点应使用明确扩展值，不能让零乘 log 零意外成为 NaN。</p>
+<p>顺序 Bernoulli 样本有 k 成功、n−k 失败，L=p^k(1−p)^(n−k)。只记录 K=k 则乘上 binom(n,k)。固定 n,k 时该因子不依赖 p，所以两者的 p 最大点以及同先验下的后验形状相同。但事件不同，数据概率也不同。一个因子可在参数拟合中消去，却仍在计算概率或比较模型时重要。</p>
+<p>省略常数以前必须说明优化或归一化哪个自变量。已知 σ 的高斯均值拟合中，前因子对 μ 恒定；拟合 σ 时，σ^(−n) 不可丢。后验中 θ 无关因子可从分子和证据消去，但仍需有限有效归一化。模型比较中的模型相关因子，也可能影响结果，即使它不改变每个模型内的参数最优点。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">公共数值尺度保留相对似然</div>
+<p>n=10000、k=8000 时，p=.79 和 .8 的顺序似然都会浮点下溢为零。其 log 值约 −5007.074 和 −5004.024。先减较大值再取指数，得 L(.79)/L(.8)≈exp(−3.04993)=.047362。两个存储零不能证明拟合同样好；相对对数仍有信息。</p>
+</div>
+<p>有限候选表可用 log-sum-exp：log Σexp a_j=m+log Σexp(a_j−m)，m=max a_j 有限。这稳定算术，却不自动创造候选后验；还须指定先验质量与候选模型。连续证据为积分，任意网格和还需求积权重及正确近似分析。</p>
+<p>连续数据的似然值是密度，不是精确实数点的概率。密度可大于 1，数值单位随数据变换改变。可逆数据变换需要 Jacobian，若其不依赖 θ，则相对拟合不变。参数变换则不同：似然按坐标复合，但先验、后验密度还要 Jacobian。第六节据此说明连续 MAP 依坐标而变。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>似然固定什么？何时可省二项计数因子？为何对数计算不能证明复制记录是 IID？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>固定数据、改变参数。固定 n,k 的 p 拟合或后验形状可消因子，计数概率不能。数值变换保留已有模型，不会移除真实依赖。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>推导最大似然并检查边界</h2></div>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">ℓ</mi><mo stretchy="false">(</mo><mi>p</mi><mo stretchy="false">)</mo><mo>=</mo><mi>k</mi><mi>log</mi><mo>⁡</mo><mi>p</mi><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mi>k</mi><mo stretchy="false">)</mo><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>p</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mspace width="2em"/><msub><mover accent="true"><mi>p</mi><mo stretchy="true">^</mo></mover><mrow><mi mathvariant="normal">M</mi><mi mathvariant="normal">L</mi><mi mathvariant="normal">E</mi></mrow></msub><mo>=</mo><mfrac><mi>k</mi><mi>n</mi></mfrac><mspace width="1em"/><mo stretchy="false">(</mo><mi>n</mi><mo>&gt;</mo><mn>0</mn><mo separator="true">,</mo><mtext> </mtext><mi>p</mi><mo>∈</mo><mo stretchy="false">[</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">]</mo><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\ell(p)=k\log p+(n-k)\log(1-p),\qquad \widehat p_{\mathrm{MLE}}=\frac{k}{n}\quad(n&gt;0,\ p\in[0,1]).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">ℓ</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord katex-accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.6706em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">p</span></span><span class="svg-align" style="width:calc(100% - 0.1667em);margin-left:0.1667em;top:-3.4306em;"><span class="pstrut" style="height:3em;"></span><span style="height:0.24em;"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="0.24em" viewBox="0 0 1062 239" preserveAspectRatio="none"><path d="M529 0h5l519 115c5 1 9 5 9 10 0 1-1 2-1 3l-4 22
+c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">MLE</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.0574em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">n</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.8389em;vertical-align:-0.1944em;"></span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace"> </span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">])</span><span class="mord">.</span></span></span></span></span></div>
+<p>0&lt;k&lt;n 时，ℓ=k log p+(n−k)log(1−p)，0&lt;p&lt;1。导数 k/p−(n−k)/(1−p)=0，解得 p_hat=k/n。二阶导 −k/p²−(n−k)/(1−p)²&lt;0，证明严格凹与唯一内部最大点。两种结果均出现时端点似然为零。完整推导要检查曲率和允许边界，不能仅因找到导数根就认定全局最优。</p>
+<p>k=0、n&gt;0 时 L=(1−p)^n，在 [0,1] 的最大点为 0；k=n 时最大点为 1。在开空间 (0,1) 上，只有趋近缺失端点的上确界，没有最大点。无数据 n=0 时各参数似然均为 1，不能由数据选唯一值。相同代数式在不同参数空间可有不同存在结论。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">合法端点无需满足内部得分方程</div>
+<p>十次失败的 Bernoulli MLE 在 [0,1] 为零。Beta(2,2) 先验给 Beta(2,12) 后验，均值 1/7，密度众数 1/12。不同目标产生不同摘要；没有观察到成功不证明未来不可能成功。</p>
+</div>
+<p>IID 高斯、已知 σ²&gt;0 时，完整 logL=−n log(√(2π)σ)−Σ(x_i−μ)²/(2σ²)。拟合 μ 等价于最小化残差平方和。恒等式 Σ(x_i−μ)²=Σ(x_i−x_bar)²+n(μ−x_bar)² 由中心残差和为零得到。第二项非负，只在 μ=x_bar 时零，故 n&gt;0 的全局均值 MLE 是样本平均；导数 n(x_bar−μ)/σ² 也给相同解。</p>
+<p>方差 v 也未知且中心残差和 R&gt;0 时，代入 μ=x_bar，目标为 −(n/2)log v−R/(2v) 加常数。导数 −n/(2v)+R/(2v²) 给 v_hat=R/n；其下递增、其上递减，两个方差极端都趋 −∞，所以是全局最大。MLE 分母 n，与下一节无偏方差的 n−1 目的不同。</p>
+<figure class="fig" id="fig-25-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="各图独立归一化至最大高度一：十次八成功曲线在点八最大，全失败曲线在允许端点零最大。"><title>Bernoulli 相对似然曲线</title><desc>各图独立归一化至最大高度一：十次八成功曲线在点八最大，全失败曲线在允许端点零最大。</desc><defs><marker id="fig-25-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">Bernoulli 的内部与端点最大值</text><text x="195" y="70" text-anchor="middle" font-size="21" fill="#1a2e4a">n=10, k=8</text><path d="M60,85V268H335" fill="none" stroke="#64748b"/><polyline points="60,268 62.7,267.9999999999975 65.4,267.99999999937717 68.1,267.999999984362 70.8,267.999999847 73.5,267.99999910694896 76.2,267.9999962404597 78.9,267.99998736953756 81.6,267.999964028 84.3,267.99990969913836 87,267.99979481101036 89.7,267.999569879117 92.4,267.9991565014375 95.1,267.99843593658414 97.80000000000001,267.9972350312831 100.5,267.9953093075601 103.2,267.992323072 105.9,267.9878264683308 108.6,267.98122945944186 111.3,267.9717727948591 114,267.95849609375 116.69999999999999,267.94020325080123 119.4,267.91542545187355 122.1,267.88238216728826 124.8,267.838940572 127.5,267.7825739228574 130.2,267.7103195027186 132.9,267.6187368184563 135.60000000000002,267.5038668139375 138.3,267.361192928977 141,267.1856049001217 143.7,266.9713662580049 146.4,266.712086528 149.10000000000002,266.40069918507595 151.8,266.02944644919995 154.5,265.5898720334226 157.2,265.072822972 159.9,264.46846165963393 162.6,263.7662892242307 165.3,262.955181333568 168,262.0234375 170.7,260.9588448959039 173.39999999999998,259.74875762505775 176.1,258.3801923106203 178.8,256.8399407579375 181.5,255.11470032911166 184.2,253.19122252521618 186.89999999999998,251.0564801103015 189.6,248.697852928 192.3,246.10333235567737 195,243.26174411177635 197.7,240.16298887833867 200.4,236.79829992175 203.1,233.16051658961413 205.8,229.24437222940622 208.5,225.04679471426059 211.20000000000002,220.56721737199996 213.89999999999998,215.80789769438616 216.6,210.77424075365272 219.29999999999998,205.47512377174678 222,199.9232177734375 224.7,194.13530170663157 227.4,188.1325638309415 230.1,181.94088455787278 232.8,175.591094272 235.5,169.11919897128246 238.20000000000002,162.5665658352961 240.9,155.9800600617216 243.60000000000002,149.41212350299998 246.29999999999998,142.920784785737 249,136.56958970427516 251.7,130.42743974595305 254.4,124.56832562800003 257.1,119.07094170386577 259.8,114.01816602912851 262.5,109.49638976305141 265.2,105.59467842043748 267.9,102.40374627875843 270.6,100.01472398667269 273.3,98.51769811109472 276,98 278.70000000000005,98.5442199262418 281.4,100.22592101288427 284.1,103.11102592201368 286.79999999999995,107.25284771575 289.5,112.68873466932561 292.2,119.4362971307124 294.9,127.48918277843521 297.6,136.81236482800003 300.3,147.33690587685732 303,158.95415815711027 305.70000000000005,171.5093589833283 308.4,184.7945781389376 311.1,198.5409718377921 313.79999999999995,212.4102957267847 316.5,225.98562715979637 319.2,238.76124467199998 321.9,250.13161021560913 324.6,259.37939728266576 327.3,265.6625055364855 330,268" fill="none" stroke="#0284c7" stroke-width="3"/><text x="60" y="293" text-anchor="middle" font-size="18" fill="#1a2e4a">0</text><text x="330" y="293" text-anchor="middle" font-size="18" fill="#1a2e4a">1</text><text x="195" y="324" text-anchor="middle" font-size="21" fill="#1a2e4a">MLE = 0.8</text><text x="560" y="70" text-anchor="middle" font-size="21" fill="#1a2e4a">n=10, k=0</text><path d="M425,85V268H700" fill="none" stroke="#64748b"/><polyline points="425,98 427.7,114.25504724850325 430.4,129.09762282911706 433.1,142.63789842786224 435.8,154.97845188144487 438.5,166.21472032947565 441.2,176.4354306038671 443.9,185.72300777952023 446.6,194.1539627819825 449.3,201.79925991992172 452,208.72466518299998 454.7,214.99107611905748 457.4,220.65483407840162 460.1,225.76801958745594 462.8,230.37873158903477 465.5,234.53135126207715 468.2,238.26679110978324 470.9,241.62272998175007 473.6,244.63383467288668 476.3,247.3319687196032 479,249.746388992 481.7,251.90393065953435 484.4,253.82918108689844 487.1,255.54464319660346 489.8,257.0708888150221 492.5,258.42670249938965 495.2,259.629216324495 497.9,260.694036089504 500.6,261.63535938753836 503.3,262.4660859632832 506,263.197920767 508.7,263.8414700968869 511.4,264.4063312057327 514.1,264.901175732262 516.8,265.33382730245165 519.5,265.7113336314131 522.2,266.04003344216835 524.9,266.32561850380097 527.6,266.5731910780238 530.3,266.7873170501731 533,266.972075008 535.7,267.1311015193889 538.4,267.26763284827103 541.1,267.3845433365233 543.8,267.48438066853663 546.5,267.56939822439745 549.2,267.64158471724966 551.9,267.7026913003786 554.6,267.7542563198866 557.3,267.79762787949306 560,267.833984375 562.7,267.8643531472941 565.4,267.88962739441547 568.1,267.9105814751991 570.8,267.9278847292793 573.5,267.94211393084277 576.2,267.9537644864047 578.9,267.9632604800674 581.6,267.9709636631932 584.3,267.9771814791727 587,267.982174208 589.7,267.9861613096552 592.4,267.98932703985844 595.1,267.9918254065669 597.8,267.9937845306519 600.5,267.99531046949903 603.2,267.9964905578181 605.9,267.99739631572504 608.6,267.99808597015834 611.3,267.99860663191214 614,267.998996167 616.7,267.9992847977034 619.4,267.99949646549663 622.1,267.99964998507545 624.8,267.9997600159374 627.5,267.9998378753662 630.2,267.9998922142524 632.9,267.99992957493095 635.6,267.99995484813127 638.3,267.99997164420233 641,267.999982592 643.7,267.99998957718736 646.4,267.99999393020573 649.1,267.99999657281035 651.8,267.99999813083025 654.5,267.9999990196943 657.2,267.9999995082671 659.9,267.99999976564055 662.6,267.9999998947405 665.3,267.9999999559064 668,267.999999983 670.7,267.9999999940725 673.4,267.99999999817464 676.1,267.9999999995198 678.8,267.9999999998972 681.5,267.9999999999834 684.2,267.99999999999824 686.9,267.9999999999999 689.6,268 692.3,268 695,268" fill="none" stroke="#0284c7" stroke-width="3"/><text x="425" y="293" text-anchor="middle" font-size="18" fill="#1a2e4a">0</text><text x="695" y="293" text-anchor="middle" font-size="18" fill="#1a2e4a">1</text><text x="560" y="324" text-anchor="middle" font-size="21" fill="#1a2e4a">MLE = 0</text></g></svg></div><figcaption><span class="fig-num">图 25.2</span> <p>内部 Bernoulli 最优、全失败端点与高斯均值拟合说明：参数空间、曲率和归一化因子都属于完整推导。</p>
+</figcaption></figure>
+<p>如果高斯观测全相同，R=0。令 μ 等于该值、v→0⁺，似然无上界，因此正方差空间没有有限 MLE。代入 v_hat=0 越出模型。数值方差下限可以是实际限制，但必须说明它改变问题。简单模型中的唯一 MLE 也不能推出所有混合、非线性或高维模型都有唯一解。</p>
+<p>这里平方损失来自高斯观测噪声。IID 已知尺度 b&gt;0 的 Laplace 位置噪声，似然正比 exp(−Σ|x_i−μ|/b)，因此样本中位数最小化绝对偏差。偶数观测可以有整个中位区间。选择损失既是统计假设，也是计算选择。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>为什么 k/n 是内部最大点？k=0 时如何变化？联合高斯均值方差 MLE 何时不存在？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>得分为零、严格凹及边界检查共同证明。全失败在允许的零端点最大，开空间则仅有上确界。高斯数据全相同时，正方差趋零令似然无界。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>偏差、方差、均方误差与一致性</h2></div>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>E</mi><mi>θ</mi></msub><mo stretchy="false">[</mo><mo stretchy="false">(</mo><mi>T</mi><mo>−</mo><mi>θ</mi><msup><mo stretchy="false">)</mo><mn>2</mn></msup><mo stretchy="false">]</mo><mo>=</mo><msub><mrow><mi mathvariant="normal">Var</mi><mo>⁡</mo></mrow><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>T</mi><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><msub><mi>E</mi><mi>θ</mi></msub><mo stretchy="false">[</mo><mi>T</mi><mo stretchy="false">]</mo><mo>−</mo><mi>θ</mi><msup><mo stretchy="false">)</mo><mn>2</mn></msup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">E_\theta[(T-\theta)^2]=\operatorname{Var}_\theta(T)+(E_\theta[T]-\theta)^2.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">[(</span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mop"><span class="mord mathrm">Var</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0278em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord">.</span></span></span></span></span></div>
+<p>固定标量 θ、估计量 T 有限二阶矩时，偏差为 E_θT−θ，方差为 E_θ[(T−E_θT)²]，MSE 为 E_θ[(T−θ)²]。将误差拆成中心项与偏差，平方取期望，交叉项因中心项均值零而消失，故 MSE=Var+Bias²。它们是在指定真参数下重复样本的性质，不由一次绝对误差决定，排序也可能随 θ 改变。</p>
+<p>IID Bernoulli 的 K/n 无偏，方差和 MSE 都是 p(1−p)/n。固定 Beta(a,b) 后验均值规则 T_B=(K+a)/(n+a+b) 的频率期望为 (np+a)/(n+a+b)，偏差 [a−(a+b)p]/(n+a+b)，方差 np(1−p)/(n+a+b)²。收缩降低方差，却引入参数相关偏差。是否改善 MSE 要看总和，不能仅看方差或“贝叶斯”名称。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">同一收缩规则在一个率改善风险，在另一个率恶化</div>
+<p>n=10、p=.3 时，Beta(2,2) 均值规则偏差 .8/14≈.057143，方差 .010714，MSE≈.013980，低于比例估计 .021。p=.95 时偏差 −1.8/14≈−.128571，MSE≈.018954，高于比例估计 .004750。实验 2 用重复数据及精确公式检查两种情况；一次好结果不能证明统一改善。</p>
+</div>
+<p>IID 有限方差 X_i 的 R=Σ(X_i−x_bar)²=Σ(X_i−μ)²−n(x_bar−μ)²。取期望得 E[R]=nσ²−n(σ²/n)=(n−1)σ²。因此 n&gt;1 的 S²=R/(n−1) 无偏。共同均值、方差以及交叉协方差零是推导条件；相关行可使修正失效。该期望恒等式不需高斯，但特定精确抽样分布可能需要。</p>
+<p>(1,2,4) 的均值 7/3、R=14/3，方差 MLE 14/9、无偏方差 7/3，后者大 n/(n−1) 倍。无偏是针对方差，不是其平方根；非线性开方一般改变偏差。n−1 也不保证比所有有偏替代有较小 MSE，应先声明评价准则。</p>
+<p>一致性指 T_n 依概率收敛到 θ。Bernoulli 比例由弱法则一致；固定正 a,b 时，T_B−K/n=[a−(a+b)K/n]/(n+a+b)，因 K/n∈[0,1] 而一致趋零，所以该后验均值规则也一致。有限样本偏差与一致性可共存。若先验强度随 n 成比例增加，可能保留非零极限收缩，不能照搬此结论。</p>
+<figure class="fig" id="fig-25-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="十项比例估计无偏；Beta二二均值在率点三时总风险较小，在率点九五时虽方差低却偏差平方更大，总风险较高。"><title>两个真率下的风险比较</title><desc>十项比例估计无偏；Beta二二均值在率点三时总风险较小，在率点九五时虽方差低却偏差平方更大，总风险较高。</desc><defs><marker id="fig-25-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">风险 = 方差 + 偏差平方</text><text x="20" y="94" text-anchor="start" font-size="18" fill="#1a2e4a">p=.30, MLE</text><rect x="220" y="69" width="420" height="30" rx="10" fill="#0284c7" stroke="#0284c7"/><text x="725" y="94" text-anchor="end" font-size="18" fill="#1a2e4a">0.021000</text><text x="20" y="148" text-anchor="start" font-size="18" fill="#1a2e4a">p=.30, Beta mean</text><rect x="220" y="123" width="214.28571428571428" height="30" rx="10" fill="#0284c7" stroke="#0284c7"/><rect x="434.2857142857143" y="123" width="65.30612244897961" height="30" rx="10" fill="#c2410c" stroke="#c2410c"/><text x="725" y="148" text-anchor="end" font-size="18" fill="#1a2e4a">0.013980</text><text x="20" y="202" text-anchor="start" font-size="18" fill="#1a2e4a">p=.95, MLE</text><rect x="220" y="177" width="95" height="30" rx="10" fill="#0284c7" stroke="#0284c7"/><text x="725" y="202" text-anchor="end" font-size="18" fill="#1a2e4a">0.004750</text><text x="20" y="256" text-anchor="start" font-size="18" fill="#1a2e4a">p=.95, Beta mean</text><rect x="220" y="231" width="48.46938775510204" height="30" rx="10" fill="#0284c7" stroke="#0284c7"/><rect x="268.46938775510205" y="231" width="330.6122448979593" height="30" rx="10" fill="#c2410c" stroke="#c2410c"/><text x="725" y="256" text-anchor="end" font-size="18" fill="#1a2e4a">0.018954</text><text x="380" y="317" text-anchor="middle" font-size="18" fill="#1a2e4a">蓝：方差；橙：偏差平方。同一横轴尺度。</text></g></svg></div><figcaption><span class="fig-num">图 25.3</span> <p>固定目标下 MSE 分成估计量方差与偏差平方。仅减少方差不能排列总风险，向错误中心收缩可增加 MSE。</p>
+</figcaption></figure>
+<p>无偏也不推出一致：一直只返回第一个 Bernoulli 观测，虽无偏，但方差 p(1−p) 不随 n 缩小。消失偏差与消失方差则可通过平方误差概率界证明一致。不能未经条件和证明将样本均值的性质转给所有 MLE 算法；一般渐近理论还涉及可识别、正则性及边界。</p>
+<p>风险比较应固定数据预算与估计规则。看完同一结果才选择规则，构成一个新数据依赖估计量，其期望不自动等于原来任一规则公式。实验 2 在生成前指定规则与合成率；下一课的模型选择方案使这种区别可操作。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>推 MSE 分解。无偏是否足够一致？两个方差估计为何分母不同？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>围绕 ET 展开，中心项均值零使交叉项消失。首观测规则无偏却不集中。MLE 优化似然得 R/n，无偏修正优化期望性质得 R/(n−1)，准则不同。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>正确归一化的 beta–Bernoulli 后验与预测</h2></div>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>π</mi><mo stretchy="false">(</mo><mi>p</mi><mo>∣</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><msup><mi>p</mi><mrow><mi>a</mi><mo>+</mo><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>p</mi><msup><mo stretchy="false">)</mo><mrow><mi>b</mi><mo>+</mo><mi>n</mi><mo>−</mo><mi>k</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><mrow><mi>B</mi><mo stretchy="false">(</mo><mi>a</mi><mo>+</mo><mi>k</mi><mo separator="true">,</mo><mi>b</mi><mo>+</mo><mi>n</mi><mo>−</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></mfrac><mo separator="true">,</mo><mspace width="2em"/><mn>0</mn><mo>&lt;</mo><mi>p</mi><mo>&lt;</mo><mn>1.</mn></mrow><annotation encoding="application/x-tex">\pi(p\mid x)=\frac{p^{a+k-1}(1-p)^{b+n-k-1}}{B(a+k,b+n-k)},\qquad 0&lt;p&lt;1.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">π</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.4621em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.5261em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">a</span><span class="mbin mtight">+</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">p</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">b</span><span class="mbin mtight">+</span><span class="mord mathnormal mtight">n</span><span class="mbin mtight">−</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.7335em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.6444em;"></span><span class="mord">1.</span></span></span></span></span></div>
+<p>Beta(a,b) 先验在 0&lt;p&lt;1 的密度为 p^(a−1)(1−p)^(b−1)/B(a,b)，a,b&gt;0，B 为该分子在 [0,1] 的积分。正参数使可能的端点奇异仍可积。正整数参数时，重复分部积分给 B(a,b)=(a−1)!(b−1)!/(a+b−1)!。先验表达对率的模型选择，不是额外观察试验。</p>
+<p>先验乘似然，幂指数相加，得到 p^(a+k−1)(1−p)^(b+n−k−1)。其积分 B(a+k,b+n−k) 归一化 Beta(a+k,b+n−k) 后验。顺序样本证据为更新 B 与原 B 的比，计数证据另含 binom(n,k)。该因子在后验中消去，但在观测计数概率中保留。条件化需要证据正且有限。</p>
+<p>令 A=a+k、B=b+n−k。积分比 B(A+1,B)/B(A,B) 给均值 A/(A+B)；二阶矩 A(A+1)/[(A+B)(A+B+1)] 给方差 AB/[(A+B)²(A+B+1)]。这是此数据、此先验下 p 的条件不确定性，区别于固定 p 下对新数据平均的规则 (K+a)/(n+a+b) 抽样方差。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">八成功两失败更新明确先验</div>
+<p>Beta(2,2) 变成 Beta(10,4)。后验均值 5/7≈.714286，方差 40/(196·15)=2/147≈.013605，内部密度众数 9/12=.75，MLE .8。数值反演的等尾 95% 可信区间约 [.461868,.909080]。三个点与区间回答不同问题，都使用 IID 共同率模型。</p>
+</div>
+<p>给定 p 后与旧试验独立的未来 Bernoulli 成功概率，后验预测为 ∫pπ(p|x)dp=E[p|x]=A/(A+B)，而非代入众数。多个未来试验给定 p 独立，积分后却有协方差 Var(p|x)&gt;0，因为共同未知率。因此未来总计数一般不是后验均值率的独立二项，而是 beta-binomial 混合。</p>
+<p>等尾 95% 可信区间取后验 CDF 的 .025 与 .975 分位，在所选模型先验下包含 .95 后验概率。实验 1 通过 CDF 质量核验数值反演。它不自动对每个固定 p 给 95% 频率覆盖；模块 26 将区分置信区间。均匀先验仅在一个特定坐标中均匀，小数据的结论可对先验与模型错设敏感。</p>
+<p>r 个未来成功数 S 的条件均值为 rp、方差 rp(1−p)。全方差给 Var(S|x)=rE[p(1−p)|x]+r²Var(p|x)。写 m=A/(A+B)，化为 r m(1−m)+r(r−1)Var(p|x)。第一项是代入二项方差，第二项是共享未知率的额外波动；r=1 时第二项零，故单试验预测简单但联合律不同。Beta(10,4) 的十次未来成功均值 50/7，方差约 3.265306，而代入二项为 2.040816。它是条件预测，不是新训练数据间后验均值的波动。</p>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="estimation"></div><div class="widget-caption">
+</div></div>
+<p>探索器限定整数先验参数，以便不依赖外部统计库就透明计算 beta 密度与 CDF。两个面板分别绘制相对似然与归一化后验密度，纵轴独立且明确标记。相对似然高度 1 不是后验概率。MLE、后验均值、密度众数与区间分别报告，也处理全成功、全失败和均匀后验。</p>
+<p>真正新的条件独立批次按顺序更新，与一次合并相同，因为计数相加。对同一批更新两次会平方似然、虚构证据：八/二数据从 Beta(10,4) 再用一次得到 Beta(18,6)，并非新数据的合理改进。若先验从同一数据估出，也需披露和相应分析，不能默称独立固定先验。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>什么归一化后验？哪个方差是条件参数不确定性？能否将预测率直接用于所有未来试验的独立二项？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>更新后的 B(A,B) 积分归一化。后验方差 AB/[(A+B)²(A+B+1)] 区别于规则的抽样方差。未来试验共享未知 p，因此预测联合律一般有依赖与额外计数波动。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>MAP、损失模型与正则化尺度</h2></div>
+<p>最大后验（MAP）选择后验质量众数，或指定连续坐标的密度众数。密度情形最大化 Lπ 等价于最小化负 logL 加负 log 先验，允许省参数无关常数。连续点概率为零，密度众数不是有正点概率的参数。平坦或多峰后验可有非唯一 MAP，也不必接近均值或适合预测。</p>
+<p>Beta(A,B)、A,B&gt;1 的 log 密度导数给众数 (A−1)/(A+B−2)。A=1、B&gt;1 时，连续扩展到 [0,1] 的最大密度端点为零；B=1、A&gt;1 时为一；两者皆一时均匀，全部点并列。参数小于一可有端点密度发散，应明确众数约定。探索器限整数形状至少一，避免隐藏奇异情况。</p>
+<p>IID y_i∼N(μ,σ²)、已知 σ²&gt;0，先验 μ∼N(0,τ²)、τ²&gt;0，负 log 后验为 Σ(y_i−μ)²/(2σ²)+μ²/(2τ²) 加 μ 无关项。乘 2σ² 得 SSE+λμ²，λ=σ²/τ²。求导给 μ_MAP=n y_bar/(n+λ)。若使用平均平方误差，对应系数为 λ/n；平均数据项却不变系数，会改变先验等价目标。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">惩罚系数同时取决于噪声与先验尺度</div>
+<p>噪声方差 1、先验方差 4、n=4、观测均值 3，λ=.25、MAP=12/4.25≈2.823529。总 SSE 系数 .25，平均 SSE 系数 .0625，漏掉 n 会改变收缩。非零先验中心 m₀ 改为 λ(μ−m₀)²，向该中心拉动。</p>
+</div>
+<p>独立零均值高斯系数先验产生平方欧氏范数惩罚，独立 Laplace 先验产生绝对值惩罚。这个解释同时依赖系数先验与观测噪声：高斯噪声给平方残差，Laplace 噪声给绝对残差。惩罚截距、改变特征单位或噪声尺度也改变概率解释。后续回归处理设计矩阵，此标量推导已固定系数约定。</p>
+<figure class="fig" id="fig-25-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="噪声与先验负对数合成后，总残差系数为噪声方差除先验方差；改平均时再除样本量。"><title>高斯 MAP 系数约定</title><desc>噪声与先验负对数合成后，总残差系数为噪声方差除先验方差；改平均时再除样本量。</desc><defs><marker id="fig-25-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">从模型推导惩罚尺度</text><rect x="30" y="63" width="700" height="64" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="103" text-anchor="middle" font-size="22" fill="#1a2e4a">−log posterior = SSE/(2σ²) + μ²/(2τ²) + constant</text><path d="M380,133L380,178" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-25-4__arrow)"/><text x="413" y="160" text-anchor="start" font-size="19" fill="#1a2e4a">× 2σ²</text><rect x="30" y="189" width="700" height="63" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="380" y="229" text-anchor="middle" font-size="22" fill="#1a2e4a">Sum: SSE + (σ²/τ²) μ²</text><text x="380" y="295" text-anchor="middle" font-size="22" fill="#1a2e4a">Average: SSE/n + (σ²/(nτ²)) μ²</text><text x="380" y="333" text-anchor="middle" font-size="18" fill="#1a2e4a">相同最优点需要数据项与惩罚同尺度。</text></g></svg></div><figcaption><span class="fig-num">图 25.4</span> <p>高斯观测给平方残差，高斯系数先验给平方惩罚；两种方差决定系数。总和改为平均时，系数尺度必须一起改变。</p>
+</figcaption></figure>
+<p>连续 MAP 依参数坐标。若 p 后验为 Beta(A,B)，η=log[p/(1−p)]，η 密度含 dp/dη=p(1−p)，所以按 p 表达的形状正比 p^A(1−p)^B，η 众数对应 p=A/(A+B)。原 p 密度众数却是 (A−1)/(A+B−2)。正确变换的分布与事件概率一致，密度高度和众数依坐标。某坐标平坦不能直接称为中立先验。</p>
+<p>MAP 正则化是建模解释，不保证不确定性校准或泛化。点优化器丢掉大量后验信息，验证集调出的系数需说明选择协议。σ 也拟合时要恢复归一化项；未知超参数改变先验时，其归一化也可能影响拟合。只保留熟悉损失而不检查变化的自变量，可悄悄改变模型。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>高斯先验为何给平方惩罚？数据 SSE 平均时如何调整？连续 MAP 对非线性坐标变换不变吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>负 log 先验为 μ²/(2τ²) 加常数，与噪声项组合即得。平均后匹配系数除以 n。密度变换有 Jacobian，因此众数可移动，事件概率仍正确一致。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>错误说法</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>似然已是参数概率分布。</td>
+<td>后验还需先验与归一化。</td>
+</tr>
+<tr>
+<td>每个 MLE 都是内部导数根。</td>
+<td>检查端点、缺失端点及无界情形。</td>
+</tr>
+<tr>
+<td>密度值是精确点概率。</td>
+<td>连续点概率为零。</td>
+</tr>
+<tr>
+<td>无偏意味着每次估计正确。</td>
+<td>它是重复抽样期望性质。</td>
+</tr>
+<tr>
+<td>低方差总是低 MSE。</td>
+<td>偏差平方也贡献风险。</td>
+</tr>
+<tr>
+<td>先验就是额外观察数据。</td>
+<td>它是参数模型，复用数据不是新证据。</td>
+</tr>
+<tr>
+<td>可信区间自动有名义置信覆盖。</td>
+<td>后验质量与重复抽样覆盖不同。</td>
+</tr>
+<tr>
+<td>总和改平均不影响惩罚。</td>
+<td>对应系数改变 n 倍。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个可复现实验</h2></div>
+<h3 id="lab1">实验 1 · 似然与归一化 beta 更新</h3>
+<p><a href="labs/module_25/lab1_likelihood_and_beta_update.py" download>下载 lab1_likelihood_and_beta_update.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;CPU-only: likelihood estimates and an integer-parameter beta posterior.&quot;&quot;&quot;
+import math
+
+
+def beta_cdf(x, a, b):
+    &quot;&quot;&quot;For positive integer a,b, I_x(a,b) is a binomial upper tail.&quot;&quot;&quot;
+    if x &lt;= 0:
+        return 0.0
+    if x &gt;= 1:
+        return 1.0
+    n = a + b - 1
+    return math.fsum(math.comb(n, j) * x**j * (1-x)**(n-j)
+                     for j in range(a, n + 1))
+
+
+def beta_quantile(u, a, b):
+    lo, hi = 0.0, 1.0
+    for _ in range(70):
+        mid = (lo + hi) / 2
+        if beta_cdf(mid, a, b) &lt; u:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
+if __name__ == &quot;__main__&quot;:
+    n, k, a, b = 10, 8, 2, 2
+    post_a, post_b = a+k, b+n-k
+    mle, mean = k/n, post_a/(post_a+post_b)
+    mode = (post_a-1)/(post_a+post_b-2)
+    print(&quot;Ordered Bernoulli likelihood: p^8(1-p)^2; count factor cancels for p fitting&quot;)
+    for p in (.2, .5, .7, .8, .9):
+        print(f&quot;p={p:.1f}: likelihood={p**k*(1-p)**(n-k):.9f}&quot;)
+    low, high = (beta_quantile(u, post_a, post_b) for u in (.025, .975))
+    assert abs(beta_cdf(high, post_a, post_b)-beta_cdf(low, post_a, post_b)-.95) &lt; 1e-12
+    print(f&quot;MLE={mle:.6f}; posterior Beta({post_a},{post_b})&quot;)
+    print(f&quot;posterior mean / next-trial predictive={mean:.6f}; posterior mode={mode:.6f}&quot;)
+    print(f&quot;equal-tail 95% credible interval=[{low:.6f}, {high:.6f}] (numerical inversion)&quot;)
+    xs = [1., 2., 4.]
+    mu = math.fsum(xs)/len(xs)
+    rss = math.fsum((x-mu)**2 for x in xs)
+    print(f&quot;Gaussian data {xs}: mean MLE={mu:.6f}; variance MLE={rss/3:.6f}; unbiased variance={rss/2:.6f}&quot;)
+    print(&quot;All failures: Bernoulli MLE=0; Beta(2,12) mean=1/7, mode=1/12&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Ordered Bernoulli likelihood: p^8(1-p)^2; count factor cancels for p fitting
+p=0.2: likelihood=0.000001638
+p=0.5: likelihood=0.000976562
+p=0.7: likelihood=0.005188321
+p=0.8: likelihood=0.006710886
+p=0.9: likelihood=0.004304672
+MLE=0.800000; posterior Beta(10,4)
+posterior mean / next-trial predictive=0.714286; posterior mode=0.750000
+equal-tail 95% credible interval=[0.461868, 0.909080] (numerical inversion)
+Gaussian data [1.0, 2.0, 4.0]: mean MLE=2.333333; variance MLE=1.555556; unbiased variance=2.333333
+All failures: Bernoulli MLE=0; Beta(2,12) mean=1/7, mode=1/12
+</code></pre></div>
+<p>先推三个 Bernoulli 摘要，再核验区间后验质量，解释高斯方差分母与全失败端点。</p>
+<h3 id="lab2">实验 2 · 重复抽样偏差、方差和 MSE</h3>
+<p><a href="labs/module_25/lab2_bias_variance_and_mse.py" download>下载 lab2_bias_variance_and_mse.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Repeated independent datasets compare specified frequentist risks.&quot;&quot;&quot;
+import math
+import random
+
+
+def summarize(values, truth):
+    avg = math.fsum(values)/len(values)
+    var = math.fsum((v-avg)**2 for v in values)/len(values)
+    mse = math.fsum((v-truth)**2 for v in values)/len(values)
+    assert abs(mse-var-(avg-truth)**2) &lt; 1e-12
+    return avg-truth, var, mse
+
+
+if __name__ == &quot;__main__&quot;:
+    rng = random.Random(25025)
+    n, replications = 10, 6000
+    print(f&quot;seed=25025; independent synthetic datasets={replications}; n={n}; Beta(2,2) fixed before draws&quot;)
+    for p in (.3, .95):
+        counts = [sum(rng.random() &lt; p for _ in range(n)) for _ in range(replications)]
+        estimates = {&quot;MLE&quot;: [k/n for k in counts], &quot;posterior mean&quot;: [(k+2)/(n+4) for k in counts]}
+        for name, values in estimates.items():
+            bias, var, mse = summarize(values, p)
+            model_bias = 0. if name == &quot;MLE&quot; else (2-4*p)/(n+4)
+            model_var = p*(1-p)/n if name == &quot;MLE&quot; else n*p*(1-p)/(n+4)**2
+            print(f&quot;p={p:.2f}, {name}: empirical bias={bias:.6f}, variance={var:.6f}, MSE={mse:.6f}&quot;)
+            print(f&quot;  exact sampling bias={model_bias:.6f}, variance={model_var:.6f}, MSE={model_var+model_bias**2:.6f}&quot;)
+    print(&quot;A posterior mean can be assessed by repeated-sample risk; its Bayesian interpretation does not guarantee lower risk at every fixed p.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>seed=25025; independent synthetic datasets=6000; n=10; Beta(2,2) fixed before draws
+p=0.30, MLE: empirical bias=0.000417, variance=0.021185, MSE=0.021185
+  exact sampling bias=0.000000, variance=0.021000, MSE=0.021000
+p=0.30, posterior mean: empirical bias=0.057440, variance=0.010809, MSE=0.014108
+  exact sampling bias=0.057143, variance=0.010714, MSE=0.013980
+p=0.95, MLE: empirical bias=-0.000250, variance=0.004723, MSE=0.004723
+  exact sampling bias=0.000000, variance=0.004750, MSE=0.004750
+p=0.95, posterior mean: empirical bias=-0.128750, variance=0.002410, MSE=0.018986
+  exact sampling bias=-0.128571, variance=0.002423, MSE=0.018954
+A posterior mean can be assessed by repeated-sample risk; its Bayesian interpretation does not guarantee lower risk at every fixed p.
+</code></pre></div>
+<p>先算两个真率下的精确风险。有限模拟估计这些风险，不能证明统一排序；解释后验均值为何同时也是频率估计规则。</p>
+<h3 id="lab3">实验 3 · 数值与模型修复</h3>
+<p><a href="labs/module_25/lab3_underflow_normalisation_and_prior.py" download>下载 lab3_underflow_normalisation_and_prior.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Diagnose probability underflow, parameter-dependent factors, and reused data.&quot;&quot;&quot;
+import math
+
+
+def bernoulli_log_likelihood(p, k, n):
+    if not 0 &lt;= p &lt;= 1 or not 0 &lt;= k &lt;= n:
+        raise ValueError(&quot;invalid model or count&quot;)
+    if (p == 0 and k &gt; 0) or (p == 1 and n-k &gt; 0):
+        return -math.inf
+    return (k*math.log(p) if k else 0.) + ((n-k)*math.log1p(-p) if n-k else 0.)
+
+
+if __name__ == &quot;__main__&quot;:
+    n, k = 10000, 8000
+    ll = [bernoulli_log_likelihood(p, k, n) for p in (.79, .8)]
+    print(f&quot;n={n}, k={k}: raw likelihoods={[math.exp(x) for x in ll]}&quot;)
+    print(f&quot;log likelihoods={ll[0]:.6f}, {ll[1]:.6f}; relative L(.79)/L(.8)={math.exp(ll[0]-ll[1]):.6f}&quot;)
+    assert ll[1] &gt; ll[0] and all(math.exp(x) == 0 for x in ll)
+    for sigma in (1., 2.):
+        full = -2*math.log(sigma)-math.log(2*math.pi)
+        print(f&quot;two zero residuals, sigma={sigma:.0f}: Gaussian full logL={full:.6f}; omitted-scale expression=0&quot;)
+    a, b, k, n = 2, 2, 8, 10
+    correct = (a+k)/(a+b+n)
+    doubled = (a+2*k)/(a+b+2*n)
+    print(f&quot;One update: Beta(10,4), mean={correct:.6f}&quot;)
+    print(f&quot;Same data reused as new evidence: Beta(18,6), mean={doubled:.6f} (invalid independent-evidence claim)&quot;)
+    sigma2, tau2, n, observed_mean = 1., 4., 4, 3.
+    lam = sigma2/tau2
+    map_mean = n*observed_mean/(n+lam)
+    print(f&quot;Gaussian mean, prior N(0,4), known noise variance1: MAP={map_mean:.6f}; sum-SSE penalty coefficient={lam:.6f}&quot;)
+    print(f&quot;For average-SSE convention the matching coefficient is lambda/n={lam/n:.6f}.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>n=10000, k=8000: raw likelihoods=[0.0, 0.0]
+log likelihoods=-5007.074165, -5004.024235; relative L(.79)/L(.8)=0.047362
+two zero residuals, sigma=1: Gaussian full logL=-1.837877; omitted-scale expression=0
+two zero residuals, sigma=2: Gaussian full logL=-3.224171; omitted-scale expression=0
+One update: Beta(10,4), mean=0.714286
+Same data reused as new evidence: Beta(18,6), mean=0.750000 (invalid independent-evidence claim)
+Gaussian mean, prior N(0,4), known noise variance1: MAP=2.823529; sum-SSE penalty coefficient=0.250000
+For average-SSE convention the matching coefficient is lambda/n=0.062500.
+</code></pre></div>
+<p>修复下溢、遗漏尺度归一化、复用证据及总和/平均系数。指出每个优化需要保留哪些参数相关因子。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>十四题与完整解答</h2></div>
+<p>练习 1–12 必做，选学 13–14 在十二小时以外增加 35 分钟。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>十次中八成功，求 MLE，以及 Beta(2,2) 后验均值、众数和方差。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>MLE .8；后验 Beta(10,4)，均值 5/7，众数 3/4，方差 40/(14²·15)=2/147。它们分别优化或概括不同量。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>(1,2,4) 的高斯均值 MLE、方差 MLE 与无偏方差是多少？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>均值 7/3，残差 −4/3、−1/3、5/3，R=14/3。方差 MLE=14/9，无偏方差=7/3。R&gt;0 保证正方差联合 MLE 存在。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>Beta(2,2) 观察十次失败后，给 MLE、均值、众数与未来成功预测。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>[0,1] 上 MLE 为零，后验 Beta(2,12)，均值和预测 1/7，众数 1/12。无成功不证明真实率为零。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>噪声方差 1、先验 N(0,4)、n=4、均值 3，求 MAP 与总和/平均系数。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>λ=1/4，MAP=48/17≈2.823529。总 SSE 系数 .25，平均系数 .0625。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>推 Bernoulli MLE，含 k=0、k=n、开闭参数空间。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>混合结果的得分零点 k/n，负二阶导保证唯一内部最大，端点似然零。全失败或全成功时似然单调，闭空间端点 0 或 1 最大，开空间仅有上确界。n=0 时全并列。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证明 MSE 分解及 n−1 方差期望恒等式。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>围绕 ET 展开 T−θ，中心项均值零使交叉项消失。IID 有限方差时 R=Σ(X_i−μ)²−n(x_bar−μ)²，所以 ER=(n−1)σ²，n&gt;1 时 R/(n−1) 无偏。独立支撑均值方差，此恒等式无需高斯。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>推归一化 beta 后验与一次未来成功预测。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>先验乘似然得 p^(a+k−1)(1−p)^(b+n−k−1)，积分 B(A,B) 归一化。再积分 p 得 B(A+1,B)/B(A,B)=A/(A+B)。计数证据的组合因子在后验中消去，在计数概率中保留。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>n=10、p=.3 比较 K/n 与 (K+2)/14 的精确 MSE，再算 p=.95。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>MLE 风险 .021、.00475。收缩偏差 [2−4p]/14，方差 10p(1−p)/196，总风险 .013979592、.018954082。它在 .3 胜，在 .95 负，不能仅看方差。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>Beta(10,4) 下两个未来指示的预测协方差是多少？固定率二项为何漏掉它？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>给定 p 独立，E[Y₁Y₂|数据]=E[p²|数据]，减去预测均值平方得 Var(p|数据)=2/147&gt;0。共享未知率产生依赖，而固定 5/7 二项把该协方差设为零。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>解释 N(θ²,1) 的符号不可识别，给有效限制。优化器选根能解决原问题吗？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>±θ 有同一可观测律。Θ=[0,∞) 使均值映射单射；数值选根不会为原无限制模型的符号创造证据。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>两个长 Bernoulli 乘积都为存储零，未知高斯尺度的前因子也被省略。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>用 logL、减有限公共最大值后取相对指数，避免将下溢误判为相同。尺度拟合必须保留 −n log σ；只有 σ 固定时它才是常数。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>八/二数据更新先验两次，且后验区间自动称为 95% 置信区间。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>一次数据给 Beta(10,4)，平方同一似然虚构 Beta(18,6)。可信区间在模型先验下有 .95 条件后验质量，固定参数重复抽样覆盖是另一性质，未自动证明。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>由 Bernoulli 比例一致性证固定 Beta(a,b) 后验均值规则一致，并比较只返回首试验。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>差值 [a−(a+b)K/n]/(n+a+b) 被常数/(n+a+b) 控制，趋零，配合比例依概率收敛即得一致。首试验虽无偏，在内部 p 却有不消失方差与固定正偏差概率，因此不一致。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>将 A,B&gt;1 的 Beta 后验变为 logit η，推两个坐标众数不同。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>dp/dη=p(1−p)，η 密度按 p 表达正比 p^A(1−p)^B，众数对应 A/(A+B)；p 密度众数为 (A−1)/(A+B−2)。事件概率正确变换后相同，但高度及连续 MAP 依坐标。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自测</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>估计量的一次数值输出称什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">估计值</button></li><li><button type="button" class="quiz-opt" data-i="1">整个抽样分布</button></li><li><button type="button" class="quiz-opt" data-i="2">参数空间证明</button></li></ol><div class="quiz-expl" hidden>估计量是数据以前的规则，估计值是实现结果。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>观察 x 后，L(θ;x) 改变哪个变量？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">固定 θ 下所有样本</button></li><li><button type="button" class="quiz-opt" data-i="1">参数 θ</button></li><li><button type="button" class="quiz-opt" data-i="2">只改变种子</button></li></ol><div class="quiz-expl" hidden>似然固定数据，概率规律固定参数遍历数据。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>十失败在 [0,1] 的 Bernoulli MLE 是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">自动 .5</button></li><li><button type="button" class="quiz-opt" data-i="1">端点不可使用</button></li><li><button type="button" class="quiz-opt" data-i="2">0</button></li></ol><div class="quiz-expl" hidden>单调似然在允许端点最大。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>正残差和的高斯方差 MLE 分母是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">n</button></li><li><button type="button" class="quiz-opt" data-i="1">似然推导给 n−1</button></li><li><button type="button" class="quiz-opt" data-i="2">总为 n+1</button></li></ol><div class="quiz-expl" hidden>n−1 来自无偏期望修正，准则不同。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>较小估计方差对 MSE 单独说明什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总能证明较小 MSE</button></li><li><button type="button" class="quiz-opt" data-i="1">没有偏差平方就无法确定</button></li><li><button type="button" class="quiz-opt" data-i="2">每次估计准确</button></li></ol><div class="quiz-expl" hidden>MSE 在指定真参数下等于方差加偏差平方。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>Beta(2,2) 在八成功两失败后是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Beta(8,2)</button></li><li><button type="button" class="quiz-opt" data-i="1">一批即给 Beta(18,6)</button></li><li><button type="button" class="quiz-opt" data-i="2">Beta(10,4)</button></li></ol><div class="quiz-expl" hidden>每个观察计数只加一次。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>Beta(A,B) 的未来单试验预测率是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A/(A+B)</button></li><li><button type="button" class="quiz-opt" data-i="1">众数处密度高度</button></li><li><button type="button" class="quiz-opt" data-i="2">总等于 MLE</button></li></ol><div class="quiz-expl" hidden>将条件成功率对后验积分。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>高斯目标何时可省 −n log σ？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">残差小的时候</button></li><li><button type="button" class="quiz-opt" data-i="1">当前优化中 σ 固定时</button></li><li><button type="button" class="quiz-opt" data-i="2">拟合 σ 时</button></li></ol><div class="quiz-expl" hidden>尺度变化则该项依赖参数。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>连续 MAP 哪句正确？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">对任意参数变换不变</button></li><li><button type="button" class="quiz-opt" data-i="1">众数点自动有正后验概率</button></li><li><button type="button" class="quiz-opt" data-i="2">变换密度有 Jacobian，众数可移动</button></li></ol><div class="quiz-expl" hidden>事件概率一致变换，密度高度依坐标。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m25:q10">
+<label for="q10-response">10. 推八成功两失败的 MLE 和 Beta(2,2) 更新，报告均值、众数、预测率与区间解释；说明全失败端点、重复证据错误，以及抽样风险与后验方差区别。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="列参数空间、似然、先验、归一化与各摘要含义。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我区分了似然优化、重复抽样性质与条件后验摘要。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>[0,1] 的 log 凹给 MLE .8，全失败端点为 0。先验乘似然归一化得 Beta(10,4)，均值和预测 5/7，众数 3/4，方差 2/147。95% 可信区间在模型下有 .95 后验质量，不自动给固定 p 覆盖。计数只用一次，复用不是新批。抽样风险在固定 p 下平均新数据，后验方差条件于此数据与先验。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>带问题阅读</h2></div>
+<p>读 <a href="https://ocw.mit.edu/courses/6-041sc-probabilistic-systems-analysis-and-applied-probability-fall-2013/pages/unit-iv/lecture-23/" target="_blank" rel="noopener">MIT 经典估计</a>、<a href="https://ocw.mit.edu/courses/6-041sc-probabilistic-systems-analysis-and-applied-probability-fall-2013/pages/unit-iv/lecture-21/" target="_blank" rel="noopener">贝叶斯推断</a>及 <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning</a> 第八章。初等估计与 beta 更新均在本课推导。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>阅读问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一阶段 · 20 分钟</td>
+<td>似然改变哪个自变量，哪个参数空间容许最大点？</td>
+</tr>
+<tr>
+<td>第四阶段 · 20 分钟</td>
+<td>条件于什么，哪些因子依赖所优化参数？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索结业与下一步</h2></div>
+<p>推两个 MLE、方差分母、MSE 分解、beta 归一化与预测，以及高斯先验惩罚尺度。不依赖图解释可识别、端点存在与三种不确定性对象。</p>
+<p><strong>结业任务：</strong>比较 .8、5/7、.75 的不同目标，再修复重复更新与平均损失后不变的惩罚系数。</p>
+<p><strong>进入下一课的标准：</strong>能够在明确模型下推导并解释点估计。下一课添加置信覆盖、检验和实验协议。返回<a href="index_ZH.html">课程总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>符号与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>符号或术语</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>θ / Θ</td>
+<td>参数 / 参数空间</td>
+<td>Parameter / space</td>
+</tr>
+<tr>
+<td>T / t</td>
+<td>估计量 / 实现估计值</td>
+<td>Estimator / estimate</td>
+</tr>
+<tr>
+<td>L / ℓ</td>
+<td>似然 / 对数似然</td>
+<td>Likelihood / log-likelihood</td>
+</tr>
+<tr>
+<td>偏差 / MSE</td>
+<td>抽样偏差 / 均方误差</td>
+<td>Bias / mean squared error</td>
+</tr>
+<tr>
+<td>π / 后验</td>
+<td>先验 / 条件参数律</td>
+<td>Prior / posterior</td>
+</tr>
+<tr>
+<td>可信 / 置信</td>
+<td>后验质量 / 重复抽样覆盖</td>
+<td>Credible / confidence</td>
+</tr>
+<tr>
+<td>MAP / MLE</td>
+<td>后验密度众数 / 似然最大点</td>
+<td>Maximum a posteriori / likelihood</td>
+</tr>
+<tr>
+<td>λ / σ² / τ²</td>
+<td>系数 / 噪声方差 / 先验方差</td>
+<td>Penalty / noise / prior variance</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_24_ZH.html">← 模块 24</a><a href="module_26_ZH.html">模块 26 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

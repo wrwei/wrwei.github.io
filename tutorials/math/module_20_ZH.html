@@ -1,0 +1,532 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>约束优化、拉格朗日乘子与对偶性 — 计算机科学与人工智能的数学基础</title><meta name="description" content="推导盒与单纯形投影，解约束二次问题，证明弱对偶及凸KKT充分性，区分约束资格、零间隙、取得最优与有限罚函数。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="20"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 20</button><div class="dropdown-menu" id="module-menu"><a href="module_20_ZH.html" class="active" aria-current="page">约束优化、拉格朗日乘子与对偶性</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_20_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>求解器必须遵守问题的可行集</span></a><a href="#s1"><span class="num">2</span><span>可行集 活跃约束与最近点投影</span></a><a href="#s2"><span class="num">3</span><span>等式乘子及所需正则性</span></a><a href="#s3"><span class="num">4</span><span>不等式乘子与完整四项KKT条件</span></a><a href="#s4"><span class="num">5</span><span>对偶函数与弱对偶下界证明</span></a><a href="#s5"><span class="num">6</span><span>强对偶 Slater条件与敏感性的边界</span></a><a href="#s6"><span class="num">7</span><span>投影梯度 罚函数与完整二次规划</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个可复现实验</span></a><a href="#exercises"><span class="num">10</span><span>十四道练习及完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自测</span></a><a href="#reading"><span class="num">12</span><span>有目的的阅读</span></a><a href="#summary"><span class="num">13</span><span>检索 结业任务与下一步</span></a><a href="#terms"><span class="num">14</span><span>记号与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">约束优化、拉格朗日乘子与对偶性</h1><p class="module-lead">推导盒与单纯形投影，解约束二次问题，证明弱对偶及凸KKT充分性，区分约束资格、零间隙、取得最优与有限罚函数。</p><div class="hero-chips"><span class="chip chip-time">12 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>明确可行域、活跃限制及投影变分证书。</li><li>推导等式乘子、诊断奇异约束表示。</li><li>写全KKT，区分带资格必要性与凸充分性。</li><li>推导对偶下确界、按正确符号证明弱对偶。</li><li>写带假设Slater定理，区分零间隙、取得与敏感性。</li><li>实现精确单纯形投影下降，诊断残差、罚函数与界的错误。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>模块 19：凸支持不等式、光滑下降及目标证书；全课使用模块 18 的列梯度与约束Jacobian。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">求解器必须遵守问题的可行集</a><a href="#s1">可行集 活跃约束与最近点投影</a><a href="#s2">等式乘子及所需正则性</a><a href="#s3">不等式乘子与完整四项KKT条件</a><a href="#s4">对偶函数与弱对偶下界证明</a><a href="#s5">强对偶 Slater条件与敏感性的边界</a><a href="#s6">投影梯度 罚函数与完整二次规划</a><a href="#misconceptions">常见误解</a><a href="#labs">三个可复现实验</a><a href="#exercises">十四道练习及完整解答</a><a href="#quiz">十题自测</a><a href="#reading">有目的的阅读</a><a href="#summary">检索 结业任务与下一步</a><a href="#terms">记号与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">12 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">180 分钟</span></div><div class="session-title">可行几何与等式乘子</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节，推导最近点与直线证书。</a></span><span class="act-min">110</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">28</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读等式与秩假设。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">检索可行性与乘子符号。</a></span><span class="act-min">22</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m20:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">180 分钟</span></div><div class="session-title">KKT条件与弱对偶证明</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，使用四行KKT。</a></span><span class="act-min">75</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">比较盒、单纯形与不正确归一化捷径。</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m20:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">180 分钟</span></div><div class="session-title">强对偶与可行算法</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节，探索活跃集。</a></span><span class="act-min">84</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">运行可行投影下降及边界残差。</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">36</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m20:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">180 分钟</span></div><div class="session-title">资格、界与罚函数诊断</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">诊断不可行、负价格及非凸证书。</a></span><span class="act-min">75</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">完成诊断练习 11–12。</a></span><span class="act-min">24</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择与书面单纯形证书。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读对偶与带假设Slater陈述。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业，写各定理范围。</a></span><span class="act-min">46</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m20:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>求解器必须遵守问题的可行集</h2></div>
+<p>给训练损失、资源预算或调度目标加上约束，会改变优化问题。边界极小点的普通梯度可以非零；乘子只有与正确符号、可行性及定理假设一起使用才有意义。本课构造完整证书，推导投影和对偶界，说明驻点报告或有限罚项为何不自动解出约束问题。</p>
+<p><strong>检索检查：</strong> <a href="module_19_ZH.html#s2">模块 19</a> 提供凸支持不等式、曲率界与梯度下降；<a href="module_18_ZH.html#s2">模块 18</a> 提供梯度和Jacobian维数。实验使用NumPy，仅需CPU。全课把不等式写成g_i(x)≤0，并采用拉格朗日项+λ_i g_i(x)的符号约定。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>可行集 活跃约束与最近点投影</h2></div>
+<p>将问题写成：在x∈D、g_i(x)≤0、h_j(x)=0下极小化f(x)。满足全部限制的点组成可行集C；D是目标和约束共同有定义的域。不可行点的目标再小，也不能作为原始问题的解。可行集可能为空、不连通、无界，或是低维曲面；这些性质影响存在性及算法。连续目标在非空紧可行集上取得极小值；在无界集合上，仅闭性不保证取得。</p>
+<p>若g_i(x)=0，则该不等式在x处活跃；g_i(x)&lt;0则不活跃。等式始终必须满足，并非由求解器选择“开启”。盒约束0≤x_i≤1写成−x_i≤0和x_i−1≤0，梯度分别为−e_i、+e_i。改变限制方向却不改变乘子约定，会改变驻点方程。冗余表达可给出相同C，却产生不同乃至不唯一的乘子表示。</p>
+<p>可行方向描述局部几何。在光滑边界g_i(x)=0处，一条可微可行曲线的速度d必须满足∇g_i(x)ᵀd≤0；等式曲线要求∇h_j(x)ᵀd=0。这是必要线性化检查，并不总能由此构造真实曲线。曲率或奇异约束可能排除通过线性化的方向。例如x²=0在零点的线性化为零，可行集却仅有零点。第2节解释缺少的正则性。</p>
+<p>对非空闭凸C⊂Rⁿ，欧氏投影P_C(v)是极小化‖p−v‖²/2的唯一p∈C。存在性：取一个可行点，以v为中心截取足够大的闭球；球外点的距离不可能优于该可行点，而球内闭交集紧，故取得极小。唯一性来自平方距离严格凸：若两个不同点都最优，其中点将更近。非凸C的最近点可能不唯一，选择规则需另写，也不能沿用本课的凸投影结论。</p>
+<p>投影的变分刻画为：p=P_C(v)当且仅当对所有z∈C，有(v−p)ᵀ(z−p)≤0。必要性是在可行线段p+t(z−p)上对平方距离求t=0的右导数。充分性展开‖z−v‖²=‖p−v‖²+‖z−p‖²−2(v−p)ᵀ(z−p)，后两项非负。这是全局最近点证明，并非有限采样比较。对v,w的两个投影不等式相加，得到‖P_C(v)−P_C(w)‖²≤(v−w)ᵀ(P_C(v)−P_C(w))；由Cauchy–Schwarz可知投影不扩张。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">盒投影与单纯形投影是不同操作</div>
+<p>v=(1.2,.4,−.2)在[0,1]³上的投影是逐坐标裁剪后的(1,.4,0)。在概率单纯形C={x≥0:Σx_i=1}上的投影却是(.9,.1,0)，公共阈值θ=.3满足x_i=max(v_i−θ,0)及总和为1。先裁剪再归一化给出(5/7,2/7,0)，虽可行却距离更大。真正投影的平方距离为.22，半平方目标为.11。</p>
+</div>
+<p>盒的目标按坐标分离，因此标量裁剪恰好给出投影。单纯形的公共阈值则耦合坐标。把v降序排列为u₁≥…≥u_n，定义θ_j=(Σ_{i≤j}u_i−1)/j，令ρ为满足u_ρ&gt;θ_ρ的最大下标。取θ=θ_ρ及x_i=max(v_i−θ,0)。选出的正坐标和为1，其余不超过阈值；第3节的KKT证书将证明最优。至少首下标合格，因为u₁&gt;u₁−1。排序代价O(n log n)，投影也有计算成本。</p>
+<figure class="fig" id="fig-20-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="二维盒为零一正方形，单纯形为连接零一与一零的线段；输入一点二零点四分别投到一零点四和零点九零点一。"><title>盒与单纯形投影</title><desc>二维盒为零一正方形，单纯形为连接零一与一零的线段；输入一点二零点四分别投到一零点四和零点九零点一。</desc><defs><marker id="fig-20-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">最近点由可行集决定</text><rect x="130" y="135" width="230" height="150" fill="#f0f9ff" stroke="#0ea5e9"/><path d="M130,135L360,285" stroke="#15803d" stroke-width="5"/><circle cx="406" cy="225" r="6" fill="#1a2e4a"/><circle cx="360" cy="225" r="6" fill="#2563eb"/><circle cx="337" cy="270" r="6" fill="#15803d"/><text x="445" y="92" text-anchor="start" font-size="20" fill="#1a2e4a">二维输入 (1.2,.4)</text><text x="445" y="139" text-anchor="start" font-size="20" fill="#1a2e4a">盒投影 (1,.4)</text><text x="445" y="186" text-anchor="start" font-size="20" fill="#1a2e4a">线段投影 (.9,.1)</text><text x="445" y="233" text-anchor="start" font-size="20" fill="#1a2e4a">x+y=1; x,y≥0</text><text x="380" y="327" text-anchor="middle" font-size="18" fill="#1a2e4a">正方形与绿线段不同；可行不等于最近。</text></g></svg></div><figcaption><span class="fig-num">图 20.1</span> <p>可行集决定最近点：盒允许独立裁剪，单纯形通过公共阈值耦合坐标。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>小目标能修复不可行吗？活跃不等式等同于正乘子吗？在奇异约束处，通过线性化方向检查能保证可行吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>不能，原始可行性是独立要求。活跃约束可有零乘子。x²=0在唯一可行点的线性化为零，因此仅靠线性化会接受虚假的方向。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>等式乘子及所需正则性</h2></div>
+<p>等式h:Rⁿ→Rᵐ的Jacobian J_h有m行，每行为一个约束梯度的转置。若可行点的等式梯度线性独立，则J_h满行秩m，切空间为N(J_h)。可微约束局部极小点沿所有切向的一阶目标变化为零，因此∇f属于N(J_h)⊥=C(J_hᵀ)，存在ν∈Rᵐ使∇f+J_hᵀν=0。等式拉格朗日函数L(x,ν)=f(x)+νᵀh(x)的x梯度正是这个驻点方程。</p>
+<p>从切向量到实际附近可行曲线，需要正则水平集定理，它是隐函数定理的推论。本课明确陈述该正则性结果；仅凭线性代数不能在奇异点证明任意零空间向量都描述真实曲面。这就是满行秩属于必要性假设的原因。等式乘子不限制正负，因为等式没有单侧内部或不等式方向。乘子依附于所写方程，缩放方程会反向缩放乘子。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">到直线的最小距离与等式乘子</div>
+<p>在x+y=b下极小化f(x,y)=(x²+y²)/2。令L=f+ν(x+y−b)，驻点给x+ν=y+ν=0；可行性给x=y=b/2、ν=−b/2及V(b)=b²/4。b=2时解为(1,1)、ν=−1、值1。沿直线的目标差为非负平方位移，所以这是唯一全局最优，并非仅驻点候选。</p>
+</div>
+<p>一般二次f=(1/2)xᵀQx+cᵀx、等式Ax=b、Q对称时，驻点和可行性组成Qx+Aᵀν=−c、Ax=b。块矩阵为[[Q,Aᵀ],[A,0]]，常称鞍点系统。若Q正定且A行独立，矩阵可逆：齐次解满足Qd+Aᵀw=0、Ad=0，左乘dᵀ得dᵀQd=0，因此d=0；再由Aᵀw=0及行独立得w=0。应求解该系统，而不是显式构造逆矩阵。</p>
+<p>全空间正定是充分条件，却强于实际需求。原始唯一性只需保持Ax=b的非零方向d∈N(A)上有dᵀQd&gt;0，此时目标沿仿射可行空间严格凸。A行独立时，同一证明在N(A)上也使块系统可逆。法向曲率可以为负而不破坏这个约束极小值。一般非线性约束还通过拉格朗日Hessian引入曲率，所以在弯曲曲面上仅检查∇²f可能不足。</p>
+<p>正则性下，驻点是必要候选条件，并非无条件极小证书。在圆x²+y²=1上极小化x²+y²，每个可行点的值相同，也都可配乘子满足驻点。在同一圆上极小化x，驻点则产生(−1,0)与(1,0)，分别是极小和极大。必须比较值、使用合适二阶条件，或在适用时给凸全局证书。圆等式非线性，可行集也非凸。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">真实最优点可能没有等式乘子</div>
+<p>在h(x)=x²=0下极小化f(x)=x。唯一可行点是零，当然是全局极小点。但h′(0)=0、f′(0)=1，任何有限ν都无法满足1+ν·0=0。约束Jacobian奇异。这不反驳带资格的乘子定理，而反驳忽略秩假设的用法。把方程改写为x=0保留相同可行集，却恢复普通乘子。</p>
+</div>
+<p>若存在适当可微最优解分支和值函数，乘子可衡量敏感性。将限制写成h(x)−b=0时，V对b的导数是−ν<em>而非+ν</em>。直线例中V′(b)=b/2=−ν<em>：对f(x</em>(b))求导，用驻点方程及J_h x*′=1即可。切换、退化或不可微值函数处，唯一普通导数可能不存在。没有检查这些条件及扰动约定，不能把乘子解释为适用于任意有限变化的固定价格。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>等式乘子为何不限制符号？x²=0例子中哪项假设失效？写作h(x)−b=0时值敏感性取哪个符号？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>等式没有单侧方向。可行点处约束梯度为零，违反满行秩必要性假设。若最优分支可微，敏感性为−ν*，因此报告价格需同时给出方程符号及尺度。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>不等式乘子与完整四项KKT条件</h2></div>
+<p>对可微f,g_i,h_j，令L=f+Σλ_i g_i+Σν_j h_j。Karush–Kuhn–Tucker条件分四项：原始可行g_i≤0、h_j=0；对偶可行λ_i≥0；互补λ_i g_i=0；驻点∇f+Σλ_i∇g_i+Σν_j∇h_j=0。各项作用独立。互补仅允许活跃不等式有正乘子，但也允许活跃约束的乘子为零。不等式符号依附于g≤0约定，等式ν仍无限制。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left right left" columnspacing="0em 1em 0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>≤</mo><mn>0</mn><mo separator="true">,</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><msub><mi>h</mi><mi>j</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mn>0</mn><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>λ</mi><mi>i</mi></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>≥</mo><mn>0</mn><mo separator="true">,</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><msub><mi>λ</mi><mi>i</mi></msub><msub><mi>g</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mn>0</mn><mo separator="true">,</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><msub><mi mathvariant="normal">∇</mi><mi>x</mi></msub><mi>L</mi><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><mi>λ</mi><mo separator="true">,</mo><mi>ν</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mn>0.</mn></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+g_i(x)&amp;\leq0, &amp; h_j(x)&amp;=0,\\
+\lambda_i&amp;\geq0, &amp; \lambda_i g_i(x)&amp;=0,\\
+\nabla_x L(x,\lambda,\nu)&amp;=0.
+\end{aligned}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:4.2em;vertical-align:-1.85em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal">L</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">λ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0637em;">ν</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span><span class="mpunct">,</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span><span class="mpunct">,</span></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0.</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:1em;"></span><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">h</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.65em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span><span class="mpunct">,</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span><span class="mpunct">,</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.65em;"><span></span></span></span></span></span></span></span></span></span></span></span></div>
+<p>光滑问题的局部极小点在适当约束资格下存在KKT乘子。一个充分资格是等式梯度与所有活跃不等式梯度在该点线性独立，简称LICQ。它排除活跃梯度冗余和奇异表示。本课陈述带资格必要性定理，而不以未证明的方向推理代替。其他资格可能更弱，因此LICQ失败不等于不存在乘子；反之，无资格最优点确实可能没有乘子，如奇异等式例。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">标量下界需要正确乘子符号</div>
+<p>在x≥0，即g=−x≤0下极小化(x−a)²/2。驻点是x−a−λ=0。a&gt;0时x=a在内部、λ=0；a&lt;0时x=0、λ=−a&gt;0；a=0时下界活跃但λ=0。a=−2时最优点普通梯度为2，由正下界乘子抵消：2−2=0。要求普通梯度为零会错误拒绝此解。</p>
+</div>
+<p>凸KKT给全局充分证书：f及g_i在共同凸域可微凸，h=Ax−b仿射。在可行KKT点x<em>，固定λ</em>,ν<em>后的L因λ</em>≥0而凸。驻点和凸支持不等式给L(x)≥L(x*)=f(x*)；对任意可行x，又有L(x)≤f(x)。合并即f(x)≥f(x*)。这项充分性不需要约束资格；资格用于断言最优点必能产生这样的证书。</p>
+<p>单纯形投影取g_i=−x_i、h=Σx_i−1，驻点为x_i−v_i+θ−λ_i=0。给x_i=max(v_i−θ,0)，选λ_i=max(θ−v_i,0)，符号和互补均成立。v=(1.2,.4,−.2)时x*=(.9,.1,0)、θ=.3、λ=(0,0,.5)。平方距离强凸、单纯形凸，所以证书证明唯一全局投影，也解释公共阈值为何不是任意归一化技巧。</p>
+<p>资源分配常用预算Σx_i≤B及非负性。在a=(3,1)、B=2下极小化Σ(x_i−a_i)²/2，解为x=(2,0)，预算乘子1，两个下界乘子均零。驻点x−a+λ_B(1,1)−λ_lower=0；第二坐标下界活跃却零价格。本例B=2的值导数为−λ_B=−1，表示放宽上预算降低损失；越过该值时活跃集会改变。</p>
+<figure class="fig" id="fig-20-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="四行分别检查原始可行、非负不等式乘子、逐项互补及完整拉格朗日梯度，活跃不必正价格。"><title>四项KKT条件</title><desc>四行分别检查原始可行、非负不等式乘子、逐项互补及完整拉格朗日梯度，活跃不必正价格。</desc><defs><marker id="fig-20-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">完整KKT证书有四行</text><rect x="40" y="64" width="680" height="45" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="60" y="94" text-anchor="start" font-size="20" fill="#1a2e4a">原始可行</text><text x="410" y="94" text-anchor="start" font-size="18" fill="#1a2e4a">g≤0; h=0</text><rect x="40" y="116" width="680" height="45" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="60" y="146" text-anchor="start" font-size="20" fill="#1a2e4a">对偶可行</text><text x="410" y="146" text-anchor="start" font-size="18" fill="#1a2e4a">λ≥0; ν任意</text><rect x="40" y="168" width="680" height="45" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="60" y="198" text-anchor="start" font-size="20" fill="#1a2e4a">互补松弛</text><text x="410" y="198" text-anchor="start" font-size="18" fill="#1a2e4a">λᵢgᵢ=0</text><rect x="40" y="220" width="680" height="45" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="60" y="250" text-anchor="start" font-size="20" fill="#1a2e4a">驻点</text><text x="410" y="250" text-anchor="start" font-size="18" fill="#1a2e4a">∇f+Σλᵢ∇gᵢ+Σνⱼ∇hⱼ=0</text><text x="380" y="324" text-anchor="middle" font-size="17" fill="#1a2e4a">活跃可有零乘子；凸充分性与资格必要性分开。</text></g></svg></div><figcaption><span class="fig-num">图 20.2</span> <p>原始可行、对偶可行、驻点和互补松弛必须分别检查；活跃边界也可能零价格。</p>
+</figcaption></figure>
+<p>非凸时KKT点可能是极大或鞍点。在−1≤x≤1上极小化−x²，x=0与两个零乘子满足KKT，但全局极小值−1在端点取得。零点没有活跃不等式，资格并无问题；充分性仍失败，因为目标不凸。必要性正则条件不能补出缺少的目标凸性。数值残差表应说明正在使用哪个定理，不能将每个小驻点数值都称为“全局最优”。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>四项KKT是什么？活跃不等式必有正乘子吗？凸充分性证明需要LICQ吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>检查原始可行、对偶可行、互补及驻点。活跃下界可有零乘子。凸证明针对已给出的可行KKT证书，需要凸目标与不等式、仿射等式，却不需要充分性的秩资格；资格是另一个必要性问题。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>对偶函数与弱对偶下界证明</h2></div>
+<p>固定λ≥0和任意ν，对偶函数q(λ,ν)=inf_{x∈D}L(x,λ,ν)在整个共同域取下确界，不再次施加原始约束。若保留这些限制，通常算出另一对象。对偶值可能为−∞；只在方便的x处求L得到的是该下确界的上界，而非自动获得原始最优的下界。解析求q时，必须验证真实极小化，或控制正确方向的误差。</p>
+<p>弱对偶可直接证明：任意原始可行x满足λ_i g_i(x)≤0、νᵀh(x)=0，所以q≤L(x)≤f(x)，进而q≤原始下确界p<em>。这甚至适用于非凸目标与约束；关键是乘子符号、可行性和真正的域下确界。对偶问题在λ≥0、ν任意下最大化q，最优上确界d</em>≤p*。两最优值相等称强对偶，需要超出这个基本界的理由。</p>
+<p>即使原始问题非凸，对偶函数对乘子仍凹。固定x时L对乘子仿射；两个乘子向量的加权L至少等于两个对应下确界的相同加权和，再对x取下确界仍保留该下界。因此q在混合乘子处大于等于q的加权和，即凹不等式。−∞扩展值需谨慎处理，却不会使任意非凸问题变容易，也不会消除对偶间隙。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">等式二次问题有显式对偶</div>
+<p>f=(x²+y²)/2、x+y=b时，L=(x²+y²)/2+ν(x+y−b)。配方得q(ν)=−ν²−νb，L在x=y=−ν处取得。凹二次在ν=−b/2最大，q=b²/4，匹配原始值。b=2时，ν=0给有效但松的下界0，ν=−1给紧界1。有效对偶界不必已经最优。</p>
+</div>
+<p>单纯形平方距离问题的等式乘子θ、下界向量λ≥0给L的Rⁿ极小点x=a−θ1+λ，及q=θ(Σa_i−1)−λᵀa−‖θ1−λ‖²/2。θ=.3、λ=(0,0,.5)时q=.11，匹配f(.9,.1,0)。最优证书的L极小点恰好可行，但推导q时并未施加原始可行性。其他乘子下L极小点可以违反单纯形，这是允许的。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>q</mi><mo stretchy="false">(</mo><mi>θ</mi><mo separator="true">,</mo><mi>λ</mi><mo stretchy="false">)</mo><mo>=</mo><mi>θ</mi><mo stretchy="false">(</mo><msup><mn mathvariant="bold">1</mn><mi>T</mi></msup><mi>a</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo>−</mo><msup><mi>λ</mi><mi>T</mi></msup><mi>a</mi><mo>−</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi mathvariant="normal">∥</mi><mi>θ</mi><mn mathvariant="bold">1</mn><mo>−</mo><mi>λ</mi><msup><mi mathvariant="normal">∥</mi><mn>2</mn></msup><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">q(\theta,\lambda)=\theta(\mathbf1^Ta-1)-\lambda^Ta-\frac12\|\theta\mathbf1-\lambda\|^2.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">λ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.1413em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mopen">(</span><span class="mord"><span class="mord mathbf">1</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span></span></span></span></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.9747em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1389em;">T</span></span></span></span></span></span></span></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.0074em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord">∥</span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span><span class="mord mathbf">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathnormal">λ</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord">.</span></span></span></span></span></div>
+<p>可行候选x和有效对偶界q给0≤f(x)−p*≤f(x)−q，因此可计算原始对偶间隙提供目标精度证书，即使未知原始优化器。前提是q真的为下界，x真的可行。不可行候选可出现f(x)&lt;q，却不违反弱对偶，因为定理从未比较不可行值。负不等式乘子也破坏下界符号论证。应同时报告可行残差、对偶界有效性与候选差。</p>
+<p>近似q若偏高，就不能安全作为下界。内层求解器返回L(x_trial,λ,ν)≥q，不能直接拿它代替q认证间隙。若已证明L_trial−q≤ε，则L_trial−ε才是有效下界。小二次可配方并在适当误差分析下求解；大系统的近似轨迹可以有用，却只有控制了误差方向才成为严格界。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>q在哪个集合取下确界？单次L值能给下界证书吗？不可行候选的目标可低于有效对偶界吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>在共同域，不重复原始约束。试探值是下确界的上界，没有向下误差余量便不足。不可行点不属于弱对偶比较，可以低于对偶界。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>强对偶 Slater条件与敏感性的边界</h2></div>
+<p>标准有限维凸问题中，f,g_i在Rⁿ凸且有限值，等式Ax=b仿射。一个有用的Slater充分条件是存在x̄满足Ax̄=b及所有g_i(x̄)&lt;0。原始最优值有限时，该条件给强对偶及取得的对偶最优。本课陈述带假设的Slater定理，而不把它误当投影或梯度下降的直接推论；完整证明使用分离超平面。原始阅读给出该定理，前面的弱对偶和凸KKT充分性证明则独立成立。</p>
+<p>若函数限制在凸域，对应版本使用共同域相对内部中的可行点，而不是强求整个环境空间内部。相对内部指在仿射包内的内部。单纯形在环境空间内部为空，但在和为1的超平面内相对内部非空，需明确域和定理版本。某些仿射不等式可用更弱的精细Slater版本；本课有限值严格版本已足够。充分条件不能改写成无条件等价。</p>
+<p>强对偶比较下确界与上确界，不单独保证原始最优取得，也不保证乘子唯一。例如在R上极小化exp(x)，无约束的原始下确界与对偶值均为零，却无有限x取得零。若原始与对偶都取得且值相等，q≤L≤f链迫使互补及全局L极小。在可微问题及对应域假设下，再得驻点KKT。原始取得仍是需独立证明的事实。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">单纯形QP满足Slater，提供必要性路线</div>
+<p>x̄=(1/3,1/3,1/3)满足仿射和等式及所有−x_i&lt;0。平方距离目标及不等式在R³凸且有限。紧性给原始取得，Slater给零最优间隙与对偶取得，严格凸给唯一原始极小点。这些结论均不迫使每个活跃乘子严格正，也不意味着每个数值迭代已可行。</p>
+</div>
+<p>Slater失败不能断定正间隙。在x=0及x≤0下极小化x²，没有严格不等式点能满足等式，却有p*=0及零乘子给q=0，仍强对偶。等式与不等式部分冗余。这区分可行集几何与具体代数表示，也说明简单条件失败时，其他约束资格或精细定理可能仍适用。</p>
+<p>再看在x²≤0下极小化x。唯一可行点零，p*=0，无严格可行点。λ&gt;0时q=inf_x(x+λx²)=−1/(4λ)，λ=0时为−∞。λ→∞时上确界为零，因此最优值意义上强对偶，但无有限乘子取得。KKT在x=0要求1+2λx=0，不可能。该例分开零间隙、对偶取得及乘子必要性，不能把三者合并成一个标签。</p>
+<p>反过来，严格可行不能替代凸性。−1≤x≤1下极小化−x²，零点满足两个仿射不等式严格可行；然而R上的L始终保留负二次最高项，因此每个λ≥0均有q=−∞，d*=−∞而p*=−1。凸Slater不适用，因为目标凹。内部可行点与KKT驻点不能使问题变凸。实验3正是诊断这种无效推断。</p>
+<p>对偶乘子有带资格的扰动解释。将限制写成g_i(x)≤u_i、h(x)=v。若原问题最优原始与对偶值匹配，其最优对偶对给V(u,v)≥V(0,0)−λ<em>ᵀu−ν</em>ᵀv：用该乘子求平移后的对偶下界即可。这是值函数的支持界；V可微时导数为对应负乘子，否则多个对偶最优可给不同支持斜率。正上预算乘子描述指定单位下放宽预算的局部价值，并非任何有限扰动的固定价格。</p>
+<figure class="fig" id="fig-20-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="有效乘子和可行点给q小于等于L小于等于f；极小x约束x平方非正虽零间隙，却只有乘子趋无穷时逼近对偶最优。"><title>弱对偶与零间隙取得</title><desc>有效乘子和可行点给q小于等于L小于等于f；极小x约束x平方非正虽零间隙，却只有乘子趋无穷时逼近对偶最优。</desc><defs><marker id="fig-20-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">下界链与取得是不同问题</text><rect x="45" y="65" width="190" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="285" y="65" width="190" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="525" y="65" width="190" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="140" y="118" text-anchor="middle" font-size="25" fill="#1a2e4a">q(λ,ν)</text><text x="380" y="118" text-anchor="middle" font-size="25" fill="#1a2e4a">L(x,λ,ν)</text><text x="620" y="118" text-anchor="middle" font-size="25" fill="#1a2e4a">f(x)</text><text x="260" y="120" text-anchor="middle" font-size="28" fill="#1a2e4a">≤</text><text x="500" y="120" text-anchor="middle" font-size="28" fill="#1a2e4a">≤</text><text x="380" y="193" text-anchor="middle" font-size="21" fill="#1a2e4a">x可行且λ≥0 ⇒ 弱对偶</text><text x="380" y="240" text-anchor="middle" font-size="22" fill="#1a2e4a">min x; x²≤0: p*=d*=0</text><text x="380" y="284" text-anchor="middle" font-size="22" fill="#1a2e4a">q(λ)=−1/(4λ), λ&gt;0</text><text x="380" y="327" text-anchor="middle" font-size="19" fill="#1a2e4a">零间隙，但有限λ不取得对偶最优。</text></g></svg></div><figcaption><span class="fig-num">图 20.3</span> <p>弱对偶始终是符号下界；零间隙、取得与凸乘子定理需各自明确事实。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>Slater失败蕴含正间隙吗？零最优间隙蕴含有限最优乘子吗？严格可行能补偿非凸目标吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>均不能。冗余约束可不严格可行却零间隙；x²≤0例零间隙但无取得的有限对偶最优；盒上的向下二次严格可行却对偶为−∞。凸目标假设不可忽略。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>投影梯度 罚函数与完整二次规划</h2></div>
+<p>对非空闭凸C和可微f，投影梯度为x⁺=P_C(x−α∇f(x))，从可行x开始，α&gt;0。精确投影使所有迭代可行。对投影变分式取z=x，得∇f(x)ᵀd≤−‖d‖²/α，d=x⁺−x。结合L-Lipschitz梯度下降引理，得f(x⁺)≤f(x)−(1/α−L/2)‖d‖²。因此在可行线段上光滑界成立时，0&lt;α&lt;2/L对非零投影移动给严格下降。它论证的是可行更新，不是未投影提案。</p>
+<p>定义G_α(x)=(x−P_C(x−α∇f(x)))/α。由投影刻画，其为零当且仅当对所有z∈C有∇f(x)ᵀ(z−x)≥0。f凸时支持不等式给全局极小证书。边界普通梯度仍可非零。映射依赖α及投影度量，小计算映射要转成距离保证还需适当误差界。舍入或不准投影造成零结果，并不等于精确数学不动点。</p>
+<p>凸f、α≤1/L时，用极小点x<em>比较。x处凸支持及x⁺处光滑上界给f(x⁺)−f(x</em>)≤∇f(x)ᵀ(x⁺−x*)+(L/2)‖d‖²。投影不等式把首项界为(x−x⁺)ᵀ(x⁺−x*)/α。展开内积，丢弃非正项−(1/α−L)‖d‖²/2，得到望远镜界f(x⁺)−f(x*)≤(‖x−x*‖²−‖x⁺−x*‖²)/(2α)。求和及目标单调给f(x_k)−f(x*)≤‖x₀−x*‖²/(2αk)。取得的x*、凸性、精确投影与固定步长须随速率一起声明。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">单纯形投影下降无需强迫普通梯度为零</div>
+<p>a=(1.2,.4,−.2)，在单纯形上极小化‖x−a‖²/2。L=1，x*=(.9,.1,0)，f*=.11。α=.5、x₀=(1/3,1/3,1/3)时，每次投影迭代可行并下降。最优点普通梯度(−.3,−.3,.2)非零，但x*−.5∇f(x*)投影后仍为x*。θ=.3、下界乘子(0,0,.5)、对偶值.11提供独立全局证书。</p>
+</div>
+<p>罚函数方法改变目标。等式h=0的平方罚项f+(ρ/2)‖h‖²抑制违反，但有限ρ通常仍留残差。在x=0下极小化(x−2)²/2，原解为零，罚目标极小点却是2/(1+ρ)&gt;0。ρ增大时约束梯度贡献趋近所需等式乘子，但点依旧不可行。大ρ还可能恶化曲率条件。因此精确投影与有限光滑罚项求解不同的中间问题。</p>
+<p>某些非光滑罚项在适当假设及足够大权重下可精确。本标量例的(x−2)²/2+ρ|x|在ρ≥2时以零为极小点，因为零处左导−2−ρ≤0、右导−2+ρ≥0，且目标凸。这一示例不意味着有限平方罚项普遍精确，也不消除非光滑最优性处理。使f无定义的域违反仍必须阻止；罚项不能计算非法输入的对数。</p>
+<figure class="fig" id="fig-20-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="精确投影每步在可行集；标量平方罚问题的极小点二除以一加权重在有限权重下非零，仍违反原等式。"><title>投影与有限平方罚比较</title><desc>精确投影每步在可行集；标量平方罚问题的极小点二除以一加权重在有限权重下非零，仍违反原等式。</desc><defs><marker id="fig-20-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">投影强制可行；罚项改变目标</text><rect x="35" y="65" width="330" height="220" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="395" y="65" width="330" height="220" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="200" y="109" text-anchor="middle" font-size="23" fill="#1a2e4a">投影</text><text x="560" y="109" text-anchor="middle" font-size="23" fill="#1a2e4a">平方罚</text><text x="200" y="155" text-anchor="middle" font-size="23" fill="#1a2e4a">x⁺=P_C(x−αg)</text><text x="560" y="155" text-anchor="middle" font-size="23" fill="#1a2e4a">fρ=f+ρx²/2</text><text x="200" y="202" text-anchor="middle" font-size="19" fill="#1a2e4a">精确投影 ⇒ x⁺∈C</text><text x="560" y="202" text-anchor="middle" font-size="23" fill="#1a2e4a">xρ=2/(1+ρ)&gt;0</text><text x="200" y="248" text-anchor="middle" font-size="17" fill="#1a2e4a">边界普通g可非零</text><text x="560" y="248" text-anchor="middle" font-size="17" fill="#1a2e4a">原等式 x=0仍违反</text><text x="380" y="327" text-anchor="middle" font-size="17" fill="#1a2e4a">例 f=(x−2)²/2、约束 x=0；任意有限平方罚权仍不可行。</text></g></svg></div><figcaption><span class="fig-num">图 20.4</span> <p>投影在每个接受迭代强制可行；平方罚项在有限权重下通常以残留违反交换目标下降。</p>
+</figcaption></figure>
+<p>完整QP流程为：明确Q,c,C，检查凸性和可行性，能解析时先推候选，再运行具有步长及投影契约的方法，最后检查原始和对偶量。实验3故意提供通过驻点但不可行的点，以及使对偶下界失效的负乘子。容差应以各方程单位声明；约束缩放会改变原始残差及乘子。求解器停止、数学可行和目标精度证书是不同结论。</p>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="projection"></div><div class="widget-caption">
+</div></div>
+<p>探索器用二维单纯形x+y=1、x,y≥0，目标为到a=(a₁,a₂)的半平方距离。精确投影x=clip((a₁−a₂+1)/2,0,1)、y=1−x。移动a跨越活跃集切换，再选择不可行候选或负乘子错误。驻点与对偶表达式均按该候选重算；小驻点残差或候选差不能跳过可行性与符号检查。</p>
+<p>这些基础支持资源分配、约束学习及后续支持向量形式。应用可能加入非光滑损失、大规模稀疏系统或噪声梯度，需要自己的方法契约。本课成果是完整小凸证书及有理据的可行算法，并明确非凸KKT、资格失败和有限罚项为何不能自动继承同样结论。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>边界最优点能让哪种梯度量为零？投影O(1/k)间隙界的假设是什么？有限平方罚项是否精确可行方法？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>投影梯度映射可为零而普通梯度非零。速率要求凸光滑f、取得的极小点、闭凸C精确投影及固定0&lt;α≤1/L。标量例每个有限ρ仍有正违反，因此不能精确强制等式。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>说法</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>小目标修复不可行。</td>
+<td>原始候选需满足全部限制。</td>
+</tr>
+<tr>
+<td>裁剪归一化就是单纯形投影。</td>
+<td>公共阈值解最近点问题。</td>
+</tr>
+<tr>
+<td>每个最优点都有乘子。</td>
+<td>必要性需资格或其他适用定理。</td>
+</tr>
+<tr>
+<td>每个活跃约束都有正价格。</td>
+<td>活跃约束可能零乘子。</td>
+</tr>
+<tr>
+<td>KKT总给全局极小证书。</td>
+<td>凸充分性需凸目标及不等式、仿射等式。</td>
+</tr>
+<tr>
+<td>试探L值是对偶下界。</td>
+<td>它是域下确界的上界。</td>
+</tr>
+<tr>
+<td>Slater失败就有正间隙。</td>
+<td>条件充分而非必要。</td>
+</tr>
+<tr>
+<td>有限平方罚项精确强制等式。</td>
+<td>通常残留违反。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个可复现实验</h2></div>
+<h3 id="lab1">实验1 · 盒与单纯形投影</h3>
+<p><a href="labs/module_20/lab1_box_and_simplex.py" download>下载 lab1_box_and_simplex.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Euclidean projections with feasibility and variational checks; NumPy only.&quot;&quot;&quot;
+import numpy as np
+
+
+def simplex_projection(v):
+    v = np.asarray(v, dtype=float)
+    if v.ndim != 1 or len(v) == 0 or not np.all(np.isfinite(v)):
+        raise ValueError(&quot;a nonempty finite vector is required&quot;)
+    ordered = np.sort(v)[::-1]
+    thresholds = (np.cumsum(ordered) - 1.0) / np.arange(1, len(v) + 1)
+    eligible = np.flatnonzero(ordered - thresholds &gt; 0)
+    theta = thresholds[eligible[-1]]
+    return np.maximum(v - theta, 0.0), theta
+
+
+if __name__ == &quot;__main__&quot;:
+    np.set_printoptions(precision=8, suppress=True)
+    v = np.array([1.2, 0.4, -0.2])
+    lower, upper = np.zeros(3), np.ones(3)
+    box = np.clip(v, lower, upper)
+    simplex, theta = simplex_projection(v)
+    clip_then_normalise = box / box.sum()
+    print(&quot;input:&quot;, v)
+    print(&quot;box projection:&quot;, box)
+    print(&quot;simplex projection:&quot;, simplex, &quot;threshold:&quot;, f&quot;{theta:.8f}&quot;)
+    print(&quot;clip then normalise:&quot;, clip_then_normalise)
+    print(&quot;squared distances: projection=%.8f shortcut=%.8f&quot; % (
+        np.sum((simplex-v)**2), np.sum((clip_then_normalise-v)**2)))
+    assert np.all(simplex &gt;= 0) and abs(simplex.sum()-1) &lt; 1e-12
+    assert np.sum((simplex-v)**2) &lt; np.sum((clip_then_normalise-v)**2)
+    vertices = np.eye(3)
+    variational = (vertices-simplex) @ (v-simplex)
+    print(&quot;(v-projection) dot (vertex-projection):&quot;, variational)
+    assert np.max(variational) &lt; 1e-12
+    for vector in [np.array([-3., -2., -1.]), np.zeros(3), np.array([2., 2., 2.])]:
+        p, t = simplex_projection(vector)
+        print(&quot;input&quot;, vector, &quot;-&gt;&quot;, p, &quot;threshold&quot;, f&quot;{t:.8f}&quot;)
+        assert np.all(p &gt;= 0) and abs(p.sum()-1) &lt; 1e-12
+    print(&quot;PASS: feasible nearest points; normalisation shortcut is not projection&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>input: [ 1.2  0.4 -0.2]
+box projection: [1.  0.4 0. ]
+simplex projection: [0.9 0.1 0. ] threshold: 0.30000000
+clip then normalise: [0.71428571 0.28571429 0.        ]
+squared distances: projection=0.22000000 shortcut=0.28897959
+(v-projection) dot (vertex-projection): [ 0.   0.  -0.5]
+input [-3. -2. -1.] -&gt; [0. 0. 1.] threshold -2.00000000
+input [0. 0. 0.] -&gt; [0.33333333 0.33333333 0.33333333] threshold -0.33333333
+input [2. 2. 2.] -&gt; [0.33333333 0.33333333 0.33333333] threshold 1.66666667
+PASS: feasible nearest points; normalisation shortcut is not projection
+</code></pre></div>
+<p>运行前推两个最近点及阈值，比较归一化捷径的平方距离。在本有限单纯形检查全部顶点，就能借凸组合证明整个集合的变分不等式。</p>
+<h3 id="lab2">实验2 · 可行投影梯度下降</h3>
+<p><a href="labs/module_20/lab2_projected_gradient.py" download>下载 lab2_projected_gradient.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A convex simplex QP: feasible iterates and a projected-gradient residual.&quot;&quot;&quot;
+import numpy as np
+from lab1_box_and_simplex import simplex_projection
+
+if __name__ == &quot;__main__&quot;:
+    np.set_printoptions(precision=8, suppress=True)
+    a = np.array([1.2, .4, -.2])
+    target, _ = simplex_projection(a)
+    x = np.ones(3) / 3
+    eta = .5  # L=1; eta&lt;=1/L supports the stated convex gap bound.
+    objective = lambda z: .5 * np.sum((z-a)**2)
+    previous = objective(x)
+    print(&quot;analytic optimum:&quot;, target, &quot;objective:&quot;, f&quot;{objective(target):.8f}&quot;)
+    for k in range(1, 31):
+        proposed = x-eta*(x-a)
+        updated, _ = simplex_projection(proposed)
+        projected_residual = np.linalg.norm(x-updated) / eta
+        assert np.min(updated) &gt;= 0 and abs(updated.sum()-1) &lt; 1e-12
+        current = objective(updated)
+        assert current &lt;= previous+1e-14
+        x, previous = updated, current
+        if k in (1, 2, 5, 10, 30):
+            print(&quot;k=%2d x=%s objective=%.10f step-mapping-norm=%.3e&quot; % (
+                k, x, current, projected_residual))
+    at_optimum, _ = simplex_projection(target-eta*(target-a))
+    print(&quot;ordinary gradient at optimum:&quot;, target-a)
+    print(&quot;projected-gradient mapping at optimum:&quot;, (target-at_optimum)/eta)
+    print(&quot;unconstrained update from optimum:&quot;, target-eta*(target-a))
+    assert np.linalg.norm(x-target) &lt; 1e-8
+    assert np.linalg.norm(target-at_optimum) &lt; 1e-12
+    print(&quot;PASS: feasible descent; boundary optimum need not have zero ordinary gradient&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>analytic optimum: [0.9 0.1 0. ] objective: 0.11000000
+k= 1 x=[0.7 0.3 0. ] objective=0.1500000000 step-mapping-norm=9.933e-01
+k= 2 x=[0.8 0.2 0. ] objective=0.1200000000 step-mapping-norm=2.828e-01
+k= 5 x=[0.8875 0.1125 0.    ] objective=0.1101562500 step-mapping-norm=3.536e-02
+k=10 x=[0.89960938 0.10039063 0.        ] objective=0.1100001526 step-mapping-norm=1.105e-03
+k=30 x=[0.9 0.1 0. ] objective=0.1100000000 step-mapping-norm=1.054e-09
+ordinary gradient at optimum: [-0.3 -0.3  0.2]
+projected-gradient mapping at optimum: [ 0. -0.  0.]
+unconstrained update from optimum: [ 1.05  0.25 -0.1 ]
+PASS: feasible descent; boundary optimum need not have zero ordinary gradient
+</code></pre></div>
+<p>检查每个迭代总和、非负及目标下降，解释x*处普通梯度与投影映射的区别。更新前测得的残差属于该起始点，不属于新接受点。</p>
+<h3 id="lab3">实验3 · KKT 对偶及罚项错误</h3>
+<p><a href="labs/module_20/lab3_kkt_and_dual_faults.py" download>下载 lab3_kkt_and_dual_faults.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Check all KKT residuals, a dual bound, and qualifications; NumPy only.&quot;&quot;&quot;
+import numpy as np
+
+a = np.array([1.2, .4, -.2])
+
+
+def report(label, x, lam, nu):
+    gradient = x-a
+    stationarity = gradient + lam - nu
+    equality = abs(x.sum()-1)
+    inequality = max(0.0, -float(x.min()))
+    dual_feasibility = max(0.0, -float(nu.min()))
+    complementarity = np.max(np.abs(nu*x))
+    f = .5*np.sum((x-a)**2)
+    q = lam*(a.sum()-1)-nu@a-.5*np.sum((lam-nu)**2)
+    print(label)
+    print(&quot;  residuals: equality=%.3e inequality=%.3e dual=%.3e stationarity=%.3e complementarity=%.3e&quot; % (
+        equality, inequality, dual_feasibility, np.linalg.norm(stationarity), complementarity))
+    print(&quot;  objective=%.8f dual=%.8f candidate difference=%.8f&quot; % (f, q, f-q))
+    valid_dual = dual_feasibility == 0
+    feasible = equality &lt; 1e-12 and inequality == 0
+    print(&quot;  dual bound valid:&quot;, valid_dual, &quot;candidate feasible:&quot;, feasible)
+    return feasible and valid_dual and max(np.linalg.norm(stationarity), complementarity) &lt; 1e-12
+
+
+if __name__ == &quot;__main__&quot;:
+    np.set_printoptions(precision=8, suppress=True)
+    assert report(&quot;correct certificate&quot;, np.array([.9, .1, 0]), .3, np.array([0., 0., .5]))
+    assert not report(&quot;infeasible despite matching stationarity&quot;, np.array([1., .2, 0]), .2, np.array([0., 0., .4]))
+    assert not report(&quot;negative lower-bound multiplier&quot;, np.array([.9, .1, 0]), .3, np.array([0., 0., -.5]))
+    print(&quot;qualification failure: minimise x subject to x^2=0&quot;)
+    print(&quot;  only feasible x=0; constraint gradient=0; stationarity 1+lambda*0 cannot vanish&quot;)
+    print(&quot;  q(lambda)=-1/(4*lambda) for lambda&gt;0; supremum 0, never attained&quot;)
+    for lam in (1., 10., 100.):
+        print(&quot;  lambda=%.0f dual bound=%.8f&quot; % (lam, -1/(4*lam)))
+    print(&quot;nonconvex KKT false certificate: minimise -x^2 subject to -1&lt;=x&lt;=1&quot;)
+    print(&quot;  x=0, multipliers=0 pass KKT; f=0, but x=1 gives f=-1&quot;)
+    print(&quot;  on R, every Lagrangian remains a downward quadratic: dual value=-infinity&quot;)
+    for rho in (1., 10., 100.):
+        # f=.5*(x-2)^2, equality x=0; squared penalty rho*x^2/2.
+        x = 2/(1+rho)
+        print(&quot;squared penalty rho=%.0f minimiser=%.8f equality violation=%.8f&quot; % (rho, x, abs(x)))
+        assert x &gt; 0
+    print(&quot;PASS: stationarity alone fails; qualification, convexity and feasibility matter&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>correct certificate
+  residuals: equality=0.000e+00 inequality=0.000e+00 dual=0.000e+00 stationarity=7.850e-17 complementarity=0.000e+00
+  objective=0.11000000 dual=0.11000000 candidate difference=-0.00000000
+  dual bound valid: True candidate feasible: True
+infeasible despite matching stationarity
+  residuals: equality=2.000e-01 inequality=0.000e+00 dual=0.000e+00 stationarity=5.551e-17 complementarity=0.000e+00
+  objective=0.06000000 dual=0.10000000 candidate difference=-0.04000000
+  dual bound valid: True candidate feasible: False
+negative lower-bound multiplier
+  residuals: equality=0.000e+00 inequality=0.000e+00 dual=5.000e-01 stationarity=1.000e+00 complementarity=0.000e+00
+  objective=0.11000000 dual=-0.39000000 candidate difference=0.50000000
+  dual bound valid: False candidate feasible: True
+qualification failure: minimise x subject to x^2=0
+  only feasible x=0; constraint gradient=0; stationarity 1+lambda*0 cannot vanish
+  q(lambda)=-1/(4*lambda) for lambda&gt;0; supremum 0, never attained
+  lambda=1 dual bound=-0.25000000
+  lambda=10 dual bound=-0.02500000
+  lambda=100 dual bound=-0.00250000
+nonconvex KKT false certificate: minimise -x^2 subject to -1&lt;=x&lt;=1
+  x=0, multipliers=0 pass KKT; f=0, but x=1 gives f=-1
+  on R, every Lagrangian remains a downward quadratic: dual value=-infinity
+squared penalty rho=1 minimiser=1.00000000 equality violation=1.00000000
+squared penalty rho=10 minimiser=0.18181818 equality violation=0.18181818
+squared penalty rho=100 minimiser=0.01980198 equality violation=0.01980198
+PASS: stationarity alone fails; qualification, convexity and feasibility matter
+</code></pre></div>
+<p>报告所显示的五个残差量，包括分开的等式与不等式可行性。解释不可行候选为何低于有效对偶界、负乘子为何失效，以及资格和凸定理错误。下载实验2时请把其导入的投影脚本也保存在同一目录。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>十四道练习及完整解答</h2></div>
+<p>练习1–12必做，选做13–14在十二小时核心安排外增加35分钟。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>把(−.5,.3,1.4)投影到[0,1]³，给平方距离。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>逐坐标裁剪得(0,.3,1)，平方距离.25+0+.16=.41。可分离最近点目标证明该盒的裁剪；总和限制则耦合坐标。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>把(1.2,.4,−.2)投影到单纯形，给半平方距离目标的等式与下界乘子。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>θ=.3得(.9,.1,0)，λ=(0,0,.5)。逐坐标驻点x−v+θ1−λ=0，非负且总和1，λ≥0、λ_i x_i=0。凸KKT充分性证明唯一最近点。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>在x+y=4下解min (x²+y²)/2，解释等式乘子。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>x+ν=y+ν=0给x=y=2、ν=−2，V(4)=4。V(b)=b²/4，所以b=4的敏感性V′=2=−ν，符号对应x+y−b=0。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>在x≥0、g=−x下解min (x+3)²/2，列全部KKT。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>x*=0、λ=3；原始−x≤0、对偶λ≥0、互补λ(−x)=0、驻点x+3−λ=0。凸性给全局充分，严格凸给唯一，普通梯度为3。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证明闭凸可行集上的投影变分刻画。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>最近点p沿可行线段对‖p+t(z−p)−v‖²/2取右导，得(p−v)ᵀ(z−p)≥0。反向展开第1节平方距离，变分符号使任何z至少与p一样远。严格凸给唯一；存在性需另由非空、闭和有界距离子水平集证明。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证明弱对偶，指出乘子符号及原始可行性的使用位置。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>λ≥0、x可行时λ_i g_i≤0且等式项零，故q=inf_D L≤L(x)≤f(x)。取原始下确界得q≤p<em>，再最大化有效乘子得d</em>≤p*。负λ或不可行x破坏第二不等式；不需要凸性。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证明凸KKT全局充分性，避免声称无条件必要性。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>凸f,g、仿射h及λ*≥0使固定乘子的L凸。驻点给x<em>为L全局极小，互补和可行性给L(x</em>)=f(x*)。任意可行z有f(z)≥L(z)≥L(x*)=f(x*)。乘子存在必要性还需适用Slater或LICQ等资格，本充分性证明不需它。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>非负资源(x₁,x₂)、总和≤2，极小化到(3,1)的半平方距离，给解和乘子。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>x=(2,0)、预算乘子1、下界乘子(0,0)。梯度(−1,−1)被预算梯度抵消。预算活跃，第二下界活跃却零价格。全部KKT成立，凸性给全局、严格凸给唯一，目标为1。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>推x+y=2下min (x²+y²)/2的q，比较ν=0与−1。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>配方得q=−ν²−2ν。零乘子下界0，−1给1，匹配可行(1,1)。L下确界在R²取，其极小点(−ν,−ν)在非最优乘子时不必可行。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>a=(1.2,.4,−.2)的单纯形QP，在θ=.3、λ=(0,0,.5)验证q，并认证可行候选目标精度。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>Σa−1=.4、−λᵀa=.1、‖θ1−λ‖²=.22，因此q=.12+.1−.11=.11。可行候选目标.1102的最优间隙至多.0002。参数精度需额外曲率界；不可行候选没有该保证。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>求解器在−1≤x≤1下极小化−x²，找到零点及零KKT残差，因严格可行声称全局最优。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>零点配λ=(0,0)满足KKT，但f(±1)=−1&lt;f(0)=0。目标不凸，凸充分性及凸Slater不适用。域L总是向下二次，下确界−∞，不能提供有限紧下界。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>在x²≤0下极小化x；报告声称Slater失败必正间隙，且每个最优点都有有限KKT乘子。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>唯一可行零点给p*=0；λ&gt;0时q=−1/(4λ)，q(0)=−∞。上确界0，间隙零却对偶不取得。零点驻点1+2λx=0不可能。资格失败允许无乘子，但不强迫正间隙。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>推投影梯度下降系数及不动点最优性证书。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>d=x⁺−x，对投影式取z=x得gᵀd≤−‖d‖²/α；光滑下降给f(x⁺)≤f(x)−(1/α−L/2)‖d‖²。不动点对全部z∈C给gᵀ(z−x)≥0，再由凸支持得f(z)≥f(x)。可行性、凸C、精确投影和有效光滑范围属于方法契约。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>在x=0下极小化(x−2)²/2，比较平方罚ρx²/2与绝对值罚ρ|x|。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>平方罚驻点(x−2)+ρx=0给x=2/(1+ρ)，任意有限ρ不可行。绝对值罚零处左右导−2−ρ和−2+ρ，在ρ≥2时夹住零，凸性给零最优。本例展示非光滑罚项的带资格精确性，不意味着一般光滑平方罚也精确。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自测</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>小目标候选违反等式，意味着什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">不是可行原始解</button></li><li><button type="button" class="quiz-opt" data-i="1">目标修复违反</button></li><li><button type="button" class="quiz-opt" data-i="2">自动以可行点身份满足弱对偶</button></li></ol><div class="quiz-expl" hidden>可行性独立于目标大小，弱对偶比较要求可行点。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>怎样投影到单纯形？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总是裁剪再归一化</button></li><li><button type="button" class="quiz-opt" data-i="1">减公共阈值再在零处裁剪</button></li><li><button type="button" class="quiz-opt" data-i="2">每坐标独立投到[0,1]后停止</button></li></ol><div class="quiz-expl" hidden>阈值需使正坐标和为1；盒裁剪解决不同集合。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>活跃不等式乘子必须怎样？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">严格正</button></li><li><button type="button" class="quiz-opt" data-i="1">写g≤0的所有下界都用负乘子</button></li><li><button type="button" class="quiz-opt" data-i="2">非负，可以零</button></li></ol><div class="quiz-expl" hidden>互补只迫使不活跃乘子为零；−x≤0的下界仍用非负λ。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>本课什么给全局KKT充分性？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">凸目标与不等式、仿射等式及全部KKT</button></li><li><button type="button" class="quiz-opt" data-i="1">任意光滑目标仅驻点</button></li><li><button type="button" class="quiz-opt" data-i="2">不需要凸性的严格可行</button></li></ol><div class="quiz-expl" hidden>凸L支持全局证明；向下二次是非凸反例。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>对偶下确界在哪取？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">仅原始可行集</button></li><li><button type="button" class="quiz-opt" data-i="1">共同域，不重复原始限制</button></li><li><button type="button" class="quiz-opt" data-i="2">一个选定试探点</button></li></ol><div class="quiz-expl" hidden>试探值是L下确界的上界，不自动给原始下界证书。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>弱对偶需要凸性吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总是需要</button></li><li><button type="button" class="quiz-opt" data-i="1">仅等式需要</button></li><li><button type="button" class="quiz-opt" data-i="2">不需要，符号和可行性足以证明</button></li></ol><div class="quiz-expl" hidden>强对偶需额外假设，基本下界链不需凸性。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>Slater失败证明什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">没有其他理由时不能使用这个充分定理</button></li><li><button type="button" class="quiz-opt" data-i="1">间隙必正</button></li><li><button type="button" class="quiz-opt" data-i="2">永不可能有KKT乘子</button></li></ol><div class="quiz-expl" hidden>其他资格或直接证书可能适用，有些零间隙问题不取得对偶最优。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>边界最优点可能有哪个性质？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">投影映射非零而普通梯度必零</button></li><li><button type="button" class="quiz-opt" data-i="1">投影映射零而普通梯度非零</button></li><li><button type="button" class="quiz-opt" data-i="2">每个未投影步都可行</button></li></ol><div class="quiz-expl" hidden>投影编码单侧可行几何，边界不适用无约束普通零梯度条件。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>有限平方等式罚项保证什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">所有正权重都精确可行</button></li><li><button type="button" class="quiz-opt" data-i="1">原目标及问题相同</button></li><li><button type="button" class="quiz-opt" data-i="2">改变目标且可能留约束违反</button></li></ol><div class="quiz-expl" hidden>标量罚解2/(1+ρ)在所有有限ρ非零。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m20:q10">
+<label for="q10-response">10. 用原始可行、对偶符号、驻点及互补认证(1.2,.4,−.2)的单纯形投影，计算对偶值，写凸与Slater假设，并区分零间隙和原始、对偶取得。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="写点、阈值、下界乘子、目标及每项假设。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我检查可行性与符号，区分必要、充分、间隙及取得。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>x*=(.9,.1,0)、θ=.3、λ=(0,0,.5)。点非负且和为1，λ≥0，x*−a+θ1−λ=0，λ_i x_i*=0。原始、对偶值均.11。凸有限目标与不等式、仿射等式给充分性；严格正的和1点给Slater及对偶取得。紧性另给原始取得。仅零间隙不能保证原始取得或有限最优乘子。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>有目的的阅读</h2></div>
+<p>阅读作者的<a href="https://web.stanford.edu/~boyd/cvxbook/" target="_blank" rel="noopener">Convex Optimization配套页</a>中对偶与约束极小化章节。把带资格Slater读成有假设的定理，再比较本课直接弱对偶及凸KKT证明。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>选读及问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第1次 · 20分钟</td>
+<td>等式与L：哪些秩和维数假设支持必要性？</td>
+</tr>
+<tr>
+<td>第4次 · 20分钟</td>
+<td>对偶与Slater：哪些假设给零间隙，哪些额外事实给取得？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索 结业任务与下一步</h2></div>
+<p>明确可行集、推投影、解一个直线约束二次，按g≤0写完整KKT。证明弱对偶及凸KKT充分性，准确识别Slater何时提供额外定理。</p>
+<p><strong>结业任务：</strong> 完成单纯形QP证书，推一次投影步及下降系数，诊断奇异资格和非凸驻点例，不混淆间隙、取得与可行性。</p>
+<p><strong>可以继续：</strong> 你能把约束算法连接到可行几何和证书。接下来概率建立明确模型、条件与不确定性，而不把未说明的数值频率当作数学事实。见<a href="index_ZH.html">课程总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>记号与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语或记号</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C、活跃约束</td>
+<td>可行集、不等式取等号</td>
+<td>Feasible set, active constraint</td>
+</tr>
+<tr>
+<td>P_C、θ</td>
+<td>欧氏投影、单纯形阈值</td>
+<td>Euclidean projection, threshold</td>
+</tr>
+<tr>
+<td>λ、ν</td>
+<td>非负不等式、无限制等式乘子</td>
+<td>Inequality, equality multiplier</td>
+</tr>
+<tr>
+<td>KKT、LICQ</td>
+<td>四条件、活跃梯度独立</td>
+<td>Conditions, constraint qualification</td>
+</tr>
+<tr>
+<td>q、p<em>、d</em></td>
+<td>对偶函数、原始下确界、对偶上确界</td>
+<td>Dual function, optimal values</td>
+</tr>
+<tr>
+<td>Slater、相对内部</td>
+<td>带资格严格可行、仿射包内内部</td>
+<td>Slater, relative interior</td>
+</tr>
+<tr>
+<td>G_α、罚函数</td>
+<td>投影映射、抑制违反的改动目标</td>
+<td>Projected mapping, penalty</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_19_ZH.html">← 模块 19</a><a href="module_21_ZH.html">模块 21 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

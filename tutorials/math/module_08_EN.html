@@ -1,0 +1,528 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Modular arithmetic and algebra for computing — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Compute gcds, prove when modular division is valid, trace repeated squaring, and distinguish integer rings, prime fields, machine words, and checksum claims."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="8"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 08</button><div class="dropdown-menu" id="module-menu"><a href="module_08_EN.html" class="active" aria-current="page">Modular arithmetic and algebra for computing</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="module_08_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>Division needs a domain and an inverse</span></a><a href="#s1"><span class="num">2</span><span>Divisibility primes and unique quotient–remainder</span></a><a href="#s2"><span class="num">3</span><span>Euclid Bézout certificates and termination</span></a><a href="#s3"><span class="num">4</span><span>Congruence classes and well-defined operations</span></a><a href="#s4"><span class="num">5</span><span>Inverses legal cancellation and linear congruences</span></a><a href="#s5"><span class="num">6</span><span>Fast powers Fermat's conditions and coprime reconstruction</span></a><a href="#s6"><span class="num">7</span><span>Groups rings fields binary arithmetic and checksums</span></a><a href="#misconceptions"><span class="num">8</span><span>Common misconceptions and failure cases</span></a><a href="#labs"><span class="num">9</span><span>Three CPU labs</span></a><a href="#exercises"><span class="num">10</span><span>Exercises with full solutions</span></a><a href="#quiz"><span class="num">11</span><span>Self-check quiz</span></a><a href="#reading"><span class="num">12</span><span>Reading with a purpose</span></a><a href="#summary"><span class="num">13</span><span>Retrieval exit task and next step</span></a><a href="#terms"><span class="num">14</span><span>Notation and bilingual terminology</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">Modular arithmetic and algebra for computing</h1><p class="module-lead">Compute gcds, prove when modular division is valid, trace repeated squaring, and distinguish integer rings, prime fields, machine words, and checksum claims.</p><div class="hero-chips"><span class="chip chip-time">8 hours</span><span class="chip">4 sessions</span><span class="chip">3 labs</span><span class="chip">12 exercises + 2 extensions</span><span class="chip">10 quiz questions</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Use divisibility, unique integer quotient/remainder, and prime-factor reasoning with domains.</li><li>Compute Euclid and extended Euclid traces and verify Bézout identities.</li><li>Prove modular inverse existence and solve a small linear congruence.</li><li>Explain repeated-squaring correctness, Fermat's conditions, and a coprime CRT example.</li><li>Distinguish groups, rings, fields, binary operations, and limited checksum evidence.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Modules 01 and 04: integer arithmetic, functions, induction, invariants, and termination. No graph or counting module is required for the core lesson.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">Division needs a domain and an inverse</a><a href="#s1">Divisibility primes and unique quotient–remainder</a><a href="#s2">Euclid Bézout certificates and termination</a><a href="#s3">Congruence classes and well-defined operations</a><a href="#s4">Inverses legal cancellation and linear congruences</a><a href="#s5">Fast powers Fermat's conditions and coprime reconstruction</a><a href="#s6">Groups rings fields binary arithmetic and checksums</a><a href="#misconceptions">Common misconceptions and failure cases</a><a href="#labs">Three CPU labs</a><a href="#exercises">Exercises with full solutions</a><a href="#quiz">Self-check quiz</a><a href="#reading">Reading with a purpose</a><a href="#summary">Retrieval exit task and next step</a><a href="#terms">Notation and bilingual terminology</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">8 hours</span></div><p class="plan-lead">Times include practice and are estimates. Split a session when useful. Optional extension exercises add 35 minutes. Progress is stored in this browser and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">120 min</span></div><div class="session-title">Divisibility and Euclidean certificates</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2; trace quotients and Bézout coefficients.</a></span><span class="act-min">55</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Run gcd traces and check the identity including zero inputs.</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Complete Exercises 1–4.</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m08:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">120 min</span></div><div class="session-title">Residues inverses and legal cancellation</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Sections 3–4 and use the residue explorer.</a></span><span class="act-min">55</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e5">Complete proof Exercises 5–7.</a></span><span class="act-min">42</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read gcd, congruence, and inverse selections.</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Explain why nonzero is weaker than invertible.</a></span><span class="act-min">8</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m08:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">120 min</span></div><div class="session-title">Fast powers and coprime reconstruction</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s5">Read Section 5; prove the squaring invariant and solve CRT.</a></span><span class="act-min">40</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Compare modular powers with Python and count operations.</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Complete application Exercises 8–10.</a></span><span class="act-min">30</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">State the exact Fermat and CRT hypotheses.</a></span><span class="act-min">5</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m08:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">120 min</span></div><div class="session-title">Algebraic structures and fault diagnosis</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s6">Read Section 6 and compare fields with word arithmetic.</a></span><span class="act-min">35</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Find noninvertible residues and explicit checksum collisions.</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e11">Diagnose Exercises 11–12.</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Complete the choices and a written inverse argument.</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Check the Python pow contract and complete the exit task.</a></span><span class="act-min">5</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m08:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>Division needs a domain and an inverse</h2></div>
+<p>On an ordinary clock, adding hours wraps around a fixed cycle. In modular arithmetic, the same idea applies to all integers, including negative ones. Addition and multiplication remain well defined, but division behaves differently: a nonzero residue may have no inverse. A cancellation step that is valid over the real numbers can silently turn a true modular equation into a false one.</p>
+<p>This module connects integer divisibility to legal modular operations. You will derive Euclid’s invariant, compute a Bézout certificate, identify invertible residues, trace fast powers, and distinguish groups, rings, and fields. The final examples separate binary field arithmetic from machine-word arithmetic and show precisely what a tiny checksum does and does not establish.</p>
+<p><strong>Retrieval check:</strong> manipulate integer equations, expand a finite product, and explain an invariant together with a decreasing integer variant. Review <a href="module_01_EN.html#s1">Module 01</a> and <a href="module_04_EN.html#s6">Module 04</a> as needed. The core lesson does not require the graph or counting modules. All moduli here are integers m≥2 unless a different convention is explicitly stated.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>Divisibility primes and unique quotient–remainder</h2></div>
+<p>For integers a,b, <strong>a divides b</strong>, written a|b, means there is an integer k such that b=ak. This is an existence statement in the integer domain. It does not mean a/b is an integer, and it does not mean b must be larger than a. For example 3 divides −12 because −12=3·(−4). Every integer divides zero; zero divides only zero. Prime and gcd definitions below avoid confusing this special case with positive divisors.</p>
+<p>If a|b and a|c, then a divides every integer linear combination xb+yc: substitute b=as and c=at to obtain xb+yc=a(xs+yt). If a|b and b|c, then a|c by multiplying the witnesses. These short proofs explain why subtracting a multiple of one integer from another preserves their common divisors. The coefficients must be integers; arbitrary real combinations would not preserve an integer divisibility conclusion.</p>
+<p>The <strong>division algorithm</strong> is a theorem: for any integer a and positive integer m, there are unique integers q,r with a=qm+r and 0≤r&lt;m. “Algorithm” here names the quotient–remainder property rather than requiring a particular implementation. One existence argument chooses q as the largest integer no greater than a/m, then r=a−qm. Its floor inequalities give exactly the stated remainder range, including when a is negative.</p>
+<p>For uniqueness, suppose qm+r=q′m+r′ with both remainders in that range. Then (q−q′)m=r′−r. The right side has magnitude less than m; the only multiple of m in that interval is zero. Thus q=q′ and r=r′. A different remainder convention, such as allowing negative remainders after truncating division, changes the representation rule. Our mathematical representative matches Python’s integer remainder when the modulus is positive.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A negative input still has a nonnegative representative</div>
+<p>For a=−17 and m=7, choose q=−3 and r=4: −17=(−3)·7+4 with 0≤4&lt;7. Choosing q=−2 would leave r=−3, which is an integer decomposition but violates our representative range. For positive 17, q=2 and r=3. The two signs should be handled by the declared convention, not by an unexplained absolute-value shortcut.</p>
+</div>
+<figure class="fig" id="fig-08-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" role="img" aria-label="Seventeen dots form two groups of seven and three left over. Negative seventeen has quotient negative three and remainder four under the same range."><title>Unique quotient and remainder</title><desc>Seventeen dots form two groups of seven and three left over. Negative seventeen has quotient negative three and remainder four under the same range.</desc><defs><marker id="fig-08-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="340" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="35" text-anchor="middle" font-size="22" fill="#1a2e4a">Quotient and remainder: 0 ≤ r &lt; 7</text><rect x="50" y="80" width="225" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><circle cx="75" cy="120" r="8" fill="#2563eb"/><circle cx="103" cy="120" r="8" fill="#2563eb"/><circle cx="131" cy="120" r="8" fill="#2563eb"/><circle cx="159" cy="120" r="8" fill="#2563eb"/><circle cx="187" cy="120" r="8" fill="#2563eb"/><circle cx="215" cy="120" r="8" fill="#2563eb"/><circle cx="243" cy="120" r="8" fill="#2563eb"/><text x="160" y="168" text-anchor="middle" font-size="24" fill="#1a2e4a">7</text><rect x="305" y="80" width="225" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><circle cx="330" cy="120" r="8" fill="#2563eb"/><circle cx="358" cy="120" r="8" fill="#2563eb"/><circle cx="386" cy="120" r="8" fill="#2563eb"/><circle cx="414" cy="120" r="8" fill="#2563eb"/><circle cx="442" cy="120" r="8" fill="#2563eb"/><circle cx="470" cy="120" r="8" fill="#2563eb"/><circle cx="498" cy="120" r="8" fill="#2563eb"/><text x="415" y="168" text-anchor="middle" font-size="24" fill="#1a2e4a">7</text><rect x="560" y="80" width="150" height="110" rx="10" fill="#fff7ed" stroke="#c2410c"/><circle cx="600" cy="120" r="8" fill="#c2410c"/><circle cx="632" cy="120" r="8" fill="#c2410c"/><circle cx="664" cy="120" r="8" fill="#c2410c"/><text x="635" y="168" text-anchor="middle" font-size="24" fill="#1a2e4a">3</text><text x="380" y="237" text-anchor="middle" font-size="25" fill="#1a2e4a">17 = 2 × 7 + 3</text><text x="380" y="300" text-anchor="middle" font-size="25" fill="#1a2e4a">−17 = (−3) × 7 + 4</text></g></svg></div><figcaption><span class="fig-num">Figure 8.1</span> <p>Whole groups of seven and a remainder illustrate 17=2·7+3; the negative example requires quotient −3 to keep the remainder in zero through six.</p>
+</figcaption></figure>
+<p>A <strong>prime</strong> is an integer p&gt;1 whose positive divisors are only 1 and p. An integer greater than one that is not prime is composite. The integer one is neither prime nor composite; negative primes are outside this convention. To factor a positive integer greater than one, recursively split any composite factor into smaller factors until all factors are prime. Strong induction on the integer proves that this process has a prime factorisation.</p>
+<p>The <strong>fundamental theorem of arithmetic</strong> also states uniqueness up to factor order. Its key lemma is that a prime dividing a product divides at least one factor. We justify that lemma using Bézout in the next section. Repeatedly apply it to match a prime on one factorisation to an equal prime on the other, cancel that positive integer factor, and continue. Existence and uniqueness are separate obligations; listing one successful factorisation proves only existence for that input.</p>
+<p>Prime factorisation is a mathematical description, not a claim that finding the factors of every large integer is fast. Our small examples use exact arithmetic and elementary reasoning. Euclid computes gcd without first factoring both inputs, which is one reason the invariant-based algorithm is useful. Later cost analysis should count bit operations when integer sizes grow, rather than treating enormous products or divisions as fixed-cost steps.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Write the unique quotient and remainder for −10 divided by 3 under our convention. Is one prime, and does 5 divide zero?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>−10=(−4)·3+2, so q=−4,r=2. One is not prime because primes are greater than one. Five divides zero with integer witness k=0.</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Euclid Bézout certificates and termination</h2></div>
+<p>For nonnegative integers a,b not both zero, the <strong>greatest common divisor</strong> gcd(a,b) is the greatest positive integer dividing both. It exists because common positive divisors are nonempty and bounded by a nonzero input. In particular gcd(a,0)=a for a&gt;0. For arbitrary signs, use gcd(|a|,|b|). Both-zero has no greatest positive common divisor; software often defines gcd(0,0)=0 as a useful separate convention.</p>
+<p>If a=qb+r, the pairs (a,b) and (b,r) have exactly the same common divisors. A divisor of a and b divides r=a−qb. Conversely, a divisor of b and r divides a=qb+r. Hence gcd(a,b)=gcd(b,r). This proves preservation by <strong>Euclid’s algorithm</strong>, which repeatedly replaces (a,b) with (b,a mod b) while b is nonzero. The invariant is equality with the original gcd, not merely a decreasing remainder.</p>
+<p>Termination follows because each nonzero second component is a nonnegative integer and the next remainder satisfies 0≤r&lt;b. A strictly decreasing nonnegative integer cannot continue forever. When b=0, the first component is the gcd by the invariant and the gcd(a,0) base case. Preservation explains correctness if the loop ends; the decreasing variant separately proves that it does end. Both are needed, as in Module 04.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Euclid and a certificate for gcd(252,105)</div>
+<p>252=2·105+42, 105=2·42+21, and 42=2·21+0, so the gcd is 21. Back-substitute: 21=105−2·42=105−2(252−2·105)=−2·252+5·105. The coefficients −2 and 5 certify the identity. Since 21 divides both inputs and every common divisor divides that linear combination, it is their greatest positive common divisor.</p>
+</div>
+<figure class="fig" id="fig-08-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 365" role="img" aria-label="252 and 105 produce remainders 42, 21, 0; the gcd is 21 with Bézout coefficients negative two and five."><title>Euclid and Bézout trace</title><desc>252 and 105 produce remainders 42, 21, 0; the gcd is 21 with Bézout coefficients negative two and five.</desc><defs><marker id="fig-08-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="365" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="35" text-anchor="middle" font-size="19" fill="#1a2e4a">Same common divisors; strictly decreasing second component</text><rect x="60" y="75" width="640" height="47" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="106" text-anchor="middle" font-size="23" fill="#1a2e4a">252 = 2 × 105 + 42</text><rect x="60" y="140" width="640" height="47" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="171" text-anchor="middle" font-size="23" fill="#1a2e4a">105 = 2 × 42 + 21</text><rect x="60" y="205" width="640" height="47" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="236" text-anchor="middle" font-size="23" fill="#1a2e4a">42 = 2 × 21 + 0</text><text x="380" y="301" text-anchor="middle" font-size="24" fill="#1a2e4a">21 = −2 × 252 + 5 × 105</text><text x="380" y="336" text-anchor="middle" font-size="17" fill="#1a2e4a">Back-substitution gives a certificate, not merely a guessed gcd.</text></g></svg></div><figcaption><span class="fig-num">Figure 8.2</span> <p>The quotient–remainder trace preserves the common-divisor set and ends at remainder zero. Back-substitution recovers the Bézout coefficients.</p>
+</figcaption></figure>
+<p><strong>Bézout’s identity</strong> says there are integers x,y with ax+by=gcd(a,b). Extended Euclid computes them by tracking two coefficient pairs. Initially a=1·a+0·b and b=0·a+1·b. Subtracting q times the second tracked equation from the first updates the remainder and its coefficients together. Swapping the two rows preserves the representation invariant. The final nonzero remainder therefore carries a concrete integer certificate.</p>
+<p>The coefficients are not generally unique. If ax+by=d, then replacing x by x+(b/d)t and y by y−(a/d)t preserves the identity for any integer t. A lab returning different coefficients can still be correct; check the actual equation and gcd value rather than demanding a particular pair. Zero inputs have valid identities too, while the both-zero software convention returns a representation of zero rather than a greatest positive divisor.</p>
+<p>If p is prime and p does not divide a, then gcd(p,a)=1, so Bézout gives px+ay=1. If p divides ab, multiply that equation by b: pxb+aby=b. Both terms on the left are divisible by p, hence p divides b. Thus p|ab implies p|a or p|b. This proves the prime-product lemma used for factorisation uniqueness without assuming that an arbitrary composite divisor has the same property.</p>
+<p>For example 6 divides 2·3 but divides neither 2 nor 3, so substituting “any integer” for “prime” would make the lemma false. The precise hypotheses matter again in modular cancellation. A nonzero factor and a factor coprime to the modulus have different powers. Bézout will turn coprimality into an inverse and allow a valid cancellation proof.</p>
+<p>Euclid’s division count grows logarithmically in the smaller positive input. One elementary reason is that the second component falls by at least a factor two within two iterations: if the first remainder r≤b/2 the reduction is immediate; if r&gt;b/2, the next remainder of b by r is b−r&lt;b/2. This bounds the number of remainder steps. It is a step-count argument, not a proof that each division of long integers costs constant time.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Which two arguments prove Euclid correct and terminating? What do the coefficients −2,5 certify for 252,105?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Common-divisor preservation establishes the gcd invariant, and the strictly decreasing nonnegative second component proves termination. The identity −2·252+5·105=21, together with 21 dividing both inputs, certifies their gcd.</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>Congruence classes and well-defined operations</h2></div>
+<p>For integers a,b and fixed m≥2, <strong>a is congruent to b modulo m</strong>, written <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>≡</mo><mi>b</mi><mspace></mspace><mspace width="0.4444em"/><mo stretchy="false">(</mo><mrow><mi mathvariant="normal">m</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">d</mi></mrow><mspace width="0.3333em"/><mi>m</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">a\equiv b\pmod m</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.4637em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≡</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span><span class="mspace allowbreak"></span><span class="mspace" style="margin-right:0.4444em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord mathrm">mod</span></span></span><span class="mspace" style="margin-right:0.3333em;"></span><span class="mord mathnormal">m</span><span class="mclose">)</span></span></span></span></span>, when m divides a−b. This is a relation between integers, not an assertion that a and b are literally equal. Congruence is reflexive because m|0, symmetric because a divisibility witness can be negated, and transitive because divisible differences add. Its equivalence classes collect all integers differing by a multiple of m.</p>
+<p>The class of a can be written [a]ₘ. It contains a+km for every integer k, including negative k. The division theorem gives each class a unique representative from 0 through m−1; call that representative a mod m. Thus [−17]₇=[4]₇, whereas −17 and 4 remain different integers. Writing an equation between classes is appropriate, but replacing it with equality between the original integers loses the distinction.</p>
+<p>Define class addition and multiplication by [a]+[b]=[a+b] and [a][b]=[ab]. To be <strong>well defined</strong>, the result must be independent of representative choices. If a′=a+km and b′=b+ℓm, their sum differs from a+b by (k+ℓ)m, and their product differs from ab by m(kb+ℓa+kℓm). Both differences are divisible by m. This proof permits reducing operands before an operation without changing the final residue.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Reduce operands and keep the same residue</div>
+<p>Modulo seven, 17 has representative three and −10 has representative four. Their sum 7 is congruent to zero, matching 3+4. Their product −170 is congruent to five, matching 3·4=12≡5. Intermediate integers differ, but their classes agree. Reduction keeps stored numbers small without changing these exact modular results.</p>
+</div>
+<p>Subtraction is addition of the additive inverse: [a] has inverse [−a]. For example −3 mod7 is four, because 3+4≡0. This inverse always exists for addition. It should not be confused with a <strong>multiplicative inverse</strong>, which would solve ab≡1 rather than a+b≡0. The same word inverse refers to the chosen operation, so name the operation when it is ambiguous.</p>
+<p>Modular powers with nonnegative exponent are repeated class multiplication, with exponent zero interpreted as the empty product [1]. This algebraic convention also makes the exponent-zero algorithm return one for base zero. It does not settle every analytic use of the expression 0⁰; the earlier discussion of domains still applies. Negative exponents require a multiplicative inverse and cannot be defined for every residue.</p>
+<p>A residue clock displays addition as rotation by a fixed number of steps. Adding a is always a permutation of the m residue positions, since subtracting a reverses it. Multiplication by a is different: it can send distinct positions to the same result. Modulo six, multiplying one and four by two gives two in both cases. The next section explains exactly when this multiplication map is a permutation.</p>
+<p>Comparing or ordering canonical representatives is a display convention. From a≡b mod m it does not follow that they have the same ordinary magnitude or sign. Similarly, reducing an inequality modulo m is not a valid order-preserving operation: 6&lt;8 but 6 mod7=6 exceeds 8 mod7=1. Congruence supports algebraic operations with a proof, not every operation that happens to work on integers.</p>
+<p>The representative set {0,…,m−1} is often used as shorthand for the classes themselves. Keep the interpretation visible when crossing into software. A Python integer such as three does not carry a modulus in its type; the programme must apply the intended modulus consistently. Combining residues from different moduli without a stated map is not a single modular calculation, even if their numeric representatives happen to match.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Are −2 and five equal integers or congruent modulo seven? Why can operands be reduced before multiplication? Can inequalities be reduced in the same way?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>They are distinct integers in the same modulo-seven class. Representative changes alter a product by a multiple of seven, proving well-definedness. Inequalities are not preserved: 6&lt;8 becomes representatives six and one, reversing their displayed order.</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>Inverses legal cancellation and linear congruences</h2></div>
+<p>A <strong>multiplicative inverse</strong> of a modulo m is a residue b satisfying ab≡1 mod m. It exists exactly when gcd(a,m)=1. For necessity, ab−1=km gives ab−km=1, so every common divisor of a and m divides one. For sufficiency, Bézout gives ax+my=1 when the gcd is one, so x is an inverse modulo m. These directions prove an if-and-only-if statement rather than a rule supported by sample calculations.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Nonzero and invertible are different conditions</div>
+<p>Modulo seven, 3·5=15≡1, so five is the inverse of three. Modulo six, two is nonzero but gcd(2,6)=2, so it has no inverse. Checking representatives also gives products 0,2,4,0,2,4, never one. Multiplication by two collapses pairs of inputs; multiplication by three modulo seven permutes every residue.</p>
+</div>
+<figure class="fig" id="fig-08-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 425" role="img" aria-label="Times three mod seven yields 0,3,6,2,5,1,4 once each. Times two mod six yields 0,2,4,0,2,4 and never one."><title>Invertible and noninvertible multiplication maps</title><desc>Times three mod seven yields 0,3,6,2,5,1,4 once each. Times two mod six yields 0,2,4,0,2,4 and never one.</desc><defs><marker id="fig-08-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="425" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="20" fill="#1a2e4a">The gcd determines whether multiplication can be reversed</text><text x="30" y="70" text-anchor="start" font-size="19" fill="#1a2e4a">3 × r mod 7</text><text x="65" y="102" text-anchor="middle" font-size="20" fill="#1a2e4a">0</text><path d="M65,112L65,146" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="44" y="155" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="65" y="179" text-anchor="middle" font-size="21" fill="#1a2e4a">0</text><text x="164" y="102" text-anchor="middle" font-size="20" fill="#1a2e4a">1</text><path d="M164,112L164,146" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="143" y="155" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="164" y="179" text-anchor="middle" font-size="21" fill="#1a2e4a">3</text><text x="263" y="102" text-anchor="middle" font-size="20" fill="#1a2e4a">2</text><path d="M263,112L263,146" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="242" y="155" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="263" y="179" text-anchor="middle" font-size="21" fill="#1a2e4a">6</text><text x="362" y="102" text-anchor="middle" font-size="20" fill="#1a2e4a">3</text><path d="M362,112L362,146" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="341" y="155" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="362" y="179" text-anchor="middle" font-size="21" fill="#1a2e4a">2</text><text x="461" y="102" text-anchor="middle" font-size="20" fill="#1a2e4a">4</text><path d="M461,112L461,146" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="440" y="155" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="461" y="179" text-anchor="middle" font-size="21" fill="#1a2e4a">5</text><text x="560" y="102" text-anchor="middle" font-size="20" fill="#1a2e4a">5</text><path d="M560,112L560,146" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="539" y="155" width="42" height="35" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="560" y="179" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><text x="659" y="102" text-anchor="middle" font-size="20" fill="#1a2e4a">6</text><path d="M659,112L659,146" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="638" y="155" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="659" y="179" text-anchor="middle" font-size="21" fill="#1a2e4a">4</text><text x="30" y="225" text-anchor="start" font-size="19" fill="#1a2e4a">2 × r mod 6</text><text x="65" y="257" text-anchor="middle" font-size="20" fill="#1a2e4a">0</text><path d="M65,267L65,301" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="44" y="310" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="65" y="334" text-anchor="middle" font-size="21" fill="#1a2e4a">0</text><text x="164" y="257" text-anchor="middle" font-size="20" fill="#1a2e4a">1</text><path d="M164,267L164,301" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="143" y="310" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="164" y="334" text-anchor="middle" font-size="21" fill="#1a2e4a">2</text><text x="263" y="257" text-anchor="middle" font-size="20" fill="#1a2e4a">2</text><path d="M263,267L263,301" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="242" y="310" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="263" y="334" text-anchor="middle" font-size="21" fill="#1a2e4a">4</text><text x="362" y="257" text-anchor="middle" font-size="20" fill="#1a2e4a">3</text><path d="M362,267L362,301" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="341" y="310" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="362" y="334" text-anchor="middle" font-size="21" fill="#1a2e4a">0</text><text x="461" y="257" text-anchor="middle" font-size="20" fill="#1a2e4a">4</text><path d="M461,267L461,301" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="440" y="310" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="461" y="334" text-anchor="middle" font-size="21" fill="#1a2e4a">2</text><text x="560" y="257" text-anchor="middle" font-size="20" fill="#1a2e4a">5</text><path d="M560,267L560,301" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-3__arrow)"/><rect x="539" y="310" width="42" height="35" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="560" y="334" text-anchor="middle" font-size="21" fill="#1a2e4a">4</text><text x="380" y="395" text-anchor="middle" font-size="17" fill="#1a2e4a">Times three mod seven permutes; times two mod six repeats.</text></g></svg></div><figcaption><span class="fig-num">Figure 8.3</span> <p>An invertible multiplier permutes residue positions. A noninvertible multiplier repeats outputs and never reaches one.</p>
+</figcaption></figure>
+<p>If an inverse exists, it is unique as a class. Given ab≡1 and ac≡1, multiply by b to obtain b≡c. Equivalently use a’s established inverse to cancel a. An inverse representative may be negative before canonical reduction: extended Euclid gives −2 as an inverse of three modulo seven, and −2 mod7 is five. Uniqueness concerns classes, not all integer representatives of one class.</p>
+<p>Cancellation from ax≡ay mod m to x≡y mod m is valid when gcd(a,m)=1: multiply both sides by the inverse. Without that condition it can fail. Modulo six, 2·1≡2·4, yet one is not congruent to four. Dividing both representatives by ordinary integer two does not preserve the original modulus. In this example the remaining condition is x≡y modulo three, a different and weaker statement.</p>
+<p>More generally let d=gcd(a,m). From m|a(x−y), divide the integer divisibility equation by d. The integers a/d and m/d are coprime, so Bézout cancellation gives (m/d)|(x−y). Thus the appropriate reduced modulus is m/d. Integer division of an exact equation and inversion of a class are different operations; writing the intermediate divisibility equation prevents a misleading cancellation symbol from hiding that distinction.</p>
+<p>The linear congruence ax≡b mod m has a solution exactly when d=gcd(a,m) divides b. Necessity follows because d divides ax and m, hence also b. For sufficiency, divide a,b,m by d; now a/d is invertible modulo m/d, giving one reduced solution x₀. In the original residue range the solutions are x₀+k(m/d), k=0,…,d−1. They are distinct modulo m and exhaust the solutions because any solution differs from x₀ by a multiple of m/d.</p>
+<p>For 4x≡2 mod6, d=2 and the reduced equation is 2x≡1 mod3. Two has inverse two modulo three, so x≡2 mod3; representatives modulo six are two and five. For 2x≡1 mod6, d=2 does not divide one, so there is no solution. An equation can have zero, one, or several solutions depending on its gcd condition; treating every nonzero coefficient as a unique divider loses all three distinctions.</p>
+<p>When d=m, such as a=0 modulo m, divisibility of b by m determines the result. If b≡0, every residue solves 0x≡0; otherwise none does. The reduced modulus is one, which is a trivial congruence relation rather than the m≥2 algebraic structures we otherwise study. State this boundary separately instead of calling the modulo-one class an ordinary nontrivial field.</p>
+<p>A nonzero residue with a nonzero partner whose product is zero is a <strong>zero divisor</strong>. In modulo six, two and three multiply to zero. In a prime modulus p, every nonzero residue is coprime to p and invertible, so no such pair exists: multiplying a zero product by an inverse would force the other factor to zero. This is the algebraic reason prime moduli differ from composite ones.</p>
+<div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" data-widget="residues"></div><div class="widget-caption">
+<p>Change the modulus and multiplier. Read canonical results, inverse availability, the multiplication map, and the Euclidean trace. The worked examples above provide a static alternative.</p>
+</div></div>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Solve 4x≡2 mod6 and diagnose cancellation by two modulo six. What is the additive inverse of two, and does that imply a multiplicative inverse?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Solutions are x=2,5. Cancellation by two only yields equality modulo three, not modulo six. Two’s additive inverse modulo six is four, but two has no multiplicative inverse because gcd(2,6)&gt;1.</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>Fast powers Fermat’s conditions and coprime reconstruction</h2></div>
+<p><strong>Repeated squaring</strong> evaluates aᴱ mod m for a nonnegative integer E without performing E consecutive multiplications. Maintain result r, current base b, and remaining exponent e, initially 1,a mod m,E. The invariant is rbᵉ≡aᴱ mod m. If e is odd, multiply r by b; square b; replace e by floor(e/2). For even e=2k, the new product is r(b²)ᵏ. For odd e=2k+1, it is (rb)(b²)ᵏ. Both equal the old product as classes.</p>
+<p>The nonnegative exponent strictly decreases when positive, so the loop terminates at e=0. The invariant then gives r≡aᴱ. Zero exponent takes no iterations and returns one under the empty-product convention. Reducing after every multiplication preserves the invariant and bounds stored residues by m−1. It avoids constructing the enormous unreduced power, although multiplication itself still has a bit cost depending on the modulus size.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Trace 3¹³ modulo seven</div>
+<p>Loop-head triples (r,b,e) are (1,3,13), (3,2,6), (3,4,3), and (5,2,1), then the returned residue is three. Thirteen has four binary digits, so there are four iterations. Our implementation counts a square even in its last iteration and an extra product for each odd remaining exponent: four squares plus three result products, seven modular multiplications. An implementation skipping the unused last square would have a different exact count.</p>
+</div>
+<p>For E&gt;0 the iteration count is floor(log₂E)+1, its binary length. Each iteration performs at most two modular multiplications, giving O(log(E+1)) such operations including the E=0 boundary. This is logarithmic in the exponent’s numeric value and linear in its bit length, not logarithmic in the length of its binary encoding. Very large moduli make each operation more expensive; the multiplication count alone is not a complete runtime proof.</p>
+<p><strong>Fermat’s little theorem</strong> states: if p is prime and p does not divide a, then aᵖ⁻¹≡1 mod p. To prove it, multiplication by a permutes the nonzero residues, because a has an inverse. Multiply all p−1 nonzero outputs: aᵖ⁻¹(p−1)!≡(p−1)! mod p. Every factorial factor is nonzero and invertible modulo p, so its product can be cancelled. The remaining equation is exactly the claimed power congruence.</p>
+<p>For a divisible by p, the nonzero-base conclusion is false; instead the common all-integer form is aᵖ≡a mod p, proved by handling zero and nonzero classes separately. A composite modulus does not satisfy the prime theorem in general: 2⁵ mod6 is two, not one, and even the coprime base five gives 5⁵ mod6 equal to five. Some composite numbers pass particular power checks, so one successful check is not automatically a proof of primality.</p>
+<p>When p is prime and a is nonzero modulo p, the inverse can be computed as aᵖ⁻² modulo p. This follows by multiplying a by that power and using Fermat. The hypotheses remain necessary; extended Euclid works for any coprime modulus without needing primality. Our labs use both the gcd condition and Python’s exact modular power contract rather than applying the prime formula indiscriminately.</p>
+<p>The <strong>Chinese remainder theorem (CRT)</strong> for coprime positive moduli m,n states that specified residues modulo m and modulo n determine a unique class modulo mn. Construct a solution using inverses: if u is an inverse of n modulo m and v an inverse of m modulo n, then x=anu+bmv has residues a modulo m and b modulo n. Each term vanishes in one modulus and supplies the requested residue in the other.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Reconstruct a class from two coprime clocks</div>
+<p>Solve x≡2 mod3 and x≡3 mod5. Write x=2+3k; then 3k≡1 mod5. Three’s inverse modulo five is two, so k≡2 mod5 and x≡8 mod15. Check eight directly: its remainders are two and three. If two solutions differ, their difference is divisible by three and five, hence by fifteen because those moduli are coprime. This proves uniqueness of the combined class, not uniqueness of the integer eight among all integers.</p>
+</div>
+<figure class="fig" id="fig-08-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" role="img" aria-label="Within zero through fourteen, the two residue sets intersect only at eight. All integer solutions are eight plus a multiple of fifteen."><title>The unique class from coprime CRT</title><desc>Within zero through fourteen, the two residue sets intersect only at eight. All integer solutions are eight plus a multiple of fifteen.</desc><defs><marker id="fig-08-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="380" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="35" text-anchor="middle" font-size="21" fill="#1a2e4a">First fix a representative range: zero through fourteen</text><rect x="35" y="80" width="320" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="405" y="80" width="320" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="195" y="116" text-anchor="middle" font-size="23" fill="#1a2e4a">x ≡ 2 (mod 3)</text><text x="195" y="160" text-anchor="middle" font-size="23" fill="#1a2e4a">{2, 5, 8, 11, 14}</text><text x="565" y="116" text-anchor="middle" font-size="23" fill="#1a2e4a">x ≡ 3 (mod 5)</text><text x="565" y="160" text-anchor="middle" font-size="23" fill="#1a2e4a">{3, 8, 13}</text><path d="M245,200L340,239" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-4__arrow)"/><path d="M515,200L420,239" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-08-4__arrow)"/><rect x="290" y="250" width="180" height="55" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="380" y="286" text-anchor="middle" font-size="26" fill="#1a2e4a">x = 8</text><text x="380" y="350" text-anchor="middle" font-size="18" fill="#1a2e4a">All unrestricted integer solutions: 8 + 15k, integer k.</text></g></svg></div><figcaption><span class="fig-num">Figure 8.4</span> <p>Within zero through fourteen, the two residue conditions intersect at eight. Integers eight plus any multiple of fifteen represent the same combined class.</p>
+</figcaption></figure>
+<p>For the uniqueness proof in general, if m and n both divide a difference Δ, write Δ=mk. Coprimality lets n be cancelled from n|mk, giving n|k, hence mn|Δ. Without coprimality the compatibility condition changes and the combined period need not be mn. For example x≡0 mod2 and x≡1 mod4 is impossible because every second condition’s representative is odd. We do not claim the coprime construction handles this conflicting pair.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>State the missing hypotheses in “aᵐ⁻¹≡1 mod m” and “any two residues combine uniquely modulo mn.” What exactly does the CRT example uniquely determine?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>The Fermat form requires prime m and a nonzero residue. The displayed CRT statement requires coprime moduli. It uniquely determines [8]₁₅, containing all integers 8+15k, rather than one integer without a representative range.</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>Groups rings fields binary arithmetic and checksums</h2></div>
+<p>An algebraic structure specifies a set together with operations and laws. A <strong>group</strong> has one closed associative operation, an identity, and an inverse for every element. A group is <strong>abelian</strong> if its operation is commutative. Integers with addition form an abelian group: zero is identity and −a is the inverse of a. Integers with multiplication do not form a group, because zero and most other integers have no integer multiplicative inverse.</p>
+<p>Residue classes modulo m form an abelian group under addition. Under multiplication, the <strong>units</strong>, exactly the classes coprime to m, form a group: one is identity, products of units have inverses obtained by multiplying their inverses, and each unit’s inverse is another unit. All nonzero classes modulo a composite number need not form such a group, because zero divisors may multiply to zero and may lack inverses. Here a unit means an invertible element; it is distinct from the operation’s identity.</p>
+<p>A <strong>commutative ring with identity</strong> has an abelian additive group and a closed associative commutative multiplication with identity, distributing over addition. We use nontrivial rings with 1≠0 here. The integers and the modulo-m classes are examples. Addition, multiplication, and distributivity survive reduction because the class operations are well defined. A ring does not promise division by every nonzero element; that extra promise distinguishes a field.</p>
+<p>A <strong>field</strong> is a commutative ring with 1≠0 in which every nonzero element has a multiplicative inverse. The rationals and reals are fields; the integers are not, since two has no integer inverse. Modulo p is a field exactly when p is prime. Prime p gives inverses by the gcd criterion; composite m=uv with 1&lt;u,v&lt;m gives nonzero classes [u],[v] with product zero, which a field cannot permit.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Bit arithmetic and word arithmetic use different operations</div>
+<p>The field with two elements has 1+1=0 and 1·1=1. On individual bits, field addition is XOR and multiplication is AND. An eight-bit unsigned integer instead uses addition modulo 256: one plus one is two, with ordinary binary carrying, not zero. Applying XOR independently to bits gives vector addition over the two-element field, which is a different structure from integer addition of the encoded word.</p>
+</div>
+<p>Many fixed-width unsigned operations wrap modulo 2ʷ, but the representation and language still determine behaviour. A modulo-256 ring has zero divisors, for example 16·16≡0, and is not a field. Python integers do not automatically wrap at a fixed width; an explicit reduction is required in our scripts. These observations describe the model used in an example, not every language’s signed-overflow rule or every hardware instruction.</p>
+<p>A <strong>checksum</strong> can be a function c(values)=sum(values) mod7 for byte values from zero through 255. Its output is one of seven residues. Equal inputs necessarily give equal checksums; different checksums therefore prove inputs differ. Equal checksums do not prove equality. The distinct lists [1,2] and [0,3] both give three; reversing [1,2] also preserves the sum, and adding seven to an allowed byte preserves its residue.</p>
+<p>Compression to a small output set inevitably permits collisions over a larger input set: an injective assignment would need a different output for each distinct input. More specifically this checksum has easily constructed collisions and ignores order. It may detect some accidental changes, such as increasing one byte by one while staying in range, but it fails on compensating changes, transpositions, and changes by a multiple of seven. A report should state the particular detection property rather than advertising universal error detection.</p>
+<p>Modular arithmetic also appears in cryptographic mathematics, but the presence of primes, inverses, or a fast power calculation does not itself establish security. A toy checksum or a small illustrative modular construction supplies no resistance claim against an adversary. Such a claim needs a specified construction, threat model, assumptions, and analysis far beyond the calculations here. The lesson’s transfer goal is to recognise the algebraic operations and the limits of the evidence, not to design a production security system.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Which of the integers, modulo-six classes, and modulo-seven classes are fields? What can an equal toy checksum establish?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Only modulo seven is a field among these examples. Integers lack inverses such as 1/2, and modulo six has nonzero zero divisors. Equal toy checksums establish equal function outputs, not identical inputs or any cryptographic security guarantee.</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>Common misconceptions and failure cases</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Why it fails</th>
+<th>Repair</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Congruent integers are literally equal</td>
+<td>Their difference may be a nonzero multiple of m</td>
+<td>Separate classes from representatives</td>
+</tr>
+<tr>
+<td>A negative input needs a negative remainder</td>
+<td>Our positive-modulus representative is nonnegative</td>
+<td>Check 0≤r&lt;m and a=qm+r</td>
+</tr>
+<tr>
+<td>Every nonzero residue can be divided out</td>
+<td>Composite moduli have nonunits</td>
+<td>Check gcd(a,m)=1</td>
+</tr>
+<tr>
+<td>Additive inverse is multiplicative inverse</td>
+<td>They solve different equations</td>
+<td>Name the operation and identity</td>
+</tr>
+<tr>
+<td>A prime-power theorem works for any modulus</td>
+<td>Primality and the base condition matter</td>
+<td>State Fermat’s hypotheses</td>
+</tr>
+<tr>
+<td>CRT gives one unique integer</td>
+<td>It gives a class modulo the combined period</td>
+<td>Specify a canonical range if needed</td>
+</tr>
+<tr>
+<td>XOR is ordinary multi-bit integer addition</td>
+<td>It omits carries</td>
+<td>Distinguish a bit vector from a word integer</td>
+</tr>
+<tr>
+<td>Equal checksums prove equal data</td>
+<td>Explicit collisions exist</td>
+<td>Describe only demonstrated detection properties</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>Three CPU labs</h2></div>
+<p>Use Python 3.11+ and the standard library. Predict the identities and counterexamples before running. Downloaded scripts are the exact sources used to capture the output below.</p>
+<h3 id="lab1">Lab A Euclid and extended Euclid</h3>
+<p><strong>Predict:</strong> the gcd and Bézout coefficients for 252,105. <strong>Run:</strong> read quotient rows and verify each reported identity. <strong>Explain:</strong> why zero inputs need separate conventions, especially (0,0). <strong>Change:</strong> add a positive pair with gcd one and verify that either coefficient gives an inverse with the appropriate modulus. Negative inputs are outside this lab’s declared input domain.</p>
+<p><a href="labs/module_08/lab1_euclid.py" download>Download lab1_euclid.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Euclid and extended Euclid for nonnegative integer inputs.&quot;&quot;&quot;
+from math import gcd
+
+def euclid_trace(a, b):
+    if a &lt; 0 or b &lt; 0:
+        raise ValueError(&quot;This lab uses nonnegative integers&quot;)
+    rows = []
+    while b:
+        q, r = divmod(a, b)
+        rows.append((a, b, q, r))
+        a, b = b, r
+    return a, rows
+
+def extended_gcd(a, b):
+    if a &lt; 0 or b &lt; 0:
+        raise ValueError(&quot;This lab uses nonnegative integers&quot;)
+    old_r, r = a, b
+    old_x, x, old_y, y = 1, 0, 0, 1
+    while r:
+        q = old_r // r
+        old_r, r = r, old_r - q * r
+        old_x, x = x, old_x - q * x
+        old_y, y = y, old_y - q * y
+    return old_r, old_x, old_y
+
+value, rows = euclid_trace(252, 105)
+for a, b, q, r in rows:
+    print(f&quot;{a} = {q}*{b} + {r}&quot;)
+print(&quot;Last nonzero remainder / gcd:&quot;, value)
+for a, b in [(252, 105), (12, 18), (0, 7), (9, 0), (0, 0)]:
+    d, x, y = extended_gcd(a, b)
+    assert d == gcd(a, b) and a * x + b * y == d
+    print(f&quot;a={a}, b={b}: gcd={d}, x={x}, y={y}; a*x+b*y={a*x+b*y}&quot;)
+print(&quot;The (0,0) gcd is zero by software convention; it has no positive greatest common divisor.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>252 = 2*105 + 42
+105 = 2*42 + 21
+42 = 2*21 + 0
+Last nonzero remainder / gcd: 21
+a=252, b=105: gcd=21, x=-2, y=5; a*x+b*y=21
+a=12, b=18: gcd=6, x=-1, y=1; a*x+b*y=6
+a=0, b=7: gcd=7, x=0, y=1; a*x+b*y=7
+a=9, b=0: gcd=9, x=1, y=0; a*x+b*y=9
+a=0, b=0: gcd=0, x=1, y=0; a*x+b*y=0
+The (0,0) gcd is zero by software convention; it has no positive greatest common divisor.
+</code></pre></div>
+<h3 id="lab2">Lab B Repeated squaring and operation counts</h3>
+<p><strong>Predict:</strong> 3¹³ mod7 and its four loop-head triples. <strong>Run:</strong> compare results with Python’s three-argument pow, including zero exponent and negative base. <strong>Explain:</strong> why one million as an exponent takes twenty iterations and why this does not make all long-integer multiplications constant-cost. <strong>Change:</strong> skip the final unused square, keep the invariant and outputs, and compare exact multiplication counts. The script’s zero-base zero-exponent case uses the stated empty-product convention; its nonnegative exponent restriction is narrower than Python’s full pow interface.</p>
+<p><a href="labs/module_08/lab2_modular_powers.py" download>Download lab2_modular_powers.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Repeated squaring with exact integer arithmetic and an explicit operation count.&quot;&quot;&quot;
+def power_mod(base, exponent, modulus):
+    if exponent &lt; 0 or modulus &lt; 2:
+        raise ValueError(&quot;Require exponent &gt;= 0 and modulus &gt;= 2&quot;)
+    original_base, original_exponent = base, exponent
+    result, base = 1, base % modulus
+    steps, multiplications, trace = 0, 0, []
+    while exponent:
+        trace.append((result, base, exponent))
+        if exponent % 2:
+            result = result * base % modulus
+            multiplications += 1
+        base = base * base % modulus  # Also counted in the final iteration.
+        multiplications += 1
+        exponent //= 2
+        steps += 1
+    assert result == pow(original_base, original_exponent, modulus)
+    return result, steps, multiplications, trace
+
+for base, exponent, modulus in [(3, 13, 7), (5, 0, 11), (0, 0, 7), (-2, 9, 13), (17, 1_000_000, 97)]:
+    value, steps, multiplications, trace = power_mod(base, exponent, modulus)
+    assert steps == exponent.bit_length()
+    print(f&quot;({base})^{exponent} mod {modulus} = {value}; iterations={steps}, multiplications={multiplications}&quot;)
+    if (base, exponent, modulus) == (3, 13, 7):
+        print(&quot;Loop-head (result, base, exponent):&quot;, trace)
+print(&quot;At most two modular multiplications per iteration; their bit cost is not constant in general.&quot;)
+for base, exponent, modulus in [(3, -1, 7), (3, 5, 1)]:
+    try:
+        power_mod(base, exponent, modulus)
+    except ValueError as error:
+        print(&quot;Rejected:&quot;, (base, exponent, modulus), str(error))
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>(3)^13 mod 7 = 3; iterations=4, multiplications=7
+Loop-head (result, base, exponent): [(1, 3, 13), (3, 2, 6), (3, 4, 3), (5, 2, 1)]
+(5)^0 mod 11 = 1; iterations=0, multiplications=0
+(0)^0 mod 7 = 1; iterations=0, multiplications=0
+(-2)^9 mod 13 = 8; iterations=4, multiplications=6
+(17)^1000000 mod 97 = 35; iterations=20, multiplications=27
+At most two modular multiplications per iteration; their bit cost is not constant in general.
+Rejected: (3, -1, 7) Require exponent &gt;= 0 and modulus &gt;= 2
+Rejected: (3, 5, 1) Require exponent &gt;= 0 and modulus &gt;= 2
+</code></pre></div>
+<h3 id="lab3">Lab C Illegal division and checksum collisions</h3>
+<p><strong>Predict:</strong> inverse availability, the solutions of 4x≡2 mod6, and each collision’s output. <strong>Run:</strong> inspect rejected inverses and exhaustive six-residue solutions. <strong>Explain:</strong> why the inverse gcd condition is a theorem, whereas finite enumeration checks only these specific equations. <strong>Change:</strong> substitute modulus eleven in the checksum and build a new permitted-byte collision. A larger residue range does not turn this sum into a security construction.</p>
+<p><a href="labs/module_08/lab3_division_and_collisions.py" download>Download lab3_division_and_collisions.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Counterexamples to universal modular division and checksum uniqueness.&quot;&quot;&quot;
+from math import gcd
+
+def inverse(a, modulus):
+    if modulus &lt; 2:
+        raise ValueError(&quot;Require modulus &gt;= 2&quot;)
+    if gcd(a, modulus) != 1:
+        raise ValueError(&quot;Residue is not invertible&quot;)
+    return pow(a, -1, modulus)
+
+for a, modulus in [(3, 7), (2, 6), (5, 6), (0, 7)]:
+    try:
+        inv = inverse(a, modulus)
+        assert a * inv % modulus == 1
+        print(f&quot;Inverse of {a} mod {modulus}: {inv}&quot;)
+    except ValueError as error:
+        print(f&quot;Inverse of {a} mod {modulus}: rejected ({error})&quot;)
+for a, b, modulus in [(4, 2, 6), (2, 1, 6)]:
+    solutions = [x for x in range(modulus) if (a * x - b) % modulus == 0]
+    assert bool(solutions) == (b % gcd(a, modulus) == 0)
+    print(f&quot;{a}x = {b} mod {modulus}: solutions {solutions}&quot;)
+print(&quot;Illegal cancellation:&quot;, &quot;2*1 mod 6 =&quot;, 2 * 1 % 6, &quot;; 2*4 mod 6 =&quot;, 2 * 4 % 6)
+assert (2 * 1 - 2 * 4) % 6 == 0 and (1 - 4) % 6 != 0
+
+def checksum(values):
+    if any(not isinstance(v, int) or v &lt; 0 or v &gt; 255 for v in values):
+        raise ValueError(&quot;Values must be bytes&quot;)
+    return sum(values) % 7
+
+pairs = [([1, 2], [0, 3]), ([1, 2], [2, 1]), ([1, 2], [8, 2])]
+for left, right in pairs:
+    assert left != right and checksum(left) == checksum(right)
+    print(&quot;Collision:&quot;, left, right, &quot;; checksum =&quot;, checksum(left))
+print(&quot;Different checksum proves a difference; equal checksum does not prove equal input or security.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Inverse of 3 mod 7: 5
+Inverse of 2 mod 6: rejected (Residue is not invertible)
+Inverse of 5 mod 6: 5
+Inverse of 0 mod 7: rejected (Residue is not invertible)
+4x = 2 mod 6: solutions [2, 5]
+2x = 1 mod 6: solutions []
+Illegal cancellation: 2*1 mod 6 = 2 ; 2*4 mod 6 = 2
+Collision: [1, 2] [0, 3] ; checksum = 3
+Collision: [1, 2] [2, 1] ; checksum = 3
+Collision: [1, 2] [8, 2] ; checksum = 3
+Different checksum proves a difference; equal checksum does not prove equal input or security.
+</code></pre></div>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Exercises with full solutions</h2></div>
+<p>Exercises 1–12 are required; 13–14 are optional extensions. Give domains, inverse conditions, and exact modular checks rather than an unexplained division sign.</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">5 min</span></div>
+<p>Find q,r for −17=7q+r with 0≤r&lt;7. Compute 17·(−10) mod7 after reducing operands.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>q=−3,r=4. Reduced operands are three and four, so the product is twelve with representative five. Direct −170 also differs from five by −175, a multiple of seven.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">5 min</span></div>
+<p>Trace Euclid for 252,105 and verify −2·252+5·105.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Remainders 42,21,0 arise from quotients two,two,two. The gcd is twenty-one, and −504+525=21 verifies the certificate.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">5 min</span></div>
+<p>Find the additive and multiplicative inverses of three modulo seven. Which inverses does two have modulo six?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Three’s additive inverse is four and multiplicative inverse five: 3+4≡0,3·5≡1. Two’s additive inverse modulo six is four; it has no multiplicative inverse because gcd(2,6)=2.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">5 min</span></div>
+<p>List solutions of 4x≡2 mod6 and decide whether 2x≡1 mod6 is solvable.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>First reduce by d=2 to 2x≡1 mod3, giving x≡2 mod3 and representatives two,five modulo six. The second equation is impossible because gcd(2,6)=2 does not divide one.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove Euclid preserves the common-divisor set and terminates for nonnegative inputs not both zero.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>For a=qb+r, a divisor of a,b divides r=a−qb; a divisor of b,r divides a=qb+r. Thus the common-divisor sets and gcd agree. Each loop with b&gt;0 replaces it by 0≤r&lt;b, so the nonnegative second component strictly decreases. On termination gcd(a,0)=a and the invariant gives the original gcd. Both correctness and termination have been justified.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove a has an inverse modulo m≥2 exactly when gcd(a,m)=1.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>If ab≡1, write ab−km=1; any common divisor of a,m divides one, so the gcd is one. Conversely Bézout supplies ax+my=1 when the gcd is one, hence ax≡1 and [x] is an inverse. This covers both directions for integer a and positive m≥2.</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove repeated squaring’s invariant through even and odd exponent steps, and explain termination and the zero-exponent result.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Initially rbᵉ≡aᴱ with r=1,b=a modm,e=E. If e=2k, replacing b with b² and e with k keeps rbᵉ. If e=2k+1, also replacing r with rb keeps (rb)(b²)ᵏ=rb²ᵏ⁺¹. Reduction preserves classes. Positive e strictly decreases under floor-halving; when zero the invariant identifies r. Initial E=0 takes no step and returns one by the empty-product convention.</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>Reconstruct x≡2 mod3 and x≡3 mod5, and prove the combined class is unique.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>x=2+3k gives 3k≡1 mod5, so k≡2 and x≡8 mod15. Check eight’s two remainders. A difference of solutions is divisible by three and five; coprimality implies their product divides it, so solutions are exactly one class modulo fifteen. Integers 8+15t all represent it.</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">Exercise 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>Use Fermat with its hypotheses to find the inverse of three modulo seven and to reduce 3¹³ modulo seven. Would the same prime formula apply to two modulo six?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Seven is prime and three nonzero, so 3⁶≡1. Thus inverse 3⁵≡5 and 3¹³=(3⁶)²·3≡3. Six is composite and two is not coprime to it; the prime inverse formula does not apply, and no inverse exists.</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">Exercise 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>Compute the toy checksum of [1,2], give two distinct collisions, and state one kind of byte change it detects.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The checksum is three. [0,3] and [2,1] are distinct inputs with the same sum, hence collisions; [8,2] also differs by a multiple of seven. Increasing a single byte by one within the allowed range changes the checksum by one modulo seven and is detected. Equal output still does not prove identical data.</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">Exercise 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 min</span></div>
+<p>Diagnose cancelling two from 2·1≡2·4 mod6, and claiming that nonzero residues modulo six form a multiplicative group.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The original products both give two, but one and four are not congruent modulo six. Two lacks an inverse; cancellation only gives equality modulo three. Nonzero residues are not closed under multiplication, since two times three gives zero, and two has no inverse. Therefore they fail group conditions. The units one and five do form a multiplicative group.</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">Exercise 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 min</span></div>
+<p>A program uses XOR for eight-bit integer addition and calls a seven-valued sum checksum collision-free. Identify concrete counterexamples and repair both claims.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>One XOR one is zero, whereas eight-bit integer one plus one is two. XOR is coordinatewise addition over the two-element field, not modulo-256 integer addition. Inputs [1,2] and [0,3] share checksum three, refuting collision freedom. Describe the actual word operation and the checksum’s limited change-detection property rather than changing only its name.</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Extension: for d=gcd(a,m), prove ax≡b modm has exactly d residue solutions when d|b, including a≡0.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>For d&lt;m, divide by d to obtain an invertible coefficient modulo m/d and a unique class x₀ there. Its d representatives modulo m are x₀+k(m/d), k=0,…,d−1. They are distinct; any original solution reduces to that class and is one of them. If d=m, a≡0 and d|b means b≡0, so all m=d residues solve the equation. If d does not divide b there is no solution by necessity.</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">Exercise 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">proof</span><span class="exercise-time">20 min</span></div>
+<p>Extension: prove multiplication by a modulo m is a permutation exactly when gcd(a,m)=1. Show how a nontrivial gcd constructs a collision.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>If the gcd is one, multiplication by the inverse is a two-sided inverse map, so multiplication is bijective. If d&gt;1, zero and m/d are distinct representatives because 1≤m/d&lt;m. Their products differ by a(m/d)=(a/d)m, hence are congruent. The map is not injective and cannot be a permutation. This also applies when a≡0 and d=m, where zero and one collide.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Self-check quiz</h2></div>
+<p>Automatic scoring covers Questions 1–9. The last question is written and self-reviewed.</p>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>What does a|b mean for integers?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">b=ak for some integer k</button></li><li><button type="button" class="quiz-opt" data-i="1">a/b is always an integer</button></li><li><button type="button" class="quiz-opt" data-i="2">a must be positive and smaller than b</button></li></ol><div class="quiz-expl" hidden>The witness is an integer multiplier for b. The fraction is reversed, and signs or relative magnitudes are not required by divisibility.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>What is −17 mod7 under our convention?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">−3</button></li><li><button type="button" class="quiz-opt" data-i="1">4</button></li><li><button type="button" class="quiz-opt" data-i="2">3</button></li></ol><div class="quiz-expl" hidden>−17=(−3)·7+4 with 0≤4&lt;7. −3 is the quotient here, and three is the positive seventeen’s remainder.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>What preserves Euclid’s gcd?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The two inputs always stay equal</button></li><li><button type="button" class="quiz-opt" data-i="1">Every intermediate value is prime</button></li><li><button type="button" class="quiz-opt" data-i="2">(a,b) and (b,a−qb) have the same common divisors</button></li></ol><div class="quiz-expl" hidden>Subtracting an integer multiple preserves common divisors in both directions. Neither equality of inputs nor primality is an invariant.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>When does a have an inverse modulo m≥2?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Exactly when gcd(a,m)=1</button></li><li><button type="button" class="quiz-opt" data-i="1">Whenever its residue is nonzero</button></li><li><button type="button" class="quiz-opt" data-i="2">Only when a=1 as an integer</button></li></ol><div class="quiz-expl" hidden>Bézout proves the criterion. Composite moduli have nonzero nonunits; many residues other than one are invertible.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>What follows from 2x≡2y mod6 without other assumptions?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">x≡y mod6 always</button></li><li><button type="button" class="quiz-opt" data-i="1">x≡y mod3</button></li><li><button type="button" class="quiz-opt" data-i="2">x=y as integers</button></li></ol><div class="quiz-expl" hidden>Removing gcd two reduces the modulus to three. x=1,y=4 refutes modulo-six cancellation and integer equality.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>What is repeated squaring’s invariant?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">r+b+e remains the exponent</button></li><li><button type="button" class="quiz-opt" data-i="1">Every intermediate integer equals the original unreduced power</button></li><li><button type="button" class="quiz-opt" data-i="2">rbᵉ is congruent to the original power</button></li></ol><div class="quiz-expl" hidden>The product with the remaining exponent is preserved as a class. Reduction changes integers, and the sum is unrelated to this invariant.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>Which conditions permit aᵖ⁻¹≡1 modp?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">p prime and a nonzero modulo p</button></li><li><button type="button" class="quiz-opt" data-i="1">p merely positive</button></li><li><button type="button" class="quiz-opt" data-i="2">a=0 modulo p</button></li></ol><div class="quiz-expl" hidden>Fermat needs primality and a nonzero class for this form. Zero has a different all-integer formulation aᵖ≡a.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>What does coprime CRT uniquely determine?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">One integer without a range restriction</button></li><li><button type="button" class="quiz-opt" data-i="1">A class modulo the product of the moduli</button></li><li><button type="button" class="quiz-opt" data-i="2">The order of the two moduli</button></li></ol><div class="quiz-expl" hidden>All integer representatives in the combined class solve the conditions. Uniqueness is modulo the product; swapping condition order does not alter it.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>Which claim is correct?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Modulo six is a field because every nonzero residue has an inverse</button></li><li><button type="button" class="quiz-opt" data-i="1">Equal toy checksums prove identical byte lists</button></li><li><button type="button" class="quiz-opt" data-i="2">Modulo seven is a field, but modulo six has zero divisors</button></li></ol><div class="quiz-expl" hidden>Primality gives nonzero inverses modulo seven; two times three is zero modulo six. Explicit checksum collisions disprove the equality claim.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m08:q10">
+<label for="q10-response">10. Prove the modular inverse criterion in both directions and use it to diagnose cancellation by two modulo six.</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="Give the integer identities, gcd condition, and an explicit counterexample."></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> I checked both proof directions and included the cancellation counterexample.</label>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>If ab≡1 modm, then ab−km=1 for an integer k; every common divisor of a,m divides one, so gcd=1. Conversely gcd=1 supplies ax+my=1 by Bézout, making x an inverse. For two modulo six the gcd is two, so no inverse exists. Indeed 2·1 and 2·4 are congruent, but one and four are not congruent modulo six. A complete response supplies both identities and the specific failed conclusion, not just a memorised phrase “check the gcd.”</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Reading with a purpose</h2></div>
+<p>Read number-theory selections in <a href="https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/" target="_blank" rel="noopener">MIT Mathematics for Computer Science</a>. The <a href="https://ocw.mit.edu/courses/18-781-theory-of-numbers-spring-2012/pages/lecture-notes/" target="_blank" rel="noopener">MIT Theory of Numbers notes</a> provide Euclidean-algorithm and linear-congruence/CRT selections for comparison. Check the integer three-argument interface in the <a href="https://docs.python.org/3.11/library/functions.html#pow" target="_blank" rel="noopener">Python pow documentation</a>. These are external primary readings; our lesson examples and required practice are original.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>Selection and question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session 2 · 15 minutes</td>
+<td>Euclid, Bézout, and inverse selections: which identity proves the legal division condition?</td>
+</tr>
+<tr>
+<td>Session 4 · 5 minutes</td>
+<td>Python pow: what extra condition permits a negative exponent with a modulus, and how is our lab narrower?</td>
+</tr>
+</tbody>
+</table></div>
+<p>Python’s modular negative exponent requires the base to be coprime to the modulus. Our repeated-squaring lab deliberately accepts nonnegative exponents and moduli at least two, so do not mistake its restricted interface for every case supported by Python.</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Retrieval exit task and next step</h2></div>
+<p>Without notes, state quotient–remainder uniqueness, prove Euclid’s preservation and termination, and derive inverse existence from Bézout. Explain the difference between a class and a representative, give one failed cancellation, and state Fermat’s and CRT’s exact hypotheses.</p>
+<p><strong>Exit task:</strong> work modulo ten. Find the units, solve 4x≡6, and compare a field with this ring. Units are 1,3,7,9. Dividing the congruence by gcd two yields 2x≡3 mod5, so x≡4 mod5 and representatives four,nine solve it. Modulo ten is not a field: two and five are nonzero zero divisors.</p>
+<p><strong>Ready to move on:</strong> you can justify an operation before computing it and qualify the conclusion of a toy experiment. The linear-algebra branch starts with vectors, geometry, and array shapes; the CS route later returns to probability. See the <a href="index.html">course overview</a> for available lessons and routes.</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Notation and bilingual terminology</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term or notation</th>
+<th>Meaning</th>
+<th>中文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a</td>
+<td>b</td>
+<td>b is an integer multiple of a</td>
+</tr>
+<tr>
+<td>Prime / composite</td>
+<td>Positive integer &gt;1 with only trivial divisors / not prime</td>
+<td>素数、合数</td>
+</tr>
+<tr>
+<td>gcd / Bézout coefficients</td>
+<td>Greatest common divisor / integer identity witnesses</td>
+<td>最大公因数、贝祖系数</td>
+</tr>
+<tr>
+<td>a≡b modm / [a]ₘ</td>
+<td>Difference divisible by m / congruence class</td>
+<td>同余、剩余类</td>
+</tr>
+<tr>
+<td>Unit / zero divisor</td>
+<td>Multiplicatively invertible class / nonzero factor of a zero product</td>
+<td>可逆元、零因子</td>
+</tr>
+<tr>
+<td>Repeated squaring</td>
+<td>Binary-exponent modular power method</td>
+<td>重复平方</td>
+</tr>
+<tr>
+<td>Fermat / CRT</td>
+<td>Prime power congruence / coprime residue reconstruction</td>
+<td>费马小定理、中国剩余定理</td>
+</tr>
+<tr>
+<td>Group / ring / field</td>
+<td>One-operation inverse structure / two-operation structure / nonzero division structure</td>
+<td>群、环、域</td>
+</tr>
+<tr>
+<td>XOR / checksum / collision</td>
+<td>Bitwise exclusive-or / summary function / distinct inputs with equal output</td>
+<td>异或、校验和、碰撞</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="module_07_EN.html">← Module 07</a><a href="module_09_EN.html">Module 09 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

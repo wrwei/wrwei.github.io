@@ -1,0 +1,521 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>向量、几何与数组记法 — 计算机科学与人工智能的数学基础</title><meta name="description" content="计算坐标向量，说明长度与角度，选择有意义特征尺度，把 NumPy 形状纳入数学规格。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="9"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 09</button><div class="dropdown-menu" id="module-menu"><a href="module_09_ZH.html" class="active" aria-current="page">向量、几何与数组记法</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_09_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>先选择坐标，数字才有几何含义</span></a><a href="#s1"><span class="num">2</span><span>标量、坐标向量、点与位移</span></a><a href="#s2"><span class="num">3</span><span>加法、缩放、线性与仿射组合</span></a><a href="#s3"><span class="num">4</span><span>点积、正交、角度与柯西–施瓦茨</span></a><a href="#s4"><span class="num">5</span><span>范数、度量与特征单位效应</span></a><a href="#s5"><span class="num">6</span><span>单位方向、归一化与余弦相似度</span></a><a href="#s6"><span class="num">7</span><span>数组形状、广播与明确实现约定</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解与失败情形</span></a><a href="#labs"><span class="num">9</span><span>三个 CPU 实验</span></a><a href="#exercises"><span class="num">10</span><span>练习与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>自测测验</span></a><a href="#reading"><span class="num">12</span><span>带着问题阅读</span></a><a href="#summary"><span class="num">13</span><span>回忆、结业任务与下一步</span></a><a href="#terms"><span class="num">14</span><span>记法与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">向量、几何与数组记法</h1><p class="module-lead">计算坐标向量，说明长度与角度，选择有意义特征尺度，把 NumPy 形状纳入数学规格。</p><div class="hero-chips"><span class="chip chip-time">8 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>区分点、位移、坐标元组与存储数组。</li><li>计算并解释线性组合与仿射组合。</li><li>从点积推导柯西–施瓦茨与欧几里得三角不等式。</li><li>比较范数、单位方向、余弦相似度与特征尺度。</li><li>预测平坦、行、列形状并修复意外广播。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>模块 01 与 03：实数、函数、索引和与笛卡尔积。实验前完成 NumPy 数组准备，不假设已学线性代数。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">先选择坐标，数字才有几何含义</a><a href="#s1">标量、坐标向量、点与位移</a><a href="#s2">加法、缩放、线性与仿射组合</a><a href="#s3">点积、正交、角度与柯西–施瓦茨</a><a href="#s4">范数、度量与特征单位效应</a><a href="#s5">单位方向、归一化与余弦相似度</a><a href="#s6">数组形状、广播与明确实现约定</a><a href="#misconceptions">常见误解与失败情形</a><a href="#labs">三个 CPU 实验</a><a href="#exercises">练习与完整解答</a><a href="#quiz">自测测验</a><a href="#reading">带着问题阅读</a><a href="#summary">回忆、结业任务与下一步</a><a href="#terms">记法与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">8 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">120 分钟</span></div><div class="session-title">坐标、点与组合</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节，画位移与仿射点。</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">20</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读几何坐标与向量选段。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">解释原点平移或特征重排改变什么。</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m09:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">120 分钟</span></div><div class="session-title">点积、范数与证明</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节并推导两个不等式。</a></span><span class="act-min">38</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">循环实现计算，与 NumPy 结果比较。</a></span><span class="act-min">40</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">42</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m09:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">120 分钟</span></div><div class="session-title">方向、尺度与数组约定</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节并使用向量探索器。</a></span><span class="act-min">45</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">比较邻居排序并解释改变的度量。</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m09:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">120 分钟</span></div><div class="session-title">形状与零向量错误诊断</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">修复广播并声明未定义余弦的处理。</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">诊断练习 11–12。</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择与书面形状、几何解释。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">读官方形状、广播规则并比较本课假设。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业任务，解释相似度分数限制。</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m09:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>先选择坐标，数字才有几何含义</h2></div>
+<p>数据记录可写数字列表，点积或距离看似直接，却依赖特征顺序、单位、运算。厘米变米，即使物理记录不变，也可改变未加权最近邻。列数组与平坦数组混用可产生全部两两差，而非预期配对差。</p>
+<p>本模块一起发展数学与实现约定，区分点与位移，推导长度与角度界，比较范数，计算前查形状。数值调用成功说明可执行，数学解释仍需坐标代表什么的假设。</p>
+<p><strong>回忆检查：</strong>实数元组、有限和、笛卡尔积。按需复习<a href="module_01_ZH.html#s5">模块 01</a>、<a href="module_03_ZH.html#s1">模块 03</a>，不假设已有线性代数。实验前完成 <a href="numpy_primer_ZH.html">NumPy 数组准备</a>，需要时约三十分钟额外准备。数值基线为其中说明的 Python 3.11 与固定 NumPy 环境。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>标量、坐标向量、点与位移</h2></div>
+<p><strong>标量</strong>是缩放向量的单数值，这里为实数。<span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="double-struck">R</mi><mi>d</mi></msup></mrow><annotation encoding="application/x-tex">\mathbb R^d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.8491em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span></span></span></span></span></span></span></span></span> 中的坐标<strong>向量</strong>是 d 个实数的有序元组，正整数 d 为坐标数。模块 03 的笛卡尔积构造给所有这些元组集合。顺序属于规格，(身高,年龄) 与 (年龄,身高) 特征约定不同，即使数组都长二。</p>
+<p>几何向量可描述与画在何处无关的位移，箭头记录大小与方向。平移箭头、不旋转拉伸，保持位移。数据元组则可收集不同单位特征，写成向量允许坐标代数，不自动赋欧几里得长度物理意义。</p>
+<p><strong>点</strong>是位置，位移连接位置。选定坐标系中，q−p 是从 p 到 q 的位移。原点平移使两点坐标同加偏移，差不变。位置与位移可能用相同元组记法，因此上下文要明确加或比的对象。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">位移独立于原点</div>
+<p>p=(1,2),q=(4,6)，q−p=(3,4)。改坐标原点使两点显示同加 (10,−5)，p′=(11,−3),q′=(14,1)，差仍 (3,4)。从 (0,0) 到 (3,4) 的箭头代表同位移，但不是原点 q。下面发展的欧几里得长度为五。</p>
+</div>
+<figure class="fig" id="fig-09-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="原点 p 一二、q 四六，差三四；新 p 十一负三、q 十四一，差仍三四。"><title>点与位移的平移</title><desc>原点 p 一二、q 四六，差三四；新 p 十一负三、q 十四一，差仍三四。</desc><defs><marker id="fig-09-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="32" text-anchor="middle" font-size="19" fill="#1a2e4a">同加偏移后，点坐标变而位移不变</text><path d="M110,250L230,90" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-09-1__arrow)"/><circle cx="110" cy="250" r="6" fill="#1a2e4a"/><text x="110" y="284" text-anchor="middle" font-size="19" fill="#1a2e4a">p = (1,2)</text><text x="230" y="72" text-anchor="middle" font-size="19" fill="#1a2e4a">q = (4,6)</text><text x="146" y="170" text-anchor="middle" font-size="22" fill="#1a2e4a">(3,4)</text><path d="M470,250L590,90" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-09-1__arrow)"/><circle cx="470" cy="250" r="6" fill="#1a2e4a"/><text x="470" y="284" text-anchor="middle" font-size="19" fill="#1a2e4a">p′ = (11,−3)</text><text x="590" y="72" text-anchor="middle" font-size="19" fill="#1a2e4a">q′ = (14,1)</text><text x="506" y="170" text-anchor="middle" font-size="22" fill="#1a2e4a">(3,4)</text><text x="380" y="333" text-anchor="middle" font-size="18" fill="#1a2e4a">新坐标同加 (10,−5)；差仍 (3,4)。</text></g></svg></div><figcaption><span class="fig-num">图 9.1</span> <p>点间箭头及平移副本坐标差相同，单点坐标随坐标系改变。</p>
+</figcaption></figure>
+<p>零向量全零，描述无位移，是长度零的有效向量，不是缺失观测。未知年龄需另设缺失表示，填零会断言数值并改几何。类别编码 1,2,3 也不因数字形式而有有意义距离，编码决定比较意义。</p>
+<p>坐标单位向量 eᵢ 在第 i 项一，其他零。<span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><msubsup><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>d</mi></msubsup><msub><mi>x</mi><mi>i</mi></msub><msub><mi>e</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">x=\sum_{i=1}^d x_i e_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.2887em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.989em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span> 表每坐标沿自己轴贡献。二维 (3,4)=3(1,0)+4(0,1)，这些方向单位长且在普通点积下互相垂直。模块 11 再发展一般基、维数与坐标变化。</p>
+<p>加比向量需相同维数与对应含义，不能三特征与两特征配对时默删一项。长度相同也不保证顺序同。实验在 zip 前查长度，因为 Python zip 默认到较短者结束，可隐藏模型错。</p>
+<p>数学维数 d 不同存储轴。三坐标向量可存一轴 <code>(3,)</code> 或两轴 <code>(3,1)</code>，一百个这样的向量表 <code>(100,3)</code> 每观测仍三坐标。分开观测数、特征数与容器轴数，可防混淆。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>从 (−1,3) 到 (2,−1) 的位移？零向量等于缺失吗？<code>(100,3)</code> 每行是百维吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>位移 (3,−4)。零向量是已知零，缺失不同。每行三坐标，一百为观测数，数组两轴。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>加法、缩放、线性与仿射组合</h2></div>
+<p>向量加法、标量乘逐坐标：<span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>u</mi><mo>+</mo><mi>v</mi><msub><mo stretchy="false">)</mo><mi>i</mi></msub><mo>=</mo><msub><mi>u</mi><mi>i</mi></msub><mo>+</mo><msub><mi>v</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">(u+v)_i=u_i+v_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.7333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>，<span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>α</mi><mi>u</mi><msub><mo stretchy="false">)</mo><mi>i</mi></msub><mo>=</mo><mi>α</mi><msub><mi>u</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">(\alpha u)_i=\alpha u_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mord mathnormal">u</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>，结果同维。位移箭头相加把第二尾放第一头，总位移从起点到终点。负缩放反方向、正保方向、零缩放成零。</p>
+<p>实数逐坐标运算给加法交换结合、零单位、−u 加逆、缩放分配。例如 α(u+v)=αu+αv 因每坐标成立。因此有限向量和在实数模型可重排分组。浮点不同分组可能改小舍入误差，模块 28 另讲。</p>
+<p><strong>线性组合</strong> <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>k</mi></msubsup><msub><mi>α</mi><mi>j</mi></msub><msub><mi>v</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">\sum_{j=1}^k\alpha_jv_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.4248em;vertical-align:-0.4358em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.989em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0037em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span></span> 使用实系数与同维向量，系数不必正或和一。2(3,4)+3(4,−3)=(18,−1) 合法，坐标可超原端点。它是代数构造，不必是插值或概率加权平均。</p>
+<p>过点 p、非零方向 u 的直线为 p+tu，t 实数；t∈[0,1] 给 p 到 p+u 线段，其他延长。u=0 时只有 p，称完整直线误导。仿射直线有偏移 p，而 tu 直线过选定原点。</p>
+<p>点的<strong>仿射组合</strong>系数和一，两点为 (1−t)p+tq。0≤t≤1 在线段插值，范围外外推。两点同加 b 后组合恰加 b，因为和一。和非一会缩放平移，使点的结果错误依赖坐标原点。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">插值保点解释</div>
+<p>p=(1,2),q=(4,6),t=3/4，(1/4)p+(3/4)q=(3.25,5)，位于 p 到 q 的四分之三处。从 p 位移 (3/4)(q−p)=(2.25,3)。t=2 得 (7,10)，在 q 外同一直线上。系数仍和一，但一项负，是仿射外推而非凸插值。</p>
+</div>
+<p><strong>凸组合</strong>为非负系数的仿射组合。系数条件是代数条件，是否真实概率要另模型。连续特征混合可能有意义，但类别编码或受限对象不一定；两个有效记录混合不必对应物理有效或实际存在个人。</p>
+<p>特征操作要保单位，米位移倍增仍米，米加米有意义。把秒与米坐标和当一个物理长度没有自动解释。可有意选加权数值学习几何，但记录选择与尺度，代数相容和应用意义都要。</p>
+<p>重排要一致应用所有比较对象，同一坐标排列保点积与下面标准范数，仅排一者则混特征、改结果。这区分表示改变与关系改变，形状检查无法识别顺序错。</p>
+<p>例如 (身高,年龄)=(170,20)，另一存 (年龄,身高)=(30,180)，长度匹配但首项配对会把身高乘年龄。把第二改 (180,30) 修复对应，选尺度仍另任务。可靠数据接口在形状外记录名称与单位。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>2p+3q 是仿射点组合吗？p+tu 何时真直线？(1−t)p+tq 为何正确响应原点改变？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>系数和五非仿射，真直线需 u≠0。仿射和一，同加 b 使组合恰加 b。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>点积、正交、角度与柯西–施瓦茨</h2></div>
+<p>普通实<strong>点积</strong> <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>⋅</mo><mi>v</mi><mo>=</mo><msubsup><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>d</mi></msubsup><msub><mi>u</mi><mi>i</mi></msub><msub><mi>v</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">u\cdot v=\sum_{i=1}^d u_iv_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.4445em;"></span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.2887em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.989em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">d</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span> 为标量，逐项乘保向量则不同。点积对称、每参数线性：u·(αv+βw)=α(u·v)+β(u·w)。自积为平方和，非负，且恰全坐标零时零。欧几里得长度 <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∥</mi><mi>u</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub><mo>=</mo><msqrt><mrow><mi>u</mi><mo>⋅</mo><mi>u</mi></mrow></msqrt></mrow><annotation encoding="application/x-tex">\|u\|_2=\sqrt{u\cdot u}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∥</span><span class="mord mathnormal">u</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.04em;vertical-align:-0.2328em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8072em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">u</span></span></span><span style="top:-2.7672em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="1.08em" viewBox="0 0 400000 1080" preserveAspectRatio="xMinYMin slice"><path d="M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2328em;"><span></span></span></span></span></span></span></span></span></span>。</p>
+<p>u·v=0 称<strong>正交</strong>，非零普通几何表示垂直。零向量代数上与所有正交，但无方向或普通角度。因此点积谓词与几何角度域不同。平面 (3,4),(4,−3) 点积十二减十二为零。</p>
+<p>先介绍角度：锐角直角三角形余弦为邻边除斜边，扩为有符号方向对齐，同方向一、直角零、反方向负一。非零向量夹角零到 180 度，等价零到 π 弧度，π 弧度是半圈。反余弦为 [−1,1] 对齐值选该范围角度。</p>
+<p>两非零向量有 <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>⋅</mo><mi>v</mi><mo>=</mo><mi mathvariant="normal">∥</mi><mi>u</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub><mi mathvariant="normal">∥</mi><mi>v</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub><mi>cos</mi><mo>⁡</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">u\cdot v=\|u\|_2\|v\|_2\cos\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.4445em;"></span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∥</span><span class="mord mathnormal">u</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∥</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">θ</span></span></span></span></span>。平面选单位 û=u/||u||₂ 与垂直 (−u₂,u₁)/||u||₂，v 沿 û 的有符号分量 v·û，除 ||v||₂ 按直角几何给余弦，再乘回得公式。并不声称任意无关特征元组已有有用物理夹角。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">单位轴分量与垂直余量</div>
+<p>w=(2,3),e₁=(1,0)，w·e₁=2，沿轴分量 2e₁=(2,0)，余 (0,3) 正交 e₁。u=(3,4),v=(4,−3)，长均五、点积零，夹角九十度。一般子空间投影模块 12，本例仅需坐标单位方向。</p>
+</div>
+<figure class="fig" id="fig-09-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" role="img" aria-label="二三向量沿第一轴投影二零，余量零三垂直，点积选择分量二。"><title>分量与正交余量</title><desc>二三向量沿第一轴投影二零，余量零三垂直，点积选择分量二。</desc><defs><marker id="fig-09-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="340" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">沿第一单位轴分量为二</text><path d="M180,260L300,80" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-09-2__arrow)"/><text x="310" y="75" text-anchor="start" font-size="21" fill="#1a2e4a">w = (2,3)</text><path d="M180,260L300,260" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-09-2__arrow)"/><path d="M300,80V260" stroke="#15803d" stroke-width="3" stroke-dasharray="7 5"/><text x="240" y="298" text-anchor="middle" font-size="21" fill="#1a2e4a">2e₁ = (2,0)</text><text x="320" y="178" text-anchor="start" font-size="21" fill="#1a2e4a">(0,3)</text><text x="160" y="275" text-anchor="start" font-size="20" fill="#1a2e4a">0</text><path d="M284,260V244H300" fill="none" stroke="#475569" stroke-width="2"/><rect x="460" y="100" width="250" height="150" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="585" y="147" text-anchor="middle" font-size="25" fill="#1a2e4a">w·e₁ = 2</text><text x="585" y="202" text-anchor="middle" font-size="23" fill="#1a2e4a">(0,3)·e₁ = 0</text></g></svg></div><figcaption><span class="fig-num">图 9.2</span> <p>坐标分量与垂直余量形成直角三角形，点积选单位方向的有符号分量。</p>
+</figcaption></figure>
+<p><strong>柯西–施瓦茨不等式</strong> <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∣</mi><mi>u</mi><mo>⋅</mo><mi>v</mi><mi mathvariant="normal">∣</mi><mo>≤</mo><mi mathvariant="normal">∥</mi><mi>u</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub><mi mathvariant="normal">∥</mi><mi>v</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">|u\cdot v|\leq\|u\|_2\|v\|_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∥</span><span class="mord mathnormal">u</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∥</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>。形成余弦前先证明：v=0 两边零；否则取 t=(u·v)/(v·v)，展开非负 ||u−tv||₂² 得 ||u||₂²−(u·v)²/||v||₂²≥0，乘正分母、取非负根得结论。</p>
+<p>两者非零时等号当且仅当 u−tv=0，即标量倍。正倍余弦一，负倍负一。一者零也满足不等式等号，却仍未定义余弦。不能因不等式包含零就用零自积作分母。</p>
+<p>此不等式保证非零余弦商在 [−1,1]。浮点舍入可能略越界，角度显示可在非零、形状检查后把商夹回范围。这是局部数值显示政策，不是新数学不等式。大幅度或下溢需更多处理，超本小坐标实验。</p>
+<p>点积依选定几何，某特征缩放改积与角度。加权内积可建另一几何，但要声明假设。AI 注意力与许多相似计算用学习坐标点积，应用含义依构造坐标方式，不只因对应项可相乘。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>证 (3,4) 与 (4,−3) 点积零。余弦何时定义，什么不等式给界？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>3·4+4·(−3)=0。两向量都非零方可除两长度。柯西–施瓦茨保证商在负一到一，零仍满足不等式但商无定义。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>范数、度量与特征单位效应</h2></div>
+<p><strong>范数</strong>赋非负长度，恰零向量时零，||αu||=|α| ||u||，以及三角不等式 ||u+v||≤||u||+||v||。只有非负不够，候选长度需所有律，使缩放、抵消、路径长度一致。欧几里得只是多种坐标范数之一。</p>
+<p><strong>曼哈顿范数</strong> <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∥</mi><mi>u</mi><msub><mi mathvariant="normal">∥</mi><mn>1</mn></msub><mo>=</mo><msub><mo>∑</mo><mi>i</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>u</mi><mi>i</mi></msub><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\|u\|_1=\sum_i|u_i|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∥</span><span class="mord mathnormal">u</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">∣</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span></span></span>，<strong>最大范数</strong> <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">∥</mi><mi>u</mi><msub><mi mathvariant="normal">∥</mi><mi mathvariant="normal">∞</mi></msub><mo>=</mo><msub><mrow><mi>max</mi><mo>⁡</mo></mrow><mi>i</mi></msub><mi mathvariant="normal">∣</mi><msub><mi>u</mi><mi>i</mi></msub><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\|u\|_\infty=\max_i|u_i|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∥</span><span class="mord mathnormal">u</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">∞</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mop">max</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">∣</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span></span></span></span></span>。正性与缩放由绝对值；曼哈顿逐项 |uᵢ+vᵢ|≤|uᵢ|+|vᵢ| 再和。最大范数中每坐标和绝对值≤||u||∞+||v||∞，取最大即三角律。</p>
+<p>欧几里得展开 ||u+v||₂²=||u||₂²+2u·v+||v||₂²，柯西–施瓦茨界中项，结果≤(||u||₂+||v||₂)²。非负取根证明三角律，这是点积定理连接范数公理，不凭普通图假设所有维数。</p>
+<p><strong>平方</strong>欧几里得长度用于目标，却自身不是范数：α 缩放给 α² 而非 |α|。u=v=(1,0)，和平方长四，大于各平方一加一，三角失败。“平方范数”描述构造，不把范数律全转给新函数。</p>
+<p>非负距离平方保排序，最近邻只需次序可省根。但数值与度量性质改了：实线零到二平方距四，大于零到一及一到二平方距和二。排序捷径不等于可把新函数代入需要三角律的度量证明。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">同位移有多种合法长度</div>
+<p>u=(3,4)，曼哈顿七、欧几里得五、最大四。p=(1,2) 到 q=(4,6) 欧距五；限制水平垂直移动最短坐标路程七，另模型；最大范数测最大单坐标改变。每种回答不同问题，不是修正另两种。</p>
+</div>
+<figure class="fig" id="fig-09-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 385" role="img" aria-label="最大范数单位边界是正方形，欧几里得圆，曼哈顿菱形，均过坐标单位轴端点。"><title>三种范数的单位球</title><desc>最大范数单位边界是正方形，欧几里得圆，曼哈顿菱形，均过坐标单位轴端点。</desc><defs><marker id="fig-09-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="385" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="28" text-anchor="middle" font-size="19" fill="#1a2e4a">二维单位球：每个边界都表示相应长度一</text><path d="M220,180H540M380,45V335" stroke="#94a3b8"/><rect x="265" y="65" width="230" height="230" fill="none" stroke="#15803d" stroke-width="3"/><circle cx="380" cy="180" r="115" fill="none" stroke="#2563eb" stroke-width="3"/><path d="M380,65L495,180L380,295L265,180z" fill="none" stroke="#c2410c" stroke-width="3"/><text x="380" y="185" text-anchor="start" font-size="16" fill="#1a2e4a">0</text><text x="501" y="174" text-anchor="start" font-size="16" fill="#1a2e4a">1</text><text x="255" y="174" text-anchor="end" font-size="16" fill="#1a2e4a">−1</text><text x="100" y="358" text-anchor="start" font-size="18" fill="#c2410c">曼哈顿：菱形</text><text x="380" y="358" text-anchor="middle" font-size="18" fill="#2563eb">欧几里得：圆</text><text x="670" y="358" text-anchor="end" font-size="18" fill="#15803d">最大：方形</text></g></svg></div><figcaption><span class="fig-num">图 9.3</span> <p>二维单位球依曼哈顿、欧几里得、最大范数分别菱形、圆、正方形，各方向显示半径不同。</p>
+</figcaption></figure>
+<p><strong>度量</strong> d(p,q) 非负、恰 p=q 时零、对称且 d(p,r)≤d(p,q)+d(q,r)。范数诱导 d(p,q)=||q−p||，正性给前两，−1 齐次给对称，(q−p)+(r−q) 三角给度量三角。此时对象是点间距，不是单个位移长。</p>
+<p>查询 (0,0)，P=(1,100),Q=(3,0)，坐标小时、厘米。未加权欧距约 100.005 与三，选 Q。厘米转米后 P=(1,1) 距 √2，Q 仍三，选 P。物理测量未变，固定数值权重使几何改变。</p>
+<p>正尺度 s 定义 dₛ(p,q)=sqrt(∑ᵢsᵢ²(qᵢ−pᵢ)²)，先可逆坐标缩放再欧距，所以为度量。转换单位欲保原度量，要尺度反向调整。若某尺度零，不同点只在该坐标差也可距零，违反同一性条件。</p>
+<p>固定有限 d，标准范数满足 ||u||∞≤||u||₂≤||u||₁≤√d ||u||₂。前界比最大平方、平方和、绝对项和平方；最后柯西–施瓦茨用于绝对项向量与全一。它们比长度，不保证相同邻居排序，常数依维数。</p>
+<p>选范数与尺度要模型理由，网格局部路程、记录长度、最大分量误差可偏不同量。数值意义相对选择与特征。统计预处理后讲训练集学习尺度，本课用明确单位转换，不需要未学统计。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>算 (−3,4) 三范数。厘米转米为何改未加权邻居？某尺度零会怎样？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>七、五、四。固定权使转换后贡献不同，保原度量需一致改权。零尺度可让不同点距零，违反度量条件。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>单位方向、归一化与余弦相似度</h2></div>
+<p>非零 u 的<strong>归一化</strong> û=u/||u||₂。齐次给长一，分母正所以保方向。(3,4) 为 (0.6,0.8)。不是除坐标和，负项抵消会使项和不适合一般长度。</p>
+<p>零向量长零无方向，不能按式归一。应用须声明拒绝、未定义分数或另有依据的约定。默加小数分母改变函数，应解释政策，不能当原几何定义。</p>
+<p>非零两者<strong>余弦相似度</strong> <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">cosim</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>u</mi><mo separator="true">,</mo><mi>v</mi><mo stretchy="false">)</mo><mo>=</mo><mo stretchy="false">(</mo><mi>u</mi><mo>⋅</mo><mi>v</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi mathvariant="normal">∥</mi><mi>u</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub><mi mathvariant="normal">∥</mi><mi>v</mi><msub><mi mathvariant="normal">∥</mi><mn>2</mn></msub><mo stretchy="false">)</mo><mo>=</mo><mover accent="true"><mi>u</mi><mo>^</mo></mover><mo>⋅</mo><mover accent="true"><mi>v</mi><mo>^</mo></mover></mrow><annotation encoding="application/x-tex">\operatorname{cosim}(u,v)=(u\cdot v)/(\|u\|_2\|v\|_2)=\hat u\cdot\hat v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">cosim</span></span><span class="mopen">(</span><span class="mord mathnormal">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mclose">)</span><span class="mord">/</span><span class="mopen">(</span><span class="mord">∥</span><span class="mord mathnormal">u</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∥</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mord"><span class="mord">∥</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.6944em;"></span><span class="mord katex-accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">u</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">^</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.6944em;"></span><span class="mord katex-accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6944em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">^</span></span></span></span></span></span></span></span></span></span></span>。忽略正幅度变化，α&gt;0 替 αu 分数不变；负缩放反向改符号。一表示正平行，不表示原坐标、长度同。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">对齐不是概率或相等测试</div>
+<p>(1,0),(100,0) 余弦一而欧距九十九；(1,0),(−1,0) 余弦负一，不可为普通概率。非零正交余弦零，不表示缺失或统计独立。它是所选坐标几何分数，不是校准标签信心。</p>
+</div>
+<p>单位 u,v 有 ||u−v||₂²=2−2u·v=2−2cosim。因此单位查询与单位候选中，最大余弦与最小欧距同排序含平局。推导需两者单位长，原始幅度变化另加项，排序不必相同。</p>
+<p>归一可能丢重要幅度，如活动量或物理位移长度。只关方向时可以合适，关键是何种变化应算相似。余弦或欧距都非每嵌入、测量系统普遍正确选择。</p>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="vectors"></div><div class="widget-caption">
+<p>拖端点或用坐标输入与方向键，比较点积、长度、角度并试零。上面非零正交例无需脚本。</p>
+</div></div>
+<div class="check"><div class="check-label">检验理解</div>
+<p>归一 (3,4)，非零 u 与 −u 余弦？何时余弦与欧距排序一致？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>(0.6,0.8)，反向非零余弦 −1。查询和候选都单位向量时一致，任意原始长度不保证。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>数组形状、广播与明确实现约定</h2></div>
+<p>NumPy 数组有形状元组、轴数、dtype。数学坐标要存储约定：独立向量平坦 <code>(d,)</code>，需方向时行 <code>(1,d)</code>、列 <code>(d,1)</code>，B 观测 d 特征表 <code>(B,d)</code>。模块 10 讲矩阵积，现在标特征轴已防许多错。</p>
+<p>相容平坦 <code>u*v</code> 给 d 个逐项积，<code>u @ v</code> 给标量点积。<code>(B,d)</code> 表乘 <code>(d,)</code> 尺度通过广播每行应用特征权；<code>np.linalg.norm(table, axis=1)</code> 给 B 行长，漏轴可把全表塌成一个量。轴选择属于数学问题。</p>
+<p>广播从右比长度，相同相容，一可扩，缺领先轴作一，因此 <code>(3,1)</code> 与 <code>(3,)</code> 产生 <code>(3,3)</code>，合法但每列项配每平坦项。成功不能判断这些两两组合是否目标，应运行前指定正确输出形状。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">错误广播改变比较数量</div>
+<p>预测 [1,2,3] 形状 <code>(3,)</code>，观测 [1,2,4] 形状 <code>(3,1)</code>，直接差行 [0,1,2],[−1,0,1],[−3,−2,−1]。九平方均值 21/9=7/3，配对差应列 <code>(3,1)</code> [0,0,−1]，三平方均值 1/3。修复使两者列，改变数学配对而不只是显示。</p>
+</div>
+<figure class="fig" id="fig-09-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 355" role="img" aria-label="平坦一二三与列一二四相减生成九差，列配对只有零零负一，均方分别为三分之七与三分之一。"><title>广播改变配对问题</title><desc>平坦一二三与列一二四相减生成九差，列配对只有零零负一，均方分别为三分之七与三分之一。</desc><defs><marker id="fig-09-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="355" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="18" fill="#1a2e4a">预测 (3,) − 观测 (3,1)：全部两两差</text><text x="225" y="70" text-anchor="middle" font-size="22" fill="#1a2e4a">错误广播 (3,3)</text><text x="605" y="70" text-anchor="middle" font-size="22" fill="#1a2e4a">修复配对 (3,1)</text><rect x="110" y="100" width="65" height="48" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="142" y="132" text-anchor="middle" font-size="24" fill="#1a2e4a">0</text><rect x="190" y="100" width="65" height="48" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="222" y="132" text-anchor="middle" font-size="24" fill="#1a2e4a">1</text><rect x="270" y="100" width="65" height="48" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="302" y="132" text-anchor="middle" font-size="24" fill="#1a2e4a">2</text><rect x="573" y="100" width="65" height="48" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="605" y="132" text-anchor="middle" font-size="24" fill="#1a2e4a">0</text><rect x="110" y="165" width="65" height="48" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="142" y="197" text-anchor="middle" font-size="24" fill="#1a2e4a">-1</text><rect x="190" y="165" width="65" height="48" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="222" y="197" text-anchor="middle" font-size="24" fill="#1a2e4a">0</text><rect x="270" y="165" width="65" height="48" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="302" y="197" text-anchor="middle" font-size="24" fill="#1a2e4a">1</text><rect x="573" y="165" width="65" height="48" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="605" y="197" text-anchor="middle" font-size="24" fill="#1a2e4a">0</text><rect x="110" y="230" width="65" height="48" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="142" y="262" text-anchor="middle" font-size="24" fill="#1a2e4a">-3</text><rect x="190" y="230" width="65" height="48" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="222" y="262" text-anchor="middle" font-size="24" fill="#1a2e4a">-2</text><rect x="270" y="230" width="65" height="48" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="302" y="262" text-anchor="middle" font-size="24" fill="#1a2e4a">-1</text><rect x="573" y="230" width="65" height="48" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="605" y="262" text-anchor="middle" font-size="24" fill="#1a2e4a">-1</text><text x="225" y="325" text-anchor="middle" font-size="18" fill="#1a2e4a">九平方均值 7/3</text><text x="605" y="325" text-anchor="middle" font-size="17" fill="#1a2e4a">三平方均值 1/3</text></g></svg></div><figcaption><span class="fig-num">图 9.4</span> <p>目标方向不匹配，广播成全部配对差网格；同列保每观测一个比较。</p>
+</figcaption></figure>
+<p>平坦 <code>(d,)</code> 转置仍一轴，不成列。用 <code>v[:,None]</code> 或核对项数的reshape；改 <code>(d,1)</code> 不改值却改操作约定。平坦化任意表可丢观测与特征轴区别，只有数学对象真是一个序列时才用。</p>
+<p>多轴数组用于图像、批次、时间序列、AI。<code>(B,T,d)</code> 可能批、时间、特征，其他应用可别义，形状本身不命名。声明轴顺序、约简、允许广播，逐操作边界查输出。之后张量与自动微分基于此约定。</p>
+<p>数值检查要结构与值一起。<code>np.allclose</code> 前查预期同形状，比较也能广播。容差按小浮点量选择，近似不是精确证明。循环与 NumPy 对小坐标相对绝对 10⁻¹²，代数证明独立于有限一致建立一般公式。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>预测 <code>(4,2)*(2,)</code> 与 <code>(3,1)-(3,)</code>。为何 v.T 不足列，近似比较前查形状？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>前 <code>(4,2)</code> 逐特征乘，后 <code>(3,3)</code> 可能错配。平坦转置仍 <code>(d,)</code>，近似比较也广播，可掩结构错，先断言形状。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解与失败情形</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>说法</th>
+<th>失败原因</th>
+<th>修复</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数字元组自动有物理距</td>
+<td>单位、编码可能不相容</td>
+<td>声明几何与单位</td>
+</tr>
+<tr>
+<td>点与位移可互换</td>
+<td>原点变动影响点坐标</td>
+<td>正确用差与仿射组合</td>
+</tr>
+<tr>
+<td>点积为逐项乘</td>
+<td>点积和成标量</td>
+<td>查运算符与输出</td>
+</tr>
+<tr>
+<td>零有余弦方向</td>
+<td>长零</td>
+<td>声明未定义处理</td>
+</tr>
+<tr>
+<td>余弦一等于向量同或确定</td>
+<td>正倍同对齐，分数可负</td>
+<td>解释实际定义</td>
+</tr>
+<tr>
+<td>范数不改邻居</td>
+<td>单位球与尺度改比较</td>
+<td>选并说明度量</td>
+</tr>
+<tr>
+<td>平坦转置变列</td>
+<td>仍一轴</td>
+<td>明确添轴</td>
+</tr>
+<tr>
+<td>无异常即正确配对</td>
+<td>广播可算另问题</td>
+<td>声明输入、轴、输出</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个 CPU 实验</h2></div>
+<p>先完成 <a href="numpy_primer_ZH.html">NumPy 准备</a>，安装固定数值依赖。小 CPU 数组无外部数据，先预测并解释捕获输出，下载文件是执行源。</p>
+<h3 id="lab1">实验 A 循环计算与 NumPy 核对</h3>
+<p><strong>预测：</strong>正交点积、三范数、位移长、(3,4) 单位方向。<strong>运行：</strong>比循环与 NumPy。<strong>解释：</strong>单位坐标轴分量和 zip 前长度检查。<strong>修改：</strong>换负坐标，保持维数，预测不变范数。数值容差与一般证明是不同证据。</p>
+<p><a href="labs/module_09/lab1_vectors.py" download>下载 lab1_vectors.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Loop-based vector calculations checked against NumPy on small real coordinates.&quot;&quot;&quot;
+from math import sqrt
+import numpy as np
+
+def dot(u, v):
+    if len(u) != len(v):
+        raise ValueError(&quot;Coordinate lengths must agree&quot;)
+    return sum(a * b for a, b in zip(u, v))
+
+def norm(u, kind):
+    if kind == 1:
+        return sum(abs(x) for x in u)
+    if kind == 2:
+        return sqrt(dot(u, u))
+    if kind == &quot;inf&quot;:
+        return max((abs(x) for x in u), default=0)
+    raise ValueError(&quot;This lab supports norms 1, 2, inf&quot;)
+
+u, v = (3, 4), (4, -3)
+print(&quot;u, v:&quot;, u, v)
+print(&quot;Loop / NumPy dot:&quot;, dot(u, v), float(np.array(u) @ np.array(v)))
+for kind in (1, 2, &quot;inf&quot;):
+    reference = np.linalg.norm(np.array(u, dtype=float), ord=np.inf if kind == &quot;inf&quot; else kind)
+    assert np.isclose(norm(u, kind), reference, rtol=1e-12, atol=1e-12)
+    print(&quot;Norm&quot;, kind, &quot;:&quot;, norm(u, kind), &quot;; NumPy:&quot;, float(reference))
+p, q = (1, 2), (4, 6)
+displacement = tuple(b - a for a, b in zip(p, q))
+print(&quot;Displacement q-p / Euclidean distance:&quot;, displacement, norm(displacement, 2))
+unit = tuple(x / norm(u, 2) for x in u)
+assert np.isclose(norm(unit, 2), 1, rtol=1e-12, atol=1e-12)
+print(&quot;Unit direction of u:&quot;, unit)
+direction = (1, 0)
+projection = tuple(dot((2, 3), direction) * x for x in direction)
+print(&quot;Component of (2,3) along the first unit axis:&quot;, projection)
+try:
+    dot([1, 2], [3])
+except ValueError as error:
+    print(&quot;Rejected:&quot;, error)
+print(&quot;Tolerances compare numerical values; the length check prevents silent zip truncation.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>u, v: (3, 4) (4, -3)
+Loop / NumPy dot: 0 0.0
+Norm 1 : 7 ; NumPy: 7.0
+Norm 2 : 5.0 ; NumPy: 5.0
+Norm inf : 4 ; NumPy: 4.0
+Displacement q-p / Euclidean distance: (3, 4) 5.0
+Unit direction of u: (0.6, 0.8)
+Component of (2,3) along the first unit axis: (2, 0)
+Rejected: Coordinate lengths must agree
+Tolerances compare numerical values; the length check prevents silent zip truncation.
+</code></pre></div>
+<h3 id="lab2">实验 B 单位与邻居排序</h3>
+<p><strong>预测：</strong>厘米转米前后谁最近。<strong>运行：</strong>读欧与曼哈顿序。<strong>解释：</strong>改几何与缩放曼哈顿稳定平局顺序。<strong>修改：</strong>逆转换调权，查原距恢复。稳定排序让平局复现，不让相同距离数学不同。</p>
+<p><a href="labs/module_09/lab2_feature_units.py" download>下载 lab2_feature_units.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Neighbour rankings under an explicitly changed coordinate scale.&quot;&quot;&quot;
+import numpy as np
+
+labels = np.array([&quot;P&quot;, &quot;Q&quot;, &quot;R&quot;])
+# Feature 1 measured in hours; feature 2 measured in centimetres.
+query = np.array([0.0, 0.0])
+candidates = np.array([[1.0, 100.0], [3.0, 0.0], [0.0, 200.0]])
+
+for name, scale in [(&quot;hours + centimetres, unweighted&quot;, np.array([1.0, 1.0])),
+                    (&quot;hours + metres, unweighted&quot;, np.array([1.0, 0.01]))]:
+    differences = (candidates - query) * scale
+    distances = np.linalg.norm(differences, axis=1)
+    order = np.argsort(distances, kind=&quot;stable&quot;)
+    print(name)
+    print(&quot;Euclidean distances:&quot;, [round(float(d), 6) for d in distances])
+    print(&quot;Rank order:&quot;, labels[order].tolist())
+    l1 = np.abs(differences).sum(axis=1)
+    print(&quot;Manhattan distances:&quot;, l1.tolist(), &quot;; stable tie order:&quot;, labels[np.argsort(l1, kind=&quot;stable&quot;)].tolist())
+assert labels[np.argmin(np.linalg.norm(candidates - query, axis=1))] == &quot;Q&quot;
+assert labels[np.argmin(np.linalg.norm((candidates - query) * [1, 0.01], axis=1))] == &quot;P&quot;
+print(&quot;Changing units while leaving numeric weights fixed changes the metric and can change neighbours.&quot;)
+print(&quot;To preserve a chosen metric after conversion, transform its weights consistently.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>hours + centimetres, unweighted
+Euclidean distances: [100.005, 3.0, 200.0]
+Rank order: ['Q', 'P', 'R']
+Manhattan distances: [101.0, 3.0, 200.0] ; stable tie order: ['Q', 'P', 'R']
+hours + metres, unweighted
+Euclidean distances: [1.414214, 3.0, 2.0]
+Rank order: ['P', 'R', 'Q']
+Manhattan distances: [2.0, 3.0, 2.0] ; stable tie order: ['P', 'R', 'Q']
+Changing units while leaving numeric weights fixed changes the metric and can change neighbours.
+To preserve a chosen metric after conversion, transform its weights consistently.
+</code></pre></div>
+<h3 id="lab3">实验 C 错配与未定义余弦</h3>
+<p><strong>预测：</strong>错误 <code>(3,3)</code> 差网格、修复 <code>(3,1)</code> 差与零结果。<strong>运行：</strong>比两均方差和拒绝例。<strong>解释：</strong>未检查零除为 nan，守卫报未定义。<strong>修改：</strong>非零单位向量验距平方=2−2cosim。代码限小有限坐标，极端浮点幅度需更多处理。</p>
+<p><a href="labs/module_09/lab3_shape_and_cosine_faults.py" download>下载 lab3_shape_and_cosine_faults.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Repair a successful wrong broadcast and define the zero-vector policy explicitly.&quot;&quot;&quot;
+import numpy as np
+
+predicted = np.array([1.0, 2.0, 3.0])
+observed = np.array([[1.0], [2.0], [4.0]])
+wrong = predicted - observed
+paired = predicted[:, None] - observed
+assert wrong.shape == (3, 3) and paired.shape == (3, 1)
+print(&quot;Wrong broadcast shape / mean squared difference:&quot;, wrong.shape, round(float(np.mean(wrong**2)), 6))
+print(&quot;Paired shape / mean squared difference:&quot;, paired.shape, round(float(np.mean(paired**2)), 6))
+assert np.isclose(np.mean(paired**2), 1 / 3, rtol=1e-12, atol=1e-12)
+
+def cosine(u, v):
+    u, v = np.asarray(u, dtype=float), np.asarray(v, dtype=float)
+    if u.ndim != 1 or v.ndim != 1 or u.shape != v.shape:
+        raise ValueError(&quot;Require matching flat vector shapes&quot;)
+    length_u, length_v = np.linalg.norm(u), np.linalg.norm(v)
+    if length_u == 0 or length_v == 0:
+        raise ValueError(&quot;Cosine is undefined for a zero vector&quot;)
+    return float((u @ v) / (length_u * length_v))
+
+zero, other = np.array([0.0, 0.0]), np.array([1.0, 2.0])
+with np.errstate(invalid=&quot;ignore&quot;, divide=&quot;ignore&quot;):
+    bad = (zero @ other) / (np.linalg.norm(zero) * np.linalg.norm(other))
+print(&quot;Unchecked zero-vector cosine:&quot;, float(bad))
+assert np.isnan(bad)
+for u, v in [([3, 4], [4, -3]), ([1, 0], [-1, 0]), ([0, 0], [1, 2]), ([1, 2], [1])]:
+    try:
+        print(&quot;Cosine:&quot;, u, v, &quot;=&quot;, cosine(u, v))
+    except ValueError as error:
+        print(&quot;Rejected:&quot;, u, v, str(error))
+print(&quot;Scope: small finite coordinates. Extreme floating magnitudes need further numerical handling.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Wrong broadcast shape / mean squared difference: (3, 3) 2.333333
+Paired shape / mean squared difference: (3, 1) 0.333333
+Unchecked zero-vector cosine: nan
+Cosine: [3, 4] [4, -3] = 0.0
+Cosine: [1, 0] [-1, 0] = -1.0
+Rejected: [0, 0] [1, 2] Cosine is undefined for a zero vector
+Rejected: [1, 2] [1] Require matching flat vector shapes
+Scope: small finite coordinates. Extreme floating magnitudes need further numerical handling.
+</code></pre></div>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>练习与完整解答</h2></div>
+<p>1–12 必做，13–14 扩展。数据解释时标特征含义与数组形状。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">5 分钟</span></div>
+<p>u=(3,4),v=(4,−3)，算 u+v,2u−v,−u。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>(7,1),(2,11),(−3,−4)，均两坐标，负缩放反位移方向。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">5 分钟</span></div>
+<p>p=(1,2),q=(4,6)，算四分之一 p 加四分之三 q，判仿射与凸。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>(3.25,5)，系数和一故仿射，非负故凸，在段内，从 p 位移 (2.25,3)。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">5 分钟</span></div>
+<p>p=(−1,3),q=(2,−1)，求差，再同加 (10,5) 重算。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>(3,−4)，新点 (9,8),(12,4) 差相同。位置改变，共平移在位移中抵消。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">5 分钟</span></div>
+<p>解释 2p+3q 为何非原点无关仿射点构造；u=0 的 p+tu 是线吗？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>同偏移 b 使结果加 5b 非 b，系数和五不保仿射点规则。u=0 始终 p，是一点非线。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>证同维实向量 u·(αv+βw)=α(u·v)+β(u·w)，及 u·u=0 蕴涵 u=0。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>展开有限和 ∑uᵢ(αvᵢ+βwᵢ)，逐项分配再拆和。自积 ∑uᵢ²，各非负，和零强迫每项零，每坐标零。使用同维与实坐标。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>用 ||u−tv||₂² 证柯西–施瓦茨，含 v=0 与两非零等号条件。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>v=0 两边零；否则 t=(u·v)/||v||₂²，展开 0≤||u||₂²−(u·v)²/||v||₂²，乘正分母取非负根得界。非零等号要求平方长度零，即 u=tv，标量倍也直接给等号。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>从柯西–施瓦茨推欧范数三角，再说明 d(p,q)=||q−p||₂ 对称与度量三角。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>展开和平方，以 2||u||₂||v||₂ 界中项，≤两长和平方，取非负根。||−x||₂=||x||₂ 给对称，r−p=(q−p)+(r−q) 给三角。非负及零只在同点完成其他度量条件。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>查询零，P=(1,100),Q=(3,0)，比较第二坐标乘 0.01 前后欧邻居，怎样保原度量？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>原 √10001≈100.005 与三选 Q；新 P 距 √2、Q 三选 P。保原数值度量需新第二坐标在范数内乘一百，逆单位转换。选择未加权米则有意改几何。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p><code>(4,2)</code> 四条两特征记录，<code>(2,)</code> 尺度乘与 axis=1 行范数形状？为何 ndim 非特征维？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>乘广播 <code>(4,2)</code>，每尺度供一特征列。行范数约特征轴得 <code>(4,)</code>。ndim 二指观测、特征两轴，记录两坐标，这里数量偶合而含义不同，<code>(4,3)</code> 显示差别。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>单位 u,v 证距平方=2−2cosim，解释排序同与为何余弦一不测原向量相等。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>展开两自积减二点积，单位长给 2−2u·v，点积即余弦，故单位候选最小距等最大余弦。原 (1,0),(100,0) 同余弦一却幅度大不同，相等需同坐标。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>预测 <code>(3,)</code> 与观测 <code>(3,1)</code> 未reshape相减，结果形状？解释 [1,2,3]、[1,2,4] 两均方差。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>从右广播 <code>(3,3)</code>，行 [0,1,2],[−1,0,1],[−3,−2,−1]，平方和二十一、九项均 7/3。配对 [0,0,−1] 三项均 1/3。都列或都平坦，再先查输出形状。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>函数归一每向量、称余弦概率、把平坦转置当列。具体诊断三项。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>零长零不能除，要未定义政策。反向余弦负一反驳概率，正值也不自动校准。平坦 <code>(d,)</code> 转置仍 <code>(d,)</code>，需新轴成 <code>(d,1)</code>。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>扩展：证 ||u||∞≤||u||₂≤||u||₁≤√d ||u||₂，说明不保证同最近邻排序。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>最大平方≤平方和给首，绝对项和平方等平方和加非负交叉项给二，绝对项向量与 d 个一的柯西–施瓦茨给末。界不保全部序：零源 (3,0),(2,2) 曼哈顿三、四，欧三、√8，次序反。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">application</span><span class="exercise-time">20 分钟</span></div>
+<p>扩展：s=(1,0) 的 dₛ(p,q)=||s*(q−p)||₂ 哪里非度量？正尺度为何避免？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>p=(0,0),q=(0,5) 不同，缩放差零、距零，同一性失败。每尺度正时对角缩放单射，缩放差零强迫原差零，欧正性、对称、三角传递，成为真度量。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>自测测验</h2></div>
+<p>1–9 自动，10 书面自评。</p>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>两点同加偏移，什么不变？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">位移差</button></li><li><button type="button" class="quiz-opt" data-i="1">两个单点坐标</button></li><li><button type="button" class="quiz-opt" data-i="2">任意加权点和</button></li></ol><div class="quiz-expl" hidden>q−p 抵消偏移；坐标变，仅仿射系数和给正确一偏移点规则。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>凸组合系数条件？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">任意实数</button></li><li><button type="button" class="quiz-opt" data-i="1">非负且和一</button></li><li><button type="button" class="quiz-opt" data-i="2">积一</button></li></ol><div class="quiz-expl" hidden>和一给仿射，非负给凸，任意系数线性组合，积无关。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>(3,4)·(4,−3)？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">(12,−12)</button></li><li><button type="button" class="quiz-opt" data-i="1">25</button></li><li><button type="button" class="quiz-opt" data-i="2">0</button></li></ol><div class="quiz-expl" hidden>点积求和十二减十二，元组是逐项乘，二十五是任一平方长。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>(3,4) 的 1,2,∞ 范数依次？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">7,5,4</button></li><li><button type="button" class="quiz-opt" data-i="1">5,7,4</button></li><li><button type="button" class="quiz-opt" data-i="2">4,5,7</button></li></ol><div class="quiz-expl" hidden>绝对项和七，平方和根五，最大四，其他交换定义。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>普通余弦商何时定义？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">任意包括零</button></li><li><button type="button" class="quiz-opt" data-i="1">匹配非零向量</button></li><li><button type="button" class="quiz-opt" data-i="2">仅单位长</button></li></ol><div class="quiz-expl" hidden>零使两长积零，单位化有用但不必，原长度可任意正。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>余弦一建立什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">原坐标相等</button></li><li><button type="button" class="quiz-opt" data-i="1">标签概率一</button></li><li><button type="button" class="quiz-opt" data-i="2">所选几何下正平行对齐</button></li></ol><div class="quiz-expl" hidden>正倍余弦一而长不同，几何对齐非自动概率。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>某特征单位变对未加权距离可怎样？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">改度量与最近邻排序</button></li><li><button type="button" class="quiz-opt" data-i="1">永不改数值</button></li><li><button type="button" class="quiz-opt" data-i="2">让余弦成为概率</button></li></ol><div class="quiz-expl" hidden>固定权使转换后贡献不同，保度量需相应改权，单位不推出概率。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div><code>(3,1)+(3,)</code> 广播形状？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">自动 <code>(3,1)</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>(3,3)</code></button></li><li><button type="button" class="quiz-opt" data-i="2">总异常</button></li></ol><div class="quiz-expl" hidden>从右对 <code>(3,1)</code> 与 <code>(1,3)</code>，得两两组合，合法却可非目标。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>np.allclose 前为何查形状？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">它精确证明所有实数恒等式</button></li><li><button type="button" class="quiz-opt" data-i="1">平坦转置保证匹配列</button></li><li><button type="button" class="quiz-opt" data-i="2">比较可广播，隐藏结构错</button></li></ol><div class="quiz-expl" hidden>形状为约定，近似只是有限数值证据，平坦转置不添轴。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m09:q10">
+<label for="q10-response">10. 解释单位转换和成功广播怎样各改数学比较，含最近邻例与目标形状。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="声明几何、尺度、配对操作与修复。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我已查两模型错误，给具体修复。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>原零源 P=(1,100),Q=(3,0) 未加权选 Q，第二乘 0.01 后 P 距 √2,Q 三选 P，数值几何改变。保原度量需特征权逆调整。<code>(3,)</code> 预测减 <code>(3,1)</code> 观测给 <code>(3,3)</code> 两两比较，而非三对。都列或都平坦并查输出。算术可能正确回答错误问题，需说明单位、轴与目标比较。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>带着问题阅读</h2></div>
+<p>用作者 <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning</a> 伴随站的解析几何选段比较点积、长度、投影。查 <a href="https://numpy.org/doc/1.26/user/absolute_beginners.html" target="_blank" rel="noopener">NumPy 数组指南</a>与<a href="https://numpy.org/doc/1.26/user/basics.broadcasting.html" target="_blank" rel="noopener">广播规则</a>。本课证明例子原创，数值检查不替代一般论证。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>选段与问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>学习时段 1 · 20 分钟</td>
+<td>坐标向量与几何：哪些点、哪些位移？</td>
+</tr>
+<tr>
+<td>学习时段 4 · 20 分钟</td>
+<td>NumPy 形状与广播：右对齐长度怎样确定输出轴？</td>
+</tr>
+</tbody>
+</table></div>
+<p>区分坐标几何与 ndim 编程术语，同词可指不同数量。</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>回忆、结业任务与下一步</h2></div>
+<p>不看笔记算组合，证柯西–施瓦茨、欧三角，解释零例外。给改变度量的单位变换和无异常错误形状。</p>
+<p><strong>结业任务：</strong>u=(−3,4),v=(3,4)，点积七、长均五、余弦 7/25，单位方向 (−0.6,0.8),(0.6,0.8)。两行表 <code>(2,2)</code>，行范数 <code>(2,)</code>；三行两特征表每行仍两坐标，非三坐标。</p>
+<p><strong>前进标准：</strong>应用前声明坐标与形状。下一线代课把矩阵当映射、解线性系统，见<a href="index_ZH.html">课程总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>记法与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语或符号</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>标量、向量、点</td>
+<td>缩放数、位移或元组、位置</td>
+<td>Scalar / vector / point</td>
+</tr>
+<tr>
+<td>线性、仿射、凸组合</td>
+<td>任意系数、和一、另非负</td>
+<td>Linear / affine / convex combination</td>
+</tr>
+<tr>
+<td>u·v / 正交</td>
+<td>坐标积和、零点积</td>
+<td>Dot product / orthogonal</td>
+</tr>
+<tr>
+<td>柯西–施瓦茨</td>
+<td>两长度界点积</td>
+<td>Cauchy–Schwarz</td>
+</tr>
+<tr>
+<td>范数、度量</td>
+<td>满足律的向量长、点距</td>
+<td>Norm / metric</td>
+</tr>
+<tr>
+<td>单位方向、余弦相似度</td>
+<td>非零归一向量、方向对齐</td>
+<td>Unit direction / cosine similarity</td>
+</tr>
+<tr>
+<td>形状、轴、广播</td>
+<td>存储长度、坐标索引维、相容扩展</td>
+<td>Shape / axis / broadcasting</td>
+</tr>
+<tr>
+<td>特征尺度、配对</td>
+<td>声明几何权、对应记录比较</td>
+<td>Feature scale / pairing</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_08_ZH.html">← 模块 08</a><a href="module_10_ZH.html">模块 10 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

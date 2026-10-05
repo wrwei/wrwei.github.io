@@ -1,0 +1,124 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>NumPy 数组准备 — 计算机科学与人工智能的数学基础</title><meta name="description" content="数值线性代数前读懂形状、轴、操作与广播。用已执行入门脚本与测试过的 Python/NumPy 基线。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="numpy_primer"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">NumPy 数组准备</button><div class="dropdown-menu" id="module-menu"><a href="numpy_primer_ZH.html" class="active" aria-current="page">NumPy 数组准备</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="numpy_primer_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>在线性代数前准备数组记法</span></a><a href="#setup"><span class="num">2</span><span>使用已测试数值环境</span></a><a href="#arrays"><span class="num">3</span><span>数组、数值与形状</span></a><a href="#operations"><span class="num">4</span><span>运算符、广播与有意故障</span></a><a href="#lab1"><span class="num">5</span><span>运行入门实验</span></a><a href="#summary"><span class="num">6</span><span>结业检查与参考</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">NumPy 数组准备</h1><p class="module-lead">数值线性代数前读懂形状、轴、操作与广播。用已执行入门脚本与测试过的 Python/NumPy 基线。</p><div class="hero-chips"><span class="chip chip-time">0.5 小时</span><span class="chip">1 个实验</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>解释平坦、行、列数组形状。</li><li>预测约简轴与广播结果形状。</li><li>运行入门，区分逐项乘与点积。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>Python 实验入门的基础语法。Python 3.11 解释器及测试基线数值依赖。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">在线性代数前准备数组记法</a><a href="#setup">使用已测试数值环境</a><a href="#arrays">数组、数值与形状</a><a href="#operations">运算符、广播与有意故障</a><a href="#lab1">运行入门实验</a><a href="#summary">结业检查与参考</a></nav></details><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>在线性代数前准备数组记法</h2></div>
+<p>NumPy 存数值数组，运算作用于项或轴。数学向量与存储数组相关但不同，三坐标向量可存平坦、行或列。读形状才能确定代码实际操作。模块 09 首次数值实验前完成；熟悉者可用结业检查。</p>
+<p>约三十分钟，需要时这是数值分支额外准备时间，不计模块估时。列表、循环、调用、脚本来自 <a href="python_primer_ZH.html">Python 入门</a>。点积、长度几何意义在模块 09 展开，此处先读和运行语法。</p>
+<span class="section-anchor" id="setup"></span>
+<div class="section-header" data-sec="setup"><span class="section-num">2</span><h2>使用已测试数值环境</h2></div>
+<p>当前测试基线为 Windows CPU 的 CPython 3.11.8、NumPy 1.26.4，依赖记录在仓库 <code>tutorial-sources/math/requirements.txt</code>。01–08 仅标准库。数值实验用独立环境便于复现。</p>
+<p>仓库根目录 PowerShell，以已安装 Python 3.11 解释器：</p>
+<pre><code class="language-powershell">python -m venv .venv-math
+.\.venv-math\Scripts\python.exe -m pip install -r tutorial-sources/math/requirements.txt
+.\.venv-math\Scripts\python.exe -c &quot;import numpy as np; print(np.__version__)&quot;
+.\.venv-math\Scripts\python.exe tutorial-sources/math/labs/numpy_primer/orientation.py
+</code></pre>
+<p>需要时为教程构建器明确实验解释器：</p>
+<pre><code class="language-powershell">$env:MATH_PYTHON = (Resolve-Path .\.venv-math\Scripts\python.exe).Path
+node tutorial-sources/math/build.mjs
+</code></pre>
+<p>虚拟环境本地保存，不是课程内容。导入失败表示所选解释器缺包，检查终端或编辑器的解释器。固定基线是已测组合，不声称所有后续 Python 与包版本都验证。只读已发布页面也可用同解释器直接跑下载实验。</p>
+<p>若仅下载脚本，把<a href="labs/requirements.txt">数值依赖文件</a>与 <code>orientation.py</code> 存同目录。该目录中用所选 Python 3.11 环境跑 <code>python -m pip install -r requirements.txt</code>，再 <code>python orientation.py</code>。上方仓库路径用于完整检出，单独保存的脚本无需站点构建器。</p>
+<span class="section-anchor" id="arrays"></span>
+<div class="section-header" data-sec="arrays"><span class="section-num">3</span><h2>数组、数值与形状</h2></div>
+<p><code>import numpy as np</code> 给包短名。<code>np.array([1,2,3], dtype=float)</code> 建形状 <code>(3,)</code> 数组，一轴三项，明确选择浮点存储。列表 <code>+</code> 拼接，数组 <code>+</code> 加相容项。Python 同符号在不同类型不保证同数学运算。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>形状或含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>v.shape</code></td>
+<td>轴长元组</td>
+</tr>
+<tr>
+<td><code>v.ndim</code></td>
+<td>数组轴数</td>
+</tr>
+<tr>
+<td><code>v.size</code></td>
+<td>总项数</td>
+</tr>
+<tr>
+<td><code>v[None, :]</code></td>
+<td>添行轴，本例 <code>(1,3)</code></td>
+</tr>
+<tr>
+<td><code>v[:, None]</code></td>
+<td>添列轴，本例 <code>(3,1)</code></td>
+</tr>
+<tr>
+<td><code>v.T</code></td>
+<td>逆轴顺序，平坦 <code>(3,)</code> 仍平坦</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>(3,)</code> 逗号表示单元素元组。ndim 不是数学向量空间维数或矩阵代数秩。<code>(100,3)</code> 表有两数组轴、一百行、每行三坐标，这三种数量不同。</p>
+<p>零基 <code>table[1,:]</code> 选第二行，<code>table[:,0]</code> 选第一列，冒号表示该轴全部项。<code>sum(axis=1)</code> 约掉列轴，每行一个和；<code>sum(axis=0)</code> 约掉行轴，每列一个和。先声明哪些项属同一对象、想消去哪个轴。</p>
+<span class="section-anchor" id="operations"></span>
+<div class="section-header" data-sec="operations"><span class="section-num">4</span><h2>运算符、广播与有意故障</h2></div>
+<p><code>v*v</code> 逐项乘，本例 [1,4,9]；两相容平坦向量 <code>v @ v</code> 点积，逐对乘积和十四。矩阵与一般 @ 形状规则模块 10 再讲，<code>2*v</code> 乘所有项。根据目标数学运算选符号，不能只选能运行者。</p>
+<p><strong>广播</strong>从末轴对齐，轴长必须相等或一方为一，缺领先轴视一。因此 <code>(3,1)+(3,)</code> 对齐成 <code>(3,1)+(1,3)</code>，得到 <code>(3,3)</code> 所有两两加。它能成功运行却配对错误；要三对列加，应把第二者改 <code>(3,1)</code>。查两输入与输出，不把无异常当正确。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">预测成功但形状错误的操作</div>
+<p>形状 <code>(3,1)</code> 列 [1,2,3] 加平坦 <code>(3,)</code> [1,2,3]，行结果 [2,3,4]、[3,4,5]、[4,5,6]。配对相加则 <code>(3,1)</code> 列 [2,4,6]。错误结果看似合理，每和算术都对，但轴实现另一个问题。</p>
+</div>
+<p>浮点数组近似许多实数计算，<code>np.allclose</code> 可按声明容差比较，但先查形状，比较也可能广播。精确小整数恒等式与近似数值一致是不同证据。模块 28 深入浮点误差，之前实验在需要处声明局部容差。</p>
+<span class="section-anchor" id="lab1"></span>
+<div class="section-header" data-sec="lab1"><span class="section-num">5</span><h2>运行入门实验</h2></div>
+<p>先预测列表拼接、数组加法、形状、轴和与错误广播。脚本再查修复形状和小点积，下载源产生下方捕获输出。</p>
+<p><a href="labs/numpy_primer/orientation.py" download>下载 orientation.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Read array shapes before the vector labs. Tested with NumPy 1.26.4.&quot;&quot;&quot;
+import numpy as np
+
+items = [1, 2, 3]
+vector = np.array(items, dtype=float)
+row = vector[None, :]
+column = vector[:, None]
+print(&quot;NumPy:&quot;, np.__version__)
+print(&quot;Python list + itself:&quot;, items + items)
+print(&quot;Array + itself:&quot;, (vector + vector).tolist())
+print(&quot;Shapes vector / row / column:&quot;, vector.shape, row.shape, column.shape)
+print(&quot;Array dimensions / entries:&quot;, vector.ndim, vector.size)
+table = np.array([[1, 2, 3], [4, 5, 6]], dtype=float)
+print(&quot;Table shape:&quot;, table.shape)
+print(&quot;Second row / first column:&quot;, table[1, :].tolist(), table[:, 0].tolist())
+print(&quot;Row sums / column sums:&quot;, table.sum(axis=1).tolist(), table.sum(axis=0).tolist())
+wrong = column + vector
+assert wrong.shape == (3, 3)
+print(&quot;Column + flat vector broadcasts to:&quot;, wrong.shape)
+paired = column + vector[:, None]
+assert paired.shape == (3, 1)
+print(&quot;Paired column addition:&quot;, paired.shape, paired[:, 0].tolist())
+print(&quot;Flat transpose keeps shape:&quot;, vector.T.shape)
+print(&quot;Elementwise product:&quot;, (vector * vector).tolist())
+print(&quot;Dot product scalar:&quot;, float(vector @ vector))
+assert float(vector @ vector) == sum(x * x for x in items)
+try:
+    table + np.array([10.0, 20.0])
+except ValueError:
+    print(&quot;Rejected incompatible addition: (2,3) with (2,)&quot;)
+print(&quot;Use dtype=float deliberately; floating calculations may need tolerances.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>NumPy: 1.26.4
+Python list + itself: [1, 2, 3, 1, 2, 3]
+Array + itself: [2.0, 4.0, 6.0]
+Shapes vector / row / column: (3,) (1, 3) (3, 1)
+Array dimensions / entries: 1 3
+Table shape: (2, 3)
+Second row / first column: [4.0, 5.0, 6.0] [1.0, 4.0]
+Row sums / column sums: [6.0, 15.0] [5.0, 7.0, 9.0]
+Column + flat vector broadcasts to: (3, 3)
+Paired column addition: (3, 1) [2.0, 4.0, 6.0]
+Flat transpose keeps shape: (3,)
+Elementwise product: [1.0, 4.0, 9.0]
+Dot product scalar: 14.0
+Rejected incompatible addition: (2,3) with (2,)
+Use dtype=float deliberately; floating calculations may need tolerances.
+</code></pre></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">6</span><h2>结业检查与参考</h2></div>
+<p>解释 <code>(3,)</code>、<code>(1,3)</code>、<code>(3,1)</code> 项数相同却形状不同。预测 <code>(4,2)+(2,)</code> 为 <code>(4,2)</code>；解释 <code>(4,2)+(4,)</code> 不相容，因为末长二与四不同且均非一。说明平坦转置为何不成列。</p>
+<p>读 <a href="https://numpy.org/doc/1.26/user/absolute_beginners.html" target="_blank" rel="noopener">NumPy 初学者指南</a> 数组创建与轴，以及<a href="https://numpy.org/doc/1.26/user/basics.broadcasting.html" target="_blank" rel="noopener">官方广播规则</a>查对齐长度。本入门例子原创，脚本实际执行。形状与运算含义明确后，回<a href="index_ZH.html">课程总览</a>继续向量。</p>
+</div><nav class="module-nav" aria-label="完整路线"><a href="index_ZH.html">← 课程概览</a><a href="index_ZH.html#modules">完整路线 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

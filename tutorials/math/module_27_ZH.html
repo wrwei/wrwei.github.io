@@ -1,0 +1,501 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>信息论、熵与概率目标函数 — 计算机科学与人工智能的数学基础</title><meta name="description" content="证明有限信息恒等式及 KL 非负，连接预测、似然与解码，并明确支撑和计分单位后报告序列困惑度。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="27"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 27</button><div class="dropdown-menu" id="module-menu"><a href="module_27_ZH.html" class="active" aria-current="page">信息论、熵与概率目标函数</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_27_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>信息量连接预测与编码</span></a><a href="#s1"><span class="num">2</span><span>自信息、对数底与可解码编码</span></a><a href="#s2"><span class="num">3</span><span>熵、条件熵与链式法则</span></a><a href="#s3"><span class="num">4</span><span>交叉熵、期望损失、似然与码长</span></a><a href="#s4"><span class="num">5</span><span>KL 散度、非负、等号与支撑方向</span></a><a href="#s5"><span class="num">6</span><span>互信息、依赖与处理</span></a><a href="#s6"><span class="num">7</span><span>序列似然、困惑度与密度预览</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个可复现实验</span></a><a href="#exercises"><span class="num">10</span><span>十四题与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自测</span></a><a href="#reading"><span class="num">12</span><span>带问题阅读</span></a><a href="#summary"><span class="num">13</span><span>检索结业与下一步</span></a><a href="#terms"><span class="num">14</span><span>符号与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">信息论、熵与概率目标函数</h1><p class="module-lead">证明有限信息恒等式及 KL 非负，连接预测、似然与解码，并明确支撑和计分单位后报告序列困惑度。</p><div class="hero-chips"><span class="chip chip-time">10 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>按声明 log 单位与解码条件算自信息。</li><li>推有限熵、条件熵与链式。</li><li>连接交叉熵、log 损失、似然与带条件码长。</li><li>含零支撑证明 KL 非负及等号。</li><li>推互信息和有限数据处理，不过度声称因果。</li><li>按匹配词元单位报困惑度并区分微分熵。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>需模块 16、23、25；选学连续密度预览需模块 17。各实验均为独立标准库脚本。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">信息量连接预测与编码</a><a href="#s1">自信息、对数底与可解码编码</a><a href="#s2">熵、条件熵与链式法则</a><a href="#s3">交叉熵、期望损失、似然与码长</a><a href="#s4">KL 散度、非负、等号与支撑方向</a><a href="#s5">互信息、依赖与处理</a><a href="#s6">序列似然、困惑度与密度预览</a><a href="#misconceptions">常见误解</a><a href="#labs">三个可复现实验</a><a href="#exercises">十四题与完整解答</a><a href="#quiz">十题自测</a><a href="#reading">带问题阅读</a><a href="#summary">检索结业与下一步</a><a href="#terms">符号与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">10 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">150 分钟</span></div><div class="session-title">编码、熵与条件律</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节并推编码与链式恒等式。</a></span><span class="act-min">90</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读信息量权重与单位。</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">检索支撑与条件平均约定。</a></span><span class="act-min">21</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m27:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">150 分钟</span></div><div class="session-title">交叉熵与 KL 证明</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，证似然与散度连接。</a></span><span class="act-min">58</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">算有限熵、支撑错配与噪声比特信息。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">42</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m27:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">150 分钟</span></div><div class="session-title">依赖与序列预测</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节，区分处理、词元与密度单位。</a></span><span class="act-min">70</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">评估固定保留 unigram 与基线。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m27:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">150 分钟</span></div><div class="session-title">支撑、计分与信息报告</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">修复概率输入、单位与词元比较。</a></span><span class="act-min">55</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">完成诊断练习 11–12。</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择并写信息损失推导。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读编码条件与选学密度预览。</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业，核查 log 损失解释。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m27:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>信息量连接预测与编码</h2></div>
+<p>概率拟合为什么采用对数损失，困惑度究竟测什么？本课从明确模型建立有限离散熵、条件熵、交叉熵、KL 散度和互信息，证明相关不等式，连接期望损失、可解码编码与似然，最后讨论序列分解和限定的连续预览。每个信息量都说明对数底、字母表及平均单位。</p>
+<p><strong>检索准备：</strong><a href="module_16_ZH.html#s1">模块 16</a>的对数不等式、<a href="module_23_ZH.html#s1">模块 23</a>的期望联合律、<a href="module_25_ZH.html#s1">模块 25</a>的似然。密度预览需模块 17。实验都是独立可运行标准库 CPU 脚本，不需外部语料或模型下载。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>自信息、对数底与可解码编码</h2></div>
+<p>p(x)&gt;0 的结果自信息（surprisal）是 −log_b p(x)，声明 b&gt;1。概率越低越意外，必然结果自信息零。底二为比特（bits），底 e 为纳特（nats）。独立结果概率相乘，自信息相加；一般联合概率分成条件概率，也可相加条件自信息，无需独立。对数把概率乘积转成可用的加性信息与损失。</p>
+<p>模型不可能结果有无限自信息。按 p 取期望时，p(x)=0 的项权重零，以 t log t→0 的极限约定 0log0=0。但 p&gt;0、另一个预测 q=0 的项不是零，而是无限期望损失。数学定义与实现都必须处理支撑。</p>
+<p>换底只改变尺度：nats 除以 log2 得 bits。数值为一在两种单位含义不同，概率、长度和损失不能放入无单位列。后续将损失取指数时，底必须匹配；实验 3 展示 exp(bits) 的错误。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">三符号二进概率源有精确前缀码</div>
+<p>概率 (1/2,1/4,1/4) 的自信息为 (1,2,2) bits。码字 0、10、11 具有这些长度，任何码字都不是另一个的前缀。期望长度 .5·1+.25·2+.25·2=1.5 bits/符号，等于期望自信息；固定两比特码则为 2。变量长码在可解码条件下可减平均长度。</p>
+</div>
+<p>前缀码没有一个码字作为另一字的开头。沿二叉树到叶得到一个符号，再从根开始，便可逐符号唯一解码。随意给极短码不是压缩成果，例如 0、1、01 的字符串 01 可代表第三符号，或前两符号连续。平均长度需要解码约定，不只是加权数值好看。</p>
+<p>有限二进前缀码长度 ℓ_i 满足 Kraft 不等式 Σ2^(−ℓ_i)≤1。证明：长度 ℓ 的二进词对应 [0,1) 中长度 2^(−ℓ) 的二进子区间；无前缀意味着区间不相交，所以总长度≤1。第三节由此推熵下界。合格整数长度反过来存在前缀码是命名编码定理，阅读链接给进一步构造。</p>
+<p>−log₂(.3) 通常不是整数，它是理想信息长度，不是已经存在的码字。取整和编码构造是另一步。分块或算术编码可在声明模型和解码条件下接近理想平均率，但分数对数不自动定义精确码。文件存储还有模型描述、头信息、有限块和实现成本。</p>
+<p>至少两个正概率符号的非退化有限源，可取正整数 ℓ_i=ceil(−log₂p_i)，满足 Kraft 和≤Σp_i=1；所述逆定理给这样的前缀码。各长度小于理想值加一，故期望长度&lt;H₂(p)+1，后面下界则给≥H₂(p)。这界定平均编码，不分配分数码字。零概率符号可从声明源支撑排除，但要应对未见符号的预测系统需要独立支撑约定。若解码器不知道长度，终止或长度描述也有成本。这里命名存在定理，完整证明必要性与平均下界；树构造可另作编码拓展。</p>
+<figure class="fig" id="fig-27-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="根的零分支直接到 a，右一分支再分零到 b、一到 c，码字零一零一一无前缀冲突，平均一点五比特。"><title>三符号前缀码树</title><desc>根的零分支直接到 a，右一分支再分零到 b、一到 c，码字零一零一一无前缀冲突，平均一点五比特。</desc><defs><marker id="fig-27-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">前缀叶码 0、10、11</text><path d="M380,70L155,151M380,70L510,151M510,151L420,241M510,151L630,241" fill="none" stroke="#0284c7" stroke-width="3"/><text x="265" y="99" text-anchor="start" font-size="20" fill="#1a2e4a">0</text><text x="463" y="99" text-anchor="start" font-size="20" fill="#1a2e4a">1</text><text x="445" y="198" text-anchor="start" font-size="20" fill="#1a2e4a">0</text><text x="582" y="198" text-anchor="start" font-size="20" fill="#1a2e4a">1</text><circle cx="380" cy="70" r="7" fill="#0284c7"/><circle cx="510" cy="151" r="7" fill="#0284c7"/><circle cx="155" cy="151" r="7" fill="#15803d"/><text x="155" y="183" text-anchor="middle" font-size="19" fill="#1a2e4a">a: 0; p=1/2</text><circle cx="420" cy="241" r="7" fill="#15803d"/><text x="420" y="273" text-anchor="middle" font-size="19" fill="#1a2e4a">b: 10; p=1/4</text><circle cx="630" cy="241" r="7" fill="#15803d"/><text x="630" y="273" text-anchor="middle" font-size="19" fill="#1a2e4a">c: 11; p=1/4</text><text x="380" y="327" text-anchor="middle" font-size="21" fill="#1a2e4a">E[length] = .5×1 + .25×2 + .25×2 = 1.5 bits</text></g></svg></div><figcaption><span class="fig-num">图 27.1</span> <p>0、10、11 的叶结构保留解码。概率决定一比特或两比特长度，理想对数长度不能随意视为真实码字。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>哪个底给 bits？哪些零项可跳过？为什么平均长度需要解码条件？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>底二。只跳过源 p=0 的项，正 p 遇零 q 是无限损失。不唯一解码时同一比特串可表示不同源序列，不能恢复原数据。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>熵、条件熵与链式法则</h2></div>
+<p>有限字母表 p 的 H_b(p)=−Σp_i log_b p_i，是同一规律下的期望自信息，不是一次实现的惊讶。概率≤1 使各项非负，熵零当且仅当变量确定。m 符号最大 log_bm、仅均匀取等号，第四节用 KL 证明。边界按声明字母表计，支撑较小不能取全均匀最大。</p>
+<p>联合熵平均 −log p(x,y)。H(X|Y) 按 p(y) 加权 H(X|Y=y)，只考虑正 p(y)。它不是某一个条件组，也不是对标签不加权平均。正联合格满足 p(x,y)=p(y)p(x|y)，取负对数加权得到 H(X,Y)=H(Y)+H(X|Y)，反顺序同理。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>H</mi><mo stretchy="false">(</mo><mi>X</mi><mo separator="true">,</mo><mi>Y</mi><mo stretchy="false">)</mo><mo>=</mo><mi>H</mi><mo stretchy="false">(</mo><mi>Y</mi><mo stretchy="false">)</mo><mo>+</mo><mi>H</mi><mo stretchy="false">(</mo><mi>X</mi><mo>∣</mo><mi>Y</mi><mo stretchy="false">)</mo><mo>=</mo><mi>H</mi><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo><mo>+</mo><mi>H</mi><mo stretchy="false">(</mo><mi>Y</mi><mo>∣</mo><mi>X</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">H(X,Y)=H(Y)+H(X\mid Y)=H(X)+H(Y\mid X).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></div>
+<p>独立时条件律等于边缘，所以联合熵是边缘之和。依赖时差额为第五节互信息。离散条件熵非负，故联合熵至少为任一边缘。Y=f(X) 的 H(Y|X)=0，链式给 H(Y)≤H(X)，确定处理不能增加输出离散不确定性。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">带噪复制的条件不确定性小于独立比特</div>
+<p>X 公平比特，Y=X XOR E，E 独立且翻转率 .1。联合四格 (.45,.05,.05,.45)，两边缘都公平，熵各 1。给定 X 的不确定性 h₂(.1)≈.468996，故联合熵约 1.468996，小于独立和 2；差 .531004 即互信息。</p>
+</div>
+<p>有限离散条件熵平均降低，H(X|Y)≤H(X)，独立时且仅此取等号，下面由 KL 身份证明。它不说每个条件组都更低。例如 Y 以 .9 选择确定零 X 组，以 .1 选择公平 X 组。边缘 P(X=1)=.05、熵约 .286397，而公平组熵 1 更高；加权条件熵 .1 仍更低。平均与所选组的量词不同。</p>
+<p>反复链式得 H(X₁,…,X_T)=ΣH(X_t|X_&lt;t)，无需词元独立。上下文模型可表示依赖，unigram 模型则仅用边缘。预测的因果顺序是概率分解，不自动声称干预因果；所有条件项应在相关正概率前缀计算。</p>
+<p>有限字母表确保熵有限、求和重排安全。可数无限字母表可有无限熵，∞−∞ 不能随便减，即使相对信息可直接定义。此课证明实验都有限；搬到无限词表或密度前要说明额外存在条件。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>由因子分解证链式。每个条件组都必须更低吗？序列条件和需要独立吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>正格对 log p(x,y)=log p(y)+log p(x|y) 加权。只有条件熵平均保证降低，个别组可升。条件链式适用依赖，边缘熵和则需独立。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>交叉熵、期望损失、似然与码长</h2></div>
+<p>同一有序有限字母表的源 p 和预测 q，H_b(p,q)=−Σp_i log_bq_i。正 p 配零 q 为无穷，p=0 则零贡献。标签语义要匹配，一向量交换标签会改变结果，即使都归一化。非负、有限输入与和一是模型条件。</p>
+<p>H(p,q) 不等于 H(q)：前者 p 加权预测，后者 q 自己加权。模型自熵可因过度自信很低，真实源下损失却巨大；自信不等于正确。m 类均匀预测的交叉熵总 log_bm，而源熵随 p 变化，所以是明确字母表的固定参照。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">错误分类频率增加对数损失</div>
+<p>p=(.5,.3,.2)、q=(.25,.5,.25)，H₂(p)≈1.485475，交叉熵 .5·2+.3·1+.2·2=1.7，超额约 .214525。q 自加权给 H₂(q)=1.5，是另一量。实验也算反向，并不相等。</p>
+</div>
+<p>IID 分类观察的负 logL 为 −Σlog q(x_i)。经验频率 p_hat_i=c_i/n，按类别合并并除以 n 就是 H(p_hat,q)。固定 q、支撑兼容的 IID p 下，其期望为 H(p,q)。若 q 用同一数据拟合，训练损失并不自动无偏估计未来损失。</p>
+<p>无约束分类 MLE 为经验频率，零计数为合法边界，却可对未见类别给零，导致未来无限损失。加性平滑 q_i=(c_i+a)/(n+ma)、a&gt;0 在固定字母表上保留正支撑。可通过合适 Dirichlet 模型解释，是 beta 的多类扩展，也可直接声明为平滑规则。它改变估计器，不能用保留标签暗调。</p>
+<p>码长连接要准确。完整二进概率模型 q_i=2^(−ℓ_i) 对应整数前缀长度时，源期望长度恰为 H₂(p,q)。一般 q 需要取整和构造。反之，任意有限二进前缀码取 Z=Σ2^(−ℓ_i)≤1，r_i=2^(−ℓ_i)/Z，则 ℓ_i=−log₂r_i−log₂Z。平均长度 H₂(p,r)−log₂Z，由下一节 KL 非负至少为 H₂(p)，从而证明带解码条件的下界。</p>
+<p>这只是源下平均下界，不说每条消息长度至少其自信息，也不禁止个别消息极好压缩。模型开销和有限块成本另计。有限保留词元仅估其经验损失，不证明总体熵或所有质量。实验刻意报告平滑频率模型在固定测试上差于均匀，避免暗示训练频率自动有泛化优势。</p>
+<figure class="fig" id="fig-27-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="三类源点五点三点二加权预测点二五点五点二五的自信息二一二，交叉熵一点七比特，分成源熵与正向散度。"><title>交叉熵与方向错配</title><desc>三类源点五点三点二加权预测点二五点五点二五的自信息二一二，交叉熵一点七比特，分成源熵与正向散度。</desc><defs><marker id="fig-27-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">源权重乘预测自信息</text><text x="85" y="78" text-anchor="middle" font-size="19" fill="#1a2e4a">类别</text><text x="230" y="78" text-anchor="middle" font-size="19" fill="#1a2e4a">p</text><text x="375" y="78" text-anchor="middle" font-size="19" fill="#1a2e4a">q</text><text x="520" y="78" text-anchor="middle" font-size="19" fill="#1a2e4a">−log₂q</text><text x="665" y="78" text-anchor="middle" font-size="19" fill="#1a2e4a">p(−log₂q)</text><rect x="25" y="98" width="710" height="43" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="85" y="127" text-anchor="middle" font-size="21" fill="#1a2e4a">a</text><text x="230" y="127" text-anchor="middle" font-size="21" fill="#1a2e4a">.5</text><text x="375" y="127" text-anchor="middle" font-size="21" fill="#1a2e4a">.25</text><text x="520" y="127" text-anchor="middle" font-size="21" fill="#1a2e4a">2</text><text x="665" y="127" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><rect x="25" y="149" width="710" height="43" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="85" y="178" text-anchor="middle" font-size="21" fill="#1a2e4a">b</text><text x="230" y="178" text-anchor="middle" font-size="21" fill="#1a2e4a">.3</text><text x="375" y="178" text-anchor="middle" font-size="21" fill="#1a2e4a">.5</text><text x="520" y="178" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><text x="665" y="178" text-anchor="middle" font-size="21" fill="#1a2e4a">.3</text><rect x="25" y="200" width="710" height="43" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="85" y="229" text-anchor="middle" font-size="21" fill="#1a2e4a">c</text><text x="230" y="229" text-anchor="middle" font-size="21" fill="#1a2e4a">.2</text><text x="375" y="229" text-anchor="middle" font-size="21" fill="#1a2e4a">.25</text><text x="520" y="229" text-anchor="middle" font-size="21" fill="#1a2e4a">2</text><text x="665" y="229" text-anchor="middle" font-size="21" fill="#1a2e4a">.4</text><text x="380" y="292" text-anchor="middle" font-size="21" fill="#1a2e4a">H₂(p,q) = 1.7 = H₂(p) + D₂(p||q)</text><text x="380" y="331" text-anchor="middle" font-size="21" fill="#1a2e4a">1.7 = 1.485475 + .214525 bits</text></g></svg></div><figcaption><span class="fig-num">图 27.2</span> <p>交叉熵用源 p 加权 −log q，等于源熵加方向性错配成本，不是模型自熵。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>交叉熵用谁加权？如何由似然推出？分数自信息是否自动是真实整数码长？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>用 p。按分类合并负 logL 再除 n。真实码需构造、取整或分块开销；只有特定编码模型条件下精确等式成立。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>KL 散度、非负、等号与支撑方向</h2></div>
+<p>有限 p,q 的 D_b(p||q)=Σ_{p_i&gt;0}p_i log_b(p_i/q_i)，需要的 q_i 为零则无穷，源零项为零。支撑兼容时重排得到 H_b(p,q)=H_b(p)+D_b(p||q)。方向明确：p 是给予结果权重的源，不是对称距离。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>D</mi><mo stretchy="false">(</mo><mi>p</mi><mi mathvariant="normal">∥</mi><mi>q</mi><mo stretchy="false">)</mo><mo>=</mo><munder><mo>∑</mo><mrow><mi>i</mi><mo>:</mo><msub><mi>p</mi><mi>i</mi></msub><mo>&gt;</mo><mn>0</mn></mrow></munder><msub><mi>p</mi><mi>i</mi></msub><mi>log</mi><mo>⁡</mo><mfrac><msub><mi>p</mi><mi>i</mi></msub><msub><mi>q</mi><mi>i</mi></msub></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>H</mi><mo stretchy="false">(</mo><mi>p</mi><mo separator="true">,</mo><mi>q</mi><mo stretchy="false">)</mo><mo>=</mo><mi>H</mi><mo stretchy="false">(</mo><mi>p</mi><mo stretchy="false">)</mo><mo>+</mo><mi>D</mi><mo stretchy="false">(</mo><mi>p</mi><mi mathvariant="normal">∥</mi><mi>q</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">D(p\Vert q)=\sum_{i:p_i&gt;0}p_i\log\frac{p_i}{q_i},\qquad H(p,q)=H(p)+D(p\Vert q).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mord">∥</span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.5213em;vertical-align:-1.4138em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">:</span><span class="mord mtight"><span class="mord mathnormal mtight">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3281em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="katex-sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mrel mtight">&gt;</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4138em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.0139em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mord">∥</span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></div>
+<p>用自然 log 的 −log u≥1−u、u&gt;0 证明。差函数 g=−logu−1+u，导数 1−1/u，在一以下递减、以上递增，仅一时零。对 p 正支撑 S 应用 u=q_i/p_i、乘 p_i 并加总，D≥Σ_S(p_i−q_i)=1−Σ_Sq_i≥0。其他底除以正 logb。需要的 q 为零时无穷仍非负。</p>
+<p>等号要求每个正源处 q_i=p_i，且没有支撑外质量。源和一使匹配已用完全部 q，因此完整 p=q。不能在证明中默设所有概率正而丢零处理。取均匀 q 得 D=log_bm−H_b(p)，证最大熵界及均匀等号；也说明所有有限预测中真实源最小化交叉熵。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">支撑错配可一方向有限，反向无穷</div>
+<p>p=(1,0)、q=(.5,.5)，D₂(p||q)=1 bit；反向 q 有第二结果正质量，p 却预测零，所以无穷。正向量也一般不对称：实验的三类例子约 .214525 与 .198965 bits。</p>
+</div>
+<p>KL 也一般不满足三角不等式。例如 Bernoulli .1、.5、.9 的 D₂(.1||.9)≈2.53594，而经过 .5 的两散度和≈1.26797，违反三角。平方根或对称替代要有自己的定义与证明，随便对称化不能自动叫度量。</p>
+<p>拟合时最小 D(p||q_θ) 等价于最小源交叉熵，因为 H(p) 固定；反向改变权重与目标，未知真实 p 时还可能不可计算。受限族最小可正，KL 非负不保证族含真源或优化器找到最佳。模型、数值优化和数学下界是不同声明。</p>
+<p>近似相等分布的浮点计算可给很小负 KL。先检验概率与支撑，稳定计算并谨慎加总，再按尺度解释舍入；不能大负值也静默裁零。实验归一化检查披露容差，全零权重则根本不能归一化。</p>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="information"></div><div class="widget-caption">
+</div></div>
+<p>探索器明确将非负类别权重归一化成 p,q，按选择单位报告熵、双向交叉熵与 KL。正源配零预测显示无穷，匹配 q=p 给零散度，共同零类无害。柱图是概率，理想码长仍只是信息量，除非另有解码方案。</p>
+<p>将零预测换成 epsilon 会改变模型与损失，可作为声明后重新归一化的平滑，但不是原分布精确散度。数学无穷与对数域数值稳定要分开。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>哪个不等式证明非负？零概率下等号需要什么？反方向为何改变拟合？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>用 −logu≥1−u 并计支撑外 q。等号要完整规律相同。反向改变对数权重，并可能要求模型生成结果处未知真实概率。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>互信息、依赖与处理</h2></div>
+<p>有限联合律的 I(X;Y)=D(p_XY||p_Xp_Y)。正联合格的边缘正，因此分母有效。展开得到 I=H(X)+H(Y)−H(X,Y)=H(X)−H(X|Y)=H(Y)−H(Y|X)。KL 非负及等号给 I≥0，零恰是联合乘积分解独立。虽然一般 KL 有方向，这个联合对边缘乘积表达对 X,Y 对称。</p>
+<p>离散条件熵非负给 I≤min(HX,HY)，并证明条件平均降低。确定 Y=f(X) 给 I=H(Y)，不必等于 H(X)，多对一可丢信息，可逆重标签则保留。信息量描述规律下依赖，不识别因果方向，共同源也可令互信息大。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">独立噪声通道丢失输入信息</div>
+<p>公平比特的 .1 翻转复制 I=1−h₂(.1)≈.531004。再将 Y 替换为完全独立公平 Z，X,Z 独立，I=0。翻转零保留一 bit，翻转 .5 无信息。随机噪声在别的模型可增输出熵却减输入信息，所以输出熵不是保留信息的指标。</p>
+</div>
+<p>条件互信息是在正 z 上按 p(z) 加权的条件联合对条件边缘乘积 KL，所以非负。熵展开给 I(X;Y,Z)=I(X;Y)+I(X;Z|Y)。有限 Markov 关系 X→Y→Z 表示给定 Y 后 X,Z 条件独立，故后项零。另一顺序展开为 I(X;Z)+I(X;Y|Z)≥I(X;Z)，由此完整证明有限数据处理不等式 I(X;Z)≤I(X;Y)。</p>
+<p>确定 Z=f(Y) 是特殊情况，也可用只依赖 Y 而不额外访问 X 的随机通道。增加独立观察 X 的新传感器可能帮忙，但不满足处理链；随机处理可增加输出熵，定理约束的是关于原输入的信息。应说明比较的是哪个输入。</p>
+<p>互信息不同于线性协方差。有限例子 X 在 −1,0,1 等概率，Y=X²，Cov 由对称为零，却是非恒定确定函数，所以 I=H(Y)&gt;0。稀疏数据估信息还有偏差和支撑问题，经验表不自动为准确总体律。连续数据离散化改变变量和测量的信息。</p>
+<figure class="fig" id="fig-27-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="输入 X 到中间 Y 再到 Z，给 Y 后 X Z 条件独立，X Z 信息不高于 X Y；不能将它误读成输出熵必降。"><title>有限数据处理关系</title><desc>输入 X 到中间 Y 再到 Z，给 Y 后 X Z 条件独立，X Z 信息不高于 X Y；不能将它误读成输出熵必降。</desc><defs><marker id="fig-27-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">处理链的条件必须成立</text><rect x="30" y="85" width="210" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="135" y="141" text-anchor="middle" font-size="30" fill="#1a2e4a">X</text><rect x="275" y="85" width="210" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="141" text-anchor="middle" font-size="30" fill="#1a2e4a">Y</text><rect x="520" y="85" width="210" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="625" y="141" text-anchor="middle" font-size="30" fill="#1a2e4a">Z</text><path d="M245,130L265,130" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-27-3__arrow)"/><path d="M490,130L510,130" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-27-3__arrow)"/><text x="380" y="220" text-anchor="middle" font-size="21" fill="#1a2e4a">给定 Y 后，X 与 Z 条件独立。</text><text x="380" y="266" text-anchor="middle" font-size="25" fill="#1a2e4a">I(X;Z) ≤ I(X;Y)</text><text x="380" y="319" text-anchor="middle" font-size="18" fill="#1a2e4a">新随机噪声可增 H(Z)，却不增关于 X 的信息。</text></g></svg></div><figcaption><span class="fig-num">图 27.3</span> <p>处理链要求给定中间变量后，输入与最后输出条件独立。关于输入的互信息不会沿链增加，即使新噪声增加输出熵。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>为何互信息零恰是独立？数据处理说输出熵总减吗？Cov 零能推出信息零吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>KL 等号表示联合等于边缘乘积。定理约束原输入信息，噪声可增输出随机性。非线性依赖可以 Cov 零但信息正。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>序列似然、困惑度与密度预览</h2></div>
+<p>有限序列 q(x₁:T)=∏q(x_t|x_&lt;t)，说明起始上下文与正前缀约定。总负 logL 是条件词元损失和，不需独立；unigram 是受限特殊模型。变长字符串的完整生成律还需终止概率；不计结束词元时可为条件或部分评估分数，应如实命名。</p>
+<p>每计分词元平均 nats L=−Σlogq/T，困惑度（perplexity）为 expL；bits 则 2^L_bits。它是所赋词元概率几何平均的倒数，不需整数，也不字面等于模型考虑候选数。m 词元均匀模型给困惑度 m，只是特殊直觉。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">改变词元单位可改变困惑度而保持字符串概率</div>
+<p>两个人工联合模型都给同一原字符串概率 1/16。两词元计分给 mean nats=log4、困惑度 4，四词元给 log2、困惑度 2。这里只是分母改变，并非字符串概率改善。比较需相同分词、计分数据、上下文与概率语义。</p>
+</div>
+<p>不同长度序列的语料词元平均，应总计损失/总计词元；每句均值再等权平均是另一问题。说明 padding、提示、开始结束和掩码位置是否计分，不能暗用不同分母。依赖序列词元也不自动是独立标准误样本，统计不确定性需合适独立序列或主体。</p>
+<p>困惑度测指定评估分布的预测 log 损失，不单独衡量真实、有用、公平、推理或全部压缩成本。低均损失可同时有罕见严重失败，换分布即换目标，模块 26 的选择规则仍适用。需要词元无支撑的无穷是模型问题；巨大有限损失的指数溢出是表示问题，后者报告 log 损失仍有意义。</p>
+<p><strong>连续选学：</strong>密度微分熵 h=−∫f logf，在积分定义良好时成立，不是精确实数点离散熵，因为点概率零。Uniform(0,a) 密度 1/a，h=log a；a=.25 时密度 4、nats 熵负。Y=cX、c≠0，在正确变换可积条件下 hY=hX+log|c|，离散非负与单位不变不能照搬。</p>
+<p>充分正则的等宽细分，H(离散化 X)≈h(X)−logΔ，记录分辨率成本；不是任意混合分布或无限熵密度的恒等式。连续 KL 要共同参考测度及支撑可积条件，两个规律正确坐标变换时 Jacobian 在比中消去。完整连续信息论属后续，不能隐藏在本课有限证明内。</p>
+<figure class="fig" id="fig-27-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="同一原字符串概率十六分之一，两词元平均 log 四困惑度四，四词元平均 log 二困惑度二；概率没有改善。"><title>困惑度分母与单位</title><desc>同一原字符串概率十六分之一，两词元平均 log 四困惑度四，四词元平均 log 二困惑度二；概率没有改善。</desc><defs><marker id="fig-27-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">同一字符串概率，不同平均单位</text><text x="380" y="74" text-anchor="middle" font-size="22" fill="#1a2e4a">q(raw string)=1/16; total NLL=log16</text><rect x="30" y="104" width="700" height="68" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="144" text-anchor="start" font-size="21" fill="#1a2e4a">2 个计分词元</text><text x="700" y="144" text-anchor="end" font-size="21" fill="#1a2e4a">mean=log4; perplexity=4</text><rect x="30" y="190" width="700" height="68" rx="10" fill="#faf5ff" stroke="#0ea5e9"/><text x="55" y="230" text-anchor="start" font-size="21" fill="#1a2e4a">4 个计分词元</text><text x="700" y="230" text-anchor="end" font-size="21" fill="#1a2e4a">mean=log2; perplexity=2</text><text x="380" y="311" text-anchor="middle" font-size="19" fill="#1a2e4a">匹配分词、底、位置与上下文后再比较。</text></g></svg></div><figcaption><span class="fig-num">图 27.4</span> <p>困惑度需匹配底与计分词元分母。连续密度的熵另依赖坐标尺度，允许为负。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>序列分解需独立吗？语料词元困惑度用哪个分母？微分熵为何可负？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>条件链式适用依赖。使用总计分词元数。密度可大于一且坐标缩放改变微分熵，不是点概率熵。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>错误说法</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一 bit 与一 nat 相同。</td>
+<td>按 log2 换算并匹配指数底。</td>
+</tr>
+<tr>
+<td>所有零概率贡献都零。</td>
+<td>正源遇零预测为无穷。</td>
+</tr>
+<tr>
+<td>交叉熵用 q 加权。</td>
+<td>H(p,q) 按 p 平均。</td>
+</tr>
+<tr>
+<td>KL 是对称度量。</td>
+<td>方向、支撑、三角失败重要。</td>
+</tr>
+<tr>
+<td>所选条件组熵总减。</td>
+<td>不等式针对加权平均。</td>
+</tr>
+<tr>
+<td>互信息给因果方向。</td>
+<td>它描述联合依赖。</td>
+</tr>
+<tr>
+<td>随机处理总降输出熵。</td>
+<td>Markov 条件下降原输入信息。</td>
+</tr>
+<tr>
+<td>任意分词的困惑度可比。</td>
+<td>单位和概率约定需一致。</td>
+</tr>
+<tr>
+<td>微分熵总非负。</td>
+<td>密度单位和宽度改变它。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个可复现实验</h2></div>
+<h3 id="lab1">实验 1 · 熵、方向 KL 与信息</h3>
+<p><a href="labs/module_27/lab1_entropy_kl_and_information.py" download>下载 lab1_entropy_kl_and_information.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Finite information measures in bits, with explicit support conventions.&quot;&quot;&quot;
+import math
+
+
+def validate(p):
+    if not p or any(not math.isfinite(x) or x &lt; 0 for x in p) or not math.isclose(math.fsum(p), 1., abs_tol=1e-12, rel_tol=0.):
+        raise ValueError(&quot;probabilities must be finite, nonnegative, and sum to one&quot;)
+
+
+def entropy(p):
+    validate(p)
+    return -math.fsum(x*math.log2(x) for x in p if x &gt; 0)
+
+
+def cross_entropy(p, q):
+    validate(p)
+    validate(q)
+    if len(p) != len(q):
+        raise ValueError(&quot;same ordered alphabet required&quot;)
+    if any(x &gt; 0 and y == 0 for x, y in zip(p, q)):
+        return math.inf
+    return -math.fsum(x*math.log2(y) for x, y in zip(p, q) if x &gt; 0)
+
+
+def kl(p, q):
+    return cross_entropy(p, q)-entropy(p)
+
+
+if __name__ == &quot;__main__&quot;:
+    p, q = [.5, .3, .2], [.25, .5, .25]
+    print(f&quot;p={p}; q={q}; same ordered alphabet; units=bits&quot;)
+    print(f&quot;H(p)={entropy(p):.6f}; H(p,q)={cross_entropy(p,q):.6f}; KL(p||q)={kl(p,q):.6f}; KL(q||p)={kl(q,p):.6f}&quot;)
+    assert abs(cross_entropy(p,q)-entropy(p)-kl(p,q)) &lt; 1e-12
+    print(f&quot;KL([1,0]||[.5,.5])={kl([1.,0.],[.5,.5]):.6f}; reverse={kl([.5,.5],[1.,0.])}&quot;)
+    joint = [.45, .05, .05, .45]
+    independent = [.25]*4
+    mi = kl(joint, independent)
+    print(f&quot;Fair binary input, independent flip probability.1: MI={mi:.6f}; H(Y|X)={entropy([.1,.9]):.6f}&quot;)
+    print(f&quot;H(X,Y)={entropy(joint):.6f}; H(X)+H(Y)-H(X,Y)={2-entropy(joint):.6f}&quot;)
+    assert abs(mi-(1-entropy([.1,.9]))) &lt; 1e-12
+    code_p, lengths = [.5,.25,.25], [1,2,2]
+    expected = math.fsum(x*l for x,l in zip(code_p,lengths))
+    print(f&quot;Prefix code0/10/11: expected length={expected:.6f}; entropy={entropy(code_p):.6f}&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>p=[0.5, 0.3, 0.2]; q=[0.25, 0.5, 0.25]; same ordered alphabet; units=bits
+H(p)=1.485475; H(p,q)=1.700000; KL(p||q)=0.214525; KL(q||p)=0.198965
+KL([1,0]||[.5,.5])=1.000000; reverse=inf
+Fair binary input, independent flip probability.1: MI=0.531004; H(Y|X)=0.468996
+H(X,Y)=1.468996; H(X)+H(Y)-H(X,Y)=0.531004
+Prefix code0/10/11: expected length=1.500000; entropy=1.500000
+</code></pre></div>
+<p>预测无穷方向，证明恒等式，解释前缀码等号与噪声比特条件熵。</p>
+<h3 id="lab2">实验 2 · 小型保留频率模型</h3>
+<p><a href="labs/module_27/lab2_frequency_language_model.py" download>下载 lab2_frequency_language_model.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A tiny categorical unigram model evaluated on a fixed held-out token list.&quot;&quot;&quot;
+import collections
+import math
+
+
+if __name__ == &quot;__main__&quot;:
+    alphabet = (&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)
+    training = list(&quot;aaaaaabbbc&quot;)
+    test = list(&quot;abcac&quot;)
+    counts = collections.Counter(training)
+    # Alphabet and additive smoothing are specified before examining test tokens.
+    alpha = 1.
+    models = {&quot;uniform&quot;: {t:1/3 for t in alphabet},
+              &quot;training-only smoothed unigram&quot;: {t:(counts[t]+alpha)/(len(training)+alpha*len(alphabet)) for t in alphabet}}
+    print(f&quot;Fixed alphabet={alphabet}; training counts={dict(counts)}; test tokens={test}; smoothing alpha=1&quot;)
+    for name, model in models.items():
+        losses = [-math.log(model[t]) for t in test]
+        nll = math.fsum(losses)
+        average = nll/len(test)
+        bits = average/math.log(2)
+        print(f&quot;{name}: probabilities={[round(model[t],6) for t in alphabet]}&quot;)
+        print(f&quot;  held-out total NLL={nll:.6f}, mean nats/token={average:.6f}, bits/token={bits:.6f}, perplexity={math.exp(average):.6f}&quot;)
+    print(&quot;This fixed unigram approximation ignores order and context. Its poor held-out result cannot be repaired by fitting test counts.&quot;)
+    sequence_probability = .5*.8*.6
+    print(f&quot;Conditional sequence example: .5*.8*.6={sequence_probability:.6f}; chain NLL={-math.log(sequence_probability):.6f}&quot;)
+    print(&quot;The chain factorisation uses conditional probabilities; it does not require independent tokens.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Fixed alphabet=('a', 'b', 'c'); training counts={'a': 6, 'b': 3, 'c': 1}; test tokens=['a', 'b', 'c', 'a', 'c']; smoothing alpha=1
+uniform: probabilities=[0.333333, 0.333333, 0.333333]
+  held-out total NLL=5.493061, mean nats/token=1.098612, bits/token=1.584963, perplexity=3.000000
+training-only smoothed unigram: probabilities=[0.538462, 0.307692, 0.153846]
+  held-out total NLL=6.160338, mean nats/token=1.232068, bits/token=1.777498, perplexity=3.428310
+This fixed unigram approximation ignores order and context. Its poor held-out result cannot be repaired by fitting test counts.
+Conditional sequence example: .5*.8*.6=0.240000; chain NLL=1.427116
+The chain factorisation uses conditional probabilities; it does not require independent tokens.
+</code></pre></div>
+<p>测试以前固定字母表和平滑，推 unigram 概率，解释为何此次训练频率未胜均匀。</p>
+<h3 id="lab3">实验 3 · 单位、支撑与计分修复</h3>
+<p><a href="labs/module_27/lab3_units_support_and_tokenisation.py" download>下载 lab3_units_support_and_tokenisation.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Challenge units, invalid PMFs, zero support, and per-token comparisons.&quot;&quot;&quot;
+import math
+def validate(p):
+    if not p or any(not math.isfinite(x) or x &lt; 0 for x in p) or not math.isclose(math.fsum(p), 1., abs_tol=1e-12, rel_tol=0.):
+        raise ValueError(&quot;probabilities must be finite, nonnegative, and sum to one&quot;)
+
+
+def cross_entropy(p, q):
+    validate(p)
+    validate(q)
+    if len(p) != len(q):
+        raise ValueError(&quot;same ordered alphabet required&quot;)
+    if any(x &gt; 0 and y == 0 for x, y in zip(p, q)):
+        return math.inf
+    return -math.fsum(x*math.log2(y) for x, y in zip(p, q) if x &gt; 0)
+
+
+if __name__ == &quot;__main__&quot;:
+    for bad in ([.8,.4], [-.1,1.1], [math.nan,1.], [0.,0.]):
+        try:
+            validate(bad)
+        except ValueError:
+            print(f&quot;Rejected invalid probability list: {bad}&quot;)
+    bits = 1.
+    print(f&quot;One bit loss: wrong exp(bits)={math.exp(bits):.6f}; correct 2**bits={2**bits:.6f}&quot;)
+    print(f&quot;Nats conversion={bits*math.log(2):.6f}; exp(nats)={math.exp(bits*math.log(2)):.6f}&quot;)
+    print(f&quot;Required support missing: cross-entropy([.5,.5],[1,0])={cross_entropy([.5,.5],[1.,0.])}&quot;)
+    # Artificial joint models assign the same probability to the same raw string.
+    probability = 1/16
+    nll = -math.log(probability)
+    for tokens in (2,4):
+        ppl = math.exp(nll/tokens)
+        print(f&quot;Same raw-string probability1/16, {tokens} scored tokens: mean nats={nll/tokens:.6f}, perplexity={ppl:.6f}&quot;)
+    print(&quot;A smaller token perplexity here reflects a different unit count, not a better raw-string probability.&quot;)
+    p = .25
+    print(f&quot;Density preview: Uniform(0,.25) density=4, differential entropy nats={math.log(p):.6f}; exact-point probability=0&quot;)
+    print(&quot;Differential entropy can be negative and changes with coordinate units; discrete entropy's nonnegativity does not transfer.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Rejected invalid probability list: [0.8, 0.4]
+Rejected invalid probability list: [-0.1, 1.1]
+Rejected invalid probability list: [nan, 1.0]
+Rejected invalid probability list: [0.0, 0.0]
+One bit loss: wrong exp(bits)=2.718282; correct 2**bits=2.000000
+Nats conversion=0.693147; exp(nats)=2.000000
+Required support missing: cross-entropy([.5,.5],[1,0])=inf
+Same raw-string probability1/16, 2 scored tokens: mean nats=1.386294, perplexity=4.000000
+Same raw-string probability1/16, 4 scored tokens: mean nats=0.693147, perplexity=2.000000
+A smaller token perplexity here reflects a different unit count, not a better raw-string probability.
+Density preview: Uniform(0,.25) density=4, differential entropy nats=-1.386294; exact-point probability=0
+Differential entropy can be negative and changes with coordinate units; discrete entropy's nonnegativity does not transfer.
+</code></pre></div>
+<p>拒无效概率，修 bit/nat 指数，说明同字符串概率不同困惑度。密度预览需模块 17。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>十四题与完整解答</h2></div>
+<p>练习 1–12 必做，选学 13–14 在十小时以外加 35 分钟，连续替代需模块 17。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>算公平及 Bernoulli(.1) 的 bits 熵，将后者换 nats。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>公平为 1，.1 的 h₂≈.468996，乘 log2 得 .325083 nats。换底只改单位。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>p=(.5,.3,.2)、q=(.25,.5,.25)，求交叉熵及正向 KL。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>交叉熵 1.7，源熵约 1.485475，散度约 .214525 bits。模型自熵是另一加权。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>p=(1,0)、q=(.5,.5) 两方向 KL 如何？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>正向 1 bit，反向无穷，因为正 q 源质量遇零预测。只跳零源项，不能跳需要的零预测。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>一 bit 损失的困惑度多少？1/16 字符串的两/四词元值呢？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>一 bit 给 2，也等于 exp(log2)。两分母给 4 和 2，原字符串概率相同。exp1 对一 bit 错误。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>含零概率证有限 KL 非负等号，再推最大熵界。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>需要的 q 零则无穷，否则在正源支撑用 −log(q_i/p_i)≥1−q_i/p_i，加总得 D≥1−Σ_Sq_i≥0。等号完整匹配 p=q。均匀 q 给 D=log_bm−H_b(p)，所以 H≤log_bm，仅均匀相等。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>推链式及联合/边缘乘积 KL 的互信息。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>正格 log联合=log边缘+log条件，加权得 HXY=HY+H(X|Y)。展开 log[pXY/(pXpY)] 得 I=HX+HY−HXY，KL 证明非负，等号恰独立。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>由 IID 似然推经验交叉熵，并证有限二进前缀码平均下界。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>负 logL 按类别合并除 n 得 H(p_hat,q)。Kraft 给 Z≤1，r_i=2^(−ℓ_i)/Z，平均长 H₂(p,r)−log₂Z≥H₂(p)。解码与正码质量条件不可省。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>公平输入独立 .1 翻转，算边缘、联合、条件熵与互信息。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>四格 .45,.05,.05,.45，两边缘公平；条件 .468996，联合 1.468996，信息 .531004 bits。独立翻转是模型条件，不由少量观察推出。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>训练计数 6,3,1、固定三类、平滑一，推 q 并说明保留计分。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>q=(7,4,2)/13，正且归一。测试不改计数或按标签调平滑。abcac 均损失约 1.232068 nats、困惑度 3.428310，差于均匀 3；有限结果不定总体排序。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>X 在 −1,0,1 均匀，Y=X²，求 Cov 与信息。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>EX=0、EXY=EX³=0，所以 Cov0。Y 在 0,1 质量 1/3,2/3，由 X 确定，I=H₂Y≈.918296 bits。线性不相关不表示独立。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>H(p,q) 用 q 加权，需要的零预测写零损失，KL 称对称。修复。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>按源 p 平均 −logq；正 p 配零 q 无穷，只有 p 零可跳。方向改变权重支撑，有限/无穷例即反驳对称。先检验标签与归一化。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>语料等权平均句均值、未写词元约定，又比较不同分词器困惑度。修复。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>词元指标用总损失/总计分词元，列提示、padding、开始结束、上下文及底。相同概率词元约定比较，或以有依据共同原数据单位；分母不同可改困惑度却不改字符串概率。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>用条件信息链式证 X→Y→Z 有限数据处理。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>条件独立给 I(X;Z|Y)=0，故 I(X;YZ)=I(X;Y)。反顺序为 I(X;Z)+I(X;Y|Z)≥I(X;Z)，后项为加权 KL 非负。额外访问 X 的处理器不在条件内。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>CS：给个别条件组熵增但平均减的例子。AI 替代：推均匀微分熵与缩放。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>CS 的 .9 确定零组与 .1 公平组给边缘 .05、熵 .286397，公平组 1 较大，加权 .1 较小。AI 均匀宽 a 的 h=log a，Y=cX 的密度除 |c|，代入积分得 hY=hX+log|c|；a&lt;1 的负值有效。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自测</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>哪个 log 给 bits？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">底二</button></li><li><button type="button" class="quiz-opt" data-i="1">不转换的自然 log</button></li><li><button type="button" class="quiz-opt" data-i="2">任何底数值都一样</button></li></ol><div class="quiz-expl" hidden>底改变正尺度单位。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>交叉熵中正 p_i 但 q_i=0 如何？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">零贡献</button></li><li><button type="button" class="quiz-opt" data-i="1">无限期望 log 损失</button></li><li><button type="button" class="quiz-opt" data-i="2">有效短码</button></li></ol><div class="quiz-expl" hidden>预测给需要结果零概率。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>谁加权 H(p,q)？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总是 q</button></li><li><button type="button" class="quiz-opt" data-i="1">都不是</button></li><li><button type="button" class="quiz-opt" data-i="2">p</button></li></ol><div class="quiz-expl" hidden>源 p 平均预测自信息。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>什么建立 H(p,q)≥H(p)？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">含支撑约定的 KL 非负</button></li><li><button type="button" class="quiz-opt" data-i="1">KL 对称</button></li><li><button type="button" class="quiz-opt" data-i="2">忽略所有零预测</button></li></ol><div class="quiz-expl" hidden>交叉熵为源熵加方向散度。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>KL 是对称度量吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总是</button></li><li><button type="button" class="quiz-opt" data-i="1">否，方向和三角失败重要</button></li><li><button type="button" class="quiz-opt" data-i="2">换底即对称</button></li></ol><div class="quiz-expl" hidden>正缩放不修复缺少性质。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>有限互信息何时零？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Cov 零时</button></li><li><button type="button" class="quiz-opt" data-i="1">边缘相似时</button></li><li><button type="button" class="quiz-opt" data-i="2">联合恰等于独立边缘乘积</button></li></ol><div class="quiz-expl" hidden>用 KL 等号。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>数据处理约束什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Markov 链下关于原输入的信息</button></li><li><button type="button" class="quiz-opt" data-i="1">任意新随机的所有输出熵</button></li><li><button type="button" class="quiz-opt" data-i="2">自动因果效应</button></li></ol><div class="quiz-expl" hidden>加噪可增随机性却丢输入信息。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>mean nats/token 如何转困惑度？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">未转换就取二的幂</button></li><li><button type="button" class="quiz-opt" data-i="1">取 exp</button></li><li><button type="button" class="quiz-opt" data-i="2">除词表大小</button></li></ol><div class="quiz-expl" hidden>指数底匹配 log 单位。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>微分熵可以负吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">不能，密度不超一</button></li><li><button type="button" class="quiz-opt" data-i="1">只有概率无效时</button></li><li><button type="button" class="quiz-opt" data-i="2">可以，密度尺度不同于离散质量</button></li></ol><div class="quiz-expl" hidden>均匀宽小于一给负 log 宽。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m27:q10">
+<label for="q10-response">10. 由似然推分类交叉熵，含支撑零证明 KL 超额非负。解释噪声比特互信息、条件序列分解，以及困惑度为何需底、分母和匹配协议。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="列源预测规律、权重、支撑、证明及计分单位。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我区分熵、预测损失、方向错配、依赖与词元单位。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>IID logL 按类别计数合并为经验 H。H(p,q)=H(p)+D，用 −logu≥1−u 在正源支撑证明非负，需要 q 零则无穷。噪声公平比特携带 1−h₂(.1) bits。条件序列无需词元独立。困惑度用匹配底指数化均损失，比较前需相同分词、位置、上下文与权重。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>带问题阅读</h2></div>
+<p>读 Stanford <a href="https://web.stanford.edu/class/ee376a/files/2017-18/lecture_3.pdf" target="_blank" rel="noopener">信息量讲义</a>、<a href="https://web.stanford.edu/class/ee376a/files/2017-18/lecture_5.pdf" target="_blank" rel="noopener">变长编码</a>及<a href="https://web.stanford.edu/class/ee376a/files/2017-18/lecture_8.pdf" target="_blank" rel="noopener">连续信息预览</a>。本课有限证明和原创例子明确处理零支撑，连续为后续选学。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>阅读问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一阶段 · 15 分钟</td>
+<td>哪个律加权每个 log，条件分解在何处进入？</td>
+</tr>
+<tr>
+<td>第四阶段 · 15 分钟</td>
+<td>哪些解码、支撑和单位条件支持各界？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索结业与下一步</h2></div>
+<p>计算有限信息，证明 KL 与链式，推似然损失及码长下界，给正确困惑度报告，解释依赖而不混淆因果。</p>
+<p><strong>结业任务：</strong>算三类错配，找无穷方向，修底或词元分母比较，将依赖序列概率追踪到加性条件损失。</p>
+<p><strong>进入下一课的标准：</strong>能把概率模型连接 log 损失。下一课研究抽样梯度与正则化训练。返回<a href="index_ZH.html">总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>符号与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语或符号</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自信息 / bit / nat</td>
+<td>负 log 概率 / 二 / e 底单位</td>
+<td>Surprisal / bit / nat</td>
+</tr>
+<tr>
+<td>H(p) / H(p,q)</td>
+<td>源熵 / 期望预测自信息</td>
+<td>Entropy / cross-entropy</td>
+</tr>
+<tr>
+<td>D(p</td>
+<td></td>
+<td>q) / 支撑</td>
+</tr>
+<tr>
+<td>I(X;Y)</td>
+<td>联合对边缘乘积信息</td>
+<td>Mutual information</td>
+</tr>
+<tr>
+<td>前缀码 / Kraft</td>
+<td>可解码叶码 / 长度约束</td>
+<td>Prefix code / Kraft</td>
+</tr>
+<tr>
+<td>困惑度 / 计分词元</td>
+<td>均损失指数 / 平均单位</td>
+<td>Perplexity / scored token</td>
+</tr>
+<tr>
+<td>h(X) / 密度</td>
+<td>微分熵 / 连续参考密度</td>
+<td>Differential entropy / density</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_26_ZH.html">← 模块 26</a><a href="module_28_ZH.html">模块 28 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>
