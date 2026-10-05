@@ -3,12 +3,14 @@
 How to continue the tutorial series **From Machine Learning to Large Language Models** from where
 it stands. Read this first, then `PLAN.md`.
 
-**Current status (5 October 2026):** Modules 01–09 are published in English and
+**Current status (5 October 2026):** All ten modules are published in English and
 Simplified Chinese at <https://wrwei.github.io/tutorials/ai/>. Module 10 is complete
-in both languages and prepared for publication, with six executed labs, full
-technical/editorial review, 18 figure pairs, two widgets and translation/publication QA.
-The complete ten-module publication build and indexes are ready. Deployment and live
-verification are the remaining release steps; see section 10 and the final task report.
+with six executed CPU labs, full technical/editorial review, 18 figure pairs, two
+widgets and translation/publication QA. [PR #9](https://github.com/wrwei/wrwei.github.io/pull/9) is merged;
+both MkDocs and GitHub Pages deployments succeeded. All 22 live course pages pass
+browser checks and their served HTML matches the reviewed files exactly after
+line-ending normalisation. The widget bundle and four Module 10 plots also match.
+No remaining module production or publication; see section 10 for maintenance.
 
 ## 1. What the series is
 
@@ -58,18 +60,19 @@ does not publish it.
 | 07 Large language models | Done: six executed labs, 15 solved exercises, 12 quiz questions, two readings, 13 figures, two widgets; reviewed and publication QA passed | Done: full translation and bilingual QA |
 | 08 LLM pretraining | Done: five executed labs, 15 solved exercises, 12 quiz questions, three readings, 14 figures, two planners; reviewed and publication QA passed | Done: full translation and bilingual QA |
 | 09 LLM post-training | Complete: six executed labs, full review, 18 figures, two widgets and publication/live QA | Complete: seven translated parts, metadata and bilingual parity/visual QA |
-| 10 Inference and serving | Complete: six executed labs, full review, 18 figures, two widgets and local publication QA | Complete: seven translated parts, metadata and full math/code/output parity |
+| 10 Inference and serving | Complete: six executed labs, full review, 18 figures, two widgets and publication/live QA | Complete: seven translated parts, metadata and full math/code/output parity |
 | Index page | `src/en/index.md` written | `src/zh/index.md` written |
 
 Modules 01–05 went live through PRs #3 and #4, Modules 06–08 through PR #5, and
-Module 09 through [PR #7](https://github.com/wrwei/wrwei.github.io/pull/7).
+Module 09 through [PR #7](https://github.com/wrwei/wrwei.github.io/pull/7), and
+Module 10 through [PR #9](https://github.com/wrwei/wrwei.github.io/pull/9).
 The publication build now includes all ten modules (`--modules 1,2,3,4,5,6,7,8,9,10`),
 both index pages and links from earlier modules. Module 10 is linked from Module 09,
 all dropdowns and both indexes. The series card advertises the complete bilingual course.
-Modules 06–09 and their indexes passed local and live checks; Module 10 and the final
-course indexes passed local checks with no script, KaTeX, image or rendering failures.
-Local file/anchor targets and duplicate IDs pass for all 22 course pages. The final
-publication still requires deployment and served-HTML verification.
+All 22 course pages passed live browser checks with no script, KaTeX, unrendered-math
+or broken-image failures. Local file/anchor targets and duplicate IDs also pass.
+Served HTML matches the publication files exactly after line-ending normalisation,
+as do the widget bundle and all four new lab plots.
 See `notes/task-reports/m06-m08-translation-publication-2026-10-04.json` and
 `notes/task-reports/m09-review-translation-publication-2026-10-04.json` for final review,
 QA and deployment evidence. Earlier progress/read-only reports are historical snapshots.
@@ -275,18 +278,20 @@ Modules 03–05 were finished in Claude Code cloud sessions. What that environme
 
 ## 10. Release and future maintenance
 
-Module 10 production, review and translation are complete. Publish the prepared branch,
-wait for both MkDocs and GitHub Pages deployments, then compare the served HTML with
-the generated files and record live checks in
+Module 10 production, review, translation, publication and live verification are complete.
+All ten modules, both indexes, navigation and the complete-series card are published.
+The final report records the content PR, deployment workflows, live browser checks for
+all 22 course pages and exact served-content/asset comparisons:
 `notes/task-reports/m10-review-translation-publication-2026-10-05.json`.
-No further module production remains. Optional future work is the older translation/math
-audit and environment refresh described in section 7; those are separate from this release.
+Optional future work is the older translation/math audit and environment refresh
+described in section 7. No remaining module production or publication.
 
 Module 10 uses pinned model/dataset revisions and actual sequential CPU outputs. Its
 GPU capacities and cost comparisons are explicitly modelled or assumed. Lab 3's
 pooled percentile SLOs are not per-user guarantees; Lab 4 is fake quantisation with
 float32 kernels; Lab 5 separates exactness from measured acceleration. All 310 math
-expressions, 17 executable code blocks and 16 output blocks match across languages.
+expressions, 17 Python blocks (16 executed lab blocks and one project fragment) and
+16 output blocks match across languages.
 The outline reflects final sources and measurements. See the canonical arithmetic audit.
 
 Module 09's displayed outputs are real sequential CPU runs. Lab 1 has separately executed FULL,
