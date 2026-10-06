@@ -8,13 +8,24 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.xml.parsers.SAXParserFactory;
+
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.emfatic.core.EmfaticResource;
 import org.eclipse.emf.emfatic.core.EmfaticResourceFactory;
@@ -31,6 +42,9 @@ import org.eclipse.epsilon.flexmi.FlexmiResourceFactory;
 import org.eclipse.gymnast.runtime.core.parser.ParseContext;
 import org.eclipse.gymnast.runtime.core.parser.ParseError;
 import org.eclipse.gymnast.runtime.core.parser.ParseMessage;
+import org.xml.sax.Attributes;
+import org.xml.sax.Locator;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Runs Epsilon examples the way the Epsilon Playground does.
@@ -145,12 +159,52 @@ public class Run {
     model.setReadOnLoad(true);
     model.setStoredOnDisposal(false);
     model.load();
-    model.getResource().getWarnings().stream()
-      .sorted(Comparator.comparingInt(Resource.Diagnostic::getLine).thenComparing(Resource.Diagnostic::getMessage))
-      .map(w -> "Model warning (line " + w.getLine() + "): " + w.getMessage())
+    List<Warning> warnings = new ArrayList<>();
+    for (Resource.Diagnostic w : model.getResource().getWarnings()) warnings.add(new Warning(w.getLine(), w.getMessage()));
+    warnings.addAll(undeclaredAttributes(model, new File(flexmi)));
+    warnings.stream()
+      .sorted(Comparator.comparingInt(Warning::line).thenComparing(Warning::message))
+      .map(w -> "Model warning (line " + w.line() + "): " + w.message())
       .distinct()
       .forEach(console::println);
     return model;
+  }
+
+  record Warning(int line, String message) {}
+
+  /**
+   * Flexmi drops an XML attribute that matches no feature without a warning, so report every attribute
+   * that no class in the metamodel declares. (Fuzzy matches such as nme for name still pass unnoticed.)
+   */
+  static List<Warning> undeclaredAttributes(EmfModel model, File flexmi) throws Exception {
+    String text = Files.readString(flexmi.toPath(), StandardCharsets.UTF_8);
+    if (!text.stripLeading().startsWith("<")) return List.of(); // the YAML flavour has no XML attributes
+    Set<String> features = new HashSet<>();
+    for (EObject root : model.getResource().getContents()) collectFeatures(root.eClass().getEPackage(), features);
+    List<Warning> found = new ArrayList<>();
+    SAXParserFactory.newInstance().newSAXParser().parse(flexmi, new DefaultHandler() {
+      private Locator locator;
+
+      @Override
+      public void setDocumentLocator(Locator locator) { this.locator = locator; }
+
+      @Override
+      public void startElement(String uri, String localName, String qName, Attributes attributes) {
+        for (int i = 0; i < attributes.getLength(); i++) {
+          String attribute = attributes.getQName(i);
+          if (attribute.startsWith(":") || attribute.startsWith("xmlns") || features.contains(attribute)) continue;
+          found.add(new Warning(locator.getLineNumber(), "The metamodel has no feature called '" + attribute + "'"));
+        }
+      }
+    });
+    return found;
+  }
+
+  static void collectFeatures(EPackage ePackage, Set<String> features) {
+    for (EClassifier classifier : ePackage.getEClassifiers()) {
+      if (classifier instanceof EClass eClass) for (EStructuralFeature feature : eClass.getEAllStructuralFeatures()) features.add(feature.getName());
+    }
+    for (EPackage sub : ePackage.getESubpackages()) collectFeatures(sub, features);
   }
 
   static void report(Collection<UnsatisfiedConstraint> unsatisfied, PrintStream console) {

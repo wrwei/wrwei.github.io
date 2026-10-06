@@ -20,6 +20,7 @@ test('the runner runs each language and reports problems in plain words', () => 
     {key: 'egx', language: 'egx', program: file('components.egx'), secondProgram: file('template.egl'), ...base},
     {key: 'etl', language: 'etl', program: file('components2graph.etl'), secondEmfatic: file('graph.emf'), ...base},
     {key: 'dangling', language: 'eol', program: file('tour.eol'), ...base, flexmi: file('alarm-broken.flexmi')},
+    {key: 'undeclared', language: 'eol', program: file('tour.eol'), ...base, flexmi: file('alarm-undeclared.flexmi')},
     {key: 'badMetamodel', language: 'eol', program: file('tour.eol'), ...base, emfatic: file('broken.emf')},
     {key: 'badProgram', language: 'eol', program: file('syntax.eol'), ...base},
   ], work);
@@ -41,6 +42,8 @@ test('the runner runs each language and reports problems in plain words', () => 
     '  Edge source->OrGate target->AndGate', '  Edge source->AndGate target->Siren', ''].join('\n')});
   assert.equal(results.get('dangling').status, 'ok');
   assert.match(results.get('dangling').output, /^Model warning \(line 18\): Could not resolve target Alarm\.Siren\.sond/);
+  // Flexmi drops attributes that match no feature without a word; the runner reports them.
+  assert.deepEqual(results.get('undeclared'), {status: 'ok', output: "Model warning (line 5): The metamodel has no feature called 'external'\n" + 'OrGate: door, window, open\nAndGate: open, armed, sound\nSiren: sound\n'});
   assert.equal(results.get('badMetamodel').status, 'error');
   assert.match(results.get('badMetamodel').output, /^Metamodel error in broken\.emf: .*line 3/);
   assert.equal(results.get('badProgram').status, 'error');
