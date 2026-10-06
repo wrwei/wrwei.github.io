@@ -55,6 +55,14 @@ A 12-module tutorial series on MBSE methodology, the three pillars (language, me
 
 ---
 
+## Model-Driven Engineering with Eclipse Epsilon
+
+A hands-on 10-module series on model-driven engineering: metamodels, models, querying, validation, code generation and model-to-model transformation with Eclipse Epsilon. Every example runs in the browser in the Epsilon Playground, with nothing to install. English and Chinese editions. Module 1 is available now; the other modules are in preparation.
+
+[:octicons-arrow-right-24: Go to MDE Tutorials](mde/index.html)
+
+---
+
 ## AI Agents
 
 A 10-module tutorial series on AI agents — what they are, how they work, and how to build them using large language models, tool use, memory, and multi-agent architectures.
