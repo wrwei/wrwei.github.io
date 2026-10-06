@@ -100,3 +100,7 @@ when, and what it covers.
 Publishing means pushing to `main`, which triggers the GitHub Pages deployment. Do it only when the
 site owner asks. Run `live-check.mjs` before merging; after the deployment finishes, run
 `live-check.mjs --published` and record the result.
+
+## Publication log
+
+- 2026-10-06: Module 1 published (commit 9192b08). Live Playground check: 9/9 examples as the build shows them, before merging (local bundle) and after deployment (published bundle).
