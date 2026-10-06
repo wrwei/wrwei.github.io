@@ -4,7 +4,7 @@
 
 模型驱动工程（model-driven engineering，MDE）用两个思想来应对这个问题。第一个是**抽象**：用专为该问题设计的语言描述系统，略去与当前问题无关的细节。第二个是**自动化**：让这些描述足够精确，使工具能够处理它们。这样，工具就可以检查和分析这些描述，并从中产出其他制品，例如代码、文档或测试数据。这些描述称为**模型**（model）。在模型驱动工程中，模型是首要的工程制品，而不是摆在“真正的”工作旁边的示意图。
 
-一个小例子就能说明其收益。JHipster 是一个面向 Web 应用的代码生成器。你用它的文本语言 JDL 来描述应用：有哪些实体（在 Kolovos 的例子中是一个博客应用，包含博客、文章和标签），每个实体有哪些属性，实体之间如何关联，以及若干配置选项，例如使用哪种数据库。根据一份一屏就能放下的描述，JHipster 会生成一个可以运行的完整应用：数据库表、带 Web API 的服务器端代码，以及基于浏览器的用户界面。修改模型后重新生成，比手工修改所有这些层要快得多；而且各层彼此保持一致，因为它们都出自同一个来源。（改编自 Dimitris Kolovos，[*Minimal JHipster JDL Monolith Example*](https://www-users.york.ac.uk/dimitris.kolovos/blog/jhipster-jdl-monolith-example/)，2021。）
+一个小例子就能说明其收益。JHipster 是一个面向 Web 应用的代码生成器。你用它的文本语言 JDL 来描述应用：有哪些实体（在 Kolovos 文章的例子中是一个博客应用，包含博客、文章和标签；该例基于 Matt Raible 的示例），每个实体有哪些属性，实体之间如何关联，以及若干配置选项，例如使用哪种数据库。根据一份一屏就能放下的描述，JHipster 会生成一个可以运行的完整应用：数据库表、带 Web API 的服务器端代码，以及基于浏览器的用户界面。修改模型后重新生成，比手工修改所有这些层要快得多；而且各层彼此保持一致，因为它们都出自同一个来源。（改编自 Dimitris Kolovos，[*Minimal JHipster JDL Monolith Example*](https://www-users.york.ac.uk/dimitris.kolovos/blog/jhipster-jdl-monolith-example/)，2021。）
 
 凡是规模大、生命周期长或安全攸关的系统，都能看到同样的思想。在汽车和航空航天行业，工程师把控制软件设计成 Simulink 模型，再从中生成代码。系统工程师用 SysML 描述整个系统，本站的 [SysML v2](../sysml/SysMLv2_Module1_Foundations_ZH.html) 和 [MBSE](../mbse/MBSE_Module1_WhatIsMBSE_ZH.html) 系列对此有详细介绍。许多团队还会为某一项具体工作定义小型的领域特定语言，JDL 就是一例。
 
@@ -27,7 +27,7 @@
 
 - **作为草图的模型**只记录一次非正式讨论所需的信息，例如在白板上随手画的图。
 - **作为蓝图的模型**记录了足够的信息，工程师可以据此构建系统，但仍有一些决定留给人来做。只列出类及其关系、却不说明操作具体做什么的 UML 类图就是蓝图。
-- **作为程序的模型**足够精确和完整，几乎无需人工补充，就能驱动自动实现或验证。用来生成控制代码的 Simulink 模型就是这种意义上的程序。
+- **作为程序的模型**细致而准确，工具几乎无需人工帮助，就能据此生成实现或验证系统的性质。用来生成控制代码的 Simulink 模型就是这种意义上的程序。
 
 模型在这个尺度上越靠后，工具能用它做的事情就越多。模型驱动工程的大部分工作，就是把模型从蓝图推向程序，从而把实现中繁琐而容易出错的部分自动化。
 
@@ -43,7 +43,7 @@
 
 模型总是用某种语言写成的，而语言需要规则：模型可以包含哪些种类的元素，这些元素有哪些性质，又可以怎样相互连接。在模型驱动工程中，这些规则由**元模型**（metamodel）来描述。Kolovos 把元模型定义为“an object-oriented specification of the abstract syntax of a language”（对一种语言的抽象语法的面向对象规约）（[*Model-Driven Engineering Terminology*](https://www-users.york.ac.uk/dimitris.kolovos/blog/mde-terminology/)，2022）。一种语言的**抽象语法**（abstract syntax）指它的概念以及概念之间的关系，而与模型如何绘制或书写无关。（Kolovos 认为这两个术语可以互换。）元模型本身也用元建模语言来编写，最常用的是 Eclipse 建模框架（EMF）中的 Ecore，以及对象管理组织（OMG）的标准 MOF。
 
-本系列始终使用同一种语言：一种描述组件与连接器架构的小型语言。一个架构包含若干组件；每个组件有输入端口和输出端口；连接器把信号从一个输出端口传送到一个输入端口。贯穿全系列的示例沿用了 Dimitris Kolovos 在 [*Metamodelling with ChatGPT*](https://www-users.york.ac.uk/dimitris.kolovos/blog/metamodelling-with-chatgpt/)（2022）中借助 ChatGPT 构建的组件与端口元模型；第 2 模块会一步步把它构建出来。
+本系列始终使用同一种语言：一种描述组件与连接器架构的小型语言。一个架构包含若干组件；每个组件有输入端口和输出端口；连接器把信号从一个输出端口传送到一个输入端口。贯穿全系列的示例受到 Dimitris Kolovos 在 [*Metamodelling with ChatGPT*](https://www-users.york.ac.uk/dimitris.kolovos/blog/metamodelling-with-chatgpt/)（2022）中借助 ChatGPT 构建的组件与端口元模型的启发。他的版本包含组件、连接和带类型的端口；我们的版本把输入端口和输出端口分开，并让架构拥有其组成部分。第 2 模块会一步步构建出我们的版本。
 
 下面第一个示例给出了用 Emfatic 编写的元模型。Emfatic 是 Ecore 的一种文本记法，你将在第 2 模块学习如何编写它。现在，只需把它当作一组类声明来阅读：
 
@@ -74,6 +74,8 @@
 
 这一点值得记住：程序可以在不符合元模型的模型上运行，并给出看似合理的结果，所以要把每一条警告都当作需要修复的缺陷。Flexmi 有意设计得很宽容，这让模型写起来很快。第 3 模块会说明这种宽容在哪些地方有帮助，又在哪些地方会掩盖错误。
 
+如果你在 Playground 中运行这个示例，根本看不到这条警告：Playground 不报告 Flexmi 无法解析的引用，因此控制台只显示那三行。请改为点击模型面板上的图示按钮。在图中，第一个连接器有两个箭头，分别指向它所连接的两个端口；第二个连接器却只有一个箭头，指向与门的 `sound` 端口，因为它的目标从未被设置。
+
 ## 抽象语法与具体语法 {#s4}
 
 元模型规定了报警器模型包含什么：组件、端口、连接器以及它们的名称，却完全没有规定模型的外观。那是**具体语法**（concrete syntax）的职责：具体语法是书写或展示某种语言的模型时所用的记法。按照 Kolovos 的说法，一种语言只有一个抽象语法，即它的元模型，却可以有任意多个具体语法：文本的、图形的、表格的、树形的，或者它们的组合。
@@ -88,7 +90,7 @@
 
 正因为如此，Kolovos 认为严格来说，语言本身并无文本或图形之分，只有其具体语法才有。称一种语言为文本语言或图形语言，只是一种方便的简称，意思是它默认或主要的具体语法是文本的或图形的。SysML v2 很好地说明了这一点：同一个抽象语法同时拥有文本记法和图形记法（参见本站的 [SysML v2 系列](../sysml/SysMLv2_Module1_Foundations_ZH.html)）。
 
-那么，建模语言与编程语言的区别在哪里？人们很容易认为建模语言是图形的、编程语言是文本的，或者程序能运行而模型不能。这两种说法都站不住脚：BPEL 是图形的，却是图灵完备的；SQL-92 是文本的，却不是图灵完备的。Kolovos 提出了一种基于意图的区分：如果人们使用一种语言时，大多并不打算从中得到可执行的东西，而是为了理解领域、探索设计或向他人解释，它就是建模语言；如果人们使用它时，大多打算产出能够运行的东西，它就是编程语言。按照这种观点，同一种语言可以服务于两种目的：你可以写几个 Java 类只为理解一个领域，也可以从 UML 类图生成可执行代码。
+那么，建模语言与编程语言的区别在哪里？我们通常称为编程语言的语言（例如 Java）大多是文本的、图灵完备的；而大多数建模语言（例如 UML 和 SysML）是图形的、非图灵完备的。但这一规律有例外：BPEL 是图形的，却是图灵完备的；SQL-92 是文本的，却不是图灵完备的。而且，如果以图灵完备性为标准，“编程语言”就只不过是“图灵完备语言”的另一个名字。Kolovos 提出了一种基于意图的区分：如果人们使用一种语言时，大多并不打算从中得到可执行的东西，而是为了理解领域、探索设计或向他人解释，它就是建模语言；如果人们使用它时，大多打算产出能够运行的东西，它就是编程语言。按照这种观点，同一种语言可以服务于两种目的：你可以写几个 Java 类只为理解一个领域，也可以从 UML 类图生成可执行代码。
 
 （改编自 Dimitris Kolovos，[*Model-Driven Engineering Terminology*](https://www-users.york.ac.uk/dimitris.kolovos/blog/mde-terminology/)，2022。）
 
@@ -120,7 +122,7 @@ Eclipse Epsilon 是一族用于模型管理的语言。每种语言针对一类�
 
 EVL 程序按规则所适用的类型来组织规则：`context Connector` 和 `context InPort`。每条规则都有一个 `check`，即对该类型的每个元素都必须为真的表达式，以及一个 `message`，用于报告每个使该表达式为假的元素。**约束**（constraint）不满足时，EVL 报告错误；**建议性检查**（critique）不满足时，EVL 报告警告，用于那些值得关注、但并不使模型出错的问题。
 
-实际输出显示了一条错误和三条警告。错误是自环。`Siren.sound` 不再有连接，因为出错的连接器接到了与门上。`OrGate.door` 和 `OrGate.window` 也被标记出来，尽管它们本应由架构外部的传感器驱动：这种语言无法表达这一点，练习 5 会请你解决这个问题。在 Playground 中，这些问题还会标注在模型图上。
+实际输出显示了一条错误和三条警告。错误是自环。`Siren.sound` 不再有连接，因为出错的连接器接到了与门上。`OrGate.door` 和 `OrGate.window` 也被标记出来，尽管它们本应由架构外部的传感器驱动：这种语言无法表达这一点，练习 5 会请你解决这个问题。在 Playground 中，EVL 程序的控制台是空的：这条错误和这些警告会以注释的形式标注在模型图上。
 
 下一个示例从原来那个连线正确的报警器生成文本。
 
@@ -140,11 +142,11 @@ ETL 规则说明源模型中的元素如何变成目标模型中的元素。`Sou
 
 ## 使用 Playground {#s6}
 
-本系列的每个示例都可以在 Epsilon Playground 中打开。Playground 是在浏览器中运行的 Epsilon，无需安装任何软件。点击**在 Playground 中打开**后，示例的各个文件会载入不同的面板：
+本系列的每个示例都可以在 Epsilon Playground 中打开。Playground 是一个用来编辑和运行 Epsilon 程序的网页，无需安装任何软件。运行程序时，Playground 会把程序、模型和元模型发送到约克大学的服务器，由服务器运行 Epsilon 并返回结果，因此请不要粘贴任何私密内容。点击**在 Playground 中打开**后，示例的各个文件会载入不同的面板：
 
 - **程序**面板存放 Epsilon 程序（EOL、EVL、EGL、EGX 或 ETL）；
 - **模型**面板存放 Flexmi 模型，**元模型**面板存放 Emfatic 元模型，两者都可以切换为图示；
-- **控制台**显示程序打印的内容以及所有错误；
+- **控制台**显示程序打印的内容以及所有错误，但不显示关于模型本身的警告，例如 Flexmi 无法解析的引用：这类问题请查看模型图；
 - 视语言而定，其他面板会显示生成的文本、渲染后的 HTML、经过验证的模型，或转换得到的目标模型。
 
 要运行示例，点击程序面板上的 Run（运行）按钮，或者按 Ctrl+S（Mac 上为 Cmd+S）。你可以随意修改任何面板并反复运行：尝试一处修改、观察结果，是最快的学习方式。Playground 的示例菜单按模块列出了本系列的所有示例，你无需回到课程页面就能在示例之间切换。
@@ -152,7 +154,7 @@ ETL 规则说明源模型中的元素如何变成目标模型中的元素。`Sou
 请记住两点：
 
 - 你所做的修改都不会被保存。关闭标签页之前，请用 Download（下载）按钮保存你的工作。
-- 本页每个示例下方的输出，是构建页面时由 Epsilon 2.8.0 实际运行得到的。Playground 可能运行较新版本的 Epsilon，部分提示的措辞会有所不同。如果结果出乎意料，请与实际输出进行比较。
+- 本页每个示例下方的输出，是构建页面时由 Epsilon 2.8.0 实际运行得到的。Playground 可能运行较新版本的 Epsilon，部分提示的措辞会有所不同，并且不显示关于模型的警告。如果结果出乎意料，请与实际输出进行比较。
 
 ::: tip
 在一个浏览器标签页中打开课程，在另一个标签页中打开 Playground，阅读时在两者之间切换。
@@ -207,15 +209,15 @@ ETL 规则说明源模型中的元素如何变成目标模型中的元素。`Sou
 :::
 
 ::: exercise #e4 level=1 kind=coding minutes=4
-**修复模型。** 在 Playground 中打开示例“不符合元模型的模型”。修复模型使警告消失，再次运行，并与原来的输出比较。
+**修复模型。** 在 Playground 中打开示例“不符合元模型的模型”，点击模型面板上的图示按钮。找出只有一个箭头的连接器，修复模型使两个连接器都有两个箭头，再次运行程序，并与原来的输出比较。
 :::
 
 ::: solution
-最后一个连接器引用了一个不存在的端口：`Alarm.Siren.sond` 应为 `Alarm.Siren.sound`。改正名称后，Flexmi 能够解析该引用，警告随之消失：
+最后一个连接器引用了一个不存在的端口：`Alarm.Siren.sond` 应为 `Alarm.Siren.sound`。改正名称后，Flexmi 能够解析该引用。在 Playground 的图中，第二个连接器现在有一个指向警报器 `sound` 端口的箭头；在构建中，实际输出里的警告也随之消失：
 
 {{EXAMPLE:m01-e4-solution}}
 
-程序本身的输出没有变化，因为程序根本不读取连接器。这正是符合性警告重要的原因：程序可以在有缺陷的模型上运行，并给出看似合理的结果。
+程序本身的输出没有变化，因为程序根本不读取连接器。这正是符合性问题重要的原因：程序可以在有缺陷的模型上运行，并给出看似合理的结果。
 :::
 
 ::: exercise #e5 level=2 kind=project minutes=12
@@ -285,18 +287,18 @@ ETL 规则说明源模型中的元素如何变成目标模型中的元素。`Sou
 - [ ] Flexmi
 > EGL 是 Epsilon 的模型到文本（模板）语言；ETL 生成的是模型而不是文本。
 
-? 在示例“不符合元模型的模型”中，模型引用了 `Alarm.Siren.sond`。运行时会发生什么？
+? 在示例“不符合元模型的模型”中，模型引用了 `Alarm.Siren.sond`。构建在 Epsilon 2.8.0 上运行它时会发生什么？
 - [ ] 程序在打印任何内容之前就因错误而停止。
 - [x] Flexmi 报告一条警告，该引用保持未设置，程序照常运行。
 - [ ] Flexmi 新建一个名为 `sond` 的端口。
 - [ ] Epsilon 自动把名称改正为 `sound`。
-> 实际输出先显示警告，随后是查询的正常输出。
+> 实际输出先显示警告，随后是查询的正常输出。（Playground 显示同样的输出，但没有这条警告。）
 ```
 
 ## 延伸阅读 {#reading}
 
 - Dimitris Kolovos，[*Model-Driven Engineering Terminology*](https://www-users.york.ac.uk/dimitris.kolovos/blog/mde-terminology/)（2022）：本模块术语的来源，并讨论了这些术语常见的误用。
-- Dimitris Kolovos，[*Metamodelling with ChatGPT*](https://www-users.york.ac.uk/dimitris.kolovos/blog/metamodelling-with-chatgpt/)（2022）：组件与端口元模型的由来，第 2 模块以它为基础。
+- Dimitris Kolovos，[*Metamodelling with ChatGPT*](https://www-users.york.ac.uk/dimitris.kolovos/blog/metamodelling-with-chatgpt/)（2022）：启发本系列贯穿示例的元模型，第 2 模块以它为基础。
 - Dimitris Kolovos，[*Minimal JHipster JDL Monolith Example*](https://www-users.york.ac.uk/dimitris.kolovos/blog/jhipster-jdl-monolith-example/)（2021）：从一个简短的文本模型生成完整的 Web 应用。
 - Dimitris Kolovos，[公开讲座](https://www.youtube.com/playlist?list=PLRwHao6Ue0YUecg7vEUQTrtySIWwrd_mI)（视频列表）。
 - [Epsilon Playground 文档](https://eclipse.dev/epsilon/doc/articles/playground/)与 [Epsilon 文档](https://eclipse.dev/epsilon/doc/)。

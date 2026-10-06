@@ -24,8 +24,12 @@ python -m mkdocs build --strict
 ```
 
 The tests run one file at a time because several of them may need to build the Java runner.
-After the site has been deployed, `node tutorial-sources/mde/live-check.mjs` runs every published
-example in the real Epsilon Playground.
+
+Before publishing, run `node tutorial-sources/mde/live-check.mjs` (or `… live-check.mjs 1` for one
+module). It opens every example in the real Epsilon Playground, serving the built bundle from `docs/`
+in place of the live site, and compares what the Playground shows with the build's captured output.
+It sends each example to the Playground's public service, one every few seconds. After deployment,
+`node tutorial-sources/mde/live-check.mjs --published` repeats the check against the live bundle.
 
 ## How a module is put together
 
@@ -59,7 +63,7 @@ example in the real Epsilon Playground.
 - Every example runs on Epsilon 2.8.0 during the build, and pages show that output. Never type
   expected output by hand.
 - The build stops if a run differs from its `example.json`; if a model produces warnings without
-  `allowWarnings`; if output contains a file path or a Java object identity; if the English and
+  `allowWarnings` (unresolved references, and XML attributes that no class in the metamodel declares); if output contains a file path or a Java object identity; if the English and
   Chinese editions differ in sections, examples, exercises or quiz answers; if a lesson still
   contains a `<!-- BRIEF` note; if the Chinese source is a copy of the English one; or if a module
   breaks its contract.
@@ -72,7 +76,13 @@ example in the real Epsilon Playground.
 - Do not name a metamodel class `System` (it clashes with EOL's built-in `System` object) or a
   feature `from` (an ETL keyword).
 - Flexmi guesses the meaning of unknown element names instead of always warning: a misspelt tag can
-  silently become a different element.
+  silently become a different element. It also matches misspelt attribute names to the closest
+  feature (`nme` becomes `name`) without a warning. The runner reports only attributes that no class
+  in the metamodel declares.
+- The Playground does not show model warnings such as unresolved references: its console shows only
+  the program's output. Learners see such problems only on the model diagram (a connector with one
+  arrow instead of two). For EVL programs the console stays empty and the results appear as notes on
+  the validated model diagram. `live-check.mjs` knows both behaviours; lessons must describe them.
 - Playground links work only once the bundle is published at
   `https://wrwei.github.io/tutorials/mde/playground/examples.json`.
 
@@ -88,4 +98,5 @@ when, and what it covers.
 ## Publishing
 
 Publishing means pushing to `main`, which triggers the GitHub Pages deployment. Do it only when the
-site owner asks. After the deployment finishes, run `live-check.mjs` and record the result.
+site owner asks. Run `live-check.mjs` before merging; after the deployment finishes, run
+`live-check.mjs --published` and record the result.

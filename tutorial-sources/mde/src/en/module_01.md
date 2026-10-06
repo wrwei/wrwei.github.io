@@ -4,7 +4,7 @@ Software projects rarely fail for lack of code. They get into trouble when the p
 
 Model-driven engineering (MDE) tackles this problem with two ideas. The first is **abstraction**: describe the system in a language made for the problem, and leave out the details that do not matter for the question at hand. The second is **automation**: make those descriptions precise enough for tools to process them. Tools can then check the descriptions, analyse them, and produce other artefacts from them, such as code, documentation or test data. The descriptions are called **models**. In MDE they are primary engineering artefacts, not pictures that sit beside the "real" work.
 
-A small example shows the payoff. JHipster is a code generator for web applications. You describe your application in its textual language, JDL. The description says which entities exist (in Kolovos's example, a blog with blogs, posts and tags), which attributes they have, how they relate to each other, and a few configuration choices such as the database to use. From a description that fits on one screen, JHipster generates a complete application that you can run: the database tables, the server-side code with its web API, and a browser-based user interface. Changing the model and generating again is far quicker than changing all of those layers by hand. And the layers stay consistent with each other, because they all come from one source. (Adapted from Dimitris Kolovos, [*Minimal JHipster JDL Monolith Example*](https://www-users.york.ac.uk/dimitris.kolovos/blog/jhipster-jdl-monolith-example/), 2021.)
+A small example shows the payoff. JHipster is a code generator for web applications. You describe your application in its textual language, JDL. The description says which entities exist (in the example in Kolovos's post, which is based on one by Matt Raible, a blog with blogs, posts and tags), which attributes they have, how they relate to each other, and a few configuration choices such as the database to use. From a description that fits on one screen, JHipster generates a complete application that you can run: the database tables, the server-side code with its web API, and a browser-based user interface. Changing the model and generating again is far quicker than changing all of those layers by hand. And the layers stay consistent with each other, because they all come from one source. (Adapted from Dimitris Kolovos, [*Minimal JHipster JDL Monolith Example*](https://www-users.york.ac.uk/dimitris.kolovos/blog/jhipster-jdl-monolith-example/), 2021.)
 
 The same idea appears wherever systems are large, long-lived or safety-critical. In the automotive and aerospace industries, engineers design control software as Simulink models and generate the code from them. Systems engineers describe whole systems in SysML, as the site's [SysML v2](../sysml/SysMLv2_Module1_Foundations_EN.html) and [MBSE](../mbse/index.html) series show. And many teams define small domain-specific languages, like JDL, for a single job.
 
@@ -27,7 +27,7 @@ Prescriptive models vary a great deal in how complete and precise they are. Kolo
 
 - **Models as sketches** capture just enough for an informal discussion, like a free-form drawing on a whiteboard.
 - **Models as blueprints** capture enough for engineers to build the system from them, but leave some decisions to people. A UML class diagram that names the classes and their relationships, but not what their operations do, is a blueprint.
-- **Models as programs** are precise and complete enough to drive implementation or verification automatically, with little further human input. A Simulink model from which control code is generated is a program in this sense.
+- **Models as programs** are detailed and exact enough for tools to generate the implementation, or to verify properties of the system, almost without human help. A Simulink model from which control code is generated is a program in this sense.
 
 The further along this continuum a model is, the more a tool can do with it. Much of MDE is about moving models from blueprint towards program, so that the tedious and error-prone parts of implementation can be automated.
 
@@ -43,7 +43,7 @@ A city's metro map and its street map describe the same place. The metro map dis
 
 A model is written in some language, and a language needs rules. The rules say which kinds of element a model may contain, which properties they have, and how they may be connected. In MDE, these rules are captured in a **metamodel**. Kolovos defines a metamodel as "an object-oriented specification of the abstract syntax of a language" ([*Model-Driven Engineering Terminology*](https://www-users.york.ac.uk/dimitris.kolovos/blog/mde-terminology/), 2022). A language's **abstract syntax** is its concepts and the relationships between them, independent of how models are drawn or written down. (Kolovos treats the two terms as interchangeable.) Metamodels are themselves written in metamodelling languages. The most widely used are Ecore, part of the Eclipse Modeling Framework (EMF), and MOF, a standard of the Object Management Group.
 
-This series uses one language throughout: a small language for component-and-connector architectures. An architecture contains components. Each component has input and output ports. Connectors carry a signal from an output port to an input port. The running example follows the component-and-port metamodel that Dimitris Kolovos developed with ChatGPT in [*Metamodelling with ChatGPT*](https://www-users.york.ac.uk/dimitris.kolovos/blog/metamodelling-with-chatgpt/) (2022); Module 2 builds it up step by step.
+This series uses one language throughout: a small language for component-and-connector architectures. An architecture contains components. Each component has input and output ports. Connectors carry a signal from an output port to an input port. The running example is inspired by the component-and-port metamodel that Dimitris Kolovos built with ChatGPT's help in [*Metamodelling with ChatGPT*](https://www-users.york.ac.uk/dimitris.kolovos/blog/metamodelling-with-chatgpt/) (2022). His version has components, connections and typed ports; ours separates input ports from output ports and lets the architecture own its parts. Module 2 builds ours up step by step.
 
 The first example below shows the metamodel written in Emfatic, a textual notation for Ecore. You will learn to write Emfatic in Module 2. For now, read it like a set of class declarations:
 
@@ -74,6 +74,8 @@ Read the captured output from the top. Flexmi could not find an element called `
 
 That is worth remembering: a program can run on a model that does not conform and still produce plausible-looking results, so treat every warning as a defect to fix. Flexmi is forgiving by design, which makes models quick to write. Module 3 shows where that helps and where it hides mistakes.
 
+If you run this example in the Playground, you will not see the warning at all: the Playground does not report references that Flexmi could not resolve, so its console shows only the three lines. Press the diagram button on the model panel instead. In the diagram, the first connector has two arrows, to the two ports it joins, but the second has only one, to the AND gate's `sound` port, because its target was never set.
+
 ## Abstract and concrete syntax {#s4}
 
 The metamodel says what an alarm model contains: components, ports, connectors and their names. It says nothing about how a model looks. That is the job of a **concrete syntax**, a notation for writing or showing the models of a language. In Kolovos's account, a language has one abstract syntax, its metamodel, and any number of concrete syntaxes: textual, diagrammatic, tabular, tree-based, or combinations of these.
@@ -88,7 +90,7 @@ All three show the same model elements. Changing the notation changes nothing ab
 
 This is why Kolovos argues that, strictly speaking, languages are not textual or graphical: only their concrete syntaxes are. Calling a language textual or graphical is a useful shorthand: it means that its default or dominant concrete syntax is textual or graphical. SysML v2 makes the point well: one abstract syntax has both a textual and a graphical notation (see the site's [SysML v2 series](../sysml/SysMLv2_Module1_Foundations_EN.html)).
 
-What, then, separates a modelling language from a programming language? It is tempting to say that modelling languages are graphical and programming languages textual, or that programs run and models do not. Neither holds up. BPEL is graphical and Turing-complete, while SQL-92 is textual and is not. Kolovos proposes a distinction based on intent instead. Call a language a modelling language if people mostly use it without intending to get something executable out of their work: to understand a domain, explore a design or explain it to others. Call it a programming language if people mostly use it intending to produce something that runs. Under this view, the same language can serve either purpose. You can write a few Java classes just to understand a domain, and you can generate executable code from a UML class diagram.
+What, then, separates a modelling language from a programming language? Most languages we would call programming languages, such as Java, are textual and Turing-complete, while most modelling languages, such as UML and SysML, are graphical and not Turing-complete. But the pattern has exceptions: BPEL is graphical and Turing-complete, and SQL-92 is textual and not. And if Turing-completeness were the test, "programming language" would simply become another name for "Turing-complete language". Kolovos proposes a distinction based on intent instead. Call a language a modelling language if people mostly use it without intending to get something executable out of their work: to understand a domain, explore a design or explain it to others. Call it a programming language if people mostly use it intending to produce something that runs. Under this view, the same language can serve either purpose. You can write a few Java classes just to understand a domain, and you can generate executable code from a UML class diagram.
 
 (Adapted from Dimitris Kolovos, [*Model-Driven Engineering Terminology*](https://www-users.york.ac.uk/dimitris.kolovos/blog/mde-terminology/), 2022.)
 
@@ -120,7 +122,7 @@ The first example is a validation program written in EVL. Its model is a variant
 
 An EVL program groups its rules by the type they apply to: `context Connector` and `context InPort`. Each rule has a `check`, an expression that must be true for every element of that type, and a `message` to report for each element where it is false. When a **constraint** fails, EVL reports an error. When a **critique** fails, it reports a warning, for problems that deserve attention but do not make the model wrong.
 
-The captured output shows one error and three warnings. The error is the self-loop. `Siren.sound` is not connected any more, because the faulty connector goes to the AND gate instead. `OrGate.door` and `OrGate.window` are flagged too, although they are meant to be fed by sensors outside the architecture: the language has no way to say so, and Exercise 5 asks you to fix that. In the Playground, the problems are also marked on a diagram of the model.
+The captured output shows one error and three warnings. The error is the self-loop. `Siren.sound` is not connected any more, because the faulty connector goes to the AND gate instead. `OrGate.door` and `OrGate.window` are flagged too, although they are meant to be fed by sensors outside the architecture: the language has no way to say so, and Exercise 5 asks you to fix that. In the Playground, the console stays empty for EVL programs: the error and the warnings appear as notes on a diagram of the model instead.
 
 The next example generates text from the original, correctly wired alarm.
 
@@ -140,11 +142,11 @@ The captured output prints the target model as a tree: one graph, three nodes an
 
 ## Working in the Playground {#s6}
 
-Every example in this series opens in the Epsilon Playground, a version of Epsilon that runs in your browser with nothing to install. When you press **Open in Playground**, the example's files load into panels:
+Every example in this series opens in the Epsilon Playground, a web page for editing and running Epsilon programs with nothing to install. When you run a program, the Playground sends the program, model and metamodel to a server at the University of York, which runs Epsilon and sends back the result, so do not paste anything private into it. When you press **Open in Playground**, the example's files load into panels:
 
 - the **program** panel holds the Epsilon program (EOL, EVL, EGL, EGX or ETL);
 - the **model** panel holds the Flexmi model and the **metamodel** panel the Emfatic metamodel, and both can show a diagram instead of text;
-- the **console** shows what the program prints, and any errors;
+- the **console** shows what the program prints, and any errors, but not warnings about the model itself, such as references that Flexmi could not resolve: check the model diagram for those;
 - depending on the language, further panels show generated text, rendered HTML, the validated model or the target model of a transformation.
 
 To run the example, press the Run button on the program panel, or press Ctrl+S (Cmd+S on a Mac). You can edit any panel and run again as often as you like; trying a change and seeing what happens is the fastest way to learn. The Playground's examples menu lists every example in this series, grouped by module, so you can move between examples without returning to the lesson.
@@ -152,7 +154,7 @@ To run the example, press the Run button on the program panel, or press Ctrl+S (
 Keep two things in mind:
 
 - Nothing you change is saved. Use the Download button to keep your work before you close the tab.
-- The output printed under each example on these pages was captured from Epsilon 2.8.0 when the page was built. The Playground may run a newer version of Epsilon and word some messages differently. If a result surprises you, compare it with the captured output.
+- The output printed under each example on these pages was captured from Epsilon 2.8.0 when the page was built. The Playground may run a newer version of Epsilon and word some messages differently, and it leaves out warnings about the model. If a result surprises you, compare it with the captured output.
 
 ::: tip
 Keep the lesson open in one browser tab and the Playground in another, and switch between them as you read.
@@ -207,15 +209,15 @@ Only `Siren` qualifies: it receives a signal but produces none. Module 4 covers 
 :::
 
 ::: exercise #e4 level=1 kind=coding minutes=4
-**Repair the model.** Open the example "A model that does not conform" in the Playground. Fix the model so that the warning disappears, run it again, and compare the output with the original.
+**Repair the model.** Open the example "A model that does not conform" in the Playground and press the diagram button on the model panel. Find the connector that has only one arrow, fix the model so that both connectors have two, and run the program again. Compare its output with the original.
 :::
 
 ::: solution
-The last connector names a port that does not exist: `Alarm.Siren.sond` should be `Alarm.Siren.sound`. With the name corrected, Flexmi resolves the reference and the warning disappears:
+The last connector names a port that does not exist: `Alarm.Siren.sond` should be `Alarm.Siren.sound`. With the name corrected, Flexmi resolves the reference. In the Playground's diagram, the second connector now has an arrow to the siren's `sound` port, and in the build the warning disappears from the captured output:
 
 {{EXAMPLE:m01-e4-solution}}
 
-The program's own output does not change, because the program never looks at connectors. That is why conformance warnings matter: a program can run on a broken model and still produce plausible-looking results.
+The program's own output does not change, because the program never looks at connectors. That is why conformance problems matter: a program can run on a broken model and still produce plausible-looking results.
 :::
 
 ::: exercise #e5 level=2 kind=project minutes=12
@@ -285,18 +287,18 @@ References use fully qualified names that start with the architecture's name, su
 - [ ] Flexmi
 > EGL is Epsilon's model-to-text (template) language; ETL produces models, not text.
 
-? In "A model that does not conform", the model refers to `Alarm.Siren.sond`. What happens when it runs?
+? In "A model that does not conform", the model refers to `Alarm.Siren.sond`. What happens when the build runs it on Epsilon 2.8.0?
 - [ ] The program stops with an error before printing anything.
 - [x] Flexmi reports a warning, leaves the reference unset, and the program still runs.
 - [ ] Flexmi creates a new port called `sond`.
 - [ ] Epsilon silently corrects the name to `sound`.
-> The captured output shows the warning first and then the query's normal output.
+> The captured output shows the warning first and then the query's normal output. (The Playground shows the same output without the warning.)
 ```
 
 ## Further reading {#reading}
 
 - Dimitris Kolovos, [*Model-Driven Engineering Terminology*](https://www-users.york.ac.uk/dimitris.kolovos/blog/mde-terminology/) (2022): the source of this module's vocabulary, with more on how the terms are commonly misused.
-- Dimitris Kolovos, [*Metamodelling with ChatGPT*](https://www-users.york.ac.uk/dimitris.kolovos/blog/metamodelling-with-chatgpt/) (2022): how the component-and-port metamodel took shape. Module 2 builds on it.
+- Dimitris Kolovos, [*Metamodelling with ChatGPT*](https://www-users.york.ac.uk/dimitris.kolovos/blog/metamodelling-with-chatgpt/) (2022): the metamodel that inspired this series' running example. Module 2 builds on it.
 - Dimitris Kolovos, [*Minimal JHipster JDL Monolith Example*](https://www-users.york.ac.uk/dimitris.kolovos/blog/jhipster-jdl-monolith-example/) (2021): a whole web application generated from a short textual model.
 - Dimitris Kolovos, [public lectures](https://www.youtube.com/playlist?list=PLRwHao6Ue0YUecg7vEUQTrtySIWwrd_mI) (video playlist).
 - The [Epsilon Playground documentation](https://eclipse.dev/epsilon/doc/articles/playground/) and the [Epsilon documentation](https://eclipse.dev/epsilon/doc/).
