@@ -1,0 +1,15 @@
+// A connector must join two different components
+context Connector {
+  constraint NoSelfLoop {
+    check: self.source.eContainer() <> self.target.eContainer()
+    message: "A connector joins " + self.source.eContainer().name + " to itself"
+  }
+}
+
+// Every input should be driven by something
+context InPort {
+  critique Connected {
+    check: Connector.all.exists(c | c.target = self)
+    message: self.eContainer().name + "." + self.name + " is not connected"
+  }
+}
