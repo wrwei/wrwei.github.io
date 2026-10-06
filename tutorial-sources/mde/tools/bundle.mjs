@@ -37,11 +37,14 @@ export function writeBundle(dest, modules) {
   return groups;
 }
 
-/** Each example's files under <id>/, for running the examples in Eclipse. */
+/**
+ * Each example's files under <id>/, for running the examples in Eclipse. Line endings are normalised to LF,
+ * because Git for Windows checks text files out with CRLF and the committed zip must not change with the platform.
+ */
 export function zipEntries(examples) {
   return examples.flatMap(example => FILE_FIELDS.filter(field => example[field]).map(field => ({
     name: `${example.id}/${example[field]}`,
-    data: fs.readFileSync(path.join(example.dir, example[field])),
+    data: Buffer.from(fs.readFileSync(path.join(example.dir, example[field]), 'utf8').replace(/\r\n/g, '\n'), 'utf8'),
   })));
 }
 

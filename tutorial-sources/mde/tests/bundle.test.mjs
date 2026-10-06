@@ -37,3 +37,10 @@ test('zip downloads open with the JDK jar tool', () => {
   writeZip(file, zipEntries([example()]));
   assert.deepEqual(fs.readFileSync(file), first, 'the same files give the same bytes');
 });
+
+test('zip entries use LF line endings, so Windows checkouts produce the same download', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mde-crlf-'));
+  fs.writeFileSync(path.join(dir, 'q.eol'), 'a();\r\nb();\r\n');
+  const [entry] = zipEntries([{id: 'm01-q', program: 'q.eol', dir}]);
+  assert.equal(entry.data.toString('utf8'), 'a();\nb();\n');
+});
