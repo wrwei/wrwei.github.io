@@ -1,6 +1,6 @@
 # Model-Driven Engineering tutorial series: design spec
 
-Date: 2026-10-06 · Status: draft for review
+Date: 2026-10-06 · Status: approved; §3 corrected after prototyping
 
 ## 1. Goal and audience
 
@@ -48,12 +48,13 @@ Policy:
 
 ## 3. Running example
 
-A **component-and-connector language**, following Kolovos' post: a `System` contains
-`Component`s; components own typed `InPort`s and `OutPort`s (`PortType` enumeration);
-`Connector`s join an `OutPort` to an `InPort`. The main model is a small logic circuit,
-and a second model (a sensor-processing pipeline) is used for exercises. The
-metamodel grows across Modules 2–7. The capstone uses a different domain to test
-transfer (section 4, M10).
+A **component-and-connector language**, following Kolovos' post: an `Architecture` contains
+`Component`s; components own `InPort`s and `OutPort`s; `Connector`s join an `OutPort` to an `InPort`.
+The root class is not called `System`, because that name clashes with EOL's built-in `System`
+object (found while prototyping). Module 2 adds a `PortType` enumeration, following the
+increments of Kolovos' post. The main model is a small logic circuit (a burglar alarm), and a
+second model (a thermostat's sensor pipeline) is used for exercises. The metamodel grows across
+Modules 2–7. The capstone uses a different domain to test transfer (section 4, M10).
 
 ## 4. Module outline
 
