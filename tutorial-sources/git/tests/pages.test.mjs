@@ -60,3 +60,9 @@ test('parity and contract checks name what is wrong', () => {
 test('the Chinese edition calls command sessions 动手环节, keeping 练习 for exercises', () => {
   assert.equal(UI.zh.chipSessions(4), '4 个动手环节');
 });
+
+test('the Chinese caption refers to the output above it, where the transcript is', () => {
+  const {markdown} = expandSessions('{{SESSION:m01-first}}\n', sessions, 'zh', VERSION);
+  assert.match(markdown, /上面的输出来自 git version 2\.50\.1 \(Apple Git-155\)，在构建本页时实际运行得到。/);
+  assert.doesNotMatch(markdown, /以下输出/);
+});

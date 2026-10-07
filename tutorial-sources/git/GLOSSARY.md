@@ -18,6 +18,18 @@ Use these renderings in every Chinese page. On first use in a module, give the E
 | untracked / tracked | 未跟踪 / 已跟踪 | |
 | staged / modified | 已暂存 / 已修改 | |
 | branch | 分支 | |
+| detached HEAD | 分离的 HEAD | first use: 分离的 HEAD（detached HEAD） |
+| diff | 差异 | the output of git diff |
+| context lines | 上下文 | unchanged lines shown in a diff |
+| restore / unstage | 恢复 / 取消暂存 | git restore |
+| amend | 修补 | git commit --amend |
+| revert | 撤销 | git revert: undo with a new commit |
+| merge commit | 合并提交 | |
+| parent (commit) | 父提交 | |
+| three-way merge | 三方合并 | |
+| conflict marker | 冲突标记 | <<<<<<<, =======, >>>>>>> |
+| resolve (a conflict) | 解决（冲突） | |
+| abort (a merge) | 放弃（合并） | git merge --abort |
 | HEAD | HEAD | not translated |
 | merge | 合并 | |
 | fast-forward | 快进 | |
@@ -25,15 +37,29 @@ Use these renderings in every Chinese page. On first use in a module, give the E
 | remote (repository) | 远程仓库 | |
 | clone / fetch / pull / push | 克隆 / 获取 / 拉取 / 推送 | |
 | tracking branch / upstream | 跟踪分支 / 上游 | |
+| remote-tracking branch | 远程跟踪分支 | origin/main |
+| bare repository | 裸仓库 | |
+| divergent (branches) | 分叉 | |
+| feature branch / feature-branch workflow | 功能分支 / 功能分支工作流 | |
 | pull request | 拉取请求 | GitHub's Chinese interface |
 | fork | 复刻 | GitHub's Chinese interface |
 | issue | 议题 | GitHub's Chinese interface |
-| code review | 代码评审 | |
-| rebase | 变基 | |
+| code review (the practice) | 代码评审 | |
+| review (a pull request) | 审查 | GitHub's Chinese docs; GitHub's buttons stay in English |
+| rebase / interactive rebase | 变基 / 交互式变基 | |
+| to-do list (of a rebase) | 待办列表 | |
+| reset | 重置 | git reset |
+| force push | 强制推送 | |
 | squash | 压缩 | |
-| stash | 储藏 | |
+| stash | 贮藏 | as in Pro Git's Chinese edition |
 | reflog | 引用日志（reflog） | |
-| tag / release | 标签 / 发布 | |
+| tag / release (verb) | 标签 / 发布 | |
+| annotated tag / lightweight tag | 附注标签 / 轻量标签 | as in Pro Git's Chinese edition |
+| release (a GitHub page) | 发行版 | GitHub's Chinese docs |
+| semantic versioning | 语义化版本 | |
+| ruleset / branch protection | 规则集 / 分支保护 | |
+| object / blob / tree | 对象 / 数据对象 / 树对象 | first use: 数据对象（blob） |
+| ref / symbolic ref | 引用 / 符号引用 | |
 | terminal / command line | 终端 / 命令行 | |
 | folder / home folder | 文件夹 / 主文件夹 | |
 | editor | 编辑器 | |

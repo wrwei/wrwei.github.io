@@ -1,0 +1,143 @@
+title: A fix release
+title-zh: 一个修正版本
+role: solution
+---
+# The cookbook is on the server, and both people have a clone
+> mkdir cookbook
+> cd cookbook
+> git init
++hidden README.md
+# Family cookbook
+
+Our family's recipes, collected by Alex and Sam.
++end
++hidden index.md
+# Recipes
+
+- [Pancakes](pancakes.md)
++end
++hidden pancakes.md
+# Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
++end
+> git add README.md index.md pancakes.md
+> git commit -m "Start the family cookbook"
+> git init --bare /srv/git/cookbook.git
+> git remote add origin /srv/git/cookbook.git
+> git push -u origin main
+@as sam
+> git clone /srv/git/cookbook.git
+> cd cookbook
+> git log --oneline
+@as alex
+> git config --global pull.rebase false
+@as sam
+> git config --global pull.rebase false
+@as alex
+> git switch -c add-soup
++hidden soup.md
+# Tomato soup
+
+- 1 kg tomatoes
++end
++hidden index.md
+# Recipes
+
+- [Pancakes](pancakes.md)
+- [Tomato soup](soup.md)
++end
+> git add soup.md index.md
+> git commit -m "Add a tomato soup recipe"
+> git push -u origin add-soup
+@as sam
+> git switch -c add-bread
++hidden bread.md
+# Soda bread
+
+- 450 g flour
++end
++hidden index.md
+# Recipes
+
+- [Pancakes](pancakes.md)
+- [Soda bread](bread.md)
++end
+> git add bread.md index.md
+> git commit -m "Add a soda bread recipe"
+> git push -u origin add-bread
+@as alex
+# Sam reviews Alex's pull request and merges it on GitHub; a separate clone plays GitHub's merge button
+@as sam
+> cd ..
+> git clone /srv/git/cookbook.git github
+> cd github
+> git merge --no-ff origin/add-soup -m "Merge pull request #1 from alex/add-soup"
+> git push
+> git push origin --delete add-soup
+> cd ..
+> cd cookbook
+@as alex
+@as sam
+> git fetch
+>! git merge origin/main
+> cat index.md
++hidden index.md
+# Recipes
+
+- [Pancakes](pancakes.md)
+- [Soda bread](bread.md)
+- [Tomato soup](soup.md)
++end
+> git add index.md
+> git commit
+> git push
+# Alex reviews Sam's pull request and merges it on GitHub; a separate clone plays GitHub's merge button
+@as alex
+> cd ..
+> git clone /srv/git/cookbook.git github
+> cd github
+> git merge --no-ff origin/add-bread -m "Merge pull request #2 from alex/add-bread"
+> git push
+> git push origin --delete add-bread
+> cd ..
+> cd cookbook
+# Alex's main is up to date with the merged pull requests
+> git switch main
+> git pull
+> git branch -d add-soup
+> git fetch --prune
+> git log --oneline --graph
+> git tag -a v1.0 -m "Family cookbook 1.0"
+> git push origin v1.0
+> git tag
+> git show v1.0 --no-patch
+$ git switch -c fix-pancakes
++file pancakes.md
+# Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- a pinch of salt
++end
+$ git commit -am "Add the salt the pancakes were missing"
+$ git push -u origin fix-pancakes
+# Sam reviews the pull request and merges it on GitHub, in the clone that plays GitHub's merge button
+@as sam
+> cd ..
+> cd github
+> git pull
+> git merge --no-ff origin/fix-pancakes -m "Merge pull request #3 from alex/fix-pancakes"
+> git push
+> git push origin --delete fix-pancakes
+> cd ..
+> cd cookbook
+@as alex
+$ git switch main
+$ git pull
+$ git tag -a v1.0.1 -m "Family cookbook 1.0.1"
+$ git push origin v1.0.1
+$ git tag

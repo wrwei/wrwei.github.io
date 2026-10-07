@@ -60,7 +60,8 @@ function checkBuiltin([name, ...args], where) {
  * Parses a session script. The header holds "title:" and "title-zh:" (and optionally "role: solution")
  * and ends at "---". Then, one step per line:
  *   $ command      shown, must succeed          $! command   shown, must fail
- *   > command      hidden setup, must succeed   @as sam      act as another person
+ *   > command      hidden setup, must succeed   >! command   hidden setup, must fail
+ *   @as sam        act as another person
  *   @graph label   snapshot of the commit graph
  *   +file path     shown file edit, contents until "+end";  +hidden path  the same, not shown
  * Blank lines and lines starting with "#" are ignored.
@@ -85,11 +86,11 @@ export function parseSession(text, name = 'session') {
     const where = `${name}:${i + 1}`;
     if (!line.trim() || line.startsWith('#')) continue;
     let m;
-    if ((m = /^(\$!|\$|>)\s+(.+)$/.exec(line))) {
+    if ((m = /^(\$!|\$|>!|>)\s+(.+)$/.exec(line))) {
       const words = splitCommand(m[2], where, /^cd\s+~$/.test(m[2].trim()));
       if (words[0] !== 'git' && !BUILTINS.includes(words[0])) throw new Error(`${where}: "${words[0]}" is neither git nor a built-in (${BUILTINS.join(', ')})`);
       if (words[0] !== 'git') checkBuiltin(words, where);
-      steps.push({kind: 'run', line: m[2].trim(), words, shown: m[1] !== '>', expectFail: m[1] === '$!', where});
+      steps.push({kind: 'run', line: m[2].trim(), words, shown: m[1].startsWith('$'), expectFail: m[1].endsWith('!'), where});
     } else if ((m = /^\+(file|hidden)\s+(\S+)$/.exec(line))) {
       const content = [];
       for (i++; i < lines.length && lines[i] !== '+end'; i++) content.push(lines[i]);
@@ -152,7 +153,8 @@ const isShownPath = p => p === '/' || /^\/(home|srv)(\/|$)/.test(p);
 /**
  * Runs a parsed session in `sandbox`, an empty directory. Returns
  *   record:   what the lesson shows, in order: {kind:'command', line, output, ok} | {kind:'file', path, content}
- *             | {kind:'as', persona} | {kind:'graph', label}
+ *             | {kind:'as', persona} | {kind:'graph', label}. A change of person is recorded just before the
+ *             next visible step of the new person, so hidden setup can act as anyone without showing it.
  *   graphs:   label -> {commits, text} for each @graph step
  *   problems: messages for every step that did not behave as declared (empty when all is well)
  */
@@ -239,32 +241,39 @@ export function runSession(session, {sandbox, git = 'git'}) {
   };
 
   const record = [];
+  let shownPersona = 'alex';
+  const visible = item => {
+    if (persona !== shownPersona) record.push({kind: 'as', persona: shownPersona = persona});
+    record.push(item);
+  };
   const graphs = {};
   const problems = [];
   const show = (text, where) => {
-    const shown = paths.toShown(text);
+    // a terminal overwrites a line at each carriage return, so only the text after the last one stays visible
+    const shown = paths.toShown(text.split('\n').map(line => line.replace(/\r$/, '').split('\r').at(-1)).join('\n'));
     for (const leak of paths.leaks(shown)) problems.push(`${where}: the output shows a path outside the sandbox (${leak})`);
     return shown;
   };
   for (const step of session.steps) {
-    if (step.kind === 'as') { persona = step.persona; record.push({kind: 'as', persona}); continue; }
+    if (step.kind === 'as') { persona = step.persona; continue; }
     if (step.kind === 'file') {
       const target = toReal(step.path);
       fs.mkdirSync(path.dirname(target), {recursive: true});
       fs.writeFileSync(target, step.content);
-      if (step.shown) record.push({kind: 'file', path: step.path, content: step.content});
+      if (step.shown) visible({kind: 'file', path: step.path, content: step.content});
       continue;
     }
     if (step.kind === 'graph') {
-      const log = runGit(['log', '--all', '--topo-order', '--format=%h%x09%H%x09%P%x09%D%x09%s']);
+      const log = runGit(['log', '--all', '--topo-order', '--decorate=full', '--format=%h%x09%H%x09%P%x09%D%x09%s']);
       const text = runGit(['log', '--all', '--graph', '--oneline', '--decorate']);
       if (log.status !== 0 || !log.output.trim()) { problems.push(`${step.where}: no commits to draw for "@graph ${step.label}"`); continue; }
-      const commits = log.output.trimEnd().split('\n').map(line => {
+      // subjects can name paths too, such as "Merge branch 'main' of /srv/git/recipes"
+      const commits = show(log.output, step.where).trimEnd().split('\n').map(line => {
         const [short, hash, parents, refs, subject] = line.split('\t');
         return {short, hash, parents: parents ? parents.split(' ') : [], refs, subject};
       });
       graphs[step.label] = {commits, text: show(text.output, step.where)};
-      record.push({kind: 'graph', label: step.label});
+      visible({kind: 'graph', label: step.label});
       continue;
     }
     clock += TICK;
@@ -284,7 +293,7 @@ export function runSession(session, {sandbox, git = 'git'}) {
     if (ok === step.expectFail) {
       problems.push(`${step.where}: "${step.line}" ${ok ? 'succeeded, but is declared to fail ($!)' : `failed with exit code ${result.status}, but is declared to succeed`}\n${output}`);
     }
-    if (step.shown) record.push({kind: 'command', line: step.line, output, ok});
+    if (step.shown) visible({kind: 'command', line: step.line, output, ok});
   }
   return {record, graphs, problems};
 }

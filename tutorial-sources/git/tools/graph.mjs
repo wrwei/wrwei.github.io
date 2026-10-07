@@ -37,12 +37,20 @@ export function layout(commits) {
   return commits.map(commit => ({...commit, ...placed.get(commit.hash)}));
 }
 
-/** "HEAD -> main, origin/main, tag: v1.0" becomes [{text: 'HEAD → main', kind: 'head'}, {text: 'origin/main', kind: 'remote'}, ...]. */
+/**
+ * Turns a %D decoration into labels. With full ref names (git log --decorate=full),
+ * "HEAD -> refs/heads/main, refs/remotes/origin/main, tag: refs/tags/v1.0" becomes
+ * [{text: 'HEAD → main', kind: 'head'}, {text: 'origin/main', kind: 'remote'}, {text: 'v1.0', kind: 'tag'}];
+ * short names are still accepted, with names containing "/" taken as remote.
+ */
 export function parseRefs(refs) {
+  const short = name => name.replace(/^refs\/(heads|remotes|tags)\//, '');
   return (refs ? refs.split(', ') : []).filter(ref => !ref.endsWith('/HEAD')).map(ref => {
-    if (ref.startsWith('HEAD -> ')) return {text: `HEAD → ${ref.slice(8)}`, kind: 'head'};
+    if (ref.startsWith('HEAD -> ')) return {text: `HEAD → ${short(ref.slice(8))}`, kind: 'head'};
     if (ref === 'HEAD') return {text: 'HEAD', kind: 'head'};
-    if (ref.startsWith('tag: ')) return {text: ref.slice(5), kind: 'tag'};
+    if (ref.startsWith('tag: ')) return {text: short(ref.slice(5)), kind: 'tag'};
+    if (ref.startsWith('refs/heads/')) return {text: short(ref), kind: 'branch'};
+    if (ref.startsWith('refs/remotes/')) return {text: short(ref), kind: 'remote'};
     return {text: ref, kind: ref.includes('/') ? 'remote' : 'branch'};
   });
 }

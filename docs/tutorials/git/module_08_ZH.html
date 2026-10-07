@@ -1,0 +1,470 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>改写历史与恢复 — Git 与版本控制</title><meta name="description" content="用 stash 暂存工作，用 reset 收回提交，用变基和压缩整理分支，遵守关于共享历史的那条规则，并用 reflog 挽回几乎任何东西。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="8"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">Git 系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 08</button><div class="dropdown-menu" id="module-menu"><a href="module_01_ZH.html">01 · 为什么需要版本控制？</a><a href="module_02_ZH.html">02 · 你的第一个仓库</a><a href="module_03_ZH.html">03 · 查看历史与撤销</a><a href="module_04_ZH.html">04 · 分支</a><a href="module_05_ZH.html">05 · 合并冲突</a><a href="module_06_ZH.html">06 · 远程仓库</a><a href="module_07_ZH.html">07 · 用拉取请求协作</a><a href="module_08_ZH.html" class="active" aria-current="page">08 · 改写历史与恢复</a><a href="module_09_ZH.html">09 · Git 的内部原理</a><a href="module_10_ZH.html">10 · 综合项目：团队协作</a><a href="index_ZH.html#modules">全部模块</a></div></div><a class="lang-switch" href="module_08_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/3 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#s1"><span class="num">1</span><span>唯一的规则</span></a><a href="#s2"><span class="num">2</span><span>暂放工作</span></a><a href="#s3"><span class="num">3</span><span>收回提交</span></a><a href="#s4"><span class="num">4</span><span>变基</span></a><a href="#s5"><span class="num">5</span><span>压缩修正</span></a><a href="#s6"><span class="num">6</span><span>reflog</span></a><a href="#exercises"><span class="num">7</span><span>练习</span></a><a href="#quiz"><span class="num">8</span><span>自测</span></a><a href="#reading"><span class="num">9</span><span>延伸阅读</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git 与版本控制 — Ran Wei</div><h1 class="module-title">改写历史与恢复</h1><p class="module-lead">用 stash 暂存工作，用 reset 收回提交，用变基和压缩整理分支，遵守关于共享历史的那条规则，并用 reflog 挽回几乎任何东西。</p><div class="hero-chips"><span class="chip chip-time">3 小时</span><span class="chip">3 个时段</span><span class="chip">5 个动手环节</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>说出关于改写共享历史的规则，并解释它为什么重要。</li><li>用 git stash 把未完成的工作暂放一边，再把它取回来。</li><li>用 git reset --soft、--mixed 和 --hard 收回提交，并清楚每种方式保留了什么。</li><li>把分支变基到 main 上，把修正压缩进更早的提交，并用 --force-with-lease 安全地推送改写过的分支。</li><li>在 reflog 中找到丢失的提交并恢复它们。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>第 3 至第 7 模块，尤其是修补和撤销（第 3 模块）以及推送分支（第 6 模块）。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#s1">唯一的规则</a><a href="#s2">暂放工作</a><a href="#s3">收回提交</a><a href="#s4">变基</a><a href="#s5">压缩修正</a><a href="#s6">reflog</a><a href="#exercises">练习</a><a href="#quiz">自测</a><a href="#reading">延伸阅读</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">3 小时</span></div><p class="plan-lead">时间为估计值，包含输入命令的时间。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">60 分钟</span></div><div class="session-title">安全地回退</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">唯一的规则</a></span><span class="act-min">10</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s2">暂放工作</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s3">收回提交</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m08:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">60 分钟</span></div><div class="session-title">整理分支</div><ul class="acts"><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s4">变基</a></span><span class="act-min">30</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s5">压缩修正</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m08:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">60 分钟</span></div><div class="session-title">恢复与练习</div><ul class="acts"><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s6">reflog</a></span><span class="act-min">20</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#exercises">六道练习</a></span><span class="act-min">30</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">自测</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m08:s3"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>唯一的规则</h2></div>
+<p>本模块介绍会改变历史的工具：把分支往回移、把提交重放到别处，或者把几次提交合成一次的命令。用在你自己的工作上，它们能帮你保持历史整洁易读。随意用在共享的工作上，就会惹出真正的麻烦。所以先说那条唯一的规则：</p>
+<div class="callout keyidea"><div class="callout-label">核心思想</div>
+<p><strong>不要改写别人已经拿到的提交。</strong> 一旦你把提交推送到了别人也在使用的分支（例如 <code>main</code>），就把它们当作固定不变的。要撤销它们，请使用 <code>git revert</code>（第 3 模块），它会添加一次新提交，而不是改写它们。</p>
+</div>
+<p>为什么？改写历史从来不是编辑提交，而是生成带有新哈希的新提交，再把分支移过去，就像你在第 3 模块中用 <code>--amend</code> 看到的那样。每个已经拿到旧提交的人，手里的历史就与你的不再一致了。他们下一次拉取时会把新旧两个版本合并在一起，造成重复的工作。你下一次推送会被拒绝，而强制推送则会丢掉他们的工作。</p>
+<p>在你自己的分支上，只要还没有人在它的基础上工作，改写就没有问题，而且往往是对审查者的体贴。只有你自己在开发的功能分支，即使已经为拉取请求推送过，也算是你自己的，只要你明确告诉 Git 你打算覆盖它（第 4 节）。</p>
+<p>本模块中有两个工具不改写任何东西：<code>git stash</code>（第 2 节）把未提交的工作暂放一边，<code>git reflog</code>（第 6 节）则能找回你以为已经丢失的提交。</p>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>暂放工作</h2></div>
+<p>你的一项改动做到一半，突然来了更紧急的事：另一个分支上要修个问题，或者要试试同事的拉取请求。你的工作还不能提交，而带着未提交的改动切换分支是有风险的（第 4 模块练习 4）。<code>git stash</code> 能解决这个问题。它把你未提交的改动（无论是否已暂存）保存到一个叫做<strong>贮藏</strong>（stash）的栈中，并把工作区恢复到最近一次提交的状态。之后，<code>git stash pop</code> 会把这些改动放回来，并把它们从贮藏中移除。</p>
+<p>在这个动手环节中，Alex 正在给煎饼加一种配料，这时 README 需要先修正一下。要跟着操作，请开始编辑任意一个已跟踪的文件，然后把改动贮藏起来。</p>
+<div class="term" id="term-m08-stash">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">把未完成的工作暂放一边</span></div>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- a pinch of
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">stash</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Saved working directory and index state WIP on main: 8bf3c2d Add a pancake recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+nothing to commit, working tree clean
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">stash</span> list</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>stash@{0}: WIP on main: 8bf3c2d Add a pancake recipe
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>README.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Family recipes
+
+Recipes we cook again and again, with notes on what worked.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-am</span> <span class="hljs-string">&quot;Say what the notes are for&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main a863ac0] Say what the notes are for
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">stash</span> pop</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   pancakes.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+Dropped refs/stash@{0} (0c8aa5df3461004051d9b57493e58b6ac5cc745f)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>diff --git a/pancakes.md b/pancakes.md
+index 871d830..d511981 100644
+--- a/pancakes.md
++++ b/pancakes.md
+@@ -3,3 +3,4 @@
+ - 200 g flour
+ - 2 eggs
+ - 300 ml milk
++- a pinch of
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git stash</code> 报告了它保存的内容 <code>WIP on main</code>（“work in progress”，进行中的工作），并给出了它所基于的提交。随后 <code>git status</code> 显示工作区是干净的，<code>git stash list</code> 显示一个条目 <code>stash@{0}</code>，也就是最新的那个。工作区干净了，Alex 提交了对 README 的修改。<code>git stash pop</code> 把写了一半的煎饼那一行作为未暂存的改动放了回来，<code>git diff</code> 显示它正等着你写完。</p>
+<p>还有几点需要了解：</p>
+<ul>
+<li><code>git stash</code> 只保存已跟踪的文件。要把新的未跟踪文件也包括进去，请使用 <code>git stash -u</code>。</li>
+<li><code>git stash list</code> 列出所有条目，最新的在前。<code>git stash apply</code> 把最新的条目放回来，但仍把它留在贮藏中；<code>git stash drop</code> 删除它。</li>
+<li>如果贮藏的改动与你之后提交的内容冲突，<code>git stash pop</code> 会停下来并留下冲突标记。像第 5 模块那样解决，然后运行 <code>git stash drop</code>，因为在这种情况下条目会被保留。</li>
+<li>贮藏只存在于本地，不会被推送。不要把工作在那里放太久；用一个带有“进行中”提交的分支，更容易找回来。</li>
+</ul>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>收回提交</h2></div>
+<p><code>git reset &lt;commit&gt;</code> 把你当前的分支移回到更早的一次提交，收回它之后的那些提交。与 <code>git revert</code> 不同，它会改写历史，所以只能用在你还没有推送的提交上。它的选项决定了那些提交中的改动会怎样：</p>
+<ul>
+<li><code>git reset --soft &lt;commit&gt;</code> 只移动分支。改动留在暂存区，可以直接再次提交。</li>
+<li><code>git reset &lt;commit&gt;</code>，即默认的 <em>mixed</em> 方式，还会重置暂存区。改动留在你的工作区，处于未暂存状态。</li>
+<li><code>git reset --hard &lt;commit&gt;</code> 还会重置工作区。改动从你的文件中消失，所有未提交的工作也一样。</li>
+</ul>
+<figure class="fig" id="fig-08-01"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 230" role="img" aria-labelledby="t">
+  <title id="fig-08-01__t">git reset 保留什么</title>
+  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" text-anchor="middle">
+    <text x="280" y="28" font-size="14" font-weight="700" fill="#334155">分支</text>
+    <text x="430" y="28" font-size="14" font-weight="700" fill="#334155">暂存区</text>
+    <text x="580" y="28" font-size="14" font-weight="700" fill="#334155">工作区</text>
+    <text x="100" y="69" font-size="14" font-family="ui-monospace, Menlo, Consolas, monospace" fill="#7C3AED">--soft</text>
+    <rect x="210" y="44" width="140" height="38" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+    <text x="280" y="68" font-size="13" fill="#1E3A8A">后退</text>
+    <rect x="360" y="44" width="140" height="38" rx="8" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="430" y="68" font-size="13" fill="#14532D">保留</text>
+    <rect x="510" y="44" width="140" height="38" rx="8" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="580" y="68" font-size="13" fill="#14532D">保留</text>
+    <text x="100" y="121" font-size="14" font-family="ui-monospace, Menlo, Consolas, monospace" fill="#7C3AED">--mixed（默认）</text>
+    <rect x="210" y="96" width="140" height="38" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+    <text x="280" y="120" font-size="13" fill="#1E3A8A">后退</text>
+    <rect x="360" y="96" width="140" height="38" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+    <text x="430" y="120" font-size="13" fill="#78350F">重置</text>
+    <rect x="510" y="96" width="140" height="38" rx="8" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="580" y="120" font-size="13" fill="#14532D">保留</text>
+    <text x="100" y="173" font-size="14" font-family="ui-monospace, Menlo, Consolas, monospace" fill="#7C3AED">--hard</text>
+    <rect x="210" y="148" width="140" height="38" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+    <text x="280" y="172" font-size="13" fill="#1E3A8A">后退</text>
+    <rect x="360" y="148" width="140" height="38" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+    <text x="430" y="172" font-size="13" fill="#78350F">重置</text>
+    <rect x="510" y="148" width="140" height="38" rx="8" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="580" y="172" font-size="13" fill="#7F1D1D">重置：改动丢失</text>
+    <text x="340" y="215" font-size="13" fill="#475569">不再位于任何分支上的提交，在一段时间内仍可以在 reflog 中找到</text>
+  </g>
+</svg>
+</div><figcaption><span class="fig-num">图 8.1</span> <p>每种 <code>git reset</code> 各保留什么。三种方式都会把分支往回移；区别在于暂存区和工作区会怎样。</p>
+</figcaption></figure>
+<p>和第 3 模块一样，<code>HEAD~1</code> 表示“HEAD 之前的一次提交”。在这个动手环节中，Alex 用一条含糊的说明提交了一小撮盐，先用 <code>--soft</code> 收回这次提交，再用更好的说明重新提交，然后又用默认方式收回了一次。要跟着操作，请在任意一份食谱中加一行，并用 <code>git commit -am</code> 提交。</p>
+<div class="term" id="term-m08-reset">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">收回最近一次提交</span></div>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- a pinch of salt
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-am</span> <span class="hljs-string">&quot;Add salt&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main 631ac3e] Add salt
+ 1 file changed, 1 insertion(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">reset</span> <span class="hljs-attr">--soft</span> HEAD~1</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+	modified:   pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a pinch of salt to the pancakes&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main bdac642] Add a pinch of salt to the pancakes
+ 1 file changed, 1 insertion(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">reset</span> HEAD~1</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Unstaged changes after reset:
+M	pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   pancakes.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git reset --soft HEAD~1</code> 什么也不打印，但 <code>git status</code> 把盐显示为 <em>Changes to be committed</em>：提交没了，它的改动又处于暂存状态。这使 <code>--soft</code> 成为重做提交的一种方式，例如把最近几次提交合成一次：用 <code>--soft</code> 退回到它们之前，然后只提交一次。</p>
+<p>用默认方式重置之后，Git 报告 <code>Unstaged changes after reset:</code> 并列出 <code>pancakes.md</code>。<code>git status</code> 也确认了这一点：改动现在位于工作区，处于未暂存状态。拆分一次提交就用这个办法：重置它，然后分别暂存并提交各个部分。<code>git log --oneline</code> 确认两次加盐的提交都已从 <code>main</code> 上消失。</p>
+<div class="callout pitfall"><div class="callout-label">陷阱</div>
+<p><code>git reset --hard</code> 会丢弃工作区中未提交的改动，Git 无法把它们找回来。它收回的提交通常可以从 reflog 中恢复（第 6 节），但未提交的工作不行。请先运行 <code>git status</code>，把想保留的东西贮藏起来。</p>
+</div>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>变基</h2></div>
+<p>在第 7 模块中，Alex 通过把 <code>origin/main</code> 合并到功能分支，让分支跟上了最新进展。<strong>变基</strong>（rebase）是另一种做法。<code>git rebase main</code> 取出你的分支上 <code>main</code> 所没有的提交，把它们逐个重放到 <code>main</code> 最新的提交之上。结果中的文件与合并相同，但历史是一条直线，没有合并提交，就好像你是从今天的 <code>main</code> 开始这个分支的。</p>
+<p>重放会生成带有新哈希的新提交，所以变基会改写分支。对你自己的功能分支来说这没有问题，但如果分支已经推送过，就会产生一个后果，这个动手环节会展示出来。Alex 的 <code>soups</code> 分支在服务器上，而 <code>main</code> 已经向前推进了。要跟着操作，请在一个分支上提交并推送，然后向 <code>main</code> 添加一次提交。</p>
+<div class="term" id="term-m08-rebase">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">把分支重放到 main 之上</span></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 522 146" width="522" height="146" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M40 56V56C40 73 18 73 18 90" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">64a7f92</text><rect x="128.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="134.4" y="26" class="g-ref-text">origin/main</text><rect x="225.60000000000002" y="13" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="231.6" y="26" class="g-ref-text">main</text><text x="272.4" y="26" class="g-subject">Say what the notes are for</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="60" class="g-hash">968c34b</text><rect x="128.4" y="47" width="98.4" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="60" class="g-ref-text">HEAD → soups</text><rect x="232.8" y="47" width="98.4" height="18" rx="9" class="g-ref g-remote"/><text x="238.8" y="60" class="g-ref-text">origin/soups</text><text x="337.2" y="60" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="94" class="g-hash">8bf3c2d</text><text x="128.4" y="94" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">907a979</text><text x="128.4" y="128" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 64a7f92 (origin/main, main) Say what the notes are for
+| * 968c34b (HEAD -&gt; soups, origin/soups) Add a tomato soup recipe
+|/
+* 8bf3c2d Add a pancake recipe
+* 907a979 Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rebase</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Successfully rebased and updated refs/heads/soups.
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 472 180" width="472" height="180" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 56V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M40 90V90C40 107 18 107 18 124" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 124V158" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">a11c867</text><rect x="128.4" y="13" width="98.4" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="26" class="g-ref-text">HEAD → soups</text><text x="232.8" y="26" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="60" class="g-hash">64a7f92</text><rect x="128.4" y="47" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="134.4" y="60" class="g-ref-text">origin/main</text><rect x="225.60000000000002" y="47" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="231.6" y="60" class="g-ref-text">main</text><text x="272.4" y="60" class="g-subject">Say what the notes are for</text><circle cx="40" cy="90" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="94" class="g-hash">968c34b</text><rect x="128.4" y="81" width="98.4" height="18" rx="9" class="g-ref g-remote"/><text x="134.4" y="94" class="g-ref-text">origin/soups</text><text x="232.8" y="94" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">8bf3c2d</text><text x="128.4" y="128" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="158" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="162" class="g-hash">907a979</text><text x="128.4" y="162" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* a11c867 (HEAD -&gt; soups) Add a tomato soup recipe
+* 64a7f92 (origin/main, main) Say what the notes are for
+| * 968c34b (origin/soups) Add a tomato soup recipe
+|/
+* 8bf3c2d Add a pancake recipe
+* 907a979 Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/recipes.git
+ ! [rejected]        soups -&gt; soups (non-fast-forward)
+error: failed to push some refs to '/srv/git/recipes.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> <span class="hljs-attr">--force-with-lease</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/recipes.git
+ + 968c34b...a11c867 soups -&gt; soups (forced update)
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>比较两张提交图。变基之前，<code>soups</code> 和 <code>main</code> 已经分叉，就像三方合并那样。运行 <code>git rebase main</code> 之后（它报告 <code>Successfully rebased and updated refs/heads/soups</code>），汤的提交作为一次新提交 <code>a11c867</code> 位于 <code>main</code> 最新的提交之上。旧的汤提交 <code>968c34b</code> 仍然是 <code>origin/soups</code> 所指向的位置：服务器没有变化。</p>
+<p>所以 <code>git push</code> 被拒绝，原因是 <code>non-fast-forward</code>：服务器上的 <code>soups</code> 包含 <code>968c34b</code>，而你变基后的分支已经替换了它。这里你知道这个分支是你自己的，所以用 <code>git push --force-with-lease</code> 覆盖它。Git 报告 <code>(forced update)</code>。如果服务器上的分支不在你的 <code>origin/soups</code> 所记录的位置，也就是说自你上次获取以来有人向它推送过，<code>--force-with-lease</code> 就会拒绝执行。普通的 <code>--force</code> 则不管三七二十一直接覆盖，可能毁掉同事的工作；不要用它。</p>
+<p>什么时候该变基而不是合并？许多团队对自己的功能分支进行变基以保持历史是直线，分支完成时再合并。另一些团队则始终合并。无论哪种，那条唯一的规则都适用：永远不要对别人正在使用的分支变基。还要记住，<code>git pull</code> 也可以用变基代替合并，方法是使用 <code>git pull --rebase</code>，或者第 6 模块中提到的 <code>pull.rebase true</code> 设置。</p>
+<p>如果重放的某次提交发生冲突，变基会停下来，与合并很像。解决文件中的冲突，<code>git add</code> 它，然后运行 <code>git rebase --continue</code>；或者运行 <code>git rebase --abort</code> 回到开始之前的状态。练习 5 展示了一次这样的冲突，以及它与合并的一个区别，每个人第一次遇到时都会吃一惊。</p>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>压缩修正</h2></div>
+<p>在分支接受审查之前，你可能会发现它较早的某次提交中有个错误：一个错字，一行漏掉的内容。单独的一次“修正错字”提交，会让以后每个阅读历史的人都多看一些噪音。<strong>交互式变基</strong>（interactive rebase），即 <code>git rebase -i</code>，让你在重放之前编辑提交列表：调整顺序、改写说明、丢弃提交，或者把几次提交<strong>压缩</strong>（squash）成一次。</p>
+<p>压缩一处修正最简单的办法，是让 Git 替你写好指令：</p>
+<ol>
+<li>做出修正，用 <code>git commit --fixup &lt;commit&gt;</code> 提交它，并指明它属于哪次提交。Git 会给它的说明加上 <code>fixup! </code>，后面跟着那次提交的说明。</li>
+<li>运行 <code>git rebase -i --autosquash main</code>。Git 会打开编辑器，里面是一份<strong>待办列表</strong>（to-do list），分支上的每次提交占一行，而且已经排好了顺序：修正紧跟在它所修正的提交之后，并标为 <code>fixup</code>。</li>
+<li>保存并关闭编辑器。Git 重放这些提交，把修正并入较早的那次提交。</li>
+</ol>
+<p>在这个动手环节中，汤食谱的标题有个错字“Tomatoe”，而且之后又提交了一份面包食谱。要跟着操作，请在一个分支上做两次提交，然后修正第一次提交中的某处内容。</p>
+<div class="term" id="term-m08-squash">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">把修正并入更早的提交</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>49f29eb Add a soda bread recipe
+bc5616c Add a tomato soup recipe
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>soup.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Tomato soup
+
+- 1 kg tomatoes
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> soup.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">--fixup</span> HEAD~1</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[soups 2b52993] fixup! Add a tomato soup recipe
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>2b52993 fixup! Add a tomato soup recipe
+49f29eb Add a soda bread recipe
+bc5616c Add a tomato soup recipe
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rebase</span> <span class="hljs-attr">-i</span> <span class="hljs-attr">--autosquash</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Successfully rebased and updated refs/heads/soups.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>4af79ad Add a soda bread recipe
+86756a5 Add a tomato soup recipe
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git commit --fixup HEAD~1</code> 指的是最新提交之前的那一次，也就是汤的提交，Git 把新提交命名为 <code>fixup! Add a tomato soup recipe</code>。当你在自己的电脑上运行 <code>git rebase -i --autosquash main</code> 时，编辑器会显示这份待办列表（后面还有一大段解释各个命令的注释）：</p>
+<pre><code class="language-text">pick bc5616c # Add a tomato soup recipe
+fixup 2b52993 # fixup! Add a tomato soup recipe
+pick 49f29eb # Add a soda bread recipe
+
+# Rebase 8bf3c2d..2b52993 onto 8bf3c2d (3 commands)
+</code></pre>
+<p>每一行是一个命令加一次提交，从上到下依次执行：<code>pick</code> 原样重放一次提交，<code>fixup</code> 把它并入上面那次提交，并保留上面那次提交的说明。不做修改直接保存，列表就会执行，动手环节中就是这样。最后的 <code>git log --oneline</code> 显示两次提交而不是三次，哈希都变了：汤的提交现在包含了改正后的标题。</p>
+<p>你也可以自己编辑这份列表。把 <code>pick</code> 改成 <code>reword</code> 可以修改说明，改成 <code>squash</code> 可以把一次提交并入上面那次并合并两者的说明，改成 <code>drop</code> 可以删除它；移动各行可以调整提交的顺序。如果你保存的是一份空列表，变基就会停止，什么也不改变。</p>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>reflog</h2></div>
+<p>不再有任何分支指向的提交并不会被马上删除。Git 会把它们保留一段时间，而<strong>引用日志</strong>（reflog，即 <em>reference log</em>）记录了 HEAD 到过的每一个位置：每次提交、重置、切换、合并和变基。<code>git reflog</code> 按从新到旧的顺序列出它们，所以你能找到被硬重置、变基或删除分支带走的提交。</p>
+<p>在这个动手环节中，Alex 不小心重置掉了两次提交，然后把它们找了回来。要跟着操作，请做两次提交，然后运行 <code>git reset --hard HEAD~2</code>。</p>
+<div class="term" id="term-m08-reflog">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">硬重置之后找回提交</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>ab03771 Add a tomato soup recipe
+98b66a3 Add a lemon cake recipe
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">reset</span> <span class="hljs-attr">--hard</span> HEAD~2</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>HEAD is now at 8bf3c2d Add a pancake recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">reflog</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d HEAD@{0}: reset: moving to HEAD~2
+ab03771 HEAD@{1}: commit: Add a tomato soup recipe
+98b66a3 HEAD@{2}: commit: Add a lemon cake recipe
+8bf3c2d HEAD@{3}: commit: Add a pancake recipe
+907a979 HEAD@{4}: commit (initial): Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">reset</span> <span class="hljs-attr">--hard</span> ab03771</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>HEAD is now at ab03771 Add a tomato soup recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>ab03771 Add a tomato soup recipe
+98b66a3 Add a lemon cake recipe
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>运行 <code>git reset --hard HEAD~2</code> 之后，<code>git log --oneline</code> 不再显示蛋糕和汤的提交。<code>git reflog</code> 却仍然显示它们。每一行显示 HEAD 当时所在的位置、这个位置的名字，以及是什么让它移动的：<code>HEAD@{0}</code> 是现在（<code>reset: moving to HEAD~2</code>），<code>HEAD@{1}</code> 是紧挨着的前一个位置，即汤的提交 <code>ab03771</code> 之后。<code>git reset --hard ab03771</code> 把 <code>main</code> 移回那里，日志与原来完全一样。</p>
+<p>如果想救回一次提交而又不移动当前分支，可以在它那里新建一个分支，例如 <code>git branch rescue ab03771</code>。用 <code>git branch -D</code> 删除的分支也能这样找回：在 reflog 中找到它的最后一次提交，然后重新创建这个分支。</p>
+<div class="callout note"><div class="callout-label">注意 — HEAD@{1} 与 PowerShell</div>
+<p>你也可以直接用 reflog 中的位置名，例如 <code>git reset --hard HEAD@{1}</code>。在 PowerShell 中，请给这样的名字加上引号，写成 <code>'HEAD@{1}'</code>，因为 PowerShell 对花括号另有解释。reflog 中的哈希在任何 shell 中都能用。</p>
+</div>
+<p>reflog 也有局限：它只存在于你自己的仓库中，从不推送；Git 最终会删除旧的条目，默认是 90 天之后，对于已不在任何分支上的提交则是 30 天之后。而且它只记录提交，所以对于被 <code>git reset --hard</code> 或 <code>git restore</code> 丢掉的未提交改动，它也无能为力。经常提交，能彻底丢失的东西就会很少。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">7</span><h2>练习</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>可以改写吗？</strong> 下面哪些做法是安全的？逐一说明理由。</p>
+<ol>
+<li>修补你最近一次尚未推送的提交。</li>
+<li>对你的功能分支变基（它为了一个只有你在做的拉取请求而推送过），然后用 <code>--force-with-lease</code> 推送。</li>
+<li>在把两次提交推送到共享仓库之后，把 <code>main</code> 重置回两次提交之前。</li>
+<li>撤销 <code>main</code> 上一次整个团队都已拿到的提交。</li>
+</ol>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>安全：没有别人拿到过这次提交。</li>
+<li>安全：分支是你自己的，而且如果有人向它推送过，<code>--force-with-lease</code> 会停下来。请告诉审查者你改写了它。</li>
+<li>不安全：团队已经拿到了这些提交。请改用 <code>git revert</code>。</li>
+<li>安全：<code>git revert</code> 添加一次新提交，不改写任何东西。</li>
+</ol>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">5 分钟</span></div>
+<p><strong>紧急修正。</strong> 你在 <code>soups</code> 分支上写汤的食谱写到一半，这时 <code>main</code> 上的 README 需要修正。把你的工作暂放一边，在 <code>main</code> 上完成修正，再回到你的汤食谱，并恢复你的工作。要跟着操作，请在一个分支上开始编辑，但不要提交。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>贮藏、切换、提交修正、切换回来，再取回贮藏：</p>
+<div class="term" id="term-m08-e2-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">暂存、修好别的东西，再继续</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">stash</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Saved working directory and index state WIP on soups: 35277d9 Start a tomato soup recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'main'
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>README.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Family recipes
+
+Recipes we cook again and again, with notes on what worked.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-am</span> <span class="hljs-string">&quot;Say what the notes are for&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main 56ba014] Say what the notes are for
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'soups'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">stash</span> pop</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch soups
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   soup.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+Dropped refs/stash@{0} (22d318f23c71ae4df59525bf1de57927cd36725e)
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>贮藏条目记录了它来自哪个分支（<code>WIP on soups</code>），但你可以在任何分支上取回它。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">5 分钟</span></div>
+<p><strong>用哪种重置？</strong> 下面这些提交都还没有推送。每种情况适合哪种形式的 <code>git reset HEAD~1</code>？</p>
+<ol>
+<li>你最近一次提交混杂了两处不相关的改动，你想分别提交它们。</li>
+<li>你想给最近一次提交再加一个文件，并写一条更好的说明。</li>
+<li>你最近一次提交是一次失败的试验，你既不要这次提交，也不要其中的改动。</li>
+</ol>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>默认方式（mixed）：改动回到未暂存状态，你可以分别暂存并提交各个部分。</li>
+<li><code>--soft</code>：改动保持暂存；加上那个文件，再提交一次。（<code>git commit --amend</code> 一步就能做到同样的事。）</li>
+<li><code>--hard</code>：提交和它的改动都没了。请先查看 <code>git status</code>，免得丢失未提交的工作。</li>
+</ol>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">5 分钟</span></div>
+<p><strong>被删除的分支。</strong> 昨天你用 <code>git branch -D</code> 删除了名为 <code>experiment</code> 的分支，今天你需要它上面的一次提交。怎样把这个分支找回来？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>运行 <code>git reflog</code>，找到 <code>checkout: moving from experiment to main</code> 这一行。这一行的哈希是 HEAD 移到的位置，即 <code>main</code> 的最新提交；紧挨在它下面的那一行才是 HEAD 之前所在的位置，即 <code>experiment</code> 的最后一次提交。记下那个哈希，然后运行 <code>git branch experiment &lt;hash&gt;</code>。分支就回来了，所有提交都在。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">7 分钟</span></div>
+<p><strong>变基过程中的冲突。</strong> 你在 <code>less-sugar</code> 上把糖改成了 30 g；与此同时，<code>main</code> 把它改成了 40 g。把 <code>less-sugar</code> 变基到 <code>main</code> 上，最终定为 35 g。要跟着操作，请像第 5 模块第 3 节那样做出这两处改动，但使用一个新分支，例如 <code>less-sugar-2</code>，因为你的仓库中已经有 <code>less-sugar</code> 了。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>变基在发生冲突的那次提交处停下。解决文件中的冲突，暂存它，然后继续：</p>
+<div class="term" id="term-m08-e5-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">解决变基过程中的冲突</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rebase</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Auto-merging pancakes.md
+CONFLICT (content): Merge conflict in pancakes.md
+error: could not apply cbca0db... Use less sugar
+hint: Resolve all conflicts manually, mark them as resolved with
+hint: &quot;git add/rm &lt;conflicted_files&gt;&quot;, then run &quot;git rebase --continue&quot;.
+hint: You can instead skip this commit: run &quot;git rebase --skip&quot;.
+hint: To abort and get back to the state before &quot;git rebase&quot;, run &quot;git rebase --abort&quot;.
+hint: Disable this message with &quot;git config set advice.mergeConflict false&quot;
+Could not apply cbca0db... # Use less sugar
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+- 40 g sugar
+=======
+- 30 g sugar
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; cbca0db (Use less sugar)
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- 35 g sugar
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rebase</span> <span class="hljs-attr">--continue</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[detached HEAD 012cc14] Use less sugar
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Successfully rebased and updated refs/heads/less-sugar.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>012cc14 Use less sugar
+5728578 Reduce the sugar a little
+17d419f Add a pancake recipe
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>看看这些标记：在变基中，<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 下面是 <code>main</code> 的版本 40 g，<code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; cbca0db (Use less sugar)</code> 上面才是你的版本。这两个标签与合并时正好相反，因为变基是把你的提交重放到 <code>main</code> 之上，所以 HEAD 是新的基础。随后 <code>git rebase --continue</code> 提交这次重放的提交（在你的电脑上，它会让你编辑说明），并完成变基。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>用哪个工具？</strong> 为每种情况说出对应的命令。</p>
+<ol>
+<li>你最近一次尚未推送的提交的说明有个错字。</li>
+<li>共享的 <code>main</code> 上有一次提交导致构建失败。</li>
+<li>你需要一个干净的工作区十分钟，但不想提交。</li>
+<li>你的拉取请求中有一次“修正错字”的提交，它本该属于更早的一次提交。</li>
+<li>你重置得太远了，需要把那些提交找回来。</li>
+</ol>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><code>git commit --amend</code>。</li>
+<li><code>git revert &lt;commit&gt;</code>。</li>
+<li><code>git stash</code>，然后 <code>git stash pop</code>。</li>
+<li><code>git commit --fixup &lt;commit&gt;</code> 和 <code>git rebase -i --autosquash main</code>，然后 <code>git push --force-with-lease</code>。</li>
+<li><code>git reflog</code>，然后 <code>git reset --hard &lt;hash&gt;</code>。</li>
+</ol>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">8</span><h2>自测</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>关于改写历史的规则是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">永远不要使用 <code>git rebase</code>。</button></li><li><button type="button" class="quiz-opt" data-i="1">不要改写别人已经拿到的提交。</button></li><li><button type="button" class="quiz-opt" data-i="2">只在 <code>main</code> 上改写历史。</button></li><li><button type="button" class="quiz-opt" data-i="3">改写之后总是使用 <code>--force</code>。</button></li></ol><div class="quiz-expl" hidden>在你自己尚未推送或未与人共享的工作上，改写没有问题；共享的提交要用 <code>git revert</code> 撤销。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div><code>git stash</code> 做什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">把你的改动提交到服务器上的一个隐藏分支。</button></li><li><button type="button" class="quiz-opt" data-i="1">保存你未提交的改动，并把工作区恢复到最近一次提交的状态。</button></li><li><button type="button" class="quiz-opt" data-i="2">删除你未提交的改动。</button></li><li><button type="button" class="quiz-opt" data-i="3">把分支往回移一次提交。</button></li></ol><div class="quiz-expl" hidden>之后用 <code>git stash pop</code> 把改动取回来。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>运行 <code>git reset --soft HEAD~1</code> 之后，最近一次提交中的改动在哪里？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">在暂存区中</button></li><li><button type="button" class="quiz-opt" data-i="1">只在 reflog 中</button></li><li><button type="button" class="quiz-opt" data-i="2">没了</button></li><li><button type="button" class="quiz-opt" data-i="3">在一个新分支上</button></li></ol><div class="quiz-expl" hidden><code>--soft</code> 只移动分支；默认方式会取消暂存这些改动，<code>--hard</code> 则会删除它们。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">4</span><div>哪条命令可能彻底毁掉未提交的工作？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git reset --soft HEAD~1</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git stash</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git rebase main</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git reset --hard HEAD~1</code></button></li></ol><div class="quiz-expl" hidden><code>--hard</code> 会重置工作区；未提交的改动不在 reflog 中。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>对一个已经推送过的分支变基之后，为什么 <code>git push</code> 会被拒绝？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">变基失败了。</button></li><li><button type="button" class="quiz-opt" data-i="1">变基后的提交取代了已推送的提交，所以这次推送不是快进。</button></li><li><button type="button" class="quiz-opt" data-i="2">变基后的分支无法推送。</button></li><li><button type="button" class="quiz-opt" data-i="3">远程仓库过时了。</button></li></ol><div class="quiz-expl" hidden>如果分支只属于你一个人，就用 <code>--force-with-lease</code> 推送。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">6</span><div>在变基到 <code>main</code> 的过程中，<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 和 <code>=======</code> 之间是哪个版本？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">你的分支上的版本</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>main</code> 的版本，即这些提交正在被重放到的基础</button></li><li><button type="button" class="quiz-opt" data-i="2">第一次提交中的版本</button></li><li><button type="button" class="quiz-opt" data-i="3">Git 建议的解决方案</button></li></ol><div class="quiz-expl" hidden>在变基中，HEAD 是新的基础；你的提交的版本位于 <code>=======</code> 之后。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">7</span><div><code>git reflog</code> 显示什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">远程仓库上的每一次提交</button></li><li><button type="button" class="quiz-opt" data-i="1">即将被推送的提交</button></li><li><button type="button" class="quiz-opt" data-i="2">HEAD 到过的位置，包括已不在任何分支上的提交</button></li><li><button type="button" class="quiz-opt" data-i="3">你还没有提交的改动</button></li></ol><div class="quiz-expl" hidden>用 reflog 中的哈希进行重置或创建分支，就能找回丢失的提交。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">9</span><h2>延伸阅读</h2></div>
+<ul>
+<li>Scott Chacon 和 Ben Straub，《Pro Git》，第 <a href="https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%8F%98%E5%9F%BA" target="_blank" rel="noopener">3.6 节：变基</a>、<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E8%B4%AE%E8%97%8F%E4%B8%8E%E6%B8%85%E7%90%86" target="_blank" rel="noopener">7.3 节：贮藏与清理</a>、<a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E9%87%8D%E5%86%99%E5%8E%86%E5%8F%B2" target="_blank" rel="noopener">7.6 节：重写历史</a>和 <a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E9%87%8D%E7%BD%AE%E6%8F%AD%E5%AF%86" target="_blank" rel="noopener">7.7 节：重置揭密</a>。</li>
+<li><a href="https://git-scm.com/docs/git-stash" target="_blank" rel="noopener">git stash</a>、<a href="https://git-scm.com/docs/git-reset" target="_blank" rel="noopener">git reset</a>、<a href="https://git-scm.com/docs/git-rebase" target="_blank" rel="noopener">git rebase</a> 和 <a href="https://git-scm.com/docs/git-reflog" target="_blank" rel="noopener">git reflog</a> 的参考页面。</li>
+</ul>
+</div><nav class="module-nav" aria-label="全部模块"><a href="module_07_ZH.html">← 模块 07</a><a href="module_09_ZH.html">模块 09 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>

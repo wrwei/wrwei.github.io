@@ -12,6 +12,74 @@ import {renderLesson, renderOverview, checkParity, checkContract, lessonFile, ov
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 
+// Each session runs in a fixed folder rather than a random one: Git writes the server's path into some
+// commits (git pull's merge messages), so a fixed path keeps those commits' hashes the same on every run.
+const SANDBOXES = process.platform === 'win32' ? path.join(os.tmpdir(), 'wrwei-git-sessions') : '/tmp/wrwei-git-sessions';
+
+/** The process that holds a sandbox folder, or null while it is still being claimed. */
+function owner(dir) {
+  try {
+    return Number(fs.readFileSync(path.join(dir, 'owner'), 'utf8'));
+  } catch (error) {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+/** True when the folder's owner has exited, as after Ctrl-C, which skips the run's own clean-up. */
+function abandoned(dir) {
+  const pid = owner(dir);
+  if (pid === null) {
+    // claimed a moment ago, or by a run that stopped before recording itself
+    try {
+      return Date.now() - fs.statSync(dir).mtimeMs > 10000;
+    } catch (error) {
+      if (error.code === 'ENOENT') return false;
+      throw error;
+    }
+  }
+  try {
+    process.kill(pid, 0);
+    return false;
+  } catch (error) {
+    return error.code === 'ESRCH';
+  }
+}
+
+/**
+ * Takes the sandbox folder of session `id`, recording this process as its owner. Waits while another
+ * build or test run is using it, and reclaims at once a folder whose owner has exited.
+ */
+export function claimSandbox(id, {wait = 120000} = {}) {
+  const dir = path.join(SANDBOXES, id);
+  fs.mkdirSync(SANDBOXES, {recursive: true});
+  const deadline = Date.now() + wait;
+  for (;;) {
+    try {
+      fs.mkdirSync(dir);
+      fs.writeFileSync(path.join(dir, 'owner'), String(process.pid));
+      return dir;
+    } catch (error) {
+      if (error.code !== 'EEXIST') throw error;
+    }
+    if (abandoned(dir)) {
+      // move it aside before deleting it, and give it back if another run claimed it meanwhile
+      const aside = `${dir}.abandoned-${process.pid}`;
+      try {
+        fs.renameSync(dir, aside);
+      } catch (error) {
+        if (error.code === 'ENOENT') continue;
+        throw error;
+      }
+      if (abandoned(aside)) fs.rmSync(aside, {recursive: true, force: true});
+      else fs.renameSync(aside, dir);
+      continue;
+    }
+    assert(Date.now() < deadline, `${dir} is in use by process ${owner(dir)}. If no other build or test run is running, delete the folder and try again.`);
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200);
+  }
+}
+
 /** Parses and runs every sessions/module_NN/*.session. Returns Map(id -> session with its record and graphs). */
 export function runModuleSessions(dir, number, git = 'git') {
   const sessions = new Map();
@@ -21,7 +89,7 @@ export function runModuleSessions(dir, number, git = 'git') {
     const id = name.slice(0, -'.session'.length);
     assert(/^[a-z0-9-]+$/.test(id) && id.startsWith(`m${pad(number)}-`), `${name}: session file names look like m${pad(number)}-<words>.session`);
     const session = parseSession(fs.readFileSync(path.join(dir, name), 'utf8'), name);
-    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'git-session-'));
+    const sandbox = claimSandbox(id);
     try {
       const result = runSession(session, {sandbox, git});
       problems.push(...result.problems);

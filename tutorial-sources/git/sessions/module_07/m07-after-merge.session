@@ -1,0 +1,56 @@
+title: Tidy up after a merge
+title-zh: 合并之后的整理
+---
+# A shared recipes repository: Alex and Sam each have a clone
+> mkdir recipes
+> cd recipes
+> git init
++hidden README.md
+# Family recipes
+
+Recipes we cook again and again.
++end
+> git add README.md
+> git commit -m "Add a README"
++hidden pancakes.md
+# Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
++end
+> git add pancakes.md
+> git commit -m "Add a pancake recipe"
+> git init --bare /srv/git/recipes.git
+> git remote add origin /srv/git/recipes.git
+> git push -u origin main
+> git config --global pull.rebase false
+@as sam
+> git clone /srv/git/recipes.git
+> cd recipes
+> git config --global pull.rebase false
+@as alex
+# Alex has pushed a branch with a soup recipe
+> git switch -c add-soups
++hidden soup.md
+# Tomato soup
++end
+> git add soup.md
+> git commit -m "Add a tomato soup recipe"
+> git push -u origin add-soups
+# Sam merges the branch into main on the server, as a pull request's merge button does, and deletes the branch
+@as sam
+> git fetch
+> git switch add-soups
+> git switch main
+> git merge --no-ff add-soups
+> git push
+> git push origin --delete add-soups
+> git branch -d add-soups
+@as alex
+$ git switch main
+$ git pull
+$ git branch -d add-soups
+$ git fetch --prune
+$ git branch -a
+@graph merged

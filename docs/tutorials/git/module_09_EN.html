@@ -1,0 +1,278 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>How Git works inside — Git and Version Control</title><meta name="description" content="Look inside the .git folder: the blobs, trees and commits that hold your history, the hashes that name them, and the small files that make branches and HEAD."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="9"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Git Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 09</button><div class="dropdown-menu" id="module-menu"><a href="module_01_EN.html">01 · Why version control?</a><a href="module_02_EN.html">02 · Your first repository</a><a href="module_03_EN.html">03 · History and undoing</a><a href="module_04_EN.html">04 · Branches</a><a href="module_05_EN.html">05 · Merge conflicts</a><a href="module_06_EN.html">06 · Remotes</a><a href="module_07_EN.html">07 · Collaborating with pull requests</a><a href="module_08_EN.html">08 · Rewriting history and recovering</a><a href="module_09_EN.html" class="active" aria-current="page">09 · How Git works inside</a><a href="module_10_EN.html">10 · Capstone: a team project</a><a href="index.html#modules">All modules</a></div></div><a class="lang-switch" href="module_09_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/2 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#s1"><span class="num">1</span><span>Objects and hashes</span></a><a href="#s2"><span class="num">2</span><span>Looking inside a commit</span></a><a href="#s3"><span class="num">3</span><span>Hashes come from content</span></a><a href="#s4"><span class="num">4</span><span>Where objects live</span></a><a href="#s5"><span class="num">5</span><span>Branches and HEAD</span></a><a href="#exercises"><span class="num">6</span><span>Exercises</span></a><a href="#quiz"><span class="num">7</span><span>Self-check quiz</span></a><a href="#reading"><span class="num">8</span><span>Further reading</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git and Version Control — Ran Wei</div><h1 class="module-title">How Git works inside</h1><p class="module-lead">Look inside the .git folder: the blobs, trees and commits that hold your history, the hashes that name them, and the small files that make branches and HEAD.</p><div class="hero-chips"><span class="chip chip-time">2 hours</span><span class="chip">2 study sessions</span><span class="chip">4 command sessions</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Name Git's three main kinds of object, blob, tree and commit, and say what each holds.</li><li>Look inside any object with git cat-file.</li><li>Explain how hashes are calculated from content, and why changing a commit changes every later hash.</li><li>Find where objects, branches and HEAD are stored in the .git folder.</li><li>Explain why branches are cheap, and what a detached HEAD is in these terms.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Modules 2 to 8. Nothing here is needed for everyday work, but it explains why Git behaves as it does.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#s1">Objects and hashes</a><a href="#s2">Looking inside a commit</a><a href="#s3">Hashes come from content</a><a href="#s4">Where objects live</a><a href="#s5">Branches and HEAD</a><a href="#exercises">Exercises</a><a href="#quiz">Self-check quiz</a><a href="#reading">Further reading</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">2 hours</span></div><p class="plan-lead">Times are estimates and include typing the commands. Progress is saved in this browser and shared by both language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">60 min</span></div><div class="session-title">Objects</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Objects and hashes</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s2">Looking inside a commit</a></span><span class="act-min">25</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s3">Hashes come from content</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m09:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">60 min</span></div><div class="session-title">Storage, refs and practice</div><ul class="acts"><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s4">Where objects live</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s5">Branches and HEAD</a></span><span class="act-min">15</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#exercises">Six exercises</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Self-check quiz</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m09:s2"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>Objects and hashes</h2></div>
+<p>You can use Git for years without knowing how it stores your work. But a look inside explains much of what you have learned: why commits have hashes, why a branch costs nothing, why rewriting a commit changes every commit after it, and why a detached HEAD is nothing to fear. This module opens the <code>.git</code> folder. Everything in it is read-only for you: you only look.</p>
+<p>At heart, Git is a small database of <strong>objects</strong>. Each object is stored under a name calculated from its content, its <strong>hash</strong>, a 40-character hexadecimal number such as <code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a</code>. Three kinds of object hold your history:</p>
+<ul>
+<li>A <strong>blob</strong> holds the contents of one file: just the bytes, without the file’s name.</li>
+<li>A <strong>tree</strong> holds the contents of one folder: a list of names, each with the hash of a blob (for a file) or of another tree (for a subfolder).</li>
+<li>A <strong>commit</strong> holds the hash of the tree for the whole project, the hash of its parent commit (two for a merge, none for the first commit), the author, the committer, the dates and the message.</li>
+</ul>
+<p>So a commit is a snapshot: its tree describes every file in the project at that moment. A fourth kind, the <strong>annotated tag</strong>, appears in Module 10.</p>
+<figure class="fig" id="fig-09-01"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 276" role="img" aria-labelledby="t">
+  <title id="fig-09-01__t">Two commits, their trees and their blobs</title>
+  <defs><marker id="fig-09-01__arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#334155"/></marker></defs>
+  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" text-anchor="middle">
+    <rect x="400" y="20" width="200" height="52" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/><text x="500.0" y="42" font-size="14" font-weight="700" fill="#1E3A8A">commit</text><text x="500.0" y="61" font-size="12" fill="#334155">Add a pancake recipe</text><rect x="80" y="20" width="200" height="52" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/><text x="180.0" y="42" font-size="14" font-weight="700" fill="#1E3A8A">commit</text><text x="180.0" y="61" font-size="12" fill="#334155">Add a README</text><line x1="398" y1="46" x2="282" y2="46" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><text x="340" y="38" font-size="12" fill="#7C3AED">parent</text><rect x="440" y="110" width="120" height="34" rx="10" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/><text x="500.0" y="132" font-size="14" font-weight="700" fill="#14532D">tree</text><rect x="120" y="110" width="120" height="34" rx="10" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/><text x="180.0" y="132" font-size="14" font-weight="700" fill="#14532D">tree</text><line x1="500" y1="74" x2="500" y2="108" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><line x1="180" y1="74" x2="180" y2="108" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><rect x="250" y="180" width="180" height="52" rx="10" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/><text x="340.0" y="202" font-size="14" font-weight="700" fill="#78350F">blob</text><text x="340.0" y="221" font-size="12" fill="#334155">README.md contents</text><rect x="480" y="180" width="180" height="52" rx="10" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/><text x="570.0" y="202" font-size="14" font-weight="700" fill="#78350F">blob</text><text x="570.0" y="221" font-size="12" fill="#334155">pancakes.md contents</text><line x1="180" y1="146" x2="300" y2="178" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><line x1="470" y1="146" x2="380" y2="178" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><line x1="530" y1="146" x2="560" y2="178" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><text x="340" y="262" font-size="13" fill="#475569">A commit points to a tree and to its parent; a tree points to blobs. An unchanged file is stored once.</text>
+  </g>
+</svg>
+</div><figcaption><span class="fig-num">Figure 9.1</span> <p>Two commits from the recipes repository. Each points to its own tree, and the newer one to its parent. Both trees point to the same README blob, because the README did not change between them.</p>
+</figcaption></figure>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>Looking inside a commit</h2></div>
+<p><code>git cat-file</code> shows any object: <code>-t</code> prints its type, and <code>-p</code> (“pretty-print”) its contents. You can name an object by its full hash, or by the first few characters as long as no other object starts with them; seven usually suffice.</p>
+<p>In the session, you follow the newest commit of the recipes repository down to a file. To follow along in your own repository, start from a hash that <code>git log --oneline</code> prints, then copy each hash you see into the next command.</p>
+<div class="term" id="term-m09-look-inside">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Look inside a commit</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-t</span> 8bf3c2d</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>commit
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 8bf3c2d</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>tree 063e1373abab86d50db53df21ded863f36cfc794
+parent 907a97958867987ca6ef7be665cd4b3f86bb08d6
+author Alex Smith &lt;alex@example.com&gt; 1767604020 +0000
+committer Alex Smith &lt;alex@example.com&gt; 1767604020 +0000
+
+Add a pancake recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 063e137</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>100644 blob 2ecc1f2d65cf3b272e009b477014267d15171467	README.md
+100644 blob 871d830f4cec82e60e46ad67ec042c33f215a834	pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 871d830</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 907a979</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>tree 38a015c41d763382717c898da156ce660f860bea
+author Alex Smith &lt;alex@example.com&gt; 1767603900 +0000
+committer Alex Smith &lt;alex@example.com&gt; 1767603900 +0000
+
+Add a README
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<ul>
+<li><code>git cat-file -t 8bf3c2d</code> says that <code>8bf3c2d</code> is a <code>commit</code>.</li>
+<li><code>-p</code> shows the whole commit object, and it is short. <code>tree</code> gives the hash of the project’s tree, and <code>parent</code> the hash of the commit before it, <code>907a979</code>. <code>author</code> and <code>committer</code> give the name and email, then the date as seconds since 1 January 1970 (UTC), then the time zone, <code>+0000</code>. After a blank line comes the message. That is all a commit is.</li>
+<li><code>git cat-file -p 063e137</code> shows that tree. Each line has a <strong>mode</strong> (<code>100644</code> means an ordinary file; <code>100755</code> an executable one, and <code>040000</code> a subfolder, which is another tree), a type, a hash and a name.</li>
+<li><code>git cat-file -p 871d830</code> shows the blob for <code>pancakes.md</code>: exactly the file’s contents, with no name and no date. The name lives in the tree.</li>
+<li>The first commit, <code>907a979</code>, has a <code>tree</code> but no <code>parent</code> line: that is what makes it the first.</li>
+</ul>
+<p>The author and the committer are usually the same person. They differ when someone applies another person’s work, for example when a rebase replays a colleague’s commits: the author wrote the change, the committer made this commit of it.</p>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>Hashes come from content</h2></div>
+<p>Git calculates an object’s hash from its content, with a short header that gives the object’s type and size. The same content always gives the same hash, on every computer, and any change, however small, gives a completely different one. <code>git hash-object &lt;file&gt;</code> calculates the hash a file would have as a blob, without storing anything.</p>
+<p>In the session, you compare the hash of <code>pancakes.md</code> with that of an identical copy, and then with the copy after changing one character, a full stop. To follow along, use any file in your repository.</p>
+<div class="term" id="term-m09-hash">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Same content, same hash</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">hash-object</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>871d830f4cec82e60e46ad67ec042c33f215a834
+</code></pre></div>
+<div class="term-edit">Create or edit <code>pancakes-copy.md</code> so that it contains:</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">hash-object</span> pancakes-copy.md</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>871d830f4cec82e60e46ad67ec042c33f215a834
+</code></pre></div>
+<div class="term-edit">Create or edit <code>pancakes-copy.md</code> so that it contains:</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">hash-object</span> pancakes-copy.md</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>797b0e6c8204d8a9fce80e8b1c8254eb2f060d10
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p><code>pancakes.md</code> hashes to <code>871d830f…</code>, the same blob hash the tree listed in Section 2. The identical copy gives the same hash, so Git would store it only once, under that name. Adding one full stop gives a hash with nothing in common with the first.</p>
+<p>This explains several things you have seen:</p>
+<ul>
+<li><strong>Unchanged files cost nothing.</strong> A new commit’s tree refers to the same blobs as before for every file that did not change. Only changed files add new blobs.</li>
+<li><strong>History cannot change unnoticed.</strong> A commit contains its tree’s hash and its parent’s hash. Change anything in an old commit, even a typo in its message, and its hash changes; the next commit names a different parent, so its hash changes too, and so on to the newest commit. This is why amending and rebasing make <em>new</em> commits (Modules 3 and 8), and why others notice when shared history is rewritten.</li>
+<li><strong>Copies agree.</strong> Two clones that have a commit with the same hash have exactly the same history up to that commit.</li>
+</ul>
+<div class="callout note"><div class="callout-label">Note — SHA-1 and SHA-256</div>
+<p>Git’s hashes are calculated with SHA-1, in a hardened form that detects known attacks. Recent versions of Git can also create repositories that use the stronger SHA-256 (<code>git init --object-format=sha256</code>), whose hashes are 64 characters long. Hosting services do not yet generally support them, so stay with the default for now.</p>
+</div>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>Where objects live</h2></div>
+<p>Everything Git knows about a repository is in its <code>.git</code> folder. In the session, you list it, find the objects, and pick out one by its hash. To follow along, run the same commands in your own repository; your folder names under <code>objects</code> will differ.</p>
+<div class="term" id="term-m09-objects">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Where the objects live</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>COMMIT_EDITMSG  HEAD  config  description  hooks  index  info  logs  objects  refs
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git/objects</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>06  2e  38  87  8b  90  info  pack
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git/objects/87</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>1d830f4cec82e60e46ad67ec042c33f215a834
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-t</span> 871d830f4cec82e60e46ad67ec042c33f215a834</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>blob
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>The entries of <code>.git</code>, in the order <code>ls</code> lists them:</p>
+<ul>
+<li><code>COMMIT_EDITMSG</code> holds the message of the last commit you made.</li>
+<li><code>HEAD</code> records where you are (Section 5), and <code>config</code> holds the repository’s settings, including its remotes.</li>
+<li><code>description</code> is used only by an old web viewer, and <code>hooks</code> holds sample scripts that Git can run at certain moments.</li>
+<li><code>index</code> is the staging area from Module 2: a list of the files and blobs the next commit will contain.</li>
+<li><code>info</code> holds <code>exclude</code>, a private <code>.gitignore</code> for this clone only.</li>
+<li><code>logs</code> holds the reflog from Module 8.</li>
+<li><code>objects</code> and <code>refs</code> hold the objects and the branches.</li>
+</ul>
+<p>Under <code>objects</code>, each object is a file named after its hash: the first two characters name a folder, and the other 38 the file. So blob <code>871d830f…</code> is the file <code>1d830f4cec…</code> in the folder <code>87</code>. The six folders correspond to the six objects of the two commits: two commits, two trees and two blobs. The README’s blob is shared by both trees, as the figure in Section 1 shows.</p>
+<p>The object files are compressed, so you cannot read them with <code>cat</code>; use <code>git cat-file</code>. As a repository grows, Git packs many objects into a few files under <code>objects/pack</code>, storing similar objects as differences from each other. That is why a repository with a long history usually takes less space than you might expect.</p>
+<div class="callout pitfall"><div class="callout-label">Pitfall</div>
+<p>Never edit or delete files inside <code>.git</code> by hand. A damaged object or reference can make commits unreadable. Everything this module shows has a Git command that does it safely. The one exception is <code>info/exclude</code>, which you may edit like a <code>.gitignore</code>.</p>
+</div>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>Branches and HEAD</h2></div>
+<p>A branch is not an object. It is a <strong>ref</strong>, a reference: a name that points at a commit, stored in <code>.git/refs/heads/</code> as a small file containing the commit’s hash. <strong>HEAD</strong> is a ref too, usually a <em>symbolic</em> one: instead of a hash, it names the branch you are on.</p>
+<p>In the session, you read HEAD and <code>main</code>, create a branch, switch to it, and watch the files change. To follow along, run the same commands; your hashes will differ, and <code>ls .git/refs/heads</code> lists all your branches. Afterwards, run <code>git switch main</code>.</p>
+<div class="term" id="term-m09-refs">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Branches and HEAD are small files</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>ref: refs/heads/main
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git/refs/heads</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>main
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/refs/heads/main</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> starters</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git/refs/heads</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>main  starters
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/refs/heads/starters</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> starters</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to branch 'starters'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>ref: refs/heads/starters
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rev-parse</span> HEAD</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<ul>
+<li><code>.git/HEAD</code> contains <code>ref: refs/heads/main</code>: you are on <code>main</code>. <code>.git/refs/heads/main</code> contains one line, the hash of the newest commit, <code>8bf3c2d…</code>.</li>
+<li><code>git branch starters</code> creates <code>.git/refs/heads/starters</code>, with the same hash. That one small file is the whole branch, which is why creating a branch is instant and copies nothing (Module 4).</li>
+<li><code>git switch starters</code> changes <code>.git/HEAD</code> to <code>ref: refs/heads/starters</code>. When you commit, Git writes the new commit’s hash into the file of the branch that HEAD names, which is how the branch label moves forward.</li>
+<li><code>git rev-parse HEAD</code> turns any name into the hash it stands for. It is the safe way to read refs from scripts.</li>
+</ul>
+<p>Other refs follow the same pattern. Remote-tracking branches such as <code>origin/main</code> live under <code>refs/remotes/</code>, and tags under <code>refs/tags/</code>. A <strong>detached HEAD</strong> (Module 3) is simply a <code>.git/HEAD</code> that contains a commit’s hash directly, instead of the name of a branch, as Exercise 4 shows.</p>
+<p>Git does not always keep one file per ref. It can collect many refs in a single file, <code>.git/packed-refs</code>, and newer versions offer another storage format altogether. So read refs with commands such as <code>git rev-parse</code> and <code>git branch</code>, not by opening files.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">6</span><h2>Exercises</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">3 min</span></div>
+<p><strong>Which object?</strong> For each, say whether it is stored in a blob, a tree or a commit: the text of <code>pancakes.md</code>; the name <code>pancakes.md</code>; the commit message; the hash of the parent commit; the fact that <code>pancakes.md</code> is an ordinary file, not an executable one.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The text: a blob. The name: a tree. The message: a commit. The parent’s hash: a commit. The file mode (<code>100644</code>): a tree, next to the name.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">4 min</span></div>
+<p><strong>The first commit’s tree.</strong> List the files in the tree of the first commit of your recipes repository, using only <code>git log</code> and <code>git cat-file</code>.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Find the first commit, read its tree’s hash, then show the tree:</p>
+<div class="term" id="term-m09-e2-solution">
+<div class="term-head"><span class="term-label">Solution</span><span class="term-title">The tree of the first commit</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 907a979</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>tree 38a015c41d763382717c898da156ce660f860bea
+author Alex Smith &lt;alex@example.com&gt; 1767603900 +0000
+committer Alex Smith &lt;alex@example.com&gt; 1767603900 +0000
+
+Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 38a015c</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>100644 blob 2ecc1f2d65cf3b272e009b477014267d15171467	README.md
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>The first tree lists only <code>README.md</code>. Its blob, <code>2ecc1f2</code>, is the same as in the newer tree of Section 2: the README did not change.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">3 min</span></div>
+<p><strong>One letter.</strong> You correct a typo in the message of a commit that has three commits after it, with <code>reword</code> in an interactive rebase. Why do all four commits get new hashes, although only one message changed?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The changed commit’s content differs, so its hash changes. The next commit contains its parent’s hash, which is now different, so its content and hash change as well, and so on for each later commit. Each commit’s hash covers the whole history before it.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">4 min</span></div>
+<p><strong>A detached HEAD on disk.</strong> Detach HEAD at the commit before the newest one, and look at <code>.git/HEAD</code>. Then switch back to <code>main</code> and look again.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="term" id="term-m09-e4-solution">
+<div class="term-head"><span class="term-label">Solution</span><span class="term-title">What HEAD holds when it is detached</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">--detach</span> HEAD~1</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>HEAD is now at 907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>907a97958867987ca6ef7be665cd4b3f86bb08d6
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Previous HEAD position was 907a979 Add a README
+Switched to branch 'main'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>ref: refs/heads/main
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>Detached, <code>.git/HEAD</code> holds a commit hash; on a branch, it holds <code>ref: refs/heads/main</code>. A commit made while detached moves only HEAD, and no branch file records it, which is why such commits are easy to lose (Module 3).</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">3 min</span></div>
+<p><strong>Count the objects.</strong> A new repository gets two commits. The first adds <code>a.txt</code> and <code>b.txt</code>. The second changes only <code>b.txt</code>. How many blobs, trees and commits does the repository hold?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Three blobs (<code>a.txt</code>, the first <code>b.txt</code>, the second <code>b.txt</code>), two trees (one per commit, both naming the same <code>a.txt</code> blob) and two commits: seven objects.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">3 min</span></div>
+<p><strong>Cheap branches.</strong> Explain, in terms of what is stored, why creating a branch takes no time, and why deleting a merged branch loses nothing.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>A branch is one small file holding a commit’s hash; creating it writes that file, and copies no objects. Deleting a merged branch deletes only that file. The commits are objects, and the branch they were merged into still reaches them through its own commits’ parents.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">7</span><h2>Self-check quiz</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>What does a blob contain?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A file’s name and contents</button></li><li><button type="button" class="quiz-opt" data-i="1">Only a file’s contents</button></li><li><button type="button" class="quiz-opt" data-i="2">A list of files in a folder</button></li><li><button type="button" class="quiz-opt" data-i="3">A commit message</button></li></ol><div class="quiz-expl" hidden>The name is stored in the tree that lists the blob.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>What does a commit object contain?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Copies of every changed file</button></li><li><button type="button" class="quiz-opt" data-i="1">Only the message and the date</button></li><li><button type="button" class="quiz-opt" data-i="2">A tree hash, parent hashes, author, committer, dates and the message</button></li><li><button type="button" class="quiz-opt" data-i="3">The names of the branches that contain it</button></li></ol><div class="quiz-expl" hidden>The tree describes the whole project; the parents link the commit into the history.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>Two files in different folders have exactly the same contents. How many blobs does Git store for them?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">One</button></li><li><button type="button" class="quiz-opt" data-i="1">Two</button></li><li><button type="button" class="quiz-opt" data-i="2">None until they are pushed</button></li><li><button type="button" class="quiz-opt" data-i="3">One per commit that contains them</button></li></ol><div class="quiz-expl" hidden>The same content gives the same hash, so it is stored once.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">4</span><div>Why does changing an old commit change the hashes of all later commits?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Git renumbers commits after every change.</button></li><li><button type="button" class="quiz-opt" data-i="1">Each commit contains its parent’s hash, so a new parent hash changes the next commit’s content.</button></li><li><button type="button" class="quiz-opt" data-i="2">Hashes depend on the current date.</button></li><li><button type="button" class="quiz-opt" data-i="3">Only the branch label changes, not the hashes.</button></li></ol><div class="quiz-expl" hidden>This chain of hashes is what makes history tamper-evident.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>What does <code>.git/refs/heads/main</code> usually contain?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A copy of every commit on <code>main</code></button></li><li><button type="button" class="quiz-opt" data-i="1">The list of files on <code>main</code></button></li><li><button type="button" class="quiz-opt" data-i="2">The hash of the newest commit on <code>main</code></button></li><li><button type="button" class="quiz-opt" data-i="3">The text <code>ref: main</code></button></li></ol><div class="quiz-expl" hidden>A branch is a name for one commit; the history follows from that commit’s parents.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">6</span><div>What does <code>.git/HEAD</code> contain when you are on <code>main</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The hash of the first commit</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>ref: refs/heads/main</code></button></li><li><button type="button" class="quiz-opt" data-i="2">The word <code>main</code> and a date</button></li><li><button type="button" class="quiz-opt" data-i="3">Nothing: HEAD is not a file</button></li></ol><div class="quiz-expl" hidden>When HEAD is detached, it contains a commit’s hash instead.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">7</span><div>Which command safely shows the contents of any object?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>cat .git/objects/…</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git show-object</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git cat-file -p</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git log --raw</code></button></li></ol><div class="quiz-expl" hidden>Object files are compressed, and some objects live in packs, so read them through Git.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">8</span><h2>Further reading</h2></div>
+<ul>
+<li>Scott Chacon and Ben Straub, <em>Pro Git</em>, sections <a href="https://git-scm.com/book/en/v2/Git-Internals-Git-Objects" target="_blank" rel="noopener">10.2: Git Objects</a> and <a href="https://git-scm.com/book/en/v2/Git-Internals-Git-References" target="_blank" rel="noopener">10.3: Git References</a>.</li>
+<li>The reference pages for <a href="https://git-scm.com/docs/git-cat-file" target="_blank" rel="noopener">git cat-file</a>, <a href="https://git-scm.com/docs/git-hash-object" target="_blank" rel="noopener">git hash-object</a> and <a href="https://git-scm.com/docs/git-rev-parse" target="_blank" rel="noopener">git rev-parse</a>.</li>
+<li><a href="https://git-scm.com/docs/gitrepository-layout" target="_blank" rel="noopener">gitrepository-layout</a>, which describes every file in the <code>.git</code> folder.</li>
+</ul>
+</div><nav class="module-nav" aria-label="All modules"><a href="module_08_EN.html">← Module 08</a><a href="module_10_EN.html">Module 10 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>

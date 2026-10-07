@@ -31,3 +31,8 @@ test('the SVG is decorative and the git log text is there for screen readers', (
   assert.match(html, /<pre class="visually-hidden">\* b2 \(HEAD -&gt; main\) Add &lt;pancakes&gt; &amp; syrup\n\* a1 a1<\/pre><\/figure>$/);
   assert(!html.includes('\n\n'), 'no blank line, which would end the HTML block in Markdown');
 });
+
+test('full ref names tell local branches with slashes from remote-tracking branches', () => {
+  assert.deepEqual(parseRefs('HEAD -> refs/heads/main, refs/heads/feature/login, refs/remotes/origin/main, refs/remotes/origin/HEAD, tag: refs/tags/v1.0'), [
+    {text: 'HEAD → main', kind: 'head'}, {text: 'feature/login', kind: 'branch'}, {text: 'origin/main', kind: 'remote'}, {text: 'v1.0', kind: 'tag'}]);
+});

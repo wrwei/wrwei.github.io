@@ -1,0 +1,470 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Rewriting history and recovering — Git and Version Control</title><meta name="description" content="Put work aside with stash, take back commits with reset, tidy a branch with rebase and squash, follow the one rule about shared history, and rescue almost anything with the reflog."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="8"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Git Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 08</button><div class="dropdown-menu" id="module-menu"><a href="module_01_EN.html">01 · Why version control?</a><a href="module_02_EN.html">02 · Your first repository</a><a href="module_03_EN.html">03 · History and undoing</a><a href="module_04_EN.html">04 · Branches</a><a href="module_05_EN.html">05 · Merge conflicts</a><a href="module_06_EN.html">06 · Remotes</a><a href="module_07_EN.html">07 · Collaborating with pull requests</a><a href="module_08_EN.html" class="active" aria-current="page">08 · Rewriting history and recovering</a><a href="module_09_EN.html">09 · How Git works inside</a><a href="module_10_EN.html">10 · Capstone: a team project</a><a href="index.html#modules">All modules</a></div></div><a class="lang-switch" href="module_08_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/3 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#s1"><span class="num">1</span><span>The one rule</span></a><a href="#s2"><span class="num">2</span><span>Putting work aside</span></a><a href="#s3"><span class="num">3</span><span>Taking back commits</span></a><a href="#s4"><span class="num">4</span><span>Rebasing</span></a><a href="#s5"><span class="num">5</span><span>Squashing a fix</span></a><a href="#s6"><span class="num">6</span><span>The reflog</span></a><a href="#exercises"><span class="num">7</span><span>Exercises</span></a><a href="#quiz"><span class="num">8</span><span>Self-check quiz</span></a><a href="#reading"><span class="num">9</span><span>Further reading</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git and Version Control — Ran Wei</div><h1 class="module-title">Rewriting history and recovering</h1><p class="module-lead">Put work aside with stash, take back commits with reset, tidy a branch with rebase and squash, follow the one rule about shared history, and rescue almost anything with the reflog.</p><div class="hero-chips"><span class="chip chip-time">3 hours</span><span class="chip">3 study sessions</span><span class="chip">5 command sessions</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>State the rule about rewriting shared history, and explain why it matters.</li><li>Put unfinished work aside and bring it back with git stash.</li><li>Take back commits with git reset --soft, --mixed and --hard, knowing what each keeps.</li><li>Rebase a branch onto main, squash a fix into an earlier commit, and push a rewritten branch safely with --force-with-lease.</li><li>Find lost commits in the reflog and restore them.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Modules 3 to 7, especially amend and revert (Module 3) and pushing branches (Module 6).</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#s1">The one rule</a><a href="#s2">Putting work aside</a><a href="#s3">Taking back commits</a><a href="#s4">Rebasing</a><a href="#s5">Squashing a fix</a><a href="#s6">The reflog</a><a href="#exercises">Exercises</a><a href="#quiz">Self-check quiz</a><a href="#reading">Further reading</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">3 hours</span></div><p class="plan-lead">Times are estimates and include typing the commands. Progress is saved in this browser and shared by both language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">60 min</span></div><div class="session-title">Rewinding safely</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">The one rule</a></span><span class="act-min">10</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s2">Putting work aside</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s3">Taking back commits</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m08:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">60 min</span></div><div class="session-title">Tidying a branch</div><ul class="acts"><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s4">Rebasing</a></span><span class="act-min">30</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s5">Squashing a fix</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m08:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">60 min</span></div><div class="session-title">Recovery and practice</div><ul class="acts"><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s6">The reflog</a></span><span class="act-min">20</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#exercises">Six exercises</a></span><span class="act-min">30</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Self-check quiz</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m08:s3"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>The one rule</h2></div>
+<p>This module gives you tools that change history: commands that move a branch backwards, replay commits somewhere else, or fold several commits into one. Used on your own work, they help you keep a clean, readable history. Used carelessly on shared work, they cause real trouble. So first, the one rule:</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p><strong>Do not rewrite commits that other people already have.</strong> Once you have pushed commits to a branch that others use, such as <code>main</code>, treat them as fixed. Undo them with <code>git revert</code> (Module 3), which adds a new commit, rather than by rewriting them.</p>
+</div>
+<p>Why? Rewriting history never edits commits; it makes new ones, with new hashes, and moves the branch to them, as you saw with <code>--amend</code> in Module 3. Everyone who already has the old commits now has a history that no longer matches yours. Their next pull merges the old and new versions together, duplicating work. Your next push is rejected, and forcing it throws their work away.</p>
+<p>On your own branches, before anyone else builds on them, rewriting is fine, and often a kindness to reviewers. A feature branch that only you work on, even one already pushed for a pull request, counts as yours, as long as you tell Git that you mean to overwrite it (Section 4).</p>
+<p>Two tools in this module rewrite nothing: <code>git stash</code> (Section 2) puts uncommitted work aside, and <code>git reflog</code> (Section 6) finds commits you thought you had lost.</p>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>Putting work aside</h2></div>
+<p>You are half-way through a change when something more urgent comes up: a fix on another branch, or a colleague’s pull request to try. Your work is not ready to commit, and switching branches with uncommitted changes is risky (Module 4, Exercise 4). <code>git stash</code> solves this. It saves your uncommitted changes, both staged and unstaged, on a stack called the <strong>stash</strong>, and returns your working tree to the last commit. Later, <code>git stash pop</code> puts the changes back and removes them from the stash.</p>
+<p>In the session, Alex is adding an ingredient to the pancakes when the README needs fixing first. To follow along, start an edit to any tracked file, then stash it.</p>
+<div class="term" id="term-m08-stash">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Put unfinished work aside</span></div>
+<div class="term-edit">Create or edit <code>pancakes.md</code> so that it contains:</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- a pinch of
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">stash</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Saved working directory and index state WIP on main: 8bf3c2d Add a pancake recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+nothing to commit, working tree clean
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">stash</span> list</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>stash@{0}: WIP on main: 8bf3c2d Add a pancake recipe
+</code></pre></div>
+<div class="term-edit">Create or edit <code>README.md</code> so that it contains:</div>
+<pre><code class="language-text"># Family recipes
+
+Recipes we cook again and again, with notes on what worked.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-am</span> <span class="hljs-string">&quot;Say what the notes are for&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main a863ac0] Say what the notes are for
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">stash</span> pop</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   pancakes.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+Dropped refs/stash@{0} (0c8aa5df3461004051d9b57493e58b6ac5cc745f)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>diff --git a/pancakes.md b/pancakes.md
+index 871d830..d511981 100644
+--- a/pancakes.md
++++ b/pancakes.md
+@@ -3,3 +3,4 @@
+ - 200 g flour
+ - 2 eggs
+ - 300 ml milk
++- a pinch of
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p><code>git stash</code> reports what it saved, <code>WIP on main</code> (“work in progress”), and names the commit it was based on. <code>git status</code> then shows a clean working tree, and <code>git stash list</code> shows one entry, <code>stash@{0}</code>, the newest. With a clean tree, Alex commits the README change. <code>git stash pop</code> brings the half-written pancake line back as an unstaged change, and <code>git diff</code> shows it waiting to be finished.</p>
+<p>A few more things to know:</p>
+<ul>
+<li><code>git stash</code> saves only tracked files. To include new, untracked files, use <code>git stash -u</code>.</li>
+<li><code>git stash list</code> shows every entry, newest first. <code>git stash apply</code> puts the newest back but keeps it on the stash; <code>git stash drop</code> deletes it.</li>
+<li>If the stashed changes conflict with what you have committed since, <code>git stash pop</code> stops with conflict markers. Resolve them as in Module 5, then run <code>git stash drop</code>, because in that case the entry is kept.</li>
+<li>Stashes are local: they are not pushed. Do not leave work there for long; a branch with a work-in-progress commit is easier to find again.</li>
+</ul>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>Taking back commits</h2></div>
+<p><code>git reset &lt;commit&gt;</code> moves your current branch back to an earlier commit, taking back the commits after it. Unlike <code>git revert</code>, it rewrites history, so use it only on commits that you have not pushed. Its options say what happens to the changes those commits contained:</p>
+<ul>
+<li><code>git reset --soft &lt;commit&gt;</code> moves only the branch. The changes stay in the staging area, ready to commit again.</li>
+<li><code>git reset &lt;commit&gt;</code>, the default, called <em>mixed</em>, also resets the staging area. The changes stay in your working tree, unstaged.</li>
+<li><code>git reset --hard &lt;commit&gt;</code> also resets the working tree. The changes are gone from your files, and so is any uncommitted work.</li>
+</ul>
+<figure class="fig" id="fig-08-01"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 230" role="img" aria-labelledby="t">
+  <title id="fig-08-01__t">What git reset keeps</title>
+  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" text-anchor="middle">
+    <text x="280" y="28" font-size="14" font-weight="700" fill="#334155">The branch</text>
+    <text x="430" y="28" font-size="14" font-weight="700" fill="#334155">Staging area</text>
+    <text x="580" y="28" font-size="14" font-weight="700" fill="#334155">Working tree</text>
+    <text x="100" y="69" font-size="14" font-family="ui-monospace, Menlo, Consolas, monospace" fill="#7C3AED">--soft</text>
+    <rect x="210" y="44" width="140" height="38" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+    <text x="280" y="68" font-size="13" fill="#1E3A8A">moves back</text>
+    <rect x="360" y="44" width="140" height="38" rx="8" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="430" y="68" font-size="13" fill="#14532D">kept</text>
+    <rect x="510" y="44" width="140" height="38" rx="8" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="580" y="68" font-size="13" fill="#14532D">kept</text>
+    <text x="100" y="121" font-size="14" font-family="ui-monospace, Menlo, Consolas, monospace" fill="#7C3AED">--mixed (default)</text>
+    <rect x="210" y="96" width="140" height="38" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+    <text x="280" y="120" font-size="13" fill="#1E3A8A">moves back</text>
+    <rect x="360" y="96" width="140" height="38" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+    <text x="430" y="120" font-size="13" fill="#78350F">reset</text>
+    <rect x="510" y="96" width="140" height="38" rx="8" fill="#DCFCE7" stroke="#16A34A" stroke-width="1.5"/>
+    <text x="580" y="120" font-size="13" fill="#14532D">kept</text>
+    <text x="100" y="173" font-size="14" font-family="ui-monospace, Menlo, Consolas, monospace" fill="#7C3AED">--hard</text>
+    <rect x="210" y="148" width="140" height="38" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.5"/>
+    <text x="280" y="172" font-size="13" fill="#1E3A8A">moves back</text>
+    <rect x="360" y="148" width="140" height="38" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+    <text x="430" y="172" font-size="13" fill="#78350F">reset</text>
+    <rect x="510" y="148" width="140" height="38" rx="8" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.5"/>
+    <text x="580" y="172" font-size="13" fill="#7F1D1D">reset: changes lost</text>
+    <text x="340" y="215" font-size="13" fill="#475569">Commits that are no longer on any branch can still be found in the reflog for a while</text>
+  </g>
+</svg>
+</div><figcaption><span class="fig-num">Figure 8.1</span> <p>What each form of <code>git reset</code> keeps. All three move the branch back; they differ in what happens to the staging area and the working tree.</p>
+</figcaption></figure>
+<p>As in Module 3, <code>HEAD~1</code> means “one commit before HEAD”. In the session, Alex commits a pinch of salt with a vague message, takes the commit back with <code>--soft</code> and commits again with a better message, then takes it back once more with the default reset. To follow along, add a line to any recipe and commit it with <code>git commit -am</code>.</p>
+<div class="term" id="term-m08-reset">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Take back the last commit</span></div>
+<div class="term-edit">Create or edit <code>pancakes.md</code> so that it contains:</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- a pinch of salt
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-am</span> <span class="hljs-string">&quot;Add salt&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main 631ac3e] Add salt
+ 1 file changed, 1 insertion(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">reset</span> <span class="hljs-attr">--soft</span> HEAD~1</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+	modified:   pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a pinch of salt to the pancakes&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main bdac642] Add a pinch of salt to the pancakes
+ 1 file changed, 1 insertion(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">reset</span> HEAD~1</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Unstaged changes after reset:
+M	pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   pancakes.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p><code>git reset --soft HEAD~1</code> prints nothing, but <code>git status</code> shows the salt as <em>Changes to be committed</em>: the commit is gone, and its change is staged again. That makes <code>--soft</code> a way to redo a commit, for example to merge the last few commits into one: reset back over them with <code>--soft</code>, then commit once.</p>
+<p>After the default reset, Git reports <code>Unstaged changes after reset:</code> and lists <code>pancakes.md</code>. <code>git status</code> agrees: the change is now unstaged, in the working tree. This is the way to split a commit into smaller ones: reset it, then stage and commit the parts separately. <code>git log --oneline</code> confirms that both salt commits are gone from <code>main</code>.</p>
+<div class="callout pitfall"><div class="callout-label">Pitfall</div>
+<p><code>git reset --hard</code> throws away uncommitted changes in your working tree, and Git cannot bring those back. Commits it takes back can usually be recovered from the reflog (Section 6), but uncommitted work cannot. Run <code>git status</code> first, and stash anything you want to keep.</p>
+</div>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>Rebasing</h2></div>
+<p>In Module 7, Alex brought a feature branch up to date by merging <code>origin/main</code> into it. <strong>Rebasing</strong> is the other way. <code>git rebase main</code> takes the commits on your branch that <code>main</code> does not have, and replays them, one by one, on top of the newest commit of <code>main</code>. The result is the same files as a merge, but a straight line of history with no merge commit, as if you had started the branch from today’s <code>main</code>.</p>
+<p>Replaying makes new commits, with new hashes, so rebasing rewrites the branch. That is fine for your own feature branch, but it has a consequence when the branch is already pushed, and the session shows it. Alex’s <code>soups</code> branch is on the server, and <code>main</code> has moved on. To follow along, make a commit on a branch and push it, then add a commit to <code>main</code>.</p>
+<div class="term" id="term-m08-rebase">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Replay a branch on top of main</span></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 522 146" width="522" height="146" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M40 56V56C40 73 18 73 18 90" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">64a7f92</text><rect x="128.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="134.4" y="26" class="g-ref-text">origin/main</text><rect x="225.60000000000002" y="13" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="231.6" y="26" class="g-ref-text">main</text><text x="272.4" y="26" class="g-subject">Say what the notes are for</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="60" class="g-hash">968c34b</text><rect x="128.4" y="47" width="98.4" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="60" class="g-ref-text">HEAD → soups</text><rect x="232.8" y="47" width="98.4" height="18" rx="9" class="g-ref g-remote"/><text x="238.8" y="60" class="g-ref-text">origin/soups</text><text x="337.2" y="60" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="94" class="g-hash">8bf3c2d</text><text x="128.4" y="94" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">907a979</text><text x="128.4" y="128" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 64a7f92 (origin/main, main) Say what the notes are for
+| * 968c34b (HEAD -&gt; soups, origin/soups) Add a tomato soup recipe
+|/
+* 8bf3c2d Add a pancake recipe
+* 907a979 Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rebase</span> main</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Successfully rebased and updated refs/heads/soups.
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 472 180" width="472" height="180" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 56V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M40 90V90C40 107 18 107 18 124" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 124V158" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">a11c867</text><rect x="128.4" y="13" width="98.4" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="26" class="g-ref-text">HEAD → soups</text><text x="232.8" y="26" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="60" class="g-hash">64a7f92</text><rect x="128.4" y="47" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="134.4" y="60" class="g-ref-text">origin/main</text><rect x="225.60000000000002" y="47" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="231.6" y="60" class="g-ref-text">main</text><text x="272.4" y="60" class="g-subject">Say what the notes are for</text><circle cx="40" cy="90" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="94" class="g-hash">968c34b</text><rect x="128.4" y="81" width="98.4" height="18" rx="9" class="g-ref g-remote"/><text x="134.4" y="94" class="g-ref-text">origin/soups</text><text x="232.8" y="94" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">8bf3c2d</text><text x="128.4" y="128" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="158" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="162" class="g-hash">907a979</text><text x="128.4" y="162" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* a11c867 (HEAD -&gt; soups) Add a tomato soup recipe
+* 64a7f92 (origin/main, main) Say what the notes are for
+| * 968c34b (origin/soups) Add a tomato soup recipe
+|/
+* 8bf3c2d Add a pancake recipe
+* 907a979 Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>To /srv/git/recipes.git
+ ! [rejected]        soups -&gt; soups (non-fast-forward)
+error: failed to push some refs to '/srv/git/recipes.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> <span class="hljs-attr">--force-with-lease</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>To /srv/git/recipes.git
+ + 968c34b...a11c867 soups -&gt; soups (forced update)
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>Compare the graphs. Before, <code>soups</code> and <code>main</code> have split, as in a three-way merge. After <code>git rebase main</code>, which reports <code>Successfully rebased and updated refs/heads/soups</code>, the soup commit sits on top of <code>main</code>’s newest commit as a new commit, <code>a11c867</code>. The old soup commit, <code>968c34b</code>, is still where <code>origin/soups</code> points: the server has not changed.</p>
+<p>So <code>git push</code> is rejected as <code>non-fast-forward</code>: the server’s <code>soups</code> contains <code>968c34b</code>, which your rebased branch has replaced. Here you know the branch is yours, so you overwrite it with <code>git push --force-with-lease</code>. Git reports <code>(forced update)</code>. <code>--force-with-lease</code> refuses if the server’s branch is not where your <code>origin/soups</code> says it is, that is, if someone pushed to it since you last fetched. Plain <code>--force</code> overwrites regardless, which can destroy a colleague’s work; avoid it.</p>
+<p>When should you rebase rather than merge? Many teams rebase their own feature branches to keep history linear, and merge when the branch is finished. Others always merge. Either way, the one rule applies: never rebase a branch that others are working on. Remember too that <code>git pull</code> can rebase instead of merge, with <code>git pull --rebase</code> or the <code>pull.rebase true</code> setting from Module 6.</p>
+<p>If a replayed commit conflicts, the rebase stops, much like a merge. Resolve the file, <code>git add</code> it, then run <code>git rebase --continue</code>; or <code>git rebase --abort</code> to go back to where you started. Exercise 5 shows one, and a difference from merging that surprises everyone the first time.</p>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>Squashing a fix</h2></div>
+<p>Before a branch is reviewed, you may notice a mistake in one of its earlier commits: a typo, a forgotten line. A separate “fix typo” commit makes the history noisier for everyone who reads it later. An <strong>interactive rebase</strong>, <code>git rebase -i</code>, lets you edit the list of commits before they are replayed: reorder them, reword their messages, drop them, or <strong>squash</strong> several into one.</p>
+<p>The easiest way to squash a fix is to let Git write the instructions for you:</p>
+<ol>
+<li>Make the fix, and commit it with <code>git commit --fixup &lt;commit&gt;</code>, naming the commit it belongs to. Git gives it the message <code>fixup! </code> followed by that commit’s message.</li>
+<li>Run <code>git rebase -i --autosquash main</code>. Git opens your editor with a <strong>to-do list</strong>, one line per commit on the branch, already arranged so that the fixup follows the commit it fixes, marked <code>fixup</code>.</li>
+<li>Save and close the editor. Git replays the commits, folding the fix into the earlier commit.</li>
+</ol>
+<p>In the session, the soup recipe’s title has a typo, “Tomatoe”, and a bread recipe has been committed since. To follow along, make two commits on a branch, then fix something from the first.</p>
+<div class="term" id="term-m08-squash">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Fold a fix into an earlier commit</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>49f29eb Add a soda bread recipe
+bc5616c Add a tomato soup recipe
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<div class="term-edit">Create or edit <code>soup.md</code> so that it contains:</div>
+<pre><code class="language-text"># Tomato soup
+
+- 1 kg tomatoes
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> soup.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">--fixup</span> HEAD~1</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[soups 2b52993] fixup! Add a tomato soup recipe
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>2b52993 fixup! Add a tomato soup recipe
+49f29eb Add a soda bread recipe
+bc5616c Add a tomato soup recipe
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rebase</span> <span class="hljs-attr">-i</span> <span class="hljs-attr">--autosquash</span> main</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Successfully rebased and updated refs/heads/soups.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>4af79ad Add a soda bread recipe
+86756a5 Add a tomato soup recipe
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p><code>git commit --fixup HEAD~1</code> names the commit before the newest, the soup commit, and Git calls the new commit <code>fixup! Add a tomato soup recipe</code>. When you run <code>git rebase -i --autosquash main</code> on your computer, the editor shows this to-do list (followed by a long comment explaining the commands):</p>
+<pre><code class="language-text">pick bc5616c # Add a tomato soup recipe
+fixup 2b52993 # fixup! Add a tomato soup recipe
+pick 49f29eb # Add a soda bread recipe
+
+# Rebase 8bf3c2d..2b52993 onto 8bf3c2d (3 commands)
+</code></pre>
+<p>Each line is a command and a commit, applied from top to bottom: <code>pick</code> replays a commit as it is, and <code>fixup</code> folds it into the commit above, keeping that commit’s message. Saving the list unchanged runs it, as the session does. The final <code>git log --oneline</code> shows two commits instead of three, with new hashes: the soup commit now contains the corrected title.</p>
+<p>You can also edit the list yourself. Change <code>pick</code> to <code>reword</code> to change a message, to <code>squash</code> to fold a commit into the one above and combine both messages, or to <code>drop</code> to remove it; move lines to reorder commits. If you save an empty list, the rebase stops without changing anything.</p>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>The reflog</h2></div>
+<p>Commits that no branch points at any more are not deleted at once. Git keeps them for a while, and the <strong>reflog</strong>, short for <em>reference log</em>, records every position HEAD has had: each commit, reset, switch, merge and rebase. <code>git reflog</code> lists them, newest first, so you can find a commit that a hard reset, a rebase or a deleted branch took away.</p>
+<p>In the session, Alex resets two commits away by mistake, then gets them back. To follow along, make two commits, then <code>git reset --hard HEAD~2</code>.</p>
+<div class="term" id="term-m08-reflog">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Recover commits after a hard reset</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>ab03771 Add a tomato soup recipe
+98b66a3 Add a lemon cake recipe
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">reset</span> <span class="hljs-attr">--hard</span> HEAD~2</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>HEAD is now at 8bf3c2d Add a pancake recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">reflog</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d HEAD@{0}: reset: moving to HEAD~2
+ab03771 HEAD@{1}: commit: Add a tomato soup recipe
+98b66a3 HEAD@{2}: commit: Add a lemon cake recipe
+8bf3c2d HEAD@{3}: commit: Add a pancake recipe
+907a979 HEAD@{4}: commit (initial): Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">reset</span> <span class="hljs-attr">--hard</span> ab03771</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>HEAD is now at ab03771 Add a tomato soup recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>ab03771 Add a tomato soup recipe
+98b66a3 Add a lemon cake recipe
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>After <code>git reset --hard HEAD~2</code>, <code>git log --oneline</code> no longer shows the cake and soup commits. <code>git reflog</code> still does. Each line shows where HEAD was, a name for that position, and what moved it: <code>HEAD@{0}</code> is now (<code>reset: moving to HEAD~2</code>), and <code>HEAD@{1}</code> is just before, after the soup commit <code>ab03771</code>. <code>git reset --hard ab03771</code> moves <code>main</code> back there, and the log is exactly as it was.</p>
+<p>To rescue a commit without moving your branch, create a new branch at it instead, for example <code>git branch rescue ab03771</code>. That also brings back a branch deleted with <code>git branch -D</code>: find its last commit in the reflog, and create the branch again.</p>
+<div class="callout note"><div class="callout-label">Note — HEAD@{1} and PowerShell</div>
+<p>You can also name positions in the reflog directly, as in <code>git reset --hard HEAD@{1}</code>. In PowerShell, put such names in quotes, <code>'HEAD@{1}'</code>, because PowerShell gives braces a meaning of its own. The hash from the reflog works in every shell.</p>
+</div>
+<p>The reflog has limits: it is local to your repository and never pushed, and Git eventually deletes old entries, by default after 90 days, or 30 days for commits no longer on any branch. And it records commits only, so it cannot help with uncommitted changes lost to <code>git reset --hard</code> or <code>git restore</code>. Commit often, and very little can be lost for good.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">7</span><h2>Exercises</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">4 min</span></div>
+<p><strong>Safe to rewrite?</strong> Which of these are safe? Explain each.</p>
+<ol>
+<li>Amending your last commit, which you have not pushed.</li>
+<li>Rebasing your feature branch, pushed for a pull request that only you work on, and pushing it with <code>--force-with-lease</code>.</li>
+<li>Resetting <code>main</code> back two commits, after pushing those commits to the shared repository.</li>
+<li>Reverting a commit on <code>main</code> that the whole team has.</li>
+</ol>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>Safe: nobody else has the commit.</li>
+<li>Safe: the branch is yours, and <code>--force-with-lease</code> stops if someone has pushed to it after all. Tell reviewers you have rewritten it.</li>
+<li>Not safe: the team already has those commits. Use <code>git revert</code> instead.</li>
+<li>Safe: reverting adds a new commit and rewrites nothing.</li>
+</ol>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">5 min</span></div>
+<p><strong>An urgent fix.</strong> You are half-way through a soup recipe on the <code>soups</code> branch when the README on <code>main</code> needs a fix. Put your work aside, make the fix on <code>main</code>, and return to your soup with your work restored. To follow along, start an edit on a branch without committing it.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Stash, switch, commit the fix, switch back and pop:</p>
+<div class="term" id="term-m08-e2-solution">
+<div class="term-head"><span class="term-label">Solution</span><span class="term-title">Stash, fix something else, and carry on</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">stash</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Saved working directory and index state WIP on soups: 35277d9 Start a tomato soup recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to branch 'main'
+</code></pre></div>
+<div class="term-edit">Create or edit <code>README.md</code> so that it contains:</div>
+<pre><code class="language-text"># Family recipes
+
+Recipes we cook again and again, with notes on what worked.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-am</span> <span class="hljs-string">&quot;Say what the notes are for&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main 56ba014] Say what the notes are for
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> soups</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to branch 'soups'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">stash</span> pop</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch soups
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   soup.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+Dropped refs/stash@{0} (22d318f23c71ae4df59525bf1de57927cd36725e)
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>The stash entry records the branch it came from (<code>WIP on soups</code>), but you can pop it on any branch.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">5 min</span></div>
+<p><strong>Which reset?</strong> None of these commits has been pushed. Which form of <code>git reset HEAD~1</code> fits each situation?</p>
+<ol>
+<li>Your last commit mixes two unrelated changes, and you want to commit them separately.</li>
+<li>You want to add one more file to your last commit and write a better message.</li>
+<li>Your last commit was a failed experiment, and you want neither the commit nor its changes.</li>
+</ol>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>The default (mixed): the changes come back unstaged, so you can stage and commit each part separately.</li>
+<li><code>--soft</code>: the changes stay staged; add the file and commit again. (<code>git commit --amend</code> does the same in one step.)</li>
+<li><code>--hard</code>: the commit and its changes are gone. Check <code>git status</code> first, so that you do not lose uncommitted work.</li>
+</ol>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">5 min</span></div>
+<p><strong>A deleted branch.</strong> Yesterday you deleted a branch called <code>experiment</code> with <code>git branch -D</code>, and today you need one of its commits. How do you get the branch back?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Run <code>git reflog</code> and find <code>checkout: moving from experiment to main</code>. The hash on that line is where HEAD went, the tip of <code>main</code>; the line just below it shows where HEAD was before, the last commit of <code>experiment</code>. Note that hash, then run <code>git branch experiment &lt;hash&gt;</code>. The branch is back, with all its commits.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">7 min</span></div>
+<p><strong>A conflict during a rebase.</strong> On <code>less-sugar</code>, you changed the sugar to 30 g; meanwhile <code>main</code> changed it to 40 g. Rebase <code>less-sugar</code> onto <code>main</code>, settling on 35 g. To follow along, make the two changes as in Module 5, Section 3, but on a new branch such as <code>less-sugar-2</code>, because <code>less-sugar</code> already exists in your repository.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The rebase stops at the conflicting commit. Resolve the file, stage it, and continue:</p>
+<div class="term" id="term-m08-e5-solution">
+<div class="term-head"><span class="term-label">Solution</span><span class="term-title">Resolve a conflict during a rebase</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rebase</span> main</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Auto-merging pancakes.md
+CONFLICT (content): Merge conflict in pancakes.md
+error: could not apply cbca0db... Use less sugar
+hint: Resolve all conflicts manually, mark them as resolved with
+hint: &quot;git add/rm &lt;conflicted_files&gt;&quot;, then run &quot;git rebase --continue&quot;.
+hint: You can instead skip this commit: run &quot;git rebase --skip&quot;.
+hint: To abort and get back to the state before &quot;git rebase&quot;, run &quot;git rebase --abort&quot;.
+hint: Disable this message with &quot;git config set advice.mergeConflict false&quot;
+Could not apply cbca0db... # Use less sugar
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+- 40 g sugar
+=======
+- 30 g sugar
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; cbca0db (Use less sugar)
+</code></pre></div>
+<div class="term-edit">Create or edit <code>pancakes.md</code> so that it contains:</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- 35 g sugar
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rebase</span> <span class="hljs-attr">--continue</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[detached HEAD 012cc14] Use less sugar
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Successfully rebased and updated refs/heads/less-sugar.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>012cc14 Use less sugar
+5728578 Reduce the sugar a little
+17d419f Add a pancake recipe
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>Look at the markers: in a rebase, <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> holds <code>main</code>’s version, 40 g, and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; cbca0db (Use less sugar)</code> holds yours. The labels are the other way round from a merge, because a rebase replays your commits on top of <code>main</code>, so HEAD is the new base. <code>git rebase --continue</code> then commits the replayed commit, letting you edit its message on your computer, and finishes the rebase.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">4 min</span></div>
+<p><strong>Which tool?</strong> Name the command for each situation.</p>
+<ol>
+<li>The message of your last commit, not yet pushed, has a typo.</li>
+<li>A commit on the shared <code>main</code> broke the build.</li>
+<li>You need a clean working tree for ten minutes, without committing.</li>
+<li>Your pull request has a “fix typo” commit that belongs in an earlier commit.</li>
+<li>You reset too far and need the commits back.</li>
+</ol>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><code>git commit --amend</code>.</li>
+<li><code>git revert &lt;commit&gt;</code>.</li>
+<li><code>git stash</code>, then <code>git stash pop</code>.</li>
+<li><code>git commit --fixup &lt;commit&gt;</code> and <code>git rebase -i --autosquash main</code>, then <code>git push --force-with-lease</code>.</li>
+<li><code>git reflog</code>, then <code>git reset --hard &lt;hash&gt;</code>.</li>
+</ol>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">8</span><h2>Self-check quiz</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>What is the rule about rewriting history?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Never use <code>git rebase</code>.</button></li><li><button type="button" class="quiz-opt" data-i="1">Do not rewrite commits that other people already have.</button></li><li><button type="button" class="quiz-opt" data-i="2">Only rewrite history on <code>main</code>.</button></li><li><button type="button" class="quiz-opt" data-i="3">Always use <code>--force</code> after rewriting.</button></li></ol><div class="quiz-expl" hidden>On your own unpushed or unshared work, rewriting is fine; shared commits are undone with <code>git revert</code>.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>What does <code>git stash</code> do?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">It commits your changes on a hidden branch on the server.</button></li><li><button type="button" class="quiz-opt" data-i="1">It saves your uncommitted changes and returns your working tree to the last commit.</button></li><li><button type="button" class="quiz-opt" data-i="2">It deletes your uncommitted changes.</button></li><li><button type="button" class="quiz-opt" data-i="3">It moves the branch back one commit.</button></li></ol><div class="quiz-expl" hidden><code>git stash pop</code> brings the changes back later.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>After <code>git reset --soft HEAD~1</code>, where are the last commit’s changes?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">In the staging area</button></li><li><button type="button" class="quiz-opt" data-i="1">Only in the reflog</button></li><li><button type="button" class="quiz-opt" data-i="2">Gone</button></li><li><button type="button" class="quiz-opt" data-i="3">On a new branch</button></li></ol><div class="quiz-expl" hidden><code>--soft</code> moves only the branch; the default reset unstages the changes, and <code>--hard</code> removes them.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">4</span><div>Which command can destroy uncommitted work for good?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git reset --soft HEAD~1</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git stash</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git rebase main</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git reset --hard HEAD~1</code></button></li></ol><div class="quiz-expl" hidden><code>--hard</code> resets the working tree; uncommitted changes are not in the reflog.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>After rebasing a branch you had already pushed, why is <code>git push</code> rejected?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The rebase failed.</button></li><li><button type="button" class="quiz-opt" data-i="1">The rebased commits replace the pushed ones, so the push is not a fast-forward.</button></li><li><button type="button" class="quiz-opt" data-i="2">Rebased branches cannot be pushed.</button></li><li><button type="button" class="quiz-opt" data-i="3">The remote is out of date.</button></li></ol><div class="quiz-expl" hidden>If the branch is yours alone, push with <code>--force-with-lease</code>.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">6</span><div>During a rebase onto <code>main</code>, which version lies between <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> and <code>=======</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Your branch’s version</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>main</code>’s version, the base the commits are being replayed onto</button></li><li><button type="button" class="quiz-opt" data-i="2">The version from the first commit</button></li><li><button type="button" class="quiz-opt" data-i="3">Git’s suggested resolution</button></li></ol><div class="quiz-expl" hidden>In a rebase, HEAD is the new base; your commit’s version comes after <code>=======</code>.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">7</span><div>What does <code>git reflog</code> show?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Every commit on the remote</button></li><li><button type="button" class="quiz-opt" data-i="1">The commits that are about to be pushed</button></li><li><button type="button" class="quiz-opt" data-i="2">Where HEAD has been, including commits no longer on any branch</button></li><li><button type="button" class="quiz-opt" data-i="3">Changes you have not committed</button></li></ol><div class="quiz-expl" hidden>Use a hash from the reflog to reset or create a branch, and get lost commits back.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">9</span><h2>Further reading</h2></div>
+<ul>
+<li>Scott Chacon and Ben Straub, <em>Pro Git</em>, sections <a href="https://git-scm.com/book/en/v2/Git-Branching-Rebasing" target="_blank" rel="noopener">3.6: Rebasing</a>, <a href="https://git-scm.com/book/en/v2/Git-Tools-Stashing-and-Cleaning" target="_blank" rel="noopener">7.3: Stashing and Cleaning</a>, <a href="https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History" target="_blank" rel="noopener">7.6: Rewriting History</a> and <a href="https://git-scm.com/book/en/v2/Git-Tools-Reset-Demystified" target="_blank" rel="noopener">7.7: Reset Demystified</a>.</li>
+<li>The reference pages for <a href="https://git-scm.com/docs/git-stash" target="_blank" rel="noopener">git stash</a>, <a href="https://git-scm.com/docs/git-reset" target="_blank" rel="noopener">git reset</a>, <a href="https://git-scm.com/docs/git-rebase" target="_blank" rel="noopener">git rebase</a> and <a href="https://git-scm.com/docs/git-reflog" target="_blank" rel="noopener">git reflog</a>.</li>
+</ul>
+</div><nav class="module-nav" aria-label="All modules"><a href="module_07_EN.html">← Module 07</a><a href="module_09_EN.html">Module 09 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>
