@@ -104,3 +104,4 @@ site owner asks. Run `live-check.mjs` before merging; after the deployment finis
 ## Publication log
 
 - 2026-10-06: Module 1 published (commit 9192b08). Live Playground check: 9/9 examples as the build shows them, before merging (local bundle) and after deployment (published bundle).
+- 2026-10-07: Modules 2–10 published (commit 8eec1fb). Live Playground checks: 82/82 examples matched the build before publication (local bundle) and after deployment (published bundle; GitHub Actions run 37614051178).
