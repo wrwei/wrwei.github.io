@@ -1,0 +1,488 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>综合项目：团队协作 — Git 与版本控制</title><meta name="description" content="把整个系列学到的内容付诸实践：两个人、两个克隆和一个共享仓库，从第一次提交到打上标签的发布版本，共同完成一本家庭食谱，途中经历分支、拉取请求、一次冲突和一次审查。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="10"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">Git 系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 10</button><div class="dropdown-menu" id="module-menu"><a href="module_01_ZH.html">01 · 为什么需要版本控制？</a><a href="module_02_ZH.html">02 · 你的第一个仓库</a><a href="module_03_ZH.html">03 · 查看历史与撤销</a><a href="module_04_ZH.html">04 · 分支</a><a href="module_05_ZH.html">05 · 合并冲突</a><a href="module_06_ZH.html">06 · 远程仓库</a><a href="module_07_ZH.html">07 · 用拉取请求协作</a><a href="module_08_ZH.html">08 · 改写历史与恢复</a><a href="module_09_ZH.html">09 · Git 的内部原理</a><a href="module_10_ZH.html" class="active" aria-current="page">10 · 综合项目：团队协作</a><a href="index_ZH.html#modules">全部模块</a></div></div><a class="lang-switch" href="module_10_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/3 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#s1"><span class="num">1</span><span>项目介绍</span></a><a href="#s2"><span class="num">2</span><span>里程碑 1：共享仓库</span></a><a href="#s3"><span class="num">3</span><span>里程碑 2：同时开发两项功能</span></a><a href="#s4"><span class="num">4</span><span>里程碑 3：一次冲突</span></a><a href="#s5"><span class="num">5</span><span>里程碑 4：审查与合并</span></a><a href="#s6"><span class="num">6</span><span>里程碑 5：发布版本</span></a><a href="#exercises"><span class="num">7</span><span>练习</span></a><a href="#quiz"><span class="num">8</span><span>自测</span></a><a href="#reading"><span class="num">9</span><span>延伸阅读</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git 与版本控制 — Ran Wei</div><h1 class="module-title">综合项目：团队协作</h1><p class="module-lead">把整个系列学到的内容付诸实践：两个人、两个克隆和一个共享仓库，从第一次提交到打上标签的发布版本，共同完成一本家庭食谱，途中经历分支、拉取请求、一次冲突和一次审查。</p><div class="hero-chips"><span class="chip chip-time">3 小时</span><span class="chip">3 个时段</span><span class="chip">5 个动手环节</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>为团队建立共享仓库，每位成员在自己的克隆中工作。</li><li>在分支上并行开发两项功能，每项都通过拉取请求提出。</li><li>通过把 main 带进分支，解决拉取请求中的冲突。</li><li>审查、合并并整理，让每个人的 main 都保持同步。</li><li>用附注标签为发布版本打标签，推送它，并在 GitHub 上发布。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>第 1 至第 8 模块，以及一个 GitHub 账号（第 6 模块）。欢迎找一位有 GitHub 账号的朋友一起做，但这不是必需的。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#s1">项目介绍</a><a href="#s2">里程碑 1：共享仓库</a><a href="#s3">里程碑 2：同时开发两项功能</a><a href="#s4">里程碑 3：一次冲突</a><a href="#s5">里程碑 4：审查与合并</a><a href="#s6">里程碑 5：发布版本</a><a href="#exercises">练习</a><a href="#quiz">自测</a><a href="#reading">延伸阅读</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">3 小时</span></div><p class="plan-lead">时间为估计值，包含输入命令的时间。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">60 分钟</span></div><div class="session-title">共同起步</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">项目介绍</a></span><span class="act-min">10</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s2">里程碑 1：共享仓库</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s3">里程碑 2：同时开发两项功能</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m10:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">60 分钟</span></div><div class="session-title">整合与发布</div><ul class="acts"><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s4">里程碑 3：一次冲突</a></span><span class="act-min">25</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s5">里程碑 4：审查与合并</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s6">里程碑 5：发布版本</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m10:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">60 分钟</span></div><div class="session-title">更进一步</div><ul class="acts"><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#exercises">六项拓展任务</a></span><span class="act-min">45</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">自测</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m10:s3"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>项目介绍</h2></div>
+<p>本模块把整个系列学到的内容用在一个小项目上，从第一次提交一直到发布一个版本。Alex 和 Sam 要共同编写一本<strong>家庭食谱</strong>：一个 README、一份食谱索引，以及每份食谱一个文件。用到的命令你都已经学过。新的地方在于，要按照团队的工作方式，把所有这些步骤按顺序一起完成。</p>
+<p>这个项目有五个里程碑：</p>
+<ol>
+<li><strong>共享仓库。</strong> Alex 创建项目并共享出去；Sam 克隆它。</li>
+<li><strong>同时开发两项功能。</strong> Alex 加入一份汤的食谱，Sam 加入一份面包的食谱，各自在一个分支上进行，各自用一个拉取请求提出。</li>
+<li><strong>一次冲突。</strong> Alex 的拉取请求先被合并，于是 Sam 的拉取请求与之冲突。Sam 把 <code>main</code> 带进自己的分支并解决冲突。</li>
+<li><strong>审查与合并。</strong> Alex 审查并合并 Sam 的拉取请求，大家各自整理。</li>
+<li><strong>发布版本。</strong> Alex 把成果标记为 1.0 版并发布。</li>
+</ol>
+<p>团队遵循第 7 模块中的规则：没有人直接向 <code>main</code> 提交，每项改动都经过分支和拉取请求，并由作者以外的人审查和合并。</p>
+<p>请在 GitHub 上完成这个项目。有两种方式：</p>
+<ul>
+<li><strong>和朋友一起。</strong> 你们各有一个 GitHub 账号和一台电脑。一人扮演 Alex 并拥有仓库，另一人扮演 Sam。</li>
+<li><strong>一个人完成。</strong> 你一人分饰两角，像第 6 模块那样使用两个文件夹和两个终端窗口。在 GitHub 上，两个人都是你。GitHub 不允许任何人批准自己的拉取请求，所以项目中说到<em>批准</em>的地方，请改为留下一条审查评论，然后合并。</li>
+</ul>
+<p>动手环节用第 6 模块中的替身服务器展示每一个步骤。如果某一步要在 GitHub 上进行，例如创建仓库、发起或合并拉取请求，正文会说明怎么做。</p>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>里程碑 1：共享仓库</h2></div>
+<p>Alex 创建项目：一个新文件夹、<code>git init</code>、三个文件和第一次提交。然后 Alex 把它放到服务器上并推送 <code>main</code>，Sam 再克隆它。</p>
+<p>在 GitHub 上：</p>
+<ul>
+<li>Alex 像第 6 模块那样创建一个名为 <code>cookbook</code> 的空仓库，并推送到它的地址，而不是 <code>/srv/git/cookbook.git</code>。</li>
+<li>和朋友一起做时，Alex 接着按照<a href="https://docs.github.com/zh/repositories/managing-your-repositorys-settings-and-features/repository-access-and-collaboration/inviting-collaborators-to-a-personal-repository" target="_blank" rel="noopener">邀请协作者访问个人仓库</a>邀请 Sam 加入仓库。Sam 接受邀请之后，就可以向它推送分支了。</li>
+<li>一个人做时，不需要邀请。把仓库克隆到 Sam 的文件夹中，并像第 6 模块那样在这个克隆中设置 Sam 的姓名和邮箱。</li>
+</ul>
+<div class="term" id="term-m10-start">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">启动项目并共享它</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">mkdir</span> cookbook</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cd</span> cookbook</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">init</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Initialized empty Git repository in /home/alex/cookbook/.git/
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>README.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Family cookbook
+
+Our family's recipes, collected by Alex and Sam.
+</code></pre>
+<div class="term-edit">创建或编辑 <code>index.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Recipes
+
+- [Pancakes](pancakes.md)
+</code></pre>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> README.md index.md pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Start the family cookbook&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main (root-commit) db5abad] Start the family cookbook
+ 3 files changed, 11 insertions(+)
+ create mode 100644 README.md
+ create mode 100644 index.md
+ create mode 100644 pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">init</span> <span class="hljs-attr">--bare</span> /srv/git/cookbook.git</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Initialized empty Git repository in /srv/git/cookbook.git/
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">remote</span> add origin /srv/git/cookbook.git</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> <span class="hljs-attr">-u</span> origin main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/cookbook.git
+ * [new branch]      main -&gt; main
+branch 'main' set up to track 'origin/main'.
+</code></pre></div>
+<div class="term-who">现在以 Sam Lee 的身份操作，在其自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">clone</span> /srv/git/cookbook.git</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Cloning into 'cookbook'...
+done.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cd</span> cookbook</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>db5abad Start the family cookbook
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>这里的每一步都来自前面的模块。<code>git add</code> 一次列出三个文件。第一次提交是根提交，<code>git push -u</code> 在服务器上创建 <code>main</code> 并把它设为上游。随后 Sam 的克隆中也有了同一次提交 <code>db5abad</code>。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>团队常常让 GitHub 来强制执行这些规则。对 <code>main</code> 设置<strong>规则集</strong>（ruleset）或<strong>分支保护</strong>（branch protection），可以要求在合并任何东西之前，必须有拉取请求和一次批准的审查。<a href="https://docs.github.com/zh/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches" target="_blank" rel="noopener">关于受保护分支</a>解释了这些选项。对本项目来说，这是可选的。</p>
+</div>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>里程碑 2：同时开发两项功能</h2></div>
+<p>现在 Alex 和 Sam 同时工作，各自在自己的分支上。每人加入一个食谱文件，并在 <code>index.md</code> 中煎饼下面为它加上一行。然后每人推送分支，并像第 7 模块那样在 GitHub 上发起拉取请求：Alex 的成为拉取请求 #1，Sam 的成为 #2。请为每个拉取请求写一个标题和一段简短的描述。</p>
+<div class="term" id="term-m10-parallel">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">同时开发两项功能</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">-c</span> add-soup</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to a new branch 'add-soup'
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>soup.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Tomato soup
+
+- 1 kg tomatoes
+</code></pre>
+<div class="term-edit">创建或编辑 <code>index.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Recipes
+
+- [Pancakes](pancakes.md)
+- [Tomato soup](soup.md)
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> soup.md index.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a tomato soup recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[add-soup 7c82c56] Add a tomato soup recipe
+ 2 files changed, 4 insertions(+)
+ create mode 100644 soup.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> <span class="hljs-attr">-u</span> origin add-soup</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/cookbook.git
+ * [new branch]      add-soup -&gt; add-soup
+branch 'add-soup' set up to track 'origin/add-soup'.
+</code></pre></div>
+<div class="term-who">现在以 Sam Lee 的身份操作，在其自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">-c</span> add-bread</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to a new branch 'add-bread'
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>bread.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Soda bread
+
+- 450 g flour
+</code></pre>
+<div class="term-edit">创建或编辑 <code>index.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Recipes
+
+- [Pancakes](pancakes.md)
+- [Soda bread](bread.md)
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> bread.md index.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a soda bread recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[add-bread 0070943] Add a soda bread recipe
+ 2 files changed, 4 insertions(+)
+ create mode 100644 bread.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> <span class="hljs-attr">-u</span> origin add-bread</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/cookbook.git
+ * [new branch]      add-bread -&gt; add-bread
+branch 'add-bread' set up to track 'origin/add-bread'.
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 551 78" width="551" height="78" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">0070943</text><rect x="106.4" y="13" width="127.2" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="26" class="g-ref-text">HEAD → add-bread</text><rect x="239.6" y="13" width="127.2" height="18" rx="9" class="g-ref g-remote"/><text x="245.6" y="26" class="g-ref-text">origin/add-bread</text><text x="372.8" y="26" class="g-subject">Add a soda bread recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">db5abad</text><rect x="106.4" y="47" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="112.4" y="60" class="g-ref-text">origin/main</text><rect x="203.60000000000002" y="47" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="209.6" y="60" class="g-ref-text">main</text><text x="250.4" y="60" class="g-subject">Start the family cookbook</text></svg><pre class="visually-hidden">* 0070943 (HEAD -&gt; add-bread, origin/add-bread) Add a soda bread recipe
+* db5abad (origin/main, origin/HEAD, main) Start the family cookbook</pre></figure>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>每人的提交都涉及两个文件：新的食谱和 <code>index.md</code>。提交图显示的是 Sam 的仓库。Sam 的分支 <code>add-bread</code> 比 <code>main</code> 领先一次提交。Sam 的仓库还没有获取 Alex 的分支，所以图中没有它。</p>
+<p>两处改动都在 <code>index.md</code> 的同一个位置，也就是紧接在煎饼之后，加了一行。两个人都还不知道，但正如第 5 模块所解释的，这注定会产生冲突。</p>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>里程碑 3：一次冲突</h2></div>
+<p>Sam 审查拉取请求 #1，批准后用 <strong>Merge pull request</strong> 合并它，再用 <strong>Delete branch</strong> 删除分支。现在 <code>main</code> 中有了汤，而 Sam 的拉取请求 #2 已经无法顺利合并了。GitHub 会在拉取请求的页面上显示：<em>This branch has conflicts that must be resolved</em>。</p>
+<p>修复应该在分支上进行，所以这是 Sam 作为分支作者的工作：把新的 <code>main</code> 带进 <code>add-bread</code>，解决冲突，然后推送。这就是第 7 模块中的“让分支保持最新”，中间再加上第 5 模块的冲突解决。</p>
+<p>一个人跟着做时，请先在 GitHub 上合并拉取请求 #1。然后在 Sam 的文件夹中，在 <code>add-bread</code> 上操作。</p>
+<div class="term" id="term-m10-conflict">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">让分支跟上最新进展，并解决冲突</span></div>
+<div class="term-who">现在以 Sam Lee 的身份操作，在其自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">fetch</span></code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> origin/main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Auto-merging index.md
+CONFLICT (content): Merge conflict in index.md
+Automatic merge failed; fix conflicts and then commit the result.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> index.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Recipes
+
+- [Pancakes](pancakes.md)
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+- [Soda bread](bread.md)
+=======
+- [Tomato soup](soup.md)
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>index.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Recipes
+
+- [Pancakes](pancakes.md)
+- [Soda bread](bread.md)
+- [Tomato soup](soup.md)
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> index.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[add-bread aeb6ff4] Merge remote-tracking branch 'origin/main' into add-bread
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/cookbook.git
+   0070943..aeb6ff4  add-bread -&gt; add-bread
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 840 180" width="840" height="180" aria-hidden="true" focusable="false"><path d="M18 22V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 22C18 39 40 39 40 56V56" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56V124C40 141 18 141 18 158" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56C40 73 62 73 62 90V90" stroke="#D97706" stroke-width="2.5" fill="none"/><path d="M62 90V124C62 141 18 141 18 158" stroke="#D97706" stroke-width="2.5" fill="none"/><path d="M18 124V158" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="92" y="26" class="g-hash">aeb6ff4</text><rect x="150.4" y="13" width="127.2" height="18" rx="9" class="g-ref g-head"/><text x="156.4" y="26" class="g-ref-text">HEAD → add-bread</text><rect x="283.6" y="13" width="127.2" height="18" rx="9" class="g-ref g-remote"/><text x="289.6" y="26" class="g-ref-text">origin/add-bread</text><text x="416.8" y="26" class="g-subject">Merge remote-tracking branch 'origin/main' into add-bread</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="92" y="60" class="g-hash">8ad3dae</text><rect x="150.4" y="47" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="156.4" y="60" class="g-ref-text">origin/main</text><rect x="247.60000000000002" y="47" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="253.6" y="60" class="g-ref-text">main</text><text x="294.4" y="60" class="g-subject">Merge pull request #1 from alex/add-soup</text><circle cx="62" cy="90" r="6" fill="#fff" stroke="#D97706" stroke-width="2.5"/><text x="92" y="94" class="g-hash">7c82c56</text><text x="150.4" y="94" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="92" y="128" class="g-hash">0070943</text><text x="150.4" y="128" class="g-subject">Add a soda bread recipe</text><circle cx="18" cy="158" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="92" y="162" class="g-hash">db5abad</text><text x="150.4" y="162" class="g-subject">Start the family cookbook</text></svg><pre class="visually-hidden">*   aeb6ff4 (HEAD -&gt; add-bread, origin/add-bread) Merge remote-tracking branch 'origin/main' into add-bread
+|\
+| *   8ad3dae (origin/main, origin/HEAD, main) Merge pull request #1 from alex/add-soup
+| |\
+| | * 7c82c56 Add a tomato soup recipe
+| |/
+* / 0070943 Add a soda bread recipe
+|/
+* db5abad Start the family cookbook</pre></figure>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git fetch</code> 取回了合并后的 <code>main</code>。<code>git merge origin/main</code> 因 <code>index.md</code> 中的冲突而停下。冲突标记把 Sam 的那一行（<code>HEAD</code>，即 Sam 所在的分支）与来自 <code>origin/main</code> 的汤那一行对照显示。两行都应该留在索引中。Sam 按字母顺序保留两行，并删除标记。然后是 <code>git add</code>、<code>git commit</code>（接受现成的说明 <code>Merge remote-tracking branch 'origin/main' into add-bread</code>）和 <code>git push</code>。</p>
+<p>提交图显示了结果：<code>add-bread</code> 现在既包含面包的提交，也包含 <code>main</code> 上的一切，其中有 Alex 已合并的拉取请求。在 GitHub 上，拉取请求会自动更新，冲突警告也随之消失。</p>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>里程碑 4：审查与合并</h2></div>
+<p>Alex 在 <strong>Files changed</strong> 标签页中审查拉取请求 #2，那里现在只显示 Sam 的改动：新的面包文件和解决冲突后的索引。Alex 批准并合并了它。然后两个人都把自己的 <code>main</code> 更新到最新，并像第 7 模块那样删除已合并的分支。</p>
+<div class="term" id="term-m10-merge">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">合并第二个拉取请求并整理</span></div>
+<div class="term-who">现在以 Sam Lee 的身份操作，在其自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">pull</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/cookbook
+   8ad3dae..3e9893d  main       -&gt; origin/main
+Updating 8ad3dae..3e9893d
+Fast-forward
+ bread.md | 3 +++
+ index.md | 1 +
+ 2 files changed, 4 insertions(+)
+ create mode 100644 bread.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-d</span> add-bread</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Deleted branch add-bread (was 1719f52).
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">fetch</span> <span class="hljs-attr">--prune</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/cookbook
+ - [deleted]         (none)     -&gt; origin/add-bread
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> index.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Recipes
+
+- [Pancakes](pancakes.md)
+- [Soda bread](bread.md)
+- [Tomato soup](soup.md)
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 652 214" width="652" height="214" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 22C18 39 40 39 40 56V56" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56V158" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56V56C40 73 18 73 18 90" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V192" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 90C18 107 62 107 62 124V124" stroke="#D97706" stroke-width="2.5" fill="none"/><path d="M62 124V158C62 175 18 175 18 192" stroke="#D97706" stroke-width="2.5" fill="none"/><path d="M40 158V158C40 175 18 175 18 192" stroke="#16A34A" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="92" y="26" class="g-hash">3e9893d</text><rect x="150.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="156.4" y="26" class="g-ref-text">HEAD → main</text><rect x="247.60000000000002" y="13" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="253.6" y="26" class="g-ref-text">origin/main</text><text x="344.8" y="26" class="g-subject">Merge pull request #2 from alex/add-bread</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="92" y="60" class="g-hash">1719f52</text><text x="150.4" y="60" class="g-subject">Merge remote-tracking branch 'origin/main' into add-bread</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="92" y="94" class="g-hash">8ad3dae</text><text x="150.4" y="94" class="g-subject">Merge pull request #1 from alex/add-soup</text><circle cx="62" cy="124" r="6" fill="#fff" stroke="#D97706" stroke-width="2.5"/><text x="92" y="128" class="g-hash">7c82c56</text><text x="150.4" y="128" class="g-subject">Add a tomato soup recipe</text><circle cx="40" cy="158" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="92" y="162" class="g-hash">0070943</text><text x="150.4" y="162" class="g-subject">Add a soda bread recipe</text><circle cx="18" cy="192" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="92" y="196" class="g-hash">db5abad</text><text x="150.4" y="196" class="g-subject">Start the family cookbook</text></svg><pre class="visually-hidden">*   3e9893d (HEAD -&gt; main, origin/main, origin/HEAD) Merge pull request #2 from alex/add-bread
+|\
+| *   1719f52 Merge remote-tracking branch 'origin/main' into add-bread
+| |\
+| |/
+|/|
+* |   8ad3dae Merge pull request #1 from alex/add-soup
+|\ \
+| * | 7c82c56 Add a tomato soup recipe
+|/ /
+| * 0070943 Add a soda bread recipe
+|/
+* db5abad Start the family cookbook</pre></figure>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>Sam 切换到 <code>main</code>，拉取拉取请求 #2 的合并，删除本地分支，并清理 <code>origin/add-bread</code>。<code>cat index.md</code> 显示索引中已有全部三份食谱。</p>
+<p>这张提交图是本系列中最复杂的一张，所以请从下往上读：</p>
+<ul>
+<li>第一次提交 <code>db5abad</code>；</li>
+<li>两次功能提交 <code>0070943</code>（面包）和 <code>7c82c56</code>（汤）；</li>
+<li>拉取请求 #1 的合并；</li>
+<li>Sam 把 <code>main</code> 合并进 <code>add-bread</code>；</li>
+<li>最上面是拉取请求 #2 的合并。</li>
+</ul>
+<p>每一条工作线都在，每一次合并都说明了来自哪里。对于使用合并的团队来说，这样的历史很正常；第 8 模块介绍了如何用变基让它更直一些。</p>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>里程碑 5：发布版本</h2></div>
+<p>食谱已经可以发布第一个版本了。<strong>标签</strong>（tag）给一次提交起一个永久的名字，例如 <code>v1.0</code>，它不会像分支那样随着新工作的到来而移动。</p>
+<p>Git 有两种标签：</p>
+<ul>
+<li><strong>轻量标签</strong>（lightweight tag），用 <code>git tag &lt;name&gt;</code> 创建，只是某次提交的一个名字，就像一个永远不动的分支；</li>
+<li><strong>附注标签</strong>（annotated tag），用 <code>git tag -a &lt;name&gt; -m &quot;&lt;message&gt;&quot;</code> 创建，本身就是一个对象（第 9 模块）。它记录了谁创建了它、什么时候、为什么。</li>
+</ul>
+<p>发布版本请使用附注标签。</p>
+<p><code>git push</code> 不会推送标签；请按名字逐个推送，例如 <code>git push origin v1.0</code>。许多项目用<a href="https://semver.org/lang/zh-CN/" target="_blank" rel="noopener">语义化版本</a>（Semantic Versioning）给发布版本编号：修正问题用 <code>v1.0.1</code>，增加不改变现有内容的新功能用 <code>v1.1.0</code>，做出破坏别人所依赖内容的改动则用 <code>v2.0.0</code>。</p>
+<div class="term" id="term-m10-release">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">为第一个版本打标签</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">--graph</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>*   3e9893d Merge pull request #2 from alex/add-bread
+|\
+| *   1719f52 Merge remote-tracking branch 'origin/main' into add-bread
+| |\
+| |/
+|/|
+* |   8ad3dae Merge pull request #1 from alex/add-soup
+|\ \
+| * | 7c82c56 Add a tomato soup recipe
+|/ /
+| * 0070943 Add a soda bread recipe
+|/
+* db5abad Start the family cookbook
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">tag</span> <span class="hljs-attr">-a</span> v1.0 <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Family cookbook 1.0&quot;</span></code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> origin v1.0</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/cookbook.git
+ * [new tag]         v1.0 -&gt; v1.0
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">tag</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>v1.0
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">show</span> v1.0 <span class="hljs-attr">--no-patch</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>tag v1.0
+Tagger: Alex Smith &lt;alex@example.com&gt;
+Date:   Mon Jan 5 09:44:00 2026 +0000
+
+Family cookbook 1.0
+
+commit 3e9893d70e79171c959a0915111e2048eb862cd5
+Merge: 8ad3dae 1719f52
+Author: Alex Smith &lt;alex@example.com&gt;
+Date:   Mon Jan 5 09:36:00 2026 +0000
+
+    Merge pull request #2 from alex/add-bread
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 699 214" width="699" height="214" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 22C18 39 40 39 40 56V56" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56V158" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56V56C40 73 18 73 18 90" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V192" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 90C18 107 62 107 62 124V124" stroke="#D97706" stroke-width="2.5" fill="none"/><path d="M62 124V158C62 175 18 175 18 192" stroke="#D97706" stroke-width="2.5" fill="none"/><path d="M40 158V158C40 175 18 175 18 192" stroke="#16A34A" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="92" y="26" class="g-hash">3e9893d</text><rect x="150.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="156.4" y="26" class="g-ref-text">HEAD → main</text><rect x="247.60000000000002" y="13" width="40.8" height="18" rx="9" class="g-ref g-tag"/><text x="253.6" y="26" class="g-ref-text">v1.0</text><rect x="294.40000000000003" y="13" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="300.4" y="26" class="g-ref-text">origin/main</text><text x="391.6" y="26" class="g-subject">Merge pull request #2 from alex/add-bread</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="92" y="60" class="g-hash">1719f52</text><text x="150.4" y="60" class="g-subject">Merge remote-tracking branch 'origin/main' into add-bread</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="92" y="94" class="g-hash">8ad3dae</text><text x="150.4" y="94" class="g-subject">Merge pull request #1 from alex/add-soup</text><circle cx="62" cy="124" r="6" fill="#fff" stroke="#D97706" stroke-width="2.5"/><text x="92" y="128" class="g-hash">7c82c56</text><text x="150.4" y="128" class="g-subject">Add a tomato soup recipe</text><circle cx="40" cy="158" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="92" y="162" class="g-hash">0070943</text><text x="150.4" y="162" class="g-subject">Add a soda bread recipe</text><circle cx="18" cy="192" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="92" y="196" class="g-hash">db5abad</text><text x="150.4" y="196" class="g-subject">Start the family cookbook</text></svg><pre class="visually-hidden">*   3e9893d (HEAD -&gt; main, tag: v1.0, origin/main, origin/HEAD) Merge pull request #2 from alex/add-bread
+|\
+| *   1719f52 Merge remote-tracking branch 'origin/main' into add-bread
+| |\
+| |/
+|/|
+* |   8ad3dae Merge pull request #1 from alex/add-soup
+|\ \
+| * | 7c82c56 Add a tomato soup recipe
+|/ /
+| * 0070943 Add a soda bread recipe
+|/
+* db5abad Start the family cookbook</pre></figure>
+<div class="term-who">现在以 Sam Lee 的身份操作，在其自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">fetch</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/cookbook
+   8ad3dae..3e9893d  main       -&gt; origin/main
+ * [new tag]         v1.0       -&gt; v1.0
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<ul>
+<li><code>git log --oneline --graph</code> 显示即将发布的历史。<code>git tag -a v1.0 -m &quot;Family cookbook 1.0&quot;</code> 给最新的提交，即拉取请求 #2 的合并，打上标签。</li>
+<li><code>git push origin v1.0</code> 发送这个标签：<code>* [new tag] v1.0 -&gt; v1.0</code>。<code>git tag</code> 列出所有标签。</li>
+<li><code>git show v1.0 --no-patch</code> 显示标签对象（打标签者、日期和说明），后面是它所指向的提交。</li>
+<li>提交图在那次提交上用一个黄色标签显示它。</li>
+<li>Sam 获取时，Git 会把新标签一起带来：<code>* [new tag] v1.0 -&gt; v1.0</code>。</li>
+</ul>
+<p>要在 GitHub 上发布这个版本，请打开仓库的 <strong>Releases</strong> 页面，选择 <strong>Draft a new release</strong>，选中标签 <code>v1.0</code>，再写一个标题和一份简短的内容清单。<a href="https://docs.github.com/zh/repositories/releasing-projects-on-github/managing-releases-in-a-repository" target="_blank" rel="noopener">管理仓库中的发行版</a>展示了具体步骤。发行版是给项目使用者看的页面，建立在 Git 记录的标签之上。</p>
+<div class="callout keyidea"><div class="callout-label">核心思想</div>
+<p>这就是完整的循环：分支、提交、推送、拉取请求、审查、合并、更新、打标签。本系列的每一部分内容都服务于其中的某一步，你将来加入的每个 Git 项目，无论多大，都是这样运作的。</p>
+</div>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">7</span><h2>练习</h2></div>
+<p>这些拓展任务是这个项目的延续。请在 GitHub 上你的食谱项目中完成。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">10 分钟</span></div>
+<p><strong>修正版本。</strong> 煎饼食谱里没有盐。请以 Alex 的身份通过拉取请求修正它，并把这次修正发布为 <code>v1.0.1</code>。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>创建分支、提交、推送并发起拉取请求。合并之后，更新 <code>main</code>，然后打标签并推送标签：</p>
+<div class="term" id="term-m10-e1-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">一个修正版本</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">-c</span> fix-pancakes</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to a new branch 'fix-pancakes'
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- a pinch of salt
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-am</span> <span class="hljs-string">&quot;Add the salt the pancakes were missing&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[fix-pancakes 3be0668] Add the salt the pancakes were missing
+ 1 file changed, 1 insertion(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> <span class="hljs-attr">-u</span> origin fix-pancakes</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/cookbook.git
+ * [new branch]      fix-pancakes -&gt; fix-pancakes
+branch 'fix-pancakes' set up to track 'origin/fix-pancakes'.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">pull</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/cookbook
+   3e9893d..50e8203  main       -&gt; origin/main
+Updating 3e9893d..50e8203
+Fast-forward
+ pancakes.md | 1 +
+ 1 file changed, 1 insertion(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">tag</span> <span class="hljs-attr">-a</span> v1.0.1 <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Family cookbook 1.0.1&quot;</span></code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> origin v1.0.1</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/cookbook.git
+ * [new tag]         v1.0.1 -&gt; v1.0.1
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">tag</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>v1.0
+v1.0.1
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>在动手环节中，Sam 像在 GitHub 上合并那样合并了拉取请求 #3。一个不改动其他内容的修正，得到下一个修订号 <code>v1.0.1</code>。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">6 分钟</span></div>
+<p><strong>避免冲突。</strong> 里程碑 3 中的冲突是可以预见的：每加一份新食谱，都要在 <code>index.md</code> 的同一个位置加一行。请提出两种办法，让团队今后避免这样的冲突。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>以下任意两种：</p>
+<ul>
+<li>约定每次合并之后由一个人更新索引，这样食谱分支就永远不碰它。</li>
+<li>让索引保持字母顺序，这样不同的食谱通常位于不同的行（不过相邻的行仍可能冲突）。</li>
+<li>在发起拉取请求之前，先把 <code>main</code> 合并进分支，这样后提交的人就能在对方的改动还很小时看到它。</li>
+<li>用脚本根据食谱文件自动生成索引，而不是手工编辑。</li>
+</ul>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">8 分钟</span></div>
+<p><strong>这是谁加的？</strong> 一位新成员问：苏打面包是谁加进索引的？在哪次提交中？请用 <code>git log</code> 找出答案。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p><code>git log -S</code> 列出增加或删除了某段文字的提交：</p>
+<div class="term" id="term-m10-e3-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">这一行是谁加的？</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">-S</span> <span class="hljs-string">&quot;Soda bread&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>0070943 Add a soda bread recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">-n</span> 1 <span class="hljs-attr">--format=</span><span class="hljs-string">&quot;%an, %s&quot;</span> 0070943</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Sam Lee, Add a soda bread recipe
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>-S &quot;Soda bread&quot;</code> 找到了加入这段文字的提交 <code>0070943</code>。<code>--format</code> 随后打印出它的作者和说明。<code>git blame index.md</code> 能逐行给出类似的答案：它为每一行显示最后一次改动它的提交。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">8 分钟</span></div>
+<p><strong>误推送的标签。</strong> Alex 误打并推送了 <code>v2.0</code> 标签。请在本地和服务器上删除这个标签。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>用 <code>git tag -d</code> 在本地删除标签，用 <code>git push origin --delete</code> 在服务器上删除：</p>
+<div class="term" id="term-m10-e4-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">删除误推送的标签</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">tag</span> <span class="hljs-attr">-a</span> v2.0 <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Family cookbook 2.0&quot;</span></code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> origin v2.0</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/cookbook.git
+ * [new tag]         v2.0 -&gt; v2.0
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">tag</span> <span class="hljs-attr">-d</span> v2.0</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Deleted tag 'v2.0' (was df97bf3)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> origin <span class="hljs-attr">--delete</span> v2.0</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/cookbook.git
+ - [deleted]         v2.0
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">tag</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>v1.0
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>已经获取了 <code>v2.0</code> 的人会保留他们的那一份，因为获取从不删除标签。标签本应是永久的，所以当某个已发布的版本有问题时，请发布一个新版本，例如 <code>v1.0.2</code>，而不要移动或删除别人可能已经拿到的标签。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">6 分钟</span></div>
+<p><strong>用哪种标签？</strong> 为什么这个项目的发布版本使用附注标签而不是轻量标签？什么时候轻量标签就够了？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>附注标签记录了是谁发布的、什么时候，以及一段说明，GitHub 会在发行版上显示这些信息。它还可以被签名。轻量标签只是某次提交的一个名字：用作不打算分享的私人书签（例如 <code>before-big-change</code>）就足够了。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">7 分钟</span></div>
+<p><strong>保护 <code>main</code>。</strong> 在里程碑 3 中，没有任何东西能阻止 Sam 不看内容就合并拉取请求 #1，或者直接推送到 <code>main</code>。团队可以在 GitHub 上设置什么？设置之后，每个人的做法会有什么不同？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>对 <code>main</code> 设置规则集或分支保护，要求必须有拉取请求，并且至少有一次批准的审查。这样，直接推送到 <code>main</code> 会被拒绝，而在作者以外的人批准之前，<strong>Merge pull request</strong> 按钮一直不可用。每个人的工作方式与这个项目中完全一样：创建分支、推送、发起拉取请求、审查。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">8</span><h2>自测</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>GitHub 提示你的拉取请求 <em>has conflicts that must be resolved</em>。你该怎么做？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">关闭拉取请求，从 <code>main</code> 重新开始</button></li><li><button type="button" class="quiz-opt" data-i="1">把最新的 <code>main</code> 合并进你的分支，解决冲突，提交并推送</button></li><li><button type="button" class="quiz-opt" data-i="2">请审查者无论如何先合并</button></li><li><button type="button" class="quiz-opt" data-i="3">删除 <code>main</code>，把你的分支推送为 <code>main</code></button></li></ol><div class="quiz-expl" hidden>分支包含了 <code>main</code> 并解决冲突之后，拉取请求会自动更新。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>拉取请求中的冲突通常由谁来解决？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">分支的作者，在分支上解决</button></li><li><button type="button" class="quiz-opt" data-i="1">审查者，在 <code>main</code> 上解决</button></li><li><button type="button" class="quiz-opt" data-i="2">GitHub 自动解决</button></li><li><button type="button" class="quiz-opt" data-i="3">最后一个向 <code>main</code> 推送的人</button></li></ol><div class="quiz-expl" hidden>解决冲突是对分支的一处改动，所以它会和分支的其他内容一起接受审查。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>标签和分支有什么区别？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">标签可以指向多次提交。</button></li><li><button type="button" class="quiz-opt" data-i="1">分支无法推送。</button></li><li><button type="button" class="quiz-opt" data-i="2">标签停留在它的提交上，分支则随着新提交向前移动。</button></li><li><button type="button" class="quiz-opt" data-i="3">没有区别。</button></li></ol><div class="quiz-expl" hidden>标签永久地为一次提交命名，这正是发布版本所需要的。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">4</span><div>你打了 <code>v1.0</code> 标签并运行了 <code>git push</code>。为什么 GitHub 上没有这个标签？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">标签只能在 GitHub 上创建，不能在本地创建。</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git push</code> 不发送标签；请用 <code>git push origin v1.0</code> 推送它。</button></li><li><button type="button" class="quiz-opt" data-i="2">只有附注标签才能推送。</button></li><li><button type="button" class="quiz-opt" data-i="3">推送标签之前必须先获取。</button></li></ol><div class="quiz-expl" hidden>标签要逐个推送，或者用 <code>--tags</code> 一次全部推送。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>按照语义化版本，一个只修正了 <code>v1.4.2</code> 中某个缺陷的版本编号为：</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>v2.0.0</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>v1.5.0</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>v1.4.3</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>v1.4.2-fix</code></button></li></ol><div class="quiz-expl" hidden>修正提高最后一位，新功能提高中间一位，破坏性改动提高第一位。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">6</span><div>附注标签记录了哪些轻量标签没有记录的东西？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">发布版本的文件</button></li><li><button type="button" class="quiz-opt" data-i="1">是谁创建的、什么时候，以及一段说明</button></li><li><button type="button" class="quiz-opt" data-i="2">包含该提交的分支</button></li><li><button type="button" class="quiz-opt" data-i="3">被合并的拉取请求</button></li></ol><div class="quiz-expl" hidden>附注标签本身是一个对象；轻量标签只是某次提交的一个名字。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">7</span><div>哪种顺序符合这个项目所遵循的循环？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">向 <code>main</code> 提交、推送、打标签、审查</button></li><li><button type="button" class="quiz-opt" data-i="1">创建分支、提交、推送、拉取请求、审查、合并、打标签</button></li><li><button type="button" class="quiz-opt" data-i="2">复刻、变基、强制推送、打标签</button></li><li><button type="button" class="quiz-opt" data-i="3">打标签、创建分支、合并、推送</button></li></ol><div class="quiz-expl" hidden>每项改动都经过分支和经审查的拉取请求；发布标签放在最后。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">9</span><h2>延伸阅读</h2></div>
+<ul>
+<li>Scott Chacon 和 Ben Straub，《Pro Git》，第 <a href="https://git-scm.com/book/zh/v2/Git-%E5%9F%BA%E7%A1%80-%E6%89%93%E6%A0%87%E7%AD%BE" target="_blank" rel="noopener">2.6 节：打标签</a>，以及 <a href="https://git-scm.com/docs/git-tag" target="_blank" rel="noopener">git tag</a> 的参考页面。</li>
+<li>GitHub 文档：<a href="https://docs.github.com/zh/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets" target="_blank" rel="noopener">关于规则集</a>和<a href="https://docs.github.com/zh/pull-requests/reference/merge-conflicts" target="_blank" rel="noopener">关于合并冲突</a>。</li>
+<li>需要时可以继续深入的方向：
+<ul>
+<li><a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E5%AD%90%E6%A8%A1%E5%9D%97" target="_blank" rel="noopener">子模块</a>，用于在一个仓库中包含另一个仓库；</li>
+<li><a href="https://git-lfs.com/" target="_blank" rel="noopener">Git LFS</a>，用于视频等大文件；</li>
+<li><a href="https://git-scm.com/book/zh/v2/%E8%87%AA%E5%AE%9A%E4%B9%89-Git-Git-%E9%92%A9%E5%AD%90" target="_blank" rel="noopener">钩子</a>，用于在提交或推送时运行的脚本；</li>
+<li><a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E4%BD%BF%E7%94%A8-Git-%E8%B0%83%E8%AF%95" target="_blank" rel="noopener">git bisect</a>，用于找出引入缺陷的那次提交；</li>
+<li><a href="https://git-scm.com/docs/git-worktree" target="_blank" rel="noopener">git worktree</a>，用于同时检出多个分支；</li>
+<li><a href="https://git-scm.com/book/zh/v2/Git-%E5%B7%A5%E5%85%B7-%E7%AD%BE%E7%BD%B2%E5%B7%A5%E4%BD%9C" target="_blank" rel="noopener">签署工作</a>，以及 GitHub 的<a href="https://docs.github.com/zh/authentication/managing-commit-signature-verification/about-commit-signature-verification" target="_blank" rel="noopener">提交签名验证</a>。</li>
+</ul>
+</li>
+</ul>
+</div><nav class="module-nav" aria-label="全部模块"><a href="module_09_ZH.html">← 模块 09</a><a href="index_ZH.html#modules">全部模块 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>

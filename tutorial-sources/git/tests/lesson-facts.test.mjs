@@ -119,3 +119,10 @@ test('Module 9 warns against editing the .git folder by hand', () => {
   assert.match(lesson('en', 9), /Never edit or delete files inside `\.git` by hand\./);
   assert.match(lesson('zh', 9), /永远不要手动编辑或删除 `\.git` 中的文件。/);
 });
+
+test('Module 10 says that tags need their own push, and that nobody can approve their own pull request', () => {
+  assert.match(lesson('en', 10), /Tags are not pushed by `git push`; push each one by name, as in `git push origin v1\.0`\./);
+  assert.match(lesson('zh', 10), /`git push` 不会推送标签；请按名字逐个推送，例如 `git push origin v1\.0`。/);
+  assert.match(lesson('en', 10), /GitHub does not let anyone approve their own pull request/);
+  assert.match(lesson('zh', 10), /GitHub 不允许任何人批准自己的拉取请求/);
+});
