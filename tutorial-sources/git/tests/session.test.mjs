@@ -165,3 +165,34 @@ test('graphs record full ref names, so a local feature/login is not mistaken for
   assert.equal(result.graphs.refs.commits[0].refs, 'HEAD -> refs/heads/main, refs/heads/feature/login');
   assert.match(result.graphs.refs.text, /\(HEAD -> main, feature\/login\) Start/);
 });
+
+test('progress lines that a terminal would overwrite show only their final state', () => {
+  const result = run([
+    '$ git init shop', '$ cd shop', '+file a.txt', 'a', '+end', '$ git add a.txt', '$ git commit -m "Start"',
+    '$ git switch -c topic', '+file b.txt', 'b', '+end', '$ git add b.txt', '$ git commit -m "Add b"',
+    '+file c.txt', 'c', '+end', '$ git add c.txt', '$ git commit -m "Add c"',
+    '$ git switch main', '+file d.txt', 'd', '+end', '$ git add d.txt', '$ git commit -m "Add d"',
+    '$ git switch topic', '$ git rebase main', ''].join('\n'));
+  assert.deepEqual(result.problems, []);
+  assert.equal(commands(result).at(-1).output, 'Successfully rebased and updated refs/heads/topic.\n');
+});
+
+test('a change of person is shown only when the next visible step is someone else\'s', () => {
+  const result = run([
+    '> git init --bare /srv/git/shop.git', '@as sam', '> git clone /srv/git/shop.git', '@as alex',
+    '$ git clone /srv/git/shop.git', '@as sam', '> cd shop', '@as alex', '$ cd shop',
+    '@as sam', '$ pwd', '@as alex', ''].join('\n'));
+  assert.deepEqual(result.problems, []);
+  assert.deepEqual(result.record.map(r => r.kind === 'as' ? `as ${r.persona}` : r.line), [
+    'git clone /srv/git/shop.git', 'cd shop', 'as sam', 'pwd']);
+});
+
+test('graph labels show readable paths, as the transcripts do', () => {
+  const result = run([
+    '> git init --bare /srv/git/shop.git', '$ git clone /srv/git/shop.git', '$ cd shop', '+file a.txt', 'a', '+end', '$ git add a.txt',
+    '$ git commit -m "Start"', '$ git push', '@as sam', '> git clone /srv/git/shop.git', '> cd shop', '+file b.txt', 'b', '+end',
+    '> git add b.txt', '> git commit -m "Add b"', '> git push', '@as alex', '+file c.txt', 'c', '+end', '$ git add c.txt',
+    '$ git commit -m "Add c"', '$ git pull --no-rebase', '@graph merged', ''].join('\n'));
+  assert.deepEqual(result.problems, []);
+  assert.equal(result.graphs.merged.commits[0].subject, "Merge branch 'main' of /srv/git/shop");
+});

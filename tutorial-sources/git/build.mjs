@@ -12,6 +12,29 @@ import {renderLesson, renderOverview, checkParity, checkContract, lessonFile, ov
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 
+// Each session runs in a fixed folder rather than a random one: Git writes the server's path into some
+// commits (git pull's merge messages), so a fixed path keeps those commits' hashes the same on every run.
+const SANDBOXES = process.platform === 'win32' ? path.join(os.tmpdir(), 'wrwei-git-sessions') : '/tmp/wrwei-git-sessions';
+
+/** Takes the sandbox folder of session `id`, waiting while another build or test run is using it. */
+function claimSandbox(id) {
+  const dir = path.join(SANDBOXES, id);
+  fs.mkdirSync(SANDBOXES, {recursive: true});
+  const deadline = Date.now() + 120000;
+  for (;;) {
+    try {
+      fs.mkdirSync(dir);
+      return dir;
+    } catch (error) {
+      if (error.code !== 'EEXIST') throw error;
+    }
+    // a folder left behind by a run that crashed is removed after ten minutes
+    if (Date.now() - fs.statSync(dir).mtimeMs > 600000) { fs.rmSync(dir, {recursive: true, force: true}); continue; }
+    assert(Date.now() < deadline, `${dir} is still in use by another build or test run`);
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200);
+  }
+}
+
 /** Parses and runs every sessions/module_NN/*.session. Returns Map(id -> session with its record and graphs). */
 export function runModuleSessions(dir, number, git = 'git') {
   const sessions = new Map();
@@ -21,7 +44,7 @@ export function runModuleSessions(dir, number, git = 'git') {
     const id = name.slice(0, -'.session'.length);
     assert(/^[a-z0-9-]+$/.test(id) && id.startsWith(`m${pad(number)}-`), `${name}: session file names look like m${pad(number)}-<words>.session`);
     const session = parseSession(fs.readFileSync(path.join(dir, name), 'utf8'), name);
-    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'git-session-'));
+    const sandbox = claimSandbox(id);
     try {
       const result = runSession(session, {sandbox, git});
       problems.push(...result.problems);

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {build} from '../build.mjs';
+import {build, runModuleSessions} from '../build.mjs';
 import {gitVersion} from '../tools/session.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -47,4 +47,37 @@ test('build rejects a session that does not behave as declared', () => {
   const {root, dest} = copyFixture();
   fs.appendFileSync(path.join(root, 'sessions', 'module_01', 'm01-hello.session'), '$ git switch nowhere\n');
   assert.throws(() => build({root, dest, expectVersion: VERSION}), /Sessions did not behave as declared:\nm01-hello\.session:\d+: "git switch nowhere" failed/);
+});
+
+test('a pull that merges gives the same commit on every run, although its message names the server', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'git-module-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'm09-pull.session'), [
+      'title: T', 'title-zh: 题', '---', '> git init --bare /srv/git/shop.git', '> git clone /srv/git/shop.git', '> cd shop',
+      '+hidden a.txt', 'a', '+end', '> git add a.txt', '> git commit -m "Start"', '> git push', '@as sam', '> git clone /srv/git/shop.git',
+      '> cd shop', '+hidden b.txt', 'b', '+end', '> git add b.txt', '> git commit -m "Add b"', '> git push', '@as alex',
+      '+hidden c.txt', 'c', '+end', '> git add c.txt', '> git commit -m "Add c"', '$ git pull --no-rebase', '@graph merged', ''].join('\n'));
+    const merge = () => runModuleSessions(dir, 9).get('m09-pull').graphs.merged.commits[0];
+    const first = merge();
+    assert.equal(first.subject, "Merge branch 'main' of /srv/git/shop");
+    assert.equal(merge().hash, first.hash);
+  } finally {
+    fs.rmSync(dir, {recursive: true, force: true});
+  }
+});
+
+test('a sandbox folder left behind by a run that crashed does not block the next run', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'git-module-'));
+  const left = process.platform === 'win32' ? path.join(os.tmpdir(), 'wrwei-git-sessions', 'm09-left') : '/tmp/wrwei-git-sessions/m09-left';
+  try {
+    fs.writeFileSync(path.join(dir, 'm09-left.session'), 'title: T\ntitle-zh: 题\n---\n$ pwd\n');
+    fs.mkdirSync(path.join(left, 'root'), {recursive: true});
+    const hourAgo = new Date(Date.now() - 3600000);
+    fs.utimesSync(left, hourAgo, hourAgo);
+    assert.equal(runModuleSessions(dir, 9).get('m09-left').record[0].output, '/home/alex\n');
+    assert(!fs.existsSync(left), 'the run removes its sandbox afterwards');
+  } finally {
+    fs.rmSync(dir, {recursive: true, force: true});
+    fs.rmSync(left, {recursive: true, force: true});
+  }
 });

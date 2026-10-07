@@ -2,7 +2,8 @@
 
 Published pages are built into `docs/tutorials/git/`. Edit these sources, never the generated HTML.
 `SPEC.md` is the design, `PLAN.md` the implementation plan for the shared tooling and Modules 1–2,
-`PLAN-modules-03-05.md` the plan for Modules 3–5, and `GLOSSARY.md` the English–Chinese terminology.
+`PLAN-modules-03-05.md` and `PLAN-modules-06-08.md` the plans for Modules 3–5 and 6–8, and `GLOSSARY.md`
+the English–Chinese terminology.
 
 ## Requirements
 
@@ -51,7 +52,8 @@ should print nothing after a second build.
   +end
   +hidden notes.txt         hidden file edit, ending with +end
   +end
-  @as sam                   act as Sam Lee (alex is the default; each has a folder)
+  @as sam                   act as Sam Lee (alex is the default; each has a folder). The page shows
+                            the change of person only before that person's next visible step
   @graph after-merge        draw the commit graph here
   ```
 
@@ -65,12 +67,17 @@ should print nothing after a second build.
 ## What the build guarantees
 
 - Every session runs in a fresh sandbox with fixed names, dates, configuration and paths, so its
-  output and commit hashes are the same on every machine and every build. The sandbox looks like a
+  output and commit hashes are the same on every build. The sandbox is always the same folder,
+  `/tmp/wrwei-git-sessions/<session id>`, created for each run and removed afterwards, because `git pull`
+  writes the server's real path into merge messages, and so into commit hashes. A second build or
+  test run waits until the first has finished with a session. The sandbox looks like a
   small file system (`/home/alex`, `/home/sam`, `/srv/git`); each person's home folder is their
   `HOME`, and no system or vendor configuration is read. New repositories start on `main` through a
   command-line setting, which `git config --show-origin` would list as "command line", so avoid
   `--show-origin` and `--show-scope` in sessions.
-- The build stops if any output shows a path outside the sandbox.
+- The build stops if any output shows a path outside the sandbox. Paths in outputs and in graph
+  labels appear as the shown paths, and progress lines that a terminal would overwrite appear only
+  in their final form.
 - The build stops if a command fails or succeeds against its declaration, if the English and
   Chinese editions differ in sections, sessions, graphs, figures, exercises or quiz answers, if a
   lesson still contains a `<!-- BRIEF` note, if the Chinese source is a copy of the English one, or
