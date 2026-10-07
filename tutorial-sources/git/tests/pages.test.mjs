@@ -38,7 +38,7 @@ const series = {modules: [{number: 1, title: {en: 'T', zh: 'T'}}]};
 test('a lesson page highlights commands, keeps outputs plain and reports its structure', () => {
   const source = '## One {#s1}\n\n{{SESSION:m01-first}}\n\n```quiz\n? Q\n- [x] A\n- [ ] B\n> E\n```\n';
   const {html, record} = renderLesson({meta, lang: 'en', source, sessions, version: VERSION, series, published: [1]});
-  assert.match(html, /<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git<\/span> <span class="hljs-title">init<\/span> shop\n<\/code><\/pre>/);
+  assert.match(html, /<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git<\/span> <span class="hljs-title">init<\/span> shop<\/code><\/pre>/);
   assert.match(html, /<div class="output"><div class="output-label">Output<\/div><pre><code>Initialized empty Git repository/);
   assert.match(html, /data-key="git-series:m01:s1"/);
   assert.match(html, /<link href="https:\/\/fonts\.googleapis\.com\/css2\?family=Fraunces[^"]*DM\+Mono[^"]*" rel="stylesheet">/, 'the page loads the fonts the stylesheet names');

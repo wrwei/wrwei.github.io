@@ -66,7 +66,7 @@ try {
       assert.deepEqual(terms.map(t => t.id).sort(), sessionIds(number), `${file}: shows every session of the module once`);
       for (const t of terms) {
         assert(t.commands.length > 0, `${file} ${t.id}: has commands`);
-        assert(t.commands.every(c => !c.startsWith('$')), `${file} ${t.id}: copying a command does not copy the prompt`);
+        assert(t.commands.every(c => !c.startsWith('$') && !c.endsWith('\n')), `${file} ${t.id}: a copied command has no prompt and no newline that would run it on paste`);
         assert.equal(t.commandsWithCopy, t.commands.length, `${file} ${t.id}: every command can be copied`);
         assert.equal(t.outputsWithCopy, 0, `${file} ${t.id}: outputs have no copy button`);
         assert.match(t.caption, new RegExp(series.gitVersion.replace(/[()]/g, '\\$&')), `${file} ${t.id}: the caption names the Git version`);

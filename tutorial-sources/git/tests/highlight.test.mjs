@@ -17,3 +17,8 @@ test('only command blocks are highlighted, and they get the command class', () =
   const html = highlightBlocks('<pre><code class="language-gitcmd">git status</code></pre>\n<pre><code class="language-text">git status</code></pre>');
   assert.equal(html, '<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>\n<pre><code class="language-text">git status</code></pre>');
 });
+
+test('a copied command has no trailing newline, so pasting does not run it at once', () => {
+  const html = highlightBlocks('<pre><code class="language-gitcmd">git config --global user.name &quot;Alex Smith&quot;\n</code></pre>');
+  assert.match(html, /&quot;Alex Smith&quot;<\/span><\/code><\/pre>$/);
+});

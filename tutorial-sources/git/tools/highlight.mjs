@@ -23,8 +23,11 @@ export function highlightCommand(line) {
 
 const unescapeHtml = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 
-/** Highlights every command block of rendered HTML; other code blocks are left alone. */
+/**
+ * Highlights every command block of rendered HTML; other code blocks are left alone. The trailing
+ * newline is dropped, so that a pasted command waits for Enter instead of running at once.
+ */
 export function highlightBlocks(html) {
   return html.replace(/<pre([^>]*)><code class="language-gitcmd">([\s\S]*?)<\/code><\/pre>/g, (block, attributes, code) =>
-    `<pre${attributes} class="command"><code class="language-gitcmd">${unescapeHtml(code).split('\n').map(line => (line ? highlightCommand(line) : line)).join('\n')}</code></pre>`);
+    `<pre${attributes} class="command"><code class="language-gitcmd">${unescapeHtml(code).replace(/\n+$/, '').split('\n').map(line => (line ? highlightCommand(line) : line)).join('\n')}</code></pre>`);
 }
