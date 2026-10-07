@@ -60,7 +60,8 @@ function checkBuiltin([name, ...args], where) {
  * Parses a session script. The header holds "title:" and "title-zh:" (and optionally "role: solution")
  * and ends at "---". Then, one step per line:
  *   $ command      shown, must succeed          $! command   shown, must fail
- *   > command      hidden setup, must succeed   @as sam      act as another person
+ *   > command      hidden setup, must succeed   >! command   hidden setup, must fail
+ *   @as sam        act as another person
  *   @graph label   snapshot of the commit graph
  *   +file path     shown file edit, contents until "+end";  +hidden path  the same, not shown
  * Blank lines and lines starting with "#" are ignored.
@@ -85,11 +86,11 @@ export function parseSession(text, name = 'session') {
     const where = `${name}:${i + 1}`;
     if (!line.trim() || line.startsWith('#')) continue;
     let m;
-    if ((m = /^(\$!|\$|>)\s+(.+)$/.exec(line))) {
+    if ((m = /^(\$!|\$|>!|>)\s+(.+)$/.exec(line))) {
       const words = splitCommand(m[2], where, /^cd\s+~$/.test(m[2].trim()));
       if (words[0] !== 'git' && !BUILTINS.includes(words[0])) throw new Error(`${where}: "${words[0]}" is neither git nor a built-in (${BUILTINS.join(', ')})`);
       if (words[0] !== 'git') checkBuiltin(words, where);
-      steps.push({kind: 'run', line: m[2].trim(), words, shown: m[1] !== '>', expectFail: m[1] === '$!', where});
+      steps.push({kind: 'run', line: m[2].trim(), words, shown: m[1].startsWith('$'), expectFail: m[1].endsWith('!'), where});
     } else if ((m = /^\+(file|hidden)\s+(\S+)$/.exec(line))) {
       const content = [];
       for (i++; i < lines.length && lines[i] !== '+end'; i++) content.push(lines[i]);
@@ -256,7 +257,7 @@ export function runSession(session, {sandbox, git = 'git'}) {
       continue;
     }
     if (step.kind === 'graph') {
-      const log = runGit(['log', '--all', '--topo-order', '--format=%h%x09%H%x09%P%x09%D%x09%s']);
+      const log = runGit(['log', '--all', '--topo-order', '--decorate=full', '--format=%h%x09%H%x09%P%x09%D%x09%s']);
       const text = runGit(['log', '--all', '--graph', '--oneline', '--decorate']);
       if (log.status !== 0 || !log.output.trim()) { problems.push(`${step.where}: no commits to draw for "@graph ${step.label}"`); continue; }
       const commits = log.output.trimEnd().split('\n').map(line => {

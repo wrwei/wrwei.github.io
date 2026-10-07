@@ -2,7 +2,7 @@
 
 Published pages are built into `docs/tutorials/git/`. Edit these sources, never the generated HTML.
 `SPEC.md` is the design, `PLAN.md` the implementation plan for the shared tooling and Modules 1–2,
-and `GLOSSARY.md` the English–Chinese terminology.
+`PLAN-modules-03-05.md` the plan for Modules 3–5, and `GLOSSARY.md` the English–Chinese terminology.
 
 ## Requirements
 
@@ -45,6 +45,7 @@ should print nothing after a second build.
   $ git status              shown command that must succeed
   $! git switch nowhere     shown command that must fail
   > git init                hidden setup command
+  >! git merge topic        hidden setup command that must fail (to prepare a conflict, say)
   +file README.md           shown file edit; the contents follow, ending with +end
   # Recipes
   +end

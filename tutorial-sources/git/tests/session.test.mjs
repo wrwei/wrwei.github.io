@@ -87,7 +87,7 @@ test('two people share a server repository, and paths stay readable', () => {
   const graph = result.graphs.cloned;
   assert.equal(graph.commits.length, 1);
   assert.equal(graph.commits[0].subject, 'Start');
-  assert.equal(graph.commits[0].refs, 'HEAD -> main, origin/main, origin/HEAD');
+  assert.equal(graph.commits[0].refs, 'HEAD -> refs/heads/main, refs/remotes/origin/main, refs/remotes/origin/HEAD');
   assert.match(graph.text, /^\* \w{7} \(HEAD -> main, origin\/main, origin\/HEAD\) Start\n$/);
 });
 
@@ -151,4 +151,17 @@ test('a built-in that fails reports a failure instead of crashing', () => {
   const result = run('$! mkdir a/b\n$ mkdir a\n$ mkdir a/b\n$ ls a\n');
   assert.deepEqual(result.problems, []);
   assert.deepEqual(commands(result).map(c => c.output), ['mkdir: a/b: No such file or directory\n', '', '', 'b\n']);
+});
+
+test('a hidden setup step can be declared to fail, to prepare a situation such as a conflict', () => {
+  const session = parseSession(HEADER + '>! git switch nowhere\n> git --version\n', 't.session');
+  assert.deepEqual(session.steps.map(s => [s.shown, s.expectFail]), [[false, true], [false, false]]);
+  assert.deepEqual(run('>! git switch nowhere\n').problems, []);
+  assert.match(run('>! git --version\n').problems[0], /succeeded, but is declared to fail/);
+});
+
+test('graphs record full ref names, so a local feature/login is not mistaken for a remote branch', () => {
+  const result = run('$ git init shop\n$ cd shop\n+file a.txt\na\n+end\n$ git add a.txt\n$ git commit -m "Start"\n$ git branch feature/login\n@graph refs\n');
+  assert.equal(result.graphs.refs.commits[0].refs, 'HEAD -> refs/heads/main, refs/heads/feature/login');
+  assert.match(result.graphs.refs.text, /\(HEAD -> main, feature\/login\) Start/);
 });

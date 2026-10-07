@@ -41,7 +41,7 @@ test('Module 2 sessions print what the lesson describes, with the same hashes ev
   assert.match(staging[2], /Changes to be committed:[\s\S]*new file:   pancakes\.md[\s\S]*Changes not staged for commit:[\s\S]*modified:   README\.md/);
   assert.equal(staging.at(-1), '40bc459 Say what the notes are for\n3f65e55 Add a pancake recipe\n907a979 Add a README\n');
   const graph = sessions().get('m02-staging').graphs['three-commits'];
-  assert.deepEqual(graph.commits.map(c => [c.short, c.refs]), [['40bc459', 'HEAD -> main'], ['3f65e55', ''], ['907a979', '']]);
+  assert.deepEqual(graph.commits.map(c => [c.short, c.refs]), [['40bc459', 'HEAD -> refs/heads/main'], ['3f65e55', ''], ['907a979', '']]);
   const ignore = outputs('m02-ignore');
   assert.match(ignore[0], /shopping\.tmp/);
   assert.doesNotMatch(ignore[1], /shopping\.tmp/);
