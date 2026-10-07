@@ -1,0 +1,38 @@
+rule Application2Schema
+  transform a : Source!Application
+  to s : Target!Schema {
+  s.name = a.name;
+  s.tables ::= a.entities;
+}
+rule Entity2Table
+  transform e : Source!Entity
+  to t : Target!Table {
+  t.name = e.name;
+  var id = new Target!Column;
+  id.name = "id";
+  id.sqlType = "INTEGER";
+  t.columns ::= e.fields;
+  t.columns.add(id);
+  for (r in e.relations) {
+    var column = new Target!Column;
+    column.name = r.name + "_id";
+    column.sqlType = "INTEGER";
+    t.columns.add(column);
+  }
+  t.foreignKeys ::= e.relations;
+}
+rule Field2Column
+  transform f : Source!Field
+  to c : Target!Column {
+  c.name = f.name;
+  if (f.type.toString() = "STRING") { c.sqlType = "VARCHAR(255)"; }
+  else if (f.type.toString() = "BOOLEAN") { c.sqlType = "BOOLEAN"; }
+  else { c.sqlType = "INTEGER"; }
+}
+rule Relation2ForeignKey
+  transform r : Source!Relation
+  to fk : Target!ForeignKey {
+  fk.name = r.name;
+  fk.column = r.name + "_id";
+  fk.target ::= r.target;
+}

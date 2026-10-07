@@ -1,0 +1,655 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>验证模型 — 基于 Eclipse Epsilon 的模型驱动工程</title><meta name="description" content="用 EVL 表达良构性规则：约束、建议性检查（critique）、守卫条件与修复。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"></head><body data-module="5"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">MDE 系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 05</button><div class="dropdown-menu" id="module-menu"><a href="module_01_ZH.html">01 · 什么是模型驱动工程？</a><a href="module_02_ZH.html">02 · 元建模</a><a href="module_03_ZH.html">03 · 构建与查看模型</a><a href="module_04_ZH.html">04 · 查询模型</a><a href="module_05_ZH.html" class="active" aria-current="page">05 · 验证模型</a><a href="module_06_ZH.html">06 · 生成代码与文本</a><a href="module_07_ZH.html">07 · 模型到模型转换</a><a href="module_08_ZH.html">08 · 模型驱动工程与大语言模型</a><a href="module_09_ZH.html">09 · 从 Playground 到真实项目</a><a href="module_10_ZH.html">10 · 综合项目：MiniJDL</a><a href="index_ZH.html#modules">全部模块</a></div></div><a class="lang-switch" href="module_05_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/3 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#s1"><span class="num">1</span><span>为什么验证需要规则</span></a><a href="#s2"><span class="num">2</span><span>约束与建议性检查</span></a><a href="#s3"><span class="num">3</span><span>守卫条件与消息</span></a><a href="#s4"><span class="num">4</span><span>依赖与修复</span></a><a href="#s5"><span class="num">5</span><span>运行并查看 EVL</span></a><a href="#s6"><span class="num">6</span><span>设计验证规则集</span></a><a href="#exercises"><span class="num">7</span><span>练习</span></a><a href="#quiz"><span class="num">8</span><span>自测</span></a><a href="#reading"><span class="num">9</span><span>延伸阅读</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">基于 Eclipse Epsilon 的模型驱动工程 — Ran Wei</div><h1 class="module-title">验证模型</h1><p class="module-lead">用 EVL 表达良构性规则：约束、建议性检查（critique）、守卫条件与修复。</p><div class="hero-chips"><span class="chip chip-time">3 小时</span><span class="chip">3 个时段</span><span class="chip">8 个可运行示例</span><span class="chip">Epsilon Playground</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>为模型编写 EVL 约束与建议性检查。</li><li>用守卫条件、消息和依赖关系报告有用结果。</li><li>解释 Eclipse 中的修复操作以及 Playground 的显示方式。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>建议先学习第 1 至 4 模块。除特别说明外，示例均可在 Playground 中运行。</p><p><a class="download-link" href="downloads/module_05.zip" download>下载本模块全部示例（zip）</a></p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#s1">为什么验证需要规则</a><a href="#s2">约束与建议性检查</a><a href="#s3">守卫条件与消息</a><a href="#s4">依赖与修复</a><a href="#s5">运行并查看 EVL</a><a href="#s6">设计验证规则集</a><a href="#exercises">练习</a><a href="#quiz">自测</a><a href="#reading">延伸阅读</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">3 小时</span></div><p class="plan-lead">时间为估计值，包含运行示例的时间。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">60 分钟</span></div><div class="session-title">验证规则与反馈</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">为什么验证需要规则</a></span><span class="act-min">30</span></li><li class="act act-examples"><span class="act-kind">示例</span><span class="act-what"><a href="#s2">约束与建议性检查</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="mde-series:m05:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">60 分钟</span></div><div class="session-title">守卫条件、依赖与修复</div><ul class="acts"><li class="act act-examples"><span class="act-kind">示例</span><span class="act-what"><a href="#s3">守卫条件与消息</a></span><span class="act-min">30</span></li><li class="act act-examples"><span class="act-kind">示例</span><span class="act-what"><a href="#s4">依赖与修复</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="mde-series:m05:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">60 分钟</span></div><div class="session-title">应用与练习</div><ul class="acts"><li class="act act-examples"><span class="act-kind">示例</span><span class="act-what"><a href="#s5">运行并查看 EVL</a></span><span class="act-min">20</span></li><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s6">设计验证规则集</a></span><span class="act-min">10</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#exercises">六道练习</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">自测</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="mde-series:m05:s3"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>为什么验证需要规则</h2></div>
+<p>元模型规定连接器的源端是输出端口、目标端是输入端口。但只靠这种结构，无法判断两端是否属于不同组件，或信号类型是否兼容。第 4 模块能够<strong>查询</strong>这些事实；本模块进一步说明一个有效架构必须满足什么。Epsilon 的 <strong>EVL</strong>（Epsilon Validation Language）在模型元素上运行规则并报告违反规则之处。</p>
+<p>EVL 在 <code>check</code>、<code>guard</code> 和 <code>message</code> 中使用 EOL 表达式。<code>context Connector</code> 把规则应用到每个连接器。<strong>约束</strong>（constraint）的检查失败时报错误；较轻微的问题由<strong>建议性检查</strong>（critique）报警告。示例既有有效模型，也有故意出错的模型。示例下方的实际输出是本地运行器的文本报告。在 Playground 中，EVL 的控制台保持空白，结果以注释显示在经过验证的模型图上。</p>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>约束与建议性检查</h2></div>
+<p>这个报警器有一处接线错误：一个连接器从 <code>AndGate.sound</code> 接回 <code>AndGate.armed</code>。<code>NoSelfLoop</code> 约束比较源端口和目标端口所属的组件。<code>Connected</code> 建议性检查则问每个输入是否被某个连接器指向。</p>
+<div class="example" id="ex-m05-basic">
+<div class="example-head"><span class="example-label">示例</span><span class="example-title">错误接线的错误与警告</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m05-basic" target="_blank" rel="noopener">在 Playground 中打开 ↗</a></div>
+<div class="example-file">rules.evl</div>
+<pre><code class="language-evl"><span class="hljs-keyword">context</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">constraint</span> <span class="hljs-type">NoSelfLoop</span> {
+    <span class="hljs-keyword">check</span>: <span class="hljs-keyword">self</span>.source.eContainer() &lt;&gt; <span class="hljs-keyword">self</span>.target.eContainer()
+    <span class="hljs-keyword">message</span>: <span class="hljs-string">&quot;A connector joins &quot;</span> + <span class="hljs-keyword">self</span>.source.eContainer().name + <span class="hljs-string">&quot; to itself&quot;</span>
+  }
+}
+<span class="hljs-keyword">context</span> <span class="hljs-type">InPort</span> {
+  <span class="hljs-keyword">critique</span> <span class="hljs-type">Connected</span> {
+    <span class="hljs-keyword">check</span>: <span class="hljs-type">Connector</span>.all.exists(c | c.target = <span class="hljs-keyword">self</span>)
+    <span class="hljs-keyword">message</span>: <span class="hljs-keyword">self</span>.eContainer().name + <span class="hljs-string">&quot;.&quot;</span> + <span class="hljs-keyword">self</span>.name + <span class="hljs-string">&quot; is not connected&quot;</span>
+  }
+}
+</code></pre>
+<details class="example-files"><summary>其他文件: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.armed&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">boolean</span> external;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">以下输出由构建本页时的 Epsilon 2.8.0 实际运行得到。Playground 中的提示措辞可能有所不同，并且不显示关于模型的警告。</div>
+<div class="output"><div class="output-label">输出</div><pre><code>Error [NoSelfLoop]: A connector joins AndGate to itself
+Warning [Connected]: OrGate.door is not connected
+Warning [Connected]: OrGate.window is not connected
+Warning [Connected]: Siren.sound is not connected
+</code></pre></div>
+</div>
+<p>错误指出自环；警告列出没有连接器的输入。<code>OrGate.door</code> 和 <code>OrGate.window</code> 本来就要从模型外部接收信号，因此相对于预期架构，这两条警告是误报。错误的自环还使 <code>Siren.sound</code> 失去连接。好的验证规则集需要领域区分，而不只是更多检查。</p>
+<p>消息应当帮助人定位问题。<code>self.source.eContainer().name</code> 指出连接器源端口所属的组件；只说“连接器无效”会更难处理。违反规则确实使模型不适用于当前任务时，用<strong>约束</strong>；值得检查但不一定让模型无效时，用<strong>建议性检查</strong>。</p>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>守卫条件与消息</h2></div>
+<p>这些示例的元模型给 <code>InPort</code> 增加了布尔属性 <code>external</code>。<strong>守卫条件</strong>（guard）于是可以把规则限制在内部输入上。<code>guard: not self.external</code> 会让 <code>Connected</code> 跳过 <code>door</code>、<code>window</code> 和 <code>armed</code>，但仍检查内部的 <code>open</code> 与 <code>sound</code>。</p>
+<div class="example" id="ex-m05-guards">
+<div class="example-head"><span class="example-label">示例</span><span class="example-title">用守卫条件跳过外部输入</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m05-guards" target="_blank" rel="noopener">在 Playground 中打开 ↗</a></div>
+<div class="example-file">rules.evl</div>
+<pre><code class="language-evl"><span class="hljs-keyword">context</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">constraint</span> <span class="hljs-type">NoSelfLoop</span> {
+    <span class="hljs-keyword">check</span>: <span class="hljs-keyword">self</span>.source.eContainer() &lt;&gt; <span class="hljs-keyword">self</span>.target.eContainer()
+    <span class="hljs-keyword">message</span>: <span class="hljs-string">&quot;A connector joins &quot;</span> + <span class="hljs-keyword">self</span>.source.eContainer().name + <span class="hljs-string">&quot; to itself&quot;</span>
+  }
+}
+<span class="hljs-keyword">context</span> <span class="hljs-type">InPort</span> {
+  <span class="hljs-keyword">critique</span> <span class="hljs-type">Connected</span> {
+    <span class="hljs-keyword">guard</span>: <span class="hljs-keyword">not</span> <span class="hljs-keyword">self</span>.external
+    <span class="hljs-keyword">check</span>: <span class="hljs-type">Connector</span>.all.exists(c | c.target = <span class="hljs-keyword">self</span>)
+    <span class="hljs-keyword">message</span>: <span class="hljs-keyword">self</span>.eContainer().name + <span class="hljs-string">&quot;.&quot;</span> + <span class="hljs-keyword">self</span>.name + <span class="hljs-string">&quot; is not connected&quot;</span>
+  }
+}
+</code></pre>
+<details class="example-files"><summary>其他文件: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">boolean</span> external;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">以下输出由构建本页时的 Epsilon 2.8.0 实际运行得到。Playground 中的提示措辞可能有所不同，并且不显示关于模型的警告。</div>
+<div class="output"><div class="output-label">输出</div><pre><code>All constraints are satisfied.
+</code></pre></div>
+</div>
+<p>连线正确的报警器通过了全部检查。守卫条件回答<strong>什么时候检查</strong>；<code>check</code> 回答<strong>对于适用的元素，什么必须成立</strong>。守卫条件既可以放在单条规则上，也可以放在整个上下文上。守卫条件过宽会掩盖真实错误。练习 4 会比较有无守卫条件的版本。</p>
+<p>另一条规则检查信号兼容性。下一个模型把 <code>Siren.sound</code> 设为模拟信号，而驱动它的输出是数字信号。两个端口都是元模型允许的实例，连接器的结构类型也正确；领域规则仍拒绝这一配对。</p>
+<div class="example" id="ex-m05-types">
+<div class="example-head"><span class="example-label">示例</span><span class="example-title">拒绝信号类型不匹配</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m05-types" target="_blank" rel="noopener">在 Playground 中打开 ↗</a></div>
+<div class="example-file">rules.evl</div>
+<pre><code class="language-evl"><span class="hljs-keyword">context</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">constraint</span> <span class="hljs-type">CompatibleTypes</span> {
+    <span class="hljs-keyword">check</span>: <span class="hljs-keyword">self</span>.source.type = <span class="hljs-keyword">self</span>.target.type
+    <span class="hljs-keyword">message</span>: <span class="hljs-keyword">self</span>.source.eContainer().name + <span class="hljs-string">&quot;.&quot;</span> + <span class="hljs-keyword">self</span>.source.name +
+      <span class="hljs-string">&quot; and &quot;</span> + <span class="hljs-keyword">self</span>.target.eContainer().name + <span class="hljs-string">&quot;.&quot;</span> + <span class="hljs-keyword">self</span>.target.name +
+      <span class="hljs-string">&quot; have different signal types&quot;</span>
+  }
+}
+</code></pre>
+<details class="example-files"><summary>其他文件: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;ANALOG&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">boolean</span> external;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">以下输出由构建本页时的 Epsilon 2.8.0 实际运行得到。Playground 中的提示措辞可能有所不同，并且不显示关于模型的警告。</div>
+<div class="output"><div class="output-label">输出</div><pre><code>Error [CompatibleTypes]: AndGate.sound and Siren.sound have different signal types
+</code></pre></div>
+</div>
+<p>这说明验证不同于基本载入。模型可以被表示和查询，但如果下游生成器依赖连接的含义，就应先确认规则通过。</p>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>依赖与修复</h2></div>
+<p>有时一条规则只有在另一条通过后才有意义。这个草稿模型中，一个组件名称只有两个字母，另一个没有名称。<code>HasName</code> 检查前提；<code>LongEnough</code> 只有在 <code>self.satisfies(&quot;HasName&quot;)</code> 为真时才检查长度。前提规则标记为 <code>@lazy</code>，由依赖它的规则在需要时触发。</p>
+<div class="example" id="ex-m05-dependencies">
+<div class="example-head"><span class="example-label">示例</span><span class="example-title">依赖前提规则</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m05-dependencies" target="_blank" rel="noopener">在 Playground 中打开 ↗</a></div>
+<div class="example-file">rules.evl</div>
+<pre><code class="language-evl"><span class="hljs-keyword">context</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-meta">@lazy</span>
+  <span class="hljs-keyword">constraint</span> <span class="hljs-type">HasName</span> {
+    <span class="hljs-keyword">check</span>: <span class="hljs-keyword">self</span>.name.isDefined() <span class="hljs-keyword">and</span> <span class="hljs-keyword">self</span>.name &lt;&gt; <span class="hljs-string">&quot;&quot;</span>
+    <span class="hljs-keyword">message</span>: <span class="hljs-string">&quot;A component has no name&quot;</span>
+  }
+  <span class="hljs-keyword">constraint</span> <span class="hljs-type">LongEnough</span> {
+    <span class="hljs-keyword">guard</span>: <span class="hljs-keyword">self</span>.satisfies(<span class="hljs-string">&quot;HasName&quot;</span>)
+    <span class="hljs-keyword">check</span>: <span class="hljs-keyword">self</span>.name.length() &gt;= <span class="hljs-number">3</span>
+    <span class="hljs-keyword">message</span>: <span class="hljs-keyword">self</span>.name + <span class="hljs-string">&quot; is shorter than three characters&quot;</span>
+  }
+}
+</code></pre>
+<details class="example-files"><summary>其他文件: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Draft&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AB&quot;</span>/&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">boolean</span> external;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">以下输出由构建本页时的 Epsilon 2.8.0 实际运行得到。Playground 中的提示措辞可能有所不同，并且不显示关于模型的警告。</div>
+<div class="output"><div class="output-label">输出</div><pre><code>Error [LongEnough]: AB is shorter than three characters
+Error [HasName]: A component has no name
+</code></pre></div>
+</div>
+<p>输出有一条关于短名称的消息和一条关于缺失名称的消息。它没有试图计算不存在的名称的长度。<strong>依赖</strong>让报告更集中，也能避免检查表达式自身出错。<a href="https://eclipse.dev/epsilon/doc/evl/" target="_blank" rel="noopener">EVL 参考文档</a>还介绍了多个前提条件可用的 <code>satisfiesAll</code> 与 <code>satisfiesOne</code>。</p>
+<p>EVL 规则可以提供带标题和 EOL <code>do</code> 代码块的<strong>修复</strong>（fix）。下一条建议性检查发现小写的 <code>siren</code>，并提出一个具体的重命名方案。本地运行器只报告检查结果，不执行修复。在 Eclipse 的交互式验证流程中，用户可以选择所提供的修复；Playground 的验证图会显示问题，却不提供 Eclipse 中的交互式修复流程。</p>
+<div class="example" id="ex-m05-fix">
+<div class="example-head"><span class="example-label">示例</span><span class="example-title">为命名建议提供修复</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m05-fix" target="_blank" rel="noopener">在 Playground 中打开 ↗</a></div>
+<div class="example-file">rules.evl</div>
+<pre><code class="language-evl"><span class="hljs-keyword">context</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">critique</span> <span class="hljs-type">Capitalised</span> {
+    <span class="hljs-keyword">check</span>: <span class="hljs-keyword">self</span>.name.matches(<span class="hljs-string">&quot;[A-Z].*&quot;</span>)
+    <span class="hljs-keyword">message</span>: <span class="hljs-keyword">self</span>.name + <span class="hljs-string">&quot; should start with a capital letter&quot;</span>
+    <span class="hljs-keyword">fix</span> {
+      <span class="hljs-keyword">title</span>: <span class="hljs-string">&quot;Rename siren to Siren&quot;</span>
+      <span class="hljs-keyword">do</span> { <span class="hljs-keyword">self</span>.name = <span class="hljs-string">&quot;Siren&quot;</span>; }
+    }
+  }
+}
+</code></pre>
+<details class="example-files"><summary>其他文件: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Draft&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;siren&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">boolean</span> external;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">以下输出由构建本页时的 Epsilon 2.8.0 实际运行得到。Playground 中的提示措辞可能有所不同，并且不显示关于模型的警告。</div>
+<div class="output"><div class="output-label">输出</div><pre><code>Warning [Capitalised]: siren should start with a capital letter
+</code></pre></div>
+</div>
+<p>修复是可执行代码，规则作者必须确保它确实解决问题。这里的修复刻意针对 <code>siren</code> 练习；拿它修复每个小写组件都不合适。不要以为只要声明了修复，验证过程就会自动修改模型。</p>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>运行并查看 EVL</h2></div>
+<p>对于每个示例，先阅读 Flexmi 模型，预测哪些元素应该失败。然后在 Playground 中运行，并切换到经过验证的模型图，把图中的注释与课程示例下的实际输出对照。这两个界面的表达方式不同：本地运行器打印 <code>Error [规则名]</code> 或 <code>Warning [规则名]</code>；Playground 把结果标在受影响的模型元素上。</p>
+<p>如果实际输出中出现模型载入警告，应先排查它，再解释 EVL 结果。未能解析的引用可能使 EVL 表达式因错误原因失败。本模块的验证示例中，引用都能解析；故意制造的是领域规则违反。只有不涉及连接器的命名草稿模型例外。</p>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>设计验证规则集</h2></div>
+<p>围绕项目必须作出的决定编写规则。对于这个架构，第一组实用规则可以要求连接器两端属于不同组件、信号类型相容，以及每个<strong>内部</strong>输入都有入站连接。给每条规则稳定的名称和可操作的消息。建议性规则用 critique。用守卫条件界定适用范围；一条检查依赖另一条时，用依赖关系。</p>
+<p>EVL 全部通过，只能证明<strong>已编写的规则</strong>通过，不能证明所有可能性质。规则集可能并不完整。既要检查应该通过的模型，也要检查应该失败的模型，包括外部输入和空名称这样的边界情况。第 6 模块会从模型生成产物；如果生成结果依赖这些假设，应先运行验证。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">7</span><h2>练习</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">3 分钟</span></div>
+<p><strong>约束还是建议性检查？</strong> 给自环连接器和一个本应来自外部、却没有内部连接器的输入分类，并解释严重程度的选择。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>自环违反预期的接线规则，应作为约束错误。没有内部连接器的输入可能来自外部，因此在模型尚未标明是否为外部输入前，用警告或带守卫条件的建议性检查更合适。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">3 分钟</span></div>
+<p><strong>守卫条件还是检查？</strong> 在 <code>guard: not self.external</code> 和 <code>check: Connector.all.exists(c | c.target = self)</code> 中，哪个表达式决定是否适用，哪个决定是否通过？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>守卫条件决定是否对此输入运行该规则。只有守卫条件通过，才由检查表达式决定该输入是否符合规则。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">3 分钟</span></div>
+<p><strong>依赖。</strong> 长度规则为什么要依赖 <code>HasName</code>？依赖示例报告哪两个问题？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>缺失的名称没有可供检查的长度。依赖示例报告 <code>AB</code> 少于三个字符，以及另一个组件没有名称；它不会为无名称组件给出误导性的长度结果。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>跳过外部输入。</strong> 从错误接线示例的 <code>Connected</code> 建议性检查出发，加一个守卫条件来跳过外部输入，并使用连线正确的报警器。EVL 报告什么？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>带守卫条件的检查只作用于内部输入，而它们在本模型中都已连接：</p>
+<div class="example" id="ex-m05-e4-solution">
+<div class="example-head"><span class="example-label">参考解答</span><span class="example-title">给输入连接检查增加守卫条件</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m05-e4-solution" target="_blank" rel="noopener">在 Playground 中打开 ↗</a></div>
+<div class="example-file">rules.evl</div>
+<pre><code class="language-evl"><span class="hljs-keyword">context</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">constraint</span> <span class="hljs-type">NoSelfLoop</span> {
+    <span class="hljs-keyword">check</span>: <span class="hljs-keyword">self</span>.source.eContainer() &lt;&gt; <span class="hljs-keyword">self</span>.target.eContainer()
+    <span class="hljs-keyword">message</span>: <span class="hljs-string">&quot;A connector joins &quot;</span> + <span class="hljs-keyword">self</span>.source.eContainer().name + <span class="hljs-string">&quot; to itself&quot;</span>
+  }
+}
+<span class="hljs-keyword">context</span> <span class="hljs-type">InPort</span> {
+  <span class="hljs-keyword">critique</span> <span class="hljs-type">Connected</span> {
+    <span class="hljs-keyword">guard</span>: <span class="hljs-keyword">not</span> <span class="hljs-keyword">self</span>.external
+    <span class="hljs-keyword">check</span>: <span class="hljs-type">Connector</span>.all.exists(c | c.target = <span class="hljs-keyword">self</span>)
+    <span class="hljs-keyword">message</span>: <span class="hljs-keyword">self</span>.eContainer().name + <span class="hljs-string">&quot;.&quot;</span> + <span class="hljs-keyword">self</span>.name + <span class="hljs-string">&quot; is not connected&quot;</span>
+  }
+}
+</code></pre>
+<details class="example-files"><summary>其他文件: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">boolean</span> external;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">以下输出由构建本页时的 Epsilon 2.8.0 实际运行得到。Playground 中的提示措辞可能有所不同，并且不显示关于模型的警告。</div>
+<div class="output"><div class="output-label">输出</div><pre><code>All constraints are satisfied.
+</code></pre></div>
+</div>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>修复信号类型。</strong> 在类型不匹配示例中，把 <code>Siren.sound</code> 改为 <code>DIGITAL</code>，重新运行 <code>CompatibleTypes</code>。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>每个连接器两端现在都是相同的信号类型，因此约束通过：</p>
+<div class="example" id="ex-m05-e5-solution">
+<div class="example-head"><span class="example-label">参考解答</span><span class="example-title">修复信号类型</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m05-e5-solution" target="_blank" rel="noopener">在 Playground 中打开 ↗</a></div>
+<div class="example-file">rules.evl</div>
+<pre><code class="language-evl"><span class="hljs-keyword">context</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">constraint</span> <span class="hljs-type">CompatibleTypes</span> {
+    <span class="hljs-keyword">check</span>: <span class="hljs-keyword">self</span>.source.type = <span class="hljs-keyword">self</span>.target.type
+    <span class="hljs-keyword">message</span>: <span class="hljs-keyword">self</span>.source.eContainer().name + <span class="hljs-string">&quot;.&quot;</span> + <span class="hljs-keyword">self</span>.source.name +
+      <span class="hljs-string">&quot; and &quot;</span> + <span class="hljs-keyword">self</span>.target.eContainer().name + <span class="hljs-string">&quot;.&quot;</span> + <span class="hljs-keyword">self</span>.target.name +
+      <span class="hljs-string">&quot; have different signal types&quot;</span>
+  }
+}
+</code></pre>
+<details class="example-files"><summary>其他文件: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">external</span>=<span class="hljs-string">&quot;true&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">boolean</span> external;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">以下输出由构建本页时的 Epsilon 2.8.0 实际运行得到。Playground 中的提示措辞可能有所不同，并且不显示关于模型的警告。</div>
+<div class="output"><div class="output-label">输出</div><pre><code>All constraints are satisfied.
+</code></pre></div>
+</div>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>检查修复。</strong> 在命名示例中，预测用户在 Eclipse 工作流程中选择修复后的名称。然后直接编辑 Flexmi 模型并重新运行规则。仅仅声明修复，会改变原模型吗？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>修复的 <code>do</code> 代码块将名称设为 <code>Siren</code>。声明它并不会在验证时自动执行；下面的参考模型明确应用了这一改动，因此检查通过：</p>
+<div class="example" id="ex-m05-e6-solution">
+<div class="example-head"><span class="example-label">参考解答</span><span class="example-title">应用命名修复</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m05-e6-solution" target="_blank" rel="noopener">在 Playground 中打开 ↗</a></div>
+<div class="example-file">rules.evl</div>
+<pre><code class="language-evl"><span class="hljs-keyword">context</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">critique</span> <span class="hljs-type">Capitalised</span> {
+    <span class="hljs-keyword">check</span>: <span class="hljs-keyword">self</span>.name.matches(<span class="hljs-string">&quot;[A-Z].*&quot;</span>)
+    <span class="hljs-keyword">message</span>: <span class="hljs-keyword">self</span>.name + <span class="hljs-string">&quot; should start with a capital letter&quot;</span>
+    <span class="hljs-keyword">fix</span> {
+      <span class="hljs-keyword">title</span>: <span class="hljs-string">&quot;Rename siren to Siren&quot;</span>
+      <span class="hljs-keyword">do</span> { <span class="hljs-keyword">self</span>.name = <span class="hljs-string">&quot;Siren&quot;</span>; }
+    }
+  }
+}
+</code></pre>
+<details class="example-files"><summary>其他文件: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Draft&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">boolean</span> external;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">以下输出由构建本页时的 Epsilon 2.8.0 实际运行得到。Playground 中的提示措辞可能有所不同，并且不显示关于模型的警告。</div>
+<div class="output"><div class="output-label">输出</div><pre><code>All constraints are satisfied.
+</code></pre></div>
+</div>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">8</span><h2>自测</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div><code>context Connector</code> 选取什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">应用其中规则的连接器实例</button></li><li><button type="button" class="quiz-opt" data-i="1">Flexmi 文件名</button></li><li><button type="button" class="quiz-opt" data-i="2">只有出错的连接器</button></li><li><button type="button" class="quiz-opt" data-i="3">目标元模型</button></li></ol><div class="quiz-expl" hidden>上下文指定被规则检查的模型元素类型。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>EVL 约束失败时报告什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">错误</button></li><li><button type="button" class="quiz-opt" data-i="1">只有警告</button></li><li><button type="button" class="quiz-opt" data-i="2">新模型元素</button></li><li><button type="button" class="quiz-opt" data-i="3">生成文件</button></li></ol><div class="quiz-expl" hidden>约束违反以错误报告。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">3</span><div>建议性检查（critique）用来做什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">取代所有约束</button></li><li><button type="button" class="quiz-opt" data-i="1">把不严重的问题作为警告报告</button></li><li><button type="button" class="quiz-opt" data-i="2">把 XML 转成 YAML</button></li><li><button type="button" class="quiz-opt" data-i="3">自动执行修复</button></li></ol><div class="quiz-expl" hidden>建议性检查是提示性质的验证规则。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">4</span><div>守卫条件做什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">修改元模型</button></li><li><button type="button" class="quiz-opt" data-i="1">限定规则适用的元素</button></li><li><button type="button" class="quiz-opt" data-i="2">打印所有 EOL 变量</button></li><li><button type="button" class="quiz-opt" data-i="3">保存 Flexmi 资源</button></li></ol><div class="quiz-expl" hidden>守卫条件在检查运行前决定适用范围。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>为什么名称长度检查之前要用 <code>self.satisfies(&quot;HasName&quot;)</code>？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">为组件改名</button></li><li><button type="button" class="quiz-opt" data-i="1">检查前提，避免对缺失名称做无意义的长度检查</button></li><li><button type="button" class="quiz-opt" data-i="2">生成文件</button></li><li><button type="button" class="quiz-opt" data-i="3">把建议性检查转为约束</button></li></ol><div class="quiz-expl" hidden>依赖让后续检查取决于先前结果。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">6</span><div>在本地构建中声明 EVL <code>fix</code> 会自动修改模型吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">每次都会。</button></li><li><button type="button" class="quiz-opt" data-i="1">不会；运行器只报告结果，不执行修复。</button></li><li><button type="button" class="quiz-opt" data-i="2">会，但只对建议性检查。</button></li><li><button type="button" class="quiz-opt" data-i="3">会删除模型。</button></li></ol><div class="quiz-expl" hidden>修复是交互式流程中提供的动作，不属于普通检查的自动步骤。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">7</span><div>这些示例中的 EVL 结果在 Playground 哪里显示？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">只在程序源代码中</button></li><li><button type="button" class="quiz-opt" data-i="1">经过验证的模型图上的注释</button></li><li><button type="button" class="quiz-opt" data-i="2">Git 提交消息里</button></li><li><button type="button" class="quiz-opt" data-i="3">只在生成的压缩包中</button></li></ol><div class="quiz-expl" hidden>本地实际输出以文本打印；Playground 用图示注释。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">9</span><h2>延伸阅读</h2></div>
+<ul>
+<li><a href="https://eclipse.dev/epsilon/doc/evl/" target="_blank" rel="noopener">EVL 参考文档</a>介绍上下文、守卫条件、依赖、建议性检查与修复。</li>
+<li><a href="https://eclipse.dev/epsilon/doc/eol/" target="_blank" rel="noopener">EOL 参考文档</a>解释 EVL 规则内部使用的表达式。</li>
+</ul>
+</div><nav class="module-nav" aria-label="全部模块"><a href="module_04_ZH.html">← 模块 04</a><a href="module_06_ZH.html">模块 06 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>
