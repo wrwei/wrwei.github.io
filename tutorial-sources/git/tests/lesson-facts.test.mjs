@@ -126,3 +126,36 @@ test('Module 10 says that tags need their own push, and that nobody can approve 
   assert.match(lesson('en', 10), /GitHub does not let anyone approve their own pull request/);
   assert.match(lesson('zh', 10), /GitHub 不允许任何人批准自己的拉取请求/);
 });
+
+test('Module 9 follow-along uses a new branch and allows editing info/exclude', () => {
+  for (const lang of ['en', 'zh']) assert.match(lesson(lang, 9), /`git branch starters`/, lang);
+  assert.match(lesson('en', 9), /Afterwards, run `git switch main`\./);
+  assert.match(lesson('zh', 9), /做完后运行 `git switch main`。/);
+  assert.match(lesson('en', 9), /The one exception is `info\/exclude`, which you may edit like a `\.gitignore`\./);
+  assert.match(lesson('zh', 9), /唯一的例外是 `info\/exclude`，你可以像编辑 `\.gitignore` 那样编辑它。/);
+});
+
+test('Module 10 advice on protecting main works for solo learners and for the owner', () => {
+  assert.match(lesson('en', 10), /on your own, a required approval would block every merge, because nobody can approve their own pull request\. On a free account, GitHub enforces these rules only in public repositories\./);
+  assert.match(lesson('zh', 10), /一个人做时，要求批准会挡住每一次合并，因为没有人能批准自己的拉取请求。使用免费账号时，GitHub 只在公开仓库中强制执行这些规则。/);
+  assert.match(lesson('en', 10), /\*Do not allow bypassing the above settings\*/);
+  assert.match(lesson('zh', 10), /\*Do not allow bypassing the above settings\*/);
+});
+
+test('Module 10 follow-along: where to start, deleting merged branches, publishing, the practice tag', () => {
+  assert.match(lesson('en', 10), /Start in your home folder \(`cd ~`\), not inside `recipes`\./);
+  assert.match(lesson('zh', 10), /请从主文件夹开始（`cd ~`），不要在 `recipes` 里面创建。/);
+  assert.match(lesson('en', 10), /Alex approves it, merges it, and deletes the branch with \*\*Delete branch\*\*\./);
+  assert.match(lesson('zh', 10), /Alex 批准并合并了它，再用 \*\*Delete branch\*\* 删除分支。/);
+  assert.match(lesson('en', 10), /then choose \*\*Publish release\*\*/);
+  assert.match(lesson('zh', 10), /最后选择 \*\*Publish release\*\*/);
+  assert.match(lesson('en', 10), /To practise, first tag and push `v2\.0`, as the solution's first two commands do\./);
+  assert.match(lesson('zh', 10), /要练习，请先像解答中的前两条命令那样，创建并推送 `v2\.0` 标签。/);
+});
+
+test('Module 10 does not call index.md "the index", nor claim what GitHub release pages show', () => {
+  assert.doesNotMatch(lesson('en', 10), /Both lines belong in the index|the resolved index|the index with all three|updates the index|Keep the index|Generate the index|soda bread to the index/);
+  assert.doesNotMatch(lesson('zh', 10), /留在索引中|解决冲突后的索引|索引中已有|更新索引|让索引保持|生成索引|加进索引/);
+  assert.match(lesson('en', 10), /which `git show` and other tools display/);
+  assert.match(lesson('zh', 10), /`git show` 等工具都会显示这些信息/);
+});

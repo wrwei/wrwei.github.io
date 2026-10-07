@@ -140,12 +140,12 @@ Add a README
 <p>Under <code>objects</code>, each object is a file named after its hash: the first two characters name a folder, and the other 38 the file. So blob <code>871d830f…</code> is the file <code>1d830f4cec…</code> in the folder <code>87</code>. The six folders correspond to the six objects of the two commits: two commits, two trees and two blobs. The README’s blob is shared by both trees, as the figure in Section 1 shows.</p>
 <p>The object files are compressed, so you cannot read them with <code>cat</code>; use <code>git cat-file</code>. As a repository grows, Git packs many objects into a few files under <code>objects/pack</code>, storing similar objects as differences from each other. That is why a repository with a long history usually takes less space than you might expect.</p>
 <div class="callout pitfall"><div class="callout-label">Pitfall</div>
-<p>Never edit or delete files inside <code>.git</code> by hand. A damaged object or reference can make commits unreadable. Everything this module shows has a Git command that does it safely.</p>
+<p>Never edit or delete files inside <code>.git</code> by hand. A damaged object or reference can make commits unreadable. Everything this module shows has a Git command that does it safely. The one exception is <code>info/exclude</code>, which you may edit like a <code>.gitignore</code>.</p>
 </div>
 <span class="section-anchor" id="s5"></span>
 <div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>Branches and HEAD</h2></div>
 <p>A branch is not an object. It is a <strong>ref</strong>, a reference: a name that points at a commit, stored in <code>.git/refs/heads/</code> as a small file containing the commit’s hash. <strong>HEAD</strong> is a ref too, usually a <em>symbolic</em> one: instead of a hash, it names the branch you are on.</p>
-<p>In the session, you read HEAD and <code>main</code>, create a branch, switch to it, and watch the files change. To follow along, run the same commands; your hashes will differ.</p>
+<p>In the session, you read HEAD and <code>main</code>, create a branch, switch to it, and watch the files change. To follow along, run the same commands; your hashes will differ, and <code>ls .git/refs/heads</code> lists all your branches. Afterwards, run <code>git switch main</code>.</p>
 <div class="term" id="term-m09-refs">
 <div class="term-head"><span class="term-label">Try it</span><span class="term-title">Branches and HEAD are small files</span></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
@@ -157,18 +157,18 @@ Add a README
 <pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/refs/heads/main</code></pre>
 <div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
 </code></pre></div>
-<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> soups</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> starters</code></pre>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git/refs/heads</code></pre>
-<div class="output"><div class="output-label">Output</div><pre><code>main  soups
+<div class="output"><div class="output-label">Output</div><pre><code>main  starters
 </code></pre></div>
-<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/refs/heads/soups</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/refs/heads/starters</code></pre>
 <div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
 </code></pre></div>
-<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> soups</code></pre>
-<div class="output"><div class="output-label">Output</div><pre><code>Switched to branch 'soups'
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> starters</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to branch 'starters'
 </code></pre></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
-<div class="output"><div class="output-label">Output</div><pre><code>ref: refs/heads/soups
+<div class="output"><div class="output-label">Output</div><pre><code>ref: refs/heads/starters
 </code></pre></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rev-parse</span> HEAD</code></pre>
 <div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
@@ -177,8 +177,8 @@ Add a README
 </div>
 <ul>
 <li><code>.git/HEAD</code> contains <code>ref: refs/heads/main</code>: you are on <code>main</code>. <code>.git/refs/heads/main</code> contains one line, the hash of the newest commit, <code>8bf3c2d…</code>.</li>
-<li><code>git branch soups</code> creates <code>.git/refs/heads/soups</code>, with the same hash. That one small file is the whole branch, which is why creating a branch is instant and copies nothing (Module 4).</li>
-<li><code>git switch soups</code> changes <code>.git/HEAD</code> to <code>ref: refs/heads/soups</code>. When you commit, Git writes the new commit’s hash into the file of the branch that HEAD names, which is how the branch label moves forward.</li>
+<li><code>git branch starters</code> creates <code>.git/refs/heads/starters</code>, with the same hash. That one small file is the whole branch, which is why creating a branch is instant and copies nothing (Module 4).</li>
+<li><code>git switch starters</code> changes <code>.git/HEAD</code> to <code>ref: refs/heads/starters</code>. When you commit, Git writes the new commit’s hash into the file of the branch that HEAD names, which is how the branch label moves forward.</li>
 <li><code>git rev-parse HEAD</code> turns any name into the hash it stands for. It is the safe way to read refs from scripts.</li>
 </ul>
 <p>Other refs follow the same pattern. Remote-tracking branches such as <code>origin/main</code> live under <code>refs/remotes/</code>, and tags under <code>refs/tags/</code>. A <strong>detached HEAD</strong> (Module 3) is simply a <code>.git/HEAD</code> that contains a commit’s hash directly, instead of the name of a branch, as Exercise 4 shows.</p>

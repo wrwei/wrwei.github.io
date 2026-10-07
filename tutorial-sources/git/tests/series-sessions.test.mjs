@@ -205,7 +205,7 @@ test('Module 9 sessions print what the lesson describes', () => {
   assert.equal(refs[0], 'ref: refs/heads/main\n');
   assert.equal(refs[2], '8bf3c2d58c2d8d9c541c166d6e80435faab5756a\n');
   assert.equal(refs[5], refs[2]);
-  assert.equal(refs[7], 'ref: refs/heads/soups\n');
+  assert.equal(refs[7], 'ref: refs/heads/starters\n');
   assert.equal(outputs('m09-e2-solution')[2], '100644 blob 2ecc1f2d65cf3b272e009b477014267d15171467\tREADME.md\n');
   assert.equal(outputs('m09-e4-solution')[1], '907a97958867987ca6ef7be665cd4b3f86bb08d6\n');
 });
@@ -233,4 +233,11 @@ test('Module 10 sessions print what the lesson describes', () => {
   assert.equal(outputs('m10-e1-solution').at(-1), 'v1.0\nv1.0.1\n');
   assert.deepEqual(outputs('m10-e3-solution'), ['0070943 Add a soda bread recipe\n', 'Sam Lee, Add a soda bread recipe\n']);
   assert.equal(outputs('m10-e4-solution').at(-1), 'v1.0\n');
+});
+
+test('Modules 9 and 10 show what a learner sees, and one commit keeps one hash across sessions', () => {
+  assert.equal(outputs('m09-refs')[7], 'ref: refs/heads/starters\n', 'a branch name that no earlier module uses');
+  assert.match(outputs('m10-conflict')[0], /^From \/srv\/git\/cookbook\n   db5abad\.\.[0-9a-f]{7}  main       -> origin\/main\n/, "Sam's fetch brings in the merged main");
+  assert.equal(sessions().get('m10-conflict').graphs.updated.commits[0].hash, sessions().get('m10-merge').graphs.merged.commits[1].hash, "Sam's catch-up merge has the same hash in every session");
+  assert.match(outputs('m10-merge')[0], /Your branch is behind 'origin\/main' by 2 commits, and can be fast-forwarded\./);
 });

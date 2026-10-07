@@ -140,12 +140,12 @@ Add a README
 <p>在 <code>objects</code> 下，每个对象都是一个以其哈希命名的文件：前两个字符是文件夹名，其余 38 个字符是文件名。所以数据对象 <code>871d830f…</code> 就是文件夹 <code>87</code> 中的文件 <code>1d830f4cec…</code>。这六个文件夹对应两次提交的六个对象：两个提交对象、两个树对象和两个数据对象。README 的数据对象由两个树对象共用，如第 1 节的图所示。</p>
 <p>对象文件是压缩过的，所以你无法用 <code>cat</code> 阅读它们；请使用 <code>git cat-file</code>。随着仓库增长，Git 会把许多对象打包到 <code>objects/pack</code> 下的少数几个文件中，并把相似的对象存储为彼此之间的差异。这就是为什么历史很长的仓库占用的空间通常比你预想的少。</p>
 <div class="callout pitfall"><div class="callout-label">陷阱</div>
-<p>永远不要手动编辑或删除 <code>.git</code> 中的文件。损坏的对象或引用可能导致提交无法读取。本模块展示的每一件事，都有能安全完成它的 Git 命令。</p>
+<p>永远不要手动编辑或删除 <code>.git</code> 中的文件。损坏的对象或引用可能导致提交无法读取。本模块展示的每一件事，都有能安全完成它的 Git 命令。唯一的例外是 <code>info/exclude</code>，你可以像编辑 <code>.gitignore</code> 那样编辑它。</p>
 </div>
 <span class="section-anchor" id="s5"></span>
 <div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>分支与 HEAD</h2></div>
 <p>分支不是对象。它是一个<strong>引用</strong>（ref）：一个指向某次提交的名字，以小文件的形式存放在 <code>.git/refs/heads/</code> 中，文件内容是那次提交的哈希。<strong>HEAD</strong> 也是一个引用，通常是<em>符号引用</em>（symbolic ref）：它不保存哈希，而是写着你所在分支的名字。</p>
-<p>在这个动手环节中，你读取 HEAD 和 <code>main</code>，创建一个分支并切换过去，然后观察这些文件的变化。要跟着操作，请运行同样的命令；你的哈希会有所不同。</p>
+<p>在这个动手环节中，你读取 HEAD 和 <code>main</code>，创建一个分支并切换过去，然后观察这些文件的变化。要跟着操作，请运行同样的命令；你的哈希会有所不同，<code>ls .git/refs/heads</code> 也会列出你所有的分支。做完后运行 <code>git switch main</code>。</p>
 <div class="term" id="term-m09-refs">
 <div class="term-head"><span class="term-label">动手试试</span><span class="term-title">分支和 HEAD 都是小文件</span></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
@@ -157,18 +157,18 @@ Add a README
 <pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/refs/heads/main</code></pre>
 <div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
 </code></pre></div>
-<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> soups</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> starters</code></pre>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git/refs/heads</code></pre>
-<div class="output"><div class="output-label">输出</div><pre><code>main  soups
+<div class="output"><div class="output-label">输出</div><pre><code>main  starters
 </code></pre></div>
-<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/refs/heads/soups</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/refs/heads/starters</code></pre>
 <div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
 </code></pre></div>
-<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> soups</code></pre>
-<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'soups'
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> starters</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'starters'
 </code></pre></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
-<div class="output"><div class="output-label">输出</div><pre><code>ref: refs/heads/soups
+<div class="output"><div class="output-label">输出</div><pre><code>ref: refs/heads/starters
 </code></pre></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rev-parse</span> HEAD</code></pre>
 <div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
@@ -177,8 +177,8 @@ Add a README
 </div>
 <ul>
 <li><code>.git/HEAD</code> 中写着 <code>ref: refs/heads/main</code>：你在 <code>main</code> 上。<code>.git/refs/heads/main</code> 只有一行，即最新提交的哈希 <code>8bf3c2d…</code>。</li>
-<li><code>git branch soups</code> 创建了 <code>.git/refs/heads/soups</code>，其中是同一个哈希。这个小文件就是整个分支，所以创建分支能瞬间完成，而且不复制任何东西（第 4 模块）。</li>
-<li><code>git switch soups</code> 把 <code>.git/HEAD</code> 改成了 <code>ref: refs/heads/soups</code>。你提交时，Git 会把新提交的哈希写进 HEAD 所指分支的文件中，分支标签就是这样向前移动的。</li>
+<li><code>git branch starters</code> 创建了 <code>.git/refs/heads/starters</code>，其中是同一个哈希。这个小文件就是整个分支，所以创建分支能瞬间完成，而且不复制任何东西（第 4 模块）。</li>
+<li><code>git switch starters</code> 把 <code>.git/HEAD</code> 改成了 <code>ref: refs/heads/starters</code>。你提交时，Git 会把新提交的哈希写进 HEAD 所指分支的文件中，分支标签就是这样向前移动的。</li>
 <li><code>git rev-parse HEAD</code> 把任何名字转换成它所代表的哈希。在脚本中读取引用时，这是安全的做法。</li>
 </ul>
 <p>其他引用也遵循同样的模式。<code>origin/main</code> 这样的远程跟踪分支位于 <code>refs/remotes/</code> 下，标签位于 <code>refs/tags/</code> 下。<strong>分离的 HEAD</strong>（第 3 模块）不过是 <code>.git/HEAD</code> 中直接写着某次提交的哈希，而不是分支名，练习 4 会展示这一点。</p>

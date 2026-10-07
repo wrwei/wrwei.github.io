@@ -21,7 +21,7 @@ The sessions show every step with the stand-in server from Module 6. Where a ste
 
 ## Milestone 1: a shared repository {#s2}
 
-Alex creates the project: a new folder, `git init`, three files and a first commit. Then Alex puts it on the server and pushes `main`, and Sam clones it.
+Alex creates the project: a new folder, `git init`, three files and a first commit. Start in your home folder (`cd ~`), not inside `recipes`. Then Alex puts it on the server and pushes `main`, and Sam clones it.
 
 On GitHub:
 - Alex creates an empty repository called `cookbook`, as in Module 6, and pushes to its address instead of `/srv/git/cookbook.git`.
@@ -33,7 +33,7 @@ On GitHub:
 Everything here comes from earlier modules. `git add` names the three files at once. The first commit is a root commit, and `git push -u` creates `main` on the server and makes it the upstream. Sam's clone then has the same single commit, `db5abad`.
 
 ::: tip
-Teams often ask GitHub to enforce the rules. A **ruleset** or **branch protection** on `main` can require a pull request, and an approving review, before anything is merged. [About protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) explains the options. It is optional for this project.
+Teams often ask GitHub to enforce the rules. A **ruleset** or **branch protection** on `main` can require a pull request, and an approving review, before anything is merged. [About protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) explains the options. It is optional for this project, and only for a team: on your own, a required approval would block every merge, because nobody can approve their own pull request. On a free account, GitHub enforces these rules only in public repositories.
 :::
 
 ## Milestone 2: two features at once {#s3}
@@ -56,17 +56,17 @@ To follow along on your own, merge pull request #1 on GitHub first. Then work in
 
 {{SESSION:m10-conflict}}
 
-`git fetch` brings in the merged `main`. `git merge origin/main` stops with a conflict in `index.md`. The markers show Sam's line, `HEAD`, which is the branch Sam is on, against the soup line from `origin/main`. Both lines belong in the index. Sam keeps both, in alphabetical order, and removes the markers. Then `git add`, `git commit` (accepting the ready-made message `Merge remote-tracking branch 'origin/main' into add-bread`) and `git push`.
+`git fetch` brings in the merged `main`. `git merge origin/main` stops with a conflict in `index.md`. The markers show Sam's line, `HEAD`, which is the branch Sam is on, against the soup line from `origin/main`. Both lines belong in `index.md`. Sam keeps both, in alphabetical order, and removes the markers. Then `git add`, `git commit` (accepting the ready-made message `Merge remote-tracking branch 'origin/main' into add-bread`) and `git push`.
 
 The graph shows the result: `add-bread` now contains both the bread commit and everything on `main`, including Alex's merged pull request. On GitHub, the pull request updates by itself, and the conflict warning disappears.
 
 ## Milestone 4: review and merge {#s5}
 
-Alex reviews pull request #2 in the **Files changed** tab, which now shows only Sam's changes: the new bread file and the resolved index. Alex approves it and merges it. Then both people bring their `main` up to date and delete the merged branches, as in Module 7.
+Alex reviews pull request #2 in the **Files changed** tab, which now shows only Sam's changes: the new bread file and the resolved `index.md`. Alex approves it, merges it, and deletes the branch with **Delete branch**. Then both people bring their `main` up to date and delete the merged branches, as in Module 7.
 
 {{SESSION:m10-merge}}
 
-Sam switches to `main`, pulls the merge of pull request #2, deletes the local branch and prunes `origin/add-bread`. `cat index.md` shows the index with all three recipes.
+Sam switches to `main`, pulls the merge of pull request #2, deletes the local branch and prunes `origin/add-bread`. `cat index.md` shows all three recipes.
 
 The graph is the most tangled in this series, so read it from the bottom:
 - the first commit, `db5abad`;
@@ -97,7 +97,7 @@ Tags are not pushed by `git push`; push each one by name, as in `git push origin
 - The graph shows the tag as a yellow label on that commit.
 - When Sam fetches, Git brings the new tag along: `* [new tag] v1.0 -> v1.0`.
 
-To publish the release on GitHub, open the repository's **Releases** page, choose **Draft a new release**, select the tag `v1.0`, and write a title and a short list of what is in it. [Managing releases in a repository](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) shows the steps. A release is a page for people who use the project, built on the tag that Git records.
+To publish the release on GitHub, open the repository's **Releases** page, choose **Draft a new release**, select the tag `v1.0`, and write a title and a short list of what is in it, then choose **Publish release**. [Managing releases in a repository](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) shows the steps. A release is a page for people who use the project, built on the tag that Git records.
 
 ::: keyidea
 That is the whole cycle: branch, commit, push, pull request, review, merge, update, tag. Everything in this series serves one of those steps, and every Git project you join, however large, works this way.
@@ -125,14 +125,14 @@ In the session, Sam merges pull request #3, as the merge on GitHub would. A fix 
 
 ::: solution
 Any two of these:
-- Agree that one person updates the index after each merge, so recipe branches never touch it.
-- Keep the index in alphabetical order, so that different recipes usually go on different lines (though neighbouring lines can still conflict).
+- Agree that one person updates `index.md` after each merge, so recipe branches never touch it.
+- Keep `index.md` in alphabetical order, so that different recipes usually go on different lines (though neighbouring lines can still conflict).
 - Merge `main` into a branch just before opening its pull request, so that whoever is second sees the other change while it is small.
-- Generate the index from the recipe files with a script, instead of editing it by hand.
+- Generate `index.md` from the recipe files with a script, instead of editing it by hand.
 :::
 
 ::: exercise #e3 level=2 kind=coding minutes=8
-**Who added this?** A new member asks who added the soda bread to the index, and in which commit. Find out with `git log`.
+**Who added this?** A new member asks who added the soda bread to `index.md`, and in which commit. Find out with `git log`.
 :::
 
 ::: solution
@@ -144,7 +144,7 @@ Any two of these:
 :::
 
 ::: exercise #e4 level=2 kind=coding minutes=8
-**A tag pushed by mistake.** Alex tagged and pushed `v2.0` by mistake. Remove the tag, locally and on the server.
+**A tag pushed by mistake.** Alex tagged and pushed `v2.0` by mistake. Remove the tag, locally and on the server. To practise, first tag and push `v2.0`, as the solution's first two commands do.
 :::
 
 ::: solution
@@ -160,7 +160,7 @@ Anyone who has already fetched `v2.0` keeps their copy, because fetching never d
 :::
 
 ::: solution
-An annotated tag records who made the release, when, and a message, and GitHub shows that information on the release. It can also be signed. A lightweight tag is only a name for a commit: enough for a private bookmark, such as `before-big-change`, that you do not intend to share.
+An annotated tag records who made the release, when, and a message, which `git show` and other tools display. It can also be signed. A lightweight tag is only a name for a commit: enough for a private bookmark, such as `before-big-change`, that you do not intend to share.
 :::
 
 ::: exercise #e6 level=2 kind=conceptual minutes=7
@@ -168,7 +168,7 @@ An annotated tag records who made the release, when, and a message, and GitHub s
 :::
 
 ::: solution
-A ruleset or branch protection on `main` that requires a pull request with at least one approving review. Pushes straight to `main` are then rejected, and the **Merge pull request** button stays disabled until someone other than the author approves. Everyone keeps working exactly as in this project: branch, push, pull request, review.
+A ruleset or branch protection on `main` that requires a pull request with at least one approving review. Pushes straight to `main` are then rejected, and the **Merge pull request** button stays disabled until someone other than the author approves. With classic branch protection, also turn on *Do not allow bypassing the above settings*, or the rules do not apply to the repository's owner; a ruleset applies to everyone not on its bypass list. Everyone keeps working exactly as in this project: branch, push, pull request, review.
 :::
 
 ## Self-check quiz {#quiz}

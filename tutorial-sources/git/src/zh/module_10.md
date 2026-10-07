@@ -21,7 +21,7 @@
 
 ## 里程碑 1：共享仓库 {#s2}
 
-Alex 创建项目：一个新文件夹、`git init`、三个文件和第一次提交。然后 Alex 把它放到服务器上并推送 `main`，Sam 再克隆它。
+Alex 创建项目：一个新文件夹、`git init`、三个文件和第一次提交。请从主文件夹开始（`cd ~`），不要在 `recipes` 里面创建。然后 Alex 把它放到服务器上并推送 `main`，Sam 再克隆它。
 
 在 GitHub 上：
 - Alex 像第 6 模块那样创建一个名为 `cookbook` 的空仓库，并推送到它的地址，而不是 `/srv/git/cookbook.git`。
@@ -33,7 +33,7 @@ Alex 创建项目：一个新文件夹、`git init`、三个文件和第一次�
 这里的每一步都来自前面的模块。`git add` 一次列出三个文件。第一次提交是根提交，`git push -u` 在服务器上创建 `main` 并把它设为上游。随后 Sam 的克隆中也有了同一次提交 `db5abad`。
 
 ::: tip
-团队常常让 GitHub 来强制执行这些规则。对 `main` 设置**规则集**（ruleset）或**分支保护**（branch protection），可以要求在合并任何东西之前，必须有拉取请求和一次批准的审查。[关于受保护分支](https://docs.github.com/zh/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)解释了这些选项。对本项目来说，这是可选的。
+团队常常让 GitHub 来强制执行这些规则。对 `main` 设置**规则集**（ruleset）或**分支保护**（branch protection），可以要求在合并任何东西之前，必须有拉取请求和一次批准的审查。[关于受保护分支](https://docs.github.com/zh/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)解释了这些选项。对本项目来说，这是可选的，而且只适合多人合作：一个人做时，要求批准会挡住每一次合并，因为没有人能批准自己的拉取请求。使用免费账号时，GitHub 只在公开仓库中强制执行这些规则。
 :::
 
 ## 里程碑 2：同时开发两项功能 {#s3}
@@ -56,17 +56,17 @@ Sam 审查拉取请求 #1，批准后用 **Merge pull request** 合并它，再�
 
 {{SESSION:m10-conflict}}
 
-`git fetch` 取回了合并后的 `main`。`git merge origin/main` 因 `index.md` 中的冲突而停下。冲突标记把 Sam 的那一行（`HEAD`，即 Sam 所在的分支）与来自 `origin/main` 的汤那一行对照显示。两行都应该留在索引中。Sam 按字母顺序保留两行，并删除标记。然后是 `git add`、`git commit`（接受现成的说明 `Merge remote-tracking branch 'origin/main' into add-bread`）和 `git push`。
+`git fetch` 取回了合并后的 `main`。`git merge origin/main` 因 `index.md` 中的冲突而停下。冲突标记把 Sam 的那一行（`HEAD`，即 Sam 所在的分支）与来自 `origin/main` 的汤那一行对照显示。两行都应该留在 `index.md` 中。Sam 按字母顺序保留两行，并删除标记。然后是 `git add`、`git commit`（接受现成的说明 `Merge remote-tracking branch 'origin/main' into add-bread`）和 `git push`。
 
 提交图显示了结果：`add-bread` 现在既包含面包的提交，也包含 `main` 上的一切，其中有 Alex 已合并的拉取请求。在 GitHub 上，拉取请求会自动更新，冲突警告也随之消失。
 
 ## 里程碑 4：审查与合并 {#s5}
 
-Alex 在 **Files changed** 标签页中审查拉取请求 #2，那里现在只显示 Sam 的改动：新的面包文件和解决冲突后的索引。Alex 批准并合并了它。然后两个人都把自己的 `main` 更新到最新，并像第 7 模块那样删除已合并的分支。
+Alex 在 **Files changed** 标签页中审查拉取请求 #2，那里现在只显示 Sam 的改动：新的面包文件和解决冲突后的 `index.md`。Alex 批准并合并了它，再用 **Delete branch** 删除分支。然后两个人都把自己的 `main` 更新到最新，并像第 7 模块那样删除已合并的分支。
 
 {{SESSION:m10-merge}}
 
-Sam 切换到 `main`，拉取拉取请求 #2 的合并，删除本地分支，并清理 `origin/add-bread`。`cat index.md` 显示索引中已有全部三份食谱。
+Sam 切换到 `main`，拉取拉取请求 #2 的合并，删除本地分支，并清理 `origin/add-bread`。`cat index.md` 显示 `index.md` 中已有全部三份食谱。
 
 这张提交图是本系列中最复杂的一张，所以请从下往上读：
 - 第一次提交 `db5abad`；
@@ -97,7 +97,7 @@ Git 有两种标签：
 - 提交图在那次提交上用一个黄色标签显示它。
 - Sam 获取时，Git 会把新标签一起带来：`* [new tag] v1.0 -> v1.0`。
 
-要在 GitHub 上发布这个版本，请打开仓库的 **Releases** 页面，选择 **Draft a new release**，选中标签 `v1.0`，再写一个标题和一份简短的内容清单。[管理仓库中的发行版](https://docs.github.com/zh/repositories/releasing-projects-on-github/managing-releases-in-a-repository)展示了具体步骤。发行版是给项目使用者看的页面，建立在 Git 记录的标签之上。
+要在 GitHub 上发布这个版本，请打开仓库的 **Releases** 页面，选择 **Draft a new release**，选中标签 `v1.0`，再写一个标题和一份简短的内容清单，最后选择 **Publish release**。[管理仓库中的发行版](https://docs.github.com/zh/repositories/releasing-projects-on-github/managing-releases-in-a-repository)展示了具体步骤。发行版是给项目使用者看的页面，建立在 Git 记录的标签之上。
 
 ::: keyidea
 这就是完整的循环：分支、提交、推送、拉取请求、审查、合并、更新、打标签。本系列的每一部分内容都服务于其中的某一步，你将来加入的每个 Git 项目，无论多大，都是这样运作的。
@@ -125,14 +125,14 @@ Git 有两种标签：
 
 ::: solution
 以下任意两种：
-- 约定每次合并之后由一个人更新索引，这样食谱分支就永远不碰它。
-- 让索引保持字母顺序，这样不同的食谱通常位于不同的行（不过相邻的行仍可能冲突）。
+- 约定每次合并之后由一个人更新 `index.md`，这样食谱分支就永远不碰它。
+- 让 `index.md` 保持字母顺序，这样不同的食谱通常位于不同的行（不过相邻的行仍可能冲突）。
 - 在发起拉取请求之前，先把 `main` 合并进分支，这样后提交的人就能在对方的改动还很小时看到它。
-- 用脚本根据食谱文件自动生成索引，而不是手工编辑。
+- 用脚本根据食谱文件自动生成 `index.md`，而不是手工编辑。
 :::
 
 ::: exercise #e3 level=2 kind=coding minutes=8
-**这是谁加的？** 一位新成员问：苏打面包是谁加进索引的？在哪次提交中？请用 `git log` 找出答案。
+**这是谁加的？** 一位新成员问：苏打面包是谁加进 `index.md` 的？在哪次提交中？请用 `git log` 找出答案。
 :::
 
 ::: solution
@@ -144,7 +144,7 @@ Git 有两种标签：
 :::
 
 ::: exercise #e4 level=2 kind=coding minutes=8
-**误推送的标签。** Alex 误打并推送了 `v2.0` 标签。请在本地和服务器上删除这个标签。
+**误推送的标签。** Alex 误打并推送了 `v2.0` 标签。请在本地和服务器上删除这个标签。要练习，请先像解答中的前两条命令那样，创建并推送 `v2.0` 标签。
 :::
 
 ::: solution
@@ -160,7 +160,7 @@ Git 有两种标签：
 :::
 
 ::: solution
-附注标签记录了是谁发布的、什么时候，以及一段说明，GitHub 会在发行版上显示这些信息。它还可以被签名。轻量标签只是某次提交的一个名字：用作不打算分享的私人书签（例如 `before-big-change`）就足够了。
+附注标签记录了是谁发布的、什么时候，以及一段说明，`git show` 等工具都会显示这些信息。它还可以被签名。轻量标签只是某次提交的一个名字：用作不打算分享的私人书签（例如 `before-big-change`）就足够了。
 :::
 
 ::: exercise #e6 level=2 kind=conceptual minutes=7
@@ -168,7 +168,7 @@ Git 有两种标签：
 :::
 
 ::: solution
-对 `main` 设置规则集或分支保护，要求必须有拉取请求，并且至少有一次批准的审查。这样，直接推送到 `main` 会被拒绝，而在作者以外的人批准之前，**Merge pull request** 按钮一直不可用。每个人的工作方式与这个项目中完全一样：创建分支、推送、发起拉取请求、审查。
+对 `main` 设置规则集或分支保护，要求必须有拉取请求，并且至少有一次批准的审查。这样，直接推送到 `main` 会被拒绝，而在作者以外的人批准之前，**Merge pull request** 按钮一直不可用。使用传统的分支保护时，还要勾选 *Do not allow bypassing the above settings*，否则这些规则不约束仓库所有者；规则集则约束绕过列表（bypass list）以外的所有人。每个人的工作方式与这个项目中完全一样：创建分支、推送、发起拉取请求、审查。
 :::
 
 ## 自测 {#quiz}

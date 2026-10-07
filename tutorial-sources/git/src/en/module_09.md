@@ -71,20 +71,20 @@ Under `objects`, each object is a file named after its hash: the first two chara
 The object files are compressed, so you cannot read them with `cat`; use `git cat-file`. As a repository grows, Git packs many objects into a few files under `objects/pack`, storing similar objects as differences from each other. That is why a repository with a long history usually takes less space than you might expect.
 
 ::: pitfall
-Never edit or delete files inside `.git` by hand. A damaged object or reference can make commits unreadable. Everything this module shows has a Git command that does it safely.
+Never edit or delete files inside `.git` by hand. A damaged object or reference can make commits unreadable. Everything this module shows has a Git command that does it safely. The one exception is `info/exclude`, which you may edit like a `.gitignore`.
 :::
 
 ## Branches and HEAD {#s5}
 
 A branch is not an object. It is a **ref**, a reference: a name that points at a commit, stored in `.git/refs/heads/` as a small file containing the commit's hash. **HEAD** is a ref too, usually a *symbolic* one: instead of a hash, it names the branch you are on.
 
-In the session, you read HEAD and `main`, create a branch, switch to it, and watch the files change. To follow along, run the same commands; your hashes will differ.
+In the session, you read HEAD and `main`, create a branch, switch to it, and watch the files change. To follow along, run the same commands; your hashes will differ, and `ls .git/refs/heads` lists all your branches. Afterwards, run `git switch main`.
 
 {{SESSION:m09-refs}}
 
 - `.git/HEAD` contains `ref: refs/heads/main`: you are on `main`. `.git/refs/heads/main` contains one line, the hash of the newest commit, `8bf3c2d…`.
-- `git branch soups` creates `.git/refs/heads/soups`, with the same hash. That one small file is the whole branch, which is why creating a branch is instant and copies nothing (Module 4).
-- `git switch soups` changes `.git/HEAD` to `ref: refs/heads/soups`. When you commit, Git writes the new commit's hash into the file of the branch that HEAD names, which is how the branch label moves forward.
+- `git branch starters` creates `.git/refs/heads/starters`, with the same hash. That one small file is the whole branch, which is why creating a branch is instant and copies nothing (Module 4).
+- `git switch starters` changes `.git/HEAD` to `ref: refs/heads/starters`. When you commit, Git writes the new commit's hash into the file of the branch that HEAD names, which is how the branch label moves forward.
 - `git rev-parse HEAD` turns any name into the hash it stands for. It is the safe way to read refs from scripts.
 
 Other refs follow the same pattern. Remote-tracking branches such as `origin/main` live under `refs/remotes/`, and tags under `refs/tags/`. A **detached HEAD** (Module 3) is simply a `.git/HEAD` that contains a commit's hash directly, instead of the name of a branch, as Exercise 4 shows.

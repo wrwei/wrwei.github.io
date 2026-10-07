@@ -71,20 +71,20 @@ Git 关于一个仓库所知道的一切都在它的 `.git` 文件夹中。在�
 对象文件是压缩过的，所以你无法用 `cat` 阅读它们；请使用 `git cat-file`。随着仓库增长，Git 会把许多对象打包到 `objects/pack` 下的少数几个文件中，并把相似的对象存储为彼此之间的差异。这就是为什么历史很长的仓库占用的空间通常比你预想的少。
 
 ::: pitfall
-永远不要手动编辑或删除 `.git` 中的文件。损坏的对象或引用可能导致提交无法读取。本模块展示的每一件事，都有能安全完成它的 Git 命令。
+永远不要手动编辑或删除 `.git` 中的文件。损坏的对象或引用可能导致提交无法读取。本模块展示的每一件事，都有能安全完成它的 Git 命令。唯一的例外是 `info/exclude`，你可以像编辑 `.gitignore` 那样编辑它。
 :::
 
 ## 分支与 HEAD {#s5}
 
 分支不是对象。它是一个**引用**（ref）：一个指向某次提交的名字，以小文件的形式存放在 `.git/refs/heads/` 中，文件内容是那次提交的哈希。**HEAD** 也是一个引用，通常是*符号引用*（symbolic ref）：它不保存哈希，而是写着你所在分支的名字。
 
-在这个动手环节中，你读取 HEAD 和 `main`，创建一个分支并切换过去，然后观察这些文件的变化。要跟着操作，请运行同样的命令；你的哈希会有所不同。
+在这个动手环节中，你读取 HEAD 和 `main`，创建一个分支并切换过去，然后观察这些文件的变化。要跟着操作，请运行同样的命令；你的哈希会有所不同，`ls .git/refs/heads` 也会列出你所有的分支。做完后运行 `git switch main`。
 
 {{SESSION:m09-refs}}
 
 - `.git/HEAD` 中写着 `ref: refs/heads/main`：你在 `main` 上。`.git/refs/heads/main` 只有一行，即最新提交的哈希 `8bf3c2d…`。
-- `git branch soups` 创建了 `.git/refs/heads/soups`，其中是同一个哈希。这个小文件就是整个分支，所以创建分支能瞬间完成，而且不复制任何东西（第 4 模块）。
-- `git switch soups` 把 `.git/HEAD` 改成了 `ref: refs/heads/soups`。你提交时，Git 会把新提交的哈希写进 HEAD 所指分支的文件中，分支标签就是这样向前移动的。
+- `git branch starters` 创建了 `.git/refs/heads/starters`，其中是同一个哈希。这个小文件就是整个分支，所以创建分支能瞬间完成，而且不复制任何东西（第 4 模块）。
+- `git switch starters` 把 `.git/HEAD` 改成了 `ref: refs/heads/starters`。你提交时，Git 会把新提交的哈希写进 HEAD 所指分支的文件中，分支标签就是这样向前移动的。
 - `git rev-parse HEAD` 把任何名字转换成它所代表的哈希。在脚本中读取引用时，这是安全的做法。
 
 其他引用也遵循同样的模式。`origin/main` 这样的远程跟踪分支位于 `refs/remotes/` 下，标签位于 `refs/tags/` 下。**分离的 HEAD**（第 3 模块）不过是 `.git/HEAD` 中直接写着某次提交的哈希，而不是分支名，练习 4 会展示这一点。
