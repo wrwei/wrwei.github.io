@@ -1,0 +1,55 @@
+title: Tidy up after a squash merge
+title-zh: 压缩合并之后的整理
+role: solution
+---
+# A shared recipes repository: Alex and Sam each have a clone
+> mkdir recipes
+> cd recipes
+> git init
++hidden README.md
+# Family recipes
+
+Recipes we cook again and again.
++end
+> git add README.md
+> git commit -m "Add a README"
++hidden pancakes.md
+# Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
++end
+> git add pancakes.md
+> git commit -m "Add a pancake recipe"
+> git init --bare /srv/git/recipes.git
+> git remote add origin /srv/git/recipes.git
+> git push -u origin main
+> git config --global pull.rebase false
+@as sam
+> git clone /srv/git/recipes.git
+> cd recipes
+> git config --global pull.rebase false
+@as alex
+# Alex has pushed a branch with a soup recipe
+> git switch -c add-soups
++hidden soup.md
+# Tomato soup
++end
+> git add soup.md
+> git commit -m "Add a tomato soup recipe"
+> git push -u origin add-soups
+# The pull request is merged with GitHub's "Squash and merge": one new commit on main, and the branch is deleted
+@as sam
+> git fetch
+> git merge --squash origin/add-soups
+> git commit -m "Add a tomato soup recipe (#1)"
+> git push
+> git push origin --delete add-soups
+@as alex
+$ git switch main
+$ git pull
+$ git fetch --prune
+$! git branch -d add-soups
+$ git diff main add-soups
+$ git branch -D add-soups

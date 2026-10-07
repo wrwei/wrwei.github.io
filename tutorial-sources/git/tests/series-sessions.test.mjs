@@ -107,3 +107,82 @@ test('the hashes quoted in the prose of Modules 3 and 4 are the ones the session
   assert.equal(outputs('m04-switch-c')[3], '* breakfast 5ad8c30 Add a porridge recipe\n  main      288d56b Add a pancake recipe\n');
   assert.equal(outputs('m04-fast-forward')[1], 'Deleted branch desserts (was 4d632df).\n');
 });
+
+const people = id => sessions().get(id).record.filter(r => r.kind === 'as').map(r => r.persona);
+
+test('Module 6 sessions print what the lesson describes', () => {
+  const push = outputs('m06-first-push');
+  assert.equal(push[0], 'Initialized empty Git repository in /srv/git/recipes.git/\n');
+  assert.equal(push[2], 'origin\t/srv/git/recipes.git (fetch)\norigin\t/srv/git/recipes.git (push)\n');
+  assert.equal(push[3], "To /srv/git/recipes.git\n * [new branch]      main -> main\nbranch 'main' set up to track 'origin/main'.\n");
+  assert.match(push[4], /Your branch is up to date with 'origin\/main'\./);
+  assert.deepEqual(people('m06-first-push'), []);
+  const clone = outputs('m06-clone');
+  assert.equal(clone[0], "Cloning into 'recipes'...\ndone.\n");
+  assert.equal(clone[5], '* main\n  remotes/origin/HEAD -> origin/main\n  remotes/origin/main\n');
+  assert.deepEqual(people('m06-clone'), ['sam']);
+  const fetch = outputs('m06-fetch-pull');
+  assert.match(fetch[2], /^To \/srv\/git\/recipes\.git\n   8bf3c2d\.\.d5392e7  main -> main\n$/);
+  assert.match(fetch[3], /Your branch is up to date with 'origin\/main'\./, 'before fetching, Sam\'s clone does not know about the new commit');
+  assert.match(fetch[5], /Your branch is behind 'origin\/main' by 1 commit, and can be fast-forwarded\./);
+  assert.equal(fetch[6], 'd5392e7 Add a lemon cake recipe\n');
+  assert.deepEqual(people('m06-fetch-pull'), ['sam']);
+  const rejected = sessions().get('m06-rejected').record.filter(r => r.kind === 'command');
+  assert.equal(rejected[2].ok, false);
+  assert.match(rejected[2].output, / ! \[rejected\]        main -> main \(fetch first\)/);
+  assert.equal(rejected[3].ok, false);
+  assert.match(rejected[3].output, /fatal: Need to specify how to reconcile divergent branches\.\n$/);
+  assert.match(rejected[5].output, /^Merge made by the 'ort' strategy\./);
+  assert.equal(sessions().get('m06-rejected').graphs.shared.commits[0].subject, "Merge branch 'main' of /srv/git/recipes");
+  assert.match(outputs('m06-e4-solution').at(-1), /\* soups 995e901 \[origin\/soups\] Add a tomato soup recipe/);
+});
+
+test('Module 7 sessions print what the lesson describes', () => {
+  assert.match(outputs('m07-feature-branch')[3], /branch 'add-soups' set up to track 'origin\/add-soups'\./);
+  const review = outputs('m07-review');
+  assert.equal(review[1], "Switched to a new branch 'add-soups'\nbranch 'add-soups' set up to track 'origin/add-soups'.\n");
+  assert.equal(review[2], '22abb2e Add a tomato soup recipe\n');
+  assert.match(review[3], /^diff --git a\/soup\.md b\/soup\.md\nnew file mode 100644\n/);
+  assert.equal(outputs('m07-address-review').at(-1), 'b9835b7 List the soup ingredients\n22abb2e Add a tomato soup recipe\n');
+  const tidy = sessions().get('m07-after-merge');
+  assert.deepEqual(people('m07-after-merge'), []);
+  assert.equal(tidy.graphs.merged.commits[0].subject, "Merge branch 'add-soups'");
+  assert.equal(outputs('m07-after-merge')[3], 'From /srv/git/recipes\n - [deleted]         (none)     -> origin/add-soups\n');
+  const update = sessions().get('m07-update-branch');
+  assert.match(outputs('m07-update-branch')[1], /Your branch is up to date with 'origin\/add-breads'\./);
+  assert.equal(update.graphs.updated.commits[0].subject, "Merge remote-tracking branch 'origin/main' into add-breads");
+  const fork = outputs('m07-fork');
+  assert.match(fork[3], /upstream\t\/srv\/git\/recipes\.git \(fetch\)/);
+  assert.deepEqual(people('m07-fork'), ['sam', 'alex', 'sam']);
+});
+
+test('Module 8 sessions print what the lesson describes', () => {
+  assert.match(outputs('m08-stash')[0], /^Saved working directory and index state WIP on main: 8bf3c2d Add a pancake recipe\n$/);
+  assert.match(outputs('m08-stash').at(-1), /\+- a pinch of\n$/);
+  const reset = outputs('m08-reset');
+  assert.match(reset[2], /Changes to be committed:/);
+  assert.match(reset[5], /Changes not staged for commit:/);
+  assert.equal(reset[6], '8bf3c2d Add a pancake recipe\n907a979 Add a README\n');
+  const rebase = sessions().get('m08-rebase');
+  assert.equal(rebase.graphs.before.commits.length, 4);
+  assert.deepEqual(rebase.graphs.after.commits.map(c => c.parents.length), [1, 1, 1, 1, 0]);
+  assert.match(outputs('m08-rebase')[0], /^Successfully rebased and updated refs\/heads\/soups\.\n$/);
+  assert.match(outputs('m08-rebase')[1], /! \[rejected\]        soups -> soups \(non-fast-forward\)/);
+  assert.match(outputs('m08-rebase')[2], /\+ 968c34b\.\.\.a11c867 soups -> soups \(forced update\)/);
+  const squash = outputs('m08-squash');
+  assert.equal(squash[0], '49f29eb Add a soda bread recipe\nbc5616c Add a tomato soup recipe\n8bf3c2d Add a pancake recipe\n907a979 Add a README\n', 'the to-do list in the lesson names these hashes');
+  assert.match(squash[2], /^\[soups 2b52993\] fixup! Add a tomato soup recipe\n/);
+  assert.equal(squash.at(-1), '4af79ad Add a soda bread recipe\n86756a5 Add a tomato soup recipe\n8bf3c2d Add a pancake recipe\n907a979 Add a README\n');
+  const reflog = outputs('m08-reflog');
+  assert.equal(reflog[3], '8bf3c2d HEAD@{0}: reset: moving to HEAD~2\nab03771 HEAD@{1}: commit: Add a tomato soup recipe\n98b66a3 HEAD@{2}: commit: Add a lemon cake recipe\n8bf3c2d HEAD@{3}: commit: Add a pancake recipe\n907a979 HEAD@{4}: commit (initial): Add a README\n');
+  assert.equal(reflog.at(-1), reflog[0], 'the reset restores the history exactly');
+});
+
+test('the prose of Modules 6 to 8 quotes what the sessions print', () => {
+  assert.match(outputs('m06-rejected')[3], /^From \/srv\/git\/recipes\n   8bf3c2d\.\.d5392e7  main       -> origin\/main\n/);
+  assert.match(outputs('m07-feature-branch')[4], /\n  main      8bf3c2d \[origin\/main\] Add a pancake recipe\n$/);
+  assert.match(outputs('m07-address-review')[2], /   22abb2e\.\.b9835b7  add-soups -> add-soups\n$/);
+  assert.equal(outputs('m07-e5-solution')[4], '', 'git diff main add-soups finds no difference after the squash merge');
+  assert.match(outputs('m07-e5-solution')[3], /^error: the branch 'add-soups' is not fully merged\n/);
+  assert.match(outputs('m08-e5-solution')[1], /<<<<<<< HEAD\n- 40 g sugar\n=======\n- 30 g sugar\n>>>>>>> cbca0db \(Use less sugar\)\n/, 'in a rebase, HEAD is the new base');
+});

@@ -37,13 +37,21 @@ Use these renderings in every Chinese page. On first use in a module, give the E
 | remote (repository) | 远程仓库 | |
 | clone / fetch / pull / push | 克隆 / 获取 / 拉取 / 推送 | |
 | tracking branch / upstream | 跟踪分支 / 上游 | |
+| remote-tracking branch | 远程跟踪分支 | origin/main |
+| bare repository | 裸仓库 | |
+| divergent (branches) | 分叉 | |
+| feature branch / feature-branch workflow | 功能分支 / 功能分支工作流 | |
 | pull request | 拉取请求 | GitHub's Chinese interface |
 | fork | 复刻 | GitHub's Chinese interface |
 | issue | 议题 | GitHub's Chinese interface |
-| code review | 代码评审 | |
-| rebase | 变基 | |
+| code review (the practice) | 代码评审 | |
+| review (a pull request) | 审查 | GitHub's Chinese docs; GitHub's buttons stay in English |
+| rebase / interactive rebase | 变基 / 交互式变基 | |
+| to-do list (of a rebase) | 待办列表 | |
+| reset | 重置 | git reset |
+| force push | 强制推送 | |
 | squash | 压缩 | |
-| stash | 储藏 | |
+| stash | 贮藏 | as in Pro Git's Chinese edition |
 | reflog | 引用日志（reflog） | |
 | tag / release | 标签 / 发布 | |
 | terminal / command line | 终端 / 命令行 | |
