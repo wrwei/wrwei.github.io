@@ -163,7 +163,7 @@ Git 报告了 `Updating 288d56b..4d632df` 和 `Fast-forward`：它把 `main` 从
 :::
 
 ::: exercise #e5 level=1 kind=coding minutes=8
-**删除一个从未合并的分支。** 名为 `experiment` 的分支保存着一份失败的食谱。请删除这个分支。
+**删除一个从未合并的分支。** 名为 `experiment` 的分支保存着一份失败的食谱。请删除这个分支。要动手试试，请先创建 `experiment`，在上面提交一些内容，再切换回 `main`。
 :::
 
 ::: solution

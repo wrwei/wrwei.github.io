@@ -96,3 +96,14 @@ test('Module 5 sessions print what the lesson describes', () => {
   assert.match(outputs('m05-no-conflict')[1], /- 250 g flour[\s\S]*rest for 20 minutes/);
   assert.equal(outputs('m05-e6-solution')[0], 'pancakes.md:6: leftover conflict marker\npancakes.md:8: leftover conflict marker\npancakes.md:10: leftover conflict marker\n');
 });
+
+test('the hashes quoted in the prose of Modules 3 and 4 are the ones the sessions make', () => {
+  assert.match(outputs('m03-revert')[1], /^\[main 654de4f\] Use more flour\n/);
+  assert.equal(outputs('m03-revert')[3], '4407f3a Revert "Use more flour"\n654de4f Use more flour\n1ad5842 Say what the notes are for\n');
+  assert.deepEqual(sessions().get('m04-branches').graphs['two-labels'].commits.map(c => c.short), ['288d56b', '02804ba']);
+  assert.match(outputs('m04-branches')[5], /^\[desserts ccf2a69\] Add a lemon cake recipe\n/);
+  assert.deepEqual(sessions().get('m04-three-way').graphs.merged.commits.map(c => [c.short, c.parents.map(p => p.slice(0, 7))]), [
+    ['e59bfd4', ['5049848', '689ed1b']], ['689ed1b', ['288d56b']], ['5049848', ['288d56b']], ['288d56b', ['02804ba']], ['02804ba', []]]);
+  assert.equal(outputs('m04-switch-c')[3], '* breakfast 5ad8c30 Add a porridge recipe\n  main      288d56b Add a pancake recipe\n');
+  assert.equal(outputs('m04-fast-forward')[1], 'Deleted branch desserts (was 4d632df).\n');
+});

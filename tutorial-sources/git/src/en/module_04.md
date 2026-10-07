@@ -163,7 +163,7 @@ If `pancakes.md` is the same on both branches, Git switches and carries your unc
 :::
 
 ::: exercise #e5 level=1 kind=coding minutes=8
-**Delete a branch that was never merged.** A branch called `experiment` holds a recipe that did not work. Delete the branch.
+**Delete a branch that was never merged.** A branch called `experiment` holds a recipe that did not work. Delete the branch. To try it, first create `experiment`, commit something on it, and switch back to `main`.
 :::
 
 ::: solution

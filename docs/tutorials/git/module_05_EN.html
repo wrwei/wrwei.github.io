@@ -4,13 +4,14 @@
 <p>In Module 4, Git combined two branches on its own. It can do that because it merges line by line. It compares each branch with the commit where they split, and takes every change from whichever side made it. Changes to different files combine automatically, and so do changes to different parts of the same file.</p>
 <p>Sometimes that is not enough. A <strong>merge conflict</strong> happens when both branches changed the same lines in different ways, or when one branch deleted a file that the other changed. Git cannot know which version is right: perhaps one is, perhaps you need parts of both, perhaps neither. So it does as much of the merge as it can, stops, and asks you to decide the rest.</p>
 <p>A conflict is not an error, and it does not mean that anything is broken or lost. Both versions are safe, and Git shows you exactly where they disagree. Conflicts are a normal part of working with other people, and of working on several branches yourself. This module shows you how to read one, how to resolve it, how to back out when you are not ready, and how to keep conflicts rare and small.</p>
-<p>Merging is not the only way to meet a conflict. Reverting an old commit (Module 3), pulling other people’s work (Module 6) and rebasing (Module 8) combine changes in the same way, and can stop in the same way. The markers and the steps to resolve them are the same every time, so what you learn here applies to all of them.</p>
+<p>Merging is not the only way to meet a conflict. Reverting an old commit (Module 3), pulling other people’s work (Module 6) and rebasing (Module 8) combine changes in the same way, and can stop in the same way. The markers look the same, and you resolve each file the same way: edit it, then <code>git add</code> it. Only the command that finishes or abandons the operation differs, such as <code>git revert --continue</code> instead of <code>git commit</code>, and <code>git status</code> tells you which one to use.</p>
 <div class="callout analogy"><div class="callout-label">Analogy</div>
 <p>Two editors mark up the same manuscript. One rewrites a sentence in chapter 2, the other fixes a typo in chapter 9, and both sets of changes go in. But if both rewrite the <em>same</em> sentence in different ways, someone has to decide which wording the book keeps.</p>
 </div>
 <span class="section-anchor" id="s2"></span>
 <div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>When Git merges on its own</h2></div>
-<p>First, a merge that succeeds although both branches changed the same file. The recipe starts with 200 g of flour and a 30-minute rest. On a branch called <code>resting-time</code>, the rest is shortened to 20 minutes; meanwhile, on <code>main</code>, the flour goes up to 250 g. The two changes are several lines apart. To follow along, make those two commits yourself, one on each branch, and merge from <code>main</code>.</p>
+<p>First, a merge that succeeds although both branches changed the same file. The recipe starts with 200 g of flour and a 30-minute rest. On a branch called <code>resting-time</code>, the rest is shortened to 20 minutes; meanwhile, on <code>main</code>, the flour goes up to 250 g. The two changes are several lines apart.</p>
+<p>To follow along, first give your recipe a <code>- 50 g sugar</code> line and the method line <code>Mix everything and leave the batter to rest for 30 minutes.</code>, as in the <code>cat</code> output below, and commit on <code>main</code>. Then create <code>resting-time</code>, change the resting time and commit; switch back to <code>main</code>, change the flour and commit; and merge <code>resting-time</code>.</p>
 <div class="term" id="term-m05-no-conflict">
 <div class="term-head"><span class="term-label">Try it</span><span class="term-title">Two changes to one file, no conflict</span></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> resting-time</code></pre>
@@ -36,7 +37,7 @@ Mix everything and leave the batter to rest for 20 minutes.
 <span class="section-anchor" id="s3"></span>
 <div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>Reading and resolving a conflict</h2></div>
 <p>This time the two branches change the same line. The recipe starts with 50 g of sugar. On the branch <code>less-sugar</code>, someone changes it to 30 g (“Use less sugar”); meanwhile, on <code>main</code>, someone changes it to 40 g (“Reduce the sugar a little”). Both are reasonable, and they disagree, so Git cannot merge them alone.</p>
-<p>In the session, you are on <code>main</code> and merge <code>less-sugar</code>. The merge stops with a conflict, and you resolve it step by step: look at the state with <code>git status</code>, read the file, edit it into the version you want, mark it resolved, and commit.</p>
+<p>In the session, you are on <code>main</code> and merge <code>less-sugar</code>. The merge stops with a conflict, and you resolve it step by step: look at the state with <code>git status</code>, read the file, edit it into the version you want, mark it resolved, and commit. To follow along, create <code>less-sugar</code>, change the sugar to 30 g and commit, switch back to <code>main</code>, change it to 40 g and commit, then merge <code>less-sugar</code>.</p>
 <div class="term" id="term-m05-conflict">
 <div class="term-head"><span class="term-label">Try it</span><span class="term-title">Resolve a merge conflict</span></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> less-sugar</code></pre>
@@ -123,7 +124,7 @@ Changes to be committed:
 </div>
 <span class="section-anchor" id="s4"></span>
 <div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>Backing out of a merge</h2></div>
-<p>Sometimes you start a merge and realise that you cannot resolve it now: you need to ask a colleague which version is right, or the conflict is bigger than you expected. <code>git merge --abort</code> puts everything back as it was before the merge started, as if you had never run it. In the session, the sugar conflict happens again, and this time you back out.</p>
+<p>Sometimes you start a merge and realise that you cannot resolve it now: you need to ask a colleague which version is right, or the conflict is bigger than you expected. <code>git merge --abort</code> puts everything back as it was before the merge started, as if you had never run it. In the session, the sugar conflict happens again, and this time you back out. In your own repository <code>less-sugar</code> is already merged, so to try this, make a fresh conflict: for example, change the eggs line one way on a new branch and another way on <code>main</code>, then merge that branch.</p>
 <div class="term" id="term-m05-abort">
 <div class="term-head"><span class="term-label">Try it</span><span class="term-title">Back out of a merge</span></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> less-sugar</code></pre>
@@ -159,7 +160,7 @@ Mix everything and leave the batter to rest for 30 minutes.
 <li><strong>Keep branches short-lived and commits focused.</strong> A branch that lives for a day collects fewer surprises than one that lives for a month, and a commit that does one thing is easier to merge, and to understand when it conflicts.</li>
 <li><strong>Talk to each other.</strong> Agree who works on which files, and speak up before two people rework the same part.</li>
 <li><strong>Do not reformat whole files on a feature branch.</strong> Re-indenting a file, or changing its line endings, touches every line, so it conflicts with every other change to that file. If a file needs reformatting, do it in a commit of its own, agreed with everyone, and merge it quickly.</li>
-<li><strong>Check before committing a resolution.</strong> A forgotten marker line is easy to miss in a long file. <code>git diff --check</code> reports leftover conflict markers, and Exercise 6 shows it at work.</li>
+<li><strong>Check before committing a resolution.</strong> A forgotten marker line is easy to miss in a long file. Run <code>git diff --check</code> after editing and before <code>git add</code>: it reports leftover conflict markers. If you have already staged the file, use <code>git diff --staged --check</code>. Exercise 6 shows the check at work.</li>
 </ul>
 <div class="callout keyidea"><div class="callout-label">Key idea</div>
 <p>A conflict is Git asking a question, not reporting a failure. Read the markers, decide what the file should say, then <code>git add</code> and <code>git commit</code>. When you are not ready to answer, <code>git merge --abort</code> takes you back to where you started.</p>
@@ -259,7 +260,7 @@ Mix everything and leave the batter to rest for 30 minutes.
 <p>Any of these: talk first and let one person make the change; keep the branches short, so that one change is merged before the other begins; merge <code>main</code> into each branch often, so that the second cook sees the first change before editing the same line.</p>
 </div></details>
 <div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">4 min</span></div>
-<p><strong>A leftover marker.</strong> Someone resolved the sugar conflict in a hurry and committed the file with the markers still in it. Find them and fix the file.</p>
+<p><strong>A leftover marker.</strong> Someone resolved the sugar conflict in a hurry and committed the file with the markers still in it. Find them and fix the file. To try it, make a conflict as in Section 3, then <code>git add</code> and commit the file without removing the markers.</p>
 </div>
 <details class="solution"><summary>Show solution</summary><div class="details-body">
 <p><code>git diff --check</code> reports leftover conflict markers, and fails when it finds any; comparing with <code>HEAD~1</code> checks what the last commit changed:</p>
@@ -287,7 +288,7 @@ Mix everything and leave the batter to rest for 30 minutes.
 </code></pre></div>
 <div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
 </div>
-<p>Run <code>git diff --check</code> (without arguments, for your unstaged changes) before you commit a resolution, and you will not need this repair.</p>
+<p>Run <code>git diff --check</code> before you <code>git add</code> a resolution (or <code>git diff --staged --check</code> after it), and you will not need this repair.</p>
 </div></details>
 <span class="section-anchor" id="quiz"></span>
 <div class="section-header" data-sec="quiz"><span class="section-num">7</span><h2>Self-check quiz</h2></div>

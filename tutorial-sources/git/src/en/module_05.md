@@ -6,7 +6,7 @@ Sometimes that is not enough. A **merge conflict** happens when both branches ch
 
 A conflict is not an error, and it does not mean that anything is broken or lost. Both versions are safe, and Git shows you exactly where they disagree. Conflicts are a normal part of working with other people, and of working on several branches yourself. This module shows you how to read one, how to resolve it, how to back out when you are not ready, and how to keep conflicts rare and small.
 
-Merging is not the only way to meet a conflict. Reverting an old commit (Module 3), pulling other people's work (Module 6) and rebasing (Module 8) combine changes in the same way, and can stop in the same way. The markers and the steps to resolve them are the same every time, so what you learn here applies to all of them.
+Merging is not the only way to meet a conflict. Reverting an old commit (Module 3), pulling other people's work (Module 6) and rebasing (Module 8) combine changes in the same way, and can stop in the same way. The markers look the same, and you resolve each file the same way: edit it, then `git add` it. Only the command that finishes or abandons the operation differs, such as `git revert --continue` instead of `git commit`, and `git status` tells you which one to use.
 
 ::: analogy
 Two editors mark up the same manuscript. One rewrites a sentence in chapter 2, the other fixes a typo in chapter 9, and both sets of changes go in. But if both rewrite the *same* sentence in different ways, someone has to decide which wording the book keeps.
@@ -14,7 +14,9 @@ Two editors mark up the same manuscript. One rewrites a sentence in chapter 2, t
 
 ## When Git merges on its own {#s2}
 
-First, a merge that succeeds although both branches changed the same file. The recipe starts with 200 g of flour and a 30-minute rest. On a branch called `resting-time`, the rest is shortened to 20 minutes; meanwhile, on `main`, the flour goes up to 250 g. The two changes are several lines apart. To follow along, make those two commits yourself, one on each branch, and merge from `main`.
+First, a merge that succeeds although both branches changed the same file. The recipe starts with 200 g of flour and a 30-minute rest. On a branch called `resting-time`, the rest is shortened to 20 minutes; meanwhile, on `main`, the flour goes up to 250 g. The two changes are several lines apart.
+
+To follow along, first give your recipe a `- 50 g sugar` line and the method line `Mix everything and leave the batter to rest for 30 minutes.`, as in the `cat` output below, and commit on `main`. Then create `resting-time`, change the resting time and commit; switch back to `main`, change the flour and commit; and merge `resting-time`.
 
 {{SESSION:m05-no-conflict}}
 
@@ -26,7 +28,7 @@ Changes on neighbouring lines can still conflict, even when they do not touch th
 
 This time the two branches change the same line. The recipe starts with 50 g of sugar. On the branch `less-sugar`, someone changes it to 30 g ("Use less sugar"); meanwhile, on `main`, someone changes it to 40 g ("Reduce the sugar a little"). Both are reasonable, and they disagree, so Git cannot merge them alone.
 
-In the session, you are on `main` and merge `less-sugar`. The merge stops with a conflict, and you resolve it step by step: look at the state with `git status`, read the file, edit it into the version you want, mark it resolved, and commit.
+In the session, you are on `main` and merge `less-sugar`. The merge stops with a conflict, and you resolve it step by step: look at the state with `git status`, read the file, edit it into the version you want, mark it resolved, and commit. To follow along, create `less-sugar`, change the sugar to 30 g and commit, switch back to `main`, change it to 40 g and commit, then merge `less-sugar`.
 
 {{SESSION:m05-conflict}}
 
@@ -51,7 +53,7 @@ Editors such as Visual Studio Code highlight conflicts in colour and offer butto
 
 ## Backing out of a merge {#s4}
 
-Sometimes you start a merge and realise that you cannot resolve it now: you need to ask a colleague which version is right, or the conflict is bigger than you expected. `git merge --abort` puts everything back as it was before the merge started, as if you had never run it. In the session, the sugar conflict happens again, and this time you back out.
+Sometimes you start a merge and realise that you cannot resolve it now: you need to ask a colleague which version is right, or the conflict is bigger than you expected. `git merge --abort` puts everything back as it was before the merge started, as if you had never run it. In the session, the sugar conflict happens again, and this time you back out. In your own repository `less-sugar` is already merged, so to try this, make a fresh conflict: for example, change the eggs line one way on a new branch and another way on `main`, then merge that branch.
 
 {{SESSION:m05-abort}}
 
@@ -69,7 +71,7 @@ You cannot avoid conflicts entirely, but a few habits keep them rare, and small 
 - **Keep branches short-lived and commits focused.** A branch that lives for a day collects fewer surprises than one that lives for a month, and a commit that does one thing is easier to merge, and to understand when it conflicts.
 - **Talk to each other.** Agree who works on which files, and speak up before two people rework the same part.
 - **Do not reformat whole files on a feature branch.** Re-indenting a file, or changing its line endings, touches every line, so it conflicts with every other change to that file. If a file needs reformatting, do it in a commit of its own, agreed with everyone, and merge it quickly.
-- **Check before committing a resolution.** A forgotten marker line is easy to miss in a long file. `git diff --check` reports leftover conflict markers, and Exercise 6 shows it at work.
+- **Check before committing a resolution.** A forgotten marker line is easy to miss in a long file. Run `git diff --check` after editing and before `git add`: it reports leftover conflict markers. If you have already staged the file, use `git diff --staged --check`. Exercise 6 shows the check at work.
 
 ::: keyidea
 A conflict is Git asking a question, not reporting a failure. Read the markers, decide what the file should say, then `git add` and `git commit`. When you are not ready to answer, `git merge --abort` takes you back to where you started.
@@ -140,7 +142,7 @@ Any of these: talk first and let one person make the change; keep the branches s
 :::
 
 ::: exercise #e6 level=2 kind=coding minutes=4
-**A leftover marker.** Someone resolved the sugar conflict in a hurry and committed the file with the markers still in it. Find them and fix the file.
+**A leftover marker.** Someone resolved the sugar conflict in a hurry and committed the file with the markers still in it. Find them and fix the file. To try it, make a conflict as in Section 3, then `git add` and commit the file without removing the markers.
 :::
 
 ::: solution
@@ -148,7 +150,7 @@ Any of these: talk first and let one person make the change; keep the branches s
 
 {{SESSION:m05-e6-solution}}
 
-Run `git diff --check` (without arguments, for your unstaged changes) before you commit a resolution, and you will not need this repair.
+Run `git diff --check` before you `git add` a resolution (or `git diff --staged --check` after it), and you will not need this repair.
 :::
 
 ## Self-check quiz {#quiz}

@@ -164,11 +164,11 @@ List the commits to see how far back the first one is, then compare it with `HEA
 :::
 
 ::: exercise #e4 level=2 kind=coding minutes=10
-**Stop tracking a file.** In Module 2's last exercise, `passwords.txt` was committed by mistake. Keep the file on your disk, but stop tracking it from now on.
+**Stop tracking a file.** Suppose that `passwords.txt` was committed by mistake, as in Module 2's last exercise. Keep the file on your disk, but stop tracking it from now on. To try it, first create `passwords.txt` with any text, and commit it.
 :::
 
 ::: solution
-List the file in `.gitignore`, remove it from the staging area only, and commit:
+List the file in `.gitignore`, remove it from the staging area only, and commit. The session's repository has no `.gitignore` yet; if yours has one, add the line `passwords.txt` to it and keep the lines already there.
 
 {{SESSION:m03-e4-solution}}
 
