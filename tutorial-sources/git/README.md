@@ -70,7 +70,9 @@ should print nothing after a second build.
   output and commit hashes are the same on every build. The sandbox is always the same folder,
   `/tmp/wrwei-git-sessions/<session id>`, created for each run and removed afterwards, because `git pull`
   writes the server's real path into merge messages, and so into commit hashes. A second build or
-  test run waits until the first has finished with a session. The sandbox looks like a
+  test run waits until the first has finished with a session. Each folder records the process that
+  holds it, and a folder whose process has exited (after Ctrl-C, say) is reclaimed at once. If a
+  build reports that a folder is in use while no other build is running, delete that folder. The sandbox looks like a
   small file system (`/home/alex`, `/home/sam`, `/srv/git`); each person's home folder is their
   `HOME`, and no system or vendor configuration is read. New repositories start on `main` through a
   command-line setting, which `git config --show-origin` would list as "command line", so avoid

@@ -16,21 +16,66 @@ const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
 // commits (git pull's merge messages), so a fixed path keeps those commits' hashes the same on every run.
 const SANDBOXES = process.platform === 'win32' ? path.join(os.tmpdir(), 'wrwei-git-sessions') : '/tmp/wrwei-git-sessions';
 
-/** Takes the sandbox folder of session `id`, waiting while another build or test run is using it. */
-function claimSandbox(id) {
+/** The process that holds a sandbox folder, or null while it is still being claimed. */
+function owner(dir) {
+  try {
+    return Number(fs.readFileSync(path.join(dir, 'owner'), 'utf8'));
+  } catch (error) {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+/** True when the folder's owner has exited, as after Ctrl-C, which skips the run's own clean-up. */
+function abandoned(dir) {
+  const pid = owner(dir);
+  if (pid === null) {
+    // claimed a moment ago, or by a run that stopped before recording itself
+    try {
+      return Date.now() - fs.statSync(dir).mtimeMs > 10000;
+    } catch (error) {
+      if (error.code === 'ENOENT') return false;
+      throw error;
+    }
+  }
+  try {
+    process.kill(pid, 0);
+    return false;
+  } catch (error) {
+    return error.code === 'ESRCH';
+  }
+}
+
+/**
+ * Takes the sandbox folder of session `id`, recording this process as its owner. Waits while another
+ * build or test run is using it, and reclaims at once a folder whose owner has exited.
+ */
+export function claimSandbox(id, {wait = 120000} = {}) {
   const dir = path.join(SANDBOXES, id);
   fs.mkdirSync(SANDBOXES, {recursive: true});
-  const deadline = Date.now() + 120000;
+  const deadline = Date.now() + wait;
   for (;;) {
     try {
       fs.mkdirSync(dir);
+      fs.writeFileSync(path.join(dir, 'owner'), String(process.pid));
       return dir;
     } catch (error) {
       if (error.code !== 'EEXIST') throw error;
     }
-    // a folder left behind by a run that crashed is removed after ten minutes
-    if (Date.now() - fs.statSync(dir).mtimeMs > 600000) { fs.rmSync(dir, {recursive: true, force: true}); continue; }
-    assert(Date.now() < deadline, `${dir} is still in use by another build or test run`);
+    if (abandoned(dir)) {
+      // move it aside before deleting it, and give it back if another run claimed it meanwhile
+      const aside = `${dir}.abandoned-${process.pid}`;
+      try {
+        fs.renameSync(dir, aside);
+      } catch (error) {
+        if (error.code === 'ENOENT') continue;
+        throw error;
+      }
+      if (abandoned(aside)) fs.rmSync(aside, {recursive: true, force: true});
+      else fs.renameSync(aside, dir);
+      continue;
+    }
+    assert(Date.now() < deadline, `${dir} is in use by process ${owner(dir)}. If no other build or test run is running, delete the folder and try again.`);
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200);
   }
 }

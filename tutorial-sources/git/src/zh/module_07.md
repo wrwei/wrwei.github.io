@@ -21,7 +21,7 @@ GitHub 还有**议题**（issue）：每个仓库都有一份关于缺陷、想�
 
 Alex 想加入一份汤的食谱。Alex 没有在 `main` 上提交，而是新建一个分支，在上面提交，然后用 `git push -u` 把分支推送到共享仓库，与第 6 模块练习 4 完全一样。
 
-本模块的动手环节使用第 6 模块中的替身服务器，Alex 和 Sam 各有一个克隆。要跟着操作，请使用你在第 6 模块中创建的 GitHub 仓库：你自己的 recipes 文件夹扮演 Alex。至于 Sam，可以把同一个 GitHub 仓库克隆到 Sam 的文件夹，或者用 `git remote set-url origin` 加上 GitHub 地址，让 Sam 现有的克隆指向它。在 GitHub 上，两个人都是你，这对本模块的所有内容都适用：你可以发起、审查并合并自己的拉取请求。
+本模块的动手环节使用第 6 模块中的替身服务器，Alex 和 Sam 各有一个克隆。要跟着操作，请使用你在第 6 模块中创建的 GitHub 仓库：你自己的 recipes 文件夹扮演 Alex。至于 Sam，请让 Sam 现有的克隆指向 GitHub：在 Sam 的窗口中用 GitHub 地址运行 `git remote set-url origin`，然后运行 `git pull`。在 GitHub 上，两个人都是你。这对本模块几乎所有内容都适用：你可以发起、评论并合并自己的拉取请求，但 GitHub 不允许拉取请求的作者批准它或要求修改，所以练习审查时请用 **Comment** 提交。
 
 {{SESSION:m07-feature-branch}}
 
@@ -164,7 +164,7 @@ Alex 的推送把服务器上的 `add-soups` 从 `22abb2e` 移到了 `b9835b7`�
 :::
 
 ::: exercise #e5 level=2 kind=coding minutes=6
-**删不掉的分支。** 你的拉取请求是用 *Squash and merge* 合并的：GitHub 在 `main` 上添加了一次包含该分支全部改动的新提交，并删除了分支。运行 `git pull` 之后，`git branch -d add-soups` 拒绝执行，说这个分支没有完全合并。请确认不会丢失任何内容，然后删除这个分支。要跟着操作，请在 GitHub 上用 *Squash and merge* 合并一个拉取请求。
+**删不掉的分支。** 你的拉取请求是用 *Squash and merge* 合并的：GitHub 在 `main` 上添加了一次包含该分支全部改动的新提交，并删除了分支。运行 `git pull` 和 `git fetch --prune` 之后，`git branch -d add-soups` 拒绝执行，说这个分支没有完全合并。请确认不会丢失任何内容，然后删除这个分支。要跟着操作，请在 GitHub 上用 *Squash and merge* 合并一个拉取请求。
 :::
 
 ::: solution
@@ -186,7 +186,7 @@ Alex 的推送把服务器上的 `add-soups` 从 `22abb2e` 移到了 `b9835b7`�
 ::: solution
 1. 推送分支：你可以向这个仓库推送，在仓库的分支之间发起拉取请求最简单。
 2. 复刻：你无法向这个库的仓库推送，所以要推送到你的复刻，再从复刻发起拉取请求。
-3. 复刻，或者干脆只克隆：克隆不需要账户，复刻则在 GitHub 上给你一个可以推送的副本。请记住，公开仓库的复刻也是公开的。
+3. 克隆：它只在你的电脑上，不需要账户，也没有人能看到。复刻不合适：公开仓库的复刻也是公开的。
 :::
 
 ## 自测 {#quiz}
@@ -215,7 +215,7 @@ Alex 的推送把服务器上的 `add-soups` 从 `22abb2e` 移到了 `b9835b7`�
 
 ? 一个分支已在 GitHub 上合并并删除。哪条命令会从你的仓库中删除 `origin/add-soups`？
 - [ ] `git branch -d add-soups`
-- [ ] `git pull`
+- [ ] `git switch main`
 - [x] `git fetch --prune`
 - [ ] `git push origin --delete add-soups`
 > `--prune` 会删除那些在远程仓库上已不存在的分支所对应的远程跟踪分支。

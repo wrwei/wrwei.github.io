@@ -41,7 +41,7 @@ A few more things to know:
 What each form of `git reset` keeps. All three move the branch back; they differ in what happens to the staging area and the working tree.
 :::
 
-As in Module 3, `HEAD~1` means "one commit before HEAD". In the session, Alex commits a pinch of salt with a vague message, takes the commit back with `--soft` and commits again with a better message, then takes it back once more with the default reset.
+As in Module 3, `HEAD~1` means "one commit before HEAD". In the session, Alex commits a pinch of salt with a vague message, takes the commit back with `--soft` and commits again with a better message, then takes it back once more with the default reset. To follow along, add a line to any recipe and commit it with `git commit -am`.
 
 {{SESSION:m08-reset}}
 
@@ -164,11 +164,11 @@ The stash entry records the branch it came from (`WIP on soups`), but you can po
 :::
 
 ::: solution
-Run `git reflog` and look for the last line about `experiment`, such as a commit you made on it, or `checkout: moving from experiment to main`. Note the commit's hash, then run `git branch experiment <hash>`. The branch is back, with all its commits.
+Run `git reflog` and find `checkout: moving from experiment to main`. The hash on that line is where HEAD went, the tip of `main`; the line just below it shows where HEAD was before, the last commit of `experiment`. Note that hash, then run `git branch experiment <hash>`. The branch is back, with all its commits.
 :::
 
 ::: exercise #e5 level=2 kind=coding minutes=7
-**A conflict during a rebase.** On `less-sugar`, you changed the sugar to 30 g; meanwhile `main` changed it to 40 g. Rebase `less-sugar` onto `main`, settling on 35 g. To follow along, create the two changes as in Module 5, Section 3.
+**A conflict during a rebase.** On `less-sugar`, you changed the sugar to 30 g; meanwhile `main` changed it to 40 g. Rebase `less-sugar` onto `main`, settling on 35 g. To follow along, make the two changes as in Module 5, Section 3, but on a new branch such as `less-sugar-2`, because `less-sugar` already exists in your repository.
 :::
 
 ::: solution

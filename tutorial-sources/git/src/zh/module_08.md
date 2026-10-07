@@ -41,7 +41,7 @@
 每种 `git reset` 各保留什么。三种方式都会把分支往回移；区别在于暂存区和工作区会怎样。
 :::
 
-和第 3 模块一样，`HEAD~1` 表示“HEAD 之前的一次提交”。在这个动手环节中，Alex 用一条含糊的说明提交了一小撮盐，先用 `--soft` 收回这次提交，再用更好的说明重新提交，然后又用默认方式收回了一次。
+和第 3 模块一样，`HEAD~1` 表示“HEAD 之前的一次提交”。在这个动手环节中，Alex 用一条含糊的说明提交了一小撮盐，先用 `--soft` 收回这次提交，再用更好的说明重新提交，然后又用默认方式收回了一次。要跟着操作，请在任意一份食谱中加一行，并用 `git commit -am` 提交。
 
 {{SESSION:m08-reset}}
 
@@ -164,11 +164,11 @@ reflog 也有局限：它只存在于你自己的仓库中，从不推送；Git 
 :::
 
 ::: solution
-运行 `git reflog`，找到与 `experiment` 有关的最后一行，例如你在它上面做的一次提交，或者 `checkout: moving from experiment to main`。记下那次提交的哈希，然后运行 `git branch experiment <hash>`。分支就回来了，所有提交都在。
+运行 `git reflog`，找到 `checkout: moving from experiment to main` 这一行。这一行的哈希是 HEAD 移到的位置，即 `main` 的最新提交；紧挨在它下面的那一行才是 HEAD 之前所在的位置，即 `experiment` 的最后一次提交。记下那个哈希，然后运行 `git branch experiment <hash>`。分支就回来了，所有提交都在。
 :::
 
 ::: exercise #e5 level=2 kind=coding minutes=7
-**变基过程中的冲突。** 你在 `less-sugar` 上把糖改成了 30 g；与此同时，`main` 把它改成了 40 g。把 `less-sugar` 变基到 `main` 上，最终定为 35 g。要跟着操作，请像第 5 模块第 3 节那样做出这两处改动。
+**变基过程中的冲突。** 你在 `less-sugar` 上把糖改成了 30 g；与此同时，`main` 把它改成了 40 g。把 `less-sugar` 变基到 `main` 上，最终定为 35 g。要跟着操作，请像第 5 模块第 3 节那样做出这两处改动，但使用一个新分支，例如 `less-sugar-2`，因为你的仓库中已经有 `less-sugar` 了。
 :::
 
 ::: solution

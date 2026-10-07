@@ -27,7 +27,7 @@ Git 是*分布式*的：仓库的每一份副本都是完整的，带有全部�
 - `git remote add origin <path>` 以 `origin` 这个名字把它告诉你的仓库。`git remote -v` 列出你的远程仓库及其地址。
 - `git push -u origin main` 把 `main` 推送过去。`-u`（`--set-upstream` 的简写）还会把 `origin/main` 记录为你的 `main` 的**上游**（upstream），这样以后直接运行 `git push` 或 `git pull` 时，Git 就知道该去哪里。
 
-在本系列页面中，服务器位于一个名为 `/srv/git` 的文件夹。你无法在自己的电脑上创建这个文件夹，所以请把替身放在你的 recipes 文件夹旁边。在 `recipes` 中运行 `git init --bare ../server/recipes.git`。Git 会创建 `server` 文件夹，并打印新仓库的完整路径，例如 `/Users/you/server/recipes.git/` 或 `C:/Users/you/server/recipes.git/`。页面上凡是出现 `/srv/git/recipes.git` 的地方，请改用这个路径。
+在本系列页面中，服务器位于一个名为 `/srv/git` 的文件夹。你无法在自己的电脑上创建这个文件夹，所以请把替身放在你的 recipes 文件夹旁边。在 `recipes` 中运行 `git init --bare ../server/recipes.git`。Git 会创建 `server` 文件夹，并打印新仓库的完整路径，例如 `/Users/you/server/recipes.git/` 或 `C:/Users/you/server/recipes.git/`。页面上凡是出现 `/srv/git/recipes.git` 的地方，请改用这个路径。如果路径中含有空格，请给它加上引号。
 
 {{SESSION:m06-first-push}}
 
@@ -97,6 +97,10 @@ Alex 的 `git push` 显示的一行与第一次推送不同：`8bf3c2d..d5392e7 
 
 如果两个人改动了相同的行，合并就会因冲突而停下。你要完全像第 5 模块那样解决冲突、提交，然后再推送。
 
+::: note title="Windows"
+在 Windows 上，Git 安装程序会询问 `git pull` 应该怎样工作，并默认替你设置 `pull.rebase false`。因此你的第一次 `git pull` 会直接合并，不会出现 *fatal* 信息；请从第二次 `git pull` 接着看。
+:::
+
 ## 把仓库放到 GitHub 上 {#s6}
 
 替身服务器教会了你这些命令；托管服务则让仓库在任何地方都能访问。本节把你的食谱放到 GitHub 上。GitHub 的网页时有变化，所以具体的按钮请参照链接中的 GitHub 文档。Git 命令保持不变。
@@ -104,7 +108,7 @@ Alex 的 `git push` 显示的一行与第一次推送不同：`8bf3c2d..d5392e7 
 1. **创建账号**：在 github.com 上按照[在 GitHub 上创建账户](https://docs.github.com/zh/account-and-profile/how-tos/account-management/creating-an-account-on-github)操作。选一个你愿意公开的用户名：它会出现在你拥有的每个仓库的地址中。
 2. **创建一个空仓库**，命名为 `recipes`，按照[创建新仓库](https://docs.github.com/zh/repositories/creating-and-managing-repositories/creating-a-new-repository)操作。保持它为空：不要添加 README、许可证或 `.gitignore`，因为你的本地仓库已经有要推送的历史了。如果愿意，你可以把它设为私有。
 3. **为 Git 设置登录。** GitHub 不接受用你的账户密码执行 Git 命令。最简单的安全做法是使用 [GitHub CLI](https://cli.github.com/)：安装它，运行 `gh auth login`，选择 GitHub.com 和 HTTPS，并在它询问是否用你的 GitHub 凭据为 Git 登录时选择同意。Git for Windows 自带 Git Credential Manager，你第一次推送时，它会打开浏览器窗口让你登录。[在 Git 中缓存 GitHub 凭据](https://docs.github.com/zh/get-started/git-basics/caching-your-github-credentials-in-git)介绍了这两种方式。有经验的用户常常改用 [SSH 连接](https://docs.github.com/zh/authentication/connecting-to-github-with-ssh)。
-4. **把 `origin` 指向 GitHub 并推送。** GitHub 在仓库页面上显示仓库的地址，形如 `https://github.com/<username>/recipes.git`。在你的 recipes 文件夹中运行：
+4. **把 `origin` 指向 GitHub 并推送。** 先在你的 recipes 文件夹中运行 `git pull`，让它包含 Sam 在第 5 节中的工作。GitHub 在仓库页面上显示仓库的地址，形如 `https://github.com/<username>/recipes.git`。在你的 recipes 文件夹中运行：
 
 ```text
 git remote set-url origin https://github.com/<username>/recipes.git
@@ -159,7 +163,7 @@ git push -u origin main
 :::
 
 ::: exercise #e4 level=1 kind=coding minutes=5
-**分享一个新分支。** 以 Alex 的身份创建名为 `soups` 的分支，在上面提交一份汤的食谱，并推送这个分支，让 Sam 能够获取它。检查它是否设置了上游。
+**分享一个新分支。** 以 Alex 的身份创建名为 `soups` 的分支，在上面提交一份汤的食谱，并推送这个分支，让 Sam 能够获取它。检查它是否设置了上游。要跟着操作，请换一个新的分支名，例如 `salads`：你的仓库中已经有第 4 模块留下的 `soups` 分支。
 :::
 
 ::: solution

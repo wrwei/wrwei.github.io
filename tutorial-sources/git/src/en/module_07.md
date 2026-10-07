@@ -21,7 +21,7 @@ GitHub also has **issues**: a list of bugs, ideas and tasks for each repository.
 
 Alex wants to add a soup recipe. Instead of committing on `main`, Alex starts a branch, commits on it, and pushes the branch to the shared repository with `git push -u`, exactly as in Module 6's Exercise 4.
 
-The sessions in this module use the stand-in server from Module 6, with Alex and Sam each in their own clone. To follow along, use your GitHub repository from Module 6: your own recipes folder plays Alex. For Sam, clone the same GitHub repository into Sam's folder, or point Sam's existing clone at it with `git remote set-url origin` and the GitHub address. On GitHub, both people are you, which works for everything in this module: you can open, review and merge your own pull requests.
+The sessions in this module use the stand-in server from Module 6, with Alex and Sam each in their own clone. To follow along, use your GitHub repository from Module 6: your own recipes folder plays Alex. For Sam, point Sam's existing clone at GitHub: in Sam's window, run `git remote set-url origin` with the GitHub address, then `git pull`. On GitHub, both people are you. That works for almost everything in this module: you can open, comment on and merge your own pull requests, but GitHub does not let a pull request's author approve it or request changes, so submit your practice review with **Comment**.
 
 {{SESSION:m07-feature-branch}}
 
@@ -164,7 +164,7 @@ For example, title: *Add a tomato soup recipe*. Description: *Adds `soup.md` wit
 :::
 
 ::: exercise #e5 level=2 kind=coding minutes=6
-**A branch that will not delete.** Your pull request was merged with *Squash and merge*: GitHub added one new commit to `main` containing all the branch's changes, and deleted the branch. After `git pull`, `git branch -d add-soups` refuses, saying that the branch is not fully merged. Check that nothing would be lost, and delete the branch. To follow along, merge a pull request on GitHub with *Squash and merge*.
+**A branch that will not delete.** Your pull request was merged with *Squash and merge*: GitHub added one new commit to `main` containing all the branch's changes, and deleted the branch. After `git pull` and `git fetch --prune`, `git branch -d add-soups` refuses, saying that the branch is not fully merged. Check that nothing would be lost, and delete the branch. To follow along, merge a pull request on GitHub with *Squash and merge*.
 :::
 
 ::: solution
@@ -186,7 +186,7 @@ Squashing copies the branch's changes into a new commit, so `main` never contain
 ::: solution
 1. A branch: you can push to the repository, and pull requests between its branches keep things simple.
 2. A fork: you cannot push to the library's repository, so you push to your fork and open a pull request from it.
-3. A fork, or simply a clone: a clone needs no account, and a fork gives you a copy on GitHub to push to. Keep in mind that a fork of a public repository is public.
+3. A clone: it stays on your computer, needs no account, and nobody sees it. A fork would not do: a fork of a public repository is public.
 :::
 
 ## Self-check quiz {#quiz}
@@ -215,7 +215,7 @@ Squashing copies the branch's changes into a new commit, so `main` never contain
 
 ? A branch was merged and deleted on GitHub. Which command removes `origin/add-soups` from your repository?
 - [ ] `git branch -d add-soups`
-- [ ] `git pull`
+- [ ] `git switch main`
 - [x] `git fetch --prune`
 - [ ] `git push origin --delete add-soups`
 > `--prune` removes remote-tracking branches whose branch no longer exists on the remote.

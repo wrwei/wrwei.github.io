@@ -46,7 +46,7 @@
 <li><code>git remote add origin &lt;path&gt;</code> tells your repository about it, under the name <code>origin</code>. <code>git remote -v</code> lists your remotes and their addresses.</li>
 <li><code>git push -u origin main</code> sends <code>main</code> there. <code>-u</code> (short for <code>--set-upstream</code>) also records <code>origin/main</code> as the <strong>upstream</strong> of your <code>main</code>, so that later a plain <code>git push</code> or <code>git pull</code> knows where to go.</li>
 </ul>
-<p>On these pages the server lives in a folder called <code>/srv/git</code>. You cannot create that folder on your own computer, so make your stand-in next to your recipes folder instead. Inside <code>recipes</code>, run <code>git init --bare ../server/recipes.git</code>. Git creates the <code>server</code> folder and prints the full path of the new repository, for example <code>/Users/you/server/recipes.git/</code> or <code>C:/Users/you/server/recipes.git/</code>. Wherever the pages show <code>/srv/git/recipes.git</code>, type that path instead.</p>
+<p>On these pages the server lives in a folder called <code>/srv/git</code>. You cannot create that folder on your own computer, so make your stand-in next to your recipes folder instead. Inside <code>recipes</code>, run <code>git init --bare ../server/recipes.git</code>. Git creates the <code>server</code> folder and prints the full path of the new repository, for example <code>/Users/you/server/recipes.git/</code> or <code>C:/Users/you/server/recipes.git/</code>. Wherever the pages show <code>/srv/git/recipes.git</code>, type that path instead. If the path contains a space, put it in quotes.</p>
 <div class="term" id="term-m06-first-push">
 <div class="term-head"><span class="term-label">Try it</span><span class="term-title">Put your repository on a server</span></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">init</span> <span class="hljs-attr">--bare</span> /srv/git/recipes.git</code></pre>
@@ -254,6 +254,9 @@ fatal: Need to specify how to reconcile divergent branches.
 </ul>
 <p><code>git config --global pull.rebase false</code> chooses merging for all your repositories, so Git will not ask again. The second <code>git pull</code> then merges, and <code>git push</code> succeeds. On your computer, the merge opens your editor with the message <code>Merge branch 'main' of</code> followed by the remote’s address; save and close it, as in Module 4. The graph shows the result: a merge commit that joins Sam’s soup recipe and Alex’s cake recipe, with <code>main</code> and <code>origin/main</code> on the same commit.</p>
 <p>If both people had changed the same lines, the merge would stop with a conflict. You would resolve it exactly as in Module 5, commit, and then push.</p>
+<div class="callout note"><div class="callout-label">Note — Windows</div>
+<p>On Windows, the Git installer asks how <code>git pull</code> should behave and, by default, sets <code>pull.rebase false</code> for you. Your first <code>git pull</code> then merges straight away, without the <em>fatal</em> message; carry on from the second <code>git pull</code>.</p>
+</div>
 <span class="section-anchor" id="s6"></span>
 <div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>Your repository on GitHub</h2></div>
 <p>The stand-in server taught you the commands; a hosting service makes the repository reachable from anywhere. This section puts your recipes on GitHub. Its web pages change from time to time, so follow the linked GitHub Docs for the exact buttons. The Git commands stay the same.</p>
@@ -261,7 +264,7 @@ fatal: Need to specify how to reconcile divergent branches.
 <li><strong>Create an account</strong> at github.com, following <a href="https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github" target="_blank" rel="noopener">Creating an account on GitHub</a>. Choose a username you are happy to show: it appears in the address of every repository you own.</li>
 <li><strong>Create an empty repository</strong> called <code>recipes</code>, following <a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository" target="_blank" rel="noopener">Creating a new repository</a>. Leave it empty: do not add a README, a licence or a <code>.gitignore</code>, because your local repository already has history to push. You can make it private if you prefer.</li>
 <li><strong>Set up sign-in for Git.</strong> GitHub does not accept your account password for Git commands. The easiest secure option is the <a href="https://cli.github.com/" target="_blank" rel="noopener">GitHub CLI</a>: install it, run <code>gh auth login</code>, choose GitHub.com and HTTPS, and agree when it offers to sign Git in with your GitHub credentials. Git for Windows includes Git Credential Manager, which opens a browser window to sign you in the first time you push. <a href="https://docs.github.com/en/get-started/git-basics/caching-your-github-credentials-in-git" target="_blank" rel="noopener">Caching your GitHub credentials in Git</a> describes both. Experienced users often <a href="https://docs.github.com/en/authentication/connecting-to-github-with-ssh" target="_blank" rel="noopener">connect with SSH</a> instead.</li>
-<li><strong>Point <code>origin</code> at GitHub and push.</strong> GitHub shows the repository’s address on its page, in the form <code>https://github.com/&lt;username&gt;/recipes.git</code>. In your recipes folder, run:</li>
+<li><strong>Point <code>origin</code> at GitHub and push.</strong> First run <code>git pull</code> in your recipes folder, so that it has Sam’s work from Section 5. GitHub shows the repository’s address on its page, in the form <code>https://github.com/&lt;username&gt;/recipes.git</code>. In your recipes folder, run:</li>
 </ol>
 <pre><code class="language-text">git remote set-url origin https://github.com/&lt;username&gt;/recipes.git
 git push -u origin main
@@ -324,7 +327,7 @@ done.
 <p>All three compare with <code>origin/main</code> as your repository last saw it, so run <code>git fetch</code> first for an up-to-date answer.</p>
 </div></details>
 <div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">5 min</span></div>
-<p><strong>Share a new branch.</strong> As Alex, create a branch called <code>soups</code>, commit a soup recipe on it, and push the branch so that Sam could fetch it. Check that it has an upstream.</p>
+<p><strong>Share a new branch.</strong> As Alex, create a branch called <code>soups</code>, commit a soup recipe on it, and push the branch so that Sam could fetch it. Check that it has an upstream. To follow along, use a new branch name, such as <code>salads</code>: your repository already has a <code>soups</code> branch from Module 4.</p>
 </div>
 <details class="solution"><summary>Show solution</summary><div class="details-body">
 <p>Push the branch with <code>-u</code>, as you did for <code>main</code>:</p>

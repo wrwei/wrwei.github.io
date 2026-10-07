@@ -27,7 +27,7 @@ Three commands put your repository on the stand-in server:
 - `git remote add origin <path>` tells your repository about it, under the name `origin`. `git remote -v` lists your remotes and their addresses.
 - `git push -u origin main` sends `main` there. `-u` (short for `--set-upstream`) also records `origin/main` as the **upstream** of your `main`, so that later a plain `git push` or `git pull` knows where to go.
 
-On these pages the server lives in a folder called `/srv/git`. You cannot create that folder on your own computer, so make your stand-in next to your recipes folder instead. Inside `recipes`, run `git init --bare ../server/recipes.git`. Git creates the `server` folder and prints the full path of the new repository, for example `/Users/you/server/recipes.git/` or `C:/Users/you/server/recipes.git/`. Wherever the pages show `/srv/git/recipes.git`, type that path instead.
+On these pages the server lives in a folder called `/srv/git`. You cannot create that folder on your own computer, so make your stand-in next to your recipes folder instead. Inside `recipes`, run `git init --bare ../server/recipes.git`. Git creates the `server` folder and prints the full path of the new repository, for example `/Users/you/server/recipes.git/` or `C:/Users/you/server/recipes.git/`. Wherever the pages show `/srv/git/recipes.git`, type that path instead. If the path contains a space, put it in quotes.
 
 {{SESSION:m06-first-push}}
 
@@ -97,6 +97,10 @@ The first `git pull` then fetches Alex's commit (`8bf3c2d..d5392e7  main -> orig
 
 If both people had changed the same lines, the merge would stop with a conflict. You would resolve it exactly as in Module 5, commit, and then push.
 
+::: note title="Windows"
+On Windows, the Git installer asks how `git pull` should behave and, by default, sets `pull.rebase false` for you. Your first `git pull` then merges straight away, without the *fatal* message; carry on from the second `git pull`.
+:::
+
 ## Your repository on GitHub {#s6}
 
 The stand-in server taught you the commands; a hosting service makes the repository reachable from anywhere. This section puts your recipes on GitHub. Its web pages change from time to time, so follow the linked GitHub Docs for the exact buttons. The Git commands stay the same.
@@ -104,7 +108,7 @@ The stand-in server taught you the commands; a hosting service makes the reposit
 1. **Create an account** at github.com, following [Creating an account on GitHub](https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github). Choose a username you are happy to show: it appears in the address of every repository you own.
 2. **Create an empty repository** called `recipes`, following [Creating a new repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository). Leave it empty: do not add a README, a licence or a `.gitignore`, because your local repository already has history to push. You can make it private if you prefer.
 3. **Set up sign-in for Git.** GitHub does not accept your account password for Git commands. The easiest secure option is the [GitHub CLI](https://cli.github.com/): install it, run `gh auth login`, choose GitHub.com and HTTPS, and agree when it offers to sign Git in with your GitHub credentials. Git for Windows includes Git Credential Manager, which opens a browser window to sign you in the first time you push. [Caching your GitHub credentials in Git](https://docs.github.com/en/get-started/git-basics/caching-your-github-credentials-in-git) describes both. Experienced users often [connect with SSH](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) instead.
-4. **Point `origin` at GitHub and push.** GitHub shows the repository's address on its page, in the form `https://github.com/<username>/recipes.git`. In your recipes folder, run:
+4. **Point `origin` at GitHub and push.** First run `git pull` in your recipes folder, so that it has Sam's work from Section 5. GitHub shows the repository's address on its page, in the form `https://github.com/<username>/recipes.git`. In your recipes folder, run:
 
 ```text
 git remote set-url origin https://github.com/<username>/recipes.git
@@ -159,7 +163,7 @@ All three compare with `origin/main` as your repository last saw it, so run `git
 :::
 
 ::: exercise #e4 level=1 kind=coding minutes=5
-**Share a new branch.** As Alex, create a branch called `soups`, commit a soup recipe on it, and push the branch so that Sam could fetch it. Check that it has an upstream.
+**Share a new branch.** As Alex, create a branch called `soups`, commit a soup recipe on it, and push the branch so that Sam could fetch it. Check that it has an upstream. To follow along, use a new branch name, such as `salads`: your repository already has a `soups` branch from Module 4.
 :::
 
 ::: solution

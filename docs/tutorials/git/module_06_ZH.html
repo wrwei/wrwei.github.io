@@ -46,7 +46,7 @@
 <li><code>git remote add origin &lt;path&gt;</code> 以 <code>origin</code> 这个名字把它告诉你的仓库。<code>git remote -v</code> 列出你的远程仓库及其地址。</li>
 <li><code>git push -u origin main</code> 把 <code>main</code> 推送过去。<code>-u</code>（<code>--set-upstream</code> 的简写）还会把 <code>origin/main</code> 记录为你的 <code>main</code> 的<strong>上游</strong>（upstream），这样以后直接运行 <code>git push</code> 或 <code>git pull</code> 时，Git 就知道该去哪里。</li>
 </ul>
-<p>在本系列页面中，服务器位于一个名为 <code>/srv/git</code> 的文件夹。你无法在自己的电脑上创建这个文件夹，所以请把替身放在你的 recipes 文件夹旁边。在 <code>recipes</code> 中运行 <code>git init --bare ../server/recipes.git</code>。Git 会创建 <code>server</code> 文件夹，并打印新仓库的完整路径，例如 <code>/Users/you/server/recipes.git/</code> 或 <code>C:/Users/you/server/recipes.git/</code>。页面上凡是出现 <code>/srv/git/recipes.git</code> 的地方，请改用这个路径。</p>
+<p>在本系列页面中，服务器位于一个名为 <code>/srv/git</code> 的文件夹。你无法在自己的电脑上创建这个文件夹，所以请把替身放在你的 recipes 文件夹旁边。在 <code>recipes</code> 中运行 <code>git init --bare ../server/recipes.git</code>。Git 会创建 <code>server</code> 文件夹，并打印新仓库的完整路径，例如 <code>/Users/you/server/recipes.git/</code> 或 <code>C:/Users/you/server/recipes.git/</code>。页面上凡是出现 <code>/srv/git/recipes.git</code> 的地方，请改用这个路径。如果路径中含有空格，请给它加上引号。</p>
 <div class="term" id="term-m06-first-push">
 <div class="term-head"><span class="term-label">动手试试</span><span class="term-title">把仓库放到服务器上</span></div>
 <pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">init</span> <span class="hljs-attr">--bare</span> /srv/git/recipes.git</code></pre>
@@ -254,6 +254,9 @@ fatal: Need to specify how to reconcile divergent branches.
 </ul>
 <p><code>git config --global pull.rebase false</code> 为你的所有仓库选择合并，这样 Git 就不会再问了。第二次 <code>git pull</code> 随即完成合并，<code>git push</code> 也成功了。在你的电脑上，这次合并会打开编辑器，说明是 <code>Merge branch 'main' of</code> 后面跟着远程仓库的地址；像第 4 模块那样保存并关闭即可。提交图显示了结果：一次合并提交把 Sam 的汤食谱和 Alex 的蛋糕食谱连在一起，<code>main</code> 和 <code>origin/main</code> 位于同一次提交上。</p>
 <p>如果两个人改动了相同的行，合并就会因冲突而停下。你要完全像第 5 模块那样解决冲突、提交，然后再推送。</p>
+<div class="callout note"><div class="callout-label">注意 — Windows</div>
+<p>在 Windows 上，Git 安装程序会询问 <code>git pull</code> 应该怎样工作，并默认替你设置 <code>pull.rebase false</code>。因此你的第一次 <code>git pull</code> 会直接合并，不会出现 <em>fatal</em> 信息；请从第二次 <code>git pull</code> 接着看。</p>
+</div>
 <span class="section-anchor" id="s6"></span>
 <div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>把仓库放到 GitHub 上</h2></div>
 <p>替身服务器教会了你这些命令；托管服务则让仓库在任何地方都能访问。本节把你的食谱放到 GitHub 上。GitHub 的网页时有变化，所以具体的按钮请参照链接中的 GitHub 文档。Git 命令保持不变。</p>
@@ -261,7 +264,7 @@ fatal: Need to specify how to reconcile divergent branches.
 <li><strong>创建账号</strong>：在 github.com 上按照<a href="https://docs.github.com/zh/account-and-profile/how-tos/account-management/creating-an-account-on-github" target="_blank" rel="noopener">在 GitHub 上创建账户</a>操作。选一个你愿意公开的用户名：它会出现在你拥有的每个仓库的地址中。</li>
 <li><strong>创建一个空仓库</strong>，命名为 <code>recipes</code>，按照<a href="https://docs.github.com/zh/repositories/creating-and-managing-repositories/creating-a-new-repository" target="_blank" rel="noopener">创建新仓库</a>操作。保持它为空：不要添加 README、许可证或 <code>.gitignore</code>，因为你的本地仓库已经有要推送的历史了。如果愿意，你可以把它设为私有。</li>
 <li><strong>为 Git 设置登录。</strong> GitHub 不接受用你的账户密码执行 Git 命令。最简单的安全做法是使用 <a href="https://cli.github.com/" target="_blank" rel="noopener">GitHub CLI</a>：安装它，运行 <code>gh auth login</code>，选择 GitHub.com 和 HTTPS，并在它询问是否用你的 GitHub 凭据为 Git 登录时选择同意。Git for Windows 自带 Git Credential Manager，你第一次推送时，它会打开浏览器窗口让你登录。<a href="https://docs.github.com/zh/get-started/git-basics/caching-your-github-credentials-in-git" target="_blank" rel="noopener">在 Git 中缓存 GitHub 凭据</a>介绍了这两种方式。有经验的用户常常改用 <a href="https://docs.github.com/zh/authentication/connecting-to-github-with-ssh" target="_blank" rel="noopener">SSH 连接</a>。</li>
-<li><strong>把 <code>origin</code> 指向 GitHub 并推送。</strong> GitHub 在仓库页面上显示仓库的地址，形如 <code>https://github.com/&lt;username&gt;/recipes.git</code>。在你的 recipes 文件夹中运行：</li>
+<li><strong>把 <code>origin</code> 指向 GitHub 并推送。</strong> 先在你的 recipes 文件夹中运行 <code>git pull</code>，让它包含 Sam 在第 5 节中的工作。GitHub 在仓库页面上显示仓库的地址，形如 <code>https://github.com/&lt;username&gt;/recipes.git</code>。在你的 recipes 文件夹中运行：</li>
 </ol>
 <pre><code class="language-text">git remote set-url origin https://github.com/&lt;username&gt;/recipes.git
 git push -u origin main
@@ -324,7 +327,7 @@ done.
 <p>这三条都是与你的仓库上次看到的 <code>origin/main</code> 比较，所以要得到最新的结论，请先运行 <code>git fetch</code>。</p>
 </div></details>
 <div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">5 分钟</span></div>
-<p><strong>分享一个新分支。</strong> 以 Alex 的身份创建名为 <code>soups</code> 的分支，在上面提交一份汤的食谱，并推送这个分支，让 Sam 能够获取它。检查它是否设置了上游。</p>
+<p><strong>分享一个新分支。</strong> 以 Alex 的身份创建名为 <code>soups</code> 的分支，在上面提交一份汤的食谱，并推送这个分支，让 Sam 能够获取它。检查它是否设置了上游。要跟着操作，请换一个新的分支名，例如 <code>salads</code>：你的仓库中已经有第 4 模块留下的 <code>soups</code> 分支。</p>
 </div>
 <details class="solution"><summary>查看解答</summary><div class="details-body">
 <p>像推送 <code>main</code> 时那样，用 <code>-u</code> 推送这个分支：</p>

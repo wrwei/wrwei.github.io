@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {build, runModuleSessions} from '../build.mjs';
+import {build, runModuleSessions, claimSandbox} from '../build.mjs';
+import {spawnSync} from 'node:child_process';
 import {gitVersion} from '../tools/session.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -79,5 +80,34 @@ test('a sandbox folder left behind by a run that crashed does not block the next
   } finally {
     fs.rmSync(dir, {recursive: true, force: true});
     fs.rmSync(left, {recursive: true, force: true});
+  }
+});
+
+const SANDBOXES = process.platform === 'win32' ? path.join(os.tmpdir(), 'wrwei-git-sessions') : '/tmp/wrwei-git-sessions';
+
+test('a folder left by an interrupted run is reclaimed at once, because its owner has exited', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'git-module-'));
+  const left = path.join(SANDBOXES, 'm09-interrupted');
+  try {
+    fs.writeFileSync(path.join(dir, 'm09-interrupted.session'), 'title: T\ntitle-zh: 题\n---\n$ pwd\n');
+    fs.mkdirSync(path.join(left, 'root'), {recursive: true});
+    fs.writeFileSync(path.join(left, 'owner'), String(spawnSync(process.execPath, ['-e', '0']).pid));
+    const started = Date.now();
+    assert.equal(runModuleSessions(dir, 9).get('m09-interrupted').record[0].output, '/home/alex\n');
+    assert(Date.now() - started < 10000, 'no waiting for a folder whose owner has exited');
+  } finally {
+    fs.rmSync(dir, {recursive: true, force: true});
+    fs.rmSync(left, {recursive: true, force: true});
+  }
+});
+
+test('a folder in use names itself and says what to do when the wait runs out', () => {
+  const busy = path.join(SANDBOXES, 'm09-busy');
+  try {
+    fs.mkdirSync(busy, {recursive: true});
+    fs.writeFileSync(path.join(busy, 'owner'), String(process.pid));
+    assert.throws(() => claimSandbox('m09-busy', {wait: 300}), new RegExp(`m09-busy is in use by process ${process.pid}\\. If no other build or test run is running, delete the folder and try again\\.`));
+  } finally {
+    fs.rmSync(busy, {recursive: true, force: true});
   }
 });
