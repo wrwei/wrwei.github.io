@@ -1,0 +1,278 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Git 的内部原理 — Git 与版本控制</title><meta name="description" content="看看 .git 文件夹的内部：保存历史的数据对象、树对象和提交对象，为它们命名的哈希，以及构成分支和 HEAD 的那些小文件。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="9"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">Git 系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 09</button><div class="dropdown-menu" id="module-menu"><a href="module_01_ZH.html">01 · 为什么需要版本控制？</a><a href="module_02_ZH.html">02 · 你的第一个仓库</a><a href="module_03_ZH.html">03 · 查看历史与撤销</a><a href="module_04_ZH.html">04 · 分支</a><a href="module_05_ZH.html">05 · 合并冲突</a><a href="module_06_ZH.html">06 · 远程仓库</a><a href="module_07_ZH.html">07 · 用拉取请求协作</a><a href="module_08_ZH.html">08 · 改写历史与恢复</a><a href="module_09_ZH.html" class="active" aria-current="page">09 · Git 的内部原理</a><a href="index_ZH.html#modules">全部模块</a></div></div><a class="lang-switch" href="module_09_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/2 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#s1"><span class="num">1</span><span>对象与哈希</span></a><a href="#s2"><span class="num">2</span><span>查看一次提交的内部</span></a><a href="#s3"><span class="num">3</span><span>哈希来自内容</span></a><a href="#s4"><span class="num">4</span><span>对象存放在哪里</span></a><a href="#s5"><span class="num">5</span><span>分支与 HEAD</span></a><a href="#exercises"><span class="num">6</span><span>练习</span></a><a href="#quiz"><span class="num">7</span><span>自测</span></a><a href="#reading"><span class="num">8</span><span>延伸阅读</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git 与版本控制 — Ran Wei</div><h1 class="module-title">Git 的内部原理</h1><p class="module-lead">看看 .git 文件夹的内部：保存历史的数据对象、树对象和提交对象，为它们命名的哈希，以及构成分支和 HEAD 的那些小文件。</p><div class="hero-chips"><span class="chip chip-time">2 小时</span><span class="chip">2 个时段</span><span class="chip">4 个动手环节</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>说出 Git 的三种主要对象：数据对象、树对象和提交对象，以及各自保存的内容。</li><li>用 git cat-file 查看任意对象的内部。</li><li>解释哈希如何由内容计算得出，以及为什么改动一次提交会改变之后所有提交的哈希。</li><li>在 .git 文件夹中找到对象、分支和 HEAD 的存放位置。</li><li>用这些概念解释为什么分支很廉价，以及什么是分离的 HEAD。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>第 2 至第 8 模块。日常工作并不需要这些内容，但它们能解释 Git 为什么会这样运作。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#s1">对象与哈希</a><a href="#s2">查看一次提交的内部</a><a href="#s3">哈希来自内容</a><a href="#s4">对象存放在哪里</a><a href="#s5">分支与 HEAD</a><a href="#exercises">练习</a><a href="#quiz">自测</a><a href="#reading">延伸阅读</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">2 小时</span></div><p class="plan-lead">时间为估计值，包含输入命令的时间。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">60 分钟</span></div><div class="session-title">对象</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">对象与哈希</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s2">查看一次提交的内部</a></span><span class="act-min">25</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s3">哈希来自内容</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m09:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">60 分钟</span></div><div class="session-title">存储、引用与练习</div><ul class="acts"><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s4">对象存放在哪里</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s5">分支与 HEAD</a></span><span class="act-min">15</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#exercises">六道练习</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">自测</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m09:s2"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>对象与哈希</h2></div>
+<p>你可以用 Git 好多年，却不知道它是怎样保存你的工作的。但看一眼内部，就能解释你学过的许多东西：为什么提交有哈希，为什么分支不花任何成本，为什么改写一次提交会改变它之后的每一次提交，以及为什么分离的 HEAD 并不可怕。本模块打开 <code>.git</code> 文件夹。其中的一切对你来说都是只读的：你只看，不改。</p>
+<p>从本质上说，Git 是一个由<strong>对象</strong>（object）组成的小型数据库。每个对象都以根据其内容计算出的名字存储，这个名字就是它的<strong>哈希</strong>，一个 40 个字符的十六进制数，例如 <code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a</code>。有三种对象保存着你的历史：</p>
+<ul>
+<li><strong>数据对象</strong>（blob）保存一个文件的内容：只有字节，没有文件名。</li>
+<li><strong>树对象</strong>（tree）保存一个文件夹的内容：一份名字列表，每个名字都带有一个数据对象（对应文件）或另一个树对象（对应子文件夹）的哈希。</li>
+<li><strong>提交对象</strong>（commit）保存整个项目的树对象的哈希、父提交的哈希（合并提交有两个，第一次提交没有）、作者、提交者、日期和说明。</li>
+</ul>
+<p>所以，一次提交就是一个快照：它的树对象描述了那一刻项目中的每个文件。第四种对象，即<strong>附注标签</strong>（annotated tag），会在第 10 模块中出现。</p>
+<figure class="fig" id="fig-09-01"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 276" role="img" aria-labelledby="t">
+  <title id="fig-09-01__t">两次提交及其树对象和数据对象</title>
+  <defs><marker id="fig-09-01__arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#334155"/></marker></defs>
+  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" text-anchor="middle">
+    <rect x="400" y="20" width="200" height="52" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/><text x="500.0" y="42" font-size="14" font-weight="700" fill="#1E3A8A">提交</text><text x="500.0" y="61" font-size="12" fill="#334155">Add a pancake recipe</text><rect x="80" y="20" width="200" height="52" rx="10" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/><text x="180.0" y="42" font-size="14" font-weight="700" fill="#1E3A8A">提交</text><text x="180.0" y="61" font-size="12" fill="#334155">Add a README</text><line x1="398" y1="46" x2="282" y2="46" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><text x="340" y="38" font-size="12" fill="#7C3AED">父提交</text><rect x="440" y="110" width="120" height="34" rx="10" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/><text x="500.0" y="132" font-size="14" font-weight="700" fill="#14532D">树</text><rect x="120" y="110" width="120" height="34" rx="10" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/><text x="180.0" y="132" font-size="14" font-weight="700" fill="#14532D">树</text><line x1="500" y1="74" x2="500" y2="108" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><line x1="180" y1="74" x2="180" y2="108" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><rect x="250" y="180" width="180" height="52" rx="10" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/><text x="340.0" y="202" font-size="14" font-weight="700" fill="#78350F">数据对象</text><text x="340.0" y="221" font-size="12" fill="#334155">README.md 的内容</text><rect x="480" y="180" width="180" height="52" rx="10" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/><text x="570.0" y="202" font-size="14" font-weight="700" fill="#78350F">数据对象</text><text x="570.0" y="221" font-size="12" fill="#334155">pancakes.md 的内容</text><line x1="180" y1="146" x2="300" y2="178" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><line x1="470" y1="146" x2="380" y2="178" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><line x1="530" y1="146" x2="560" y2="178" stroke="#334155" stroke-width="2" marker-end="url(#fig-09-01__arrow)"/><text x="340" y="262" font-size="13" fill="#475569">提交指向一棵树和它的父提交；树指向数据对象。没有改动的文件只存储一次。</text>
+  </g>
+</svg>
+</div><figcaption><span class="fig-num">图 9.1</span> <p>食谱仓库中的两次提交。每次提交都指向自己的树对象，较新的那次还指向它的父提交。两个树对象都指向同一个 README 数据对象，因为 README 在两次提交之间没有变化。</p>
+</figcaption></figure>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>查看一次提交的内部</h2></div>
+<p><code>git cat-file</code> 可以显示任意对象：<code>-t</code> 打印它的类型，<code>-p</code>（pretty-print，美观打印）打印它的内容。你可以用完整的哈希指定对象，也可以只用开头的几个字符，只要没有别的对象以它们开头就行；通常七个字符就够了。</p>
+<p>在这个动手环节中，你从食谱仓库最新的提交出发，一路追到一个文件。要在你自己的仓库中跟着操作，请从 <code>git log --oneline</code> 打印的某个哈希开始，然后把你看到的每个哈希复制到下一条命令中。</p>
+<div class="term" id="term-m09-look-inside">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">查看一次提交的内部</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-t</span> 8bf3c2d</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>commit
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 8bf3c2d</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>tree 063e1373abab86d50db53df21ded863f36cfc794
+parent 907a97958867987ca6ef7be665cd4b3f86bb08d6
+author Alex Smith &lt;alex@example.com&gt; 1767604020 +0000
+committer Alex Smith &lt;alex@example.com&gt; 1767604020 +0000
+
+Add a pancake recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 063e137</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>100644 blob 2ecc1f2d65cf3b272e009b477014267d15171467	README.md
+100644 blob 871d830f4cec82e60e46ad67ec042c33f215a834	pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 871d830</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 907a979</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>tree 38a015c41d763382717c898da156ce660f860bea
+author Alex Smith &lt;alex@example.com&gt; 1767603900 +0000
+committer Alex Smith &lt;alex@example.com&gt; 1767603900 +0000
+
+Add a README
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<ul>
+<li><code>git cat-file -t 8bf3c2d</code> 说明 <code>8bf3c2d</code> 是一个 <code>commit</code>。</li>
+<li><code>-p</code> 显示整个提交对象，它很短。<code>tree</code> 给出项目树对象的哈希，<code>parent</code> 给出前一次提交的哈希 <code>907a979</code>。<code>author</code> 和 <code>committer</code> 给出姓名和邮箱，然后是日期，即自 1970 年 1 月 1 日（UTC）以来的秒数，再后面是时区 <code>+0000</code>。空一行之后是说明。一次提交就只有这些内容。</li>
+<li><code>git cat-file -p 063e137</code> 显示那个树对象。每一行都有一个<strong>模式</strong>（mode）（<code>100644</code> 表示普通文件；<code>100755</code> 表示可执行文件，<code>040000</code> 表示子文件夹，也就是另一个树对象）、一个类型、一个哈希和一个名字。</li>
+<li><code>git cat-file -p 871d830</code> 显示 <code>pancakes.md</code> 的数据对象：正好是文件的内容，没有名字，也没有日期。名字保存在树对象里。</li>
+<li>第一次提交 <code>907a979</code> 有 <code>tree</code>，但没有 <code>parent</code> 这一行：正是这一点使它成为第一次提交。</li>
+</ul>
+<p>作者和提交者通常是同一个人。当有人应用了别人的工作时，两者就会不同，例如变基重放同事的提交时：作者写出了这项改动，提交者则为它生成了这次提交。</p>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>哈希来自内容</h2></div>
+<p>Git 根据对象的内容计算它的哈希，内容前面还会加上一个简短的头部，写明对象的类型和大小。相同的内容总是得到相同的哈希，在任何一台电脑上都一样；任何改动，无论多么微小，都会得到一个完全不同的哈希。<code>git hash-object &lt;file&gt;</code> 计算一个文件作为数据对象时的哈希，但不存储任何东西。</p>
+<p>在这个动手环节中，你把 <code>pancakes.md</code> 的哈希与一份完全相同的副本的哈希进行比较，然后再与改动了一个字符（一个句点）之后的副本比较。要跟着操作，请使用你仓库中的任意文件。</p>
+<div class="term" id="term-m09-hash">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">内容相同，哈希相同</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">hash-object</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>871d830f4cec82e60e46ad67ec042c33f215a834
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>pancakes-copy.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">hash-object</span> pancakes-copy.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>871d830f4cec82e60e46ad67ec042c33f215a834
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>pancakes-copy.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">hash-object</span> pancakes-copy.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>797b0e6c8204d8a9fce80e8b1c8254eb2f060d10
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>pancakes.md</code> 的哈希是 <code>871d830f…</code>，与第 2 节中树对象列出的数据对象哈希相同。完全相同的副本得到相同的哈希，所以 Git 只会以这个名字存储它一次。加上一个句点之后，得到的哈希与原来的毫无共同之处。</p>
+<p>这解释了你见过的几件事：</p>
+<ul>
+<li><strong>没有改动的文件不占额外空间。</strong> 对于每个没有改动的文件，新提交的树对象引用的仍是原来的数据对象。只有改动过的文件才会增加新的数据对象。</li>
+<li><strong>历史无法被悄悄改动。</strong> 一次提交包含它的树对象的哈希和父提交的哈希。改动一次旧提交中的任何内容，哪怕只是说明里的一个错字，它的哈希就会改变；下一次提交指向的父提交就不同了，所以它的哈希也会改变，如此一直延续到最新的提交。这就是为什么修补和变基会生成<em>新的</em>提交（第 3 和第 8 模块），也是为什么共享的历史一旦被改写，别人就会察觉。</li>
+<li><strong>副本彼此一致。</strong> 两个克隆如果都有某个哈希相同的提交，那么直到这次提交为止，它们的历史完全相同。</li>
+</ul>
+<div class="callout note"><div class="callout-label">注意 — SHA-1 与 SHA-256</div>
+<p>Git 的哈希用 SHA-1 计算，采用的是能检测已知攻击的加固版本。较新版本的 Git 也可以创建使用更强的 SHA-256 的仓库（<code>git init --object-format=sha256</code>），其哈希长 64 个字符。托管服务目前大多还不支持这种仓库，所以暂时请使用默认设置。</p>
+</div>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>对象存放在哪里</h2></div>
+<p>Git 关于一个仓库所知道的一切都在它的 <code>.git</code> 文件夹中。在这个动手环节中，你列出它的内容，找到对象，并按哈希挑出其中一个。要跟着操作，请在你自己的仓库中运行同样的命令；你在 <code>objects</code> 下看到的文件夹名会有所不同。</p>
+<div class="term" id="term-m09-objects">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">对象存放在哪里</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>COMMIT_EDITMSG  HEAD  config  description  hooks  index  info  logs  objects  refs
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git/objects</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>06  2e  38  87  8b  90  info  pack
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git/objects/87</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>1d830f4cec82e60e46ad67ec042c33f215a834
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-t</span> 871d830f4cec82e60e46ad67ec042c33f215a834</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>blob
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>.git</code> 中的各项，按 <code>ls</code> 列出的顺序：</p>
+<ul>
+<li><code>COMMIT_EDITMSG</code> 保存你最近一次提交的说明。</li>
+<li><code>HEAD</code> 记录你所在的位置（第 5 节），<code>config</code> 保存仓库的设置，包括它的远程仓库。</li>
+<li><code>description</code> 只供一个老式的网页查看器使用，<code>hooks</code> 保存示例脚本，Git 可以在某些时刻运行这些脚本。</li>
+<li><code>index</code> 就是第 2 模块中的暂存区：一份下一次提交将包含的文件及其数据对象的列表。</li>
+<li><code>info</code> 中有 <code>exclude</code>，这是只对这个克隆生效的私有 <code>.gitignore</code>。</li>
+<li><code>logs</code> 保存第 8 模块中的 reflog。</li>
+<li><code>objects</code> 和 <code>refs</code> 保存对象和分支。</li>
+</ul>
+<p>在 <code>objects</code> 下，每个对象都是一个以其哈希命名的文件：前两个字符是文件夹名，其余 38 个字符是文件名。所以数据对象 <code>871d830f…</code> 就是文件夹 <code>87</code> 中的文件 <code>1d830f4cec…</code>。这六个文件夹对应两次提交的六个对象：两个提交对象、两个树对象和两个数据对象。README 的数据对象由两个树对象共用，如第 1 节的图所示。</p>
+<p>对象文件是压缩过的，所以你无法用 <code>cat</code> 阅读它们；请使用 <code>git cat-file</code>。随着仓库增长，Git 会把许多对象打包到 <code>objects/pack</code> 下的少数几个文件中，并把相似的对象存储为彼此之间的差异。这就是为什么历史很长的仓库占用的空间通常比你预想的少。</p>
+<div class="callout pitfall"><div class="callout-label">陷阱</div>
+<p>永远不要手动编辑或删除 <code>.git</code> 中的文件。损坏的对象或引用可能导致提交无法读取。本模块展示的每一件事，都有能安全完成它的 Git 命令。</p>
+</div>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>分支与 HEAD</h2></div>
+<p>分支不是对象。它是一个<strong>引用</strong>（ref）：一个指向某次提交的名字，以小文件的形式存放在 <code>.git/refs/heads/</code> 中，文件内容是那次提交的哈希。<strong>HEAD</strong> 也是一个引用，通常是<em>符号引用</em>（symbolic ref）：它不保存哈希，而是写着你所在分支的名字。</p>
+<p>在这个动手环节中，你读取 HEAD 和 <code>main</code>，创建一个分支并切换过去，然后观察这些文件的变化。要跟着操作，请运行同样的命令；你的哈希会有所不同。</p>
+<div class="term" id="term-m09-refs">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">分支和 HEAD 都是小文件</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>ref: refs/heads/main
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git/refs/heads</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>main
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/refs/heads/main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> soups</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span> .git/refs/heads</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>main  soups
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/refs/heads/soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'soups'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>ref: refs/heads/soups
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rev-parse</span> HEAD</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d58c2d8d9c541c166d6e80435faab5756a
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<ul>
+<li><code>.git/HEAD</code> 中写着 <code>ref: refs/heads/main</code>：你在 <code>main</code> 上。<code>.git/refs/heads/main</code> 只有一行，即最新提交的哈希 <code>8bf3c2d…</code>。</li>
+<li><code>git branch soups</code> 创建了 <code>.git/refs/heads/soups</code>，其中是同一个哈希。这个小文件就是整个分支，所以创建分支能瞬间完成，而且不复制任何东西（第 4 模块）。</li>
+<li><code>git switch soups</code> 把 <code>.git/HEAD</code> 改成了 <code>ref: refs/heads/soups</code>。你提交时，Git 会把新提交的哈希写进 HEAD 所指分支的文件中，分支标签就是这样向前移动的。</li>
+<li><code>git rev-parse HEAD</code> 把任何名字转换成它所代表的哈希。在脚本中读取引用时，这是安全的做法。</li>
+</ul>
+<p>其他引用也遵循同样的模式。<code>origin/main</code> 这样的远程跟踪分支位于 <code>refs/remotes/</code> 下，标签位于 <code>refs/tags/</code> 下。<strong>分离的 HEAD</strong>（第 3 模块）不过是 <code>.git/HEAD</code> 中直接写着某次提交的哈希，而不是分支名，练习 4 会展示这一点。</p>
+<p>Git 并不总是为每个引用保存一个文件。它可以把许多引用收集到一个文件 <code>.git/packed-refs</code> 中，较新的版本还提供了一种完全不同的存储格式。所以请用 <code>git rev-parse</code>、<code>git branch</code> 等命令读取引用，而不要直接打开文件。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">6</span><h2>练习</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">3 分钟</span></div>
+<p><strong>哪种对象？</strong> 下面每一项分别保存在数据对象、树对象还是提交对象中：<code>pancakes.md</code> 的文字；名字 <code>pancakes.md</code>；提交说明；父提交的哈希；<code>pancakes.md</code> 是普通文件而不是可执行文件这一事实。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>文字：数据对象。名字：树对象。提交说明：提交对象。父提交的哈希：提交对象。文件模式（<code>100644</code>）：树对象，与名字写在一起。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>第一次提交的树。</strong> 只用 <code>git log</code> 和 <code>git cat-file</code>，列出你的食谱仓库中第一次提交的树对象里的文件。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>找到第一次提交，读出它的树对象的哈希，再显示这个树对象：</p>
+<div class="term" id="term-m09-e2-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">第一次提交的树</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 907a979</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>tree 38a015c41d763382717c898da156ce660f860bea
+author Alex Smith &lt;alex@example.com&gt; 1767603900 +0000
+committer Alex Smith &lt;alex@example.com&gt; 1767603900 +0000
+
+Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">cat-file</span> <span class="hljs-attr">-p</span> 38a015c</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>100644 blob 2ecc1f2d65cf3b272e009b477014267d15171467	README.md
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>第一个树对象中只列出了 <code>README.md</code>。它的数据对象 <code>2ecc1f2</code> 与第 2 节中较新的树对象里的相同：README 没有变化。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">3 分钟</span></div>
+<p><strong>一个字母。</strong> 你在交互式变基中用 <code>reword</code> 修正了一次提交的说明中的错字，而这次提交之后还有三次提交。为什么只改了一条说明，四次提交却都得到了新的哈希？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>被改动的那次提交内容变了，所以它的哈希也变了。下一次提交包含其父提交的哈希，而这个哈希现在不同了，所以它的内容和哈希也随之改变，之后的每次提交都是如此。每次提交的哈希都涵盖了它之前的全部历史。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>磁盘上的分离 HEAD。</strong> 让 HEAD 分离到最新提交之前的那次提交上，然后查看 <code>.git/HEAD</code>。接着切换回 <code>main</code>，再看一次。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="term" id="term-m09-e4-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">HEAD 分离时保存的内容</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">--detach</span> HEAD~1</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>HEAD is now at 907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>907a97958867987ca6ef7be665cd4b3f86bb08d6
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Previous HEAD position was 907a979 Add a README
+Switched to branch 'main'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> .git/HEAD</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>ref: refs/heads/main
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>分离时，<code>.git/HEAD</code> 中是一个提交的哈希；在分支上时，其中是 <code>ref: refs/heads/main</code>。在分离状态下做的提交只会移动 HEAD，没有任何分支文件记录它，所以这样的提交很容易丢失（第 3 模块）。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">3 分钟</span></div>
+<p><strong>数一数对象。</strong> 一个新仓库有两次提交。第一次加入 <code>a.txt</code> 和 <code>b.txt</code>。第二次只改动了 <code>b.txt</code>。这个仓库中有多少个数据对象、树对象和提交对象？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>三个数据对象（<code>a.txt</code>、第一版 <code>b.txt</code>、第二版 <code>b.txt</code>），两个树对象（每次提交一个，都指向同一个 <code>a.txt</code> 数据对象），以及两个提交对象：共七个对象。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">3 分钟</span></div>
+<p><strong>廉价的分支。</strong> 从存储的角度解释：为什么创建分支不花时间，以及为什么删除一个已合并的分支不会丢失任何东西。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>分支就是一个保存某次提交哈希的小文件；创建分支只是写下这个文件，不复制任何对象。删除已合并的分支只是删除这个文件。提交是对象，而它们被合并进去的那个分支，仍然能通过自己的提交的父提交找到它们。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">7</span><h2>自测</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>数据对象中保存着什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">文件的名字和内容</button></li><li><button type="button" class="quiz-opt" data-i="1">只有文件的内容</button></li><li><button type="button" class="quiz-opt" data-i="2">一个文件夹中的文件列表</button></li><li><button type="button" class="quiz-opt" data-i="3">一条提交说明</button></li></ol><div class="quiz-expl" hidden>名字保存在列出这个数据对象的树对象中。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>提交对象中保存着什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">每个改动过的文件的副本</button></li><li><button type="button" class="quiz-opt" data-i="1">只有说明和日期</button></li><li><button type="button" class="quiz-opt" data-i="2">树对象的哈希、父提交的哈希、作者、提交者、日期和说明</button></li><li><button type="button" class="quiz-opt" data-i="3">包含它的那些分支的名字</button></li></ol><div class="quiz-expl" hidden>树对象描述整个项目；父提交把这次提交与历史连接起来。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>不同文件夹中的两个文件内容完全相同。Git 为它们存储几个数据对象？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">一个</button></li><li><button type="button" class="quiz-opt" data-i="1">两个</button></li><li><button type="button" class="quiz-opt" data-i="2">推送之前一个也不存</button></li><li><button type="button" class="quiz-opt" data-i="3">每次包含它们的提交各存一个</button></li></ol><div class="quiz-expl" hidden>相同的内容得到相同的哈希，所以只存储一次。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">4</span><div>为什么改动一次旧提交会改变之后所有提交的哈希？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Git 在每次改动后都会重新给提交编号。</button></li><li><button type="button" class="quiz-opt" data-i="1">每次提交都包含父提交的哈希，所以新的父提交哈希会改变下一次提交的内容。</button></li><li><button type="button" class="quiz-opt" data-i="2">哈希取决于当前日期。</button></li><li><button type="button" class="quiz-opt" data-i="3">只有分支标签会变，哈希不会变。</button></li></ol><div class="quiz-expl" hidden>正是这条哈希链让历史一旦被篡改就会被察觉。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div><code>.git/refs/heads/main</code> 中通常是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>main</code> 上每次提交的副本</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>main</code> 上的文件列表</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>main</code> 上最新提交的哈希</button></li><li><button type="button" class="quiz-opt" data-i="3">文字 <code>ref: main</code></button></li></ol><div class="quiz-expl" hidden>分支是某一次提交的名字；历史则由那次提交的父提交依次得出。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">6</span><div>你在 <code>main</code> 上时，<code>.git/HEAD</code> 中是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">第一次提交的哈希</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>ref: refs/heads/main</code></button></li><li><button type="button" class="quiz-opt" data-i="2">单词 <code>main</code> 加上一个日期</button></li><li><button type="button" class="quiz-opt" data-i="3">什么也没有：HEAD 不是文件</button></li></ol><div class="quiz-expl" hidden>HEAD 分离时，其中是一个提交的哈希。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">7</span><div>哪条命令能安全地显示任意对象的内容？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>cat .git/objects/…</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git show-object</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git cat-file -p</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git log --raw</code></button></li></ol><div class="quiz-expl" hidden>对象文件是压缩过的，有些对象还存放在包文件中，所以请通过 Git 读取它们。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">8</span><h2>延伸阅读</h2></div>
+<ul>
+<li>Scott Chacon 和 Ben Straub，《Pro Git》，第 <a href="https://git-scm.com/book/zh/v2/Git-%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86-Git-%E5%AF%B9%E8%B1%A1" target="_blank" rel="noopener">10.2 节：Git 对象</a>和第 <a href="https://git-scm.com/book/zh/v2/Git-%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86-Git-%E5%BC%95%E7%94%A8" target="_blank" rel="noopener">10.3 节：Git 引用</a>。</li>
+<li><a href="https://git-scm.com/docs/git-cat-file" target="_blank" rel="noopener">git cat-file</a>、<a href="https://git-scm.com/docs/git-hash-object" target="_blank" rel="noopener">git hash-object</a> 和 <a href="https://git-scm.com/docs/git-rev-parse" target="_blank" rel="noopener">git rev-parse</a> 的参考页面。</li>
+<li><a href="https://git-scm.com/docs/gitrepository-layout" target="_blank" rel="noopener">gitrepository-layout</a>，其中描述了 <code>.git</code> 文件夹中的每个文件。</li>
+</ul>
+</div><nav class="module-nav" aria-label="全部模块"><a href="module_08_ZH.html">← 模块 08</a><a href="index_ZH.html#modules">全部模块 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>

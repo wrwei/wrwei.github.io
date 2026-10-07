@@ -114,3 +114,8 @@ test('Module 8 recovers a deleted branch from the line below the checkout in the
   assert.match(lesson('en', 8), /the line just below it shows where HEAD was before, the last commit of `experiment`/);
   assert.match(lesson('zh', 8), /紧挨在它下面的那一行才是 HEAD 之前所在的位置，即 `experiment` 的最后一次提交/);
 });
+
+test('Module 9 warns against editing the .git folder by hand', () => {
+  assert.match(lesson('en', 9), /Never edit or delete files inside `\.git` by hand\./);
+  assert.match(lesson('zh', 9), /永远不要手动编辑或删除 `\.git` 中的文件。/);
+});
