@@ -50,3 +50,12 @@ test('the Chinese Module 3 says that git revert, not every undo, needs a clean w
   assert.doesNotMatch(lesson('zh', 3), /撤销要求工作区是干净的/);
   assert.match(lesson('zh', 3), /`git revert` 要求工作区是干净的/);
 });
+
+test('Module 6 tells learners where to put their stand-in server', () => {
+  for (const lang of ['en', 'zh']) {
+    assert.match(lesson(lang, 6), /`git init --bare \.\.\/server\/recipes\.git`/, lang);
+    assert.match(lesson(lang, 6), /`git config user\.name "Sam Lee"`/, `${lang}: Sam's name is set in Sam's clone only`);
+  }
+  assert.match(lesson('en', 6), /Wherever the pages show `\/srv\/git\/recipes\.git`, type that path instead\./);
+  assert.match(lesson('zh', 6), /页面上凡是出现 `\/srv\/git\/recipes\.git` 的地方，请改用这个路径。/);
+});
