@@ -48,16 +48,27 @@ const base = `http://127.0.0.1:${server.address().port}/tutorials/mde/`;
 let browser;
 try {
   browser = await puppeteer.launch({executablePath, headless: true});
-  const page = await browser.newPage();
+  let page = await browser.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
+  async function visit(url) {
+    try {
+      await page.goto(url, {waitUntil: 'networkidle0'});
+    } catch (error) {
+      if (!String(error.message).includes('Navigating frame was detached')) throw error;
+      await page.close().catch(() => {});
+      page = await browser.newPage();
+      page.on('pageerror', e => errors.push(e.message));
+      await page.goto(url, {waitUntil: 'networkidle0'});
+    }
+  }
   for (const number of published) {
     const contract = JSON.parse(fs.readFileSync(join(here, 'plan', `module_${pad(number)}.json`), 'utf8')).contract;
     const expected = (groups.get(number) || []).map(e => e.id);
     for (const lang of ['EN', 'ZH']) {
       const file = `module_${pad(number)}_${lang}.html`;
       await page.setViewport({width: 1280, height: 900});
-      await page.goto(base + file, {waitUntil: 'networkidle0'});
+      await visit(base + file);
       const missing = await page.evaluate(() => [...document.querySelectorAll('a[href^="#"]')].map(a => a.hash.slice(1)).filter(id => !document.getElementById(id)));
       assert.deepEqual(missing, [], `${file}: in-page links resolve`);
       const examples = await page.$$eval('.example', els => els.map(el => ({
@@ -97,7 +108,7 @@ try {
       assert(page.url().endsWith(`module_${pad(number)}_${lang === 'EN' ? 'ZH' : 'EN'}.html`), `${file}: language switch`);
       assert.equal(await page.$eval('.session-done input', el => el.checked), true, `${file}: progress is shared across languages`);
       await page.$eval('.session-done input', el => { el.checked = false; el.dispatchEvent(new Event('change')); });
-      await page.goto(base + file, {waitUntil: 'networkidle0'});
+      await visit(base + file);
       for (const width of [360, 390, 768, 1280]) {
         await page.setViewport({width, height: 900});
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${file}: no horizontal scrolling at ${width}px`);
@@ -112,7 +123,7 @@ try {
   for (const lang of ['EN', 'ZH']) {
     const index = lang === 'EN' ? 'index.html' : 'index_ZH.html';
     await page.setViewport({width: 1280, height: 900});
-    await page.goto(base + index, {waitUntil: 'networkidle0'});
+    await visit(base + index);
     assert.equal(await page.$$eval('.module-card', els => els.length), series.modules.length, `${index}: one card per module`);
     assert.equal(await page.$$eval('a.module-card', els => els.length), published.length, `${index}: published modules are linked`);
     assert.equal(await page.$$eval('article.module-card.planned', els => els.length), series.modules.length - published.length, `${index}: other modules are marked planned`);
