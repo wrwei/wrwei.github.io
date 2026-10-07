@@ -49,7 +49,7 @@ Git 由 Linux 的创建者 Linus Torvalds 于 2005 年创建，用来管理 Linu
 
 {{SESSION:m01-version}}
 
-Git 会回答它的版本号。任何较新的 2.x 版本都适用于本系列。页面上的输出来自上面显示的版本；在 Mac 上，括号中的部分表示这份 Git 由 Apple 构建。你的版本号很可能不同，这并不要紧。
+Git 会回答它的版本号。本系列需要 Git 2.28 或更高版本，2020 年以来发布的安装程序都满足这一要求；如果你的 Linux 发行版提供的版本较旧，其下载页面列出了更新的软件包。页面上的输出来自上面显示的版本；在 Mac 上，括号中的部分表示这份 Git 由 Apple 构建。你的版本号很可能不同，这并不要紧。
 
 ## 终端生存工具包 {#s4}
 
@@ -65,7 +65,7 @@ Git 主要在**终端**中使用：终端是一个窗口，你在其中输入命
 | `mkdir` | 新建一个文件夹 |
 | `cat` | 显示文件的内容 |
 
-在下面的练习中试一试这些命令。本系列页面上的示例都在名为 `/home/alex` 的主文件夹中运行；你的主文件夹是你自己的，例如 Windows 上的 `C:\Users\you` 或 Mac 上的 `/Users/you`。练习要求创建或编辑文件时，请用你的编辑器，并把文件保存在练习当前所在的文件夹中。
+在下面的动手环节中试一试这些命令。本系列页面上的示例都在名为 `/home/alex` 的主文件夹中运行；你的主文件夹是你自己的，例如 Windows 上的 `C:\Users\you` 或 Mac 上的 `/Users/you`。动手环节要求创建或编辑文件时，请用你的编辑器，并把文件保存在动手环节当前所在的文件夹中。
 
 {{SESSION:m01-terminal}}
 
@@ -81,7 +81,7 @@ Git 主要在**终端**中使用：终端是一个窗口，你在其中输入命
 
 请使用你将在 GitHub 上使用的电子邮件地址；第 6 模块会介绍如何对它保密。另外两项设置可以省去日后的麻烦：
 
-- `init.defaultBranch main` 让新仓库从名为 `main` 的分支开始，与 GitHub 的仓库一致。较早版本的 Git 使用 `master`。
+- `init.defaultBranch main` 让新仓库从名为 `main` 的分支开始，与 GitHub 的仓库一致。如果不设置，Git 会把第一个分支命名为 `master`，并打印一段较长的提示，建议你另选名称。
 - `core.editor` 指定 Git 需要你写较长说明时打开的编辑器。`"code --wait"` 会打开 Visual Studio Code，前提是已安装它的 `code` 命令：在 Mac 上，从 VS Code 的命令面板运行 *Shell Command: Install 'code' command in PATH*；Windows 安装程序会自动添加。`nano` 在任何终端中都可以使用，Windows 上也可以用 `notepad`。
 
 如果你的电脑语言设置为中文，Git 可能会用中文打印部分提示，其含义与此处所示的英文输出相同。
@@ -137,7 +137,7 @@ Git 主要在**终端**中使用：终端是一个窗口，你在其中输入命
 :::
 
 ::: solution
-安装成功时会输出一行，例如 `git version 2.50.1`；具体版本号无关紧要。如果找不到命令：
+安装成功时会输出一行，例如 `git version 2.50.1`；2.28 及以上的版本都可以。如果找不到命令：
 
 - 在 Windows 上，关闭终端并重新打开一个，新终端才能找到刚安装的 Git；如果仍然不行，重新运行安装程序；
 - 在 macOS 上，接受系统安装“命令行开发者工具”的提示，或运行 `xcode-select --install`；
@@ -161,7 +161,7 @@ Git 主要在**终端**中使用：终端是一个窗口，你在其中输入命
 :::
 
 ::: solution
-依次运行 `mkdir git-practice`、`cd git-practice` 和 `pwd`，`pwd` 会打印你的主文件夹路径加上 `/git-practice`（在 Windows 上是 `\git-practice`）。最后运行 `cd ..` 回到上一级。这些步骤与终端生存工具包练习相同，只是文件夹名称换成了你自己的。
+依次运行 `mkdir git-practice`、`cd git-practice` 和 `pwd`，`pwd` 会打印你的主文件夹路径加上 `/git-practice`（在 Windows 上是 `\git-practice`）。最后运行 `cd ..` 回到上一级。这些步骤与终端生存工具包动手环节相同，只是文件夹名称换成了你自己的。
 :::
 
 ::: exercise #e6 level=2 kind=conceptual minutes=3

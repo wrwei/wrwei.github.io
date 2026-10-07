@@ -40,7 +40,7 @@ export const UI = {
     as: persona => persona === 'alex' ? `回到 ${PERSONAS.alex.name}，在 Alex 自己的文件夹中。` : `现在以 ${PERSONAS[persona].name} 的身份操作，在其自己的文件夹中。`,
     captured: version => `以下输出来自 ${version}，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。`,
     planLead: '时间为估计值，包含输入命令的时间。进度保存在当前浏览器，中英文版本共享。',
-    chipSessions: n => `${n} 个命令练习`,
+    chipSessions: n => `${n} 个动手环节`,
   },
 };
 

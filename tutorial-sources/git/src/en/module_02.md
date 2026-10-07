@@ -14,6 +14,10 @@ The rest of this series builds a small collection of family recipes. Start it no
 Run `git init` inside your project's folder, never in your home folder: that would put everything you own under version control. If you do it by mistake, delete the `.git` folder it created there, and only that folder.
 :::
 
+::: note title="Windows"
+In PowerShell, `ls -a` does not work: type `ls -Force` to see hidden items such as `.git`. In Git Bash, `ls -a` works as shown.
+:::
+
 ## The three areas {#s2}
 
 Git keeps your work in three places, and most of its commands move changes between them:
@@ -37,6 +41,10 @@ Staging is like packing a parcel, and committing is like sealing it and writing 
 ## Your first commit {#s3}
 
 Time for the first commit. Use your editor to create a file called `README.md` in the `recipes` folder, with the contents shown in the session. Then run the commands one at a time, and read what `git status` says after each step: the file starts as untracked, becomes a change to be committed, and ends up committed, leaving a clean working tree.
+
+::: note title="Windows"
+On Windows, `git add` may print `warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it`. This is harmless: Git for Windows converts between the line endings Windows editors use and the ones stored in the repository. You can ignore the warning.
+:::
 
 {{SESSION:m02-first-commit}}
 
@@ -134,11 +142,11 @@ The next commit will include `pancakes.md` only, because it is under "Changes to
 :::
 
 ::: exercise #e3 level=1 kind=coding minutes=10
-**Two files, two commits.** In a new repository, create `soup.md` and `bread.md`, each with a heading. Commit them separately, each with a clear message, then list the history in one line per commit.
+**Two files, two commits.** Make a new folder called `menu`, next to your `recipes` folder rather than inside it, and turn it into a repository. Then create `soup.md` and `bread.md`, each with a heading. Commit them separately, each with a clear message, then list the history in one line per commit.
 :::
 
 ::: solution
-Stage and commit one file at a time:
+Make the folder and its repository first, then stage and commit one file at a time:
 
 {{SESSION:m02-e3-solution}}
 

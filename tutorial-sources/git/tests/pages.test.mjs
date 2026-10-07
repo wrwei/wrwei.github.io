@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {expandSessions, renderLesson, checkParity, checkContract} from '../tools/pages.mjs';
+import {expandSessions, renderLesson, checkParity, checkContract, UI} from '../tools/pages.mjs';
 
 const VERSION = 'git version 2.50.1 (Apple Git-155)';
 const graph = {commits: [{short: 'abc1234', hash: 'abc1234', parents: [], refs: 'HEAD -> main', subject: 'Start'}], text: '* abc1234 (HEAD -> main) Start\n'};
@@ -55,4 +55,8 @@ test('parity and contract checks name what is wrong', () => {
   assert.doesNotThrow(() => checkContract(en, contract, sessions, 1));
   assert.throws(() => checkContract(en, {...contract, sessions: [2, 3]}, sessions, 1), /1 teaching sessions; the contract allows 2–3/);
   assert.throws(() => checkContract({...en, sessions: []}, contract, sessions, 1), /exactly once/);
+});
+
+test('the Chinese edition calls command sessions 动手环节, keeping 练习 for exercises', () => {
+  assert.equal(UI.zh.chipSessions(4), '4 个动手环节');
 });

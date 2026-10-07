@@ -4,6 +4,7 @@ Use these renderings in every Chinese page. On first use in a module, give the E
 
 | English | 中文 | Notes |
 |---|---|---|
+| command session ("Try it" transcript) | 动手环节 | 练习 is only for exercises |
 | version control | 版本控制 | |
 | centralised / distributed version control | 集中式 / 分布式版本控制 | |
 | repository | 仓库 | |

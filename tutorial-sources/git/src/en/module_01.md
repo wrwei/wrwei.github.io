@@ -49,7 +49,7 @@ To check that Git works, open a terminal and run:
 
 {{SESSION:m01-version}}
 
-Git answers with its version number. Any recent 2.x version is fine for this series. The output on these pages came from the version shown above; on a Mac, the part in brackets says that Apple built this copy of Git. Your number will probably be different, and that does not matter.
+Git answers with its version number. This series needs Git 2.28 or later, which every installer released since 2020 provides; if your Linux distribution offers an older version, its download page lists newer packages. The output on these pages came from the version shown above; on a Mac, the part in brackets says that Apple built this copy of Git. Your number will probably be different, and that does not matter.
 
 ## The terminal survival kit {#s4}
 
@@ -81,7 +81,7 @@ Every commit records the name and email address of its author, so tell Git who y
 
 Use the email address you will use on GitHub; Module 6 shows how to keep it private. Two more settings save trouble later:
 
-- `init.defaultBranch main` makes new repositories start on a branch called `main`, as GitHub's do. Older versions of Git used `master`.
+- `init.defaultBranch main` makes new repositories start on a branch called `main`, as GitHub's do. Without it, Git names the first branch `master` and prints a long hint suggesting that you choose a name.
 - `core.editor` chooses the editor Git opens when it needs you to write a longer message. `"code --wait"` opens Visual Studio Code, whose `code` command must be installed: on a Mac, run *Shell Command: Install 'code' command in PATH* from VS Code's command palette; the Windows installer adds it for you. `nano` works in any terminal, and `notepad` on Windows.
 
 Run these commands, with your own name and email address:
@@ -135,7 +135,7 @@ Version control answers each of them: one folder holds the current version, and 
 :::
 
 ::: solution
-A working installation prints one line such as `git version 2.50.1`; the exact number does not matter. If the command is not found:
+A working installation prints one line such as `git version 2.50.1`; any version from 2.28 on is fine. If the command is not found:
 
 - on Windows, close the terminal and open a new one, which picks up the newly installed Git; if that fails, run the installer again;
 - on macOS, accept the offer to install the command line developer tools, or run `xcode-select --install`;

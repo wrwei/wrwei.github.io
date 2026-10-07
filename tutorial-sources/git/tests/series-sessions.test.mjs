@@ -47,4 +47,9 @@ test('Module 2 sessions print what the lesson describes, with the same hashes ev
   assert.doesNotMatch(ignore[1], /shopping\.tmp/);
   assert.equal(outputs('m02-e3-solution').at(-1), '0bbe433 Add a soda bread recipe\n78fc921 Add a tomato soup recipe\n');
   assert.doesNotMatch(outputs('m02-e5-solution')[0], /photos/);
+  // solutions show their own setup, in a folder of their own, so no repository ends up inside recipes
+  assert.deepEqual(sessions().get('m02-e3-solution').record.filter(r => r.kind === 'command').slice(0, 3).map(r => r.line), ['mkdir menu', 'cd menu', 'git init']);
+  // exercise 5 works in the existing recipes repository, as its question says
+  assert.match(outputs('m02-e5-solution')[0], /^On branch main\nUntracked files:/);
+  assert.match(outputs('m02-e5-solution')[2], /^\[main [0-9a-f]{7}\] Keep photos out of the repository\n/);
 });
