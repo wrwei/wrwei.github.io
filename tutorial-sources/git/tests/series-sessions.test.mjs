@@ -186,3 +186,51 @@ test('the prose of Modules 6 to 8 quotes what the sessions print', () => {
   assert.match(outputs('m07-e5-solution')[3], /^error: the branch 'add-soups' is not fully merged\n/);
   assert.match(outputs('m08-e5-solution')[1], /<<<<<<< HEAD\n- 40 g sugar\n=======\n- 30 g sugar\n>>>>>>> cbca0db \(Use less sugar\)\n/, 'in a rebase, HEAD is the new base');
 });
+
+test('Module 9 sessions print what the lesson describes', () => {
+  const inside = outputs('m09-look-inside');
+  assert.equal(inside[1], 'commit\n');
+  assert.equal(inside[2], 'tree 063e1373abab86d50db53df21ded863f36cfc794\nparent 907a97958867987ca6ef7be665cd4b3f86bb08d6\nauthor Alex Smith <alex@example.com> 1767604020 +0000\ncommitter Alex Smith <alex@example.com> 1767604020 +0000\n\nAdd a pancake recipe\n');
+  assert.equal(inside[3], '100644 blob 2ecc1f2d65cf3b272e009b477014267d15171467\tREADME.md\n100644 blob 871d830f4cec82e60e46ad67ec042c33f215a834\tpancakes.md\n');
+  assert.match(inside[5], /^tree 38a015c41d763382717c898da156ce660f860bea\nauthor /, 'the first commit has no parent line');
+  const hash = outputs('m09-hash');
+  assert.equal(hash[0], '871d830f4cec82e60e46ad67ec042c33f215a834\n');
+  assert.equal(hash[1], hash[0]);
+  assert.notEqual(hash[2], hash[0]);
+  const objects = outputs('m09-objects');
+  assert.equal(objects[0], 'COMMIT_EDITMSG  HEAD  config  description  hooks  index  info  logs  objects  refs\n');
+  assert.equal(objects[1], '06  2e  38  87  8b  90  info  pack\n', 'six objects in six folders');
+  assert.equal(objects[2], '1d830f4cec82e60e46ad67ec042c33f215a834\n');
+  const refs = outputs('m09-refs');
+  assert.equal(refs[0], 'ref: refs/heads/main\n');
+  assert.equal(refs[2], '8bf3c2d58c2d8d9c541c166d6e80435faab5756a\n');
+  assert.equal(refs[5], refs[2]);
+  assert.equal(refs[7], 'ref: refs/heads/soups\n');
+  assert.equal(outputs('m09-e2-solution')[2], '100644 blob 2ecc1f2d65cf3b272e009b477014267d15171467\tREADME.md\n');
+  assert.equal(outputs('m09-e4-solution')[1], '907a97958867987ca6ef7be665cd4b3f86bb08d6\n');
+});
+
+test('Module 10 sessions print what the lesson describes', () => {
+  assert.match(outputs('m10-start')[4], /^\[main \(root-commit\) db5abad\] Start the family cookbook\n/);
+  assert.equal(outputs('m10-start')[10], 'db5abad Start the family cookbook\n');
+  assert.deepEqual(people('m10-start'), ['sam']);
+  const parallel = outputs('m10-parallel');
+  assert.match(parallel[2], /^\[add-soup 7c82c56\] Add a tomato soup recipe\n/);
+  assert.match(parallel[6], /^\[add-bread 0070943\] Add a soda bread recipe\n/);
+  assert.deepEqual(sessions().get('m10-parallel').graphs['two-branches'].commits.map(c => c.short), ['0070943', 'db5abad'], "Sam's repository has not fetched add-soup");
+  const conflict = sessions().get('m10-conflict').record.filter(r => r.kind === 'command');
+  assert.equal(conflict[1].ok, false);
+  assert.match(conflict[2].output, /<<<<<<< HEAD\n- \[Soda bread\]\(bread\.md\)\n=======\n- \[Tomato soup\]\(soup\.md\)\n>>>>>>> origin\/main\n/);
+  assert.match(conflict[4].output, /\] Merge remote-tracking branch 'origin\/main' into add-bread\n/);
+  const merged = sessions().get('m10-merge');
+  assert.equal(merged.graphs.merged.commits[0].subject, 'Merge pull request #2 from alex/add-bread');
+  assert.deepEqual(merged.graphs.merged.commits.slice(-3).map(c => c.short), ['7c82c56', '0070943', 'db5abad']);
+  const release = outputs('m10-release');
+  assert.equal(release[2], 'To /srv/git/cookbook.git\n * [new tag]         v1.0 -> v1.0\n');
+  assert.match(release[4], /^tag v1\.0\nTagger: Alex Smith <alex@example\.com>\n/);
+  assert.match(release[5], / \* \[new tag\]         v1\.0       -> v1\.0\n$/);
+  assert.match(sessions().get('m10-release').graphs.released.commits[0].refs, /tag: refs\/tags\/v1\.0/);
+  assert.equal(outputs('m10-e1-solution').at(-1), 'v1.0\nv1.0.1\n');
+  assert.deepEqual(outputs('m10-e3-solution'), ['0070943 Add a soda bread recipe\n', 'Sam Lee, Add a soda bread recipe\n']);
+  assert.equal(outputs('m10-e4-solution').at(-1), 'v1.0\n');
+});

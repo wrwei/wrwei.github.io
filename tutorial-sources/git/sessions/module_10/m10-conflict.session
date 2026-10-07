@@ -1,0 +1,94 @@
+title: Bring a branch up to date, and resolve the conflict
+title-zh: 让分支跟上最新进展，并解决冲突
+---
+# The cookbook is on the server, and both people have a clone
+> mkdir cookbook
+> cd cookbook
+> git init
++hidden README.md
+# Family cookbook
+
+Our family's recipes, collected by Alex and Sam.
++end
++hidden index.md
+# Recipes
+
+- [Pancakes](pancakes.md)
++end
++hidden pancakes.md
+# Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
++end
+> git add README.md index.md pancakes.md
+> git commit -m "Start the family cookbook"
+> git init --bare /srv/git/cookbook.git
+> git remote add origin /srv/git/cookbook.git
+> git push -u origin main
+@as sam
+> git clone /srv/git/cookbook.git
+> cd cookbook
+> git log --oneline
+@as alex
+> git config --global pull.rebase false
+@as sam
+> git config --global pull.rebase false
+@as alex
+> git switch -c add-soup
++hidden soup.md
+# Tomato soup
+
+- 1 kg tomatoes
++end
++hidden index.md
+# Recipes
+
+- [Pancakes](pancakes.md)
+- [Tomato soup](soup.md)
++end
+> git add soup.md index.md
+> git commit -m "Add a tomato soup recipe"
+> git push -u origin add-soup
+@as sam
+> git switch -c add-bread
++hidden bread.md
+# Soda bread
+
+- 450 g flour
++end
++hidden index.md
+# Recipes
+
+- [Pancakes](pancakes.md)
+- [Soda bread](bread.md)
++end
+> git add bread.md index.md
+> git commit -m "Add a soda bread recipe"
+> git push -u origin add-bread
+@as alex
+# Sam reviews Alex's pull request and merges it on GitHub
+@as sam
+> git fetch
+> git switch main
+> git merge --no-ff origin/add-soup -m "Merge pull request #1 from alex/add-soup"
+> git push
+> git push origin --delete add-soup
+> git switch add-bread
+@as alex
+@as sam
+$ git fetch
+$! git merge origin/main
+$ cat index.md
++file index.md
+# Recipes
+
+- [Pancakes](pancakes.md)
+- [Soda bread](bread.md)
+- [Tomato soup](soup.md)
++end
+$ git add index.md
+$ git commit
+$ git push
+@graph updated

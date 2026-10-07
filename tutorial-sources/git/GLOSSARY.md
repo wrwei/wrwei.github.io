@@ -53,7 +53,13 @@ Use these renderings in every Chinese page. On first use in a module, give the E
 | squash | 压缩 | |
 | stash | 贮藏 | as in Pro Git's Chinese edition |
 | reflog | 引用日志（reflog） | |
-| tag / release | 标签 / 发布 | |
+| tag / release (verb) | 标签 / 发布 | |
+| annotated tag / lightweight tag | 附注标签 / 轻量标签 | as in Pro Git's Chinese edition |
+| release (a GitHub page) | 发行版 | GitHub's Chinese docs |
+| semantic versioning | 语义化版本 | |
+| ruleset / branch protection | 规则集 / 分支保护 | |
+| object / blob / tree | 对象 / 数据对象 / 树对象 | first use: 数据对象（blob） |
+| ref / symbolic ref | 引用 / 符号引用 | |
 | terminal / command line | 终端 / 命令行 | |
 | folder / home folder | 文件夹 / 主文件夹 | |
 | editor | 编辑器 | |
