@@ -14,7 +14,7 @@ const START = Date.UTC(2026, 0, 5, 9, 0, 0) / 1000; // Monday 5 January 2026, 09
 const TICK = 60; // seconds between commands
 
 /** Splits a command line like a shell, but rejects the shell features sessions do not support. */
-export function splitCommand(line, where) {
+export function splitCommand(line, where, allowTilde = false) {
   const words = [];
   let word = '';
   let started = false;
@@ -31,13 +31,29 @@ export function splitCommand(line, where) {
       if (started) { words.push(word); word = ''; started = false; }
       continue;
     }
-    if ('|&;<>$`\\*?(){}'.includes(ch)) throw new Error(`${where}: shell syntax "${ch}" is not supported; a session runs one plain command per line`);
+    if (!started && ch === '#') throw new Error(`${where}: a word starting with "#" is a comment in a shell; quote it`);
+    if (!started && ch === '~' && !allowTilde) throw new Error(`${where}: "~" is expanded by a shell; write /home/alex instead`);
+    if ('|&;<>$`\\*?(){}[]'.includes(ch)) throw new Error(`${where}: shell syntax "${ch}" is not supported; a session runs one plain command per line`);
     word += ch;
     started = true;
   }
   if (quote) throw new Error(`${where}: a quote is not closed`);
   if (started) words.push(word);
   return words;
+}
+
+/** The forms of each built-in that the runner implements; anything else is rejected while parsing. */
+function checkBuiltin([name, ...args], where) {
+  const options = args.filter(a => a.startsWith('-'));
+  const operands = args.filter(a => !a.startsWith('-'));
+  const fail = message => { throw new Error(`${where}: ${message}`); };
+  if (name === 'pwd' && args.length) fail('pwd takes no arguments');
+  if (name === 'ls' && (options.some(o => o !== '-a') || options.length > 1 || operands.length > 1)) fail('ls: only "ls", "ls -a" and one folder are supported');
+  if (name === 'cd' && (options.length || operands.length > 1)) fail('cd takes at most one folder');
+  if (name === 'mkdir' && options.length) fail('mkdir: options are not supported');
+  if (name === 'mkdir' && !operands.length) fail('mkdir needs a folder name');
+  if (name === 'cat' && options.length) fail('cat: options are not supported');
+  if (name === 'cat' && !operands.length) fail('cat needs at least one file');
 }
 
 /**
@@ -70,8 +86,9 @@ export function parseSession(text, name = 'session') {
     if (!line.trim() || line.startsWith('#')) continue;
     let m;
     if ((m = /^(\$!|\$|>)\s+(.+)$/.exec(line))) {
-      const words = splitCommand(m[2], where);
+      const words = splitCommand(m[2], where, /^cd\s+~$/.test(m[2].trim()));
       if (words[0] !== 'git' && !BUILTINS.includes(words[0])) throw new Error(`${where}: "${words[0]}" is neither git nor a built-in (${BUILTINS.join(', ')})`);
+      if (words[0] !== 'git') checkBuiltin(words, where);
       steps.push({kind: 'run', line: m[2].trim(), words, shown: m[1] !== '>', expectFail: m[1] === '$!', where});
     } else if ((m = /^\+(file|hidden)\s+(\S+)$/.exec(line))) {
       const content = [];
@@ -98,6 +115,41 @@ export function gitVersion(git = 'git') {
 }
 
 /**
+ * Maps between the sandbox's real paths and the paths a lesson shows. `root` holds the shown file
+ * system (/home/alex, /home/sam, /srv/git); `internal` holds the runner's own files and must never
+ * appear in output. `pathApi` is node:path, or path.win32 in tests.
+ */
+export function sandboxPaths(root, internal, pathApi = path) {
+  const forward = p => p.replace(/\\/g, '/');
+  const roots = [...new Set([root, forward(root)])];
+  const outside = [...new Set([internal, forward(internal), pathApi.dirname(root), forward(pathApi.dirname(root))])];
+  const MARK = '\u0000';
+  return {
+    /** Rewrites sandbox paths in text as shown paths with forward slashes; the root itself is "/". */
+    toShown(text) {
+      let out = text;
+      for (const r of roots) out = out.split(r).join(MARK);
+      return out.replace(/\u0000([^\s'"]*)/g, (_, rest) => forward(rest) || '/');
+    },
+    /** The real path for a shown absolute path such as /srv/git/recipes.git. */
+    toReal(shown) {
+      return pathApi.join(root, ...shown.split('/').filter(Boolean));
+    },
+    /** The same, with forward slashes, which Git accepts on every system. */
+    forGit(shown) {
+      return forward(pathApi.join(root, ...shown.split('/').filter(Boolean)));
+    },
+    /** Paths outside the shown file system that appear in (already shown) text. */
+    leaks(text) {
+      const found = outside.find(p => text.includes(p));
+      return found ? [found] : [];
+    },
+  };
+}
+
+const isShownPath = p => p === '/' || /^\/(home|srv)(\/|$)/.test(p);
+
+/**
  * Runs a parsed session in `sandbox`, an empty directory. Returns
  *   record:   what the lesson shows, in order: {kind:'command', line, output, ok} | {kind:'file', path, content}
  *             | {kind:'as', persona} | {kind:'graph', label}
@@ -105,30 +157,29 @@ export function gitVersion(git = 'git') {
  *   problems: messages for every step that did not behave as declared (empty when all is well)
  */
 export function runSession(session, {sandbox, git = 'git'}) {
-  const root = fs.realpathSync(sandbox);
-  const places = {alex: path.join(root, 'alex'), sam: path.join(root, 'sam'), server: path.join(root, 'server')};
-  const shown = [[places.alex, '/home/alex'], [places.sam, '/home/sam'], [places.server, '/srv/git']];
-  for (const dir of [...Object.values(places), path.join(root, 'config-alex'), path.join(root, 'config-sam')]) fs.mkdirSync(dir, {recursive: true});
-  const systemConfig = path.join(root, 'gitconfig-system');
-  fs.writeFileSync(systemConfig, '[init]\n\tdefaultBranch = main\n');
-  const outputFile = path.join(root, 'output.txt');
-  const cwd = {alex: places.alex, sam: places.sam};
+  const base = fs.realpathSync.native(sandbox);
+  const root = path.join(base, 'root');
+  const internal = path.join(base, 'internal');
+  const homes = {alex: path.join(root, 'home', 'alex'), sam: path.join(root, 'home', 'sam')};
+  for (const dir of [...Object.values(homes), path.join(root, 'srv', 'git'), internal]) fs.mkdirSync(dir, {recursive: true});
+  const paths = sandboxPaths(root, internal);
+  const outputFile = path.join(internal, 'output.txt');
+  const cwd = {...homes};
   let persona = 'alex';
   let clock = START;
 
-  const forward = p => p.replace(/\\/g, '/');
-  const toShown = text => shown.reduce((t, [real, nice]) => t.split(real).join(nice).split(forward(real)).join(nice), text);
-  const toReal = p => {
-    for (const [real, nice] of shown) if (p === nice || p.startsWith(nice + '/')) return path.join(real, p.slice(nice.length));
-    return path.resolve(cwd[persona], p);
-  };
+  // Paths never leave the shown file system: going above / stays at /, as in a shell.
+  const confine = p => (p === root || p.startsWith(root + path.sep) ? p : root);
+  const toReal = p => confine(isShownPath(p) ? paths.toReal(p) : path.resolve(cwd[persona], p));
   const env = () => {
     const who = PERSONAS[persona];
     const date = `@${clock} +0000`;
-    const config = path.join(root, `config-${persona}`);
     return {
       PATH: process.env.PATH, SYSTEMROOT: process.env.SYSTEMROOT ?? '',
-      HOME: config, USERPROFILE: config, XDG_CONFIG_HOME: path.join(config, '.config'), GIT_CONFIG_SYSTEM: systemConfig,
+      HOME: homes[persona], USERPROFILE: homes[persona], XDG_CONFIG_HOME: path.join(homes[persona], '.config'),
+      // No system or vendor configuration (Apple's Git reads an extra file that GIT_CONFIG_SYSTEM cannot replace);
+      // new repositories start on main, as if the learner had followed Module 1.
+      GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'init.defaultBranch', GIT_CONFIG_VALUE_0: 'main',
       LANG: 'C', LC_ALL: 'C', TZ: 'UTC', GIT_PAGER: 'cat', PAGER: 'cat', GIT_EDITOR: 'true', GIT_TERMINAL_PROMPT: '0',
       GIT_AUTHOR_NAME: who.name, GIT_AUTHOR_EMAIL: who.email, GIT_AUTHOR_DATE: date,
       GIT_COMMITTER_NAME: who.name, GIT_COMMITTER_EMAIL: who.email, GIT_COMMITTER_DATE: date,
@@ -147,26 +198,29 @@ export function runSession(session, {sandbox, git = 'git'}) {
   };
   const builtin = ([name, ...args]) => {
     const fail = message => ({status: 1, output: message + '\n'});
+    const exists = p => fs.existsSync(p);
     switch (name) {
-      case 'pwd': return {status: 0, output: toShown(cwd[persona]) + '\n'};
+      case 'pwd': return {status: 0, output: paths.toShown(cwd[persona]) + '\n'};
       case 'cd': {
-        const target = !args[0] || args[0] === '~' ? places[persona] : toReal(args[0]);
-        if (!fs.existsSync(target) || !fs.statSync(target).isDirectory()) return fail(`cd: no such directory: ${args[0]}`);
+        const target = !args[0] || args[0] === '~' ? homes[persona] : toReal(args[0]);
+        if (!exists(target) || !fs.statSync(target).isDirectory()) return fail(`cd: no such directory: ${args[0]}`);
         cwd[persona] = target;
         return {status: 0, output: ''};
       }
       case 'mkdir': {
         for (const arg of args) {
           const target = toReal(arg);
-          if (fs.existsSync(target)) return fail(`mkdir: ${arg}: File exists`);
+          if (exists(target)) return fail(`mkdir: ${arg}: File exists`);
+          if (!exists(path.dirname(target))) return fail(`mkdir: ${arg}: No such file or directory`);
           fs.mkdirSync(target);
         }
         return {status: 0, output: ''};
       }
       case 'ls': {
         const all = args.includes('-a');
-        const dir = toReal(args.find(a => !a.startsWith('-')) ?? '.');
-        if (!fs.existsSync(dir)) return fail(`ls: ${args.find(a => !a.startsWith('-'))}: No such file or directory`);
+        const named = args.find(a => !a.startsWith('-'));
+        const dir = toReal(named ?? '.');
+        if (!exists(dir)) return fail(`ls: ${named}: No such file or directory`);
         const names = fs.readdirSync(dir).filter(n => all || !n.startsWith('.')).sort();
         const list = all ? ['.', '..', ...names] : names;
         return {status: 0, output: list.length ? list.join('  ') + '\n' : ''};
@@ -175,7 +229,7 @@ export function runSession(session, {sandbox, git = 'git'}) {
         let output = '';
         for (const arg of args) {
           const file = toReal(arg);
-          if (!fs.existsSync(file)) return fail(`cat: ${arg}: No such file or directory`);
+          if (!exists(file) || fs.statSync(file).isDirectory()) return fail(`cat: ${arg}: No such file or directory`);
           output += fs.readFileSync(file, 'utf8');
         }
         return {status: 0, output};
@@ -187,6 +241,11 @@ export function runSession(session, {sandbox, git = 'git'}) {
   const record = [];
   const graphs = {};
   const problems = [];
+  const show = (text, where) => {
+    const shown = paths.toShown(text);
+    for (const leak of paths.leaks(shown)) problems.push(`${where}: the output shows a path outside the sandbox (${leak})`);
+    return shown;
+  };
   for (const step of session.steps) {
     if (step.kind === 'as') { persona = step.persona; record.push({kind: 'as', persona}); continue; }
     if (step.kind === 'file') {
@@ -204,19 +263,28 @@ export function runSession(session, {sandbox, git = 'git'}) {
         const [short, hash, parents, refs, subject] = line.split('\t');
         return {short, hash, parents: parents ? parents.split(' ') : [], refs, subject};
       });
-      graphs[step.label] = {commits, text: toShown(text.output)};
+      graphs[step.label] = {commits, text: show(text.output, step.where)};
       record.push({kind: 'graph', label: step.label});
       continue;
     }
     clock += TICK;
-    // arguments may name the readable paths a learner sees, such as /srv/git/recipes.git
-    const args = step.words.slice(1).map(a => (shown.some(([, nice]) => a === nice || a.startsWith(nice + '/')) ? toReal(a) : a));
-    const {status, output} = step.words[0] === 'git' ? runGit(args) : builtin(step.words);
-    const ok = status === 0;
-    if (ok === step.expectFail) {
-      problems.push(`${step.where}: "${step.line}" ${ok ? 'succeeded, but is declared to fail ($!)' : `failed with exit code ${status}, but is declared to succeed`}\n${toShown(output)}`);
+    let result;
+    if (step.words[0] === 'git') {
+      // arguments may name the paths a learner sees, such as /srv/git/recipes.git
+      result = runGit(step.words.slice(1).map(a => (isShownPath(a) ? paths.forGit(a) : a)));
+    } else {
+      try {
+        result = builtin(step.words);
+      } catch (error) {
+        result = {status: 1, output: `${step.words[0]}: ${error.message}\n`};
+      }
     }
-    if (step.shown) record.push({kind: 'command', line: step.line, output: toShown(output), ok});
+    const ok = result.status === 0;
+    const output = show(result.output, step.where);
+    if (ok === step.expectFail) {
+      problems.push(`${step.where}: "${step.line}" ${ok ? 'succeeded, but is declared to fail ($!)' : `failed with exit code ${result.status}, but is declared to succeed`}\n${output}`);
+    }
+    if (step.shown) record.push({kind: 'command', line: step.line, output, ok});
   }
   return {record, graphs, problems};
 }

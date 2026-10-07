@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {parseSession, splitCommand, runSession, gitVersion} from '../tools/session.mjs';
+import {parseSession, splitCommand, runSession, gitVersion, sandboxPaths} from '../tools/session.mjs';
 
 const HEADER = 'title: T\ntitle-zh: 题\n---\n';
 function run(body) {
@@ -97,4 +97,58 @@ test('a graph of an empty repository is reported as a problem', () => {
 
 test('gitVersion reads the version line', () => {
   assert.match(gitVersion(), /^git version \d+\.\d+\.\d+/);
+});
+
+test('no configuration from the builder machine reaches a session', () => {
+  const result = run('$ git config --global user.name "Alex Smith"\n$ git config --list --show-origin\n');
+  const output = commands(result)[1].output;
+  assert.doesNotMatch(output, /\/Library\/|osxkeychain|credential\./, 'no system or vendor configuration');
+  assert.match(output, /^file:\/home\/alex\/\.gitconfig\tuser\.name=Alex Smith$/m, 'the global file is in the shown home folder');
+});
+
+test('the sandbox looks like a small file system: /home and /srv, and nothing else', () => {
+  const result = run('$ cd ..\n$ pwd\n$ ls\n$ cd ..\n$ pwd\n$ ls\n$ cd ..\n$ pwd\n$ cd /home/alex\n$ git config --global user.name "Alex Smith"\n$ ls -a\n$ cat /home/alex/.gitconfig\n');
+  assert.deepEqual(result.problems, []);
+  assert.deepEqual(commands(result).map(c => c.output), [
+    '', '/home\n', 'alex  sam\n', '', '/\n', 'home  srv\n', '', '/\n', '', '', '.  ..  .gitconfig\n', '[user]\n\tname = Alex Smith\n']);
+});
+
+test('output that would show a path outside the sandbox is reported', () => {
+  const paths = sandboxPaths('/tmp/run/root', '/tmp/run/internal');
+  assert.equal(paths.toShown('/tmp/run/root/home/alex/x'), '/home/alex/x');
+  assert.equal(paths.toShown('/tmp/run/root'), '/');
+  assert.deepEqual(paths.leaks('fatal: see /tmp/run/internal/output.txt'), ['/tmp/run/internal']);
+  assert.deepEqual(paths.leaks('cd into /tmp/run'), ['/tmp/run']);
+  assert.deepEqual(paths.leaks('/home/alex is fine'), []);
+});
+
+test('on Windows, shown paths use forward slashes and Git gets forward-slash paths', () => {
+  const paths = sandboxPaths('C:\\Users\\me\\AppData\\Local\\Temp\\run\\root', 'C:\\Users\\me\\AppData\\Local\\Temp\\run\\internal', path.win32);
+  assert.equal(paths.toShown('C:\\Users\\me\\AppData\\Local\\Temp\\run\\root\\home\\alex\\projects'), '/home/alex/projects');
+  assert.equal(paths.toShown('Initialized empty Git repository in C:/Users/me/AppData/Local/Temp/run/root/home/alex/recipes/.git/'), 'Initialized empty Git repository in /home/alex/recipes/.git/');
+  assert.equal(paths.forGit('/srv/git/recipes.git'), 'C:/Users/me/AppData/Local/Temp/run/root/srv/git/recipes.git');
+});
+
+test('built-ins accept only the forms they implement', () => {
+  const bad = (line, message) => assert.throws(() => parseSession(HEADER + line + '\n', 't.session'), message);
+  bad('$ ls -la', /ls: only "ls", "ls -a" and one folder are supported/);
+  bad('$ ls -l', /ls: only/);
+  bad('$ mkdir -p a/b', /mkdir: options are not supported/);
+  bad('$ pwd -P', /pwd takes no arguments/);
+  bad('$ cd a b', /cd takes at most one folder/);
+  bad('$ cat', /cat needs at least one file/);
+});
+
+test('the parser rejects words a shell would change', () => {
+  const bad = (line, message) => assert.throws(() => parseSession(HEADER + line + '\n', 't.session'), message);
+  bad('$ git log --format=[%h]', /shell syntax "\["/);
+  bad('$ git commit -m #wip', /a word starting with "#" is a comment in a shell/);
+  bad('$ cat ~/.gitconfig', /"~" is expanded by a shell; write \/home\/alex instead/);
+  assert.doesNotThrow(() => parseSession(HEADER + "$ git log --format='[%h]'\n$ cd ~\n", 't.session'));
+});
+
+test('a built-in that fails reports a failure instead of crashing', () => {
+  const result = run('$! mkdir a/b\n$ mkdir a\n$ mkdir a/b\n$ ls a\n');
+  assert.deepEqual(result.problems, []);
+  assert.deepEqual(commands(result).map(c => c.output), ['mkdir: a/b: No such file or directory\n', '', '', 'b\n']);
 });
