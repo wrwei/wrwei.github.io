@@ -65,7 +65,7 @@ A hands-on 10-module series on model-driven engineering: metamodels, models, que
 
 ## Git and Version Control
 
-A 10-module series for complete beginners: why version control matters, your first repository, history and undoing, branches and merges, remotes and GitHub, pull requests, and recovering from mistakes. Every command is typed on your own computer, and every output shown comes from real Git. English and Chinese editions. Modules 1 and 2 are available now; the other modules are in preparation.
+A 10-module series for complete beginners: why version control matters, your first repository, history and undoing, branches and merges, remotes and GitHub, pull requests, and recovering from mistakes. Every command is typed on your own computer, and every output shown comes from real Git. English and Chinese editions. Modules 1 to 5 are available now; the other modules are in preparation.
 
 [:octicons-arrow-right-24: Go to Git Tutorials](git/index.html)
 
