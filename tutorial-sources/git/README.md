@@ -7,7 +7,8 @@ and `GLOSSARY.md` the English–Chinese terminology.
 ## Requirements
 
 - Git: exactly the version named in `plan/series.json` ("gitVersion"), because every output on the
-  pages comes from it. The build stops on any other version (see "Changing the Git version").
+  pages comes from it. That is currently Apple's Git on macOS, so build the pages on a Mac; on any
+  other version the build stops (see "Changing the Git version").
 - Node 22.2 or later, with the AI tools' packages installed: `npm ci --prefix tutorial-sources/ai/tools`.
 - Chrome or Edge for the browser checks, or set `GIT_SERIES_BROWSER_PATH` to another Chromium-based browser.
 - Python with the repository's `requirements.txt` for the MkDocs build.
@@ -53,16 +54,22 @@ should print nothing after a second build.
   @graph after-merge        draw the commit graph here
   ```
 
-  Commands are `git` or one of the built-ins `pwd`, `ls`, `cd`, `mkdir` and `cat`, with plain
-  arguments: no pipes, redirection, wildcards or variables, so that learners can type them in any
-  shell. Paths such as `/home/alex`, `/home/sam` and `/srv/git` (a stand-in server) are what the
+  Commands are `git` or one of the built-ins in the forms the runner implements: `pwd`,
+  `ls [-a] [folder]`, `cd [folder]` (also `cd ~` and `cd ..`), `mkdir folder…` and `cat file…`.
+  Arguments are plain: no pipes, redirection, wildcards, brackets, variables, `~` or words starting
+  with `#`, so that learners can type them in any shell. Paths such as `/home/alex`, `/home/sam` and `/srv/git` (a stand-in server) are what the
   lesson shows; the build maps them to a temporary sandbox.
 - `figures/en/fig-NN-MM.svg` and `figures/zh/fig-NN-MM.svg`: hand-drawn diagrams, one per language.
 
 ## What the build guarantees
 
 - Every session runs in a fresh sandbox with fixed names, dates, configuration and paths, so its
-  output and commit hashes are the same on every machine and every build.
+  output and commit hashes are the same on every machine and every build. The sandbox looks like a
+  small file system (`/home/alex`, `/home/sam`, `/srv/git`); each person's home folder is their
+  `HOME`, and no system or vendor configuration is read. New repositories start on `main` through a
+  command-line setting, which `git config --show-origin` would list as "command line", so avoid
+  `--show-origin` and `--show-scope` in sessions.
+- The build stops if any output shows a path outside the sandbox.
 - The build stops if a command fails or succeeds against its declaration, if the English and
   Chinese editions differ in sections, sessions, graphs, figures, exercises or quiz answers, if a
   lesson still contains a `<!-- BRIEF` note, if the Chinese source is a copy of the English one, or
