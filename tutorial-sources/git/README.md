@@ -2,7 +2,7 @@
 
 Published pages are built into `docs/tutorials/git/`. Edit these sources, never the generated HTML.
 `SPEC.md` is the design, `PLAN.md` the implementation plan for the shared tooling and Modules 1–2,
-`PLAN-modules-03-05.md` and `PLAN-modules-06-08.md` the plans for Modules 3–5 and 6–8, and `GLOSSARY.md`
+`PLAN-modules-03-05.md`, `PLAN-modules-06-08.md` and `PLAN-modules-09-10.md` the plans for the later modules, and `GLOSSARY.md`
 the English–Chinese terminology.
 
 ## Requirements
