@@ -1,0 +1,346 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Branches — Git and Version Control</title><meta name="description" content="Work on separate ideas side by side: create and switch branches, understand HEAD, and bring work together with fast-forward and three-way merges."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="4"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Git Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 04</button><div class="dropdown-menu" id="module-menu"><a href="module_01_EN.html">01 · Why version control?</a><a href="module_02_EN.html">02 · Your first repository</a><a href="module_03_EN.html">03 · History and undoing</a><a href="module_04_EN.html" class="active" aria-current="page">04 · Branches</a><a href="module_05_EN.html">05 · Merge conflicts</a><a href="module_06_EN.html">06 · Remotes</a><a href="module_07_EN.html">07 · Collaborating with pull requests</a><a href="module_08_EN.html">08 · Rewriting history and recovering</a><a href="module_09_EN.html">09 · How Git works inside</a><a href="module_10_EN.html">10 · Capstone: a team project</a><a href="index.html#modules">All modules</a></div></div><a class="lang-switch" href="module_04_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/3 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#s1"><span class="num">1</span><span>What a branch is</span></a><a href="#s2"><span class="num">2</span><span>Creating and switching branches</span></a><a href="#s3"><span class="num">3</span><span>HEAD</span></a><a href="#s4"><span class="num">4</span><span>Fast-forward merges</span></a><a href="#s5"><span class="num">5</span><span>Three-way merges</span></a><a href="#s6"><span class="num">6</span><span>Tidying up branches</span></a><a href="#exercises"><span class="num">7</span><span>Exercises</span></a><a href="#quiz"><span class="num">8</span><span>Self-check quiz</span></a><a href="#reading"><span class="num">9</span><span>Further reading</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git and Version Control — Ran Wei</div><h1 class="module-title">Branches</h1><p class="module-lead">Work on separate ideas side by side: create and switch branches, understand HEAD, and bring work together with fast-forward and three-way merges.</p><div class="hero-chips"><span class="chip chip-time">3 hours</span><span class="chip">3 study sessions</span><span class="chip">4 command sessions</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Explain a branch as a movable label that points at a commit.</li><li>Create, list and switch branches with git branch and git switch.</li><li>Say where HEAD points, and read it in a commit graph.</li><li>Tell a fast-forward merge from a three-way merge, and carry out both.</li><li>Rename and delete branches safely.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Modules 2 and 3: committing, reading history with git log, and the idea of a detached HEAD.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#s1">What a branch is</a><a href="#s2">Creating and switching branches</a><a href="#s3">HEAD</a><a href="#s4">Fast-forward merges</a><a href="#s5">Three-way merges</a><a href="#s6">Tidying up branches</a><a href="#exercises">Exercises</a><a href="#quiz">Self-check quiz</a><a href="#reading">Further reading</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">3 hours</span></div><p class="plan-lead">Times are estimates and include typing the commands. Progress is saved in this browser and shared by both language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">60 min</span></div><div class="session-title">Branches and HEAD</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">What a branch is</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s2">Creating and switching branches</a></span><span class="act-min">30</span></li><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">HEAD</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m04:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">60 min</span></div><div class="session-title">Merging</div><ul class="acts"><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s4">Fast-forward merges</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s5">Three-way merges</a></span><span class="act-min">25</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s6">Tidying up branches</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m04:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">60 min</span></div><div class="session-title">Practice</div><ul class="acts"><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#exercises">Six exercises</a></span><span class="act-min">45</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Self-check quiz</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m04:s3"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>What a branch is</h2></div>
+<p>So far, every commit has gone onto one line of history. Real work rarely stays that tidy. You may want to try a new recipe without disturbing the ones that work, or fix a typo while a bigger change is half done. <strong>Branches</strong> let you keep separate lines of work side by side, and combine them when they are ready.</p>
+<p>In Git, a branch is simply a <strong>movable label that points at a commit</strong>. Creating one copies nothing: Git writes down the new name and the commit it points at, and that is all. This is why branches are cheap and fast, and why it is normal to create one for every idea, however small, and delete it afterwards.</p>
+<p><code>main</code> is an ordinary branch. It has no special powers; it is just the branch a repository starts with, and the one most projects treat as the main line.</p>
+<p>The label is what makes a branch move. When you commit, Git makes the new commit and moves the label of the branch you are on forward to it. The other branches stay where they were. So each branch grows its own line of commits, and they all share the history from before they split.</p>
+<div class="callout analogy"><div class="callout-label">Analogy</div>
+<p>Branches are like bookmarks in a book rather than photocopies of it. A bookmark costs nothing, you can have several, and you can move each one on as you read. The pages themselves exist only once.</p>
+</div>
+<p>Most work with branches follows the same short cycle, which this module walks through:</p>
+<ol>
+<li>Create a branch for one piece of work, and switch to it.</li>
+<li>Commit on it as often as you like. <code>main</code> is not affected.</li>
+<li>When the work is ready, switch back to <code>main</code> and merge the branch into it.</li>
+<li>Delete the branch, which has done its job.</li>
+</ol>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>Creating and switching branches</h2></div>
+<p>Two commands do most of the work:</p>
+<ul>
+<li><code>git branch</code> lists your branches, with an asterisk (<code>*</code>) next to the one you are on. <code>git branch &lt;name&gt;</code> creates a new branch at the commit you are on, but does not switch to it.</li>
+<li><code>git switch &lt;name&gt;</code> moves you onto a branch. It updates the files in your working tree to match the branch’s newest commit.</li>
+</ul>
+<p>The sessions in this module start from a small recipes repository with two commits, a README and a pancake recipe. Your own repository has more commits and different hashes, which changes nothing about the commands. In this session, you create a branch for desserts and add a cake recipe on it.</p>
+<div class="term" id="term-m04-branches">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Create a branch and work on it</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>* main
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> desserts</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>  desserts
+* main
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 436 78" width="436" height="78" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">288d56b</text><rect x="106.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="26" class="g-ref-text">HEAD → main</text><rect x="203.60000000000002" y="13" width="69.6" height="18" rx="9" class="g-ref g-branch"/><text x="209.6" y="26" class="g-ref-text">desserts</text><text x="279.2" y="26" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">02804ba</text><text x="106.4" y="60" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 288d56b (HEAD -&gt; main, desserts) Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> desserts</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to branch 'desserts'
+</code></pre></div>
+<div class="term-edit">Create or edit <code>cake.md</code> so that it contains:</div>
+<pre><code class="language-text"># Lemon cake
+
+- 200 g flour
+- 2 lemons
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> cake.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a lemon cake recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[desserts ccf2a69] Add a lemon cake recipe
+ 1 file changed, 4 insertions(+)
+ create mode 100644 cake.md
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 410 112" width="410" height="112" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 56V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">ccf2a69</text><rect x="106.4" y="13" width="120.0" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="26" class="g-ref-text">HEAD → desserts</text><text x="232.4" y="26" class="g-subject">Add a lemon cake recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">288d56b</text><rect x="106.4" y="47" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="112.4" y="60" class="g-ref-text">main</text><text x="153.2" y="60" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="94" class="g-hash">02804ba</text><text x="106.4" y="94" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* ccf2a69 (HEAD -&gt; desserts) Add a lemon cake recipe
+* 288d56b (main) Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to branch 'main'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>README.md  pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> desserts</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to branch 'desserts'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>README.md  cake.md  pancakes.md
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>Right after <code>git branch desserts</code>, the list shows two branches, and the asterisk shows that you are still on <code>main</code>. The first graph shows why creating the branch was instant: <code>desserts</code> and <code>main</code> are two labels on the same commit, <code>288d56b</code>.</p>
+<p>The graphs on these pages show commits as circles, newest at the top, with a line from each commit down to its parent. Labels name the branches that point at each commit, and <code>HEAD → main</code> marks the branch you are on. In a terminal, <code>git log --oneline --graph --all</code> draws the same picture in text.</p>
+<p>After <code>git switch desserts</code> and a commit, the second graph shows that only the <code>desserts</code> label moved, to the new commit <code>ccf2a69</code>. <code>main</code> stays on <code>288d56b</code>.</p>
+<p>Now look at the two <code>ls</code> commands. On <code>main</code>, the folder holds only <code>README.md</code> and <code>pancakes.md</code>; on <code>desserts</code>, <code>cake.md</code> is back. Switching branches changes the files in your folder to match the branch you switch to. The cake recipe was never lost: it lives in the <code>desserts</code> commit, and Git puts it back whenever you switch to that branch.</p>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>HEAD</h2></div>
+<p>You have seen HEAD in Module 3 and in the graphs above. <strong>HEAD</strong> is Git’s name for “where you are now”. Normally it points at a branch, and the branch points at a commit: in the graphs, <code>HEAD → desserts</code> means that you are on <code>desserts</code>, and that <code>desserts</code> points at that commit.</p>
+<p>This two-step arrangement explains the two kinds of movement you have seen:</p>
+<ul>
+<li>When you <strong>commit</strong>, Git moves the branch that HEAD points at to the new commit. HEAD goes along, because it points at the branch.</li>
+<li>When you <strong>switch</strong>, Git moves HEAD itself to another branch, and changes your files to match. No branch label moves.</li>
+</ul>
+<p><code>git status</code> reports where HEAD is in its first line: <em>On branch main</em> means that HEAD points at <code>main</code>.</p>
+<p>The detached HEAD from Module 3 fits the same picture. After <code>git switch --detach</code>, HEAD points straight at a commit instead of at a branch, so a new commit there moves no branch label. That is why such commits are easy to lose, and why you create a branch before you switch away from them.</p>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>Fast-forward merges</h2></div>
+<p>Sooner or later you want the work from one branch in another. <code>git merge &lt;branch&gt;</code> brings the named branch’s work into the branch you are on. So first switch to the branch that should receive the work, usually <code>main</code>, and then merge.</p>
+<p>How Git merges depends on how the two branches relate. The simplest case is when the other branch contains everything on your branch, plus some newer commits. Then there is nothing to combine: Git simply moves your branch’s label forward to the other branch’s newest commit. This is called a <strong>fast-forward</strong>, and it makes no new commit.</p>
+<p>In the session, you are on <code>main</code>, and <code>desserts</code> is one commit ahead with a cake recipe, as the first graph shows. To follow along, run <code>git switch main</code> first.</p>
+<div class="term" id="term-m04-fast-forward">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Merge a branch that is simply ahead</span></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 360 112" width="360" height="112" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 56V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">4d632df</text><rect x="106.4" y="13" width="69.6" height="18" rx="9" class="g-ref g-branch"/><text x="112.4" y="26" class="g-ref-text">desserts</text><text x="182.0" y="26" class="g-subject">Add a lemon cake recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">288d56b</text><rect x="106.4" y="47" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="60" class="g-ref-text">HEAD → main</text><text x="203.6" y="60" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="94" class="g-hash">02804ba</text><text x="106.4" y="94" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 4d632df (desserts) Add a lemon cake recipe
+* 288d56b (HEAD -&gt; main) Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> desserts</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Updating 288d56b..4d632df
+Fast-forward
+ cake.md | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 cake.md
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 457 112" width="457" height="112" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 56V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">4d632df</text><rect x="106.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="26" class="g-ref-text">HEAD → main</text><rect x="203.60000000000002" y="13" width="69.6" height="18" rx="9" class="g-ref g-branch"/><text x="209.6" y="26" class="g-ref-text">desserts</text><text x="279.2" y="26" class="g-subject">Add a lemon cake recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">288d56b</text><text x="106.4" y="60" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="94" class="g-hash">02804ba</text><text x="106.4" y="94" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 4d632df (HEAD -&gt; main, desserts) Add a lemon cake recipe
+* 288d56b Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-d</span> desserts</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Deleted branch desserts (was 4d632df).
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>* main
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>Git reports <code>Updating 288d56b..4d632df</code> and <code>Fast-forward</code>: it moved <code>main</code> from <code>288d56b</code> to <code>4d632df</code>, <code>desserts</code>’ newest commit. The summary below lists what the merge brought in, the new file <code>cake.md</code>. Compare the graphs before and after. The commits did not change; only the <code>main</code> label jumped forward, so that <code>main</code> and <code>desserts</code> now point at the same commit.</p>
+<p>The name <em>fast-forward</em> describes what happened: <code>main</code> was behind, and Git wound it forward along commits that already existed, the way you would fast-forward a recording.</p>
+<p>With its work merged, the <code>desserts</code> branch has done its job. <code>git branch -d desserts</code> deletes it, and Git reports which commit the label was on (<code>was 4d632df</code>). Only the label goes. The commits stay, because <code>main</code> contains them, and <code>git branch</code> now lists only <code>main</code>.</p>
+<p>Git refuses <code>-d</code> for a branch whose commits are not contained in the branch you are on, to protect work that would otherwise be on no branch at all. Exercise 5 shows what to do then.</p>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>Three-way merges</h2></div>
+<p>Often both branches move on after they split. You add a soup recipe on a <code>soups</code> branch while someone adds salt to the pancakes on <code>main</code>. Now neither branch contains the other, and Git cannot just move a label. Instead it makes a <strong>merge commit</strong>: a new commit that combines the work of both branches. Unlike every commit so far, it has two parents, one on each branch.</p>
+<p>The session starts from the first graph: <code>soups</code> has a tomato soup commit, and <code>main</code> has a salt commit that <code>soups</code> lacks. To follow along, set that up yourself: create <code>soups</code>, commit a soup recipe on it, switch back to <code>main</code>, and commit a change to <code>pancakes.md</code>. Then merge.</p>
+<p>A merge commit needs a message. On your computer, Git opens your editor with a ready-made one, <code>Merge branch 'soups'</code>. Save and close the editor to accept it; the session keeps it as it is.</p>
+<div class="term" id="term-m04-three-way">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Merge two lines of work</span></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 411 146" width="411" height="146" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M40 56V56C40 73 18 73 18 90" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">5049848</text><rect x="128.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="26" class="g-ref-text">HEAD → main</text><text x="225.6" y="26" class="g-subject">Add salt to the pancakes</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="60" class="g-hash">689ed1b</text><rect x="128.4" y="47" width="48.0" height="18" rx="9" class="g-ref g-branch"/><text x="134.4" y="60" class="g-ref-text">soups</text><text x="182.4" y="60" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="94" class="g-hash">288d56b</text><text x="128.4" y="94" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">02804ba</text><text x="128.4" y="128" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 5049848 (HEAD -&gt; main) Add salt to the pancakes
+| * 689ed1b (soups) Add a tomato soup recipe
+|/
+* 288d56b Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> soups</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Merge made by the 'ort' strategy.
+ soup.md | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 soup.md
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 382 180" width="382" height="180" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 22C18 39 40 39 40 56V56" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56V90C40 107 18 107 18 124" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 124V158" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">e59bfd4</text><rect x="128.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="26" class="g-ref-text">HEAD → main</text><text x="225.6" y="26" class="g-subject">Merge branch 'soups'</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="60" class="g-hash">689ed1b</text><rect x="128.4" y="47" width="48.0" height="18" rx="9" class="g-ref g-branch"/><text x="134.4" y="60" class="g-ref-text">soups</text><text x="182.4" y="60" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="94" class="g-hash">5049848</text><text x="128.4" y="94" class="g-subject">Add salt to the pancakes</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">288d56b</text><text x="128.4" y="128" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="158" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="162" class="g-hash">02804ba</text><text x="128.4" y="162" class="g-subject">Add a README</text></svg><pre class="visually-hidden">*   e59bfd4 (HEAD -&gt; main) Merge branch 'soups'
+|\
+| * 689ed1b (soups) Add a tomato soup recipe
+* | 5049848 Add salt to the pancakes
+|/
+* 288d56b Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">--graph</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>*   e59bfd4 Merge branch 'soups'
+|\
+| * 689ed1b Add a tomato soup recipe
+* | 5049848 Add salt to the pancakes
+|/
+* 288d56b Add a pancake recipe
+* 02804ba Add a README
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>Compare the two graphs. Before the merge, the branches have split after <code>288d56b</code>: <code>main</code> went one way, <code>soups</code> the other. After it, the merge commit <code>e59bfd4</code> joins them, with lines down to both of its parents, <code>5049848</code> on <code>main</code> and <code>689ed1b</code> on <code>soups</code>. <code>main</code> moved to the merge commit; <code>soups</code> stayed where it was, and could now be deleted with <code>git branch -d soups</code>.</p>
+<p><code>Merge made by the 'ort' strategy.</code> names the method Git used to combine the changes. You do not need to know more about it. Versions of Git older than 2.34 used a method called <code>recursive</code> by default, and print that name instead.</p>
+<p><code>git log --oneline --graph</code> draws the same shape in text. The merge commit is at the top, and the <code>|\</code> and <code>|/</code> lines show the history splitting into two lines and joining again, with each branch’s commit on its own line.</p>
+<p>This is called a <strong>three-way merge</strong>, because Git compares three versions of the project: the newest commit on each branch, and the commit where the branches split. Whatever changed on only one side since the split is taken from that side. When both sides changed the same lines, Git cannot decide alone. That is a conflict, the subject of Module 5.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>A merge never changes existing commits. If your branch has nothing the other lacks, Git fast-forwards it: the label moves and no commit is made. If both branches have new commits, Git adds a merge commit with two parents. Either way, every commit from both branches ends up in your branch’s history.</p>
+</div>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>Tidying up branches</h2></div>
+<p>A few more commands make branches quicker to use:</p>
+<ul>
+<li><code>git switch -c &lt;name&gt;</code> creates a branch and switches to it in one step. It is the usual way to start new work.</li>
+<li><code>git branch -v</code> lists each branch with its newest commit.</li>
+<li><code>git switch -</code> goes back to the branch you were on before.</li>
+<li><code>git branch -m &lt;old&gt; &lt;new&gt;</code> renames a branch.</li>
+</ul>
+<p>In the session, you start a breakfast branch, then decide it should be called brunch.</p>
+<div class="term" id="term-m04-switch-c">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Branch in one step, and look around</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">-c</span> breakfast</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to a new branch 'breakfast'
+</code></pre></div>
+<div class="term-edit">Create or edit <code>porridge.md</code> so that it contains:</div>
+<pre><code class="language-text"># Porridge
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> porridge.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a porridge recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[breakfast 5ad8c30] Add a porridge recipe
+ 1 file changed, 1 insertion(+)
+ create mode 100644 porridge.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-v</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>* breakfast 5ad8c30 Add a porridge recipe
+  main      288d56b Add a pancake recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">-</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to branch 'main'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-m</span> breakfast brunch</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-v</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>  brunch 5ad8c30 Add a porridge recipe
+* main   288d56b Add a pancake recipe
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p><code>git branch -v</code> shows the porridge commit <code>5ad8c30</code> on the new branch, and <code>main</code> still on <code>288d56b</code>. After <code>git switch -</code> takes you back to <code>main</code>, the rename changes only the name: <code>brunch</code> points at the same commit as <code>breakfast</code> did.</p>
+<p>Older guides use <code>git checkout -b &lt;name&gt;</code> to create a branch and switch to it, and <code>git checkout &lt;name&gt;</code> to switch. They still work; <code>git switch</code> does the same jobs and is harder to misuse.</p>
+<p>Name branches after what they are for: short, lower case, with hyphens between words, such as <code>fix-oven-temperature</code>. Slashes are allowed, and teams often use them to group branches, as in <code>feature/login</code>.</p>
+<p>Delete branches once they are merged. A short <code>git branch</code> list shows at a glance which work is still in progress.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">7</span><h2>Exercises</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">5 min</span></div>
+<p><strong>True or false?</strong></p>
+<ol>
+<li>Creating a branch copies all your files.</li>
+<li>A branch is a label that points at a commit.</li>
+<li>When you commit, the label of the branch you are on moves to the new commit.</li>
+<li>Deleting a merged branch deletes its commits.</li>
+</ol>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><strong>False.</strong> Creating a branch creates a label; no files are copied.</li>
+<li><strong>True.</strong></li>
+<li><strong>True.</strong></li>
+<li><strong>False.</strong> Only the label is deleted; the commits stay, because the branch they were merged into still contains them.</li>
+</ol>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">7 min</span></div>
+<p><strong>Fast-forward or merge commit?</strong> Say which kind of merge each situation produces.</p>
+<ol>
+<li>You create <code>fix-typo</code> from <code>main</code>, commit twice, and nobody changes <code>main</code>. Then you merge <code>fix-typo</code> into <code>main</code>.</li>
+<li>You create <code>soups</code> from <code>main</code> and commit; meanwhile someone commits to <code>main</code>. Then you merge <code>soups</code> into <code>main</code>.</li>
+<li>You are on your branch, which has no new commits, and you merge <code>main</code>, which has two new ones.</li>
+</ol>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><strong>Fast-forward.</strong> <code>main</code> has not moved, so its label can jump to <code>fix-typo</code>’s newest commit.</li>
+<li><strong>Merge commit.</strong> Both branches have new commits, so Git creates a commit with two parents.</li>
+<li><strong>Fast-forward</strong> of your branch: it contains nothing that <code>main</code> lacks, so its label simply moves to <code>main</code>’s newest commit.</li>
+</ol>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">10 min</span></div>
+<p><strong>A feature branch.</strong> Create a branch called <code>drinks</code>, make two commits on it, merge it into <code>main</code> and delete it.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="term" id="term-m04-e3-solution">
+<div class="term-head"><span class="term-label">Solution</span><span class="term-title">A feature branch, merged back</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">-c</span> drinks</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to a new branch 'drinks'
+</code></pre></div>
+<div class="term-edit">Create or edit <code>lemonade.md</code> so that it contains:</div>
+<pre><code class="language-text"># Lemonade
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> lemonade.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a lemonade recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[drinks faff603] Add a lemonade recipe
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lemonade.md
+</code></pre></div>
+<div class="term-edit">Create or edit <code>tea.md</code> so that it contains:</div>
+<pre><code class="language-text"># Iced tea
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> tea.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add an iced tea recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[drinks d2aea9e] Add an iced tea recipe
+ 1 file changed, 1 insertion(+)
+ create mode 100644 tea.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Switched to branch 'main'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> drinks</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Updating 288d56b..d2aea9e
+Fast-forward
+ lemonade.md | 1 +
+ tea.md      | 1 +
+ 2 files changed, 2 insertions(+)
+ create mode 100644 lemonade.md
+ create mode 100644 tea.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-d</span> drinks</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Deleted branch drinks (was d2aea9e).
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>d2aea9e Add an iced tea recipe
+faff603 Add a lemonade recipe
+288d56b Add a pancake recipe
+02804ba Add a README
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>Because <code>main</code> did not move while you worked on <code>drinks</code>, the merge is a fast-forward, and <code>git log --oneline</code> shows a straight line.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">7 min</span></div>
+<p><strong>Uncommitted changes and switching.</strong> You edited <code>pancakes.md</code> without committing and run <code>git switch desserts</code>. What can happen?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>If <code>pancakes.md</code> is the same on both branches, Git switches and carries your uncommitted edit along. If switching would overwrite your edit, because the file differs on <code>desserts</code>, Git refuses with “Your local changes to the following files would be overwritten by checkout” and leaves everything as it was. Commit your change first, or put it aside with <code>git stash</code> (Module 8).</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">8 min</span></div>
+<p><strong>Delete a branch that was never merged.</strong> A branch called <code>experiment</code> holds a recipe that did not work. Delete the branch. To try it, first create <code>experiment</code>, commit something on it, and switch back to <code>main</code>.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p><code>git branch -d</code> refuses, because the branch has commits that no other branch contains; <code>-D</code> deletes it anyway:</p>
+<div class="term" id="term-m04-e5-solution">
+<div class="term-head"><span class="term-label">Solution</span><span class="term-title">Delete a branch that was never merged</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-d</span> experiment</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>error: the branch 'experiment' is not fully merged
+hint: If you are sure you want to delete it, run 'git branch -D experiment'
+hint: Disable this message with &quot;git config set advice.forceDeleteBranch false&quot;
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-D</span> experiment</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Deleted branch experiment (was 4e55929).
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>* main
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>Use <code>-D</code> with care: the commit is no longer on any branch. For a while it can still be found through the reflog (Module 8).</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">8 min</span></div>
+<p><strong>Read the graph.</strong> <code>git log --oneline --graph --all</code> prints:</p>
+<pre><code class="language-text">* 5049848 (HEAD -&gt; main) Add salt to the pancakes
+| * 689ed1b (soups) Add a tomato soup recipe
+|/
+* 288d56b Add a pancake recipe
+* 02804ba Add a README
+</code></pre>
+<p>Which branch are you on? Which commits are on both branches? What would <code>git merge soups</code> do?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>You are on <code>main</code>. Commits <code>288d56b</code> and <code>02804ba</code> are on both branches. Both branches have a commit the other lacks, so <code>git merge soups</code> would create a merge commit whose parents are <code>5049848</code> and <code>689ed1b</code>, exactly as in Section 5.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">8</span><h2>Self-check quiz</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>What is a branch in Git?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A copy of all the project’s files</button></li><li><button type="button" class="quiz-opt" data-i="1">A movable label that points at a commit</button></li><li><button type="button" class="quiz-opt" data-i="2">A backup of the repository</button></li><li><button type="button" class="quiz-opt" data-i="3">A connection to a server</button></li></ol><div class="quiz-expl" hidden>Creating a branch copies nothing; it is a label that moves forward as you commit.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>Which command creates a branch and switches to it?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git branch -v</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git switch -</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git switch -c &lt;name&gt;</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git merge &lt;name&gt;</code></button></li></ol><div class="quiz-expl" hidden><code>-c</code> creates the branch; <code>git branch &lt;name&gt;</code> creates it without switching.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>You are on <code>main</code> and run <code>git merge desserts</code>. <code>desserts</code> contains <code>main</code>’s newest commit plus two more. What happens?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A fast-forward: <code>main</code>’s label moves to <code>desserts</code>’ newest commit.</button></li><li><button type="button" class="quiz-opt" data-i="1">Git creates a merge commit with two parents.</button></li><li><button type="button" class="quiz-opt" data-i="2">Git reports a conflict.</button></li><li><button type="button" class="quiz-opt" data-i="3">The <code>desserts</code> branch is deleted.</button></li></ol><div class="quiz-expl" hidden>Nothing on <code>main</code> is missing from <code>desserts</code>, so no merge commit is needed.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">4</span><div>How many parents does a merge commit have?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">None</button></li><li><button type="button" class="quiz-opt" data-i="1">One</button></li><li><button type="button" class="quiz-opt" data-i="2">Three</button></li><li><button type="button" class="quiz-opt" data-i="3">Two</button></li></ol><div class="quiz-expl" hidden>It joins two lines of work, so it has one parent on each side.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>What does the label <code>HEAD → desserts</code> in a graph mean?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The <code>desserts</code> branch has been deleted.</button></li><li><button type="button" class="quiz-opt" data-i="1">You are on <code>desserts</code>, and your next commit will move it.</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>desserts</code> is a detached HEAD.</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>desserts</code> has been merged into <code>main</code>.</button></li></ol><div class="quiz-expl" hidden>HEAD points at the branch you are on.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div><code>git branch -d experiment</code> reports that the branch is not fully merged. Why?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The branch name is misspelt.</button></li><li><button type="button" class="quiz-opt" data-i="1">You are on the <code>experiment</code> branch.</button></li><li><button type="button" class="quiz-opt" data-i="2">It has commits that the current branch does not contain.</button></li><li><button type="button" class="quiz-opt" data-i="3">Git cannot delete branches.</button></li></ol><div class="quiz-expl" hidden><code>-d</code> protects work that would no longer be on any branch; <code>-D</code> deletes anyway.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>Which older command does <code>git switch -c fix</code> replace?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git checkout -b fix</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git branch -d fix</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git merge fix</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git commit -b fix</code></button></li></ol><div class="quiz-expl" hidden>Older guides use <code>git checkout -b</code>; <code>git switch -c</code> does the same job.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">9</span><h2>Further reading</h2></div>
+<ul>
+<li>Scott Chacon and Ben Straub, <em>Pro Git</em>, sections <a href="https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell" target="_blank" rel="noopener">3.1: Branches in a Nutshell</a> and <a href="https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging" target="_blank" rel="noopener">3.2: Basic Branching and Merging</a>.</li>
+<li>The reference pages for <a href="https://git-scm.com/docs/git-branch" target="_blank" rel="noopener">git branch</a>, <a href="https://git-scm.com/docs/git-switch" target="_blank" rel="noopener">git switch</a> and <a href="https://git-scm.com/docs/git-merge" target="_blank" rel="noopener">git merge</a>.</li>
+<li><a href="https://learngitbranching.js.org/" target="_blank" rel="noopener">Learn Git Branching</a>, for extra practice with branches and merges in your browser.</li>
+</ul>
+</div><nav class="module-nav" aria-label="All modules"><a href="module_03_EN.html">← Module 03</a><a href="module_05_EN.html">Module 05 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>

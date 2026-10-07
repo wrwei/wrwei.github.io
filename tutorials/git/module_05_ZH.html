@@ -1,0 +1,310 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>合并冲突 — Git 与版本控制</title><meta name="description" content="理解合并为何有时会停下来，自信地读懂冲突标记，并解决、完成或放弃一次合并。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="5"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">Git 系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 05</button><div class="dropdown-menu" id="module-menu"><a href="module_01_ZH.html">01 · 为什么需要版本控制？</a><a href="module_02_ZH.html">02 · 你的第一个仓库</a><a href="module_03_ZH.html">03 · 查看历史与撤销</a><a href="module_04_ZH.html">04 · 分支</a><a href="module_05_ZH.html" class="active" aria-current="page">05 · 合并冲突</a><a href="module_06_ZH.html">06 · 远程仓库</a><a href="module_07_ZH.html">07 · 用拉取请求协作</a><a href="module_08_ZH.html">08 · 改写历史与恢复</a><a href="module_09_ZH.html">09 · Git 的内部原理</a><a href="module_10_ZH.html">10 · 综合项目：团队协作</a><a href="index_ZH.html#modules">全部模块</a></div></div><a class="lang-switch" href="module_05_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/2 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#s1"><span class="num">1</span><span>冲突为何发生</span></a><a href="#s2"><span class="num">2</span><span>Git 能自行合并的情况</span></a><a href="#s3"><span class="num">3</span><span>读懂并解决冲突</span></a><a href="#s4"><span class="num">4</span><span>放弃一次合并</span></a><a href="#s5"><span class="num">5</span><span>让冲突保持在小范围内</span></a><a href="#exercises"><span class="num">6</span><span>练习</span></a><a href="#quiz"><span class="num">7</span><span>自测</span></a><a href="#reading"><span class="num">8</span><span>延伸阅读</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git 与版本控制 — Ran Wei</div><h1 class="module-title">合并冲突</h1><p class="module-lead">理解合并为何有时会停下来，自信地读懂冲突标记，并解决、完成或放弃一次合并。</p><div class="hero-chips"><span class="chip chip-time">2 小时</span><span class="chip">2 个时段</span><span class="chip">3 个动手环节</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>解释 Git 何时能自行合并、何时会报告冲突。</li><li>读懂冲突标记 &lt;&lt;&lt;&lt;&lt;&lt;&lt;、======= 和 &gt;&gt;&gt;&gt;&gt;&gt;&gt;。</li><li>解决冲突，用 git add 标记为已解决，再用 git commit 完成合并。</li><li>用 git merge --abort 放弃一次合并。</li><li>让冲突保持在小范围内，并用 git diff --check 找出遗留的标记。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>第 4 模块：分支、切换分支，以及快进合并与三方合并。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#s1">冲突为何发生</a><a href="#s2">Git 能自行合并的情况</a><a href="#s3">读懂并解决冲突</a><a href="#s4">放弃一次合并</a><a href="#s5">让冲突保持在小范围内</a><a href="#exercises">练习</a><a href="#quiz">自测</a><a href="#reading">延伸阅读</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">2 小时</span></div><p class="plan-lead">时间为估计值，包含输入命令的时间。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">60 分钟</span></div><div class="session-title">冲突</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">冲突为何发生</a></span><span class="act-min">10</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s2">Git 能自行合并的情况</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s3">读懂并解决冲突</a></span><span class="act-min">35</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m05:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">60 分钟</span></div><div class="session-title">放弃、预防与练习</div><ul class="acts"><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s4">放弃一次合并</a></span><span class="act-min">10</span></li><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">让冲突保持在小范围内</a></span><span class="act-min">10</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#exercises">六道练习</a></span><span class="act-min">30</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">自测</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m05:s2"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>冲突为何发生</h2></div>
+<p>在第 4 模块中，Git 自己就把两个分支合并好了。它之所以能做到，是因为它逐行合并：它把每个分支与两者分叉处的提交进行比较，每处改动都从做出这处改动的那一侧取来。对不同文件的改动会自动合并，对同一文件不同部分的改动也一样。</p>
+<p>但有时这还不够。当两个分支以不同的方式改动了相同的行，或者一个分支删除了另一个分支改动过的文件时，就会发生<strong>合并冲突</strong>（merge conflict）。Git 无法知道哪个版本是对的：也许其中一个是对的，也许两边各需要一部分，也许都不对。所以它尽可能完成合并，然后停下来，请你决定剩下的部分。</p>
+<p>冲突不是错误，也不意味着任何东西坏了或丢了。两个版本都安然无恙，Git 会准确地告诉你它们在哪里有分歧。冲突是与他人协作时的正常现象，你自己在多个分支上工作时也会遇到。本模块教你如何读懂冲突、如何解决（resolve）冲突、还没准备好时如何退出，以及如何让冲突少而小。</p>
+<p>合并并不是遇到冲突的唯一场合。撤销一次旧提交（第 3 模块）、拉取别人的工作（第 6 模块）以及变基（第 8 模块），都以同样的方式组合改动，也可能以同样的方式停下来。冲突标记看起来一样，每个文件的解决方式也一样：编辑它，然后 <code>git add</code>。不同的只是完成或放弃这项操作的命令，例如用 <code>git revert --continue</code> 代替 <code>git commit</code>；<code>git status</code> 会告诉你该用哪一条。</p>
+<div class="callout analogy"><div class="callout-label">类比</div>
+<p>两位编辑在同一份书稿上做标注。一位改写了第 2 章的一个句子，另一位修正了第 9 章的一个错字，两处修改都可以采纳。但如果两人以不同的方式改写了<em>同一个</em>句子，就必须有人决定书中保留哪种措辞。</p>
+</div>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>Git 能自行合并的情况</h2></div>
+<p>先来看一次成功的合并，尽管两个分支改动了同一个文件。食谱一开始用 200 g 面粉，面糊静置 30 分钟。在名为 <code>resting-time</code> 的分支上，静置时间缩短为 20 分钟；与此同时，在 <code>main</code> 上，面粉增加到 250 g。两处改动相隔好几行。</p>
+<p>要跟着操作，请先给你的食谱加上一行 <code>- 50 g sugar</code> 和方法一行 <code>Mix everything and leave the batter to rest for 30 minutes.</code>（与下面 <code>cat</code> 的输出一致），并在 <code>main</code> 上提交。然后创建 <code>resting-time</code>，修改静置时间并提交；切换回 <code>main</code>，修改面粉用量并提交；最后合并 <code>resting-time</code>。</p>
+<div class="term" id="term-m05-no-conflict">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">同一文件的两处改动，没有冲突</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> resting-time</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Auto-merging pancakes.md
+Merge made by the 'ort' strategy.
+ pancakes.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Pancakes
+
+- 250 g flour
+- 2 eggs
+- 300 ml milk
+- 50 g sugar
+
+Mix everything and leave the batter to rest for 20 minutes.
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>Auto-merging pancakes.md</code> 表示 Git 需要在文件内部组合改动，下一行则表示组合成功，并生成了一次合并提交。<code>cat</code> 显示了结果：来自 <code>main</code> 的 250 g 面粉，以及来自 <code>resting-time</code> 的 20 分钟。</p>
+<p>相邻行上的改动即使没有改到同一行，仍然可能冲突。Git 需要两处改动之间至少隔着一行未改动的内容，才能把它们区分开；如果没有，它就会把它们当作两侧以不同方式做出的同一处改动。</p>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>读懂并解决冲突</h2></div>
+<p>这一次，两个分支改动了同一行。食谱一开始用 50 g 糖。在 <code>less-sugar</code> 分支上，有人把它改成 30 g（“Use less sugar”）；与此同时，在 <code>main</code> 上，有人把它改成 40 g（“Reduce the sugar a little”）。两种改法都合理，但彼此不一致，所以 Git 无法独自合并。</p>
+<p>在这个动手环节中，你在 <code>main</code> 上合并 <code>less-sugar</code>。合并因冲突而停下，然后你一步步解决它：用 <code>git status</code> 查看状态，阅读文件，把文件编辑成你想要的版本，标记为已解决，然后提交。要跟着操作，请创建 <code>less-sugar</code>，把糖改成 30 g 并提交，切换回 <code>main</code>，把糖改成 40 g 并提交，然后合并 <code>less-sugar</code>。</p>
+<div class="term" id="term-m05-conflict">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">解决合并冲突</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> less-sugar</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Auto-merging pancakes.md
+CONFLICT (content): Merge conflict in pancakes.md
+Automatic merge failed; fix conflicts and then commit the result.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+You have unmerged paths.
+  (fix conflicts and run &quot;git commit&quot;)
+  (use &quot;git merge --abort&quot; to abort the merge)
+
+Unmerged paths:
+  (use &quot;git add &lt;file&gt;...&quot; to mark resolution)
+	both modified:   pancakes.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+- 40 g sugar
+=======
+- 30 g sugar
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; less-sugar
+
+Mix everything and leave the batter to rest for 30 minutes.
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- 35 g sugar
+
+Mix everything and leave the batter to rest for 30 minutes.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+All conflicts fixed but you are still merging.
+  (use &quot;git commit&quot; to conclude merge)
+
+Changes to be committed:
+	modified:   pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main a4d11e9] Merge branch 'less-sugar'
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 418 146" width="418" height="146" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 22C18 39 40 39 40 56V56" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56V90C40 107 18 107 18 124" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">a4d11e9</text><rect x="128.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="26" class="g-ref-text">HEAD → main</text><text x="225.6" y="26" class="g-subject">Merge branch 'less-sugar'</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="60" class="g-hash">7d5360a</text><rect x="128.4" y="47" width="84.0" height="18" rx="9" class="g-ref g-branch"/><text x="134.4" y="60" class="g-ref-text">less-sugar</text><text x="218.4" y="60" class="g-subject">Use less sugar</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="94" class="g-hash">3c34e74</text><text x="128.4" y="94" class="g-subject">Reduce the sugar a little</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">f49b1d8</text><text x="128.4" y="128" class="g-subject">Add a pancake recipe</text></svg><pre class="visually-hidden">*   a4d11e9 (HEAD -&gt; main) Merge branch 'less-sugar'
+|\
+| * 7d5360a (less-sugar) Use less sugar
+* | 3c34e74 Reduce the sugar a little
+|/
+* f49b1d8 Add a pancake recipe</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">--graph</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>*   a4d11e9 Merge branch 'less-sugar'
+|\
+| * 7d5360a Use less sugar
+* | 3c34e74 Reduce the sugar a little
+|/
+* f49b1d8 Add a pancake recipe
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>合并报告了 <code>CONFLICT (content): Merge conflict in pancakes.md</code> 并停了下来，正如最后一行所说：<code>Automatic merge failed; fix conflicts and then commit the result.</code> 合并现在处于进行中，直到你完成或放弃它为止。<code>git status</code> 用 <code>You have unmerged paths</code> 确认了这一点，把 <code>pancakes.md</code> 列为 <code>both modified</code>，甚至还建议了接下来的命令。</p>
+<p><code>cat</code> 显示了两个分支在哪里有分歧。有冲突的部分位于三个<strong>冲突标记</strong>（conflict marker）之间：</p>
+<ul>
+<li>从 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 到 <code>=======</code> 是你当前所在分支 <code>main</code> 上的版本：40 g。</li>
+<li>从 <code>=======</code> 到 <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; less-sugar</code> 是你正在合并的分支上的版本：30 g。</li>
+</ul>
+<p>标记之外的内容都已顺利合并，不需要你处理。</p>
+<p>如果有多个文件冲突，<code>git status</code> 会把它们都列在 <code>Unmerged paths</code> 之下。逐个解决并 <code>git add</code>，顺序不限；<code>git status</code> 会显示还剩下哪些。</p>
+<p>要<strong>解决</strong>冲突，就把文件编辑成你想要的版本，并删除全部三行标记。你可以保留其中一方、两方都保留，或者写出新的内容；这里，两位厨师商定用 35 g。然后，<code>git add pancakes.md</code> 把文件标记为已解决，<code>git status</code> 显示 <code>All conflicts fixed but you are still merging</code>。最后，<code>git commit</code> 完成这次合并。Git 会打开编辑器，里面是说明 <code>Merge branch 'less-sugar'</code>；保存并关闭即可接受，动手环节中也是这样做的。提交图显示了完成的合并：一次合并提交，两次改糖的提交都是它的父提交。</p>
+<p>解决冲突是你自己做的编辑，Git 会完全信任它：运行 <code>git add</code> 时文件里是什么，什么就会进入合并提交。添加之前，请把整个文件再读一遍，确保结果仍然合理，而不只是标记已经消失。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>Visual Studio Code 等编辑器会用颜色突出显示冲突，并在每处冲突上方提供按钮：<em>Accept Current Change</em>（你所在的分支）、<em>Accept Incoming Change</em>（你正在合并的分支）和 <em>Accept Both Changes</em>。它们只是替你编辑文件。你仍然需要用 <code>git add</code> 和 <code>git commit</code> 完成合并。</p>
+</div>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>放弃一次合并</h2></div>
+<p>有时你开始合并后才意识到现在没法解决：你需要问同事哪个版本是对的，或者冲突比预想的大。<code>git merge --abort</code> 会把一切恢复到合并开始之前的样子，就像你从未运行过它一样。在这个动手环节中，糖的冲突再次出现，这一次你选择退出。在你自己的仓库中，<code>less-sugar</code> 已经合并了，所以要试一试，就需要制造一次新的冲突：例如，在一个新分支上和在 <code>main</code> 上以不同方式修改鸡蛋那一行，然后合并那个分支。</p>
+<div class="term" id="term-m05-abort">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">放弃一次合并</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> less-sugar</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Auto-merging pancakes.md
+CONFLICT (content): Merge conflict in pancakes.md
+Automatic merge failed; fix conflicts and then commit the result.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> <span class="hljs-attr">--abort</span></code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+nothing to commit, working tree clean
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- 40 g sugar
+
+Mix everything and leave the batter to rest for 30 minutes.
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>放弃之后，<code>git status</code> 报告工作区是干净的，<code>cat</code> 显示 <code>pancakes.md</code> 仍然是 <code>main</code> 上的 40 g，没有任何标记。你准备好时可以随时再次合并。</p>
+<p>放弃只在合并进行期间有效。一旦你提交了合并，就没有什么可放弃的了：合并提交已是你历史中普通的一部分。</p>
+<p>如果合并开始时你有未提交的改动，<code>--abort</code> 可能无法恢复它们。所以请在合并之前先提交你自己的改动。</p>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>让冲突保持在小范围内</h2></div>
+<p>冲突无法完全避免，但有几个习惯能让冲突少发生，发生时也小一些：</p>
+<ul>
+<li><strong>经常把 <code>main</code> 合并到你的分支中。</strong> 这样你能尽早遇到别人的改动，趁它们还小、大家还记得清楚的时候，而不是在最后一次性遇到所有改动。第 8 模块会介绍另一种做法：变基。</li>
+<li><strong>让分支短命，让提交聚焦。</strong> 只存在一天的分支比存在一个月的分支意外更少；只做一件事的提交更容易合并，发生冲突时也更容易理解。</li>
+<li><strong>彼此沟通。</strong> 商定谁负责哪些文件；两个人要改写同一部分之前，先说一声。</li>
+<li><strong>不要在功能分支上重新格式化整个文件。</strong> 重新缩进一个文件，或者改变它的换行符，会触及每一行，因此会与对该文件的所有其他改动冲突。如果某个文件确实需要重新格式化，请在一次单独的提交中完成，事先与大家商定，并尽快合并。</li>
+<li><strong>提交解决结果之前先检查。</strong> 在长文件里，遗漏的标记行很容易被忽略。编辑之后、<code>git add</code> 之前，运行 <code>git diff --check</code>：它会报告遗留的冲突标记。如果你已经暂存了文件，请使用 <code>git diff --staged --check</code>。练习 6 会展示这项检查的用法。</li>
+</ul>
+<div class="callout keyidea"><div class="callout-label">核心思想</div>
+<p>冲突是 Git 在向你提问，而不是报告失败。读懂标记，决定文件应该是什么内容，然后 <code>git add</code> 并 <code>git commit</code>。如果还没准备好回答，<code>git merge --abort</code> 会带你回到起点。</p>
+</div>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">6</span><h2>练习</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">5 分钟</span></div>
+<p><strong>会冲突吗？</strong> 判断下列每次合并是否会因冲突而停下。</p>
+<ol>
+<li>分支 A 修改 <code>soup.md</code>；分支 B 修改 <code>bread.md</code>。</li>
+<li>两个分支都修改 <code>pancakes.md</code>：A 修改第一种配料，B 修改做法的最后一行。</li>
+<li>两个分支都把 <code>pancakes.md</code> 中糖的那一行改成了不同的用量。</li>
+<li>分支 A 删除了 <code>cake.md</code>；分支 B 修改了它。</li>
+</ol>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><strong>不会。</strong>不同的文件会自动合并。</li>
+<li><strong>不会</strong>，只要两处改动之间隔着未改动的行，就像第 2 节那样。</li>
+<li><strong>会。</strong>两个分支对同一行做了不同的修改。</li>
+<li><strong>会。</strong>Git 无法既删除文件又保留修改，所以会请你做出选择。</li>
+</ol>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">5 分钟</span></div>
+<p><strong>读懂标记。</strong> 一个有冲突的文件包含：</p>
+<pre><code class="language-text">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+- 40 g sugar
+=======
+- 30 g sugar
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; less-sugar
+</code></pre>
+<p>哪个版本来自你所在的分支，哪个来自你正在合并的分支？解决冲突后，文件中应该包含什么？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>位于 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 和 <code>=======</code> 之间的 <code>- 40 g sugar</code> 来自你所在的分支；位于 <code>=======</code> 和 <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; less-sugar</code> 之间的 <code>- 30 g sugar</code> 来自 <code>less-sugar</code>。解决之后，文件中只包含你选定的内容（二者之一、两者都要，或是新的写法），三行标记都不能留下。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">8 分钟</span></div>
+<p><strong>保留两处改动。</strong> 你在一个分支上给煎饼加了巧克力豆；有人在 <code>main</code> 上同一位置加了一根香蕉。合并该分支，并保留这两种配料。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>合并会停下来，因为两处改动位于清单的同一行。保留这两行并删除标记：</p>
+<div class="term" id="term-m05-e3-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">保留两处改动</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- 50 g sugar
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+- 1 banana, mashed
+=======
+- 50 g chocolate chips
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; chocolate
+
+Mix everything and leave the batter to rest for 30 minutes.
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- 50 g sugar
+- 1 banana, mashed
+- 50 g chocolate chips
+
+Mix everything and leave the batter to rest for 30 minutes.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main a653ada] Merge branch 'chocolate'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">--graph</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>*   a653ada Merge branch 'chocolate'
+|\
+| * 2fb1669 Add chocolate chips
+* | 6dc884d Add a banana
+|/
+* f49b1d8 Add a pancake recipe
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>解决冲突不一定要选边站：这里正确的答案是两者都要。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>提交得太早。</strong> 你删除了 <code>pancakes.md</code> 中的标记，然后运行 <code>git commit</code>，但 Git 拒绝了，说因为存在未合并的文件而无法提交。为什么？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>你漏掉了 <code>git add pancakes.md</code>。在你暂存这个文件之前，无论其内容如何，Git 都把它视为未合并。先运行 <code>git add pancakes.md</code>，再运行 <code>git commit</code>。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>防患于未然。</strong> 两位厨师在不同的分支上同时修改了糖的那一行。他们本可以怎样避免这次冲突？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>以下任意一种：事先沟通，由一个人来做这项修改；让分支保持短小，使一项改动在另一项开始之前就已合并；经常把 <code>main</code> 合并进各自的分支，这样第二位厨师在编辑同一行之前就能看到第一项改动。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>遗留的标记。</strong> 有人匆忙解决了糖的冲突，把仍带着标记的文件提交了。请找出这些标记并修复文件。要动手试试，请像第 3 节那样制造一次冲突，然后不删除标记就 <code>git add</code> 并提交该文件。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p><code>git diff --check</code> 会报告遗留的冲突标记，发现标记时它会以失败结束；与 <code>HEAD~1</code> 比较可以检查最近一次提交改动的内容：</p>
+<div class="term" id="term-m05-e6-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">找出遗留的冲突标记</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span> <span class="hljs-attr">--check</span> HEAD~1</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>pancakes.md:6: leftover conflict marker
+pancakes.md:8: leftover conflict marker
+pancakes.md:10: leftover conflict marker
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+- 35 g sugar
+
+Mix everything and leave the batter to rest for 30 minutes.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Remove leftover conflict markers&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main 79d79ee] Remove leftover conflict markers
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>在 <code>git add</code> 冲突解决结果之前运行 <code>git diff --check</code>（或者在 <code>git add</code> 之后运行 <code>git diff --staged --check</code>），就不需要这样补救了。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">7</span><h2>自测</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>Git 什么时候报告合并冲突？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">只要两个分支修改了同一个文件</button></li><li><button type="button" class="quiz-opt" data-i="1">当两个分支对同一些行做了不同的修改时</button></li><li><button type="button" class="quiz-opt" data-i="2">只要合并产生了合并提交</button></li><li><button type="button" class="quiz-opt" data-i="3">当两个分支名称不同时</button></li></ol><div class="quiz-expl" hidden>对文件不同部分的修改会自动合并；同一些行的不同修改需要人来决定。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>在有冲突的文件中，<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 和 <code>=======</code> 之间是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">来自你正在合并的分支的版本</button></li><li><button type="button" class="quiz-opt" data-i="1">来自第一次提交的版本</button></li><li><button type="button" class="quiz-opt" data-i="2">来自你所在分支的版本</button></li><li><button type="button" class="quiz-opt" data-i="3">Git 建议的解决方案</button></li></ol><div class="quiz-expl" hidden>HEAD 是你当前的分支；<code>=======</code> 之后的部分来自另一个分支。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>你已把有冲突的文件编辑成最终形式。下一步运行什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">再次运行 <code>git merge</code></button></li><li><button type="button" class="quiz-opt" data-i="1">对该文件运行 <code>git restore</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git merge --abort</code></button></li><li><button type="button" class="quiz-opt" data-i="3">对该文件运行 <code>git add</code></button></li></ol><div class="quiz-expl" hidden>暂存文件就把它标记为已解决；随后 <code>git commit</code> 完成合并。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>哪条命令能让一切恢复到合并开始之前的状态？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git merge --abort</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git revert HEAD</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git restore --staged .</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git branch -D</code></button></li></ol><div class="quiz-expl" hidden>放弃会撤销这次未完成的合并。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>哪种习惯能让冲突保持在小范围内？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">在功能分支上重新排版整个文件</button></li><li><button type="button" class="quiz-opt" data-i="1">经常把 <code>main</code> 合并进你的分支</button></li><li><button type="button" class="quiz-opt" data-i="2">让一个分支开着好几个月</button></li><li><button type="button" class="quiz-opt" data-i="3">在最后做一次大提交</button></li></ol><div class="quiz-expl" hidden>尽早接触他人的改动，每次冲突就会很小。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div><code>git diff --check</code> 会就什么发出警告？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">尚未推送的提交</button></li><li><button type="button" class="quiz-opt" data-i="1">尚未合并的分支</button></li><li><button type="button" class="quiz-opt" data-i="2">遗留的冲突标记和空白错误</button></li><li><button type="button" class="quiz-opt" data-i="3">未被跟踪的文件</button></li></ol><div class="quiz-expl" hidden>它是提交冲突解决结果之前的一项快速检查。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">8</span><h2>延伸阅读</h2></div>
+<ul>
+<li>Scott Chacon、Ben Straub，<a href="https://git-scm.com/book/zh/v2" target="_blank" rel="noopener">《Pro Git》中文版</a>第 3.2 节“分支的新建与合并”中的“遇到冲突时的分支合并”。</li>
+<li><a href="https://git-scm.com/docs/git-merge" target="_blank" rel="noopener">git merge</a> 参考文档（英文）中的“How conflicts are presented”一节。</li>
+<li>GitHub 文档：<a href="https://docs.github.com/zh/pull-requests/collaborating-with-pull-requests/addressing-merge-conflicts/resolving-a-merge-conflict-using-the-command-line" target="_blank" rel="noopener">使用命令行解决合并冲突</a>。</li>
+</ul>
+</div><nav class="module-nav" aria-label="全部模块"><a href="module_04_ZH.html">← 模块 04</a><a href="module_06_ZH.html">模块 06 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>
