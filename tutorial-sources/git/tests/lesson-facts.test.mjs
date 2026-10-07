@@ -64,3 +64,14 @@ test('Module 7 says to prune before deleting a squash-merged branch', () => {
   assert.match(lesson('en', 7), /Prune first: while `origin\/add-soups` still exists in your repository, `-d` checks against it/);
   assert.match(lesson('zh', 7), /请先清理：只要你的仓库中还存在 `origin\/add-soups`，`-d` 就会以它为准/);
 });
+
+test('Module 8 shows the to-do list of its squash session, whose hashes the session tests pin', () => {
+  for (const lang of ['en', 'zh']) {
+    assert.match(lesson(lang, 8), /`{3}text\npick bc5616c # Add a tomato soup recipe\nfixup 2b52993 # fixup! Add a tomato soup recipe\npick 49f29eb # Add a soda bread recipe\n\n# Rebase 8bf3c2d\.\.2b52993 onto 8bf3c2d \(3 commands\)\n`{3}/, lang);
+  }
+});
+
+test('Module 8 says which side of a rebase conflict is yours', () => {
+  assert.match(lesson('en', 8), /in a rebase, `<<<<<<< HEAD` holds `main`'s version/);
+  assert.match(lesson('zh', 8), /在变基中，`<<<<<<< HEAD` 下面是 `main` 的版本/);
+});
