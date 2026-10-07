@@ -1,0 +1,436 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>用拉取请求协作 — Git 与版本控制</title><meta name="description" content="像大多数项目那样进行团队协作：每项改动一个分支，用拉取请求提出改动，合并前先经过审查；当你无法直接向项目推送时，就使用复刻。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="7"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">Git 系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 07</button><div class="dropdown-menu" id="module-menu"><a href="module_01_ZH.html">01 · 为什么需要版本控制？</a><a href="module_02_ZH.html">02 · 你的第一个仓库</a><a href="module_03_ZH.html">03 · 查看历史与撤销</a><a href="module_04_ZH.html">04 · 分支</a><a href="module_05_ZH.html">05 · 合并冲突</a><a href="module_06_ZH.html">06 · 远程仓库</a><a href="module_07_ZH.html" class="active" aria-current="page">07 · 用拉取请求协作</a><a href="index_ZH.html#modules">全部模块</a></div></div><a class="lang-switch" href="module_07_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/3 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#s1"><span class="num">1</span><span>团队如何共享工作</span></a><a href="#s2"><span class="num">2</span><span>每项改动一个分支</span></a><a href="#s3"><span class="num">3</span><span>发起拉取请求</span></a><a href="#s4"><span class="num">4</span><span>审查拉取请求</span></a><a href="#s5"><span class="num">5</span><span>合并与整理</span></a><a href="#s6"><span class="num">6</span><span>让分支保持最新</span></a><a href="#s7"><span class="num">7</span><span>通过复刻做贡献</span></a><a href="#exercises"><span class="num">8</span><span>练习</span></a><a href="#quiz"><span class="num">9</span><span>自测</span></a><a href="#reading"><span class="num">10</span><span>延伸阅读</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git 与版本控制 — Ran Wei</div><h1 class="module-title">用拉取请求协作</h1><p class="module-lead">像大多数项目那样进行团队协作：每项改动一个分支，用拉取请求提出改动，合并前先经过审查；当你无法直接向项目推送时，就使用复刻。</p><div class="hero-chips"><span class="chip chip-time">3 小时</span><span class="chip">3 个时段</span><span class="chip">6 个动手环节</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>遵循功能分支工作流：创建分支、提交、推送、提出、合并、整理。</li><li>在 GitHub 上发起拉取请求，并把它关联到议题。</li><li>用 git log main..branch 和 git diff main...branch 审查别人的分支，并用新的提交回应审查意见。</li><li>让分支跟上 main，并在本地和服务器上清理已合并的分支。</li><li>通过复刻和 upstream 远程仓库，为你无法推送的项目做贡献。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>第 6 模块：远程仓库、推送、获取和拉取，以及一个 GitHub 账号。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#s1">团队如何共享工作</a><a href="#s2">每项改动一个分支</a><a href="#s3">发起拉取请求</a><a href="#s4">审查拉取请求</a><a href="#s5">合并与整理</a><a href="#s6">让分支保持最新</a><a href="#s7">通过复刻做贡献</a><a href="#exercises">练习</a><a href="#quiz">自测</a><a href="#reading">延伸阅读</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">3 小时</span></div><p class="plan-lead">时间为估计值，包含输入命令的时间。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">60 分钟</span></div><div class="session-title">提出改动</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">团队如何共享工作</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s2">每项改动一个分支</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s3">发起拉取请求</a></span><span class="act-min">25</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m07:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">60 分钟</span></div><div class="session-title">审查与合并</div><ul class="acts"><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s4">审查拉取请求</a></span><span class="act-min">25</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s5">合并与整理</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s6">让分支保持最新</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m07:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">60 分钟</span></div><div class="session-title">复刻与练习</div><ul class="acts"><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s7">通过复刻做贡献</a></span><span class="act-min">20</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#exercises">六道练习</a></span><span class="act-min">30</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">自测</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m07:s3"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>团队如何共享工作</h2></div>
+<p>在第 6 模块中，两个人都直接推送到 <code>main</code>，其中一次推送因为对方抢先一步而被拒绝。两个细心的人这样做还行，换成一个团队就不行了。大多数团队转而遵循几条简单的规则：</p>
+<ul>
+<li><code>main</code> 始终可用。没有人直接向它提交。</li>
+<li>每项改动，无论多小，都在自己的分支上进行，这种分支称为<strong>功能分支</strong>（feature branch）。</li>
+<li>改动准备好之后，作者用<strong>拉取请求</strong>（pull request）提出它：这是 GitHub 上的一个页面，展示分支的提交和改动，并邀请别人审查（review）。</li>
+<li>审查通过后，拉取请求被合并到 <code>main</code>，分支随即删除。</li>
+</ul>
+<p>这就是<strong>功能分支工作流</strong>（feature-branch workflow）。它的长处在于，每项改动在进入 <code>main</code> 之前都有人看过，而且好几个人可以同时工作，互不妨碍。</p>
+<figure class="fig" id="fig-07-01"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 262" role="img" aria-labelledby="t">
+  <title id="fig-07-01__t">拉取请求的生命周期</title>
+  <defs><marker id="fig-07-01__arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#334155"/></marker></defs>
+  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" text-anchor="middle">
+    <rect x="10" y="20" width="150" height="80" rx="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/><text x="85.0" y="48" font-size="15" font-weight="700" fill="#1E3A8A">1 分支</text><text x="85.0" y="70" font-size="12.5" fill="#334155">git switch -c</text><rect x="180" y="20" width="150" height="80" rx="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/><text x="255.0" y="48" font-size="15" font-weight="700" fill="#1E3A8A">2 提交</text><text x="255.0" y="70" font-size="12.5" fill="#334155">git add、git commit</text><rect x="350" y="20" width="150" height="80" rx="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/><text x="425.0" y="48" font-size="15" font-weight="700" fill="#1E3A8A">3 推送</text><text x="425.0" y="70" font-size="12.5" fill="#334155">git push -u origin</text><rect x="520" y="20" width="150" height="80" rx="12" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/><text x="595.0" y="48" font-size="15" font-weight="700" fill="#14532D">4 拉取请求</text><text x="595.0" y="70" font-size="12.5" fill="#334155">在 GitHub 上提出</text><rect x="520" y="140" width="150" height="80" rx="12" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/><text x="595.0" y="168" font-size="15" font-weight="700" fill="#14532D">5 审查</text><text x="595.0" y="190" font-size="12.5" fill="#334155">评论、更多提交</text><rect x="350" y="140" width="150" height="80" rx="12" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/><text x="425.0" y="168" font-size="15" font-weight="700" fill="#14532D">6 合并</text><text x="425.0" y="190" font-size="12.5" fill="#334155">在 GitHub 上并入 main</text><rect x="180" y="140" width="150" height="80" rx="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/><text x="255.0" y="168" font-size="15" font-weight="700" fill="#1E3A8A">7 整理</text><text x="255.0" y="190" font-size="12.5" fill="#334155">git pull、git branch -d</text><line x1="162" y1="60" x2="178" y2="60" stroke="#334155" stroke-width="2" marker-end="url(#fig-07-01__arrow)"/><line x1="332" y1="60" x2="348" y2="60" stroke="#334155" stroke-width="2" marker-end="url(#fig-07-01__arrow)"/><line x1="502" y1="60" x2="518" y2="60" stroke="#334155" stroke-width="2" marker-end="url(#fig-07-01__arrow)"/><line x1="595" y1="102" x2="595" y2="138" stroke="#334155" stroke-width="2" marker-end="url(#fig-07-01__arrow)"/><line x1="518" y1="180" x2="502" y2="180" stroke="#334155" stroke-width="2" marker-end="url(#fig-07-01__arrow)"/><line x1="348" y1="180" x2="332" y2="180" stroke="#334155" stroke-width="2" marker-end="url(#fig-07-01__arrow)"/><text x="340" y="250" font-size="13" fill="#475569">每项改动都在自己的分支上进行，经过审查后才进入 main</text>
+  </g>
+</svg>
+</div><figcaption><span class="fig-num">图 7.1</span> <p>拉取请求的生命周期：创建分支、提交并推送；用拉取请求提出改动；审查过程中可能追加提交；在 GitHub 上把分支合并到 <code>main</code>，然后大家各自整理。</p>
+</figcaption></figure>
+<p>在 GitHub 上共享项目有两种方式。在<strong>共享仓库</strong>中，团队成员有权限向同一个仓库推送分支，拉取请求从仓库的一个分支指向另一个分支。公司和小团队通常这样工作。在开源项目中，大多数贡献者根本无法向项目推送。每个人各自创建一个<strong>复刻</strong>（fork），即仓库在 GitHub 上的个人副本，向复刻推送，再从复刻向原项目发起拉取请求。第 7 节会讲复刻；在那之前，大家共用一个仓库。</p>
+<p>GitHub 还有<strong>议题</strong>（issue）：每个仓库都有一份关于缺陷、想法和任务的列表。拉取请求常常会说明它解决了哪个议题，GitHub 可以在拉取请求合并时自动关闭该议题。</p>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>每项改动一个分支</h2></div>
+<p>Alex 想加入一份汤的食谱。Alex 没有在 <code>main</code> 上提交，而是新建一个分支，在上面提交，然后用 <code>git push -u</code> 把分支推送到共享仓库，与第 6 模块练习 4 完全一样。</p>
+<p>本模块的动手环节使用第 6 模块中的替身服务器，Alex 和 Sam 各有一个克隆。要跟着操作，请使用你在第 6 模块中创建的 GitHub 仓库：你自己的 recipes 文件夹扮演 Alex。至于 Sam，可以把同一个 GitHub 仓库克隆到 Sam 的文件夹，或者用 <code>git remote set-url origin</code> 加上 GitHub 地址，让 Sam 现有的克隆指向它。在 GitHub 上，两个人都是你，这对本模块的所有内容都适用：你可以发起、审查并合并自己的拉取请求。</p>
+<div class="term" id="term-m07-feature-branch">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">在功能分支上工作</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">-c</span> add-soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to a new branch 'add-soups'
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>soup.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Tomato soup
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> soup.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a tomato soup recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[add-soups 22abb2e] Add a tomato soup recipe
+ 1 file changed, 1 insertion(+)
+ create mode 100644 soup.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span> <span class="hljs-attr">-u</span> origin add-soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/recipes.git
+ * [new branch]      add-soups -&gt; add-soups
+branch 'add-soups' set up to track 'origin/add-soups'.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-vv</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>* add-soups 22abb2e [origin/add-soups] Add a tomato soup recipe
+  main      8bf3c2d [origin/main] Add a pancake recipe
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>这次推送在服务器上创建了分支 <code>add-soups</code>，<code>-u</code> 则把 <code>origin/add-soups</code> 设为它的上游。<code>git branch -vv</code> 显示两个本地分支及其上游：<code>add-soups</code> 位于新提交上，<code>main</code> 仍在 <code>8bf3c2d</code>。</p>
+<p>按改动的内容给分支命名，像第 4 模块建议的那样简短而具体：<code>add-soups</code>、<code>fix-oven-temperature</code>。这个名字会显示在拉取请求上，别人也会看到。</p>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>发起拉取请求</h2></div>
+<p>拉取请求是 GitHub 的功能，不是 Git 命令，所以本节没有动手环节。请在你自己的仓库上按以下步骤操作；GitHub 文档中的<a href="https://docs.github.com/zh/pull-requests/how-tos/create-pull-requests/creating-a-pull-request" target="_blank" rel="noopener">创建拉取请求</a>展示了当前的页面。</p>
+<ol>
+<li>在 GitHub 上打开你的仓库。推送后不久，GitHub 会为这个分支显示一个 <strong>Compare &amp; pull request</strong> 按钮。如果没有，就进入 <strong>Pull requests</strong> 标签页，选择 <strong>New pull request</strong>。</li>
+<li>选择 <strong>base</strong> 分支，即改动要进入的分支（<code>main</code>），以及 <strong>compare</strong> 分支，即包含改动的分支（<code>add-soups</code>）。GitHub 会显示这个拉取请求将带来的提交和改动。</li>
+<li>写一个说明改动作用的<strong>标题</strong>，例如“Add a tomato soup recipe”，再写一段<strong>描述</strong>，说明为什么要改，以及审查者需要知道的事情。</li>
+<li>如果这项改动解决了某个议题，就在描述中写上 <code>Closes #</code> 加议题编号，例如 <code>Closes #4</code>。拉取请求合并到默认分支时，GitHub 会关闭该议题。<a href="https://docs.github.com/zh/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue" target="_blank" rel="noopener">将拉取请求关联到议题</a>列出了其他关键词。</li>
+<li>选择 <strong>Create pull request</strong>。</li>
+</ol>
+<p>拉取请求页面有三个标签页：<strong>Conversation</strong>，用于描述和评论；<strong>Commits</strong>，列出分支的提交；<strong>Files changed</strong>，以与 <code>git diff</code> 相同的 <code>+</code>、<code>-</code> 形式显示差异。拉取请求会跟随分支：当你向 <code>add-soups</code> 推送更多提交时，它们会自动出现在拉取请求中。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>让拉取请求保持小巧。只做一件事的拉取请求能得到快速而仔细的审查；改动三十个文件的拉取请求要等好几天，最后只换来一句草草的“看起来没问题”。如果改动很大，就把它拆成几个前后衔接的分支。</p>
+</div>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>审查拉取请求</h2></div>
+<p>Sam 被请来做审查。大多数审查都在 GitHub 上进行：在 <strong>Files changed</strong> 标签页中，你可以对任意一行发表评论，然后用 <strong>Comment</strong>、<strong>Approve</strong> 或 <strong>Request changes</strong> 提交审查。GitHub 文档中的<a href="https://docs.github.com/zh/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request" target="_blank" rel="noopener">审查拉取请求中提议的更改</a>展示了具体步骤。</p>
+<p>有时审查者希望把分支拿到自己的电脑上：试一试这项改动，或者在自己的编辑器里阅读。在这个动手环节中，Sam 获取、切换到 <code>add-soups</code>，并列出这个分支带来了什么。</p>
+<div class="term" id="term-m07-review">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">在合并之前查看一个分支</span></div>
+<div class="term-who">现在以 Sam Lee 的身份操作，在其自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">fetch</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/recipes
+ * [new branch]      add-soups  -&gt; origin/add-soups
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> add-soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to a new branch 'add-soups'
+branch 'add-soups' set up to track 'origin/add-soups'.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> main..add-soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>22abb2e Add a tomato soup recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span> main...add-soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>diff --git a/soup.md b/soup.md
+new file mode 100644
+index 0000000..4ad1865
+--- /dev/null
++++ b/soup.md
+@@ -0,0 +1 @@
++# Tomato soup
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git fetch</code> 报告了新分支：<code>* [new branch] add-soups -&gt; origin/add-soups</code>。Sam 还没有本地的 <code>add-soups</code>，但 <code>git switch add-soups</code> 注意到存在 <code>origin/add-soups</code>，于是一步之内就从它创建了本地分支，并设置为跟踪它。</p>
+<p>接着，两条命令显示这个分支带来了什么：</p>
+<ul>
+<li><code>git log --oneline main..add-soups</code> 列出 <code>add-soups</code> 上有而 <code>main</code> 上没有的提交，这里是那一次汤的提交。两个点的含义和第 6 模块中一样：“从右边能到达、从左边不能到达”。</li>
+<li><code>git diff main...add-soups</code> 用三个点，显示 <code>add-soups</code> 自从与 <code>main</code> 分叉以来所做的改动，而不管 <code>main</code> 在那之后发生了什么。这正是 GitHub 在 <strong>Files changed</strong> 下显示的内容。</li>
+</ul>
+<p>假设 Sam 的审查要求列出配料。Alex 的回应方式是：在同一个分支上修改文件、提交，然后再次推送。不需要做别的：拉取请求会自动收到新提交。随后 Sam 拉取，拿到这次改动。</p>
+<div class="term" id="term-m07-address-review">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">用一次新提交回应审查意见</span></div>
+<div class="term-edit">创建或编辑 <code>soup.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Tomato soup
+
+- 1 kg tomatoes
+- 1 onion
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> soup.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;List the soup ingredients&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[add-soups b9835b7] List the soup ingredients
+ 1 file changed, 3 insertions(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/recipes.git
+   22abb2e..b9835b7  add-soups -&gt; add-soups
+</code></pre></div>
+<div class="term-who">现在以 Sam Lee 的身份操作，在其自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">pull</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/recipes
+   22abb2e..b9835b7  add-soups  -&gt; origin/add-soups
+Updating 22abb2e..b9835b7
+Fast-forward
+ soup.md | 3 +++
+ 1 file changed, 3 insertions(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> main..add-soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>b9835b7 List the soup ingredients
+22abb2e Add a tomato soup recipe
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>Alex 的推送把服务器上的 <code>add-soups</code> 从 <code>22abb2e</code> 移到了 <code>b9835b7</code>，Sam 的 <code>git pull</code> 则把 Sam 那份分支快进到同样的位置。<code>git log --oneline main..add-soups</code> 现在列出了拉取请求中的两次提交。</p>
+<div class="callout note"><div class="callout-label">注意 — 追加还是改写？</div>
+<p>回应审查时请追加提交，而不是修补已经推送的提交：别人可能已经获取了它们，而新的提交能让审查者准确看到自上次查看以来改了什么。如果你希望合并前的历史更整洁，第 8 模块会介绍如何压缩提交，GitHub 在合并拉取请求时也可以把它压缩。</p>
+</div>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>合并与整理</h2></div>
+<p>拉取请求获得批准后，有权限的人用 <strong>Merge pull request</strong> 按钮合并它。默认情况下，GitHub 会在 <code>main</code> 上生成一次合并提交，与 <code>git merge --no-ff</code> 完全一样：即使可以快进，也生成一次有两个父提交的提交，让历史把整个分支作为一个整体显示出来。它的说明写作“Merge pull request #1 from”，后面跟着分支名。随后 GitHub 会提供一个 <strong>Delete branch</strong> 按钮，用来删除 GitHub 上的分支；你的本地分支仍然保留。<a href="https://docs.github.com/zh/pull-requests/how-tos/merge-and-close-pull-requests/merging-a-pull-request" target="_blank" rel="noopener">合并拉取请求</a>介绍了这个按钮及其他选项：<em>Squash and merge</em> 和 <em>Rebase and merge</em>。</p>
+<p>在这个动手环节中，Sam 已经像按下这些按钮那样，在服务器上合并并删除了分支。现在 Alex 更新 <code>main</code> 并进行整理。</p>
+<div class="term" id="term-m07-after-merge">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">合并之后的整理</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">pull</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/recipes
+   8bf3c2d..4088575  main       -&gt; origin/main
+Updating 8bf3c2d..4088575
+Fast-forward
+ soup.md | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 soup.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-d</span> add-soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Deleted branch add-soups (was 22abb2e).
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">fetch</span> <span class="hljs-attr">--prune</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/recipes
+ - [deleted]         (none)     -&gt; origin/add-soups
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-a</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>* main
+  remotes/origin/HEAD -&gt; origin/main
+  remotes/origin/main
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 508 146" width="508" height="146" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 22C18 39 40 39 40 56V56" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56V56C40 73 18 73 18 90" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">4088575</text><rect x="128.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="26" class="g-ref-text">HEAD → main</text><rect x="225.60000000000002" y="13" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="231.6" y="26" class="g-ref-text">origin/main</text><text x="322.8" y="26" class="g-subject">Merge branch 'add-soups'</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="60" class="g-hash">22abb2e</text><text x="128.4" y="60" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="94" class="g-hash">8bf3c2d</text><text x="128.4" y="94" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">907a979</text><text x="128.4" y="128" class="g-subject">Add a README</text></svg><pre class="visually-hidden">*   4088575 (HEAD -&gt; main, origin/main, origin/HEAD) Merge branch 'add-soups'
+|\
+| * 22abb2e Add a tomato soup recipe
+|/
+* 8bf3c2d Add a pancake recipe
+* 907a979 Add a README</pre></figure>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<ul>
+<li><code>git switch main</code> 说 Alex 的 <code>main</code> 与 <code>origin/main</code> 一致，但这指的是 Alex 上次获取时的情况。接着 <code>git pull</code> 获取到合并提交，并把 <code>main</code> 快进过去。</li>
+<li><code>git branch -d add-soups</code> 删除 Alex 的本地分支。它顺利完成，因为 <code>main</code> 现在包含了这个分支的提交。</li>
+<li><code>git fetch --prune</code> 删除那些在服务器上已不存在的分支所对应的远程跟踪分支：<code>- [deleted] (none) -&gt; origin/add-soups</code>。如果不加 <code>--prune</code>，<code>origin/add-soups</code> 会一直留在 Alex 的仓库里。</li>
+<li><code>git branch -a</code> 确认了结果：只剩下 <code>main</code> 和 <code>origin/main</code>。</li>
+</ul>
+<p>提交图显示合并提交把汤的提交并入了 <code>main</code>。在动手环节中，它的说明是 <code>Merge branch 'add-soups'</code>，因为 Sam 用的是 <code>git merge --no-ff</code>；在 GitHub 上，说明里写的则是拉取请求。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>运行一次 <code>git config --global fetch.prune true</code>，以后每次 <code>git fetch</code> 和 <code>git pull</code> 都会自动清理。</p>
+</div>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>让分支保持最新</h2></div>
+<p>在你开发分支的同时，<code>main</code> 也在前进：别的拉取请求被合并了。在你请别人审查之前，以及当 GitHub 提示分支已过时或有冲突时，请把最新的 <code>main</code> 带进你的分支：先获取，再把 <code>origin/main</code> 合并到你的分支，然后推送。</p>
+<p>在这个动手环节中，Alex 正在开发已经推送过的 <code>add-breads</code>，与此同时，Sam 对 README 的改动已经进入了 <code>main</code>。要跟着操作，请推送一个带有提交的分支，然后在 GitHub 上或以 Sam 的身份向 <code>main</code> 添加一次提交。</p>
+<div class="term" id="term-m07-update-branch">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">让分支跟上 main</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">fetch</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/recipes
+   8bf3c2d..76cf385  main       -&gt; origin/main
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch add-breads
+Your branch is up to date with 'origin/add-breads'.
+
+nothing to commit, working tree clean
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 587 146" width="587" height="146" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M40 56V56C40 73 18 73 18 90" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">76cf385</text><rect x="128.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="134.4" y="26" class="g-ref-text">origin/main</text><text x="225.6" y="26" class="g-subject">Say what the notes are for</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="60" class="g-hash">4354065</text><rect x="128.4" y="47" width="134.4" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="60" class="g-ref-text">HEAD → add-breads</text><rect x="268.8" y="47" width="134.4" height="18" rx="9" class="g-ref g-remote"/><text x="274.8" y="60" class="g-ref-text">origin/add-breads</text><text x="409.2" y="60" class="g-subject">Add a soda bread recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="94" class="g-hash">8bf3c2d</text><rect x="128.4" y="81" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="134.4" y="94" class="g-ref-text">main</text><text x="175.2" y="94" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">907a979</text><text x="128.4" y="128" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 76cf385 (origin/main, origin/HEAD) Say what the notes are for
+| * 4354065 (HEAD -&gt; add-breads, origin/add-breads) Add a soda bread recipe
+|/
+* 8bf3c2d (main) Add a pancake recipe
+* 907a979 Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> origin/main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Merge made by the 'ort' strategy.
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/recipes.git
+   4354065..930b2c7  add-breads -&gt; add-breads
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 839 180" width="839" height="180" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 22C18 39 40 39 40 56V56" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56V90C40 107 18 107 18 124" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 124V158" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">930b2c7</text><rect x="128.4" y="13" width="134.4" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="26" class="g-ref-text">HEAD → add-breads</text><rect x="268.8" y="13" width="134.4" height="18" rx="9" class="g-ref g-remote"/><text x="274.8" y="26" class="g-ref-text">origin/add-breads</text><text x="409.2" y="26" class="g-subject">Merge remote-tracking branch 'origin/main' into add-breads</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="60" class="g-hash">76cf385</text><rect x="128.4" y="47" width="91.2" height="18" rx="9" class="g-ref g-remote"/><text x="134.4" y="60" class="g-ref-text">origin/main</text><text x="225.6" y="60" class="g-subject">Say what the notes are for</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="94" class="g-hash">4354065</text><text x="128.4" y="94" class="g-subject">Add a soda bread recipe</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">8bf3c2d</text><rect x="128.4" y="115" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="134.4" y="128" class="g-ref-text">main</text><text x="175.2" y="128" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="158" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="162" class="g-hash">907a979</text><text x="128.4" y="162" class="g-subject">Add a README</text></svg><pre class="visually-hidden">*   930b2c7 (HEAD -&gt; add-breads, origin/add-breads) Merge remote-tracking branch 'origin/main' into add-breads
+|\
+| * 76cf385 (origin/main, origin/HEAD) Say what the notes are for
+* | 4354065 Add a soda bread recipe
+|/
+* 8bf3c2d (main) Add a pancake recipe
+* 907a979 Add a README</pre></figure>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>看看获取之后的 <code>git status</code>：<em>Your branch is up to date with ‘origin/add-breads’</em>。这话没错，却不是重点：分支的状态是与它自己的上游比较，而不是与 <code>main</code> 比较。第一张提交图显示了真实情况：<code>origin/main</code> 上有一次 <code>add-breads</code> 所没有的提交。</p>
+<p><code>git merge origin/main</code> 把它合并进来，生成一次合并提交，说明为 <code>Merge remote-tracking branch 'origin/main' into add-breads</code>，然后 <code>git push</code> 更新拉取请求。第二张提交图显示 <code>add-breads</code> 包含了两条历史线。合并 <code>origin/main</code> 而不是你的本地 <code>main</code>，可以省去先更新 <code>main</code> 这一步。</p>
+<p>如果合并因冲突而停下，就像第 5 模块那样解决、提交并推送。GitHub 上出现的 <strong>Update branch</strong> 按钮会在 GitHub 上完成同样的合并。第 8 模块会介绍变基（rebase），这是一些团队更喜欢的另一种做法。</p>
+<span class="section-anchor" id="s7"></span>
+<div class="section-header" data-sec="s7"><span class="section-num">7</span><h2>通过复刻做贡献</h2></div>
+<p>要为你无法推送的项目（例如大多数开源项目）做贡献，就要通过复刻来工作：</p>
+<ol>
+<li>在项目的 GitHub 页面上选择 <strong>Fork</strong>。GitHub 会在你的账户下创建这个仓库的副本。</li>
+<li>克隆你的复刻。在你的克隆中，<code>origin</code> 就是你的复刻，你可以向它推送。</li>
+<li>把原项目添加为第二个远程仓库，按照惯例命名为 <strong>upstream</strong>，这样你就能获取它的新提交。</li>
+<li>像平常一样在分支上工作，把分支推送到 <code>origin</code>，然后从你复刻中的分支向原项目的 <code>main</code> 发起拉取请求。无论你在哪一个仓库上发起拉取请求，GitHub 都会提供这个选项。</li>
+<li>要让复刻的 <code>main</code> 保持最新，就获取 <code>upstream</code>，把 <code>upstream/main</code> 合并到你的 <code>main</code>，再推送到 <code>origin</code>。GitHub 的 <strong>Sync fork</strong> 按钮会在 GitHub 上完成同样的事。</li>
+</ol>
+<figure class="fig" id="fig-07-02"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 266" role="img" aria-labelledby="t">
+  <title id="fig-07-02__t">通过复刻做贡献</title>
+  <defs><marker id="fig-07-02__arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#334155"/></marker></defs>
+  <g font-family="system-ui, -apple-system, Segoe UI, sans-serif" text-anchor="middle">
+    <text x="340" y="18" font-size="13" font-weight="700" fill="#475569">GitHub</text><rect x="10" y="26" width="660" height="110" rx="14" fill="none" stroke="#CBD5E1" stroke-dasharray="5 4"/><rect x="30" y="44" width="230" height="76" rx="12" fill="#DCFCE7" stroke="#16A34A" stroke-width="2"/><text x="145.0" y="72" font-size="15" font-weight="700" fill="#14532D">原项目</text><text x="145.0" y="94" font-size="12.5" fill="#334155">upstream：你无法推送到这里</text><rect x="420" y="44" width="230" height="76" rx="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="2"/><text x="535.0" y="72" font-size="15" font-weight="700" fill="#1E3A8A">你的复刻</text><text x="535.0" y="94" font-size="12.5" fill="#334155">origin：你在 GitHub 上的副本</text><rect x="420" y="190" width="230" height="66" rx="12" fill="#FEF3C7" stroke="#D97706" stroke-width="2"/><text x="535.0" y="218" font-size="15" font-weight="700" fill="#78350F">你的克隆</text><text x="535.0" y="240" font-size="12.5" fill="#334155">在你的电脑上</text><line x1="262" y1="68" x2="418" y2="68" stroke="#334155" stroke-width="2" marker-end="url(#fig-07-02__arrow)"/><text x="340" y="60" font-size="12.5"  text-anchor="middle" fill="#7C3AED">Fork</text><line x1="418" y1="100" x2="262" y2="100" stroke="#334155" stroke-width="2" marker-end="url(#fig-07-02__arrow)"/><text x="340" y="118" font-size="12.5"  text-anchor="middle" fill="#7C3AED">拉取请求</text><line x1="490" y1="122" x2="490" y2="188" stroke="#334155" stroke-width="2" marker-end="url(#fig-07-02__arrow)"/><text x="480" y="160" font-size="12.5" font-family="ui-monospace, Menlo, Consolas, monospace" text-anchor="end" fill="#7C3AED">git clone</text><line x1="580" y1="188" x2="580" y2="122" stroke="#334155" stroke-width="2" marker-end="url(#fig-07-02__arrow)"/><text x="590" y="160" font-size="12.5" font-family="ui-monospace, Menlo, Consolas, monospace" text-anchor="start" fill="#7C3AED">git push</text><path d="M418 223 C 200 223 145 190 145 122" stroke="#334155" stroke-width="2" fill="none" marker-end="url(#fig-07-02__arrow)"/><text x="250" y="244" font-size="12.5" font-family="ui-monospace, Menlo, Consolas, monospace" text-anchor="middle" fill="#7C3AED">git fetch upstream</text>
+  </g>
+</svg>
+</div><figcaption><span class="fig-num">图 7.2</span> <p>通过复刻工作。你无法向原项目 <code>upstream</code> 推送。你向自己的复刻 <code>origin</code> 推送，并从它发起拉取请求；你从 <code>upstream</code> 获取新的工作。</p>
+</figcaption></figure>
+<p>在这个动手环节中，服务器上有原仓库以及 Sam 的复刻 <code>sam-recipes.git</code>，Sam 可以向后者推送。Sam 克隆复刻并添加 <code>upstream</code>。随后，维护原仓库的 Alex 加入了一份蛋糕食谱，Sam 再把它带进自己的复刻。</p>
+<div class="term" id="term-m07-fork">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">通过复刻做贡献</span></div>
+<div class="term-who">现在以 Sam Lee 的身份操作，在其自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">clone</span> /srv/git/sam-recipes.git</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Cloning into 'sam-recipes'...
+done.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cd</span> sam-recipes</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">remote</span> add upstream /srv/git/recipes.git</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">remote</span> <span class="hljs-attr">-v</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>origin	/srv/git/sam-recipes.git (fetch)
+origin	/srv/git/sam-recipes.git (push)
+upstream	/srv/git/recipes.git (fetch)
+upstream	/srv/git/recipes.git (push)
+</code></pre></div>
+<div class="term-who">回到 Alex Smith，在 Alex 自己的文件夹中。</div>
+<div class="term-edit">创建或编辑 <code>cake.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Lemon cake
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> cake.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a lemon cake recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main 6e8609b] Add a lemon cake recipe
+ 1 file changed, 1 insertion(+)
+ create mode 100644 cake.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/recipes.git
+   8bf3c2d..6e8609b  main -&gt; main
+</code></pre></div>
+<div class="term-who">现在以 Sam Lee 的身份操作，在其自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">fetch</span> upstream</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/recipes
+ * [new branch]      main       -&gt; upstream/main
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> upstream/main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Updating 8bf3c2d..6e8609b
+Fast-forward
+ cake.md | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 cake.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/sam-recipes.git
+   8bf3c2d..6e8609b  main -&gt; main
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git remote -v</code> 现在列出两个远程仓库：Sam 的复刻 <code>origin</code>，以及原仓库 <code>upstream</code>。<code>git fetch upstream</code> 把原仓库的 <code>main</code> 取回为 <code>upstream/main</code>，<code>git merge upstream/main</code> 把 Sam 的 <code>main</code> 快进过去，<code>git push</code> 则更新复刻，因为 Sam 的 <code>main</code> 仍然推送到 <code>origin</code>。</p>
+<p>要在 GitHub 上练习，可以像 GitHub 文档中的<a href="https://docs.github.com/zh/pull-requests/how-tos/work-with-forks/fork-a-repo" target="_blank" rel="noopener">复刻仓库</a>建议的那样，复刻练习仓库 <a href="https://github.com/octocat/Spoon-Knife" target="_blank" rel="noopener">octocat/Spoon-Knife</a>，然后克隆你的复刻，并把 <code>https://github.com/octocat/Spoon-Knife.git</code> 添加为 <code>upstream</code>。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">8</span><h2>练习</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>排列步骤。</strong> 把功能分支工作流的这些步骤排好顺序：合并拉取请求；<code>git push -u origin fix-typo</code>；<code>git switch -c fix-typo</code>；发起拉取请求；<code>git switch main</code> 和 <code>git pull</code>；提交修正；用另一次提交回应审查；<code>git branch -d fix-typo</code>。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p><code>git switch -c fix-typo</code>；提交修正；<code>git push -u origin fix-typo</code>；发起拉取请求；用另一次提交回应审查（并推送）；合并拉取请求；<code>git switch main</code> 和 <code>git pull</code>；<code>git branch -d fix-typo</code>。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">5 分钟</span></div>
+<p><strong>两个点还是三个点？</strong> 自从 <code>add-soups</code> 与 <code>main</code> 分叉以来，<code>main</code> 多了两次提交，而 <code>add-soups</code> 有一次自己的提交。<code>git log --oneline main..add-soups</code> 会列出什么？<code>git diff main...add-soups</code> 会显示什么？为什么不带点的 <code>git diff main add-soups</code> 会误导审查者？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p><code>main..add-soups</code> 列出 <code>add-soups</code> 上那一次 <code>main</code> 所没有的提交。<code>main...add-soups</code> 只显示 <code>add-soups</code> 自分叉以来的改动，也就是拉取请求将要带来的内容。<code>git diff main add-soups</code> 直接比较两边最新的提交，因此 <code>main</code> 上的两次新提交看起来就像是被 <code>add-soups</code> 删除了，尽管这个分支从未碰过它们。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">6 分钟</span></div>
+<p><strong>向同事的分支追加提交。</strong> Alex 关于 <code>add-soups</code> 的拉取请求缺少一句说明这份汤够几个人吃。请以 Sam 的身份把它加到这个分支上，使拉取请求包含这处改动，并让 Alex 拿到它。要跟着操作，请先在 Alex 的窗口中推送一个分支。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>获取分支、切换过去、提交并推送；然后 Alex 拉取：</p>
+<div class="term" id="term-m07-e3-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">在同事的分支上添加一次提交</span></div>
+<div class="term-who">现在以 Sam Lee 的身份操作，在其自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">fetch</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/recipes
+ * [new branch]      add-soups  -&gt; origin/add-soups
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> add-soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to a new branch 'add-soups'
+branch 'add-soups' set up to track 'origin/add-soups'.
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>soup.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Tomato soup
+
+Serves four.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-am</span> <span class="hljs-string">&quot;Say how many the soup serves&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[add-soups 2f70ec5] Say how many the soup serves
+ 1 file changed, 2 insertions(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">push</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>To /srv/git/recipes.git
+   22abb2e..2f70ec5  add-soups -&gt; add-soups
+</code></pre></div>
+<div class="term-who">回到 Alex Smith，在 Alex 自己的文件夹中。</div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">pull</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/recipes
+   22abb2e..2f70ec5  add-soups  -&gt; origin/add-soups
+Updating 22abb2e..2f70ec5
+Fast-forward
+ soup.md | 2 ++
+ 1 file changed, 2 insertions(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">-n</span> 2</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>2f70ec5 Say how many the soup serves
+22abb2e Add a tomato soup recipe
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>任何有推送权限的人都可以向拉取请求的分支追加提交。请事先商量好，免得两个人同时修改相同的行。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">4 分钟</span></div>
+<p><strong>撰写拉取请求。</strong> 你的分支加入了一份汤的食谱，这是议题 #4 所要求的。写一个标题和一段描述，使拉取请求合并时能关闭这个议题。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>例如，标题：<em>Add a tomato soup recipe</em>。描述：<em>Adds <code>soup.md</code> with the ingredients and method we used last week. Closes #4.</em> 措辞随意，只要描述中包含 <code>Closes #4</code>（或 <code>Fixes #4</code>、<code>Resolves #4</code>）即可。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">6 分钟</span></div>
+<p><strong>删不掉的分支。</strong> 你的拉取请求是用 <em>Squash and merge</em> 合并的：GitHub 在 <code>main</code> 上添加了一次包含该分支全部改动的新提交，并删除了分支。运行 <code>git pull</code> 之后，<code>git branch -d add-soups</code> 拒绝执行，说这个分支没有完全合并。请确认不会丢失任何内容，然后删除这个分支。要跟着操作，请在 GitHub 上用 <em>Squash and merge</em> 合并一个拉取请求。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>压缩合并会把分支的改动复制到一次新提交中，所以 <code>main</code> 永远不包含该分支自己的提交，<code>-d</code> 也就无法判断这些工作已经在 <code>main</code> 中了。请改为比较文件内容：</p>
+<div class="term" id="term-m07-e5-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">压缩合并之后的整理</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">pull</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/recipes
+   8bf3c2d..b200d8c  main       -&gt; origin/main
+Updating 8bf3c2d..b200d8c
+Fast-forward
+ soup.md | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 soup.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">fetch</span> <span class="hljs-attr">--prune</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>From /srv/git/recipes
+ - [deleted]         (none)     -&gt; origin/add-soups
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-d</span> add-soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>error: the branch 'add-soups' is not fully merged
+hint: If you are sure you want to delete it, run 'git branch -D add-soups'
+hint: Disable this message with &quot;git config set advice.forceDeleteBranch false&quot;
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span> main add-soups</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-D</span> add-soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Deleted branch add-soups (was 22abb2e).
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git diff main add-soups</code> 什么也没有打印：文件完全相同，所以 <code>git branch -D</code> 不会丢失任何东西。请先清理：只要你的仓库中还存在 <code>origin/add-soups</code>，<code>-d</code> 就会以它为准，只给出一条警告就删除分支。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">5 分钟</span></div>
+<p><strong>复刻还是分支？</strong> 在下面每种情况下，你会向仓库推送分支，还是通过复刻工作？</p>
+<ol>
+<li>你是拥有这个仓库的团队的成员。</li>
+<li>你在一个流行的开源库的文档中发现了一个错字。</li>
+<li>你想在不让任何人看到的情况下试验一个项目的代码，而且可能永远不会贡献出去。</li>
+</ol>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li>推送分支：你可以向这个仓库推送，在仓库的分支之间发起拉取请求最简单。</li>
+<li>复刻：你无法向这个库的仓库推送，所以要推送到你的复刻，再从复刻发起拉取请求。</li>
+<li>复刻，或者干脆只克隆：克隆不需要账户，复刻则在 GitHub 上给你一个可以推送的副本。请记住，公开仓库的复刻也是公开的。</li>
+</ol>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">9</span><h2>自测</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>什么是拉取请求？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">一条从服务器拉取分支的 Git 命令</button></li><li><button type="button" class="quiz-opt" data-i="1">GitHub 上把一个分支合并到另一个分支的提议，可以在其中进行审查</button></li><li><button type="button" class="quiz-opt" data-i="2">申请向仓库推送的权限</button></li><li><button type="button" class="quiz-opt" data-i="3">仓库的自动副本</button></li></ol><div class="quiz-expl" hidden>拉取请求是 GitHub 上的一个页面，展示分支的改动，让别人在合并前讨论和审查。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>审查者要求修改。你怎样更新你的拉取请求？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">关闭它，再发起一个新的</button></li><li><button type="button" class="quiz-opt" data-i="1">把修改提交到同一个分支并推送</button></li><li><button type="button" class="quiz-opt" data-i="2">在拉取请求的页面上编辑文件</button></li><li><button type="button" class="quiz-opt" data-i="3">把新的分支名发给审查者</button></li></ol><div class="quiz-expl" hidden>拉取请求会跟随它的分支；分支上的新提交会自动出现在其中。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">3</span><div><code>git diff main...add-soups</code> 显示什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">两边最新提交之间的所有差异</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>add-soups</code> 自从与 <code>main</code> 分叉以来所做的改动</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>main</code> 上有而 <code>add-soups</code> 没有的提交</button></li><li><button type="button" class="quiz-opt" data-i="3">什么也不显示，除非两个分支已经合并</button></li></ol><div class="quiz-expl" hidden>三个点是与分叉点比较，这正是 GitHub 的 Files changed 标签页显示的内容。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>一个分支已在 GitHub 上合并并删除。哪条命令会从你的仓库中删除 <code>origin/add-soups</code>？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git branch -d add-soups</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git pull</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git fetch --prune</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git push origin --delete add-soups</code></button></li></ol><div class="quiz-expl" hidden><code>--prune</code> 会删除那些在远程仓库上已不存在的分支所对应的远程跟踪分支。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>在你的功能分支上，<code>git status</code> 显示 <em>Your branch is up to date with ‘origin/add-breads’</em>。这是否意味着你的分支包含 <code>main</code> 上的一切？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">是的，Git 总是与 <code>main</code> 比较。</button></li><li><button type="button" class="quiz-opt" data-i="1">不是：它是与分支自己的上游 <code>origin/add-breads</code> 比较。</button></li><li><button type="button" class="quiz-opt" data-i="2">是的，只要你运行过 <code>git fetch</code>。</button></li><li><button type="button" class="quiz-opt" data-i="3">不是：它表示这个分支已被删除。</button></li></ol><div class="quiz-expl" hidden>要引入 <code>main</code> 的新提交，请获取并把 <code>origin/main</code> 合并到你的分支。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">6</span><div>在复刻的设置中，<code>upstream</code> 通常是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">原项目的仓库</button></li><li><button type="button" class="quiz-opt" data-i="1">你在 GitHub 上的复刻</button></li><li><button type="button" class="quiz-opt" data-i="2">拉取请求要进入的分支</button></li><li><button type="button" class="quiz-opt" data-i="3">你的本地克隆</button></li></ol><div class="quiz-expl" hidden><code>origin</code> 是你的复刻，你向它推送；<code>upstream</code> 是原项目，你从它获取。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">7</span><div>你的拉取请求的描述中写着 <code>Closes #12</code>。它合并到默认分支时会发生什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">拉取请求 #12 被关闭。</button></li><li><button type="button" class="quiz-opt" data-i="1">十二次提交被压缩。</button></li><li><button type="button" class="quiz-opt" data-i="2">议题 #12 被自动关闭。</button></li><li><button type="button" class="quiz-opt" data-i="3">什么也不会发生：这只是一条注释。</button></li></ol><div class="quiz-expl" hidden>GitHub 会把拉取请求与议题关联起来，并在合并时关闭议题。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">10</span><h2>延伸阅读</h2></div>
+<ul>
+<li>Scott Chacon 和 Ben Straub，《Pro Git》，第 <a href="https://git-scm.com/book/zh/v2/%E5%88%86%E5%B8%83%E5%BC%8F-Git-%E5%88%86%E5%B8%83%E5%BC%8F%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B" target="_blank" rel="noopener">5.1 节：分布式工作流程</a>和第 <a href="https://git-scm.com/book/zh/v2/GitHub-%E5%AF%B9%E9%A1%B9%E7%9B%AE%E5%81%9A%E5%87%BA%E8%B4%A1%E7%8C%AE" target="_blank" rel="noopener">6.2 节：对项目做出贡献</a>。</li>
+<li>GitHub 文档：<a href="https://docs.github.com/zh/pull-requests/reference/pull-requests" target="_blank" rel="noopener">关于拉取请求</a>、<a href="https://docs.github.com/zh/pull-requests/reference/forks" target="_blank" rel="noopener">关于复刻</a>和<a href="https://docs.github.com/zh/issues/tracking-your-work-with-issues/learning-about-issues/about-issues" target="_blank" rel="noopener">关于议题</a>。</li>
+<li><a href="https://git-scm.com/docs/git-fetch" target="_blank" rel="noopener">git fetch</a>（<code>--prune</code>）和 <a href="https://git-scm.com/docs/git-diff" target="_blank" rel="noopener">git diff</a>（<code>A...B</code> 形式）的参考页面。</li>
+</ul>
+</div><nav class="module-nav" aria-label="全部模块"><a href="module_06_ZH.html">← 模块 06</a><a href="index_ZH.html#modules">全部模块 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>

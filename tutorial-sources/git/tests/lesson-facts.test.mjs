@@ -59,3 +59,8 @@ test('Module 6 tells learners where to put their stand-in server', () => {
   assert.match(lesson('en', 6), /Wherever the pages show `\/srv\/git\/recipes\.git`, type that path instead\./);
   assert.match(lesson('zh', 6), /页面上凡是出现 `\/srv\/git\/recipes\.git` 的地方，请改用这个路径。/);
 });
+
+test('Module 7 says to prune before deleting a squash-merged branch', () => {
+  assert.match(lesson('en', 7), /Prune first: while `origin\/add-soups` still exists in your repository, `-d` checks against it/);
+  assert.match(lesson('zh', 7), /请先清理：只要你的仓库中还存在 `origin\/add-soups`，`-d` 就会以它为准/);
+});
