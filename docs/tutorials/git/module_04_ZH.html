@@ -1,0 +1,346 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>分支 — Git 与版本控制</title><meta name="description" content="并行推进不同的想法：创建和切换分支，理解 HEAD，并用快进合并和三方合并把工作汇合起来。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="4"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">Git 系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 04</button><div class="dropdown-menu" id="module-menu"><a href="module_01_ZH.html">01 · 为什么需要版本控制？</a><a href="module_02_ZH.html">02 · 你的第一个仓库</a><a href="module_03_ZH.html">03 · 查看历史与撤销</a><a href="module_04_ZH.html" class="active" aria-current="page">04 · 分支</a><a href="index_ZH.html#modules">全部模块</a></div></div><a class="lang-switch" href="module_04_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/3 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#s1"><span class="num">1</span><span>分支是什么</span></a><a href="#s2"><span class="num">2</span><span>创建和切换分支</span></a><a href="#s3"><span class="num">3</span><span>HEAD</span></a><a href="#s4"><span class="num">4</span><span>快进合并</span></a><a href="#s5"><span class="num">5</span><span>三方合并</span></a><a href="#s6"><span class="num">6</span><span>整理分支</span></a><a href="#exercises"><span class="num">7</span><span>练习</span></a><a href="#quiz"><span class="num">8</span><span>自测</span></a><a href="#reading"><span class="num">9</span><span>延伸阅读</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git 与版本控制 — Ran Wei</div><h1 class="module-title">分支</h1><p class="module-lead">并行推进不同的想法：创建和切换分支，理解 HEAD，并用快进合并和三方合并把工作汇合起来。</p><div class="hero-chips"><span class="chip chip-time">3 小时</span><span class="chip">3 个时段</span><span class="chip">4 个动手环节</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>把分支解释为指向某次提交的可移动标签。</li><li>用 git branch 和 git switch 创建、列出和切换分支。</li><li>说出 HEAD 指向哪里，并在提交图中认出它。</li><li>区分快进合并与三方合并，并完成这两种合并。</li><li>安全地重命名和删除分支。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>第 2 和第 3 模块：提交、用 git log 阅读历史，以及分离的 HEAD 这一概念。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#s1">分支是什么</a><a href="#s2">创建和切换分支</a><a href="#s3">HEAD</a><a href="#s4">快进合并</a><a href="#s5">三方合并</a><a href="#s6">整理分支</a><a href="#exercises">练习</a><a href="#quiz">自测</a><a href="#reading">延伸阅读</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">3 小时</span></div><p class="plan-lead">时间为估计值，包含输入命令的时间。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">60 分钟</span></div><div class="session-title">分支与 HEAD</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">分支是什么</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s2">创建和切换分支</a></span><span class="act-min">30</span></li><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">HEAD</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m04:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">60 分钟</span></div><div class="session-title">合并</div><ul class="acts"><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s4">快进合并</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s5">三方合并</a></span><span class="act-min">25</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s6">整理分支</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m04:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">60 分钟</span></div><div class="session-title">练习</div><ul class="acts"><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#exercises">六道练习</a></span><span class="act-min">45</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">自测</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m04:s3"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>分支是什么</h2></div>
+<p>到目前为止，每次提交都落在同一条历史线上。真实的工作很少这么整齐。你也许想试一个新食谱，又不想打扰那些已经好用的食谱；或者一项大改动做到一半时，需要先修正一个错字。<strong>分支</strong>（branch）让你把不同的工作线并排保存，等它们准备好时再合并到一起。</p>
+<p>在 Git 中，分支只是一个<strong>指向某次提交的可移动标签</strong>。创建分支不复制任何东西：Git 只记下新的名字和它指向的提交，仅此而已。这就是分支既廉价又快速的原因，也是为什么人们习惯为每个想法（无论多小）都创建一个分支，用完再删掉。</p>
+<p><code>main</code> 是一个普通的分支。它没有任何特殊能力，只是仓库一开始就有的分支，也是大多数项目当作主线的分支。</p>
+<p>让分支移动的正是这个标签。你提交时，Git 生成新的提交，并把你所在分支的标签向前移到这次新提交上。其他分支留在原处。这样，每个分支都长出自己的一条提交线，而分叉之前的历史为它们所共有。</p>
+<div class="callout analogy"><div class="callout-label">类比</div>
+<p>分支就像书里的书签，而不是这本书的复印件。书签不花什么成本，你可以夹好几个，并随着阅读把每个书签往后移。书页本身只有一份。</p>
+</div>
+<p>使用分支的大部分工作都遵循同一个简短的循环，本模块会逐步走一遍：</p>
+<ol>
+<li>为一项工作创建一个分支，并切换过去。</li>
+<li>在这个分支上随意提交，多少次都可以。<code>main</code> 不受影响。</li>
+<li>工作完成后，切换回 <code>main</code>，把这个分支合并进来。</li>
+<li>删除这个已经完成任务的分支。</li>
+</ol>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>创建和切换分支</h2></div>
+<p>大部分工作由两条命令完成：</p>
+<ul>
+<li><code>git branch</code> 列出你的分支，你所在的分支旁边有一个星号（<code>*</code>）。<code>git branch &lt;name&gt;</code> 在你所在的提交上创建一个新分支，但不会切换过去。</li>
+<li><code>git switch &lt;name&gt;</code> 把你带到某个分支上，并更新工作区中的文件，使其与该分支最新的提交一致。</li>
+</ul>
+<p>本模块的动手环节都从一个只有两次提交（一个 README 和一份煎饼食谱）的小食谱仓库开始。你自己的仓库提交更多，哈希也不同，但这对命令的用法没有任何影响。在这个动手环节中，你为甜点创建一个分支，并在上面加入一份蛋糕食谱。</p>
+<div class="term" id="term-m04-branches">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">创建分支并在其上工作</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>* main
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> desserts</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>  desserts
+* main
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 436 78" width="436" height="78" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">288d56b</text><rect x="106.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="26" class="g-ref-text">HEAD → main</text><rect x="203.60000000000002" y="13" width="69.6" height="18" rx="9" class="g-ref g-branch"/><text x="209.6" y="26" class="g-ref-text">desserts</text><text x="279.2" y="26" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">02804ba</text><text x="106.4" y="60" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 288d56b (HEAD -&gt; main, desserts) Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> desserts</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'desserts'
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>cake.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Lemon cake
+
+- 200 g flour
+- 2 lemons
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> cake.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a lemon cake recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[desserts ccf2a69] Add a lemon cake recipe
+ 1 file changed, 4 insertions(+)
+ create mode 100644 cake.md
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 410 112" width="410" height="112" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 56V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">ccf2a69</text><rect x="106.4" y="13" width="120.0" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="26" class="g-ref-text">HEAD → desserts</text><text x="232.4" y="26" class="g-subject">Add a lemon cake recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">288d56b</text><rect x="106.4" y="47" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="112.4" y="60" class="g-ref-text">main</text><text x="153.2" y="60" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="94" class="g-hash">02804ba</text><text x="106.4" y="94" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* ccf2a69 (HEAD -&gt; desserts) Add a lemon cake recipe
+* 288d56b (main) Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'main'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>README.md  pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> desserts</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'desserts'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>README.md  cake.md  pancakes.md
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>刚运行完 <code>git branch desserts</code>，列表中就有了两个分支，星号表明你仍在 <code>main</code> 上。第一张提交图说明了创建分支为什么能瞬间完成：<code>desserts</code> 和 <code>main</code> 是同一次提交 <code>288d56b</code> 上的两个标签。</p>
+<p>本系列页面中的提交图把提交画成圆圈，最新的在最上面，每次提交都有一条线连向它的父提交（parent）。标签写出指向该提交的分支名，<code>HEAD → main</code> 标出你所在的分支。在终端中，<code>git log --oneline --graph --all</code> 会用文字画出同样的图。</p>
+<p>运行 <code>git switch desserts</code> 并提交之后，第二张图显示只有 <code>desserts</code> 标签移动了，移到新的提交 <code>ccf2a69</code> 上。<code>main</code> 仍停在 <code>288d56b</code>。</p>
+<p>再看两次 <code>ls</code> 命令。在 <code>main</code> 上，文件夹里只有 <code>README.md</code> 和 <code>pancakes.md</code>；在 <code>desserts</code> 上，<code>cake.md</code> 又回来了。切换分支会让文件夹中的文件与你切换到的分支保持一致。蛋糕食谱从未丢失：它保存在 <code>desserts</code> 的提交中，每当你切换到这个分支，Git 就会把它放回来。</p>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>HEAD</h2></div>
+<p>你在第 3 模块和上面的提交图中都见过 HEAD。<strong>HEAD</strong> 是 Git 对“你现在所在位置”的称呼。通常它指向一个分支，而分支指向一次提交：图中的 <code>HEAD → desserts</code> 表示你在 <code>desserts</code> 上，而 <code>desserts</code> 指向那次提交。</p>
+<p>这种两步式的安排解释了你见过的两种移动：</p>
+<ul>
+<li>你<strong>提交</strong>时，Git 把 HEAD 所指向的分支移到新的提交上。HEAD 也随之移动，因为它指向这个分支。</li>
+<li>你<strong>切换</strong>时，Git 把 HEAD 本身移到另一个分支，并相应地改变你的文件。没有任何分支标签移动。</li>
+</ul>
+<p><code>git status</code> 的第一行会报告 HEAD 的位置：<em>On branch main</em> 表示 HEAD 指向 <code>main</code>。</p>
+<p>第 3 模块中分离的 HEAD 也符合同样的图景。运行 <code>git switch --detach</code> 之后，HEAD 直接指向一次提交，而不是指向分支，所以在那里做新的提交不会移动任何分支标签。这就是为什么这样的提交很容易丢失，也是为什么要在切换走之前为它们创建分支。</p>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>快进合并</h2></div>
+<p>迟早你会想把一个分支上的工作带到另一个分支中。<code>git merge &lt;branch&gt;</code> 把指定分支的工作合并（merge）到你所在的分支。所以，先切换到要接收这些工作的分支（通常是 <code>main</code>），然后再合并。</p>
+<p>Git 如何合并，取决于两个分支之间的关系。最简单的情况是：另一个分支包含你所在分支上的全部内容，外加一些更新的提交。这时没有什么需要组合的：Git 只是把你所在分支的标签向前移到另一个分支最新的提交上。这称为<strong>快进</strong>（fast-forward），它不生成新的提交。</p>
+<p>在这个动手环节中，你在 <code>main</code> 上，而 <code>desserts</code> 领先一次提交，其中有一份蛋糕食谱，如第一张图所示。要跟着操作，请先运行 <code>git switch main</code>。</p>
+<div class="term" id="term-m04-fast-forward">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">合并一个只是领先的分支</span></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 360 112" width="360" height="112" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 56V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">4d632df</text><rect x="106.4" y="13" width="69.6" height="18" rx="9" class="g-ref g-branch"/><text x="112.4" y="26" class="g-ref-text">desserts</text><text x="182.0" y="26" class="g-subject">Add a lemon cake recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">288d56b</text><rect x="106.4" y="47" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="60" class="g-ref-text">HEAD → main</text><text x="203.6" y="60" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="94" class="g-hash">02804ba</text><text x="106.4" y="94" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 4d632df (desserts) Add a lemon cake recipe
+* 288d56b (HEAD -&gt; main) Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> desserts</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Updating 288d56b..4d632df
+Fast-forward
+ cake.md | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 cake.md
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 457 112" width="457" height="112" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 56V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">4d632df</text><rect x="106.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="26" class="g-ref-text">HEAD → main</text><rect x="203.60000000000002" y="13" width="69.6" height="18" rx="9" class="g-ref g-branch"/><text x="209.6" y="26" class="g-ref-text">desserts</text><text x="279.2" y="26" class="g-subject">Add a lemon cake recipe</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">288d56b</text><text x="106.4" y="60" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="94" class="g-hash">02804ba</text><text x="106.4" y="94" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 4d632df (HEAD -&gt; main, desserts) Add a lemon cake recipe
+* 288d56b Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-d</span> desserts</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Deleted branch desserts (was 4d632df).
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>* main
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>Git 报告了 <code>Updating 288d56b..4d632df</code> 和 <code>Fast-forward</code>：它把 <code>main</code> 从 <code>288d56b</code> 移到了 <code>desserts</code> 最新的提交 <code>4d632df</code>。下面的摘要列出了这次合并带来的内容，即新文件 <code>cake.md</code>。比较合并前后的两张图。提交本身没有变化；只有 <code>main</code> 标签向前跳了过去，于是 <code>main</code> 和 <code>desserts</code> 现在指向同一次提交。</p>
+<p>“快进”这个名字描述的正是发生的事：<code>main</code> 落在后面，Git 沿着已经存在的提交把它往前推进，就像快进一段录像。</p>
+<p>合并完成后，<code>desserts</code> 分支就完成了任务。<code>git branch -d desserts</code> 删除它，Git 还会报告这个标签原来所在的提交（<code>was 4d632df</code>）。删掉的只是标签。提交都还在，因为 <code>main</code> 包含它们；<code>git branch</code> 现在只列出 <code>main</code>。</p>
+<p>如果某个分支的提交不包含在你所在的分支中，Git 会拒绝用 <code>-d</code> 删除它，以免这些工作从此不在任何分支上。练习 5 会说明这时该怎么办。</p>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>三方合并</h2></div>
+<p>两个分支在分叉之后常常都会继续前进。你在 <code>soups</code> 分支上加入一份汤的食谱，与此同时有人在 <code>main</code> 上给煎饼加了盐。这时两个分支谁也不包含谁，Git 无法只移动一个标签。它会生成一次<strong>合并提交</strong>（merge commit）：一次把两个分支的工作结合起来的新提交。与之前所有的提交不同，它有两个父提交，每个分支上各一个。</p>
+<p>这个动手环节从第一张图的状态开始：<code>soups</code> 上有一次番茄汤的提交，<code>main</code> 上有一次 <code>soups</code> 所没有的加盐提交。要跟着操作，请自己搭建这个状态：创建 <code>soups</code>，在上面提交一份汤的食谱，切换回 <code>main</code>，再提交一处对 <code>pancakes.md</code> 的改动。然后进行合并。</p>
+<p>合并提交需要一段说明。在你的电脑上，Git 会打开编辑器，里面是现成的说明 <code>Merge branch 'soups'</code>。保存并关闭编辑器即可接受；动手环节中保留了这段说明原样。</p>
+<div class="term" id="term-m04-three-way">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">合并两条工作线</span></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 411 146" width="411" height="146" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M40 56V56C40 73 18 73 18 90" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">5049848</text><rect x="128.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="26" class="g-ref-text">HEAD → main</text><text x="225.6" y="26" class="g-subject">Add salt to the pancakes</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="60" class="g-hash">689ed1b</text><rect x="128.4" y="47" width="48.0" height="18" rx="9" class="g-ref g-branch"/><text x="134.4" y="60" class="g-ref-text">soups</text><text x="182.4" y="60" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="94" class="g-hash">288d56b</text><text x="128.4" y="94" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">02804ba</text><text x="128.4" y="128" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 5049848 (HEAD -&gt; main) Add salt to the pancakes
+| * 689ed1b (soups) Add a tomato soup recipe
+|/
+* 288d56b Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> soups</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Merge made by the 'ort' strategy.
+ soup.md | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 soup.md
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 382 180" width="382" height="180" aria-hidden="true" focusable="false"><path d="M18 22V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 22C18 39 40 39 40 56V56" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M40 56V90C40 107 18 107 18 124" stroke="#16A34A" stroke-width="2.5" fill="none"/><path d="M18 90V124" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 124V158" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="26" class="g-hash">e59bfd4</text><rect x="128.4" y="13" width="91.2" height="18" rx="9" class="g-ref g-head"/><text x="134.4" y="26" class="g-ref-text">HEAD → main</text><text x="225.6" y="26" class="g-subject">Merge branch 'soups'</text><circle cx="40" cy="56" r="6" fill="#fff" stroke="#16A34A" stroke-width="2.5"/><text x="70" y="60" class="g-hash">689ed1b</text><rect x="128.4" y="47" width="48.0" height="18" rx="9" class="g-ref g-branch"/><text x="134.4" y="60" class="g-ref-text">soups</text><text x="182.4" y="60" class="g-subject">Add a tomato soup recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="94" class="g-hash">5049848</text><text x="128.4" y="94" class="g-subject">Add salt to the pancakes</text><circle cx="18" cy="124" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="128" class="g-hash">288d56b</text><text x="128.4" y="128" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="158" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="70" y="162" class="g-hash">02804ba</text><text x="128.4" y="162" class="g-subject">Add a README</text></svg><pre class="visually-hidden">*   e59bfd4 (HEAD -&gt; main) Merge branch 'soups'
+|\
+| * 689ed1b (soups) Add a tomato soup recipe
+* | 5049848 Add salt to the pancakes
+|/
+* 288d56b Add a pancake recipe
+* 02804ba Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">--graph</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>*   e59bfd4 Merge branch 'soups'
+|\
+| * 689ed1b Add a tomato soup recipe
+* | 5049848 Add salt to the pancakes
+|/
+* 288d56b Add a pancake recipe
+* 02804ba Add a README
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>比较两张图。合并之前，两个分支在 <code>288d56b</code> 之后分叉：<code>main</code> 走一条路，<code>soups</code> 走另一条。合并之后，合并提交 <code>e59bfd4</code> 把它们连在一起，有两条线分别连向它的两个父提交：<code>main</code> 上的 <code>5049848</code> 和 <code>soups</code> 上的 <code>689ed1b</code>。<code>main</code> 移到了合并提交上；<code>soups</code> 留在原处，现在可以用 <code>git branch -d soups</code> 删除了。</p>
+<p><code>Merge made by the 'ort' strategy.</code> 说明了 Git 组合改动时使用的方法，你不需要了解更多。早于 2.34 的 Git 版本默认使用一种名为 <code>recursive</code> 的方法，因此会在这里打印那个名字。</p>
+<p><code>git log --oneline --graph</code> 用文字画出同样的形状。合并提交在最上面，<code>|\</code> 和 <code>|/</code> 这两行表示历史分成两条线又重新汇合，每个分支的提交各占一行。</p>
+<p>这称为<strong>三方合并</strong>（three-way merge），因为 Git 会比较项目的三个版本：每个分支上最新的提交，以及两个分支分叉处的提交。自分叉以来只在一侧改动过的内容，就取自那一侧。如果两侧改动了相同的行，Git 无法独自决定，这就是冲突，也是第 5 模块的主题。</p>
+<div class="callout keyidea"><div class="callout-label">核心思想</div>
+<p>合并从不改变已有的提交。如果你的分支没有对方所缺少的内容，Git 就快进它：标签移动，不生成提交。如果两个分支都有新的提交，Git 就添加一次有两个父提交的合并提交。无论哪种情况，两个分支上的所有提交最终都会进入你所在分支的历史。</p>
+</div>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>整理分支</h2></div>
+<p>还有几条命令能让分支用起来更快捷：</p>
+<ul>
+<li><code>git switch -c &lt;name&gt;</code> 一步完成创建分支并切换过去，这是开始新工作的常用方式。</li>
+<li><code>git branch -v</code> 列出每个分支及其最新的提交。</li>
+<li><code>git switch -</code> 回到你之前所在的分支。</li>
+<li><code>git branch -m &lt;old&gt; &lt;new&gt;</code> 重命名一个分支。</li>
+</ul>
+<p>在这个动手环节中，你开始了一个 breakfast 分支，随后决定把它改名为 brunch。</p>
+<div class="term" id="term-m04-switch-c">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">一步创建分支，并四处看看</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">-c</span> breakfast</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to a new branch 'breakfast'
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>porridge.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Porridge
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> porridge.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a porridge recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[breakfast 5ad8c30] Add a porridge recipe
+ 1 file changed, 1 insertion(+)
+ create mode 100644 porridge.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-v</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>* breakfast 5ad8c30 Add a porridge recipe
+  main      288d56b Add a pancake recipe
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">-</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'main'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-m</span> breakfast brunch</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-v</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>  brunch 5ad8c30 Add a porridge recipe
+* main   288d56b Add a pancake recipe
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git branch -v</code> 显示新分支上的燕麦粥提交 <code>5ad8c30</code>，而 <code>main</code> 仍在 <code>288d56b</code>。<code>git switch -</code> 把你带回 <code>main</code> 之后，重命名只改变名字：<code>brunch</code> 指向的提交与原来的 <code>breakfast</code> 相同。</p>
+<p>较早的教程用 <code>git checkout -b &lt;name&gt;</code> 创建分支并切换过去，用 <code>git checkout &lt;name&gt;</code> 切换分支。这些写法仍然可用；<code>git switch</code> 完成同样的工作，而且更不容易用错。</p>
+<p>按用途给分支命名：简短、小写、单词之间用连字符，例如 <code>fix-oven-temperature</code>。名字中也可以使用斜杠，团队常用它给分支分组，例如 <code>feature/login</code>。</p>
+<p>分支合并之后就删掉它。<code>git branch</code> 的列表短一些，就能一眼看出哪些工作还在进行中。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">7</span><h2>练习</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">5 分钟</span></div>
+<p><strong>判断对错。</strong></p>
+<ol>
+<li>创建分支会复制你的所有文件。</li>
+<li>分支是指向某次提交的标签。</li>
+<li>提交时，你所在分支的标签会移到新的提交上。</li>
+<li>删除一个已合并的分支会删除它的提交。</li>
+</ol>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><strong>错。</strong>创建分支只是创建一个标签，不会复制任何文件。</li>
+<li><strong>对。</strong></li>
+<li><strong>对。</strong></li>
+<li><strong>错。</strong>只有标签被删除；提交仍然保留，因为它们已合并进的那个分支仍然包含它们。</li>
+</ol>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">7 分钟</span></div>
+<p><strong>快进还是合并提交？</strong> 说出每种情况产生哪一种合并。</p>
+<ol>
+<li>你从 <code>main</code> 创建了 <code>fix-typo</code>，提交了两次，期间没有人修改 <code>main</code>。然后你把 <code>fix-typo</code> 合并进 <code>main</code>。</li>
+<li>你从 <code>main</code> 创建了 <code>soups</code> 并提交；与此同时，有人向 <code>main</code> 提交了。然后你把 <code>soups</code> 合并进 <code>main</code>。</li>
+<li>你位于自己的分支上，该分支没有新提交；你合并了有两次新提交的 <code>main</code>。</li>
+</ol>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><strong>快进。</strong><code>main</code> 没有移动，所以它的标签可以直接跳到 <code>fix-typo</code> 的最新提交。</li>
+<li><strong>合并提交。</strong>两个分支都有新提交，所以 Git 创建一次有两个父提交的提交。</li>
+<li>你的分支<strong>快进</strong>：它没有 <code>main</code> 所缺少的内容，所以它的标签直接移到 <code>main</code> 的最新提交。</li>
+</ol>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">10 分钟</span></div>
+<p><strong>一个功能分支。</strong> 创建名为 <code>drinks</code> 的分支，在其上提交两次，把它合并进 <code>main</code>，然后删除它。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<div class="term" id="term-m04-e3-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">一个功能分支，合并回来</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">-c</span> drinks</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to a new branch 'drinks'
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>lemonade.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Lemonade
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> lemonade.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a lemonade recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[drinks faff603] Add a lemonade recipe
+ 1 file changed, 1 insertion(+)
+ create mode 100644 lemonade.md
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>tea.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Iced tea
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> tea.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add an iced tea recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[drinks d2aea9e] Add an iced tea recipe
+ 1 file changed, 1 insertion(+)
+ create mode 100644 tea.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Switched to branch 'main'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">merge</span> drinks</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Updating 288d56b..d2aea9e
+Fast-forward
+ lemonade.md | 1 +
+ tea.md      | 1 +
+ 2 files changed, 2 insertions(+)
+ create mode 100644 lemonade.md
+ create mode 100644 tea.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-d</span> drinks</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Deleted branch drinks (was d2aea9e).
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>d2aea9e Add an iced tea recipe
+faff603 Add a lemonade recipe
+288d56b Add a pancake recipe
+02804ba Add a README
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>由于你在 <code>drinks</code> 上工作期间 <code>main</code> 没有移动，这次合并是快进，<code>git log --oneline</code> 显示为一条直线。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">7 分钟</span></div>
+<p><strong>未提交的改动与切换分支。</strong> 你修改了 <code>pancakes.md</code> 但没有提交，然后运行 <code>git switch desserts</code>。可能会发生什么？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>如果 <code>pancakes.md</code> 在两个分支上相同，Git 会切换过去，并把你未提交的修改一起带过去。如果切换会覆盖你的修改（因为该文件在 <code>desserts</code> 上不同），Git 会拒绝，提示 “Your local changes to the following files would be overwritten by checkout”，并保持一切不变。请先提交你的改动，或者用 <code>git stash</code> 把它暂时放到一边（第 8 模块）。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">8 分钟</span></div>
+<p><strong>删除一个从未合并的分支。</strong> 名为 <code>experiment</code> 的分支保存着一份失败的食谱。请删除这个分支。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p><code>git branch -d</code> 会拒绝，因为这个分支有其他分支都不包含的提交；<code>-D</code> 则会强制删除：</p>
+<div class="term" id="term-m04-e5-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">删除一个从未合并的分支</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-d</span> experiment</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>error: the branch 'experiment' is not fully merged
+hint: If you are sure you want to delete it, run 'git branch -D experiment'
+hint: Disable this message with &quot;git config set advice.forceDeleteBranch false&quot;
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span> <span class="hljs-attr">-D</span> experiment</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Deleted branch experiment (was 4e55929).
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">branch</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>* main
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>使用 <code>-D</code> 要小心：这次提交不再属于任何分支。在一段时间内，仍可以通过引用日志找到它（第 8 模块）。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">8 分钟</span></div>
+<p><strong>读懂提交图。</strong> <code>git log --oneline --graph --all</code> 输出：</p>
+<pre><code class="language-text">* 5049848 (HEAD -&gt; main) Add salt to the pancakes
+| * 689ed1b (soups) Add a tomato soup recipe
+|/
+* 288d56b Add a pancake recipe
+* 02804ba Add a README
+</code></pre>
+<p>你位于哪个分支？哪些提交同时属于两个分支？<code>git merge soups</code> 会做什么？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>你位于 <code>main</code>。提交 <code>288d56b</code> 和 <code>02804ba</code> 同时属于两个分支。两个分支各有对方没有的提交，所以 <code>git merge soups</code> 会创建一次合并提交，其父提交是 <code>5049848</code> 和 <code>689ed1b</code>，与第 5 节完全相同。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">8</span><h2>自测</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>Git 中的分支是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">项目所有文件的一份副本</button></li><li><button type="button" class="quiz-opt" data-i="1">指向某次提交的可移动标签</button></li><li><button type="button" class="quiz-opt" data-i="2">仓库的备份</button></li><li><button type="button" class="quiz-opt" data-i="3">与服务器的连接</button></li></ol><div class="quiz-expl" hidden>创建分支不复制任何东西；它是一个随提交向前移动的标签。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>哪条命令创建分支并切换过去？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git branch -v</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git switch -</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git switch -c &lt;名称&gt;</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git merge &lt;名称&gt;</code></button></li></ol><div class="quiz-expl" hidden><code>-c</code> 创建分支；<code>git branch &lt;名称&gt;</code> 只创建而不切换。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>你位于 <code>main</code>，运行 <code>git merge desserts</code>。<code>desserts</code> 包含 <code>main</code> 的最新提交，另外还多两次提交。会发生什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">快进：<code>main</code> 的标签移到 <code>desserts</code> 的最新提交。</button></li><li><button type="button" class="quiz-opt" data-i="1">Git 创建一次有两个父提交的合并提交。</button></li><li><button type="button" class="quiz-opt" data-i="2">Git 报告冲突。</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>desserts</code> 分支被删除。</button></li></ol><div class="quiz-expl" hidden><code>main</code> 上的内容 <code>desserts</code> 都有，所以不需要合并提交。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">4</span><div>一次合并提交有几个父提交？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">没有</button></li><li><button type="button" class="quiz-opt" data-i="1">一个</button></li><li><button type="button" class="quiz-opt" data-i="2">三个</button></li><li><button type="button" class="quiz-opt" data-i="3">两个</button></li></ol><div class="quiz-expl" hidden>它连接两条工作线，所以两边各有一个父提交。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>提交图中的标签 <code>HEAD → desserts</code> 是什么意思？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>desserts</code> 分支已被删除。</button></li><li><button type="button" class="quiz-opt" data-i="1">你位于 <code>desserts</code>，下一次提交会让它向前移动。</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>desserts</code> 是一个分离的 HEAD。</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>desserts</code> 已合并进 <code>main</code>。</button></li></ol><div class="quiz-expl" hidden>HEAD 指向你所在的分支。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div><code>git branch -d experiment</code> 提示该分支没有完全合并。为什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">分支名称拼错了。</button></li><li><button type="button" class="quiz-opt" data-i="1">你正位于 <code>experiment</code> 分支上。</button></li><li><button type="button" class="quiz-opt" data-i="2">它有当前分支所不包含的提交。</button></li><li><button type="button" class="quiz-opt" data-i="3">Git 不能删除分支。</button></li></ol><div class="quiz-expl" hidden><code>-d</code> 保护那些删除后将不属于任何分支的工作；<code>-D</code> 会强制删除。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div><code>git switch -c fix</code> 取代了哪条旧命令？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git checkout -b fix</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git branch -d fix</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git merge fix</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git commit -b fix</code></button></li></ol><div class="quiz-expl" hidden>较早的教程使用 <code>git checkout -b</code>；<code>git switch -c</code> 完成同样的工作。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">9</span><h2>延伸阅读</h2></div>
+<ul>
+<li>Scott Chacon、Ben Straub，<a href="https://git-scm.com/book/zh/v2" target="_blank" rel="noopener">《Pro Git》中文版</a>第 3.1 节“分支简介”和第 3.2 节“分支的新建与合并”。</li>
+<li><a href="https://git-scm.com/docs/git-branch" target="_blank" rel="noopener">git branch</a>、<a href="https://git-scm.com/docs/git-switch" target="_blank" rel="noopener">git switch</a> 和 <a href="https://git-scm.com/docs/git-merge" target="_blank" rel="noopener">git merge</a> 的参考文档（英文）。</li>
+<li><a href="https://learngitbranching.js.org/?locale=zh_CN" target="_blank" rel="noopener">Learn Git Branching</a>：在浏览器中额外练习分支与合并。</li>
+</ul>
+</div><nav class="module-nav" aria-label="全部模块"><a href="module_03_ZH.html">← 模块 03</a><a href="index_ZH.html#modules">全部模块 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>
