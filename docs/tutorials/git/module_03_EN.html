@@ -1,0 +1,489 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>History and undoing — Git and Version Control</title><meta name="description" content="Read your project's history, see exactly what changed, and undo mistakes at every stage: before staging, after staging, in the last commit and in older commits."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="3"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Git Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 03</button><div class="dropdown-menu" id="module-menu"><a href="module_01_EN.html">01 · Why version control?</a><a href="module_02_EN.html">02 · Your first repository</a><a href="module_03_EN.html" class="active" aria-current="page">03 · History and undoing</a><a href="index.html#modules">All modules</a></div></div><a class="lang-switch" href="module_03_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/3 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#s1"><span class="num">1</span><span>Reading the history</span></a><a href="#s2"><span class="num">2</span><span>Seeing what changed</span></a><a href="#s3"><span class="num">3</span><span>Undoing changes you have not committed</span></a><a href="#s4"><span class="num">4</span><span>Fixing the last commit</span></a><a href="#s5"><span class="num">5</span><span>Undoing a commit</span></a><a href="#s6"><span class="num">6</span><span>Looking at an old version</span></a><a href="#exercises"><span class="num">7</span><span>Exercises</span></a><a href="#quiz"><span class="num">8</span><span>Self-check quiz</span></a><a href="#reading"><span class="num">9</span><span>Further reading</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git and Version Control — Ran Wei</div><h1 class="module-title">History and undoing</h1><p class="module-lead">Read your project's history, see exactly what changed, and undo mistakes at every stage: before staging, after staging, in the last commit and in older commits.</p><div class="hero-chips"><span class="chip chip-time">3 hours</span><span class="chip">3 study sessions</span><span class="chip">6 command sessions</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>List and filter history with git log.</li><li>Read a diff, and use git diff, git diff --staged and git show.</li><li>Throw away uncommitted changes and unstage files with git restore.</li><li>Fix the last commit with git commit --amend, and undo older commits with git revert.</li><li>Look at an old version safely, and explain what a detached HEAD is.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Module 2: creating a repository, staging with git add and committing with clear messages.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#s1">Reading the history</a><a href="#s2">Seeing what changed</a><a href="#s3">Undoing changes you have not committed</a><a href="#s4">Fixing the last commit</a><a href="#s5">Undoing a commit</a><a href="#s6">Looking at an old version</a><a href="#exercises">Exercises</a><a href="#quiz">Self-check quiz</a><a href="#reading">Further reading</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">3 hours</span></div><p class="plan-lead">Times are estimates and include typing the commands. Progress is saved in this browser and shared by both language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">60 min</span></div><div class="session-title">Looking back</div><ul class="acts"><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s1">Reading the history</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s2">Seeing what changed</a></span><span class="act-min">25</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s3">Undoing changes you have not committed</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m03:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">60 min</span></div><div class="session-title">Undoing commits</div><ul class="acts"><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s4">Fixing the last commit</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s5">Undoing a commit</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">Practice</span><span class="act-what"><a href="#s6">Looking at an old version</a></span><span class="act-min">25</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m03:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">60 min</span></div><div class="session-title">Practice</div><ul class="acts"><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#exercises">Six exercises</a></span><span class="act-min">45</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Self-check quiz</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m03:s3"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>Reading the history</h2></div>
+<p>Every commit you make is kept, with its author, its date and the message you wrote. <code>git log</code> is how you read that history. Without options, it lists the commits newest first, and shows each one’s full hash, author, date and message. For a long history that is a lot of text, so a few options help:</p>
+<ul>
+<li><code>--oneline</code> prints one line per commit: the short hash and the message.</li>
+<li><code>-n 2</code> shows only the newest two commits. Any number works; <code>-n 1</code> shows just the newest.</li>
+<li><code>--stat</code> adds which files each commit changed, and by how much.</li>
+<li>A file name at the end, as in <code>git log pancakes.md</code>, lists only the commits that changed that file.</li>
+</ul>
+<p>Options combine freely: <code>git log --oneline -n 5</code> shows the newest five commits, one line each.</p>
+<p>Every session on this page starts from the recipes repository as Module 2’s main example left it, with three commits. Your own repository may hold a few more, if you also committed a <code>.gitignore</code> or did the exercises, and your hashes are different, because Git calculates them from the time of each commit as well as its content. Always use the hashes your own <code>git log</code> prints. Your repository also grows as you work through this module, so your output may differ from the pages in small ways; the commands work the same.</p>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>When the history is longer than your window, <code>git log</code> shows it in a <em>pager</em>, a viewer that shows one screen at a time. Scroll with the arrow keys or Space, and press <code>q</code> to leave it and return to the prompt. The sessions on these pages print everything at once.</p>
+</div>
+<div class="term" id="term-m03-log">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Read the history</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>1ad5842 Say what the notes are for
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">-n</span> 1</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>commit 1ad584283c1471035cb8e8538e2ea2cc2ce54824
+Author: Alex Smith &lt;alex@example.com&gt;
+Date:   Mon Jan 5 09:09:00 2026 +0000
+
+    Say what the notes are for
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">--stat</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>1ad5842 Say what the notes are for
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+8bf3c2d Add a pancake recipe
+ pancakes.md | 5 +++++
+ 1 file changed, 5 insertions(+)
+907a979 Add a README
+ README.md | 3 +++
+ 1 file changed, 3 insertions(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>8bf3c2d Add a pancake recipe
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p><code>git log -n 1</code> shows the newest commit in full: its 40-character hash, the author, the date and the message. With <code>--stat</code>, each commit gets a short summary of its changes. <code>README.md | 2 +-</code> says that the commit changed two lines of <code>README.md</code>: one added (<code>+</code>) and one removed (<code>-</code>), which is how Git records a line that was reworded. <code>pancakes.md | 5 +++++</code> says that five lines were added.</p>
+<p>The last command, <code>git log --oneline pancakes.md</code>, lists only <code>8bf3c2d Add a pancake recipe</code>, because no other commit touched <code>pancakes.md</code>. When you want to know when, and why, a file changed, this is the place to start.</p>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>Seeing what changed</h2></div>
+<p><code>git log</code> tells you which commits exist. Three related commands show what actually changed:</p>
+<ul>
+<li><code>git diff</code> compares the working tree with the staging area. It shows the changes you have made but not yet staged.</li>
+<li><code>git diff --staged</code> compares the staging area with the last commit. It shows what your next commit will contain. (<code>--cached</code> is another name for the same option.)</li>
+<li><code>git show</code> shows one commit: its hash, author, date and message, followed by its changes. On its own it shows the newest commit; give it a hash to see another one.</li>
+</ul>
+<p><code>git status</code> tells you <em>which</em> files changed; these commands show you <em>how</em>, so you can check every change before it goes into the history. In the session, you change the pancake recipe to use less milk and add a pinch of salt, then follow the change from the working tree into a commit.</p>
+<div class="term" id="term-m03-diff">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">See what changed</span></div>
+<div class="term-edit">Create or edit <code>pancakes.md</code> so that it contains:</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 250 ml milk
+- a pinch of salt
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>diff --git a/pancakes.md b/pancakes.md
+index 871d830..fcc716f 100644
+--- a/pancakes.md
++++ b/pancakes.md
+@@ -2,4 +2,5 @@
+
+ - 200 g flour
+ - 2 eggs
+-- 300 ml milk
++- 250 ml milk
++- a pinch of salt
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span></code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span> <span class="hljs-attr">--staged</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>diff --git a/pancakes.md b/pancakes.md
+index 871d830..fcc716f 100644
+--- a/pancakes.md
++++ b/pancakes.md
+@@ -2,4 +2,5 @@
+
+ - 200 g flour
+ - 2 eggs
+-- 300 ml milk
++- 250 ml milk
++- a pinch of salt
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Use less milk and add salt&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main b7b26af] Use less milk and add salt
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">show</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>commit b7b26af362cd6db7ab58150f347b1c07ccfa83e5
+Author: Alex Smith &lt;alex@example.com&gt;
+Date:   Mon Jan 5 09:14:00 2026 +0000
+
+    Use less milk and add salt
+
+diff --git a/pancakes.md b/pancakes.md
+index 871d830..fcc716f 100644
+--- a/pancakes.md
++++ b/pancakes.md
+@@ -2,4 +2,5 @@
+
+ - 200 g flour
+ - 2 eggs
+-- 300 ml milk
++- 250 ml milk
++- a pinch of salt
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>The output of <code>git diff</code> is called a <strong>diff</strong>, and every diff has the same parts:</p>
+<ul>
+<li><code>diff --git a/pancakes.md b/pancakes.md</code> names the file: <code>a/</code> is the old version and <code>b/</code> the new one. The <code>index</code>, <code>---</code> and <code>+++</code> lines that follow say the same in more detail, and you can skip them.</li>
+<li><code>@@ -2,4 +2,5 @@</code> starts a <em>hunk</em>, one block of changes. <code>-2,4</code> means the block covers four lines of the old version, starting at line 2. <code>+2,5</code> means it covers five lines of the new version, also starting at line 2: the new version is one line longer.</li>
+<li>Below it, each line starts with a marker. A line starting with <code>-</code> was removed, a line starting with <code>+</code> was added, and a line starting with a space is unchanged <strong>context</strong>, shown to help you find the place. Here, <code>- 300 ml milk</code> was replaced by <code>- 250 ml milk</code>, and <code>- a pinch of salt</code> was added. The first character of each line is the diff’s marker; the <code>-</code> after it belongs to the recipe’s list.</li>
+</ul>
+<p>After <code>git add pancakes.md</code>, the second <code>git diff</code> prints nothing, because the working tree and the staging area now match. The change has not vanished: <code>git diff --staged</code> shows exactly the same diff, because the change now sits between the staging area and the last commit. Once you commit, <code>git show</code> displays it once more, with the commit’s hash, author, date and message above it.</p>
+<p><code>git diff</code> can also compare two commits: <code>git diff &lt;older&gt; &lt;newer&gt;</code>, with hashes from <code>git log --oneline</code>. The diff then shows how the newer commit differs from the older one: lines marked <code>-</code> are only in the older commit, and lines marked <code>+</code> only in the newer one. Exercise 2 practises this.</p>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>Undoing changes you have not committed</h2></div>
+<p>Mistakes are easiest to undo before they reach a commit. Two forms of <code>git restore</code> cover the two cases:</p>
+<ul>
+<li><code>git restore &lt;file&gt;</code> throws away your edits to a file. It replaces the file in the working tree with the version in the staging area, which is the version from the last commit unless you have staged something since.</li>
+<li><code>git restore --staged &lt;file&gt;</code> unstages a file. It takes the change out of the staging area, so that it will not go into the next commit, but leaves your edit in the working tree.</li>
+</ul>
+<p>You do not need to memorise either: <code>git status</code> suggests both in its hints, as the session shows. First, the README’s description has been deleted by accident. Then a change to the pancake recipe, three eggs instead of two, is staged before it is ready.</p>
+<div class="term" id="term-m03-restore">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Throw away changes you have not committed</span></div>
+<div class="term-edit">Create or edit <code>README.md</code> so that it contains:</div>
+<pre><code class="language-text"># Family recipes
+
+Oops: the description is gone.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   README.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">restore</span> README.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+nothing to commit, working tree clean
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> README.md</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code># Family recipes
+
+Recipes we cook again and again, with notes on what worked.
+</code></pre></div>
+<div class="term-edit">Create or edit <code>pancakes.md</code> so that it contains:</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 3 eggs
+- 300 ml milk
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+	modified:   pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">restore</span> <span class="hljs-attr">--staged</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   pancakes.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>After <code>git restore README.md</code>, <code>git status</code> reports a clean working tree, and <code>cat</code> shows the description again. After <code>git restore --staged pancakes.md</code>, the change is back under “Changes not staged for commit”: the three eggs are still in the file, but they are no longer staged. If you are following along, run <code>git restore pancakes.md</code> now to throw that edit away as well, so that your working tree is clean for the next section.</p>
+<div class="callout pitfall"><div class="callout-label">Pitfall</div>
+<p><code>git restore &lt;file&gt;</code> without <code>--staged</code> throws away edits that were never committed. Git never had a copy of them, so it cannot bring them back. If you are unsure, look at <code>git diff</code> first.</p>
+</div>
+<p>Older guides and many answers online use <code>git checkout -- &lt;file&gt;</code> to throw away edits and <code>git reset HEAD &lt;file&gt;</code> to unstage. Both still work, but <code>git restore</code>, added in Git 2.23, says what it does, and it is what <code>git status</code> suggests.</p>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>Fixing the last commit</h2></div>
+<p>Sometimes you notice a mistake just after committing: a typo in the message, or a file you forgot to stage. As long as you have not shared the commit, <code>git commit --amend</code> fixes it by replacing the last commit with a new one:</p>
+<ul>
+<li><code>git commit --amend -m &quot;new message&quot;</code> gives the commit a new message.</li>
+<li><code>git commit --amend --no-edit</code> keeps the message, and adds whatever you have staged since.</li>
+</ul>
+<p>With neither option, Git opens your editor with the old message, ready to change. In the session, you commit a soda bread recipe with a typo in the message, correct the message, and then notice that the recipe has no raising agent.</p>
+<div class="term" id="term-m03-amend">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Fix the last commit</span></div>
+<div class="term-edit">Create or edit <code>bread.md</code> so that it contains:</div>
+<pre><code class="language-text"># Soda bread
+
+- 450 g flour
+- 400 ml buttermilk
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> bread.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a sdoa bread recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main 087bb2c] Add a sdoa bread recipe
+ 1 file changed, 4 insertions(+)
+ create mode 100644 bread.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">--amend</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a soda bread recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main 3fc0d24] Add a soda bread recipe
+ Date: Mon Jan 5 09:11:00 2026 +0000
+ 1 file changed, 4 insertions(+)
+ create mode 100644 bread.md
+</code></pre></div>
+<div class="term-edit">Create or edit <code>bread.md</code> so that it contains:</div>
+<pre><code class="language-text"># Soda bread
+
+- 450 g flour
+- 400 ml buttermilk
+- 1 teaspoon bicarbonate of soda
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> bread.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">--amend</span> <span class="hljs-attr">--no-edit</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main 31783ba] Add a soda bread recipe
+ Date: Mon Jan 5 09:11:00 2026 +0000
+ 1 file changed, 5 insertions(+)
+ create mode 100644 bread.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">-n</span> 2</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>31783ba Add a soda bread recipe
+1ad5842 Say what the notes are for
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">show</span> <span class="hljs-attr">--stat</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>commit 31783bacd01cd94e817a9f878b5a49d36be8dbf3
+Author: Alex Smith &lt;alex@example.com&gt;
+Date:   Mon Jan 5 09:11:00 2026 +0000
+
+    Add a soda bread recipe
+
+ bread.md | 5 +++++
+ 1 file changed, 5 insertions(+)
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p>Look at the hashes. The first commit was <code>087bb2c</code>; after the first amend the newest commit is <code>3fc0d24</code>, and after the second it is <code>31783ba</code>. Amending does not edit a commit in place, because a commit never changes once it is made. Git makes a new commit, with the same parent as the old one, and moves the branch to it. The old commit is no longer part of the branch, which is why <code>git log --oneline -n 2</code> shows <code>31783ba</code> directly above <code>1ad5842</code>. <code>git show --stat</code> confirms that the new commit holds all five lines of <code>bread.md</code>.</p>
+<p>The <code>Date:</code> line in each amend’s output is the time of the original commit: an amended commit keeps its original author and date.</p>
+<div class="callout pitfall"><div class="callout-label">Pitfall</div>
+<p>Amend only commits you have not shared. If someone already has the old commit, amending leaves you with a history that differs from theirs. Module 8 covers rewriting history, and why to avoid it on shared branches.</p>
+</div>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>Undoing a commit</h2></div>
+<p><code>--amend</code> reaches only the newest commit, and it rewrites history. For a commit that is older, or that others already have, use <code>git revert &lt;commit&gt;</code>. It removes nothing: it makes a new commit that undoes the old commit’s changes. Lines that the old commit added are removed, and lines it removed are put back.</p>
+<p>You name the commit to undo by its hash, or as <code>HEAD</code>, Git’s name for the commit you are on, normally the newest on your branch. Revert needs a clean working tree, so commit or restore your edits first. In the session, a mistake slips in: the pancake recipe asks for 2000 g of flour instead of 200 g.</p>
+<div class="term" id="term-m03-revert">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Undo a commit with a new commit</span></div>
+<div class="term-edit">Create or edit <code>pancakes.md</code> so that it contains:</div>
+<pre><code class="language-text"># Pancakes
+
+- 2000 g flour
+- 2 eggs
+- 300 ml milk
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Use more flour&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main 654de4f] Use more flour
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">revert</span> HEAD</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main 4407f3a] Revert &quot;Use more flour&quot;
+ Date: Mon Jan 5 09:12:00 2026 +0000
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">-n</span> 3</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>4407f3a Revert &quot;Use more flour&quot;
+654de4f Use more flour
+1ad5842 Say what the notes are for
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p><code>git revert HEAD</code> made a new commit, <code>4407f3a</code>, with the message <code>Revert &quot;Use more flour&quot;</code>. On your computer, Git first opens your editor with this ready-made message, followed by a line saying which commit it reverts. Save and close the editor to accept it; the sessions here accept it automatically. The <code>Date:</code> line is simply the time of the new commit.</p>
+<p>The log now shows both commits: the mistake, <code>654de4f</code>, and the commit that undoes it, <code>4407f3a</code>. That may look untidy, but it is honest, and it is safe on a branch that others share: nobody’s history is rewritten, they simply receive one more commit. <code>cat</code> confirms that the recipe asks for 200 g of flour again.</p>
+<p>You can revert any commit, not only the newest, by giving its hash. If later commits changed the same lines, Git may stop with a conflict for you to resolve, which Module 5 explains.</p>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>Looking at an old version</h2></div>
+<p>Sometimes you want to see how the project looked earlier: to find out when something still worked, or to copy an old paragraph back. Git offers two safe ways to look.</p>
+<p>To see one file, use <code>git show &lt;commit&gt;:&lt;file&gt;</code>. It prints the file as it was in that commit, and changes nothing. You can name a commit by its hash, or by counting back from HEAD: <code>HEAD~1</code> is the commit before the one you are on, and <code>HEAD~2</code> the one before that.</p>
+<p>To see the whole project, use <code>git switch --detach &lt;commit&gt;</code>. It puts every file in the working tree back to that commit, so that you can look around, open files or run the project, and it leaves your branch untouched. HEAD, Git’s marker for where you are, then points straight at a commit instead of at a branch. Git calls this a <strong>detached HEAD</strong>.</p>
+<p>You have made more commits by now, so in your repository <code>HEAD~2</code> is a different commit. To follow along, use the hash of your first commit, <em>Add a README</em>, from <code>git log --oneline</code>.</p>
+<div class="term" id="term-m03-old-version">
+<div class="term-head"><span class="term-label">Try it</span><span class="term-title">Look at an old version safely</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">show</span> HEAD~2:README.md</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code># Family recipes
+
+Recipes we cook again and again.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">--detach</span> HEAD~2</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>HEAD is now at 907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>HEAD detached at 907a979
+nothing to commit, working tree clean
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> README.md</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code># Family recipes
+
+Recipes we cook again and again.
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 353 112" width="353" height="112" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 56V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">1ad5842</text><rect x="106.4" y="13" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="112.4" y="26" class="g-ref-text">main</text><text x="153.2" y="26" class="g-subject">Say what the notes are for</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">8bf3c2d</text><text x="106.4" y="60" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="94" class="g-hash">907a979</text><rect x="106.4" y="81" width="40.8" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="94" class="g-ref-text">HEAD</text><text x="153.2" y="94" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 1ad5842 (main) Say what the notes are for
+* 8bf3c2d Add a pancake recipe
+* 907a979 (HEAD) Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Previous HEAD position was 907a979 Add a README
+Switched to branch 'main'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+nothing to commit, working tree clean
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p><code>git show HEAD~2:README.md</code> printed the README’s first wording, and <code>git switch --detach HEAD~2</code> reported the move: <code>HEAD is now at 907a979 Add a README</code>. <code>git status</code> no longer says <em>On branch main</em> but <em>HEAD detached at 907a979</em>, and <code>cat README.md</code> shows the old wording in the working tree itself.</p>
+<p>The graph shows where everything is. <code>main</code> still points at the newest commit, <code>1ad5842</code>, while HEAD sits alone on <code>907a979</code>. Nothing has been lost or changed: the newer commits are all still there, and <code>git switch main</code> takes you back. Git tells you where you came from (<em>Previous HEAD position was 907a979</em>), and <code>git status</code> says <em>On branch main</em> again.</p>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>A detached HEAD is fine for looking around. If you make commits there and want to keep them, create a branch for them with <code>git switch -c &lt;name&gt;</code> before you switch away. Exercise 6 shows why.</p>
+</div>
+<p>Older guides use <code>git checkout &lt;commit&gt;</code> for the same thing. It detaches HEAD as well, and prints a longer explanation when it does.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">7</span><h2>Exercises</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">6 min</span></div>
+<p><strong>Which command shows it?</strong> Name the command that shows each of these.</p>
+<ol>
+<li>The changes you have made but not yet staged.</li>
+<li>The changes you have staged for the next commit.</li>
+<li>What the last commit changed.</li>
+<li>Every commit that changed <code>pancakes.md</code>.</li>
+</ol>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><code>git diff</code></li>
+<li><code>git diff --staged</code></li>
+<li><code>git show</code></li>
+<li><code>git log --oneline pancakes.md</code> (or <code>git log pancakes.md</code> for the full entries)</li>
+</ol>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">8 min</span></div>
+<p><strong>Compare two commits.</strong> In the recipes repository, show everything that changed between the first commit and the newest one.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>List the commits to see how far back the first one is, then compare it with <code>HEAD</code>:</p>
+<div class="term" id="term-m03-e2-solution">
+<div class="term-head"><span class="term-label">Solution</span><span class="term-title">Compare two commits</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>1ad5842 Say what the notes are for
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span> HEAD~2 HEAD</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>diff --git a/README.md b/README.md
+index 2ecc1f2..130cb17 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,3 @@
+ # Family recipes
+
+-Recipes we cook again and again.
++Recipes we cook again and again, with notes on what worked.
+diff --git a/pancakes.md b/pancakes.md
+new file mode 100644
+index 0000000..871d830
+--- /dev/null
++++ b/pancakes.md
+@@ -0,0 +1,5 @@
++# Pancakes
++
++- 200 g flour
++- 2 eggs
++- 300 ml milk
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p><code>HEAD~2</code> is the first commit here. The diff shows the reworded line in <code>README.md</code>, and the whole of <code>pancakes.md</code> as added lines, because the file did not exist in the first commit.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">7 min</span></div>
+<p><strong>Choose the undo.</strong> Which command fits each situation?</p>
+<ol>
+<li>You edited <code>README.md</code> and want the committed version back.</li>
+<li>You staged <code>notes.md</code> by mistake, but want to keep your edits.</li>
+<li>The last commit, which you have not shared, has a typo in its message.</li>
+<li>A commit from last week, already shared with your team, broke the bread recipe.</li>
+</ol>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><code>git restore README.md</code></li>
+<li><code>git restore --staged notes.md</code></li>
+<li><code>git commit --amend -m &quot;…&quot;</code> with the corrected message</li>
+<li><code>git revert &lt;hash&gt;</code>, which undoes the commit with a new commit instead of rewriting shared history</li>
+</ol>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">10 min</span></div>
+<p><strong>Stop tracking a file.</strong> In Module 2’s last exercise, <code>passwords.txt</code> was committed by mistake. Keep the file on your disk, but stop tracking it from now on.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>List the file in <code>.gitignore</code>, remove it from the staging area only, and commit:</p>
+<div class="term" id="term-m03-e4-solution">
+<div class="term-head"><span class="term-label">Solution</span><span class="term-title">Stop tracking a file</span></div>
+<div class="term-edit">Create or edit <code>.gitignore</code> so that it contains:</div>
+<pre><code class="language-text">passwords.txt
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rm</span> <span class="hljs-attr">--cached</span> passwords.txt</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>rm 'passwords.txt'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+	deleted:    passwords.txt
+
+Untracked files:
+  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+	.gitignore
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> .gitignore</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Stop tracking the passwords file&quot;</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>[main 908ddf5] Stop tracking the passwords file
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+ create mode 100644 .gitignore
+ delete mode 100644 passwords.txt
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>On branch main
+nothing to commit, working tree clean
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span></code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>README.md  pancakes.md  passwords.txt
+</code></pre></div>
+<div class="term-caption">Output from git version 2.50.1 (Apple Git-155), run while this page was built. Other versions of Git may word some messages differently.</div>
+</div>
+<p><code>git rm --cached</code> removes the file from the next commit but leaves it on disk, as <code>ls</code> shows. The passwords are still in the older commits, so change them, as Module 2 advised.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">7 min</span></div>
+<p><strong>Forgot a file.</strong> You committed <code>bread.md</code>, then noticed that <code>butter.md</code>, part of the same change, was never added. Fix this without making a second commit. When should you not do this?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Stage the file and amend the commit, keeping its message:</p>
+<pre><code class="language-text">git add butter.md
+git commit --amend --no-edit
+</code></pre>
+<p>Do not amend a commit you have already shared: amending replaces it with a new commit, and anyone who has the old one ends up with a different history (Module 8).</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">7 min</span></div>
+<p><strong>Commits on a detached HEAD.</strong> You ran <code>git switch --detach HEAD~2</code>, edited a file and made a commit. What happens when you run <code>git switch main</code>? How can you keep the commit?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Git switches, but warns that you are leaving a commit behind that is not connected to any of your branches, and suggests a <code>git branch</code> command with its hash. The commit still exists, but no branch points at it.</p>
+<p>To keep it, create a branch before you switch away: <code>git switch -c rescue</code>. If you have already switched, the hash in Git’s warning (or the reflog, in Module 8) lets you create the branch afterwards.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">8</span><h2>Self-check quiz</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>Which command shows the changes you have staged but not yet committed?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git diff</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git diff --staged</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git log</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git status --all</code></button></li></ol><div class="quiz-expl" hidden><code>git diff</code> compares the working tree with the staging area; <code>--staged</code> compares the staging area with the last commit.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>In a diff, what does a line starting with <code>+</code> mean?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The line was removed.</button></li><li><button type="button" class="quiz-opt" data-i="1">The line is unchanged context.</button></li><li><button type="button" class="quiz-opt" data-i="2">The line was added.</button></li><li><button type="button" class="quiz-opt" data-i="3">The line has a conflict.</button></li></ol><div class="quiz-expl" hidden><code>+</code> marks added lines, <code>-</code> removed lines, and a leading space unchanged context.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>You want to throw away your uncommitted edits to <code>README.md</code>. Which command does that?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git revert README.md</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git restore --staged README.md</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git commit --amend</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git restore README.md</code></button></li></ol><div class="quiz-expl" hidden><code>git restore &lt;file&gt;</code> replaces the working-tree file with the staged version; <code>--staged</code> only unstages.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>What does <code>git commit --amend</code> do?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">It replaces the last commit with a new one.</button></li><li><button type="button" class="quiz-opt" data-i="1">It adds a note to an old commit without changing it.</button></li><li><button type="button" class="quiz-opt" data-i="2">It undoes the last commit with a new commit.</button></li><li><button type="button" class="quiz-opt" data-i="3">It merges the last two commits.</button></li></ol><div class="quiz-expl" hidden>Amending makes a new commit, with a new hash, in place of the last one.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>A commit you shared last week introduced a bug. What is the safe way to undo it?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git commit --amend</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git revert &lt;commit&gt;</code></button></li><li><button type="button" class="quiz-opt" data-i="2">Delete the <code>.git</code> folder</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git restore</code></button></li></ol><div class="quiz-expl" hidden><code>git revert</code> adds a new commit that undoes the old one, without rewriting shared history.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>What does “HEAD detached at 907a979” mean?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The repository is damaged.</button></li><li><button type="button" class="quiz-opt" data-i="1">HEAD has been deleted.</button></li><li><button type="button" class="quiz-opt" data-i="2">You are looking at a commit directly, not at a branch.</button></li><li><button type="button" class="quiz-opt" data-i="3">Commit 907a979 is not in the history.</button></li></ol><div class="quiz-expl" hidden>HEAD normally points at a branch; detached, it points straight at a commit.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>What does <code>HEAD~2</code> refer to?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The commit two before the current one</button></li><li><button type="button" class="quiz-opt" data-i="1">The second branch</button></li><li><button type="button" class="quiz-opt" data-i="2">The two newest commits</button></li><li><button type="button" class="quiz-opt" data-i="3">A file called <code>HEAD~2</code></button></li></ol><div class="quiz-expl" hidden><code>~2</code> means “go back two commits from HEAD”.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">9</span><h2>Further reading</h2></div>
+<ul>
+<li>Scott Chacon and Ben Straub, <em>Pro Git</em>, sections <a href="https://git-scm.com/book/en/v2/Git-Basics-Viewing-the-Commit-History" target="_blank" rel="noopener">2.3: Viewing the Commit History</a> and <a href="https://git-scm.com/book/en/v2/Git-Basics-Undoing-Things" target="_blank" rel="noopener">2.4: Undoing Things</a>.</li>
+<li>The reference pages for <a href="https://git-scm.com/docs/git-log" target="_blank" rel="noopener">git log</a>, <a href="https://git-scm.com/docs/git-diff" target="_blank" rel="noopener">git diff</a>, <a href="https://git-scm.com/docs/git-restore" target="_blank" rel="noopener">git restore</a> and <a href="https://git-scm.com/docs/git-revert" target="_blank" rel="noopener">git revert</a>.</li>
+</ul>
+</div><nav class="module-nav" aria-label="All modules"><a href="module_02_EN.html">← Module 02</a><a href="index.html#modules">All modules →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>

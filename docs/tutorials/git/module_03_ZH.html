@@ -1,0 +1,489 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>查看历史与撤销 — Git 与版本控制</title><meta name="description" content="阅读项目的历史，准确查看改动内容，并在各个阶段撤销错误：暂存之前、暂存之后、最近一次提交中以及更早的提交中。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/style.css"></head><body data-module="3"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">Git 系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 03</button><div class="dropdown-menu" id="module-menu"><a href="module_01_ZH.html">01 · 为什么需要版本控制？</a><a href="module_02_ZH.html">02 · 你的第一个仓库</a><a href="module_03_ZH.html" class="active" aria-current="page">03 · 查看历史与撤销</a><a href="index_ZH.html#modules">全部模块</a></div></div><a class="lang-switch" href="module_03_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/3 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#s1"><span class="num">1</span><span>阅读历史</span></a><a href="#s2"><span class="num">2</span><span>查看改动</span></a><a href="#s3"><span class="num">3</span><span>撤销尚未提交的改动</span></a><a href="#s4"><span class="num">4</span><span>修改最近一次提交</span></a><a href="#s5"><span class="num">5</span><span>撤销一次提交</span></a><a href="#s6"><span class="num">6</span><span>查看旧版本</span></a><a href="#exercises"><span class="num">7</span><span>练习</span></a><a href="#quiz"><span class="num">8</span><span>自测</span></a><a href="#reading"><span class="num">9</span><span>延伸阅读</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Git 与版本控制 — Ran Wei</div><h1 class="module-title">查看历史与撤销</h1><p class="module-lead">阅读项目的历史，准确查看改动内容，并在各个阶段撤销错误：暂存之前、暂存之后、最近一次提交中以及更早的提交中。</p><div class="hero-chips"><span class="chip chip-time">3 小时</span><span class="chip">3 个时段</span><span class="chip">6 个动手环节</span><span class="chip">Git 2.50.1 (Apple Git-155)</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>用 git log 列出并筛选历史。</li><li>读懂差异（diff），并使用 git diff、git diff --staged 和 git show。</li><li>用 git restore 丢弃未提交的改动，以及取消暂存文件。</li><li>用 git commit --amend 修改最近一次提交，用 git revert 撤销更早的提交。</li><li>安全地查看旧版本，并解释什么是分离的 HEAD。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>第 2 模块：创建仓库、用 git add 暂存，以及写清楚说明进行提交。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#s1">阅读历史</a><a href="#s2">查看改动</a><a href="#s3">撤销尚未提交的改动</a><a href="#s4">修改最近一次提交</a><a href="#s5">撤销一次提交</a><a href="#s6">查看旧版本</a><a href="#exercises">练习</a><a href="#quiz">自测</a><a href="#reading">延伸阅读</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">3 小时</span></div><p class="plan-lead">时间为估计值，包含输入命令的时间。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">60 分钟</span></div><div class="session-title">回顾历史</div><ul class="acts"><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s1">阅读历史</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s2">查看改动</a></span><span class="act-min">25</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s3">撤销尚未提交的改动</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m03:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">60 分钟</span></div><div class="session-title">撤销提交</div><ul class="acts"><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s4">修改最近一次提交</a></span><span class="act-min">15</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s5">撤销一次提交</a></span><span class="act-min">20</span></li><li class="act act-practice"><span class="act-kind">动手</span><span class="act-what"><a href="#s6">查看旧版本</a></span><span class="act-min">25</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m03:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">60 分钟</span></div><div class="session-title">练习</div><ul class="acts"><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#exercises">六道练习</a></span><span class="act-min">45</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">自测</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="git-series:m03:s3"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>阅读历史</h2></div>
+<p>你做的每一次提交都会被保留下来，连同作者、日期和你写的说明。<code>git log</code> 就是阅读这段历史的方式。不带选项时，它按从新到旧的顺序列出提交，显示每次提交的完整哈希、作者、日期和说明。历史一长，文字就很多，下面几个选项会有帮助：</p>
+<ul>
+<li><code>--oneline</code> 每次提交只打印一行：短哈希和说明。</li>
+<li><code>-n 2</code> 只显示最新的两次提交。任何数字都可以；<code>-n 1</code> 只显示最新的一次。</li>
+<li><code>--stat</code> 额外显示每次提交改动了哪些文件，以及改动了多少。</li>
+<li>在末尾加上文件名，例如 <code>git log pancakes.md</code>，只列出改动过这个文件的提交。</li>
+</ul>
+<p>选项可以自由组合：<code>git log --oneline -n 5</code> 以每次一行的形式显示最新的五次提交。</p>
+<p>本页的每个动手环节都从第 2 模块主示例结束时的食谱仓库开始，其中有三次提交。如果你还提交过 <code>.gitignore</code> 或做了练习，你自己的仓库可能多几次提交；而且你的哈希会不同，因为 Git 计算哈希时除了内容，还会用到每次提交的时间。请始终使用你自己的 <code>git log</code> 打印出的哈希。随着你学习本模块，你的仓库也会不断增加提交，所以你看到的输出可能与页面上略有不同；命令的用法是一样的。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>当历史超出窗口高度时，<code>git log</code> 会用<em>分页器</em>（pager）显示，也就是一次显示一屏的查看器。用方向键或空格键滚动，按 <code>q</code> 退出并回到命令提示符。本系列页面中的动手环节会一次性打印全部内容。</p>
+</div>
+<div class="term" id="term-m03-log">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">阅读历史</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>1ad5842 Say what the notes are for
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">-n</span> 1</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>commit 1ad584283c1471035cb8e8538e2ea2cc2ce54824
+Author: Alex Smith &lt;alex@example.com&gt;
+Date:   Mon Jan 5 09:09:00 2026 +0000
+
+    Say what the notes are for
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">--stat</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>1ad5842 Say what the notes are for
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+8bf3c2d Add a pancake recipe
+ pancakes.md | 5 +++++
+ 1 file changed, 5 insertions(+)
+907a979 Add a README
+ README.md | 3 +++
+ 1 file changed, 3 insertions(+)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>8bf3c2d Add a pancake recipe
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git log -n 1</code> 完整显示最新的提交：40 个字符的哈希、作者、日期和说明。加上 <code>--stat</code> 后，每次提交都附带一段简短的改动摘要。<code>README.md | 2 +-</code> 表示这次提交改动了 <code>README.md</code> 中的两行：增加一行（<code>+</code>），删除一行（<code>-</code>），Git 就是这样记录改写过的一行的。<code>pancakes.md | 5 +++++</code> 表示增加了五行。</p>
+<p>最后一条命令 <code>git log --oneline pancakes.md</code> 只列出了 <code>8bf3c2d Add a pancake recipe</code>，因为没有其他提交改动过 <code>pancakes.md</code>。想知道某个文件是何时、为何改动的，就从这里入手。</p>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>查看改动</h2></div>
+<p><code>git log</code> 告诉你有哪些提交。另外三条相关的命令则显示具体改了什么：</p>
+<ul>
+<li><code>git diff</code> 比较工作区与暂存区，显示你已经做了但还没有暂存的改动。</li>
+<li><code>git diff --staged</code> 比较暂存区与最近一次提交，显示你的下一次提交将包含的内容。（<code>--cached</code> 是同一个选项的另一个名字。）</li>
+<li><code>git show</code> 显示一次提交：它的哈希、作者、日期和说明，后面跟着它的改动。不带参数时显示最新的提交；给它一个哈希，就能查看另一次提交。</li>
+</ul>
+<p><code>git status</code> 告诉你<em>哪些</em>文件改动了；这几条命令则告诉你<em>怎样</em>改动了，让你在改动进入历史之前逐一检查。在这个动手环节中，你把煎饼食谱改为少用一些牛奶并加一小撮盐，然后跟着这个改动从工作区一路走进提交。</p>
+<div class="term" id="term-m03-diff">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">查看改动</span></div>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 250 ml milk
+- a pinch of salt
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>diff --git a/pancakes.md b/pancakes.md
+index 871d830..fcc716f 100644
+--- a/pancakes.md
++++ b/pancakes.md
+@@ -2,4 +2,5 @@
+
+ - 200 g flour
+ - 2 eggs
+-- 300 ml milk
++- 250 ml milk
++- a pinch of salt
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span></code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span> <span class="hljs-attr">--staged</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>diff --git a/pancakes.md b/pancakes.md
+index 871d830..fcc716f 100644
+--- a/pancakes.md
++++ b/pancakes.md
+@@ -2,4 +2,5 @@
+
+ - 200 g flour
+ - 2 eggs
+-- 300 ml milk
++- 250 ml milk
++- a pinch of salt
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Use less milk and add salt&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main b7b26af] Use less milk and add salt
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">show</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>commit b7b26af362cd6db7ab58150f347b1c07ccfa83e5
+Author: Alex Smith &lt;alex@example.com&gt;
+Date:   Mon Jan 5 09:14:00 2026 +0000
+
+    Use less milk and add salt
+
+diff --git a/pancakes.md b/pancakes.md
+index 871d830..fcc716f 100644
+--- a/pancakes.md
++++ b/pancakes.md
+@@ -2,4 +2,5 @@
+
+ - 200 g flour
+ - 2 eggs
+-- 300 ml milk
++- 250 ml milk
++- a pinch of salt
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git diff</code> 的输出称为<strong>差异</strong>（diff），每段差异都由同样的几部分组成：</p>
+<ul>
+<li><code>diff --git a/pancakes.md b/pancakes.md</code> 给出文件名：<code>a/</code> 是旧版本，<code>b/</code> 是新版本。后面的 <code>index</code>、<code>---</code> 和 <code>+++</code> 几行以更详细的方式说明同一件事，可以跳过。</li>
+<li><code>@@ -2,4 +2,5 @@</code> 开始一个<em>区块</em>（hunk），即一组改动。<code>-2,4</code> 表示这一块涵盖旧版本中从第 2 行开始的四行；<code>+2,5</code> 表示它涵盖新版本中同样从第 2 行开始的五行：新版本多了一行。</li>
+<li>再往下，每一行都以一个标记开头。以 <code>-</code> 开头的行被删除了，以 <code>+</code> 开头的行是新增的，以空格开头的行没有改动，是帮你定位的<strong>上下文</strong>。这里，<code>- 300 ml milk</code> 被换成了 <code>- 250 ml milk</code>，并新增了 <code>- a pinch of salt</code>。每行的第一个字符是差异的标记；紧随其后的 <code>-</code> 属于食谱中的列表。</li>
+</ul>
+<p>运行 <code>git add pancakes.md</code> 之后，第二次 <code>git diff</code> 什么也没有打印，因为工作区和暂存区现在一致了。改动并没有消失：<code>git diff --staged</code> 显示出完全相同的差异，因为这个改动现在位于暂存区和最近一次提交之间。提交之后，<code>git show</code> 再次显示这个改动，上方还有这次提交的哈希、作者、日期和说明。</p>
+<p><code>git diff</code> 也可以比较两次提交：<code>git diff &lt;较早的提交&gt; &lt;较新的提交&gt;</code>，哈希取自 <code>git log --oneline</code>。这时差异显示的是较新的提交与较早的提交有何不同：标为 <code>-</code> 的行只存在于较早的提交中，标为 <code>+</code> 的行只存在于较新的提交中。练习 2 会练到这一点。</p>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>撤销尚未提交的改动</h2></div>
+<p>错误在进入提交之前最容易撤销。<code>git restore</code> 的两种用法分别对应两种情况：</p>
+<ul>
+<li><code>git restore &lt;file&gt;</code> 丢弃你对某个文件的编辑。它用暂存区中的版本替换工作区中的文件；除非你之后又暂存过改动，这就是最近一次提交中的版本。</li>
+<li><code>git restore --staged &lt;file&gt;</code> 取消暂存某个文件。它把改动从暂存区中移出，使其不会进入下一次提交，但你的编辑仍保留在工作区中。</li>
+</ul>
+<p>两者都不必死记：<code>git status</code> 的提示中就会建议这两条命令，动手环节里可以看到。首先，README 的简介被不小心删掉了。然后，对煎饼食谱的一处改动（用三个鸡蛋而不是两个）在还没准备好时就被暂存了。</p>
+<div class="term" id="term-m03-restore">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">丢弃尚未提交的改动</span></div>
+<div class="term-edit">创建或编辑 <code>README.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Family recipes
+
+Oops: the description is gone.
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   README.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">restore</span> README.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+nothing to commit, working tree clean
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> README.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Family recipes
+
+Recipes we cook again and again, with notes on what worked.
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 200 g flour
+- 3 eggs
+- 300 ml milk
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+	modified:   pancakes.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">restore</span> <span class="hljs-attr">--staged</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   pancakes.md
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>运行 <code>git restore README.md</code> 之后，<code>git status</code> 报告工作区是干净的，<code>cat</code> 也显示简介回来了。运行 <code>git restore --staged pancakes.md</code> 之后，这个改动回到了 “Changes not staged for commit” 之下：三个鸡蛋仍在文件中，只是不再处于暂存状态。如果你在跟着操作，现在运行 <code>git restore pancakes.md</code>，把这处编辑也丢弃掉，让工作区在下一节开始时保持干净。</p>
+<div class="callout pitfall"><div class="callout-label">陷阱</div>
+<p>不带 <code>--staged</code> 的 <code>git restore &lt;file&gt;</code> 会丢弃从未提交过的编辑。Git 从来没有保存过它们的副本，所以无法找回。如果拿不准，先看看 <code>git diff</code>。</p>
+</div>
+<p>较早的教程和网上的许多回答用 <code>git checkout -- &lt;file&gt;</code> 丢弃编辑，用 <code>git reset HEAD &lt;file&gt;</code> 取消暂存。这两种写法仍然可用，但 Git 2.23 加入的 <code>git restore</code> 从名字上就说明了自己的作用，也是 <code>git status</code> 所建议的命令。</p>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>修改最近一次提交</h2></div>
+<p>有时你刚提交完就发现了错误：说明里有错字，或者忘了暂存某个文件。只要你还没有把这次提交分享出去，就可以用 <code>git commit --amend</code> 修补它，也就是用一次新的提交替换最近一次提交：</p>
+<ul>
+<li><code>git commit --amend -m &quot;新的说明&quot;</code> 为这次提交换上新的说明。</li>
+<li><code>git commit --amend --no-edit</code> 保留原来的说明，并加入提交之后你暂存的所有内容。</li>
+</ul>
+<p>两个选项都不用时，Git 会打开编辑器，里面是原来的说明，供你修改。在这个动手环节中，你提交了一份苏打面包食谱，说明里有错字；你先改正说明，然后发现食谱里缺了膨松剂。</p>
+<div class="term" id="term-m03-amend">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">修改最近一次提交</span></div>
+<div class="term-edit">创建或编辑 <code>bread.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Soda bread
+
+- 450 g flour
+- 400 ml buttermilk
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> bread.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a sdoa bread recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main 087bb2c] Add a sdoa bread recipe
+ 1 file changed, 4 insertions(+)
+ create mode 100644 bread.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">--amend</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Add a soda bread recipe&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main 3fc0d24] Add a soda bread recipe
+ Date: Mon Jan 5 09:11:00 2026 +0000
+ 1 file changed, 4 insertions(+)
+ create mode 100644 bread.md
+</code></pre></div>
+<div class="term-edit">创建或编辑 <code>bread.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Soda bread
+
+- 450 g flour
+- 400 ml buttermilk
+- 1 teaspoon bicarbonate of soda
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> bread.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">--amend</span> <span class="hljs-attr">--no-edit</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main 31783ba] Add a soda bread recipe
+ Date: Mon Jan 5 09:11:00 2026 +0000
+ 1 file changed, 5 insertions(+)
+ create mode 100644 bread.md
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">-n</span> 2</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>31783ba Add a soda bread recipe
+1ad5842 Say what the notes are for
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">show</span> <span class="hljs-attr">--stat</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>commit 31783bacd01cd94e817a9f878b5a49d36be8dbf3
+Author: Alex Smith &lt;alex@example.com&gt;
+Date:   Mon Jan 5 09:11:00 2026 +0000
+
+    Add a soda bread recipe
+
+ bread.md | 5 +++++
+ 1 file changed, 5 insertions(+)
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>看看这些哈希。最初的提交是 <code>087bb2c</code>；第一次修补之后，最新的提交是 <code>3fc0d24</code>，第二次之后是 <code>31783ba</code>。修补并不是原地编辑一次提交，因为提交一旦生成就不会再改变。Git 会生成一次新的提交，其父提交与旧提交相同，然后把分支移到这次新提交上。旧提交不再属于这个分支，所以 <code>git log --oneline -n 2</code> 显示 <code>31783ba</code> 紧接在 <code>1ad5842</code> 之上。<code>git show --stat</code> 确认新提交包含了 <code>bread.md</code> 的全部五行。</p>
+<p>每次修补的输出中，<code>Date:</code> 一行都是原始提交的时间：修补后的提交保留原来的作者和日期。</p>
+<div class="callout pitfall"><div class="callout-label">陷阱</div>
+<p>只修补还没有分享出去的提交。如果别人已经拿到了旧提交，修补之后你的历史就会与他们的不同。第 8 模块会讲改写历史，以及为什么不要在共享的分支上这样做。</p>
+</div>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>撤销一次提交</h2></div>
+<p><code>--amend</code> 只能作用于最新的提交，而且会改写历史。对于更早的提交，或者别人已经拿到的提交，请使用 <code>git revert &lt;commit&gt;</code>。它不删除任何东西：它生成一次新的提交，抵消旧提交的改动。旧提交增加的行会被删除，旧提交删除的行会被加回来。</p>
+<p>你可以用哈希指定要撤销的提交，也可以用 <code>HEAD</code>，这是 Git 对你当前所在提交的称呼，通常就是你所在分支上最新的提交。撤销要求工作区是干净的，所以请先提交或恢复你的编辑。在这个动手环节中，一个错误混了进来：煎饼食谱要求用 2000 g 面粉，而不是 200 g。</p>
+<div class="term" id="term-m03-revert">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">用一次新提交撤销旧提交</span></div>
+<div class="term-edit">创建或编辑 <code>pancakes.md</code>，使其内容为：</div>
+<pre><code class="language-text"># Pancakes
+
+- 2000 g flour
+- 2 eggs
+- 300 ml milk
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> pancakes.md</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Use more flour&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main 654de4f] Use more flour
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">revert</span> HEAD</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main 4407f3a] Revert &quot;Use more flour&quot;
+ Date: Mon Jan 5 09:12:00 2026 +0000
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span> <span class="hljs-attr">-n</span> 3</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>4407f3a Revert &quot;Use more flour&quot;
+654de4f Use more flour
+1ad5842 Say what the notes are for
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> pancakes.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Pancakes
+
+- 200 g flour
+- 2 eggs
+- 300 ml milk
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git revert HEAD</code> 生成了一次新的提交 <code>4407f3a</code>，说明为 <code>Revert &quot;Use more flour&quot;</code>。在你的电脑上，Git 会先打开编辑器，里面是这段现成的说明，后面还有一行指出它撤销的是哪次提交。保存并关闭编辑器即可接受；本页的动手环节会自动接受。这里的 <code>Date:</code> 一行只是新提交的时间。</p>
+<p>日志中现在两次提交都在：错误的提交 <code>654de4f</code>，以及撤销它的提交 <code>4407f3a</code>。这看起来也许不够整洁，但它如实记录了发生的事，在别人共享的分支上也很安全：没有人的历史被改写，他们只是多收到一次提交。<code>cat</code> 确认食谱又变回了 200 g 面粉。</p>
+<p>你可以撤销任何一次提交，不仅仅是最新的，只要给出它的哈希。如果后来的提交改动过同样的行，Git 可能会因冲突而停下，等你解决，第 5 模块会讲到这一点。</p>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>查看旧版本</h2></div>
+<p>有时你想看看项目早先的样子：找出某个功能最后一次正常工作是在什么时候，或者把一段旧文字复制回来。Git 提供了两种安全的查看方式。</p>
+<p>要查看单个文件，使用 <code>git show &lt;commit&gt;:&lt;file&gt;</code>。它打印该文件在那次提交中的内容，不做任何改动。你可以用哈希指定提交，也可以从 HEAD 往回数：<code>HEAD~1</code> 是你所在提交的前一次提交，<code>HEAD~2</code> 是再往前的一次。</p>
+<p>要查看整个项目，使用 <code>git switch --detach &lt;commit&gt;</code>。它把工作区中的每个文件都恢复到那次提交时的样子，方便你四处查看、打开文件或运行项目，而你的分支保持不变。HEAD 是 Git 用来标记你当前位置的指针，此时它直接指向一次提交，而不是指向一个分支。Git 把这种状态称为<strong>分离的 HEAD</strong>（detached HEAD）。</p>
+<p>你现在已经做了更多提交，所以在你的仓库中，<code>HEAD~2</code> 是另一次提交。要跟着操作，请改用 <code>git log --oneline</code> 中你的第一次提交 <em>Add a README</em> 的哈希。</p>
+<div class="term" id="term-m03-old-version">
+<div class="term-head"><span class="term-label">动手试试</span><span class="term-title">安全地查看旧版本</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">show</span> HEAD~2:README.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Family recipes
+
+Recipes we cook again and again.
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> <span class="hljs-attr">--detach</span> HEAD~2</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>HEAD is now at 907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>HEAD detached at 907a979
+nothing to commit, working tree clean
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">cat</span> README.md</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code># Family recipes
+
+Recipes we cook again and again.
+</code></pre></div>
+<figure class="graph"><svg class="git-graph" viewBox="0 0 353 112" width="353" height="112" aria-hidden="true" focusable="false"><path d="M18 22V56" stroke="#2563EB" stroke-width="2.5" fill="none"/><path d="M18 56V90" stroke="#2563EB" stroke-width="2.5" fill="none"/><circle cx="18" cy="22" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="26" class="g-hash">1ad5842</text><rect x="106.4" y="13" width="40.8" height="18" rx="9" class="g-ref g-branch"/><text x="112.4" y="26" class="g-ref-text">main</text><text x="153.2" y="26" class="g-subject">Say what the notes are for</text><circle cx="18" cy="56" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="60" class="g-hash">8bf3c2d</text><text x="106.4" y="60" class="g-subject">Add a pancake recipe</text><circle cx="18" cy="90" r="6" fill="#fff" stroke="#2563EB" stroke-width="2.5"/><text x="48" y="94" class="g-hash">907a979</text><rect x="106.4" y="81" width="40.8" height="18" rx="9" class="g-ref g-head"/><text x="112.4" y="94" class="g-ref-text">HEAD</text><text x="153.2" y="94" class="g-subject">Add a README</text></svg><pre class="visually-hidden">* 1ad5842 (main) Say what the notes are for
+* 8bf3c2d Add a pancake recipe
+* 907a979 (HEAD) Add a README</pre></figure>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">switch</span> main</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Previous HEAD position was 907a979 Add a README
+Switched to branch 'main'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+nothing to commit, working tree clean
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git show HEAD~2:README.md</code> 打印出了 README 最初的措辞，<code>git switch --detach HEAD~2</code> 报告了这次移动：<code>HEAD is now at 907a979 Add a README</code>。<code>git status</code> 不再显示 <em>On branch main</em>，而是显示 <em>HEAD detached at 907a979</em>；<code>cat README.md</code> 显示工作区中的文件本身也是旧的措辞。</p>
+<p>提交图显示了一切所处的位置。<code>main</code> 仍然指向最新的提交 <code>1ad5842</code>，而 HEAD 单独停在 <code>907a979</code> 上。没有任何东西丢失或改变：较新的提交都还在，<code>git switch main</code> 就能带你回去。Git 会告诉你从哪里回来（<em>Previous HEAD position was 907a979</em>），<code>git status</code> 也再次显示 <em>On branch main</em>。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>分离的 HEAD 很适合四处查看。如果你在这种状态下做了提交并想保留它们，请在切换走之前用 <code>git switch -c &lt;name&gt;</code> 为它们创建一个分支。练习 6 会说明原因。</p>
+</div>
+<p>较早的教程用 <code>git checkout &lt;commit&gt;</code> 做同样的事。它同样会让 HEAD 分离，并在这样做时打印一段更长的说明。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">7</span><h2>练习</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">6 分钟</span></div>
+<p><strong>用哪条命令查看？</strong> 说出查看下列内容的命令。</p>
+<ol>
+<li>你已做出但尚未暂存的改动。</li>
+<li>你已为下一次提交暂存的改动。</li>
+<li>最近一次提交改动了什么。</li>
+<li>所有改动过 <code>pancakes.md</code> 的提交。</li>
+</ol>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><code>git diff</code></li>
+<li><code>git diff --staged</code></li>
+<li><code>git show</code></li>
+<li><code>git log --oneline pancakes.md</code>（或用 <code>git log pancakes.md</code> 查看完整条目）</li>
+</ol>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">8 分钟</span></div>
+<p><strong>比较两次提交。</strong> 在食谱仓库中，查看从第一次提交到最新一次提交之间的全部改动。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>先列出提交，看看第一次提交在多久之前，再把它与 <code>HEAD</code> 比较：</p>
+<div class="term" id="term-m03-e2-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">比较两次提交</span></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">log</span> <span class="hljs-attr">--oneline</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>1ad5842 Say what the notes are for
+8bf3c2d Add a pancake recipe
+907a979 Add a README
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">diff</span> HEAD~2 HEAD</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>diff --git a/README.md b/README.md
+index 2ecc1f2..130cb17 100644
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,3 @@
+ # Family recipes
+
+-Recipes we cook again and again.
++Recipes we cook again and again, with notes on what worked.
+diff --git a/pancakes.md b/pancakes.md
+new file mode 100644
+index 0000000..871d830
+--- /dev/null
++++ b/pancakes.md
+@@ -0,0 +1,5 @@
++# Pancakes
++
++- 200 g flour
++- 2 eggs
++- 300 ml milk
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p>这里 <code>HEAD~2</code> 就是第一次提交。差异显示了 <code>README.md</code> 中改写的那一行，以及以新增行形式出现的整个 <code>pancakes.md</code>，因为第一次提交时这个文件还不存在。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">7 分钟</span></div>
+<p><strong>选择撤销方式。</strong> 下列每种情况分别适用哪条命令？</p>
+<ol>
+<li>你编辑了 <code>README.md</code>，想恢复为已提交的版本。</li>
+<li>你误暂存了 <code>notes.md</code>，但想保留你的修改。</li>
+<li>最近一次提交（尚未共享）的说明中有错别字。</li>
+<li>上周的一次提交已与团队共享，它弄坏了面包食谱。</li>
+</ol>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<ol>
+<li><code>git restore README.md</code></li>
+<li><code>git restore --staged notes.md</code></li>
+<li><code>git commit --amend -m &quot;…&quot;</code>，写上改正后的说明</li>
+<li><code>git revert &lt;哈希&gt;</code>，用一次新提交撤销那次提交，而不改写共享的历史</li>
+</ol>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">10 分钟</span></div>
+<p><strong>停止跟踪文件。</strong> 在第 2 模块的最后一道练习中，<code>passwords.txt</code> 被误提交了。请把文件保留在磁盘上，但从现在起停止跟踪它。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>把文件写进 <code>.gitignore</code>，只从暂存区中删除它，然后提交：</p>
+<div class="term" id="term-m03-e4-solution">
+<div class="term-head"><span class="term-label">参考解答</span><span class="term-title">停止跟踪文件</span></div>
+<div class="term-edit">创建或编辑 <code>.gitignore</code>，使其内容为：</div>
+<pre><code class="language-text">passwords.txt
+</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">rm</span> <span class="hljs-attr">--cached</span> passwords.txt</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>rm 'passwords.txt'
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+	deleted:    passwords.txt
+
+Untracked files:
+  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+	.gitignore
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">add</span> .gitignore</code></pre>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">commit</span> <span class="hljs-attr">-m</span> <span class="hljs-string">&quot;Stop tracking the passwords file&quot;</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>[main 908ddf5] Stop tracking the passwords file
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+ create mode 100644 .gitignore
+ delete mode 100644 passwords.txt
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-keyword">git</span> <span class="hljs-title">status</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>On branch main
+nothing to commit, working tree clean
+</code></pre></div>
+<pre class="command"><code class="language-gitcmd"><span class="hljs-built_in">ls</span></code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>README.md  pancakes.md  passwords.txt
+</code></pre></div>
+<div class="term-caption">上面的输出来自 git version 2.50.1 (Apple Git-155)，在构建本页时实际运行得到。其他版本的 Git 提示措辞可能略有不同。</div>
+</div>
+<p><code>git rm --cached</code> 把文件从下一次提交中移除，但保留在磁盘上，<code>ls</code> 的输出说明了这一点。密码仍然保存在更早的提交中，所以要按第 2 模块的建议更换密码。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">编程</span><span class="exercise-time">7 分钟</span></div>
+<p><strong>漏了一个文件。</strong> 你提交了 <code>bread.md</code>，随后发现属于同一项改动的 <code>butter.md</code> 没有添加。请在不做第二次提交的情况下修正。什么情况下不应这样做？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>暂存该文件并修补提交，保留原来的说明：</p>
+<pre><code class="language-text">git add butter.md
+git commit --amend --no-edit
+</code></pre>
+<p>不要修补已经共享的提交：修补会用一次新提交替换它，已拿到旧提交的人会因此得到不同的历史（第 8 模块）。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">7 分钟</span></div>
+<p><strong>在分离的 HEAD 上提交。</strong> 你运行了 <code>git switch --detach HEAD~2</code>，编辑了一个文件并做了一次提交。运行 <code>git switch main</code> 时会发生什么？怎样才能保留这次提交？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>Git 会切换过去，但会警告你留下了一次不属于任何分支的提交，并给出一条带有其哈希的 <code>git branch</code> 命令。这次提交仍然存在，只是没有分支指向它。</p>
+<p>要保留它，在切换离开之前先创建一个分支：<code>git switch -c rescue</code>。如果已经切换走了，可以用 Git 警告中的哈希（或第 8 模块介绍的引用日志）补建分支。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">8</span><h2>自测</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>哪条命令显示已暂存但尚未提交的改动？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git diff</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git diff --staged</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git log</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git status --all</code></button></li></ol><div class="quiz-expl" hidden><code>git diff</code> 比较工作区与暂存区；<code>--staged</code> 比较暂存区与最近一次提交。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>在差异中，以 <code>+</code> 开头的行表示什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">这一行被删除了。</button></li><li><button type="button" class="quiz-opt" data-i="1">这一行是未改动的上下文。</button></li><li><button type="button" class="quiz-opt" data-i="2">这一行是新增的。</button></li><li><button type="button" class="quiz-opt" data-i="3">这一行存在冲突。</button></li></ol><div class="quiz-expl" hidden><code>+</code> 表示新增的行，<code>-</code> 表示删除的行，以空格开头的是未改动的上下文。</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>你想丢弃对 <code>README.md</code> 尚未提交的修改。应使用哪条命令？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git revert README.md</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git restore --staged README.md</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git commit --amend</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git restore README.md</code></button></li></ol><div class="quiz-expl" hidden><code>git restore &lt;文件&gt;</code> 用暂存的版本替换工作区中的文件；<code>--staged</code> 只取消暂存。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div><code>git commit --amend</code> 的作用是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">用一次新提交替换最近一次提交。</button></li><li><button type="button" class="quiz-opt" data-i="1">为旧提交添加注释，而不改变它。</button></li><li><button type="button" class="quiz-opt" data-i="2">用一次新提交撤销最近一次提交。</button></li><li><button type="button" class="quiz-opt" data-i="3">合并最近的两次提交。</button></li></ol><div class="quiz-expl" hidden>修补会生成一次哈希不同的新提交，取代最近一次提交。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>你上周共享的一次提交引入了缺陷。安全的撤销方法是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git commit --amend</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git revert &lt;提交&gt;</code></button></li><li><button type="button" class="quiz-opt" data-i="2">删除 <code>.git</code> 文件夹</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>git restore</code></button></li></ol><div class="quiz-expl" hidden><code>git revert</code> 添加一次撤销旧提交的新提交，不会改写共享的历史。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>“HEAD detached at 907a979” 是什么意思？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">仓库损坏了。</button></li><li><button type="button" class="quiz-opt" data-i="1">HEAD 被删除了。</button></li><li><button type="button" class="quiz-opt" data-i="2">你正直接查看一次提交，而不是一个分支。</button></li><li><button type="button" class="quiz-opt" data-i="3">提交 907a979 不在历史中。</button></li></ol><div class="quiz-expl" hidden>HEAD 通常指向一个分支；处于分离状态时，它直接指向一次提交。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div><code>HEAD~2</code> 指的是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">当前提交之前的第二次提交</button></li><li><button type="button" class="quiz-opt" data-i="1">第二个分支</button></li><li><button type="button" class="quiz-opt" data-i="2">最新的两次提交</button></li><li><button type="button" class="quiz-opt" data-i="3">一个名为 <code>HEAD~2</code> 的文件</button></li></ol><div class="quiz-expl" hidden><code>~2</code> 表示“从 HEAD 往回数两次提交”。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">9</span><h2>延伸阅读</h2></div>
+<ul>
+<li>Scott Chacon、Ben Straub，<a href="https://git-scm.com/book/zh/v2" target="_blank" rel="noopener">《Pro Git》中文版</a>第 2.3 节“查看提交历史”和第 2.4 节“撤消操作”。</li>
+<li><a href="https://git-scm.com/docs/git-log" target="_blank" rel="noopener">git log</a>、<a href="https://git-scm.com/docs/git-diff" target="_blank" rel="noopener">git diff</a>、<a href="https://git-scm.com/docs/git-restore" target="_blank" rel="noopener">git restore</a> 和 <a href="https://git-scm.com/docs/git-revert" target="_blank" rel="noopener">git revert</a> 的参考文档（英文）。</li>
+</ul>
+</div><nav class="module-nav" aria-label="全部模块"><a href="module_02_ZH.html">← 模块 02</a><a href="index_ZH.html#modules">全部模块 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>

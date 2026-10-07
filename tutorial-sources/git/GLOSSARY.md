@@ -18,6 +18,18 @@ Use these renderings in every Chinese page. On first use in a module, give the E
 | untracked / tracked | 未跟踪 / 已跟踪 | |
 | staged / modified | 已暂存 / 已修改 | |
 | branch | 分支 | |
+| detached HEAD | 分离的 HEAD | first use: 分离的 HEAD（detached HEAD） |
+| diff | 差异 | the output of git diff |
+| context lines | 上下文 | unchanged lines shown in a diff |
+| restore / unstage | 恢复 / 取消暂存 | git restore |
+| amend | 修补 | git commit --amend |
+| revert | 撤销 | git revert: undo with a new commit |
+| merge commit | 合并提交 | |
+| parent (commit) | 父提交 | |
+| three-way merge | 三方合并 | |
+| conflict marker | 冲突标记 | <<<<<<<, =======, >>>>>>> |
+| resolve (a conflict) | 解决（冲突） | |
+| abort (a merge) | 放弃（合并） | git merge --abort |
 | HEAD | HEAD | not translated |
 | merge | 合并 | |
 | fast-forward | 快进 | |
