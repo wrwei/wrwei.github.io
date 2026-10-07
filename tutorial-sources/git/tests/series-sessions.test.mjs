@@ -53,3 +53,46 @@ test('Module 2 sessions print what the lesson describes, with the same hashes ev
   assert.match(outputs('m02-e5-solution')[0], /^On branch main\nUntracked files:/);
   assert.match(outputs('m02-e5-solution')[2], /^\[main [0-9a-f]{7}\] Keep photos out of the repository\n/);
 });
+
+test('Module 3 sessions print what the lesson describes', () => {
+  assert.equal(outputs('m03-log')[0], '1ad5842 Say what the notes are for\n8bf3c2d Add a pancake recipe\n907a979 Add a README\n');
+  assert.equal(outputs('m03-log')[3], '8bf3c2d Add a pancake recipe\n');
+  const diff = outputs('m03-diff');
+  assert.match(diff[0], /@@ -2,4 \+2,5 @@\n \n - 200 g flour\n - 2 eggs\n-- 300 ml milk\n\+- 250 ml milk\n\+- a pinch of salt\n$/);
+  assert.equal(diff[2], '', 'nothing left to diff once everything is staged');
+  assert.equal(diff[3], diff[0]);
+  const amend = outputs('m03-amend');
+  assert.match(amend[1], /^\[main 087bb2c\] Add a sdoa bread recipe\n/);
+  assert.match(amend[2], /^\[main 3fc0d24\] Add a soda bread recipe\n Date: /);
+  assert.match(amend[4], /^\[main 31783ba\] Add a soda bread recipe\n/);
+  const revert = outputs('m03-revert');
+  assert.match(revert[2], /^\[main [0-9a-f]{7}\] Revert "Use more flour"\n/);
+  assert.match(revert[4], /- 200 g flour/);
+  assert.deepEqual(sessions().get('m03-old-version').graphs.detached.commits.map(c => [c.short, c.refs]), [['1ad5842', 'refs/heads/main'], ['8bf3c2d', ''], ['907a979', 'HEAD']]);
+  assert.equal(outputs('m03-old-version')[1], 'HEAD is now at 907a979 Add a README\n');
+  assert.equal(outputs('m03-e4-solution').at(-1), 'README.md  pancakes.md  passwords.txt\n', 'the file stays on disk');
+});
+
+test('Module 4 sessions print what the lesson describes', () => {
+  const branches = outputs('m04-branches');
+  assert.equal(branches[2], '  desserts\n* main\n');
+  assert.equal(branches[7], 'README.md  pancakes.md\n');
+  assert.equal(branches[9], 'README.md  cake.md  pancakes.md\n');
+  assert.equal(sessions().get('m04-branches').graphs['two-labels'].commits[0].refs, 'HEAD -> refs/heads/main, refs/heads/desserts');
+  assert.match(outputs('m04-fast-forward')[0], /^Updating 288d56b\.\.4d632df\nFast-forward\n/);
+  assert.match(outputs('m04-three-way')[0], /^Merge made by the 'ort' strategy\.\n/);
+  assert.equal(sessions().get('m04-three-way').graphs.merged.commits[0].parents.length, 2);
+  assert.match(outputs('m04-e5-solution')[0], /^error: the branch 'experiment' is not fully merged\n/);
+});
+
+test('Module 5 sessions print what the lesson describes', () => {
+  const conflict = sessions().get('m05-conflict').record.filter(r => r.kind === 'command');
+  assert.equal(conflict[0].ok, false, 'the merge stops');
+  assert.match(conflict[0].output, /CONFLICT \(content\): Merge conflict in pancakes\.md/);
+  assert.match(conflict[2].output, /<<<<<<< HEAD\n- 40 g sugar\n=======\n- 30 g sugar\n>>>>>>> less-sugar\n/);
+  assert.match(conflict[4].output, /All conflicts fixed but you are still merging\./);
+  assert.match(conflict[5].output, /^\[main [0-9a-f]{7}\] Merge branch 'less-sugar'\n/);
+  assert.match(outputs('m05-abort')[3], /- 40 g sugar/);
+  assert.match(outputs('m05-no-conflict')[1], /- 250 g flour[\s\S]*rest for 20 minutes/);
+  assert.equal(outputs('m05-e6-solution')[0], 'pancakes.md:6: leftover conflict marker\npancakes.md:8: leftover conflict marker\npancakes.md:10: leftover conflict marker\n');
+});
