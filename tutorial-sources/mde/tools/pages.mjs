@@ -4,6 +4,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {makeMd, newEnv, escapeHtml as esc} from '../../ai/tools/md.mjs';
 import {playgroundLink} from './bundle.mjs';
+import {highlightBlocks} from './highlight.mjs';
 
 export const EPSILON_VERSION = '2.8.0';
 export const pad = n => String(n).padStart(2, '0');
@@ -106,7 +107,7 @@ export function renderLesson({meta, lang, source, byId, bundleUrl, series, publi
   assert(!source.includes('<!-- BRIEF'), `${file}: replace every <!-- BRIEF --> note with finished text`);
   const {markdown, used} = expandExamples(source, byId, lang, bundleUrl);
   const env = newEnv();
-  const body = makeMd({lang}).render(markdown, env);
+  const body = highlightBlocks(makeMd({lang}).render(markdown, env));
   assert.deepEqual(env.errors, [], `${file}: ${JSON.stringify(env.errors)}`);
   assert.equal(env.math.length, 0, `${file}: text between two "$" signs was read as maths; write \\$ for a literal dollar sign`);
   const record = {

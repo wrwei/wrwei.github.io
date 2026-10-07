@@ -36,6 +36,7 @@ test('a lesson page escapes captured output and reports its structure', () => {
   const source = '## One {#s1}\n\n{{EXAMPLE:m01-q}}\n\n```quiz\n? Q\n- [x] A\n- [ ] B\n> E\n```\n';
   const {html, record} = renderLesson({meta, lang: 'en', source, byId, bundleUrl: BUNDLE, series, published: [1]});
   assert.match(html, /&lt;b&gt;OrGate&lt;\/b&gt;/);
+  assert.match(html, /<code class="language-eol"><span class="hljs-keyword">for<\/span> \(c <span class="hljs-keyword">in<\/span> <span class="hljs-type">Component<\/span>\.all\)/, 'example code is highlighted');
   assert.match(html, /data-key="mde-series:m01:s1"/);
   assert.match(html, /href="module_01_ZH\.html"/);
   assert.deepEqual(record, {sections: ['s1'], examples: ['m01-q'], exercises: 0, solutions: 0, quizAnswers: [0]});
