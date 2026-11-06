@@ -2,7 +2,7 @@
 title: 拉取请求
 lead: 在分支上提出一项改动，在 GitHub 上审查并合并它，再把本地整理干净。然后看看同样的步骤怎样让你和别人一起工作。
 minutes: 40
-needs: 第 9 课（GitHub 上的 `my-page`，以及拉取、推送的日常流程）
+needs: 第 9 课（GitHub 上的 `my-page`，以及每天拉取、推送的工作流程）
 goals:
   - 理解拉取请求的用途
   - 把分支推送到 GitHub，并创建拉取请求
@@ -30,7 +30,7 @@ $ pwd
 /Users/you/my-page
 ```
 
-然后照第 9 课的日常流程开始：先拉取最新的内容。
+然后按第 9 课每天的工作流程开始：先拉取最新的内容。
 
 ```terminal
 $ git pull
@@ -79,7 +79,7 @@ $ git commit -m "Add a contact section"
 
 ## 推送分支 {#push}
 
-把这个分支发送到 GitHub。GitHub 上还没有 `add-contact`，所以只写 `git push` 的话，Git 不知道该把它发到哪里。和第 7 课推送 `main` 时一样，第一次要加上 `-u`：`-u origin add-contact` 会在 GitHub 上创建这个分支，并把两边的分支关联起来。
+把这个分支发送到 GitHub。GitHub 上还没有 `add-contact`，所以只写 `git push` 的话，Git 不知道该把它发到哪里。和第 7 课推送 `main` 时一样，第一次要加上 `-u`：`-u origin add-contact` 会在 GitHub 上创建这个分支，并让两边的分支配成一对。
 
 ```terminal
 $ git push -u origin add-contact
@@ -109,7 +109,7 @@ branch 'add-contact' set up to track 'origin/add-contact'.
 
 ::: where github
 1. 打开你的仓库页面。一条黄色横幅会提示 `add-contact` 最近有推送。点击 **Compare & pull request**（比较并创建拉取请求）。
-2. 页面上显示 *base*（基准分支）`main` 和 *compare*（对比分支）`add-contact`：你请求把 `add-contact` 合并到 `main`。下面是这次的提交和改动。
+2. 页面上显示 *base*（基准）`main` 和 *compare*（比较）`add-contact`：你请求把 `add-contact` 合并到 `main`。下面是这次的提交和改动。
 3. 标题框里是你的提交信息“Add a contact section”；如果不是，就自己输入。在描述框里用一句话说明这次改动，例如：“在页面末尾添加一个简短的联系方式部分。”
 4. 点击 **Create pull request**（创建拉取请求）。
 :::
@@ -149,7 +149,7 @@ gh-merge-pr your-username/my-page 1 add-contact "Add a contact section"
 gh-delete-branch your-username/my-page add-contact
 -->
 
-GitHub 用一个合并提交（merge commit）把 `add-contact` 合并进了 `main`，就像第 5 课的第二次合并那样。GitHub 总会创建合并提交，好让历史记下这个拉取请求；即使像这里这样，在你的电脑上用 `git merge` 只会把标签往前移，它也照样创建。因为 `main` 变了，GitHub Pages 会重新发布你的网站：一两分钟后，联系方式这部分就上线了。
+GitHub 用一个合并提交（merge commit）把 `add-contact` 合并进了 `main`，就像第 5 课的第二次合并那样。GitHub 总会创建合并提交，好让历史记下这个拉取请求；即使像这里这样，在你的电脑上用 `git merge` 只会把标签向前移，它也照样创建。因为 `main` 变了，GitHub Pages 会重新发布你的网站：一两分钟后，联系方式这部分就上线了。
 
 ## 把合并取回本地，整理分支 {#tidy}
 
@@ -172,7 +172,7 @@ Fast-forward
  1 file changed, 2 insertions(+)
 ```
 
-（“Up to date with 'origin/main'”意为与 'origin/main' 一致；和第 9 课一样，这依据的还是那份旧记录。）你的 `main` 没有动过，所以它只需要向前移到 GitHub 的合并提交上：这就是 Git 显示“Fast-forward”（快进）的原因。现在把你电脑上的这个分支也删掉：
+和第 9 课一样，“Up to date with 'origin/main'”（与 'origin/main' 一致）依据的还是那份旧记录。你的 `main` 没有动过，所以它只需要向前移到 GitHub 的合并提交上：这就是 Git 显示“Fast-forward”（快进）的原因。现在把你电脑上的这个分支也删掉：
 
 ```terminal
 $ git branch -d add-contact
@@ -266,14 +266,14 @@ $ git log --oneline --graph -3
 - [ ] 请审查者在合并之后再改
 > 拉取请求跟着它的分支走。分支上的新提交会出现在拉取请求里。
 
-? 在 GitHub 上合并拉取请求之后，为什么还要在你电脑上的 `main` 分支上运行 `git pull`？
+? 在 GitHub 上合并拉取请求之后，为什么还要在你的电脑上对 `main` 运行 `git pull`？
 - [x] 合并提交是在 GitHub 上生成的，所以你的电脑上还没有它
 - [ ] 为了删除 GitHub 上的分支
 - [ ] 为了撤销这次合并
 > GitHub 上发生的任何事，只有在你拉取之后才会进入你的分支。
 
 ? 你想给一个自己不能推送的项目提出改动。第一步是什么？
-- [ ] 克隆它，然后推送到它
+- [ ] 克隆它，然后向它推送
 - [x] 在 GitHub 上复刻它
 - [ ] 向所有者要密码
 > 复刻是你自己在 GitHub 上的副本。你把分支推送到那里，再向原项目创建拉取请求。

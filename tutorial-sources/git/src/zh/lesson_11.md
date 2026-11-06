@@ -21,17 +21,17 @@ goals:
 2. **只改写还没有推送（push）的提交。**`--amend` 和 `reset` 会改变你的历史。在你自己的电脑上这样做没问题，但如果 GitHub 上已经有了这些提交，就改用 `git revert`。
 :::
 
-在 VS Code 中打开 `my-page` 和终端。下面每一节都是一份“菜谱”，开头的粗体标题就是你遇到的情形。
+在 VS Code 中打开 `my-page` 和终端。下面每一节都是一份“菜谱”，标题就是它要解决的情形。
 
-## “我想丢掉对某个文件的改动” {#restore}
+## “我想丢弃对某个文件的改动” {#restore}
 
-这个你在第 4 课见过：`git restore FILE` 会丢掉一个文件里还没暂存的改动，把它恢复成你上一次提交时的样子。如果你已经用 `git add` 暂存了这些改动，就先运行 `git restore --staged FILE`（见下文）。同一个命令还能找回你误删的文件。现在不用试：你在第 4 课已经做过了。
+这个你在第 4 课见过：`git restore FILE` 会丢弃一个文件里还没暂存的改动，把它恢复成你上一次提交时的样子。如果你已经用 `git add` 暂存了这些改动，就先运行 `git restore --staged FILE`（见下文“我不小心添加了一个文件”）。同一个命令还能找回你误删的文件。现在不用试：你在第 4 课已经做过了。
 
 ```terminal norun
 $ git restore index.html
 ```
 
-记住：丢掉的改动是找不回来的。
+记住：丢弃的改动是找不回来的。
 
 ## “我想把文件恢复成旧提交里的样子” {#old-version}
 
@@ -222,7 +222,7 @@ Changes to be committed:
 	modified:   style.css
 ```
 
-提交“Add reading to my hobbies”被撤销了，但它的改动还在暂存区里等着，所以什么都没丢。（“Ahead by 1 commit”意为领先 1 个提交，指的是你还没推送的 `.gitignore` 那个提交。）把这些改动再提交一次。这里原样提交，是为了看到确实什么都没丢；实际工作中，你会先改点什么，或者把文件分开提交。
+提交“Add reading to my hobbies”被撤销了，但它的改动还在暂存区里等着，所以什么都没丢。“Ahead by 1 commit”（领先 1 个提交）指的是你还没推送的 `.gitignore` 那个提交。把这些改动再提交一次。这里原样提交，是为了看到确实什么都没丢；实际工作中，你会先改点什么，或者把文件分开提交。
 
 ```terminal
 $ git commit -m "Add reading to my hobbies"
@@ -313,16 +313,16 @@ $ git branch rescue b0c7144
 该用哪种撤销。从你想撤销的东西出发：文件里的改动、暂存区里的文件、你的上一次提交（推送之前或之后），或者一个找不到的提交。
 :::
 
-| 情形 | 命令 | 推送之后还安全吗？ |
+| 情况 | 命令 | 推送之后也安全吗？ |
 |---|---|---|
-| 丢掉文件中尚未暂存的改动 | `git restore FILE` | 与提交无关；改动会丢失 |
-| 把文件恢复成旧提交里的样子 | `git restore --source HASH FILE` | 是：你会把结果作为一次新的改动来提交 |
-| 把文件移出暂存区 | `git restore --staged FILE` | 是，它不会改变历史里的任何东西 |
-| 永不跟踪某个文件（尚未提交过） | 把它加入 `.gitignore` | 是 |
-| 修正上一次提交的信息或文件 | `git commit --amend` | **否**：只能在推送之前用 |
-| 撤销上一次提交，保留改动 | `git reset --soft HEAD~1` | **否**：只能在推送之前用 |
-| 撤销已经在 GitHub 上的提交 | `git revert HASH` | **是**：就该用这个办法 |
-| 找回看似丢失的提交 | `git reflog` | 是 |
+| 丢弃文件中尚未暂存的改动 | `git restore FILE` | 与提交无关；改动会丢失 |
+| 把文件恢复成旧提交里的样子 | `git restore --source HASH FILE` | 安全：你会把结果作为一次新的改动来提交 |
+| 把文件移出暂存区 | `git restore --staged FILE` | 安全，它不会改变历史里的任何东西 |
+| 永不跟踪某个文件（尚未提交过） | 把它加入 `.gitignore` | 安全 |
+| 修正上一次提交的信息或文件 | `git commit --amend` | **不安全**：只能在推送之前用 |
+| 撤销上一次提交，保留改动 | `git reset --soft HEAD~1` | **不安全**：只能在推送之前用 |
+| 撤销已经在 GitHub 上的提交 | `git revert HASH` | **安全**：就该用这个办法 |
+| 找回看似丢失的提交 | `git reflog` | 安全 |
 
 ::: trouble
 **我对一个已经推送的提交用了 `--amend` 或 `reset`，现在推送被拒绝了。**不要用 `git push --force`，尽管很多网站都这么建议：它会用你的历史替换 GitHub 上的历史，可能会删掉那里的提交。先拉取（`git pull`），如果有冲突，就像第 6 课那样解决，然后推送。你的历史里会多一个合并提交，但什么都不会丢。

@@ -42,15 +42,15 @@ git config --global pull.rebase false
 
 ### 一个奇怪的界面，左边一列都是 `~`
 
-Git 打开了文本编辑器 Vim，通常是要你写提交说明或合并说明，因为你没有设置别的编辑器。要接受这条说明并继续，先按 <kbd>Esc</kbd>，再输入 `:wq`，然后按 <kbd>Enter</kbd>。（改为输入 `:q!` 并不能取消合并、拉取或还原：Git 会照样用准备好的说明继续下去。要停止合并，按 <kbd>Esc</kbd>，输入 `:cq`，按 <kbd>Enter</kbd>，然后运行 `git merge --abort`。）之后，把 VS Code 设为 Git 的编辑器：`git config --global core.editor "code --wait"`（第 2 课第 6 步）。
+Git 打开了文本编辑器 Vim，通常是要你为一次提交或合并写提交信息，因为你没有设置别的编辑器。要接受这条提交信息并继续，先按 <kbd>Esc</kbd>，再输入 `:wq`，然后按 <kbd>Enter</kbd>。（改为输入 `:q!` 并不能取消合并、拉取或还原：Git 会照样用准备好的提交信息继续下去。要停止合并，按 <kbd>Esc</kbd>，输入 `:cq`，按 <kbd>Enter</kbd>，然后运行 `git merge --abort`。）之后，把 VS Code 设为 Git 的编辑器：`git config --global core.editor "code --wait"`（第 2 课第 6 步）。
 
 ### 顶部显示 `GNU nano` 的界面
 
-Git 打开了文本编辑器 nano：有些 Linux 系统在没有设置其他编辑器时会使用它。按 <kbd>Ctrl</kbd>+<kbd>X</kbd> 接受这条说明并继续。然后按上一条的方法，把 VS Code 设为 Git 的编辑器。
+Git 打开了文本编辑器 nano：有些 Linux 系统在没有设置其他编辑器时会使用它。按 <kbd>Ctrl</kbd>+<kbd>X</kbd> 接受这条提交信息并继续。然后按上一条的方法，把 VS Code 设为 Git 的编辑器。
 
 ### "hint: Waiting for your editor to close the file..."
 
-Git 在 VS Code 中打开了一条说明（一个名为 `COMMIT_EDITMSG` 或 `MERGE_MSG` 的标签页），正在等你。检查这条说明，然后关闭这个标签页。标签页一关闭，Git 就会继续。
+Git 在 VS Code 中打开了一条提交信息（一个名为 `COMMIT_EDITMSG` 或 `MERGE_MSG` 的标签页），正在等你。检查这条提交信息，然后关闭这个标签页。标签页一关闭，Git 就会继续。
 
 ### `error: there was a problem with the editor 'code --wait'`，或 `code: command not found`
 
@@ -177,7 +177,7 @@ $ git commit
 Aborting commit due to empty commit message.
 ```
 
-你输入了不带 `-m` 的 `git commit`，又没写说明就关闭了 `COMMIT_EDITMSG` 标签页，所以 Git 没有进行这次提交。什么都没有丢：你的改动仍然是已暂存的。带上说明再提交一次：`git commit -m "MESSAGE"`。
+你输入了不带 `-m` 的 `git commit`，又没写提交信息就关闭了 `COMMIT_EDITMSG` 标签页，所以 Git 没有进行这次提交。什么都没有丢：你的改动仍然是已暂存的。带上提交信息再提交一次：`git commit -m "MESSAGE"`。
 
 ### "You are in 'detached HEAD' state"
 
@@ -368,7 +368,7 @@ GitHub 不接受用你的账号密码来使用 Git，而通过浏览器登录这
 
 ### `Permission to ... denied to ...`，或 `The requested URL returned error: 403`
 
-你没有权限写入那个仓库。要么它属于别人，你需要复刻它（第 10 课），或者请它的所有者把你添加为协作者；要么 Git 登录的是你的另一个 GitHub 账号，也就是“denied to”后面的那个。如果是后一种情况，就按上面的方法删除保存的登录信息（在 VS Code 中，还要点击左侧竖栏底部的 **Accounts**（账户）图标并退出登录），然后再推送一次，用你自己的那个账号登录。
+你没有权限写入那个仓库。要么它属于别人，你需要复刻它（第 10 课），或者请它的所有者把你添加为协作者；要么 Git 登录的是你的另一个 GitHub 账号，也就是“denied to”后面的那个。如果是后一种情况，就按上面的方法删除保存的登录信息；在 VS Code 中，还要点击左侧栏底部的 **Accounts**（账户）图标并退出登录。然后再推送一次，用你自己的账号登录。
 
 ### "warning: You appear to have cloned an empty repository"
 
@@ -678,7 +678,7 @@ branch 'main' set up to track 'origin/main'.
 
 ### `GH007: Your push would publish a private email address`
 
-你的提交里含有你的真实邮箱地址，而你在 GitHub 上的邮箱设置会保护这个地址不被公开。按第 2 课第 5 步，改用 GitHub 给你的私密地址。然后查看哪些提交带有你的真实地址：`git log --format="%h %ae"`。如果只有最新的那个提交带有它，就运行 `git commit --amend --reset-author --no-edit`，然后再推送一次。如果更早的提交也带有它，只修改最新的那个提交是不够的：GitHub 只检查最新的提交，所以推送会成功，而你的地址会随着那些更早的提交被公开。改写旧的提交属于高级操作。如果你不介意这个地址在那些提交里公开，就在 GitHub 的 **Settings**（设置）> **Emails**（电子邮件）中取消勾选 **Block command line pushes that expose my email**（阻止会暴露我的邮箱地址的命令行推送），推送，然后再把它勾选上。（重新勾选并不会隐藏你已经推送的提交里的地址。）
+你的提交里含有你的真实邮箱地址，而你在 GitHub 上的邮箱设置会保护这个地址不被公开。按第 2 课第 5 步，改用 GitHub 给你的私密地址。然后查看哪些提交带有你的真实地址：`git log --format="%h %ae"`。如果只有最新的那个提交带有它，就运行 `git commit --amend --reset-author --no-edit`，然后再推送一次。如果更早的提交也带有它，只修改最新的那个提交是不够的：GitHub 只检查最新的提交，所以推送会成功，而你的地址会随着那些更早的提交被公开。改写旧的提交属于高级操作。如果你不介意这个地址在那些提交里公开，就在 GitHub 的 **Settings**（设置）> **Emails**（电子邮件）中取消勾选 **Block command line pushes that expose my email**（阻止会暴露我的电子邮件地址的命令行推送），推送，然后再把它勾选上。（重新勾选并不会隐藏你已经推送的提交里的地址。）
 
 ### 我推送了密码或私密文件
 
@@ -688,7 +688,7 @@ branch 'main' set up to track 'origin/main'.
 
 ### 没有出现带 **Compare & pull request**（比较并创建拉取请求）按钮的黄色横幅
 
-点击 **Pull requests**（拉取请求）标签页，然后点击 **New pull request**（新建拉取请求），并选择你的分支作为 *compare*（比较）分支。
+点击 **Pull requests**（拉取请求）标签页，然后点击 **New pull request**（新建拉取请求），并把你的分支选为 *compare*（对比分支）。
 
 ### 合并按钮是灰色的，并提示有冲突
 
@@ -702,7 +702,7 @@ branch 'main' set up to track 'origin/main'.
 
 ### Settings 里没有 Pages 选项，或者 Pages 设置要求你升级
 
-这个仓库是私有的。在免费账号上，Pages 需要公开的仓库。把它设为公开：在 **Settings** 的 **General**（常规）页面上，向下滚动到“Danger Zone”（危险区域），点击 **Change visibility**（更改可见性），然后按照提示逐一确认，把仓库设为公开。（这个区域虽然叫“Danger Zone”，但对这个项目来说，这项更改是安全的。）
+这个仓库是私有的。在免费账号上，Pages 需要公开仓库。把它设为公开：在 **Settings** 的 **General**（常规）页面上，向下滚动到“Danger Zone”（危险区域），点击 **Change visibility**（更改可见性），然后按照确认提示一步步操作，把仓库设为公开。（这个部分虽然叫“Danger Zone”，但对这个项目来说，这个更改是安全的。）
 
 ### 页面出来了，但没有颜色或图片
 
@@ -710,7 +710,7 @@ branch 'main' set up to track 'origin/main'.
 
 ### 我的修改没有出现在网站上
 
-运行 `git status`：如果你的分支领先于 `origin/main`，就推送。如果你已经推送了，等一两分钟，然后让浏览器强制加载最新的副本：在 Windows 和 Linux 上按 <kbd>Ctrl</kbd>+<kbd>F5</kbd>；在 Mac 上按 <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>（在 Safari 中按 <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>R</kbd>）。仓库的 **Actions** 标签页会显示发布是否已经完成。
+运行 `git status`：如果你的分支领先于 `origin/main`，就推送。如果你已经推送了，等一两分钟，然后让浏览器强制加载最新的副本：在 Windows 和 Linux 上按 <kbd>Ctrl</kbd>+<kbd>F5</kbd>；在 Mac 上按 <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>（在 Safari 中按 <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>R</kbd>）。仓库的 **Actions**（操作）标签页会显示发布是否已经完成。
 
 ## 撤销 {#undo}
 

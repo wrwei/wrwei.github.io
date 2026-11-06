@@ -83,12 +83,12 @@ origin	https://github.com/your-username/my-page.git (push)
 ::: tab macOS
 VS Code 会显示一条消息：“The extension 'GitHub' wants to sign in using GitHub.”（扩展“GitHub”想要使用 GitHub 登录。）点击 **Allow**（允许）。浏览器会打开 GitHub：如果要求登录，就登录，然后点击绿色按钮，授权（authorise）Visual Studio Code。如果浏览器询问是否打开 VS Code，就同意。macOS 会把这次登录保存在钥匙串（keychain）里，所以你只需要做一次。
 
-如果没有出现任何消息，推送就完成了，那说明你已经登录过了。
+如果没有出现任何消息，而推送已经完成，那说明你之前已经登录过了。
 :::
 ::: tab Linux
 VS Code 会显示一条消息：“The extension 'GitHub' wants to sign in using GitHub.”（扩展“GitHub”想要使用 GitHub 登录。）点击 **Allow**（允许）。浏览器会打开 GitHub：如果要求登录，就登录，然后点击绿色按钮，授权（authorise）Visual Studio Code。如果浏览器询问是否打开 VS Code，就同意。VS Code 会记住这次登录。
 
-如果 VS Code 警告“An OS keyring couldn't be identified”（无法识别操作系统的密钥环），就点击 **Use weaker encryption**（使用较弱的加密）。如果没有出现任何消息，推送就完成了，那说明你已经登录过了。
+如果 VS Code 警告“An OS keyring couldn't be identified”（无法识别操作系统的密钥环），就点击 **Use weaker encryption**（使用较弱的加密）。如果没有出现任何消息，而推送已经完成，那说明你之前已经登录过了。
 :::
 ::::
 

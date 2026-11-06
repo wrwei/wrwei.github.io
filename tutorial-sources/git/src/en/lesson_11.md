@@ -25,14 +25,16 @@ keep it that way:
    instead.
 :::
 
-Open `my-page` in VS Code with a terminal. Each recipe below starts with the situation in bold.
+Open `my-page` in VS Code with a terminal. Each recipe below is headed by the situation it is
+for.
 
 ## "I want to throw away my changes to a file" {#restore}
 
 You met this in Lesson 4: `git restore FILE` throws away the changes to a file that you have not
 staged, and puts it back as it was in your last commit. If you have already staged the changes
-with `git add`, run `git restore --staged FILE` first (see the next recipe). The same command also
-brings back a file you deleted by mistake. There is nothing to try now: you did this in Lesson 4.
+with `git add`, run `git restore --staged FILE` first (see "I added a file I did not mean to",
+below). The same command also brings back a file you deleted by mistake. There is nothing to try
+now: you did this in Lesson 4.
 
 ```terminal norun
 $ git restore index.html

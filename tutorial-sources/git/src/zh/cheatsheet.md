@@ -21,7 +21,7 @@ lead: 本系列的所有命令都在这一页上，按任务分组，另附日�
 | `git config --global user.name "NAME"` | 设置记录在你的提交里的名字 | 2 |
 | `git config --global user.email "EMAIL"` | 设置记录在你的提交里的邮箱地址（请使用 GitHub 给你的私密地址） | 2 |
 | `git config --global init.defaultBranch main` | 把新项目的第一个分支命名为 `main` | 2 |
-| `git config --global core.editor "code --wait"` | 当 Git 需要你写说明时，使用 VS Code | 2 |
+| `git config --global core.editor "code --wait"` | 当 Git 需要你写一条信息时，使用 VS Code | 2 |
 | `git config --global pull.rebase false` | 让 `git pull` 用合并的方式把工作结合起来 | 2 |
 | `git config --global --list` | 列出你的设置 | 2 |
 
@@ -29,7 +29,7 @@ lead: 本系列的所有命令都在这一页上，按任务分组，另附日�
 
 | 命令 | 作用 | 课 |
 |---|---|---|
-| `git init` | 把当前文件夹变成一个仓库 | 3 |
+| `git init` | 把当前文件夹变成仓库 | 3 |
 | `git clone URL` | 把 GitHub 上的一个仓库复制到一个新文件夹里 | 9 |
 | `git clone URL FOLDER` | 同上，但复制到你指定名字的文件夹里 | 9 |
 
@@ -37,13 +37,13 @@ lead: 本系列的所有命令都在这一页上，按任务分组，另附日�
 
 | 命令 | 作用 | 课 |
 |---|---|---|
-| `git status` | 显示哪些内容有改动，哪些已经暂存 | 3 |
+| `git status` | 显示哪些内容有改动、哪些已暂存 | 3 |
 | `git diff` | 逐行显示还没有暂存的改动 | 4 |
-| `git diff --staged` | 显示已经暂存的改动 | 4 |
+| `git diff --staged` | 显示已暂存的改动 | 4 |
 | `git add FILE` | 暂存一个文件的改动，留给下一次提交 | 3 |
 | `git add .` | 暂存当前文件夹里的所有改动 | 4 |
-| `git commit -m "MESSAGE"` | 把已暂存的改动保存为一次提交 | 3 |
-| `git commit` | 用 Git 准备好的说明完成一次合并 | 6 |
+| `git commit -m "MESSAGE"` | 把已暂存的改动保存为一个提交 | 3 |
+| `git commit` | 用 Git 准备好的提交信息完成一次合并 | 6 |
 
 ## 查看历史 {#history}
 
@@ -63,9 +63,9 @@ lead: 本系列的所有命令都在这一页上，按任务分组，另附日�
 | `git branch` | 列出分支；`*` 标出当前所在的分支 | 5 |
 | `git switch -c NAME` | 创建一个分支并切换过去 | 5 |
 | `git switch NAME` | 切换到一个分支 | 5 |
-| `git merge NAME` | 把分支 `NAME` 合并到当前分支 | 5 |
+| `git merge NAME` | 把分支 `NAME` 并入当前分支 | 5 |
 | `git merge --abort` | 取消一次因冲突而停下来的合并 | 6 |
-| `git branch -d NAME` | 删除一个已经合并的分支 | 5 |
+| `git branch -d NAME` | 删除一个已经合并过的分支 | 5 |
 | `git branch -D NAME` | 即使分支没有合并也删除它，丢弃其中的工作 | 5 |
 | `git branch NAME HASH` | 在某个提交上新建一个分支，例如用 `git reflog` 找到的提交 | 11 |
 
@@ -79,7 +79,7 @@ lead: 本系列的所有命令都在这一页上，按任务分组，另附日�
 | `git push -u origin BRANCH` | 第一次把一个分支发送到 GitHub，并让两边的分支配对 | 7 |
 | `git push` | 把新提交发送到 GitHub | 7 |
 | `git pull` | 从 GitHub 取回新提交，并把它们合并进来 | 9 |
-| `git fetch --prune` | 从 GitHub 获取最新情况，并忘掉那边已经删除的分支 | 10 |
+| `git fetch --prune` | 从 GitHub 获取最新变化，并忘掉那边已经删除的分支 | 10 |
 | `gh auth login` | 在 VS Code 以外的终端里，让 Git 登录 GitHub | 7 |
 
 在 GitHub 网站上：
@@ -103,7 +103,7 @@ lead: 本系列的所有命令都在这一页上，按任务分组，另附日�
 | 取回一个文件在某个较早提交中的样子 | `git restore --source HASH FILE` | 安全：把结果作为一次新的改动提交 | 11 |
 | 把一个文件移出暂存区 | `git restore --staged FILE`（所有文件：`git restore --staged .`） | 安全 | 11 |
 | 让 Git 永远不跟踪某些文件（还没有提交过的） | 把它们写进 `.gitignore` | 安全 | 11 |
-| 改正上一次提交的说明 | `git commit --amend -m "MESSAGE"` | **不安全** | 11 |
+| 修正上一次提交的信息 | `git commit --amend -m "MESSAGE"` | **不安全** | 11 |
 | 把忘了加的文件补进上一次提交 | 先用 `git add` 添加它们，然后 `git commit --amend --no-edit` | **不安全** | 11 |
 | 撤销上一次提交，但保留其中的改动 | `git reset --soft HEAD~1` | **不安全** | 11 |
 | 撤销一个已经在 GitHub 上的提交 | `git revert HASH`（合并提交用 `git revert -m 1 HASH`） | **安全** | 11 |
@@ -134,10 +134,10 @@ lead: 本系列的所有命令都在这一页上，按任务分组，另附日�
 | **branch**（分支） | 一条独立的工作线：贴在某个提交上的一个标签，你每提交一次，它就向前移动一步 |
 | **clone**（克隆） | 从 GitHub 复制而来的一个仓库的完整副本；也指制作这个副本的命令 |
 | **collaborator**（协作者） | 你允许推送到你的 GitHub 仓库的人 |
-| **commit**（提交） | 项目的一张快照，带有说明、作者、日期和哈希值 |
+| **commit**（提交） | 项目的一张快照，带有提交信息、作者、日期和哈希值 |
 | **conflict**（冲突） | 两个分支以不同的方式修改了相同的行；Git 会请你来选择 |
 | **fast-forward**（快进） | 一种合并：Git 只是把分支的标签向前移动，不产生新的提交 |
-| **fetch**（获取） | 从 GitHub 下载最新情况，但不改变你的文件或分支；是拉取的前一半 |
+| **fetch**（获取） | 从 GitHub 下载最新变化，但不改变你的文件或分支；是拉取的前一半 |
 | **fork**（复刻） | 别人的仓库在 GitHub 上的一份副本，归你自己所有 |
 | **GitHub Pages** | GitHub 的一项免费服务，把仓库里的文件发布成网站 |
 | **`.gitignore`** | 一个文件，列出 Git 不应该跟踪的文件 |
