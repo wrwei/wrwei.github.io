@@ -108,20 +108,6 @@ To https://github.com/your-username/my-page.git
 branch 'main' set up to track 'origin/main'.
 ```
 
-第一次推送时，在出现上面这段输出之前，Git 需要确认你有权限写入这个仓库，所以会要求你登录 GitHub：
-
-:::: tabs
-::: tab Windows
-会打开一个 **Git Credential Manager** 的窗口，要求你登录 GitHub。选择用浏览器登录。浏览器会打开 GitHub：如果要求登录，就登录，然后批准这个请求。之后回到 VS Code。Git 会记住这次登录，所以你只需要做一次。
-:::
-::: tab macOS
-VS Code 会显示一条消息：“The extension 'GitHub' wants to sign in using GitHub.”点击 **Allow**。浏览器会打开 GitHub：如果要求登录，就登录，然后点击绿色按钮，授权 Visual Studio Code。如果浏览器询问是否打开 VS Code，就同意。macOS 会把这次登录保存在钥匙串里，所以你只需要做一次。
-:::
-::: tab Linux
-VS Code 会显示一条消息：“The extension 'GitHub' wants to sign in using GitHub.”点击 **Allow**。浏览器会打开 GitHub：如果要求登录，就登录，然后点击绿色按钮，授权 Visual Studio Code。如果浏览器询问是否打开 VS Code，就同意。VS Code 会记住这次登录。
-:::
-::::
-
 登录之后，推送就会完成，并显示上面这段输出。它的意思是：
 
 - 前几行在清点、打包你的提交（“objects”是 Git 存储的一块块数据），然后把它们发送出去。你看到的数字会不一样。

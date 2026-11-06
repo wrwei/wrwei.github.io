@@ -487,7 +487,7 @@ def fig_09_1(L):
     T = {'en': dict(title='The daily routine', steps=[('git pull', 'start: get the latest'), ('edit', 'change your files'),
                                                       ('git add + git commit', 'save in small steps'), ('git push', 'finish: back up and share')],
                     repeat='repeat', next='next time'),
-         'zh': dict(title='每天的工作流程', steps=[('git pull', '开始：获取最新内容'), ('编辑', '修改你的文件'),
+         'zh': dict(title='日常流程', steps=[('git pull', '开始：获取最新内容'), ('编辑', '修改你的文件'),
                                                 ('git add + git commit', '分小步保存'), ('git push', '结束：备份并分享')],
                     repeat='重复', next='下一次')}[L]
     s = SVG(760, 250, T['title'])

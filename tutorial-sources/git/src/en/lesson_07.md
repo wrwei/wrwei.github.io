@@ -143,29 +143,7 @@ To https://github.com/your-username/my-page.git
 branch 'main' set up to track 'origin/main'.
 ```
 
-The first time, before this answer appears, Git has to check that you are allowed to write to
-this repository, so it asks you to sign in to GitHub:
-
-:::: tabs
-::: tab Windows
-A window from **Git Credential Manager** opens and asks you to sign in to GitHub. Choose to sign
-in with your browser. GitHub opens in your browser: sign in if asked, and approve the request.
-Then go back to VS Code. Git remembers the sign-in, so you only do this once.
-:::
-::: tab macOS
-VS Code shows a message: "The extension 'GitHub' wants to sign in using GitHub." Click **Allow**.
-Your browser opens GitHub: sign in if asked, and click the green button to authorise Visual Studio
-Code. If the browser asks whether to open VS Code, say yes. macOS keeps the sign-in in its
-keychain, so you only do this once.
-:::
-::: tab Linux
-VS Code shows a message: "The extension 'GitHub' wants to sign in using GitHub." Click **Allow**.
-Your browser opens GitHub: sign in if asked, and click the green button to authorise Visual Studio
-Code. If the browser asks whether to open VS Code, say yes. VS Code remembers the sign-in.
-:::
-::::
-
-When you are signed in, the push finishes with this answer. What it means:
+When you are signed in, the push finishes with the answer above. What it means:
 
 - The first lines count and pack up your commits ("objects" are the pieces Git stores) and send
   them. Your numbers will differ.

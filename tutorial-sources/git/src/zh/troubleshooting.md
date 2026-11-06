@@ -678,7 +678,7 @@ branch 'main' set up to track 'origin/main'.
 
 ### `GH007: Your push would publish a private email address`
 
-你的提交里含有你的真实邮箱地址，而你在 GitHub 上的邮箱设置会保护这个地址不被公开。按第 2 课第 5 步，改用 GitHub 给你的私密地址。然后查看哪些提交带有你的真实地址：`git log --format="%h %ae"`。如果只有最新的那个提交带有它，就运行 `git commit --amend --reset-author --no-edit`，然后再推送一次。如果更早的提交也带有它，只修改最新的那个提交是不够的：GitHub 只检查最新的提交，所以推送会成功，而你的地址会随着那些更早的提交被公开。改写旧的提交属于高级操作。如果你不介意这个地址在那些提交里公开，就在 GitHub 的 **Settings**（设置）> **Emails**（电子邮件）中取消勾选 **Block command line pushes that expose my email**（阻止会暴露我的电子邮件地址的命令行推送），推送，然后再把它勾选上。（重新勾选并不会隐藏你已经推送的提交里的地址。）
+你的提交里含有你的真实邮箱地址，而你在 GitHub 上的邮箱设置会保护这个地址不被公开。按第 2 课第 5 步，改用 GitHub 给你的私密地址。然后查看哪些提交带有你的真实地址：`git log --format="%h %ae"`。如果只有最新的那个提交带有它，就运行 `git commit --amend --reset-author --no-edit`，然后再推送一次。如果更早的提交也带有它，只修改最新的那个提交是不够的：GitHub 只检查最新的提交，所以推送会成功，而你的地址会随着那些更早的提交被公开。改写旧的提交属于高级操作。如果你不介意这个地址在那些提交里公开，就在 GitHub 的 **Settings**（设置）> **Emails**（电子邮件）中取消勾选 **Block command line pushes that expose my email**（阻止会暴露我的邮箱地址的命令行推送），推送，然后再把它勾选上。（重新勾选并不会隐藏你已经推送的提交里的地址。）
 
 ### 我推送了密码或私密文件
 
