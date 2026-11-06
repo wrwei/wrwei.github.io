@@ -19,8 +19,8 @@ without coming from your computer:
 - you work on another computer and push from there;
 - someone you work with pushes their work.
 
-`git pull` brings those commits to your computer. You will try all of this yourself, playing both
-parts.
+`git pull` brings those commits to your computer. You will try the first one yourself, playing
+both parts, and see how the others work.
 
 ## A change made on GitHub {#web-edit}
 
@@ -31,8 +31,9 @@ GitHub lets you edit files in the browser. Use it to add a line to your README:
 2. In the upper-right corner of the file, click the pencil icon to edit it.
 3. Add a blank line at the end, then this line, with your own username:
    `See it live: https://your-username.github.io/my-page/`
-4. Click **Commit changes...**. A box opens with the message "Update README.md". Leave it, and
-   leave **Commit directly to the main branch** selected. Click **Commit changes**.
+4. Click **Commit changes...**. A box opens with a ready-made message, "Update README.md". Leave
+   it. Choose to commit directly to the `main` branch, not to a new branch, then click **Commit
+   changes**.
 :::
 
 <!-- replay:
@@ -59,7 +60,8 @@ nothing to commit, working tree clean
 "Up to date"? Not really. `git status` compares your branch with `origin/main`, your computer's
 **note** of where `main` is on GitHub. That note is only refreshed when Git talks to GitHub, and
 it has not talked to GitHub since your last push. So `git status` cannot know about the new
-commit yet.
+commit yet. (If yours already says "Your branch is behind 'origin/main' by 1 commit", VS Code has
+talked to GitHub for you in the background. That is fine: carry on with `git pull`.)
 
 `git pull` talks to GitHub, updates the note and brings the new commits into your branch:
 
@@ -162,6 +164,10 @@ brings GitHub's commit to your computer and merges the two; then there is nothin
 away, and `git push` is accepted.
 :::
 
+Pull. Both sides have new commits, so, as in Lesson 5, Git makes a merge commit and opens a
+`MERGE_MSG` tab in VS Code with the message "Merge branch 'main' of
+https://github.com/your-username/my-page". Close the tab; the pull then finishes with this:
+
 ```terminal
 $ git pull
 remote: Enumerating objects: 5, done.
@@ -177,8 +183,7 @@ Merge made by the 'ort' strategy.
 ```
 
 The two changes were in different files, so Git merged them by itself, with a merge commit, as in
-Lesson 5. In the middle, VS Code opened a `MERGE_MSG` tab with the message "Merge branch 'main' of
-https://github.com/your-username/my-page"; close it to finish. Now push:
+Lesson 5. Click back in the terminal, and push:
 
 ```terminal
 $ git push
@@ -205,6 +210,9 @@ $ git log --oneline --graph -4
 * d369d96 Update README.md
 ```
 
+`origin/HEAD` marks the branch GitHub shows first, here `main`. You can ignore it. (Older versions
+of Git do not show it here.)
+
 ::: tip
 If the two sides had changed the same lines, `git pull` would have stopped with a conflict. You
 know what to do from Lesson 6: fix the file, `git add`, `git commit`, then `git push`.
@@ -224,6 +232,9 @@ To get a repository from GitHub onto a computer, for example a new laptop, or so
 project, you **clone** it. Cloning downloads the whole repository, with its full history, and sets
 up `origin` for you.
 
+To find any repository's address, open its page on GitHub, click the green **Code** button, check
+that **HTTPS** is selected, and copy the address.
+
 Try it with your own project, as if you were on a second computer. First go up one folder, out of
 `my-page`, so the copy does not end up inside it:
 
@@ -234,9 +245,13 @@ $ pwd
 ```
 
 `cd` ("change directory") moves the terminal to another folder, and `..` means "the folder
-above". Now clone, naming the new copy `my-page-laptop`:
+above". The answer should be your home folder (on Windows `/c/Users/you`, on Linux `/home/you`),
+not `my-page`.
 
-```terminal
+Now clone, naming the new copy `my-page-laptop`. Type the address with your own username: this
+box has no **Copy** button, because it contains `your-username`.
+
+```terminal nocopy
 $ git clone https://github.com/your-username/my-page.git my-page-laptop
 Cloning into 'my-page-laptop'...
 remote: Enumerating objects: 46, done.
@@ -247,7 +262,9 @@ Receiving objects: 100% (46/46), 5.05 KiB | 5.05 MiB/s, done.
 Resolving deltas: 100% (15/15), done.
 ```
 
-Look inside it:
+Look inside it. `cd my-page-laptop` moves the terminal into the copy. Only the terminal moves:
+VS Code's file list on the left still shows `my-page`, while your prompt now ends in
+`my-page-laptop`, which is where your commands run.
 
 ```terminal
 $ cd my-page-laptop
@@ -262,9 +279,9 @@ origin	https://github.com/your-username/my-page.git (fetch)
 origin	https://github.com/your-username/my-page.git (push)
 ```
 
-Everything is there: the files, the whole history, and `origin`, already connected. On a real
-second computer, you would open this folder in VS Code and work as usual: pull, change, commit,
-push.
+Everything is there: the files (perhaps listed in another order), the whole history, and
+`origin`, already connected. On a real second computer, you would open this folder in VS Code and
+work as usual: pull, change, commit, push.
 
 You do not need the copy any more. Go back to your project:
 
@@ -274,14 +291,17 @@ $ pwd
 /Users/you/my-page
 ```
 
-(You can delete the `my-page-laptop` folder whenever you like. It is only a copy.)
+You can delete the `my-page-laptop` folder whenever you like: it is only a copy. To delete it,
+open your home folder in File Explorer, Finder or Files, and move `my-page-laptop` (not
+`my-page`!) to the Recycle Bin or Trash.
 
 ::: trouble
 **`fatal: destination path 'my-page-laptop' already exists`.** A folder with that name is already
 there. Choose another name, or delete the old folder first.
 
-**The copy ended up inside `my-page`.** You cloned without `cd ..` first. Delete the copy (it is
-only a copy), then do it again from the folder above.
+**The copy ended up inside `my-page`.** You cloned without `cd ..` first. Delete the copy: in
+VS Code's file list, right-click `my-page-laptop` and choose **Delete**. Then do it again from the
+folder above.
 :::
 
 ## The daily routine {#routine}
@@ -318,9 +338,9 @@ If you always pull before you start, rejected pushes become rare.
 ```quiz
 ? You edited a file on GitHub. On your computer, `git status` says "Your branch is up to date with 'origin/main'". Why?
 - [ ] The edit on GitHub failed
-- [x] `git status` has not asked GitHub since your last push; it compares with an old note
-- [ ] `git status` only looks at your computer's files
-> `origin/main` is updated only when Git talks to GitHub, for example with `git pull`.
+- [x] Git has not talked to GitHub since your last push, so `origin/main`, the note `git status` compares with, is out of date
+- [ ] `git status` asked GitHub, and GitHub had nothing new
+> `git status` never asks GitHub. `origin/main` is updated only when Git talks to GitHub, for example with `git pull`.
 
 ? GitHub rejects your push with "(fetch first)". What do you do?
 - [ ] Delete the repository on GitHub and push again

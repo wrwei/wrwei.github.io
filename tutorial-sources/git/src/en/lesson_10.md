@@ -17,7 +17,8 @@ So far you have merged branches on your computer, by yourself. When people work 
 want to see a change *before* it goes into `main`: to check it, comment on it, and agree. GitHub's
 tool for this is the **pull request**: a page that says "please merge my branch into `main`",
 shows exactly what would change, and has a place to discuss it. When everyone is happy, a click
-merges it.
+merges it. The name means "please pull my branch into yours". It is not the `git pull` command:
+you create a pull request on GitHub's website.
 
 Pull requests are how almost every team on GitHub works, and how you suggest changes to someone
 else's project. Using them for your own project is good practice too, so you will do that now.
@@ -29,7 +30,15 @@ request, review it, merge it on GitHub, then pull `main` and delete the branch o
 
 ## Make a branch with a change {#branch}
 
-Start with the daily routine from Lesson 9: get the latest work first.
+Open `my-page` in VS Code with a terminal, and check that you are in `my-page`, not in
+`my-page-laptop`:
+
+```terminal
+$ pwd
+/Users/you/my-page
+```
+
+Then start with the daily routine from Lesson 9: get the latest work first.
 
 ```terminal
 $ git pull
@@ -78,7 +87,9 @@ $ git commit -m "Add a contact section"
 
 ## Push the branch {#push}
 
-Send the branch to GitHub. As with `main` in Lesson 7, use `-u` the first time:
+Send the branch to GitHub. GitHub has no `add-contact` yet, so a plain `git push` would not know
+where to send it. As with `main` in Lesson 7, use `-u` the first time: `-u origin add-contact`
+creates the branch on GitHub and pairs the two.
 
 ```terminal
 $ git push -u origin add-contact
@@ -99,33 +110,45 @@ branch 'add-contact' set up to track 'origin/add-contact'.
 ```
 
 The lines starting with `remote:` come from GitHub itself. It noticed a new branch and suggests a
-pull request, with a link. You can open the link, or go to the repository page as below.
+pull request, with a link. You can <kbd>Ctrl</kbd>+click the link (<kbd>Cmd</kbd>+click on a Mac)
+to open it, or go to the repository page as below.
+
+::: trouble
+**`fatal: The current branch add-contact has no upstream branch`.** You typed `git push` on its
+own. Run `git push -u origin add-contact`. (Git's own suggestion, `--set-upstream`, means the
+same as `-u`.)
+:::
 
 ## Open the pull request {#open}
 
 ::: where github
 1. Go to your repository's page. A yellow banner says that `add-contact` had recent pushes. Click
    **Compare & pull request**.
-2. The page shows *base* `main` and *compare* `add-contact`: "merge `add-contact` into `main`".
-   Below it are the commit and the changes.
-3. The title is filled in from your commit message, "Add a contact section". In the description
-   box, write a sentence about the change, for example: "Adds a short contact section at the end of
-   the page."
+2. The page shows *base* `main` and *compare* `add-contact`: you ask to merge `add-contact` into
+   `main`. Below it are the commit and the changes.
+3. The title box shows your commit message, "Add a contact section"; if it does not, type it. In
+   the description box, write a sentence about the change, for example: "Adds a short contact
+   section at the end of the page."
 4. Click **Create pull request**.
 :::
 
-Your pull request has a number, **#1**, and its own page with three tabs:
+Your pull request has a number, **#1**, and its own page with tabs. Three of them matter here:
 
 - **Conversation**: the description, comments, and the merge button at the bottom.
 - **Commits**: the commits on the branch.
 - **Files changed**: the diff, with added lines in green, as in `git diff`.
 
+(**Checks** shows automatic tests; your project has none.)
+
 ## Review it {#review}
 
 ::: where github
-Click **Files changed** and read the change. This is what a reviewer does. To comment on a line,
-hover over it and click the blue **+** that appears, write your comment, and add it. On your own
-project there is nobody to review it, so a careful read is enough.
+Click **Files changed** and read the change. This is what a reviewer does. On your own project
+there is nobody else to review it, so a careful read is enough.
+
+(Optional) To comment on a line, hover over it and click the blue comment icon that appears,
+write your comment, and click **Comment** (in some views, **Add single comment**). **Start a
+review** is for collecting several comments before sending them.
 :::
 
 The point of a review is to catch mistakes before they reach `main`, and on your project
@@ -149,9 +172,10 @@ gh-merge-pr your-username/my-page 1 add-contact "Add a contact section"
 gh-delete-branch your-username/my-page add-contact
 -->
 
-GitHub merged `add-contact` into `main` with a merge commit, exactly like `git merge` did on your
-computer in Lesson 5. Because `main` changed, GitHub Pages republishes your site: in a minute or
-two the contact section is online.
+GitHub merged `add-contact` into `main` with a merge commit, like the second merge in Lesson 5.
+GitHub always makes one, so that the history records the pull request, even when, as here,
+`git merge` on your computer would only have moved the label forward. Because `main` changed,
+GitHub Pages republishes your site: in a minute or two the contact section is online.
 
 ## Bring the merge home and tidy up {#tidy}
 
@@ -174,16 +198,20 @@ Fast-forward
  1 file changed, 2 insertions(+)
 ```
 
-("Up to date with 'origin/main'" was the old note again, as in Lesson 9.) Now delete the branch on
-your computer too:
+("Up to date with 'origin/main'" was the old note again, as in Lesson 9.) Your `main` had not
+moved, so it only has to move forward to GitHub's merge commit: that is why Git says
+"Fast-forward". Now delete the branch on your computer too:
 
 ```terminal
 $ git branch -d add-contact
 Deleted branch add-contact (was 8da60b7).
 ```
 
-Your computer still has a note of the branch on GitHub, `origin/add-contact`. `git fetch --prune`
-asks GitHub for news and removes notes of branches that no longer exist there:
+Your computer still has a note of the branch on GitHub, `origin/add-contact`. `git fetch` is the
+first half of `git pull`: it downloads news from GitHub and updates your notes, such as
+`origin/main`, but does not change your files or your branches. `--prune` (as a gardener prunes
+dead branches) also removes notes of branches that were deleted on GitHub. This is only tidying:
+nothing breaks if you forget it.
 
 ```terminal
 $ git fetch --prune
@@ -207,12 +235,14 @@ That is the whole pull request routine: **branch, commit, push, open, review, me
 delete.**
 
 ::: trouble
-**There is no yellow banner.** It disappears after a while. Click the **Pull requests** tab, then
-**New pull request**, and choose `add-contact` as the *compare* branch.
+**There is no yellow banner.** Click the **Pull requests** tab, then **New pull request**, and
+choose `add-contact` as the *compare* branch.
 
 **The merge button is grey and says there are conflicts.** `main` changed in the same lines since
-you made the branch. On your computer: `git switch add-contact`, `git merge main`, resolve the
-conflict as in Lesson 6, commit, and `git push`. The pull request updates, and you can merge.
+you made the branch, usually on GitHub. On your computer, first get GitHub's newest `main`:
+`git switch main`, then `git pull`. Then `git switch add-contact` and `git merge main`, resolve the
+conflict as in Lesson 6 (`git add`, `git commit`), and `git push`. The pull request updates, and
+you can merge.
 :::
 
 ## Working with other people {#others}
@@ -223,7 +253,8 @@ Everything you have done works the same when other people join in.
 
 ::: where github
 1. On your repository's page, click **Settings**.
-2. In the sidebar, under "Access", click **Collaborators**, then **Add people**.
+2. In the sidebar, under "Access", click **Collaborators**, then **Add people**. GitHub may first
+   ask you to confirm your password: that is a normal safety check.
 3. Type the person's GitHub username, choose them, and click the button to add them.
 :::
 
@@ -233,19 +264,28 @@ other reviews and merges. Everyone pulls `main` before starting new work.
 
 ### Suggest a change to someone else's project
 
-You cannot push to a project that is not yours. Instead, you make your own copy of it on GitHub,
-called a **fork**, and send your change from there:
+You cannot push to someone else's project unless they make you a collaborator. Instead, you make
+your own copy of it on GitHub, called a **fork**, and send your change from there:
 
 1. On the project's GitHub page, click **Fork** in the top-right corner, then **Create fork**.
    GitHub makes a copy under your account.
-2. Clone **your fork** to your computer (`git clone` with your fork's address), make a branch,
-   commit, and push it to your fork.
-3. On your fork's page, GitHub offers to open a pull request to the original project. Describe
-   your change and create it.
+2. Clone **your fork**, from your home folder (`cd ..` out of `my-page` first). To get its
+   address, open the fork's page, whose name starts with your username, click the green **Code**
+   button and copy the address. Then make a branch, commit, and push it to your fork.
+3. Go to the original project's page. GitHub shows a yellow banner for your branch there too:
+   click **Compare & pull request**, describe your change and create the pull request.
 4. The project's owners review it. They may ask for changes (you push more commits to your branch)
    and, if they like it, merge it.
 
-That is how millions of people contribute to open-source projects.
+That is how millions of people contribute to open-source projects. To practise,
+[github.com/firstcontributions/first-contributions](https://github.com/firstcontributions/first-contributions)
+is a project made for exactly this.
+
+::: trouble
+**`Permission to OWNER/PROJECT.git denied to your-username`, or `The requested URL returned error:
+403`.** You cloned the original project, not your fork. The address that `git remote -v` shows must
+contain your username. Clone your fork, and make your change there.
+:::
 
 ## What you learned {#summary}
 
@@ -284,7 +324,7 @@ That is how millions of people contribute to open-source projects.
 - [x] The merge commit was made on GitHub, so your computer does not have it yet
 - [ ] To delete the branch on GitHub
 - [ ] To undo the merge
-> Anything that happens on GitHub reaches your computer only when you pull.
+> Anything that happens on GitHub reaches your branch only when you pull.
 
 ? You want to suggest a change to a project you cannot push to. What is the first step?
 - [ ] Clone it and push to it

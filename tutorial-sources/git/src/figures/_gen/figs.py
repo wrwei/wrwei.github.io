@@ -165,10 +165,10 @@ def fig_01_2(L):
 def fig_03_1(L):
     T = {'en': dict(title='The three areas: working folder, staging area, repository',
                     cols=[('Working folder', 'your files, as you edit them'), ('Staging area', 'what goes into the next commit'),
-                          ('Repository (.git)', 'every commit, kept for good')],
+                          ('Repository (.git)', 'every commit you made')],
                     states=['new or changed', 'ready to commit', 'a commit'], status='git status shows what is in each place'),
          'zh': dict(title='三个区域：工作文件夹、暂存区、仓库',
-                    cols=[('工作文件夹', '你正在编辑的文件'), ('暂存区', '为下一次提交选定的改动'), ('仓库（.git）', '所有提交，永久保存')],
+                    cols=[('工作文件夹', '你正在编辑的文件'), ('暂存区', '为下一次提交选定的改动'), ('仓库（.git）', '你做过的每一个提交')],
                     states=['新建或修改', '准备提交', '一个提交'], status='git status 显示每个地方现在有什么')}[L]
     s = SVG(780, 300, T['title'])
     xs = [20, 295, 570]
@@ -225,24 +225,39 @@ def fig_04_1(L):
     return s
 
 
+def lesson_output(lesson, command):
+    """The output lines of the first replayed `$ command` in a lesson."""
+    text = open(os.path.join(ROOT, 'src', 'en', lesson), encoding='utf-8').read()
+    block = text.split('$ ' + command + '\n', 1)[1].split('```', 1)[0]
+    return block.rstrip('\n').split('\n')
+
+
 def fig_04_2(L):
-    T = {'en': dict(title='How to read git diff', notes=[(0, 3, 'which file'), (4, 4, 'where: around line 6'), (5, 6, 'unchanged lines, to show where'),
-                                                         (7, 7, 'a removed line (−, red)'), (8, 8, 'an added line (+, green)'), (9, 9, 'unchanged')]),
-         'zh': dict(title='如何阅读 git diff', notes=[(0, 3, '哪个文件'), (4, 4, '位置：大约第 6 行'), (5, 6, '未改动的行，用来定位'),
-                                                    (7, 7, '删除的行（−，红色）'), (8, 8, '添加的行（+，绿色）'), (9, 9, '未改动')])}[L]
-    rows = ['diff --git a/index.html b/index.html', 'index 7baeae6..1f0c2d4 100644', '--- a/index.html', '+++ b/index.html',
-            '@@ -6,5 +6,5 @@', ' </head>', ' <body>', "-  <h1>Hello, I'm learning Git!</h1>", '+  <h1>Welcome to my page!</h1>',
-            '   <p>This is my first web page.</p>']
-    s = SVG(760, 330, T['title'])
-    s.rect(20, 20, 450, 290, fill=C['term'], stroke=C['term'], r=12)
+    # The diff the reader has just made in Lesson 4, read from the lesson, so the two always agree.
+    rows = lesson_output('lesson_04.md', 'git diff')
+    at = next(i for i, r in enumerate(rows) if r.startswith('@@'))
+    line = re.match(r'@@ -(\d+)', rows[at]).group(1)
+    added = [i for i, r in enumerate(rows) if r.startswith('+') and i > at]
+    T = {'en': dict(title='How to read git diff', file='which file', where=f'where: around line {line}', ctx='unchanged lines, to show where',
+                    add='an added line (+, green)', after='unchanged', rem='A removed line would start with − and be red.'),
+         'zh': dict(title='如何阅读 git diff', file='哪个文件', where=f'位置：大约第 {line} 行', ctx='未改动的行，用来定位',
+                    add='添加的行（+，绿色）', after='未改动', rem='删除的行以 − 开头，显示为红色。')}[L]
+    notes = [(0, at - 1, T['file']), (at, at, T['where']), (at + 1, added[0] - 1, T['ctx'])]
+    notes += [(i, i, T['add']) for i in added]
+    if added[-1] + 1 < len(rows):
+        notes.append((added[-1] + 1, len(rows) - 1, T['after']))
+    h = 52 + len(rows) * 26 + 40
+    s = SVG(760, h, T['title'])
+    s.rect(20, 20, 450, len(rows) * 26 + 20, fill=C['term'], stroke=C['term'], r=12)
     for i, r in enumerate(rows):
-        col = '#F3F4F6' if i < 4 else '#22D3EE' if i == 4 else '#F87171' if r.startswith('-') else '#4ADE80' if r.startswith('+') else '#D1D5DB'
-        s.text(36, 52 + i * 26, r, size=12.5, mono=True, fill=col, weight=600 if i < 4 else 400, extra=' xml:space="preserve"')
-    for a, b, note in T['notes']:
+        col = '#F3F4F6' if i < at else '#22D3EE' if i == at else '#F87171' if r.startswith('-') else '#4ADE80' if r.startswith('+') else '#D1D5DB'
+        s.text(36, 52 + i * 26, r, size=12.5, mono=True, fill=col, weight=600 if i < at else 400, extra=' xml:space="preserve"')
+    for a, b, note in notes:
         y1, y2 = 52 + a * 26 - 13, 52 + b * 26 + 5
-        col = C['red'] if 'red' in note or '红' in note else C['green'] if 'green' in note or '绿' in note else C['slate']
+        col = C['green'] if note == T['add'] else C['slate']
         s.path(f'M480 {y1} h8 v{y2 - y1} h-8', stroke=col, sw=1.6)
         s.text(498, (y1 + y2) / 2 + 4.5, note, size=13, fill=col, weight=600 if col != C['slate'] else 400)
+    s.text(20, h - 16, T['rem'], size=12.5, fill=C['red'])
     return s
 
 

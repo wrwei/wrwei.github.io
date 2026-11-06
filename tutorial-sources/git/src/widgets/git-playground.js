@@ -8,7 +8,7 @@
   var zh = (document.documentElement.lang || '').indexOf('zh') === 0
   var T = zh ? {
     edit: '编辑 index.html', start: '重新开始', working: '工作文件夹', staging: '暂存区', repo: '仓库',
-    empty: '（空）', noCommits: '（还没有提交）', nothing: '没有可提交的内容：先运行 git add。', version: '版本',
+    empty: '（空）', noCommits: '（还没有提交）', version: '版本',
     commitN: function (n) { return '提交 ' + n }, edited: function (v) { return '你编辑了 index.html（现在是第 ' + v + ' 版）。' },
     commit: '提交', newBranch: '新建分支并切换', switchTo: '切换', mergeInto: '合并到当前分支', branchName: '分支名',
     badName: '分支名不能为空，也不能有空格。', exists: function (b) { return '已经有一个叫 ' + b + ' 的分支。' },
@@ -16,7 +16,7 @@
     numbered: '在这个演示里，提交用编号（c1、c2……）代替哈希值。',
   } : {
     edit: 'Edit index.html', start: 'Start again', working: 'Working folder', staging: 'Staging area', repo: 'Repository',
-    empty: '(empty)', noCommits: '(no commits yet)', nothing: 'Nothing to commit: run git add first.', version: 'version',
+    empty: '(empty)', noCommits: '(no commits yet)', version: 'version',
     commitN: function (n) { return 'Commit ' + n }, edited: function (v) { return 'You edited index.html (it is now version ' + v + ').' },
     commit: 'Commit', newBranch: 'New branch and switch', switchTo: 'Switch', mergeInto: 'Merge into current branch', branchName: 'branch name',
     badName: 'A branch name cannot be empty or contain spaces.', exists: function (b) { return 'There is already a branch called ' + b + '.' },
@@ -87,7 +87,9 @@
       if (kind === 'edit') { s.work += 1; s.last = [T.edited(s.work)] }
       if (kind === 'add') { s.index = s.work; s.last = ['$ git add index.html'] }
       if (kind === 'commit') {
-        if (s.index === null || s.index === s.head) s.last = ['$ git commit -m "..."', T.nothing]
+        // Nothing staged: Git prints the status and refuses, saying "Initial commit" where
+        // git status says "No commits yet" (wt-status.c, commit_template).
+        if (s.index === null || s.index === s.head) s.last = ['$ git commit -m "..."'].concat(STATUS[statusKey()].replace('No commits yet', 'Initial commit').split('\n'))
         else {
           var n = s.commits.length + 1
           s.commits.push({ n: n, ver: s.index })

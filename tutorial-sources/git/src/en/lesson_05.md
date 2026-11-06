@@ -63,7 +63,8 @@ You are now on `dark-theme`. Nothing else has changed yet: both branches point a
 
 ## Try the dark theme {#dark}
 
-Change three colours in `style.css`, the highlighted lines:
+Change three colours in `style.css`, the highlighted lines (copy the box and paste it over the
+whole file, as in Lesson 4):
 
 ```file style.css
 body {
@@ -80,7 +81,8 @@ h1 {
 }
 ```
 
-Reload the page in your browser: it is dark. Commit the change, on this branch:
+Reload the page in your browser (if it is not open, open it as in Lesson 3): it is dark. Commit
+the change, on this branch:
 
 ```terminal
 $ git add style.css
@@ -137,6 +139,10 @@ do not want it, throw it away with `git restore`), then switch.
 
 **`fatal: a branch named 'dark-theme' already exists`.** You already made it. Switch to it without
 `-c`: `git switch dark-theme`.
+
+**`git switch` printed `M` and a file name before "Switched to branch", and the page stayed
+dark.** You had not committed your change to that file, so it came with you to the other branch.
+Switch back (`git switch dark-theme`), then `git add` and `git commit` the file there.
 :::
 
 ## Bring the change into main: git merge {#merge}
@@ -272,7 +278,14 @@ $ git log --oneline --graph --all
 * c50e3a0 Add my first web page
 ```
 
-Read it from the bottom up: four shared commits, then the line splits in two. Now merge:
+Read it from the bottom up: four shared commits, then the line splits in two.
+
+Now merge. This merge needs one thing from you, so read this before you type the command. Git
+opens a tab called `MERGE_MSG` in VS Code with the message for the merge commit,
+`Merge branch 'add-hobbies'`, and the terminal waits with "hint: Waiting for your editor to close
+the file...". The message is fine as it is: **close the tab** (click the × on it). Git then
+finishes the merge, the waiting line disappears, and the terminal shows what is below. Click back
+in the terminal before you type the next command.
 
 ```terminal
 $ git merge add-hobbies
@@ -282,13 +295,8 @@ Merge made by the 'ort' strategy.
  1 file changed, 5 insertions(+)
 ```
 
-This merge has a step in the middle. After "Auto-merging index.html" (Git is combining the two
-versions of the file), Git opens a tab called `MERGE_MSG` in VS Code, and the terminal waits with
-"hint: Waiting for your editor to close the file...". Git is asking you to check the message for
-the merge commit. The first line, `Merge branch 'add-hobbies'`, is fine as it is. **Close the
-tab** (click the × on it). The merge finishes, and the terminal prints the rest of the lines above.
-
-This time Git could not just move a label forward, so it made a new commit, a **merge commit**,
+"Auto-merging index.html" means that Git combined the two versions of the file. This time Git
+could not just move a label forward, so it made a new commit, a **merge commit**,
 that joins the two lines. "ort" is the name of the method Git uses to combine them; you can
 ignore it.
 
@@ -325,10 +333,19 @@ Deleted branch add-hobbies (was b8140ac).
 **The terminal says "Waiting for your editor to close the file..." and nothing happens.** Git is
 waiting for you to close the `MERGE_MSG` tab in VS Code. Find the tab and close it.
 
+**`error: there was a problem with the editor 'code --wait'`.** Git could not start VS Code,
+because the terminal cannot find VS Code's `code` command. On a Mac, do Lesson 2, Step 2, item 3;
+on Windows and Linux, close VS Code completely and open it again. The merge is not finished yet:
+once `code` works, type `git commit` and close the tab that opens.
+
 **The terminal filled with a strange screen with `~` down the left side.** Git opened the editor
-Vim instead of VS Code (the `core.editor` setting from Lesson 2 is missing, or VS Code's `code`
-command cannot be found). Type `:wq` and press <kbd>Enter</kbd> to accept the message and finish
-the merge. Then set the editor again: `git config --global core.editor "code --wait"`.
+Vim, because no editor is set (the `core.editor` setting from Lesson 2 is missing). Press
+<kbd>Esc</kbd>, type `:wq` and press <kbd>Enter</kbd> to accept the message and finish the merge.
+Then set the editor: `git config --global core.editor "code --wait"`.
+
+**The terminal shows `GNU nano` at the top.** The same on Linux, with the editor nano. Press
+<kbd>Ctrl</kbd>+<kbd>X</kbd> to accept the message and finish the merge. Then set the editor as
+above.
 :::
 
 ## Try it: branches in pictures {#try}
@@ -389,5 +406,5 @@ current branch.
 - [x] It stays, because it is part of `main`
 - [ ] It is deleted
 - [ ] It moves to a new branch
-> Deleting a branch removes only the label. Git refuses `-d` if the commits are not merged anywhere, so you cannot lose them by accident.
+> Deleting a branch removes only the label. Git refuses `-d` if the branch's commits are not in the branch you are on, so you cannot lose them by accident.
 ```

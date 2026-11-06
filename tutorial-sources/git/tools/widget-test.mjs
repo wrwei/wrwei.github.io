@@ -39,6 +39,8 @@ async function open(file, widget) {
 {
   const w = await open(`lesson_03_${suffix}.html`, 'three-areas')
   check((await w.term()).includes('Untracked files:'), 'three-areas starts with an untracked file')
+  await w.nth(2)   // commit before any add: Git's own refusal, with "Initial commit"
+  check((await w.term()).includes('Initial commit') && (await w.term()).includes('nothing added to commit but untracked files present'), 'commit before add prints what Git prints')
   await w.nth(1)   // git add
   check((await w.term()).includes('new file:   index.html'), 'git add stages the new file')
   await w.nth(0)   // edit
@@ -48,7 +50,7 @@ async function open(file, widget) {
   await w.nth(1); await w.nth(2)
   check((await w.term()).includes('nothing to commit, working tree clean'), 'add and commit again: clean')
   await w.nth(2)
-  check((await w.term()).split('\n').length > 2 && (await w.term()).includes('git commit'), 'commit with nothing staged explains itself')
+  check(((await w.term()).match(/nothing to commit, working tree clean/g) || []).length === 2, 'commit with nothing staged prints what Git prints')
   const n = await w.page.evaluate(root => document.querySelectorAll(root + ' .gw-chip.commit').length, w.root)
   check(n === 2, `two commits in the repository column (found ${n})`)
   const el = await w.page.$(w.root)

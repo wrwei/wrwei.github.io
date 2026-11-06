@@ -104,7 +104,8 @@ Automatic merge failed; fix conflicts and then commit the result.
 ```
 
 "CONFLICT ... in index.html": Git combined what it could, and left the rest for you. The merge is
-now **in progress**: Git is waiting for you to finish it.
+now **in progress**: Git is waiting for you to finish it. (On Windows, Git Bash's prompt shows
+`(main|MERGING)` until the merge is finished or stopped.)
 
 ## See what Git needs from you {#status}
 
@@ -126,6 +127,31 @@ no changes added to commit (use "git add" and/or "git commit -a")
 
 "Both modified" means both branches changed `index.html` in a way Git could not combine. The
 hints give you the plan: fix the conflicts, `git add` the file, then `git commit`. Or abort.
+
+## The emergency exit: git merge --abort {#abort}
+
+Before you solve the conflict, try the emergency exit, so that you know it works. If you are in
+the middle of a merge and want to stop, for example because you are not sure which version is
+right, `git merge --abort` takes you back to how things were before you typed `git merge`:
+
+```terminal
+$ git merge --abort
+$ git status
+On branch main
+nothing to commit, working tree clean
+```
+
+Everything is back to its state before the merge: your heading says "Hello and welcome!" again.
+Nothing is lost, and you can merge again whenever you like. Do it now:
+
+```terminal
+$ git merge new-heading
+Auto-merging index.html
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+The same conflict, ready for you to solve.
 
 ## Read the conflict {#markers}
 
@@ -172,6 +198,9 @@ VS Code helps. It colours the two versions and puts clickable links above them:
 - **Accept Both Changes** keeps both, one after the other.
 - **Compare Changes** shows them side by side.
 
+VS Code may also show a **Resolve in Merge Editor** button. You do not need it: the links are
+simpler.
+
 ## Resolve it {#resolve}
 
 Decide which heading you want. Here, keep "Welcome to my page!": click **Accept Incoming Change**.
@@ -202,6 +231,17 @@ file must end up like this, with no markers left:
 You are not limited to the two versions. You could write a third heading of your own: whatever
 you leave in the file is what the merge will contain.
 
+::: trouble
+**I clicked the wrong link.** Press <kbd>Ctrl</kbd>+<kbd>Z</kbd> (<kbd>Cmd</kbd>+<kbd>Z</kbd> on a
+Mac) to undo it, or edit the file by hand until it looks like the one above.
+:::
+
+::: pitfall
+Before you `git add` a file with a conflict, check that no marker lines are left: a forgotten
+`=======` ends up in your page. In VS Code, search the file (<kbd>Ctrl</kbd>+<kbd>F</kbd>, or
+<kbd>Cmd</kbd>+<kbd>F</kbd> on a Mac) for `<<<<<<<`, `=======` and `>>>>>>>`.
+:::
+
 Tell Git the conflict is solved by adding the file:
 
 ```terminal
@@ -215,15 +255,16 @@ Changes to be committed:
 	modified:   index.html
 ```
 
-"All conflicts fixed". Finish the merge with `git commit`, without `-m`:
+"All conflicts fixed". Finish the merge with `git commit`, without `-m`. Read this before you type
+it: as in Lesson 5, VS Code opens a tab, this time called `COMMIT_EDITMSG`. Its first line,
+`Merge branch 'new-heading'`, is the message. The lines below it that start with `#` are notes,
+which Git leaves out of the commit; one of them mentions `git update-ref`, which you do not need.
+Close the tab to accept the message, and the commit is made. Then click back in the terminal.
 
 ```terminal
 $ git commit
 [main 7f70e05] Merge branch 'new-heading'
 ```
-
-As in Lesson 5, VS Code opens a tab with a ready-made message, `Merge branch 'new-heading'`.
-Close the tab to accept it, and the commit is made.
 
 ```terminal
 $ git log --oneline --graph -4
@@ -244,30 +285,17 @@ $ git branch -d new-heading
 Deleted branch new-heading (was e54afda).
 ```
 
-::: pitfall
-Before you `git add` a file with a conflict, check that no marker lines are left. A forgotten
-`=======` ends up in your page. In VS Code, search the file for `<<<<<<<`
-(<kbd>Ctrl</kbd>+<kbd>F</kbd>, or <kbd>Cmd</kbd>+<kbd>F</kbd> on a Mac).
-:::
-
-## Changed your mind? git merge --abort {#abort}
-
-If you are in the middle of a conflicted merge and want to stop, for example because you are not
-sure which version is right, you can go back to how things were before you typed `git merge`:
-
-```terminal norun
-$ git merge --abort
-```
-
-Everything returns to its state before the merge. Nothing is lost, and you can merge again later.
-
 ::: trouble
-**`fatal: cannot switch branch while merging`**, or `error: Merging is not possible because you
-have unmerged files`. A merge is still in progress. Finish it (fix, `git add`, `git commit`) or abort it with
-`git merge --abort`.
+**`fatal: cannot switch branch while merging`**, `error: Merging is not possible because you have
+unmerged files`, or `fatal: You have not concluded your merge (MERGE_HEAD exists)`. A merge is
+still in progress. Finish it (fix the file, `git add`, `git commit`) or stop it with
+`git merge --abort`. Do not use `git merge --quit`, which Git also suggests: it leaves the
+half-finished merge in your files.
 
-**The page shows `<<<<<<< HEAD` in the browser.** The markers were committed by mistake. Remove
-them from the file, then `git add` and `git commit` again.
+**The page shows `<<<<<<< HEAD` in the browser.** The marker lines are still in the file. Remove
+them, then `git add index.html`. If the merge is still in progress, `git commit` finishes it. If
+you already committed the merge, save the fix as a new commit:
+`git commit -m "Remove conflict markers"`.
 :::
 
 ## Fewer conflicts {#fewer}

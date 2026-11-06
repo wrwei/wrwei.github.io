@@ -31,8 +31,15 @@ quickly next time.
 
 ## Change your page {#edit}
 
-Add a line about yourself to `index.html`. The highlighted line is the one to add; write about
-yourself if you like, but use this text if you want your outputs to match this lesson exactly.
+Add a line about yourself to `index.html`. The box below shows the whole file, with the line to
+add highlighted. Use this text if you want your outputs to match this lesson exactly.
+
+The safest way to change a file, here and in every lesson: click **Copy** on the box, click in
+`index.html` in VS Code, press <kbd>Ctrl</kbd>+<kbd>A</kbd> (<kbd>Cmd</kbd>+<kbd>A</kbd> on a
+Mac) to select everything, and paste over it with <kbd>Ctrl</kbd>+<kbd>V</kbd>
+(<kbd>Cmd</kbd>+<kbd>V</kbd>). The file then matches the box exactly. If you type the line
+instead, remember that VS Code adds the closing `</p>` as soon as you type `<p>`: type only the
+sentence after it.
 
 ```file index.html
 <!DOCTYPE html>
@@ -101,13 +108,15 @@ In your terminal, added lines are green and removed lines are red.
 ::: tip
 VS Code shows the same thing in pictures. Click the **Source Control** icon in the bar on the left
 (it looks like a branching line), then click `index.html` under "Changes". VS Code shows the old and
-new versions side by side.
+new versions side by side. To get back to your files, click the top icon of the same bar (two
+sheets of paper).
 :::
 
 ::: trouble
 **`git diff` prints nothing.** Either the change is not saved yet (a dot on the file's tab in
-VS Code means unsaved), or you already ran `git add`: `git diff` only shows changes that are not
-staged. To see staged changes, use `git diff --staged`.
+VS Code means unsaved: press <kbd>Ctrl</kbd>+<kbd>S</kbd>, or <kbd>Cmd</kbd>+<kbd>S</kbd> on a
+Mac), or you already ran `git add`: `git diff` only shows changes that are not staged. To see
+staged changes, use `git diff --staged`.
 
 **I see a `:` or `(END)` at the bottom and cannot type.** The output was longer than the screen.
 Press <kbd>q</kbd>.
@@ -129,7 +138,7 @@ Two commits now. Each one is a snapshot you can come back to.
 ## Add a second file {#css}
 
 Give your page some colour. Create a new file called `style.css`, the same way you created
-`index.html` (**New File...** in the Explorer):
+`index.html` (**New File...** in the Explorer), and paste this text into it:
 
 ```file style.css
 body {
@@ -146,7 +155,8 @@ h1 {
 }
 ```
 
-Then tell the page to use it: add the highlighted line to `index.html`.
+Then tell the page to use it: add the highlighted line to `index.html` (copy the box, select
+everything in the file, paste).
 
 ```file index.html
 <!DOCTYPE html>
@@ -164,7 +174,9 @@ Then tell the page to use it: add the highlighted line to `index.html`.
 </html>
 ```
 
-If your page is open in the browser, reload it: the heading is blue and the text is centred.
+If your page is open in the browser, reload it (<kbd>F5</kbd>, or <kbd>Cmd</kbd>+<kbd>R</kbd> on a
+Mac): the background turns cream, the font changes, the heading turns blue, and the text sits in a
+column in the middle of the window.
 
 ```terminal
 $ git status
@@ -259,6 +271,10 @@ usually work.
 **`fatal: ambiguous argument '358630b': unknown revision or path not in the working tree`.**
 You typed the hash from this page. Your hashes are different: copy one from your own
 `git log --oneline`.
+
+**The output stops, with `:` at the bottom.** It is longer than the terminal panel. Press
+<kbd>Space</kbd> to see the rest, and <kbd>q</kbd> to get your prompt back. To make the panel
+taller, drag its top edge up.
 :::
 
 ## Throw away a change you do not want: git restore {#restore}
@@ -292,7 +308,8 @@ Changes not staged for commit:
 no changes added to commit (use "git add" and/or "git commit -a")
 ```
 
-Look at the second hint: `git restore` puts a file back the way it was in your last commit.
+Look at the second hint: `git restore` throws away the changes you have not added with
+`git add`. Nothing is staged here, so the file goes back to how it was in your last commit.
 
 ```terminal
 $ git restore index.html
@@ -304,8 +321,8 @@ nothing to commit, working tree clean
 Look at `index.html` in VS Code: the heading and your sentence are back.
 
 ::: pitfall
-`git restore` throws your uncommitted changes in that file away for good. Git cannot bring them
-back, because they were never in a commit. Use it only when you are sure.
+`git restore` throws those changes away for good. Git cannot bring them back, because they were
+never in a commit. Use it only when you are sure.
 :::
 
 ## Write messages your future self will thank you for {#messages}
@@ -328,7 +345,8 @@ In a few months, your commit messages are all you will remember about each chang
 - `git diff` shows what changed and is not yet staged: `+` added, `-` removed.
 - `git add .` stages every change in the folder. Check `git status` first.
 - `git log --oneline` lists your history, one commit per line; `git show HASH` shows one commit.
-- `git restore FILE` throws away uncommitted changes to a file. They cannot be recovered.
+- `git restore FILE` throws away changes to a file that you have not staged. They cannot be
+  recovered.
 - A good message says what the commit does, briefly.
 
 | Command | What it does |
@@ -338,7 +356,7 @@ In a few months, your commit messages are all you will remember about each chang
 | `git add .` | Stages every change in the current folder |
 | `git log --oneline` | Lists commits, one per line |
 | `git show HASH` | Shows one commit and its changes |
-| `git restore FILE` | Discards uncommitted changes to a file |
+| `git restore FILE` | Discards changes to a file that are not staged |
 
 ## Check yourself {#quiz}
 

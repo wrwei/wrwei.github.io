@@ -20,8 +20,8 @@ Your page will be at this address, with your own username:
 `https://your-username.github.io/my-page/`
 
 Two conditions: on a free GitHub account the repository must be **public** (yours is, from
-Lesson 7), and `index.html` must be at the top level of the branch you publish, not in a
-subfolder.
+Lesson 7), and `index.html` must be at the top level of the folder you publish: here, the top of
+`main`.
 
 ## Turn on GitHub Pages {#enable}
 
@@ -57,7 +57,7 @@ Send the address to a friend: anyone can open it.
 
 ::: tip
 To watch GitHub publish your site, open the **Actions** tab of your repository. Each publication
-appears there as a run called "pages build and deployment", with a green tick when it is done.
+appears there as a workflow run, with a green tick when it is done.
 :::
 
 ## Change the page and publish again {#update}
@@ -107,21 +107,27 @@ Wait a minute, then reload your site in the browser. The new sentence is there.
 
 ::: tip
 Browsers keep copies of pages they have shown. If you do not see your change, force a fresh copy:
-<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows and Linux, <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>
-on a Mac.
+<kbd>Ctrl</kbd>+<kbd>F5</kbd> on Windows and Linux; on a Mac,
+<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> (in Safari,
+<kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>R</kbd>).
 :::
 
 ::: trouble
-**"404: There isn't a GitHub Pages site here."** Wait a few minutes: the first publication takes
+**A 404 page: "There isn't a GitHub Pages site here."** Wait a few minutes: the first publication takes
 longest. If it stays, check in the Pages settings that the source is `main` and `/ (root)`, and
 that your file is called exactly `index.html`, at the top of the repository.
 
 **The page appears, but without its colours.** The browser cannot find `style.css`. On the web,
-file names are case-sensitive: `Style.css` and `style.css` are different files. Check that the
-name in the `<link>` line matches the file's name exactly.
+file names are case-sensitive: `Style.css` and `style.css` are different files. Change the
+`<link>` line so that it matches the file's name exactly as GitHub lists it. (On Windows and
+macOS, Git does not notice a rename from `Style.css` to `style.css`, so renaming the file does
+not help.)
 
-**Settings has no Pages option, or it asks you to upgrade.** The repository is private. On a free
-account, Pages needs a public repository.
+**Settings has no Pages option, or the Pages settings ask you to upgrade.** The repository is
+private. On a free account, Pages needs a public repository. Make it public: in **Settings**, on
+the **General** page, scroll down to "Danger Zone", click **Change visibility**, and follow the
+confirmations to make the repository public. (The section is called "Danger Zone", but for this
+project the change is safe.)
 
 **My change does not appear.** Run `git status`. If it says your branch is ahead of
 `origin/main`, you have not pushed yet. If you have pushed, wait a minute and force a fresh copy
@@ -134,8 +140,13 @@ of the page (see the tip above).
   `https://your-username.github.io/REPOSITORY/`.
 - You turn it on once: **Settings** > **Pages** > **Deploy from a branch** > `main`, `/ (root)` >
   **Save**.
-- After that, every push to `main` updates the site within a minute or two.
+- After that, every push to `main` updates the site, usually within a minute or two (GitHub says
+  it can take up to ten).
 - File names on the web are case-sensitive.
+
+| Commands | What they do |
+|---|---|
+| `git add FILE`, `git commit -m "..."`, `git push` | Together: publish a change to your site |
 
 ## Check yourself {#quiz}
 
