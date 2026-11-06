@@ -19,7 +19,7 @@ lead: 本系列的所有命令都在这一页上，按任务分组，另附日�
 |---|---|---|
 | `git --version` | 显示 Git 已经安装，以及它的版本 | 2 |
 | `git config --global user.name "NAME"` | 设置记录在你的提交里的名字 | 2 |
-| `git config --global user.email "EMAIL"` | 设置记录在你的提交里的邮箱地址（请使用你在 GitHub 上的 noreply 地址） | 2 |
+| `git config --global user.email "EMAIL"` | 设置记录在你的提交里的邮箱地址（请使用 GitHub 给你的私密地址） | 2 |
 | `git config --global init.defaultBranch main` | 把新项目的第一个分支命名为 `main` | 2 |
 | `git config --global core.editor "code --wait"` | 当 Git 需要你写说明时，使用 VS Code | 2 |
 | `git config --global pull.rebase false` | 让 `git pull` 用合并的方式把工作结合起来 | 2 |

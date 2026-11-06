@@ -135,7 +135,7 @@ nothing to commit (create/copy files and use "git add" to track)
 </html>
 ```
 
-学这个系列不需要懂 HTML。要紧的只有 `<h1>`（标题）和 `<p>`（段落）这两行。你以后可以把网页改成中文，但现在请先照抄英文：后面几课的输出都以这些文字为准。
+学这个系列不需要懂 HTML。要紧的只有 `<h1>`（标题）和 `<p>`（段落）这两行。你以后可以把网页改成中文，但现在请先保留这些英文：后面几课的输出都以它们为准。
 
 想看看它作为网页是什么样子吗？在 Explorer 中右键点击 `index.html`，Windows 上选择 **Reveal in File Explorer**（在文件资源管理器中显示），macOS 上选择 **Reveal in Finder**（在访达中显示），Linux 上选择 **Open Containing Folder**（打开所在的文件夹）。然后双击 `index.html`，它就会在你的网页浏览器中打开。
 
@@ -159,7 +159,7 @@ nothing added to commit but untracked files present (use "git add" to track)
 Git 注意到了这个新文件，但它是**未跟踪**（untracked）的：Git 看得见它，但还没有开始管理它。注意，Git 在括号里告诉了你下一步该做什么。`git status` 经常这样做；拿不准的时候，就运行它，读一读这些提示。
 
 ::: trouble
-**在 Mac 上，`git status` 还列出了 `.DS_Store`。**这是 Finder（访达）创建的隐藏文件。[第 2 课第 6 步](lesson_02_ZH.html#defaults)的末尾有一段写给 Mac 的说明，输入其中的两条命令，然后再运行一次 `git status`：`.DS_Store` 就不会再出现了。
+**在 Mac 上，`git status` 还列出了 `.DS_Store`。**这是 Finder（访达）创建的隐藏文件。输入[第 2 课第 6 步](lesson_02_ZH.html#defaults)中“在 Mac 上，还要多做一项设置”里的两条命令，然后再运行一次 `git status`：`.DS_Store` 就不会再出现了。
 :::
 
 ## 选好要放进快照的内容：git add {#add}
@@ -270,10 +270,10 @@ Date:   Wed Nov 4 10:11:00 2026 +0000
 `git status` 会告诉你此刻每个地方都有什么。在下面试一试：按任意顺序点击按钮，看看 `index.html` 在哪里，`git status` 又说了什么。
 
 ::: widget name=three-areas
-一个只有一个文件的小仓库模型。试试先点 **Edit index.html**（编辑 index.html），然后不点 **git add**，直接点 **git commit**；再试试点过 **git add** *之后*，再编辑一次文件。演示里 `git status` 的文字，就是 Git 在每种情况下实际打印的内容。
+一个只有一个文件的小仓库模型。试试先点 **编辑 index.html**，然后不点 **git add**，直接点 **git commit**；再试试点过 **git add** *之后*，再编辑一次文件。演示里 `git status` 的文字，就是 Git 在每种情况下实际打印的内容。
 :::
 
-## 本课小结 {#summary}
+## 小结 {#summary}
 
 - `git init` 把一个文件夹变成仓库，每个项目只需一次。历史记录就保存在 `.git` 里。
 - 保存快照分两步：`git add` 负责选择，`git commit -m "..."` 负责保存。
@@ -290,7 +290,7 @@ Date:   Wed Nov 4 10:11:00 2026 +0000
 | `git commit -m "MESSAGE"` | 把已暂存的改动保存为一个提交 |
 | `git log` | 列出提交（按 <kbd>q</kbd> 退出） |
 
-## 自我检测 {#quiz}
+## 自测题 {#quiz}
 
 ```quiz
 ? 你看到了 `fatal: not a git repository`。最可能的原因是什么？

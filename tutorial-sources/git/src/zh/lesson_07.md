@@ -72,7 +72,7 @@ origin	https://github.com/your-username/my-page.git (push)
 
 ## 发送你的提交：git push {#push}
 
-第一次推送时，Git 需要确认你有权限写入这个仓库，所以会要求你登录 GitHub。先阅读你所用系统的选项卡，然后再输入命令。你登录的时候，终端会一直等着，这是正常的。
+第一次推送时，Git 需要确认你有权限写入这个仓库，所以会要求你登录 GitHub。先阅读你所用系统的标签页，然后再输入命令。你登录的时候，终端会一直等着，这是正常的。
 
 :::: tabs
 ::: tab Windows
@@ -134,13 +134,13 @@ VS Code 会显示一条消息：“The extension 'GitHub' wants to sign in using
 
 **`Repository not found`**（找不到仓库）。地址错了（里面写的是不是 `your-username`，而不是你自己的用户名？），或者这个仓库不存在。把 `git remote -v` 显示的地址和 GitHub 上的地址对比一下，然后用 `git remote set-url` 改正（见上文）。
 
-**`Permission to your-username/my-page.git denied to ...`**（拒绝了 ... 对 your-username/my-page.git 的访问权限），或者 **`The requested URL returned error: 403`**（请求的 URL 返回了错误 403）。Git 用另一个 GitHub 账号登录了，也就是“denied to”后面写的那个账号。删除保存的登录信息：在 Windows 上，在开始菜单中搜索并打开 **Credential Manager**（凭据管理器），在 **Windows Credentials**（Windows 凭据）下删除 `git:https://github.com` 这一项；在 macOS 上，打开 **Keychain Access**（钥匙串访问）应用，删除 `github.com` 这一项；在 VS Code 中，点击左侧栏底部的 **Accounts**（账户）图标，然后退出登录。之后再推送一次，用你自己的账号登录。
+**`Permission to your-username/my-page.git denied to ...`**（拒绝了 ... 对 your-username/my-page.git 的访问权限），或者 **`The requested URL returned error: 403`**（请求的 URL 返回了错误 403）。Git 用另一个 GitHub 账号登录了，也就是“denied to”后面写的那个账号。删除保存的登录信息：在 Windows 上，在开始菜单中搜索并打开 **Credential Manager**（凭据管理器），在 **Windows Credentials**（Windows 凭据）下删除 `git:https://github.com` 这一项；在 macOS 上，打开 **Keychain Access**（钥匙串访问）应用，删除 `github.com` 这一项；在 VS Code 中，点击左侧竖栏底部的 **Accounts**（账户）图标，然后退出登录。之后再推送一次，用你自己的账号登录。
 
 **`error: src refspec main does not match any`**（错误：源引用 main 没有匹配到任何内容）。你没有叫 `main` 的分支。运行 `git branch`：如果你的分支叫 `master`，就用 `git branch -M main` 给它改名，然后再推送一次。
 
 **`! [rejected] main -> main (fetch first)`**（被拒绝：请先获取）。GitHub 上的仓库不是空的，比如因为当时 **Add README** 是打开的。运行 `git pull origin main --allow-unrelated-histories`，关闭随后打开的提交信息标签页，然后再运行一次 `git push -u origin main`。现在你的项目里有了 GitHub 生成的 `README.md`：到下面的“添加 README”一节时，把它的内容替换成那里给出的内容。
 
-**`GH007: Your push would publish a private email address`**（你的推送会公开一个私密的电子邮件地址）。你的提交用的是你真实的电子邮件地址，而你的 GitHub 设置保护着这个地址。先设置私密地址（第 2 课第 5 步）。然后查看哪些提交带有你的真实地址：`git log --format="%h %ae"`。如果只有最新的一个提交带有它，就运行 `git commit --amend --reset-author --no-edit`，然后再推送一次。如果更早的提交也带有它，只修改上一次提交（amend）是不够的：GitHub 只检查最新的提交，所以推送会通过，你的地址就会在那些更早的提交里被公开。改写旧提交是一项进阶操作。如果你不介意这个地址在那些提交里公开，就在 GitHub 的电子邮件设置中取消勾选 **Block command line pushes that expose my email**（阻止会暴露我的电子邮件地址的命令行推送），推送，然后再把它勾选回来。
+**`GH007: Your push would publish a private email address`**（你的推送会公开一个设为不公开的邮箱地址）。你的提交里用的是你的真实邮箱地址，而你的 GitHub 设置会保护这个地址。先设置私密地址（第 2 课第 5 步）。然后查看哪些提交带有你的真实地址：`git log --format="%h %ae"`。如果只有最新的那个提交带有它，就运行 `git commit --amend --reset-author --no-edit`，然后再推送一次。如果更早的提交也带有它，只修改上一次提交（amend）是不够的：GitHub 只检查最新的提交，所以推送会成功，而你的地址会随着那些更早的提交被公开。改写旧的提交属于高级操作。如果你不介意这个地址在那些提交里公开，就在 GitHub 的邮箱设置中取消勾选 **Block command line pushes that expose my email**（阻止会暴露我的邮箱地址的命令行推送），推送，然后再把它勾选上。
 :::
 
 ## 在 GitHub 上查看你的项目 {#look}

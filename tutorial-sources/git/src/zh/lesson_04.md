@@ -303,7 +303,7 @@ nothing to commit, working tree clean
 | `stuff`（一些东西） | `Fix the spelling of "photography"`（修正“photography”的拼写） |
 | `changes to index and css and README`（对 index、css 和 README 的改动） | 三个提交，每个改动一个 |
 
-## 本课小结 {#summary}
+## 小结 {#summary}
 
 - `git diff` 显示已经改动但还没暂存的内容：`+` 表示添加，`-` 表示删除。
 - `git add .` 暂存文件夹里的所有改动。先检查一下 `git status`。
@@ -320,7 +320,7 @@ nothing to commit, working tree clean
 | `git show HASH` | 显示一个提交及其改动 |
 | `git restore FILE` | 丢弃某个文件中未暂存的改动 |
 
-## 自我检测 {#quiz}
+## 自测题 {#quiz}
 
 ```quiz
 ? 在 `git diff` 中，以 `+` 开头的行表示什么？

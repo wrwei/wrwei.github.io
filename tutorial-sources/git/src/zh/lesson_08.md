@@ -23,7 +23,7 @@ goals:
 
 ::: where github
 1. 打开你的仓库 `https://github.com/your-username/my-page`。
-2. 在仓库名称下方，点击 **Settings**（设置）选项卡，它带有一个齿轮图标。如果看不到它，就点击选项卡末尾的 **...** 菜单，然后点击 **Settings**。
+2. 在仓库名称下方，点击 **Settings**（设置）标签页，它带有一个齿轮图标。如果看不到它，就点击标签页末尾的 **...** 菜单，然后点击 **Settings**。
 3. 在左侧边栏的“Code, planning, and automation”（代码、规划与自动化）部分中，点击 **Pages**（页面）。
 4. 在“Build and deployment”（构建与部署）下的“Source”（来源）中，选择 **Deploy from a branch**（从分支部署）。
 5. 在“Branch”（分支）下，第一个菜单选择 **main**，第二个菜单选择 **/ (root)**（根目录）。点击 **Save**（保存）。
@@ -47,7 +47,7 @@ GitHub 现在开始构建你的网站。通常需要一两分钟；GitHub 说最
 把这个地址发给朋友吧：任何人都能打开它。
 
 ::: tip
-想看 GitHub 发布网站的过程，可以打开仓库的 **Actions**（操作）选项卡。每次发布都会在那里显示为一次工作流运行（workflow run），完成后会出现一个绿色的对勾。
+想看 GitHub 发布网站的过程，可以打开仓库的 **Actions**（操作）标签页。每次发布都会在那里显示为一次工作流运行（workflow run），完成后会出现一个绿色的对勾。
 :::
 
 ## 修改网页，再次发布 {#update}

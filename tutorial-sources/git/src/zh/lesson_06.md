@@ -185,7 +185,7 @@ VS Code 能帮上忙。它会用颜色区分两个版本，并在它们上方放
 - **Accept Both Changes**（保留双方更改）把两个版本都保留，一个接着一个。
 - **Compare Changes**（比较变更）把两个版本并排显示。
 
-VS Code 可能还会显示一个 **Resolve in Merge Editor**（在合并编辑器中解析）按钮。你不需要它：那几个链接更简单。
+VS Code 可能还会显示一个 **Resolve in Merge Editor**（在合并编辑器中解决）按钮。你不需要它：那几个链接更简单。
 
 ## 解决冲突 {#resolve}
 
