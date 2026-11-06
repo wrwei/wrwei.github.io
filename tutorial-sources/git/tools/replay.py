@@ -2,7 +2,7 @@
 
     python3 tools/replay.py              check: report each block whose output differs
     python3 tools/replay.py --update     write the real outputs into the English sources
-    python3 tools/replay.py --keep       keep the sandbox afterwards and print where it is
+    python3 tools/replay.py --keep       keep the sandboxes afterwards (/tmp/gitreplay, /tmp/gitreplay-trouble)
     python3 tools/replay.py --lessons 3-5  stop after lesson 5 (lessons always start from 2)
 
 What it runs, in this order, from src/en/lesson_02.md to the last lesson:
@@ -53,11 +53,11 @@ SHOWN_HOME = '/Users/you'
 
 
 class Sandbox:
-    def __init__(self, keep=False):
+    def __init__(self, keep=False, name='gitreplay'):
         # A fixed place, not a random temporary folder: `git pull` writes the remote's address
         # into its merge message, so the path must be the same on every run and every machine
-        # for the commit hashes to be.
-        self.base = os.environ.get('REPLAY_BASE', '/tmp/gitreplay')
+        # for the commit hashes to be. The lessons and the troubleshooting page each have their own.
+        self.base = os.path.join(os.environ.get('REPLAY_TMP', '/tmp'), name)
         shutil.rmtree(self.base, ignore_errors=True)
         os.makedirs(self.base)
         self.keep = keep
@@ -503,7 +503,7 @@ def main():
     # the troubleshooting page sets up each of its examples itself, in a sandbox of its own
     trouble = os.path.join(SRC, 'troubleshooting.md')
     if os.path.exists(trouble) and last >= 11:
-        box = Sandbox(keep=False)
+        box = Sandbox(keep=args.keep, name='gitreplay-trouble')
         try:
             box.next_day()
             replay_file(box, trouble, run)

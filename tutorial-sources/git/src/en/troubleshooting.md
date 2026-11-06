@@ -509,7 +509,7 @@ printf '# My page, edited here\n' > README.md
 
 ```terminal
 $ git pull
-Updating 285d005..607f1ed
+Updating 58bdee4..93b851b
 error: Your local changes to the following files would be overwritten by merge:
 	README.md
 Please commit your changes or stash them before you merge.
@@ -569,11 +569,11 @@ Enumerating objects: 6, done.
 Counting objects: 100% (6/6), done.
 Delta compression using up to 8 threads
 Compressing objects: 100% (3/3), done.
-Writing objects: 100% (5/5), 533 bytes | 533.00 KiB/s, done.
+Writing objects: 100% (5/5), 538 bytes | 538.00 KiB/s, done.
 Total 5 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (1/1), done.
 To https://github.com/your-username/new-site.git
-   ab25ec3..04b6628  main -> main
+   ab25ec3..6a02532  main -> main
 branch 'main' set up to track 'origin/main'.
 ```
 

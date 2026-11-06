@@ -108,7 +108,8 @@ function decorate(s) {
 }
 
 function colourOutput(cmd, lines) {
-  const isStatus = /^git status\b/.test(cmd)
+  // `git commit` with nothing staged, and other commands, print the same sections as `git status`
+  const isStatus = /^git status\b/.test(cmd) || lines.some(l => /^(Changes to be committed|Changes not staged for commit|Untracked files|Unmerged paths):/.test(l))
   const isDiff = /^git (diff|show|log -p)\b/.test(cmd)
   const isLog = /^git (log|reflog)\b/.test(cmd)
   let section = ''

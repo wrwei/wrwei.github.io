@@ -147,6 +147,15 @@ At the end of each lesson there is a summary, a table of the commands you used, 
 Click **Mark as done** at the bottom when you finish, and the list of lessons shows your progress
 (it is kept in your browser, nowhere else).
 
+## What you learned {#summary}
+
+- **Git** keeps the history of a project folder as a series of snapshots called **commits**, on
+  your own computer.
+- **GitHub** is a website that keeps a copy online, so you can back it up, share it, work with
+  others and publish it.
+- You will build a small web page, step by step, and put it online in Lesson 8.
+- Type every command yourself and compare what you see with the lesson.
+
 ## Check yourself {#quiz}
 
 ```quiz
