@@ -358,8 +358,8 @@ Consider "git merge --quit" or "git worktree add".
 A merge with a conflict is still in progress, and Git will not switch branches until it is
 finished. Resolve the conflict, `git add` the file and `git commit` (Lesson 6), or cancel the merge
 with `git merge --abort`. Do not use `git merge --quit`, which Git suggests: it leaves the
-half-finished merge in your files. (After `git add`, `git merge` says
-`fatal: You have not concluded your merge (MERGE_HEAD exists)` instead: finish with `git commit`.)
+half-finished merge in your files. (If you run `git merge` again after `git add`, Git says
+`fatal: You have not concluded your merge (MERGE_HEAD exists)`: finish with `git commit`.)
 
 <!-- replay:
 git merge --abort

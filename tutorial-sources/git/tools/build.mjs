@@ -19,7 +19,7 @@ const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..14
 export const UI = {
   en: {
     htmlLang: 'en', series: 'Git and GitHub, Step by Step', crumb: 'Git & GitHub', author: 'Ran Wei',
-    lesson: 'Lesson', of: 'of', contents: 'On this page', minutes: 'min', needs: 'You need',
+    lesson: 'Lesson', of: 'of', contents: 'On this page', minutes: 'min', needs: 'You need', colon: ': ',
     goals: 'In this lesson you will', reference: 'Reference', cheatsheet: 'Cheat sheet', troubleshooting: 'Troubleshooting',
     prev: 'Previous', next: 'Next', index: 'All lessons', switchTo: '中文', footer: 'Licensed under',
     doneQ: 'Finished this lesson?', doneBtn: 'Mark as done', doneYes: 'Done', doneUndo: 'Mark as not done',
@@ -28,7 +28,7 @@ export const UI = {
   },
   zh: {
     htmlLang: 'zh-CN', series: '一步一步学 Git 与 GitHub', crumb: 'Git 与 GitHub', author: 'Ran Wei',
-    lesson: '第', of: '/', contents: '本页内容', minutes: '分钟', needs: '开始之前',
+    lesson: '第', of: '/', contents: '本页内容', minutes: '分钟', needs: '开始之前', colon: '：',
     goals: '在本课中，你将', reference: '参考', cheatsheet: '速查表', troubleshooting: '问题排查',
     prev: '上一课', next: '下一课', index: '全部课程', switchTo: 'English', footer: '许可协议',
     doneQ: '学完这一课了吗？', doneBtn: '标记为已完成', doneYes: '已完成', doneUndo: '标记为未完成',
@@ -123,13 +123,13 @@ function renderLesson(lang, l, list) {
   const prev = list.find(x => x.n === l.n - 1)
   const next = list.find(x => x.n === l.n + 1)
   const nav = `<nav class="module-nav">${prev
-    ? `<a class="mnav prev" href="${pageFile(`lesson_${pad(prev.n)}`, lang)}"><span class="mnav-label">&larr; ${ui.prev}</span><span class="mnav-title">${lessonLabel(prev.n, lang)}: ${escapeHtml(prev.meta.title)}</span></a>`
+    ? `<a class="mnav prev" href="${pageFile(`lesson_${pad(prev.n)}`, lang)}"><span class="mnav-label">&larr; ${ui.prev}</span><span class="mnav-title">${lessonLabel(prev.n, lang)}${ui.colon}${escapeHtml(prev.meta.title)}</span></a>`
     : `<a class="mnav prev" href="${pageFile('index', lang)}"><span class="mnav-label">&larr; ${ui.index}</span><span class="mnav-title">${ui.series}</span></a>`}${next
-    ? `<a class="mnav next" href="${pageFile(`lesson_${pad(next.n)}`, lang)}"><span class="mnav-label">${ui.next} &rarr;</span><span class="mnav-title">${lessonLabel(next.n, lang)}: ${escapeHtml(next.meta.title)}</span></a>`
+    ? `<a class="mnav next" href="${pageFile(`lesson_${pad(next.n)}`, lang)}"><span class="mnav-label">${ui.next} &rarr;</span><span class="mnav-title">${lessonLabel(next.n, lang)}${ui.colon}${escapeHtml(next.meta.title)}</span></a>`
     : `<a class="mnav next" href="${pageFile('cheatsheet', lang)}"><span class="mnav-label">${ui.next} &rarr;</span><span class="mnav-title">${ui.cheatsheet}</span></a>`}</nav>`
   const goals = Array.isArray(meta.goals) && meta.goals.length
     ? `<section class="goals"><h3 class="goals-h">${ui.goals}</h3><ul>${meta.goals.map(g => `<li>${inl(g)}</li>`).join('')}</ul></section>` : ''
-  const page = `${head(lang, `${lessonLabel(l.n, lang)}: ${meta.title} — ${ui.series}`, meta.lead)}
+  const page = `${head(lang, `${lessonLabel(l.n, lang)}${ui.colon}${meta.title} — ${ui.series}`, meta.lead)}
 <body data-lesson="${l.n}" data-lessons="${list.length}">
 ${topbar(lang, list, l.n, pageFile(`lesson_${pad(l.n)}`, lang === 'en' ? 'zh' : 'en'))}
 <div id="layout">
@@ -139,7 +139,7 @@ ${sidebar(lang, env)}
       <div class="series">${ui.series}</div>
       <h1 class="module-title"><span class="title-n">${lessonLabel(l.n, lang)}</span>${escapeHtml(meta.title)}</h1>
       <p class="module-lead">${inl(meta.lead)}</p>
-      <div class="hero-chips"><span class="chip chip-time">&#9201; ${meta.minutes} ${ui.minutes}</span>${meta.needs ? `<span class="chip chip-needs">${ui.needs}: ${inl(meta.needs)}</span>` : ''}</div>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; ${meta.minutes} ${ui.minutes}</span>${meta.needs ? `<span class="chip chip-needs">${ui.needs}${ui.colon}${inl(meta.needs)}</span>` : ''}</div>
     </div>
 ${goals}
 <div class="content">

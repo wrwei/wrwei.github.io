@@ -304,7 +304,7 @@ fatal: cannot switch branch while merging
 Consider "git merge --quit" or "git worktree add".
 ```
 
-一次有冲突的合并仍在进行中，在它完成之前，Git 不会切换分支。解决冲突，`git add` 这个文件，然后 `git commit`（第 6 课）；或者用 `git merge --abort` 取消这次合并。不要使用 Git 建议的 `git merge --quit`：它会把合并了一半的内容留在你的文件里。（如果你已经 `git add` 过，`git merge` 显示的则是 `fatal: You have not concluded your merge (MERGE_HEAD exists)`，意思是你还没有完成合并：用 `git commit` 完成它。）
+一次有冲突的合并仍在进行中，在它完成之前，Git 不会切换分支。解决冲突，`git add` 这个文件，然后 `git commit`（第 6 课）；或者用 `git merge --abort` 取消这次合并。不要使用 Git 建议的 `git merge --quit`：它会把合并了一半的内容留在你的文件里。（如果你在 `git add` 之后又运行了 `git merge`，Git 会显示 `fatal: You have not concluded your merge (MERGE_HEAD exists)`，意思是你还没有完成合并：用 `git commit` 完成它。）
 
 <!-- replay:
 git merge --abort

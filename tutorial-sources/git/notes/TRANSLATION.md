@@ -114,3 +114,26 @@ node tools/build.mjs
 ```
 
 Fix every error that concerns your files.
+
+## 6. Conventions settled in the first translation (November 2026)
+
+- Section headings: `## 小结 {#summary}` and `## 自测题 {#quiz}`. Lesson 9's routine and the cheat
+  sheet section are 日常流程, as is figure 9.1's title.
+- The site's own buttons and boxes are Chinese on Chinese pages, so the text names them in Chinese:
+  **复制** (Copy), **如果出了问题** (the trouble box), **标记为已完成** (Mark as done). The same goes
+  for the widgets' buttons, which show Chinese on Chinese pages (**编辑 index.html**, **提交**,
+  **新建分支并切换**, **切换**, **合并到当前分支**).
+- VS Code labels keep their English, with the gloss from VS Code's own Chinese language pack
+  (`microsoft/vscode-loc`): **Accept Current Change**（采用当前更改）, **Accept Incoming Change**
+  （采用传入的更改）, **Accept Both Changes**（保留双方更改）, **Compare Changes**（比较变更）,
+  **Resolve in Merge Editor**（在合并编辑器中解决）.
+- GitHub's noreply address is 私密地址. Windows and macOS apps get the names a Chinese system shows:
+  凭据管理器, 钥匙串访问, 访达（Finder）, 文件资源管理器.
+- English italics become bold in Chinese text; the English term in brackets goes at a term's first
+  use in the body, not in titles, leads or goals.
+- Each Chinese paragraph is one line in the source: a line break between Chinese characters shows
+  as a space.
+- Additions made for Chinese readers: Lesson 2 names `~/下载` (the Downloads folder on a Linux
+  system set to Chinese) and advises leaving VS Code's language pack until later; Lesson 3 asks
+  readers to keep the page's English text so their outputs match; the troubleshooting page explains
+  `LANG=C` and quotes the Chinese Windows "not recognized" messages.

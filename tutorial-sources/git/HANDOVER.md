@@ -5,6 +5,13 @@ A beginner's tutorial series in eleven lessons, in English and Simplified Chines
 `PLAN.md`, which is the design: audience, tools, the running example, the lessons, and the
 Markdown conventions.
 
+## Status
+
+All fourteen pages are written in both languages and published (November 2026). Four reviews,
+two by beginners following every step on Windows, macOS and Linux and two technical, were applied;
+they are in `notes/reviews/`. The replay runs 164 commands, all matching; `tools/check.mjs` reports no
+errors; both widgets pass `tools/widget-test.mjs` in both languages.
+
 ## Where things are
 
 | Path | What it is |
@@ -67,7 +74,8 @@ newer Git, re-run the audit, drop the rules that no longer apply, and re-run
    that changed and make the prose agree.
 3. If a hash shown in a figure changed, `python3 -I src/figures/_gen/figs.py`.
 4. Make the same change in `src/zh/lesson_NN.md`: copy the changed terminal and file blocks
-   exactly (`tools/check.mjs` compares them), and translate the prose.
+   exactly (`tools/check.mjs` compares them), and translate the prose, following
+   `notes/TRANSLATION.md` (section 6 lists the conventions the Chinese pages settled on).
 5. `node tools/check.mjs`, `node tools/build.mjs`, and look at the page.
 
 ## Publishing
