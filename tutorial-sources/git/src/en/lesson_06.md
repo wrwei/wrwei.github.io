@@ -263,12 +263,12 @@ Close the tab to accept the message, and the commit is made. Then click back in 
 
 ```terminal
 $ git commit
-[main 7f70e05] Merge branch 'new-heading'
+[main 10984c7] Merge branch 'new-heading'
 ```
 
 ```terminal
 $ git log --oneline --graph -4
-*   7f70e05 (HEAD -> main) Merge branch 'new-heading'
+*   10984c7 (HEAD -> main) Merge branch 'new-heading'
 |\
 | * e54afda (new-heading) Change the heading
 * | 822c471 Make the heading friendlier

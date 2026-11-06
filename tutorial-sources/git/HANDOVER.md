@@ -12,7 +12,7 @@ Markdown conventions.
 | `PLAN.md` | The design and the Markdown dialect |
 | `notes/FACTS.md` | Every fact about GitHub's website, VS Code, GitHub CLI, the Git for Windows installer and Git's messages, with the source it was checked against |
 | `notes/TRANSLATION.md` | Rules and terms for the Chinese edition |
-| `notes/reviews/` | Review reports |
+| `notes/reviews/` | The four review reports (beginner and technical, Lessons 1 to 6 and 7 to 11); every finding has been applied or answered in the text |
 | `src/en/*.md`, `src/zh/*.md` | The pages: `index`, `lesson_01` to `lesson_11`, `cheatsheet`, `troubleshooting` |
 | `src/figures/_gen/figs.py` | Draws every figure, in both languages, into `src/figures/en/` and `src/figures/zh/` |
 | `src/images/final-page.png` | The finished web page, shown in Lesson 1 |
@@ -42,6 +42,7 @@ screenshots and the widget test; set `CHROME_PATH` if it is not at `/opt/pw-brow
 | `node tools/build.mjs [--out DIR]` | Builds the pages (default `out/git/`) |
 | `node tools/widget-test.mjs out/git [--lang zh]` | Clicks through both demos and checks what they print |
 | `node tools/shot.mjs PAGE --out shots/NAME` | Screenshots a page or an SVG, and reports page errors |
+| `node tools/shot-parts.mjs DIR PAGE "text" ...` | Screenshots the parts of built pages that contain the given texts, to check changes by eye |
 | `python3 -I src/figures/_gen/figs.py` | Redraws the figures (figure 4.1 takes its hashes from Lesson 4's replayed output) |
 
 ## How outputs stay true

@@ -248,7 +248,7 @@ My first project with Git and GitHub: a small personal web page.
 ```terminal
 $ git add README.md
 $ git commit -m "Add a README"
-[main 595b1e3] Add a README
+[main 315e479] Add a README
  1 file changed, 3 insertions(+)
  create mode 100644 README.md
 ```
@@ -273,10 +273,10 @@ Enumerating objects: 4, done.
 Counting objects: 100% (4/4), done.
 Delta compression using up to 8 threads
 Compressing objects: 100% (3/3), done.
-Writing objects: 100% (3/3), 409 bytes | 409.00 KiB/s, done.
+Writing objects: 100% (3/3), 408 bytes | 408.00 KiB/s, done.
 Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
 To https://github.com/your-username/my-page.git
-   7f70e05..595b1e3  main -> main
+   10984c7..315e479  main -> main
 $ git status
 On branch main
 Your branch is up to date with 'origin/main'.
@@ -284,7 +284,7 @@ Your branch is up to date with 'origin/main'.
 nothing to commit, working tree clean
 ```
 
-`7f70e05..595b1e3 main -> main` says GitHub's `main` moved from your old newest commit to the new
+`10984c7..315e479 main -> main` says GitHub's `main` moved from your old newest commit to the new
 one. "Up to date with 'origin/main'": as far as your computer knows, GitHub has the same commits
 as you. Reload the page on GitHub: your README appears below the files.
 

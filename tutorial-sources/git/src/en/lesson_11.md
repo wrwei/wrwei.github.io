@@ -127,7 +127,7 @@ nothing added to commit but untracked files present (use "git add" to track)
 ```terminal
 $ git add .gitignore
 $ git commit -m "Ignore my private notes"
-[main a2f765c] Ignore my private notes
+[main 5841c42] Ignore my private notes
  1 file changed, 2 insertions(+)
  create mode 100644 .gitignore
 ```
@@ -196,7 +196,7 @@ Then you commit in a hurry: only one file, and a typo in the message.
 ```terminal
 $ git add index.html
 $ git commit -m "Add redaing to my hobbies"
-[main d562547] Add redaing to my hobbies
+[main b0c7144] Add redaing to my hobbies
  1 file changed, 1 insertion(+)
 ```
 
@@ -206,7 +206,7 @@ you can fix it. Add the forgotten file, then use `--amend` with the right messag
 ```terminal
 $ git add style.css
 $ git commit --amend -m "Add reading to my hobbies"
-[main e9fccc7] Add reading to my hobbies
+[main cab53b1] Add reading to my hobbies
  Date: Thu Nov 12 10:09:00 2026 +0000
  2 files changed, 5 insertions(+)
 ```
@@ -216,8 +216,8 @@ and with the new message. `Date:` shows that it keeps the time of the original c
 
 ```terminal
 $ git log --oneline -2
-e9fccc7 (HEAD -> main) Add reading to my hobbies
-a2f765c Ignore my private notes
+cab53b1 (HEAD -> main) Add reading to my hobbies
+5841c42 Ignore my private notes
 ```
 
 The commit with the typo is gone from your history. Notice that the hash changed: it is a new
@@ -255,7 +255,7 @@ life you would change something first, or commit the files separately.
 
 ```terminal
 $ git commit -m "Add reading to my hobbies"
-[main 38d3619] Add reading to my hobbies
+[main dc4f482] Add reading to my hobbies
  2 files changed, 5 insertions(+)
 ```
 
@@ -267,11 +267,11 @@ Enumerating objects: 10, done.
 Counting objects: 100% (10/10), done.
 Delta compression using up to 8 threads
 Compressing objects: 100% (6/6), done.
-Writing objects: 100% (7/7), 857 bytes | 857.00 KiB/s, done.
+Writing objects: 100% (7/7), 856 bytes | 856.00 KiB/s, done.
 Total 7 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
 To https://github.com/your-username/my-page.git
-   dca2d0a..38d3619  main -> main
+   32cd9ea..dc4f482  main -> main
 ```
 
 ::: pitfall
@@ -291,7 +291,7 @@ back in the terminal.
 
 ```terminal
 $ git revert HEAD
-[main 23f85a5] Revert "Add reading to my hobbies"
+[main 3189807] Revert "Add reading to my hobbies"
  2 files changed, 5 deletions(-)
 ```
 
@@ -300,19 +300,19 @@ commits, the change and its undoing, which is honest and safe:
 
 ```terminal
 $ git log --oneline -3
-23f85a5 (HEAD -> main) Revert "Add reading to my hobbies"
-38d3619 (origin/main, origin/HEAD) Add reading to my hobbies
-a2f765c Ignore my private notes
+3189807 (HEAD -> main) Revert "Add reading to my hobbies"
+dc4f482 (origin/main, origin/HEAD) Add reading to my hobbies
+5841c42 Ignore my private notes
 $ git push
 Enumerating objects: 7, done.
 Counting objects: 100% (7/7), done.
 Delta compression using up to 8 threads
 Compressing objects: 100% (4/4), done.
-Writing objects: 100% (4/4), 470 bytes | 470.00 KiB/s, done.
+Writing objects: 100% (4/4), 471 bytes | 471.00 KiB/s, done.
 Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
 To https://github.com/your-username/my-page.git
-   38d3619..23f85a5  main -> main
+   dc4f482..3189807  main -> main
 ```
 
 You can revert any commit, not only the last one: use its hash from `git log --oneline`. A merge
@@ -332,22 +332,22 @@ of every place `HEAD` has been, called the **reflog**:
 
 ```terminal
 $ git reflog -7
-23f85a5 (HEAD -> main, origin/main, origin/HEAD) HEAD@{0}: revert: Revert "Add reading to my hobbies"
-38d3619 HEAD@{1}: commit: Add reading to my hobbies
-a2f765c HEAD@{2}: reset: moving to HEAD~1
-e9fccc7 HEAD@{3}: commit (amend): Add reading to my hobbies
-d562547 HEAD@{4}: commit: Add redaing to my hobbies
-a2f765c HEAD@{5}: commit: Ignore my private notes
-dca2d0a HEAD@{6}: pull: Fast-forward
+3189807 (HEAD -> main, origin/main, origin/HEAD) HEAD@{0}: revert: Revert "Add reading to my hobbies"
+dc4f482 HEAD@{1}: commit: Add reading to my hobbies
+5841c42 HEAD@{2}: reset: moving to HEAD~1
+cab53b1 HEAD@{3}: commit (amend): Add reading to my hobbies
+b0c7144 HEAD@{4}: commit: Add redaing to my hobbies
+5841c42 HEAD@{5}: commit: Ignore my private notes
+32cd9ea HEAD@{6}: pull: Fast-forward
 ```
 
 Read it from the bottom up: the pull at the end of Lesson 10, then the story of this lesson.
 `HEAD@{0}` is where `HEAD` is now, `HEAD@{1}` where it was one step before, and so on. Even the
-commit with the typo, `d562547`, is still there. To bring back any of these commits, put a branch
+commit with the typo, `b0c7144`, is still there. To bring back any of these commits, put a branch
 on it, with a hash from **your own** reflog:
 
 ```terminal norun
-$ git branch rescue d562547
+$ git branch rescue b0c7144
 ```
 
 Now `rescue` points at that commit, and you can switch to it and look at it. You do not need to do

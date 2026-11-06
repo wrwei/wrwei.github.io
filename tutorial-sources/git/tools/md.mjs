@@ -2,7 +2,8 @@
 // The quiz format, attribute parsing and containers follow the AI series' tools/md.mjs.
 //
 //   ## Title {#id}          numbered section with that anchor
-//   ```terminal [norun]     "$ command" lines and their output, coloured as Git colours them
+//   ```terminal [norun] [nocopy]  "$ command" lines and their output, coloured as Git colours them;
+//                         nocopy: no Copy button (the reader types their own details)
 //   ```file NAME [check]    a whole file; lines that changed since the previous version are marked
 //   ```quiz                 end-of-lesson quiz
 //   ::: note|tip|pitfall|keyidea|analogy   callouts

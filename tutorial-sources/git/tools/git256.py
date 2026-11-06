@@ -16,6 +16,10 @@ RULES = [
      "error: the branch '\\1' is not fully merged\n"
      "hint: If you are sure you want to delete it, run 'git branch -D \\1'\n"
      'hint: Disable this message with "git config set advice.forceDeleteBranch false"'),
+    # builtin/add.c: the embedded-repository advice now goes through advise_if_enabled
+    # (ADVICE_ADD_EMBEDDED_REPO), which ends it with how to turn it off.
+    (r'^(hint: See "git help submodule" for more information\.)$',
+     '\\1\nhint: Disable this message with "git config set advice.addEmbeddedRepo false"'),
 ]
 
 

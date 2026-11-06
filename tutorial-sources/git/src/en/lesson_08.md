@@ -89,7 +89,7 @@ From now on, every push to `main` updates the site. Try it: change the first par
 ```terminal
 $ git add index.html
 $ git commit -m "Mention GitHub Pages"
-[main c3520de] Mention GitHub Pages
+[main a478f84] Mention GitHub Pages
  1 file changed, 1 insertion(+), 1 deletion(-)
 $ git push
 Enumerating objects: 5, done.
@@ -100,7 +100,7 @@ Writing objects: 100% (3/3), 402 bytes | 402.00 KiB/s, done.
 Total 3 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (1/1), completed with 1 local object.
 To https://github.com/your-username/my-page.git
-   595b1e3..c3520de  main -> main
+   315e479..a478f84  main -> main
 ```
 
 Wait a minute, then reload your site in the browser. The new sentence is there.

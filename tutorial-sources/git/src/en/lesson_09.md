@@ -71,16 +71,16 @@ remote: Enumerating objects: 5, done.
 remote: Counting objects: 100% (5/5), done.
 remote: Compressing objects: 100% (3/3), done.
 remote: Total 3 (delta 0), reused 3 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (3/3), 443 bytes | 443.00 KiB/s, done.
+Unpacking objects: 100% (3/3), 441 bytes | 441.00 KiB/s, done.
 From https://github.com/your-username/my-page
-   c3520de..d369d96  main       -> origin/main
-Updating c3520de..d369d96
+   a478f84..0399de7  main       -> origin/main
+Updating a478f84..0399de7
 Fast-forward
  README.md | 2 ++
  1 file changed, 2 insertions(+)
 ```
 
-The first lines are Git downloading the commit. `c3520de..d369d96 main -> origin/main` is the
+The first lines are Git downloading the commit. `a478f84..0399de7 main -> origin/main` is the
 note being updated. Then `Fast-forward`: your `main` moves forward to the new commit, like the
 merge in Lesson 5. Look at `README.md` in VS Code: the new line is there.
 
@@ -140,7 +140,7 @@ Then, on your computer, without pulling, add a hobby to `index.html`:
 ```terminal
 $ git add index.html
 $ git commit -m "Add cooking to my hobbies"
-[main 23f3890] Add cooking to my hobbies
+[main 2a80ae8] Add cooking to my hobbies
  1 file changed, 1 insertion(+)
 $ git push
 To https://github.com/your-username/my-page.git
@@ -174,9 +174,9 @@ remote: Enumerating objects: 5, done.
 remote: Counting objects: 100% (5/5), done.
 remote: Compressing objects: 100% (2/2), done.
 remote: Total 3 (delta 1), reused 3 (delta 1), pack-reused 0 (from 0)
-Unpacking objects: 100% (3/3), 385 bytes | 192.00 KiB/s, done.
+Unpacking objects: 100% (3/3), 386 bytes | 386.00 KiB/s, done.
 From https://github.com/your-username/my-page
-   d369d96..120861b  main       -> origin/main
+   0399de7..1b84697  main       -> origin/main
 Merge made by the 'ort' strategy.
  README.md | 2 ++
  1 file changed, 2 insertions(+)
@@ -191,23 +191,23 @@ Enumerating objects: 9, done.
 Counting objects: 100% (8/8), done.
 Delta compression using up to 8 threads
 Compressing objects: 100% (5/5), done.
-Writing objects: 100% (5/5), 744 bytes | 744.00 KiB/s, done.
+Writing objects: 100% (5/5), 745 bytes | 745.00 KiB/s, done.
 Total 5 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (1/1), completed with 1 local object.
 To https://github.com/your-username/my-page.git
-   120861b..6c2cb6d  main -> main
+   1b84697..22893c9  main -> main
 ```
 
 Accepted. The graph shows what happened:
 
 ```terminal
 $ git log --oneline --graph -4
-*   6c2cb6d (HEAD -> main, origin/main, origin/HEAD) Merge branch 'main' of https://github.com/your-username/my-page
+*   22893c9 (HEAD -> main, origin/main, origin/HEAD) Merge branch 'main' of https://github.com/your-username/my-page
 |\
-| * 120861b Update README.md
-* | 23f3890 Add cooking to my hobbies
+| * 1b84697 Update README.md
+* | 2a80ae8 Add cooking to my hobbies
 |/
-* d369d96 Update README.md
+* 0399de7 Update README.md
 ```
 
 `origin/HEAD` marks the branch GitHub shows first, here `main`. You can ignore it. (Older versions
@@ -271,9 +271,9 @@ $ cd my-page-laptop
 $ ls
 README.md  index.html  style.css
 $ git log --oneline -3
-6c2cb6d (HEAD -> main, origin/main, origin/HEAD) Merge branch 'main' of https://github.com/your-username/my-page
-23f3890 Add cooking to my hobbies
-120861b Update README.md
+22893c9 (HEAD -> main, origin/main, origin/HEAD) Merge branch 'main' of https://github.com/your-username/my-page
+2a80ae8 Add cooking to my hobbies
+1b84697 Update README.md
 $ git remote -v
 origin	https://github.com/your-username/my-page.git (fetch)
 origin	https://github.com/your-username/my-page.git (push)

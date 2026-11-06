@@ -13,7 +13,7 @@ translated. It follows the AI series' `TRANSLATION.md` where this file does not 
   Git's own messages stay in English in the text too, when quoted in prose: write
   “working tree clean”（工作区干净）, quoting the English and explaining it in Chinese;
 - every `<!-- replay: ... -->` comment;
-- every `## ... {#id}` id, and the order of the sections;
+- every `## ... {#id}` and `### ... {#id}` id, and their order;
 - `::: figure id=...` and `::: widget name=...`, in the same order (the caption inside is
   translated; for an `image=` figure, the `alt="..."` text is translated, `url=` is not);
 - the OS tab names: `::: tab Windows`, `::: tab macOS`, `::: tab Linux`;

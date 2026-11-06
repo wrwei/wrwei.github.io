@@ -81,7 +81,7 @@ Add the two highlighted lines at the end of the page, before `</body>`:
 ```terminal
 $ git add index.html
 $ git commit -m "Add a contact section"
-[add-contact 8da60b7] Add a contact section
+[add-contact 904037b] Add a contact section
  1 file changed, 2 insertions(+)
 ```
 
@@ -189,10 +189,10 @@ $ git pull
 remote: Enumerating objects: 1, done.
 remote: Counting objects: 100% (1/1), done.
 remote: Total 1 (delta 0), reused 1 (delta 0), pack-reused 0 (from 0)
-Unpacking objects: 100% (1/1), 263 bytes | 263.00 KiB/s, done.
+Unpacking objects: 100% (1/1), 264 bytes | 264.00 KiB/s, done.
 From https://github.com/your-username/my-page
-   6c2cb6d..dca2d0a  main       -> origin/main
-Updating 6c2cb6d..dca2d0a
+   22893c9..32cd9ea  main       -> origin/main
+Updating 22893c9..32cd9ea
 Fast-forward
  index.html | 2 ++
  1 file changed, 2 insertions(+)
@@ -204,7 +204,7 @@ moved, so it only has to move forward to GitHub's merge commit: that is why Git 
 
 ```terminal
 $ git branch -d add-contact
-Deleted branch add-contact (was 8da60b7).
+Deleted branch add-contact (was 904037b).
 ```
 
 Your computer still has a note of the branch on GitHub, `origin/add-contact`. `git fetch` is the
@@ -223,11 +223,11 @@ The history shows the merge GitHub made:
 
 ```terminal
 $ git log --oneline --graph -3
-*   dca2d0a (HEAD -> main, origin/main, origin/HEAD) Merge pull request #1 from your-username/add-contact
+*   32cd9ea (HEAD -> main, origin/main, origin/HEAD) Merge pull request #1 from your-username/add-contact
 |\
-| * 8da60b7 Add a contact section
+| * 904037b Add a contact section
 |/
-*   6c2cb6d Merge branch 'main' of https://github.com/your-username/my-page
+*   22893c9 Merge branch 'main' of https://github.com/your-username/my-page
 |\
 ```
 

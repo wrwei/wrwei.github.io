@@ -115,7 +115,9 @@ Sections are `## Title {#id}`. Inside them:
 - ` ```terminal ` — a terminal session. Lines starting with `$ ` are commands (the reader types
   what follows `$ `); the lines after a command, up to the next `$ ` line, are its output. The
   page shows a copy button that copies the commands only. ` ```terminal norun ` marks a block the
-  checker does not run (OS-specific steps, `gh auth login`, `code .`).
+  checker does not run (OS-specific steps, `gh auth login`, `code .`). ` ```terminal nocopy `
+  shows no copy button, for commands the reader must type with their own details (their name
+  and email, their GitHub address).
 - ` ```file index.html ` — the whole content of a file, as the reader should make it. The checker
   writes it into the project; the page highlights the lines that changed since the previous
   version of the same file on that page (or earlier lessons), so the reader sees what to edit.

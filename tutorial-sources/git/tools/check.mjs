@@ -31,7 +31,8 @@ function skeleton(src) {
   for (let i = 0; i < lines.length; i++) {
     const ln = lines[i]
     let m
-    if ((m = ln.match(/^## .*\{#([\w-]+)\}\s*$/))) out.sections.push(m[1])
+    // section ids, and the ids of ### entries that pages link to (troubleshooting #old-git)
+    if ((m = ln.match(/^#{2,3} .*\{#([\w-]+)\}\s*$/))) out.sections.push(m[1])
     if ((m = ln.match(/^(\s*)(`{3,})(terminal|file)(.*)$/))) {
       const fence = m[2]
       const indent = m[1].length
