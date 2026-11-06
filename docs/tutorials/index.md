@@ -20,6 +20,14 @@ A tutorial series covering the fundamentals of SysML v2, the next-generation sys
 
 ---
 
+## Git and GitHub, Step by Step
+
+A beginner's series in eleven short lessons, 15 to 45 minutes each: keep the history of your work with Git, put it on GitHub, work with branches and pull requests, undo mistakes, and publish your own web page with GitHub Pages. No experience needed, on Windows, macOS or Linux; every output shown was produced by running the commands. English and Chinese.
+
+[:octicons-arrow-right-24: Go to Git and GitHub Tutorials](git/index.html)
+
+---
+
 ## DevOps
 
 A 10-module tutorial series on DevOps practices including Unix tools, Git, CI/CD, containers, and automation.
