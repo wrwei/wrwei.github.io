@@ -30,15 +30,9 @@ Do them in order: each lesson starts where the last one ended. Each takes 15 to 
 
 ## How to use these lessons {#how}
 
-- **Type every command yourself**, in your own terminal, and compare what you see with what the
-  lesson shows. Every output in this series was produced by running the commands, so yours should
-  match, apart from hashes, dates, paths, version numbers, sizes and speeds.
-- **Read the boxes.** Steps on GitHub's website and in VS Code are in their own boxes, and under
-  most steps an **If something went wrong** box lists the messages beginners meet there.
-- **Use the tabs.** Where Windows, macOS and Linux differ, the lesson shows a tab for each, and
-  opens your system's tab first.
-- **Mark each lesson as done** at the bottom of the page. Your progress shows above and on every
-  lesson's menu. It is stored in your browser only.
+Start with [Lesson 1](lesson_01_EN.html): it explains how the lessons work. You need no
+experience. Lesson 2 shows you how to install everything, and how to open a terminal, the window
+where you type commands.
 
 ## When you are stuck {#stuck}
 

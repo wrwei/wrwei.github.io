@@ -32,8 +32,9 @@ Copies like `report-final-2-really-final.docx` answer none of the questions you 
 ## What Git does {#git}
 
 Git is a program that looks after a folder for you. Whenever you like, you tell Git to take a
-**snapshot** of everything in the folder, with a short message saying what you did: "Add a
-contact page", "Fix the spelling of the title". Git keeps every snapshot, forever.
+**snapshot** of the files in the folder, with a short message saying what you did: "Add a contact
+page", "Fix the spelling of the title". Git keeps every snapshot you save, so you can always go
+back to it.
 
 With those snapshots you can:
 
@@ -50,8 +51,9 @@ you like, each with a note saying what you did.
 :::
 
 Git runs on your own computer and works without the internet. It works with any kind of file,
-but it is best with text: web pages, program code, notes, data, LaTeX papers. Most software in
-the world is kept in Git.
+but it is best with text: web pages, program code, notes, data, LaTeX papers. Word files, images
+and PDFs can be kept too, but Git cannot show you what changed inside them. Most software in the
+world is kept in Git.
 
 ## What GitHub adds {#github}
 
@@ -71,8 +73,8 @@ internet. You send your new snapshots to GitHub, and bring other people's snapsh
 
 ::: keyidea
 **Git is the tool; GitHub is a website built around it.** You can use Git without GitHub. GitHub
-is one of several such websites (GitLab and Bitbucket are others); what you learn here works with
-all of them.
+is one of several such websites (GitLab and Bitbucket are others). The Git you learn here works
+with all of them; only their websites look different.
 :::
 
 ## The words you will meet {#words}
@@ -109,14 +111,18 @@ You do not need to be a programmer. If you can type and follow instructions, you
 
 Each lesson takes 15 to 45 minutes. Do them in order: each one starts where the last one ended.
 
-**Type every command yourself**, in your own terminal. Commands appear in dark boxes like this,
-after a `$`, followed by what the computer answers:
+**Type every command yourself**, in a **terminal**: a window where you give the computer
+instructions by typing them. Lesson 2 shows you how to open one. Commands appear in dark boxes
+like this one, after a `$`, followed by what the computer answers:
 
 ```terminal norun
 $ git status
 On branch main
 nothing to commit, working tree clean
 ```
+
+The `$` is not part of the command: type only what comes after it, then press <kbd>Enter</kbd>
+(<kbd>Return</kbd> on a Mac). There is nothing to type yet: this box is only an example.
 
 **Compare your answer with the one shown.** Every answer in this series was produced by actually
 running the commands, so yours should look the same, except for a few things that are different
@@ -125,7 +131,8 @@ home folder, version numbers, and sizes and speeds. Everything else should match
 look for the **If something went wrong** box below the step, or the
 [troubleshooting page](troubleshooting_EN.html).
 
-You will also see these boxes:
+Where Windows, macOS and Linux differ, the lesson has a tab for each system, and opens yours
+first. You will also see these boxes:
 
 ::: where github
 Steps you do on GitHub's website, in your browser.
@@ -154,7 +161,7 @@ Click **Mark as done** at the bottom when you finish, and the list of lessons sh
 - **GitHub** is a website that keeps a copy online, so you can back it up, share it, work with
   others and publish it.
 - You will build a small web page, step by step, and put it online in Lesson 8.
-- Type every command yourself and compare what you see with the lesson.
+- Type every command yourself, without the `$`, and compare what you see with the lesson.
 
 ## Check yourself {#quiz}
 

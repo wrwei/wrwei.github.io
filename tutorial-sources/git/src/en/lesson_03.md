@@ -17,8 +17,13 @@ Your project is a small personal web page. It lives in a folder called `my-page`
 
 ::: where vscode
 1. Open the **File** menu and click **Open Folder...**.
-2. In the window that appears, go to your home folder (the folder with your user name).
-3. Make a new folder there called `my-page`: click **New Folder**, type `my-page` and confirm.
+2. In the window that appears, go to your home folder, the folder with your user name:
+   - Windows: click in the address bar at the top of the window, type `%USERPROFILE%` and press
+     <kbd>Enter</kbd>.
+   - macOS: press <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd>.
+   - Linux: click **Home** in the list on the left.
+3. Make a new folder there called `my-page`: click **New folder** (on a Mac, **New Folder**; on
+   Linux, the folder icon with a plus sign), type `my-page` and confirm.
 4. Select `my-page` and click **Open** (on Windows, **Select Folder**).
 5. VS Code asks: "Do you trust the authors of the files in this folder?" You are the author, so
    click **Yes, I trust the authors**.
@@ -74,6 +79,8 @@ $ git init
 Initialized empty Git repository in /Users/you/my-page/.git/
 ```
 
+On Windows, Git writes the same path the Windows way: `C:/Users/you/my-page/.git/`.
+
 `git init` ("initialise") turns the folder into a **repository**: a folder whose history Git
 keeps. You only do this once per project.
 
@@ -85,7 +92,8 @@ $ ls -a
 .  ..  .git
 ```
 
-(`.` means "this folder" and `..` means "the folder above it". Ignore them.) You never need to
+(`.` means "this folder" and `..` means "the folder above it". Ignore them. In Git Bash on
+Windows, folder names end in `/`: `./  ../  .git/`.) You never need to
 open or change anything inside `.git`. VS Code hides it from its file list so you cannot delete it
 by accident.
 
@@ -113,8 +121,10 @@ far. Git calls a snapshot a **commit**.
 **`git init` says "Reinitialized existing Git repository".** You ran it twice. That is harmless.
 
 **The path in the `git init` message is not your `my-page` folder.** You ran it in another folder,
-and that folder is now a repository. If it was your home folder, delete the `.git` folder it made
-there (ask for help if you are not sure how), then open `my-page` in VS Code as shown above.
+and that folder is now a repository. If it was your home folder, undo it. Type `pwd` and check
+that the answer is your home folder: it ends with your user name, not with `my-page`. Then type
+`rm -rf .git`. This removes only the history Git had just started there; your files are not
+touched. Then open `my-page` in VS Code as shown above.
 :::
 
 ## Write your web page {#page}
@@ -123,9 +133,17 @@ A web page is a text file whose name ends in `.html`.
 
 ::: where vscode
 1. In the file list on the left (the **Explorer**), hover over the `MY-PAGE` heading and click the
-   **New File...** icon (a page with a plus sign). Or use **File** > **New File...**.
+   **New File...** icon (a page with a plus sign). If you do not see the file list, click the top
+   icon (two sheets of paper) in the narrow bar on the far left.
 2. Type the name `index.html` and press <kbd>Enter</kbd>. The file opens in the editor.
-3. Copy the text below into it. With Auto Save on (Lesson 2), VS Code saves it for you.
+3. Click **Copy** on the box below, click in the empty file in VS Code, and paste with
+   <kbd>Ctrl</kbd>+<kbd>V</kbd> (<kbd>Cmd</kbd>+<kbd>V</kbd> on a Mac). With Auto Save on
+   (Lesson 2), VS Code saves it for you.
+:::
+
+::: tip
+Paste file contents rather than type them. As you type HTML, VS Code adds closing tags such as
+`</p>` for you, so typing a whole line yourself leaves an extra one.
 :::
 
 ```file index.html
@@ -151,6 +169,9 @@ double-click `index.html`: it opens in your web browser.
 
 ## Ask Git what it sees {#status}
 
+Click in the terminal panel at the bottom, so that what you type goes there and not into your
+file. Then type:
+
 ```terminal
 $ git status
 On branch main
@@ -167,6 +188,12 @@ nothing added to commit but untracked files present (use "git add" to track)
 Git has noticed the new file, but it is **untracked**: Git sees it and is not looking after it
 yet. Notice that Git tells you what to do next, in brackets. `git status` often does that; when in
 doubt, run it and read the hints.
+
+::: trouble
+**On a Mac, `git status` also lists `.DS_Store`.** It is a hidden file that Finder made. Type the
+two commands of "On a Mac, one more setting" in [Lesson 2, Step 6](lesson_02_EN.html#defaults),
+then run `git status` again: `.DS_Store` is no longer listed.
+:::
 
 ## Choose what goes into the snapshot: git add {#add}
 
@@ -237,7 +264,8 @@ nothing to commit, working tree clean
 ```
 
 "Working tree clean" means that your files are exactly as in your last snapshot. This is the
-calm state to aim for at the end of each piece of work.
+calm state to aim for at the end of each piece of work. ("Working tree", and in some hints
+"working directory", is Git's name for your working folder: the files you see and edit.)
 
 ::: trouble
 **`Author identity unknown` and "Please tell me who you are".** Git does not know your name and
@@ -288,7 +316,7 @@ everything in the staging area as a new commit in the **repository**, inside the
 |---|---|---|
 | Working folder | Your files, as you see them in VS Code | You edit them |
 | Staging area | The changes chosen for the next commit | `git add` |
-| Repository | Every commit, forever | `git commit` |
+| Repository | Every commit you made | `git commit` |
 
 `git status` tells you what is in each place right now. Try it below: click the buttons in any
 order, and watch where `index.html` is and what `git status` says.

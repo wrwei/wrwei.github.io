@@ -33,14 +33,14 @@ puts the editor and the terminal in one window, which makes every lesson easier 
 ::: where browser
 1. Go to [github.com/signup](https://github.com/signup).
 2. Type your email address, a password and a **username**, and follow the prompts. GitHub asks
-   you to solve a small puzzle and sends a code to your email address to check that it is yours.
+   you to verify your email address: follow the instructions in the email it sends you.
 3. If GitHub asks you to choose a plan, choose **Free**.
 :::
 
 Choose your username with care. It becomes part of your web addresses: your profile will be at
 `github.com/your-username`, and in Lesson 8 your web page will be at
-`your-username.github.io`. Short, lower-case names that you would be happy to show an employer
-work best.
+`your-username.github.io/my-page/`. Short, lower-case names that you would be happy to show an
+employer work best.
 
 ::: keyidea
 In this series, **`your-username`** stands for your GitHub username. Wherever you see it, type
@@ -48,11 +48,12 @@ your own username instead.
 :::
 
 ::: trouble
-**I did not get the email with the code.** Look in your spam folder. If it is not there, ask
-GitHub to send it again, or try another email address.
+**I did not get GitHub's email.** Look in your spam folder. If it is not there, ask GitHub to send
+it again, or try another email address.
 
 **"This email can't be used" or "We couldn't create your account".** GitHub suggests trying another
-browser, turning off browser extensions, or waiting a while and trying again.
+browser, turning off browser extensions, or waiting a while and trying again. For "This email
+can't be used", also try another email address.
 :::
 
 ## Step 2: Install VS Code {#vscode}
@@ -68,28 +69,44 @@ browser, turning off browser extensions, or waiting a while and trying again.
 ::: tab macOS
 1. Go to [code.visualstudio.com](https://code.visualstudio.com/) and click the download button
    for macOS.
-2. Open the downloaded file. Drag **Visual Studio Code** into your **Applications** folder, then
-   open it from there.
-3. Let VS Code start from the terminal later. Press <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>,
-   type `shell command`, and choose **Shell Command: Install 'code' command in PATH**.
+2. In Finder, open **Downloads**. If you see a `.zip` file there, double-click it to unpack it.
+   Drag **Visual Studio Code** onto **Applications** in the Finder sidebar, then open it from
+   **Applications**. If macOS asks whether you are sure you want to open it, click **Open**.
+3. **Do not skip this step:** Git uses it to open VS Code when it needs a message from you. Press
+   <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>: a search box opens at the top of the window.
+   Type `shell command` and choose **Shell Command: Install 'code' command in PATH**. If VS Code
+   says it will prompt for administrator privileges, click **OK** and type your Mac's password.
 :::
 ::: tab Linux
 1. Go to [code.visualstudio.com](https://code.visualstudio.com/) and download the `.deb` file
    (Ubuntu, Debian) or the `.rpm` file (Fedora).
-2. Open the file to install it with your software centre, or install it from a terminal, for
-   example on Ubuntu:
+2. Open the file to install it with your software centre. If that does not work, install it from
+   a terminal instead: open one (on Ubuntu, press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd>),
+   then type these two commands, without the `$`, pressing <kbd>Enter</kbd> after each. The first
+   goes to the folder the file was downloaded to; the second installs it, for example on Ubuntu:
 
    ```terminal norun
+   $ cd ~/Downloads
    $ sudo apt install ./code_*.deb
    ```
 
+   Type your password when asked, as described in Step 3.
 3. Open VS Code from your applications menu.
 :::
 ::::
 
-One setting makes life easier: in VS Code, open the **File** menu and click **Auto Save**, so
-that a tick appears next to it. From now on VS Code saves your files as you type. Without it,
-Git cannot see changes you have not saved, which confuses everyone at first.
+::: where vscode
+1. VS Code opens with a **Welcome** tab. Close it (click the × on the tab), and any panel on the
+   right: you will not need them.
+2. Turn on **Auto Save**: open the **File** menu and click **Auto Save**, so that a tick appears
+   next to it. From now on VS Code saves your files as you type. Without it, Git cannot see
+   changes you have not saved, which confuses everyone at first.
+:::
+
+::: tip
+If a file's tab ever shows a dot (●) instead of an ×, the file is not saved. Press
+<kbd>Ctrl</kbd>+<kbd>S</kbd> (<kbd>Cmd</kbd>+<kbd>S</kbd> on a Mac) to save it.
+:::
 
 ## Step 3: Install Git {#install-git}
 
@@ -97,10 +114,11 @@ Git cannot see changes you have not saved, which confuses everyone at first.
 ::: tab Windows
 1. Go to [git-scm.com/install/windows](https://git-scm.com/install/windows) and click
    **Click here to download** the latest version of Git for Windows.
-2. Open the file you downloaded. The installer has many pages. Click **Next** on all of them,
-   except these two:
-   - On **Choosing the default editor used by Git**, choose **Use Visual Studio Code as Git's
-     default editor**.
+2. Open the file you downloaded. If Windows asks whether you want to allow this app to make
+   changes to your device, click **Yes**. The installer has many pages. Click **Next** on all of
+   them, except these two:
+   - On **Choosing the default editor used by Git**, open the drop-down list and choose **Use
+     Visual Studio Code as Git's default editor**.
    - On **Adjusting the name of the initial branch in new repositories**, choose **Override the
      default branch name for new repositories**. The box below it already says `main`. Leave it.
 3. Click **Install**, then **Finish**.
@@ -113,19 +131,22 @@ macOS can install Git for you, as part of Apple's "command line developer tools"
 
 1. Open the **Terminal** app: press <kbd>Cmd</kbd>+<kbd>Space</kbd>, type `Terminal` and press
    <kbd>Return</kbd>.
-2. Type this command and press <kbd>Return</kbd>:
+2. Type this command, without the `$`, and press <kbd>Return</kbd>:
 
    ```terminal norun
    $ xcode-select --install
    ```
 
 3. A window asks whether you want to install the tools. Click **Install**, agree to the licence,
-   and wait until it says the software was installed. It can take a few minutes.
+   and wait until it says the software was installed. It can take 10 minutes or more.
 
-If the terminal says the command line tools are already installed, you already have Git.
+If the terminal says the command line tools are already installed, you already have Git. That is
+good news, even if the message contains the word `error`.
 :::
 ::: tab Linux
-Use your system's package manager. On Ubuntu or Debian:
+Open a terminal: on Ubuntu, press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd>; on other systems,
+open **Terminal** from your applications menu. Then use your system's package manager. Type each
+command without the `$` and press <kbd>Enter</kbd>. On Ubuntu or Debian:
 
 ```terminal norun
 $ sudo apt update
@@ -138,7 +159,9 @@ On Fedora:
 $ sudo dnf install git
 ```
 
-Type your password when asked. Nothing appears on the screen while you type it; that is normal.
+Type your password when asked. Nothing appears while you type it, or a `*` for each character;
+that is normal. If apt asks `Do you want to continue? [Y/n]`, press <kbd>Enter</kbd>. If dnf asks
+`Is this ok [y/N]`, type `y` and press <kbd>Enter</kbd>: there, <kbd>Enter</kbd> alone means no.
 :::
 ::::
 
@@ -191,24 +214,26 @@ you@laptop:~$
 ::::
 
 The text before the cursor is called the **prompt**. It tells you that the terminal is ready for a
-command. In this series, every command is shown after a `$`, like this:
+command. In this series, every command is shown after a `$`, which stands for the prompt.
+
+Try your first command. Click in the terminal panel, type `git --version` (only what comes after
+the `$`), and press <kbd>Enter</kbd>:
 
 ```terminal
 $ git --version
 git version 2.56.0
 ```
 
-Type only what comes after the `$` (here `git --version`), then press <kbd>Enter</kbd>. The lines
-below the command are what the computer answers. Try it now.
-
-Your version number may be different, and that is fine: anything from 2.28 upwards works for
-this series. Windows adds `.windows` and a number to the version, and macOS adds
-`(Apple Git-...)`.
+The line below the command is what the computer answers. Your version number may be different,
+and that is fine: anything from 2.28 upwards works for this series. Windows adds `.windows` and a
+number to the version, and macOS adds `(Apple Git-...)`. If yours is older than 2.28, update Git
+before you go on (see the [troubleshooting page](troubleshooting_EN.html#old-git)).
 
 ::: tip
 You can copy a command with the **Copy** button on each box and paste it into the terminal. On
-Windows and Linux, paste into VS Code's terminal with <kbd>Ctrl</kbd>+<kbd>V</kbd>; on a Mac,
-with <kbd>Cmd</kbd>+<kbd>V</kbd>. Typing the commands yourself helps you remember them, though.
+Windows, paste into VS Code's terminal with <kbd>Ctrl</kbd>+<kbd>V</kbd>; on Linux, with
+<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>; on a Mac, with <kbd>Cmd</kbd>+<kbd>V</kbd>. Typing
+the commands yourself helps you remember them, though.
 :::
 
 ::: trouble
@@ -216,9 +241,9 @@ with <kbd>Cmd</kbd>+<kbd>V</kbd>. Typing the commands yourself helps you remembe
 about Git yet. Close VS Code completely and open it again. On Windows, check that the terminal is
 Git Bash (it says `MINGW64` in the prompt). If it still does not work, install Git again (Step 3).
 
-**Nothing happens when I press Enter, or I see a `>` prompt.** You may have typed an opening
-quote `"` without a closing one. Press <kbd>Ctrl</kbd>+<kbd>C</kbd> to cancel and type the command
-again.
+**Nothing happens when I press Enter, or I see a `>` prompt (`dquote>` on a Mac).** You may have
+typed an opening quote `"` without a closing one. Press <kbd>Ctrl</kbd>+<kbd>C</kbd> (also
+<kbd>Ctrl</kbd> on a Mac) to cancel, and type the command again.
 :::
 
 ## Step 5: Tell Git who you are {#identity}
@@ -231,14 +256,19 @@ GitHub gives you a private address to use instead, so your real address stays pr
 ::: where github
 1. Click your profile picture in the upper-right corner, then **Settings**.
 2. In the sidebar, under "Access", click **Emails**.
-3. Tick **Keep my email addresses private**. The text under it shows your private address. It
-   looks like `12345678+your-username@users.noreply.github.com`, with your own number and
-   username. Copy it.
+3. Make sure **Keep my email addresses private** is ticked (tick it if it is not). The text under
+   it shows your private address. It looks like
+   `12345678+your-username@users.noreply.github.com`, with your own number and username. Select
+   it and copy it.
 :::
 
-Now type these two commands, with your own name and the address you copied. Keep the quotes:
+Now type these two commands yourself, with your own name and the address you copied. This box has
+no **Copy** button, because the commands must contain your details, not the examples. Keep the
+quotes. To put in the address, type the start of the command, up to and including the first `"`,
+paste the address (with the keys from the tip in Step 4), then type the closing `"` and press
+<kbd>Enter</kbd>.
 
-```terminal
+```terminal nocopy
 $ git config --global user.name "Your Name"
 $ git config --global user.email "12345678+your-username@users.noreply.github.com"
 ```
@@ -250,7 +280,9 @@ often says nothing at all.
 only do this once.
 
 ::: tip
-Made a typo? Type the command again with the right value. The new value replaces the old one.
+Made a typo? Type the command again with the right value. The new value replaces the old one. To
+change part of a command before you press <kbd>Enter</kbd>, move the cursor with the
+<kbd>←</kbd> and <kbd>→</kbd> keys: clicking does not move it.
 :::
 
 ## Step 6: Three useful defaults {#defaults}
@@ -272,6 +304,20 @@ What they do:
 - **`pull.rebase false`** chooses the simplest way for `git pull` to combine your work with work
   from GitHub. You will meet `git pull` in Lesson 9.
 
+::: note
+**On a Mac, one more setting.** macOS leaves hidden files called `.DS_Store` in folders you open
+in Finder. They do not belong in your projects, so tell Git to ignore them in every project. Type
+these two commands; they print nothing:
+
+```terminal norun
+$ mkdir -p ~/.config/git
+$ echo .DS_Store >> ~/.config/git/ignore
+```
+
+The first makes a folder for Git's settings; the second writes `.DS_Store` into Git's list of
+files to ignore everywhere. Windows and Linux do not need this.
+:::
+
 ## Step 7: Check your settings {#check}
 
 Ask Git to list your settings:
@@ -285,8 +331,9 @@ core.editor=code --wait
 pull.rebase=false
 ```
 
-You should see your own name and email, and the three defaults. Git shows `defaultbranch` in
-lower case; that is normal.
+You should see your own name and email, and the three defaults. Check that the first two lines
+show *your* name and address. If they say `Your Name` or `your-username`, type the Step 5
+commands again with your own details. Git shows `defaultbranch` in lower case; that is normal.
 
 ::: note
 If your computer's language is not English, Git may print some of its messages in your language.
@@ -297,7 +344,9 @@ They mean the same as the English ones shown in this series.
 **I see more lines than these.** Lines you did not type (for example `filter.lfs...` or
 `credential...`) come from programs you installed earlier. They are fine.
 
-**The list is empty, or a line is missing.** Type the missing command again from Step 5 or Step 6.
+**`fatal: unable to read config file '.../.gitconfig': No such file or directory`, or a line is
+missing.** Some or all of your settings were not saved. Type the missing commands again from
+Step 5 or Step 6.
 :::
 
 ## What you learned {#summary}
@@ -306,6 +355,7 @@ They mean the same as the English ones shown in this series.
   terminal we use for both.
 - A **terminal** takes typed **commands**. The **prompt** shows it is ready. In this series `$`
   stands for the prompt: do not type it.
+- VS Code's **Auto Save** saves your files as you type.
 - `git config --global` sets Git's settings once for your whole computer.
 - Your commits will carry your name and your private GitHub email address.
 

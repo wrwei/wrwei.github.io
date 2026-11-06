@@ -166,7 +166,8 @@ export function renderTerminal(content, info, L) {
     } else out.push(ln)
   }
   flush()
-  const copy = cmds.filter(Boolean).join('\n')
+  // nocopy: commands the reader must type with their own details (Lesson 2's name and email)
+  const copy = /\bnocopy\b/.test(info) ? '' : cmds.filter(Boolean).join('\n')
   const norun = /\bnorun\b/.test(info)
   return `<div class="term"${norun ? ' data-norun' : ''}><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">${L.terminal}</span>${copy ? `<button type="button" class="copy-btn" data-copy="${escapeHtml(copy)}">${L.copy}</button>` : ''}</div><pre class="term-body"><code>${html}</code></pre></div>\n`
 }
