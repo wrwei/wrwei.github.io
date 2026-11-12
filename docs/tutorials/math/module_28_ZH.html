@@ -1,0 +1,493 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>随机优化与正则化 — 计算机科学与人工智能的数学基础</title><meta name="description" content="推导抽样梯度律及噪声二次动力学，明确动量与自适应更新，并将惩罚和停止连接到遵守拆分的训练实验。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="28"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 28</button><div class="dropdown-menu" id="module-menu"><a href="module_28_ZH.html" class="active" aria-current="page">随机优化与正则化</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_28_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>带噪更新需要目标与抽样规则</span></a><a href="#s1"><span class="num">2</span><span>总体风险、经验风险与抽样梯度</span></a><a href="#s2"><span class="num">3</span><span>批次协方差、替换与共享抽样</span></a><a href="#s3"><span class="num">4</span><span>SGD、噪声、步长、动量与明确 Adam 更新</span></a><a href="#s4"><span class="num">5</span><span>岭、套索与特征坐标几何</span></a><a href="#s5"><span class="num">6</span><span>提前停止、权重衰减与不同轨迹</span></a><a href="#s6"><span class="num">7</span><span>条件、裁剪、停止与比较预算</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个可复现实验</span></a><a href="#exercises"><span class="num">10</span><span>十四题与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自测</span></a><a href="#reading"><span class="num">12</span><span>带问题阅读</span></a><a href="#summary"><span class="num">13</span><span>检索结业与下一步</span></a><a href="#terms"><span class="num">14</span><span>符号与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">随机优化与正则化</h1><p class="module-lead">推导抽样梯度律及噪声二次动力学，明确动量与自适应更新，并将惩罚和停止连接到遵守拆分的训练实验。</p><div class="hero-chips"><span class="chip chip-time">12 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>区分总体风险、经验目标与条件梯度抽样。</li><li>推导有放回、子集及复制批次的梯度协方差。</li><li>分析平滑期望下降及稳定二次噪声底。</li><li>明确动量及 Adam 约定，不声称普遍收敛。</li><li>在指定坐标推导岭、套索、近端及提前停止作用。</li><li>核查裁剪、自适应衰减、预算及验证停止。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>需模块 19、23、25。实验 1–2 使用固定 NumPy 环境；实验 3 使用标准库。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">带噪更新需要目标与抽样规则</a><a href="#s1">总体风险、经验风险与抽样梯度</a><a href="#s2">批次协方差、替换与共享抽样</a><a href="#s3">SGD、噪声、步长、动量与明确 Adam 更新</a><a href="#s4">岭、套索与特征坐标几何</a><a href="#s5">提前停止、权重衰减与不同轨迹</a><a href="#s6">条件、裁剪、停止与比较预算</a><a href="#misconceptions">常见误解</a><a href="#labs">三个可复现实验</a><a href="#exercises">十四题与完整解答</a><a href="#quiz">十题自测</a><a href="#reading">带问题阅读</a><a href="#summary">检索结业与下一步</a><a href="#terms">符号与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">12 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">180 分钟</span></div><div class="session-title">目标与批次律</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节，推条件均值与协方差。</a></span><span class="act-min">110</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">28</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读总体与经验目标约定。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">检索抽样与惩罚尺度。</a></span><span class="act-min">22</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m28:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">180 分钟</span></div><div class="session-title">噪声动力学与优化器定义</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，分析递推稳定与矩校正。</a></span><span class="act-min">85</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">在固定计算预算比较批次律。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m28:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">180 分钟</span></div><div class="session-title">惩罚、坐标与停止</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节，区分正则化与评估。</a></span><span class="act-min">94</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">仅在训练拟合尺度，并按验证选择岭强度。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">36</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m28:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">180 分钟</span></div><div class="session-title">训练核查与可复现性</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">诊断不稳定步长、副本、裁剪与自适应衰减。</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">完成诊断练习 11–12。</a></span><span class="act-min">24</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择并写训练比较约定。</a></span><span class="act-min">20</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读 Adam 与解耦衰减的准确更新。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业并核查目标与评估声明。</a></span><span class="act-min">56</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m28:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>带噪更新需要目标与抽样规则</h2></div>
+<p>随机优化用抽样估计替代昂贵全梯度，改变波动、成本和进展解释，却不会把训练分数变为总体保证。本课推条件无偏及批次协方差，分析噪声二次模型，精确定义动量与 Adam，并区分惩罚、衰减、提前停止和裁剪。每次实验说明有限目标、抽样单位、更新约定和预算。</p>
+<p><strong>检索准备：</strong><a href="module_19_ZH.html#s1">模块 19</a>的光滑下降与曲率、<a href="module_23_ZH.html#s1">模块 23</a>的协方差、<a href="module_25_ZH.html#s6">模块 25</a>的 MAP 尺度。评估用模块 26 拆分，选学谱视图回顾模块 13。实验使用<a href="numpy_primer_ZH.html#setup">固定 NumPy 环境</a>，故障算术为标准库，无 GPU。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>总体风险、经验风险与抽样梯度</h2></div>
+<p>例子 Z 服从总体 P，损失 ℓ(w;Z) 的 R(w)=E_Pℓ 是总体风险，要求期望定义。固定数据 z₁,…,z_N 的 F(w)=Σℓ(w;z_i)/N 是经验风险。前者总体平均，后者记录平均；数据固定后 F 确定，算法仍可随机抽索引。无偏声明前先区分数据、给定数据的批次和其他算法随机性。</p>
+<p>可微有限损失的 G=∇F=Σg_i/N，无需交换定理。总体 ∇Eℓ=E∇ℓ 则需额外条件，例如邻域可微且导数分量有可积控制函数。有限小批推导不能默证明任意无界总体模型的交换。本课二次例使梯度与矩存在透明。</p>
+<p>给定当前 w 和固定数据，重新均匀抽 I∈{1,…,N}，则 E[g_I|w,数据]=G。b 个独立均匀索引的平均同样无偏。w 可依赖旧批次，但新抽仍需正确条件机制。因梯度好看而刻意选择一批，不一定无偏；关键是有限均匀期望，不是“小批总有代表性”的口号。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">精确枚举证明有限梯度均值</div>
+<p>四个记录 a=(-2,0),(0,2),(2,0),(0,-2)，损失 .5||w−a_i||²。记录平均零，所以 G=w、经验最优 (0,0)。w=(3,-2) 的四个梯度平均正是 (3,-2)，均匀抽一个条件无偏，但个别更新可在某坐标离最优更远。</p>
+</div>
+<p>固定非均匀正概率 p_i 抽索引时，未加权期望 Σp_i g_i，是另一加权目标。重要性修正 g_I/(Np_I) 的期望恢复 Σg_i/N。很小 p_i 会放大梯度与方差，无偏不说明效率。概率若依数据历史，应使用实际条件概率并写清假设。</p>
+<p>目标 F+λ||w||²/2 的精确惩罚梯度 λw，可加入抽样数据梯度，条件无偏于正则化目标。每项加 λw 再平均也相同，若乘批次项数则改变目标。总损失与均损失要按模块 25 匹配系数；比较前检查形状和正规化。</p>
+<p>固定数据索引不是新总体例子。F 可优化很好而 R 仍大，尤其选择或漂移后。噪声梯度虽偶尔升损失也可计算有效。目标、估计器期望、泛化是不同义务；模块 30 用明确统计条件连接，不以训练损失下降证明未来。</p>
+<figure class="fig" id="fig-28-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="总体风险对新例子的律平均，经验目标对固定数据求和，抽样梯度的无偏性是固定当前状态和数据后的新索引平均。"><title>总体经验与梯度平均</title><desc>总体风险对新例子的律平均，经验目标对固定数据求和，抽样梯度的无偏性是固定当前状态和数据后的新索引平均。</desc><defs><marker id="fig-28-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">三种平均：说明随机源</text><rect x="35" y="55" width="690" height="77" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="86" text-anchor="start" font-size="22" fill="#1a2e4a">R(w) = E_Z ℓ(w;Z)</text><text x="55" y="116" text-anchor="start" font-size="19" fill="#1a2e4a">未知总体上的风险</text><rect x="35" y="145" width="690" height="77" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="176" text-anchor="start" font-size="22" fill="#1a2e4a">F(w) = Σᵢ ℓᵢ(w)/N</text><text x="55" y="206" text-anchor="start" font-size="19" fill="#1a2e4a">固定训练数据上的目标</text><rect x="35" y="235" width="690" height="77" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="266" text-anchor="start" font-size="22" fill="#1a2e4a">E[ĝ | w,data] = ∇F(w)</text><text x="55" y="296" text-anchor="start" font-size="19" fill="#1a2e4a">新抽样索引的条件均值</text></g></svg></div><figcaption><span class="fig-num">图 28.1</span> <p>总体生成数据；固定数据抽索引估经验梯度。这两种期望针对不同随机机制。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>数据固定后什么随机？哪种条件支持新均匀梯度？非均匀如何恢复均匀目标？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>批次仍可随机，F 确定。给定数据和当前迭代，重新均匀抽索引。使用实际正概率的 g_I/(Np_I)，修均值但可能增方差。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>批次协方差、替换与共享抽样</h2></div>
+<p>固定 w 与数据，d_i=g_i−G，C=Σd_i d_iᵀ/N 是完整有限梯度表的协方差，分母 N，不是未知总体样本方差无偏修正。一个均匀索引 Cov=C，b 个有放回独立平均 Cov=C/b，平方偏差范数期望 trC/b。相同边缘不保证交叉项零。</p>
+<p>均匀无放回子集、1≤b≤N、N&gt;1 的平均 Cov=(C/b)(N−b)/(N−1)。证明：Σd_i=0 使 Σ_{i≠j}d_i d_jᵀ=−Σd_i d_iᵀ，除 N(N−1) 得两不同抽样位置的交叉 Cov=−C/(N−1)。批次总和有 b 个 C 和 b(b−1) 个交叉项，除 b² 得公式；b=N 为零，与全梯度一致。</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Cov</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mover accent="true"><mi>G</mi><mo stretchy="true">^</mo></mover><mi>b</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mfrac><mi>C</mi><mi>b</mi></mfrac><mspace width="1em"/><mtext>with replacement</mtext><mo separator="true">,</mo><mspace width="2em"/><mi mathvariant="normal">Cov</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mover accent="true"><mi>G</mi><mo stretchy="true">^</mo></mover><mi>b</mi></msub><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><mi>N</mi><mo>−</mo><mi>b</mi></mrow><mrow><mi>N</mi><mo>−</mo><mn>1</mn></mrow></mfrac><mfrac><mi>C</mi><mi>b</mi></mfrac><mspace width="1em"/><mtext>for a uniform subset</mtext><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\operatorname{Cov}(\widehat G_b)=\frac{C}{b}\quad\text{with replacement},\qquad
+\operatorname{Cov}(\widehat G_b)=\frac{N-b}{N-1}\frac{C}{b}\quad\text{for a uniform subset}.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.1733em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">Cov</span></span><span class="mopen">(</span><span class="mord"><span class="mord katex-accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9233em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">G</span></span><span class="svg-align" style="width:calc(100% - 0.1667em);margin-left:0.1667em;top:-3.6833em;"><span class="pstrut" style="height:3em;"></span><span style="height:0.24em;"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="0.24em" viewBox="0 0 1062 239" preserveAspectRatio="none"><path d="M529 0h5l519 115c5 1 9 5 9 10 0 1-1 2-1 3l-4 22
+c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.0463em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mord text"><span class="mord">with replacement</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">Cov</span></span><span class="mopen">(</span><span class="mord"><span class="mord katex-accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9233em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">G</span></span><span class="svg-align" style="width:calc(100% - 0.1667em);margin-left:0.1667em;top:-3.6833em;"><span class="pstrut" style="height:3em;"></span><span style="height:0.24em;"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="0.24em" viewBox="0 0 1062 239" preserveAspectRatio="none"><path d="M529 0h5l519 115c5 1 9 5 9 10 0 1-1 2-1 3l-4 22
+c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">b</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.1408em;vertical-align:-0.7693em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">b</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mord text"><span class="mord">for a uniform subset</span></span><span class="mord">.</span></span></span></span></span></div>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">两个不同记录与两个副本方差不同</div>
+<p>四记录 C=2I，两独立有放回坐标方差 1，两不同均匀子集为 2/3。一个索引梯度复制两次仍方差 2，虽然两行且均值无偏。实验枚举十六有序对和六子集，核验各矩。</p>
+</div>
+<p>一般平均 Cov 为 [ΣCov(g_j)+Σ_{j≠k}Cov(g_j,g_k)]/b²。正相关限制大批收益，负相关可改善；它依设计和参数，不依数据列是否写“batch”。重复例子或共享随机增强可改变交叉项，不能自动套标准差/√b。</p>
+<p>随机重排每 epoch 遍历均匀排列，但给定已观察批次，下一批来自剩余记录，而非全部原表，其当前条件均值不必为 G(w)。重排可有效，然而新 IID 证明不是它完整收敛分析。按当前难度挑例子也改变概率与目标权重。</p>
+<p>固定 w 时大 b 降有放回方差，却在固定逐例评估预算下减少更新数。硬件并行、内存、载入也影响耗时。报告更新与评估，测时间时列条件。实验 1 固定 2400 梯度评估，全批更新较少，步长按更新编号，所以轨迹不是普遍批量排序。</p>
+<p>非线性 C 常随 w 变化，初始方差不能描述全部步骤。此二次例中心梯度 −a_i 恒定，C 才恒定，允许精确分析。真实监控也需说明估计成本及条件解释；批次诊断不是总体梯度或未来一切的证明。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>这里分母为何 N？修正来自什么？重排是否证明后续条件抽样都对全表均匀？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>平均完整固定表。不同抽样的负交叉 Cov 产生修正，全子集归零。已抽以后只剩余索引，新全表条件证明不自动成立。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>SGD、噪声、步长、动量与明确 Adam 更新</h2></div>
+<p>SGD 为 w_(t+1)=w_t−η_t g_hat_t，步长正、估计器明确。F 梯度 L-Lipschitz，g_hat 条件无偏且有限 Cov C_t，光滑界取期望得 E[F(w−ηg_hat)|w]≤F(w)−η(1−Lη/2)||G||²+(Lη²/2)trC_t。线性项均值用无偏，平方项用 E||g_hat||²=||G||²+trCov；最优附近噪声项可抵消下降。</p>
+<p>标量 F=aw²/2、a&gt;0，估计 aw+ξ_t，ξ 新鲜独立零均值、方差 v，更新 (1−ηa)w−ηξ。均值收缩需 0&lt;ηa&lt;2，方差递推 V_next=(1−ηa)²V+η²v。固定稳定 η 的极限方差为 ηv/[a(2−ηa)]，所以均值趋零不表示迭代收敛无噪点。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">稳定恒定步长仍有噪声底</div>
+<p>a=1、η=.1、v=2，均值系数 .9，极限方差 .2/1.9≈.105263。零均值平稳超额损失半数≈.052632。精确全梯度去掉噪声底；稳定噪声轨迹仍可上升、反复过零。</p>
+</div>
+<p>递减步长可减少后期噪声，但任意下降表不保证所有目标成功。无噪声中若总步长有限且足够小，收缩乘积可保持正，初始成分不消失。常见随机逼近条件平衡持续运动和平方可和噪声，还需额外曲率、采样等条件。本课证明具体递推与下降界，不声称一般无条件收敛。</p>
+<p>更精确地，正步长 aη_t≤c&lt;1、Ση_t 有限，中值定理给 −log(1−aη_t)≤aη_t/(1−c)。求和有限，所以收缩乘积有正下界，非零初始无噪声迭代保留非零极限。这不证明哪个随机步长成功，却解释单步稳定且越来越小也可能过早停。步长与噪声应一起分析。</p>
+<p>指定一种动量：v_next=βv+g_hat，w_next=w−ηv_next，v₀=0、0≤β&lt;1。这个缓冲为未正规化加权和，恒 g 下趋 g/(1−β)，同 η 改 β 改有效尺度。新梯度乘 1−β 的 EMA 是另一数值约定，需匹配步长。动量可抑制或放大振荡，依曲率与步长；历史更新不是单纯新无偏梯度乘常数。</p>
+<p>Adam 的 m_t=β₁m_prev+(1−β₁)g_t，v_t=β₂v_prev+(1−β₂)g_t²，逐分量且初始零；修正 m_hat=m/(1−β₁^t)，v_hat=v/(1−β₂^t)，更新 w_t=w_prev−η_t m_hat/(√v_hat+ε)，ε&gt;0 在根号外。这是<a href="https://arxiv.org/abs/1412.6980" target="_blank" rel="noopener">原始论文</a>算法 1 约定。v 是原始二阶矩，不是中心方差。</p>
+<p>平稳梯度律展开 EMA 给 E[m_t]=(1−β₁^t)E[g]，平方同理，解释零初始化修正。实际训练梯度随参数改变，修正缓冲不自动无偏于当前全梯度，随机分母也改变期望。定义算法不证明通用收敛、最佳优化器或泛化；有限实验只报告所测内容。</p>
+<figure class="fig" id="fig-28-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="有放回独立平均 C 除 b，不同索引再乘有限总体校正，复制同一个梯度没有方差缩减。"><title>批次独立性与有限总体校正</title><desc>有放回独立平均 C 除 b，不同索引再乘有限总体校正，复制同一个梯度没有方差缩减。</desc><defs><marker id="fig-28-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">同一个 b，三个协方差</text><rect x="35" y="55" width="690" height="70" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="85" text-anchor="start" font-size="21" fill="#1a2e4a">独立有放回</text><text x="700" y="111" text-anchor="end" font-size="24" fill="#1a2e4a">C/b</text><rect x="35" y="140" width="690" height="70" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="170" text-anchor="start" font-size="21" fill="#1a2e4a">均匀不同索引子集</text><text x="700" y="196" text-anchor="end" font-size="24" fill="#1a2e4a">(C/b) (N−b)/(N−1)</text><rect x="35" y="225" width="690" height="70" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="255" text-anchor="start" font-size="21" fill="#1a2e4a">一个抽样复制 b 次</text><text x="700" y="281" text-anchor="end" font-size="24" fill="#1a2e4a">C</text><text x="380" y="332" text-anchor="middle" font-size="18" fill="#1a2e4a">子集公式需 N&gt;1；C 使用分母 N。</text></g></svg></div><figcaption><span class="fig-num">图 28.2</span> <p>稳定恒步无噪路径趋零，抽样梯度保留重复实验波动。自适应缓冲另改变方向和尺度。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>期望下降的噪声项来源？恒步方差底？Adam v 是中心方差或证明当前无偏吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>平方范数期望等于全梯度平方加 trCov。指定模型的底为 ηv/[a(2−ηa)]。Adam 用原始二阶矩及非线性分母，两种声称都不成立。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>岭、套索与特征坐标几何</h2></div>
+<p>惩罚改目标，优化器改遍历方法。岭加 λ||w||²/2，λ≥0，梯度 λw、曲率 λI，向零中心改变最优，不仅是保留目标缩小更新。模块 25 噪声先验给概率解释，总/平均系数一致。</p>
+<p>标量 .5(w−a)² 的岭解 a/(1+λ)，通常非零。套索加 λ|w|，非零导数 λsignw，零的次梯度 [−λ,λ]；最优零属于 w−a+λ∂|w|。|a|≤λ 时零，其他 a−λsigna。这是软阈值，由非光滑几何产生精确稀疏，不是浮点小值裁掉。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">两惩罚对同一目标收缩不同</div>
+<p>a=.8、λ=1，岭 .4，套索零。a=2 时两者都是 1，不证明目标相同；a=3 则 1.5 与 2。必须说明 λ 乘半平方还是绝对值。</p>
+</div>
+<p>可微 F 的近端梯度先 z=w−η∇F，再逐分量软阈值 ηλ，因为其子问题为 .5(u−z)²+ηλ|u|。零处选某 sign 再普通步是另一算法，可能在折点抖动；整体绝对值目标不能未经处理套光滑定理。</p>
+<p>平均半 SSE 的岭方程 (XᵀX/N+λI)w=Xᵀy/N，说明哪些列惩罚及截距。λ&gt;0 时，即使 X 秩亏，非零 v 的二次型 ||Xv||²/N+λ||v||²&gt;0，故唯一。λ=0 需满秩。用线性求解，改善条件同时引入统计偏差。</p>
+<p>缩放 X 一坐标且反缩系数可保预测，却不保各向同性系数范数。标准化系数惩罚对应原坐标加权惩罚。训练标准化改善曲率，不保同 λ 的所有先验解释。声明坐标、截距、先验及总/平均约定。</p>
+<p>实验 2 原特征尺度 1、100，只从训练拟合变换，检查 Hessian 条件。预定岭列表由验证选，冻结再测试。本次 λ=0 胜，是合法结果，不能改数据或按测试添加候选直到惩罚显得好。验证赢家仍是选择规则，未来表现需保留解释。</p>
+<figure class="fig" id="fig-28-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="标量点八岭强度一解点四，套索强度一解零；尺度改变惩罚几何，训练拟合尺度验证选强度最终一次评估。"><title>岭套索与拆分约定</title><desc>标量点八岭强度一解点四，套索强度一解零；尺度改变惩罚几何，训练拟合尺度验证选强度最终一次评估。</desc><defs><marker id="fig-28-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">同一个标量目标，不同惩罚</text><text x="380" y="77" text-anchor="middle" font-size="24" fill="#1a2e4a">½(w−a)²; a=.8, λ=1</text><rect x="35" y="115" width="330" height="125" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="395" y="115" width="330" height="125" rx="10" fill="#faf5ff" stroke="#7e22ce"/><text x="200" y="149" text-anchor="middle" font-size="23" fill="#1a2e4a">岭 λw²/2</text><text x="200" y="190" text-anchor="middle" font-size="23" fill="#1a2e4a">w*=a/(1+λ)=.4</text><text x="560" y="149" text-anchor="middle" font-size="23" fill="#1a2e4a">套索 λ|w|</text><text x="560" y="190" text-anchor="middle" font-size="20" fill="#1a2e4a">w*=sign(a)(|a|−λ)₊=0</text><text x="380" y="290" text-anchor="middle" font-size="19" fill="#1a2e4a">特征缩放会改变惩罚几何；截距另定。</text><text x="380" y="328" text-anchor="middle" font-size="19" fill="#1a2e4a">训练拟合尺度 → 验证选择 λ → 一次最终评估</text></g></svg></div><figcaption><span class="fig-num">图 28.3</span> <p>岭平滑收缩，套索软阈值归零；缩放改变惩罚坐标几何。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>推两个标量解。正 λ 为何修秩亏？标准化是否保原各向同性先验？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>岭解得分，套索用含零次梯度。λ||v||² 保证各非零方向正。标准化改系数坐标，新的各向同性范数通常是不同原先验。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>提前停止、权重衰减与不同轨迹</h2></div>
+<p>提前停止选择尚未完全优化的迭代，可限制噪方向拟合，却是选择规则，不自动等价固定惩罚。验证停止属于训练协议，测试选停止就变选择数据。记录检查频率、候选 epoch、并列规则及是否恢复最佳。依噪梯度的随机停止不自动继承固定时保证。</p>
+<p>H 正定二次 F=.5wᵀHw−bᵀw，从零全梯度的各特征模态系数为 [1−(1−ηh_j)^t]b_j/h_j，由标量仿射递推得。0&lt;η≤1/h_max 时过滤因子从零单调到一，小曲率发展慢。岭系数 b_j/(h_j+λ)，相对无惩罚过滤为 h_j/(h_j+λ)。一个 t 通常不能在所有模态对应一个 λ。</p>
+<p>这是简单线性模型中停止类似收缩的限定机制，不是任意网络、随机轨迹或步长等价。ηh_j&gt;1 模态可振荡，单调描述失效；奇异目标还需零方向及 b 兼容检查。</p>
+<p>普通 SGD 对 L2 更新 w−η(g+λw)=(1−ηλ)w−ηg，与该乘法衰减恰同。一些库独立于步长定义衰减，需转换系数，不可直接同名同值。动量或自适应将惩罚送入历史及预条件后，可破坏此简单恒等。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">同名 L2 可有不同自适应更新</div>
+<p>w=2、g=.1、λ=.5、η=.01、ε=10⁻⁸，普通 SGD 两形式都 1.989。Adam 首次零缓冲修正，耦合用 g+λw=1.1，结果约 1.99；解耦仅数据梯度进矩，再衰减，约 1.98。非线性分母使轨迹不同。</p>
+</div>
+<p>这里解耦约定先用数据梯度算 m_hat,v_hat，再 w_new=(1−ηλ)w−ηm_hat/(√v_hat+ε)，耦合则将 g+λw 放入两个缓冲。区分对应<a href="https://arxiv.org/abs/1711.05101" target="_blank" rel="noopener">权重衰减论文</a>，是更新定义，不声称统一低测试风险。系数和步长共同定缩放，实验需明确递推。</p>
+<p>损失惩罚、增强、dropout、停止都可影响训练，不是可互换目标。增强改例子分布，dropout 加掩码机制，惩罚直接改 F，停止选路径点。先定位规则进入哪层期望或更新；本课推明确惩罚停止，专项泛化需额外模型。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>何时衰减恰等普通 L2？Adam 为何不同？停止时间总等一个岭系数吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>普通数据 SGD、因子 1−ηλ 时恒等。自适应矩分母处理耦合惩罚不同于外部收缩。两种特征过滤一般不同，不能全方向单一对应。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>条件、裁剪、停止与比较预算</h2></div>
+<p>病态二次曲率迫使统一步长顾陡方向稳定，却让平方向很慢。模块 19 全梯度条件仍有参考，抽样另有噪声和逐例曲率；平均 Hessian 稳定不保证任意随机分量更新。先查尺度、目标正规化、梯度范数及抽样，不把所有不规则都称必然随机。</p>
+<p>F=10w²/2 的系数 1−10η，η=.1 一步零，η=.25 系数 −1.5、变号且幅度增，与种子无关。稳定噪轨迹也可振荡，需结合幅度和曲率。λ 增曲率，可能改变稳定步长要求，虽能改善多维条件比。</p>
+<p>范数裁剪 g min(1,c/||g||)、c&gt;0，零保持零。它限制输入并保单个非零方向，通常却改变期望、偏置原无偏估计。逐分量裁剪是另一几何。它可控制数值跳跃，不能未经证明称仍优化原期望。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">裁剪可以破坏无偏</div>
+<p>估计器等概率 −2、1，均值 −.5。c=1 范数裁为 −1、1，均值零，期望更新不再沿原梯度。有限算术清楚反驳“有界就保无偏”。</p>
+</div>
+<p>小噪梯度不证明全梯度小。四记录中 w=a_i 时该抽样梯度零，全 G=w 却可远离零。小步也可能来自微步长、大自适应分母或裁剪。必要时使用全梯度或有统计依据诊断，区分路径收敛与验证选择。</p>
+<p>相同 epoch、更新、逐例评估、墙钟都是不同预算。记录步长索引、替换、惩罚和精度。固定数据跨种子测算法随机性；总体需独立数据或测试单位。配对流可在保各算法边缘时降比较噪声，跨运行复制不增独立实验。</p>
+<p>分别报告训练目标、未惩罚数据损失与保留指标。更强惩罚可升数据误差；不同 λ 总目标是不同函数，不能直接当同目标排序。验证选协议，独立测试评冻结。实验 3 明确“示意分数输入”演示停止，不伪装模型基准；实验 2 则是真实拟合输出。</p>
+<p>探索器绘多个种子标量 SGD 路径与加噪二次的解析期望，标稳定条件和惩罚曲率。轨迹说明波动，证明的公式才给数学结论。低末损失或一条光滑线不建立通用收敛泛化。下课将带目标、依赖、数值尺度与评估约定一起检查。</p>
+<figure class="fig" id="fig-28-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="先声明目标尺度，再声明抽样协方差，接着步长与状态，最后预算验证和冻结测试。训练下降本身不是泛化保证。"><title>随机训练报告的数学链</title><desc>先声明目标尺度，再声明抽样协方差，接着步长与状态，最后预算验证和冻结测试。训练下降本身不是泛化保证。</desc><defs><marker id="fig-28-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">审计一次更新与一次报告</text><rect x="45" y="55" width="670" height="47" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="85" text-anchor="middle" font-size="21" fill="#1a2e4a">目标及正则化尺度</text><path d="M380,105L380,114" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-28-4__arrow)"/><rect x="45" y="119" width="670" height="47" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="149" text-anchor="middle" font-size="21" fill="#1a2e4a">抽样及条件协方差</text><path d="M380,169L380,178" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-28-4__arrow)"/><rect x="45" y="183" width="670" height="47" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="213" text-anchor="middle" font-size="21" fill="#1a2e4a">步长与状态递推</text><path d="M380,233L380,242" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-28-4__arrow)"/><rect x="45" y="247" width="670" height="47" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="277" text-anchor="middle" font-size="21" fill="#1a2e4a">预算、验证与最终测试</text><text x="380" y="333" text-anchor="middle" font-size="19" fill="#1a2e4a">训练下降本身不证明总体泛化。</text></g></svg></div><figcaption><span class="fig-num">图 28.4</span> <p>步长、训练损失、正则目标与保留表现不同。裁剪或微步可能掩盖大全梯度，测试停止改变评估角色。</p>
+</figcaption></figure>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="stochastic"></div><div class="widget-caption">
+</div></div>
+<div class="check"><div class="check-label">检验理解</div>
+<p>裁剪保期望吗？小抽样步证明最优吗？比较需什么预算和波动来源？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>一般不保，二值例证。尺度、裁剪和随机抵消可藏梯度。列评估/更新/时间、步长、固定拆分和抽样律，分种子与独立评估单位。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>错误说法</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>每个批都无偏于总体。</td>
+<td>新索引针对固定经验目标。</td>
+</tr>
+<tr>
+<td>行数总除方差。</td>
+<td>替换与交叉 Cov 重要。</td>
+</tr>
+<tr>
+<td>重排以后仍满足全表新 IID 证明。</td>
+<td>条件下一批用剩余索引。</td>
+</tr>
+<tr>
+<td>恒定稳定步去掉全部噪声。</td>
+<td>二次模型可有方差底。</td>
+</tr>
+<tr>
+<td>Adam v 是中心方差。</td>
+<td>它是原始平方矩。</td>
+</tr>
+<tr>
+<td>岭套索只改速度。</td>
+<td>它们改目标与稀疏几何。</td>
+</tr>
+<tr>
+<td>所有优化器 L2 和衰减相同。</td>
+<td>自适应缓冲可改变耦合路径。</td>
+</tr>
+<tr>
+<td>裁剪保无偏。</td>
+<td>非线性改期望。</td>
+</tr>
+<tr>
+<td>小步证全最优。</td>
+<td>步长和随机抵消可掩盖梯度。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个可复现实验</h2></div>
+<h3 id="lab1">实验 1 · 精确批次与相同评估数</h3>
+<p><a href="labs/module_28/lab1_full_and_minibatch_updates.py" download>下载 lab1_full_and_minibatch_updates.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Fixed finite objective: exact gradient moments and equal evaluation budgets.&quot;&quot;&quot;
+import itertools
+import numpy as np
+
+
+if __name__ == &quot;__main__&quot;:
+    records = np.array([[-2.,0.],[0.,2.],[2.,0.],[0.,-2.]])
+    w = np.array([3.,-2.])
+    gradients = w-records
+    print(&quot;Objective F(w)=mean(.5*||w-a_i||^2); four fixed records; minimiser=(0,0)&quot;)
+    print(f&quot;Full gradient={gradients.mean(axis=0).tolist()}; single-index gradient covariance={np.cov(gradients.T,bias=True).tolist()}&quot;)
+    for replacement in (True,False):
+        batches = list(itertools.product(range(4),repeat=2)) if replacement else list(itertools.combinations(range(4),2))
+        means = np.array([gradients[list(batch)].mean(axis=0) for batch in batches])
+        print(f&quot;b=2, replacement={replacement}: exact average={means.mean(axis=0).tolist()}, coordinate variance={means.var(axis=0).round(6).tolist()}&quot;)
+    budget = 2400
+    for batch in (1,2,4):
+        rng = np.random.default_rng(28028+batch)
+        weights = np.array([3.,-2.])
+        updates = budget//batch
+        for t in range(updates):
+            indices = np.arange(4) if batch==4 else rng.integers(0,4,batch)
+            g = (weights-records[indices]).mean(axis=0)
+            eta = .4/(1+t/50)
+            weights -= eta*g
+        gap = .5*(weights@weights)
+        print(f&quot;batch={batch}: evaluations={updates*batch}, updates={updates}, final w={weights.round(6).tolist()}, objective gap={gap:.9f}&quot;)
+    print(&quot;The schedule is indexed by updates; equal evaluation budgets do not imply identical schedules or wall-clock costs.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Objective F(w)=mean(.5*||w-a_i||^2); four fixed records; minimiser=(0,0)
+Full gradient=[3.0, -2.0]; single-index gradient covariance=[[2.0, 0.0], [0.0, 2.0]]
+b=2, replacement=True: exact average=[3.0, -2.0], coordinate variance=[1.0, 1.0]
+b=2, replacement=False: exact average=[3.0, -2.0], coordinate variance=[0.666667, 0.666667]
+batch=1: evaluations=2400, updates=2400, final w=[-0.141294, -0.033818], objective gap=0.010553878
+batch=2: evaluations=2400, updates=1200, final w=[-0.154031, 0.047368], objective gap=0.012984558
+batch=4: evaluations=2400, updates=600, final w=[0.0, -0.0], objective gap=0.000000000
+The schedule is indexed by updates; equal evaluation budgets do not imply identical schedules or wall-clock costs.
+</code></pre></div>
+<p>先推三种 Cov，在相同评估数下比较，保留不同更新索引步长的说明。</p>
+<h3 id="lab2">实验 2 · 训练缩放与正则化</h3>
+<p><a href="labs/module_28/lab2_regularisation_and_scaling.py" download>下载 lab2_regularisation_and_scaling.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Training-only scaling and stated ridge/lasso coefficient conventions.&quot;&quot;&quot;
+import numpy as np
+
+
+if __name__ == &quot;__main__&quot;:
+    rng = np.random.default_rng(28029)
+    latent = rng.normal(size=(240,2))
+    features = latent*np.array([1.,100.])
+    response = 2*latent[:,0]-.5*latent[:,1]+rng.normal(0,.5,240)
+    train, validation, test = np.arange(144), np.arange(144,192), np.arange(192,240)
+    center, scale = features[train].mean(axis=0), features[train].std(axis=0)
+    scaled = (features-center)/scale
+    response_center = response[train].mean()
+    print(&quot;NumPy1.26.4; seed28029; fixed144/48/48 split; transformations fitted on training only&quot;)
+    print(f&quot;raw Hessian condition={np.linalg.cond(features[train].T@features[train]):.6f}; scaled condition={np.linalg.cond(scaled[train].T@scaled[train]):.6f}&quot;)
+    candidates = [0., .01, .1, 1.]
+    fitted = []
+    for lam in candidates:
+        a = scaled[train]
+        # Mean half-SSE + lambda/2||w||^2; intercept response_center is not penalised.
+        w = np.linalg.solve(a.T@a/len(train)+lam*np.eye(2),a.T@(response[train]-response_center)/len(train))
+        val_mse = np.mean((response_center+scaled[validation]@w-response[validation])**2)
+        fitted.append((val_mse,lam,w))
+        print(f&quot;lambda={lam:.2f}, standardised coefficients={w.round(6).tolist()}, validation MSE={val_mse:.6f}&quot;)
+    _, selected, weights = min(fitted,key=lambda row:row[0])
+    test_mse = np.mean((response_center+scaled[test]@weights-response[test])**2)
+    print(f&quot;Frozen validation-selected lambda={selected:.2f}; final test MSE={test_mse:.6f}&quot;)
+    a, lam = .8, 1.
+    ridge = a/(1+lam)
+    lasso = np.sign(a)*max(abs(a)-lam,0.)
+    print(f&quot;Scalar .5(w-a)^2: a={a}, lambda={lam}; ridge lambda/2*w^2 solution={ridge:.6f}; lasso lambda*|w| solution={lasso:.6f}&quot;)
+    print(&quot;Standardised-coordinate penalties define different prior geometry from penalties on raw units; scaling is not permission to reuse the same probabilistic interpretation.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>NumPy1.26.4; seed28029; fixed144/48/48 split; transformations fitted on training only
+raw Hessian condition=11263.011726; scaled condition=1.021254
+lambda=0.00, standardised coefficients=[1.983694, -0.475552], validation MSE=0.269910
+lambda=0.01, standardised coefficients=[1.964101, -0.471048], validation MSE=0.272948
+lambda=0.10, standardised coefficients=[1.803755, -0.43404], validation MSE=0.324786
+lambda=1.00, standardised coefficients=[0.99307, -0.242984], validation MSE=1.325412
+Frozen validation-selected lambda=0.00; final test MSE=0.286922
+Scalar .5(w-a)^2: a=0.8, lambda=1.0; ridge lambda/2*w^2 solution=0.400000; lasso lambda*|w| solution=0.000000
+Standardised-coordinate penalties define different prior geometry from penalties on raw units; scaling is not permission to reuse the same probabilistic interpretation.
+</code></pre></div>
+<p>写平均半 SSE 和无惩罚截距，解释验证选零及不同坐标先验。</p>
+<h3 id="lab3">实验 3 · 步长、相关、衰减与选择故障</h3>
+<p><a href="labs/module_28/lab3_rates_correlation_and_decay.py" download>下载 lab3_rates_correlation_and_decay.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Deliberate rate, correlation, nonlinear preconditioning and selection faults.&quot;&quot;&quot;
+import math
+
+
+if __name__ == &quot;__main__&quot;:
+    curvature, start = 10.,1.
+    for eta in (.1,.25):
+        w = start
+        for _ in range(10):
+            w -= eta*curvature*w
+        print(f&quot;F=.5*10*w^2, eta={eta:.2f}: factor={1-eta*curvature:.2f}, w after10={w:.6f}, loss={.5*curvature*w*w:.6f}&quot;)
+    gradients = [-2.,0.,2.,0.]
+    mean = sum(gradients)/4
+    variance = sum((g-mean)**2 for g in gradients)/4
+    print(f&quot;Two IID gradient indices: mean variance={variance/2:.6f}; one index copied twice: variance={variance:.6f}&quot;)
+    w, g, lam, eta, eps = 2., .1, .5, .01, 1e-8
+    coupled_gradient = g+lam*w
+    # Adam first step, zero-initialised moments with both bias corrections.
+    coupled = w-eta*coupled_gradient/(abs(coupled_gradient)+eps)
+    decoupled = (1-eta*lam)*w-eta*g/(abs(g)+eps)
+    sgd_coupled = w-eta*(g+lam*w)
+    sgd_decay = (1-eta*lam)*w-eta*g
+    assert math.isclose(sgd_coupled,sgd_decay,abs_tol=1e-15)
+    print(f&quot;SGD L2-gradient={sgd_coupled:.9f}, decoupled decay={sgd_decay:.9f} (equal under this convention)&quot;)
+    print(f&quot;Bias-corrected Adam first step: coupled L2={coupled:.9f}, decoupled decay={decoupled:.9f} (different)&quot;)
+    grad_values = [-2.,1.]
+    clipped = [max(-1.,min(1.,x)) for x in grad_values]
+    print(f&quot;Unclipped mean={sum(grad_values)/2:.6f}; clipped mean={sum(clipped)/2:.6f} (clipping can change expectation)&quot;)
+    # Illustrative input scores, not measured model runs.
+    print(&quot;Illustrative score arrays demonstrate the selection rule, not a model benchmark.&quot;)
+    validation = [.30,.26,.25,.27,.29]
+    test = [.31,.29,.28,.24,.26]
+    chosen = min(range(len(validation)),key=validation.__getitem__)
+    invalid = min(range(len(test)),key=test.__getitem__)
+    print(f&quot;Predeclared validation stopping chooses epoch{chosen+1}; corresponding one-time test={test[chosen]:.2f}&quot;)
+    print(f&quot;Test-based stopping chooses epoch{invalid+1}, reported={test[invalid]:.2f}; this is selection, not an untouched final test.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>F=.5*10*w^2, eta=0.10: factor=0.00, w after10=0.000000, loss=0.000000
+F=.5*10*w^2, eta=0.25: factor=-1.50, w after10=57.665039, loss=16626.283650
+Two IID gradient indices: mean variance=1.000000; one index copied twice: variance=2.000000
+SGD L2-gradient=1.989000000, decoupled decay=1.989000000 (equal under this convention)
+Bias-corrected Adam first step: coupled L2=1.990000000, decoupled decay=1.980000001 (different)
+Unclipped mean=-0.500000; clipped mean=0.000000 (clipping can change expectation)
+Illustrative score arrays demonstrate the selection rule, not a model benchmark.
+Predeclared validation stopping chooses epoch3; corresponding one-time test=0.28
+Test-based stopping chooses epoch4, reported=0.24; this is selection, not an untouched final test.
+</code></pre></div>
+<p>修不稳定及副本 Cov，推首次自适应步，诊裁剪偏差。停止数组是示意输入，不是测量基准。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>十四题与完整解答</h2></div>
+<p>练习 1–12 必做，选学 13–14 在十二小时以外加 35 分钟。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>四记录在 w=(3,-2) 的 G、C 和有放回二批 Cov？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>均值零给 G=w，中心 −a_i 给 C=2I，二独立均值 Cov=I，副本不是此值。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>N4、b2、C2I，求无放回与复制 Cov。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>子集 (C/2)(2/3)=2/3 I，副本仍 2I，二者无偏而波动不同。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>.5(w−.8)²、λ1 的岭与套索解？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>半平方惩罚给 .4，绝对惩罚因 .8≤1 得零，零次梯度可平衡 .8。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>a1、η.1、v2，求系数、方差底与平稳损失。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>.9、2/19、1/19。需要新独立零均值加噪与稳定步。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证均匀无偏、重要性及两种批 Cov。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>有限期望 Σg_i/N，非均匀修正 Σp_i g_i/(Np_i)=G。有放回交叉零给 C/b；不同抽样交叉 −C/(N−1)，b 个对角与 b(b−1) 项给 C(N−b)/[b(N−1)]，条件为固定梯度及所述抽样。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>推条件光滑期望下降及标量方差递推。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>光滑上界代入 −ηg_hat，线性均值 −η||G||²，平方均值 ||G||²+trCov，即得带噪项界。独立加噪中心递推方差 (1−ηa)²V+η²v，稳定几何和给 ηv/[a(2−ηa)]。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>推软阈值并证明普通 SGD 衰减等价。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>非零解 w−a+λsignw=0；零处 −a∈[−λ,λ] 给阈值分支。普通 w−η(g+λw) 展开即 (1−ηλ)w−ηg，恒等不含动量或自适应。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>2400 梯度评估、更新索引步长，比较三批量需记录什么？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>批 1、2、4 分别 2400、1200、600 更新，访问不同步长编号。记录预算、替换、步长、内存时间及目标，不由一条轨迹推通用效率泛化。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>推均半 SSE 岭方程，证 λ&gt;0 秩亏也唯一。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>梯度 Xᵀ(Xw−y)/N+λw=0。矩阵二次型 ||Xv||²/N+λ||v||²&gt;0，故可逆。截距和坐标另外说明。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>算 w2、g.1、λ.5、η.01 的 SGD 与首次 Adam 耦合/解耦。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>普通都 1.989。首修正 m_hat=g_used、v_hat=g_used²，耦合 1.1 给约 1.99；解耦 .1 与乘缩给约 1.98。ε=10⁻⁸ 在根号外。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>二批复制、裁剪、小步被当成全收敛证书，修复。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>副本保 C 非 C/2，裁剪可改均值，小步可来自率阈值尺度。应查全梯度或正确统计诊断，单记录零不证全零。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>先全数据标准化、同 λ 声称同原先验、测试选停止，修复。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>训练拟合变换，列系数坐标，标准化各向同性一般不同原先验。验证选停止后冻结，独立最终测；选择过的测试不未触碰。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>推正定二次停止与岭过滤，解释 t 不一般等 λ。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>零始模态 u_next=(1−ηh)u+ηb，解 [1−(1−ηh)^t]b/h。岭 b/(h+λ)，过滤 h/(h+λ)，不同 h 函数一般不相同。单调还需 η≤1/h_max，单模态相同不证明整个等价。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>平稳矩下证 EMA 零初始化修正，解释为何训练中不保证当前自适应无偏。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>m_t=(1−β)Σβ^(t−j)g_j，共同均值 μ 给期望 (1−β^t)μ，除该因子去初始化偏。平方同理给原始二阶矩。变化迭代律与随机非线性分母阻止当前无偏结论。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自测</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>固定数据新均匀抽索引针对哪个梯度？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">经验均损失</button></li><li><button type="button" class="quiz-opt" data-i="1">无条件任意总体</button></li><li><button type="button" class="quiz-opt" data-i="2">自动最终测试损失</button></li></ol><div class="quiz-expl" hidden>索引平均记录，不创造总体例子。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>独立有放回批 Cov 是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总 C</button></li><li><button type="button" class="quiz-opt" data-i="1">C/b</button></li><li><button type="button" class="quiz-opt" data-i="2">总零</button></li></ol><div class="quiz-expl" hidden>正确条件机制使交叉零。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>一个梯度复制两次 Cov？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">C/2</button></li><li><button type="button" class="quiz-opt" data-i="1">零</button></li><li><button type="button" class="quiz-opt" data-i="2">C</button></li></ol><div class="quiz-expl" hidden>平均等于原抽样。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>稳定恒 SGD 去全噪吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">否，二次可有正方差底</button></li><li><button type="button" class="quiz-opt" data-i="1">所有模型都去</button></li><li><button type="button" class="quiz-opt" data-i="2">种子决定定理</button></li></ol><div class="quiz-expl" hidden>均值收缩不等于波动消失。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>Adam v 是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">自动中心 Cov</button></li><li><button type="button" class="quiz-opt" data-i="1">指数原始平方梯度矩</button></li><li><button type="button" class="quiz-opt" data-i="2">后验概率</button></li></ol><div class="quiz-expl" hidden>没有减均值平方。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>哪个惩罚由次梯度给精确零？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">岭总能</button></li><li><button type="button" class="quiz-opt" data-i="1">任意光滑总能</button></li><li><button type="button" class="quiz-opt" data-i="2">套索绝对值</button></li></ol><div class="quiz-expl" hidden>零区间可平衡一段数据导数。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>何时 L2 梯度等所述乘衰减？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">普通 SGD，因子 1−ηλ</button></li><li><button type="button" class="quiz-opt" data-i="1">任意自适应任意系数</button></li><li><button type="button" class="quiz-opt" data-i="2">测试调参后</button></li></ol><div class="quiz-expl" hidden>缓冲可不同处理惩罚。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>范数裁剪总保无偏均值吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总保</button></li><li><button type="button" class="quiz-opt" data-i="1">不，非线性可改期望</button></li><li><button type="button" class="quiz-opt" data-i="2">叫稳定化就保</button></li></ol><div class="quiz-expl" hidden>−2/1 例均值从 −.5 变零。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>哪个支持最终测试声明？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">用测试选停止</button></li><li><button type="button" class="quiz-opt" data-i="1">改名验证为测试</button></li><li><button type="button" class="quiz-opt" data-i="2">验证冻结选择，再测未触碰独立数据</button></li></ol><div class="quiz-expl" hidden>种子可复现也不能替代选择约定。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m28:q10">
+<label for="q10-response">10. 指定小批比较，推条件均值 Cov，声明目标、惩罚、步长与预算，解释复制、裁剪偏、自适应衰减和验证停止，不从训练损失声称总体保证。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="指出随机性、固定数据、目标、抽样、更新与冻结评估。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我区分梯度估计、优化动态、改变目标与统计评估。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>固定均损失的新均匀有放回给 G 与 C/b，副本保交叉，子集有修正。列半 SSE/惩罚、更新步长和评估数。裁剪可偏，Adam 耦合解耦不同。验证选择后独立最终测，经验下降不证明总体风险或通用收敛。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>带问题阅读</h2></div>
+<p>读 <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning</a> 的优化模型目标，核对 <a href="https://arxiv.org/abs/1412.6980" target="_blank" rel="noopener">Adam 算法 1</a> 和<a href="https://arxiv.org/abs/1711.05101" target="_blank" rel="noopener">解耦衰减论文</a>的定义。本课证明有限 Cov、噪二次和惩罚，不借用通用表现声明。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>阅读问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一阶段 · 20 分钟</td>
+<td>哪个期望是总体，哪个是有限索引？</td>
+</tr>
+<tr>
+<td>第四阶段 · 20 分钟</td>
+<td>修正、ε、惩罚和衰减在哪进入？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索结业与下一步</h2></div>
+<p>推无偏、Cov、期望下降、方差底、岭套索和衰减区别，将预算、坐标、裁剪和不泄漏停止串为报告。</p>
+<p><strong>结业任务：</strong>比较独立二索引、不同子集、副本；修大曲率步与 Adam 等价误解，列最终评估。</p>
+<p><strong>进入下一课的标准：</strong>能数学审计随机更新。下一课研究舍入、条件与稳定实现。返回<a href="index_ZH.html">总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>符号与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>符号或术语</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R / F</td>
+<td>总体 / 经验风险</td>
+<td>Population / empirical risk</td>
+</tr>
+<tr>
+<td>G / g_hat / C</td>
+<td>全 / 抽样梯度 / 有限 Cov</td>
+<td>Gradient / estimate / covariance</td>
+</tr>
+<tr>
+<td>η / β / ε</td>
+<td>步长 / 动量衰减 / 分母稳定项</td>
+<td>Step / momentum / stabiliser</td>
+</tr>
+<tr>
+<td>岭 / 套索</td>
+<td>平方 / 绝对系数惩罚</td>
+<td>Ridge / lasso</td>
+</tr>
+<tr>
+<td>次梯度 / 近端</td>
+<td>凸支撑斜率 / 惩罚子步</td>
+<td>Subgradient / proximal</td>
+</tr>
+<tr>
+<td>衰减 / 裁剪</td>
+<td>乘法收缩 / 范数阈值</td>
+<td>Weight decay / clipping</td>
+</tr>
+<tr>
+<td>提前停止 / 预算</td>
+<td>所选迭代 / 声明工作量</td>
+<td>Early stopping / budget</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_27_ZH.html">← 模块 27</a><a href="module_29_ZH.html">模块 29 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

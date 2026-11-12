@@ -1,0 +1,492 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Limit theorems, concentration, and Monte Carlo — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Prove moment bounds and a weak law, qualify CLT and Hoeffding statements, calculate sample sizes, and report Monte Carlo uncertainty with the actual independent sampling units."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="24"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 24</button><div class="dropdown-menu" id="module-menu"><a href="module_24_EN.html" class="active" aria-current="page">Limit theorems, concentration, and Monte Carlo</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="module_24_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>A sample mean needs an uncertainty contract</span></a><a href="#s1"><span class="num">2</span><span>Sampling assumptions and variation of an average</span></a><a href="#s2"><span class="num">3</span><span>Markov and Chebyshev bounds with complete elementary proofs</span></a><a href="#s3"><span class="num">4</span><span>A finite-variance weak law and its convergence meaning</span></a><a href="#s4"><span class="num">5</span><span>The central limit theorem standardises means not observations</span></a><a href="#s5"><span class="num">6</span><span>Hoeffding bounds sample sizes and finite simultaneous claims</span></a><a href="#s6"><span class="num">7</span><span>Monte Carlo reports seeds and variance reduction by pairing</span></a><a href="#misconceptions"><span class="num">8</span><span>Common misconceptions</span></a><a href="#labs"><span class="num">9</span><span>Three reproducible labs</span></a><a href="#exercises"><span class="num">10</span><span>Fourteen exercises with full solutions</span></a><a href="#quiz"><span class="num">11</span><span>Ten-question self-check</span></a><a href="#reading"><span class="num">12</span><span>Reading with a purpose</span></a><a href="#summary"><span class="num">13</span><span>Retrieval exit task and next step</span></a><a href="#terms"><span class="num">14</span><span>Notation and bilingual terminology</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">Limit theorems, concentration, and Monte Carlo</h1><p class="module-lead">Prove moment bounds and a weak law, qualify CLT and Hoeffding statements, calculate sample sizes, and report Monte Carlo uncertainty with the actual independent sampling units.</p><div class="hero-chips"><span class="chip chip-time">10 hours</span><span class="chip">4 sessions</span><span class="chip">3 labs</span><span class="chip">12 exercises + 2 extensions</span><span class="chip">10 quiz questions</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Calculate mean variation with independent and dependent sampling units.</li><li>Prove Markov and Chebyshev with thresholds and moments stated.</li><li>Derive the finite-variance weak law and interpret convergence in probability.</li><li>State the IID CLT without claiming universal finite-sample accuracy.</li><li>Apply bounded independent Hoeffding and finite-family union sample sizes.</li><li>Report Monte Carlo uncertainty and derive a qualified common-random-number comparison.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Modules 04 and 23. Continuous integral alternatives require Module 17; the CS branch uses finite events. All three labs use only the Python standard library.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">A sample mean needs an uncertainty contract</a><a href="#s1">Sampling assumptions and variation of an average</a><a href="#s2">Markov and Chebyshev bounds with complete elementary proofs</a><a href="#s3">A finite-variance weak law and its convergence meaning</a><a href="#s4">The central limit theorem standardises means not observations</a><a href="#s5">Hoeffding bounds sample sizes and finite simultaneous claims</a><a href="#s6">Monte Carlo reports seeds and variance reduction by pairing</a><a href="#misconceptions">Common misconceptions</a><a href="#labs">Three reproducible labs</a><a href="#exercises">Fourteen exercises with full solutions</a><a href="#quiz">Ten-question self-check</a><a href="#reading">Reading with a purpose</a><a href="#summary">Retrieval exit task and next step</a><a href="#terms">Notation and bilingual terminology</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">10 hours</span></div><p class="plan-lead">Times include practice and are estimates. Split a session when useful. Optional extension exercises add 35 minutes. Progress is stored in this browser and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">150 min</span></div><div class="session-title">Sampling variation and elementary bounds</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2 and prove the moment inequalities.</a></span><span class="act-min">90</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Complete Exercises 1–4.</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read the mean-variance weak-law assumptions.</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Retrieve covariance terms and probability quantifiers.</a></span><span class="act-min">21</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m24:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">150 min</span></div><div class="session-title">Weak law CLT and sampling shapes</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Sections 3–4 and distinguish their limit statements.</a></span><span class="act-min">58</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Compare repeated fair and rare Bernoulli means.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e5">Complete proof Exercises 5–7.</a></span><span class="act-min">42</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m24:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">150 min</span></div><div class="session-title">Concentration and Monte Carlo reporting</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s5">Read Sections 5–6 and explore exact tails and bounds.</a></span><span class="act-min">70</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Report a finite event or optional integral with distinct uncertainty quantities.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Complete application Exercises 8–10.</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m24:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">150 min</span></div><div class="session-title">Dependence seeds and qualified guarantees</div><ul class="acts"><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Diagnose copied streams and compare paired randomness.</a></span><span class="act-min">55</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e11">Complete diagnosis Exercises 11–12.</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Complete choices and write an uncertainty contract.</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read CLT and bounded-concentration theorem scopes.</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Complete the exit task and audit sampling assumptions.</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m24:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>A sample mean needs an uncertainty contract</h2></div>
+<p>A large sample does not automatically justify a small error bar. The relevant quantity is variation of the estimator under a stated sampling mechanism, with dependence, tails and selection included. This lesson proves elementary probability bounds and a finite-variance weak law, states the qualified central limit and Hoeffding theorems, and uses them to report Monte Carlo estimates without converting one reproducible trace into an unconditional accuracy claim.</p>
+<p><strong>Retrieval check:</strong> <a href="module_04_EN.html#s1">Module 04</a> supplies proof structure; <a href="module_23_EN.html#s1">Module 23</a> supplies expectation, finite moments and covariance. Optional continuous integrals require <a href="module_17_EN.html#s1">Module 17</a>; the CS route uses finite-event alternatives throughout. Labs use only the Python standard library and local generators.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>Sampling assumptions and variation of an average</h2></div>
+<p>For observations X₁,…,X_N, define the sample mean M_N=(1/N)ΣX_i. It is a random variable before the sample is realised, and a numerical statistic afterwards. Independent identically distributed sampling, abbreviated IID, means every observation has the same distribution and every finite subcollection factors jointly. Independence alone does not give a common mean, while identical marginals alone do not give independence. A claim about M_N should specify the population quantity it targets and the actual sampling unit.</p>
+<p>If each variable has meanμ, linearity gives E[M_N]=μ without independence. For finite variances, Var(M_N)=[ΣVar(X_i)+2Σ_{i&lt;j}Cov(X_i,X_j)]/N². Under IID with varianceσ², all cross terms vanish and Var(M_N)=σ²/N. The standard deviation of this estimator is its standard error, σ/√N. It has the same units as the observed quantity and measures repeated-sample variation, rather than spread of the original observations. Calling the original standard deviation an error bar for the mean omits the averaging calculation.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A copied observation does not acquire a smaller variance</div>
+<p>Let Z be Bernoulli(.3) and set every X_i=Z. Each marginal has mean.3 and variance.21, but M_N=Z and Var(M_N)=.21 for every N. The independence shortcut would give.21/N and is wrong. Every covariance is.21, so the full formula restores the exact answer. Repeating the same record N times creates N rows but only one random draw.</p>
+</div>
+<p>Clustered copies give an intermediate case. If m independent Bernoulli draws are each copied b times, N=mb rows, and their row mean equals the average of the m original draws. Its variance isσ²/m=bσ²/N. In this explicit equal-size-copy model m is the independent count; a general clustered dataset need not admit the same simple effective-size formula. Shared subjects, prompts, time blocks or devices can introduce covariance requiring a design-specific analysis instead of assuming every row is a new unit.</p>
+<p>Non-identically distributed independent variables still obey variance addition: Var(M_N)=Σσ_i²/N², and meanE[M_N]=Σμ_i/N. That mean may target a deliberate mixture, but not automatically one fixed populationμ. If selection changes the μ_i or if an unrepresentative group mixture is sampled, increasing N can concentrate around the wrong target. Sampling variation and bias from a changed target are different quantities; a small standard error does not eliminate selection error.</p>
+<p>With negative covariances averaging can vary less than the independent reference, while positive covariances can increase its variance. Independence is therefore a sufficient simplification rather than the definition of “good randomness.” Paired comparisons intentionally introduce dependence within each pair to reduce variation of a difference, as Section6 derives. The pairs themselves must have an appropriate cross-pair sampling contract. A dependence warning should name the actual shared source rather than simply reject every dependent construction.</p>
+<p>In a numerical experiment, record whether draws share a generator stream, whether it is reset, and which observations are reused. A fixed local seed makes one run repeatable. Resetting it to the same value for every purported replicate repeats the same stream, while using several different integer seeds does not by itself constitute a proof of statistical independence. Mathematical theorems idealise a stated random mechanism; reproducibility documents the implementation and does not add random information to a copied dataset.</p>
+<figure class="fig" id="fig-24-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="Three model mean variances are sigma squared over N, over independent cluster count m, and sigma squared; copied rows do not add independent information."><title>Mean variance under independence and copying</title><desc>Three model mean variances are sigma squared over N, over independent cluster count m, and sigma squared; copied rows do not add independent information.</desc><defs><marker id="fig-24-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">Rows and independent draws can differ</text><rect x="30" y="62" width="700" height="65" rx="10" fill="#f0fdf4" stroke="#0ea5e9"/><text x="55" y="89" text-anchor="start" font-size="21" fill="#1a2e4a">N IID draws</text><text x="700" y="113" text-anchor="end" font-size="21" fill="#1a2e4a">Var(M) = σ²/N</text><rect x="30" y="144" width="700" height="65" rx="10" fill="#fff7ed" stroke="#0ea5e9"/><text x="55" y="171" text-anchor="start" font-size="21" fill="#1a2e4a">m independent draws, b copies each</text><text x="700" y="195" text-anchor="end" font-size="21" fill="#1a2e4a">Var(M) = σ²/m = bσ²/N</text><rect x="30" y="226" width="700" height="65" rx="10" fill="#fff7ed" stroke="#0ea5e9"/><text x="55" y="253" text-anchor="start" font-size="21" fill="#1a2e4a">One draw copied N times</text><text x="700" y="277" text-anchor="end" font-size="21" fill="#1a2e4a">Var(M) = σ²</text><text x="380" y="334" text-anchor="middle" font-size="19" fill="#1a2e4a">Adding copies does not remove covariance.</text></g></svg></div><figcaption><span class="fig-num">Figure 24.1</span> <p>IID observations average down variance as1/N. Copies and equal-size clusters preserve shared covariance, so nominal row count can overstate independent information.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does mean linearity require independence? Which quantity needs the covariance terms? Does copying records increase the independent sample count?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Common-mean linearity is valid without independence. Variance of the mean includes all pair covariances. Copies preserve the shared random draw, so their nominal row count cannot justify an IID standard error.</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Markov and Chebyshev bounds with complete elementary proofs</h2></div>
+<p>For nonnegative W with finite expectation and t&gt;0, Markov’s inequality is P(W≥t)≤E[W]/t. Prove pointwise that W≥t1{W≥t}; expectation and nonnegativity give E[W]≥tP(W≥t), then divide by positive t. No independence is required. A bound greater than one can be clipped to one for reporting. The threshold must be positive: dividing by zero is unavailable, and a negative-variable mean cannot replace the nonnegative variable required by the proof.</p>
+<p>Apply Markov to W=(X−μ)² for finite-variance X and positiveε. The event W≥ε² is exactly |X−μ|≥ε, so P(|X−μ|≥ε)≤Var(X)/ε². This is Chebyshev’s inequality. Its proof uses a second moment but no Gaussian shape or sampling independence. Independence matters only when a preceding calculation replaces the variance of a sum by the independent formula. If variance is infinite, the bound supplies no finite accuracy information; a tiny empirical variance does not justify substituting a finite population variance.</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi mathvariant="normal">∣</mi><mi>X</mi><mo>−</mo><mi>E</mi><mo stretchy="false">[</mo><mi>X</mi><mo stretchy="false">]</mo><mi mathvariant="normal">∣</mi><mo>≥</mo><mi>ε</mi><mo stretchy="false">)</mo><mo>≤</mo><mfrac><mrow><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow><msup><mi>ε</mi><mn>2</mn></msup></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>ε</mi><mo>&gt;</mo><mn>0.</mn></mrow><annotation encoding="application/x-tex">P(|X-E[X]|\geq\varepsilon)\leq\frac{\operatorname{Var}(X)}{\varepsilon^2},\qquad \varepsilon&gt;0.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">]</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">ε</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.113em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">ε</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">ε</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:0.6444em;"></span><span class="mord">0.</span></span></span></span></span></div>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Chebyshev controls an IID Bernoulli mean with a known variance</div>
+<p>For IID Bernoulli(.5), σ²=.25. With N=1000 and ε=.05, Var(M_N)=.00025, so deviation probability is at most.00025/.0025=.1. If p is unknown, Bernoulli variance p(1−p)≤1/4 gives the same worst-case bound. This is a finite-sample probability guarantee under independence and common p, not a statement that each realised error is at most.05.</p>
+</div>
+<p>To make the bound at mostδ, with0&lt;δ&lt;1, choose N≥σ²/(δε²). For Bernoulli without known p use N≥1/(4δε²). At ε=.05,δ=.05 the sufficient size is2000. This is a conservative sufficient requirement derived from only a variance bound; it is not a lower bound on what every estimator or every particular distribution needs. A sharper model-specific calculation may obtain a smaller valid requirement, while violating the sampling assumptions can invalidate the requirement entirely.</p>
+<p>Chebyshev can also be sharp for a specified moment-only statement. Let X be0 with probability1−q and ±a each with probabilityq/2, where0&lt;q≤1. Mean is0 and varianceqa². At thresholda, the deviation probabilityq exactly equals variance/a². Thus a universally sharper coefficient cannot be obtained solely by pretending every finite-variance variable is close to Gaussian. Additional tail, support or distribution information can improve a bound, but must be stated as an additional assumption.</p>
+<p>A probability guarantee differs from a deterministic error bound. Chebyshev allows exceptional samples with probability at mostδ when a selected threshold meets its bound. A numerical quadrature theorem can instead bound truncation error deterministically for every function satisfying its derivative assumptions. Both need valid assumptions and correct units, but their quantifiers differ. A Monte Carlo report should not write “error guaranteed≤ε” when its theorem gives only P(error≥ε)≤δ.</p>
+<p>Union bounds combine several deviation guarantees without assuming their events are independent. If m specified estimates each fail their accuracy condition with probability at mostδ/m, the chance any fails is at mostδ. The estimates may use overlapping records, provided each individual guarantee remains valid. Choosing which estimates to report after inspecting outcomes introduces another selection issue: a fixed list theorem cannot silently cover an unbounded adaptive search. Section5 develops a finite specified family, while later learning theory handles broader model selection.</p>
+<p>Bounds can be valid and uninformative at small sample sizes. For N=20,ε=.2 and Bernoulli worst variance.25, Chebyshev gives.3125. For smallerε the raw bound can exceed one, correctly indicating that these assumptions do not establish a useful small failure probability. Report that limitation directly rather than label the bound “wrong” or replace it with a visually attractive error band lacking a theorem. A loose valid upper bound and an actual tail probability answer different questions.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Which pointwise inequality proves Markov? Does Chebyshev require Gaussian observations? What does a sufficient sample-size bound fail to establish?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>W≥t1{W≥t} for nonnegative W and positive t. Chebyshev only needs the relevant finite variance. A sufficient size is neither a necessary minimum nor a deterministic guarantee for every realised sample.</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>A finite-variance weak law and its convergence meaning</h2></div>
+<p>For IID X_i with finite meanμ and varianceσ², Chebyshev applied to their mean gives P(|M_N−μ|≥ε)≤σ²/(Nε²)→0 for every fixedε&gt;0. This proves the finite-variance weak law of large numbers: M_N converges toμ in probability. The quantifiedε is fixed while N grows; its associated tail probability tends to zero. The proof is complete here and does not infer a theorem from the shape of one simulated trace.</p>
+<p>Convergence in probability says that increasingly large experiments have a decreasing probability of a fixed-size deviation in the limiting sense. It does not say every finite error decreases, that no bad sample occurs, or that a realised trace eventually follows an exact deterministic tolerance rule. Almost-sure convergence concerns the probability that an entire infinite sample path has a limiting value and is a different statement. Strong-law results exist under appropriate assumptions, but this elementary Chebyshev proof establishes only the stated weak law.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A sample-size ratio describes variation, not a monotone trace</div>
+<p>For an IID estimate with finite variance, N=100 gives standard errorσ/10 and N=400 givesσ/20. Quadrupling N halves the standard error. A particular400-observation estimate can still be farther fromμ than the corresponding100-observation estimate. The standard error describes a distribution across repeated samples, while the realised error is one outcome from that distribution.</p>
+</div>
+<p>The weak-law variance argument needs less than full IID if a replacement variance bound is available. Suppose common-mean finite-variance variables have all pair covariances zero and variances bounded byC. Then Var(M_N)≤C/N, so the same Chebyshev proof gives convergence in probability. Pairwise uncorrelatedness does not imply mutual independence or establish the IID CLT stated next. More generally any unbiased mean estimator whose variance tends to zero obeys this probability convergence proof; whether that variance actually vanishes is the essential obligation.</p>
+<p>The all-copy example violates that obligation: Var(M_N)=σ² does not tend to zero. For Bernoulli(.3) copies andε=.1, every possible mean is0 or1 and differs from.3 by at least.3, so the deviation probability is1 for every N. Identical marginals and an infinite row count therefore do not supply the weak law. A nonzero common bias also prevents convergence to the intended target even if variance around the biased mean shrinks.</p>
+<p>When the model has an infinite variance, this proof is unavailable. Some finite-mean distributions still satisfy other law-of-large-numbers theorems, but one cannot applyσ²/(Nε²) with an invented finiteσ². A variable with undefined mean has no such targetμ to substitute. Module23’s moment examples distinguish these cases. State the theorem version actually used rather than summarise every large-sample statement as “averages always work.”</p>
+<p>For a fixedε,δ specification the Chebyshev formula provides a concrete finite size before any limit is invoked. The asymptotic weak law instead says some sufficiently large size exists for each target, without claiming the conservative bound is tight. In practice a stopping rule based on the observed estimate changes the experiment. A fixed-N guarantee cannot automatically be applied at a random data-dependent stopping time; valid sequential procedures need their own analysis. The course labs use fixed checkpoints for illustration and do not turn a lucky checkpoint into a theorem.</p>
+<p>Replication can help inspect an implementation. If separate simulated datasets follow the same IID mechanism, their sample means should show variation consistent with the model in aggregate. Repeatedly resetting an identical generator stream instead creates the same dataset and reports zero between-run variation. That observation diagnoses the replication protocol, not a miraculous elimination of population uncertainty. Store seeds and their role, and distinguish one long cumulative trace from many independent replicate experiments.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Which convergence does the variance proof establish? Must realised error decrease at every N? Can pairwise uncorrelated bounded variances support this weak-law proof without supporting the IID CLT?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Convergence in probability for every fixed positive tolerance. Realised errors can fluctuate. A variance≤C/N is sufficient for this Chebyshev weak law, while the IID CLT has additional distributional assumptions.</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>The central limit theorem standardises means not observations</h2></div>
+<figure class="fig" id="fig-24-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="The weak law fixes tolerance and sends the tail probability to zero; the CLT divides mean fluctuations by standard error for a standard Gaussian limit."><title>Fixed tolerance and standardised limits</title><desc>The weak law fixes tolerance and sends the tail probability to zero; the CLT divides mean fluctuations by standard error for a standard Gaussian limit.</desc><defs><marker id="fig-24-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">Weak law and CLT use different scales</text><rect x="30" y="60" width="700" height="107" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="91" text-anchor="start" font-size="22" fill="#1a2e4a">Fix ε &gt; 0, increase N</text><text x="380" y="130" text-anchor="middle" font-size="22" fill="#1a2e4a">P(|M_N − μ| ≥ ε) ≤ σ²/(Nε²) → 0</text><path d="M380,174L380,199" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-24-2__arrow)"/><rect x="30" y="213" width="700" height="98" rx="10" fill="#faf5ff" stroke="#7e22ce"/><text x="55" y="246" text-anchor="start" font-size="22" fill="#1a2e4a">Rescale fluctuations, not raw observations</text><text x="380" y="282" text-anchor="middle" font-size="22" fill="#1a2e4a">Z_N = √N(M_N − μ)/σ   ⇒   N(0,1)</text><text x="380" y="339" text-anchor="middle" font-size="18" fill="#1a2e4a">CLT: IID, 0 &lt; σ² &lt; ∞; no finite error rate stated here.</text></g></svg></div><figcaption><span class="fig-num">Figure 24.2</span> <p>The finite-variance weak law sends each fixed-tolerance tail probability to zero. The CLT rescales fluctuations by the changing standard error; these two limits answer different questions.</p>
+</figcaption></figure>
+<p>The standard IID finite-variance central limit theorem assumes a common meanμ and0&lt;σ²&lt;∞. It states that Z_N=√N(M_N−μ)/σ converges in distribution to a standard Gaussian: for every realz, P(Z_N≤z)→Φ(z). This is a named theorem, not proved by the variance identity alone. The <a href="https://ocw.mit.edu/courses/6-041sc-probabilistic-systems-analysis-and-applied-probability-fall-2013/pages/unit-iv/lecture-20/" target="_blank" rel="noopener">MIT CLT materials</a> give its qualified statement. It applies to the standardised mean or sum, while the individual X_i retain their original distributions.</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>Z</mi><mi>N</mi></msub><mo>=</mo><mfrac><mrow><msqrt><mi>N</mi></msqrt><mo stretchy="false">(</mo><msub><mi>M</mi><mi>N</mi></msub><mo>−</mo><mi>μ</mi><mo stretchy="false">)</mo></mrow><mi>σ</mi></mfrac><mo separator="true">,</mo><mspace width="2em"/><mi>P</mi><mo stretchy="false">(</mo><msub><mi>Z</mi><mi>N</mi></msub><mo>≤</mo><mi>z</mi><mo stretchy="false">)</mo><mo>⟶</mo><mi mathvariant="normal">Φ</mi><mo stretchy="false">(</mo><mi>z</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">Z_N=\frac{\sqrt N(M_N-\mu)}{\sigma},\qquad P(Z_N\leq z)\longrightarrow\Phi(z).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.2897em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.6037em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">σ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9267em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.109em;padding-left:0.833em;">N</span></span><span style="top:-2.8867em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="1.08em" viewBox="0 0 400000 1080" preserveAspectRatio="xMinYMin slice"><path d="M95,702
+c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14
+c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54
+c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10
+s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429
+c69,-144,104.5,-217.7,106.5,-221
+l0 -0
+c5.3,-9.3,12,-14,20,-14
+H400000v40H845.2724
+s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7
+c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z
+M834 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1133em;"><span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">μ</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Φ</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.044em;">z</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></div>
+<p>For suitable large-N approximation, M_N is approximately Gaussian with meanμ and varianceσ²/N, so a band of about1.96σ/√N aroundμ contains about95% of its sampling distribution. The word “about” matters: the theorem as stated supplies no universal finite-N error bound or exact95% coverage. Discreteness, skewness and rare events can make convergence slow or a particular approximation poor. Replacing knownσ by an estimated standard deviation introduces further reasoning, explored in later estimation and inference modules.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A rare Bernoulli mean can be mostly zero despite finite variance</div>
+<p>For p=.01 and N=20, the success count is Binomial(20,.01) and P(no success)=.99²⁰≈.817907. Most means are exactly0, with occasional jumps of.05. A smooth Gaussian approximation cannot accurately represent that large atom. The original observations remain binary even as N grows. In Lab1 the finite fraction inside a1.96-known-SE band is not automatically.95; the exact discrete law explains why a visually convenient Gaussian claim needs qualification.</p>
+</div>
+<p>The normalised standard deviation is1 for Z_N, not for M_N; forgetting√N or usingσ² in place ofσ changes the approximation’s units and scale. Ifσ²=0, observations equalμ almost surely and no nondegenerate standardisation is defined. If variance is infinite, this finite-variance CLT is unavailable. Other limit laws can arise under different assumptions. A long sample or a bell-shaped histogram does not substitute for checking which mean, variance and dependence model justify the theorem.</p>
+<p>When X_i themselves are Gaussian and independent, their mean is exactly Gaussian for every N, a special stronger result of that family. For general finite-variance observations the CLT is asymptotic. Finite-sample normal-approximation error theorems need additional moment or distribution information; we do not claim a single threshold such as “N≥30” certifies accuracy for every population. Rare Bernoulli counts depend on both Np and N(1−p), and even common rules based on those counts are heuristics unless coupled to an appropriate error analysis.</p>
+<p>Discrete event boundaries need attention when using a continuous approximation. For an integer count K, a continuity correction can replace a boundary between adjacent counts by a half-integer in the Gaussian approximation. It is an approximation technique, not an exact event identity or a universal coverage repair. Exact binomial calculations are available for the small examples and can reveal the residual discrepancy. Keep exact support and strict/non-strict threshold conventions visible before translating to an approximate continuous curve.</p>
+<p>An asymptotic95% statement is also not a posterior probability that the population mean lies in a particular realised interval. Its interpretation concerns repeated sampling of an estimator under a specified population. Module26 develops confidence coverage carefully, while Module25 introduces Bayesian posterior uncertainty. This lesson distinguishes a theorem about a sampling distribution from a claim about an unknown fixed parameter after data are seen, so later inferential statements have the correct foundation.</p>
+<p>CLT reasoning should be tested with independent replicates of the mean, not by plotting all raw observations and expecting them to become Gaussian. Lab1 compares fair and rare Bernoulli sample means at two sizes. The experiment can illustrate the predicted standard errors and shape differences, but cannot prove a theorem or establish a universal approximation error. The finite-count explorer next offers a complete model calculation alongside genuine upper bounds, avoiding reliance on a smooth visual alone.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Which variable becomes approximately Gaussian in the theorem? Does finite variance give a universal finite-N error rate here? What prevents standardisation for a degenerate variable?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>The standardised sample mean, not each raw observation. The stated theorem gives asymptotic distributional convergence without a universal finite-size accuracy guarantee. Zero variance makes division byσ unavailable and corresponds to a constant mean almost surely.</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>Hoeffding bounds sample sizes and finite simultaneous claims</h2></div>
+<p>A bounded-independent-variable theorem gives a stronger finite-size bound than moment information alone in many regimes. For independent X_i with deterministic a_i≤X_i≤b_i and positiveΣ(b_i−a_i)², Hoeffding bounds P(|Σ(X_i−E[X_i])|≥t) by2exp(−2t²/Σ(b_i−a_i)²), t&gt;0. This qualified named theorem is documented in <a href="https://ocw.mit.edu/courses/9-520-statistical-learning-theory-and-applications-spring-2006/f195bbc782726fc4580586a67d4fe69c_mathcamp02.pdf" target="_blank" rel="noopener">MIT’s probability notes</a>. If every range is zero, the sum is deterministic and positive-threshold deviations have probability zero.</p>
+<p>For IID observations in[0,1], substitute t=Nε and total squared rangesN to obtain P(|M_N−μ|≥ε)≤2exp(−2Nε²). Clamp the displayed upper bound at one. Boundedness provides finite moments, but independence remains an essential assumption. Identical distributions are unnecessary for the general sum bound; without them the centred mean targets the average of individual means. Rescaling a common range[a,b] multiplies the required squared tolerance scale by(b−a)².</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi mathvariant="normal">∣</mi><msub><mi>M</mi><mi>N</mi></msub><mo>−</mo><mi>μ</mi><mi mathvariant="normal">∣</mi><mo>≥</mo><mi>ε</mi><mo stretchy="false">)</mo><mo>≤</mo><mn>2</mn><msup><mi>e</mi><mrow><mo>−</mo><mn>2</mn><mi>N</mi><msup><mi>ε</mi><mn>2</mn></msup></mrow></msup><mspace width="1em"/><mtext>for IID values in </mtext><mo stretchy="false">[</mo><mn>0</mn><mo separator="true">,</mo><mn>1</mn><mo stretchy="false">]</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">P(|M_N-\mu|\geq\varepsilon)\leq2e^{-2N\varepsilon^2}\quad\text{for IID values in }[0,1].</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord">∣</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">μ</span><span class="mord">∣</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">ε</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.2869em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.0369em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">2</span><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span><span class="mord mtight"><span class="mord mathnormal mtight">ε</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="katex-sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mord text"><span class="mord">for IID values in </span></span><span class="mopen">[</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span><span class="mord">.</span></span></span></span></span></div>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A sufficient bounded-data size beats a variance-only size here</div>
+<p>For ε=.05 andδ=.05, solve2exp(−2Nε²)≤δ to get N≥log(2/δ)/(2ε²)=log40/.005≈737.776, so N=738 suffices. The worst-variance Chebyshev requirement was2000. Neither number is a necessary minimum for every Bernoulli p, and neither applies to arbitrary dependent copies. Natural logarithms match the exponential base in the formula.</p>
+</div>
+<p>For m specified[0,1]-valued estimates each based on N appropriate independent observations, apply the individual bound and then a union bound: probability any mean deviates byε is at most2mexp(−2Nε²). The estimates may be dependent on each other; the union step needs no cross-estimate independence. To guarantee at mostδ, choose N≥log(2m/δ)/(2ε²). With m=20,ε=.05,δ=.05, N=1337 is a sufficient integer size. The list must be specified or otherwise covered by the theorem before claiming simultaneous validity.</p>
+<p>Checking one fixed model and then selecting among many based on the same outcomes changes the claim. The finite-family union argument can protect an entire specified list, but the original single-model guarantee cannot automatically follow a chosen winner. Later Module30 applies this distinction to learning and generalisation. Likewise inspecting infinitely many checkpoints is not covered by one fixed-Nδ statement; a valid union allocation or sequential method must cover the events actually inspected.</p>
+<p>A Hoeffding radius at confidence level1−δ is ε_N=√[log(2/δ)/(2N)] for[0,1] observations. It does not use an estimated variance, so it remains positive when a Bernoulli sample has zero successes. At N=100,δ=.05 the radius is about.135810. A plug-in standard error√[p_hat(1−p_hat)/N] instead becomes zero at p_hat=0; that alone does not certify p=0 or eliminate uncertainty. Under a synthetic p=.001 model,100 zero observations occur with probability.999¹⁰⁰≈.904792.</p>
+<div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" data-widget="sampling"></div><div class="widget-caption">
+</div></div>
+<figure class="fig" id="fig-24-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="For twenty fair Bernoulli draws the mean deviation tail at least point two is approximately point1153, below Chebyshev point3125 and Hoeffding approximately point4038."><title>Tail probability and valid upper bounds</title><desc>For twenty fair Bernoulli draws the mean deviation tail at least point two is approximately point1153, below Chebyshev point3125 and Hoeffding approximately point4038.</desc><defs><marker id="fig-24-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">The same IID Bernoulli(.5) event</text><text x="380" y="66" text-anchor="middle" font-size="22" fill="#1a2e4a">N=20; ε=.20; |M−.5| ≥ .20</text><text x="32" y="113" text-anchor="start" font-size="19" fill="#1a2e4a">Finite-model tail</text><rect x="245" y="85" width="111.85874938964844" height="38" rx="10" fill="#0ea5e9" stroke="#0ea5e9"/><text x="700" y="113" text-anchor="end" font-size="21" fill="#1a2e4a">0.115318</text><text x="32" y="181" text-anchor="start" font-size="19" fill="#1a2e4a">Chebyshev</text><rect x="245" y="153" width="303.125" height="38" rx="10" fill="#c2410c" stroke="#c2410c"/><text x="700" y="181" text-anchor="end" font-size="21" fill="#1a2e4a">0.312500</text><text x="32" y="249" text-anchor="start" font-size="19" fill="#1a2e4a">Hoeffding</text><rect x="245" y="221" width="391.67924490963145" height="38" rx="10" fill="#7e22ce" stroke="#7e22ce"/><text x="700" y="249" text-anchor="end" font-size="21" fill="#1a2e4a">0.403793</text><text x="380" y="321" text-anchor="middle" font-size="18" fill="#1a2e4a">An upper bound is not the actual probability; check its conditions.</text></g></svg></div><figcaption><span class="fig-num">Figure 24.3</span> <p>Chebyshev uses a variance bound, while Hoeffding uses independent bounded observations. Both upper bounds can exceed the actual finite-model tail and should be clipped at one for reporting.</p>
+</figcaption></figure>
+<p>The explorer compares IID Bernoulli means with rows copied from one common Bernoulli draw. It evaluates the finite-model deviation probability numerically and displays Chebyshev using the actual variance. Hoeffding’s N-observation expression is shown only for the independent mode. The shaded tail includes equality at the tolerance boundary; integer-percent inputs let the event be checked through an exact integer inequality before its masses are summed in floating-point arithmetic.</p>
+<p>Different bounds can be tighter in different regimes. At small N or large known-variance advantages, Chebyshev can outperform a generic bounded Hoeffding bound; at larger N a bounded exponential guarantee often improves on the1/N variance bound. Compare valid numerical bounds for the same event and assumptions, rather than assert that one named inequality is always numerically best. An exact finite model can additionally compute the actual tail, while the general theorem offers a guarantee without knowing all those masses.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Which assumptions support Hoeffding’s finite bound? Does a union over estimates require those estimates to be independent? Does zero plug-in SE establish zero population uncertainty?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Independent draws and stated deterministic bounds, with the appropriate target mean. The union step needs no independence between failure events. An all-zero sample can be very probable under a nonzero rare rate, so its zero plug-in SE supplies no exact certainty.</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>Monte Carlo reports seeds and variance reduction by pairing</h2></div>
+<p>Monte Carlo estimates an expectation by sample averaging under a specified sampling mechanism. For a finite event A, average its indicator to estimate p=P(A); under IID sampling it is unbiased and has variance p(1−p)/N. A plug-in SE estimates its variation but needs its own interpretation at boundaries and small counts. If p is known in a synthetic experiment, the model SE is available for comparison; if p is unknown in an application, it cannot be inserted as though known.</p>
+<p><strong>Optional continuous branch requiring Module17:</strong> for I=∫_a^b h(x)dx and U uniform(a,b), I=(b−a)E[h(U)]. With IID U_i and finite Var(h(U)), estimator I_hat=(b−a)Σh(U_i)/N has variance(b−a)²Var(h(U))/N. For h(x)=x² on[0,1], I=1/3 and Var(U²)=1/5−1/9=4/45. The CS alternative uses the finite-event estimator and the same mean-variance logic without an integral prerequisite.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Common random numbers reduce variation of this difference</div>
+<p>Let A=1{U&lt;.6}, B=1{U&lt;.55} using the same ideal uniform U. Their means are.6,.55, so E[A−B]=.05. The difference is1 only when.55≤U&lt;.6, giving variance.05(.95)=.0475. With independent uniforms for A and B, variance is.6(.4)+.55(.45)=.4875. For10000 independent pairs, SEs are about.002179 and.006982 respectively. Both estimate the same difference; positive within-pair covariance reduces its variance.</p>
+</div>
+<p>The general paired identity is Var(A−B)=Var(A)+Var(B)−2Cov(A,B). Pairing helps relative to independent marginals when covariance is positive, harms when negative, and gives no change when zero. It is not a universal improvement from reusing randomness. Preserve each method’s intended marginal distribution and make pairs independent across replications before applying the usual pair-mean SE. In empirical comparisons, pairing by the same input can similarly reduce nuisance variation when the design and analysis treat the pair as the unit.</p>
+<p>Report the estimator, target, sample count of actual independent units, seed protocol, variance assumptions, uncertainty quantity and any theorem or approximation used. An estimated standard error is different from a distribution-free radius and from an actual realised absolute error known only in a synthetic test. If deterministic numerical approximation is also used inside each simulation, its bias or truncation error contributes separately; increasing random sample count cannot remove a persistent inner-solver bias.</p>
+<p>Absolute and relative tolerances also demand different sample sizes. For an IID Bernoulli event, dividing the known standard error by a nonzero rate gives relative SE equal to the square root of (1−p)/(Np). A fixed absolute tolerance can be quite large relative to a rare target: an absolute error of .005 is half a rate of .01, although it is only one hundredth of a rate of .5. When p is zero, this relative expression is undefined rather than an invitation to divide a zero estimate by zero. State the desired error scale before choosing N, and do not switch from an absolute probability theorem to a relative guarantee without a separate derivation.</p>
+<p>The cost comparison for a variance reduction method should include computational work. If one paired replication needs two simulator evaluations, compare its variance at a fixed evaluation budget with the independent alternative using the same budget. A method with smaller per-replication variance may have expensive coupling, storage or evaluation costs. In the threshold example both alternatives require two indicator evaluations per pair, making the derived variance comparison directly meaningful at equal pair counts. For another simulator, record the budget and preserved target explicitly before claiming improved efficiency. Reproducibility includes these design choices as well as the seed: the same random integers cannot rescue an estimator aimed at a changed quantity.</p>
+<figure class="fig" id="fig-24-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="With preserved marginals, independent difference variance point4875 falls to point0475 with shared uniforms and positive covariance point22; this benefit is not universal."><title>Qualified common-random-number benefit</title><desc>With preserved marginals, independent difference variance point4875 falls to point0475 with shared uniforms and positive covariance point22; this benefit is not universal.</desc><defs><marker id="fig-24-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">Preserve marginals, then compare difference variance</text><text x="380" y="71" text-anchor="middle" font-size="22" fill="#1a2e4a">Var(A−B) = Var(A)+Var(B)−2Cov(A,B)</text><rect x="30" y="104" width="700" height="78" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="55" y="135" text-anchor="start" font-size="21" fill="#1a2e4a">Independent thresholds .60 and .55</text><text x="700" y="166" text-anchor="end" font-size="21" fill="#1a2e4a">.24 + .2475 = .4875</text><rect x="30" y="202" width="700" height="87" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="55" y="235" text-anchor="start" font-size="21" fill="#1a2e4a">Shared U, within-pair Cov=.22</text><text x="700" y="272" text-anchor="end" font-size="21" fill="#1a2e4a">.4875 − .44 = .0475</text><text x="380" y="332" text-anchor="middle" font-size="18" fill="#1a2e4a">Pairs still need independence; negative Cov increases difference variance.</text></g></svg></div><figcaption><span class="fig-num">Figure 24.4</span> <p>Pairing subtracts twice the within-pair covariance from difference variance. Repeated copies of an entire stream add no independent replications.</p>
+</figcaption></figure>
+<p>Lab1 examines repeated means, Lab2 reports finite-event and optional integral estimates, and Lab3 exposes repeated seeds, copied clusters and zero plug-in error bars. Its common-random-number example is a valid deliberate coupling with explicitly preserved marginals. A reproducible script can therefore support a precise experimental claim, while the associated theorem still depends on the mathematical sampling assumptions. Keep numerical evidence, a named limit theorem and a finite probability guarantee separate.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>What distinguishes Monte Carlo error from quadrature truncation? When does pairing reduce a difference variance? What sample count belongs in a copied-cluster error formula?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Monte Carlo error varies with random draws; deterministic truncation needs an approximation bound. Positive within-pair covariance reduces the difference variance with unchanged marginals. The explicit equal-copy model averages independent clusters, so it uses the number of original draws rather than copied rows.</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>Common misconceptions</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Repair</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Every row is a new independent observation.</td>
+<td>Copies and clusters retain covariance.</td>
+</tr>
+<tr>
+<td>Chebyshev requires Gaussian data.</td>
+<td>Finite variance and a positive threshold suffice.</td>
+</tr>
+<tr>
+<td>The weak law makes every error shrink monotonically.</td>
+<td>It states convergence in probability.</td>
+</tr>
+<tr>
+<td>The CLT changes raw observations into Gaussians.</td>
+<td>It concerns standardised means or sums.</td>
+</tr>
+<tr>
+<td>A universal N≥30 certifies the CLT approximation.</td>
+<td>Distribution shape and extra error assumptions matter.</td>
+</tr>
+<tr>
+<td>Hoeffding applies to arbitrary dependent copies.</td>
+<td>Its independent-draw assumption must be checked.</td>
+</tr>
+<tr>
+<td>Zero estimated SE proves zero uncertainty.</td>
+<td>Boundary samples can occur under a nonzero rate.</td>
+</tr>
+<tr>
+<td>Pairing always reduces variance.</td>
+<td>The covariance sign determines its effect.</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>Three reproducible labs</h2></div>
+<h3 id="lab1">Lab1 · Repeated means and finite-sample shapes</h3>
+<p><a href="labs/module_24/lab1_repeated_sample_means.py" download>Download lab1_repeated_sample_means.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Repeated IID Bernoulli means: exact variance, finite-sample discreteness.&quot;&quot;&quot;
+from math import sqrt
+import random
+
+if __name__ == &quot;__main__&quot;:
+    generator = random.Random(24024)
+    repeats = 3000
+    for p in (.5, .01):
+        for n in (20, 1000):
+            means = [sum(generator.random() &lt; p for _ in range(n))/n for _ in range(repeats)]
+            empirical_mean = sum(means)/repeats
+            empirical_sd = sqrt(sum((x-empirical_mean)**2 for x in means)/(repeats-1))
+            exact_sd = sqrt(p*(1-p)/n)
+            zeros = sum(x == 0 for x in means)/repeats
+            within = sum(abs(x-p) &lt;= 1.96*exact_sd for x in means)/repeats
+            print(&quot;p=%.2f n=%4d mean=%.6f empiricalSD=%.6f exactSD=%.6f zeroFraction=%.6f exactPzero=%.6f&quot; % (
+                p, n, empirical_mean, empirical_sd, exact_sd, zeros, (1-p)**n))
+            print(&quot;  fraction within1.96 known SD: %.6f (a finite check, not guaranteed95%%)&quot; % within)
+    print(&quot;Original observations stay Bernoulli; CLT concerns standardised sample means.&quot;)
+    print(&quot;Rare p=.01,n20 is mostly zero and poorly represented by a smooth Gaussian.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>p=0.50 n=  20 mean=0.501250 empiricalSD=0.111744 exactSD=0.111803 zeroFraction=0.000000 exactPzero=0.000001
+  fraction within1.96 known SD: 0.959667 (a finite check, not guaranteed95%)
+p=0.50 n=1000 mean=0.500040 empiricalSD=0.016054 exactSD=0.015811 zeroFraction=0.000000 exactPzero=0.000000
+  fraction within1.96 known SD: 0.943667 (a finite check, not guaranteed95%)
+p=0.01 n=  20 mean=0.009617 empiricalSD=0.021684 exactSD=0.022249 zeroFraction=0.823000 exactPzero=0.817907
+  fraction within1.96 known SD: 0.985667 (a finite check, not guaranteed95%)
+p=0.01 n=1000 mean=0.010042 empiricalSD=0.003122 exactSD=0.003146 zeroFraction=0.000000 exactPzero=0.000043
+  fraction within1.96 known SD: 0.966000 (a finite check, not guaranteed95%)
+Original observations stay Bernoulli; CLT concerns standardised sample means.
+Rare p=.01,n20 is mostly zero and poorly represented by a smooth Gaussian.
+</code></pre></div>
+<p>Predict each model SE, rare no-success probability and support spacing. The within1.96-SE fraction is a finite diagnostic, not an exact95% theorem. The raw draws remain Bernoulli.</p>
+<h3 id="lab2">Lab2 · Monte Carlo estimate and uncertainty quantities</h3>
+<p><a href="labs/module_24/lab2_monte_carlo_error.py" download>Download lab2_monte_carlo_error.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Finite-event Monte Carlo; optional continuous integration requires Module17.&quot;&quot;&quot;
+from math import sqrt, log
+import random
+
+if __name__ == &quot;__main__&quot;:
+    generator = random.Random(24242)
+    hits = 0
+    sum_square = 0.0
+    for n in range(1, 10001):
+        # A weighted finite event with total mass .3, represented by a threshold.
+        hits += generator.random() &lt; .3
+        u = generator.random()
+        sum_square += u*u
+        if n in (100, 1000, 10000):
+            estimate = hits/n
+            plugin_se = sqrt(estimate*(1-estimate)/n)
+            known_se = sqrt(.3*.7/n)
+            radius = sqrt(log(2/.05)/(2*n))
+            print(&quot;CS finite event N=%5d estimate=%.6f exact=.3 estimatedSE=%.6f modelSE=%.6f Hoeffding95%%radius=%.6f&quot; % (
+                n, estimate, plugin_se, known_se, radius))
+            integral = sum_square/n
+            print(&quot;AI integral x^2 on[0,1] N=%5d estimate=%.6f exact=1/3 modelSE=%.6f&quot; % (
+                n, integral, sqrt((4/45)/n)))
+    print(&quot;Quadrupling N halves the IID standard error, not necessarily one realised error.&quot;)
+    print(&quot;Monte Carlo sampling error differs from deterministic quadrature truncation error.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>CS finite event N=  100 estimate=0.230000 exact=.3 estimatedSE=0.042083 modelSE=0.045826 Hoeffding95%radius=0.135810
+AI integral x^2 on[0,1] N=  100 estimate=0.384036 exact=1/3 modelSE=0.029814
+CS finite event N= 1000 estimate=0.284000 exact=.3 estimatedSE=0.014260 modelSE=0.014491 Hoeffding95%radius=0.042947
+AI integral x^2 on[0,1] N= 1000 estimate=0.332519 exact=1/3 modelSE=0.009428
+CS finite event N=10000 estimate=0.298600 exact=.3 estimatedSE=0.004576 modelSE=0.004583 Hoeffding95%radius=0.013581
+AI integral x^2 on[0,1] N=10000 estimate=0.330839 exact=1/3 modelSE=0.002981
+Quadrupling N halves the IID standard error, not necessarily one realised error.
+Monte Carlo sampling error differs from deterministic quadrature truncation error.
+</code></pre></div>
+<p>CS readers use the finite event; AI readers also derive the continuous integral and variance. Distinguish model SE, plug-in SE, Hoeffding radius and realised error. Explain why quadrupling samples halves a standard error without ordering all realised errors.</p>
+<h3 id="lab3">Lab3 · Copied seeds clusters and common randomness</h3>
+<p><a href="labs/module_24/lab3_dependence_seeds_and_pairing.py" download>Download lab3_dependence_seeds_and_pairing.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Copied streams, clustered observations, zero estimated SE and common random numbers.&quot;&quot;&quot;
+from math import sqrt, log
+import random
+
+if __name__ == &quot;__main__&quot;:
+    n, repeats, p = 1000, 30, .3
+    means = []
+    for _ in range(repeats):
+        generator = random.Random(24)  # Intentional fault: identical stream each time.
+        means.append(sum(generator.random() &lt; p for _ in range(n))/n)
+    print(&quot;copied-seed blocks: unique means=%d mean=%.6f&quot; % (len(set(means)), means[0]))
+    print(&quot;wrong R*N independence SE=%.6f actual copied-block model SE=%.6f&quot; % (
+        sqrt(p*(1-p)/(repeats*n)), sqrt(p*(1-p)/n)))
+    assert len(set(means)) == 1
+    generator = random.Random(24343)
+    clusters, copies = 100, 10
+    distinct = [int(generator.random() &lt; p) for _ in range(clusters)]
+    records = [x for x in distinct for _ in range(copies)]
+    print(&quot;cluster copies: nominalN=%d independentClusters=%d mean=%.6f&quot; % (
+        len(records), clusters, sum(records)/len(records)))
+    print(&quot;wrong row SE=%.6f correct cluster model SE=%.6f&quot; % (
+        sqrt(p*(1-p)/len(records)), sqrt(p*(1-p)/clusters)))
+    N = 100
+    print(&quot;rare-event all-zero dataset: estimatedSE=0; model p=.001 gives P(all0)=%.6f&quot; % (.999**N))
+    print(&quot;bounded independent Hoeffding95%%radius=%.6f despite zero plug-in SE&quot; % sqrt(log(40)/(2*N)))
+    a, b = .6, .55
+    paired_variance = (a-b)*(1-a+b)
+    independent_variance = a*(1-a)+b*(1-b)
+    paired, separate = [], []
+    for _ in range(10000):
+        u = generator.random()
+        paired.append(int(u&lt;a)-int(u&lt;b))
+        separate.append(int(generator.random()&lt;a)-int(generator.random()&lt;b))
+    print(&quot;common-random-number difference mean=%.6f independent difference mean=%.6f target=.05&quot; % (
+        sum(paired)/len(paired), sum(separate)/len(separate)))
+    print(&quot;exact per-pair variance: common=%.6f independent=%.6f&quot; % (paired_variance, independent_variance))
+    print(&quot;exact N10000 SE: common=%.6f independent=%.6f&quot; % (
+        sqrt(paired_variance/10000), sqrt(independent_variance/10000)))
+    print(&quot;PASS: replication is not new information; pairing helps here through positive covariance&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>copied-seed blocks: unique means=1 mean=0.305000
+wrong R*N independence SE=0.002646 actual copied-block model SE=0.014491
+cluster copies: nominalN=1000 independentClusters=100 mean=0.220000
+wrong row SE=0.014491 correct cluster model SE=0.045826
+rare-event all-zero dataset: estimatedSE=0; model p=.001 gives P(all0)=0.904792
+bounded independent Hoeffding95%radius=0.135810 despite zero plug-in SE
+common-random-number difference mean=0.048200 independent difference mean=0.046100 target=.05
+exact per-pair variance: common=0.047500 independent=0.487500
+exact N10000 SE: common=0.002179 independent=0.006982
+PASS: replication is not new information; pairing helps here through positive covariance
+</code></pre></div>
+<p>Identify the actual independent units before accepting an error bar. Repair the zero-SE certainty claim and derive the positive-covariance benefit in the specified paired model.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Fourteen exercises with full solutions</h2></div>
+<p>Exercises1–12 are required. Optional Exercises13–14 add35 minutes beyond the ten-hour schedule; continuous alternatives require Module17 and occupy the same time.</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>For IID Bernoulli(.3), N=1000, give mean variance and SE. What if all rows copy one draw?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>IID variance.21/1000=.00021, SE≈.014491. Copies have variance.21 and SE≈.458258 for every row count because their mean is the original draw.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>Use Chebyshev for IID Bernoulli(.5), N=1000, ε=.05. Give a size sufficient for failure bound.05.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Variance.25/1000 and threshold square.0025 give bound.1. Sufficient N≥.25/(.05·.0025)=2000. This is a probability bound under IID, not an exact necessary minimum.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>For IID[0,1] observations, ε=.05,δ=.05, calculate a Hoeffding sufficient integer size.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>N≥log40/.005≈737.776, so738. Natural log matches the exponential formula; bounds and independence are required.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>What happens to IID SE when N quadruples? For Bernoulli(.01), N=20, give the exact no-success probability.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>SE halves. P(no success)=.99²⁰≈.817907, showing a large zero atom and a poor small-sample smooth approximation. One realised error need not halve.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove Markov and Chebyshev with all sign, moment and threshold assumptions.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>For W≥0 and t&gt;0, W≥t1{W≥t}; average and divide to obtain P≤EW/t. For finite-variance X apply it to W=(X−EX)²,t=ε²,ε&gt;0. This gives the deviation bound without Gaussian shape or independence. The latter may be needed to compute the variance of a mean.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Derive the IID mean variance and the finite-variance weak law.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Linearity gives meanμ; variance expansion with zero independent covariances givesσ²/N. Chebyshev yields P(|M_N−μ|≥ε)≤σ²/(Nε²)→0 for every fixed positiveε. This is convergence in probability, not a monotone-path or strong-law proof.</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Derive the finite-family Hoeffding guarantee from its individual theorem and a union bound.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>For m specified valid estimates, union failure≤Σ2exp(−2Nε²)=2mexp(−2Nε²). Solving≤δ gives N≥log(2m/δ)/(2ε²). Failure events need not be independent, but each individual draw contract and the specified family must be valid.</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>For m=20,ε=.05,δ=.05, give a simultaneous sufficient size and explain what an adaptive unlisted search changes.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>N≥log800/.005≈1336.923, so1337. The bound covers the specified twenty estimates jointly. An unlisted adaptive search is a different collection of events and requires a justified covering or selection analysis.</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">Exercise 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>CS: estimate finite-event p=.3 with10000 IID indicators and give known SE. AI alternative: estimate ∫_0^1 x²dx and give model variance/SE.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>CS SE√(.21/10000)≈.004583. AI target1/3, per-draw variance4/45, estimator variance4/(45·10000), SE≈.002981. Both are model-known repeated-sample quantities; estimated SE and actual realised error are different.</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">Exercise 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>Derive the paired and independent variances for thresholds.6 and.55, and state when common randomness helps.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Shared U gives difference indicator on[.55,.6), variance.05(.95)=.0475. Separate draws give.24+.2475=.4875. The positive covariance.55−.6(.55)=.22 subtracts.44. Pairing helps here; a negative covariance would increase variance. Independent pairs remain required across replications.</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">Exercise 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 min</span></div>
+<p>Thirty datasets reset the same seed and their identical means have zero between-run SD. A report treats all30000 rows as independent. Repair it.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Each1000-row block is a copy of the same draw sequence, so the aggregate mean has the original1000-sample variation. Under Bernoulli(.3), correct model SE√(.21/1000)≈.014491, rather than√(.21/30000)≈.002646. Zero replicate variation diagnoses copied streams, not certainty.</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">Exercise 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 min</span></div>
+<p>All100 observed indicators are zero, so a zero plug-in SE is reported as proof p=0 and exact CLT coverage. Repair both.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>At p=.001 the data occur with probability.999¹⁰⁰≈.904792. The zero estimate does not prove a zero rate. A distribution-free bounded independent radius atδ=.05 is√(log40/200)≈.135810. The stated CLT has no universal finite-N exact95% coverage guarantee, particularly at rare-event boundaries.</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 min</span></div>
+<p>Show that common-mean pairwise uncorrelated variables with variance at mostC satisfy this weak-law proof. Explain why that is not the IID CLT theorem.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Variance of their average is at mostNC/N²=C/N; Chebyshev gives tail≤C/(Nε²)→0. Pairwise uncorrelatedness need not imply joint independence or identical laws, so the stated IID CLT assumptions do not follow from this argument.</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">Exercise 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 min</span></div>
+<p>CS: derive variance of a mean from m independent draws copied b times each. AI alternative: compare independent and antithetic estimators of ∫_0^1 x dx.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>CS: row mean equals the m-draw mean, varianceσ²/m=bσ²/N forN=mb. AI: independent U averages have variance1/(12N). An antithetic pair average(U+(1−U))/2=.5 exactly for every U, eliminating sampling variance for this linear integrand. This special negative-covariance sum construction does not guarantee the same gain for every integrand or simulation cost.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Ten-question self-check</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>Which assumption removes the covariance terms from the IID mean variance?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Independent finite-variance observations</button></li><li><button type="button" class="quiz-opt" data-i="1">Matching row labels alone</button></li><li><button type="button" class="quiz-opt" data-i="2">Repeated copies of one record</button></li></ol><div class="quiz-expl" hidden>Linearity of the mean is separate; variance needs the cross-term justification.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>What does Chebyshev require?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Gaussian shape</button></li><li><button type="button" class="quiz-opt" data-i="1">A finite relevant variance and a positive deviation threshold</button></li><li><button type="button" class="quiz-opt" data-i="2">A particular fixed seed</button></li></ol><div class="quiz-expl" hidden>Applying Markov to the squared centred variable proves the bound.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>What convergence does the elementary weak-law proof establish?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Every finite realised error decreases</button></li><li><button type="button" class="quiz-opt" data-i="1">An exact deterministic error bound</button></li><li><button type="button" class="quiz-opt" data-i="2">Convergence in probability for each fixed positive tolerance</button></li></ol><div class="quiz-expl" hidden>The tail bound tends to zero; this proof is not an almost-sure path argument.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>What is standardised in the IID CLT?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The sample mean or sum</button></li><li><button type="button" class="quiz-opt" data-i="1">Each original observation becomes Gaussian</button></li><li><button type="button" class="quiz-opt" data-i="2">The probability model’s seed</button></li></ol><div class="quiz-expl" hidden>Bernoulli observations remain Bernoulli even as means become approximately Gaussian.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>Does the stated CLT provide exact95% finite coverage for every N≥30?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Yes</button></li><li><button type="button" class="quiz-opt" data-i="1">No, it is asymptotic and requires its assumptions</button></li><li><button type="button" class="quiz-opt" data-i="2">Only the histogram colour matters</button></li></ol><div class="quiz-expl" hidden>Rare or skewed populations can give poor small-sample approximations; a universal cutoff is unsupported.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>Does the union step over several valid estimates need cross-estimate independence?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Always</button></li><li><button type="button" class="quiz-opt" data-i="1">Only when they share records</button></li><li><button type="button" class="quiz-opt" data-i="2">No, union bounds do not require it</button></li></ol><div class="quiz-expl" hidden>Each individual guarantee must still be valid and the family must be covered by the claim.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>What does quadrupling IID sample size do to standard error?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Halves it under a fixed finite-variance model</button></li><li><button type="button" class="quiz-opt" data-i="1">Divides it by four</button></li><li><button type="button" class="quiz-opt" data-i="2">Forces each realised error to halve</button></li></ol><div class="quiz-expl" hidden>Standard error scales as1/√N and describes repeated-sample variation.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>A zero-success sample has zero plug-in SE. What follows?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The true rate must be zero</button></li><li><button type="button" class="quiz-opt" data-i="1">The plug-in estimate is at a boundary; uncertainty still needs a valid analysis</button></li><li><button type="button" class="quiz-opt" data-i="2">Hoeffding becomes zero automatically</button></li></ol><div class="quiz-expl" hidden>Rare nonzero rates can produce all-zero samples with high probability.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>When does pairing reduce a difference variance with unchanged marginals?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">For every possible covariance</button></li><li><button type="button" class="quiz-opt" data-i="1">Only for negative covariance</button></li><li><button type="button" class="quiz-opt" data-i="2">When within-pair covariance is positive</button></li></ol><div class="quiz-expl" hidden>Var(A−B)=VarA+VarB−2Cov; cross-pair dependence still needs its own treatment.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m24:q10">
+<label for="q10-response">10. Write an uncertainty contract for a finite-event Monte Carlo estimate: derive mean variance and a Chebyshev or Hoeffding size, state the independent unit and seed protocol, and explain why copied streams, rare zero samples or a CLT approximation do not supply an unconditional error guarantee.</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="State target, estimator, assumptions, N, tolerance, failure probability and theorem scope."></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> I separated sampling variation, probability bounds, approximation and actual independent information.</label>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>For IID indicators with common ratep, estimate is their mean, variancep(1−p)/N and SE√[p(1−p)/N]. Chebyshev worst-case size is1/(4δε²), or bounded Hoeffding size log(2/δ)/(2ε²). N counts independent draws, not duplicated rows; a local seed documents a trace while copied streams add no replications. A zero-success estimate can occur at nonzero p, and the stated CLT is asymptotic rather than an exact finite error certificate. Report the failure probability and all model assumptions with the tolerance.</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Reading with a purpose</h2></div>
+<p>Use <a href="https://ocw.mit.edu/courses/6-041sc-probabilistic-systems-analysis-and-applied-probability-fall-2013/pages/unit-iv/lecture-19/" target="_blank" rel="noopener">MIT’s weak-law lesson</a> and <a href="https://ocw.mit.edu/courses/6-041sc-probabilistic-systems-analysis-and-applied-probability-fall-2013/pages/unit-iv/lecture-20/" target="_blank" rel="noopener">CLT lesson</a>. The qualified Hoeffding statement is in <a href="https://ocw.mit.edu/courses/9-520-statistical-learning-theory-and-applications-spring-2006/f195bbc782726fc4580586a67d4fe69c_mathcamp02.pdf" target="_blank" rel="noopener">MIT’s probability notes</a>. The elementary bounds and mean/covariance applications above are derived in full here.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>Selection and question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session1 · 15 minutes</td>
+<td>Mean variation and weak law: what variance calculation makes the probability bound vanish?</td>
+</tr>
+<tr>
+<td>Session4 · 15 minutes</td>
+<td>CLT and bounded concentration: which statements are asymptotic and which are finite-size guarantees?</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Retrieval exit task and next step</h2></div>
+<p>Prove Markov, Chebyshev and the finite-variance weak law; state CLT and Hoeffding with assumptions; calculate sample sizes and a Monte Carlo uncertainty report. Derive how deliberate pairing or accidental copying changes variation.</p>
+<p><strong>Exit task:</strong> at ε=.05,δ=.05 compare sufficient Bernoulli sizes2000 and738, then explain why neither IID formula applies to N copies of one draw. Distinguish standard error from actual realised error and a deterministic numerical bound.</p>
+<p><strong>Ready to move on:</strong> you can assess sampling statements and report a justified estimator. Estimation next derives likelihood, bias, variance and Bayesian parameter updating rather than treating all model rates as known. See the <a href="index.html">course overview</a>.</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Notation and bilingual terminology</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term or notation</th>
+<th>Meaning</th>
+<th>中文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IID / sampling unit</td>
+<td>Independent identical laws / actual independent draw</td>
+<td>独立同分布、抽样单位</td>
+</tr>
+<tr>
+<td>M_N / SE</td>
+<td>Sample mean / estimator standard deviation</td>
+<td>样本均值、标准误</td>
+</tr>
+<tr>
+<td>ε / δ</td>
+<td>Error tolerance / failure-probability bound</td>
+<td>容差、失败概率</td>
+</tr>
+<tr>
+<td>Weak law / CLT</td>
+<td>Probability convergence / distributional standardisation limit</td>
+<td>弱大数法则、中心极限定理</td>
+</tr>
+<tr>
+<td>Chebyshev / Hoeffding</td>
+<td>Variance bound / bounded independent concentration</td>
+<td>切比雪夫、Hoeffding界</td>
+</tr>
+<tr>
+<td>Monte Carlo / quadrature</td>
+<td>Random expectation estimate / numerical integral approximation</td>
+<td>蒙特卡洛、数值求积</td>
+</tr>
+<tr>
+<td>Pairing / copied stream</td>
+<td>Deliberate within-pair coupling / repeated random sequence</td>
+<td>配对、复制流</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="module_23_EN.html">← Module 23</a><a href="module_25_EN.html">Module 25 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

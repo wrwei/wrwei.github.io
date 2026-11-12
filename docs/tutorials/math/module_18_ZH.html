@@ -1,0 +1,600 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>多元微分、矩阵微积分与自动微分 — 计算机科学与人工智能的数学基础</title><meta name="description" content="区分偏导与全微分，推导正确形状雅可比及矩阵梯度，验证共享计算与两层网络反向累积。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="18"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 18</button><div class="dropdown-menu" id="module-menu"><a href="module_18_ZH.html" class="active" aria-current="page">多元微分、矩阵微积分与自动微分</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_18_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>导数成为带形状的线性映射</span></a><a href="#s1"><span class="num">2</span><span>偏导、方向导数与等值集</span></a><a href="#s2"><span class="num">3</span><span>全微分与列梯度约定</span></a><a href="#s3"><span class="num">4</span><span>雅可比复合、JVP与VJP</span></a><a href="#s4"><span class="num">5</span><span>Hessian、混合偏导与二阶模型</span></a><a href="#s5"><span class="num">6</span><span>通过微分求矩阵梯度</span></a><a href="#s6"><span class="num">7</span><span>自动微分与共享节点累积</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个可复现实验</span></a><a href="#exercises"><span class="num">10</span><span>十四道练习与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自检</span></a><a href="#reading"><span class="num">12</span><span>有目标的阅读</span></a><a href="#summary"><span class="num">13</span><span>检索结业任务与下一步</span></a><a href="#terms"><span class="num">14</span><span>符号与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">多元微分、矩阵微积分与自动微分</h1><p class="module-lead">区分偏导与全微分，推导正确形状雅可比及矩阵梯度，验证共享计算与两层网络反向累积。</p><div class="hero-chips"><span class="chip chip-time">12 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>计算偏导方向导数，给不足保证全可导反例。</li><li>将列梯度和输出乘输入雅可比定义为局部映射。</li><li>复合雅可比并标前向JVP、反向VJP形状。</li><li>按混合偏导条件使用Hessian与二阶展开。</li><li>用微分推导点积、一般二次型与最小二乘梯度。</li><li>实现共享节点反向累积并检验两层网络全部参数梯度。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>模块 10：矩阵积、转置与批形状；模块 16：局部线性、链法则、泰勒界与折点。模块 11–14 加强几何解释，但实验无需额外先修。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">导数成为带形状的线性映射</a><a href="#s1">偏导、方向导数与等值集</a><a href="#s2">全微分与列梯度约定</a><a href="#s3">雅可比复合、JVP与VJP</a><a href="#s4">Hessian、混合偏导与二阶模型</a><a href="#s5">通过微分求矩阵梯度</a><a href="#s6">自动微分与共享节点累积</a><a href="#misconceptions">常见误解</a><a href="#labs">三个可复现实验</a><a href="#exercises">十四道练习与完整解答</a><a href="#quiz">十题自检</a><a href="#reading">有目标的阅读</a><a href="#summary">检索结业任务与下一步</a><a href="#terms">符号与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">12 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">180 分钟</span></div><div class="session-title">偏导、全微分与雅可比</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节并检查可导反例。</a></span><span class="act-min">112</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">28</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读梯度与全导数选段。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">检索全部导数形状与约定。</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m18:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">180 分钟</span></div><div class="session-title">链、Hessian与矩阵梯度证明</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–5 节，推导微分公式。</a></span><span class="act-min">75</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">数值检验梯度雅可比Hessian。</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m18:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">180 分钟</span></div><div class="session-title">反向模式与共享计算</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s6">阅读自动微分并探索图伴随量。</a></span><span class="act-min">50</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">实现反向并追踪共享节点累积。</a></span><span class="act-min">70</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">36</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">解释JVP、VJP与导数约定。</a></span><span class="act-min">24</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m18:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">180 分钟</span></div><div class="session-title">两层反向验证</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">验证全部参数梯度并诊断三类故障。</a></span><span class="act-min">75</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">诊断练习 11–12。</a></span><span class="act-min">24</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择及书面形状反向约定。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读矩阵微积分与计算图选段。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">带累积与损失尺度完成结业任务。</a></span><span class="act-min">46</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m18:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>导数成为带形状的线性映射</h2></div>
+<p>标量训练目标依赖许多参数，常经过重复计算和记录批次。导数需包括所有依赖，区分偏向观察与整个输入的近似，并保留数组形状。本课先发展全微分、雅可比、Hessian与矩阵梯度，再把链规则实现为自动微分。</p>
+<p><strong>检索检查：</strong>回忆<a href="module_10_ZH.html#s1">模块10</a>矩阵积、转置、批形状和<a href="module_16_ZH.html#s1">模块16</a>局部模型、链规则、不可导边界。NumPy实验使用本课固定版本，标量反向引擎只需标准库。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>偏导、方向导数与等值集</h2></div>
+<p>开域上f:Rⁿ→R对第i坐标偏导，是[f(a+h e_i)−f(a)]/h的极限，其余坐标固定。存在偏导只检查一条坐标线，不自动认证同时变化时连续或全部方向一阶近似。对数和分母等定义域仍可能排除邻近路径。</p>
+<p>D_v f(a)=lim_{t→0}[f(a+tv)−f(a)]/t为向量v方向导数。单位v描述每单位距离变化率，非单位还缩放沿路径速度。此处t双侧趋零；边界或非光滑的单侧方向导数需另限定。存在这些极限不保证它们关于v构成一个线性映射。</p>
+<p>等值集由输出相同输入组成。在全可导时，梯度指欧氏意义下一阶最陡上升，对可微等值路径非零切向正交。这些由微分与链规则证明，不只凭等高图。不同特征单位会改变欧氏几何，应声明坐标、内积或度量约定。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">椭圆目标的偏导与方向速率</div>
+<p>f=x²+3y²在(1,1)偏导二、六。单位v=(.6,.8)速率2(.6)+6(.8)=6。最大单位速率√40沿(2,6)/√40取得。该点等值集x²+3y²=4，切向满足2v₁+6v₂=0。非单位(3,4)速率三十，因长度也改变参数化速度。</p>
+</div>
+<p>偏导能漏不连续：原点外f=xy/(x²+y²)，原点零。两坐标限制恒零，偏导均零；沿x=y=t≠0值1/2，故不连续、更不可全可导。实验采样仅说明已经精确推导的反例。</p>
+<p>甚至连续且所有方向导数存在仍不足。原点外g=x³/(x²+y²)、原点零，幅度≤|x|≤‖(x,y)‖，所以连续。非零v方向速率v₁³/(v₁²+v₂²)，轴方向为一、零，(1,1)却为1/2而非线性候选一。方向率映射不线性，无统一全导数。检验多条直线不替代全部小向量的统一余项条件。</p>
+<figure class="fig" id="fig-18-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="两轴函数为零，原点两偏导零，对角接近时值始终二分之一，所以原点不连续。"><title>偏导与全可导反例</title><desc>两轴函数为零，原点两偏导零，对角接近时值始终二分之一，所以原点不连续。</desc><defs><marker id="fig-18-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">轴上的偏导可以遗漏对角路径</text><rect x="35" y="65" width="325" height="215" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="400" y="65" width="325" height="215" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="195" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">坐标轴 x=0 或 y=0</text><text x="195" y="150" text-anchor="middle" font-size="27" fill="#1a2e4a">f=0</text><text x="195" y="220" text-anchor="middle" font-size="22" fill="#1a2e4a">∂ₓf(0)=∂ᵧf(0)=0</text><text x="562" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">对角 x=y=t≠0</text><text x="562" y="150" text-anchor="middle" font-size="27" fill="#1a2e4a">f=1/2</text><text x="562" y="220" text-anchor="middle" font-size="20" fill="#1a2e4a">不连续，更非全可导</text><text x="380" y="325" text-anchor="middle" font-size="21" fill="#1a2e4a">f(x,y)=xy/(x²+y²); f(0,0)=0</text></g></svg></div><figcaption><span class="fig-num">图 18.1</span> <p>坐标限制可隐藏对角不连续；全可导需要覆盖全部小向量路径的同一个局部线性映射。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>偏导存在是否证明连续？所有方向导数是否必为某梯度点积？为何指定单位方向？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>xy/(平方和)反例否定连续，连续x³/(平方和)有非线性方向率。非单位改变速度，速率还乘长度。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>全微分与列梯度约定</h2></div>
+<p>全可导要求线性泛函L，使f(a+h)=f(a)+L(h)+r(h)，r(h)/‖h‖→0，覆盖整个向量的全部接近路径。有限维欧氏线性泛函可写gᵀh：展开坐标基，g_i=L(e_i)，线性给表示。沿坐标限制余项则说明这些系数等于偏导。</p>
+<p>本课用n×1<strong>列梯度</strong>∇f，所以df=∇fᵀdx是标量。输入到标量的行导数为1×n，是其转置。NumPy(n,)可存系数，却不是显式行列；应同时标数学约定与存储形状，避免方形例把转置错误隐藏。</p>
+<p>F:Rⁿ→Rᵐ全可导指F(a+h)=F(a)+Jh+r(h)，‖r‖/‖h‖→0。J为m×n，行i是输出i对全部输入偏导，J_{ij}=∂F_i/∂x_j，因此dF=Jdx。有限维逐分量全可导等价，因为有限组消失余项的向量范数也消失。雅可比是输入到输出的映射，不是可任意摆向的坐标表。</p>
+<p>邻域内连续偏导是充分条件。逐坐标改变输入并望远镜分解增量，对每一步用一维中值定理，系数为趋a的中间点偏导。减a处偏导，连续性将系数误差统一压为ε，余项≤εΣ|h_i|≤ε√n‖h‖，得到全可导。这证明C¹充分，而非必要定义。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">把雅可比读作输入到输出映射</div>
+<p>F(x,y)=(x²y,sin x+y²)，J=[[2xy,x²],[cos x,2y]]。(.7,−.4)处约[[-.56,.49],[.764842,−.8]]。乘v=(.6,.8)得(.056,−.181095)，预测tv扰动的一阶输出tJv，真实增量还带相对|t|更小余项。列是输入坐标响应，行是输出梯度。</p>
+</div>
+<p>全可导蕴含D_vf=∇fᵀv及连续：有界线性图和余项都趋零。单位v下柯西–施瓦茨给最大速率‖∇f‖，非零梯度方向取等；梯度零只表示一阶率都零。可微等值路径c(t)用链规则给∇f(c(t))ᵀc′(t)=0，得到法向解释。</p>
+<p>微分不是Python存储的字面无穷小；用于有限扰动只是近似，余项另界定。改变坐标或度量会改变代表同一微分的梯度；正定加权内积M下梯度为M⁻¹乘欧氏梯度，标量作用不变，最陡方向依长度定义。</p>
+<p>点上可导未必邻近C¹：非零x时s=x²sin(1/x)、零处零，商x sin(1/x)趋零，所以s′(0)=0；非零导数2x sin(1/x)−cos(1/x)振荡。f(x,y)=s(x)+y²幅度≤x²+y²，原点零线性余项除范数趋零，因此全可导，但导数不连续。把C¹充分条件当定义会删合法点可导函数。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>F:R⁴→R³的J形状？标量R⁴函数列梯度和行导数形状？C¹是否只要求中心偏导存在？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>3×4，4×1与1×4。C¹需邻域偏导存在且连续，提供孤立偏导缺失的统一控制。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>雅可比复合、JVP与VJP</h2></div>
+<p>可导F:Rⁿ→Rᵐ、G:Rᵐ→Rᵖ且域兼容，复合J=J_G(F(a))J_F(a)，形状(p×m)(m×n)=p×n。内先作用所以右乘，反序可能无定义或描述其他映射。</p>
+<p>证明写ΔF=J_Fh+r_F，余项比范数趋零，于是‖ΔF‖/‖h‖有界。外增量J_GΔF+r_G(ΔF)，第一余J_G r_F消失，第二在ΔF非零时其比例拆为[‖r_G‖/‖ΔF‖][‖ΔF‖/‖h‖]，前趋零后有界；ΔF零时直接零。避免除消失内增量。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">将标量目标拉回向量映射输入</div>
+<p>用上节F，G(u,v)=u²+3v，输出列梯度q=(2u,3)，输入J_Fᵀq。( .7,−.4)处u=−.196，输入梯度约(2.514047,−2.59208)。直接微分(x²y)²+3(sin x+y²)得(4x³y²+3cos x,2x⁴y+6y)，一致。每个输出依赖贡献到相应输入。</p>
+</div>
+<p>JVP是Jv，输入切向长度n映到输出m。VJP传统写输出行种子qᵀJ，本列约定转置为Jᵀq，长度n。不能误用J乘输出种子；种子规定微分哪个输出组合，向量输出没有未指定组合的单一梯度。</p>
+<p>矩形例更暴露错误：F=(xy,x²,y²)，L=u+2v−3w，(1,2)处J行(2,1),(2,0),(0,4)，3×2。q=(1,2,−3)，Jᵀq=(6,−11)，与xy+2x²−3y²一致，Jq内维不匹配。长度二输入方向则Jv产生三个率。</p>
+<p>前向逐局部JVP传输入切向，反向逐转置作用传输出伴随。标量输出多输入时一反向给种子一的全部输入系数。完整m×n雅可比通常要n次基输入前向或m次基输出反向，不自动以一次标量路径成本得到全部条目。</p>
+<p>L(y)标量、y=Ax时dy=A dx、dL=qᵀA dx，拉回Aᵀq。非线性局部导数须在真实前向值求；替换输入导数或反向前修改缓存会失效，需要存储或重算中间值。</p>
+<p>共享输入影响多路径，最终标量系数是影响之和。反向需等下游贡献全部到达共享节点再运行局部规则，唯一节点拓扑顺序给此日程；把图当树、无累积递归可能丢路径或重复传播已合计量。</p>
+<figure class="fig" id="fig-18-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="m乘n雅可比将n输入切向映m输出，转置将m输出种子映n输入伴随。"><title>前向JVP与反向VJP形状</title><desc>m乘n雅可比将n输入切向映m输出，转置将m输出种子映n输入伴随。</desc><defs><marker id="fig-18-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">相同局部线性图的两种传播</text><rect x="45" y="70" width="260" height="85" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="455" y="70" width="260" height="85" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="175" y="120" text-anchor="middle" font-size="21" fill="#1a2e4a">输入切向 v ∈ Rⁿ</text><text x="585" y="120" text-anchor="middle" font-size="20" fill="#1a2e4a">输出切向 Jv ∈ Rᵐ</text><path d="M305,112L455,112" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-2__arrow)"/><text x="380" y="95" text-anchor="middle" font-size="20" fill="#1a2e4a">J: m×n</text><rect x="45" y="205" width="260" height="85" rx="10" fill="#dcfce7" stroke="#15803d"/><rect x="455" y="205" width="260" height="85" rx="10" fill="#dcfce7" stroke="#15803d"/><text x="175" y="255" text-anchor="middle" font-size="19" fill="#1a2e4a">输入伴随 Jᵀq ∈ Rⁿ</text><text x="585" y="255" text-anchor="middle" font-size="20" fill="#1a2e4a">输出种子 q ∈ Rᵐ</text><path d="M455,247L305,247" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-2__arrow)"/><text x="380" y="230" text-anchor="middle" font-size="20" fill="#1a2e4a">Jᵀ: n×m</text><text x="380" y="335" text-anchor="middle" font-size="17" fill="#1a2e4a">列约定：df=∇fᵀdx；输出在行，输入在列。</text></g></svg></div><figcaption><span class="fig-num">图 18.2</span> <p>前向切向沿雅可比，反向伴随沿转置，并在共享输入累加。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>F:R²→R³、G:R³→R⁴如何复合？反向标量种子与返回形状？共享输入为何求和？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>(4×3)(3×2)=4×2，外乘内。标量种子一经转置组合返回二分量列伴随，同输入影响每条路径所以线性贡献相加。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>Hessian、混合偏导与二阶模型</h2></div>
+<p>Hessian是列梯度的雅可比，n×n，H_{ij}为梯度分量i对坐标j导数。邻域二阶偏导连续时混合可交换，H对称：考虑小坐标矩形四角增量，按两种顺序用中值定理，除面积、宽度趋零，连续使极限相同。不能仅因写了两种偏导符号就假定相等。</p>
+<p>无连续性可不同：原点外f=xy(x²−y²)/(x²+y²)、原点零，f_x(0,y)=−y，f_y(x,0)=x，因此原点∂_y f_x=−1、∂_x f_y=1，邻域光滑假设失败。</p>
+<p>C²下二阶模型f(a+h)=f(a)+∇f(a)ᵀh+hᵀH(a)h/2+o(‖h‖²)。沿g(t)=f(a+th)，g′=∇fᵀh、g″=hᵀHh。一维泰勒给线段中间H，连续使其与H(a)差在小h时统一消失，得到余项比例。仅列存在的坐标二阶项弱于梯度全可导；反例没有C²二阶模型。数值估计轻微非对称也可能是差分或程序错，应先判数学正则，再判估计器。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">耦合曲率的标量目标</div>
+<p>f=x²y+exp(y)，梯度(2xy,x²+exp y)，H=[[2y,2x],[2x,exp y]]。(.7,−.4)处梯度(−.56,1.16032)，H约[[-.8,1.4],[1.4,.67032]]。位移(h₁,h₂)二次校正为y h₁²+2x h₁h₂+exp(y)h₂²/2，漏混合项即使纯曲率都对也会改变预测。</p>
+</div>
+<p>内部驻点梯度须零，可逐坐标用费马。C²下H正定严格局部最小、负定最大、不定给正负方向而鞍点；半正定有零方向则无结论。零处x⁴+y⁴最小，x⁴−y⁴鞍点，H都零，局部与后面的全局优化不同。</p>
+<p>对称H下vᵀHv是方向二阶率，Hv为梯度沿v的一阶变化，长度n。可计算乘积而不存n²条目，但需足够光滑，折点经典H可不存在。梯度差分是另有步长误差的估计。</p>
+<figure class="fig" id="fig-18-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 355" role="img" aria-label="x平方y加指数y在零点七负零点四的梯度负零点五六与一点一六零三二，Hessian混合项一点四，表示不同坐标相互影响。"><title>梯度与耦合Hessian</title><desc>x平方y加指数y在零点七负零点四的梯度负零点五六与一点一六零三二，Hessian混合项一点四，表示不同坐标相互影响。</desc><defs><marker id="fig-18-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="355" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">一阶系数与二阶耦合是不同对象</text><rect x="35" y="75" width="245" height="220" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="310" y="75" width="415" height="220" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="158" y="112" text-anchor="middle" font-size="24" fill="#1a2e4a">∇f: 2×1</text><text x="158" y="171" text-anchor="middle" font-size="27" fill="#1a2e4a">−0.56</text><text x="158" y="226" text-anchor="middle" font-size="27" fill="#1a2e4a">1.16032</text><text x="518" y="112" text-anchor="middle" font-size="24" fill="#1a2e4a">H: 2×2</text><text x="428" y="174" text-anchor="middle" font-size="27" fill="#1a2e4a">−0.8</text><text x="620" y="174" text-anchor="middle" font-size="27" fill="#c2410c">1.4</text><text x="428" y="230" text-anchor="middle" font-size="27" fill="#c2410c">1.4</text><text x="620" y="230" text-anchor="middle" font-size="27" fill="#1a2e4a">0.67032</text><text x="380" y="333" text-anchor="middle" font-size="21" fill="#1a2e4a">f=x²y+exp(y); a=(0.7,−0.4)</text></g></svg></div><figcaption><span class="fig-num">图 18.3</span> <p>梯度给一阶敏感性，Hessian给其变化及混合项，两者形状与作用不同。</p>
+</figcaption></figure>
+<p>正定局部判别需统一二次裕量。单位球面vᵀHv连续正，紧致给最小λ&gt;0，故hᵀHh≥λ‖h‖²。足够小邻域余项幅度≤λ‖h‖²/4，驻点非零增量≥λ‖h‖²/4，完成严格最小证明。采样少数正曲率不能替代该全方向裕量。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>何时H对称？零H能分类吗？Hv形状含义？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>邻域连续二阶充分；零H由四次反例无结论。Hv长度n为梯度方向变化，vᵀHv为标量曲率。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>通过微分求矩阵梯度</h2></div>
+<p>向量df=gᵀdx；矩阵用弗罗贝尼乌斯内积df=Σ(∇<em>A f)</em>{ij}dA_{ij}=tr((∇<em>A f)ᵀdA)，梯度与A同形状，每条目一个系数。tr为方阵对角和，兼容矩形B,C下tr(BC)=tr(CB)由同一个ΣB</em>{ij}C_{ji}得，循环可用来收集合法维数微分。</p>
+<p>固定b的bᵀx梯度b。一般方阵二次型df=dxᵀAx+xᵀA dx=[(A+Aᵀ)x]ᵀdx，梯度(A+Aᵀ)x，只有对称A才2Ax。反对称部分标量贡献零。输出形状适合不能修复错误简化。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">保留残差形状的最小二乘梯度</div>
+<p>X:B×d，w:d×1，y:B×1，r=Xw−y:B×1，L=‖r‖²。dL=2rᵀXdw，梯度2Xᵀr:d×1，H=2XᵀX。X行(1,0),(1,1),(1,2)，y=(1,2,2)，w=(1,0)，r=(0,−1,−1)，梯度(−4,−6)。半平方除二，均方除B。</p>
+</div>
+<p>归约是数学定义。单输出均方梯度(2/B)Xᵀr；多输出B×o所有条目平均除B·o，而先每行输出和再行平均只除B，目标差因子o。需准确报告，否则改变梯度与更新有效尺度。</p>
+<p>X:B×d、W:d×o、Y:B×o，R=XW−Y，半平方Frobenius损失微分tr(RᵀdR)，dR=X dW+dX W−dY，收系数得W梯度XᵀR:d×o，X梯度R Wᵀ:B×d，Y梯度−R:B×o。先通过索引或微分确认，不混平目标与列预测造成矩阵广播。</p>
+<p>共享数学列偏置b:o×1，预测XW+1bᵀ，db在B行重复，偏置梯度Rᵀ1，即行方向求和。NumPy常存(o,)，sum(axis=0)恢复同形状。前向广播对应反向求和，因为一个参数影响所有复制项；保留最后一行会丢其他贡献。</p>
+<p>两层Z=XW₁+1b₁ᵀ、H=tanh Z、P=HW₂+1b₂ᵀ，输出伴随G。W₂梯度HᵀG，b₂行求和，隐藏伴随G W₂ᵀ，逐元素乘1−H²得D，W₁梯度XᵀD、b₁行求和。矩阵乘与逐元素乘作用不同。</p>
+<p>实验B=3、输入二、隐藏三、输出一：W₁2×3，Z,H3×3，W₂3×1，P,G3×1，G W₂ᵀ3×3，XᵀD2×3。偏置存(3,)、(1,)。缺转置特意会失败，不用方形阵掩盖。均方三标量所以G=2R/3，形状对仍可能归约错。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>矩阵梯度为何同参数形状？一般二次型梯度？偏置为何求和？多输出均值总除B吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>每参数条目一个微分系数；(A+Aᵀ)x；复制到全部行的依赖相加；所有条目均值除B·o，行输出和再均值另定义。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>自动微分与共享节点累积</h2></div>
+<p>AD按执行计算图使用局部导数规则，不是扰动取商的有限差分，也不是构造代数表达的符号微分。前向带值与切向，反向先记前向值再逆依赖传播伴随。导数规则按数学原语计算，求值仍有数值舍入。</p>
+<p>字面浮点输入输出图有离散舍入阶梯，AD通常微分在存储值处求的目标实原语公式，而非每条舍入指令阶梯。“自动”不等于精确实算术，不消除条件敏感性，不证明跨分支可导。分支结果描述实际路径与原语约定，零处ReLU反向仍是约定。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">重复中间值收集全部反向路径</div>
+<p>u=x<em>x、z=u</em>u+u+x，x=2时u=4、z=22。种子z̄=1得ū=2u+1=9，两乘边加直接加路径；x̄=2x ū+1=37，包括两x操作数和直接路径。节点处理一次不等于只保留一个边贡献。展开x⁴+x²+x导数4x³+2x+1确认37。</p>
+</div>
+<figure class="fig" id="fig-18-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 525" role="img" aria-label="x二、u四、v十六、w二十、z二十二，种子一反向给伴随z一w一v一u九x三十七，两重复乘边与直接加路径全部累计。"><title>共享平方图的完整累积</title><desc>x二、u四、v十六、w二十、z二十二，种子一反向给伴随z一w一v一u九x三十七，两重复乘边与直接加路径全部累计。</desc><defs><marker id="fig-18-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="525" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">共享图：前向值与反向伴随</text><path d="M225,108L290,108" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M225,148L290,148" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M470,108L535,108" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M470,148L535,148" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M625,180L625,300" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M470,168L535,300" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M535,355L470,355" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M225,168L290,300" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><rect x="45" y="70" width="180" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="135" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">x</text><text x="135" y="136" text-anchor="middle" font-size="20" fill="#1a2e4a">值 2</text><text x="135" y="166" text-anchor="middle" font-size="20" fill="#15803d">伴随 37</text><rect x="290" y="70" width="180" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">u=x*x</text><text x="380" y="136" text-anchor="middle" font-size="20" fill="#1a2e4a">值 4</text><text x="380" y="166" text-anchor="middle" font-size="20" fill="#15803d">伴随 9</text><rect x="535" y="70" width="180" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="625" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">v=u*u</text><text x="625" y="136" text-anchor="middle" font-size="20" fill="#1a2e4a">值 16</text><text x="625" y="166" text-anchor="middle" font-size="20" fill="#15803d">伴随 1</text><rect x="535" y="300" width="180" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="625" y="330" text-anchor="middle" font-size="21" fill="#1a2e4a">w=v+u</text><text x="625" y="366" text-anchor="middle" font-size="20" fill="#1a2e4a">值 20</text><text x="625" y="396" text-anchor="middle" font-size="20" fill="#15803d">伴随 1</text><rect x="290" y="300" width="180" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="330" text-anchor="middle" font-size="21" fill="#1a2e4a">z=w+x</text><text x="380" y="366" text-anchor="middle" font-size="20" fill="#1a2e4a">值 22</text><text x="380" y="396" text-anchor="middle" font-size="20" fill="#15803d">伴随 1</text><text x="258" y="100" text-anchor="middle" font-size="18" fill="#1a2e4a">x</text><text x="258" y="145" text-anchor="middle" font-size="18" fill="#1a2e4a">x</text><text x="503" y="100" text-anchor="middle" font-size="18" fill="#1a2e4a">u</text><text x="503" y="145" text-anchor="middle" font-size="18" fill="#1a2e4a">u</text><text x="643" y="245" text-anchor="start" font-size="18" fill="#1a2e4a">1</text><text x="500" y="238" text-anchor="start" font-size="18" fill="#1a2e4a">1</text><text x="503" y="344" text-anchor="middle" font-size="18" fill="#1a2e4a">1</text><text x="250" y="238" text-anchor="start" font-size="18" fill="#1a2e4a">1</text><text x="380" y="463" text-anchor="middle" font-size="22" fill="#1a2e4a">ū=2u+1=9；x̄=2x·ū+1=37。</text><text x="380" y="498" text-anchor="middle" font-size="17" fill="#1a2e4a">箭头为前向依赖；每条边都贡献反向系数。</text></g></svg></div><figcaption><span class="fig-num">图 18.4</span> <p>重复平方图给前向值及反向伴随，共享中间量先收齐贡献再执行局部规则。</p>
+</figcaption></figure>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="adjoints"></div><div class="widget-caption">
+<p>改变x与z=(x<em>x)²+x</em>x+x的输出种子，检查前向图及反向贡献，包括零、负种子。</p>
+</div></div>
+<p>实验引擎存父节点与局部闭包，先建每可达节点一次的拓扑列表，新反向清零所有伴随、设种子、逆序遍历。每父边用+=，两操作数同对象也加两次，确保共享节点已收到下游总和。无重置重复反向会累积旧请求，只有明确有意时才合理。</p>
+<p>种子不是一则给缩放VJP，x=2种子二返回74、零返回零，普通导数仍37。多输出向量种子指定加权组合，梯度回答定义好的微分量，不是变量永久属性。状态、图重用、归约均在规格内。</p>
+<p>梯度检查在选定光滑点、多个合适步长比较解析AD与中心差分，先检查形状，再按幅度设置绝对相对容差。错误公式可在对称或零残差点巧合，需非平凡值和逐参数或独立方向扰动。网络实验检验全部小参数并展示转置、丢批贡献、均值因子故障，支持这些例的实现，通式依据微分推导。</p>
+<p>反向需存储或重算中间值及正确图日程，成本依计算而不只参数数。大系统检查点、Hv可改变工程代价，链与累积规格仍同。这个基础足够解释手动和自动反向，再进入优化。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>AD是否选择h估导？共享伴随为何相加？种子零是否改变函数导数？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>AD用原语链规则不是扰动商；全部路径影响同一输入系数。零种子给零加权输出的零拉回，普通导数不变。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>主张</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>偏导存在就全可导。</td>
+<td>轴限制可隐藏不连续、非线性方向率。</td>
+</tr>
+<tr>
+<td>梯度J随便摆向。</td>
+<td>明确列梯度、输出乘输入J。</td>
+</tr>
+<tr>
+<td>反向用J乘输出种子。</td>
+<td>列拉回是Jᵀq。</td>
+</tr>
+<tr>
+<td>混合总可交换。</td>
+<td>检查邻域光滑。</td>
+</tr>
+<tr>
+<td>二次型总2Ax。</td>
+<td>一般(A+Aᵀ)x。</td>
+</tr>
+<tr>
+<td>偏置取一行梯度。</td>
+<td>所有复制贡献求和。</td>
+</tr>
+<tr>
+<td>均值和总和梯度一样。</td>
+<td>归约因子不同。</td>
+</tr>
+<tr>
+<td>AD证明每分支可导。</td>
+<td>执行原语、折点约定另解释。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个可复现实验</h2></div>
+<h3 id="lab1">实验1 · 向量导数与偏导反例</h3>
+<p><a href="labs/module_18/lab1_vector_derivatives.py" download>下载 lab1_vector_derivatives.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Finite differences check stated analytic vector derivatives at smooth points.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+
+def F(z):
+    x, y = z
+    return np.array([x*x*y, np.sin(x)+y*y])
+
+point = np.array([0.7, -0.4])
+x, y = point
+J = np.array([[2*x*y, x*x], [np.cos(x), 2*y]])
+h = 1e-5
+basis = np.eye(2)
+numerical_J = np.column_stack([(F(point+h*e)-F(point-h*e))/(2*h) for e in basis])
+print(&quot;Point / function value:&quot;, point, F(point))
+print(&quot;Analytic Jacobian (outputs by inputs):\n&quot;, J)
+print(&quot;Finite-difference Jacobian:\n&quot;, numerical_J)
+print(&quot;Jacobian maximum error:&quot;, np.max(np.abs(J-numerical_J)))
+assert J.shape == (2, 2) and np.allclose(J, numerical_J, atol=1e-9, rtol=0)
+
+direction = np.array([0.6, 0.8])
+directional = (F(point+h*direction)-F(point-h*direction))/(2*h)
+print(&quot;JVP / directional difference:&quot;, J@direction, directional)
+assert np.allclose(J@direction, directional, atol=1e-9, rtol=0)
+
+def loss(z):
+    return z[0]**2*z[1]+np.exp(z[1])
+def grad(z):
+    return np.array([2*z[0]*z[1], z[0]**2+np.exp(z[1])])
+H = np.array([[2*y, 2*x], [2*x, np.exp(y)]])
+numerical_grad = np.array([(loss(point+h*e)-loss(point-h*e))/(2*h) for e in basis])
+numerical_H = np.column_stack([(grad(point+h*e)-grad(point-h*e))/(2*h) for e in basis])
+print(&quot;Scalar gradient:&quot;, grad(point))
+print(&quot;Hessian:\n&quot;, H)
+print(&quot;Gradient / Hessian maximum errors:&quot;, np.max(np.abs(grad(point)-numerical_grad)), np.max(np.abs(H-numerical_H)))
+assert np.allclose(grad(point), numerical_grad, atol=1e-9, rtol=0)
+assert np.allclose(H, numerical_H, atol=1e-9, rtol=0)
+
+# Axis partials alone do not imply continuity, hence do not imply differentiability.
+def bad(z):
+    a, b = z
+    return a*b/(a*a+b*b) if a*a+b*b else 0.0
+print(&quot;Origin axis samples / diagonal samples:&quot;)
+for t in [1e-1, 1e-3, 1e-6]:
+    print(t, bad([t, 0]), bad([0, t]), bad([t, t]))
+    assert bad([t, 0]) == 0 and bad([0, t]) == 0 and bad([t, t]) == 0.5
+print(&quot;Smooth derivative checks illustrate the analytic claims; axis samples cannot certify total differentiability.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Point / function value: [ 0.7 -0.4] [-0.196     0.804218]
+Analytic Jacobian (outputs by inputs):
+ [[-0.56      0.49    ]
+ [ 0.764842 -0.8     ]]
+Finite-difference Jacobian:
+ [[-0.56      0.49    ]
+ [ 0.764842 -0.8     ]]
+Jacobian maximum error: 1.702149532434305e-11
+JVP / directional difference: [ 0.056    -0.181095] [ 0.056    -0.181095]
+Scalar gradient: [-0.56     1.16032]
+Hessian:
+ [[-0.8      1.4    ]
+ [ 1.4      0.67032]]
+Gradient / Hessian maximum errors: 1.24074084340009e-11 1.5253354135325026e-11
+Origin axis samples / diagonal samples:
+0.1 0.0 0.0 0.5
+0.001 0.0 0.0 0.5
+1e-06 0.0 0.0 0.5
+Smooth derivative checks illustrate the analytic claims; axis samples cannot certify total differentiability.
+</code></pre></div>
+<p>先推导J、梯度、H，再比较形状、误差和光滑假设。最后轴对角采样说明精确反例，不是用采样证明连续。</p>
+<h3 id="lab2">实验2 · 最小反向引擎</h3>
+<p><a href="labs/module_18/lab2_reverse_engine.py" download>下载 lab2_reverse_engine.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A tiny scalar reverse engine: unique-node order, reset, seed, and += adjoints.&quot;&quot;&quot;
+import math
+
+class Value:
+    def __init__(self, data, parents=(), label=&quot;&quot;):
+        self.data, self.grad = float(data), 0.0
+        self.parents, self.label = parents, label
+        self._backward = lambda: None
+
+    def __add__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data+other.data, (self, other), &quot;+&quot;)
+        def backward():
+            self.grad += out.grad
+            other.grad += out.grad
+        out._backward = backward
+        return out
+    __radd__ = __add__
+
+    def __mul__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data*other.data, (self, other), &quot;*&quot;)
+        def backward():
+            self.grad += other.data*out.grad
+            other.grad += self.data*out.grad
+        out._backward = backward
+        return out
+    __rmul__ = __mul__
+
+    def tanh(self):
+        out = Value(math.tanh(self.data), (self,), &quot;tanh&quot;)
+        def backward():
+            self.grad += (1-out.data*out.data)*out.grad
+        out._backward = backward
+        return out
+
+    def backward(self, seed=1.0):
+        visited, order = set(), []
+        def visit(node):
+            if node in visited:
+                return
+            visited.add(node)
+            for parent in node.parents:
+                visit(parent)
+            order.append(node)
+        visit(self)
+        for node in order:
+            node.grad = 0.0
+        self.grad = float(seed)
+        for node in reversed(order):
+            node._backward()
+        return order
+
+x = Value(2, label=&quot;x&quot;)
+u = x*x
+u.label = &quot;u=x*x&quot;
+square = u*u
+square.label = &quot;u*u&quot;
+z = square+u+x
+z.label = &quot;z&quot;
+order = z.backward()
+print(&quot;Shared graph z=(x*x)^2+x*x+x at x=2&quot;)
+for node in order:
+    print(node.label, &quot;value&quot;, node.data, &quot;adjoint&quot;, node.grad)
+assert z.data == 22 and x.grad == 37 and u.grad == 9
+z.backward(seed=2)
+print(&quot;Seed two input adjoint:&quot;, x.grad)
+assert x.grad == 74
+z.backward()
+print(&quot;Fresh seeded pass resets rather than doubles:&quot;, x.grad)
+assert x.grad == 37
+
+a, b = Value(2), Value(-1)
+mixed = a*b+a*a
+mixed.backward()
+print(&quot;Two-input value / gradient:&quot;, mixed.data, a.grad, b.grad)
+assert mixed.data == 2 and (a.grad, b.grad) == (3, 2)
+
+v = Value(0.4)
+nonlinear = (v*v+0.5*v).tanh()
+nonlinear.backward()
+def reference(t):
+    return math.tanh(t*t+0.5*t)
+h = 1e-6
+finite = (reference(0.4+h)-reference(0.4-h))/(2*h)
+print(&quot;Nonlinear AD / finite difference:&quot;, v.grad, finite)
+assert abs(v.grad-finite) &lt; 1e-8
+print(&quot;Overwriting a shared adjoint would discard a path; addition is part of the chain rule.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Shared graph z=(x*x)^2+x*x+x at x=2
+x value 2.0 adjoint 37.0
+u=x*x value 4.0 adjoint 9.0
+u*u value 16.0 adjoint 1.0
++ value 20.0 adjoint 1.0
+z value 22.0 adjoint 1.0
+Seed two input adjoint: 74.0
+Fresh seeded pass resets rather than doubles: 37.0
+Two-input value / gradient: 2.0 3.0 2.0
+Nonlinear AD / finite difference: 1.1450754518266433 1.145075451791655
+Overwriting a shared adjoint would discard a path; addition is part of the chain rule.
+</code></pre></div>
+<p>追拓扑唯一节点与父边贡献的区别，解释同对象x*x仍加两次。先预测种子二和重置，再比较光滑非线性差分。</p>
+<h3 id="lab3">实验3 · 全部两层参数梯度</h3>
+<p><a href="labs/module_18/lab3_network_backward.py" download>下载 lab3_network_backward.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Check every two-layer tanh-network parameter and expose shape/scaling faults.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+X = np.array([[0.2,-0.3], [0.5,0.7], [-0.4,0.1]])
+Y = np.array([[0.1], [0.8], [-0.2]])
+parameters = {
+    &quot;W1&quot;: np.array([[0.3,-0.2,0.1], [0.4,0.2,-0.5]]),
+    &quot;b1&quot;: np.array([0.1,-0.1,0.05]),
+    &quot;W2&quot;: np.array([[0.5], [-0.3], [0.2]]),
+    &quot;b2&quot;: np.array([0.02]),
+}
+
+def forward(p):
+    H = np.tanh(X@p[&quot;W1&quot;]+p[&quot;b1&quot;])
+    prediction = H@p[&quot;W2&quot;]+p[&quot;b2&quot;]
+    residual = prediction-Y
+    return np.mean(residual*residual), H, prediction, residual
+
+loss, H, prediction, residual = forward(parameters)
+# Mean of B*o entries, here B=3 and o=1; the exact denominator is explicit.
+G = 2*residual/residual.size
+D = (G@parameters[&quot;W2&quot;].T)*(1-H*H)
+gradients = {&quot;W2&quot;: H.T@G, &quot;b2&quot;: G.sum(axis=0), &quot;W1&quot;: X.T@D, &quot;b1&quot;: D.sum(axis=0)}
+print(&quot;Loss / prediction:&quot;, loss, prediction.ravel())
+print(&quot;Batch / input / hidden / output shapes:&quot;, X.shape, parameters[&quot;W1&quot;].shape, H.shape, prediction.shape)
+h = 1e-6
+for name, array in parameters.items():
+    numerical = np.zeros_like(array)
+    for index in np.ndindex(array.shape):
+        saved = array[index]
+        array[index] = saved+h
+        plus = forward(parameters)[0]
+        array[index] = saved-h
+        minus = forward(parameters)[0]
+        array[index] = saved
+        numerical[index] = (plus-minus)/(2*h)
+    error = np.max(np.abs(numerical-gradients[name]))
+    print(name, &quot;shape&quot;, gradients[name].shape, &quot;maximum derivative error&quot;, error)
+    assert gradients[name].shape == array.shape and error &lt; 1e-9
+
+try:
+    G@parameters[&quot;W2&quot;]  # Missing transpose: (3,1) cannot multiply (3,1).
+except ValueError:
+    print(&quot;Missing transpose rejected by incompatible derivative shapes.&quot;)
+wrong_bias = D[-1]  # Overwrite rather than accumulate contributions from all rows.
+wrong_sum_scaling = 2*residual  # This differentiates a sum, not the stated mean.
+print(&quot;Bias overwrite maximum error:&quot;, np.max(np.abs(wrong_bias-gradients[&quot;b1&quot;])))
+print(&quot;Missing mean factor scales output adjoint by:&quot;, residual.size)
+assert not np.allclose(wrong_bias, gradients[&quot;b1&quot;])
+assert np.allclose(wrong_sum_scaling, residual.size*G)
+print(&quot;Shape, shared contributions, and loss reduction are separate parts of the backward contract.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Loss / prediction: 0.12469122832324815 [0.142506 0.231685 0.022003]
+Batch / input / hidden / output shapes: (3, 2) (2, 3) (3, 3) (3, 1)
+W1 shape (2, 3) maximum derivative error 2.7340560371236222e-11
+b1 shape (3,) maximum derivative error 8.312184274217316e-12
+W2 shape (3, 1) maximum derivative error 4.48385772955362e-12
+b2 shape (1,) maximum derivative error 5.846850781310309e-12
+Missing transpose rejected by incompatible derivative shapes.
+Bias overwrite maximum error: 0.13066171364054682
+Missing mean factor scales output adjoint by: 3
+Shape, shared contributions, and loss reduction are separate parts of the backward contract.
+</code></pre></div>
+<p>标前向反向形状、精确均方定义，逐条目检查。解释转置拒绝、覆盖偏置、丢均值因子为何各违反规格，即使数组看似合理。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>十四道练习与完整解答</h2></div>
+<p>1–12必做，13–14选做额外35分钟，不计入十二小时。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>x²+3y²在(1,1)梯度、单位(.6,.8)速率及单位最陡方向？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>列(2,6)，速率六，范数√40，方向(2,6)/√40由柯西–施瓦茨取最大，非单位改变路径速度。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>F=(xy,x²,y²)在(1,2)，给J及输出种子(1,2,−3)的列VJP。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>J=[[2,1],[2,0],[0,4]]，3×2；Jᵀq=(6,−11)微分xy+2x²−3y²，Jq内维不符。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>A=[[1,2],[0,3]]、x=(1,−1)，求xᵀAx梯度并比较错误2Ax。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>A+Aᵀ=[[2,2],[2,6]]，正确(0,−4)；Ax=(−1,−3)，错误倍为(−2,−6)。两微分路径都需，简化要求对称。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>X行(1,0),(1,1),(1,2)，y=(1,2,2)、w=(1,0)，求均方梯度H。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>r=(0,−1,−1)、B=3，梯度(−4/3,−2)，XᵀX=[[3,3],[3,5]]，H=[[2,2],[2,10/3]]。总和损失乘三，目标预测用匹配列或匹配平数组，不能混成广播矩阵。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>用坐标望远镜与范数界证明连续偏导邻域足够全可导。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>逐坐标从a到a+h，各增量由一维中值为坐标变化乘中间偏导，中间点趋a。减中心线性项后连续给每系数误差≤ε，所以余项≤εΣ|h_i|≤ε√n‖h‖。ε任意得余项比范数趋零，孤立偏导没有邻域控制。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>由全局部模型推链规则，处理ΔF零。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>ΔF=J_Fh+r_F，外增量J_GΔF+r_G，主项J_GJ_Fh。第一余忽略比范数，第二非零时拆为消失外余比乘有界内增量比，零时直接零，得到外乘内，需域兼容及相关点可导。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>半平方矩阵残差损失用微分推W、X、Y梯度及形状。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>X:B×d、W:d×o、Y,R:B×o，dL=tr(Rᵀ[X dW+dX W−dY])，收系数W为XᵀR:d×o，X为R Wᵀ:B×d，Y为−R:B×o，各同参数，损失缩放需统一。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>共享平方图x=2时用种子−1追u和x，区别普通导数。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>u=4,z=22，u伴随−9，x为2x(−9)−1=−37，所有乘边加直接路。这微分−z，普通z导数37，新种子一先清零后恢复37，不累计旧请求。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>R行(1,−1),(2,0),(−1,3)，六平方条目均值的G、共享偏置梯度，与总和及行平均输出和比较。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>G=2R/6=R/3，偏置(2/3,2/3)。总和G=2R、偏置(4,4)为六倍；三行输出和再平均G=2R/3、偏置(4/3,4/3)为二倍，形状不能确定归约。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>f=x²y+exp(y)在(.7,−.4)对(.01,−.02)给二阶模型，余项需什么？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>中心−.196+exp(−.4)，线性−.56(.01)+(.49+exp(−.4))(−.02)，二次−.4(.01)²+1.4(.01)(−.02)+exp(−.4)(−.02)²/2，预测约.445327710，真实约.445324820。光滑给局部小o，具体有限证书还需整段高阶界，观察误差不是统一界。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>原点xy/(平方和)有两零偏导，声称零全导数。修正并给合法充分替代。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>原点赋零，两轴零但对角恒1/2，不连续故非全可导。可用直接统一余项证明或邻域连续偏导作充分证据，本函数原点不满足。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>反向误用G W₂、偏置覆盖最后行、全条目均值用2R。三修复？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>G W₂ᵀ使B×o乘o×hidden；偏置累加全部行；均值G=2R/(B·o)全图统一传播。分别修形状、共享路径、目标归约。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>将Hv解释为梯度沿路径导数，推一般A下xᵀAx的结果。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>梯度全可导时d/dt∇f(x+tv)在零为Hv。二次型梯度(A+Aᵀ)x，H=A+Aᵀ，Hv=(A+Aᵀ)v，vᵀHv为曲率。梯度图的JVP可免存全矩阵，梯度差分另是数值估计。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>对混合偏导反例推−1与1，解释不可套光滑H定理。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>固定非零y，以h除f(h,y)趋−y，原点轴偏导零；同理f_y(x,0)=x。于是∂_y f_x原点−1，∂_x f_y一，二阶不满足邻域连续。坐标二阶表未建立梯度全导数或C²泰勒模型。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自检</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>单点偏导自身说明什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">坐标线变化率，未必全导数</button></li><li><button type="button" class="quiz-opt" data-i="1">全方向连续</button></li><li><button type="button" class="quiz-opt" data-i="2">统一线性余项界</button></li></ol><div class="quiz-expl" hidden>轴限制可漏对角，需要额外假设或直接模型证明。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>F:R⁴→R³的J形状？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">4×3</button></li><li><button type="button" class="quiz-opt" data-i="1">3×4</button></li><li><button type="button" class="quiz-opt" data-i="2">标量</button></li></ol><div class="quiz-expl" hidden>行输出列输入，将四增量映三增量。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>列输出种子q如何拉回？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">一概Jq</button></li><li><button type="button" class="quiz-opt" data-i="1">无导数映射直接q</button></li><li><button type="button" class="quiz-opt" data-i="2">Jᵀq</button></li></ol><div class="quiz-expl" hidden>行VJP为qᵀJ，输出种子不同于输入切向。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>混合偏导对称的充分条件？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">邻域连续二阶偏导</button></li><li><button type="button" class="quiz-opt" data-i="1">只写两导数符号</button></li><li><button type="button" class="quiz-opt" data-i="2">一次差分相等</button></li></ol><div class="quiz-expl" hidden>四角证明需光滑共享极限，孤立存在可失败。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>一般A的二次型梯度？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总2Ax</button></li><li><button type="button" class="quiz-opt" data-i="1">(A+Aᵀ)x</button></li><li><button type="button" class="quiz-opt" data-i="2">仅tr(A)</button></li></ol><div class="quiz-expl" hidden>两向量因子变，简式要求对称。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>B×o平方残差全条目平均的输出伴随？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">一概2R</button></li><li><button type="button" class="quiz-opt" data-i="1">未指定尺度的R</button></li><li><button type="button" class="quiz-opt" data-i="2">2R/(B·o)</button></li></ol><div class="quiz-expl" hidden>行输出和再平均只除B，归约需写清。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>偏置前向广播全部行，反向怎样？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">求全部行贡献和</button></li><li><button type="button" class="quiz-opt" data-i="1">只末行</button></li><li><button type="button" class="quiz-opt" data-i="2">新增输出维</button></li></ol><div class="quiz-expl" hidden>每复制用同参数，链贡献累积。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>共享反向节点需要什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">覆盖旧贡献</button></li><li><button type="button" class="quiz-opt" data-i="1">收齐下游贡献再用局部规则</button></li><li><button type="button" class="quiz-opt" data-i="2">每出现一次重复传播总和</button></li></ol><div class="quiz-expl" hidden>唯一节点拓扑与逐边相加避免丢或重路径。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>AD证明ReLU折点经典导数吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">是，因为不选h</button></li><li><button type="button" class="quiz-opt" data-i="1">是，只要返回数</button></li><li><button type="button" class="quiz-opt" data-i="2">否，反向值可以是约定</button></li></ol><div class="quiz-expl" hidden>原语分支规则不替代数学假设。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m18:q10">
+<label for="q10-response">10. 带全部形状推均方最小二乘梯度，再对x=2、种子一追共享平方图，解释累积与数值检查限制。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="写列约定、残差归约、转置、路径和与证据边界。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我写清形状尺度并包含全部共享路径。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>X:B×d、w:d×1、y,r:B×1，L=rᵀr/B，微分(2/B)rᵀXdw，梯度(2/B)Xᵀr:d×1。x=2、u=4、z=22，种子一给ū=9、x̄=37，每重复操作数边与直接路都贡献，共享节点等总和齐后执行。有限光滑例可找程序错，不证明折点可导或全域公式。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>有目标的阅读</h2></div>
+<p>用作者<a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning伴随站</a>与一手<a href="https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/" target="_blank" rel="noopener">MIT OpenCourseWare多元微积分</a>梯度、J、H与链材料。本课微分推导和引擎给具体形状与累积约定。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>选读与问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第1次 · 20分钟</td>
+<td>全导数梯度：统一余项比偏导多什么？</td>
+</tr>
+<tr>
+<td>第4次 · 20分钟</td>
+<td>矩阵链规则：哪个转置归约将伴随拉回参数？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索结业任务与下一步</h2></div>
+<p>给偏导反例和C¹证明，写列梯度与输出乘输入J，推链拉回、二阶模型、二次型与最小二乘微分。</p>
+<p><strong>结业任务：</strong>X:B×d、W:d×o，半平方R=XW−Y，推XᵀR、RWᵀ及偏置行和，延伸tanh层，写逐元素因子和精确均值。解释唯一节点日程仍累加x*x两边。</p>
+<p><strong>可以继续：</strong>你能推导验证向量矩阵敏感性、解释自动反向。下一块优化研究导数对极小值与更新收敛能证明什么。见<a href="index_ZH.html">总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>符号与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>符号或术语</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>∂_i f、D_v f</td>
+<td>坐标、路径变化率</td>
+<td>Partial, directional derivative</td>
+</tr>
+<tr>
+<td>df=∇fᵀdx</td>
+<td>列梯度标量全微分</td>
+<td>Total differential</td>
+</tr>
+<tr>
+<td>J:m×n</td>
+<td>输出乘输入局部线性图</td>
+<td>Jacobian</td>
+</tr>
+<tr>
+<td>Jv、Jᵀq</td>
+<td>输入切向、输出伴随传播</td>
+<td>JVP, VJP</td>
+</tr>
+<tr>
+<td>H、hᵀHh</td>
+<td>梯度导数、方向曲率</td>
+<td>Hessian, curvature</td>
+</tr>
+<tr>
+<td>Frobenius微分</td>
+<td>每矩阵参数一个系数</td>
+<td>Matrix differential</td>
+</tr>
+<tr>
+<td>反向伴随、种子</td>
+<td>节点输出敏感性、输出权重</td>
+<td>Adjoint, seed</td>
+</tr>
+<tr>
+<td>累积、广播</td>
+<td>路径贡献和、前向复制</td>
+<td>Accumulation, broadcast</td>
+</tr>
+<tr>
+<td>AD、有限差分</td>
+<td>原语链传播、扰动估计</td>
+<td>Automatic differentiation, finite difference</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_17_ZH.html">← 模块 17</a><a href="module_19_ZH.html">模块 19 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

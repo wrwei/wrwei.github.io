@@ -36,6 +36,5 @@ lead: 一套面向初学者的入门教程，共 11 节短课。学会用 Git �
 
 ## 接下来学什么 {#next}
 
-- 本站的 [DevOps 系列](../devops/index.html)（英文）把 Git 和 GitHub Actions 配合使用，自动测试和发布软件。
 - [Pro Git](https://git-scm.com/book/zh/v2)（中文版）由 Scott Chacon 和 Ben Straub 编写，是一本免费、完整的 Git 图书。
 - [GitHub Skills](https://skills.github.com/)（英文）提供简短的动手课程，介绍 GitHub 的更多功能。

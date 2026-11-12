@@ -1,0 +1,561 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>矩阵、线性映射与线性方程组 — 计算机科学与人工智能的数学基础</title><meta name="description" content="把矩阵读作映射，正确顺序复合，消元保持解集，分类系统，并按明确维度实现批仿射层。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="10"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 10</button><div class="dropdown-menu" id="module-menu"><a href="module_10_ZH.html" class="active" aria-current="page">矩阵、线性映射与线性方程组</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_10_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>矩阵乘积表达特定复合</span></a><a href="#s1"><span class="num">2</span><span>矩阵作为映射与数据表</span></a><a href="#s2"><span class="num">3</span><span>乘积、转置与非交换复合</span></a><a href="#s3"><span class="num">4</span><span>线性系统与保解行操作</span></a><a href="#s4"><span class="num">5</span><span>阶梯形、相容、自由变量与回代</span></a><a href="#s5"><span class="num">6</span><span>可逆、行列式与残差限制</span></a><a href="#s6"><span class="num">7</span><span>批仿射映射与形状安全实现</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解与失败情形</span></a><a href="#labs"><span class="num">9</span><span>三个 CPU 实验</span></a><a href="#exercises"><span class="num">10</span><span>练习与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>自测测验</span></a><a href="#reading"><span class="num">12</span><span>带着问题阅读</span></a><a href="#summary"><span class="num">13</span><span>回忆、结业任务与下一步</span></a><a href="#terms"><span class="num">14</span><span>记法与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">矩阵、线性映射与线性方程组</h1><p class="module-lead">把矩阵读作映射，正确顺序复合，消元保持解集，分类系统，并按明确维度实现批仿射层。</p><div class="hero-chips"><span class="chip chip-time">10 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>解释矩阵列为坐标单位向量像。</li><li>乘相容矩阵并说明复合、转置顺序。</li><li>证明增广行初等操作保持解集。</li><li>按主元与矛盾行判唯一、无解、欠定。</li><li>解释可逆、行列式含义与小残差限制。</li><li>标列向量及批行仿射映射全部形状。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>模块 09：坐标向量、点积、点与位移、NumPy 形状与广播。可选算法成本比较参考模块 06。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">矩阵乘积表达特定复合</a><a href="#s1">矩阵作为映射与数据表</a><a href="#s2">乘积、转置与非交换复合</a><a href="#s3">线性系统与保解行操作</a><a href="#s4">阶梯形、相容、自由变量与回代</a><a href="#s5">可逆、行列式与残差限制</a><a href="#s6">批仿射映射与形状安全实现</a><a href="#misconceptions">常见误解与失败情形</a><a href="#labs">三个 CPU 实验</a><a href="#exercises">练习与完整解答</a><a href="#quiz">自测测验</a><a href="#reading">带着问题阅读</a><a href="#summary">回忆、结业任务与下一步</a><a href="#terms">记法与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">10 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">150 分钟</span></div><div class="session-title">映射、积与复合顺序</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节，跟踪列像与复合顺序。</a></span><span class="act-min">70</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">实现乘积，预看第 6 节的批形状约定。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">24</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">解释列向量最右映射先执行。</a></span><span class="act-min">6</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m10:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">150 分钟</span></div><div class="session-title">消元不变式与分类</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节并跟踪带主元交换的增广系统。</a></span><span class="act-min">75</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">45</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读消元与解集选段。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">区分自由变量与矛盾行。</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m10:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">150 分钟</span></div><div class="session-title">可逆、面积与精确跟踪</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5 节并探索变换网格。</a></span><span class="act-min">55</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">运行 Fraction 精确消元，核对各系统类别。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">39</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读行列式几何解释。</a></span><span class="act-min">6</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m10:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">150 分钟</span></div><div class="session-title">批形状、求解器与敏感性</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s6">阅读第 6 节，协调行与列约定。</a></span><span class="act-min">45</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">比较求解，诊断奇异与敏感数据。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">诊断练习 11–12。</a></span><span class="act-min">32</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择与书面系统分类。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">查 NumPy solve 的非奇异方阵约定。</a></span><span class="act-min">4</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业任务与秩、零空间准备检查。</a></span><span class="act-min">4</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m10:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>矩阵乘积表达特定复合</h2></div>
+<p>水平缩放后剪切图像，与先剪切后缩放可不同。AI 层也如此：特征行表、权重、偏置需特定形状约定。不说明哪个映射先执行、哪个轴是特征，仅写乘号不能定义计算。</p>
+<p>本课把矩阵项连接映射、方程与可执行操作，推导复合积、消元保持解集、分类三种系统，区分可逆与数值可靠。最后协调列向量数学与批行存储代码。</p>
+<p><strong>回忆检查：</strong>点积、线性组合、点与位移、广播。复习<a href="module_09_ZH.html#s2">模块 09</a>与 <a href="numpy_primer_ZH.html">NumPy 准备</a>。可选成本比较参考<a href="module_06_ZH.html#s4">模块 06</a>，不是代数核心先修。矩阵均有限实项，正行列数。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>矩阵作为映射与数据表</h2></div>
+<p>m×n <strong>矩阵</strong> A 是矩形数组 aᵢⱼ，i 行、j 列。作列向量映射时形状依次 m 输出、n 输入，也可存 m 观测 n 特征表。同布局支持两角色，应用要明确；数据表行不自动是某物理变换输出。</p>
+<p>x∈Rⁿ 列的 y=Ax∈Rᵐ 定义 <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>=</mo><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></msubsup><msub><mi>a</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msub><mi>x</mi><mi>j</mi></msub></mrow><annotation encoding="application/x-tex">y_i=\sum_{j=1}^n a_{ij}x_j</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.2401em;vertical-align:-0.4358em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8043em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">ij</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span></span>，每输出是 A 一行与 x 点积。n 输入必须匹配 n 行内项，m 可不同。2×3 把三坐标变二，3×2 反向；同六数字不使它们可互换。</p>
+<p>也有列组合 <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mi>x</mi><mo>=</mo><msub><mo>∑</mo><mi>j</mi></msub><msub><mi>x</mi><mi>j</mi></msub><msub><mi>A</mi><mrow><mo>:</mo><mi>j</mi></mrow></msub></mrow><annotation encoding="application/x-tex">Ax=\sum_jx_jA_{:j}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.1858em;vertical-align:-0.4358em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.162em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mrel mtight">:</span><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span></span>。Aeⱼ 恰第 j 列，单位向量选择列。选定各单位坐标像就确定每输入映射，赋列几何意义，不需逐个无限输入列例。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">列决定二维映射</div>
+<p>A 行 (2,1),(0,1)，列 (2,0),(1,1)，所以 A(3,4)=3(2,0)+4(1,1)=(10,4)。行点积也得十、四。坐标方向拉伸倾斜，一般输入通过线性组合确定。</p>
+</div>
+<figure class="fig" id="fig-10-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" role="img" aria-label="矩阵二一零一把第一单位向量映到二零，第二映到一一，任意输入以坐标加权两列。"><title>矩阵的列像</title><desc>矩阵二一零一把第一单位向量映到二零，第二映到一一，任意输入以坐标加权两列。</desc><defs><marker id="fig-10-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="340" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">列是坐标单位向量的像</text><rect x="30" y="70" width="310" height="230" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="185" y="108" text-anchor="middle" font-size="23" fill="#1a2e4a">A = [[2,1],[0,1]]</text><text x="185" y="157" text-anchor="middle" font-size="23" fill="#15803d">Ae₁ = (2,0)</text><text x="185" y="207" text-anchor="middle" font-size="23" fill="#c2410c">Ae₂ = (1,1)</text><text x="185" y="263" text-anchor="middle" font-size="20" fill="#1a2e4a">Ax = x₁Ae₁ + x₂Ae₂</text><path d="M425,255H700M455,280V65" stroke="#94a3b8"/><path d="M455,255L625,255" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-10-1__arrow)"/><path d="M455,255L540,170" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-10-1__arrow)"/><text x="625" y="286" text-anchor="middle" font-size="21" fill="#15803d">Ae₁</text><text x="545" y="148" text-anchor="middle" font-size="21" fill="#c2410c">Ae₂</text><text x="440" y="276" text-anchor="start" font-size="18" fill="#1a2e4a">0</text></g></svg></div><figcaption><span class="fig-num">图 10.1</span> <p>两列是两坐标单位向量像，其加权和给任意输入像。</p>
+</figcaption></figure>
+<p>映射 L <strong>线性</strong>表示对所有输入与实 α，L(u+v)=L(u)+L(v)、L(αu)=αL(u)。矩阵行有限和分配可证。线性必须零到零，因为 L(0)=L(0)+L(0)。几个样例不证普遍线性，而 Ax 公式有一般坐标证明。</p>
+<p>反过来任意 Rⁿ→Rᵐ 线性映射在本坐标有矩阵：x=∑xⱼeⱼ，线性给 L(x)=∑xⱼL(eⱼ)，取单位像为列。坐标选择重要，同一抽象映射可因基不同而有不同数组，模块 11 展开。</p>
+<p><strong>仿射映射</strong> x↦Ax+b 添固定输出偏移，保持直线与仿射组合结构，只有 b=0 才线性。如实线 2x+1 不零到零。AI 偏置供偏移，常简称“线性层”，数学区别仍影响加法、原点、固定点证明。</p>
+<p>矩阵加法与数乘逐项且需同形状，A+B 表同定义陪域映射之和，αA 表输出缩放。2×3 加 3×2 不按此定义合法，数组广播可另定义数值操作，应区分矩阵代数与库允许的一切数组算术。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>2×3 输入维？为何第 j 列为 Aeⱼ？b≠0 时 Ax+b 零到零吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>输入三输出二，单位向量只第 j 项非零故选列；零到 b，不线性。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>乘积、转置与非交换复合</h2></div>
+<p>B n×p、A m×n，列 x∈Rᵖ 先 B 成 n，后 A 成 m。AB m×p 的 <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>A</mi><mi>B</mi><msub><mo stretchy="false">)</mo><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>=</mo><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></msubsup><msub><mi>a</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msub><mi>b</mi><mrow><mi>j</mi><mi>k</mi></mrow></msub></mrow><annotation encoding="application/x-tex">(AB)_{ik}=\sum_{j=1}^n a_{ij}b_{jk}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">A</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">ik</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1.2401em;vertical-align:-0.4358em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8043em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">ij</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">b</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span></span>。内维 n 数中间坐标，外维 m,p 数结果；列最右先。</p>
+<p>推公式：A(Bx) 第 i 项 ∑ⱼaᵢⱼ∑ₖbⱼₖxₖ，有限和重排得 ∑ₖ(∑ⱼaᵢⱼbⱼₖ)xₖ=(AB)x。中间坐标求和说明不同于逐项乘；逐项乘用于其他任务，不实现此复合。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">剪切缩放反序不同</div>
+<p>S=diag(2,1)，H 行 (1,1),(0,1)。SH 行 (2,2),(0,1)，HS 行 (2,1),(0,1)。x=(1,1) 时前得 (4,1)、后 (3,1)。剪切把竖坐标加横，横缩放按顺序对所加量作用不同。故连相容方阵也不普遍 AB=BA。</p>
+</div>
+<figure class="fig" id="fig-10-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="输入一一，先剪切到二一再伸缩到四一；先伸缩到二一再剪切到三一，SH不等于HS。"><title>剪切与伸缩复合次序</title><desc>输入一一，先剪切到二一再伸缩到四一；先伸缩到二一再剪切到三一，SH不等于HS。</desc><defs><marker id="fig-10-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="20" fill="#1a2e4a">右侧先作用：两个次序给出不同结果</text><rect x="25" y="75" width="180" height="70" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="115" y="117" text-anchor="middle" font-size="25" fill="#1a2e4a">(1,1)</text><path d="M215,110L270,110" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-10-2__arrow)"/><rect x="280" y="75" width="210" height="70" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="385" y="117" text-anchor="middle" font-size="23" fill="#1a2e4a">H → (2,1)</text><path d="M500,110L545,110" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-10-2__arrow)"/><rect x="555" y="75" width="180" height="70" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="645" y="117" text-anchor="middle" font-size="23" fill="#1a2e4a">S → (4,1)</text><rect x="25" y="205" width="180" height="70" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="115" y="247" text-anchor="middle" font-size="25" fill="#1a2e4a">(1,1)</text><path d="M215,240L270,240" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-10-2__arrow)"/><rect x="280" y="205" width="210" height="70" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="385" y="247" text-anchor="middle" font-size="23" fill="#1a2e4a">S → (2,1)</text><path d="M500,240L545,240" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-10-2__arrow)"/><rect x="555" y="205" width="180" height="70" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="645" y="247" text-anchor="middle" font-size="23" fill="#1a2e4a">H → (3,1)</text><text x="380" y="328" text-anchor="middle" font-size="22" fill="#1a2e4a">S = [[2,0],[0,1]]     H = [[1,1],[0,1]]</text></g></svg></div><figcaption><span class="fig-num">图 10.2</span> <p>同起点沿两复合路线。两操作均线性，顺序改变最终横坐标。</p>
+</figcaption></figure>
+<p>相容矩阵乘<strong>结合</strong>，(AB)C=A(BC)，两边项展开同有限双和 ∑ⱼ∑ₖaᵢⱼbⱼₖcₖℓ。可以改有序复合分组，不能换顺序。分组仍可改中间数组大小、数值舍入、工作量，尽管实代数结果同。</p>
+<p><strong>单位矩阵</strong> Iₙ 对角一其余零，保 n 坐标输入。m×n 的 A 有 IₘA=A、AIₙ=A，两侧不同尺寸。<strong>对角矩阵</strong>独立缩各坐标，零对角塌方向，负反方向。名称不意味着一般矩阵可逆。</p>
+<p><strong>转置</strong> Aᵀ 互换行列，(Aᵀ)ⱼᵢ=aᵢⱼ，形状 n×m。(AB)ᵀ=BᵀAᵀ：左 (k,i) 项 ∑ⱼaᵢⱼbⱼₖ，右 ∑ⱼbⱼₖaᵢⱼ，标量交换给同。反序也保形状，只转不反可能无定义或另映射。</p>
+<p>对称方阵 A=Aᵀ 只描述项对称，不自动正性、可逆或数据解释。单位对称可逆，全零方阵对称奇异。后面用于内积、谱、协方差，这里仅一个有自己定义范围的性质。</p>
+<p><strong>分块矩阵</strong>把行列分组，积仍相容块积和，需中间分区对齐。如横 [A B] 乘竖 [u;v] 为 Au+Bv，u,v 匹配各列组。块仍矩形映射有维度，把块当标量会隐藏非法乘。记法组织大系统，不改项公式。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>4×2 乘 2×3 形状？列哪映射先？结合可证明反序吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>4×3，右 2×3 先作用三坐标。结合只改括号不换序，这里反乘还内维不合。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>线性系统与保解行操作</h2></div>
+<p><strong>线性系统</strong> Ax=b 为 m 方程 n 未知，第 i 行 ∑ⱼaᵢⱼxⱼ=bᵢ，b 每方程一常数。<strong>增广矩阵</strong> [A|b] 同存系数与常数，分隔区别未知系数与固定目标。只改 A 不改 b 可改变解，即使系数变换熟悉。</p>
+<p>三初等行操作：交换方程，方程乘非零标量，一方程加另一方程倍。操作整增广行含 RHS。各有同类逆，故双向保解；乘零不允许，可能擦约束且不可逆。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">消元解两方程</div>
+<p>x+y=3、2x−y=0。第二减二倍第一得 −3y=−6，所以 y=2,x=1。初增广 [1,1|3],[2,−1|0]，新第二 [0,−3|−6]。只改系数留常数零就变系统。</p>
+</div>
+<p>证明行相加：旧解满足原两行，故满足线性组合新行；反向用未改源行，从新目标减同倍可恢复旧目标。这反向给解集相等，只有“旧解仍解”不能排新增解。</p>
+<p><strong>主元</strong>为选定消元非零系数。候选对角零而下行同列非零可交换；剩同列全零则跳列继续，不能除零。主元列识别约束坐标，跳列可在确认相容后对应自由变量。</p>
+<p>精确算术任意适当非零主元合法，浮点选本列剩余最大绝对项是<strong>部分选主元</strong>，避免不必要小分母。实用规则不让全部系统条件好，也不证明所有误差小。实验用精确 Fraction 跟踪，分开代数等价与浮舍入。</p>
+<p>行操作改方程、不改未知坐标身份。交换行重约束顺序，交换列则重变量，需对应改 x 解释。求解器可有意列排列，但必须记录。混淆行列交换会把看似合理数赋错特征。</p>
+<p>消元不变式是当前增广与原系统解集完全相同。每合法操作保持，零模式使求解容易。终止由主元行或列在有限界内推进。不变式本身不保证进展，有限候选位置遍历另给终止。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>为何操作 RHS？为何排零缩放？主元列剩余全零怎样？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>行是完整等式，两边同操作。零缩擦信息无逆，列全零跳过；后续主元与相容检查确定自由性。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>阶梯形、相容、自由变量与回代</h2></div>
+<p><strong>行阶梯形</strong>非零系数行在零系数行前，后主元严格右移，主元下零。矛盾行可系数全零、RHS 非零，应明确识别而非当普通未知主元，区分系数主元与增广常数。</p>
+<p><strong>高斯消元</strong>选主元、可归一主行、消下面、继续余行列。归一非阶梯必需，实验为回代方便归一。上面也消可得简化行阶梯，是额外转换，唯一三角系统求解不必如此。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">首项零不意味着奇异</div>
+<p>系数行 [0,2,1],[1,−2,−3],[2,3,1]，目标 [3,0,7]。首末交换用二主元，实验归一精确阶梯 [1,3/2,1/2|7/2],[0,1,1|1],[0,0,1|−1]。回代 z=−1,y=2,x=1，核所有原式，尤其原零首行，都满足。</p>
+</div>
+<p><strong>回代</strong>从末主元行起，自由值选定后，每主元式从已知后变量解自身，若未归一再除非零主元。结构保证所需后来值已知，向上继续；无此结构自上而下可能用尚未知值。</p>
+<p>精确实解集三类：有 0=c,c≠0 则<strong>不相容</strong>无解；无矛盾且每未知列有主元则<strong>唯一</strong>；无矛盾且至少一自由未知则<strong>欠定</strong>无限实解，每实自由值可回代扩展。</p>
+<p>[1,1|3],[2,2|7] 消得矛盾常数一，无解；改第二常数六则冗余、x+y=3，解 (3−t,t)，t 实。系数相同，奇异为矩阵性质，相容还依 b，仅报“奇异”不分类解集。</p>
+<figure class="fig" id="fig-10-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 345" role="img" aria-label="交叉两直线一个解，重合两直线无穷解，平行不同两直线无解；这是两未知量的几何示例。"><title>方程组的三个解集类别</title><desc>交叉两直线一个解，重合两直线无穷解，平行不同两直线无解；这是两未知量的几何示例。</desc><defs><marker id="fig-10-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="345" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="20" fill="#1a2e4a">两个未知量：约束的三种几何关系</text><rect x="20" y="65" width="220" height="215" rx="10" fill="#fff" stroke="#94a3b8"/><path d="M40,260L220,95" stroke="#2563eb" stroke-width="4"/><path d="M40,95L220,260" stroke="#c2410c" stroke-width="4"/><circle cx="130" cy="177.5" r="6" fill="#1a2e4a"/><text x="130" y="315" text-anchor="middle" font-size="21" fill="#1a2e4a">唯一解</text><rect x="270" y="65" width="220" height="215" rx="10" fill="#fff" stroke="#94a3b8"/><path d="M290,260L470,95" stroke="#2563eb" stroke-width="4"/><path d="M290,260L470,95" stroke="#c2410c" stroke-width="2" stroke-dasharray="8 5"/><text x="380" y="315" text-anchor="middle" font-size="21" fill="#1a2e4a">无穷多解</text><rect x="520" y="65" width="220" height="215" rx="10" fill="#fff" stroke="#94a3b8"/><path d="M540,260L720,95" stroke="#2563eb" stroke-width="4"/><path d="M540,210L695,68" stroke="#c2410c" stroke-width="4"/><text x="630" y="315" text-anchor="middle" font-size="21" fill="#1a2e4a">无解</text></g></svg></div><figcaption><span class="fig-num">图 10.3</span> <p>重复系数可因常数使约束重合或矛盾平行，另一独立对恰一次交。</p>
+</figcaption></figure>
+<p>只数方程不够。方形相关约束可无解或无限，瘦高可每未知主元且额外式相容而唯一，宽不可能约全部未知却也可不相容。看变换方程与常数，不按形状完整分类。</p>
+<p>参数族完整：每阶梯解有某自由值，向上主元强迫报告的其他坐标；反向任意自由值回代满足全部主元，且无矛盾零行。行等价双向转回原系统，族既不漏不添。</p>
+<p>精确零与近零不同，Fraction 可判精确零，浮点需容差与尺度解释。小残差或小计算行列式本身不是精确符号分类。模块 11 数值秩、28 浮点可靠，先由小精确例建立代数类。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>[0,0|0] 与 [0,0|1] 区别？未查矛盾，自由列就无限解吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>首无额外约束，后不可能；自由列只有先相容才给无限族，矛盾不管自由都无解。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>可逆、行列式与残差限制</h2></div>
+<p>n×n 方阵 A <strong>可逆</strong>若 n×n A⁻¹ 满足 A⁻¹A=Iₙ 且 AA⁻¹=Iₙ，撤销映射，给每 b 的 x=A⁻¹b。若 B,C 均逆，B=B(AC)=(BA)C=C，唯一。矩形可有条件下单侧逆，但非本双侧方阵定义。</p>
+<p>方阵每列主元当且仅当可逆。全主元使任意目标相容唯一，解 Aeⱼ 构建逆列。反向可逆不可能非零 z 满足 Az=0，施逆强迫 z=0；漏主元可选自由值给非零齐次解，矛盾。连接映射、方程、主元。</p>
+<p>构造 B 的列式给 AB=I。BAx 与 x 都解 Ay=Ax，该目标唯一使 BAx=x 全 x，因此 BA=I。这样查双侧，不把单侧默当全部定义。</p>
+<p>2×2 行 (a,b),(c,d) 的<strong>行列式</strong> ad−bc。两列为单位方形映像平行四边形边，表达式为有符号面积；绝对值为面积倍率，负指方向反转，零塌为线或点。不是单输出长或存储项数。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">核逆，而非仅除行列式</div>
+<p>A 行 (3,1),(1,2)，det=5，候选逆行 (2/5,−1/5),(−1/5,3/5)，双向乘 A 得单位。b=(9,8) 得 (2,3)，原式 3·2+3=9，2+2·3=8。需非零 det；行 (1,2),(2,4) det零不可除。</p>
+</div>
+<p>一般 2×2 直接乘核 <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>a</mi><mi>d</mi><mo>−</mo><mi>b</mi><mi>c</mi><msup><mo stretchy="false">)</mo><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo fence="true">[</mo><mtable rowspacing="0.16em" columnalign="center center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mi>d</mi></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mo>−</mo><mi>b</mi></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mo>−</mo><mi>c</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mi>a</mi></mstyle></mtd></mtr></mtable><mo fence="true">]</mo></mrow></mrow><annotation encoding="application/x-tex">(ad-bc)^{-1}\begin{bmatrix}d&amp;-b\\-c&amp;a\end{bmatrix}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mord mathnormal">d</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mord mathnormal">b</span><span class="mord mathnormal">c</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">d</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">−</span><span class="mord mathnormal">c</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">−</span><span class="mord mathnormal">b</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">a</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span></span></span></span></span>，当 det非零。零时列相关，非零方向塌掉，无双侧逆。这小证明支撑面积与逆条件，不靠库成功调用。</p>
+<p>高维行列式推广有符号体积，实方阵可逆当且仅当 det非零。本课声明使用一般定理，交替多线性体积完整构造为后续内容。消元换行改符号、非零缩行乘尺度、行相加保，三角 det 是对角积，连接主元。</p>
+<p>代数 x=A⁻¹b 正确，数值求一个 RHS 用直接求解器，无需先构全部逆项。分解回代可复用多目标。实验良好例两法一致，不证明逆代码总失败或每直接求解都不敏感。</p>
+<p>克拉默法则把每未知写替换一个系数列为 b 的行列式比，非奇异方阵精确公式。分别多算行列式重复工作，比值不消敏感。可作小符号推导，本课数值流程用直接分解求解。代数合法式未必优选过程。</p>
+<p><strong>残差</strong> r=A x̂−b。精确零说明解存储方程，数值小残差度量近满足，不证明原数据准确或推断值接近微扰数据解，尺度与敏感重要。</p>
+<p>A=diag(1,10⁻¹²)，b=(1,10⁻¹²) 得 (1,1)。第二目标加 10⁻⁹ 得 (1,1001)。仍可逆且新目标残差零，却解大变，是方程内在敏感，不自动求解器 bug。谱与条件数后量化，此例已反驳可逆或残差保证可靠系数。</p>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="matrices"></div><div class="widget-caption">
+<p>改二维映射，看网格、列像、det与样例点，比奇异塌缩及剪切缩放两序。上文计算可静态使用。</p>
+</div></div>
+<div class="check"><div class="check-label">检验理解</div>
+<p>det非零保证数值可靠吗？小残差测什么？逆需满足什么？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>只代数可逆，不保不敏感或精度。残差测存储式满足度，逆在相容方形下需双侧撤销为单位。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>批仿射映射与形状安全实现</h2></div>
+<p>输入列 x 有 d 坐标，输出列 y 有 o，y=Mx+b，M o×d、b o×1，每行一个输出特征加权和。B 输入存行 X B×d，用 W=Mᵀ d×o，Y=XW+bᵀ B×o，各行同仿射。</p>
+<p>转置关系协调约定，不使乘交换。XW 与 Mx 同系数、不同明确方向。库权布局可选任一，应读定义标轴再用公式。B,d,o 分别观测、特征、输出，不是可互换尺寸。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">完整计算一个批仿射层</div>
+<p>X 行 (1,0),(0,1),(2,−1)，W 行 (1,2),(−1,3)，偏置 (0.5,−0.5)。XW 行 (1,2),(−1,3),(3,1)，每行加偏置得 (1.5,1.5),(−0.5,2.5),(3.5,0.5)。形状 X (3,2)、W (2,2)、偏置 (2,)、输出 (3,2)，两输出为各坐标，非总和标量。</p>
+</div>
+<figure class="fig" id="fig-10-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 395" role="img" aria-label="B乘d的输入乘d乘o的权重得到B乘o输出，形状o的偏置逐行广播，形状o一可能把偏置加到行。"><title>批矩阵乘法的维度</title><desc>B乘d的输入乘d乘o的权重得到B乘o输出，形状o的偏置逐行广播，形状o一可能把偏置加到行。</desc><defs><marker id="fig-10-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="395" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="20" fill="#1a2e4a">行批次约定：每一行独立通过同一个仿射映射</text><rect x="25" y="105" width="170" height="135" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="110" y="148" text-anchor="middle" font-size="26" fill="#1a2e4a">X</text><text x="110" y="205" text-anchor="middle" font-size="24" fill="#1a2e4a">B × d</text><rect x="285" y="105" width="150" height="135" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="360" y="148" text-anchor="middle" font-size="26" fill="#1a2e4a">W = Mᵀ</text><text x="360" y="205" text-anchor="middle" font-size="24" fill="#1a2e4a">d × o</text><rect x="555" y="105" width="180" height="135" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="645" y="148" text-anchor="middle" font-size="26" fill="#1a2e4a">Y</text><text x="645" y="205" text-anchor="middle" font-size="24" fill="#1a2e4a">B × o</text><text x="225" y="177" text-anchor="middle" font-size="35" fill="#1a2e4a">@</text><path d="M445,175L540,175" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-10-4__arrow)"/><text x="380" y="285" text-anchor="middle" font-size="20" fill="#1a2e4a">内维 d 收缩；偏置形状 (o,) 沿批次 B 广播。</text><text x="380" y="330" text-anchor="middle" font-size="28" fill="#1a2e4a">Y = XW + b</text><text x="380" y="369" text-anchor="middle" font-size="17" fill="#c2410c">偏置 (o,1) 在 B=o 时仍可能成功，却加错方向。</text></g></svg></div><figcaption><span class="fig-num">图 10.4</span> <p>共享特征维被积求和，批行独立，输出偏置沿批轴广播。</p>
+</figcaption></figure>
+<p>NumPy <code>X @ W</code> 矩阵积，<code>X * W</code> 逐项或广播。形状恰同，错操作也可跑而数似合理。平坦偏置 <code>(o,)</code> 供每行，列 <code>(o,1)</code> 可失败或 B=o 时供不同批行偏移。轴長偶合可掩语义错，形状相容不够。</p>
+<p>例子前两行错偏置列会第一行两输出都加 0.5、第二都减 0.5，得 (1.5,2.5),(−1.5,2.5)，不同目标。两者形状都是 (2,2)，标输出/批轴，除形状还查刻意不均匀小例值。</p>
+<p>朴素 m×n 乘 n×p 用 mnp 标乘，每输出 n 项若首积初始化，需 n−1 加，共 mp(n−1)；从零开始实现可计 n 加。先声明收费操作，有限索引直接给数，可选渐近参考模块 06。</p>
+<p>偏置再每输出一加。长积改分组可改中间维与工作，结合保精确映射。库利用结构硬件，标量计数是教育模型，不直接预测机器秒数，分代数、计数、时间。</p>
+<p>实现约定记输入输出、轴义、数值表示、例外。测试环境 <code>np.linalg.solve(A,b)</code> 要方形非奇异系数作唯一系统求解，不返回欠定族、不分类矛盾奇异。最小二乘与最小范数需另定义，模块 12。</p>
+<p>核验分层：乘前维度、小手算例、适当残差或逆恒等式。已知解可揭转置、偏置位置，容差按数据，不使有限检查变普遍证明。行操作与复合证明解释一般公式。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>B=5,d=3,o=2，X,W,Y,平坦偏置形状？B=o 时列偏置为何似乎可用？solve 为何非所有系统分类器？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>(5,3),(3,2),(5,2),(2,)。相等长度使列按批行偏移但形状仍对。非奇异方形求解器按约定返唯一，奇异相容与自由族需另分析。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解与失败情形</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>说法</th>
+<th>失败原因</th>
+<th>修复</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>项自动唯一解释</td>
+<td>可为映射或表</td>
+<td>声明域与轴义</td>
+</tr>
+<tr>
+<td>矩阵积交换</td>
+<td>剪切缩放反例</td>
+<td>跟有序复合</td>
+</tr>
+<tr>
+<td>转置保顺序</td>
+<td>积转置反序</td>
+<td>查项式与维度</td>
+</tr>
+<tr>
+<td>行只改系数</td>
+<td>是完整方程</td>
+<td>改整增广行</td>
+</tr>
+<tr>
+<td>首项零就是奇异</td>
+<td>可行交换主元</td>
+<td>查剩列</td>
+</tr>
+<tr>
+<td>方系统总唯一</td>
+<td>相关式可冗余矛盾</td>
+<td>查主元与常数</td>
+</tr>
+<tr>
+<td>奇异决定相容</td>
+<td>同 A 不同 b 类</td>
+<td>分类增广</td>
+</tr>
+<tr>
+<td>det非零或小残差保可靠</td>
+<td>可逆也很敏感</td>
+<td>区分代数数值</td>
+</tr>
+<tr>
+<td>两项偏置都一样</td>
+<td>方向可改加法</td>
+<td>声明输出广播</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个 CPU 实验</h2></div>
+<p>用 <a href="numpy_primer_ZH.html">NumPy 准备</a> 固定环境。消元另标准库 Fraction 精确。下载源产生捕获输出，含实际残差。</p>
+<h3 id="lab1">实验 A 矩阵积与批仿射</h3>
+<p><strong>预测：</strong>SH,HS 及 (1,1) 像，标 X,W,偏置形状。<strong>运行：</strong>循环与 NumPy 比。<strong>解释：</strong>最右列映射先，偏置按输出。<strong>修改：</strong>矩形权并改偏置、输出约定。程序拒锯齿与不合内维。</p>
+<p><a href="labs/module_10/lab1_products.py" download>下载 lab1_products.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Shape-checked matrix multiplication and an explicitly batched affine map.&quot;&quot;&quot;
+import numpy as np
+
+def shape(matrix):
+    if not matrix or not matrix[0] or any(len(row) != len(matrix[0]) for row in matrix):
+        raise ValueError(&quot;Require a nonempty rectangular matrix&quot;)
+    return len(matrix), len(matrix[0])
+
+def multiply(a, b):
+    rows, inner = shape(a)
+    other_inner, cols = shape(b)
+    if inner != other_inner:
+        raise ValueError(&quot;Inner dimensions must agree&quot;)
+    return [[sum(a[i][k] * b[k][j] for k in range(inner)) for j in range(cols)] for i in range(rows)]
+
+scale, shear = [[2, 0], [0, 1]], [[1, 1], [0, 1]]
+for name, a, b in [(&quot;S H (shear first)&quot;, scale, shear), (&quot;H S (scale first)&quot;, shear, scale)]:
+    product = multiply(a, b)
+    assert np.array_equal(np.array(product), np.array(a) @ np.array(b))
+    print(name + &quot;:&quot;, product, &quot;; image of (1,1):&quot;, multiply(product, [[1], [1]]))
+x, weights, bias = [[1, 0], [0, 1], [2, -1]], [[1, 2], [-1, 3]], [0.5, -0.5]
+linear = multiply(x, weights)
+affine = [[value + bias[j] for j, value in enumerate(row)] for row in linear]
+reference = np.array(x) @ np.array(weights) + np.array(bias)
+assert reference.shape == (3, 2) and np.array_equal(reference, np.array(affine))
+print(&quot;Shapes X / W / bias / output:&quot;, shape(x), shape(weights), (len(bias),), shape(affine))
+print(&quot;XW:&quot;, linear)
+print(&quot;XW + bias:&quot;, affine)
+for a, b in [([[1, 2]], [[1, 2]]), ([[1, 2], [3]], [[1], [2]])]:
+    try:
+        multiply(a, b)
+    except ValueError as error:
+        print(&quot;Rejected:&quot;, error)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>S H (shear first): [[2, 2], [0, 1]] ; image of (1,1): [[4], [1]]
+H S (scale first): [[2, 1], [0, 1]] ; image of (1,1): [[3], [1]]
+Shapes X / W / bias / output: (3, 2) (2, 2) (2,) (3, 2)
+XW: [[1, 2], [-1, 3], [3, 1]]
+XW + bias: [[1.5, 1.5], [-0.5, 2.5], [3.5, 0.5]]
+Rejected: Inner dimensions must agree
+Rejected: Require a nonempty rectangular matrix
+</code></pre></div>
+<h3 id="lab2">实验 B 精确带主元消元</h3>
+<p><strong>预测：</strong>首主元行、三系统类别。<strong>运行：</strong>读精确增广、主元、自由列。<strong>解释：</strong>零常数与矛盾，原式验唯一解。<strong>修改：</strong>改重复行 RHS 先预测。打印索引零基，x,y,z 原顺序不改。</p>
+<p><a href="labs/module_10/lab2_elimination.py" download>下载 lab2_elimination.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Exact rational elimination with pivot selection and all three system classes.&quot;&quot;&quot;
+from fractions import Fraction
+
+def echelon(coefficients, rhs):
+    rows, cols = len(coefficients), len(coefficients[0])
+    if len(rhs) != rows or any(len(row) != cols for row in coefficients):
+        raise ValueError(&quot;Require rectangular coefficients and one RHS per row&quot;)
+    augmented = [[Fraction(x) for x in row] + [Fraction(b)] for row, b in zip(coefficients, rhs)]
+    pivot_row, pivots, events = 0, [], []
+    for column in range(cols):
+        if pivot_row == rows:
+            break
+        chosen = max(range(pivot_row, rows), key=lambda i: abs(augmented[i][column]))
+        if augmented[chosen][column] == 0:
+            continue  # No pivot in this column; it can be free.
+        if chosen != pivot_row:
+            augmented[chosen], augmented[pivot_row] = augmented[pivot_row], augmented[chosen]
+            events.append(f&quot;swap rows {pivot_row} and {chosen}&quot;)
+        pivot = augmented[pivot_row][column]
+        augmented[pivot_row] = [value / pivot for value in augmented[pivot_row]]
+        for i in range(pivot_row + 1, rows):
+            factor = augmented[i][column]
+            augmented[i] = [a - factor * b for a, b in zip(augmented[i], augmented[pivot_row])]
+        pivots.append(column)
+        events.append(f&quot;pivot row {pivot_row}, column {column}&quot;)
+        pivot_row += 1
+    inconsistent = any(all(value == 0 for value in row[:cols]) and row[cols] != 0 for row in augmented)
+    status = &quot;inconsistent&quot; if inconsistent else &quot;unique&quot; if len(pivots) == cols else &quot;underdetermined&quot;
+    return augmented, pivots, events, status
+
+def solve_unique(rows, pivots):
+    cols = len(rows[0]) - 1
+    answer = [Fraction(0)] * cols
+    for row_index in range(len(pivots) - 1, -1, -1):
+        column = pivots[row_index]
+        row = rows[row_index]
+        answer[column] = row[-1] - sum(row[j] * answer[j] for j in range(column + 1, cols))
+    return answer
+
+cases = [
+    (&quot;pivoted unique&quot;, [[0, 2, 1], [1, -2, -3], [2, 3, 1]], [3, 0, 7]),
+    (&quot;inconsistent&quot;, [[1, 1], [2, 2]], [3, 7]),
+    (&quot;underdetermined&quot;, [[1, 1], [2, 2]], [3, 6]),
+]
+for name, coefficients, rhs in cases:
+    rows, pivots, events, status = echelon(coefficients, rhs)
+    print(name + &quot;:&quot;, status)
+    print(&quot;Events:&quot;, events)
+    print(&quot;Echelon augmented rows:&quot;, [[str(value) for value in row] for row in rows])
+    print(&quot;Pivot / free columns (zero based):&quot;, pivots, [j for j in range(len(coefficients[0])) if j not in pivots])
+    if status == &quot;unique&quot;:
+        answer = solve_unique(rows, pivots)
+        assert all(sum(Fraction(a) * x for a, x in zip(row, answer)) == b for row, b in zip(coefficients, rhs))
+        assert answer == [1, 2, -1]
+        print(&quot;Solution:&quot;, [str(x) for x in answer])
+    assert status == (&quot;unique&quot; if name == &quot;pivoted unique&quot; else name)
+print(&quot;All row operations used exact Fractions; a zero RHS row differs from a contradiction row.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>pivoted unique: unique
+Events: ['swap rows 0 and 2', 'pivot row 0, column 0', 'pivot row 1, column 1', 'pivot row 2, column 2']
+Echelon augmented rows: [['1', '3/2', '1/2', '7/2'], ['0', '1', '1', '1'], ['0', '0', '1', '-1']]
+Pivot / free columns (zero based): [0, 1, 2] []
+Solution: ['1', '2', '-1']
+inconsistent: inconsistent
+Events: ['swap rows 0 and 1', 'pivot row 0, column 0']
+Echelon augmented rows: [['1', '1', '7/2'], ['0', '0', '-1/2']]
+Pivot / free columns (zero based): [0] [1]
+underdetermined: underdetermined
+Events: ['swap rows 0 and 1', 'pivot row 0, column 0']
+Echelon augmented rows: [['1', '1', '3'], ['0', '0', '0']]
+Pivot / free columns (zero based): [0] [1]
+All row operations used exact Fractions; a zero RHS row differs from a contradiction row.
+</code></pre></div>
+<h3 id="lab3">实验 C 求解器、奇异与敏感</h3>
+<p><strong>预测：</strong>[[3,1],[1,2]] 目标 [9,8] 解、两奇异目标。<strong>运行：</strong>直接与逆在此均可。<strong>解释：</strong>异常不区分无解无限，微扰对角系统仍零残差。<strong>修改：</strong>增小对角项，同扰动比较。它展示数据敏感，不声称某库法永远较精确。</p>
+<p><a href="labs/module_10/lab3_solvers_and_faults.py" download>下载 lab3_solvers_and_faults.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Direct solves, singular RHS distinctions, and sensitivity despite a nonzero determinant.&quot;&quot;&quot;
+import numpy as np
+
+a = np.array([[3.0, 1.0], [1.0, 2.0]])
+b = np.array([9.0, 8.0])
+direct = np.linalg.solve(a, b)
+via_inverse = np.linalg.inv(a) @ b
+assert direct.shape == (2,) and via_inverse.shape == (2,)
+assert np.allclose(direct, [2, 3], rtol=1e-12, atol=1e-12)
+assert np.allclose(via_inverse, direct, rtol=1e-12, atol=1e-12)
+print(&quot;Direct solve:&quot;, direct.round(6).tolist())
+print(&quot;Inverse times RHS:&quot;, via_inverse.round(6).tolist())
+print(&quot;Residual norms:&quot;, float(np.linalg.norm(a @ direct - b)), float(np.linalg.norm(a @ via_inverse - b)))
+print(&quot;Both agree here; forming an inverse is unnecessary for solving one RHS.&quot;)
+
+singular = np.array([[1.0, 2.0], [2.0, 4.0]])
+for rhs in [np.array([3.0, 6.0]), np.array([3.0, 7.0])]:
+    try:
+        np.linalg.solve(singular, rhs)
+    except np.linalg.LinAlgError:
+        kind = &quot;infinitely many: x+2y=3&quot; if rhs[1] == 2 * rhs[0] else &quot;inconsistent: second RHS is not twice first&quot;
+        print(&quot;Singular solve rejected:&quot;, rhs.tolist(), &quot;;&quot;, kind)
+
+sensitive = np.diag([1.0, 1e-12])
+baseline_rhs = np.array([1.0, 1e-12])
+changed_rhs = np.array([1.0, 1e-12 + 1e-9])
+baseline, changed = np.linalg.solve(sensitive, baseline_rhs), np.linalg.solve(sensitive, changed_rhs)
+assert np.allclose(baseline, [1, 1], rtol=1e-12, atol=1e-12)
+assert np.allclose(changed, [1, 1001], rtol=1e-12, atol=1e-12)
+print(&quot;Nonzero determinant:&quot;, float(np.linalg.det(sensitive)))
+print(&quot;Baseline / perturbed solution:&quot;, baseline.round(6).tolist(), changed.round(6).tolist())
+print(&quot;Small RHS change:&quot;, float(np.linalg.norm(changed_rhs - baseline_rhs)))
+print(&quot;Changed-system residual:&quot;, float(np.linalg.norm(sensitive @ changed - changed_rhs)))
+print(&quot;Invertibility and small residual do not guarantee insensitivity of the solution.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Direct solve: [2.0, 3.0]
+Inverse times RHS: [2.0, 3.0]
+Residual norms: 0.0 0.0
+Both agree here; forming an inverse is unnecessary for solving one RHS.
+Singular solve rejected: [3.0, 6.0] ; infinitely many: x+2y=3
+Singular solve rejected: [3.0, 7.0] ; inconsistent: second RHS is not twice first
+Nonzero determinant: 1.000000000000001e-12
+Baseline / perturbed solution: [1.0, 1.0] [1.0, 1001.0]
+Small RHS change: 1e-09
+Changed-system residual: 0.0
+Invertibility and small residual do not guarantee insensitivity of the solution.
+</code></pre></div>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>练习与完整解答</h2></div>
+<p>1–12 必做，13–14 扩展。小系统用精确算术，给解集不只状态。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>A 行 (2,1),(0,1)，Ae₁,Ae₂,A(3,4) 与输入输出维？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>列 (2,0),(1,1)，组合 (10,4)，输入输出两坐标，行点积同。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>S=diag(2,1),H=[[1,1],[0,1]]，SH,HS 及 (1,1) 像？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>SH=[[2,2],[0,1]] 像 (4,1)，HS=[[2,1],[0,1]] 像 (3,1)，最右先，反驳普遍交换。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>A 4×2、B 2×3，AB 与转置形状及正确转置积？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>4×3 与 3×4，BᵀAᵀ=(3×2)(2×4)，AᵀBᵀ 内维不合。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">6 分钟</span></div>
+<p>b≠0 的 Ax+b 线性吗？Aeⱼ 矩阵解释？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>零给 b≠0 违反必要条件，第 j 列为单位方向像，矩阵部分线性、偏移使整体仿射。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>有限和推 A(Bx)=(AB)x，含三个形状。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>B n×p,A m×n,x p 列，i 项 ∑ⱼaᵢⱼ∑ₖbⱼₖxₖ=∑ₖ(∑ⱼaᵢⱼbⱼₖ)xₖ，内系数为 ABᵢₖ，积 m×p。有限和重排合法，逐坐标相同。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证 i≠j 的 Rᵢ←Rᵢ+cRⱼ 保解，解释 RHS 与其他操作逆条件。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>旧解满足组合新行与不变源；新解减 c 源恢复旧目标，双向同集。常数属于式，整行改。换行自逆、非零缩放倒数逆，零缩擦约束不等价。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>解释相容阶梯有自由变量为何无限实解且参数族完整。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>任取实自由值，上回代由非零主元确定其余，零行无约束，不同自由值不同向量。每解都有某自由值，主元强迫其余，故族覆盖；行等价转原系统。矛盾行会破相容假设。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 分钟</span></div>
+<p>解 x+y=3,2x−y=0，分类 x+y=3,2x+2y=7 与第二常数六，给解集。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>首减倍得 −3y=−6，(1,2)。次得 0=1 空集，末得 0=0，{(3−t,t):t∈R}。重复系数不独立决定相容。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 分钟</span></div>
+<p>X 行 (1,0),(0,1),(2,−1)，W 行 (1,2),(−1,3)，b=(0.5,−0.5)，算 XW+b、形状与列 M。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>线性行 (1,2),(−1,3),(3,1)，仿射 (1.5,1.5),(−0.5,2.5),(3.5,0.5)。X(3,2),W(2,2),b(2,),Y(3,2)，M=Wᵀ=[[1,−1],[2,3]]，每记录列 y=Mx+b_col。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 分钟</span></div>
+<p>A=diag(1,10⁻¹²)，解原 b 与第二加 10⁻⁹ 的 b′，残差能证什么？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>(1,1)、(1,1001)，目标变长 10⁻⁹，第二解变一千。新残差零只证满足新式，不证近原解或不敏感。det全程非零。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 分钟</span></div>
+<p>见首对角零就奇异，且消元只改系数。用两例诊断。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>带主元例首零，换二首行仍唯一 (1,2,−1)。[1,1|3],[2,−1|0] 第二减倍应 [0,−3|−6]，留零会错误 y=0,x=3，不满足原第二。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 分钟</span></div>
+<p>两行两输出加 <code>(2,1)</code> 偏置，形状对；开发者又说奇异异常都无解。反例修复？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>线性 (1,2),(−1,3) 应 flat偏置得 (1.5,1.5),(−0.5,2.5)，列却 (1.5,2.5),(−1.5,2.5)，按批偏移。正确输出轴并查值。奇异 (1,2),(2,4) 目标 (3,6) 无限、(3,7) 无解，分析增广，异常不分类。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>扩展：证积转置反序与 (AB)⁻¹=B⁻¹A⁻¹，为什么反序？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>转置项 ∑ⱼaᵢⱼbⱼₖ=∑ⱼbⱼₖaᵢⱼ，给右积 (k,i)。两侧乘逆候选，(AB)(B⁻¹A⁻¹)=AIA⁻¹=I，反侧 B⁻¹IB=I。结合使邻接逆抵消，保序不普遍邻接，剪切缩放确认顺序重要。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">application</span><span class="exercise-time">20 分钟</span></div>
+<p>扩展：X,W 均 2×2，给逐项乘形状对但异于矩阵积的例子与手查测试。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>X=[[1,1],[0,1]],W=[[2,0],[0,1]]，积 [[2,1],[0,1]]，逐项 [[2,0],[0,1]] 都同形。第一记录 (1,1) 预测 (2,1)，缺一揭错误。非均匀已知输入查求和，单形状不够。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>自测测验</h2></div>
+<p>1–9 自动，10 书面自评。</p>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>列映射 A 第 j 列是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Aeⱼ 的像</button></li><li><button type="button" class="quiz-opt" data-i="1">每计算第 j 输入</button></li><li><button type="button" class="quiz-opt" data-i="2">每行总和</button></li></ol><div class="quiz-expl" hidden>单位坐标选列，输入会变，行和对应另一个特定输入。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>ABx 谁先？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A</button></li><li><button type="button" class="quiz-opt" data-i="1">B</button></li><li><button type="button" class="quiz-opt" data-i="2">任意因矩阵都交换</button></li></ol><div class="quiz-expl" hidden>B 产 A 所用中间坐标，反序一般变图或维度失败。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>(AB)ᵀ？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总 AᵀBᵀ</button></li><li><button type="button" class="quiz-opt" data-i="1">AB</button></li><li><button type="button" class="quiz-opt" data-i="2">BᵀAᵀ</button></li></ol><div class="quiz-expl" hidden>项和形状要反转，原积不必对称。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>哪行操作保解？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">加另一整增广行倍</button></li><li><button type="button" class="quiz-opt" data-i="1">方程乘零</button></li><li><button type="button" class="quiz-opt" data-i="2">只改系数不改 RHS</button></li></ol><div class="quiz-expl" hidden>加行有逆且含常数，零毁信息，仅一侧改式。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>候选主元零立即意味着？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">必奇异</button></li><li><button type="button" class="quiz-opt" data-i="1">查剩行或跳全零系数列</button></li><li><button type="button" class="quiz-opt" data-i="2">除零继续</button></li></ol><div class="quiz-expl" hidden>行交换可供非零，完整结构非单项决定分类。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>[0,0|1] 建立什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">冗余式</button></li><li><button type="button" class="quiz-opt" data-i="1">唯一零向量</button></li><li><button type="button" class="quiz-opt" data-i="2">不相容</button></li></ol><div class="quiz-expl" hidden>零等一矛盾；冗余需常数零，无赋值能满足。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>自由未知何时无限实解？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">阶梯系统相容时</button></li><li><button type="button" class="quiz-opt" data-i="1">有矛盾也行</button></li><li><button type="button" class="quiz-opt" data-i="2">仅方形</button></li></ol><div class="quiz-expl" hidden>相容允许任意自由值回代，矛盾消全部解，矩形不妨族。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>实方阵 det非零建立什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">每数值计算不敏感</button></li><li><button type="button" class="quiz-opt" data-i="1">代数可逆</button></li><li><button type="button" class="quiz-opt" data-i="2">每输出正</button></li></ol><div class="quiz-expl" hidden>判定代数，不保条件性或符号。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>B 条 d 特征 o 输出的批行 XW 权形状？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">B×o</button></li><li><button type="button" class="quiz-opt" data-i="1">o×d 无需转置</button></li><li><button type="button" class="quiz-opt" data-i="2">d×o</button></li></ol><div class="quiz-expl" hidden>X B×d 收缩共享特征得 B×o，列约定 M=Wᵀ o×d。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m10:q10">
+<label for="q10-response">10. 解释同奇异系数可无解或无限，用重复行并声明行操作不变式。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="给两增广、简化行与解集。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我已查两例并解释完整解集保持。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>x+y=3,2x+2y=7 减倍得 0=1 无解；改七为六得 0=0，族 (3−t,t),t∈R。系数同、常数决定兼容。合法整增广操作可逆，恰保解集，即不变式。奇异排除每目标唯一性质，不独自决定当前目标相容。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>带着问题阅读</h2></div>
+<p>读作者 <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning 伴随站</a> 的系统、积、行列式选段，查 <a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.solve.html" target="_blank" rel="noopener">NumPy solve 约定</a>及<a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.inv.html" target="_blank" rel="noopener">逆接口</a>。一手阅读补本原创例与论证。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>选段与问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>学习时段 2 · 20 分钟</td>
+<td>消元：什么逆操作证等价？</td>
+</tr>
+<tr>
+<td>学习时段 3 · 6 分钟</td>
+<td>行列式：有符号面积体积与单向量长度区别？</td>
+</tr>
+<tr>
+<td>学习时段 4 · 4 分钟</td>
+<td>solve：什么条件排奇异自由族？</td>
+</tr>
+</tbody>
+</table></div>
+<p>库的“精确系统求解”指解 Ax=b 而非最小二乘目标，浮点实现仍数值，不保证符号精确或不敏感。</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>回忆、结业任务与下一步</h2></div>
+<p>不看笔记解释列像、推积项、证行加等价。各解一系统类，分声明 det 与残差，再标批仿射。</p>
+<p><strong>结业任务：</strong>A=[[1,2],[0,1]],b=(5,2)，回代 y=2,x=1，det一，逆 [[1,−2],[0,1]] 恢复输入。b 存 <code>(2,)</code> 或 <code>(2,1)</code> 不改同一数学目标，也不会仅因形状变成两独立目标批。</p>
+<p><strong>前进标准：</strong>可解释方程、完整分类解、保映射与存储约定。下一课空间、基、秩、零方向、参数可辨识，见<a href="index_ZH.html">课程总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>记法与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语或符号</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m×n / aᵢⱼ</td>
+<td>行×列、索引项</td>
+<td>Shape / entry</td>
+</tr>
+<tr>
+<td>线性、仿射映射</td>
+<td>保加缩、线性加偏移</td>
+<td>Linear / affine map</td>
+</tr>
+<tr>
+<td>AB / Aᵀ / I</td>
+<td>有序复合、转置、单位</td>
+<td>Product / transpose / identity</td>
+</tr>
+<tr>
+<td>[A</td>
+<td>b] / 行操作</td>
+<td>系数常数、等价方程更新</td>
+</tr>
+<tr>
+<td>主元、阶梯、自由变量</td>
+<td>非零消元系数、结构行、可选坐标</td>
+<td>Pivot / echelon / free variable</td>
+</tr>
+<tr>
+<td>相容、欠定</td>
+<td>至少一解、相容且自由未知</td>
+<td>Consistent / underdetermined</td>
+</tr>
+<tr>
+<td>逆、行列式</td>
+<td>双侧撤销、有符号体积</td>
+<td>Inverse / determinant</td>
+</tr>
+<tr>
+<td>残差、敏感</td>
+<td>式差、响应数据变</td>
+<td>Residual / sensitivity</td>
+</tr>
+<tr>
+<td>批、偏置</td>
+<td>独立输入行、固定输出偏移</td>
+<td>Batch / bias</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_09_ZH.html">← 模块 09</a><a href="module_11_ZH.html">模块 11 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

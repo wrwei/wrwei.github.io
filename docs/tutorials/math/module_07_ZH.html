@@ -1,0 +1,577 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>图、树与状态转移 — 计算机科学与人工智能的数学基础</title><meta name="description" content="把关系建成图模型，证明树与遍历性质，排列依赖，并在明确安全假设下探索有限协议。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="7"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 07</button><div class="dropdown-menu" id="module-menu"><a href="module_07_ZH.html" class="active" aria-current="page">图、树与状态转移</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_07_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>图的边必须有明确含义</span></a><a href="#s1"><span class="num">2</span><span>顶点、边、游走与表示</span></a><a href="#s2"><span class="num">3</span><span>度数和、连通与环</span></a><a href="#s3"><span class="num">4</span><span>树、根结构与边数定理</span></a><a href="#s4"><span class="num">5</span><span>遍历、可达性与最短路径证书</span></a><a href="#s5"><span class="num">6</span><span>DAG、依赖顺序与归纳</span></a><a href="#s6"><span class="num">7</span><span>有限状态机、安全性与探索限制</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解与失败情形</span></a><a href="#labs"><span class="num">9</span><span>三个 CPU 实验</span></a><a href="#exercises"><span class="num">10</span><span>练习与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>自测测验</span></a><a href="#reading"><span class="num">12</span><span>带着问题阅读</span></a><a href="#summary"><span class="num">13</span><span>回忆、结业任务与下一步</span></a><a href="#terms"><span class="num">14</span><span>记法与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">图、树与状态转移</h1><p class="module-lead">把关系建成图模型，证明树与遍历性质，排列依赖，并在明确安全假设下探索有限协议。</p><div class="hero-chips"><span class="chip chip-time">8 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>选择有向或无向图约定并比较邻接表示。</li><li>证明度数和恒等式与有限树边数定理。</li><li>解释 BFS 可达性及无权最短路径证书。</li><li>构造拓扑序或有向环见证。</li><li>声明有限协议不变式并解释穷尽检查的限制。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>模块 03、04 与 06：关系、归纳与不变式、操作计数模型。实验使用 Python 列表、字典、循环与函数。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">图的边必须有明确含义</a><a href="#s1">顶点、边、游走与表示</a><a href="#s2">度数和、连通与环</a><a href="#s3">树、根结构与边数定理</a><a href="#s4">遍历、可达性与最短路径证书</a><a href="#s5">DAG、依赖顺序与归纳</a><a href="#s6">有限状态机、安全性与探索限制</a><a href="#misconceptions">常见误解与失败情形</a><a href="#labs">三个 CPU 实验</a><a href="#exercises">练习与完整解答</a><a href="#quiz">自测测验</a><a href="#reading">带着问题阅读</a><a href="#summary">回忆、结业任务与下一步</a><a href="#terms">记法与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">8 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">120 分钟</span></div><div class="session-title">表示与图恒等式</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节，把同一图在不同表示间转换。</a></span><span class="act-min">55</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">建立列表与矩阵，检查度数和孤立点。</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m07:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">120 分钟</span></div><div class="session-title">树与遍历正确性</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，证明叶子与 BFS 命题。</a></span><span class="act-min">55</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">42</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读所选图与遍历讲义。</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">解释 BFS 为何计边最短而 DFS 不保证最短。</a></span><span class="act-min">8</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m07:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">120 分钟</span></div><div class="session-title">依赖顺序与跟踪证书</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5 节，构造顺序与环见证。</a></span><span class="act-min">40</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">检查遍历、最短路径标记与 Kahn 算法。</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">30</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">解释逐边拓扑序检查。</a></span><span class="act-min">5</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m07:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">120 分钟</span></div><div class="session-title">有限状态安全与模型限制</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s6">阅读第 6 节并逐步使用 BFS 探索器。</a></span><span class="act-min">35</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">找到错误超时见证并验证有界修复。</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">诊断练习 11–12。</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择与书面遍历论证。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读状态机选段并完成结业检查。</a></span><span class="act-min">5</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m07:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>图的边必须有明确含义</h2></div>
+<p>文件依赖、友谊、道路与程序转移都能画成点与连线，但线的含义不同。依赖有方向，友谊可能对称，道路有成本，转移取决于完整状态。仅有好看的图并不能建立正确推论所需的数学模型。</p>
+<p>本模块从有限图和明确约定开始：计算关联次数，证明树定理，解释遍历证书，排列先修依赖，检查有界重试协议。每个结果都声明保证与所需信息。这些思想随后用于计算图、图数据、有限自动机和依赖系统。</p>
+<p><strong>回忆检查：</strong>用有序对描述关系，区分不变式与终止，解释线性操作计数。按需复习<a href="module_03_ZH.html#s2">模块 03</a>、<a href="module_04_ZH.html#s6">模块 04</a>与<a href="module_06_ZH.html#s4">模块 06</a>。实验列表与字典表示有限对象，数学结论不依赖某种 Python 容器。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>顶点、边、游走与表示</h2></div>
+<p><strong>有限简单无向图</strong>包含有限顶点集 V，以及边集 E；每条边是 V 的二元子集。{u,v} 有两个不同端点，没有方向。简单表示无自环、无平行重复边。AB 与 BA 表示同一无序对，因此把它们作为两条边存储会重复计数。</p>
+<p><strong>有向图</strong>使用有序对 (u,v)，常写 u→v。u→v 不蕴涵 v→u。本模块例子排除自环和重复有序对，其他图约定可以允许。自环、重复边、带权边各有用途，但应用按端点或不同邻居计数的定理前，必须说明约定。</p>
+<p>顶点是标签，不必是数字或位置。绘图坐标只是显示结构，交叉线不会自动产生顶点，除非已声明。移动点但保持 V,E 不变，图不变；删除孤立顶点却会改变 V，即使边未变。统计状态或报告不可达对象时，这一区别很重要。</p>
+<p>无向顶点的<strong>度</strong>是关联边数，简单图中也等于邻居数。有向图的入度计进入边，出度计离开边。顶点可出度很高、入度为零，把两者混用会颠倒依赖。有向自环若允许，对入度与出度各贡献一。</p>
+<p><strong>游走</strong>是连续顶点间都有适当边的序列，长度为经过边数，比顶点序列长度少一。这里的<strong>路径</strong>指不重复顶点的游走。<strong>环</strong>闭合且除首尾外不重复顶点；按简单无向约定至少三条边。零长度路径只有一个顶点，证明该点从自身可达。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">先声明图再计数</div>
+<p>取 V={A,B,C,D,E,F}，E={AB,AC,BD,CD,DE}，均为无向边。A,B,D,C,A 是长度四的环，A,B,D,E 是长度三的路径。F 度零，虽不出现在边中仍属于 V。按顶点顺序的度为 2,2,2,3,1,0。</p>
+</div>
+<p><strong>邻接列表</strong>存每个顶点的邻居，F 也要有空列表。无向边出现在两个列表；有向列表通常只存出邻居。这个区别影响解释与存储计数。排序邻居让实验跟踪可复现，但排序是实现选择，不是图的数学定义。</p>
+<p><strong>邻接矩阵</strong>使用声明的顶点顺序，Aᵢⱼ 在对应边存在时为一，否则零。简单无向矩阵对称、对角零，行和为度。有向出边约定下，行和是出度，列和是入度。没有行列标签的矩阵，其关系含义不明确。</p>
+<figure class="fig" id="fig-07-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 365" role="img" aria-label="六点列表及六乘六对称矩阵表示五边 AB、AC、BD、CD、DE。F 行列为零。"><title>保留孤立点的图表示</title><desc>六点列表及六乘六对称矩阵表示五边 AB、AC、BD、CD、DE。F 行列为零。</desc><defs><marker id="fig-07-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="365" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="170" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">邻接列表</text><text x="545" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">同图的矩阵</text><text x="35" y="85" text-anchor="start" font-size="20" fill="#1a2e4a">A: [B, C]</text><text x="390" y="85" text-anchor="start" font-size="18" fill="#1a2e4a">A</text><text x="425" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">A</text><text x="425" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="477" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="529" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="581" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="633" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="685" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="35" y="123" text-anchor="start" font-size="20" fill="#1a2e4a">B: [A, D]</text><text x="390" y="123" text-anchor="start" font-size="18" fill="#1a2e4a">B</text><text x="477" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">B</text><text x="425" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="477" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="529" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="581" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="633" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="685" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="35" y="161" text-anchor="start" font-size="20" fill="#1a2e4a">C: [A, D]</text><text x="390" y="161" text-anchor="start" font-size="18" fill="#1a2e4a">C</text><text x="529" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">C</text><text x="425" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="477" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="529" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="581" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="633" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="685" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="35" y="199" text-anchor="start" font-size="20" fill="#1a2e4a">D: [B, C, E]</text><text x="390" y="199" text-anchor="start" font-size="18" fill="#1a2e4a">D</text><text x="581" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">D</text><text x="425" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="477" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="529" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="581" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="633" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="685" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="35" y="237" text-anchor="start" font-size="20" fill="#1a2e4a">E: [D]</text><text x="390" y="237" text-anchor="start" font-size="18" fill="#1a2e4a">E</text><text x="633" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">E</text><text x="425" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="477" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="529" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="581" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="633" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="685" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="35" y="275" text-anchor="start" font-size="20" fill="#1a2e4a">F: []</text><text x="390" y="275" text-anchor="start" font-size="18" fill="#1a2e4a">F</text><text x="685" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">F</text><text x="425" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="477" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="529" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="581" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="633" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="685" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="380" y="338" text-anchor="middle" font-size="17" fill="#1a2e4a">F 是现存孤立点；无向每边在列表中出现两次。</text></g></svg></div><figcaption><span class="fig-num">图 7.1</span> <p>同一图展示边、邻接列表与带标签的对称矩阵。全零 F 行保留孤立顶点。</p>
+</figcaption></figure>
+<p>v 点、e 边的列表占 O(v+e) 项，无向邻居关联为 2e。稠密矩阵即使多数零也有 v² 项。列表扫描邻居的工作随度变化，矩阵每行查 v 项；矩阵支持直接索引查边，普通未排序列表可能需逐项查。应按操作与稀疏程度选择表示，不能笼统说某种永远更快。</p>
+<p>这里假设固定大小标签、恒成本索引，字典操作服从声明的实现模型，并非证明每次散列表查找都有确定常数最坏成本。可变长标签或巨大整数标识还会增加表示工作。与模块 06 一样，O(v+e) 属于成本模型，不能覆盖同一抽象图的任意编码。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>例子存多少邻居关联与矩阵项？零行是否表示顶点缺失？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>2e=10 个邻居关联，v²=36 个矩阵项。零行表示存在的孤立点 F；省略该行是另一表示或遗漏顶点。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>度数和、连通与环</h2></div>
+<p>有限无环边无向图有<strong>度数和恒等式</strong> <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mrow><mi>v</mi><mo>∈</mo><mi>V</mi></mrow></msub><mi>deg</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>v</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\sum_{v\in V}\deg(v)=2|E|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.0771em;vertical-align:-0.3271em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1786em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span><span class="mrel mtight">∈</span><span class="mord mathnormal mtight" style="margin-right:0.2222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3271em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">de<span style="margin-right:0.0139em;">g</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2∣</span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mord">∣</span></span></span></span></span>。对同一关联集合双重计数：按顶点分组得到左边，按边分组每边两个端点得到右边。这是覆盖约定域的证明，不是由几个计算样例外推。若允许自环，每自环计两次关联仍保恒等式。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">奇数度顶点的数量为偶数</div>
+<p>例图度和 10=2·5，奇数度点是 D,E。一般地，偶数度项的和为偶，故奇数度项和也为偶。k 个奇数的和与 k 同奇偶，因此 k 必为偶。不管图怎么画，三个奇数度点都会与恒等式矛盾。</p>
+</div>
+<p>有向图中 <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>v</mi></msub><mi mathvariant="normal">outdeg</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>v</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\sum_v\operatorname{outdeg}(v)=|E|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.0017em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">outdeg</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mord">∣</span></span></span></span></span>，<span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>v</mi></msub><mi mathvariant="normal">indeg</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>v</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\sum_v\operatorname{indeg}(v)=|E|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.0017em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">indeg</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mord">∣</span></span></span></span></span>，每边一个源与一个目标。两个和相加是 2|E|，单独一个是 e。这些是输入检查，不证明连通或无环；不同图可有同一度序列。</p>
+<p>无向两点<strong>连通</strong>表示存在路径。允许游走得相同可达条件：有限游走若重复点，删除中间闭合段直到无重复。连通通过零路径自反，通过反向路径对称，通过拼接游走再删重复传递。因此它是等价关系，与模块 03 相接。</p>
+<p>等价类称<strong>连通分量</strong>。例图有 {A,B,C,D,E} 与 {F} 两分量。所有顶点在一个分量中称连通；后面的树另要求非空。空图需另选约定，不在树定理域内。一个图可以既有环，又在其他部分不连通，本例即如此。</p>
+<p>方向改变可达。u 可到 v，不一定 v 可回 u。<strong>强连通</strong>要求双向可达，其类是强连通分量；<strong>弱连通</strong>先忽略方向。单向链 A→B→C 弱连通，但三个点各成强连通分量。应用要有向可达时，不加限定的“连通”不够精确。</p>
+<p>删除后增加分量数的边称<strong>桥</strong>。DE 是桥，删除会分离 E；AB 不是，因为仍可经 C,D 从 A 到 B。环上的无向边不是桥，因为其余环段提供替代路线。反过来，非桥的两端有替代路径，与该边组合成环。</p>
+<p>环检测必须适合图类型。有向遍历遇到指向活动祖先的边，可给有向环见证。无向遍历中，父边反向出现是正常的，不是简单图的二边环。把每个已见邻居都报环的程序，若未正确处理父节点与发现状态，会连单独一条边也误判。</p>
+<p>度恒等式只是必要检查，并不完全识别图。度和为偶的序列仍可能不实现为简单图，例如三点中某点度三不可能。e=v−1 单独也不能保证树；三角形加一个孤立点有四点三边，却既不连通又有环。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>度和 2e 是否证明连通？给出例图分量与一条桥。</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>否，恒等式在不连通图也成立。分量 {A,B,C,D,E}、{F}，DE 为桥；删除使 E 孤立，加上本来孤立的 F。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>树、根结构与边数定理</h2></div>
+<p><strong>树</strong>是有限、非空、连通且无环的无向图。<strong>森林</strong>是无环无向图，可有多个分量，包括孤立点。有限森林每个连通分量都是树。单点零边图也是树：零路径给连通，且无环。声称覆盖所有正规模的证明必须含这一例。</p>
+<p>树中任意两点恰有一条路径。连通给存在；若有不同路径，从第一次分离到再次会合，两段组成环。反过来，连通且端点路径唯一的图不可能有环，因为环上两段给所选端点两条不同路径。</p>
+<p>至少两点的无根树中，<strong>叶子</strong>度一。为证明叶存在，选择最长路径；图有限，最长者存在。端点不能有路径外邻居，否则可延长；不能有路径上更远邻居，否则成环。故它只有下一点这一邻居。两个端点都是叶。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">n 点树有 n−1 条边</div>
+<p>对正 n 归纳。n=1 时零边。n&gt;1 取叶，删除它与唯一关联边。余图无环；余点间路径不会把度一叶当内部点，因此仍连通。余图为 n−1 点树，归纳有 n−2 边，恢复一边得 n−1。叶存在与保持连通都是证明所需步骤。</p>
+</div>
+<figure class="fig" id="fig-07-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" role="img" aria-label="树边 AB、AC、CD、CE，删叶 E 与 CE，剩四点三边连通无环。"><title>删叶归纳</title><desc>树边 AB、AC、CD、CE，删叶 E 与 CE，剩四点三边连通无环。</desc><defs><marker id="fig-07-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="340" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="190" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">五点四边</text><text x="570" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">删 E：四点三边</text><path d="M75,110L175,70" stroke="#2563eb" stroke-width="3"/><path d="M75,110L175,180" stroke="#2563eb" stroke-width="3"/><path d="M175,180L275,145" stroke="#2563eb" stroke-width="3"/><path d="M175,180L275,240" stroke="#2563eb" stroke-width="3"/><circle cx="75" cy="110" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="75" y="116" text-anchor="middle" font-size="18" fill="#1a2e4a">A</text><circle cx="175" cy="70" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="175" y="76" text-anchor="middle" font-size="18" fill="#1a2e4a">B</text><circle cx="175" cy="180" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="175" y="186" text-anchor="middle" font-size="18" fill="#1a2e4a">C</text><circle cx="275" cy="145" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="275" y="151" text-anchor="middle" font-size="18" fill="#1a2e4a">D</text><circle cx="275" cy="240" r="17" fill="#fff7ed" stroke="#2563eb"/><text x="275" y="246" text-anchor="middle" font-size="18" fill="#1a2e4a">E</text><path d="M455,110L555,70" stroke="#2563eb" stroke-width="3"/><path d="M455,110L555,180" stroke="#2563eb" stroke-width="3"/><path d="M555,180L655,145" stroke="#2563eb" stroke-width="3"/><circle cx="455" cy="110" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="455" y="116" text-anchor="middle" font-size="18" fill="#1a2e4a">A</text><circle cx="555" cy="70" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="555" y="76" text-anchor="middle" font-size="18" fill="#1a2e4a">B</text><circle cx="555" cy="180" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="555" y="186" text-anchor="middle" font-size="18" fill="#1a2e4a">C</text><circle cx="655" cy="145" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="655" y="151" text-anchor="middle" font-size="18" fill="#1a2e4a">D</text><text x="380" y="309" text-anchor="middle" font-size="17" fill="#1a2e4a">余点路径仍存在；基础：单点零边。</text></g></svg></div><figcaption><span class="fig-num">图 7.2</span> <p>删叶恰删一点一边，保留余点间路径。单点基础完成归纳。</p>
+</figcaption></figure>
+<p>v 点、c 分量的森林按分量求和得 e=v−c。孤立点贡献一点零边，因此正确处理。空森林 v=e=c=0 也满足恒等式，虽按本定义不是树。这是逐分量应用定理，不是把非连通图直接代入树公式。</p>
+<p><strong>有根树</strong>选择根。根到顶点的路径决定每个非根的父节点，其余邻居为子节点。深度为从根计边距离，高度为最大深度，因此单节点高度零。其他书可能按点数计高度，对比公式要先看约定。选择根会改变深度、父节点，却不改无根树。</p>
+<p>有根叶是没有子节点的点。至少两点时，度一根有一个子节点，所以不是有根叶，虽是无根叶。单节点根无子节点，是有根叶，但无根度零。先解决这些边界，再用模块 04 的满二叉树恒等式。</p>
+<p><strong>生成树</strong>使用连通图所有顶点与部分边。遍历发现父边形成生成树：每可达非根恰一父，父链回源，连接分量且无环。原图不连通时，遍历各分量得生成森林。从 A 搜索不能生成含 F 的生成树，因为不存在连接边。</p>
+<p>边定理还说明最小性。树删任一边会失去连通，因为两端唯一道路用该边。有环连通图可删环边保持连通，反复删除最终得生成树，有限性保证过程终止。故连通图至少 v−1 边，连通简单图恰 v−1 边即为树。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>九点三分量森林多少边？度一根为何可能不是有根叶？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>逐分量树定理给 9−3=6。度一根有子节点，有根叶要求无子节点；两叶定义在该根不同。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>遍历、可达性与最短路径证书</h2></div>
+<p><strong>广度优先搜索（BFS）</strong>用先进先出队列。标源已发现、距离零并入队。反复取队首，扫描出邻居；对未发现者立即标记，记父节点，赋当前距离加一，再入队。发现时标记保证每点只入队一次，即使多条前驱边指向它。</p>
+<p>队列按非递减已赋距离处理。距离 d 点的新邻居赋 d+1，排在所有等待点之后，因此前沿逐边层推进。不变式含：每发现标记是具体父路径长度，已处理点全部出边已扫描。父路径提供最短距离的一个上界。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">解释 BFS 标记，而非只打印</div>
+<p>从 A 按字母邻居，处理顺序 A,B,C,D,E。距离 A:0,B:1,C:1,D:2,E:3；父边 B←A,C←A,D←B,E←D。A,B,D,E 是三边路径。到 E 不能少于三：E 唯一邻居 D 最早在第二层可达。F 不获有限标签，因为不属 A 分量。</p>
+</div>
+<p>一般最短证明：假设某可达点存在比 BFS 标签短的路径。沿最短路选首个标签超过路径前缀长度的点，其前驱有正确较小标签，且在更大距离点前处理。扫描连接边会以不大于前缀长度发现下一点，或它已获这样的标签；都矛盾。因此发现的父路径边数最小。</p>
+<figure class="fig" id="fig-07-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="A 距离零，B,C 一，D 二，E 三，F 不可达。CD 为非父边，其他边给父路径。"><title>BFS 距离层</title><desc>A 距离零，B,C 一，D 二，E 三，F 不可达。CD 为非父边，其他边给父路径。</desc><defs><marker id="fig-07-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">按距离分层：父边给最短边数证书</text><path d="M80,160L255,100" stroke="#2563eb" stroke-width="3"/><path d="M80,160L255,220" stroke="#2563eb" stroke-width="3"/><path d="M255,100L430,160" stroke="#2563eb" stroke-width="3"/><path d="M255,220L430,160" stroke="#94a3b8" stroke-width="3"/><path d="M430,160L605,160" stroke="#2563eb" stroke-width="3"/><circle cx="80" cy="160" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="80" y="167" text-anchor="middle" font-size="20" fill="#1a2e4a">A</text><circle cx="255" cy="100" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="255" y="107" text-anchor="middle" font-size="20" fill="#1a2e4a">B</text><circle cx="255" cy="220" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="255" y="227" text-anchor="middle" font-size="20" fill="#1a2e4a">C</text><circle cx="430" cy="160" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="430" y="167" text-anchor="middle" font-size="20" fill="#1a2e4a">D</text><circle cx="605" cy="160" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="605" y="167" text-anchor="middle" font-size="20" fill="#1a2e4a">E</text><circle cx="670" cy="290" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="670" y="297" text-anchor="middle" font-size="20" fill="#1a2e4a">F</text><text x="80" y="68" text-anchor="middle" font-size="19" fill="#1a2e4a">d=0</text><text x="255" y="68" text-anchor="middle" font-size="19" fill="#1a2e4a">d=1</text><text x="430" y="68" text-anchor="middle" font-size="19" fill="#1a2e4a">d=2</text><text x="605" y="68" text-anchor="middle" font-size="19" fill="#1a2e4a">d=3</text><text x="360" y="307" text-anchor="middle" font-size="17" fill="#1a2e4a">F 从 A 不可达，不应标零。</text></g></svg></div><figcaption><span class="fig-num">图 7.3</span> <p>BFS 分层距离为零、一、二、三；发现边证实路径，单独孤立点仍不可达。</p>
+</figcaption></figure>
+<p>返回的距离映射也可作为<strong>证书</strong>检查：源零；每个其他有标签点有合法父边、距离比父多一；每条从有标签 u 出发的边满足 d(v)≤d(u)+1，且所有后继都有标签。父链给报告长度的路径，沿任意源路径串联不等式则报告值不超过路径长度。两者合起来证明最优，无需重跑相同队列跟踪。</p>
+<p><strong>深度优先搜索（DFS）</strong>先递归探索未发现邻居，再回来处理下一邻居。发现序为前序，完成序为后序。按本列表字母序，递归前序 A,B,D,C,E，后序 C,E,D,B,A。它与 BFS 达到同一分量，但 DFS 到 C 的发现路径是 A,B,D,C，虽有边 AC。因此 DFS 父深度不一定最短距离。</p>
+<p>DFS 的概念递归调用栈维护活动路径。有向边指向当前活动点会闭合有向环；指向已完成点则不证明环。区分未发现、活动、已完成状态：单个 visited 布尔值可用于可达性，却不足以支持所有环检测结论。调用栈或显式栈还需要随最大探索深度增长的内存。</p>
+<p>邻接列表中，每发现点处理一次，每出邻居项扫描一次。遍历全部分量在声明模型下 O(v+e)；单源只扫描可达部分，另加若有的全局初始化。矩阵全遍历 O(v²)。Python deque 移除队首不移动剩余元素，反复 list.pop(0) 会增加简单队列模型未计工作。</p>
+<p>BFS 最小化边数；每边有同一正常权时，也最小总成本。不等权时，一条成本十的边可能比两条各一的边差。普通 BFS 原样运行不最小化权和。带权最短算法需要其他假设与不变式，不能仅因都有前沿就借用无权证明。</p>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="traversal"></div><div class="widget-caption">
+<p>从 A 或孤立 F 逐步执行 BFS，读队列、发现距离、父链与已处理集合。上文具体跟踪无需脚本也可使用。</p>
+</div></div>
+<div class="check"><div class="check-label">检验理解</div>
+<p>为何发现时标记？DFS 深度可替代 BFS 距离吗？F 要赋零吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>入队前标记防不同前驱重复入队。DFS 深度是所选父路径长度，可大于最短。F 从 A 不可达，应缺省或显式无限，零只属于源自身。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>DAG、依赖顺序与归纳</h2></div>
+<p><strong>有向无环图（DAG）</strong>不含有向环。这里 u→v 表示 u 必须先完成，其他应用可能存反向依赖查询；必须声明含义，不能由箭头风格猜。<strong>拓扑序</strong>把每点恰列一次，对每边 u→v 都使 u 在 v 前。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">顺序证书与环证书不同</div>
+<p>边 A→C,B→C,C→D,C→E。A,B,C,D,E 有效，B,A,C,E,D 也有效，因为某些任务不可比。加 D→A 得环 A→C→D→A，任何顺序会要求 A 在 C 前、C 在 D 前、D 又在 A 前，不可能。仅按字母打印点不是证明，要查每条声明依赖。</p>
+</div>
+<p>每有限非空 DAG 有入度零点。否则从任一点反复选入前驱，有限图不可能一直供不同点，重复就给有向环，矛盾。这说明初始点存在。无限向后链可能既无入度零点又无有限环，因此证明不自动覆盖无限图。</p>
+<p><strong>Kahn 算法</strong>反复选剩余入度零点、输出它，移其出边并减少相应剩余入度。不变式为已输出点满足已输出依赖，剩余入度恰计未输出前驱。所选点无未完成前驱。删点保持 DAG，零入度引理使过程持续直到全部输出。</p>
+<p>若还有点但无零入度者，前驱论证证明剩余图有环。阻塞集合也可含环下游点，并非精确环点列表。加 D→A 后，B 可处理，A,C,D,E 阻塞；E 因 C 未完成而阻塞，却不在任何有向环上。环证书要实际闭合边序列，如 A,C,D,A。</p>
+<p>拓扑序不一定唯一。队列按插入顺序选就绪点，实验堆按字母打破平局。可复现也有成本：堆入出带对数因子，不能称为普通队列 O(v+e) 实现。验证拓扑序要先检查它是 V 的排列，再逐边查 position(u)&lt;position(v)。遗漏孤立点会违反排列条件。</p>
+<p>拓扑序支持依赖归纳。若 v 的值只从已完成前驱算，先证明零入度点性质，再在处理 v 时假设各前驱性质并证明更新保持。这是按有效序位置的普通归纳，边说明哪些较早假设可用，支撑无环计算图与动态规划。</p>
+<p>简单调度给任务非负固定时长、无限并行工作人员。最早完成为自身时长加前驱完成最大值，无前驱最大值取零。本 DAG 时长 A=2,B=5,C=3,D=4,E=1，完成时间 2,5,8,12,9，总完工十二。时长和十五是串行工作总量，不是无限并行完工时间。</p>
+<p>递推假设依赖完成立即开工、时长固定、资源不冲突。一个工作者、内存限制、共享设备或不确定时长时，结果不一定可实现。DAG 只建模先后约束，不包含所有调度限制。明确假设才能迁移到构建系统或 AI 计算而不承诺不现实吞吐。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>加 D→A 后每个阻塞点都在环上吗？如何验证拓扑序？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>否，E 是 A,C,D 环的下游。查每点恰出现一次，再逐边查源在目标前。有环图无法通过这种逐边条件。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>有限状态机、安全性与探索限制</h2></div>
+<p><strong>状态转移系统</strong>指定状态集 S、初始状态与有向转移关系。事件标允许变化，但状态必须含决定合法后继的信息。相同控制位置可因计数或标志不同而有不同未来。模型顶点是完整状态，不只是当前执行代码行。</p>
+<p>双控制状态重试协议使用 idle 与 waiting，发送使 idle→waiting，确认使 waiting→idle。为讨论有界实现，还记发送次数与是否看到确认，这是<strong>乘积状态</strong>元组。两个控制值、零到二计数、两标志值给十二个潜在元组，按规则只有部分可达。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">超时不能假装已确认送达</div>
+<p>初始 (idle,0,false)。发送得 (waiting,1,false)，重试得 (waiting,2,false)，任一等待态收到确认得 (idle,count,true)。定义安全：idle 且 count&gt;0 时必须见过确认。错误超时从 (waiting,2,false) 转到 (idle,2,false)，违反规则，见证三事件 send,retry,timeout。修复让超时保持 waiting，在这个有界模型保持安全。</p>
+</div>
+<figure class="fig" id="fig-07-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 465" role="img" aria-label="send、retry、timeout 给未确认空闲坏态。ack 给两个已确认态；修复 timeout 保持第二等待态。"><title>重试协议的乘积状态</title><desc>send、retry、timeout 给未确认空闲坏态。ack 给两个已确认态；修复 timeout 保持第二等待态。</desc><defs><marker id="fig-07-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="465" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">完整状态 = 控制、发送次数、确认标志</text><rect x="35" y="75" width="185" height="55" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="127" y="109" text-anchor="middle" font-size="18" fill="#1a2e4a">idle,0,F</text><rect x="285" y="75" width="185" height="55" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="377" y="109" text-anchor="middle" font-size="18" fill="#1a2e4a">waiting,1,F</text><rect x="285" y="205" width="185" height="55" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="377" y="239" text-anchor="middle" font-size="18" fill="#1a2e4a">waiting,2,F</text><rect x="535" y="75" width="185" height="55" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="627" y="109" text-anchor="middle" font-size="18" fill="#1a2e4a">idle,1,T</text><rect x="535" y="205" width="185" height="55" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="627" y="239" text-anchor="middle" font-size="18" fill="#1a2e4a">idle,2,T</text><rect x="285" y="345" width="185" height="55" rx="10" fill="#fff1f2" stroke="#be123c"/><text x="377" y="379" text-anchor="middle" font-size="18" fill="#1a2e4a">idle,2,F</text><path d="M225,102L275,102" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="250" y="91" text-anchor="middle" font-size="14" fill="#1a2e4a">send</text><path d="M377,135L377,195" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="405" y="170" text-anchor="start" font-size="15" fill="#1a2e4a">retry</text><path d="M475,102L525,102" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="500" y="90" text-anchor="middle" font-size="14" fill="#1a2e4a">ack</text><path d="M475,232L525,232" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="500" y="220" text-anchor="middle" font-size="14" fill="#1a2e4a">ack</text><path d="M377,265L377,335" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="405" y="298" text-anchor="start" font-size="15" fill="#1a2e4a">错误 timeout</text><path d="M315,260C200,320 200,190 285,220" fill="none" stroke="#15803d" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="50" y="305" text-anchor="start" font-size="15" fill="#1a2e4a">修复 timeout：保持 waiting</text><text x="380" y="438" text-anchor="middle" font-size="17" fill="#1a2e4a">红态不安全；安全自环仍可能永远等待。</text></g></svg></div><figcaption><span class="fig-num">图 7.4</span> <p>可达乘积状态区分初始空闲、等待尝试、已确认完成与错误未确认返回。修复超时是自环，不是假完成。</p>
+</figcaption></figure>
+<p>探索有限模型从初始点用 BFS 或 DFS，生成恰好声明的后继，visited 存完整元组，新发现点存父事件。BFS 首次到坏状态给最少转移数反例。跟踪必须给允许事件序列与违反状态，仅报断言失败缺少修复证据。</p>
+<p>安全谓词 I 的归纳不变式证明检查所有初始态满足 I，以及任意 I 态的允许转移保持 I。按有限执行长度归纳，可证明所有可达态，包括任意长执行。穷尽检查则计算可达集合并逐态测 I；完整有限模型中可判定该模型的可达安全。符号不变式可能覆盖更大或无界系统。</p>
+<p>实验错误模型六个可达态，其中一个不安全；修复模型五个。(idle,2,false) 仍属于环境乘积域，是因修复规则不可达，不是元组语法不可能。不可达元组违反 I 不影响可达安全。若它们让归纳的转移保持义务失败，可以加强 I 排除相关元组。</p>
+<p><strong>安全性</strong>说禁止事件或状态从不发生，<strong>活性</strong>问期望事件最终发生。修复的超时自环安全，却允许无限等待、从不确认。有限可达检查与无坏状态均不能建立最终送达。活性需额外环境假设，例如合理且有依据的公平性条件，再证明这些假设带来进展。</p>
+<p>穷尽程度取决于模型完整性。本模型至多两次发送、单请求、无取消、无迟到消息或并发。检查这些状态不证明无限重试网络实现正确。省略计数会合并合法重试不同的情形，省略消息内容可能隐藏确认错收件人。抽象需要自己说明代表哪些真实行为。</p>
+<p>组合状态分量会迅速增大潜在域。标志、计数、进程数量在生成转移前就相乘。小教学模型的可达搜索可行，真实软件可能昂贵。有界测试提供有用反例或精确范围的已检查结论，更广结论需要证明、可靠抽象或其他分析。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>修复五态检查是否证明确认最终到来，或无限实现安全？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>都否。超时自环允许永远等待，检查模型限制发送次数并省略真实行为。结论仅是特定有限规则下所有可达状态安全。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解与失败情形</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>说法</th>
+<th>失败原因</th>
+<th>修复</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>线交叉产生顶点</td>
+<td>绘图可无端点交叉</td>
+<td>读声明的 V,E</td>
+</tr>
+<tr>
+<td>度和保证连通</td>
+<td>各分量都服从恒等式</td>
+<td>给可达或分量证据</td>
+</tr>
+<tr>
+<td>e=v−1 保证树</td>
+<td>三角加孤立点反例</td>
+<td>加适当连通或无环条件</td>
+</tr>
+<tr>
+<td>DFS 深度是最短</td>
+<td>可先绕路发现邻居</td>
+<td>最小边数用 BFS</td>
+</tr>
+<tr>
+<td>BFS 最小任意路费</td>
+<td>不等权和不同于边数</td>
+<td>选适当带权算法</td>
+</tr>
+<tr>
+<td>Kahn 阻塞点均在环上</td>
+<td>下游也被阻塞</td>
+<td>给实际有向环见证</td>
+</tr>
+<tr>
+<td>有限安全保证成功</td>
+<td>安全自环可永等</td>
+<td>另声明并证活性</td>
+</tr>
+<tr>
+<td>控制标签是完整状态</td>
+<td>计数、标志、消息影响后继</td>
+<td>包含所需乘积信息</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个 CPU 实验</h2></div>
+<p>脚本仅用 Python 标准库，本地无 GPU。先预测图事实与见证。下载脚本与产生显示输出的执行源完全相同。</p>
+<h3 id="lab1">实验 A 列表、矩阵与错误图输入</h3>
+<p><strong>预测：</strong>写 F 列表与矩阵行，算度和。<strong>运行：</strong>查看两表示，并拒绝自环、重复无向边、未知顶点。<strong>解释：</strong>为何 AB,BA 重复，而全零 F 行必须保留。<strong>修改：</strong>删 AC，预测消失的环，更新边数检查后重跑。</p>
+<p><a href="labs/module_07/lab1_representations.py" download>下载 lab1_representations.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Represent one finite simple undirected graph, including an isolated vertex.&quot;&quot;&quot;
+VERTICES = tuple(&quot;ABCDEF&quot;)
+EDGES = (&quot;AB&quot;, &quot;AC&quot;, &quot;BD&quot;, &quot;CD&quot;, &quot;DE&quot;)
+
+def build_graph(vertices, edges):
+    graph = {v: [] for v in vertices}
+    seen = set()
+    for u, v in edges:
+        if u not in graph or v not in graph or u == v:
+            raise ValueError(&quot;Edges need two distinct declared vertices&quot;)
+        key = frozenset((u, v))
+        if key in seen:
+            raise ValueError(&quot;Repeated undirected edge&quot;)
+        seen.add(key)
+        graph[u].append(v)
+        graph[v].append(u)
+    return {v: sorted(neighbours) for v, neighbours in graph.items()}
+
+graph = build_graph(VERTICES, EDGES)
+matrix = [[int(v in graph[u]) for v in VERTICES] for u in VERTICES]
+print(&quot;Adjacency lists:&quot;, graph)
+print(&quot;Matrix order:&quot;, &quot; &quot;.join(VERTICES))
+for v, row in zip(VERTICES, matrix):
+    print(v, &quot; &quot;.join(map(str, row)))
+degrees = [len(graph[v]) for v in VERTICES]
+assert sum(degrees) == 2 * len(EDGES)
+assert all(matrix[i][j] == matrix[j][i] for i in range(6) for j in range(6))
+print(&quot;Degrees:&quot;, degrees, &quot;; sum =&quot;, sum(degrees), &quot;; 2|E| =&quot;, 2 * len(EDGES))
+print(&quot;Isolated vertices:&quot;, [v for v in VERTICES if not graph[v]])
+for label, edges in [(&quot;loop&quot;, (&quot;AA&quot;,)), (&quot;duplicate&quot;, (&quot;AB&quot;, &quot;BA&quot;)), (&quot;unknown&quot;, (&quot;AZ&quot;,))]:
+    try:
+        build_graph(VERTICES, edges)
+    except ValueError as error:
+        print(&quot;Rejected&quot;, label + &quot;:&quot;, error)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Adjacency lists: {'A': ['B', 'C'], 'B': ['A', 'D'], 'C': ['A', 'D'], 'D': ['B', 'C', 'E'], 'E': ['D'], 'F': []}
+Matrix order: A B C D E F
+A 0 1 1 0 0 0
+B 1 0 0 1 0 0
+C 1 0 0 1 0 0
+D 0 1 1 0 1 0
+E 0 0 0 1 0 0
+F 0 0 0 0 0 0
+Degrees: [2, 2, 2, 3, 1, 0] ; sum = 10 ; 2|E| = 10
+Isolated vertices: ['F']
+Rejected loop: Edges need two distinct declared vertices
+Rejected duplicate: Repeated undirected edge
+Rejected unknown: Edges need two distinct declared vertices
+</code></pre></div>
+<h3 id="lab2">实验 B 遍历与拓扑证书</h3>
+<p><strong>预测：</strong>A 源 BFS 距离、递归 DFS 前序、有效依赖序。<strong>运行：</strong>读父节点与局部距离不等式断言。<strong>解释：</strong>为何 C 的 DFS 父路可长于 BFS，E 可阻塞却不在环。<strong>修改：</strong>逆邻居顺序，区分变动父选择与不变最短距离。堆按字母选就绪点，另有开销。</p>
+<p><a href="labs/module_07/lab2_traversals.py" download>下载 lab2_traversals.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Deterministic traversal certificates and dependency orders, not weighted paths.&quot;&quot;&quot;
+from collections import deque
+from heapq import heapify, heappop, heappush
+
+GRAPH = {&quot;A&quot;: [&quot;B&quot;, &quot;C&quot;], &quot;B&quot;: [&quot;A&quot;, &quot;D&quot;], &quot;C&quot;: [&quot;A&quot;, &quot;D&quot;],
+         &quot;D&quot;: [&quot;B&quot;, &quot;C&quot;, &quot;E&quot;], &quot;E&quot;: [&quot;D&quot;], &quot;F&quot;: []}
+
+def bfs(graph, source):
+    distance, parent, order = {source: 0}, {source: None}, []
+    queue = deque([source])
+    while queue:
+        u = queue.popleft()
+        order.append(u)
+        for v in graph[u]:
+            if v not in distance:  # Mark at discovery, before queueing.
+                distance[v], parent[v] = distance[u] + 1, u
+                queue.append(v)
+    return order, distance, parent
+
+def dfs(graph, source):
+    seen, preorder, postorder = set(), [], []
+    def visit(u):
+        seen.add(u)
+        preorder.append(u)
+        for v in graph[u]:
+            if v not in seen:
+                visit(v)
+        postorder.append(u)
+    visit(source)
+    return preorder, postorder
+
+def topological(graph):
+    indegree = dict.fromkeys(graph, 0)
+    for neighbours in graph.values():
+        for v in neighbours:
+            indegree[v] += 1
+    ready = [v for v in graph if indegree[v] == 0]
+    heapify(ready)  # Alphabetic tie-breaking, with heap overhead.
+    order = []
+    while ready:
+        u = heappop(ready)
+        order.append(u)
+        for v in graph[u]:
+            indegree[v] -= 1
+            if indegree[v] == 0:
+                heappush(ready, v)
+    return order, sorted(v for v in graph if indegree[v] &gt; 0)
+
+order, distance, parent = bfs(GRAPH, &quot;A&quot;)
+assert distance == {&quot;A&quot;: 0, &quot;B&quot;: 1, &quot;C&quot;: 1, &quot;D&quot;: 2, &quot;E&quot;: 3}
+for u, neighbours in GRAPH.items():
+    if u in distance:
+        for v in neighbours:
+            assert v in distance and distance[v] &lt;= distance[u] + 1
+for v, p in parent.items():
+    if p is not None:
+        assert v in GRAPH[p] and distance[v] == distance[p] + 1
+print(&quot;BFS order:&quot;, order)
+print(&quot;Distances:&quot;, distance, &quot;; F is unreachable&quot;)
+print(&quot;Parents:&quot;, parent)
+print(&quot;DFS preorder/postorder:&quot;, dfs(GRAPH, &quot;A&quot;))
+dag = {&quot;A&quot;: [&quot;C&quot;], &quot;B&quot;: [&quot;C&quot;], &quot;C&quot;: [&quot;D&quot;, &quot;E&quot;], &quot;D&quot;: [], &quot;E&quot;: []}
+order, blocked = topological(dag)
+position = {v: i for i, v in enumerate(order)}
+assert not blocked and all(position[u] &lt; position[v] for u in dag for v in dag[u])
+print(&quot;DAG topological order:&quot;, order)
+cyclic = {v: neighbours[:] for v, neighbours in dag.items()}
+cyclic[&quot;D&quot;].append(&quot;A&quot;)
+print(&quot;After adding D-&gt;A, processed/blocked:&quot;, topological(cyclic))
+cycle = [&quot;A&quot;, &quot;C&quot;, &quot;D&quot;, &quot;A&quot;]
+assert all(v in cyclic[u] for u, v in zip(cycle, cycle[1:]))
+print(&quot;Cycle witness:&quot;, &quot; -&gt; &quot;.join(cycle))
+print(&quot;Weighted trap: direct A-&gt;E costs 10; A-&gt;B-&gt;E costs 2. Fewest edges is not cheapest.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>BFS order: ['A', 'B', 'C', 'D', 'E']
+Distances: {'A': 0, 'B': 1, 'C': 1, 'D': 2, 'E': 3} ; F is unreachable
+Parents: {'A': None, 'B': 'A', 'C': 'A', 'D': 'B', 'E': 'D'}
+DFS preorder/postorder: (['A', 'B', 'D', 'C', 'E'], ['C', 'E', 'D', 'B', 'A'])
+DAG topological order: ['A', 'B', 'C', 'D', 'E']
+After adding D-&gt;A, processed/blocked: (['B'], ['A', 'C', 'D', 'E'])
+Cycle witness: A -&gt; C -&gt; D -&gt; A
+Weighted trap: direct A-&gt;E costs 10; A-&gt;B-&gt;E costs 2. Fewest edges is not cheapest.
+</code></pre></div>
+<h3 id="lab3">实验 C 有界协议修复</h3>
+<p><strong>预测：</strong>send,retry,timeout 后评安全谓词。<strong>运行：</strong>比较错误与修复可达态。<strong>解释：</strong>五态结论范围，以及无限超时执行。<strong>修改：</strong>允许第三次发送，一致扩计数域与后继规则，再检查相同修复。不能把此玩具模型说成已验证的网络协议。</p>
+<p><a href="labs/module_07/lab3_protocol.py" download>下载 lab3_protocol.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Exhaustively explore a deliberately bounded, two-control-state retry model.&quot;&quot;&quot;
+from collections import deque
+
+START = (&quot;idle&quot;, 0, False)  # control, number of sends, acknowledgement seen
+
+def successors(state, faulty):
+    mode, count, ack = state
+    if mode == &quot;idle&quot; and count == 0 and not ack:
+        yield &quot;send&quot;, (&quot;waiting&quot;, 1, False)
+    if mode == &quot;waiting&quot;:
+        if count &lt; 2:
+            yield &quot;retry&quot;, (&quot;waiting&quot;, count + 1, ack)
+        yield &quot;ack&quot;, (&quot;idle&quot;, count, True)
+        if count == 2:
+            yield &quot;timeout&quot;, (&quot;idle&quot;, count, ack) if faulty else state
+
+def safe(state):
+    mode, count, ack = state
+    return mode != &quot;idle&quot; or count == 0 or ack
+
+def explore(faulty):
+    queue, paths = deque([START]), {START: []}
+    while queue:
+        state = queue.popleft()
+        for event, target in successors(state, faulty):
+            if target not in paths:
+                paths[target] = paths[state] + [event]
+                queue.append(target)
+    return paths
+
+for faulty in (True, False):
+    paths = explore(faulty)
+    bad = [(state, path) for state, path in paths.items() if not safe(state)]
+    print(&quot;faulty =&quot;, faulty, &quot;; reachable =&quot;, len(paths), &quot;; unsafe =&quot;, len(bad))
+    for state, path in bad:
+        print(&quot;Witness:&quot;, &quot; -&gt; &quot;.join(path), &quot;; state =&quot;, state)
+    assert bool(bad) == faulty
+    if not faulty:
+        assert len(paths) == 5 and (&quot;idle&quot;, 2, False) not in paths
+print(&quot;Repair: timeout stays waiting; safety does not guarantee acknowledgement or termination.&quot;)
+print(&quot;Scope: two sends maximum, no cancellation, one request, no delayed messages or concurrency.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>faulty = True ; reachable = 6 ; unsafe = 1
+Witness: send -&gt; retry -&gt; timeout ; state = ('idle', 2, False)
+faulty = False ; reachable = 5 ; unsafe = 0
+Repair: timeout stays waiting; safety does not guarantee acknowledgement or termination.
+Scope: two sends maximum, no cancellation, one request, no delayed messages or concurrency.
+</code></pre></div>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>练习与完整解答</h2></div>
+<p>1–12 必做，13–14 扩展。按声明图约定证明，环见证要实际边序列。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">5 分钟</span></div>
+<p>例图中列 D 邻居、度和与连通分量。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>D 邻居 B,C,E，度三。2,2,2,3,1,0 和十，是五边两倍。分量 {A,B,C,D,E} 与 {F}，无边到 F。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">5 分钟</span></div>
+<p>有向边 A→B,A→C,C→B，按 A,B,C 列入度、出度并检查和。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>入度 0,2,1，出度 2,0,1，各和三等于边数，合计六端点关联。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">5 分钟</span></div>
+<p>十二点四分量森林多少边？能是树吗？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>四分量的 nᵢ−1 求和得 12−4=8。四分量非一个，故不是树。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">概念</span><span class="exercise-time">5 分钟</span></div>
+<p>从 A 到 D,E,F 的 BFS 距离，及证实 E 标记的路径。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>D 二、E 三、F 不可达。A,B,D,E 三边。F 不在有限距离映射中是有意设计，不是距离零。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>证明有限简单无向图度和恒等式，并推奇数度点数为偶。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>按顶点计关联得度和，按边每边两次得 2e，故和偶。去掉偶数项仍偶；k 奇数项和与 k 同奇偶，所以 k 偶。孤立点贡献零，也包括在内。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>删叶归纳证树边定理，包含叶存在与保连通。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>n=1 零边。n&gt;1 有限保证最长路径，端点其他邻居要么延长，要么成环，故是叶。删叶与边后无环，余点路径不会把度一叶作内部点，仍连通。归纳余树 n−2 边，恢复得 n−1。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>证有限非空 DAG 有零入度点，解释有限性。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>若每点有前驱，反复选前驱。有限集合必重复，沿所选前驱边的正向得到有向环，矛盾。以整数索引的无限链可处处有前驱却无有限环，因此不能对无限域假设重复。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>边 A→C,B→C,C→D,C→E，验证 B,A,C,E,D。时长 A,B,C,D,E 为 2,5,3,4,1，无限工作者，算最早完成。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>五点恰一次，每边源在目标前。A=2,B=5,C=max(2,5)+3=8,D=12,E=9，总完工十二。串行总工作十五，两者假设不同。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>证书有合法父路径、源零，以及所有有标签 u 出边 d(v)≤d(u)+1，后继均有标签。为何证明最少边数？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>父路径长 d(v)，故最短≤d(v)。沿任意长 k 的源路径串联边不等式得 d(v)≤k，尤其 d(v)≤最短。两界给相等。后继闭包防遗漏可达顶点。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>声明协议完整元组、安全谓词，跟踪最短错误超时见证，说明修复检查真正结论。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>元组 (control,send_count,ack_seen)，安全为 idle 且 count&gt;0 蕴涵 ack_seen。send,retry,timeout 从 (idle,0,false) 达 (idle,2,false)，违反安全。超时仅次数二启用，故需三事件。修复超时为 waiting 自环，单请求有界模型五可达态全安全。最终确认与更大实现是另一个结论。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>“四点三边所以树”找反例修正，再诊断“所有阻塞任务都在环”。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>三角加孤立点 v=4,e=3，却不连通有环。加连通：生成树需 v−1 边，有额外环可删边保连通，与最小数矛盾。Kahn 下游也可阻塞，修改 DAG 的 E 即例。判环要给闭合边序列。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>BFS 选权十直接边而不选两条各一的边。开发者说最短路已证，又说安全超时自环保证送达。诊断两结论。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>BFS 证最少边数，不证不等权和最小；两边路线成本二。超时自环可永保安全而从不确认。送达是活性，要另有进展论证与环境假设。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>扩展：证有限简单无向图的边为桥，当且仅当它不在环上。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>边在环时，余环可替代端点路线，删边保原分量连通。反之若删边不分离端点，剩图有替代端点路径，加原边成包含它的环。若端点分离，分量数增加，即桥定义。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">application</span><span class="exercise-time">20 分钟</span></div>
+<p>扩展：修复协议允许三次发送，预测可达元组，并解释无限连续超时对安全与活性的影响。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>初始 (idle,0,false)，waiting(k,false) k=1,2,3，以及 idle(k,true) k=1,2,3，共七态。重试增加到三，确认返回且标志真。最大次数超时自环不增加不安全元组，故仍安全；无限自环无确认，活性未建立。七态检查仍排无界计数与并发请求。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>自测测验</h2></div>
+<p>自动分数覆盖 1–9，10 书面自评。两活动要求的证据类型不同。</p>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>简单无向边是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">顶点集的二元子集</button></li><li><button type="button" class="quiz-opt" data-i="1">反向必不同的有序对</button></li><li><button type="button" class="quiz-opt" data-i="2">绘图中任意线交叉</button></li></ol><div class="quiz-expl" hidden>无序对连接不同端点；方向属有向模型，交叉除非声明不是顶点。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>无向度和等于？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">|E|</button></li><li><button type="button" class="quiz-opt" data-i="1">2|E|</button></li><li><button type="button" class="quiz-opt" data-i="2">任意图的 |V|−1</button></li></ol><div class="quiz-expl" hidden>每边两关联。|E| 是有向入度或出度和，|V|−1 是树边数，不是一般度和。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>本模块有限树定义？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">仅恰 v−1 边</button></li><li><button type="button" class="quiz-opt" data-i="1">仅无孤立点</button></li><li><button type="button" class="quiz-opt" data-i="2">非空、连通、无向、无环</button></li></ol><div class="quiz-expl" hidden>连通与无环都要。三角加孤立点反驳边数条件；无孤立也可有环。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>BFS 为何先标记再入队？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">防不同前驱造成重复入队</button></li><li><button type="button" class="quiz-opt" data-i="1">无需出边</button></li><li><button type="button" class="quiz-opt" data-i="2">让不等权变等权</button></li></ol><div class="quiz-expl" hidden>发现标记控制重复工作；仍需边，且不改变权。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>普通 BFS 最小化什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">任意边权和</button></li><li><button type="button" class="quiz-opt" data-i="1">源路径边数</button></li><li><button type="button" class="quiz-opt" data-i="2">路径字母顺序</button></li></ol><div class="quiz-expl" hidden>FIFO 分层给最少边数，不等权需另论证，字母邻居仅打破发现平局。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>怎样验证拓扑序？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">标签按字母排</button></li><li><button type="button" class="quiz-opt" data-i="1">每点入度偶</button></li><li><button type="button" class="quiz-opt" data-i="2">每点一次且每边在序中向前</button></li></ol><div class="quiz-expl" hidden>排列与边条件都要，标签排序和度奇偶不证依赖顺序。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>Kahn 阻塞集合可包含？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">环点与环下游点</button></li><li><button type="button" class="quiz-opt" data-i="1">仅在环上的点</button></li><li><button type="button" class="quiz-opt" data-i="2">仅孤立点</button></li></ol><div class="quiz-expl" hidden>下游前驱也未完成，孤立点零入度可处理。环部分需明确环见证。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>实验完整协议状态？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">只有控制标签</button></li><li><button type="button" class="quiz-opt" data-i="1">控制、发送次数、确认标志的元组</button></li><li><button type="button" class="quiz-opt" data-i="2">只有上一事件名</button></li></ol><div class="quiz-expl" hidden>三分量影响后继与谓词，控制或事件单独丢相关信息。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>修复有限探索建立什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">每网络请求最终成功</button></li><li><button type="button" class="quiz-opt" data-i="1">所有无限并发实现安全</button></li><li><button type="button" class="quiz-opt" data-i="2">指定有界模型所有可达状态满足安全</button></li></ol><div class="quiz-expl" hidden>模型明确有限且受限制，超时自环排除自动活性结论，真实覆盖需另论证。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m07:q10">
+<label for="q10-response">10. 解释 BFS 标签为何最少边数。包括父路径见证、边不等式及带权成本限制。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="声明图假设，并写证书两个方向的论证。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我已与模型比较，并包含图假设。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>有限无权图源标签零、合法父边给长 d(v) 的源路径，故最短≤d(v)。后继闭包与每边 d(v)≤d(u)+1 使 d(v)≤任意源路长，故≤最短。合得相等。普通 BFS 的 FIFO 分层产生该证书。不等权使边数与总权不同，此证不优化权和。回答必须含两不等式，不能只说队列“看起来最短”。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>带着问题阅读</h2></div>
+<p>用 <a href="https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/" target="_blank" rel="noopener">MIT Mathematics for Computer Science</a> 的图、树、状态机选段。用 <a href="https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2005/resources/slides5m/" target="_blank" rel="noopener">MIT 握手、连通与树讲义</a> 比约定。在 <a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/pages/lecture-notes/" target="_blank" rel="noopener">MIT 6.006 讲义</a> 读 BFS、DFS 与拓扑排序。这些是外部一手阅读，本课与必做练习原创。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>选段与问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>学习时段 2 · 15 分钟</td>
+<td>树与 BFS：有限性与无权假设在哪步使用？</td>
+</tr>
+<tr>
+<td>学习时段 4 · 5 分钟</td>
+<td>状态机：哪些分量决定后继，哪个结论是安全性？</td>
+</tr>
+</tbody>
+</table></div>
+<p>阅读用于比较定义与论证。先协调路径、叶、高度约定差异，再迁移公式。</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>回忆、结业任务与下一步</h2></div>
+<p>不看笔记定义本课树、证边数、描述 BFS 发现规则，给有效拓扑序与环见证。解释最少边证书不优化任意权，为何安全有限协议不一定最终送达。</p>
+<p><strong>结业任务：</strong>加孤立 G，给新度和与分量数，解释 A 距离不变及全图生成森林。遍历森林有七点三分量，故四条发现边。原图仍五边、度和十，非森林环边不属于发现边。</p>
+<p><strong>前进标准：</strong>可区分抽象图、表示、遍历见证与正确性结论范围。离散分支下一步学模运算与可逆性，见<a href="index_ZH.html">课程总览</a>了解可用课程。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>记法与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语或符号</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>V,E</td>
+<td>顶点集、边集</td>
+<td>Vertex set, edge set</td>
+</tr>
+<tr>
+<td>度、入度、出度</td>
+<td>无向关联、进入与离开计数</td>
+<td>Degree / indegree / outdegree</td>
+</tr>
+<tr>
+<td>游走、路径、环</td>
+<td>边序列、顶点不重复、闭合简单路线</td>
+<td>Walk / path / cycle</td>
+</tr>
+<tr>
+<td>连通分量、桥</td>
+<td>连通类、删除后分离的边</td>
+<td>Component / bridge</td>
+</tr>
+<tr>
+<td>树、森林</td>
+<td>连通非空无环图、无环图</td>
+<td>Tree / forest</td>
+</tr>
+<tr>
+<td>根、父节点、深度、高度</td>
+<td>选定原点、前驱、边距离、最大深度</td>
+<td>Root / parent / depth / height</td>
+</tr>
+<tr>
+<td>BFS / DFS</td>
+<td>广度优先、深度优先搜索</td>
+<td>Breadth-first / depth-first search</td>
+</tr>
+<tr>
+<td>DAG / 拓扑序</td>
+<td>有向无环图、符合依赖的排列</td>
+<td>DAG / topological order</td>
+</tr>
+<tr>
+<td>乘积状态、不变式</td>
+<td>完整分量元组、被保持谓词</td>
+<td>Product state / invariant</td>
+</tr>
+<tr>
+<td>安全性、活性</td>
+<td>禁止行为不发生、期望进展最终发生</td>
+<td>Safety / liveness</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_06_ZH.html">← 模块 06</a><a href="module_08_ZH.html">模块 08 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

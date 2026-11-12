@@ -1,0 +1,364 @@
+{
+  "title": "大语言模型后训练",
+  "title_em": "后训练",
+  "lead": "将基座模型变为助手：监督微调及其机制、低秩适配器、奖励模型与 RLHF、完整推导的 DPO，以及使用可验证奖励的强化学习。最后通过评估判断这些训练是否真正有效。",
+  "prerequisites": [
+    "模块 01：期望校准误差、标准误、自助法和两个模型的成对比较",
+    "模块 02：反向传播、AdamW、含预热的学习率调度和混合精度",
+    "模块 06：解码器块、因果掩码、绑定嵌入、参数计数和 FLOP 约定",
+    "模块 07：分词与特殊 token、采样与解码、幻觉、校准与弃权评分规则，以及贯穿案例及其工作负载",
+    "模块 08：训练参数每个 16 字节的内存核算、激活检查点、序列打包、预留对话 token，以及案例的继续预训练",
+    "概率：逻辑函数、伯努利和二项随机变量、期望、以纳特为单位的 KL 散度，以及比例的标准误",
+    "微积分：拉格朗日乘子和对数导数恒等式 d log f = df / f"
+  ],
+  "outcomes": [
+    "渲染对话模板，写出助手 token 上的带掩码 SFT 损失，并诊断模板、轮次结束和未训练特殊 token 的失败。",
+    "从零实现 LoRA，统计可训练参数，将其精确合并到基座权重，并核算 9.5B 案例模型的 LoRA 与 QLoRA 训练内存。",
+    "推导 Bradley–Terry 模型，用比较训练奖励模型，并在明确的标签噪声模型下评估正确率、校准和过度优化。",
+    "推导带基线的策略梯度，解释 PPO 裁剪目标，以及使用 PPO 的 RLHF 为什么同时保留四个模型。",
+    "推导 KL 正则化目标的闭式最优解及由此得到的 DPO 损失，实现 DPO，并识别离策略偏好对造成的似然位移。",
+    "实现包含组相对优势和 KL 项的 GRPO，预测哪些组没有任务优势信号，并设计已测试退化输出无法轻易通过的可验证奖励。",
+    "构建使用程序化检查器的行为评估集，报告通过率、自助法置信区间、成对差值和精确检验。",
+    "解释拒绝、弃权、诚实性和工具使用如何训练，以及过度拒绝、谄媚和猜测如何由训练信号产生。",
+    "为领域模型制定后训练方案，明确数据、计算核算和晋升门槛，并说明每项选择的理由。"
+  ],
+  "software": [
+    "Python 3.11+",
+    "PyTorch 2.x（CPU 即可；也可选用 Google Colab GPU）",
+    "NumPy、matplotlib、SciPy",
+    "Hugging Face transformers（实验 1、2、6）",
+    "下载 HuggingFaceTB/SmolLM2-135M，约 270 MB（实验 1、2，以及实验 6 的基座模型）",
+    "下载 HuggingFaceTB/SmolLM2-135M-Instruct，约 270 MB（实验 6）"
+  ],
+  "sessions": [
+    {
+      "n": 1,
+      "title": "从基座模型到助手：监督微调",
+      "activities": [
+        {
+          "what": "阅读第 1 节：后训练的用途",
+          "kind": "read",
+          "minutes": 11,
+          "refs": [
+            "s1"
+          ]
+        },
+        {
+          "what": "练习 1：为行为选择训练阶段",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e1"
+          ]
+        },
+        {
+          "what": "阅读第 2–3 节：SFT 数据、机制与局限",
+          "kind": "read",
+          "minutes": 35,
+          "refs": [
+            "s2",
+            "s3"
+          ]
+        },
+        {
+          "what": "实验 1：对 SmolLM2-135M 做提示词损失掩码的 SFT",
+          "kind": "lab",
+          "minutes": 40,
+          "refs": [
+            "lab1"
+          ]
+        },
+        {
+          "what": "练习 2：损失掩码与归一化",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e2"
+          ]
+        },
+        {
+          "what": "阅读第 4 节：LoRA 与 QLoRA",
+          "kind": "read",
+          "minutes": 23,
+          "refs": [
+            "s4"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "title": "适配器、奖励模型与 RLHF 目标",
+      "activities": [
+        {
+          "what": "实验 2：从零实现 LoRA、训练、合并并验证",
+          "kind": "lab",
+          "minutes": 30,
+          "refs": [
+            "lab2"
+          ]
+        },
+        {
+          "what": "练习 3–4：LoRA 初始化，以及 9.5B 模型的 LoRA、QLoRA 内存",
+          "kind": "exercises",
+          "minutes": 15,
+          "refs": [
+            "e3",
+            "e4"
+          ]
+        },
+        {
+          "what": "阅读第 5 节：偏好与奖励模型",
+          "kind": "read",
+          "minutes": 18,
+          "refs": [
+            "s5"
+          ]
+        },
+        {
+          "what": "实验 3：真实奖励已知的 Bradley–Terry 奖励模型",
+          "kind": "lab",
+          "minutes": 25,
+          "refs": [
+            "lab3"
+          ]
+        },
+        {
+          "what": "练习 5：Gumbel 噪声推导、偏移不变性与 Elo",
+          "kind": "exercises",
+          "minutes": 10,
+          "refs": [
+            "e5"
+          ]
+        },
+        {
+          "what": "阅读第 6 节：使用 PPO 的 RLHF",
+          "kind": "read",
+          "minutes": 20,
+          "refs": [
+            "s6"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "title": "直接偏好优化",
+      "activities": [
+        {
+          "what": "论文导读：InstructGPT（Ouyang 等人，2022）",
+          "kind": "papers",
+          "minutes": 12,
+          "refs": [
+            "reading"
+          ]
+        },
+        {
+          "what": "阅读第 7 节：DPO，并操作 KL 正则化策略探索器",
+          "kind": "read",
+          "minutes": 25,
+          "refs": [
+            "s7"
+          ]
+        },
+        {
+          "what": "实验 4：从零实现 DPO，先做精确多臂老虎机检验，再比较在策略和离策略偏好对",
+          "kind": "lab",
+          "minutes": 30,
+          "refs": [
+            "lab4"
+          ]
+        },
+        {
+          "what": "练习 6–8：推导 pi* 和 DPO 损失、似然位移，以及 PPO、DPO、GRPO 的计算次数与内存",
+          "kind": "exercises",
+          "minutes": 30,
+          "refs": [
+            "e6",
+            "e7",
+            "e8"
+          ]
+        },
+        {
+          "what": "论文导读：DPO（Rafailov 等人，2023）",
+          "kind": "papers",
+          "minutes": 18,
+          "refs": [
+            "reading"
+          ]
+        },
+        {
+          "what": "阅读第 8 节：采样、验证、保留",
+          "kind": "read",
+          "minutes": 12,
+          "refs": [
+            "s8"
+          ]
+        },
+        {
+          "what": "练习 9：覆盖率、专家迭代与 best-of-n 的移动范围",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e9"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "title": "可验证奖励强化学习、安全与诚实性",
+      "activities": [
+        {
+          "what": "阅读第 9 节：GRPO 和可验证奖励 RL，并操作组探索器",
+          "kind": "read",
+          "minutes": 24,
+          "refs": [
+            "s9"
+          ]
+        },
+        {
+          "what": "实验 5：专家迭代、GRPO 和有缺陷的验证器",
+          "kind": "lab",
+          "minutes": 35,
+          "refs": [
+            "lab5"
+          ]
+        },
+        {
+          "what": "练习 10–11：GRPO 优势与信号，以及可验证故障树奖励",
+          "kind": "exercises",
+          "minutes": 35,
+          "refs": [
+            "e10",
+            "e11"
+          ]
+        },
+        {
+          "what": "论文导读：DeepSeek-R1（DeepSeek-AI，2025）",
+          "kind": "papers",
+          "minutes": 15,
+          "refs": [
+            "reading"
+          ]
+        },
+        {
+          "what": "阅读第 10 节：安全、拒绝与诚实性",
+          "kind": "read",
+          "minutes": 14,
+          "refs": [
+            "s10"
+          ]
+        },
+        {
+          "what": "练习 12：偏好训练后的校准与弃权",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e12"
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "title": "工具、评估、合并与贯穿案例",
+      "activities": [
+        {
+          "what": "阅读第 11–12 节：工具、智能体与评估",
+          "kind": "read",
+          "minutes": 24,
+          "refs": [
+            "s11",
+            "s12"
+          ]
+        },
+        {
+          "what": "实验 6：包含自助法置信区间和模拟评判者的行为测试集",
+          "kind": "lab",
+          "minutes": 25,
+          "refs": [
+            "lab6"
+          ]
+        },
+        {
+          "what": "练习 13–14：McNemar 成对比较与评判偏差",
+          "kind": "exercises",
+          "minutes": 15,
+          "refs": [
+            "e13",
+            "e14"
+          ]
+        },
+        {
+          "what": "阅读第 13 节：合并与平均",
+          "kind": "read",
+          "minutes": 8,
+          "refs": [
+            "s13"
+          ]
+        },
+        {
+          "what": "练习 15：合并两个适配器",
+          "kind": "exercises",
+          "minutes": 5,
+          "refs": [
+            "e15"
+          ]
+        },
+        {
+          "what": "阅读第 14 节：案例的后训练方案",
+          "kind": "read",
+          "minutes": 17,
+          "refs": [
+            "s14"
+          ]
+        },
+        {
+          "what": "阅读常见问题",
+          "kind": "read",
+          "minutes": 5,
+          "refs": [
+            "wrong"
+          ]
+        },
+        {
+          "what": "自测测验",
+          "kind": "quiz",
+          "minutes": 15,
+          "refs": [
+            "quiz"
+          ]
+        },
+        {
+          "what": "总结与回顾：凭记忆重画图 9.1，为每阶段标注损失、数据和失败模式",
+          "kind": "review",
+          "minutes": 10,
+          "refs": [
+            "summary"
+          ]
+        }
+      ]
+    }
+  ],
+  "labs": [
+    {
+      "title": "只对助手 token 计算损失的 SFT"
+    },
+    {
+      "title": "从零实现 LoRA、训练并精确合并"
+    },
+    {
+      "title": "学习比较奖励，并观察过度优化"
+    },
+    {
+      "title": "从解析检验到似然位移的 DPO"
+    },
+    {
+      "title": "专家迭代、GRPO 与接受含糊答案的验证器"
+    },
+    {
+      "title": "小型测试集中的行为检查器与不确定性"
+    }
+  ]
+}

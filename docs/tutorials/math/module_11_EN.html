@@ -1,0 +1,516 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vector spaces, bases, rank, and identifiability — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Prove subspace and basis claims, compute four fundamental spaces, derive rank–nullity, and distinguish unique predictions from unique parameters."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="11"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 11</button><div class="dropdown-menu" id="module-menu"><a href="module_11_EN.html" class="active" aria-current="page">Vector spaces, bases, rank, and identifiability</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="module_11_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>A representation can be redundant even when its predictions are clear</span></a><a href="#s1"><span class="num">2</span><span>Vector spaces and the subspace test</span></a><a href="#s2"><span class="num">3</span><span>Span dependence and independent information</span></a><a href="#s3"><span class="num">4</span><span>Bases dimension and changes of coordinates</span></a><a href="#s4"><span class="num">5</span><span>The four fundamental spaces and their ambient dimensions</span></a><a href="#s5"><span class="num">6</span><span>Rank–nullity and the full solution family</span></a><a href="#s6"><span class="num">7</span><span>Identifiability structural redundancy and numerical rank</span></a><a href="#misconceptions"><span class="num">8</span><span>Common misconceptions</span></a><a href="#labs"><span class="num">9</span><span>Three CPU labs</span></a><a href="#exercises"><span class="num">10</span><span>Exercises with complete solutions</span></a><a href="#quiz"><span class="num">11</span><span>Ten-question self-check</span></a><a href="#reading"><span class="num">12</span><span>Reading with a purpose</span></a><a href="#summary"><span class="num">13</span><span>Retrieval exit task and next step</span></a><a href="#terms"><span class="num">14</span><span>Notation and bilingual terminology</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">Vector spaces, bases, rank, and identifiability</h1><p class="module-lead">Prove subspace and basis claims, compute four fundamental spaces, derive rank–nullity, and distinguish unique predictions from unique parameters.</p><div class="hero-chips"><span class="chip chip-time">10 hours</span><span class="chip">4 sessions</span><span class="chip">3 labs</span><span class="chip">12 exercises + 2 extensions</span><span class="chip">10 quiz questions</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Test subspace closure with complete quantifiers and counterexamples.</li><li>Find a spanning independent basis and unique basis coordinates.</li><li>Distinguish row, column, null and left-null spaces with their ambient dimensions.</li><li>Prove finite-dimensional rank–nullity and classify Ax=b using it.</li><li>Exhibit parameter families with identical predictions and delimit training-only equivalence.</li><li>Report exact rank separately from scale- and tolerance-dependent numerical rank.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Modules 04 and 10: proof structure, linear maps, equivalent row operations, pivots and free variables. NumPy preparation is needed for the numerical labs.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">A representation can be redundant even when its predictions are clear</a><a href="#s1">Vector spaces and the subspace test</a><a href="#s2">Span dependence and independent information</a><a href="#s3">Bases dimension and changes of coordinates</a><a href="#s4">The four fundamental spaces and their ambient dimensions</a><a href="#s5">Rank–nullity and the full solution family</a><a href="#s6">Identifiability structural redundancy and numerical rank</a><a href="#misconceptions">Common misconceptions</a><a href="#labs">Three CPU labs</a><a href="#exercises">Exercises with complete solutions</a><a href="#quiz">Ten-question self-check</a><a href="#reading">Reading with a purpose</a><a href="#summary">Retrieval exit task and next step</a><a href="#terms">Notation and bilingual terminology</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">10 hours</span></div><p class="plan-lead">Times include practice and are estimates. Split a session when useful. Optional extension exercises add 35 minutes. Progress is stored in this browser and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">150 min</span></div><div class="session-title">Spaces span and independence</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2 and prove the closure test.</a></span><span class="act-min">75</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Complete fluency Exercises 1–4.</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read vector-space and basis selections.</a></span><span class="act-min">21</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Explain the zero vector, span and dependence without notes.</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m11:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">150 min</span></div><div class="session-title">Coordinates and four fundamental spaces</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Sections 3–4 and track ambient dimensions.</a></span><span class="act-min">55</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Run exact elimination and verify null-space bases.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e5">Complete proof Exercises 5–7.</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m11:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">150 min</span></div><div class="session-title">Rank–nullity and equivalent parameters</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s5">Read Sections 5–6; follow the basis-extension proof.</a></span><span class="act-min">61</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Compare equivalent weights on training and new records.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Complete application Exercises 8–10.</a></span><span class="act-min">39</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m11:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">150 min</span></div><div class="session-title">Numerical rank and identification limits</div><ul class="acts"><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Contrast exact rank with explicit numerical tolerances.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e11">Diagnose Exercises 11–12.</a></span><span class="act-min">32</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Complete choices and the written equivalence argument.</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read NumPy rank's threshold contract.</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Use the span explorer and complete the exit task.</a></span><span class="act-min">33</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m11:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>A representation can be redundant even when its predictions are clear</h2></div>
+<p>A matrix equation can determine its output while leaving several input coordinates interchangeable. A model containing both Celsius and Fahrenheit measurements plus an intercept supplies a concrete example: those three columns cannot carry three independent directions of information. Different weights can agree on every physically valid temperature record. A different design can agree only on the observed training rows and disagree on the next record. Distinguishing these claims is the purpose of identifiability.</p>
+<p>This lesson turns the pivot calculations from Module 10 into statements about spaces, coordinates and information. You will prove closure, separate spanning from independence, compute all four fundamental spaces, and derive rank–nullity rather than memorising a dimension equation. The final section connects exact algebra with numerical rank policies and parameter interpretation.</p>
+<p><strong>Retrieval check:</strong> explain a reversible augmented-row operation and the meaning of a free variable. Revisit <a href="module_10_EN.html#s3">Module 10</a> and <a href="module_04_EN.html#s1">proof structure</a> if needed. Use <a href="numpy_primer_EN.html">NumPy preparation</a> for the numerical labs. All spaces and scalars here are real; the labs deliberately distinguish exact rational arithmetic from floating-point decisions.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>Vector spaces and the subspace test</h2></div>
+<p>A <strong>vector space</strong> is a set V equipped with addition and scalar multiplication satisfying the familiar laws of coordinate algebra. Addition is associative and commutative, there is an additive identity 0, and every vector has an additive inverse. Scalars distribute over vector addition and their own addition; multiplying scalars successively agrees with their product, and multiplication by one changes nothing. Both operations must stay inside V. Specifying a set alone does not specify a vector space: the operations and scalar field matter too.</p>
+<p>Real coordinate space satisfies these laws component by component. Vectors need not be arrows or arrays. The real polynomials of degree at most two form a vector space under ordinary polynomial addition and scaling: coefficients add and scale, and these operations do not introduce a cubic term. The zero polynomial belongs despite having no ordinary finite degree. Real functions on a fixed domain form another space under pointwise operations. Here the zero vector is the zero function, and equality means agreement at every domain point, not merely agreement at sampled inputs.</p>
+<p>A <strong>subspace</strong> W of V uses the same operations as V and is itself a vector space. A convenient sufficient and necessary test is: W is nonempty and, for every u,v in W and every real a,b, the combination au+bv belongs to W. Necessity follows from closure under the two operations. For sufficiency, nonemptiness supplies some u; choosing both coefficients zero supplies 0, choosing a=−1 gives negatives, and appropriate choices give addition and scaling. The remaining algebraic laws are inherited from V, since the operations are unchanged. This argument explains why an empty set cannot pass the test by vacuous closure alone.</p>
+<p>Many solution sets are subspaces because a homogeneous linear equation respects combinations. If L is linear, L(au+bv)=aL(u)+bL(v). Thus the set of vectors satisfying L(v)=0 contains zero and is closed. Intersections of such sets are subspaces: a combination of two members satisfies every shared homogeneous constraint. This also shows that the intersection of any collection of subspaces is a subspace. Their union need not be one. A vector on the horizontal axis plus a vector on the vertical axis can leave the union of the two axes.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A homogeneous plane and a translated plane</div>
+<p>Let W={(x,y,z):x+y−z=0}. Zero belongs, and for u,v∈W, the constraint on au+bv equals a·0+b·0=0, proving closure for all scalars. The set U={(x,y,z):x+y−z=1} fails immediately because zero does not belong. U is an affine plane: it can be written p+W for any one solution p, such as (1,0,0), but it is not a vector subspace with the inherited operations.</p>
+</div>
+<p>The distinction between a homogeneous subspace and an affine translate is important for feasible sets and model constraints. Given one solution p of Av=b, every other solution differs from p by an element of the kernel: A(v−p)=0. Conversely p+n solves the system for every kernel element n. That statement describes the entire solution set, not merely a convenient way to produce a few examples. A consistent nonhomogeneous system may happen to contain zero only when b=0; otherwise its solution set cannot be a subspace.</p>
+<p>Do not replace the subspace test with the phrase “looks flat.” A ray is straight but fails closure under negative scaling. A bounded line segment fails closure under arbitrary scaling. A sphere fails to contain zero. Two intersecting lines through zero fail closure under addition unless they are the same line. A proof must cover every pair and scalar, whereas one counterexample suffices to disprove closure. In feature engineering, the nonnegative orthant is closed under nonnegative combinations but is not a real vector subspace; that different structure is useful and should receive its own assumptions.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Are polynomials p with p(0)=0 a subspace? What about p(0)=1?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>The first contains zero and satisfies (ap+bq)(0)=a·0+b·0=0. The second omits the zero polynomial. The argument works in either the space of all real polynomials or a specified degree-bounded polynomial space; state which ambient space you use.</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Span dependence and independent information</h2></div>
+<p>The <strong>span</strong> of vectors v₁,…,vₖ is the set of every finite combination a₁v₁+…+aₖvₖ with real coefficients. It is a subspace: zero coefficients supply zero, and adding or scaling combinations simply changes their coefficients. It is also the smallest subspace containing the listed vectors. Any subspace containing them must contain every combination by closure. This gives span a constructive meaning: it describes what directions the representation can express, while the coefficients describe how a particular vector is expressed.</p>
+<p>A list is <strong>linearly independent</strong> when the only combination giving zero is the one with every coefficient zero. It is <strong>dependent</strong> when some nonzero coefficient vector gives zero. “Nonzero coefficient vector” means at least one coefficient differs from zero, not that every coefficient must do so. Rearranging a dependence relation around any nonzero coefficient expresses that listed vector as a combination of the others. Conversely such an expression yields a dependence relation. Hence dependence is exactly a redundancy in a nonempty list. A list containing the zero vector is dependent, and a repeated vector creates dependence even when that vector is nonzero.</p>
+<p>The definition handles boundary cases consistently. The empty list is independent, since there is no nontrivial coefficient choice. Its span is the zero subspace, using the empty sum convention. A one-vector list containing a nonzero vector is independent: av=0 forces a=0 by a nonzero coordinate, or by multiplying by 1/a if a≠0. Two nonzero vectors can be dependent without being identical; one can be any scalar multiple of the other. Independence is a collective property, so testing pairs does not establish independence of three or more vectors.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Three nonparallel pairs can still be redundant</div>
+<p>Let u=(1,0),v=(0,1),w=(1,1). No pair is a scalar-multiple pair, but u+v−w=0 makes the three-vector list dependent. The first two span all of R², and adding w changes neither the span nor the number of independent directions. By contrast, u and 2u span only the horizontal axis. Two listed vectors are not automatically two independent directions.</p>
+</div>
+<p>For a matrix A with these vectors as columns, a coefficient vector c satisfies Ac=0 exactly when its coefficients give a dependence relation. This connects the definition directly to elimination: a nonzero solution of the homogeneous system certifies dependence. If every column has a pivot, there are no free coefficient variables and the columns are independent. If a free column exists, assigning its free variable one and the others zero creates a nonzero relation. The computation supplies a witness, whereas a bare numerical “rank” value can hide which columns are redundant.</p>
+<p>To find a spanning independent subset, process a finite generating list in order. Keep a vector only if it is outside the span of those already kept. The kept list remains independent: a new nontrivial relation with a nonzero new coefficient would express that new vector using the old ones. Each rejected vector is already represented, so the final kept list spans every generator and therefore the original span. This finite greedy argument proves existence of a basis for a finitely generated space. It does not promise a uniquely preferred subset; ordering and the intended interpretation can influence the choice.</p>
+<p>The span concerns exact representability, not automatically similarity, physical meaning or predictive quality. Two feature columns can be algebraically independent yet badly scaled or nearly redundant. Conversely a dependent feature can be a useful named quantity while providing no additional linear direction. Removing redundancy can clarify parameters, but a claim that a feature is unnecessary for every future task would require more than a dependence calculation for one chosen representation and sample.</p>
+<figure class="fig" id="fig-11-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" role="img" aria-label="u=(1,0), v=(0,1), w=(1,1) span a plane; w=u+v makes the three-vector list dependent."><title>Generating list and independent directions</title><desc>u=(1,0), v=(0,1), w=(1,1) span a plane; w=u+v makes the three-vector list dependent.</desc><defs><marker id="fig-11-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="340" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">Three generators, two independent directions</text><path d="M80,255H380M110,285V70" stroke="#94a3b8"/><path d="M110,255L260,255" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-1__arrow)"/><path d="M110,255L110,105" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-1__arrow)"/><path d="M110,255L260,105" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-1__arrow)"/><path d="M260,255V105H110" stroke="#94a3b8" stroke-dasharray="6 5" fill="none"/><text x="275" y="276" text-anchor="start" font-size="20" fill="#1a2e4a">u=(1,0)</text><text x="120" y="88" text-anchor="start" font-size="20" fill="#1a2e4a">v=(0,1)</text><text x="280" y="106" text-anchor="start" font-size="20" fill="#1a2e4a">w=(1,1)</text><rect x="450" y="100" width="270" height="170" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="585" y="151" text-anchor="middle" font-size="28" fill="#1a2e4a">w = u + v</text><text x="585" y="201" text-anchor="middle" font-size="25" fill="#1a2e4a">u + v − w = 0</text><text x="585" y="244" text-anchor="middle" font-size="20" fill="#1a2e4a">Span R²; dimension two</text></g></svg></div><figcaption><span class="fig-num">Figure 11.1</span> <p>Three vectors generate a plane, but the third is the sum of the first two. The generating list and the independent directions are different counts.</p>
+</figcaption></figure>
+<div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" data-widget="spans"></div><div class="widget-caption">
+<p>Choose two generating vectors and a target. Compare a full plane, a line and the zero subspace; obtain an exact representability witness or an inconsistency certificate for these integer presets.</p>
+</div></div>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why does one nonzero solution of Ac=0 establish dependence, while checking Ac≠0 for ten selected nonzero c does not establish independence?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Dependence asks for an existential witness. Independence requires that every coefficient vector solving Ac=0 be zero. A finite selection can miss a null direction. Exact elimination analyses the whole solution set; ten samples analyse only ten choices.</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>Bases dimension and changes of coordinates</h2></div>
+<p>A <strong>basis</strong> is a spanning independent list. Spanning gives an expression for every vector, and independence makes that expression unique: subtracting two expressions for the same vector produces a zero combination, so their coefficients agree term by term. Both conditions are needed. A redundant spanning list can have many coordinate descriptions of the same vector. An independent list that does not span cannot describe all vectors in the space. Basis coordinates therefore depend on both the space and the selected ordered basis.</p>
+<p>If B=(b₁,…,b_d) is a basis, write [v]_B for the coefficient tuple in v=Σcᵢbᵢ. A vector and its coordinate tuple are related by this basis map, but they are not interchangeable without identifying B. With the coordinate unit basis in Rᵈ, the distinction is easily hidden because the tuple entries coincide. For a different basis the tuple changes while the represented vector stays the same. Reordering basis vectors changes the coordinate order. Scaling one basis vector requires an inverse scaling of its corresponding coordinate.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A nonstandard basis changes coordinates</div>
+<p>Take b₁=(1,1),b₂=(1,−1). Solving c₁b₁+c₂b₂=(3,1) gives c₁+c₂=3,c₁−c₂=1, hence coordinates [v]_B=(2,1). The basis matrix P=[[1,1],[1,−1]] maps B-coordinates to standard coordinates: P(2,1)=(3,1). It is invertible, with P⁻¹=[[1/2,1/2],[1/2,−1/2]]. The vector did not move when its coordinate description changed.</p>
+</div>
+<p>Why is the size of a basis well defined? We need a finite exchange argument, not a diagram. Let b₁,…,b_d span V and let u₁,…,u_k be independent. Express u₁ using the spanning list; because it is nonzero, at least one coefficient is nonzero. Solve for that corresponding b and replace it by u₁. The new d-vector list still spans. Suppose the first j−1 independent vectors have already been inserted. Express u_j in the current spanning list. At least one coefficient on a remaining original vector must be nonzero, since otherwise u_j would lie in the span of earlier u’s, contradicting independence. Replace that original vector using the same rearrangement. At each stage one remaining place is used, so the process cannot insert more than d independent vectors. Therefore k≤d.</p>
+<p>Apply this bound to two bases in both directions. The first independent basis has size no greater than the second spanning basis, and vice versa. Their sizes are equal. This common finite size is the <strong>dimension</strong> of V. The zero space has dimension zero and the empty basis. A subspace of a d-dimensional space has dimension at most d, because any independent list in the subspace is also independent in the ambient space. An independent list with d vectors in a d-dimensional space must span: otherwise adding a vector outside its span would create d+1 independent vectors, contradicting the bound.</p>
+<p>The same argument proves basis extension. Start with any independent list in a finite-dimensional space and inspect an existing finite spanning list. Add a generator whenever it is outside the current span. Independence is preserved, and after the generators have been processed the list spans. Thus a basis of a subspace can be extended to a basis of its ambient space. We will use this existence proof in rank–nullity. In computations, the extension can be found through pivots; in a theorem it supplies a logical bridge between local constraints and global dimensions.</p>
+<p>For two bases B and C of the same d-dimensional space, the coordinate-change matrix T has columns [bᵢ]_C. Then [v]_C=T[v]_B by linearity of combinations, and T is invertible because both coordinate descriptions are unique. A map’s matrix also depends on the input and output bases. If input coordinates change by P and output coordinates by Q relative to the original coordinate systems, its new matrix is Q⁻¹AP. For an endomorphism using the same change on both sides this becomes P⁻¹AP. These are descriptions of one map; changing A without the accompanying convention can instead change the map itself.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Is the list (1,0),(0,1),(1,1) a basis of R²? Can its third vector have unique coefficients relative to that whole list?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>It spans but is dependent, so it is not a basis. The third vector has coefficient lists (0,0,1) and (1,1,0), among infinitely many. Unique coordinates follow only after choosing a spanning independent list.</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>The four fundamental spaces and their ambient dimensions</h2></div>
+<p>For an m×n matrix A, the <strong>column space</strong> C(A) is the span of its columns in Rᵐ, equivalently the image {Ax:x∈Rⁿ}. The <strong>row space</strong> R(A) is the span of its rows, regarded as vectors in Rⁿ. The <strong>null space</strong> N(A)={x∈Rⁿ:Ax=0} lives in the input space. The <strong>left null space</strong> N(Aᵀ)={z∈Rᵐ:Aᵀz=0} lives in the output space. The word left refers to zᵀA=0; it does not mean a fifth type of matrix operation. Their ambient dimensions matter before any calculation, especially for a rectangular matrix.</p>
+<p>Reversible row operations preserve the row space, since each new row is a combination of old rows and the inverse operations give the reverse inclusion. They preserve the null space because they preserve the homogeneous equation’s solutions. They usually change the column space as a subset of Rᵐ. If E is the invertible product of row-operation matrices, the reduced matrix is EA and its column space is E applied to the old column space. Equal dimensions do not make these two sets equal. This is why pivot columns selected in a reduced matrix must be taken from the original matrix when constructing a basis for C(A).</p>
+<p>Here is the exact justification for that rule. In echelon form, the pivot columns are independent: inspecting pivot rows from the last to the first forces each coefficient of a zero combination to vanish. Every nonpivot column is their combination. One can solve its coefficients by back substitution on the pivot-row triangular system; rows below the pivots are zero. Thus the pivot columns form a basis for the reduced column space. Applying E⁻¹ to the relation and to the independence claim gives the same column indices as a basis for the original column space. The number of pivots is consequently the column-space dimension.</p>
+<p>The nonzero echelon rows are independent, since their distinct leading positions force a zero combination’s coefficients to vanish from the first leading position onward. They span the echelon row space, which equals the original row space. Therefore the row-space dimension is the same pivot count. We call this common value the <strong>rank</strong> r. This proves equality of row rank and column rank rather than treating the two numbers as an unexplained coincidence. It also yields r≤min(m,n), including zero matrices with rank zero.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">One matrix, four spaces</div>
+<p>For A=[[1,0,1],[0,1,1],[1,1,2]], row three is row one plus row two. Reduction gives [[1,0,1],[0,1,1],[0,0,0]]. Original columns one and two, (1,0,1),(0,1,1), form a column basis. The two nonzero reduced rows form a row basis. Solving Ax=0 gives x₁=−x₃,x₂=−x₃, so N(A)=span{(−1,−1,1)}. A is symmetric, so its left null space has the same basis in this particular example. Both image and row spaces are the plane z=x+y; both null spaces are lines.</p>
+</div>
+<p>Each null vector is perpendicular to every row, because those dot products are the entries of Ax. Each left-null vector is perpendicular to every column, because those dot products are the entries of Aᵀz. These orthogonality statements follow directly from dot products. In particular, if Ax=b, any left-null z must satisfy zᵀb=zᵀAx=0. A nonzero value is an inconsistency certificate. For the example, b=(2,3,5) meets the condition and b=(2,3,6) fails it by one.</p>
+<p>The left-null condition is also sufficient. Reduce [A|b] using E. If no solution exists, echelon form contains a row with zero coefficients and a nonzero constant. The corresponding row zᵀ of E satisfies zᵀA=0 and zᵀb≠0. Therefore if every left-null vector is perpendicular to b, no such contradiction exists, and b belongs to the column space. This proves C(A)=N(Aᵀ)⊥. Applying the argument to Aᵀ also proves R(A)=N(A)⊥. Projection formulas for these perpendicular spaces come in Module 12; this lesson already explains their algebraic role in solvability.</p>
+<figure class="fig" id="fig-11-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 370" role="img" aria-label="For a rank-two 4-by-3 map, input row and null spaces have dimensions two and one; output column and left-null spaces each have dimension two."><title>Input-side and output-side spaces</title><desc>For a rank-two 4-by-3 map, input row and null spaces have dimensions two and one; output column and left-null spaces each have dimension two.</desc><defs><marker id="fig-11-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="370" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">Four spaces of a rectangular map: m=4, n=3, r=2</text><rect x="25" y="65" width="290" height="245" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="445" y="65" width="290" height="245" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><path d="M325,155L435,155" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-2__arrow)"/><text x="380" y="138" text-anchor="middle" font-size="24" fill="#1a2e4a">A</text><text x="170" y="105" text-anchor="middle" font-size="22" fill="#1a2e4a">Input R³</text><text x="590" y="105" text-anchor="middle" font-size="22" fill="#1a2e4a">Output R⁴</text><text x="170" y="161" text-anchor="middle" font-size="22" fill="#1a2e4a">R(A): dim 2</text><text x="170" y="209" text-anchor="middle" font-size="22" fill="#1a2e4a">N(A): dim 1</text><text x="590" y="161" text-anchor="middle" font-size="22" fill="#1a2e4a">C(A): dim 2</text><text x="590" y="209" text-anchor="middle" font-size="22" fill="#1a2e4a">N(Aᵀ): dim 2</text><text x="170" y="266" text-anchor="middle" font-size="25" fill="#1a2e4a">2 + 1 = 3</text><text x="590" y="266" text-anchor="middle" font-size="25" fill="#1a2e4a">2 + 2 = 4</text><text x="380" y="342" text-anchor="middle" font-size="20" fill="#1a2e4a">Row ⟂ null; column ⟂ left null. Ambient spaces differ.</text></g></svg></div><figcaption><span class="fig-num">Figure 11.2</span> <p>Row and null spaces live on the input side; column and left-null spaces live on the output side. Their dimensions depend on the matrix rank and on the corresponding ambient space.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Can the reduced matrix’s first two columns be used directly as a column-space basis for the example A above?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>No. They are (1,0,0),(0,1,0), spanning z=0 rather than the original plane z=x+y. Their indices identify the original columns to select. Row operations preserved column relations and rank, but transformed the actual column vectors.</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>Rank–nullity and the full solution family</h2></div>
+<p>The <strong>nullity</strong> of a linear map is the dimension of its kernel. Rank–nullity states that for a linear map A from an n-dimensional input space, rank(A)+dimN(A)=n. It divides input degrees of freedom into directions that change the output and directions that disappear. The output space can have a different dimension m; left nullity is m−r, not n−r. Confusing these two counts can make a rectangular system look consistent or uniquely solvable when it is neither.</p>
+<p>We can prove the theorem without counting free variables as an unexplained rule. Choose a kernel basis k₁,…,k_q and extend it to an input basis k₁,…,k_q,u₁,…,u_{n−q}, using the finite extension argument above. We claim that Au₁,…,Au_{n−q} form a basis of the image. For spanning, express any input x in the extended basis. Applying A removes its kernel terms, so Ax is a combination of the Au’s. For independence, suppose ΣcᵢAuᵢ=0. Then Σcᵢuᵢ lies in the kernel and has an expression Σdⱼkⱼ. Subtracting these two expressions gives a zero combination of the entire extended basis. Its independence forces every cᵢ and dⱼ to vanish. Hence the image list is independent and has n−q vectors. Its size is the rank, giving r+q=n. No assumption of a square or invertible matrix was needed.</p>
+<p>Elimination supplies a computational version of this proof. With r pivot variables and n−r free variables in a homogeneous system, set one free coordinate to one and the others to zero and solve the pivot variables. Do this for each free coordinate. The resulting n−r vectors are independent because their free-coordinate positions contain distinct unit vectors. They span because any free-coordinate assignment is that same combination of these particular assignments, and the pivot equations determine all remaining coordinates. Thus they form a kernel basis. The method describes every null vector, unlike choosing a few arbitrary examples that merely happen to satisfy Ax=0.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A solvable target has an affine family</div>
+<p>For the preceding A and b=(2,3,5), one solution is p=(2,3,0). Every solution is p+t(−1,−1,1)=(2−t,3−t,t). Substitution gives (2,3,5) for every real t. Conversely Ax=b implies x₁+x₃=2,x₂+x₃=3, so choosing t=x₃ yields exactly this family. The affine solution set has one free dimension; it is not a vector subspace because b is nonzero.</p>
+</div>
+<p>These facts recover complete system classification. A target has a solution precisely when it lies in C(A). If it has one solution, the family is p+N(A); it is unique exactly when N(A)={0}, equivalently r=n. Every possible target in Rᵐ is attainable exactly when C(A)=Rᵐ, equivalently r=m. Both properties hold together only for a square full-rank matrix. A tall full-column-rank matrix can identify a unique input for a compatible target while leaving many targets incompatible. A wide full-row-rank matrix can reach every target but retains at least n−m null directions. “Full rank” alone must identify which dimension is limiting.</p>
+<p>The orthogonality relations also separate a general input x into a row-space component and a kernel component. Their intersection contains only zero: a vector in both is perpendicular to the row space while belonging to it, so its dot product with itself is zero. The dimensions sum to n by rank–nullity. Joining bases of the two spaces gives n independent vectors, hence an input-space basis. Every x therefore has a unique decomposition x=u+k with u∈R(A),k∈N(A). A maps u and x to the same output. Its restriction to the row space is injective, and these row-space inputs reach the whole column space. The map loses exactly the kernel information.</p>
+<p>In constraint solving, null vectors describe permissible changes after one solution has been found. In learning, they describe parameter changes that the design matrix cannot distinguish. In compression or sensing, they describe signals producing the same measurements. These are algebraically the same statement with different interpretations of x. A domain restriction can change identifiability: if inputs are required to belong to a special set, two admissible inputs must differ by a null vector for ambiguity, but not every null displacement remains admissible. This lesson’s uniqueness statements concern unrestricted real inputs unless another set is explicitly stated.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>An m=5,n=3 design has rank three. What are its nullity and left nullity? Does every target have a solution?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Nullity is zero and left nullity is two. Every compatible target has one input solution, but the column space has dimension three inside R⁵, so not every target is compatible. Full column rank gives injectivity, not surjectivity onto a larger output space.</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>Identifiability structural redundancy and numerical rank</h2></div>
+<p>For a fixed design matrix X, linear predictions are Xw. Two weights w and w′ produce the same predictions exactly when X(w′−w)=0. Thus their difference lies in N(X), and all weights equivalent to one w form w+N(X). <strong>Parameter identifiability</strong> for this unconstrained linear representation means different weights give different predictions on the specified records; it holds exactly when X has full column rank. Unique fitted predictions can coexist with nonunique weights. An algorithm may choose one representative without proving that the data identified it.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Celsius Fahrenheit and an intercept</div>
+<p>Rows are (1,C,F) with F=1.8C+32. Every such row has dot product zero with n=(−32,−1.8,1). Therefore Xn=0. Starting with w=(5,2,−1), choose w′=w+0.5n=(−11,1.1,−0.5). Both predict −27,−25,−23 at C=0,10,20 and −21 at C=30. Algebraically the model reduces to (w₀+32w_F)+(w_C+1.8w_F)C. These two combined coefficients can be identifiable from distinct temperatures while the original three weights are not.</p>
+</div>
+<p>An intercept plus all one-hot columns for a single categorical variable has the same issue. If exactly one of K category indicators equals one on each record, their sum is the intercept column. The null direction is (−1,1,…,1). Dropping one indicator creates a baseline-category representation. Its intercept is the baseline prediction and each retained coefficient is a difference from that baseline. Removing the intercept instead gives a separate category coefficient for every category. These parameterisations can represent the same prediction functions with different coefficient meanings. Full rank still requires that the observed records cover the retained categories; a missing category can create additional ambiguity.</p>
+<p>Equivalent training predictions do not always mean equivalent functions on new records. For features (1,x,x²) observed only at x=0,1, the last two columns are equal. The weight change (0,−1,1) leaves those predictions unchanged but changes a prediction at x=2 by −2+4=2. By contrast, the Celsius–Fahrenheit relation is a structural feature identity on the stated domain of valid temperature conversions, so its null direction remains invisible there. A faulty sensor or a different feature-generation rule can violate even that domain assumption. State whether a dependence holds on the sample, on a declared input domain, or on all possible real feature tuples.</p>
+<figure class="fig" id="fig-11-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 370" role="img" aria-label="Weights (5,2,−1) and (−11,1.1,−0.5) predict −27+0.2C for all records satisfying F=1.8C+32."><title>Parameter equivalence along a null direction</title><desc>Weights (5,2,−1) and (−11,1.1,−0.5) predict −27+0.2C for all records satisfying F=1.8C+32.</desc><defs><marker id="fig-11-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="370" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">Different weights, identical valid temperature predictions</text><rect x="35" y="90" width="330" height="75" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="200" y="135" text-anchor="middle" font-size="22" fill="#1a2e4a">w = (5,2,−1)</text><path d="M375,128L470,194" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-3__arrow)"/><rect x="35" y="225" width="330" height="75" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="200" y="270" text-anchor="middle" font-size="22" fill="#1a2e4a">w′ = (−11,1.1,−0.5)</text><path d="M375,263L470,194" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-11-3__arrow)"/><rect x="480" y="133" width="250" height="120" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="605" y="178" text-anchor="middle" font-size="20" fill="#1a2e4a">Shared prediction function</text><text x="605" y="220" text-anchor="middle" font-size="25" fill="#1a2e4a">−27 + 0.2C</text><text x="380" y="345" text-anchor="middle" font-size="20" fill="#1a2e4a">w′ − w = 0.5(−32,−1.8,1);   F = 1.8C + 32</text></g></svg></div><figcaption><span class="fig-num">Figure 11.3</span> <p>Parallel parameter points along a null direction share predictions. A feature identity can preserve this equivalence throughout a declared domain; a coincidence in training rows need not.</p>
+</figcaption></figure>
+<p>Exact rank asks whether a relation is precisely zero in the mathematical model. Numerical rank asks which directions are distinguishable at a stated resolution. The matrix [[1,1],[1,1+δ]] has determinant δ and exact rank two whenever δ≠0. With δ=10⁻¹², it is close to the dependent δ=0 case. A small input or measurement perturbation can alter whether that tiny difference is practically resolvable. Thresholding a floating-point computation can deliberately report one effective direction without proving that the exact determinant vanished.</p>
+<p>NumPy’s pinned rank interface uses singular values, nonnegative direction-strength quantities developed in Module 14, and counts values above a tolerance. Its default scales with the largest value, matrix dimensions and machine precision. A user-specified absolute cutoff has different units and can change its conclusion when the entire matrix is scaled. In Lab 3, tolerances 10⁻¹⁴ and 10⁻¹⁰ give numerical ranks two and one for the same near-dependent input. Multiplying by a million with the same absolute cutoff changes the decision; scaling the cutoff proportionally preserves this example’s decision. Record the dtype, feature units, tolerance and purpose. Choosing a threshold should reflect computational or measurement resolution, rather than silently asserting an exact theorem.</p>
+<figure class="fig" id="fig-11-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 370" role="img" aria-label="Exact delta 10⁻¹² is nonzero and rank is two; the lab numerical cutoffs 10⁻¹⁴ and 10⁻¹⁰ give effective ranks two and one."><title>Exact rank and numerical resolution</title><desc>Exact delta 10⁻¹² is nonzero and rank is two; the lab numerical cutoffs 10⁻¹⁴ and 10⁻¹⁰ give effective ranks two and one.</desc><defs><marker id="fig-11-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="370" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">A nonzero difference and a resolution cutoff are two claims</text><rect x="35" y="75" width="330" height="225" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="395" y="75" width="330" height="225" rx="10" fill="#fff7ed" stroke="#c2410c"/><text x="200" y="115" text-anchor="middle" font-size="22" fill="#1a2e4a">Exact rational model</text><text x="200" y="167" text-anchor="middle" font-size="21" fill="#1a2e4a">A = [[1,1],[1,1+δ]]</text><text x="200" y="216" text-anchor="middle" font-size="25" fill="#1a2e4a">δ = 10⁻¹² ≠ 0</text><text x="200" y="268" text-anchor="middle" font-size="23" fill="#1a2e4a">detA = δ; rank two</text><text x="560" y="115" text-anchor="middle" font-size="21" fill="#1a2e4a">Floating-point resolution policy</text><text x="560" y="167" text-anchor="middle" font-size="18" fill="#1a2e4a">tol 10⁻¹⁴ → numerical rank two</text><text x="560" y="218" text-anchor="middle" font-size="18" fill="#1a2e4a">tol 10⁻¹⁰ → numerical rank one</text><text x="560" y="268" text-anchor="middle" font-size="21" fill="#1a2e4a">Record scale and dtype</text><text x="380" y="342" text-anchor="middle" font-size="20" fill="#1a2e4a">Threshold decisions do not turn exact nonzero quantities into zero.</text></g></svg></div><figcaption><span class="fig-num">Figure 11.4</span> <p>A tiny nonzero feature difference makes exact rank two, while a selected resolution policy can treat that direction as unresolved. The policy and the exact claim answer different questions.</p>
+</figcaption></figure>
+<p>Removing an exactly redundant feature or imposing a constraint can choose a unique representation, but the resulting coefficient meaning depends on that choice. A minimum-norm convention and regularisation introduce further criteria, developed in later lessons. They can stabilise or select parameters without recovering information that the observations never distinguished. Independence also establishes no causal effect, uncertainty bound or generalisation guarantee. Those questions require statistical and modelling assumptions beyond this algebra. The useful habit is to state precisely what the matrix determines, what it leaves free, and on which domain the interpretation is intended.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>If a solver returns one coefficient vector for a rank-deficient design, have the coefficients become identifiable? If numerical rank is one, is exact dependence proved?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>No in both cases. A solver may select a representative by an extra convention. Numerical rank is relative to a numerical resolution policy; exact dependence requires an exact relation or a corresponding theorem. Predictions, chosen parameters and information supplied by data are separate claims.</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>Common misconceptions</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Correction and witness</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Any straight set is a subspace</td>
+<td>An offset line omits zero; a ray fails negative scaling.</td>
+</tr>
+<tr>
+<td>Pairwise independence establishes independence</td>
+<td>(1,0),(0,1),(1,1) have no dependent pair but a three-vector relation.</td>
+</tr>
+<tr>
+<td>A spanning list always gives unique coordinates</td>
+<td>Uniqueness requires independence as well.</td>
+</tr>
+<tr>
+<td>Reduced pivot columns span the original column space</td>
+<td>Use the original columns at the pivot indices.</td>
+</tr>
+<tr>
+<td>Full column rank makes every target solvable</td>
+<td>It gives unique compatible inputs; full row rank gives all targets.</td>
+</tr>
+<tr>
+<td>Same training predictions imply the same function</td>
+<td>x and x² coincide at zero and one, not at two.</td>
+</tr>
+<tr>
+<td>A thresholded rank proves exact dependence</td>
+<td>State exact versus effective rank and its tolerance.</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>Three CPU labs</h2></div>
+<p>Use Python 3.11 and the NumPy environment from <a href="numpy_primer_EN.html">array preparation</a>. The first lab uses standard-library Fractions. The displayed output is captured from the downloadable scripts at build time. Keep every shape, null witness and declared tolerance in your lab notes.</p>
+<h3 id="lab1">Lab A Exact spaces and certificates</h3>
+<p>Predict the pivot indices and all four space dimensions before running. Trace how each free variable generates one null basis vector. Check every basis vector by multiplication. Compare the original and reduced pivot columns. Explain why the left-null certificate rejects the second target but accepts the first in this particular example.</p>
+<p><a href="labs/module_11/lab1_exact_spaces.py" download>Download lab1_exact_spaces.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Exact rational pivots and four spaces; no floating-point zero decisions.&quot;&quot;&quot;
+from fractions import Fraction
+
+def rref(matrix):
+    if not matrix or not matrix[0] or any(len(r) != len(matrix[0]) for r in matrix):
+        raise ValueError(&quot;Need a nonempty rectangular matrix&quot;)
+    rows = [[Fraction(v) for v in row] for row in matrix]
+    pivots, active = [], 0
+    for column in range(len(rows[0])):
+        selected = next((i for i in range(active, len(rows)) if rows[i][column]), None)
+        if selected is None:
+            continue
+        rows[active], rows[selected] = rows[selected], rows[active]
+        pivot = rows[active][column]
+        rows[active] = [v / pivot for v in rows[active]]
+        for i in range(len(rows)):
+            if i != active:
+                factor = rows[i][column]
+                rows[i] = [a - factor * b for a, b in zip(rows[i], rows[active])]
+        pivots.append(column)
+        active += 1
+        if active == len(rows):
+            break
+    return rows, pivots
+
+def null_basis(matrix):
+    rows, pivots = rref(matrix)
+    free = [j for j in range(len(rows[0])) if j not in pivots]
+    basis = []
+    for j in free:
+        vector = [Fraction(0)] * len(rows[0])
+        vector[j] = 1
+        for i, p in enumerate(pivots):
+            vector[p] = -rows[i][j]
+        basis.append(vector)
+    return basis
+
+def matvec(matrix, vector):
+    return [sum(a * b for a, b in zip(row, vector)) for row in matrix]
+
+if __name__ == &quot;__main__&quot;:
+    A = [[1, 0, 1], [0, 1, 1], [1, 1, 2]]
+    reduced, pivots = rref(A)
+    column_basis = [[row[j] for row in A] for j in pivots]
+    row_basis = reduced[:len(pivots)]
+    kernel = null_basis(A)
+    transpose = [list(col) for col in zip(*A)]
+    left_kernel = null_basis(transpose)
+    strings = lambda rows: [[str(v) for v in row] for row in rows]
+    print(&quot;RREF:&quot;, strings(reduced))
+    print(&quot;Original pivot columns:&quot;, column_basis)
+    print(&quot;Row-space basis:&quot;, strings(row_basis))
+    print(&quot;Null / left-null bases:&quot;, strings(kernel), strings(left_kernel))
+    assert all(matvec(A, v) == [0, 0, 0] for v in kernel)
+    assert all(matvec(transpose, v) == [0, 0, 0] for v in left_kernel)
+    assert len(pivots) == 2 and len(kernel) == 1
+    print(&quot;Rank / nullity / left nullity:&quot;, len(pivots), len(kernel), len(left_kernel))
+    for target in [[2, 3, 5], [2, 3, 6]]:
+        certificate = sum(a*b for a, b in zip(left_kernel[0], target))
+        print(&quot;Target / left-null certificate:&quot;, target, str(certificate), &quot;consistent&quot; if certificate == 0 else &quot;inconsistent&quot;)
+    for matrix in [[[0, 0], [0, 0]], [[1, 0], [0, 1]], [[1, 2], [2, 4]]]:
+        _, p = rref(matrix)
+        assert len(p) + len(null_basis(matrix)) == len(matrix[0])
+    print(&quot;Zero, identity, and dependent cases satisfy exact rank-nullity.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>RREF: [['1', '0', '1'], ['0', '1', '1'], ['0', '0', '0']]
+Original pivot columns: [[1, 0, 1], [0, 1, 1]]
+Row-space basis: [['1', '0', '1'], ['0', '1', '1']]
+Null / left-null bases: [['-1', '-1', '1']] [['-1', '-1', '1']]
+Rank / nullity / left nullity: 2 1 1
+Target / left-null certificate: [2, 3, 5] 0 consistent
+Target / left-null certificate: [2, 3, 6] 1 inconsistent
+Zero, identity, and dependent cases satisfy exact rank-nullity.
+</code></pre></div>
+<p><strong>Deliverable:</strong> a table of the four spaces, ambient dimensions, bases and dimensions, plus a proof that these bases span all the claimed spaces. The successful multiplications alone prove membership; the pivot/free-variable argument proves completeness.</p>
+<h3 id="lab2">Lab B Identical predictions different weights</h3>
+<p>Compute both weight vectors by hand. Check the unseen temperature within the valid feature domain, then compare the polynomial feature coincidence. Identify the null direction in the one-hot design and explain two different ways to remove that redundancy.</p>
+<p><a href="labs/module_11/lab2_equivalent_features.py" download>Download lab2_equivalent_features.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Prediction equivalence can be structural or restricted to observed records.&quot;&quot;&quot;
+import numpy as np
+
+np.set_printoptions(precision=6, suppress=True)
+celsius = np.array([0., 10., 20.])
+X = np.column_stack((np.ones(3), celsius, 1.8*celsius + 32))
+w = np.array([5., 2., -1.])
+n = np.array([-32., -1.8, 1.])
+alternative = w + 0.5*n
+assert np.allclose(X@n, 0) and np.allclose(X@w, X@alternative)
+print(&quot;Temperature weights / alternative:&quot;, w, alternative)
+print(&quot;Training predictions:&quot;, X@w, X@alternative)
+new = np.array([1., 30., 86.])
+print(&quot;New valid temperature prediction:&quot;, new@w, new@alternative)
+assert np.allclose(new@w, new@alternative)
+
+categorical = np.column_stack((np.ones(3), np.eye(3)))
+categorical_null = np.array([-1., 1., 1., 1.])
+assert np.allclose(categorical@categorical_null, 0)
+print(&quot;Intercept plus all one-hot columns rank:&quot;, np.linalg.matrix_rank(categorical), &quot;of&quot;, categorical.shape[1])
+print(&quot;One-hot null direction:&quot;, categorical_null)
+assert np.linalg.matrix_rank(categorical[:, :3]) == 3
+
+training = np.array([[1., 0., 0.], [1., 1., 1.]])
+training_null = np.array([0., -1., 1.])
+assert np.allclose(training@training_null, 0)
+unseen = np.array([1., 2., 4.])
+print(&quot;x and x squared: training change / unseen x=2 change:&quot;, training@training_null, unseen@training_null)
+assert unseen@training_null == 2
+print(&quot;A structural temperature identity generalises; a training-only polynomial coincidence does not.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Temperature weights / alternative: [ 5.  2. -1.] [-11.    1.1  -0.5]
+Training predictions: [-27. -25. -23.] [-27. -25. -23.]
+New valid temperature prediction: -21.0 -21.0
+Intercept plus all one-hot columns rank: 3 of 4
+One-hot null direction: [-1.  1.  1.  1.]
+x and x squared: training change / unseen x=2 change: [0. 0.] 2.0
+A structural temperature identity generalises; a training-only polynomial coincidence does not.
+</code></pre></div>
+<p><strong>Deliverable:</strong> classify each equivalence as structural on a stated domain or limited to the observed rows. Give an unseen record that breaks the training-only claim, and avoid inferring causality from an identified coefficient.</p>
+<h3 id="lab3">Lab C Exact versus numerical rank</h3>
+<p>Use the exact determinant as a mathematical certificate, and the numerical library output as a policy-dependent measurement. Compare two absolute thresholds and one relative threshold under global scaling. Singular values are used as library diagnostics here; Module 14 will derive their decomposition and geometry.</p>
+<p><a href="labs/module_11/lab3_rank_tolerances.py" download>Download lab3_rank_tolerances.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;An exact nonzero determinant and two numerical rank policies can coexist.&quot;&quot;&quot;
+from fractions import Fraction
+import numpy as np
+
+delta = Fraction(&quot;0.000000000001&quot;)
+exact = [[Fraction(1), Fraction(1)], [Fraction(1), 1+delta]]
+determinant = exact[0][0]*exact[1][1] - exact[0][1]*exact[1][0]
+assert determinant == delta and determinant != 0
+print(&quot;Exact determinant:&quot;, str(determinant), &quot;exact rank: 2&quot;)
+A = np.array([[1., 1.], [1., 1.+float(delta)]])
+singular_values = np.linalg.svd(A, compute_uv=False)
+print(&quot;Singular values:&quot;, [format(v, &quot;.6e&quot;) for v in singular_values])
+for tolerance in [1e-14, 1e-10]:
+    rank = int(np.linalg.matrix_rank(A, tol=tolerance))
+    print(&quot;Absolute tolerance / numerical rank:&quot;, tolerance, rank)
+assert np.linalg.matrix_rank(A, tol=1e-14) == 2
+assert np.linalg.matrix_rank(A, tol=1e-10) == 1
+scaled = 1e6*A
+print(&quot;Scaling by one million at absolute tolerance 1e-10:&quot;, np.linalg.matrix_rank(scaled, tol=1e-10))
+assert np.linalg.matrix_rank(scaled, tol=1e-10) == 2
+for label, matrix in [(&quot;A&quot;, A), (&quot;scaled A&quot;, scaled)]:
+    s = np.linalg.svd(matrix, compute_uv=False)
+    relative_cutoff = 1e-10*s[0]
+    print(&quot;Relative cutoff policy / rank:&quot;, label, int(np.linalg.matrix_rank(matrix, tol=relative_cutoff)))
+    assert np.linalg.matrix_rank(matrix, tol=relative_cutoff) == 1
+print(&quot;The cutoff is a numerical resolution policy, not an exact dependence proof.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Exact determinant: 1/1000000000000 exact rank: 2
+Singular values: ['2.000000e+00', '5.000744e-13']
+Absolute tolerance / numerical rank: 1e-14 2
+Absolute tolerance / numerical rank: 1e-10 1
+Scaling by one million at absolute tolerance 1e-10: 2
+Relative cutoff policy / rank: A 1
+Relative cutoff policy / rank: scaled A 1
+The cutoff is a numerical resolution policy, not an exact dependence proof.
+</code></pre></div>
+<p><strong>Deliverable:</strong> report exact rank, dtype, scales, tolerances and numerical ranks. Explain what resolution assumption could justify dropping the weak direction. Do not turn a chosen threshold into an assertion that the exact integer/rational model has changed.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Exercises with complete solutions</h2></div>
+<p>Exercises 1–12 are required. Exercises 13–14 add 35 optional minutes. Include the relevant space and field when writing a closure or independence claim.</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>Determine whether {(x,y):y=2x}, {(x,y):y=2x+1}, and {(x,y):x≥0} are real subspaces.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The first contains zero and any combination of (u,2u),(v,2v) has form (au+bv,2(au+bv)), so it is a subspace. The second omits zero. The third contains (1,0) but not its negative (−1,0), so fails scalar closure. One failed condition suffices for each rejection.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>Find a basis for the span of (1,0,1),(0,1,1),(1,1,2), and express the third vector in it.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The first two are independent: first and second coordinates of a zero combination force both coefficients zero. Their sum is the third, so they span all three and form a basis. The third has coordinates (1,1). The span is the plane z=x+y and has dimension two.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>Express (4,2) in the basis (1,1),(1,−1), and recover the standard coordinates.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>c₁+c₂=4 and c₁−c₂=2 give c₁=3,c₂=1. Multiplying [[1,1],[1,−1]] by (3,1) gives (4,2). The tuple (3,1) refers to the stated basis, not the coordinate unit basis.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>For a 4×6 matrix of rank three, state the dimensions and ambient spaces of its four fundamental spaces.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Column space has dimension three inside R⁴; row space dimension three inside R⁶. Nullity is 6−3=3 in R⁶, and left nullity is 4−3=1 in R⁴. Every output target is not attainable because the column space is proper; every compatible target has a three-dimensional affine input family.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Prove that polynomials of degree at most three satisfying p(1)=p(−1)=0 form a subspace. Give a basis.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Zero belongs and evaluation of ap+bq at either specified point is a·0+b·0, establishing closure. A polynomial vanishing at both points has factor (t−1)(t+1)=t²−1, so with the degree bound it is (t²−1)(at+b). Thus t²−1 and t³−t span. Their leading degrees differ, so a zero combination forces the cubic coefficient and then quadratic coefficient zero. They are an independent basis. Factorisation follows by dividing by t−1 then evaluating the quotient at −1; the nonzero factor −2 forces that quotient to vanish there.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Prove that an independent list gives at most one coefficient description of any vector in its span, and show why spanning is separately necessary for a basis.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>If Σaᵢvᵢ=Σbᵢvᵢ, subtraction gives Σ(aᵢ−bᵢ)vᵢ=0. Independence forces aᵢ=bᵢ for every i. Existence follows for vectors in the span by definition, but not for arbitrary ambient vectors. For example (1,0) is independent in R² yet cannot express (0,1). A basis needs spanning to guarantee existence for every vector and independence to guarantee uniqueness.</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Derive rank–nullity by extending a kernel basis to an input basis. Include separate spanning and independence arguments for the image list.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Let k₁,…,k_q span the kernel independently and extend them with u₁,…,u_{n−q} to a basis of the n-dimensional domain. Applying A to any basis expansion removes the kernel terms, proving the Auᵢ span the image. If ΣcᵢAuᵢ=0, then Σcᵢuᵢ is in the kernel, so equals Σdⱼkⱼ. Independence of the full domain basis forces all cᵢ and dⱼ zero. The image list is therefore a basis of size n−q and rank+nullity=n. Finite basis extension was proved by adding generators outside the current span.</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 min</span></div>
+<p>For A from Lab A, classify targets (2,3,5) and (2,3,6); give every solution for the compatible target and an inconsistency certificate for the other.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The column plane requires b₃=b₁+b₂. For the first target, all solutions are (2−t,3−t,t),t∈R, by the first two equations and the redundant third. For the second, z=(−1,−1,1) satisfies Aᵀz=0 but zᵀb=1, so any putative Ax=b would imply 0=zᵀAx=zᵀb=1. It is inconsistent.</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">Exercise 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 min</span></div>
+<p>A model uses intercept, Celsius and Fahrenheit columns. Find all equivalent weights to (5,2,−1) on valid temperature records. State which two combined coefficients the model uses.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The predictions are −27+0.2C. All weights (5−32t,2−1.8t,−1+t) give the same combined intercept w₀+32w_F=−27 and slope w_C+1.8w_F=0.2. On a domain containing at least two distinct Celsius values, equal predictions force equality of these two combinations, and solving the differences yields exactly this one-parameter family. The relation assumes Fahrenheit is generated by 1.8C+32.</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">Exercise 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 min</span></div>
+<p>A design has an intercept and three exhaustive one-hot categories, all observed. Explain its nullity and two full-rank parameterisations.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Its columns satisfy −intercept+indicator₁+indicator₂+indicator₃=0, and the three indicator columns are independent when each category occurs. Rank is three, so nullity is 4−3=1. Keeping all indicators and removing the intercept yields three category predictions. Keeping the intercept and two indicators yields a baseline-category intercept plus two category differences. Both represent every vector of three category predictions, with different coefficient meanings.</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">Exercise 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 min</span></div>
+<p>A report takes reduced pivot columns as the original image basis and concludes full column rank makes every target compatible. Diagnose both claims with rectangular or explicit examples.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>For Lab A, reduced pivot columns lie in z=0 while the original column space is z=x+y; use the original columns at the pivot indices. Full column rank gives kernel zero and unique compatible inputs, but does not fill a larger output space. A=[[1],[0]] has full column rank one and cannot reach (0,1). Every target is compatible only with full row rank.</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">Exercise 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 min</span></div>
+<p>A numerical rank test returns one for [[1,1],[1,1+10⁻¹²]] at tolerance 10⁻¹⁰. The author declares exact dependence and identical future predictions for features x and x² observed only at zero and one. Repair both statements.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The exact determinant 10⁻¹² is nonzero, so exact rank is two. The numerical result concerns the chosen resolution, dtype and scaling; state those rather than claiming an exact null relation. The polynomial design has a training null direction (0,−1,1), but at x=2 it changes the prediction by two. Training equivalence extends only where the same feature identity holds; here that domain is not all real x.</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 min</span></div>
+<p>Prove that two different bases of a finite-dimensional space have the same size using the exchange argument, without assuming dimension is already well defined.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Given an independent list u₁,…,u_k and a spanning list b₁,…,b_d, successively express u_j in a spanning list containing the earlier u’s. Independence forces a nonzero coefficient on at least one remaining b; solve for it and replace it by u_j. The list still spans and has d places, so k≤d. For two bases, regard each in turn as the independent list and the other as spanning. Both inequalities hold, so their sizes agree. The exchange step is the reason counting basis vectors defines a consistent dimension.</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">Exercise 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 min</span></div>
+<p>Prove C(A)=N(Aᵀ)⊥ using contradiction rows, and use it to explain why testing a complete left-null basis suffices for consistency.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>If b=Ax and Aᵀz=0, then zᵀb=0, proving inclusion. If b is not in C(A), elimination of [A|b] by an invertible row-operation matrix E creates a zero coefficient row with nonzero constant. The corresponding row zᵀ of E has zᵀA=0,zᵀb≠0, so b is not perpendicular to the left null space. This proves reverse inclusion by contraposition. If b is perpendicular to each vector of a complete left-null basis, linearity makes it perpendicular to every vector of that space; the established equality then gives consistency.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Ten-question self-check</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>Which subset is a real vector subspace with inherited operations?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Solutions of x+y−z=0</button></li><li><button type="button" class="quiz-opt" data-i="1">Solutions of x+y−z=1</button></li><li><button type="button" class="quiz-opt" data-i="2">Vectors of Euclidean length one</button></li></ol><div class="quiz-expl" hidden>The homogeneous constraint contains zero and preserves every linear combination. The offset plane and unit sphere omit zero.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>What establishes linear dependence of matrix columns?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Pairwise unequal columns</button></li><li><button type="button" class="quiz-opt" data-i="1">A nonzero coefficient vector c with Ac=0</button></li><li><button type="button" class="quiz-opt" data-i="2">One vector c with Ac≠0</button></li></ol><div class="quiz-expl" hidden>A nontrivial zero combination is the defining witness. Unequal columns can be dependent, and a failed relation does not exclude other relations.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>What makes basis coordinates unique and available for every vector?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Spanning alone</button></li><li><button type="button" class="quiz-opt" data-i="1">Independence alone</button></li><li><button type="button" class="quiz-opt" data-i="2">Spanning and independence together</button></li></ol><div class="quiz-expl" hidden>Spanning gives existence; independence makes the difference of two descriptions force equal coefficients.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>After row reduction, which columns form a basis of the original column space?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Original columns at the pivot indices</button></li><li><button type="button" class="quiz-opt" data-i="1">Reduced pivot columns, with no transformation back</button></li><li><button type="button" class="quiz-opt" data-i="2">Every original column, including redundant ones</button></li></ol><div class="quiz-expl" hidden>Row operations transform column vectors while preserving their relations. Select the original vectors at the identified independent indices.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>An m×n matrix has rank r. What is its left nullity?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">n−r</button></li><li><button type="button" class="quiz-opt" data-i="1">m−r</button></li><li><button type="button" class="quiz-opt" data-i="2">m+n−r</button></li></ol><div class="quiz-expl" hidden>The left null space is the kernel of Aᵀ with domain Rᵐ. The ordinary nullity uses the input dimension n.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>Full column rank guarantees what?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Every output target is attainable</button></li><li><button type="button" class="quiz-opt" data-i="1">The matrix must be square</button></li><li><button type="button" class="quiz-opt" data-i="2">Every compatible target has a unique input</button></li></ol><div class="quiz-expl" hidden>It makes the input kernel zero. A tall full-column-rank map need not reach every point in its output ambient space.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>What proves b is incompatible with Ax=b?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A left-null z with zᵀb≠0</button></li><li><button type="button" class="quiz-opt" data-i="1">A nonzero input null vector</button></li><li><button type="button" class="quiz-opt" data-i="2">A solver choosing one representative</button></li></ol><div class="quiz-expl" hidden>Left multiplication would give 0=zᵀAx=zᵀb, a contradiction. Input nullity concerns uniqueness after compatibility is established.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>Xw=Xw′ on the training rows implies what?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">They predict equally on every possible future record</button></li><li><button type="button" class="quiz-opt" data-i="1">w′−w lies in the training design’s null space</button></li><li><button type="button" class="quiz-opt" data-i="2">w and w′ must be identical</button></li></ol><div class="quiz-expl" hidden>This is the exact training equivalence relation. Future equality requires the new rows to annihilate the same difference too.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>A tolerance-based rank result differs from the exact rational rank. Which report is appropriate?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Declare the exact determinant zero</button></li><li><button type="button" class="quiz-opt" data-i="1">Hide the tolerance and feature units</button></li><li><button type="button" class="quiz-opt" data-i="2">State both claims with their arithmetic model, scale and resolution policy</button></li></ol><div class="quiz-expl" hidden>Numerical rank can deliberately treat a weak direction as unresolved. It does not erase a nonzero exact determinant.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m11:q10">
+<label for="q10-response">10. Explain why the same training predictions can leave parameters nonunique. Give one structural null direction, one training-only example, and the assumption needed for future equivalence.</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="State X(w′−w)=0, exhibit both examples, and delimit their domains."></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> I gave null witnesses and checked the claim on an unseen record.</label>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Equal training predictions are equivalent to w′−w∈N(X), so a null family w+N(X) leaves the observations unchanged. Temperature features (1,C,1.8C+32) annihilate (−32,−1.8,1) throughout the valid conversion domain. Features (1,x,x²) at x=0,1 annihilate (0,−1,1), but x=2 does not. Future equivalence requires each new feature row to have zero dot product with the chosen weight difference. A selected representative is an additional convention, not identification by the original observations.</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Reading with a purpose</h2></div>
+<p>Use the linear-algebra chapter’s vector spaces, bases and linear-map selections in the authors’ <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning companion</a>. Read the official <a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.matrix_rank.html" target="_blank" rel="noopener">NumPy 1.26 matrix-rank interface</a> for the numerical contract. The original proofs and examples above stand independently of these supplementary readings.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>Selection and question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session 1 · 21 minutes</td>
+<td>Spaces and bases: where do existence and uniqueness enter a coordinate description?</td>
+</tr>
+<tr>
+<td>Session 4 · 20 minutes</td>
+<td>Rank interface: how does the default threshold scale, and what changes with an absolute tolerance?</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Retrieval exit task and next step</h2></div>
+<p>Without notes, prove the subspace test, distinguish a generating list from a basis, and explain why dimensions are well defined. Draw the four spaces on the correct input/output sides and derive both nullity counts. Give a null-space prediction witness and delimit its future-record claim.</p>
+<p><strong>Exit task:</strong> A=[[1,2,3],[0,1,1]] has rank two. Its kernel is span{(−1,−1,1)}, since x₂=−x₃ and x₁=−x₃. Every b=(b₁,b₂) is attainable, with solutions (b₁−2b₂−t,b₂−t,t). The left null space is zero; the column space is R². Explain why reachability of every target does not make the parameters unique.</p>
+<p><strong>Ready to move on:</strong> you can give complete bases, dimensions, solution families and interpretation boundaries. Module 12 develops orthogonal projections and least squares, including how a unique fitted prediction can coexist with many minimising weights. Check the <a href="index.html">course overview</a> for availability.</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Notation and bilingual terminology</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term or notation</th>
+<th>Meaning</th>
+<th>中文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vector space / subspace</td>
+<td>Closed linear operations / inherited smaller space</td>
+<td>向量空间、子空间</td>
+</tr>
+<tr>
+<td>Span / independence</td>
+<td>All combinations / only trivial zero combination</td>
+<td>张成、线性无关</td>
+</tr>
+<tr>
+<td>Basis / dimension</td>
+<td>Independent spanning list / its invariant size</td>
+<td>基、维数</td>
+</tr>
+<tr>
+<td>[v]_B</td>
+<td>Coordinates in a specified ordered basis</td>
+<td>基坐标</td>
+</tr>
+<tr>
+<td>C(A) / R(A)</td>
+<td>Column image / row span</td>
+<td>列空间、行空间</td>
+</tr>
+<tr>
+<td>N(A) / N(Aᵀ)</td>
+<td>Input kernel / output-side kernel</td>
+<td>零空间、左零空间</td>
+</tr>
+<tr>
+<td>Rank / nullity</td>
+<td>Image dimension / kernel dimension</td>
+<td>秩、零化度</td>
+</tr>
+<tr>
+<td>Identifiability</td>
+<td>Distinct parameters yield distinct specified predictions</td>
+<td>可辨识性</td>
+</tr>
+<tr>
+<td>Numerical rank / tolerance</td>
+<td>Resolved direction count / resolution threshold</td>
+<td>数值秩、容差</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="module_10_EN.html">← Module 10</a><a href="module_12_EN.html">Module 12 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

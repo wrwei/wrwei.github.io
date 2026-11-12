@@ -4,6 +4,22 @@ A collection of tutorials on software engineering and computer science topics.
 
 ---
 
+## Mathematical Foundations for Computer Science and AI
+
+A complete 32-module series covering mathematical reasoning, discrete mathematics, linear algebra, calculus, optimisation, probability, statistics, information theory, numerical computation and learning theory, with separate CS and AI study routes. English and Chinese editions include worked examples, 90 foundation labs, 420 exercises with solutions, interactive demonstrations and self-checks. Two implemented capstones provide a verified dependency planner and a checked learning pipeline, with actual outputs, plots, proofs and assessment rubrics. An algebra refresher, entry diagnostic, Python primer and NumPy preparation support beginners.
+
+[:octicons-arrow-right-24: Go to Mathematical Foundations Tutorials](math/index.html)
+
+---
+
+## Computer Science Fundamentals
+
+A complete 14-module beginner-friendly series covering computation, programming, mathematics, algorithms, data structures, computer architecture, operating systems, networks, databases, and the limits of computation. English and Chinese editions, with 29 runnable Python labs, 112 exercises with worked solutions, self-check quizzes, and a persistent local catalogue capstone.
+
+[:octicons-arrow-right-24: Go to Computer Science Tutorials](cs/index.html)
+
+---
+
 ## Object Oriented Design
 
 A comprehensive tutorial series covering the fundamentals of Object Oriented Design, with examples in Python.
@@ -20,14 +36,7 @@ A tutorial series covering the fundamentals of SysML v2, the next-generation sys
 
 ---
 
-## Git and GitHub, Step by Step
-
-A beginner's series in eleven short lessons, 15 to 45 minutes each: keep the history of your work with Git, put it on GitHub, work with branches and pull requests, undo mistakes, and publish your own web page with GitHub Pages. No experience needed, on Windows, macOS or Linux; every output shown was produced by running the commands. English and Chinese.
-
-[:octicons-arrow-right-24: Go to Git and GitHub Tutorials](git/index.html)
-
----
-
+<!-- DEVOPS-DISABLED: hidden while the DevOps series is being revised; uncomment to restore
 ## DevOps
 
 A 10-module tutorial series on DevOps practices including Unix tools, Git, CI/CD, containers, and automation.
@@ -36,11 +45,29 @@ A 10-module tutorial series on DevOps practices including Unix tools, Git, CI/CD
 
 ---
 
+-->
+
 ## Model-Based Systems Engineering
 
 A 12-module tutorial series on MBSE methodology, the three pillars (language, method, tool), industry frameworks (OOSEM, MagicGrid, IBM Harmony), and domain applications — tool-agnostic and beginner-friendly.
 
 [:octicons-arrow-right-24: Go to MBSE Tutorials](mbse/index.html)
+
+---
+
+## Model-Driven Engineering with Eclipse Epsilon
+
+A hands-on 10-module series on model-driven engineering: metamodels, models, querying, validation, code generation and model-to-model transformation with Eclipse Epsilon. You can run every example from your browser in the Epsilon Playground, with nothing to install. English and Chinese editions. Module 1 is available now; the other modules are in preparation.
+
+[:octicons-arrow-right-24: Go to MDE Tutorials](mde/index.html)
+
+---
+
+## Git and GitHub, Step by Step
+
+A beginner's series in eleven short lessons, 15 to 45 minutes each: keep the history of your work with Git, put it on GitHub, work with branches and pull requests, undo mistakes, and publish your own web page with GitHub Pages. No experience needed, on Windows, macOS or Linux; every output shown was produced by running the commands. English and Chinese.
+
+[:octicons-arrow-right-24: Go to Git and GitHub Tutorials](git/index.html)
 
 ---
 
@@ -54,6 +81,6 @@ A 10-module tutorial series on AI agents — what they are, how they work, and h
 
 ## AI: From Machine Learning to Large Language Models
 
-A 10-module tutorial series, about ten hours per module, from machine learning foundations through neural networks, CNNs, RNNs and the transformer to large language models: pretraining, post-training and serving. Derivations, runnable labs, graded exercises with solutions and a quiz in every module. English and Chinese. Modules 01–05 (foundations, neural networks, convolutional and recurrent networks, and the other families worth knowing: autoencoders, GANs, diffusion, graph and physics-informed networks) are available now; the rest follow as they are finished.
+A complete 10-module tutorial series, with 10–15 hours of study per module, from machine learning foundations through neural networks, CNNs, RNNs and the transformer to large language models: pretraining, post-training and serving. Every module includes derivations, runnable CPU labs, exercises with full solutions, interactive demonstrations, paper guides and a self-check quiz. All ten modules are available in English and Simplified Chinese.
 
 [:octicons-arrow-right-24: Go to AI Tutorials](ai/index.html)

@@ -1,6 +1,6 @@
 # Plan: From Machine Learning to Large Language Models
 
-A ten-module AI tutorial series for Ran Wei's home page (`docs/tutorials/ai/`), alongside the SysML v2, MBSE, DevOps and AI Agents series. Each module expands one of ten concise tutorials kept in the author's private repository into a self-study unit of about ten hours, in English and Simplified Chinese.
+A ten-module AI tutorial series for Ran Wei's home page (`docs/tutorials/ai/`), alongside the SysML v2, MBSE, DevOps and AI Agents series. Each module expands one of ten concise tutorials kept in the author's private repository into a self-study unit of 10–15 hours, in English and Simplified Chinese.
 
 This document is generated from the ten module outlines (`plan/module_NN.json`), the detailed contracts the writers follow. It summarises them; the outlines are about ten times longer.
 
@@ -8,7 +8,7 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 
 **Audience.** Engineers and postgraduates who know calculus, linear algebra and basic probability but have not worked in machine learning. The aim: read a modern model paper, understand what a training run does to a model, and make engineering decisions about models with judgement.
 
-**Shape of a module: about 600 minutes, in five study sessions of about two hours.**
+**Shape of a module: about 600 scheduled minutes in five study sessions; allow 10–15 hours including derivations, lab reruns and review.**
 
 | Activity | Minutes | Volume |
 |---|---|---|
@@ -27,13 +27,13 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 | 03 | Convolutional networks | 616 | 14 | 6 | 15 | 12 | 2 | 2 | 38 |
 | 04 | Recurrent networks and sequences | 620 | 13 | 5 | 15 | 12 | 3 | 2 | 21 |
 | 05 | Other networks worth knowing | 612 | 13 | 5 | 15 | 12 | 3 | 2 | 29 |
-| 06 | The transformer | 622 | 12 | 6 | 15 | 12 | 3 | 2 | 25 |
-| 07 | Large language models | 609 | 14 | 6 | 15 | 12 | 2 | 2 | 21 |
-| 08 | LLM pretraining | 627 | 14 | 5 | 15 | 12 | 3 | 2 | 22 |
-| 09 | LLM post-training | 621 | 14 | 6 | 15 | 12 | 3 | 2 | 21 |
+| 06 | The transformer | 622 | 12 | 6 | 15 | 12 | 3 | 2 | 18 |
+| 07 | Large language models | 609 | 14 | 6 | 15 | 12 | 2 | 2 | 13 |
+| 08 | LLM pretraining | 627 | 14 | 5 | 15 | 12 | 3 | 2 | 14 |
+| 09 | LLM post-training | 621 | 14 | 6 | 15 | 12 | 3 | 2 | 18 |
 | 10 | Inference and serving | 615 | 13 | 6 | 15 | 12 | 3 | 2 | 18 |
 
-## 2. Production status (4 October 2026)
+## 2. Production status (5 October 2026)
 
 | # | EN parts | edited | figures | widgets | labs run | tech review | EN QA | 中文 parts | 中文 QA | English prose words |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -42,13 +42,13 @@ This document is generated from the ten module outlines (`plan/module_NN.json`),
 | 03 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 39,478 |
 | 04 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 39,370 |
 | 05 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 38,930 |
-| 06 | 4/7 | – | – | – | – | – | – | – | – | 15,332 |
-| 07 | 2/7 | – | – | – | – | – | – | – | – | 12,365 |
-| 08 | 2/7 | – | – | – | – | – | – | – | – | 10,349 |
-| 09 | 0/7 | – | – | – | – | – | – | – | – | 0 |
-| 10 | 0/7 | – | – | – | – | – | – | – | – | 0 |
+| 06 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 24,351 |
+| 07 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 24,506 |
+| 08 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 21,799 |
+| 09 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 22,460 |
+| 10 | 7/7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 20,204 |
 
-Figures drawn so far: 89, each also in Chinese. Widget files: 13 of 20. English prose words exclude code and maths and include labs, exercises and solutions. A module published on the site in both languages is marked done at every stage.
+Figures drawn so far: 170, each also in Chinese. Widget files: 20 of 20. English prose words exclude code and maths and include labs, exercises and solutions. A module published on the site in both languages is marked done at every stage.
 
 ## 3. The modules
 
@@ -962,7 +962,7 @@ This module takes attention apart until you can compute it by hand, differentiat
 - apply the softmax Jacobian diag(p) - p p^T (derived in Module 02) to an attention row, derive the variance argument for 1/sqrt(d_k), and use the two to explain why unscaled attention saturates and learns slowly.
 - push a gradient back through one attention row by hand and check it against autograd.
 - track the shape of every tensor through multi-head and grouped-query attention, from (B, T, d) to (B, h, T, d_k) and back, and explain the residual-stream view of a transformer.
-- write the pre-norm block in equations and code, and explain why it trains stably at depth where post-norm needs a learning-rate warmup.
+- write the pre-norm block in equations and code, and explain why its identity path often reduces warmup requirements, while learning rate, depth and initialisation still affect stability.
 - prove that RoPE makes the attention score depend on positions only through t - s, implement it, and verify the property numerically.
 - derive the online softmax and implement tiled (FlashAttention-style) attention that matches naive attention to floating-point rounding without forming the T x T matrix.
 - count the parameters of a decoder from its configuration (12Ld^2 plus embeddings, with GQA and SwiGLU corrections), reproducing published model sizes exactly, and its FLOPs under the convention the whole series uses: 2 N_matmul per token plus 4Ldt for attention at context t (2LdT averaged over a causal sequence of length T), three times that for training, and 6N only as a labelled estimate.
@@ -981,7 +981,7 @@ This module takes attention apart until you can compute it by hand, differentiat
 
 **Concept sections.**
 
-- **s1 Drop the recurrence** (14 min). State the two costs of recurrence that the transformer removes, recast attention as a soft dictionary lookup, and name the two things that must be added back. _1 worked example(s), 2 figure(s)._
+- **s1 Drop the recurrence** (14 min). State the two costs of recurrence that the transformer removes, recast attention as a soft dictionary lookup, and name the two things that must be added back. _1 worked example(s), 1 figure(s)._
   - One-paragraph recap of Module 04: Bahdanau attention computes e_{t,j} = v^T tanh(W_s s_{t-1} + W_h h_j), alpha_{t,j} = softmax_j(e_{t,j}), a_t = sum_j alpha_{t,j} h_j;
   - The two costs of recurrence, with numbers: (1) step t needs h_{t-1}, so a 10,000-token training sequence is 10,000 dependent steps whatever the hardware;
   - The trade, as a small table from Vaswani et al.
@@ -1011,7 +1011,7 @@ This module takes attention apart until you can compute it by hand, differentiat
   - Why several heads: one softmax gives each query one distribution;
   - Counting (source): the four projections are d x d, so 4d^2 parameters per layer;
   - … and 3 more points
-- **s5 The block: residuals, normalisation and the feed-forward network** (18 min). Assemble attention and the feed-forward network into a block, explain why pre-norm trains stably, and say what the feed-forward network contributes. _2 worked example(s), 2 figure(s)._
+- **s5 The block: residuals, normalisation and the feed-forward network** (18 min). Assemble attention and the feed-forward network into a block, explain why pre-norm trains stably, and say what the feed-forward network contributes. _2 worked example(s), 1 figure(s)._
   - The pre-norm block (source): X <- X + MHA(Norm(X));
   - Why pre-norm is stable, written out: unrolling pre-norm gives x_L = x_0 + sum_l F_l(Norm(x_l)), so dx_L/dx_l = I + sum_{m >= l} dF_m/dx_l: an identity path carries the …
   - Pre-norm's costs: each layer adds to the stream, so its norm grows with depth and later layers change it proportionally less;
@@ -1019,7 +1019,7 @@ This module takes attention apart until you can compute it by hand, differentiat
   - The FFN (source): applied to each position independently, FFN(x) = W_2 phi(W_1 x), inner width d_ff = 4d in the original, 2 x d x 4d = 8d^2 parameters per layer, twice …
   - The FFN as a key-value memory (Geva et al.
   - … and 1 more points
-- **s6 Position** (26 min). Inject order into a permutation-equivariant operation, derive RoPE with its complex-number proof, and explain at concept level how a trained context is extended. _6 worked example(s), 5 figure(s), widget: rope-explorer._
+- **s6 Position** (26 min). Inject order into a permutation-equivariant operation, derive RoPE with its complex-number proof, and explain at concept level how a trained context is extended. _6 worked example(s), 4 figure(s), widget: rope-explorer._
   - Permutation equivariance (source): shuffle the input rows and the outputs shuffle with them, because Q, K, V are computed row by row and the softmax is applied per row;
   - Sinusoidal encodings (source formula): PE(t, 2i) = sin(t omega_i), PE(t, 2i+1) = cos(t omega_i), omega_i = 10000^(-2i/d);
   - Learned absolute embeddings (source): one trained vector per position (GPT-2: 1,024 positions, a 1,024 x 768 table of 786,432 parameters;
@@ -1041,7 +1041,7 @@ This module takes attention apart until you can compute it by hand, differentiat
   - Inductive bias: no locality or translation equivariance is built in (contrast Module 03's convolutions), so a ViT must learn them from data;
   - Cost: tokens grow with the square of the resolution and attention with the square of the tokens, so doubling the resolution multiplies the attention cost per layer by …
   - Where it is used: CLIP's image encoder (Module 05);
-- **s9 The modern decoder block, part by part** (17 min). Walk through the choices in a current open decoder layer and the reason for each, introducing the KV cache that grouped-query attention exists to shrink. _3 worked example(s), 3 figure(s)._
+- **s9 The modern decoder block, part by part** (17 min). Walk through the choices in a current open decoder layer and the reason for each, introducing the KV cache that grouped-query attention exists to shrink. _3 worked example(s), 1 figure(s)._
   - The source's table kept verbatim (component / choice / reason): normalisation RMSNorm pre-norm (stable at depth, cheaper than layer norm);
   - The KV cache (key-value cache), introduced only (depth in Module 10): when a model generates, each new token's query must attend to the keys and values of every earlier …
   - Grouped-query attention (source;
@@ -1049,7 +1049,7 @@ This module takes attention apart until you can compute it by hand, differentiat
   - No biases, and tied embeddings: the source code ties the input embedding to the output projection, common in small models where the V x d matrix is a large share …
   - Sliding-window attention (source): each position attends only to the last w positions, cost O(Tw) instead of O(T^2);
   - … and 2 more points
-- **s10 FlashAttention and the online softmax** (20 min). Derive the online softmax and show how it lets attention be computed exactly in tiles, without storing the T x T matrix. _3 worked example(s), 2 figure(s)._
+- **s10 FlashAttention and the online softmax** (20 min). Derive the online softmax and show how it lets attention be computed exactly in tiles, without storing the T x T matrix. _3 worked example(s)._
   - Why standard attention is limited by memory traffic, not arithmetic, on a GPU (source): implemented as three steps it writes S (T x T) to the GPU's main memory (HBM), …
   - The size that hurts: for T = 8,192 and h = 32 in bf16, S for one layer is 32 x 8,192^2 x 2 B = 4 GiB, and a backward pass would need P for every layer.
   - Safe softmax: exp(s - m) / sum exp(s - m) with m = max(s) gives the same result and cannot overflow (the example: softmax of (1000, 1001, 1002) computed naively is NaN;
@@ -1129,7 +1129,7 @@ What a large language model computes and how to reason about it with numbers: th
 
 - Convert a language-model loss between nats, bits, perplexity and bits per byte, and explain why per-token perplexities of models with different tokenizers cannot be compared.
 - Train byte-pair encoding by hand on a six-word corpus, encode a new word with the learned merges, and predict how a tokenizer's training mixture changes the token count of English and Chinese text.
-- Use C ≈ 6ND (derived in Module 06) to derive the compute-optimal allocation N_opt(C), D_opt(C) from the Chinchilla parametric law, evaluate it, and explain why the published fit does not reproduce the 20-tokens-per-parameter rule.
+- Use the approximate scaling-law count C_6 = 6ND to derive the optimal N and D allocation, evaluate the published parametric constants, and distinguish that approximation from Module 06's architecture-aware training count.
 - Compute when a smaller model trained on more tokens is cheaper over its life than a compute-optimal one, and explain why exact-match metrics can make a smooth improvement look emergent.
 - Implement greedy, temperature, top-k, top-p and min-p decoding on a model's logits, derive dH/dτ = Var_p(z)/τ³, and choose settings for a structured artifact versus open-ended text.
 - Measure few-shot accuracy honestly: its dependence on the number, order and labels of demonstrations, and the chat template the model expects.
@@ -1181,14 +1181,14 @@ What a large language model computes and how to reason about it with numbers: th
   - Evaluate it honestly.
   - Kaplan against Chinchilla: Kaplan's runs used a learning-rate schedule whose length was not matched to each run, counted non-embedding parameters and stopped at smaller …
   - … and 2 more points
-- **s5 Beyond compute-optimal: over-training and emergence** (13 min). Explain why practice departs from compute-optimal training, and why the loss is predictable while capabilities are not. _3 worked example(s), 2 figure(s)._
+- **s5 Beyond compute-optimal: over-training and emergence** (13 min). Explain why practice departs from compute-optimal training, and why the loss is predictable while capabilities are not. _3 worked example(s)._
   - Compute-optimal is not deployment-optimal (source): lifetime cost ≈ 6N·D for training plus 2N·D_inf for serving D_inf tokens, in Chinchilla's accounting (N the total …
   - Practice: Llama 3's 8B model was trained on about 15T tokens, roughly 1,900 per parameter (Grattafiori et al.
   - Diminishing returns: halving the data term B/D^β takes 2^(1/β) = 11.9 times more tokens with β = 0.28.
   - The data wall: good text is finite.
   - Emergent abilities (Wei et al.
   - Keep the source's conclusion: what is not argued is that the loss curve is the thing to plan around, and Module 08 does.
-- **s6 In-context learning, prompting and the chat format** (15 min). Explain what conditioning on a prompt does, why few-shot learning works and fails, and how chat models are prompted through a template. _3 worked example(s), 1 figure(s)._
+- **s6 In-context learning, prompting and the chat format** (15 min). Explain what conditioning on a prompt does, why few-shot learning works and fails, and how chat models are prompted through a template. _3 worked example(s)._
   - Zero-shot (a description of the task) and few-shot (k demonstrations) in-context learning: the output distribution changes with no gradient step (source).
   - Why it works, as accounts rather than settled facts: the pretraining corpus contains many documents with repeated patterns (lists, question-and-answer pages, tables), …
   - What demonstrations contribute: format and label space matter;
@@ -1196,7 +1196,7 @@ What a large language model computes and how to reason about it with numbers: th
   - Chain of thought (Wei et al.
   - Base versus chat (source): a raw base model continues text rather than answering and 'will as happily continue a question with another question'.
   - … and 3 more points
-- **s7 Decoding: from logits to text** (22 min). Derive what each decoding rule does to the next-token distribution, and choose settings by task. _5 worked example(s), 2 figure(s), widget: sampling-explorer._
+- **s7 Decoding: from logits to text** (22 min). Derive what each decoding rule does to the next-token distribution, and choose settings by task. _5 worked example(s), widget: sampling-explorer._
   - Setup: logits z ∈ R^V and p = softmax(z) at each step;
   - Greedy: take the argmax.
   - Beam search (basics in Module 04): keep the w best partial sequences (w is the beam width) by summed log-probability, with length normalisation.
@@ -1204,7 +1204,7 @@ What a large language model computes and how to reason about it with numbers: th
   - Derive temperature's effect on entropy: with β = 1/τ, log p_i = βz_i − log Z(β), so H = log Z(β) − β E_p[z];
   - Top-k: keep the k most probable tokens and renormalise.
   - … and 5 more points
-- **s8 Determinism, structured output and the cost of each token** (11 min). Explain why temperature 0 is not reproducible in practice, what constrained decoding does and does not guarantee, and why generation is sequential and costly. _1 worked example(s), 1 figure(s)._
+- **s8 Determinism, structured output and the cost of each token** (11 min). Explain why temperature 0 is not reproducible in practice, what constrained decoding does and does not guarantee, and why generation is sequential and costly. _1 worked example(s)._
   - Floating-point addition is not associative: in float32, (1e8 + 1) − 1e8 = 0 but (1e8 − 1e8) + 1 = 1;
   - Batch invariance: kernels choose reduction orders and tilings by tensor shape, so a request's logits can depend on what else is in the batch.
   - Engineering stance: design for non-determinism.
@@ -1212,7 +1212,7 @@ What a large language model computes and how to reason about it with numbers: th
   - Constrained decoding, in one paragraph (source;
   - Stop conditions (source: stop sequences end generation): end-of-sequence or end-of-turn tokens (<\|im_end\|> for Qwen2.5's chat format), stop strings, and max_new_tokens.
   - … and 1 more points
-- **s9 The context window** (14 min). Quantify what a long context costs, and how position and caching change what the model does with it. _2 worked example(s), 2 figure(s)._
+- **s9 The context window** (14 min). Quantify what a long context costs, and how position and caching change what the model does with it. _2 worked example(s)._
   - What is in the context (source): the system prompt, the conversation, retrieved documents, tool results, and the model's own output so far.
   - Length is fixed at training (the maximum position) and extended afterwards with RoPE base scaling and long-document mid-training (Modules 06 and 08).
   - Memory (source: 'long is not free'): the KV cache holds keys and values for every past token in every layer: bytes per token = 2 · L · n_kv · d_head · bytes per value.
@@ -1290,7 +1290,7 @@ What a large language model computes and how to reason about it with numbers: th
 - e14 ★ conceptual, 5 min: (The source's exercise 5.) Take a published claim of the form 'Model X scores 85.2% on benchmark Y, beating model Z'.
 - e15 ★★ calculation, 10 min: On HumanEval's 164 problems model A solves 102 and model B 97.
 
-**Quiz** (12 questions): A model gives the four actual next tokens of a sentence probabilities 0.50, …; Why does byte-level BPE never need an unknown token?; SmolLM2-135M has a per-token perplexity of 25.8 on an English paragraph and 8.4 …; With the published Chinchilla exponents α = 0.34 and β = 0.28, by what factor …; Why are recent 8B models trained on about 15T tokens, far beyond about 20 …; Which statement about the temperature τ is true?; For preset B (safe 0.849, secure 0.036, robust 0.029, reliable 0.022, ...), …; A team sends the same prompt 1,000 times at temperature 0 to a hosted model and …; For the case-study model (36 layers, 8 KV heads of dimension 128, bf16), how …; Which measure actually defends a document summariser against prompt injection?; On GSM8K's 1,319 problems model A solves 943 (71.5%) and model B 903 (68.5%).; An evaluation scores +1 for a correct answer, −1 for a wrong one and 0 for 'I …
+**Quiz** (12 questions): A model gives the four actual next tokens of a sentence probabilities 0.50, …; Why does byte-level BPE never need an unknown token?; SmolLM2-135M has a per-token perplexity of 25.8 on an English paragraph and 8.4 …; With the published Chinchilla exponents α = 0.34 and β = 0.28, by what factor …; Why might a team train an 8B model on 15T tokens, far beyond 20 tokens per …; Which statement about the temperature τ is true?; For preset B (safe 0.849, secure 0.036, robust 0.029, reliable 0.022, ...), …; A model returns different completions for identical requests with sampling …; For the case-study model (36 layers, 8 KV heads of dimension 128, bf16), how …; Which measure actually defends a document summariser against prompt injection?; On GSM8K's 1,319 problems model A solves 943 (71.5%) and model B 903 (68.5%).; An evaluation scores +1 for a correct answer, −1 for a wrong one and 0 for 'I …
 
 **Guided reading.**
 
@@ -1407,7 +1407,7 @@ Everything between a pile of text and a base model: the compute budget, the data
   - Hybrid sharding (HSDP): shard within a node over fast links, replicate across nodes, and all-reduce only each shard's gradients across nodes once per optimiser step.
   - Bandwidths to reason with (typical as of 2026;
   - … and 1 more points
-- **s10 Tensor, pipeline and context parallelism; choosing a layout** (18 min). Split single layers, stacks of layers and long sequences across GPUs, derive what each costs, and combine them into a layout for a given model and cluster. _4 worked example(s), 3 figure(s)._
+- **s10 Tensor, pipeline and context parallelism; choosing a layout** (18 min). Split single layers, stacks of layers and long sequences across GPUs, derive what each costs, and combine them into a layout for a given model and cluster. _4 worked example(s)._
   - Tensor parallelism (Megatron-LM, Shoeybi et al.
   - Sequence parallelism (Korthikanti et al.
   - Pipeline parallelism: layers split into p stages;
@@ -1415,7 +1415,7 @@ Everything between a pile of text and a base model: the compute budget, the data
   - A summary table of communication per GPU at case-study scale: DP all-reduce, 2N elements per optimiser step;
   - Choosing a layout, as a procedure: (1) does the model, with ZeRO over the node and a micro-batch of one sequence, fit with its activations? (2) if FSDP across nodes is …
   - … and 1 more points
-- **s11 What breaks, and how a long run is operated** (16 min). Recognise how a long run fails (numerically, in its data, in its hardware) and set up the checkpoints and monitoring that make each failure recoverable. _3 worked example(s), 1 figure(s)._
+- **s11 What breaks, and how a long run is operated** (16 min). Recognise how a long run fails (numerically, in its data, in its hardware) and set up the checkpoints and monitoring that make each failure recoverable. _3 worked example(s)._
   - Loss spikes: the loss jumps and either recovers or diverges.
   - Divergence: the loss climbs steadily or becomes NaN;
   - NaN and inf: sources (log of zero, division by a zero norm, fp16 overflow, a corrupted input);
@@ -1423,21 +1423,21 @@ Everything between a pile of text and a base model: the compute budget, the data
   - Hardware: GPU failures, nodes dropping out, network and filesystem stalls.
   - Silent data corruption: a device that computes wrong numbers without raising an error (Dixit et al.
   - … and 4 more points
-- **s12 Evaluation during the run, and the base-model checkpoint** (13 min). Decide what to measure while the run is going so that a bad run is caught early, and describe what the finished base model is and is not. _2 worked example(s), 1 figure(s)._
+- **s12 Evaluation during the run, and the base-model checkpoint** (13 min). Decide what to measure while the run is going so that a bad run is caught early, and describe what the finished base model is and is not. _2 worked example(s)._
   - Held-out perplexity per source, every few hundred steps, on data removed from the mixture before training;
   - Downstream tasks for a base model, scored by log-likelihood: for each multiple-choice item compute the sum of log p(option tokens \| context) for each option, optionally …
   - Noise: an accuracy on n items has standard error sqrt(p(1 - p)/n);
   - The scaling-law check: predict the final loss from small runs, or fit L(D) = L_inf + a D^-gamma to the run's own early curve (not Chinchilla's letters, so B stays the …
   - Choosing and averaging checkpoints: evaluate several late checkpoints;
   - The base-model checkpoint (source s9, kept): weights, tokenizer, configuration, training log, data manifest with the decontamination record, evaluation curves.
-- **s13 A small run you can actually do** (11 min). Turn the source's 125M-parameter recipe into a costed plan for one GPU, and connect it to the laptop-scale run of Lab 2. _4 worked example(s), 1 figure(s)._
+- **s13 A small run you can actually do** (11 min). Turn the source's 125M-parameter recipe into a costed plan for one GPU, and connect it to the laptop-scale run of Lab 2. _4 worked example(s)._
   - The source's recipe, kept as a block: data, a public cleaned web corpus (a FineWeb-Edu sample), 2-3B tokens, with a 32k BPE trained on it;
   - The corrected parameter count: with a 32,000-token vocabulary the model has 109.5M parameters (85.0M in the blocks, 24.6M in the tied embedding), not 125M;
   - The cost: 6ND = 1.64 x 10^18 FLOPs, 1.93 x 10^18 with attention at T = 2,048 (+17%);
   - The expected loss: the source's 'about 3.0 nats per token on English web text (perplexity near 20)' kept as an order of magnitude, with two caveats: per-token losses …
   - What Module 06's tiny-GPT Decoder lacks for this run: the data pipeline and a loader with state, the schedule, mixed precision, checkpointing, logging and evaluation, …
   - The laptop version, Lab 2: 5.8M parameters, 2.46M tokens of TinyStories, about 10 minutes on a CPU with QUICK mode in about 3;
-- **s14 Mid-training and continued pretraining** (20 min). Explain the two cheaper relatives of pretraining (annealing on high-quality data with context extension, and continuing a released base model on a domain) and cost, in full, the case study's decision to continue … _4 worked example(s), 2 figure(s)._
+- **s14 Mid-training and continued pretraining** (20 min). Explain the two cheaper relatives of pretraining (annealing on high-quality data with context extension, and continuing a released base model on a domain) and cost, in full, the case study's decision to continue … _4 worked example(s)._
   - Mid-training: a stage between pretraining and post-training on a smaller, higher-quality mixture (more code and mathematics, curated reference text, synthetic …
   - Context extension: pretrain at 4k-8k, then train on long documents at 32k-128k with the RoPE base raised or positions interpolated;
   - Continued pretraining (CPT): start from released base weights and continue next-token training on a domain corpus;
@@ -1465,7 +1465,7 @@ Everything between a pile of text and a base model: the compute budget, the data
 - e4 ★★ derivation, 10 min: Derive the probability that a pair with Jaccard similarity s becomes an LSH candidate with b bands of r rows.
 - e5 ★ conceptual, 5 min: C4's cleaning removed every page containing a curly bracket.
 - e6 ★ conceptual, 5 min: A 2T-token run gives a 15B-token mathematics source 3% of its tokens, so the run sees it four times.
-- e7 ★ conceptual, 5 min: Show that the cross-entropy loss is unchanged when the same constant c is added to every logit, and explain what z-loss adds and why a long bf16 run …
+- e7 ★ conceptual, 5 min: Show common-logit-shift invariance of cross-entropy, derive the z-loss gradient and explain why it can improve numerical stability;
 - e8 ★★ derivation, 10 min: Starting from Delta L_opt(B) = Delta L_max / (1 + B_noise/B), derive the number of steps S and tokens D needed to reach a fixed loss as functions of …
 - e9 ★★ calculation, 10 min: Llama 3 8B's shape (s5): L = 32, d = 4,096, 32 query and 8 KV heads of 128 (h_kv = 1,024), SwiGLU d_ff = 14,336, V = 128,256, untied, 8,030,261,248 …
 - e10 ★ conceptual, 5 min: A pipeline-parallel run with GPipe scheduling spends a third of its time idle in the bubble.
@@ -1500,10 +1500,10 @@ Turns a base model into an assistant: supervised fine-tuning and its mechanics, 
 
 - render a conversation with a chat template, write the masked SFT loss over assistant tokens, and diagnose template, end-of-turn and untrained special-token failures.
 - implement LoRA from scratch, count its trainable parameters, merge it exactly into the base weights, and size LoRA and QLoRA training memory for the 9.5B case-study model.
-- derive the Bradley-Terry model, train a reward model on comparisons, and evaluate it for accuracy against the label-noise ceiling, calibration and overoptimisation.
+- derive the Bradley-Terry model, train a reward model on comparisons, and evaluate it for accuracy with a defined label-noise model, calibration and overoptimisation.
 - derive the policy gradient with a baseline and explain PPO's clipped objective and why RLHF with PPO holds four models in memory.
 - derive the closed-form optimum of the KL-regularised objective and the DPO loss from it, implement DPO, and recognise likelihood displacement from off-policy pairs.
-- implement GRPO with group-relative advantages and a KL term, predict which groups carry no signal, and design a verifiable reward that a degenerate output cannot satisfy.
+- implement GRPO with group-relative advantages and a KL term, predict which groups carry no task-advantage signal, and design a verifiable reward that tested degenerate outputs cannot trivially satisfy.
 - build a behavioural evaluation suite with programmatic checkers and report pass rates with bootstrap confidence intervals, paired differences and an exact test.
 - explain how refusals, abstention, honesty and tool use are trained, and how over-refusal, sycophancy and guessing arise from the training signal.
 - plan a post-training recipe for a domain model with explicit data, compute arithmetic and promotion gates, and justify each choice.
@@ -1520,127 +1520,75 @@ Turns a base model into an assistant: supervised fine-tuning and its mechanics, 
 
 **Concept sections.**
 
-- **s1 What post-training is for** (11 min). Say what a base model lacks, what post-training installs, why it is cheap and fragile, and the order in which its three families are usually applied. _2 worked example(s), 1 figure(s)._
-  - A base model (Module 08) is a model of text: it completes 'The three ISO 26262 ASIL parameters are' correctly and continues 'Q: What are they? A:' with something, but …
-  - Post-training installs behaviour on top of knowledge, with thousands to millions of examples against trillions of pretraining tokens: that is why it is cheap, why one …
-  - Evidence that behaviour is cheap relative to capability: labellers preferred the outputs of InstructGPT's 1.3B model to those of the 175B GPT-3, a model 100 times larger …
-  - The three families in their usual order: SFT (demonstrations), preference optimisation (pairs), reinforcement learning (generate, score, push probability toward high …
-  - A table with one row per stage: data unit, training signal, what it teaches, typical scale, what dominates cost (SFT: conversations, token log-likelihood, format and …
-  - Four published pipelines as patterns, not recipes: InstructGPT (SFT, reward model, PPO);
-  - … and 1 more points
-- **s2 Supervised fine-tuning: the data** (14 min). Define an SFT example, list where good ones come from, and show why quality, coverage and distribution match beat volume. _1 worked example(s), 1 figure(s)._
-  - An SFT example is a conversation: a system prompt, one or more user turns, and the assistant turns the model should have produced;
-  - Human-written demonstrations: highest quality and most expensive.
-  - Distillation: a stronger model answers the prompts, its answers are the targets, filtered by a checker or judge.
-  - Self-generation with filtering: the model's own samples, kept when they pass a verifier (Section 8).
-  - Synthetic edits: for behaviours such as 'change only what was asked', apply scripted modifications to real artifacts so that the target is exact.
-  - Quality filters and coverage: exact and near-duplicate removal, length and language checks, verifier pass, judge-score thresholds;
-  - … and 3 more points
-- **s3 Supervised fine-tuning: templates, masking, packing and limits** (21 min). Show how a conversation becomes a training sequence and a loss, which hyperparameters matter, and what SFT can and cannot change in a model. _5 worked example(s), 2 figure(s)._
-  - The chat template renders messages into tokens with special markers per role;
-  - Untrained template tokens: a base tokenizer can reserve chat tokens that pretraining never used (Module 08).
-  - The SFT objective written out: L(theta) = -(1 / sum_t m_t) sum_t m_t log p_theta(x_t \| x_<t), with m_t = 1 on assistant tokens including the end-of-turn token and 0 …
-  - Why mask: the model is not being taught to predict users or system prompts;
-  - Loss normalisation: the mean over all trained tokens in a batch weights long replies more than a per-sequence mean;
-  - Packing: several short conversations concatenated into one training row, with a block-diagonal attention mask and position ids restarting per conversation so that they …
-  - … and 5 more points
-- **s4 Parameter-efficient fine-tuning: LoRA and QLoRA** (23 min). Derive LoRA, size it for the case-study model, and show how QLoRA puts fine-tuning of the 9.5B model on a 24 GB GPU. _7 worked example(s), 2 figure(s)._
-  - The memory problem: full fine-tuning at 16 bytes per parameter (bf16 weights 2, bf16 gradients 2, fp32 master weights 4, Adam moments 4 + 4;
-  - LoRA (Hu et al. 2022): freeze W in R^{d x k} and learn W' = W + (alpha / r) B A with B in R^{d x r}, A in R^{r x k}, r << min(d, k).
-  - Initialisation derived: A random (Gaussian or Kaiming), B = 0, so W' = W at step 0 and training starts from the base exactly.
-  - The alpha / r scaling keeps the size of the update roughly constant as r changes, so the learning rate need not be retuned for each rank;
-  - Parameter count r (d + k) per matrix;
-  - Embeddings and head usually stay frozen;
-  - … and 5 more points
-- **s5 Preferences and reward models** (18 min). Explain why comparisons are collected, derive the Bradley-Terry model that turns them into a scalar reward, and show how a reward model is trained, checked and over-optimised. _4 worked example(s), 2 figure(s)._
-  - A demonstration says what is right;
-  - Collecting preferences: sample two or more responses per prompt from the current model (on-policy), labellers or a judge choose;
-  - Agreement sets a ceiling: InstructGPT reports that its labellers agreed with each other about 73% of the time;
-  - Bradley-Terry derived as a random-utility model: perceived quality u = r(x, y) + epsilon with epsilon independent standard Gumbel;
-  - Shift invariance: adding c(x) to every reward for prompt x changes no probability, so rewards are identified only up to a per-prompt constant;
-  - The reward model: a copy of the language model (initialised from the SFT model) with the unembedding replaced by a scalar head read at the final token;
-  - … and 4 more points
-- **s6 RLHF with PPO** (20 min). State the KL-regularised RL objective, derive the policy gradient it needs, and explain how PPO optimises it with four models in memory. _4 worked example(s), 2 figure(s)._
-  - RLHF as InstructGPT did it: SFT;
-  - The KL term is not decoration: the reward model is accurate only near the distribution it was trained on;
-  - The policy gradient derived: grad_theta E_{y ~ pi_theta}[R(y)] = sum_y R(y) grad pi_theta(y) = E[R(y) grad log pi_theta(y)] (log-derivative trick);
-  - RLHF as a token-level problem: state = prompt plus tokens so far, action = next token, reward = -beta log(pi_theta / pi_ref) at every token plus r_phi(x, y) at the last.
-  - PPO (Schulman et al. 2017): reuse each batch of samples for several gradient steps with the importance ratio rho_t = pi_theta(y_t \| .) / pi_old(y_t \| .), and maximise …
-  - A learned value function V(s) as a per-token baseline;
-  - … and 3 more points
-- **s7 Direct preference optimisation** (25 min). Derive DPO in full from the KL-regularised objective, explain what beta does, and show how DPO fails and what its variants change. _4 worked example(s), 2 figure(s), widget: kl-policy-explorer._
-  - Step 1, the closed-form optimum.
-  - Step 2, invert: r(x, y) = beta log(pi*(y\|x) / pi_ref(y\|x)) + beta log Z(x).
-  - Step 3, substitute into Bradley-Terry: the beta log Z(x) terms cancel in the difference for two responses to the same prompt, leaving p(y_w > y_l \| x) = sigma(beta …
-  - Step 4, fit the policy to the preference data directly, with no reward model and no sampling (Rafailov et al.
-  - The reparameterisation loses no generality (every reward equivalence class under shift contains a reward of this form;
-  - The gradient written out: grad L = -beta E[ sigma(-u) (grad log pi_theta(y_w\|x) - grad log pi_theta(y_l\|x)) ], u the margin;
-  - … and 7 more points
-- **s8 The simplest reinforcement learning: sample, verify, keep** (12 min). Introduce verifiable rewards through best-of-n and rejection-sampling fine-tuning, the RL method that cannot go far wrong, and say where it stops. _4 worked example(s), 1 figure(s)._
-  - Verifiable rewards: in domains where an output can be checked (a mathematics answer against the solution, code against tests, a fault tree or a safety-case argument …
-  - Best-of-n at inference: with per-sample success probability p, P(at least one of n passes) = 1 - (1 - p)^n.
-  - Best-of-n is itself a policy that has moved away from the base by a bounded amount: KL(pi_BoN \|\| pi_ref) <= log n - (n - 1)/n (Stiennon et al.
-  - Rejection-sampling fine-tuning, also called expert iteration, RAFT, ReST, STaR or best-of-n distillation: sample N outputs per prompt from the current model, keep those …
-  - It is an ordinary SFT loop with a data generator in front;
-  - Its weaknesses: it learns only from successes (failures carry information that GRPO uses);
-- **s9 Reinforcement learning with verifiable rewards: GRPO** (24 min). Derive GRPO from the policy gradient, show how its group baseline and KL term work, and show how to design rewards that survive optimisation. _5 worked example(s), 2 figure(s), widget: grpo-group-explorer._
-  - Why verifiable rewards: preference data is expensive and a learned reward is hackable;
-  - GRPO (Shao et al. 2024;
-  - The objective, as in the source: J(theta) = E[ (1/G) sum_i (1/\|y_i\|) sum_t min(rho_{i,t} A_i, clip(rho_{i,t}, 1 - epsilon, 1 + epsilon) A_i) - beta D_KL(pi_theta \|\| …
-  - The KL term is estimated per token with k3 = pi_ref/pi_theta - log(pi_ref/pi_theta) - 1.
-  - The source's grpo_advantages code (a group with zero variance gets zero advantage) and the per-token loss written in a few lines.
-  - Memory: the policy and a frozen reference (with LoRA, one base).
-  - … and 5 more points
-- **s10 Safety, refusal and honesty** (14 min). Treat refusal, abstention and honesty as trainable behaviours with their own failure modes, measurements and reward design. _2 worked example(s), 1 figure(s)._
-  - Refusals are behaviours like any other: demonstrated in SFT, preferred in pairs, rewarded in RL.
-  - Constitutional AI (Bai et al.
-  - Over-refusal: declining benign requests that pattern-match harmful ones ('How do I kill a Python process?').
-  - Red-teaming: manual, by domain experts, and automated, with a language model generating attacks (Perez et al.
-  - Calibration after post-training, with expected calibration error recalled in one line from Module 01, Section 7 (as in Section 5), not re-defined: base models are often …
-  - Abstention as a trained behaviour, with the threshold recalled in one line from Module 07, Section 10, not re-derived: with +1 for a correct answer, 0 for abstaining and …
-  - … and 4 more points
-- **s11 Tools and agents** (8 min). Say what training for tool use adds to SFT and RL, and hand over to the AI Agents series for building agents. _2 worked example(s), 1 figure(s)._
-  - A model that calls tools has been trained on conversations containing tool calls in a fixed format (a JSON object naming the function and its arguments, inside …
-  - Loss masking extends to tools: tool results are produced by the environment, like user turns, and are masked;
-  - Data: demonstrations (human or distilled trajectories) filtered by execution (sample, verify, keep: keep trajectories whose calls execute and whose final answer checks);
-  - The behaviours that matter in an agent loop and need the most examples, because they are rare in naturally occurring data: deciding not to call a tool, reading a tool's …
-  - Robustness of arguments (types, required fields) is trained and also enforced at serving by constrained decoding (Module 10).
-  - An agent loop runs the model in exactly this mode;
-- **s12 Evaluation** (16 min). Say what replaces the loss after post-training, how each kind of evaluation fails, and how to tell a real difference from noise. _4 worked example(s), 2 figure(s)._
-  - The pretraining loss no longer means much after post-training: preference optimisation and RL optimise behaviour, and DPO can lower the likelihood of good answers …
-  - Instruction-following suites with verifiable constraints (IFEval: about 500 prompts with 25 kinds of checkable instruction, such as 'answer in exactly three bullet …
-  - A general-capability battery run before and after, to price the forgetting.
-  - Behavioural suites built from the failure modes you have seen, pass or fail per case with programmatic checkers;
-  - Judged comparisons: a strong model compares two responses (MT-Bench: 80 multi-turn questions;
-  - Contamination control: exact content hashes and n-gram overlap (the GPT-3 paper used 13-grams) between every training set, distillation prompts included, and every …
-  - … and 2 more points
-- **s13 Merging and averaging** (8 min). Explain when averaging weights works, the main merge methods, and how to merge adapters correctly. _2 worked example(s), 1 figure(s)._
-  - Two fine-tuned copies of the same base can be averaged weight by weight, and the average is often better than either (model soups, Wortsman et al.
-  - Uniform soup versus greedy soup (add a model to the average only if held-out accuracy improves);
-  - Task arithmetic (Ilharco et al.
-  - TIES-merging (Yadav et al.
-  - Adapters: the update is the product B A, so merge the products (or concatenate the factors into a higher-rank adapter), never the averaged factors;
-  - None of it is guaranteed, all of it is cheap to try, and every merged candidate is evaluated like any other (Section 12).
-- **s14 The case study: a post-training recipe for a safety-case assistant** (17 min). Walk through a hypothetical post-training design for the running case study, with the reasoning and the arithmetic behind each choice. _4 worked example(s), 1 figure(s)._
-  - Framing: a hypothetical worked case, not anyone's plan or product.
-  - Step 0, baselines: the instruct release, prompted with the deployment's system prompt, on the golden set (parse rate, checker pass rate, judge coverage): the bar every …
-  - Step 1, the starting point, with its rule: if Module 08's baselines showed that continued pretraining was needed, SFT starts from the CPT checkpoint, which is a base …
-  - Step 2, SFT with LoRA from the CPT checkpoint: r = 64, alpha = 128, all linear layers, plus the template tokens' rows of the input embedding and the output head made …
-  - Step 3, RL with verifiable rewards (GRPO) rather than DPO, because a deterministic checker gives exact rewards on the model's own samples, while DPO would need pairs, …
-  - The reward function, generalised from the source: parse_argument(reply) is None -> 0.0 (nothing below is reachable for prose);
-  - … and 3 more points
+- **s1 What post-training is for** (11 min). A base model predicts the next token of a text. _1 worked example(s), 1 figure(s)._
+  - ### Three kinds of signal **Supervised fine-tuning**, or SFT, supplies the answer the assistant should have written.
+  - ### Behaviour can be cheaper than the base [InstructGPT](https://arxiv.org/abs/2203.02155) showed that human evaluators on its prompt distribution could prefer a 1.3B …
+  - ### The running case The hypothetical assistant drafts and checks safety-case arguments for the pressure-relief system of a reactor vessel.
+- **s2 Supervised fine-tuning: the data** (14 min). An **SFT example** contains a conversation and the assistant turns that count as targets. _1 worked example(s), 1 figure(s)._
+  - ### Four sources of demonstrations **Human demonstrations** can encode judgement that is difficult to specify in code.
+  - ### Filtering changes the distribution A filter is also a selection policy.
+  - ### Match the conversation that will be served Distribution match includes the system prompt, tools, languages, length and imperfections of real requests.
+  - ### Preserve general behaviour while specialising A narrow set can improve one task while degrading other abilities.
+- **s3 Supervised fine-tuning: templates, masking, packing and limits** (21 min). A conversation becomes a sequence only after a **chat template** renders its roles and boundaries. _1 worked example(s), 1 figure(s)._
+  - ### A rendering contract Training and serving should render the same test conversations to identical token IDs.
+  - ### The conditional likelihood Write the complete training sequence as $z_1,\ldots,z_T$.
+  - ### Count targets, not padded positions Long replies contribute more terms to a token-mean loss than short ones.
+  - ### Optimise and evaluate the behaviour Learning rate, epochs, batch size and context length depend on the starting point and the data.
+  - ### What the targets do not guarantee SFT uses **teacher forcing**: each target token is conditioned on the correct earlier response tokens.
+- **s4 Parameter-efficient fine-tuning: LoRA and QLoRA** (23 min). Full-weight fine-tuning stores more than model weights. _2 worked example(s), 2 figure(s)._
+  - ### Learn a low-rank change For a frozen projection $\mathbf{W}\in\mathbb{R}^{d\times k}$, **LoRA** learns two factors $\mathbf{A}\in\mathbb{R}^{r\times k}$ and …
+  - ### Count the parameters that actually train A projection adds $r(d+k)$ parameters.
+  - ### Memory savings do not remove the frozen computation Recall the [Module 06 FLOP convention](module_06_EN.html#s11).
+  - ### Quantise the frozen base, train the adapter **QLoRA** keeps the base quantised while training high-precision adapters.
+  - ### Merge the result and test again After training, add $s\mathbf{B}\mathbf{A}$ to the floating-point base matrix.
+- **s5 Preferences and reward models** (18 min). A demonstration gives one acceptable response. _2 worked example(s), 2 figure(s)._
+  - ### From noisy choices to a scalar reward The **Bradley–Terry model** represents a response by a reward $r(x,y)$ and models the probability that one response wins as
+  - ### Fit and check the reward model A common reward model copies the SFT model's trunk, replaces its vocabulary head with a scalar head, and reads that scalar at the …
+  - ### Optimising the proxy exposes its errors The true reward in Lab 3 is a concave quadratic with maximum 2.5 at $(2,1)$.
+- **s6 RLHF with PPO** (20 min). The classical **reinforcement learning from human feedback (RLHF)** pipeline uses demonstrations for SFT, comparisons for a reward model, then sampled responses for policy optimisation. _3 worked example(s), 1 figure(s)._
+  - ### The gradient of a sampling policy For a fixed reward $R(y)$ and one prompt, differentiate the expectation itself:
+  - ### PPO's clipped update In the token view, the state is the prompt and generated prefix, and the action is the next token.
+  - ### Four models and a generation loop PPO-RLHF commonly holds a trained policy, trained value model, frozen reference and frozen reward model.
+- **s7 Direct preference optimisation** (25 min). **Direct preference optimisation (DPO)** fits preference pairs directly with a language model. _2 worked example(s), 2 figure(s), widget: kl-policy-explorer._
+  - ### Solve the regularised objective Fix a prompt, a finite response set and a reference with positive probability on that set.
+  - ### Substitute the optimum into preference probabilities Taking logs and rearranging gives
+  - ### Implement the loss with the right sequence probabilities Each argument below is a batch vector of **summed assistant-token** log-probabilities, including the first …
+  - ### Beta, data and stopping For a **fixed known reward**, smaller $\beta$ makes $\pi^*$ sharper and permits greater departure from the reference.
+- **s8 The simplest reinforcement learning: sample, verify, keep** (12 min). A **verifiable reward** comes from a checker: a numerical answer equals the known solution, code passes tests, or an artifact satisfies structural rules. _2 worked example(s), 1 figure(s)._
+  - ### Turn selected samples into training data **Rejection-sampling fine-tuning** samples responses, keeps accepted ones, applies ordinary SFT, and repeats.
+- **s9 Reinforcement learning with verifiable rewards: GRPO** (24 min). A checker can score a numerical answer, a program or a structured artifact without differentiating through it. _1 worked example(s), 2 figure(s), widget: grpo-group-explorer._
+  - ### A group baseline and its limits Let $\bar r_{-i}$ average the other $G-1$ rewards.
+  - ### Estimate reference KL carefully For one conditional next-token distribution, set $u=\pi_{\mathrm{ref}}(a\mid s)/\pi_\theta(a\mid s)$ and use
+  - ### Which groups teach, and what normalisation changes For independent binary rewards with pass probability $p$, the probability of a group containing both outcomes is
+  - ### The checker is part of the learned behaviour ::: figure id=fig-09-15 Recorded Lab 5 curves show reward, zero-variance groups and KL under two beta settings.
+- **s10 Safety, refusal and honesty** (14 min). **Refusal** is a learned response to an unsuitable request. _1 worked example(s), 1 figure(s)._
+  - ### Evaluate both sides of the boundary [XSTest](https://arxiv.org/abs/2308.01263) contains 250 safe prompts resembling unsafe requests and 200 unsafe contrasts.
+  - ### Confidence and the incentive to guess Calibration asks whether an expressed confidence matches empirical accuracy.
+  - ### Honesty about evidence and actions A completion claim must refer to an observable result.
+- **s11 Tools and agents** (8 min). A tool-using model emits an assistant call in a specified format, receives an environment result, then decides how to continue. _1 worked example(s), 1 figure(s)._
+- **s12 Evaluation** (16 min). After post-training, one loss cannot summarise behaviour. _1 worked example(s), 1 figure(s)._
+  - ### Paired evidence on small suites [Module 01, Section 10](module_01_EN.html#s10) introduces sampling uncertainty: a pass rate has approximate standard error …
+  - ### Judged comparisons need their own audit A model judge can compare responses using a rubric and references.
+  - ### Contamination and promotion Compare all training sources, including distillation prompts and generated targets, against evaluation using content hashes and n-gram …
+- **s13 Merging and averaging** (8 min). Fine-tuned models sharing one base can sometimes be combined by averaging their weights. _1 worked example(s), 1 figure(s)._
+  - ### Merge adapter updates, not separately averaged factors For two adapters, form $\Delta W=\lambda_1s_1B_1A_1+\lambda_2s_2B_2A_2$.
+- **s14 The case study: a post-training recipe for a safety-case assistant** (17 min). This is a **hypothetical worked design**, not a deployed system or evidence that an automated safety decision is correct. _2 worked example(s), 1 figure(s)._
+  - ### Baselines determine the starting point First evaluate the prompted instruct release on the golden suite: parse rate, joint structural pass rate, evidence relevance …
+  - ### SFT, with a gate before RL Use rank-64 LoRA with alpha 128 on all seven projections per layer, plus the needed template-token rows.
+  - ### GRPO on the properties the checker can establish Use 3,000 representative prompts for two sampling epochs, eight responses per prompt and one inner update.
+  - ### Compute the bill under explicit assumptions ::: worked title="SFT and GRPO are more than their response tokens" Two SFT epochs give $10^8$ total token-passes.
 - **What goes wrong.** 14 failure modes, each as symptom, cause and fix.
 
 **Labs.**
 
 | Lab | Minutes | CPU run | Download | Goal |
 |---|---|---|---|---|
-| lab1: SFT of SmolLM2-135M with prompt-token loss masking | 40 | ~10 min | 270 MB | Turn a base model into a minimal assistant with a hand-rendered ChatML template and a masked loss, and measure what changes (stopping, format, per-task accuracy) and what does not. |
-| lab2: LoRA from scratch: wrap, count, train, merge, verify | 30 | ~4 min | none | Implement a LoRA layer in plain PyTorch, apply it to every linear projection of SmolLM2-135M, verify that training starts from the base exactly, train it, merge it, and confirm … |
-| lab3: A Bradley-Terry reward model with a known true reward | 25 | ~1 min | none | Train a reward model on synthetic comparisons generated from a known reward, measure its accuracy against the label-noise ceiling and its calibration, and watch best-of-n … |
-| lab4: DPO from scratch: an exact check, then on-policy and off-policy pairs | 30 | ~2 min | none | Confirm numerically that DPO lands on the closed-form optimum pi* and that beta sets how far it moves, then train a small autoregressive policy with DPO on a verifiable preference … |
-| lab5: RL with verifiable rewards: expert iteration, GRPO and a flawed verifier | 35 | ~2 min | none | Run the simplest RL (sample, verify, keep) and GRPO on the same toy task with an exact verifier, see the KL term and zero-variance groups at work, then watch a slightly wrong … |
-| lab6: An evaluation harness: a behavioural suite with confidence intervals | 25 | ~2 min | 270 MB | Build a small behavioural suite with programmatic checkers, run a base and an instruct model on it, and report per-category pass rates with bootstrap intervals, a paired … |
+| lab1: SFT with assistant-token loss masking | 40 | ~10 min | 270 MB | Fine-tune a released base model on five families of synthetic engineering instructions. |
+| lab2: LoRA from scratch, training and exact merging | 30 | ~4 min | none | Wrap every block projection with a low-rank update, verify the initial function is unchanged, train the factors, and merge them into the frozen weights. |
+| lab3: Learning and overoptimising a comparison reward | 25 | ~1 min | none | Learn a scalar reward from noisy comparisons when the true utility is known. |
+| lab4: DPO from an analytic check to likelihood displacement | 30 | ~2 min | none | Fit an eight-response policy from noisy Bradley–Terry preferences and compare it with the closed-form KL-regularised optimum. |
+| lab5: Expert iteration, GRPO and a verifier that accepts hedges | 35 | ~2 min | none | Compare success-only SFT with group-relative reinforcement learning on the same finite digit task. |
+| lab6: Behavioural checkers and uncertainty in a small suite | 25 | ~2 min | 270 MB | Compare a base and instruct checkpoint on 40 explicit behavioural items. |
 
 **Exercises** (15: 8 ★, 6 ★★, 1 ★★★; 130 minutes).
 
@@ -1660,7 +1608,7 @@ Turns a base model into an assistant: supervised fine-tuning and its mechanics, 
 - e14 ★ conceptual, 5 min: A pairwise judge compares a new model's answers with the incumbent's, each pair shown in both orders.
 - e15 ★ conceptual, 5 min: Two rank-r adapters (B1, A1) and (B2, A2) for the same matrix, each with its alpha / r folded into its B, are to be merged with equal weight.
 
-**Quiz** (12 questions): A model fine-tuned with ChatML ignores its system prompt only in production.; In SFT with loss masking, which tokens carry loss?; LoRA initialises A randomly and B to zero.; A reward model's output for every response to prompt x is increased by 3.; In the KL-regularised objective E[r] - beta KL(pi \|\| pi_ref), what happens to …; In the DPO derivation, why does the partition function Z(x) disappear?; DPO on pairs taken from a very different model reaches 100% pair accuracy and …; GRPO with G = 8 runs on prompts the policy already solves 95% of the time.; Why does rejection-sampling fine-tuning (sample, verify, keep) often plateau …; A grader gives 1 for a correct answer and 0 both for a wrong answer and for 'I …; On 50 shared items, model A passes 8 items that B fails and B passes 3 that A …; Two LoRA adapters trained for different tasks on the same base are to be merged …
+**Quiz** (12 questions): A model fine-tuned with ChatML ignores its system prompt only in production.; In SFT with loss masking, which tokens carry loss?; LoRA initialises A randomly and B to zero.; A reward model's output for every response to prompt x is increased by 3.; In the KL-regularised objective E[r] - beta KL(pi \|\| pi_ref), what happens to …; In the DPO derivation, why does the partition function Z(x) disappear?; DPO on pairs taken from a very different model reaches 100% pair accuracy and …; GRPO with G = 8 runs on prompts the policy already solves 95% of the time.; What limits sample–verify–keep when no response to a hard prompt passes the …; A grader gives 1 for a correct answer and 0 both for a wrong answer and for 'I …; On 50 shared items, model A passes 8 items that B fails and B passes 3 that A …; Two LoRA adapters trained for different tasks on the same base are to be merged …
 
 **Guided reading.**
 
@@ -1677,7 +1625,7 @@ Turns a base model into an assistant: supervised fine-tuning and its mechanics, 
 
 ### Module 10: Inference and serving
 
-What happens when a model answers: why output tokens are slow and input tokens are not, how memory decides how many users a GPU can hold, what quantisation and speculative decoding buy, and how to size, measure and run the serving of a model you own at a latency and cost you can predict.
+Derive latency and capacity from first principles: prefill, decode, the roofline model, KV cache, continuous batching and paging, quantisation and speculative decoding. Test the mechanisms in runnable CPU labs, then account for the case study's service objectives, cost and reliability.
 
 **Before you start:** Module 06: attention, multi-head and grouped-query attention, RoPE, the modern decoder block, counting parameters and FLOPs (2·N_matmul FLOPs per token plus attention, with memory counted from all N parameters), and the KV cache as introduced there; Module 07: the language-modelling objective and perplexity, tokenisation, decoding and sampling (greedy, temperature, top-p), the context window, cost from first principles, and the running case study's model, workload and assumed prices; Module 08: floating-point formats for training (fp32, bf16, fp16, fp8), memory accounting, and the idea of tensor and pipeline parallelism; Module 09: chat templates, LoRA and QLoRA, evaluation suites, and the running case study's post-training, which ends with the merged model this module quantises and serves; Mathematics: operation counts of matrix-vector and matrix-matrix products; discrete probability (sums over a distribution, expectations, the finite geometric series); Python and PyTorch at the level of the Module 02 and Module 06 labs.
 
@@ -1689,7 +1637,7 @@ What happens when a model answers: why output tokens are slow and input tokens a
 - Explain continuous batching, chunked prefill, paged attention and prefix caching, and predict from a workload or a prompt layout whether each will help.
 - Quantise a weight matrix to int8 and int4 with absmax and zero-point schemes at per-tensor, per-channel and group-wise granularity, count the bits per weight including scales, measure the effect on perplexity, and explain what GPTQ, AWQ and SmoothQuant add.
 - Derive the speculative-sampling acceptance rule, prove that it leaves the target model's output distribution unchanged, and compute the expected speed-up from the acceptance rate, the draft length and the draft's cost.
-- Size the serving of the case-study 9.5B model at 4 bits on a 24 GB GPU: weights, cache budget, concurrency, latency at low and at full load, throughput, cost per million tokens, and what the real utilisation does to that cost.
+- Size the serving of the case-study 9.5B model in its mixed int4 serving format on a 24 GB GPU: weights, cache budget, concurrency, latency at low and at full load, throughput, cost per million tokens, and what the real utilisation does to that cost.
 - Define TTFT, TPOT, inter-token latency, throughput, goodput and percentiles; design an open-loop load test; set an SLO and find the request rate a server sustains under it.
 - Specify the reliability measures of a self-hosted model (versioning by hash, provenance, health checks, timeouts, retries, exercised fallbacks, metering, privacy-preserving logging) and state the limits of determinism.
 - Choose hardware and a serving engine for a workload with dated, conservative reasoning, reading a datasheet for the three numbers that matter.
@@ -1706,147 +1654,121 @@ What happens when a model answers: why output tokens are slow and input tokens a
 
 **Concept sections.**
 
-- **s1 Two phases: prefill and decode** (15 min). Show that answering a prompt is one parallel pass over the prompt followed by one pass per output token, and estimate the time of each from FLOPs and bytes. _4 worked example(s), 1 figure(s)._
-  - The generation loop: prompt tokens -> forward pass -> logits at the last position -> sample (Module 07) -> append -> repeat until an end-of-sequence token, a stop string …
-  - Prefill: all T_p prompt positions in one forward pass, in parallel;
-  - Decode: one new position per forward pass;
-  - FLOPs, by Module 06's convention, recalled in one paragraph with a link (Module 06 derives it;
-  - Bytes per decode step: the weights plus this sequence's cache (147,456·t bytes for the case-study model at context t, derived in s3).
-  - The time model used throughout the module: TTFT ≈ queueing + prefill FLOPs / (MFU · peak FLOP/s);
-  - … and 2 more points
-- **s2 The roofline model: compute-bound and bandwidth-bound** (20 min). Give the reader one diagram and one ratio, arithmetic intensity against the ridge point, that decide whether an operation is limited by compute or by memory bandwidth, and use it to explain why batching helps decode. _4 worked example(s), 1 figure(s)._
-  - Definitions: arithmetic intensity I = FLOPs performed / bytes moved between off-chip memory and the compute units;
-  - Derive the matrix-vector case: y = Wx with W ∈ R^{m×n} at b bytes per element: FLOPs 2mn;
-  - Derive the matrix-matrix case with B columns (B tokens processed together): Y = WX with X ∈ R^{n×B}: FLOPs 2mnB;
-  - Ridge points from published dense figures: H100 SXM 989 TFLOP/s / 3.35 TB/s = 295 FLOP/byte;
-  - Why batching helps decode: B sequences in one step share a single read of the weights, so the step time stays nearly flat until 2B/b reaches the ridge: bf16 on the H100: …
-  - Decode attention does not batch: each sequence reads its own cache.
-  - … and 2 more points
-- **s3 The KV cache in depth** (19 min). Derive the size of the key-value cache, show that it is the number that decides concurrency, and list the ways to shrink it. _3 worked example(s), 2 figure(s)._
-  - Why caching is exact: under the causal mask the key and value at position i depend only on tokens ≤ i, so they never change once computed.
-  - Derive the size: per token per layer, one key vector and one value vector for each of n_kv heads, each of d_head values, so 2·n_kv·d_head values;
-  - Grouped-query attention (Module 06): n_kv key/value heads shared by n_h > n_kv query heads divide the cache by n_h/n_kv;
-  - The cache against the weights: for the case study one sequence's cache equals the 5.5 GB of weights at about 37,300 tokens;
-  - Other ways to shrink the cache: sliding-window attention caps it at the window (Mistral 7B, 2023: 4,096 tokens);
-  - Implementation: a cache that grows by concatenation copies itself at every step;
+- **s1 Two phases: prefill and decode** (15 min). A language model answers a request by running two different workloads. _1 worked example(s), 1 figure(s)._
+  - Parallel prompt prefill and autoregressive decode;
+  - 2*N_matmul per token plus causal attention;
+  - Decimal units, assumed 50% prefill MFU and peak decode bandwidth;
+  - Input embedding traffic refinement and achieved bandwidth can offset in this example;
+- **s2 The roofline model: compute-bound and bandwidth-bound** (20 min). Arithmetic intensity measures how much computation an operation gets from each byte transferred between off-chip memory and compute units. _1 worked example(s), 1 figure(s)._
+  - Roofline P=min(Ppeak,I*BW), ridge Ppeak/BW;
+  - Derive matrix-vector and finite-width matrix-matrix intensity including activation traffic and accumulation precision.
+  - GQA attention intensity nq/nkv times 2/bytes;
+  - Measured four-thread CPU matrix roofline: 48.24 GB/s, 621.6 GFLOP/s, ridge 12.88;
+- **s3 The KV cache in depth** (19 min). Caching is exact under the causal dependency structure. _1 worked example(s), 2 figure(s)._
+  - Causal cache exactness, projection recomputation saving, and floating-point qualifications.
+  - Derive 2L*nkv*dh*b*T*B;
+  - MHA/GQA/MQA architecture choices;
+  - Capacity versus traffic;
+  - Lab 2 token/logit comparisons, exact 555008-byte cache at 271 positions and frozen-position divergence at output 9.
+- **s4 Hardware: the three numbers on a datasheet** (13 min). Capacity, bandwidth and dense compute answer three different sizing questions. _1 worked example(s), 1 figure(s)._
+  - Capacity, bandwidth, dense compute and interconnect;
+  - Compatible operand/accumulation precision and sparse/dense footnotes;
+  - Dated exemplar devices and computed bandwidth-only bounds;
+  - Backend support, licence constraints, tensor/pipeline communication and CPU/unified-memory trade-offs.
+- **s5 Batching: static, dynamic and continuous** (17 min). One request can leave much of a GPU's arithmetic capacity idle during decode. _2 worked example(s), 2 figure(s)._
+  - Static, dynamic request-level and continuous iteration-level batching;
+  - Derive aggregate throughput B*BW/(W+B*KV*mean_context), cache asymptote and separate capacity/compute ceilings.
+  - Hybrid chunked prefill uses maximum of combined memory and compute time;
+  - Admission limits, reservations versus actual occupancy, growth preemption, finite seeded workload and realised arrivals.
+- **s6 Paged attention and prefix caching** (17 min). Output length is unknown when a request arrives. _2 worked example(s), 1 figure(s)._
+  - PagedAttention historical waste and 2–4x measured baseline gains qualified to studied systems.
+  - Logical block tables, physical pool, block tails, reference counts and copy-on-write;
+  - Prefix hashes include preceding prefix, adapters and inputs;
+  - Stable-prefix ordering and identical token ids;
+  - Lab 2 warm 0.063–0.076 s versus cold 2.413–2.511 s;
+- **s7 Number formats and the arithmetic of quantisation** (19 min). Reducing stored weight bits can cut bandwidth-bound decode traffic and leave more memory for the cache. _1 worked example(s), 2 figure(s)._
+  - Floating range versus resolution;
+  - Symmetric absmax quantisation, rounding bound, uniform-error approximation and outlier amplification.
+  - Min-max zero points, endpoint/clipping/constant-group caveats;
+  - Per-tensor, per-channel and group scales;
+  - Unpacking/dequantisation versus compute format;
+- **s8 Quantising LLMs: outliers, GPTQ, AWQ, SmoothQuant and the cache** (21 min). Small average weight error is not the same as small model-output error. _1 worked example(s), 2 figure(s)._
+  - Lab 4 recorded perplexities: 20.8462 baseline, int8 21.6252/20.9937, int4 tensor 5834512.4874, channel 46.2519, group64 29.1763, zero-point 27.1402.
+  - Disjoint calibration and evaluation windows;
+  - Derive SmoothQuant exact product identity, balancing scales, folding constraints;
+  - Derive GPTQ constrained quadratic compensation;
+  - AWQ activation saliency, effective rounding error and changing group maximum;
+  - KV quantisation metadata/cost/quality, KIVI key/value statistics, and evaluation/hash of the exact converted bilingual task artifact.
+- **s9 Speeding up decode: speculative decoding and its relatives** (20 min). A bandwidth-bound target model can score several positions in a matrix product for much less than the cost of several separate decode steps. _2 worked example(s), 1 figure(s), widget: speculative-speedup._
+  - Derive stochastic acceptance overlap and residual restoration, alpha=1-TV;
+  - Conditional sampler distributions, grammar/filtering, chain verification, bonus tokens and cache rollback/catch-up.
+  - Greedy equality versus floating-point near-ties;
+  - Lab 5 measured gamma4 alpha .865, 3.636 outputs/iteration, 1.123x gain versus predicted 1.268;
+  - Medusa, EAGLE, prompt lookup and lookahead proposals;
+- **s10 Structured output and the serving engine** (16 min). A serving engine does more than call a model forward method. _1 worked example(s), 2 figure(s)._
+  - Grammar/parser states, whole decoded token pieces, indexed masks and renormalisation;
+  - Valid prefixes do not guarantee complete documents, factual correctness or a meaningful severity mapping.
+  - API frontend, tokenizer/template, scheduler, KV manager, model runner, sampler, detokenisation and lifecycle metrics.
+  - Dated engine roles and compatibility: vLLM, SGLang, TensorRT-LLM, TGI maintenance mode, llama.cpp/Ollama.
+  - OpenAI-compatible protocol fields, streamed events, implementation-specific usage/limits and length finish reasons;
+- **s11 Sizing the running case study** (19 min). Now combine parameters, formats, cache, scheduling and prices into one capacity estimate. _1 figure(s), widget: serving-calculator._
+  - Canonical 9550729216 parameters, 8927875072 matrix count;
+  - Serving file: int4 group128 scales, bf16 norms, eight-bit embedding/head before table scales;
+  - 16 GB bf16 cache admits 18 full requests;
+  - Cold/warm prefill .923/.241 s, quiet E2E about 13.4 s;
+  - Prefill-inclusive simple full-load accounting: 1196 requests/hour, 2.39M output/hour rounded 1200/2.4M, saturated E2E 54–55 s.
+  - All prices explicit assumptions;
   - … and 1 more points
-- **s4 Hardware: the three numbers on a datasheet** (13 min). Read an accelerator datasheet for the three numbers that matter, memory capacity, memory bandwidth and dense compute, and turn them into concurrency, decode speed and prefill speed. _3 worked example(s), 1 figure(s)._
-  - Capacity decides the largest model and the number of concurrent sequences;
-  - A dated table ('published datasheet figures, dense, no sparsity, as of 2026'): H100 SXM: 80 GB, 3.35 TB/s, 989 TFLOP/s bf16;
-  - Same memory, different speed: the L4 and the RTX 4090 both have 24 GB, so both hold the case study's 18 sequences, but the L4 decodes about 3.3 times slower (1.0/0.30 = …
-  - Datasheet traps: 'with sparsity' figures are twice the dense ones;
-  - Consumer versus datacentre parts: memory size, ECC, multi-GPU interconnect, cooling and form factor, and driver licence terms that restrict datacentre use of consumer …
-  - Several GPUs: tensor parallelism splits every layer across GPUs, so weights, bandwidth and compute add (two GPUs roughly halve the per-token time) at the cost of an …
-  - … and 2 more points
-- **s5 Batching: static, dynamic and continuous** (17 min). Show how a server keeps the GPU busy with many sequences at once, and what each batching policy does to throughput and to each user's latency. _3 worked example(s), 2 figure(s)._
-  - Static batching: B requests padded to a common length and run together until the longest finishes;
-  - Dynamic (request-level) batching: dispatch when B requests are queued or after a maximum wait τ;
-  - Continuous (iteration-level) batching (Orca, Yu et al.
-  - Prefill-decode interference: a joining request's prefill shares the iteration, so every running sequence sees one long gap (about 0.92 s for a 4,000-token prompt on the …
-  - The throughput-latency trade-off in the bandwidth-bound regime: step time t(B) = (W + B·k·t̄)/BW, with W the weight bytes, k the cache bytes per token and t̄ the mean …
-  - Scheduler controls: maximum running sequences, maximum tokens per iteration, the cache budget for admission;
-- **s6 Paged attention and prefix caching** (17 min). Explain how serving engines allocate the cache in pages so that many sequences of unpredictable length fit, and how they reuse the cache of a shared prefix across requests. _4 worked example(s), 1 figure(s)._
-  - Why contiguous allocation wastes memory: the output length is unknown, so a naive server reserves the maximum length per request;
-  - PagedAttention: the cache is divided into fixed-size blocks (16 tokens by default in vLLM);
-  - Sharing and copy-on-write: sequences that share a prefix (parallel samples of one prompt, beam search) point to the same physical blocks, with reference counts;
-  - Preemption when blocks run out: swap a sequence's blocks to CPU memory, or drop them and recompute later.
-  - Prefix caching: full blocks are identified by a hash of their tokens and of everything before them;
-  - What breaks a hit: any change early in the prompt (a timestamp, a user name, a reordered tool list), a different rendering by the chat template, a prefix that ends …
-  - … and 1 more points
-- **s7 Number formats and the arithmetic of quantisation** (19 min). Give the formats and the exact arithmetic of mapping weights to a few bits, with the storage cost of the scales, so that every scheme in s8 is a variation on one formula. _4 worked example(s), 2 figure(s)._
-  - Why fewer bits: decode time is bytes per step over bandwidth (s1-s2), so every bit saved per weight speeds decode and frees memory for the cache (s3).
-  - Float formats as (sign/exponent/mantissa bits;
-  - Block-scaled formats, dated and conservative: the OCP microscaling (MX) formats share one 8-bit power-of-two scale among 32 elements (MXFP4 elements are E2M1, giving 4 + …
-  - Symmetric (absmax) quantisation: s = max\|w\| / q_max with q_max = 2^(b−1) − 1;
-  - Asymmetric (zero-point, min-max) quantisation: s = (max w − min w)/(2^b − 1);
-  - Granularity: per-tensor (one scale), per-channel (one scale per output row), group-wise (one scale per g consecutive weights along the input dimension, g = 32, 64 or 128).
-  - … and 2 more points
-- **s8 Quantising LLMs: outliers, GPTQ, AWQ, SmoothQuant and the cache** (21 min). Explain why quantising a language model is harder than quantising a random matrix, what the calibrated methods do about it, how to quantise the cache, and how to measure the damage. _3 worked example(s), 2 figure(s)._
-  - What round-to-nearest does to a small model (Lab 4: SmolLM2-135M, perplexity on the first 4,096 tokens of the WikiText-2 test split;
-  - Outliers: weights are well behaved (in SmolLM2-135M the worst per-input-channel max/median ratio is about 12) but activations are not (in Lab 4 one input channel of …
-  - Weight-only (W4A16, W8A16) versus weight-and-activation (W8A8 in int8 or fp8), argued from the roofline: weight-only cuts the bytes of bandwidth-bound decode;
-  - SmoothQuant (Xiao et al.
-  - GPTQ (Frantar et al. 2023): per layer, minimise ‖WX − ŴX‖²_F over quantised Ŵ, each row independently;
-  - AWQ (Lin et al. 2024): about 1% of weight channels are salient, and saliency follows activation magnitude, not weight magnitude;
-  - … and 4 more points
-- **s9 Speeding up decode: speculative decoding and its relatives** (20 min). Derive speculative decoding: why verifying several tokens costs about one step, why the output distribution is exactly the large model's, and how much faster it is. _4 worked example(s), 1 figure(s), widget: speculative-speedup._
-  - The opportunity: a bandwidth-bound target model scores γ + 1 positions in about the time of one (s2), so a cheap draft model proposes γ tokens and the target checks them …
-  - The algorithm (Leviathan, Kalman and Matias 2023;
-  - Proof that the output is distributed as p (write it out): P(output = x) = q(x)·min(1, p(x)/q(x)) + (1 − β)·r(x), where β = Σ_x min(p(x), q(x)) is the probability of …
-  - Greedy special case: accept x_i if and only if it equals the target's argmax;
-  - Expected tokens per iteration: with acceptances independent with probability α, P(at least k drafts accepted) = α^k for k ≤ γ, so E[tokens] = 1 + Σ_{k=1}^{γ} α^k = (1 − …
-  - Walltime: an iteration costs γ draft steps and one verification, (γc + v)·T_target, where c is the draft-to-target step-cost ratio and v ≈ 1 when verification is …
-  - … and 3 more points
-- **s10 Structured output and the serving engine** (16 min). Show how a server can guarantee that output follows a schema, and what a serving engine is made of, so that the reader can choose and configure one. _2 worked example(s), 2 figure(s)._
-  - Constrained decoding (Module 07 introduced it as masking invalid tokens;
-  - What it guarantees and what it does not: syntax, not content.
-  - Engine anatomy: API server (OpenAI-compatible, streaming);
-  - The stacks, as of 2026 (check current documentation): vLLM: the general-purpose GPU server with PagedAttention, continuous batching, prefix caching, many quantised …
-  - The OpenAI-compatible chat-completions API: POST /v1/chat/completions with model, messages (role, content), max_tokens, temperature, top_p, stop, stream, and …
-  - The chat template: the server renders messages into tokens with the template stored with the model's tokenizer;
-  - … and 2 more points
-- **s11 Sizing the running case study** (19 min). Put s1-s10 together to size the serving of the hypothetical 9.5B safety-case model on one 24 GB GPU and on larger cards, ending with cost per million tokens and what the real utilisation does to it. _2 worked example(s), 1 figure(s), widget: serving-calculator._
-  - The case (hypothetical, as in Modules 07-09): the open-weight bilingual (English-Chinese) model of about 9.5B parameters chosen in Module 07 and adapted in Modules 08-09 …
-  - Step 1, weights: recall the count, attention 41,943,040 + feed-forward 188,743,680 + norms 8,192 = 230,694,912 parameters per layer (230.7M), × 36 = 8.305×10⁹, plus 2 × …
-  - Step 2, memory budget: 24 − 5.5 − 2.5 = 16 GB for the cache, where 2.5 GB for the runtime (context, activation workspace, graph buffers) is an assumption to measure on …
-  - Step 3, concurrency: 6,000 × 147,456 B = 0.885 GB per finished request → 18 concurrent;
-  - Step 4, latency at low load: TTFT = 7.61×10¹³ / (0.5 × 165×10¹²) = 0.92 s (0.24 s when the prefix is cached);
-  - Step 5, throughput at full load: B = 18 gives an 18.8 ms step and 959 tokens/s while decoding;
-  - … and 4 more points
-- **s12 Measuring latency: metrics, load tests and SLOs** (15 min). Define the latency metrics of LLM serving, show how load turns into queueing, and explain how to run a load test whose numbers can be trusted. _3 worked example(s), 1 figure(s)._
-  - Metrics: TTFT (request sent to first token received: queueing + prefill + network);
-  - Percentiles: report p50, p90 and p99 computed from raw samples;
-  - Tail amplification (Dean and Barroso 2013): an agent that makes 20 sequential calls, each slower than its p99 with probability 1%, has 1 − 0.99²⁰ = 18.2% of its tasks …
-  - Queueing: utilisation ρ = arrival rate / service rate;
-  - Little's law L = λW holds for any stable system: the mean number of requests in the system equals the arrival rate times the mean time in the system.
-  - Load-test design: open-loop arrivals (Poisson at a set rate) expose overload;
-  - … and 2 more points
-- **s13 Reliability in production** (14 min). List what keeps a self-hosted model trustworthy in service: knowing exactly what is running, failing over cleanly, measuring cost, being honest about determinism, and protecting what users send. _2 worked example(s), 1 figure(s)._
-  - Versioning and provenance: the served artifact is the exact quantised weights file plus the tokenizer, the chat template, the engine version, the sampling defaults and …
-  - Rollout: shadow or canary a new hash with the evaluation suite (Module 09) and live metrics;
-  - Health and capacity: liveness (the process answers) versus readiness (the model is loaded and has capacity);
-  - Timeouts, retries and fallback: a time budget per request;
-  - Metering: tokens in and out per request, per application and per customer or team, in a usage ledger, so cost is measured rather than assumed (s11).
-  - Determinism: temperature 0 makes the sampling rule deterministic, not the arithmetic.
-  - … and 1 more points
+- **s12 Measuring latency: metrics, load tests and SLOs** (15 min). The server is useful only if its users receive answers within the required time. _1 worked example(s), 1 figure(s)._
+  - Client TTFT/E2E, TPOT with D-1, individual ITL, output tokens/s, completed requests/s and explicitly defined goodput.
+  - Raw percentiles and populations, pooled ITL versus per-request maximum gaps;
+  - M/M/1 as illustrative knee, Little law only with stable compatible averages;
+  - Open-loop arrivals versus closed-loop throttling;
+  - Capacity under chosen SLOs rather than maximum output rate;
+- **s13 Reliability in production** (14 min). A serving calculation describes resources. _1 worked example(s), 1 figure(s)._
+  - Hash all output-determining artifacts, configuration and defaults;
+  - Canary/shadow rollout and full-manifest rollback with retained compatible capacity;
+  - Time budgets, bounded jittered retries, interrupted-stream policy, breakers and regularly exercised named fallbacks.
+  - Meter failed attempts/retries and paid utilisation;
+  - Temperature-zero selection versus batch-dependent arithmetic;
 - **What goes wrong.** 14 failure modes, each as symptom, cause and fix.
 
 **Labs.**
 
 | Lab | Minutes | CPU run | Download | Goal |
 |---|---|---|---|---|
-| lab1: A roofline and sizing calculator | 25 | ~1 min | none | Turn the formulas of s1-s4 into a small calculator that sizes any model on any accelerator, reproduce the case study's sizing table, and measure the roofline of your own machine. |
-| lab2: A KV cache for a small decoder, and prefix caching by hand | 35 | ~2 min | 269 MB | Add a KV cache to a small decoder, prove it exact, measure what it saves and how big it is, see how position bugs hide, and reuse a cached prefix on a real model. |
-| lab3: A continuous-batching simulator | 30 | ~1 min | none | Simulate static and continuous batching, cache-admission policies and chunked prefill for the case study on the 24 GB card, and find the knee of the latency-throughput curve and … |
-| lab4: Quantisation from scratch: weights, outliers and activations | 40 | ~3 min | 270 MB | Quantise SmolLM2-135M's linear layers with the schemes of s7, measure the damage as perplexity, find the activation outliers of s8, and repair simulated W8A8 with SmoothQuant. |
-| lab5: Speculative decoding from scratch | 35 | ~3 min | 724 MB | Implement greedy speculative decoding with SmolLM2-135M drafting for SmolLM2-360M, check that it reproduces the target's output, measure the acceptance rate and speed-up against … |
-| lab6: Batched generation on a CPU: throughput and determinism | 20 | ~1 min | 269 MB | Run batched greedy generation with SmolLM2-135M at B = 1, 2, 4, 8 and 16 in plain PyTorch, measure the prefill time, the decode step and the per-sequence and aggregate tokens/s, … |
+| lab1: A roofline and sizing calculator | 25 | ~0.1 min | none | Reproduce the case-study memory and latency bounds, then measure the matrix-product roofline of your own CPU. |
+| lab2: A KV cache for a small decoder, and prefix caching by hand | 35 | ~0.7 min | 269 MB | Check cached logits against a full causal forward pass, measure exact cache bytes and expose position errors that token comparisons miss. |
+| lab3: A continuous-batching simulator | 30 | ~0.7 min | none | Compare scheduling policies on an identical seeded workload, then find capacity under two latency objectives. |
+| lab4: Quantisation from scratch: weights, outliers and activations | 40 | ~0.7 min | 270 MB | Measure the error caused by quantisation and separate weight error from activation error. |
+| lab5: Speculative decoding from scratch | 35 | ~2.3 min | 724 MB | Preserve a target model's greedy output while proposing several tokens at once, then verify the stochastic acceptance theorem separately. |
+| lab6: Batched generation on a CPU: throughput and determinism | 20 | ~0.4 min | 269 MB | Measure what batching does to throughput and to each request's speed, then compare one prompt alone and in a batch. |
 
 **Exercises** (15: 7 ★, 7 ★★, 1 ★★★; 130 minutes).
 
-- e1 ★ conceptual, 5 min: A colleague estimates the single-user decode speed of a 9B model in bf16 on a GPU with 989 TFLOP/s and 3.35 TB/s as 989×10¹² / (2 × 9×10⁹) ≈ 55,000 …
-- e2 ★★ derivation, 10 min: Derive the arithmetic intensity of Y = WX for W ∈ R^{m×n} stored at b_w bytes per element and X ∈ R^{n×B}, Y ∈ R^{m×B} at b_a bytes per element, and …
-- e3 ★★ calculation, 10 min: From their configuration files, SmolLM2-135M has num_hidden_layers 30, hidden_size 576, num_attention_heads 9 and num_key_value_heads 3;
-- e4 ★ conceptual, 5 min: Grouped-query attention with 8 KV heads for 32 query heads cuts the case study's cache by a factor of 4.
-- e5 ★ conceptual, 5 min: A server reserves the maximum length (8,192 tokens) of cache for every request.
-- e6 ★ conceptual, 5 min: Each request to the safety-case assistant is assembled from (a) a line 'Request time: <timestamp>', (b) a 2,500-token system prompt, (c) a …
-- e7 ★ conceptual, 5 min: Two int4 schemes for the case study's 8.305×10⁹ block weights: (a) groups of 128 with an fp16 scale and an fp16 zero-point, 4.25 bits per weight …
-- e8 ★★ calculation, 10 min: Quantise w = (0.62, −0.11, 0.05, −0.90, 0.33, 0.07, −0.25, 0.48) to int4 (a) with symmetric absmax (q in [−7, 7]) and (b) with min-max zero-point (q …
-- e9 ★★ derivation, 10 min: Prove that speculative sampling (draw x ~ q;
-- e10 ★★ calculation, 10 min: With a per-token acceptance rate α, independent across positions, derive the expected number of tokens per speculative iteration with draft length γ.
-- e11 ★★ calculation, 10 min: Redo the sizing table of s11 (24, 48 and 80 GB cards, 2.5 GB runtime overhead, 6,000-token requests, bf16 cache) for (a) a 14B-class model at 8 bits …
-- e12 ★ conceptual, 5 min: An agent makes 20 sequential model calls per task.
-- e13 ★ conceptual, 5 min: Two runs of the same request at temperature 0 give different answers on a busy server and identical answers on an idle one.
-- e14 ★★ calculation, 10 min: Suppose the 24 GB card of Section 11 can be rented for an assumed USD 0.80 per hour (a lower quote than the section's USD 1.00;
-- e15 ★★★ project, 25 min: A capacity plan under an SLO.
+- e1 ★ conceptual, 5 min: A colleague estimates batch-one decode for a 9B bf16 model on a 989 TFLOP/s, 3.35 TB/s device as …
+- e2 ★★ derivation, 10 min: Derive the intensity of $\mathbf Y=\mathbf W\mathbf X$ for $\mathbf W\in\mathbb R^{m\times n}$ at $b_w$ bytes per weight and $\mathbf X\in\mathbb …
+- e3 ★★ calculation, 10 min: Compute bf16 and one-byte KV cache bytes per token, and bf16 memory for one 8,192-token request, from these configs: SmolLM2-135M has 30 layers, …
+- e4 ★ conceptual, 5 min: Why does sharing eight KV heads among 32 query heads quarter the cache but leave attention FLOPs approximately unchanged? Why can it accelerate …
+- e5 ★ conceptual, 5 min: A server reserves 8,192 cache positions for every request.
+- e6 ★ conceptual, 5 min: A prompt is assembled as a changing request timestamp, a 2,500-token system message, a project-shared 1,200-token standard excerpt and a roughly …
+- e7 ★ conceptual, 5 min: Compare int4 block-weight schemes: (a) group-128 with fp16 scale and fp16 zero-point, 4.25 bits/weight;
+- e8 ★★ calculation, 10 min: Quantise $\mathbf w=(0.62,-0.11,0.05,-0.90,0.33,0.07,-0.25,0.48)$ to int4 with (a) symmetric absmax, codes $-7$ through 7;
+- e9 ★★ derivation, 10 min: Prove the acceptance/residual speculative-sampling identity and show acceptance is $1-\mathrm{TV}(p,q)$.
+- e10 ★★ calculation, 10 min: Derive expected speculative output under independent acceptance $\alpha$.
+- e11 ★★ calculation, 10 min: With 2.5 GB overhead, bf16 cache and 6,000-token requests, compute concurrency on 24, 48 and 80 GB budgets for (a) 14 GB weights, 48 layers, eight KV …
+- e12 ★ conceptual, 5 min: An agent makes 20 sequential calls per task.
+- e13 ★ conceptual, 5 min: The same temperature-zero request differs on a busy server but repeats on an idle one.
+- e14 ★★ calculation, 10 min: Assume a lower rental quote of USD 0.80/hour and 2.4 million output tokens per busy hour.
+- e15 ★★★ project, 25 min: Use Lab 3's functions to find the highest nominal rate meeting p99 TTFT at most three seconds and pooled p99 ITL at most 100 ms for four profiles: …
 
-**Quiz** (12 questions): The case-study model's 5.5 GB 4-bit file runs on a GPU with 1.0 TB/s of …; A model has L = 32 layers, 8 KV heads and a head dimension of 128.; Which statement about batching decode is correct?; The main advantage of continuous batching over static batching is that:; Prefix caching never hits on your service.; Quantising SmolLM2-135M's linear weights to int4 with one absmax scale per …; Weight-only int4 quantisation mainly speeds up:; In speculative sampling the draft model is poor (acceptance rate 0.3).; With acceptance rate α = 0.8 and draft length γ = 4, the expected number of …; SmoothQuant makes int8 activation quantisation work by:; At moderate load your p50 TTFT is 0.4 s but p99 is 9 s, while TPOT is normal.; A server completes 0.33 requests/s, and each request spends 55 s in the system …
+**Quiz** (12 questions): Ignoring cache reads, what is the weights-only batch-one decode bound for a 5.5 …; A model has L = 32 layers, 8 KV heads and a head dimension of 128.; Which statement about batching decode is correct?; The main advantage of continuous batching over static batching is that:; Prefix caching never hits on your service.; Quantising SmolLM2-135M's linear weights to int4 with one absmax scale per …; Weight-only int4 quantisation mainly speeds up:; In speculative sampling the draft model is poor (acceptance rate 0.3).; With independent acceptance probability 0.8 and draft length four, what is the …; SmoothQuant makes int8 activation quantisation work by:; At moderate load your p50 TTFT is 0.4 s but p99 is 9 s, while TPOT is normal.; A server completes 0.33 requests/s, and each request spends 55 s in the system …
 
 **Guided reading.**
 
-- Kwon, W. et al., "Efficient memory management for large language model serving with PagedAttention." SOSP, 2023. (15 min). The paper behind vLLM: a clear account of why the KV cache, not compute, limits serving, and how operating-system paging fixes it.
-- Lin, J. et al., "AWQ: Activation-aware weight quantization for LLM compression and acceleration." MLSys, 2024. (15 min). The clearest statement of why activation statistics, not weight magnitudes, decide which weights matter, with an error argument a reader can redo in a few lines;
-- Leviathan, Y., Kalman, M., Matias, Y., "Fast inference from transformers via speculative decoding." ICML, 2023. (15 min). The original statement of speculative sampling with the correctness proof and the walltime analysis that s9 derives;
+- Kwon, W. et al. [“Efficient memory management for large language model serving with PagedAttention.”](https://arxiv.org/abs/2309.06180) *SOSP*, 2023. (15 min). It connects unpredictable sequence lengths to allocator waste and shows how the attention kernel and cache manager must cooperate.
+- Lin, J. et al. [“AWQ: Activation-aware weight quantization for LLM compression and acceleration.”](https://arxiv.org/abs/2306.00978) *MLSys*, 2024. (15 min). The scaling argument makes the distinction between weight magnitude and activation saliency concrete.
+- Leviathan, Y., Kalman, M., Matias, Y. [“Fast inference from transformers via speculative decoding.”](https://arxiv.org/abs/2211.17192) *ICML*, 2023. (15 min). Its probability proof separates preserving a target distribution from obtaining a speed-up.
 
 **Interactive widgets.**
 

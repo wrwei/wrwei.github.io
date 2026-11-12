@@ -1,0 +1,24 @@
+rule Application2Schema
+  transform a : Source!Application
+  to s : Target!Schema {
+  s.name = a.name;
+  s.tables ::= a.entities;
+}
+rule Entity2Table
+  transform e : Source!Entity
+  to t : Target!Table {
+  t.name = e.name;
+  var id = new Target!Column;
+  id.name = "id";
+  id.sqlType = "INTEGER";
+  t.columns ::= e.fields;
+  t.columns.add(id);
+}
+rule Field2Column
+  transform f : Source!Field
+  to c : Target!Column {
+  c.name = f.name;
+  if (f.type.toString() = "STRING") { c.sqlType = "VARCHAR(255)"; }
+  else if (f.type.toString() = "BOOLEAN") { c.sqlType = "BOOLEAN"; }
+  else { c.sqlType = "INTEGER"; }
+}

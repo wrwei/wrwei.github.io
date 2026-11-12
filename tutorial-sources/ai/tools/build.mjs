@@ -36,12 +36,12 @@ export const UI = {
     seriesLabel: 'AI Series — Ran Wei', module: 'Module', of: 'of', contents: 'Contents',
     groups: { concepts: 'Concepts', labs: 'Labs', practice: 'Practice', wrap: 'Wrap-up' },
     glance: 'At a glance', outcomes: 'By the end you can', prereq: 'Before you start', software: 'You will need',
-    plan: 'Study plan', planLead: 'About ten hours, in five sessions. Tick a session when you finish it; your progress is kept in this browser.',
+    plan: 'Study plan', planLead: 'Five study sessions, with about ten hours of scheduled activities. Allow 10–15 hours including derivations, reruns and review. Tick a session when you finish it; your progress is kept in this browser.',
     session: 'Session', done: 'Done', progress: 'Progress', sessionsDone: 'sessions done',
     hours: 'h', min: 'min', approxRead: 'min read', labTime: 'lab', cpu: 'CPU run', download: 'download', none: 'none',
     prev: 'Previous', next: 'Up next', index: 'Series overview', terms: 'Key terms', termsHead: ['English', '中文'],
     kinds: { read: 'Read', lab: 'Lab', exercises: 'Exercises', quiz: 'Quiz', papers: 'Papers', review: 'Review' },
-    stats: (s) => [`≈ 10 hours`, `${s.sessions} sessions`, `${s.labs} labs`, `${s.exercises} exercises`, `${s.quiz} quiz questions`],
+    stats: (s) => [`10–15 hours`, `${s.sessions} sessions`, `${s.labs} labs`, `${s.exercises} exercises`, `${s.quiz} quiz questions`],
     switchTo: '中文', footer: 'Licensed under',
   },
   zh: {
@@ -49,12 +49,12 @@ export const UI = {
     seriesLabel: 'AI 系列 — Ran Wei', module: '模块', of: '/', contents: '目录',
     groups: { concepts: '概念', labs: '实验', practice: '练习', wrap: '总结' },
     glance: '概览', outcomes: '学完本模块，你能够', prereq: '预备知识', software: '所需环境',
-    plan: '学习计划', planLead: '约十小时，分五次完成。每完成一次学习就勾选一次；进度保存在本浏览器中。',
+    plan: '学习计划', planLead: '分五次学习，计划活动约十小时。计入推导、重复实验和复习后，请预留 10–15 小时。每完成一次学习就勾选一次；进度保存在本浏览器中。',
     session: '第', done: '已完成', progress: '进度', sessionsDone: '次已完成',
     hours: '小时', min: '分钟', approxRead: '分钟阅读', labTime: '实验', cpu: 'CPU 运行', download: '下载', none: '无',
     prev: '上一模块', next: '下一模块', index: '系列总览', terms: '关键术语', termsHead: ['English', '中文'],
     kinds: { read: '阅读', lab: '实验', exercises: '练习', quiz: '测验', papers: '论文', review: '复习' },
-    stats: (s) => [`约 10 小时`, `${s.sessions} 次学习`, `${s.labs} 个实验`, `${s.exercises} 道练习`, `${s.quiz} 道自测题`],
+    stats: (s) => [`10–15 小时`, `${s.sessions} 次学习`, `${s.labs} 个实验`, `${s.exercises} 道练习`, `${s.quiz} 道自测题`],
     switchTo: 'English', footer: '许可协议',
   },
 }
@@ -320,7 +320,7 @@ export function renderIndex(lang) {
     try { meta = loadMeta(n, lang) || loadMeta(n, 'en') } catch { continue }
     const labs = (meta.labs || []).length
     const ex = (meta.exercises || []).length
-    cards += `<a class="module-card" href="${fileFor(n, lang)}"><div class="card-num">${ui.module} ${pad(n)}</div><div class="card-title">${escapeHtml(meta.title)}</div><div class="card-desc">${md.renderInline(meta.lead || '', newEnv())}</div><div class="card-meta">${lang === 'zh' ? `约 10 小时 · ${labs} 个实验 · ${ex} 道练习` : `≈ 10 h · ${labs} labs · ${ex} exercises`}</div><div class="card-footer"><span class="card-theme theme-${THEMES[n]}">${THEME_NAMES[lang][THEMES[n]]}</span><span class="card-lang">EN &middot; 中文</span></div></a>`
+    cards += `<a class="module-card" href="${fileFor(n, lang)}"><div class="card-num">${ui.module} ${pad(n)}</div><div class="card-title">${escapeHtml(meta.title)}</div><div class="card-desc">${md.renderInline(meta.lead || '', newEnv())}</div><div class="card-meta">${lang === 'zh' ? `10–15 小时 · ${labs} 个实验 · ${ex} 道练习` : `10–15 h · ${labs} labs · ${ex} exercises`}</div><div class="card-footer"><span class="card-theme theme-${THEMES[n]}">${THEME_NAMES[lang][THEMES[n]]}</span><span class="card-lang">EN &middot; 中文</span></div></a>`
   }
   cards += '</div>'
   // a partial publication says which modules are still to come

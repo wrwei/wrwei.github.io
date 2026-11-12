@@ -1,0 +1,497 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>积分、累积与简单微分方程 — 计算机科学与人工智能的数学基础</title><meta name="description" content="从有限和构造定积分，证明微积分基本定理联系，归一化非负函数，对照模型诊断求积与欧拉模拟。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="17"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 17</button><div class="dropdown-menu" id="module-menu"><a href="module_17_ZH.html" class="active" aria-current="page">积分、累积与简单微分方程</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_17_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>变化率通过极限成为累积量</span></a><a href="#s1"><span class="num">2</span><span>从有限分割到定积分</span></a><a href="#s2"><span class="num">3</span><span>基本定理与原函数族</span></a><a href="#s3"><span class="num">4</span><span>换元与分部积分</span></a><a href="#s4"><span class="num">5</span><span>反常极限与密度归一化</span></a><a href="#s5"><span class="num">6</span><span>带网格与误差条件的数值求积</span></a><a href="#s6"><span class="num">7</span><span>微分方程与欧拉衰减稳定性</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个可复现实验</span></a><a href="#exercises"><span class="num">10</span><span>十四道练习与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自检</span></a><a href="#reading"><span class="num">12</span><span>有目标的阅读</span></a><a href="#summary"><span class="num">13</span><span>检索结业任务与下一步</span></a><a href="#terms"><span class="num">14</span><span>符号与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">积分、累积与简单微分方程</h1><p class="module-lead">从有限和构造定积分，证明微积分基本定理联系，归一化非负函数，对照模型诊断求积与欧拉模拟。</p><div class="hero-chips"><span class="chip chip-time">10 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>区分定积分、累积量与原函数族。</li><li>解释黎曼和并按连续假设使用基本定理。</li><li>用正确边界换元与分部积分。</li><li>分析反常极限并归一化非负密度候选。</li><li>按网格光滑要求实现梯形辛普森。</li><li>解指数衰减、补平衡解，诊断欧拉稳定、非负与有限时间误差。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>模块 16：导数、链积规则、中值与泰勒界；模块 15：完备、连续与极限。概率解释先明确限定，模块 21–23 深入。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">变化率通过极限成为累积量</a><a href="#s1">从有限分割到定积分</a><a href="#s2">基本定理与原函数族</a><a href="#s3">换元与分部积分</a><a href="#s4">反常极限与密度归一化</a><a href="#s5">带网格与误差条件的数值求积</a><a href="#s6">微分方程与欧拉衰减稳定性</a><a href="#misconceptions">常见误解</a><a href="#labs">三个可复现实验</a><a href="#exercises">十四道练习与完整解答</a><a href="#quiz">十题自检</a><a href="#reading">有目标的阅读</a><a href="#summary">检索结业任务与下一步</a><a href="#terms">符号与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">10 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">150 分钟</span></div><div class="session-title">累积与基本定理</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节，构造有限和。</a></span><span class="act-min">76</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读定积分与基本定理选段。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">检索积分与原函数区别。</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m17:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">150 分钟</span></div><div class="session-title">变换与反常极限</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，检查积分域。</a></span><span class="act-min">58</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">比较求积误差与光滑界。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">42</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m17:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">150 分钟</span></div><div class="session-title">求积与衰减模型</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节，探索网格步长。</a></span><span class="act-min">70</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">归一化候选并比较反常尾部。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m17:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">150 分钟</span></div><div class="session-title">欧拉稳定与积分证据</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">诊断稳定、振荡与不稳定衰减步。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">诊断练习 11–12。</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择与书面累积动力学约定。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读反常积分与微分方程选段。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业并区分模型与离散方法。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m17:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>变化率通过极限成为累积量</h2></div>
+<p>导数描述局部变化率；积分沿区间累积，具有单位、符号和有限和本身未提供的极限假设。微分方程规定状态随时间变化，数值模拟则是另一个近似：稳定数学解可以因不适合步长被模拟成不稳定轨迹。</p>
+<p><strong>检索检查：</strong>回忆<a href="module_16_ZH.html#s3">模块16</a>链积规则、中值控制与泰勒误差，以及模块15完备与连续。实验仅用标准库 Python。密度例介绍积分归一化约定，概率模型与期望将在21–23系统展开。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>从有限分割到定积分</h2></div>
+<p>将闭区间[a,b]、a&lt;b分为a=x₀&lt;x₁&lt;…&lt;x_n=b，各宽Δx_i=x_i−x_{i−1}&gt;0，选片内标记ξ_i。黎曼和为Σf(ξ_i)Δx_i，网格尺度是最大宽度，不仅是样点个数。定积分是网格尺度趋零时全部这些标记和趋向的共同有限极限。某个均匀网格可说明过程，却比只验证一种采样路径更强。</p>
+<p>有界函数的下和、上和分别用片内下确界、上确界替代样值，标记和在二者之间。细分提高下和、降低上和；不同分割可通过共同细分比较，任一下和不超过任一上和。完备性给所有下和上确界、所有上和下确界；相同则黎曼可积，共同值为积分。这是极限的等价构造，而非单一计算配方。</p>
+<p>闭有界区间连续函数一致连续，即同一输入容差控制整个区间所有点对。若失败，可找距离趋零却输出距至少固定ε的点对。紧致性给第一输入收敛子列，第二输入趋同一极限，连续使输出差趋零，矛盾。开域或无界域的逐点连续未必给同一统一保证。</p>
+<p>一致连续证明可积：网格足够小使每片值差&lt;ε，则上和减下和≤εΣΔx_i=ε(b−a)，可任意小，所以两个完备界相同，全部足够细标记和趋同一数。其他函数也可积，如有限跳跃的有界分段连续函数；但有界不一定可积。有理点为一、无理点为零的指示函数每片下界零上界一，全部下和零上和b−a。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">左右和只在极限中相同</div>
+<p>f(x)=x在[0,1]用n等宽1/n。左和Σ_{k=0}^{n−1}k/n²=(n−1)/(2n)，右和Σ_{k=1}^{n}k/n²=(n+1)/(2n)，都趋1/2，差1/n。有限和不同，单调性将每个标记和夹在其间，积分是共同极限。</p>
+</div>
+<figure class="fig" id="fig-17-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 370" role="img" aria-label="四片左和八分之三，右和八分之五，夹住x在零一上的积分二分之一。"><title>左右和夹逼积分</title><desc>四片左和八分之三，右和八分之五，夹住x在零一上的积分二分之一。</desc><defs><marker id="fig-17-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="370" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">递增函数的左右矩形</text><rect x="65" y="245" width="66.25" height="0" fill="#bfdbfe" stroke="#2563eb"/><rect x="131.25" y="207.5" width="66.25" height="37.5" fill="#bfdbfe" stroke="#2563eb"/><rect x="197.5" y="170" width="66.25" height="75" fill="#bfdbfe" stroke="#2563eb"/><rect x="263.75" y="132.5" width="66.25" height="112.5" fill="#bfdbfe" stroke="#2563eb"/><path d="M65,245H330M65,245V85" stroke="#94a3b8"/><path d="M65,245L330,95" stroke="#15803d" stroke-width="3"/><text x="65" y="268" text-anchor="middle" font-size="16" fill="#1a2e4a">0</text><text x="330" y="268" text-anchor="middle" font-size="16" fill="#1a2e4a">1</text><text x="197" y="305" text-anchor="middle" font-size="20" fill="#1a2e4a">左和 = 3/8</text><rect x="430" y="207.5" width="66.25" height="37.5" fill="#fed7aa" stroke="#c2410c"/><rect x="496.25" y="170" width="66.25" height="75" fill="#fed7aa" stroke="#c2410c"/><rect x="562.5" y="132.5" width="66.25" height="112.5" fill="#fed7aa" stroke="#c2410c"/><rect x="628.75" y="95" width="66.25" height="150" fill="#fed7aa" stroke="#c2410c"/><path d="M430,245H695M430,245V85" stroke="#94a3b8"/><path d="M430,245L695,95" stroke="#15803d" stroke-width="3"/><text x="430" y="268" text-anchor="middle" font-size="16" fill="#1a2e4a">0</text><text x="695" y="268" text-anchor="middle" font-size="16" fill="#1a2e4a">1</text><text x="562" y="305" text-anchor="middle" font-size="20" fill="#1a2e4a">右和 = 5/8</text><text x="380" y="343" text-anchor="middle" font-size="18" fill="#1a2e4a">f(x)=x，n=4；真实积分 1/2，间隙 1/4。</text></g></svg></div><figcaption><span class="fig-num">图 17.1</span> <p>左右矩形夹住递增函数积分，宽度与上下和间隙一起缩小。</p>
+</figcaption></figure>
+<p>积分是带符号累积：正部分加、负部分减，总几何面积要积分|f|。x在[−1,1]有符号积分零，总面积一。定义同端点积分零，反向限改变符号。线性、区间可加、保序先由有限和再取极限得到；m≤f≤M给m(b−a)≤∫f≤M(b−a)，且|∫f|≤∫|f|。输出单位乘输入单位，米每秒对秒积分得到米。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>积分零是否函数处处零？n→∞是否一般分割尺度必趋零？闭区间连续为何可积？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>正负可抵消；增加片数仍可留下一个大宽度，需检查最大宽度。紧致给一致连续，上下和间隙可压到任意ε(b−a)。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>基本定理与原函数族</h2></div>
+<p>连续f下定义A(x)=∫_a^x f(t)dt。内部x有A(x+h)−A(x)=∫_x^{x+h}f(t)dt。减h f(x)、除h，连续性使附近所有f(t)距f(x)不超过任意ε，商误差≤ε；负h使用反向限同样有效。所以A′(x)=f(x)。积分变量t是受束缚哑变量，区别于移动端点x。</p>
+<p>原函数F满足F′=f。A也是原函数，(F−A)′=0，由中值定理差为常数，端点相减给∫_a^b f=F(b)−F(a)。定积分固定两端时是一个数；不定积分记号表示F+C函数族，初始或边界条件才选出常数。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">累积变化的速率</div>
+<p>r(t)=3t²米每秒，t以秒计，[0,2]累积[t³]_0^2=8米。到变量x的累积A=x³，导数恢复3x²。初位置五米时位置5+x³，不是x³；初位置是积分常数，行进增量是定积分。</p>
+</div>
+<p>反向使用已证明导数给基本原函数：p≠−1时x^p为x^{p+1}/(p+1)，一般实幂用正x，整数多项式可更宽域；p=−1在不跨零区间用ln|x|。exp原函数exp，cos为sin，sin为−cos，线性组合相加。表格不消除域检查。</p>
+<p>不连通域常数可不同：1/x在排零实线的原函数负侧ln|x|+C₋、正侧ln|x|+C₊，导数不约束跨空洞常数差。跨奇点直接F(b)−F(a)不自动是合法正常积分，需要第4节反常极限。</p>
+<p>移动两端时B(x)=∫_{u(x)}^{v(x)}f(t)dt=A(v(x))−A(u(x))，假设f连续、u,v可导且范围在域内，B′=f(v)v′−f(u)u′。两端分别贡献且反号。∫_0^{x²}exp(t)dt导数2x exp(x²)，不是只exp(x²)，这是基本定理加链法则，不是无条件约符号。</p>
+<p>若f不连续但可积，累积仍可连续，跳跃处导数可能失败；在f连续点局部平均证明仍有效。不能在每个间断点都声称A′等于任意赋的点值。有限个孤立值改变不改变积分，因为可用总宽度任意小的片段包住；累积因此未必用导数记录这些孤立赋值。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>定积分∫_0^2 3t²与原函数族有何区别？为何两端都贡献？能否未经检查跨奇点套原函数？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>前者数八，后者t³+C。端点复合各产生链项；奇点需单独反常极限，不能直接按正常积分两端相减。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>换元与分部积分</h2></div>
+<p>换元由链法则与基本定理得到。g在[a,b]连续可导、f在包含g值域区间连续，取F′=f，则[F(g(x))]′=f(g(x))g′(x)，所以∫<em>a^b f(g(x))g′(x)dx=∫</em>{g(a)}^{g(b)}f(u)du。此形式不要求g单调，端点记录方向及沿途抵消；若论证求g逆或删除导数因子，可能需单射分支假设。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">换元同时改变端点</div>
+<p>∫_0^1 2x exp(x²)dx取u=x²，du=2x dx，端点零、一，结果e−1。∫_1^2的变换端点为一、四，结果e⁴−e；不能保留原x端点当u端点。不定形式为exp(x²)+C，需换回x。</p>
+</div>
+<p>exp(x²)单独缺少2x因子，不能用同一简单消去求积分；换元仍可能引入新因子或非初等积分。跨零用u=x²并写dx=du/(2sqrt(u))会丢负x分支，应分开。直接链恒等式有效，逆变量推导另有域要求。</p>
+<p>积规则(uv)′=u′v+uv′积分重排给∫uv′=[uv]_a^b−∫u′v，u,v为C¹。一因子微分另一因子积分，选择影响是否简化，边界项不可省。∫_0^1 x exp(x)取u=x、v=exp(x)，边界e、余积分e−1，结果一。反选留下不同余积分，口诀不保证简化；多项式乘指数可重复降低多项式阶数。</p>
+<p>∫_1^e ln x取u=ln x、v′=1、v=x，边界[x ln x]=e，余∫1=e−1，结果一，整段正域。反常分部积分要先在截断正常区间使用，再检查边界和余项极限，发散边界表达不是有限答案。</p>
+<p>不定结论可求导验证，定结论另检查明确边界，必须在所宣称域验证。不同原函数在连通段可以差常数；若差不恒定或丢域片段就不是同一族。换元导数因子也体现输入坐标缩放，单位可辅助诊断。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>为何单独exp(x²)不能同样简单换元？分部定积分保留什么？换元是否自动允许跨逆分支？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>缺导数因子2x；保留端点乘积、余积分与符号。逆变量换法可能需分支，直接链恒等式不要求单调。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>反常极限与密度归一化</h2></div>
+<p>正常连续函数积分使用有限闭区间且被积函数没有无界奇点。反常积分通过极限扩展：奇异左端a用lim_{ε↓0}∫<em>{a+ε}^b f，无穷右端用lim</em>{R→∞}∫_a^R f，要求有限极限。内部奇点必须分左右，两边分别收敛，不能抵消两边发散便声称普通反常收敛。</p>
+<p>∫_ε^1 1/x=−lnε趋无穷，因此零端积分发散，尽管每个截断有限。∫_ε^1 x^{−1/2}=2(1−sqrtε)趋二，无界函数也可反常可积。p≠1时零端x^{−p}积分(1−ε^{1−p})/(1−p)，有限恰p&lt;1，p=1对数发散；[1,∞)积分(R^{1−p}−1)/(1−p)，有限恰p&gt;1。同一家族两端标准不同。</p>
+<p>1/x在[−1,1]左右分别发散，对称截断之和却每次零，定义的是另一个柯西主值零，不是普通反常积分。不同极限不能混为归一化常数。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">归一化非负线性候选</div>
+<p>p(x)=cx在[0,1]、域外零。非负要求c≥0，总质量c/2，一质量要求c=2。[1/4,3/4]质量[x²]=1/2。p(1)=2允许，密度高度不是概率。加权一阶矩∫x p(x)=2/3，在后面采用连续概率模型时就是均值。</p>
+</div>
+<figure class="fig" id="fig-17-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="零一上二倍x密度高度最大二，总质量一，四分之一至四分之三区间质量二分之一。"><title>线性密度的高度和质量</title><desc>零一上二倍x密度高度最大二，总质量一，四分之一至四分之三区间质量二分之一。</desc><defs><marker id="fig-17-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">密度高度与积分质量不同</text><path d="M110,260L610,80V260Z" fill="#eff6ff"/><path d="M235,260V215L485,125V260Z" fill="#93c5fd"/><path d="M110,260H640M110,270V60" stroke="#94a3b8"/><path d="M110,260L610,80" stroke="#2563eb" stroke-width="4"/><circle cx="610" cy="80" r="5" fill="#c2410c"/><text x="650" y="82" text-anchor="end" font-size="18" fill="#1a2e4a">p(1)=2</text><text x="360" y="190" text-anchor="middle" font-size="20" fill="#1a2e4a">蓝色质量 = 1/2</text><text x="110" y="283" text-anchor="middle" font-size="16" fill="#1a2e4a">0</text><text x="235" y="283" text-anchor="middle" font-size="16" fill="#1a2e4a">1/4</text><text x="485" y="283" text-anchor="middle" font-size="16" fill="#1a2e4a">3/4</text><text x="610" y="283" text-anchor="middle" font-size="16" fill="#1a2e4a">1</text><text x="380" y="326" text-anchor="middle" font-size="20" fill="#1a2e4a">p(x)=2x 在 [0,1]；总积分 = 1。</text></g></svg></div><figcaption><span class="fig-num">图 17.2</span> <p>密度高度、区间质量、总归一化不同；线性候选高度超过一却总质量一。</p>
+</figcaption></figure>
+<p>密度候选需整个支持非负且总积分一。非负未归一q若积分Z有限正，则p=q/Z；Z零或无穷不合法，变号q即便积分一也失败。网格非负样值不证明全域非负；线性实验用c≥0、x≥0结构证明，不由网格代替。</p>
+<p>λ&gt;0下q=exp(−λx)、x≥0积分1/λ，所以p=λexp(−λx)，[0,t]质量1−exp(−λt)。先在[0,R]分部求一阶矩，再让R exp(−λR)边界趋零，得均值1/λ。指数正级数给exp(λR)≥(λR)²/2，故R exp(−λR)≤2/(λ²R)→0，完整检查而非直接写无穷处零。</p>
+<p>后课细化事件和期望，现在已需区分：区间概率是积分，这类连续模型单点质量零；孤立密度值不影响积分。密度单位为输入单位倒数，换单位改变数值高度却不改变事件概率，要明确支持、尺度和积分测度。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>密度能超过一吗？有限截断是否证明有限反常积分？1/x对称抵消能归一化吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>能，高度非质量。−lnε证明截断有限仍可发散。主值是另一极限，左右分别发散不构成普通收敛积分。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>带网格与误差条件的数值求积</h2></div>
+<p>求积是加权有限和近似定积分。等宽h=(b−a)/n、x_i=a+ih，复合梯形为h[f(a)/2+Σ内部f(x_i)+f(b)/2]，积分样点间线性插值；相邻梯形共享内点所以内权一、端权半。精确实算术在线性函数无误差，曲率产生插值误差，求值另有算术误差。</p>
+<p>若连续二阶且|f″|≤M₂，截断界(b−a)M₂h²/12。每片线性插值误差≤M₂(t−left)(right−t)/2，可由f减端点线再减端点为零二次项的重复罗尔证明；积分给每片M₂h³/12，累加得到总界。凸函数在弦下，梯形高估；符号依据凸性，幅度依据导数界。</p>
+<p>辛普森要求正偶数n，h/3乘端点加奇内点四倍、偶内点二倍，每两片积分二次插值。对三次也精确，因为中点中心的奇部分积分和对称样值都消，偶常数二次部分精确。连续四阶幅度≤M₄时标准余项定理给(b−a)M₄h⁴/180；此处在光滑假设下引用其精确常数，可查<a href="https://dlmf.nist.gov/3.5#ii" target="_blank" rel="noopener">NIST求积参考</a>。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">光滑多项式展示两种误差</div>
+<p>x⁴在[0,1]精确积分1/5，M₂=12、M₄=24，梯形界h²、辛普森界24h⁴/180。n=10实际误差.00333、.000013333333。h减半时领先梯形约除四、辛普森多项式误差除十六，不是对任意函数任意小网格的保证。</p>
+</div>
+<p>未检查折点或奇点不能套四阶结论。已知折点处分段可恢复各片光滑界；反常端点需变换、尾界或专用方法。1/sqrt(x)零端积分收敛，端点公式却要评估无穷值，可积和适合某采样法不同。</p>
+<figure class="fig" id="fig-17-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="零二分之一一三个样点用折线或二次曲线插值，真实函数为x四次，二次插值可以局部低于零。"><title>梯形与辛普森插值</title><desc>零二分之一一三个样点用折线或二次曲线插值，真实函数为x四次，二次插值可以局部低于零。</desc><defs><marker id="fig-17-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">同样三个样点，不同插值曲线</text><path d="M55,235H325M55,260V70" stroke="#94a3b8"/><path d="M55,235L57.7,234.83125L60.4,234.6625L63.1,234.49375L65.8,234.325L68.5,234.15625L71.2,233.9875L73.9,233.81875L76.6,233.65L79.3,233.48125L82,233.3125L84.7,233.14375L87.4,232.975L90.1,232.80625L92.80000000000001,232.6375L95.5,232.46875L98.2,232.3L100.9,232.13125L103.6,231.9625L106.3,231.79375L109,231.625L111.69999999999999,231.45625L114.4,231.2875L117.1,231.11875L119.8,230.95L122.5,230.78125L125.2,230.6125L127.9,230.44375L130.60000000000002,230.275L133.3,230.10625L136,229.9375L138.7,229.76875L141.4,229.6L144.10000000000002,229.43125L146.8,229.2625L149.5,229.09375L152.2,228.925L154.9,228.75625L157.6,228.5875L160.3,228.41875L163,228.25L165.7,228.08125L168.39999999999998,227.9125L171.1,227.74375L173.8,227.575L176.5,227.40625L179.2,227.2375L181.89999999999998,227.06875L184.6,226.9L187.3,226.73125L190,226.5625L192.7,224.03125L195.4,221.5L198.1,218.96875L200.8,216.43749999999997L203.5,213.90625L206.20000000000002,211.375L208.89999999999998,208.84375000000003L211.6,206.3125L214.29999999999998,203.78125L217,201.25L219.7,198.71875L222.4,196.1875L225.1,193.65625L227.8,191.125L230.5,188.59375L233.20000000000002,186.0625L235.9,183.53125L238.60000000000002,180.99999999999997L241.29999999999998,178.46875L244,175.9375L246.7,173.40625000000003L249.4,170.875L252.1,168.34375L254.8,165.8125L257.5,163.28125L260.2,160.75L262.9,158.21875L265.6,155.6875L268.3,153.15624999999997L271,150.625L273.70000000000005,148.09375L276.4,145.5625L279.1,143.03125L281.79999999999995,140.5L284.5,137.96875L287.2,135.4375L289.9,132.90625L292.6,130.375L295.3,127.84375L298,125.3125L300.70000000000005,122.78125L303.4,120.24999999999999L306.1,117.71874999999999L308.79999999999995,115.1875L311.5,112.65625L314.2,110.12500000000003L316.9,107.59375000000001L319.6,105.0625L322.3,102.53125L325,100" fill="none" stroke="#c2410c" stroke-width="3"/><path d="M55,235L57.7,234.99999865L60.4,234.9999784L63.1,234.99989065L65.8,234.9996544L68.5,234.99915625L71.2,234.9982504L73.9,234.99675865L76.6,234.9944704L79.3,234.99114265L82,234.9865L84.7,234.98023465L87.4,234.9720064L90.1,234.96144265L92.80000000000001,234.9481384L95.5,234.93165625L98.2,234.9115264L100.9,234.88724665L103.6,234.8582824L106.3,234.82406665L109,234.784L111.69999999999999,234.73745065L114.4,234.6837544L117.1,234.62221465L119.8,234.5521024L122.5,234.47265625L125.2,234.3830824L127.9,234.28255465L130.60000000000002,234.1702144L133.3,234.04517065L136,233.9065L138.7,233.75324665L141.4,233.5844224L144.10000000000002,233.39900665L146.8,233.1959464L149.5,232.97415625L152.2,232.7325184L154.9,232.46988265L157.6,232.1850664L160.3,231.87685465L163,231.544L165.7,231.18522265000001L168.39999999999998,230.7992104L171.1,230.38461865L173.8,229.9400704L176.5,229.46415625L179.2,228.9554344L181.89999999999998,228.41243065L184.6,227.8336384L187.3,227.21751865L190,226.5625L192.7,225.86697865L195.4,225.1293184L198.1,224.34785065L200.8,223.5208744L203.5,222.64665625L206.20000000000002,221.72343039999998L208.89999999999998,220.74939865000002L211.6,219.72273040000002L214.29999999999998,218.64156265L217,217.504L219.7,216.30811465L222.4,215.0519464L225.1,213.73350265L227.8,212.3507584L230.5,210.90165625L233.20000000000002,209.3841064L235.9,207.79598665L238.60000000000002,206.13514239999998L241.29999999999998,204.39938665L244,202.5865L246.7,200.69423065L249.4,198.7202944L252.1,196.66237465L254.8,194.5181224L257.5,192.28515625L260.2,189.9610624L262.9,187.54339464999998L265.6,185.0296744L268.3,182.41739065L271,179.70399999999998L273.70000000000005,176.88692665L276.4,173.9635624L279.1,170.93126665L281.79999999999995,167.7873664L284.5,164.52915625000003L287.2,161.1538984L289.9,157.65882265L292.6,154.0411264L295.3,150.29797465L298,146.42649999999998L300.70000000000005,142.42380264999997L303.4,138.2869504L306.1,134.01297864999998L308.79999999999995,129.59889040000002L311.5,125.04165625000002L314.2,120.33821440000001L316.9,115.48547065000001L319.6,110.4802984L322.3,105.31953865L325,100" fill="none" stroke="#2563eb" stroke-width="3"/><circle cx="55" cy="235" r="5" fill="#1a2e4a"/><circle cx="190" cy="226.5625" r="5" fill="#1a2e4a"/><circle cx="325" cy="100" r="5" fill="#1a2e4a"/><text x="190" y="292" text-anchor="middle" font-size="21" fill="#1a2e4a">线性梯形</text><path d="M425,235H695M425,260V70" stroke="#94a3b8"/><path d="M425,235L427.7,235.988875L430.4,236.9305L433.1,237.824875L435.8,238.672L438.5,239.471875L441.2,240.2245L443.9,240.929875L446.6,241.588L449.3,242.198875L452,242.7625L454.7,243.278875L457.4,243.748L460.1,244.169875L462.8,244.5445L465.5,244.871875L468.2,245.152L470.9,245.384875L473.6,245.5705L476.3,245.708875L479,245.8L481.7,245.843875L484.4,245.8405L487.1,245.789875L489.8,245.692L492.5,245.546875L495.2,245.3545L497.9,245.114875L500.6,244.828L503.3,244.493875L506,244.1125L508.7,243.683875L511.4,243.208L514.1,242.684875L516.8,242.1145L519.5,241.496875L522.2,240.832L524.9,240.119875L527.6,239.3605L530.3,238.553875L533,237.7L535.7,236.798875L538.4,235.8505L541.1,234.85487500000002L543.8,233.812L546.5,232.721875L549.2,231.5845L551.9,230.399875L554.6,229.168L557.3,227.888875L560,226.5625L562.7,225.188875L565.4,223.768L568.1,222.299875L570.8,220.78449999999998L573.5,219.22187499999998L576.2,217.612L578.9,215.95487500000002L581.6,214.25050000000002L584.3,212.498875L587,210.7L589.7,208.85387500000002L592.4,206.9605L595.1,205.01987499999998L597.8,203.03199999999998L600.5,200.996875L603.2,198.91449999999998L605.9,196.784875L608.6,194.60799999999998L611.3,192.383875L614,190.1125L616.7,187.793875L619.4,185.428L622.1,183.01487500000002L624.8,180.55450000000002L627.5,178.046875L630.2,175.492L632.9,172.889875L635.6,170.2405L638.3,167.54387499999999L641,164.8L643.7,162.008875L646.4,159.1705L649.1,156.284875L651.8,153.35200000000003L654.5,150.371875L657.2,147.34450000000004L659.9,144.26987499999998L662.6,141.14800000000002L665.3,137.97887499999996L668,134.7625L670.7,131.498875L673.4,128.188L676.1,124.82987499999996L678.8,121.4245L681.5,117.97187500000003L684.2,114.47200000000002L686.9,110.92487500000001L689.6,107.33050000000001L692.3,103.688875L695,100" fill="none" stroke="#c2410c" stroke-width="3"/><path d="M425,235L427.7,234.99999865L430.4,234.9999784L433.1,234.99989065L435.8,234.9996544L438.5,234.99915625L441.2,234.9982504L443.9,234.99675865L446.6,234.9944704L449.3,234.99114265L452,234.9865L454.7,234.98023465L457.4,234.9720064L460.1,234.96144265L462.8,234.9481384L465.5,234.93165625L468.2,234.9115264L470.9,234.88724665L473.6,234.8582824L476.3,234.82406665L479,234.784L481.7,234.73745065L484.4,234.6837544L487.1,234.62221465L489.8,234.5521024L492.5,234.47265625L495.2,234.3830824L497.9,234.28255465L500.6,234.1702144L503.3,234.04517065L506,233.9065L508.7,233.75324665L511.4,233.5844224L514.1,233.39900665L516.8,233.1959464L519.5,232.97415625L522.2,232.7325184L524.9,232.46988265L527.6,232.1850664L530.3,231.87685465L533,231.544L535.7,231.18522265000001L538.4,230.7992104L541.1,230.38461865L543.8,229.9400704L546.5,229.46415625L549.2,228.9554344L551.9,228.41243065L554.6,227.8336384L557.3,227.21751865L560,226.5625L562.7,225.86697865L565.4,225.1293184L568.1,224.34785065L570.8,223.5208744L573.5,222.64665625L576.2,221.72343039999998L578.9,220.74939865000002L581.6,219.72273040000002L584.3,218.64156265L587,217.504L589.7,216.30811465L592.4,215.0519464L595.1,213.73350265L597.8,212.3507584L600.5,210.90165625L603.2,209.3841064L605.9,207.79598665L608.6,206.13514239999998L611.3,204.39938665L614,202.5865L616.7,200.69423065L619.4,198.7202944L622.1,196.66237465L624.8,194.5181224L627.5,192.28515625L630.2,189.9610624L632.9,187.54339464999998L635.6,185.0296744L638.3,182.41739065L641,179.70399999999998L643.7,176.88692665L646.4,173.9635624L649.1,170.93126665L651.8,167.7873664L654.5,164.52915625000003L657.2,161.1538984L659.9,157.65882265L662.6,154.0411264L665.3,150.29797465L668,146.42649999999998L670.7,142.42380264999997L673.4,138.2869504L676.1,134.01297864999998L678.8,129.59889040000002L681.5,125.04165625000002L684.2,120.33821440000001L686.9,115.48547065000001L689.6,110.4802984L692.3,105.31953865L695,100" fill="none" stroke="#2563eb" stroke-width="3"/><circle cx="425" cy="235" r="5" fill="#1a2e4a"/><circle cx="560" cy="226.5625" r="5" fill="#1a2e4a"/><circle cx="695" cy="100" r="5" fill="#1a2e4a"/><text x="560" y="292" text-anchor="middle" font-size="21" fill="#1a2e4a">二次辛普森</text><text x="380" y="330" text-anchor="middle" font-size="17" fill="#1a2e4a">蓝 x⁴；橙插值；二次插值可能低于零。</text></g></svg></div><figcaption><span class="fig-num">图 17.3</span> <p>梯形线性插值，辛普森二次面板需要偶数个等宽子区间。</p>
+</figcaption></figure>
+<p>n与2n差值若无另一个误差模型只是经验估计，两网格都可错过窄特征。导数界及最大网格可认证未采样变化，两相等和不能。自适应方法按局部估计细分，仍可能漏掉全部样点绕过的峰，应报告容差依据。</p>
+<p>各求值绝对误差≤E时，梯形非负权总和b−a，贡献≤(b−a)E；正偶n辛普森也一样。求和权计算还加误差，无限细化最终可能遇平台。近零有符号积分的相对误差可未定义或误导，因大正负抵消，应用绝对容差与明确尺度。求积不能独自证明事件模型、全域非负或ODE稳定。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>辛普森为何偶n？两网格收敛是否认证没有漏峰？可积奇点能否必用端点规则？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>面板每次用两片；两网格可同漏峰，需正则界。端点无限可使规则未定义，即使反常极限有限。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>微分方程与欧拉衰减稳定性</h2></div>
+<p>一阶ODE规定x′(t)=F(t,x(t))，解是在指定时间段可导且满足方程的函数，初值x(t₀)=x₀选轨迹。它不是递推或样值表。存在唯一依赖F条件，本课只显式解选定例，不宣称所有右端初值都有唯一全局解。</p>
+<p>x′=−ax的x=C exp(−at)由求导直接验证，零时初值给C=x₀。唯一无需除x：exp(at)x的导数exp(at)[ax+x′]=0，所以区间上常数，包含x≡0平衡解。a&gt;0幅度衰减且非负初值保持非负，a=0恒定、a&lt;0非零初值增长。</p>
+<p>分离x′/x=−a仅在x≠0合法，积分ln|x|=−at+C，须从原方程补零解。一般x′=g(x)r(t)除g也会删其根对应平衡，需直接检查，并写分支与域再反解隐式原函数。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">精确衰减与有限步近似</div>
+<p>x′=−2x、x(0)=1精确exp(−2t)。前向欧拉x_{k+1}=(1−2h)x_k、t_k=kh。h=.1因子.8，x₂₀=.8²⁰≈.0115292，精确t=2时exp(−4)≈.0183156。两者衰减却不说明该有限时刻误差小。</p>
+</div>
+<p>欧拉以步初导数做切线预测，光滑解泰勒给单步局部差O(h²)，适当Lipschitz稳定条件下固定时间全局差O(h)。本线性例可直接证明：固定T、h=T/n时终点x₀(1−aT/n)^n→x₀exp(−aT)。这与固定可能不适合的h、让k→∞不同。</p>
+<p>a&gt;0、h&gt;0时因子q=1−ah反复趋零当且仅当|q|&lt;1，即0&lt;ah&lt;2。ah=2非零初值无衰减交替，大于二幅度增长，ah=0恒定。稳定连续方程可以被大步长模拟得不稳定，区域属于方法和步长。</p>
+<p>非负性另查：非负初值下0≤ah≤1保持非负，1&lt;ah&lt;2却衰减交替，可能违反浓度约束。ah=1首步直接零，对有限时间仍可能很不准。稳定、可接受状态、准确三者分别检验。</p>
+<figure class="fig" id="fig-17-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="正速率正步长下乘积ah在零一范围保持非负，介于一二为稳定交替，大于二不稳定，等于二中性振荡。"><title>欧拉稳定与非负区域</title><desc>正速率正步长下乘积ah在零一范围保持非负，介于一二为稳定交替，大于二不稳定，等于二中性振荡。</desc><defs><marker id="fig-17-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">欧拉因子 q=1−ah 的不同区域</text><rect x="45" y="75" width="210" height="145" rx="10" fill="#dcfce7" stroke="#15803d"/><rect x="275" y="75" width="210" height="145" rx="10" fill="#fff7ed" stroke="#c2410c"/><rect x="505" y="75" width="210" height="145" rx="10" fill="#fee2e2" stroke="#dc2626"/><text x="150" y="111" text-anchor="middle" font-size="21" fill="#1a2e4a">0 &lt; ah ≤ 1</text><text x="380" y="111" text-anchor="middle" font-size="21" fill="#1a2e4a">1 &lt; ah &lt; 2</text><text x="610" y="111" text-anchor="middle" font-size="21" fill="#1a2e4a">ah &gt; 2</text><text x="150" y="153" text-anchor="middle" font-size="20" fill="#1a2e4a">非负衰减</text><text x="380" y="153" text-anchor="middle" font-size="20" fill="#1a2e4a">交替衰减</text><text x="610" y="153" text-anchor="middle" font-size="20" fill="#1a2e4a">交替增长</text><text x="150" y="193" text-anchor="middle" font-size="19" fill="#1a2e4a">0 ≤ q &lt; 1</text><text x="380" y="193" text-anchor="middle" font-size="19" fill="#1a2e4a">−1 &lt; q &lt; 0</text><text x="610" y="193" text-anchor="middle" font-size="19" fill="#1a2e4a">q &lt; −1</text><text x="380" y="270" text-anchor="middle" font-size="20" fill="#1a2e4a">ah=2：q=−1，中性振荡，不衰减。</text><text x="380" y="315" text-anchor="middle" font-size="17" fill="#1a2e4a">a&gt;0，h&gt;0；稳定、非负、准确分别检查。</text></g></svg></div><figcaption><span class="fig-num">图 17.4</span> <p>欧拉因子划分非负衰减、交替衰减、中性振荡、不稳定增长，精确模型始终稳定衰减。</p>
+</figcaption></figure>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="accumulation"></div><div class="widget-caption">
+<p>探索面积分割与欧拉因子，改变矩形数、衰减步长和模式，对照有限近似及解析值。</p>
+</div></div>
+<p>模拟应报告方程、参数、初值、时间段和步长规则。步长改变终止时间时，各样本要对照自己的真实时间；检验细化则固定终时增加步数。实验3做二者，区分长时稳定和有限时刻误差。后面的梯度流是连续方程，梯度更新是步长相关离散法；模块19将以特征模态推广此标量因子并写假设。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>分离为何补x≡0？a=2正步长何时稳定、何时非负？稳定是否准确？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>除x删了合法平衡。稳定0&lt;h&lt;1，非负0&lt;h≤.5。粗稳定步可有明显误差，交替稳定步也可违反非负要求。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>主张</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>积分就是原函数。</td>
+<td>定积分是数，原函数是函数族。</td>
+</tr>
+<tr>
+<td>有符号积分就是总面积。</td>
+<td>取绝对值才不抵消。</td>
+</tr>
+<tr>
+<td>换元只改表达式。</td>
+<td>因子、域、变换端点一起改。</td>
+</tr>
+<tr>
+<td>有限截断证明反常收敛。</td>
+<td>截断序列可能发散。</td>
+</tr>
+<tr>
+<td>密度高度必须≤1。</td>
+<td>区间积分是概率，高度单位为倒数。</td>
+</tr>
+<tr>
+<td>两网格一致证明准确。</td>
+<td>可同漏特征。</td>
+</tr>
+<tr>
+<td>稳定ODE必稳定模拟。</td>
+<td>欧拉由ah决定。</td>
+</tr>
+<tr>
+<td>稳定必非负准确。</td>
+<td>分开检查。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个可复现实验</h2></div>
+<h3 id="lab1">实验1 · 求积速率与解析界</h3>
+<p><a href="labs/module_17/lab1_quadrature.py" download>下载 lab1_quadrature.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Composite quadrature on smooth functions with analytic integrals.&quot;&quot;&quot;
+import math
+
+def trapezoid(f, a, b, n):
+    if not isinstance(n, int) or n &lt;= 0:
+        raise ValueError(&quot;n must be a positive integer&quot;)
+    h = (b-a)/n
+    return h*(0.5*(f(a)+f(b))+sum(f(a+i*h) for i in range(1, n)))
+
+def simpson(f, a, b, n):
+    if not isinstance(n, int) or n &lt;= 0 or n % 2:
+        raise ValueError(&quot;n must be a positive even integer&quot;)
+    h = (b-a)/n
+    return h/3*(f(a)+f(b)+sum((4 if i % 2 else 2)*f(a+i*h) for i in range(1, n)))
+
+print(&quot;x^4 on [0,1]: exact integral 0.2&quot;)
+print(&quot;n      trapezoid error      Simpson error      trap bound h^2      Simpson bound&quot;)
+previous = None
+for n in [10, 20, 40, 80]:
+    h = 1/n
+    trap_error = abs(trapezoid(lambda x: x**4, 0, 1, n)-0.2)
+    simp_error = abs(simpson(lambda x: x**4, 0, 1, n)-0.2)
+    trap_bound, simp_bound = h*h, 24*h**4/180
+    print(f&quot;{n:3d} {trap_error:20.10e} {simp_error:18.10e} {trap_bound:18.10e} {simp_bound:18.10e}&quot;)
+    assert trap_error &lt;= trap_bound+1e-14 and simp_error &lt;= simp_bound+1e-14
+    if previous:
+        assert trap_error &lt; previous[0] and simp_error &lt; previous[1]
+    previous = trap_error, simp_error
+print(&quot;sin on [0,pi], n=100 Simpson:&quot;, simpson(math.sin, 0, math.pi, 100))
+assert abs(simpson(math.sin, 0, math.pi, 100)-2) &lt; 2e-8
+try:
+    simpson(math.sin, 0, math.pi, 9)
+except ValueError as error:
+    print(&quot;Rejected invalid mesh:&quot;, error)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>x^4 on [0,1]: exact integral 0.2
+n      trapezoid error      Simpson error      trap bound h^2      Simpson bound
+ 10     3.3300000000e-03   1.3333333333e-05   1.0000000000e-02   1.3333333333e-05
+ 20     8.3312500000e-04   8.3333333334e-07   2.5000000000e-03   8.3333333333e-07
+ 40     2.0832031250e-04   5.2083333396e-08   6.2500000000e-04   5.2083333333e-08
+ 80     5.2082519531e-05   3.2552083806e-09   1.5625000000e-04   3.2552083333e-09
+sin on [0,pi], n=100 Simpson: 2.0000000108245044
+Rejected invalid mesh: n must be a positive even integer
+</code></pre></div>
+<p>先推导x⁴的两个导数界，比较细化比率及最后算术裕量，解释拒绝奇n。正弦提供第二光滑例，不能用多项式实验声称全部函数结果。</p>
+<h3 id="lab2">实验2 · 归一化、高度与反常极限</h3>
+<p><a href="labs/module_17/lab2_density_and_improper.py" download>下载 lab2_density_and_improper.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Normalisation is an integral condition, distinct from density height.&quot;&quot;&quot;
+import math
+
+def trapezoid(f, a, b, n):
+    h = (b-a)/n
+    return h*(0.5*(f(a)+f(b))+sum(f(a+i*h) for i in range(1, n)))
+
+for coefficient in [-2.0, 2.0, 3.0]:
+    mass = trapezoid(lambda x: coefficient*x, 0, 1, 1000)
+    # For this known linear family, c&gt;=0 establishes nonnegativity on [0,1].
+    valid = coefficient &gt;= 0 and abs(mass-1) &lt; 1e-12
+    print(&quot;c / integrated mass / normalised nonnegative candidate:&quot;, coefficient, mass, valid)
+    assert valid == (coefficient == 2)
+
+mean = trapezoid(lambda x: x*2*x, 0, 1, 1000)
+interval_mass = trapezoid(lambda x: 2*x, 0.25, 0.75, 1000)
+print(&quot;p(1)=2 is a height, not a point probability:&quot;, 2.0)
+print(&quot;Integral x*p(x) / exact weighted mean:&quot;, mean, 2/3)
+print(&quot;Mass on [0.25,0.75] / exact:&quot;, interval_mass, 0.5)
+assert abs(mean-2/3) &lt; 4e-7 and abs(interval_mass-0.5) &lt; 1e-12
+
+print(&quot;epsilon    integral 1/x from epsilon to 1    integral 1/sqrt(x)&quot;)
+for epsilon in [1e-1, 1e-2, 1e-4, 1e-8]:
+    divergent = -math.log(epsilon)
+    convergent = 2*(1-math.sqrt(epsilon))
+    print(f&quot;{epsilon:.0e} {divergent:32.10f} {convergent:24.10f}&quot;)
+print(&quot;Each cutoff integral is finite; only the limit decides improper convergence.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>c / integrated mass / normalised nonnegative candidate: -2.0 -1.0 False
+c / integrated mass / normalised nonnegative candidate: 2.0 1.0 True
+c / integrated mass / normalised nonnegative candidate: 3.0 1.5000000000000002 False
+p(1)=2 is a height, not a point probability: 2.0
+Integral x*p(x) / exact weighted mean: 0.6666669999999999 0.6666666666666666
+Mass on [0.25,0.75] / exact: 0.5000000000000001 0.5
+epsilon    integral 1/x from epsilon to 1    integral 1/sqrt(x)
+1e-01                     2.3025850930             1.3675444680
+1e-02                     4.6051701860             1.8000000000
+1e-04                     9.2103403720             1.9800000000
+1e-08                    18.4206807440             1.9998000000
+Each cutoff integral is finite; only the limit decides improper convergence.
+</code></pre></div>
+<p>解释线性族全域非负证明，算精确总质量、区间质量与2/3一阶矩。反常例用截断原函数公式，另证明极限。</p>
+<h3 id="lab3">实验3 · 衰减稳定与固定终时细化</h3>
+<p><a href="labs/module_17/lab3_euler_decay.py" download>下载 lab3_euler_decay.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A stable continuous decay can have an unstable or negative Euler trace.&quot;&quot;&quot;
+import math
+
+rate = 2.0
+print(&quot;x'=-2x, x(0)=1; exact x(t)=exp(-2t)&quot;)
+print(&quot;h     Euler factor    x_20          exact at t=20h     behaviour&quot;)
+for h in [0.1, 0.8, 1.0, 1.1]:
+    factor = 1-rate*h
+    x = 1.0
+    for _ in range(20):
+        x += h*(-rate*x)
+    behaviour = &quot;decays&quot; if abs(factor) &lt; 1 else &quot;neutral oscillation&quot; if abs(factor) == 1 else &quot;unstable&quot;
+    print(f&quot;{h:3.1f} {factor:12.4f} {x:13.7f} {math.exp(-rate*20*h):18.8e} {behaviour}&quot;)
+    assert abs(x-factor**20) &lt; 1e-10
+    if abs(factor) &lt; 1:
+        assert abs(x) &lt; 1
+    elif abs(factor) &gt; 1:
+        assert abs(x) &gt; 1
+print(&quot;h=0.8 first iterate:&quot;, 1-rate*0.8, &quot;(negative despite positive continuous solution)&quot;)
+
+print(&quot;Fixed final time T=1: n, Euler endpoint, exact endpoint, absolute error&quot;)
+previous_error = float(&quot;inf&quot;)
+for n in [10, 20, 40, 80]:
+    h, x = 1/n, 1.0
+    for _ in range(n):
+        x += h*(-rate*x)
+    exact = math.exp(-rate)
+    error = abs(x-exact)
+    print(n, f&quot;{x:.10f}&quot;, f&quot;{exact:.10f}&quot;, f&quot;{error:.10f}&quot;)
+    assert error &lt; previous_error
+    previous_error = error
+print(&quot;Long-time stability, nonnegativity, and finite-time accuracy are separate checks.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>x'=-2x, x(0)=1; exact x(t)=exp(-2t)
+h     Euler factor    x_20          exact at t=20h     behaviour
+0.1       0.8000     0.0115292     1.83156389e-02 decays
+0.8      -0.6000     0.0000366     1.26641655e-14 decays
+1.0      -1.0000     1.0000000     4.24835426e-18 neutral oscillation
+1.1      -1.2000    38.3375999     7.78113224e-20 unstable
+h=0.8 first iterate: -0.6000000000000001 (negative despite positive continuous solution)
+Fixed final time T=1: n, Euler endpoint, exact endpoint, absolute error
+10 0.1073741824 0.1353352832 0.0279611008
+20 0.1215766546 0.1353352832 0.0137586286
+40 0.1285121566 0.1353352832 0.0068231267
+80 0.1319378054 0.1353352832 0.0033974778
+Long-time stability, nonnegativity, and finite-time accuracy are separate checks.
+</code></pre></div>
+<p>先分类因子，对照各轨迹自己的终时真实值，找稳定但变负的步长。第二表终时固定一，网格缩小，解释两实验不同证据。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>十四道练习与完整解答</h2></div>
+<p>1–12必做，13–14选做额外35分钟，不计入十小时核心。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>x在[0,1]用四片求左右和、差及积分。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>宽1/4，左值和3/2给3/8，右值和5/2给5/8，差1/4。一般两和(n−1)/(2n)、(n+1)/(2n)趋1/2，有限界不同于共同极限。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>3t²从零累积到二，初值五时终位置多少？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>[t³]_0^2=8为增量，位置5+t³，终值13。常数记录初态而非新速率，米每秒乘秒得米。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>给变换端点评估∫_1^2 2x exp(x²)dx。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>u=x²、du=2x dx，端点一、四，结果e⁴−e。也可求导验证exp(x²)再用原x端点，不能混用。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>x^{−3/2}在零端和无穷端收敛吗？计算极限。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>零端2(ε^{−1/2}−1)趋无穷而发散；无穷端2(1−R^{−1/2})趋二而收敛，同函数两端行为不同。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>连续f下用误差不等式证明累积A′=f。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>商减f(x)等于(1/h)∫_x^{x+h}[f(t)−f(x)]dt。连续使短段被积幅度&lt;ε，积分幅度≤ε|h|，商误差≤ε，对两种h符号都适用。内部得导数，端点单侧限定。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>从积法则推分部定积分，说明∫_0^1 x exp(x)dx。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>C¹下积分(uv)′=u′v+uv′并用基本定理，得∫uv′=[uv]−∫u′v。u=x,v=exp(x)，边界e，余e−1，结果一，保留整段光滑与边界。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 分钟</span></div>
+<p>a,h正，证明衰减欧拉稳定并给单独非负条件。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>x_k=(1−ah)^k x₀，所有初值趋零需因子幅度&lt;1，即0&lt;ah&lt;2；幅度一不衰减，大于一非零增长。所有非负初值保持非负需因子≥0，即0&lt;ah≤1；负但幅度小于一则稳定交替。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>归一化[0,1]上x，求[1/4,3/4]质量、一处高度与一阶矩。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>Z=1/2，p=2x，区间质量1/2，高度二不是单点概率，矩2/3。非负由支持x≥0证明，不仅样值。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>归一化非负域exp(−3x)，求[0,1]质量与一阶矩，查无穷边界。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>Z=1/3，p=3exp(−3x)，质量1−exp(−3)。[0,R]分部矩1/3−(R+1/3)exp(−3R)，边界由指数对R²下界证明消失，矩1/3。非负与有限正Z满足约定。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 分钟</span></div>
+<p>x⁴在[0,1]、n=20，求h和两规则界，说明包含什么。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>h=.05，梯形M₂=12给.0025，辛普森M₄=24给约8.333333333×10⁻⁷，n为偶满足要求。界是精确截断，不含全部浮点求值误差。实际梯形约.000833125，辛普森到舍入精度匹配多项式界。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>程序对称抵消[−1,1]的1/x，宣称普通反常积分零。修正并说明密度用途。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>左右分别发散，普通反常积分不存在，对称主值零是另一量。函数还变号，主值或除该值都不给非负单位质量密度，需分别极限、非负和有限正Z。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 分钟</span></div>
+<p>分离x′=−2x时除x删零解；h=.8模拟声称稳定即非负准确。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>原方程直接验证零平衡，除法删去需补回。欧拉因子−.6幅度稳定却正初值交替，精确解保持正。稳定不认证非负与有限时误差，对照相同时间精确值并固定T细化。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>证明固定a,T正时(1−aT/n)^n趋exp(−aT)，区别固定步长长期稳定。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>足够大n使z=aT/n&lt;1/2、因子正，ln(1−z)=−z+O(z²)由该段有界二阶泰勒得。n乘后−aT+O(1/n)趋−aT，指数连续给结果。此时h=T/n缩而终时固定；固定h增k研究另一因子稳定序列。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>(0,1)上x^{−p}何时归一化？求一阶矩。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>p&lt;1时Z=1/(1−p)有限正，密度(1−p)x^{−p}，矩(1−p)/(2−p)，因为p&lt;1也确保p&lt;2。p≥1无有限正常数能把发散积分缩成一；孤立端点赋值不改变反常质量。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自检</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>固定端点定积分是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">极限累积的数</button></li><li><button type="button" class="quiz-opt" data-i="1">总是带任意常数的函数族</button></li><li><button type="button" class="quiz-opt" data-i="2">总是最大高度</button></li></ol><div class="quiz-expl" hidden>原函数是函数，定积分按指定边界给有符号累积量。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>有符号积分零说明什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">函数处处零</button></li><li><button type="button" class="quiz-opt" data-i="1">净贡献抵消或消失，无该点值结论</button></li><li><button type="button" class="quiz-opt" data-i="2">总面积一定零</button></li></ol><div class="quiz-expl" hidden>[−1,1]上x有零净积分、正绝对面积。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>连续f下∫_0^{x²}f(t)dt导数？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">f(x²)</button></li><li><button type="button" class="quiz-opt" data-i="1">f(x)</button></li><li><button type="button" class="quiz-opt" data-i="2">2x f(x²)</button></li></ol><div class="quiz-expl" hidden>基本定理给端值、链规则给端点导数。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>定积分换元需一致改什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">被积函数、导数因子与边界</button></li><li><button type="button" class="quiz-opt" data-i="1">仅变量名</button></li><li><button type="button" class="quiz-opt" data-i="2">可删除符号</button></li></ol><div class="quiz-expl" hidden>变换边界和方向属于链恒等式。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>所有有限截断都有限，能推什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">反常极限必收敛</button></li><li><button type="button" class="quiz-opt" data-i="1">仅这些截断有限，还需看极限</button></li><li><button type="button" class="quiz-opt" data-i="2">总质量自动一</button></li></ol><div class="quiz-expl" hidden>1/x对数截断值仍发散。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>归一密度某点高度二，是否无效？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">是，密度必须≤1</button></li><li><button type="button" class="quiz-opt" data-i="1">是，该点概率二</button></li><li><button type="button" class="quiz-opt" data-i="2">否，区间概率是积分，高度单位为倒数</button></li></ol><div class="quiz-expl" hidden>2x在[0,1]总质量一、一处高度二。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>此处复合辛普森要求什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">正偶片数，所给界需四阶导数控制</button></li><li><button type="button" class="quiz-opt" data-i="1">任意奇网格不改权</button></li><li><button type="button" class="quiz-opt" data-i="2">仅样值有界就认证四阶</button></li></ol><div class="quiz-expl" hidden>两片面板与光滑支持方法和误差结果。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>正速率衰减欧拉何时稳定？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">每个正h</button></li><li><button type="button" class="quiz-opt" data-i="1">0&lt;ah&lt;2</button></li><li><button type="button" class="quiz-opt" data-i="2">只在真实模型不稳定时</button></li></ol><div class="quiz-expl" hidden>1−ah幅度需小于一。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>1&lt;ah&lt;2、正初值会怎样？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">始终正且单调衰减</button></li><li><button type="button" class="quiz-opt" data-i="1">保证精确连续值</button></li><li><button type="button" class="quiz-opt" data-i="2">交替符号且幅度收缩</button></li></ol><div class="quiz-expl" hidden>稳定、非负和有限时间准确需分别检查。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m17:q10">
+<label for="q10-response">10. 给[0,1]上q=x的归一化与区间质量，再推导欧拉衰减因子、稳定和非负区间，区分固定终时细化与固定步长长时衰减。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="包含支持、正性、积分、递推和分开的数值检查。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我区分高度与质量，以及稳定、状态约束和准确。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>支持上q≥0，Z=1/2、p=2x，内部[a,b]质量b²−a²，p(1)=2是高度。a&gt;0衰减欧拉因子1−ah，稳定0&lt;ah&lt;2，保持非负0&lt;ah≤1。固定T、h=T/n→0终点趋x₀exp(−aT)；固定h增k研究长时稳定，不能互相代替。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>有目标的阅读</h2></div>
+<p>读一手<a href="https://ocw.mit.edu/courses/18-01sc-single-variable-calculus-fall-2010/" target="_blank" rel="noopener">MIT OpenCourseWare微积分课程</a>的积分、反常和微分方程选段，查<a href="https://dlmf.nist.gov/3.5" target="_blank" rel="noopener">NIST求积公式</a>的余项约定。累积、换元、归一化与衰减推导为本课独立论证。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>选读与问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第1次 · 20分钟</td>
+<td>定积分与基本定理：哪些极限、连续假设联系累积与速率？</td>
+</tr>
+<tr>
+<td>第4次 · 20分钟</td>
+<td>反常与衰减：取哪种极限，哪种数值步长改变稳定？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索结业任务与下一步</h2></div>
+<p>构造分割和，解释连续可积，推导两基本定理联系。带边界做换元分部，分析收敛与发散反常例，归一密度并写求积光滑条件。</p>
+<p><strong>结业任务：</strong>x′=−3x、初值二，精确2exp(−3t)，欧拉稳定0&lt;h&lt;2/3、非负0&lt;h≤1/3。比较稳定交替步长与固定终时细化，解释它们回答不同问题。</p>
+<p><strong>可以继续：</strong>你能区分连续模型、累积量与有限近似。下一课多元导数将敏感性和链依赖推广到向量、矩阵与自动微分。见<a href="index_ZH.html">总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>符号与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语或符号</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分割、网格、标记</td>
+<td>子区间、最大宽、样点</td>
+<td>Partition, mesh, tag</td>
+</tr>
+<tr>
+<td>∫_a^b f、F+C</td>
+<td>定累积、原函数族</td>
+<td>Definite integral, antiderivative</td>
+</tr>
+<tr>
+<td>基本定理</td>
+<td>按假设联系导数与累积</td>
+<td>Fundamental theorem</td>
+</tr>
+<tr>
+<td>换元、分部</td>
+<td>链、积规则的积分变换</td>
+<td>Substitution, parts</td>
+</tr>
+<tr>
+<td>反常、主值</td>
+<td>分别端点极限、指定对称极限</td>
+<td>Improper, principal value</td>
+</tr>
+<tr>
+<td>Z、p=q/Z</td>
+<td>有限正积分、单位质量密度</td>
+<td>Normalisation, density</td>
+</tr>
+<tr>
+<td>求积、梯形、辛普森</td>
+<td>加权有限近似和网格规则</td>
+<td>Quadrature, trapezoid, Simpson</td>
+</tr>
+<tr>
+<td>ODE、平衡</td>
+<td>连续状态方程、常数解</td>
+<td>Differential equation, equilibrium</td>
+</tr>
+<tr>
+<td>欧拉、稳定、非负</td>
+<td>切线步模拟、模态衰减、合法符号</td>
+<td>Euler, stability, positivity</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_16_ZH.html">← 模块 16</a><a href="module_18_ZH.html">模块 18 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

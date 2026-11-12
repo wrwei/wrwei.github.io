@@ -43,8 +43,6 @@ where you type commands.
 
 ## Where to go next {#next}
 
-- The [DevOps series](../devops/index.html) on this site uses Git with GitHub Actions, to test and
-  publish software automatically.
 - [Pro Git](https://git-scm.com/book/en/v2), by Scott Chacon and Ben Straub, is the free, complete
   book about Git.
 - [GitHub Skills](https://skills.github.com/) has short, hands-on courses on more GitHub features.

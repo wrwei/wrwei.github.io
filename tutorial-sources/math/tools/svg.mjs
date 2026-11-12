@@ -1,0 +1,6 @@
+// Small shared primitives for original bilingual mathematical diagrams.
+export const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+export const text=(x,y,s,size=17,anchor='start',colour='#1a2e4a')=>`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" fill="${colour}">${esc(s)}</text>`;
+export const box=(x,y,w,h,fill='#f0f9ff',stroke='#0ea5e9')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="${fill}" stroke="${stroke}"/>`;
+export const arrow=(x1,y1,x2,y2)=>`<path d="M${x1},${y1}L${x2},${y2}" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow)"/>`;
+export function svg(title,description,body,height=340){return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 ${height}" role="img" aria-label="${esc(description)}"><title>${esc(title)}</title><desc>${esc(description)}</desc><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="${height}" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif">${body}</g></svg>`;}

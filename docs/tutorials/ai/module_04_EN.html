@@ -19,6 +19,11 @@
 <a href="module_03_EN.html">3 &mdash; Convolutional networks</a>
 <a href="module_04_EN.html" class="active">4 &mdash; Recurrent networks and sequences</a>
 <a href="module_05_EN.html">5 &mdash; Other networks worth knowing</a>
+<a href="module_06_EN.html">6 &mdash; The transformer</a>
+<a href="module_07_EN.html">7 &mdash; Large language models</a>
+<a href="module_08_EN.html">8 &mdash; LLM pretraining</a>
+<a href="module_09_EN.html">9 &mdash; LLM post-training</a>
+<a href="module_10_EN.html">10 &mdash; Inference and serving</a>
     </div>
   </div>
   <a href="module_04_ZH.html" class="lang-switch" hreflang="zh-CN">中文</a>
@@ -34,14 +39,14 @@
       <div class="series">AI Series — Ran Wei</div>
       <h1 class="module-title">Module 4: Recurrent networks and <em>sequences</em></h1>
       <p class="module-lead">Recurrent networks built from the equations up: the state, backpropagation through time and why its gradients vanish, the LSTM and GRU that fixed it, honest forecasting and monitoring of engineering sensor streams, the encoder–decoder whose bottleneck produced attention, and why the transformer replaced recurrence before linear recurrences and state-space models brought it back.</p>
-      <div class="hero-chips"><span class="chip">≈ 10 hours</span><span class="chip">5 sessions</span><span class="chip">5 labs</span><span class="chip">15 exercises</span><span class="chip">12 quiz questions</span></div>
+      <div class="hero-chips"><span class="chip">10–15 hours</span><span class="chip">5 sessions</span><span class="chip">5 labs</span><span class="chip">15 exercises</span><span class="chip">12 quiz questions</span></div>
     </div>
 <section class="glance">
 <div class="glance-col"><h3 class="glance-h">By the end you can</h3><ul class="outcomes"><li>Write the vanilla RNN with its shapes, unroll it, and count its parameters for given sizes, including PyTorch’s double-bias convention.</li><li>Derive backpropagation through time for a vanilla RNN and compute a three-step gradient by hand that agrees with finite differences.</li><li>Predict from a recurrent matrix’s eigenvalues and singular values, and from the nonlinearity, whether gradients vanish or explode over a given lag, and say what clipping and orthogonal initialisation do and do not fix.</li><li>Write the LSTM and GRU equations, show why the cell state’s additive update preserves the gradient, and set the forget-gate bias <span class="math-i">b_f</span> in PyTorch for a target memory half-life <span class="math-i">\ln 0.5/\ln\sigma(b_f)</span>.</li><li>Implement and gradient-check a character-level RNN in NumPy, and diagnose from its samples which structure it has and has not learned.</li><li>Evaluate a forecaster with walk-forward validation against naive, seasonal-naive and linear baselines, find and fix time leakage and level drift, and choose between recursive and direct multi-step forecasting.</li><li>Build a residual-based monitor for a sensor stream, set its thresholds on held-out normal data, and match a detector to each fault type.</li><li>Build an encoder–decoder with Bahdanau attention, train it with teacher forcing, decode it greedily and with beam search, and read its alignment plot.</li><li>Explain with numbers why the transformer replaced recurrent networks (parallelism and path length) and what recurrence keeps (a constant per-token state).</li><li>Show that a linear time-invariant recurrence is a convolution with kernel <span class="math-i">\mathbf{C}\mathbf{A}^k\mathbf{B}</span>, compute its zero-order-hold discretisation, and explain how Mamba’s input-dependent step <span class="math-i">\Delta_t</span> turns it back into a gated recurrence.</li></ul></div>
 <div class="glance-col"><h3 class="glance-h">Before you start</h3><ul><li>Module 01: the supervised set-up, squared-error and cross-entropy losses, linear regression by least squares, honest evaluation with leakage, and the rule that every number carries its baseline.</li><li>Module 02: backpropagation with error signals, initialisation, Adam and AdamW, gradient clipping, dropout, layer normalisation and debugging a training run.</li><li>Module 03: 1D and dilated convolution, receptive-field arithmetic and residual connections.</li><li>Linear algebra: eigenvalues and eigenvectors, diagonalisation, singular values and the spectral norm.</li><li>Calculus: the multivariate chain rule and Jacobian matrices.</li><li>Complex numbers: modulus, argument and <span class="math-i">e^{i\theta}</span>, for Section 13 only.</li><li>Probability: the softmax, categorical distributions and the log-likelihood.</li><li>Python with NumPy, and basic PyTorch: tensors, autograd, <code>nn.Module</code> and a training loop.</li></ul>
 <h3 class="glance-h">You will need</h3><ul><li>Python 3.11 or later.</li><li>NumPy.</li><li>PyTorch 2.x; the CPU build is enough for every lab.</li><li>matplotlib.</li><li>SciPy, optional, for the normal tail probabilities of Exercise 8.</li><li>Optional: Google Colab as a free GPU; no lab needs one.</li></ul></div>
 </section>
-<section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">10 h 20 min</span></div><p class="plan-lead">About ten hours, in five sessions. Tick a session when you finish it; your progress is kept in this browser.</p><div class="sessions"><div class="session" data-session="1"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">2 h 08 min</span></div><div class="session-title">State and its gradient</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2: sequences and their tasks, and the recurrent network.</a></span><span class="act-min">32</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Exercise 1: task shapes and causality.</a></span><span class="act-min">5</span></li><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Section 3: backpropagation through time.</a></span><span class="act-min">20</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e2">Exercise 2: backpropagation through time by hand.</a></span><span class="act-min">10</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Lab 1: a character-level RNN from scratch in NumPy.</a></span><span class="act-min">40</span></li><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s4">Read Section 4 with the gradient-flow explorer: vanishing and exploding gradients.</a></span><span class="act-min">21</span></li></ul><label class="session-done"><input type="checkbox" data-key="ai-series:m04:s1"> Done</label></div>
+<section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">10 h 20 min</span></div><p class="plan-lead">Five study sessions, with about ten hours of scheduled activities. Allow 10–15 hours including derivations, reruns and review. Tick a session when you finish it; your progress is kept in this browser.</p><div class="sessions"><div class="session" data-session="1"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">2 h 08 min</span></div><div class="session-title">State and its gradient</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2: sequences and their tasks, and the recurrent network.</a></span><span class="act-min">32</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Exercise 1: task shapes and causality.</a></span><span class="act-min">5</span></li><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Section 3: backpropagation through time.</a></span><span class="act-min">20</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e2">Exercise 2: backpropagation through time by hand.</a></span><span class="act-min">10</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Lab 1: a character-level RNN from scratch in NumPy.</a></span><span class="act-min">40</span></li><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s4">Read Section 4 with the gradient-flow explorer: vanishing and exploding gradients.</a></span><span class="act-min">21</span></li></ul><label class="session-done"><input type="checkbox" data-key="ai-series:m04:s1"> Done</label></div>
 <div class="session" data-session="2"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">2 h 01 min</span></div><div class="session-title">Gates and memory</div><ul class="acts"><li class="act act-papers"><span class="act-kind">Papers</span><span class="act-what"><a href="#reading">Guided reading: Pascanu, Mikolov and Bengio (2013) on the difficulty of training recurrent networks.</a></span><span class="act-min">20</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e3">Exercise 3: what clipping does and does not fix.</a></span><span class="act-min">5</span></li><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s5">Read Sections 5–6: the LSTM, and the GRU, stacking and bidirectional networks.</a></span><span class="act-min">36</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Lab 2: watching gradients vanish, and the LSTM that does not.</a></span><span class="act-min">40</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e4">Exercises 4–5: the LSTM cell path and forget bias, and parameter counts.</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="ai-series:m04:s2"> Done</label></div>
 <div class="session" data-session="3"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">1 h 59 min</span></div><div class="session-title">Forecasting and monitoring</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s7">Read Section 7: training recurrent networks in practice.</a></span><span class="act-min">14</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e6">Exercise 6: padding and state.</a></span><span class="act-min">5</span></li><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s8">Read Section 8: forecasting time series honestly.</a></span><span class="act-min">21</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e7">Exercise 7: a leakage audit.</a></span><span class="act-min">5</span></li><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s9">Read Section 9: monitoring sensor streams with forecast residuals.</a></span><span class="act-min">14</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Lab 3: forecasting and monitoring a sensor stream.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Exercise 8: false-alarm arithmetic.</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="ai-series:m04:s3"> Done</label></div>
 <div class="session" data-session="4"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">2 h 06 min</span></div><div class="session-title">Encoder, decoder and attention</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s10">Read Sections 10–11: sequence to sequence, and attention.</a></span><span class="act-min">34</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab4">Lab 4: sequence to sequence with attention.</a></span><span class="act-min">35</span></li><li class="act act-papers"><span class="act-kind">Papers</span><span class="act-what"><a href="#reading">Guided reading: Bahdanau, Cho and Bengio (2015), the paper that introduced attention.</a></span><span class="act-min">15</span></li><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s12">Read Section 12: why the transformer replaced recurrence.</a></span><span class="act-min">12</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e9">Exercises 9–12: exposure bias, beam search by hand, attention by hand, and parallelism against state growth.</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="ai-series:m04:s4"> Done</label></div>
@@ -241,7 +246,7 @@ evaluated on a causal task, is a leak with excellent validation numbers (<a href
 <span class="math-i">\mathbf{x}_1</span>, feed it back, sample <span class="math-i">\mathbf{x}_2</span>, and so on. Maximum likelihood trains it by
 summing per-step cross-entropies for symbols, or squared errors for real values with Gaussian
 noise (<a href="module_01_EN.html">Module 01</a>). This is the language-modelling objective of
-<span class="xref-pending">Module 07</span> and the one-step forecast of <a href="#s8">Section 8</a>.</p>
+<a href="module_07_EN.html">Module 07</a> and the one-step forecast of <a href="#s8">Section 8</a>.</p>
 <h3>Why a fixed window is not enough</h3>
 <p>The obvious alternative feeds the last <span class="math-i">w</span> values to the multilayer perceptron of
 <a href="module_02_EN.html">Module 02</a>. It is a baseline worth fitting, with three faults. The window is
@@ -508,7 +513,7 @@ actually comes next, in nats per character (divide by <span class="math-i">\ln 2
 <p>At initialisation the output weights are small, the logits are close to zero and the softmax is
 close to uniform, <span class="math-i">1/V</span> for every character, so the first loss should be close to
 <span class="math-i">-\ln(1/V) = \ln V</span>. This is the sanity check of <a href="module_02_EN.html">Module 02</a>: a first loss far
-from <span class="math-i">\ln V</span> means a bug before any training has happened. (<span class="xref-pending">Module 07</span>
+from <span class="math-i">\ln V</span> means a bug before any training has happened. (<a href="module_07_EN.html">Module 07</a>
 turns this quantity into perplexity; this module stays with nats per character.)</p>
 <div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Lab 1’s model, counted</div>
 <p><span class="math-i">V = 37</span> characters, <span class="math-i">H = 128</span> state units, one bias vector:</p>
@@ -571,7 +576,7 @@ the subject of <a href="#s4">Section 4</a>, were understood by the middle of tha
 in 2013–2015, when gated recurrent networks generated convincing handwriting and character-level
 text (Graves 2013), and Karpathy’s 2015 essay on character-level models showed a small network
 writing plausible prose, source code and markup one character at a time. Those character models
-are the direct ancestors of the language models of <span class="xref-pending">Module 07</span>.</p>
+are the direct ancestors of the language models of <a href="module_07_EN.html">Module 07</a>.</p>
 <div class="check"><div class="check-label">Check your understanding</div>
 <p>An RNN has <span class="math-i">d_{\text{in}} = 10</span> and <span class="math-i">H = 64</span>, with one bias vector. How many parameters does its
 recurrent layer have, and how does that change when the sequence length doubles?</p>
@@ -2856,7 +2861,7 @@ chain rule of probability:</p>
 the model’s own guess. Every decoder input is then known before the forward pass starts: no
 sampling loop is needed, and every step is trained on a clean prefix with an ordinary
 cross-entropy. A transformer decoder can then compute all positions in parallel
-(<span class="xref-pending">Module 06</span>). An RNN decoder still loops, because <span class="math-i">\mathbf{s}_t</span> needs
+(<a href="module_06_EN.html">Module 06</a>). An RNN decoder still loops, because <span class="math-i">\mathbf{s}_t</span> needs
 <span class="math-i">\mathbf{s}_{t-1}</span>, but it loops without generating anything. Figure 4.11 sets training and
 inference side by side.</p>
 <figure class="fig" id="fig-04-15"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 516" width="720" height="516" font-family="DM Sans, system-ui, -apple-system, Segoe UI, sans-serif">
@@ -3013,7 +3018,7 @@ gap worth the name (99.7% against 99.4%).</p>
 <p><strong>Scheduled sampling</strong> (Bengio et al. 2015) feeds the model’s own prediction in place of the true
 token with a probability that rises during training, so it learns to recover from its mistakes.
 Training on the model’s own rollouts does the same more directly. <strong>Sequence-level objectives</strong>
-score whole generated outputs; the reinforcement-learning methods of <span class="xref-pending">Module 09</span>
+score whole generated outputs; the reinforcement-learning methods of <a href="module_09_EN.html">Module 09</a>
 are their modern form. Whatever the training, evaluate free-running: it is the only mode
 deployment has.</p>
 <h3>Decoding: greedy and beam search</h3>
@@ -3120,7 +3125,7 @@ high-scoring hypotheses: past a point, widening the beam gives shorter and worse
 normalisation</strong> divides the score by a power of the length, <span class="math-i">\ln p(y\mid x)/|y|^\alpha</span> with
 <span class="math-i">0 &lt; \alpha \le 1</span>; Wu et al. (2016) use the smoothed divisor <span class="math-i">\big((5+|y|)/6\big)^\alpha</span>. A
 minimum length is a cruder guard. Beam search serves tasks that want the single best output; when
-diverse outputs are wanted, sampling serves better (<span class="xref-pending">Module 07</span>). Nor can search
+diverse outputs are wanted, sampling serves better (<a href="module_07_EN.html">Module 07</a>). Nor can search
 repair a model that does not know the answer: in Lab 4, beam search with <span class="math-i">k = 4</span> leaves the
 bottleneck model at 0 correct strings out of 200 at length 12, as greedy decoding does, and its
 token accuracy falls from 52.3% to 49.1%: the beam finds outputs the model rates as more probable,
@@ -3331,7 +3336,7 @@ weights <span class="math-i">(0.4223, 0.1554, 0.4223)</span>. Context <span clas
 <span class="math-i">(0.9757, 0.5121)</span>. The weight on <span class="math-i">\mathbf{h}_2</span> fell from 0.155 to 0.024.</p>
 <p>Larger scores make the softmax sharper. For vectors with <span class="math-i">d</span> independent components of zero mean
 and unit variance, <span class="math-i">\operatorname{Var}(\mathbf{s}^\top\mathbf{h}) = \sum_{i=1}^{d} \mathbb{E}[s_i^2]\,\mathbb{E}[h_i^2] = d</span>, so typical scores grow like <span class="math-i">\sqrt d</span> and a wide model’s
-softmax saturates, with vanishing gradients. <span class="xref-pending">Module 06</span> divides the scores by
+softmax saturates, with vanishing gradients. <a href="module_06_EN.html">Module 06</a> divides the scores by
 <span class="math-i">\sqrt{d_k}</span> for exactly this reason.</p>
 </div>
 <h3>Why it works</h3>
@@ -3346,7 +3351,7 @@ query vector, pools over time.</p>
 <p>In the dot form the decoder state plays the role of a <strong>query</strong>, the encoder states play the
 <strong>keys</strong> that are scored and the <strong>values</strong> that are averaged. Drop the recurrence, let every
 position of a sequence issue a query against every other position of the same sequence, and the
-result is <strong>self-attention</strong>, the core of the transformer. <span class="xref-pending">Module 06</span> takes it
+result is <strong>self-attention</strong>, the core of the transformer. <a href="module_06_EN.html">Module 06</a> takes it
 from there.</p>
 <div class="callout pitfall"><div class="callout-label">Pitfall</div>
 <p>An alignment plot is not an explanation. Attention weights can be changed substantially without
@@ -3381,7 +3386,7 @@ makes every input known in advance, but it does not help: <span class="math-i">\
 <span class="math-i">\mathbf{h}_{t-1}</span>, which must be computed first. Data parallelism across sequences still works;
 what suffers is the size of each step’s computation. Each step is one small matrix product per
 sequence in the batch, too little to keep a modern accelerator busy, and long contexts make the
-chain longer. For corpora of the size <span class="xref-pending">Module 08</span> describes, the serial chain
+chain longer. For corpora of the size <a href="module_08_EN.html">Module 08</a> describes, the serial chain
 becomes the bottleneck.</p>
 <p><strong>Long paths.</strong> Information from position <span class="math-i">j</span> reaches position <span class="math-i">t</span> through <span class="math-i">t - j</span> applications of
 the recurrence, each of them lossy (<a href="#s4">Section 4</a>). Attention connects them in one step; a
@@ -3404,13 +3409,13 @@ Lab 3’s 64-sample window.</p>
 <p>The limit is the fixed receptive field: nothing older than it can influence the output, and
 covering more takes more layers.</p>
 <h3>The transformer’s trade, and what recurrence keeps</h3>
-<p>The transformer (<span class="xref-pending">Module 06</span>) computes every position in parallel, in a few large
+<p>The transformer (<a href="module_06_EN.html">Module 06</a>) computes every position in parallel, in a few large
 matrix products, with a path of length 1 between any two positions. The price is a cost quadratic
 in sequence length, since every position scores every other. For training on large corpora that
 trade is right.</p>
 <p>At inference the trade reverses. A recurrent network generates each token with constant compute
 and a fixed-size state. A transformer stores the keys and values of every past token, the
-<strong>key–value cache</strong> that <span class="xref-pending">Module 10</span> derives, and it grows with the context.</p>
+<strong>key–value cache</strong> that <a href="module_10_EN.html">Module 10</a> derives, and it grows with the context.</p>
 <div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">State against cache</div>
 <p>A 4-layer LSTM with <span class="math-i">H = 1{,}024</span> in fp32 keeps <span class="math-i">(\mathbf{h}, \mathbf{c})</span> per layer:
 <span class="math-i">2\times4\times1{,}024\times4\ \text{B} = 32{,}768</span> B <span class="math-i">= 32.8</span> kB (32 KiB) per sequence, whatever
@@ -3419,7 +3424,7 @@ the context length.</p>
 vector per layer for every past token: <span class="math-i">2\times24\times2{,}048\times2\ \text{B} = 196{,}608</span> B
 <span class="math-i">= 196.6</span> kB (192 KiB) per token in 16-bit precision. At 32,768 tokens that is
 <span class="math-i">196{,}608\times32{,}768 = 6.44\times10^9</span> B <span class="math-i">= 6.44</span> GB (6.0 GiB). Grouped-query attention divides
-this by its group factor (<span class="xref-pending">Module 10</span>).</p>
+this by its group factor (<a href="module_10_EN.html">Module 10</a>).</p>
 </div>
 <p>The comparison follows Vaswani et al. (2017), who gave a similar table; Figure 4.14 draws the
 three dependency graphs. <span class="math-i">T</span> is the sequence length, <span class="math-i">d</span> the width, <span class="math-i">k</span> the kernel size.</p>
@@ -4212,7 +4217,7 @@ example), and the largest language models are still predominantly transformers. 
 </tr>
 <tr>
 <td>Language modelling at scale</td>
-<td>transformer or hybrid (<span class="xref-pending">Modules 06</span>–<span class="xref-pending">08</span>)</td>
+<td>transformer or hybrid (<a href="module_06_EN.html">Modules 06</a>–<a href="module_08_EN.html">08</a>)</td>
 </tr>
 </tbody>
 </table></div>
@@ -4776,7 +4781,7 @@ plt.show()
 <p>Sampling is the one-to-many shape of <a href="#s1">Section 1</a>. Start from <span class="math-i">\mathbf{h} = \mathbf{0}</span> and a
 newline, compute the logits, divide them by the temperature <span class="math-i">\tau</span>, take the softmax, draw a
 character with a seeded generator, and feed it back. The temperature is explained in
-<a href="#s2">Section 2</a>; <span class="xref-pending">Module 07</span> treats sampling in general. At <span class="math-i">\tau = 0.5</span> the
+<a href="#s2">Section 2</a>; <a href="module_07_EN.html">Module 07</a> treats sampling in general. At <span class="math-i">\tau = 0.5</span> the
 distribution is sharpened towards the likeliest character; at <span class="math-i">\tau = 1</span> it is the model’s own.</p>
 <figure class="lab-plot"><img src="assets/plots/m04-lab1-b7-1.png" alt="Plot produced by the code above" loading="lazy"><figcaption>Plot produced by the code above</figcaption></figure>
 <pre><code class="language-python">def sample(p, n_chars, temperature, seed):
@@ -7237,7 +7242,7 @@ for n in (1, 2, 3):
 <p><strong>Remedies.</strong></p>
 <ul>
 <li><strong>Scheduled sampling</strong> (Bengio et al. 2015): during training, feed the model’s own previous prediction in place of the true token with a probability that rises over training, so the decoder learns to recover from its own mistakes.</li>
-<li><strong>Training on the model’s own rollouts, or with sequence-level objectives</strong> that score whole generated outputs (the reinforcement-learning methods of <span class="xref-pending">Module 09</span>).</li>
+<li><strong>Training on the model’s own rollouts, or with sequence-level objectives</strong> that score whole generated outputs (the reinforcement-learning methods of <a href="module_09_EN.html">Module 09</a>).</li>
 <li><strong>Reduce the error rate itself</strong>: the best fix for this task is attention (<a href="#s11">Section 11</a>), which removes the bottleneck that causes the first errors.</li>
 </ul>
 <p>Whatever the remedy, evaluate free-running, the only mode deployment has.</p>
@@ -7396,7 +7401,7 @@ k = 2
 <p>Encoder states <span class="math-i">\mathbf{h}_1 = (1, 1)</span>, <span class="math-i">\mathbf{h}_2 = (2, 0)</span>, <span class="math-i">\mathbf{h}_3 = (0, -1)</span>.</p>
 <p>(a) With dot-product scores and decoder state <span class="math-i">\mathbf{s} = (1, 0)</span>, compute the scores, the attention weights and the context vector.</p>
 <p>(b) Repeat with <span class="math-i">\mathbf{s} = (3, 0)</span>. What changed, and why does it matter for training?</p>
-<p>(c) Relate (b) to the <span class="math-i">1/\sqrt{d_k}</span> factor of <span class="xref-pending">Module 06</span>.</p>
+<p>(c) Relate (b) to the <span class="math-i">1/\sqrt{d_k}</span> factor of <a href="module_06_EN.html">Module 06</a>.</p>
 <p>(d) With additive attention, <span class="math-i">\mathbf{W}_a = \mathbf{I}</span>, <span class="math-i">\mathbf{U}_a = \begin{bmatrix}1 &amp; 0\\ 0.5 &amp; -0.5\end{bmatrix}</span>, <span class="math-i">\mathbf{v}_a = (1, 0.5)</span> and <span class="math-i">\mathbf{s}_{t-1} = (-0.5, 0.5)</span>, compute the weights and the context.</p>
 </div>
 <details class="solution"><summary>Show solution</summary><div class="details-body">
@@ -7407,7 +7412,7 @@ k = 2
 <p><strong>(b)</strong> With <span class="math-i">\mathbf{s} = (3, 0)</span> the scores are <span class="math-i">(3, 6, 0)</span>, three times as large. Then <span class="math-i">\exp(e) = (20.086,\ 403.43,\ 1)</span> with sum <span class="math-i">424.51</span>, so</p>
 <div class="math-d">\alpha = (0.0473,\ 0.9503,\ 0.0024), \qquad \mathbf{a} = (1.9480,\ 0.0450).</div>
 <p>The same direction, three times longer, has made the distribution much sharper: 95% of the weight is on <span class="math-i">\mathbf{h}_2</span>, up from 67%. Multiplying every score by 3 is the same as dividing the softmax’s temperature by 3. This matters for training because the softmax <em>saturates</em>: the sensitivity of the weights to the scores is <span class="math-i">\partial\alpha_j/\partial e_j = \alpha_j(1 - \alpha_j)</span>, which is <span class="math-i">(0.185,\ 0.223,\ 0.082)</span> in (a) and <span class="math-i">(0.045,\ 0.047,\ 0.0024)</span> in (b). For the third annotation the gradient has shrunk 35-fold. A saturated softmax passes little gradient to the score network or to the states that produced the scores, and training stalls.</p>
-<p><strong>(c)</strong> For a query and a key of width <span class="math-i">d_k</span> whose components are independent with zero mean and unit variance, the dot product <span class="math-i">\sum_i q_ik_i</span> has variance <span class="math-i">\sum_i\mathbb{E}[q_i^2]\,\mathbb{E}[k_i^2] = d_k</span>. Typical scores therefore grow like <span class="math-i">\sqrt{d_k}</span>, and a wide model sits in the saturated regime of (b) at initialisation, with vanishing gradients. Dividing the scores by <span class="math-i">\sqrt{d_k}</span> restores unit variance whatever the width (<span class="xref-pending">Module 06</span>). A simulation of 20,000 random pairs gives variances of 4.0, 64.5 and 1,023.5 for <span class="math-i">d = 4</span>, 64 and 1,024 (script below), while a width of 2, as here, gives scores of standard deviation only <span class="math-i">\sqrt2</span>, so the effect needs an exaggeration such as the factor 3 to show.</p>
+<p><strong>(c)</strong> For a query and a key of width <span class="math-i">d_k</span> whose components are independent with zero mean and unit variance, the dot product <span class="math-i">\sum_i q_ik_i</span> has variance <span class="math-i">\sum_i\mathbb{E}[q_i^2]\,\mathbb{E}[k_i^2] = d_k</span>. Typical scores therefore grow like <span class="math-i">\sqrt{d_k}</span>, and a wide model sits in the saturated regime of (b) at initialisation, with vanishing gradients. Dividing the scores by <span class="math-i">\sqrt{d_k}</span> restores unit variance whatever the width (<a href="module_06_EN.html">Module 06</a>). A simulation of 20,000 random pairs gives variances of 4.0, 64.5 and 1,023.5 for <span class="math-i">d = 4</span>, 64 and 1,024 (script below), while a width of 2, as here, gives scores of standard deviation only <span class="math-i">\sqrt2</span>, so the effect needs an exaggeration such as the factor 3 to show.</p>
 <p><strong>(d)</strong> Additive attention is <span class="math-i">e_j = \mathbf{v}_a^\top\tanh(\mathbf{W}_a\mathbf{s}_{t-1} + \mathbf{U}_a\mathbf{h}_j)</span> (<a href="#s11">Section 11</a>). In steps:</p>
 <ol>
 <li><span class="math-i">\mathbf{W}_a\mathbf{s}_{t-1} = \mathbf{s}_{t-1} = (-0.5, 0.5)</span>, since <span class="math-i">\mathbf{W}_a = \mathbf{I}</span>.</li>
@@ -7460,9 +7465,9 @@ d = 1024: variance of q.k = 1023.5
 </div>
 <details class="solution"><summary>Show solution</summary><div class="details-body">
 <p><strong>Recurrent network.</strong> The state <span class="math-i">\mathbf{h}_t</span> is a nonlinear function of <span class="math-i">\mathbf{h}_{t-1}</span>, so step <span class="math-i">t</span> cannot start before step <span class="math-i">t-1</span> has finished. Teacher forcing makes the <em>inputs</em> known in advance, but it does not break this chain: the <span class="math-i">T</span> steps remain a dependent sequence, however many processors are free (<a href="#s12">Section 12</a>).</p>
-<p><strong>Transformer.</strong> Within a layer, each position depends on that layer’s <em>inputs</em>, which teacher forcing makes known, and not on the other positions’ outputs at the same layer. All positions can therefore be computed together, in one masked matrix operation per layer (<span class="xref-pending">Module 06</span>).</p>
+<p><strong>Transformer.</strong> Within a layer, each position depends on that layer’s <em>inputs</em>, which teacher forcing makes known, and not on the other positions’ outputs at the same layer. All positions can therefore be computed together, in one masked matrix operation per layer (<a href="module_06_EN.html">Module 06</a>).</p>
 <p><strong>State and cache.</strong> The LSTM keeps a fixed <span class="math-i">(\mathbf{h}, \mathbf{c})</span> per layer, however long the context: the factor is <strong>1</strong>. The key-value cache stores a key and a value for every past token, so it grows in proportion to the context: the factor is $32{,}768/4{,}096 = $ <strong>8</strong>. In the example of <a href="#s12">Section 12</a>, the cache is 0.81 GB at 4,096 tokens and 6.44 GB at 32,768.</p>
-<p><strong>Consequence.</strong> For a fixed memory budget left over after the weights, the number of sequences in flight is the budget divided by the state per sequence. The LSTM holds the <em>same</em> number at any length. The transformer holds one eighth as many at 32,768 tokens as at 4,096, if the cache dominates. This is the trade of <a href="#s12">Section 12</a>: the transformer pays at inference for what it gains in training, and <span class="xref-pending">Module 10</span> derives the consequences for serving.</p>
+<p><strong>Consequence.</strong> For a fixed memory budget left over after the weights, the number of sequences in flight is the budget divided by the state per sequence. The LSTM holds the <em>same</em> number at any length. The transformer holds one eighth as many at 32,768 tokens as at 4,096, if the cache dominates. This is the trade of <a href="#s12">Section 12</a>: the transformer pays at inference for what it gains in training, and <a href="module_10_EN.html">Module 10</a> derives the consequences for serving.</p>
 </div></details>
 <div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">10 min</span></div>
 <p>(a) For <span class="math-i">h_t = 0.8\,h_{t-1} + x_t</span>, <span class="math-i">y_t = 2h_t</span>, <span class="math-i">h_0 = 0</span> and <span class="math-i">x = (2, -1, 0, 1)</span>, compute <span class="math-i">y</span> by the recurrence and then by convolution with the kernel <span class="math-i">K_k = c\,a^k b</span>; show that they agree.</p>
@@ -7804,7 +7809,7 @@ TCN training time is 27% shorter
 </div>
 <div class="paper"><div class="paper-label">Paper · 15 min</div>
 <p>Bahdanau, D., Cho, K., Bengio, Y. “Neural machine translation by jointly learning to align and translate.” <em>International Conference on Learning Representations (ICLR)</em>, 2015 (arXiv:1409.0473).</p>
-<p><strong>Why read it.</strong> It introduced attention as the fix for the encoder–decoder bottleneck. The idea, with the recurrence removed, became the transformer, so this is the paper in which the mechanism of <span class="xref-pending">Module 06</span> first appears, in its additive form.</p>
+<p><strong>Why read it.</strong> It introduced attention as the fix for the encoder–decoder bottleneck. The idea, with the recurrence removed, became the transformer, so this is the paper in which the mechanism of <a href="module_06_EN.html">Module 06</a> first appears, in its additive form.</p>
 <p><strong>What to read.</strong> Read the introduction, the background on the RNN encoder–decoder, and the section on learning to align and translate: the decoder with its alignment model, and the bidirectional encoder that produces the annotations. Look at the figure of translation quality against sentence length and at the alignment figures. Skip the experimental settings and most of the appendix, except the definition of the alignment model.</p>
 <p><strong>Questions to answer while reading.</strong></p>
 <ol>
@@ -7844,7 +7849,7 @@ TCN training time is 27% shorter
 <li>A single summary vector is a bottleneck (in Lab 4, digit reversal falls from about 98% of strings right at length 4 to about 1% at length 12), and attention removes it: the decoder takes a softmax-weighted average of all encoder states, giving every output a one-step path to every input, and the weights form an alignment that is a diagnostic, not an explanation.</li>
 <li>The transformer replaced recurrence because a nonlinear recurrence needs <span class="math-i">T</span> dependent steps and has paths of length <span class="math-i">O(T)</span>, while attention has one-step paths at quadratic cost; recurrence keeps a constant-size state (32.8 kB for a 4-layer LSTM of width 1,024 against 6.44 GB of key–value cache for a 24-layer transformer of width 2,048 at 32,768 tokens), and a linear time-invariant recurrence is a convolution that trains in parallel, with Mamba’s input-dependent step turning it back into a gate.</li>
 </ul>
-<p><a href="module_05_EN.html">Module 05</a> widens the view from sequences to the other network families worth knowing: autoencoders and VAEs, GANs, diffusion models, graph networks, physics-informed networks and contrastive learning, several of which return in the large models of later modules. <span class="xref-pending">Module 06</span> then takes the attention of <a href="#s11">Section 11</a>, removes the recurrence entirely and builds the transformer: the same query–key–value lookup, applied by every position to every other, with the scale factor <span class="math-i">\sqrt{d_k}</span> that <a href="#s11">Section 11</a> motivated and the positional information that a recurrence supplied for free.</p>
+<p><a href="module_05_EN.html">Module 05</a> widens the view from sequences to the other network families worth knowing: autoencoders and VAEs, GANs, diffusion models, graph networks, physics-informed networks and contrastive learning, several of which return in the large models of later modules. <a href="module_06_EN.html">Module 06</a> then takes the attention of <a href="#s11">Section 11</a>, removes the recurrence entirely and builds the transformer: the same query–key–value lookup, applied by every position to every other, with the scale factor <span class="math-i">\sqrt{d_k}</span> that <a href="#s11">Section 11</a> motivated and the positional information that a recurrence supplied for free.</p>
 <span class="section-anchor" id="terms"></span>
 <div class="section-header" data-sec="terms"><span class="section-num">24</span><h2>Key terms</h2></div>
 <div class="table-wrap"><table>

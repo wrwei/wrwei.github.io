@@ -1,0 +1,19 @@
+[%
+var ddl = "-- MiniJDL schema for " + Application.all.first().name + "\n";
+for (e in Entity.all) {
+  ddl += "CREATE TABLE " + e.name + " (\n  id INTEGER PRIMARY KEY";
+  for (f in e.fields) {
+    var sqlType = "INTEGER";
+    if (f.type.toString() = "STRING") { sqlType = "VARCHAR(255)"; }
+    else if (f.type.toString() = "BOOLEAN") { sqlType = "BOOLEAN"; }
+    ddl += ",\n  " + f.name + " " + sqlType;
+  }
+  for (r in e.relations) {
+    ddl += ",\n  " + r.name + "_id INTEGER";
+  }
+  for (r in e.relations) {
+    ddl += ",\n  FOREIGN KEY (" + r.name + "_id) REFERENCES " + r.target.name + "(id)";
+  }
+  ddl += "\n);\n";
+}
+%][%=ddl%]

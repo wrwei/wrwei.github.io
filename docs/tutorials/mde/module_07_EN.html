@@ -1,0 +1,876 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Model-to-model transformation — Model-Driven Engineering with Eclipse Epsilon</title><meta name="description" content="Map one metamodel onto another with ETL rules, guards, equivalents and lazy rules."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"></head><body data-module="7"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">MDE Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 07</button><div class="dropdown-menu" id="module-menu"><a href="module_01_EN.html">01 · What is model-driven engineering?</a><a href="module_02_EN.html">02 · Metamodelling</a><a href="module_03_EN.html">03 · Building and viewing models</a><a href="module_04_EN.html">04 · Querying models</a><a href="module_05_EN.html">05 · Validating models</a><a href="module_06_EN.html">06 · Generating code and text</a><a href="module_07_EN.html" class="active" aria-current="page">07 · Model-to-model transformation</a><a href="module_08_EN.html">08 · MDE meets LLMs</a><a href="module_09_EN.html">09 · From Playground to real projects</a><a href="module_10_EN.html">10 · Capstone: MiniJDL</a><a href="index.html#modules">All modules</a></div></div><a class="lang-switch" href="module_07_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#s1"><span class="num">1</span><span>Two metamodels and one mapping</span></a><a href="#s2"><span class="num">2</span><span>Write ETL rules</span></a><a href="#s3"><span class="num">3</span><span>Resolve transformed counterparts</span></a><a href="#s4"><span class="num">4</span><span>Guards and lazy rules</span></a><a href="#s5"><span class="num">5</span><span>Primary rules and trace</span></a><a href="#s6"><span class="num">6</span><span>Check the target model</span></a><a href="#exercises"><span class="num">7</span><span>Exercises</span></a><a href="#quiz"><span class="num">8</span><span>Self-check quiz</span></a><a href="#reading"><span class="num">9</span><span>Further reading</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Model-Driven Engineering with Eclipse Epsilon — Ran Wei</div><h1 class="module-title">Model-to-model transformation</h1><p class="module-lead">Map one metamodel onto another with ETL rules, guards, equivalents and lazy rules.</p><div class="hero-chips"><span class="chip chip-time">4 hours</span><span class="chip">4 sessions</span><span class="chip">8 runnable examples</span><span class="chip">Epsilon Playground</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Map components to a graph with ETL.</li><li>Use equivalent, guards, lazy and primary rules deliberately.</li><li>Inspect the generated target model and its omissions.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Modules 1–6 are recommended. Examples run in the Playground unless noted.</p><p><a class="download-link" href="downloads/module_07.zip" download>Download all examples of this module (zip)</a></p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#s1">Two metamodels and one mapping</a><a href="#s2">Write ETL rules</a><a href="#s3">Resolve transformed counterparts</a><a href="#s4">Guards and lazy rules</a><a href="#s5">Primary rules and trace</a><a href="#s6">Check the target model</a><a href="#exercises">Exercises</a><a href="#quiz">Self-check quiz</a><a href="#reading">Further reading</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">4 hours</span></div><p class="plan-lead">Times are estimates and include running the examples. Progress is saved in this browser and shared by both language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">60 min</span></div><div class="session-title">Define source and target mappings</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Two metamodels and one mapping</a></span><span class="act-min">30</span></li><li class="act act-examples"><span class="act-kind">Examples</span><span class="act-what"><a href="#s2">Write ETL rules</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="mde-series:m07:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">60 min</span></div><div class="session-title">Trace, guards and lazy rules</div><ul class="acts"><li class="act act-examples"><span class="act-kind">Examples</span><span class="act-what"><a href="#s3">Resolve transformed counterparts</a></span><span class="act-min">30</span></li><li class="act act-examples"><span class="act-kind">Examples</span><span class="act-what"><a href="#s4">Guards and lazy rules</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="mde-series:m07:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">60 min</span></div><div class="session-title">Primary rules and target checks</div><ul class="acts"><li class="act act-examples"><span class="act-kind">Examples</span><span class="act-what"><a href="#s5">Primary rules and trace</a></span><span class="act-min">30</span></li><li class="act act-examples"><span class="act-kind">Examples</span><span class="act-what"><a href="#s6">Check the target model</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="mde-series:m07:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">60 min</span></div><div class="session-title">Practice</div><ul class="acts"><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#exercises">Six exercises</a></span><span class="act-min">45</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Self-check quiz</a></span><span class="act-min">15</span></li></ul><label class="session-done"><input type="checkbox" data-key="mde-series:m07:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>Two metamodels and one mapping</h2></div>
+<p>The component model describes ports and wiring. A graph model needs only nodes and directed edges. <strong>Model-to-model transformation</strong> translates between these languages: the source model conforms to the component metamodel, and the target model conforms to a separate graph metamodel. The transformation must decide what to preserve, what to omit and how to reconnect references.</p>
+<p>Here, each <code>Architecture</code> becomes a <code>Graph</code>, each <code>Component</code> becomes a <code>Node</code>, and each <code>Connector</code> becomes an <code>Edge</code>. Port names disappear in the simplest version. This is deliberate: a graph algorithm can work at component level without knowing the component language’s port details. <strong>ETL</strong>, the Epsilon Transformation Language, defines the mapping in rules. Its rule bodies use EOL expressions from Module 4.</p>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>Write ETL rules</h2></div>
+<p>The first program has three rules. <code>Architecture2Graph</code> creates the root and populates its contained nodes and edges. <code>Component2Node</code> copies a component name. <code>Connector2Edge</code> links the graph nodes corresponding to the components at its two endpoint ports.</p>
+<div class="example" id="ex-m07-basic">
+<div class="example-head"><span class="example-label">Example</span><span class="example-title">Components become a graph</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m07-basic" target="_blank" rel="noopener">Open in Playground ↗</a></div>
+<div class="example-file">transform.etl</div>
+<pre><code class="language-etl"><span class="hljs-keyword">rule</span> <span class="hljs-type">Architecture2Graph</span>
+  <span class="hljs-keyword">transform</span> a : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Architecture</span>
+  <span class="hljs-keyword">to</span> g : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Graph</span> {
+  g.name = a.name;
+  g.nodes <span class="hljs-operator">::=</span> a.components;
+  g.edges <span class="hljs-operator">::=</span> a.connectors;
+}
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Component2Node</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Component</span>
+  <span class="hljs-keyword">to</span> n : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Node</span> {
+  n.name = c.name;
+}
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Connector2Edge</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Connector</span>
+  <span class="hljs-keyword">to</span> e : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Edge</span> {
+  e.source <span class="hljs-operator">::=</span> c.source.eContainer();
+  e.target <span class="hljs-operator">::=</span> c.target.eContainer();
+}
+</code></pre>
+<div class="example-file">graph.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;graph&quot;</span>, prefix=<span class="hljs-string">&quot;graph&quot;</span>)
+<span class="hljs-keyword">package</span> graph;
+<span class="hljs-keyword">class</span> <span class="hljs-type">Graph</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Node</span><span class="hljs-number">[*]</span> nodes;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Edge</span><span class="hljs-number">[*]</span> edges;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">Node</span> { <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name; }
+<span class="hljs-keyword">class</span> <span class="hljs-type">Edge</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> label;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> target;
+}
+</code></pre>
+<details class="example-files"><summary>More files: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">Output captured from Epsilon 2.8.0 when this page was built. The Playground may word messages differently and does not show warnings about the model.</div>
+<div class="output"><div class="output-label">Output</div><pre><code>Graph name=&quot;Alarm&quot;
+  Node name=&quot;OrGate&quot;
+  Node name=&quot;AndGate&quot;
+  Node name=&quot;Siren&quot;
+  Edge source-&gt;OrGate target-&gt;AndGate
+  Edge source-&gt;AndGate target-&gt;Siren
+</code></pre></div>
+</div>
+<p>Read the captured target tree. It has a graph named <code>Alarm</code>, three nodes and two edges. The target metamodel is visible under the ETL program. <code>Source!Component</code> and <code>Target!Node</code> specify types in different models; they avoid mistaking a source component for a target node. <code>g.nodes ::= a.components</code> uses ETL’s special assignment: assign each source component’s <strong>transformed counterpart</strong>, not the source component itself.</p>
+<p>A transformation is not just an export. It creates another model with its own types and relationships, ready for another model-management task. The local runner prints the target model’s containment tree so you can inspect it; it does not persist the target as an XMI file for this lesson.</p>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>Resolve transformed counterparts</h2></div>
+<p>ETL keeps a transformation <strong>trace</strong> connecting source elements to the target elements produced for them. <code>equivalent()</code> asks for a source element’s transformed counterpart. The next program performs the same mapping as the first, but calls <code>equivalent()</code> explicitly when it fills the target graph and links edge endpoints.</p>
+<div class="example" id="ex-m07-equivalent">
+<div class="example-head"><span class="example-label">Example</span><span class="example-title">Resolve counterparts explicitly</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m07-equivalent" target="_blank" rel="noopener">Open in Playground ↗</a></div>
+<div class="example-file">transform.etl</div>
+<pre><code class="language-etl"><span class="hljs-keyword">rule</span> <span class="hljs-type">Architecture2Graph</span>
+  <span class="hljs-keyword">transform</span> a : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Architecture</span>
+  <span class="hljs-keyword">to</span> g : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Graph</span> {
+  g.name = a.name;
+  <span class="hljs-keyword">for</span> (c <span class="hljs-keyword">in</span> a.components) { g.nodes.add(c.equivalent()); }
+  <span class="hljs-keyword">for</span> (wire <span class="hljs-keyword">in</span> a.connectors) { g.edges.add(wire.equivalent()); }
+}
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Component2Node</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Component</span>
+  <span class="hljs-keyword">to</span> n : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Node</span> { n.name = c.name; }
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Connector2Edge</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Connector</span>
+  <span class="hljs-keyword">to</span> e : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Edge</span> {
+  e.source = c.source.eContainer().equivalent();
+  e.target = c.target.eContainer().equivalent();
+}
+</code></pre>
+<div class="example-file">graph.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;graph&quot;</span>, prefix=<span class="hljs-string">&quot;graph&quot;</span>)
+<span class="hljs-keyword">package</span> graph;
+<span class="hljs-keyword">class</span> <span class="hljs-type">Graph</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Node</span><span class="hljs-number">[*]</span> nodes;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Edge</span><span class="hljs-number">[*]</span> edges;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">Node</span> { <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name; }
+<span class="hljs-keyword">class</span> <span class="hljs-type">Edge</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> label;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> target;
+}
+</code></pre>
+<details class="example-files"><summary>More files: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">Output captured from Epsilon 2.8.0 when this page was built. The Playground may word messages differently and does not show warnings about the model.</div>
+<div class="output"><div class="output-label">Output</div><pre><code>Graph name=&quot;Alarm&quot;
+  Node name=&quot;OrGate&quot;
+  Node name=&quot;AndGate&quot;
+  Node name=&quot;Siren&quot;
+  Edge source-&gt;OrGate target-&gt;AndGate
+  Edge source-&gt;AndGate target-&gt;Siren
+</code></pre></div>
+</div>
+<p>Compare the two outputs: they are the same graph. <code>::=</code> is shorthand for the common case in which a target feature receives an equivalent target element. An explicit <code>equivalent()</code> is useful when you want to calculate, select or combine counterparts in a larger expression. Neither form is a lookup by matching names: the trace records which rule created which result.</p>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>Guards and lazy rules</h2></div>
+<p>A <strong>guard</strong> restricts which source elements a rule transforms. In the next source model, the second connector joins a digital output to an analog input. The guarded connector rule creates an edge only when the two port types match. All three components still become nodes, but only the compatible connection becomes an edge.</p>
+<div class="example" id="ex-m07-guard">
+<div class="example-head"><span class="example-label">Example</span><span class="example-title">Skip an incompatible connection</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m07-guard" target="_blank" rel="noopener">Open in Playground ↗</a></div>
+<div class="example-file">transform.etl</div>
+<pre><code class="language-etl"><span class="hljs-keyword">rule</span> <span class="hljs-type">Architecture2Graph</span>
+  <span class="hljs-keyword">transform</span> a : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Architecture</span>
+  <span class="hljs-keyword">to</span> g : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Graph</span> {
+  g.name = a.name;
+  g.nodes <span class="hljs-operator">::=</span> a.components;
+  g.edges <span class="hljs-operator">::=</span> a.connectors;
+}
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Component2Node</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Component</span>
+  <span class="hljs-keyword">to</span> n : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Node</span> {
+  n.name = c.name;
+}
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Connector2Edge</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Connector</span>
+  <span class="hljs-keyword">to</span> e : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Edge</span> {
+  <span class="hljs-keyword">guard</span>: c.source.type = c.target.type
+  e.source <span class="hljs-operator">::=</span> c.source.eContainer();
+  e.target <span class="hljs-operator">::=</span> c.target.eContainer();
+}
+</code></pre>
+<div class="example-file">graph.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;graph&quot;</span>, prefix=<span class="hljs-string">&quot;graph&quot;</span>)
+<span class="hljs-keyword">package</span> graph;
+<span class="hljs-keyword">class</span> <span class="hljs-type">Graph</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Node</span><span class="hljs-number">[*]</span> nodes;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Edge</span><span class="hljs-number">[*]</span> edges;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">Node</span> { <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name; }
+<span class="hljs-keyword">class</span> <span class="hljs-type">Edge</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> label;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> target;
+}
+</code></pre>
+<details class="example-files"><summary>More files: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;ANALOG&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">Output captured from Epsilon 2.8.0 when this page was built. The Playground may word messages differently and does not show warnings about the model.</div>
+<div class="output"><div class="output-label">Output</div><pre><code>Graph name=&quot;Alarm&quot;
+  Node name=&quot;OrGate&quot;
+  Node name=&quot;AndGate&quot;
+  Node name=&quot;Siren&quot;
+  Edge source-&gt;OrGate target-&gt;AndGate
+</code></pre></div>
+</div>
+<p>This is a policy choice, not a replacement for validation. Silently dropping an invalid connector may be dangerous for a downstream task. A project can first run EVL to reject the model, or deliberately transform only valid connections while reporting omissions. The example isolates the guard’s effect so you can see it.</p>
+<p>A <strong>lazy</strong> rule runs only when an equivalent is requested. The next example maps ports, rather than components, to graph nodes. <code>Architecture2Graph</code> requests <code>Port2Node</code> for each port. Because <code>Port</code> is abstract and the instances are <code>InPort</code> and <code>OutPort</code>, the rule uses <code>@greedy</code> to match subclasses as well as the exact type.</p>
+<div class="example" id="ex-m07-lazy">
+<div class="example-head"><span class="example-label">Example</span><span class="example-title">Create port nodes on demand</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m07-lazy" target="_blank" rel="noopener">Open in Playground ↗</a></div>
+<div class="example-file">transform.etl</div>
+<pre><code class="language-etl"><span class="hljs-keyword">rule</span> <span class="hljs-type">Architecture2Graph</span>
+  <span class="hljs-keyword">transform</span> a : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Architecture</span>
+  <span class="hljs-keyword">to</span> g : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Graph</span> {
+  g.name = a.name;
+  <span class="hljs-keyword">for</span> (p <span class="hljs-keyword">in</span> <span class="hljs-type">Port</span>.all) { g.nodes.add(p.equivalent(<span class="hljs-string">&quot;Port2Node&quot;</span>)); }
+}
+<span class="hljs-meta">@lazy</span>
+<span class="hljs-meta">@greedy</span>
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Port2Node</span>
+  <span class="hljs-keyword">transform</span> p : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Port</span>
+  <span class="hljs-keyword">to</span> n : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Node</span> {
+  n.name = p.eContainer().name + <span class="hljs-string">&quot;.&quot;</span> + p.name;
+}
+</code></pre>
+<div class="example-file">graph.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;graph&quot;</span>, prefix=<span class="hljs-string">&quot;graph&quot;</span>)
+<span class="hljs-keyword">package</span> graph;
+<span class="hljs-keyword">class</span> <span class="hljs-type">Graph</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Node</span><span class="hljs-number">[*]</span> nodes;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Edge</span><span class="hljs-number">[*]</span> edges;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">Node</span> { <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name; }
+<span class="hljs-keyword">class</span> <span class="hljs-type">Edge</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> label;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> target;
+}
+</code></pre>
+<details class="example-files"><summary>More files: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">Output captured from Epsilon 2.8.0 when this page was built. The Playground may word messages differently and does not show warnings about the model.</div>
+<div class="output"><div class="output-label">Output</div><pre><code>Graph name=&quot;Alarm&quot;
+  Node name=&quot;OrGate.door&quot;
+  Node name=&quot;OrGate.window&quot;
+  Node name=&quot;OrGate.open&quot;
+  Node name=&quot;AndGate.open&quot;
+  Node name=&quot;AndGate.armed&quot;
+  Node name=&quot;AndGate.sound&quot;
+  Node name=&quot;Siren.sound&quot;
+</code></pre></div>
+</div>
+<p>The result has seven nodes labelled with both the owning component and port name. Without <code>@greedy</code>, this rule would not apply to the concrete port subclasses in Epsilon 2.8.0; the requested counterparts would be missing. <code>@lazy</code> avoids creating port nodes unless a rule asks for them. Use it for results that are conditional or expensive, not to conceal rules whose products should always exist.</p>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>Primary rules and trace</h2></div>
+<p>Sometimes more than one rule transforms the same source type. In the next example, <code>Component2Node</code> makes the ordinary node and <code>Component2Audit</code> makes a second, audit node. <code>@primary</code> puts the ordinary node first when <code>equivalent()</code> chooses one counterpart.</p>
+<div class="example" id="ex-m07-primary">
+<div class="example-head"><span class="example-label">Example</span><span class="example-title">Choose the primary counterpart</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m07-primary" target="_blank" rel="noopener">Open in Playground ↗</a></div>
+<div class="example-file">transform.etl</div>
+<pre><code class="language-etl"><span class="hljs-keyword">rule</span> <span class="hljs-type">Architecture2Graph</span>
+  <span class="hljs-keyword">transform</span> a : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Architecture</span>
+  <span class="hljs-keyword">to</span> g : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Graph</span> {
+  g.name = a.name;
+  <span class="hljs-keyword">for</span> (c <span class="hljs-keyword">in</span> a.components) { g.nodes.add(c.equivalent()); }
+}
+<span class="hljs-meta">@primary</span>
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Component2Node</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Component</span>
+  <span class="hljs-keyword">to</span> n : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Node</span> { n.name = c.name; }
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Component2Audit</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Component</span>
+  <span class="hljs-keyword">to</span> n : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Node</span> { n.name = <span class="hljs-string">&quot;audit:&quot;</span> + c.name; }
+</code></pre>
+<div class="example-file">graph.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;graph&quot;</span>, prefix=<span class="hljs-string">&quot;graph&quot;</span>)
+<span class="hljs-keyword">package</span> graph;
+<span class="hljs-keyword">class</span> <span class="hljs-type">Graph</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Node</span><span class="hljs-number">[*]</span> nodes;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Edge</span><span class="hljs-number">[*]</span> edges;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">Node</span> { <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name; }
+<span class="hljs-keyword">class</span> <span class="hljs-type">Edge</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> label;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> target;
+}
+</code></pre>
+<details class="example-files"><summary>More files: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">Output captured from Epsilon 2.8.0 when this page was built. The Playground may word messages differently and does not show warnings about the model.</div>
+<div class="output"><div class="output-label">Output</div><pre><code>Graph name=&quot;Alarm&quot;
+  Node name=&quot;OrGate&quot;
+  Node name=&quot;AndGate&quot;
+  Node name=&quot;Siren&quot;
+Node name=&quot;audit:OrGate&quot;
+Node name=&quot;audit:AndGate&quot;
+Node name=&quot;audit:Siren&quot;
+</code></pre></div>
+</div>
+<p>The graph contains the three ordinary nodes. The audit nodes are also produced by their non-lazy rule; the local target printer shows them as separate roots because no graph contains them. <strong>Primary does not suppress other rules.</strong> It controls which counterpart comes first for a single-element <code>equivalent()</code> lookup. If a target model should contain only graph-owned nodes, remove the audit rule or give its results a deliberate home. The <a href="https://eclipse.dev/epsilon/doc/etl/" target="_blank" rel="noopener">ETL reference</a> describes rule scheduling, <code>equivalent()</code> and <code>equivalents()</code>.</p>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">6</span><h2>Check the target model</h2></div>
+<p>A transformation can run successfully yet lose information you needed. The basic graph drops port names and signal types. The guarded graph drops an incompatible connection. The primary-rule graph has extra uncontained audit nodes. Read the target metamodel and the printed target tree together to see exactly what exists after transformation.</p>
+<p>For a real mapping, write down the intended invariants: the number of nodes expected, which connectors become edges, whether names remain unique, and whether every edge endpoint belongs to the target graph. Validate the source before transforming when the mapping assumes well-formed wiring, then inspect or validate the target too. Module 10 applies this pattern to a second domain.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">7</span><h2>Exercises</h2></div>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">5 min</span></div>
+<p><strong>Map the types.</strong> List the source type that becomes each of <code>Graph</code>, <code>Node</code> and <code>Edge</code>. Which source information does the basic target omit?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p><code>Architecture</code> becomes <code>Graph</code>, <code>Component</code> becomes <code>Node</code>, and <code>Connector</code> becomes <code>Edge</code>. The basic target omits ports, their names and signal types; it keeps only component names and component-level connections.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">5 min</span></div>
+<p><strong>Read <code>::=</code>.</strong> Why is <code>g.nodes ::= a.components</code> meaningful while assigning <code>a.components</code> directly to target <code>Node</code> containment would be wrong?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The right-hand side contains source <code>Component</code> elements. ETL’s <code>::=</code> resolves their transformed <code>Node</code> counterparts and assigns those to <code>g.nodes</code>. Direct assignment would mix elements from incompatible metamodels.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">5 min</span></div>
+<p><strong>Interpret primary.</strong> In the primary example, why are audit nodes printed even though the graph’s <code>nodes</code> contain only ordinary nodes?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p><code>Component2Audit</code> is non-lazy, so it still runs for every component. <code>@primary</code> makes ordinary nodes the first counterpart selected by <code>equivalent()</code>; it does not disable the audit rule. The audit nodes remain separate target roots because nothing contains them.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">10 min</span></div>
+<p><strong>Keep an edge label.</strong> Extend the target <code>Edge</code> with a <code>label</code> attribute and set it to <code>&lt;source port&gt; to &lt;target port&gt;</code> in <code>Connector2Edge</code>. Check that two labelled edges are present.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The target metamodel already has the label feature in this module’s examples. The rule assigns it while retaining both endpoint mappings:</p>
+<div class="example" id="ex-m07-e4-solution">
+<div class="example-head"><span class="example-label">Solution</span><span class="example-title">Give graph edges labels</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m07-e4-solution" target="_blank" rel="noopener">Open in Playground ↗</a></div>
+<div class="example-file">transform.etl</div>
+<pre><code class="language-etl"><span class="hljs-keyword">rule</span> <span class="hljs-type">Architecture2Graph</span>
+  <span class="hljs-keyword">transform</span> a : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Architecture</span>
+  <span class="hljs-keyword">to</span> g : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Graph</span> {
+  g.name = a.name;
+  g.nodes <span class="hljs-operator">::=</span> a.components;
+  g.edges <span class="hljs-operator">::=</span> a.connectors;
+}
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Component2Node</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Component</span>
+  <span class="hljs-keyword">to</span> n : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Node</span> {
+  n.name = c.name;
+}
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Connector2Edge</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Connector</span>
+  <span class="hljs-keyword">to</span> e : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Edge</span> {
+  e.label = c.source.name + <span class="hljs-string">&quot; to &quot;</span> + c.target.name;
+  e.source <span class="hljs-operator">::=</span> c.source.eContainer();
+  e.target <span class="hljs-operator">::=</span> c.target.eContainer();
+}
+</code></pre>
+<div class="example-file">graph.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;graph&quot;</span>, prefix=<span class="hljs-string">&quot;graph&quot;</span>)
+<span class="hljs-keyword">package</span> graph;
+<span class="hljs-keyword">class</span> <span class="hljs-type">Graph</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Node</span><span class="hljs-number">[*]</span> nodes;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Edge</span><span class="hljs-number">[*]</span> edges;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">Node</span> { <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name; }
+<span class="hljs-keyword">class</span> <span class="hljs-type">Edge</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> label;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> target;
+}
+</code></pre>
+<details class="example-files"><summary>More files: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">Output captured from Epsilon 2.8.0 when this page was built. The Playground may word messages differently and does not show warnings about the model.</div>
+<div class="output"><div class="output-label">Output</div><pre><code>Graph name=&quot;Alarm&quot;
+  Node name=&quot;OrGate&quot;
+  Node name=&quot;AndGate&quot;
+  Node name=&quot;Siren&quot;
+  Edge label=&quot;open to open&quot; source-&gt;OrGate target-&gt;AndGate
+  Edge label=&quot;sound to sound&quot; source-&gt;AndGate target-&gt;Siren
+</code></pre></div>
+</div>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">10 min</span></div>
+<p><strong>Test a guarded model.</strong> Run the guarded transformation on the correctly typed alarm. How many edges should the result contain, and why?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Both connectors pass the type guard, so both become edges:</p>
+<div class="example" id="ex-m07-e5-solution">
+<div class="example-head"><span class="example-label">Solution</span><span class="example-title">Keep only valid connections</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m07-e5-solution" target="_blank" rel="noopener">Open in Playground ↗</a></div>
+<div class="example-file">transform.etl</div>
+<pre><code class="language-etl"><span class="hljs-keyword">rule</span> <span class="hljs-type">Architecture2Graph</span>
+  <span class="hljs-keyword">transform</span> a : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Architecture</span>
+  <span class="hljs-keyword">to</span> g : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Graph</span> {
+  g.name = a.name;
+  g.nodes <span class="hljs-operator">::=</span> a.components;
+  g.edges <span class="hljs-operator">::=</span> a.connectors;
+}
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Component2Node</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Component</span>
+  <span class="hljs-keyword">to</span> n : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Node</span> {
+  n.name = c.name;
+}
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Connector2Edge</span>
+  <span class="hljs-keyword">transform</span> c : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Connector</span>
+  <span class="hljs-keyword">to</span> e : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Edge</span> {
+  <span class="hljs-keyword">guard</span>: c.source.type = c.target.type
+  e.source <span class="hljs-operator">::=</span> c.source.eContainer();
+  e.target <span class="hljs-operator">::=</span> c.target.eContainer();
+}
+</code></pre>
+<div class="example-file">graph.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;graph&quot;</span>, prefix=<span class="hljs-string">&quot;graph&quot;</span>)
+<span class="hljs-keyword">package</span> graph;
+<span class="hljs-keyword">class</span> <span class="hljs-type">Graph</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Node</span><span class="hljs-number">[*]</span> nodes;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Edge</span><span class="hljs-number">[*]</span> edges;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">Node</span> { <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name; }
+<span class="hljs-keyword">class</span> <span class="hljs-type">Edge</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> label;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> target;
+}
+</code></pre>
+<details class="example-files"><summary>More files: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">Output captured from Epsilon 2.8.0 when this page was built. The Playground may word messages differently and does not show warnings about the model.</div>
+<div class="output"><div class="output-label">Output</div><pre><code>Graph name=&quot;Alarm&quot;
+  Node name=&quot;OrGate&quot;
+  Node name=&quot;AndGate&quot;
+  Node name=&quot;Siren&quot;
+  Edge source-&gt;OrGate target-&gt;AndGate
+  Edge source-&gt;AndGate target-&gt;Siren
+</code></pre></div>
+</div>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">coding</span><span class="exercise-time">10 min</span></div>
+<p><strong>Request only output ports.</strong> Adapt the lazy example so the graph receives nodes only for <code>OutPort</code> instances. Use their full <code>Component.Port</code> labels. Do you still need <code>@greedy</code>?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The rule now matches the exact concrete <code>OutPort</code> type, so <code>@greedy</code> is unnecessary. The graph contains the two output ports:</p>
+<div class="example" id="ex-m07-e6-solution">
+<div class="example-head"><span class="example-label">Solution</span><span class="example-title">Lazy output-port nodes</span><a class="playground-btn" href="https://eclipse.dev/epsilon/playground/?examples=https%3A%2F%2Fwrwei.github.io%2Ftutorials%2Fmde%2Fplayground%2Fexamples.json&amp;m07-e6-solution" target="_blank" rel="noopener">Open in Playground ↗</a></div>
+<div class="example-file">transform.etl</div>
+<pre><code class="language-etl"><span class="hljs-keyword">rule</span> <span class="hljs-type">Architecture2Graph</span>
+  <span class="hljs-keyword">transform</span> a : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">Architecture</span>
+  <span class="hljs-keyword">to</span> g : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Graph</span> {
+  g.name = a.name;
+  <span class="hljs-keyword">for</span> (p <span class="hljs-keyword">in</span> <span class="hljs-type">OutPort</span>.all) { g.nodes.add(p.equivalent(<span class="hljs-string">&quot;Port2Node&quot;</span>)); }
+}
+<span class="hljs-meta">@lazy</span>
+<span class="hljs-keyword">rule</span> <span class="hljs-type">Port2Node</span>
+  <span class="hljs-keyword">transform</span> p : <span class="hljs-type">Source</span><span class="hljs-operator">!</span><span class="hljs-type">OutPort</span>
+  <span class="hljs-keyword">to</span> n : <span class="hljs-type">Target</span><span class="hljs-operator">!</span><span class="hljs-type">Node</span> {
+  n.name = p.eContainer().name + <span class="hljs-string">&quot;.&quot;</span> + p.name;
+}
+</code></pre>
+<div class="example-file">graph.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;graph&quot;</span>, prefix=<span class="hljs-string">&quot;graph&quot;</span>)
+<span class="hljs-keyword">package</span> graph;
+<span class="hljs-keyword">class</span> <span class="hljs-type">Graph</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Node</span><span class="hljs-number">[*]</span> nodes;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Edge</span><span class="hljs-number">[*]</span> edges;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">Node</span> { <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> name; }
+<span class="hljs-keyword">class</span> <span class="hljs-type">Edge</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span> label;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Node</span> target;
+}
+</code></pre>
+<details class="example-files"><summary>More files: alarm.flexmi, components.emf</summary>
+<div class="example-file">alarm.flexmi</div>
+<pre><code class="language-flexmi"><span class="hljs-meta">&lt;?nsuri components?&gt;</span>
+&lt;<span class="hljs-name">architecture</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Alarm&quot;</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;OrGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;door&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;window&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;AndGate&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;open&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;armed&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+    &lt;<span class="hljs-name">outPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">component</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;Siren&quot;</span>&gt;
+    &lt;<span class="hljs-name">inPort</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;sound&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;DIGITAL&quot;</span>/&gt;
+  &lt;/<span class="hljs-name">component</span>&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.OrGate.open&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.AndGate.open&quot;</span>/&gt;
+  &lt;<span class="hljs-name">connector</span> <span class="hljs-attr">source</span>=<span class="hljs-string">&quot;Alarm.AndGate.sound&quot;</span> <span class="hljs-attr">target</span>=<span class="hljs-string">&quot;Alarm.Siren.sound&quot;</span>/&gt;
+&lt;/<span class="hljs-name">architecture</span>&gt;
+</code></pre>
+<div class="example-file">components.emf</div>
+<pre><code class="language-emfatic"><span class="hljs-meta">@namespace</span>(uri=<span class="hljs-string">&quot;components&quot;</span>, prefix=<span class="hljs-string">&quot;components&quot;</span>)
+<span class="hljs-keyword">package</span> components;
+
+<span class="hljs-keyword">enum</span> <span class="hljs-type">PortType</span> {
+  <span class="hljs-type">DIGITAL</span>;
+  <span class="hljs-type">ANALOG</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Architecture</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Component</span><span class="hljs-number">[*]</span><span class="hljs-operator">#</span>architecture components;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Connector</span><span class="hljs-number">[*]</span> connectors;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Component</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">Architecture</span><span class="hljs-operator">#</span>components architecture;
+  <span class="hljs-keyword">val</span> <span class="hljs-type">Port</span><span class="hljs-number">[*]</span> ports;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-type">Port</span> {
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">String</span><span class="hljs-number">[1]</span> name;
+  <span class="hljs-keyword">attr</span> <span class="hljs-type">PortType</span> type;
+}
+<span class="hljs-keyword">class</span> <span class="hljs-type">InPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+<span class="hljs-keyword">class</span> <span class="hljs-type">OutPort</span> <span class="hljs-keyword">extends</span> <span class="hljs-type">Port</span> {}
+
+<span class="hljs-keyword">class</span> <span class="hljs-type">Connector</span> {
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">OutPort</span> source;
+  <span class="hljs-keyword">ref</span> <span class="hljs-type">InPort</span> target;
+}
+</code></pre>
+</details>
+<div class="example-caption">Output captured from Epsilon 2.8.0 when this page was built. The Playground may word messages differently and does not show warnings about the model.</div>
+<div class="output"><div class="output-label">Output</div><pre><code>Graph name=&quot;Alarm&quot;
+  Node name=&quot;OrGate.open&quot;
+  Node name=&quot;AndGate.sound&quot;
+</code></pre></div>
+</div>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">8</span><h2>Self-check quiz</h2></div>
+<div class="quiz" data-n="7">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>What does an ETL transformation produce?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Only formatted text</button></li><li><button type="button" class="quiz-opt" data-i="1">A target model conforming to another metamodel</button></li><li><button type="button" class="quiz-opt" data-i="2">A new Git branch</button></li><li><button type="button" class="quiz-opt" data-i="3">Only warnings</button></li></ol><div class="quiz-expl" hidden>ETL maps elements and relationships into a target model.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>What does <code>Source!Component</code> identify?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The <code>Component</code> type in the source model</button></li><li><button type="button" class="quiz-opt" data-i="1">A Java class generated by EGL</button></li><li><button type="button" class="quiz-opt" data-i="2">A target graph node</button></li><li><button type="button" class="quiz-opt" data-i="3">A Flexmi filename</button></li></ol><div class="quiz-expl" hidden>Model-qualified types distinguish source and target languages.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">3</span><div>What does ETL’s <code>::=</code> do here?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Assign the source element directly to the target.</button></li><li><button type="button" class="quiz-opt" data-i="1">Assign transformed counterpart elements.</button></li><li><button type="button" class="quiz-opt" data-i="2">Delete the source model.</button></li><li><button type="button" class="quiz-opt" data-i="3">Sort target nodes.</button></li></ol><div class="quiz-expl" hidden>Special assignment resolves equivalents through the transformation trace.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">4</span><div>What does a guard on <code>Connector2Edge</code> control?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Whether the source metamodel parses</button></li><li><button type="button" class="quiz-opt" data-i="1">Which connectors this rule transforms</button></li><li><button type="button" class="quiz-opt" data-i="2">The names of all nodes</button></li><li><button type="button" class="quiz-opt" data-i="3">Whether every rule is lazy</button></li></ol><div class="quiz-expl" hidden>A false guard skips the rule for that source element.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>Why does the lazy <code>Port2Node</code> rule use <code>@greedy</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">To create extra copies of each node</button></li><li><button type="button" class="quiz-opt" data-i="1">To write files faster</button></li><li><button type="button" class="quiz-opt" data-i="2">To match <code>InPort</code> and <code>OutPort</code> instances through their abstract <code>Port</code> supertype</button></li><li><button type="button" class="quiz-opt" data-i="3">To suppress the architecture rule</button></li></ol><div class="quiz-expl" hidden>Without it, exact-type matching would miss the concrete subclasses.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">6</span><div>What does <code>@primary</code> guarantee in the example?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">No other rule transforms a component.</button></li><li><button type="button" class="quiz-opt" data-i="1">The ordinary node is first when a single equivalent is selected.</button></li><li><button type="button" class="quiz-opt" data-i="2">Audit nodes are deleted.</button></li><li><button type="button" class="quiz-opt" data-i="3">Every edge is compatible.</button></li></ol><div class="quiz-expl" hidden>Primary affects counterpart ordering, not whether other rules execute.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">7</span><div>What should be checked after a transformation?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Only that the program had no parse error.</button></li><li><button type="button" class="quiz-opt" data-i="1">That the target has the intended nodes, edges and preserved information.</button></li><li><button type="button" class="quiz-opt" data-i="2">Only the source filename.</button></li><li><button type="button" class="quiz-opt" data-i="3">Whether the HTML renderer ran.</button></li></ol><div class="quiz-expl" hidden>A successful run can still omit or mis-map data.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">9</span><h2>Further reading</h2></div>
+<ul>
+<li>The <a href="https://eclipse.dev/epsilon/doc/etl/" target="_blank" rel="noopener">ETL reference</a> documents rules, guards, traces, lazy and primary behaviour.</li>
+<li>The <a href="https://eclipse.dev/epsilon/doc/eol/" target="_blank" rel="noopener">EOL reference</a> explains expressions used inside rule bodies.</li>
+</ul>
+</div><nav class="module-nav" aria-label="All modules"><a href="module_06_EN.html">← Module 06</a><a href="module_08_EN.html">Module 08 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script></body></html>

@@ -1,0 +1,577 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Graphs, trees, and state transitions — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Turn relationships into graph models, prove tree and traversal properties, order dependencies, and explore a finite protocol with explicit safety assumptions."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="7"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 07</button><div class="dropdown-menu" id="module-menu"><a href="module_07_EN.html" class="active" aria-current="page">Graphs, trees, and state transitions</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="module_07_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>A graph makes the meaning of an edge explicit</span></a><a href="#s1"><span class="num">2</span><span>Vertices edges walks and representations</span></a><a href="#s2"><span class="num">3</span><span>Degree sums connectivity and cycles</span></a><a href="#s3"><span class="num">4</span><span>Trees rooted structure and the edge theorem</span></a><a href="#s4"><span class="num">5</span><span>Traversals reachability and shortest-path certificates</span></a><a href="#s5"><span class="num">6</span><span>DAGs dependency orders and induction</span></a><a href="#s6"><span class="num">7</span><span>Finite state machines safety and exploration limits</span></a><a href="#misconceptions"><span class="num">8</span><span>Common misconceptions and failure cases</span></a><a href="#labs"><span class="num">9</span><span>Three CPU labs</span></a><a href="#exercises"><span class="num">10</span><span>Exercises with full solutions</span></a><a href="#quiz"><span class="num">11</span><span>Self-check quiz</span></a><a href="#reading"><span class="num">12</span><span>Reading with a purpose</span></a><a href="#summary"><span class="num">13</span><span>Retrieval exit task and next step</span></a><a href="#terms"><span class="num">14</span><span>Notation and bilingual terminology</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">Graphs, trees, and state transitions</h1><p class="module-lead">Turn relationships into graph models, prove tree and traversal properties, order dependencies, and explore a finite protocol with explicit safety assumptions.</p><div class="hero-chips"><span class="chip chip-time">8 hours</span><span class="chip">4 sessions</span><span class="chip">3 labs</span><span class="chip">12 exercises + 2 extensions</span><span class="chip">10 quiz questions</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Choose directed or undirected graph conventions and compare adjacency representations.</li><li>Prove the degree-sum identity and the finite-tree edge theorem.</li><li>Explain BFS reachability and its unweighted shortest-path certificate.</li><li>Construct a topological order or a directed cycle witness.</li><li>State a finite protocol invariant and explain the limits of exhaustive checking.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Modules 03, 04, and 06: relations, induction and invariants, and operation-count models. Python lists, dictionaries, loops, and functions are used in the labs.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">A graph makes the meaning of an edge explicit</a><a href="#s1">Vertices edges walks and representations</a><a href="#s2">Degree sums connectivity and cycles</a><a href="#s3">Trees rooted structure and the edge theorem</a><a href="#s4">Traversals reachability and shortest-path certificates</a><a href="#s5">DAGs dependency orders and induction</a><a href="#s6">Finite state machines safety and exploration limits</a><a href="#misconceptions">Common misconceptions and failure cases</a><a href="#labs">Three CPU labs</a><a href="#exercises">Exercises with full solutions</a><a href="#quiz">Self-check quiz</a><a href="#reading">Reading with a purpose</a><a href="#summary">Retrieval exit task and next step</a><a href="#terms">Notation and bilingual terminology</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">8 hours</span></div><p class="plan-lead">Times include practice and are estimates. Split a session when useful. Optional extension exercises add 35 minutes. Progress is stored in this browser and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">120 min</span></div><div class="session-title">Representations and graph identities</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2 and translate the same graph between representations.</a></span><span class="act-min">55</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Build lists and a matrix; check degrees and the isolated vertex.</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Complete Exercises 1–4.</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m07:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">120 min</span></div><div class="session-title">Trees and traversal correctness</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Sections 3–4; prove the leaf and BFS claims.</a></span><span class="act-min">55</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e5">Complete proof Exercises 5–7.</a></span><span class="act-min">42</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read the selected graph and traversal notes.</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Explain why BFS counts edges and DFS need not minimise them.</a></span><span class="act-min">8</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m07:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">120 min</span></div><div class="session-title">Dependency orders and trace certificates</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s5">Read Section 5; construct an order and a cycle witness.</a></span><span class="act-min">40</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Check traversals, shortest-path labels, and Kahn's algorithm.</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Complete application Exercises 8–10.</a></span><span class="act-min">30</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Explain the edge-by-edge topological-order test.</a></span><span class="act-min">5</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m07:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">120 min</span></div><div class="session-title">Finite-state safety and model limits</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s6">Read Section 6 and step through the BFS explorer.</a></span><span class="act-min">35</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Find the faulty timeout witness and verify the bounded repair.</a></span><span class="act-min">45</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e11">Diagnose Exercises 11–12.</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Complete the choices and written traversal argument.</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read the state-machine selection and complete the exit check.</a></span><span class="act-min">5</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m07:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>A graph makes the meaning of an edge explicit</h2></div>
+<p>A file dependency, a friendship, a road, and a program transition can all be drawn as dots joined by lines. Their lines mean different things. Dependencies have direction; friendship might be symmetric; a road may have travel cost; a transition depends on the whole program state. An attractive drawing alone does not establish the mathematical model needed for a correct conclusion.</p>
+<p>This module starts with finite graphs and declared conventions. You will count incidences, prove a tree theorem, explain traversal certificates, order prerequisites, and check a bounded retry protocol. Each result states what it guarantees and what information it needs. The same ideas later describe computation graphs, graph data, finite automata, and dependency systems.</p>
+<p><strong>Retrieval check:</strong> describe a relation as ordered pairs, separate an invariant from termination, and explain a linear operation count. Review <a href="module_03_EN.html#s2">Module 03</a>, <a href="module_04_EN.html#s6">Module 04</a>, and <a href="module_06_EN.html#s4">Module 06</a>. Lists and dictionaries in the labs represent finite objects; the mathematical claims do not require a particular Python container.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>Vertices edges walks and representations</h2></div>
+<p>A <strong>finite simple undirected graph</strong> consists of a finite vertex set V and an edge set E whose elements are two-element subsets of V. The edge {u,v} has two distinct endpoints and no orientation. Simple means there are no self-loops and no parallel copies of an edge. Edges AB and BA denote the same unordered pair under this convention, so storing both as separate edges would double-count.</p>
+<p>A <strong>directed graph</strong> uses ordered pairs (u,v), often written u→v. The edge u→v does not imply v→u. We exclude loops and repeated pairs in our examples, although other graph conventions allow them. A loop, a repeated edge, and a weighted edge can each be useful in a different model. State those choices before applying a theorem whose proof counts endpoints or distinct neighbours.</p>
+<p>Vertices are labels, not necessarily numbers or positions. A graph drawing assigns coordinates only to make the structure visible; crossing lines do not create a vertex unless one is declared. Moving a dot preserves the graph when the vertex and edge sets are unchanged. By contrast, deleting an isolated vertex changes V even though none of the visible edges change. This distinction matters when counting states or reporting unreachable objects.</p>
+<p>An undirected vertex’s <strong>degree</strong> is its number of incident edges. In a simple graph this equals the number of neighbours. In a directed graph, indegree counts incoming edges and outdegree counts outgoing edges. A vertex can have high outdegree and zero indegree; treating those numbers as interchangeable could reverse a dependency interpretation. A directed loop, if allowed, contributes one to each directed degree.</p>
+<p>A <strong>walk</strong> is a sequence of vertices with an appropriate edge between consecutive vertices. Its length is the number of edges traversed, one less than its vertex count. A <strong>path</strong> here is a walk with no repeated vertex. A <strong>cycle</strong> closes a walk without repeating other vertices; a simple undirected cycle has at least three edges under our conventions. A zero-length path consists of one vertex and establishes its reachability from itself.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Declare a graph before counting it</div>
+<p>Use V={A,B,C,D,E,F} and E={AB,AC,BD,CD,DE}, with all edges undirected. The walk A,B,D,C,A has length four and is a cycle. A,B,D,E is a path of length three. F has degree zero and belongs to V despite being absent from every edge. Degrees in vertex order are 2,2,2,3,1,0.</p>
+</div>
+<p>An <strong>adjacency list</strong> stores each vertex’s neighbours. Include an empty list for F. For an undirected graph, each edge appears in two lists; for a directed graph, a list normally records outgoing neighbours only. The distinction affects both interpretation and storage counts. Sorted neighbour lists make our traces reproducible, but sorting is an implementation choice and not part of the graph’s mathematical definition.</p>
+<p>An <strong>adjacency matrix</strong> uses a declared vertex order and entries Aᵢⱼ=1 when the corresponding edge exists, otherwise zero. For a simple undirected graph it is symmetric and its diagonal is zero. Row sums are degrees. With directed outgoing-edge conventions, row sums are outdegrees and column sums are indegrees. A matrix without its row and column labels leaves the represented relation ambiguous.</p>
+<figure class="fig" id="fig-07-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 365" role="img" aria-label="Six lists and a symmetric six-by-six matrix represent edges AB, AC, BD, CD, DE. F has a zero row and column."><title>Graph representations preserve isolated vertices</title><desc>Six lists and a symmetric six-by-six matrix represent edges AB, AC, BD, CD, DE. F has a zero row and column.</desc><defs><marker id="fig-07-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="365" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="170" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">Adjacency lists</text><text x="545" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">Matrix of the same graph</text><text x="35" y="85" text-anchor="start" font-size="20" fill="#1a2e4a">A: [B, C]</text><text x="390" y="85" text-anchor="start" font-size="18" fill="#1a2e4a">A</text><text x="425" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">A</text><text x="425" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="477" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="529" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="581" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="633" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="685" y="85" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="35" y="123" text-anchor="start" font-size="20" fill="#1a2e4a">B: [A, D]</text><text x="390" y="123" text-anchor="start" font-size="18" fill="#1a2e4a">B</text><text x="477" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">B</text><text x="425" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="477" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="529" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="581" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="633" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="685" y="123" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="35" y="161" text-anchor="start" font-size="20" fill="#1a2e4a">C: [A, D]</text><text x="390" y="161" text-anchor="start" font-size="18" fill="#1a2e4a">C</text><text x="529" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">C</text><text x="425" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="477" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="529" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="581" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="633" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="685" y="161" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="35" y="199" text-anchor="start" font-size="20" fill="#1a2e4a">D: [B, C, E]</text><text x="390" y="199" text-anchor="start" font-size="18" fill="#1a2e4a">D</text><text x="581" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">D</text><text x="425" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="477" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="529" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="581" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="633" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="685" y="199" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="35" y="237" text-anchor="start" font-size="20" fill="#1a2e4a">E: [D]</text><text x="390" y="237" text-anchor="start" font-size="18" fill="#1a2e4a">E</text><text x="633" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">E</text><text x="425" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="477" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="529" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="581" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">1</text><text x="633" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="685" y="237" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="35" y="275" text-anchor="start" font-size="20" fill="#1a2e4a">F: []</text><text x="390" y="275" text-anchor="start" font-size="18" fill="#1a2e4a">F</text><text x="685" y="55" text-anchor="middle" font-size="18" fill="#1a2e4a">F</text><text x="425" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="477" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="529" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="581" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="633" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="685" y="275" text-anchor="middle" font-size="19" fill="#1a2e4a">0</text><text x="380" y="338" text-anchor="middle" font-size="17" fill="#1a2e4a">F is present and isolated; each undirected edge appears twice.</text></g></svg></div><figcaption><span class="fig-num">Figure 7.1</span> <p>One graph appears as edges, adjacency lists, and a labelled symmetric matrix. The all-zero F row preserves the isolated vertex.</p>
+</figcaption></figure>
+<p>For v vertices and e edges, lists occupy O(v+e) entries; an undirected list has 2e neighbour incidences. A dense matrix has v² entries even when almost all are zero. Scanning all neighbours takes degree-dependent work in a list and v entry checks in a matrix. A matrix gives direct indexed edge lookup; an ordinary unsorted list may require scanning neighbours. Choose the representation for the operation and sparsity, rather than declaring one universally faster.</p>
+<p>These costs assume small fixed-size labels and constant-cost indexing, with dictionary operations treated under the stated implementation model. They do not prove every hash table lookup has deterministic constant worst-case cost. Graphs with variable-size labels or enormous integer identifiers may incur extra representation work. As in Module 06, an O(v+e) conclusion belongs to a cost model, not to every possible encoding of the same abstract graph.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>For the example, how many neighbour incidences and matrix entries are stored? Does a zero row mean the vertex is missing?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>There are 2e=10 neighbour incidences and v²=36 matrix entries. The zero row represents the present isolated vertex F. An omitted row would be a different representation or a missing vertex.</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Degree sums connectivity and cycles</h2></div>
+<p>For every finite undirected graph without loops, the <strong>degree-sum identity</strong> is <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mrow><mi>v</mi><mo>∈</mo><mi>V</mi></mrow></msub><mi>deg</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>v</mi><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\sum_{v\in V}\deg(v)=2|E|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.0771em;vertical-align:-0.3271em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1786em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span><span class="mrel mtight">∈</span><span class="mord mathnormal mtight" style="margin-right:0.2222em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3271em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">de<span style="margin-right:0.0139em;">g</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2∣</span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mord">∣</span></span></span></span></span>. Count the same incidences in two ways. Grouping by vertices gives the left side; grouping by edges gives two endpoints per edge. This is a double-counting proof for all finite graphs under the convention, not an inference from a few computed degree sequences. If loops are allowed, assigning two incidences to each loop preserves the identity.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Odd-degree vertices come in an even count</div>
+<p>The example has degree sum 10=2·5. Its odd-degree vertices are D and E. In general, even-degree terms contribute an even sum; therefore the sum of odd-degree terms is even. A sum of k odd integers has the parity of k, so k must be even. Three odd-degree vertices would contradict the identity regardless of the drawing.</p>
+</div>
+<p>For a directed graph, <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>v</mi></msub><mi mathvariant="normal">outdeg</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>v</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\sum_v\operatorname{outdeg}(v)=|E|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.0017em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">outdeg</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mord">∣</span></span></span></span></span> and <span class="math-i" data-done="1"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>v</mi></msub><mi mathvariant="normal">indeg</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>v</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">∣</mi><mi>E</mi><mi mathvariant="normal">∣</mi></mrow><annotation encoding="application/x-tex">\sum_v\operatorname{indeg}(v)=|E|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.0497em;vertical-align:-0.2997em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.0017em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">indeg</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mord">∣</span></span></span></span></span>. Each directed edge has one source and one target. Adding both sums yields 2|E|, but either one separately counts only e. These identities give useful input checks; they do not by themselves prove a graph is connected or acyclic. Many nonisomorphic graphs share the same degree sequence.</p>
+<p>Two vertices of an undirected graph are <strong>connected</strong> when there is a path between them. Reachability by walks gives the same condition: whenever a finite walk repeats a vertex, remove the closed intervening portion until no repetition remains. Connection is reflexive via a zero-length path, symmetric via reversing a path, and transitive via concatenating walks and removing repetition. Thus it is an equivalence relation, connecting this construction to Module 03.</p>
+<p>Its equivalence classes are <strong>connected components</strong>. In our example one component is {A,B,C,D,E} and another is {F}. A graph is connected if all vertices lie in a single component; for trees below we additionally require a nonempty graph. The empty graph requires an explicitly chosen convention and is outside our tree theorem. A graph can contain a cycle and still be disconnected elsewhere, as this example does.</p>
+<p>Direction changes reachability. From u there may be a directed path to v without a path back. <strong>Strong connection</strong> requires both directions and yields strongly connected components. <strong>Weak connection</strong> ignores orientation before finding components. A one-way chain A→B→C is weakly connected but its three vertices are in separate strongly connected components. The unqualified word connected is inadequate when an application needs directed reachability.</p>
+<p>An edge whose removal increases the component count is a <strong>bridge</strong>. DE is a bridge in the example: deleting it separates E. AB is not a bridge because A can still reach B through C,D. An undirected edge on a cycle is not a bridge: the rest of that cycle provides a replacement route. Conversely, if an edge is not a bridge, an alternate endpoint path together with that edge forms a cycle.</p>
+<p>Cycle detection must respect the graph type. In a directed traversal, an edge to an active ancestor witnesses a directed cycle. In an undirected traversal, the reverse appearance of the parent edge is expected and is not a two-edge cycle in a simple graph. A routine that flags every already-seen neighbour as a cycle will misclassify even a single undirected edge unless it handles the parent and discovery status correctly.</p>
+<p>Degree identities are necessary checks, not complete recognition rules. A list of proposed degrees may have an even sum and still be impossible in a simple graph; for instance a three-vertex graph cannot give one vertex degree three. Similarly, e=v−1 alone does not imply a tree without connectedness or acyclicity. A triangle plus an isolated vertex has four vertices and three edges but is disconnected and cyclic.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does degree sum 2e certify connectedness? Give the components and a bridge in our graph.</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>No: the identity holds for disconnected graphs too. The components are {A,B,C,D,E} and {F}; DE is a bridge. Its removal isolates E in addition to the already isolated F.</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>Trees rooted structure and the edge theorem</h2></div>
+<p>A <strong>tree</strong> is a finite nonempty connected undirected graph with no cycle. A <strong>forest</strong> is an undirected graph with no cycle and may have several components, including isolated vertices. Every connected component of a finite forest is a tree. A one-vertex graph with no edges is a tree: it is connected by the zero-length path and has no cycle. Its edge count should be included in any proof claiming all positive sizes.</p>
+<p>In a tree there is exactly one path between any two vertices. Connectedness supplies existence. If two distinct paths joined the same endpoints, follow them from the first point where they separate to a point where they meet again; those two different segments form a cycle. Conversely, a connected graph with unique endpoint paths cannot have a cycle, because the two arcs of that cycle would supply two paths between selected cycle vertices.</p>
+<p>A <strong>leaf</strong> in an unrooted tree of at least two vertices has degree one. To prove such a tree has a leaf, take a path of maximum length, which exists because the graph is finite. An endpoint cannot have a neighbour outside the path, as that would extend it. It cannot have another neighbour farther along the path, as that would make a cycle. Therefore its only neighbour is the next vertex of the path. Both endpoints are leaves.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A tree with n vertices has n−1 edges</div>
+<p>Induct on positive n. At n=1 the tree has zero edges. For n&gt;1 choose a leaf and remove it with its unique incident edge. The remaining graph is acyclic, and paths between remaining vertices never need the removed leaf as an internal vertex, so it stays connected. It is a tree on n−1 vertices, with n−2 edges by induction. Restoring the one edge gives n−1. The leaf lemma and the preservation of connectedness are essential parts of the proof.</p>
+</div>
+<figure class="fig" id="fig-07-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" role="img" aria-label="A tree with edges AB, AC, CD, CE loses leaf E and edge CE, leaving four vertices and three edges, still connected and acyclic."><title>Induction by leaf deletion</title><desc>A tree with edges AB, AC, CD, CE loses leaf E and edge CE, leaving four vertices and three edges, still connected and acyclic.</desc><defs><marker id="fig-07-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="340" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="190" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">Five vertices, four edges</text><text x="570" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">Remove E: four vertices, three edges</text><path d="M75,110L175,70" stroke="#2563eb" stroke-width="3"/><path d="M75,110L175,180" stroke="#2563eb" stroke-width="3"/><path d="M175,180L275,145" stroke="#2563eb" stroke-width="3"/><path d="M175,180L275,240" stroke="#2563eb" stroke-width="3"/><circle cx="75" cy="110" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="75" y="116" text-anchor="middle" font-size="18" fill="#1a2e4a">A</text><circle cx="175" cy="70" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="175" y="76" text-anchor="middle" font-size="18" fill="#1a2e4a">B</text><circle cx="175" cy="180" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="175" y="186" text-anchor="middle" font-size="18" fill="#1a2e4a">C</text><circle cx="275" cy="145" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="275" y="151" text-anchor="middle" font-size="18" fill="#1a2e4a">D</text><circle cx="275" cy="240" r="17" fill="#fff7ed" stroke="#2563eb"/><text x="275" y="246" text-anchor="middle" font-size="18" fill="#1a2e4a">E</text><path d="M455,110L555,70" stroke="#2563eb" stroke-width="3"/><path d="M455,110L555,180" stroke="#2563eb" stroke-width="3"/><path d="M555,180L655,145" stroke="#2563eb" stroke-width="3"/><circle cx="455" cy="110" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="455" y="116" text-anchor="middle" font-size="18" fill="#1a2e4a">A</text><circle cx="555" cy="70" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="555" y="76" text-anchor="middle" font-size="18" fill="#1a2e4a">B</text><circle cx="555" cy="180" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="555" y="186" text-anchor="middle" font-size="18" fill="#1a2e4a">C</text><circle cx="655" cy="145" r="17" fill="#f0f9ff" stroke="#2563eb"/><text x="655" y="151" text-anchor="middle" font-size="18" fill="#1a2e4a">D</text><text x="380" y="309" text-anchor="middle" font-size="17" fill="#1a2e4a">Remaining paths survive; base case: one vertex, zero edges.</text></g></svg></div><figcaption><span class="fig-num">Figure 7.2</span> <p>Removing a leaf deletes exactly one vertex and one edge while preserving all paths between the remaining vertices. The one-vertex base case closes the induction.</p>
+</figcaption></figure>
+<p>For a forest with v vertices and c components, summing the tree theorem component by component gives e=v−c. Isolated vertices contribute one vertex and zero edges, so the formula handles them correctly. The empty forest has v=e=c=0 and also satisfies the identity, even though it is not a tree under our definition. This extension is a sum over components rather than an unproved substitution into the connected theorem.</p>
+<p>A <strong>rooted tree</strong> chooses one vertex as the root. The root-to-vertex path determines each nonroot vertex’s parent; the other neighbours are its children. Depth is the number of edges from the root. Height here is the maximum depth, so a single-node rooted tree has height zero. Other books sometimes count vertices instead of edges; comparing formulas requires checking that convention. Root choice changes depths and parents while preserving the unrooted tree.</p>
+<p>A rooted leaf is a node with no children. For a tree with at least two vertices, a degree-one root has a child and is not a rooted leaf, although it is an unrooted leaf. This small distinction explains many confused endpoint counts. The single-node root has no children and is a rooted leaf despite having unrooted degree zero. Definitions should resolve these cases before using a formula such as the full-binary-tree identity from Module 04.</p>
+<p>A <strong>spanning tree</strong> uses every vertex of a connected graph and only some of its edges. A traversal’s discovery-parent edges form one: every reachable nonroot vertex gets exactly one parent leading back toward the source, so the parent structure connects the component without a cycle. If the original graph is disconnected, traversing all components yields a spanning forest. A search from A in our graph cannot produce a spanning tree containing F because there is no connecting edge.</p>
+<p>The edge theorem helps justify minimality. A tree loses connectedness when any edge is removed; its unique endpoint path used that edge. A connected graph with a cycle can lose a cycle edge without losing connectedness, so repeated deletions eventually leave a spanning tree. Finiteness ensures the deletion process ends. Therefore a connected graph needs at least v−1 edges, and a connected simple graph with exactly v−1 edges is a tree.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>How many edges does a forest with nine vertices and three components have? Why can a degree-one root fail to be a rooted leaf?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>The forest has 9−3=6 edges by summing its component trees. A degree-one root has one child, whereas a rooted leaf has none. Rooted and unrooted leaf definitions differ at that root.</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>Traversals reachability and shortest-path certificates</h2></div>
+<p><strong>Breadth-first search (BFS)</strong> maintains a first-in-first-out queue. Mark the source discovered, assign it distance zero, and enqueue it. Repeatedly remove the queue front and examine outgoing neighbours. For each undiscovered neighbour, mark it immediately, assign a parent and distance one greater than the current vertex’s, then enqueue it. Marking at discovery ensures a vertex enters the queue only once, even when several predecessors point to it.</p>
+<p>The queue processes discovered vertices in nondecreasing assigned distance. New neighbours get distance d+1 when a distance-d vertex is processed; they join behind all already waiting vertices. The queue’s frontier therefore advances one edge layer at a time. An invariant states that every discovered label is the length of a concrete parent path from the source and that every processed vertex’s outgoing edges have been examined. The parent path supplies an upper bound on the shortest distance.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Explain the BFS labels rather than only printing them</div>
+<p>Starting at A and using alphabetic neighbours, processing order is A,B,C,D,E. Distances are A:0, B:1, C:1, D:2, E:3, with parents B←A, C←A, D←B, E←D. A,B,D,E is a three-edge path. No path to E can use fewer edges: E’s only neighbour is D, which first becomes reachable in layer two. F receives no finite label because it is outside A’s component.</p>
+</div>
+<p>For a general shortest-path proof, suppose a reachable vertex had a shorter path than its BFS label. Along a shortest path choose the first vertex with a label larger than its path-prefix length. Its predecessor has the correct smaller label and is processed before larger-distance vertices. Examining their connecting edge would discover the next vertex with a label no larger than that prefix length, or it would already have such a label. Either case contradicts the choice. Thus the discovered parent path has minimum edge count.</p>
+<figure class="fig" id="fig-07-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="A has distance zero, B and C one, D two, E three, and F is unreachable. CD is a nonparent edge; the others certify parent paths."><title>BFS distance layers</title><desc>A has distance zero, B and C one, D two, E three, and F is unreachable. CD is a nonparent edge; the others certify parent paths.</desc><defs><marker id="fig-07-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">Distance layers: parent edges certify minimum edge counts</text><path d="M80,160L255,100" stroke="#2563eb" stroke-width="3"/><path d="M80,160L255,220" stroke="#2563eb" stroke-width="3"/><path d="M255,100L430,160" stroke="#2563eb" stroke-width="3"/><path d="M255,220L430,160" stroke="#94a3b8" stroke-width="3"/><path d="M430,160L605,160" stroke="#2563eb" stroke-width="3"/><circle cx="80" cy="160" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="80" y="167" text-anchor="middle" font-size="20" fill="#1a2e4a">A</text><circle cx="255" cy="100" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="255" y="107" text-anchor="middle" font-size="20" fill="#1a2e4a">B</text><circle cx="255" cy="220" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="255" y="227" text-anchor="middle" font-size="20" fill="#1a2e4a">C</text><circle cx="430" cy="160" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="430" y="167" text-anchor="middle" font-size="20" fill="#1a2e4a">D</text><circle cx="605" cy="160" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="605" y="167" text-anchor="middle" font-size="20" fill="#1a2e4a">E</text><circle cx="670" cy="290" r="22" fill="#f0f9ff" stroke="#2563eb"/><text x="670" y="297" text-anchor="middle" font-size="20" fill="#1a2e4a">F</text><text x="80" y="68" text-anchor="middle" font-size="19" fill="#1a2e4a">d=0</text><text x="255" y="68" text-anchor="middle" font-size="19" fill="#1a2e4a">d=1</text><text x="430" y="68" text-anchor="middle" font-size="19" fill="#1a2e4a">d=2</text><text x="605" y="68" text-anchor="middle" font-size="19" fill="#1a2e4a">d=3</text><text x="360" y="307" text-anchor="middle" font-size="17" fill="#1a2e4a">F is unreachable from A; its distance is not zero.</text></g></svg></div><figcaption><span class="fig-num">Figure 7.3</span> <p>BFS layers have distances zero, one, two, and three. Discovery edges certify paths; the separate isolated vertex remains unreachable.</p>
+</figcaption></figure>
+<p>A returned distance map can also be checked as a <strong>certificate</strong>. Require source label zero, a valid parent edge for each other labelled vertex with distance increasing by one, and the inequality d(v)≤d(u)+1 on every outgoing edge from a labelled u. Require all successors of labelled vertices to be labelled. Parent chains provide paths of the reported lengths, while chaining the inequalities along any source path shows the reported label cannot exceed its length. Together these conditions establish optimality without repeating BFS’s exact queue trace.</p>
+<p><strong>Depth-first search (DFS)</strong> explores an undiscovered neighbour recursively before returning to examine the next neighbour. Discovery order is preorder; completion order is postorder. On our alphabetically ordered lists the recursive preorder is A,B,D,C,E, whereas postorder is C,E,D,B,A. Both orders reach the same component as BFS, but the DFS discovery path to C is A,B,D,C even though edge AC exists. DFS parent depth therefore need not be a shortest-path distance.</p>
+<p>DFS’s conceptual recursion maintains an active path on the call stack. In a directed graph, an edge to a currently active vertex closes a directed cycle. An edge to an already completed vertex does not establish such a cycle. Distinguish undiscovered, active, and finished states when reasoning about DFS; a single visited Boolean proves reachability but does not capture every cycle-detection claim. The stack or an explicit stack representation also uses memory proportional to the maximum exploration depth.</p>
+<p>With adjacency lists, each discovered vertex is processed once and each outgoing neighbour entry is scanned once. A full traversal across every component costs O(v+e) in the declared operation model; searching from one source only scans its reachable part, plus any separately initialised bookkeeping. A matrix scan takes O(v²) for a full traversal. Python’s deque implements queue removal without shifting all remaining elements; repeatedly using list.pop(0) would add work not covered by the simple queue-operation model.</p>
+<p>BFS minimises edge count, which is also total cost when every edge has the same positive weight. For unequal weights, a one-edge route costing ten can be worse than a two-edge route costing one plus one. Running ordinary BFS unchanged does not minimise that total. A weighted shortest-path algorithm requires additional assumptions and a different invariant; do not import the unweighted proof merely because both methods use a frontier.</p>
+<div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" data-widget="traversal"></div><div class="widget-caption">
+<p>Step through BFS from A or the isolated F. Read the queue, discovered distances, parent links, and processed set. The worked trace above remains usable without scripting.</p>
+</div></div>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why mark at discovery? Can DFS depth replace BFS distance? Does F need a distance of zero?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Marking before queueing prevents duplicate enqueues from different predecessors. DFS depth is the length of its chosen parent path and can exceed the minimum. F is unreachable from A, so its distance is absent or explicitly infinite; zero is reserved for the source itself.</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>DAGs dependency orders and induction</h2></div>
+<p>A <strong>directed acyclic graph (DAG)</strong> has no directed cycle. In a dependency model u→v will mean that u must be completed before v. This orientation is a design decision: another application might store the reverse lookup of what v depends on. Declare the meaning rather than inferring it from an arrow style. A <strong>topological order</strong> lists each vertex exactly once and places every source u before its target v for every edge u→v.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">An order and a cycle are different certificates</div>
+<p>Let edges be A→C, B→C, C→D, C→E. A,B,C,D,E is a valid order; B,A,C,E,D also works because some tasks are incomparable. Adding D→A creates the cycle A→C→D→A. Any alleged order would require A before C before D before A, an impossibility. Printing vertices in alphabetic order alone is not a proof: every declared dependency must be checked.</p>
+</div>
+<p>Every finite nonempty DAG has a vertex of indegree zero. Otherwise start at any vertex and repeatedly choose an incoming predecessor. A finite graph cannot supply endlessly distinct vertices, so a repetition would produce a directed cycle. The contradiction establishes a starting vertex. Notice the role of finiteness: an infinite backward chain could lack both a zero-indegree vertex and a finite cycle, so this proof does not extend automatically to infinite graphs.</p>
+<p><strong>Kahn’s algorithm</strong> repeatedly chooses an indegree-zero remaining vertex, outputs it, and removes its outgoing edges by decrementing remaining indegrees. Its invariant says output vertices respect all already-output dependencies, and remaining indegrees count exactly the predecessors not yet output. Every selected vertex has no unfinished predecessor. Removing a vertex from a DAG leaves a DAG, so the zero-indegree lemma allows the process to continue until all vertices are output.</p>
+<p>If vertices remain but none has indegree zero, the remaining graph contains a directed cycle by that same predecessor argument. The blocked set can also include vertices downstream of a cycle, so it is not itself an exact list of cycle vertices. In the example with D→A, B can be processed, while A,C,D,E remain blocked. E is blocked because of C but lies on no directed cycle. A cycle witness requires an actual closed edge sequence such as A,C,D,A.</p>
+<p>Topological order need not be unique. A queue chooses a valid ready task according to its insertion order; a heap gives alphabetic tie-breaking in our lab. That reproducibility has a cost: heap insertion and removal add logarithmic factors, so the heap version is not simply the plain O(v+e) queue implementation. A full validation of an order checks both that it is a permutation of V and that position(u)&lt;position(v) for every edge. Missing isolated vertices fail the permutation condition.</p>
+<p>A topological order also supports induction over dependencies. Suppose a value at v is computed only from already completed predecessor values. Prove a property for zero-indegree vertices, then assume it for all predecessors when processing v and show the update preserves it. This is ordinary induction on the position in a valid order, with edges establishing which earlier hypotheses are available. It underlies evaluation of acyclic computation graphs and dynamic programs.</p>
+<p>For a simple scheduling example, give each task a nonnegative duration and unlimited parallel workers. Its earliest finish is its duration plus the maximum predecessor finish, with maximum zero when there are no predecessors. In our DAG, durations A=2, B=5, C=3, D=4, E=1 give finishes 2,5,8,12,9. The total makespan is 12. Summing all durations gives 15 and describes serial work, not the unlimited-parallel completion time.</p>
+<p>This recurrence assumes tasks start as soon as dependencies finish, durations are fixed, and resources do not conflict. With one worker, memory limits, shared devices, or uncertain durations, that calculation need not describe a feasible schedule. A DAG models precedence, not every scheduling constraint. Keeping the assumptions visible helps a learner transfer the same graph to build systems or AI computation without promising unrealistic throughput.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>After adding D→A, does every blocked vertex lie on a cycle? How would you validate a proposed topological order?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>No: E is blocked downstream of the A,C,D cycle. Validate that the order contains each vertex exactly once, then check every edge’s source appears before its target. A cycle cannot pass this edge-by-edge test.</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>Finite state machines safety and exploration limits</h2></div>
+<p>A <strong>state-transition system</strong> specifies a state set S, permitted initial states, and a directed transition relation. An event labels an allowed change, but the state must contain enough information to determine its permitted successors. Two situations that look identical at the control-flow level may have different futures because their counters or flags differ. The model’s vertex is the whole state, not merely the line of code currently executing.</p>
+<p>A two-control-state retry protocol uses idle and waiting. A send changes idle to waiting; an acknowledgement returns waiting to idle. To discuss a bounded implementation, also record the number of sends and whether an acknowledgement has been seen. These are <strong>product states</strong>: a state is a tuple of control, count, and flag. With two control values, counts zero through two, and two flag values there are twelve possible tuples, although only a subset are reachable under the declared rules.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A timeout must not pretend delivery was acknowledged</div>
+<p>Start at (idle,0,false). Send gives (waiting,1,false), retry gives (waiting,2,false), and acknowledgement from either waiting state gives (idle,count,true). Define safety: if control is idle and count&gt;0, an acknowledgement must have been seen. A faulty timeout changes (waiting,2,false) to (idle,2,false), violating that rule. The three-event witness is send, retry, timeout. The repair keeps waiting on timeout; it preserves safety in this bounded model.</p>
+</div>
+<figure class="fig" id="fig-07-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 465" role="img" aria-label="Send, retry, timeout reach unacknowledged idle. Acknowledgement reaches two acknowledged states; repaired timeout stays in the second waiting state."><title>Product states in the retry protocol</title><desc>Send, retry, timeout reach unacknowledged idle. Acknowledgement reaches two acknowledged states; repaired timeout stays in the second waiting state.</desc><defs><marker id="fig-07-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="465" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">Complete state = control, send count, acknowledgement flag</text><rect x="35" y="75" width="185" height="55" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="127" y="109" text-anchor="middle" font-size="18" fill="#1a2e4a">idle,0,F</text><rect x="285" y="75" width="185" height="55" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="377" y="109" text-anchor="middle" font-size="18" fill="#1a2e4a">waiting,1,F</text><rect x="285" y="205" width="185" height="55" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="377" y="239" text-anchor="middle" font-size="18" fill="#1a2e4a">waiting,2,F</text><rect x="535" y="75" width="185" height="55" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="627" y="109" text-anchor="middle" font-size="18" fill="#1a2e4a">idle,1,T</text><rect x="535" y="205" width="185" height="55" rx="10" fill="#f0f9ff" stroke="#2563eb"/><text x="627" y="239" text-anchor="middle" font-size="18" fill="#1a2e4a">idle,2,T</text><rect x="285" y="345" width="185" height="55" rx="10" fill="#fff1f2" stroke="#be123c"/><text x="377" y="379" text-anchor="middle" font-size="18" fill="#1a2e4a">idle,2,F</text><path d="M225,102L275,102" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="250" y="91" text-anchor="middle" font-size="14" fill="#1a2e4a">send</text><path d="M377,135L377,195" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="405" y="170" text-anchor="start" font-size="15" fill="#1a2e4a">retry</text><path d="M475,102L525,102" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="500" y="90" text-anchor="middle" font-size="14" fill="#1a2e4a">ack</text><path d="M475,232L525,232" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="500" y="220" text-anchor="middle" font-size="14" fill="#1a2e4a">ack</text><path d="M377,265L377,335" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="405" y="298" text-anchor="start" font-size="15" fill="#1a2e4a">faulty timeout</text><path d="M315,260C200,320 200,190 285,220" fill="none" stroke="#15803d" stroke-width="2.5" marker-end="url(#fig-07-4__arrow)"/><text x="50" y="305" text-anchor="start" font-size="15" fill="#1a2e4a">Repair timeout: stay waiting</text><text x="380" y="438" text-anchor="middle" font-size="17" fill="#1a2e4a">Red state is unsafe; a safe self-loop can still wait forever.</text></g></svg></div><figcaption><span class="fig-num">Figure 7.4</span> <p>The reachable product states distinguish initial idleness, waiting attempts, acknowledged completion, and the faulty unacknowledged return. A repaired timeout is a self-loop rather than a false completion.</p>
+</figcaption></figure>
+<p>To <strong>explore</strong> a finite model, run BFS or DFS from the initial state, generating exactly the declared successors. Keep a visited set of complete state tuples and a parent event for newly discovered states. BFS’s first path to a bad state is a shortest counterexample in number of model transitions. A trace names a concrete sequence of permitted changes and its violating state; merely reporting that an assertion failed would omit useful evidence for repairing the transition rule.</p>
+<p>For a safety predicate I, an inductive invariant proof checks all initial states satisfy I and every permitted transition from an I-state preserves I. Induction on finite execution length then proves all reachable states satisfy I, including arbitrarily long executions. Exhaustive checking instead computes reachable states and tests I there. On a complete finite model it decides that model’s reachable-state safety; a general symbolic invariant may cover a much larger or unbounded system.</p>
+<p>The lab finds six reachable states in the faulty model, including one unsafe tuple, and five in the repaired model. The unreachable tuple (idle,2,false) still belongs to the ambient product domain. It is unreachable because of the repaired rules, not because the tuple is syntactically impossible. Conversely, some unreachable tuples might violate I without affecting reachable-state safety. An inductive proof may strengthen I to exclude such tuples if its transition-preservation obligation otherwise fails.</p>
+<p><strong>Safety</strong> says a forbidden event or state never occurs. <strong>Liveness</strong> asks that a desired event eventually occurs. The repaired waiting-timeout self-loop is safe but permits an infinite execution that never receives acknowledgement. Neither finite reachability nor the absence of an unsafe state establishes eventual delivery. A liveness argument would need additional assumptions about the environment, such as a justified fairness condition, and a proof that those assumptions imply progress.</p>
+<p>Exhaustiveness is only as complete as the chosen model. We permit at most two sends, one request, no cancellation, and no delayed-message or concurrent behaviour. Checking those states does not prove an unlimited-retry network implementation correct. Omitting a counter from the state can collapse situations with different legal retries; omitting message contents can hide a wrong-recipient acknowledgement. An abstraction requires its own argument about which real behaviours it represents.</p>
+<p>The potential number of product states grows quickly when components are combined. Independent-looking flags, counters, and processes multiply the domain size even before transitions are generated. Reachable-state search can remain practical for small educational models while becoming costly for real software. A bounded test offers a useful counterexample or a precisely scoped checked claim; a proof, a sound abstraction, or a different analysis may be needed for a larger conclusion.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does checking the repaired five-state model prove that acknowledgement eventually arrives, or that an unlimited implementation is safe?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Neither. The timeout self-loop permits waiting forever, and the checked model bounds sends and omits several real behaviours. The established claim is safety of all reachable states under these particular finite transition rules.</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>Common misconceptions and failure cases</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Why it fails</th>
+<th>Repair</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A line crossing creates a vertex</td>
+<td>Drawings can cross without an endpoint</td>
+<td>Read the declared V and E</td>
+</tr>
+<tr>
+<td>Degree sum certifies connectivity</td>
+<td>It holds in every component</td>
+<td>Supply reachability or component evidence</td>
+</tr>
+<tr>
+<td>e=v−1 proves a tree</td>
+<td>A triangle plus an isolated vertex is a counterexample</td>
+<td>Add connectedness or acyclicity as appropriate</td>
+</tr>
+<tr>
+<td>DFS parent depth is shortest distance</td>
+<td>It can take a long detour before discovering a neighbour</td>
+<td>Use BFS for minimum edge count</td>
+</tr>
+<tr>
+<td>BFS minimises arbitrary travel costs</td>
+<td>Edge count differs from total unequal weight</td>
+<td>Choose an appropriate weighted algorithm</td>
+</tr>
+<tr>
+<td>Every Kahn-blocked vertex is on a cycle</td>
+<td>Downstream tasks also remain blocked</td>
+<td>Give an explicit directed cycle witness</td>
+</tr>
+<tr>
+<td>Finite safety checking proves eventual success</td>
+<td>Safe self-loops can wait forever</td>
+<td>State and prove a separate liveness claim</td>
+</tr>
+<tr>
+<td>Control labels are complete states</td>
+<td>Counters, flags, and messages affect successors</td>
+<td>Include the relevant product-state information</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>Three CPU labs</h2></div>
+<p>Each script uses the Python standard library and runs locally without a GPU. Predict the graph facts and witness first. Downloaded scripts are the exact sources executed for the displayed output.</p>
+<h3 id="lab1">Lab A Lists matrices and rejected graph inputs</h3>
+<p><strong>Predict:</strong> write F’s list and matrix row; compute the degree sum. <strong>Run:</strong> execute the script. It builds both representations and rejects a loop, a duplicate undirected edge, and an unknown vertex. <strong>Explain:</strong> why AB and BA are duplicates under this convention, while the all-zero F row must remain. <strong>Change:</strong> remove AC, predict which cycle disappears, and rerun after updating the edge count checks.</p>
+<p><a href="labs/module_07/lab1_representations.py" download>Download lab1_representations.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Represent one finite simple undirected graph, including an isolated vertex.&quot;&quot;&quot;
+VERTICES = tuple(&quot;ABCDEF&quot;)
+EDGES = (&quot;AB&quot;, &quot;AC&quot;, &quot;BD&quot;, &quot;CD&quot;, &quot;DE&quot;)
+
+def build_graph(vertices, edges):
+    graph = {v: [] for v in vertices}
+    seen = set()
+    for u, v in edges:
+        if u not in graph or v not in graph or u == v:
+            raise ValueError(&quot;Edges need two distinct declared vertices&quot;)
+        key = frozenset((u, v))
+        if key in seen:
+            raise ValueError(&quot;Repeated undirected edge&quot;)
+        seen.add(key)
+        graph[u].append(v)
+        graph[v].append(u)
+    return {v: sorted(neighbours) for v, neighbours in graph.items()}
+
+graph = build_graph(VERTICES, EDGES)
+matrix = [[int(v in graph[u]) for v in VERTICES] for u in VERTICES]
+print(&quot;Adjacency lists:&quot;, graph)
+print(&quot;Matrix order:&quot;, &quot; &quot;.join(VERTICES))
+for v, row in zip(VERTICES, matrix):
+    print(v, &quot; &quot;.join(map(str, row)))
+degrees = [len(graph[v]) for v in VERTICES]
+assert sum(degrees) == 2 * len(EDGES)
+assert all(matrix[i][j] == matrix[j][i] for i in range(6) for j in range(6))
+print(&quot;Degrees:&quot;, degrees, &quot;; sum =&quot;, sum(degrees), &quot;; 2|E| =&quot;, 2 * len(EDGES))
+print(&quot;Isolated vertices:&quot;, [v for v in VERTICES if not graph[v]])
+for label, edges in [(&quot;loop&quot;, (&quot;AA&quot;,)), (&quot;duplicate&quot;, (&quot;AB&quot;, &quot;BA&quot;)), (&quot;unknown&quot;, (&quot;AZ&quot;,))]:
+    try:
+        build_graph(VERTICES, edges)
+    except ValueError as error:
+        print(&quot;Rejected&quot;, label + &quot;:&quot;, error)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Adjacency lists: {'A': ['B', 'C'], 'B': ['A', 'D'], 'C': ['A', 'D'], 'D': ['B', 'C', 'E'], 'E': ['D'], 'F': []}
+Matrix order: A B C D E F
+A 0 1 1 0 0 0
+B 1 0 0 1 0 0
+C 1 0 0 1 0 0
+D 0 1 1 0 1 0
+E 0 0 0 1 0 0
+F 0 0 0 0 0 0
+Degrees: [2, 2, 2, 3, 1, 0] ; sum = 10 ; 2|E| = 10
+Isolated vertices: ['F']
+Rejected loop: Edges need two distinct declared vertices
+Rejected duplicate: Repeated undirected edge
+Rejected unknown: Edges need two distinct declared vertices
+</code></pre></div>
+<h3 id="lab2">Lab B Traversals and topological certificates</h3>
+<p><strong>Predict:</strong> BFS distances from A, recursive DFS preorder, and a valid dependency order. <strong>Run:</strong> inspect the returned parents and assertions checking local distance inequalities. <strong>Explain:</strong> why C’s DFS parent route can be longer than its BFS route, and why E can be blocked without lying on a directed cycle. <strong>Change:</strong> reverse neighbour orders and distinguish changed parent choices from unchanged shortest distances. The heap chooses alphabetic ready tasks and adds its own overhead.</p>
+<p><a href="labs/module_07/lab2_traversals.py" download>Download lab2_traversals.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Deterministic traversal certificates and dependency orders, not weighted paths.&quot;&quot;&quot;
+from collections import deque
+from heapq import heapify, heappop, heappush
+
+GRAPH = {&quot;A&quot;: [&quot;B&quot;, &quot;C&quot;], &quot;B&quot;: [&quot;A&quot;, &quot;D&quot;], &quot;C&quot;: [&quot;A&quot;, &quot;D&quot;],
+         &quot;D&quot;: [&quot;B&quot;, &quot;C&quot;, &quot;E&quot;], &quot;E&quot;: [&quot;D&quot;], &quot;F&quot;: []}
+
+def bfs(graph, source):
+    distance, parent, order = {source: 0}, {source: None}, []
+    queue = deque([source])
+    while queue:
+        u = queue.popleft()
+        order.append(u)
+        for v in graph[u]:
+            if v not in distance:  # Mark at discovery, before queueing.
+                distance[v], parent[v] = distance[u] + 1, u
+                queue.append(v)
+    return order, distance, parent
+
+def dfs(graph, source):
+    seen, preorder, postorder = set(), [], []
+    def visit(u):
+        seen.add(u)
+        preorder.append(u)
+        for v in graph[u]:
+            if v not in seen:
+                visit(v)
+        postorder.append(u)
+    visit(source)
+    return preorder, postorder
+
+def topological(graph):
+    indegree = dict.fromkeys(graph, 0)
+    for neighbours in graph.values():
+        for v in neighbours:
+            indegree[v] += 1
+    ready = [v for v in graph if indegree[v] == 0]
+    heapify(ready)  # Alphabetic tie-breaking, with heap overhead.
+    order = []
+    while ready:
+        u = heappop(ready)
+        order.append(u)
+        for v in graph[u]:
+            indegree[v] -= 1
+            if indegree[v] == 0:
+                heappush(ready, v)
+    return order, sorted(v for v in graph if indegree[v] &gt; 0)
+
+order, distance, parent = bfs(GRAPH, &quot;A&quot;)
+assert distance == {&quot;A&quot;: 0, &quot;B&quot;: 1, &quot;C&quot;: 1, &quot;D&quot;: 2, &quot;E&quot;: 3}
+for u, neighbours in GRAPH.items():
+    if u in distance:
+        for v in neighbours:
+            assert v in distance and distance[v] &lt;= distance[u] + 1
+for v, p in parent.items():
+    if p is not None:
+        assert v in GRAPH[p] and distance[v] == distance[p] + 1
+print(&quot;BFS order:&quot;, order)
+print(&quot;Distances:&quot;, distance, &quot;; F is unreachable&quot;)
+print(&quot;Parents:&quot;, parent)
+print(&quot;DFS preorder/postorder:&quot;, dfs(GRAPH, &quot;A&quot;))
+dag = {&quot;A&quot;: [&quot;C&quot;], &quot;B&quot;: [&quot;C&quot;], &quot;C&quot;: [&quot;D&quot;, &quot;E&quot;], &quot;D&quot;: [], &quot;E&quot;: []}
+order, blocked = topological(dag)
+position = {v: i for i, v in enumerate(order)}
+assert not blocked and all(position[u] &lt; position[v] for u in dag for v in dag[u])
+print(&quot;DAG topological order:&quot;, order)
+cyclic = {v: neighbours[:] for v, neighbours in dag.items()}
+cyclic[&quot;D&quot;].append(&quot;A&quot;)
+print(&quot;After adding D-&gt;A, processed/blocked:&quot;, topological(cyclic))
+cycle = [&quot;A&quot;, &quot;C&quot;, &quot;D&quot;, &quot;A&quot;]
+assert all(v in cyclic[u] for u, v in zip(cycle, cycle[1:]))
+print(&quot;Cycle witness:&quot;, &quot; -&gt; &quot;.join(cycle))
+print(&quot;Weighted trap: direct A-&gt;E costs 10; A-&gt;B-&gt;E costs 2. Fewest edges is not cheapest.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>BFS order: ['A', 'B', 'C', 'D', 'E']
+Distances: {'A': 0, 'B': 1, 'C': 1, 'D': 2, 'E': 3} ; F is unreachable
+Parents: {'A': None, 'B': 'A', 'C': 'A', 'D': 'B', 'E': 'D'}
+DFS preorder/postorder: (['A', 'B', 'D', 'C', 'E'], ['C', 'E', 'D', 'B', 'A'])
+DAG topological order: ['A', 'B', 'C', 'D', 'E']
+After adding D-&gt;A, processed/blocked: (['B'], ['A', 'C', 'D', 'E'])
+Cycle witness: A -&gt; C -&gt; D -&gt; A
+Weighted trap: direct A-&gt;E costs 10; A-&gt;B-&gt;E costs 2. Fewest edges is not cheapest.
+</code></pre></div>
+<h3 id="lab3">Lab C A bounded protocol repair</h3>
+<p><strong>Predict:</strong> trace send, retry, timeout and evaluate the declared safety predicate. <strong>Run:</strong> compare faulty and repaired reachable states. <strong>Explain:</strong> the scope of the five-state safety result and the possible infinite timeout execution. <strong>Change:</strong> permit a third send, expand the count domain and successor rule consistently, and check whether the same repair preserves the intended predicate. Do not describe this toy model as a verified network protocol.</p>
+<p><a href="labs/module_07/lab3_protocol.py" download>Download lab3_protocol.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Exhaustively explore a deliberately bounded, two-control-state retry model.&quot;&quot;&quot;
+from collections import deque
+
+START = (&quot;idle&quot;, 0, False)  # control, number of sends, acknowledgement seen
+
+def successors(state, faulty):
+    mode, count, ack = state
+    if mode == &quot;idle&quot; and count == 0 and not ack:
+        yield &quot;send&quot;, (&quot;waiting&quot;, 1, False)
+    if mode == &quot;waiting&quot;:
+        if count &lt; 2:
+            yield &quot;retry&quot;, (&quot;waiting&quot;, count + 1, ack)
+        yield &quot;ack&quot;, (&quot;idle&quot;, count, True)
+        if count == 2:
+            yield &quot;timeout&quot;, (&quot;idle&quot;, count, ack) if faulty else state
+
+def safe(state):
+    mode, count, ack = state
+    return mode != &quot;idle&quot; or count == 0 or ack
+
+def explore(faulty):
+    queue, paths = deque([START]), {START: []}
+    while queue:
+        state = queue.popleft()
+        for event, target in successors(state, faulty):
+            if target not in paths:
+                paths[target] = paths[state] + [event]
+                queue.append(target)
+    return paths
+
+for faulty in (True, False):
+    paths = explore(faulty)
+    bad = [(state, path) for state, path in paths.items() if not safe(state)]
+    print(&quot;faulty =&quot;, faulty, &quot;; reachable =&quot;, len(paths), &quot;; unsafe =&quot;, len(bad))
+    for state, path in bad:
+        print(&quot;Witness:&quot;, &quot; -&gt; &quot;.join(path), &quot;; state =&quot;, state)
+    assert bool(bad) == faulty
+    if not faulty:
+        assert len(paths) == 5 and (&quot;idle&quot;, 2, False) not in paths
+print(&quot;Repair: timeout stays waiting; safety does not guarantee acknowledgement or termination.&quot;)
+print(&quot;Scope: two sends maximum, no cancellation, one request, no delayed messages or concurrency.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>faulty = True ; reachable = 6 ; unsafe = 1
+Witness: send -&gt; retry -&gt; timeout ; state = ('idle', 2, False)
+faulty = False ; reachable = 5 ; unsafe = 0
+Repair: timeout stays waiting; safety does not guarantee acknowledgement or termination.
+Scope: two sends maximum, no cancellation, one request, no delayed messages or concurrency.
+</code></pre></div>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Exercises with full solutions</h2></div>
+<p>Exercises 1–12 are required; 13–14 are extensions. Prove claims for the declared graph conventions and give an actual edge sequence for a cycle witness.</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">5 min</span></div>
+<p>For the undirected example, list D’s neighbours, the degree sum, and the connected components.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>D has neighbours B,C,E and degree three. Degrees 2,2,2,3,1,0 sum to ten, twice the five edges. Components are {A,B,C,D,E} and {F}; no edge reaches F.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">5 min</span></div>
+<p>For directed edges A→B, A→C, C→B, give indegrees and outdegrees in order A,B,C. Check both sums.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Indegrees are 0,2,1; outdegrees are 2,0,1. Each sum is three, the edge count. Summing both gives six endpoint incidences.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">5 min</span></div>
+<p>A forest has twelve vertices and four components. How many edges? Can this graph be a tree?</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Summing nᵢ−1 over four component trees gives 12−4=8 edges. It is not a tree because it has four components rather than one.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">conceptual</span><span class="exercise-time">5 min</span></div>
+<p>From A in the example, give BFS distances to D,E,F and a path certifying E’s label.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>D has distance two, E three, and F is unreachable. A,B,D,E is a three-edge path to E. F’s absence from the finite distance map is intentional, not a zero-distance assignment.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove the degree-sum identity for finite simple undirected graphs and deduce that the odd-degree vertex count is even.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Count vertex-edge incidences by vertex to get the degree sum and by edge to get two per edge. Thus the sum is even. Removing the even-degree terms preserves parity; a sum of k odd terms has parity k, so k is even. The argument includes isolated vertices contributing zero.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove the tree edge theorem by deleting a leaf. Include the leaf’s existence and preservation of connectedness.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>For n=1 there are zero edges. For n&gt;1 a longest path exists by finiteness; an endpoint’s extra neighbour would either extend it or close a cycle, so it is a leaf. Deleting that leaf and its edge leaves an acyclic graph. Paths between remaining vertices never use a degree-one vertex internally, so the graph stays connected. Induction gives n−2 edges in the remaining tree, hence n−1 after restoration.</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove a finite nonempty DAG has a zero-indegree vertex. Explain why the proof needs finiteness.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>If every vertex had a predecessor, repeatedly choose one. In a finite set some vertex repeats; following the chosen predecessor edges in their forward orientation yields a directed cycle, contradicting acyclicity. An infinite chain indexed by integers can have incoming predecessors everywhere without a finite cycle, so repetition cannot be assumed outside the finite domain.</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>For edges A→C, B→C, C→D, C→E, validate order B,A,C,E,D and compute earliest finishes with durations 2,5,3,4,1 for A,B,C,D,E and unlimited workers.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The order contains all five vertices once and every source precedes its target. Finishes are A=2, B=5, C=max(2,5)+3=8, D=8+4=12, E=8+1=9. Makespan is twelve under the unlimited-worker assumptions; serial total work is fifteen.</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">Exercise 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>A source-distance certificate has valid parent paths, source label zero, and d(v)≤d(u)+1 for each edge from a labelled u, with all its successors labelled. Explain why it proves minimum edge counts.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Following parents gives a source path of length d(v), hence shortest distance≤d(v). Along any source path of length k, repeated edge inequalities give d(v)≤k. Applying this to a shortest path gives d(v)≤shortest distance. The two inequalities establish equality. Successor closure ensures no reachable vertex is silently omitted.</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">Exercise 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>State the full tuple and safety predicate in the protocol. Trace the shortest faulty timeout witness, and state what the repaired exhaustive result actually proves.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The tuple is (control,send_count,ack_seen). Safety is idle and count&gt;0 implies ack_seen. Send, retry, timeout reaches (idle,2,false) from (idle,0,false) and violates it. Timeout is enabled only at count two, so three events are required. The repair makes timeout a waiting self-loop; all five reachable states satisfy safety for this bounded single-request model. Eventual acknowledgement and larger implementations remain separate claims.</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">Exercise 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 min</span></div>
+<p>A report says “four vertices, three edges, therefore a tree.” Find a simple counterexample and repair the criterion. Then diagnose “every blocked task is cyclic.”</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>A triangle plus an isolated vertex has v=4,e=3 but is disconnected and cyclic. Add connectedness: a connected graph needs v−1 edges for a spanning tree, and an additional cycle would allow deletion while keeping connectedness, contradicting that minimum. In Kahn’s algorithm downstream vertices may also be blocked; E in the modified DAG is a concrete example. Supply a closed edge sequence to identify a cycle.</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">Exercise 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 min</span></div>
+<p>BFS chooses a direct edge of weight ten over two edges of weight one each. A developer calls this a shortest-path proof and says a safe timeout loop proves delivery. Diagnose both conclusions.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>BFS proves minimum edge count under this traversal, not minimum unequal-weight sum; the two-edge route costs two. A timeout self-loop can preserve safety forever while never delivering an acknowledgement. Delivery is liveness and needs an additional progress argument and environmental assumptions.</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Extension: prove an edge of a finite simple undirected graph is a bridge exactly when it lies on no cycle.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>If the edge lies on a cycle, the rest of that cycle replaces it in endpoint routes, so removing it preserves connectivity within the original component. Conversely, if removal does not separate its endpoints, take an alternate endpoint path in the remaining graph. Adding the removed edge closes a cycle containing it. If endpoints were separated, component count increases, which is the bridge definition.</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">Exercise 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">application</span><span class="exercise-time">20 min</span></div>
+<p>Extension: allow three sends in the repaired protocol. Predict reachable tuples and explain whether permitting infinitely many consecutive timeouts affects safety or liveness.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Reachable states are initial (idle,0,false), waiting(k,false) for k=1,2,3, and idle(k,true) for k=1,2,3: seven tuples. Retry increases k until three; acknowledgements return with true. A timeout self-loop at the maximum count introduces no unsafe tuple, so safety remains. Repeating it indefinitely still gives an execution with no acknowledgement, hence liveness is not established. This seven-state check still excludes unlimited counters and concurrent requests.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Self-check quiz</h2></div>
+<p>The automatic score covers Questions 1–9. Question 10 is written and self-reviewed; the two activities test different kinds of evidence.</p>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>What is an undirected simple edge?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A two-element subset of the vertex set</button></li><li><button type="button" class="quiz-opt" data-i="1">An ordered pair whose reverse must be different</button></li><li><button type="button" class="quiz-opt" data-i="2">Any line crossing in a drawing</button></li></ol><div class="quiz-expl" hidden>The unordered pair identifies two distinct endpoints. Direction belongs to a directed model, and drawing crossings are not vertices unless declared.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>What does the undirected degree sum equal?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">|E|</button></li><li><button type="button" class="quiz-opt" data-i="1">2|E|</button></li><li><button type="button" class="quiz-opt" data-i="2">|V|−1 in every graph</button></li></ol><div class="quiz-expl" hidden>Each edge supplies two incidences. |E| is the directed indegree or outdegree sum; |V|−1 is a tree edge count, not a general degree sum.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>Which condition defines our finite tree?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Exactly v−1 edges alone</button></li><li><button type="button" class="quiz-opt" data-i="1">No isolated vertices alone</button></li><li><button type="button" class="quiz-opt" data-i="2">Nonempty, connected, undirected, and acyclic</button></li></ol><div class="quiz-expl" hidden>Connectivity and absence of cycles are both required. A triangle plus an isolated vertex refutes the edge-count-only criterion; absence of isolated vertices also permits cycles.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>Why mark a BFS vertex before enqueueing it?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">To avoid multiple enqueues from different predecessors</button></li><li><button type="button" class="quiz-opt" data-i="1">To remove the need for outgoing edges</button></li><li><button type="button" class="quiz-opt" data-i="2">To turn unequal weights into equal ones</button></li></ol><div class="quiz-expl" hidden>Discovery marking controls repeated work. The graph edges remain needed, and marking has no effect on their weights.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>What does ordinary BFS minimise?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Every possible edge-weight sum</button></li><li><button type="button" class="quiz-opt" data-i="1">Number of edges on a source path</button></li><li><button type="button" class="quiz-opt" data-i="2">The alphabetic order of the path</button></li></ol><div class="quiz-expl" hidden>FIFO layers minimise edge count. Unequal-weight costs require different reasoning; alphabetic neighbours only break ties in discovery.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>What validates a topological order?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Alphabetic sorting of labels</button></li><li><button type="button" class="quiz-opt" data-i="1">Every vertex has even indegree</button></li><li><button type="button" class="quiz-opt" data-i="2">Every vertex occurs once and each edge points forward in the order</button></li></ol><div class="quiz-expl" hidden>Both permutation and edge conditions matter. Label sorting and degree parity do not establish dependency precedence.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>What can Kahn’s blocked set include?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Cycle vertices and vertices downstream of cycles</button></li><li><button type="button" class="quiz-opt" data-i="1">Only vertices lying on a cycle</button></li><li><button type="button" class="quiz-opt" data-i="2">Only isolated vertices</button></li></ol><div class="quiz-expl" hidden>Downstream prerequisites remain unfinished too. Isolated vertices have indegree zero and can be processed; give an explicit cycle witness for the cyclic subset.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>What is a complete protocol state in our lab?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The control label alone</button></li><li><button type="button" class="quiz-opt" data-i="1">The tuple of control, send count, and acknowledgement flag</button></li><li><button type="button" class="quiz-opt" data-i="2">Only the last event name</button></li></ol><div class="quiz-expl" hidden>All three components affect permitted successors and the predicate. A control label or event alone loses relevant information.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>What does the repaired finite exploration establish?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Every network request eventually succeeds</button></li><li><button type="button" class="quiz-opt" data-i="1">All unlimited concurrent implementations are safe</button></li><li><button type="button" class="quiz-opt" data-i="2">All reachable states of the specified bounded model satisfy safety</button></li></ol><div class="quiz-expl" hidden>The checked model is finite and explicitly restricted. Timeout loops defeat automatic liveness conclusions, and real implementation coverage needs another argument.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m07:q10">
+<label for="q10-response">10. Explain why BFS labels are minimum edge counts. Include a parent-path witness, an edge inequality, and the weighted-cost limitation.</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="State the graph assumptions and both directions of the certificate argument."></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> I compared my argument with the model and included the graph assumptions.</label>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>For a finite unweighted graph, source label zero and valid parent edges produce a source path of length d(v), so the minimum is at most d(v). Successor closure and d(v)≤d(u)+1 on every outgoing edge imply d(v) is at most every source-path length, hence at most the minimum. Together they give equality. Ordinary BFS supplies this certificate by processing FIFO layers. Unequal edge weights make edge count and total weight different objectives; this proof does not optimise their sum. A response needs both inequalities, not merely a claim that the queue “looks shortest.”</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Reading with a purpose</h2></div>
+<p>Use <a href="https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/" target="_blank" rel="noopener">MIT Mathematics for Computer Science</a> for graph, tree, and state-machine selections. Use <a href="https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2005/resources/slides5m/" target="_blank" rel="noopener">MIT’s handshaking, connectivity, and trees notes</a> to compare graph conventions. Read the BFS and DFS/topological sorting selections in <a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/pages/lecture-notes/" target="_blank" rel="noopener">MIT 6.006 lecture notes</a>. These are external primary readings; the lesson and required exercises are original.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>Selection and question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session 2 · 15 minutes</td>
+<td>Trees and BFS: where do finiteness and the unweighted assumption enter the proofs?</td>
+</tr>
+<tr>
+<td>Session 4 · 5 minutes</td>
+<td>State machines: which state components determine successors, and which claim is safety?</td>
+</tr>
+</tbody>
+</table></div>
+<p>Treat a reading as a comparison of definitions and arguments. Reconcile any differences in path, leaf, or height conventions before transplanting a formula.</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Retrieval exit task and next step</h2></div>
+<p>Without notes, define our tree, prove its edge count, describe BFS’s discovery rule, and give both a valid topological order and a cycle witness. Explain why a shortest-edge certificate does not minimise arbitrary weights and why a safe finite protocol need not deliver eventually.</p>
+<p><strong>Exit task:</strong> add an isolated vertex G to the example. State the new degree sum and component count; explain the unchanged distances from A and the effect on a full spanning forest. For a forest built by traversals, there are now seven vertices and three components, hence four discovery edges. The original graph still has five edges and degree sum ten; its nonforest cycle edge is not a discovery edge.</p>
+<p><strong>Ready to move on:</strong> you can distinguish the abstract graph, its representation, a traversal witness, and the scope of a correctness claim. The discrete branch next studies modular arithmetic and invertibility. See the <a href="index.html">course overview</a> for lesson availability.</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Notation and bilingual terminology</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term or notation</th>
+<th>Meaning</th>
+<th>中文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>V,E</td>
+<td>Vertex set, edge set</td>
+<td>顶点集、边集</td>
+</tr>
+<tr>
+<td>Degree / indegree / outdegree</td>
+<td>Undirected incidences / incoming / outgoing counts</td>
+<td>度、入度、出度</td>
+</tr>
+<tr>
+<td>Walk / path / cycle</td>
+<td>Edge sequence / no repeated vertex / closed simple route</td>
+<td>游走、路径、环</td>
+</tr>
+<tr>
+<td>Component / bridge</td>
+<td>Connected class / edge whose removal disconnects</td>
+<td>连通分量、桥</td>
+</tr>
+<tr>
+<td>Tree / forest</td>
+<td>Connected acyclic nonempty graph / acyclic graph</td>
+<td>树、森林</td>
+</tr>
+<tr>
+<td>Root / parent / depth / height</td>
+<td>Chosen origin / predecessor / edge distance / maximum depth</td>
+<td>根、父节点、深度、高度</td>
+</tr>
+<tr>
+<td>BFS / DFS</td>
+<td>Breadth-first / depth-first search</td>
+<td>广度优先搜索、深度优先搜索</td>
+</tr>
+<tr>
+<td>DAG / topological order</td>
+<td>Directed acyclic graph / dependency-respecting permutation</td>
+<td>有向无环图、拓扑序</td>
+</tr>
+<tr>
+<td>Product state / invariant</td>
+<td>Complete component tuple / preserved predicate</td>
+<td>乘积状态、不变式</td>
+</tr>
+<tr>
+<td>Safety / liveness</td>
+<td>Forbidden behaviour absent / desired progress eventually occurs</td>
+<td>安全性、活性</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="module_06_EN.html">← Module 06</a><a href="module_08_EN.html">Module 08 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

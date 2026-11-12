@@ -1,0 +1,216 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 14: Software, security and integration</title><meta name="description" content="Integrate the catalogue into a persistent local service. Define invariants, test failures and retries, and separate validation, authentication and authorisation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Mono:wght@400;500&amp;family=DM+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css"></head><body data-module="14"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div>
+<header id="topbar"><a class="brand" href="../../tutorials/">Ran <span>Wei</span></a><span class="sep">/</span><a class="crumb" href="index.html">CS Series</a><span class="sep">/</span><span class="crumb crumb-now">14</span><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 14 of 14</button><div class="dropdown-menu" id="module-menu"><a href="module_01_EN.html">01 — What is computation?</a><a href="module_02_EN.html">02 — Representing information</a><a href="module_03_EN.html">03 — Programming foundations</a><a href="module_04_EN.html">04 — Mathematical foundations</a><a href="module_05_EN.html">05 — Algorithms and efficiency</a><a href="module_06_EN.html">06 — Core data structures</a><a href="module_07_EN.html">07 — Recursion, trees and graphs</a><a href="module_08_EN.html">08 — Algorithm design</a><a href="module_09_EN.html">09 — Computer architecture</a><a href="module_10_EN.html">10 — Operating systems</a><a href="module_11_EN.html">11 — Networks and the web</a><a href="module_12_EN.html">12 — Databases</a><a href="module_13_EN.html">13 — Languages and limits of computation</a><a href="module_14_EN.html" class="active" aria-current="page">14 — Software, security and integration</a></div></div><a class="lang-switch" href="module_14_ZH.html" hreflang="zh-CN">中文</a></header>
+<div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#s1"><span class="num">1</span><span>Requirements and module boundaries</span></a><a href="#s2"><span class="num">2</span><span>Boundary validation and resource limits</span></a><a href="#s3"><span class="num">3</span><span>Authentication and authorisation</span></a><a href="#s4"><span class="num">4</span><span>Transactions and idempotent retries</span></a><a href="#s5"><span class="num">5</span><span>Testing and operational evidence</span></a><a href="#wrong"><span class="num">6</span><span>Common misconceptions</span></a><a href="#setup"><span class="num">7</span><span>Lab setup</span></a><a href="#lab1"><span class="num">8</span><span>Lab 1 — Validate the boundary</span></a><a href="#lab2"><span class="num">9</span><span>Lab 2 — Persistent catalogue capstone</span></a><a href="#exercises"><span class="num">10</span><span>Exercises with worked solutions</span></a><a href="#quiz"><span class="num">11</span><span>Self-check quiz</span></a><a href="#reading"><span class="num">12</span><span>Guided reading</span></a><a href="#summary"><span class="num">13</span><span>Review and the next step</span></a><a href="#terms"><span class="num">14</span><span>Key terms</span></a></nav></aside>
+<main id="main"><div class="module-hero"><div class="series">Computer Science Fundamentals — Ran Wei</div><h1 class="module-title">Module 14: Software, security and integration</h1><p class="module-lead">Integrate the catalogue into a persistent local service. Define invariants, test failures and retries, and separate validation, authentication and authorisation.</p><div class="hero-chips"><span class="chip chip-time">≈ 5 hours</span><span class="chip">4 sessions</span><span class="chip">2 labs</span><span class="chip">8 exercises</span><span class="chip">6 quiz questions</span></div></div>
+<section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Separate service responsibilities.</li><li>Validate untrusted input.</li><li>Enforce identity and scopes.</li><li>Make retries idempotent.</li><li>Test inventory and persistence across HTTP boundaries.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Recommended modules: <a href="module_03_EN.html">03</a>, <a href="module_10_EN.html">10</a>, <a href="module_11_EN.html">11</a>, <a href="module_12_EN.html">12</a>, <a href="module_13_EN.html">13</a>.</p><p>Know HTTP, SQL transactions and exceptions. The capstone uses only the standard library and includes a finite default self-test plus an optional persistent local server.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Mobile contents"><a href="#s1">Requirements and module boundaries</a><a href="#s2">Boundary validation and resource limits</a><a href="#s3">Authentication and authorisation</a><a href="#s4">Transactions and idempotent retries</a><a href="#s5">Testing and operational evidence</a><a href="#wrong">Common misconceptions</a><a href="#setup">Lab setup</a><a href="#lab1">Lab 1 — Validate the boundary</a><a href="#lab2">Lab 2 — Persistent catalogue capstone</a><a href="#exercises">Exercises with worked solutions</a><a href="#quiz">Self-check quiz</a><a href="#reading">Guided reading</a><a href="#summary">Review and the next step</a><a href="#terms">Key terms</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">5 hours</span></div><p class="plan-lead">Four 75-minute sessions including practice. Allow longer for extensions or unfamiliar prerequisites. Progress is saved locally and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">75 min</span></div><div class="session-title">Concepts and worked examples</div><ul class="acts"><li class="act act-read"><span class="act-what"><a href="#s1">Read Sections 1–3 and answer the checks</a></span><span class="act-min">40</span></li><li class="act act-read"><span class="act-what"><a href="#e1">Exercises 1–3; justify every answer</a></span><span class="act-min">35</span></li></ul><label class="session-done"><input type="checkbox" data-key="cs-series:m14:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">75 min</span></div><div class="session-title">Build and investigate</div><ul class="acts"><li class="act act-read"><span class="act-what"><a href="#s4">Read Sections 4–5 and misconceptions</a></span><span class="act-min">25</span></li><li class="act act-read"><span class="act-what"><a href="#lab1">Lab 1, predictions and variations</a></span><span class="act-min">50</span></li></ul><label class="session-done"><input type="checkbox" data-key="cs-series:m14:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">75 min</span></div><div class="session-title">Apply and extend</div><ul class="acts"><li class="act act-read"><span class="act-what"><a href="#lab2">Lab 2 and its variations</a></span><span class="act-min">50</span></li><li class="act act-read"><span class="act-what"><a href="#e4">Exercises 4–5</a></span><span class="act-min">25</span></li></ul><label class="session-done"><input type="checkbox" data-key="cs-series:m14:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">75 min</span></div><div class="session-title">Reason and review</div><ul class="acts"><li class="act act-read"><span class="act-what"><a href="#e6">Exercises 6–8</a></span><span class="act-min">35</span></li><li class="act act-read"><span class="act-what"><a href="#reading">Guided reading</a></span><span class="act-min">15</span></li><li class="act act-read"><span class="act-what"><a href="#quiz">Quiz and explain mistakes</a></span><span class="act-min">15</span></li><li class="act act-read"><span class="act-what"><a href="#summary">Review from memory</a></span><span class="act-min">10</span></li></ul><label class="session-done"><input type="checkbox" data-key="cs-series:m14:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="s1"></span><div class="section-header" data-sec="s1"><span class="section-num">1</span><h2>Requirements and module boundaries</h2></div><p>The catalogue must list/search books and borrow available copies. Its invariant is available copies plus committed loans equals total copies. Catalogue owns SQL and transactions; Handler owns HTTP parsing, identity and response mapping; the runner owns startup and cleanup. Keeping these responsibilities explicit makes faults easier to locate. The local teaching service is single-threaded and handles a small bounded workload. Public deployment would need a production server, TLS, operational monitoring and a fuller identity lifecycle.</p><div class="check"><div class="check-label">Check your understanding</div><p>Which layer should own the atomic stock update?</p></div><details class="answer"><summary>Worked solution</summary><div class="details-body"><p>The catalogue/database service, not the HTTP presentation code.</p></div></details><span class="section-anchor" id="s2"></span><div class="section-header" data-sec="s2"><span class="section-num">2</span><h2>Boundary validation and resource limits</h2></div><p>External input is untrusted even when its JSON parses. Check shape, exact fields, types, ranges and maximum sizes before changing state. Python bool is a subclass of int, so type(value) is int deliberately excludes True as a book ID. Reject unexpected fields instead of silently accepting an admin flag. Limit request length and set read timeouts. Normalise text before validating its semantic value. These checks enforce the contract; they do not decide who may perform an action.</p><div class="check"><div class="check-label">Check your understanding</div><p>Why reject True as book_id although isinstance(True,int) is true?</p></div><details class="answer"><summary>Worked solution</summary><div class="details-body"><p>The API contract requires an integer identifier, not a Boolean value.</p></div></details><span class="section-anchor" id="s3"></span><div class="section-header" data-sec="s3"><span class="section-num">3</span><h2>Authentication and authorisation</h2></div><p>Authentication identifies the caller; authorisation decides whether that identity may perform the operation. The capstone maps random bearer credentials to a member and scopes. Missing or invalid credentials receive 401; a valid read-only identity attempting a loan receives 403. The member is taken from the authenticated identity, not supplied by the JSON body. Bearer credentials grant access to whoever possesses them, so avoid logging them and protect transport outside the local lab. Passwords, when used, need a dedicated salted password-hashing scheme rather than a plain fast hash.</p><div class="check"><div class="check-label">Check your understanding</div><p>Can body member='admin' safely choose the caller's identity?</p></div><details class="answer"><summary>Worked solution</summary><div class="details-body"><p>No; identity must come from verified credentials.</p></div></details><span class="section-anchor" id="s4"></span><div class="section-header" data-sec="s4"><span class="section-num">4</span><h2>Transactions and idempotent retries</h2></div><p>Each borrow has a request ID. Within BEGIN IMMEDIATE, check whether that ID was previously committed. Identical book/member inputs return the saved result without decrementing again. Different inputs with the same ID cause a conflict. Otherwise conditionally decrement positive stock and insert the loan in one transaction. This handles the timeout ambiguity from Module 11. Idempotency needs persistent records, not just an in-memory cache that disappears on restart. The capstone tests a replay and a mismatched replay separately.</p><div class="check"><div class="check-label">Check your understanding</div><p>Should identical replay consume another copy?</p></div><details class="answer"><summary>Worked solution</summary><div class="details-body"><p>No; return the committed result without changing stock.</p></div></details><span class="section-anchor" id="s5"></span><div class="section-header" data-sec="s5"><span class="section-num">5</span><h2>Testing and operational evidence</h2></div><p>Unit checks isolate validation; integration checks send real HTTP requests through identity, parsing, SQL and responses. Test successful borrowing, missing credentials, insufficient scope, invalid types, injection-shaped data, duplicate IDs, no stock and persistence after reopening. Independently check the inventory invariant with SQL. Default execution starts an ephemeral local server, performs checks and shuts down. The optional --serve mode persists a chosen file and continues until interrupted. These are educational guarantees, not evidence of production load or multi-process concurrency testing.</p><div class="check"><div class="check-label">Check your understanding</div><p>Why query inventory independently after HTTP tests?</p></div><details class="answer"><summary>Worked solution</summary><div class="details-body"><p>A plausible response could hide a wrong database state.</p></div></details><span class="section-anchor" id="wrong"></span><div class="section-header" data-sec="wrong"><span class="section-num">6</span><h2>Common misconceptions</h2></div><div class="callout pitfall"><ul><li>Do not derive authority from fields submitted by the caller.</li><li>Idempotency records must bind the request ID to its full operation meaning.</li></ul></div><span class="section-anchor" id="setup"></span><div class="section-header" data-sec="setup"><span class="section-num">7</span><h2>Lab setup</h2></div><p>Download each script and run it in a terminal with Python 3.11 or later: <code>python m14_validation.py</code>. On Windows, py -3 is an alternative; on some systems use python3. The labs use only the standard library. Predict the result before running, then complete the variations. Run without -O so assertions remain enabled. Outputs below were captured by the builder. Code and output are identical in both language editions.</p><span class="section-anchor" id="lab1"></span><div class="section-header" data-sec="lab1"><span class="section-num">8</span><h2>Lab 1 — Validate the boundary</h2></div><p>The validator returns normalised data without mutating its input. Blank titles, Boolean counts, negative counts and extra fields are rejected.</p><p><a href="labs/m14_validation.py" download>Download m14_validation.py</a></p><pre><code class="language-python">&quot;&quot;&quot;Boundary validation, normalisation and mutation-free failure cases.&quot;&quot;&quot;
+def validate_book(record):
+    if not isinstance(record, dict) or set(record) != {&quot;title&quot;, &quot;copies&quot;}:
+        raise ValueError(&quot;exactly title and copies required&quot;)
+    if not isinstance(record[&quot;title&quot;], str): raise ValueError(&quot;text title required&quot;)
+    title = record[&quot;title&quot;].strip()
+    if not 1 &lt;= len(title) &lt;= 100: raise ValueError(&quot;title length 1..100 required&quot;)
+    if type(record[&quot;copies&quot;]) is not int or not 0 &lt;= record[&quot;copies&quot;] &lt;= 100:
+        raise ValueError(&quot;copies must be an integer in 0..100&quot;)
+    return {&quot;title&quot;: title, &quot;copies&quot;: record[&quot;copies&quot;]}
+
+good = {&quot;title&quot;: &quot;  Dune  &quot;, &quot;copies&quot;: 2}
+print(&quot;normalised:&quot;, validate_book(good))
+assert good[&quot;title&quot;] == &quot;  Dune  &quot;
+bad = [{&quot;title&quot;: &quot; &quot;, &quot;copies&quot;: 1}, {&quot;title&quot;: &quot;Dune&quot;, &quot;copies&quot;: True},
+       {&quot;title&quot;: &quot;Dune&quot;, &quot;copies&quot;: -1}, {&quot;title&quot;: &quot;Dune&quot;, &quot;copies&quot;: 1, &quot;admin&quot;: True}]
+for record in bad:
+    try: validate_book(record)
+    except ValueError: print(&quot;rejected:&quot;, repr(record))
+    else: raise AssertionError(&quot;invalid record accepted&quot;)
+</code></pre><div class="output"><div class="output-label">Captured output</div><pre><code class="language-text">normalised: {&#x27;title&#x27;: &#x27;Dune&#x27;, &#x27;copies&#x27;: 2}
+rejected: {&#x27;title&#x27;: &#x27; &#x27;, &#x27;copies&#x27;: 1}
+rejected: {&#x27;title&#x27;: &#x27;Dune&#x27;, &#x27;copies&#x27;: True}
+rejected: {&#x27;title&#x27;: &#x27;Dune&#x27;, &#x27;copies&#x27;: -1}
+rejected: {&#x27;title&#x27;: &#x27;Dune&#x27;, &#x27;copies&#x27;: 1, &#x27;admin&#x27;: True}
+</code></pre></div><ol><li>Add length-100 and length-101 titles.</li><li>Test copies 0 and 100.</li><li>Explain the difference between validation and authorisation.</li></ol><details class="solution"><summary>Worked solution</summary><div class="details-body"><p>Length 100 is accepted, 101 rejected; counts 0 and 100 are valid boundaries. Validation checks whether data meets the contract; authorisation checks whether the caller may submit that action.</p></div></details><span class="section-anchor" id="lab2"></span><div class="section-header" data-sec="lab2"><span class="section-num">9</span><h2>Lab 2 — Persistent catalogue capstone</h2></div><p>Run the default finite integration suite first. Follow the pipeline from HTTP to transaction and back; credentials are generated for tests and never printed.</p><p><a href="labs/m14_capstone.py" download>Download m14_capstone.py</a></p><pre><code class="language-python">&quot;&quot;&quot;Local catalogue capstone: SQLite, HTTP, scoped bearer tokens and idempotent loans.
+
+Default: finite integration checks in a temporary directory.
+To keep a local server running, set CS_CATALOGUE_TOKEN (32+ characters), then:
+python m14_capstone.py --serve --db catalogue.sqlite --port 8000
+This single-threaded http.server application is for local study, not public hosting.
+&quot;&quot;&quot;
+import argparse, json, os, re, secrets, sqlite3, tempfile
+from contextlib import closing
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+from threading import Thread
+from urllib.error import HTTPError
+from urllib.parse import parse_qs, urlsplit
+from urllib.request import Request, urlopen
+
+class Conflict(Exception):
+    pass
+
+class Catalogue:
+    def __init__(self, path):
+        self.path = path
+        with closing(self.connect()) as db, db:
+            db.executescript(&quot;&quot;&quot;
+              CREATE TABLE IF NOT EXISTS books(id INTEGER PRIMARY KEY, title TEXT NOT NULL,
+                copies INTEGER NOT NULL CHECK(copies&gt;=0), total INTEGER NOT NULL CHECK(copies&lt;=total));
+              CREATE TABLE IF NOT EXISTS loans(request_id TEXT PRIMARY KEY,
+                book_id INTEGER NOT NULL REFERENCES books(id), member TEXT NOT NULL);
+              CREATE INDEX IF NOT EXISTS title_index ON books(title);
+            &quot;&quot;&quot;)
+            db.execute(&quot;INSERT OR IGNORE INTO books VALUES(1,&#x27;Dune&#x27;,2,2)&quot;)
+            db.execute(&quot;INSERT OR IGNORE INTO books VALUES(2,&#x27;Foundation&#x27;,1,1)&quot;)
+    def connect(self):
+        db = sqlite3.connect(self.path, timeout=3)
+        db.execute(&quot;PRAGMA foreign_keys=ON&quot;)
+        return db
+    def search(self, query):
+        with closing(self.connect()) as db:
+            # SQLite lower() has ASCII semantics here; literal substring, not LIKE wildcards.
+            rows = db.execute(&quot;SELECT id,title,copies FROM books WHERE instr(lower(title),lower(?))&gt;0 ORDER BY title,id LIMIT 100&quot;, (query,)).fetchall()
+            return [dict(zip((&quot;id&quot;, &quot;title&quot;, &quot;copies&quot;), row)) for row in rows]
+    def borrow(self, request_id, book_id, member):
+        with closing(self.connect()) as db, db:
+            db.execute(&quot;BEGIN IMMEDIATE&quot;)
+            previous = db.execute(&quot;SELECT book_id,member FROM loans WHERE request_id=?&quot;, (request_id,)).fetchone()
+            if previous:
+                if previous != (book_id, member): raise Conflict(&quot;request ID reused with different inputs&quot;)
+                return 200, {&quot;request_id&quot;: request_id, &quot;book_id&quot;: book_id, &quot;member&quot;: member}
+            if db.execute(&quot;UPDATE books SET copies=copies-1 WHERE id=? AND copies&gt;0&quot;, (book_id,)).rowcount != 1:
+                raise Conflict(&quot;book unavailable&quot;)
+            db.execute(&quot;INSERT INTO loans VALUES(?,?,?)&quot;, (request_id, book_id, member))
+            return 201, {&quot;request_id&quot;: request_id, &quot;book_id&quot;: book_id, &quot;member&quot;: member}
+
+class Handler(BaseHTTPRequestHandler):
+    def setup(self):
+        super().setup(); self.connection.settimeout(5)
+    def log_message(self, *args):
+        pass  # do not log credentials or request bodies
+    def reply(self, status, value):
+        body = json.dumps(value).encode(&quot;utf-8&quot;)
+        self.send_response(status)
+        if status == 401: self.send_header(&quot;WWW-Authenticate&quot;, &#x27;Bearer realm=&quot;catalogue&quot;&#x27;)
+        self.send_header(&quot;Content-Type&quot;, &quot;application/json; charset=utf-8&quot;)
+        self.send_header(&quot;Content-Length&quot;, str(len(body)))
+        self.end_headers(); self.wfile.write(body)
+    def identity(self, scope):
+        header = self.headers.get(&quot;Authorization&quot;, &quot;&quot;)
+        if not header.startswith(&quot;Bearer &quot;):
+            self.reply(401, {&quot;error&quot;: &quot;authentication required&quot;}); return None
+        supplied = header[7:].encode(&quot;utf-8&quot;)
+        for token, (member, scopes) in self.server.tokens.items():
+            if secrets.compare_digest(token.encode(&quot;utf-8&quot;), supplied):
+                if scope not in scopes:
+                    self.reply(403, {&quot;error&quot;: &quot;permission denied&quot;}); return None
+                return member
+        self.reply(401, {&quot;error&quot;: &quot;invalid credential&quot;}); return None
+    def do_GET(self):
+        if self.identity(&quot;read&quot;) is None: return
+        url = urlsplit(self.path)
+        if url.path != &quot;/books&quot;: self.reply(404, {&quot;error&quot;: &quot;unknown route&quot;}); return
+        params = parse_qs(url.query, keep_blank_values=True)
+        if set(params) - {&quot;q&quot;} or len(params.get(&quot;q&quot;, [])) &gt; 1:
+            self.reply(400, {&quot;error&quot;: &quot;only one q parameter allowed&quot;}); return
+        query = params.get(&quot;q&quot;, [&quot;&quot;])[0].strip()
+        if len(query) &gt; 100 or (&quot;q&quot; in params and not query):
+            self.reply(400, {&quot;error&quot;: &quot;invalid query&quot;}); return
+        self.reply(200, self.server.catalogue.search(query))
+    def do_POST(self):
+        member = self.identity(&quot;borrow&quot;)
+        if member is None: return
+        if self.path != &quot;/loans&quot;: self.reply(404, {&quot;error&quot;: &quot;unknown route&quot;}); return
+        if self.headers.get(&quot;Content-Type&quot;, &quot;&quot;).split(&quot;;&quot;)[0].strip() != &quot;application/json&quot;:
+            self.reply(415, {&quot;error&quot;: &quot;JSON required&quot;}); return
+        if self.headers.get(&quot;Transfer-Encoding&quot;):
+            self.reply(400, {&quot;error&quot;: &quot;chunked bodies not supported&quot;}); return
+        lengths = self.headers.get_all(&quot;Content-Length&quot;, [])
+        try:
+            if len(lengths) != 1: raise ValueError(&quot;one body length required&quot;)
+            length = int(lengths[0])
+            if not 1 &lt;= length &lt;= 1024: raise ValueError(&quot;body length out of range&quot;)
+            raw = self.rfile.read(length)
+            if len(raw) != length: raise ValueError(&quot;truncated body&quot;)
+            record = json.loads(raw.decode(&quot;utf-8&quot;))
+            if not isinstance(record, dict) or set(record) != {&quot;request_id&quot;, &quot;book_id&quot;}: raise ValueError(&quot;invalid fields&quot;)
+            if type(record[&quot;book_id&quot;]) is not int or record[&quot;book_id&quot;] &lt;= 0: raise ValueError(&quot;positive integer ID required&quot;)
+            if not isinstance(record[&quot;request_id&quot;], str) or not re.fullmatch(r&quot;[A-Za-z0-9_-]{1,64}&quot;, record[&quot;request_id&quot;]): raise ValueError(&quot;invalid request ID&quot;)
+        except (ValueError, UnicodeError, TimeoutError):
+            self.reply(400, {&quot;error&quot;: &quot;invalid body&quot;}); return
+        try:
+            status, value = self.server.catalogue.borrow(record[&quot;request_id&quot;], record[&quot;book_id&quot;], member)
+            self.reply(status, value)
+        except Conflict as error:
+            self.reply(409, {&quot;error&quot;: str(error)})
+        except sqlite3.OperationalError:
+            self.reply(503, {&quot;error&quot;: &quot;database unavailable&quot;})
+
+def make_server(path, tokens, port=0):
+    catalogue = Catalogue(path)
+    server = HTTPServer((&quot;127.0.0.1&quot;, port), Handler)
+    server.catalogue, server.tokens = catalogue, tokens
+    return server
+
+def self_test():
+    token, guest = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
+    with tempfile.TemporaryDirectory() as folder:
+        path = str(Path(folder) / &quot;catalogue.sqlite&quot;)
+        server = make_server(path, {token: (&quot;reader&quot;, {&quot;read&quot;, &quot;borrow&quot;}), guest: (&quot;guest&quot;, {&quot;read&quot;})})
+        thread = Thread(target=server.serve_forever); thread.start()
+        base = f&quot;http://127.0.0.1:{server.server_port}&quot;
+        def request(route, body=None, credential=token):
+            headers = {&quot;Content-Type&quot;: &quot;application/json&quot;}
+            if credential: headers[&quot;Authorization&quot;] = &quot;Bearer &quot; + credential
+            req = Request(base + route, data=json.dumps(body).encode() if body is not None else None, headers=headers)
+            try:
+                with urlopen(req, timeout=5) as response: return response.status, json.load(response)
+            except HTTPError as error:
+                with error: return error.code, json.load(error)
+        try:
+            assert request(&quot;/books&quot;, credential=None)[0] == 401
+            assert request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;a&quot;, &quot;book_id&quot;:1}, guest)[0] == 403
+            assert request(&quot;/books?q=Dune&quot;)[1][0][&quot;copies&quot;] == 2
+            assert request(&quot;/books?q=%27%20OR%201%3D1%20--&quot;)[1] == []
+            assert request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;bad&quot;, &quot;book_id&quot;:True})[0] == 400
+            first = request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;a&quot;, &quot;book_id&quot;:1})
+            replay = request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;a&quot;, &quot;book_id&quot;:1})
+            assert first[0] == 201 and replay[0] == 200 and first[1] == replay[1]
+            assert request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;a&quot;, &quot;book_id&quot;:2})[0] == 409
+            assert request(&quot;/books?q=Dune&quot;)[1][0][&quot;copies&quot;] == 1
+            assert request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;b&quot;, &quot;book_id&quot;:1})[0] == 201
+            assert request(&quot;/loans&quot;, {&quot;request_id&quot;:&quot;c&quot;, &quot;book_id&quot;:1})[0] == 409
+            print(&quot;PASS: authentication, scopes, validation, bound SQL, idempotent replay and stock limits&quot;)
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=5); assert not thread.is_alive()
+        reopened = Catalogue(path)
+        assert reopened.search(&quot;Dune&quot;)[0][&quot;copies&quot;] == 0
+        with closing(reopened.connect()) as db:
+            total, copies = db.execute(&quot;SELECT total,copies FROM books WHERE id=1&quot;).fetchone()
+            loans = db.execute(&quot;SELECT COUNT(*) FROM loans WHERE book_id=1&quot;).fetchone()[0]
+            assert total == copies + loans == 2
+        print(&quot;PASS: restart persistence and inventory invariant&quot;)
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(&quot;--serve&quot;, action=&quot;store_true&quot;)
+    parser.add_argument(&quot;--db&quot;, default=&quot;catalogue.sqlite&quot;)
+    parser.add_argument(&quot;--port&quot;, type=int, default=8000)
+    args = parser.parse_args()
+    if not args.serve: self_test(); return
+    token = os.environ.get(&quot;CS_CATALOGUE_TOKEN&quot;, &quot;&quot;)
+    if len(token) &lt; 32: parser.error(&quot;set CS_CATALOGUE_TOKEN to a random 32+ character credential&quot;)
+    server = make_server(args.db, {token: (&quot;reader&quot;, {&quot;read&quot;, &quot;borrow&quot;})}, args.port)
+    print(f&quot;Local catalogue: http://127.0.0.1:{server.server_port}/books (Bearer credential required)&quot;)
+    try: server.serve_forever()
+    except KeyboardInterrupt: pass
+    finally: server.server_close()
+
+if __name__ == &quot;__main__&quot;: main()
+</code></pre><div class="output"><div class="output-label">Captured output</div><pre><code class="language-text">PASS: authentication, scopes, validation, bound SQL, idempotent replay and stock limits
+PASS: restart persistence and inventory invariant
+</code></pre></div><ol><li>Inspect the first and replayed loan statuses and identical bodies.</li><li>Extend the tests for blank/repeated q and request ID collisions across identities.</li><li>Run persistent mode locally: set CS_CATALOGUE_TOKEN to a random token of at least 32 characters, then use --serve --db catalogue.sqlite --port 8000. Send GET /books with Authorization: Bearer followed by your token.</li><li>Design a return operation with its own idempotency key and transaction.</li></ol><details class="solution"><summary>Worked solution</summary><div class="details-body"><p>New loan returns 201, replay 200 with the same recorded loan. Blank or repeated q returns 400; reusing a request ID with a different identity conflicts. A return must mark an existing active loan returned and increment stock atomically, while rejecting repeated non-idempotent updates. Add an explicit returned flag and saved return request record; do not simply increment every time. Restart the server on the same database and verify unchanged committed stock.</p></div></details><span class="section-anchor" id="exercises"></span><div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Exercises with worked solutions</h2></div><p>Try before opening the solution. ★ applies an idea; ★★ combines ideas; ★★★ asks for design or proof.</p><div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1 — Identity</span><span class="stars">★</span></div><p>Classify missing token versus valid read-only token borrowing.</p></div><details class="solution"><summary>Worked solution</summary><div class="details-body"><p>401 for missing authentication, 403 for insufficient authorisation.</p></div></details><div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2 — Validation</span><span class="stars">★</span></div><p>Why reject an extra admin field?</p></div><details class="solution"><summary>Worked solution</summary><div class="details-body"><p>The schema does not grant such a field any meaning; accepting it could hide client errors or later enable unintended mass assignment.</p></div></details><div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3 — Replay</span><span class="stars">★★</span></div><p>A loan request is sent three times with the same ID and inputs. How many decrements?</p></div><details class="solution"><summary>Worked solution</summary><div class="details-body"><p>One after the first successful commit; subsequent requests return the saved result.</p></div></details><div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4 — Changed input</span><span class="stars">★★</span></div><p>Same request ID, different book. Correct behaviour?</p></div><details class="solution"><summary>Worked solution</summary><div class="details-body"><p>409 conflict, not a new loan and not a misleading replay.</p></div></details><div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5 — Stock invariant</span><span class="stars">★★</span></div><p>Total 3, two active loans. Available copies?</p></div><details class="solution"><summary>Worked solution</summary><div class="details-body"><p>One, assuming every loan consumes one copy and no returns/additions alter the model.</p></div></details><div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6 — Return design</span><span class="stars">★★★</span></div><p>Design a safe idempotent return.</p></div><details class="solution"><summary>Worked solution</summary><div class="details-body"><p>Authenticate owner/scope; validate loan and request IDs; in one transaction replay a saved identical return or mark an active loan returned and increment stock; persist the return result. Reject mismatched keys and already returned loans under a new non-equivalent request.</p></div></details><div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7 — Failure injection</span><span class="stars">★★★</span></div><p>How would you verify rollback if insertion fails after a stock update?</p></div><details class="solution"><summary>Worked solution</summary><div class="details-body"><p>Inject a deliberate exception between update and insert inside the transaction, call the service, then independently query stock and loans. Both must equal their pre-call committed state.</p></div></details><div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8 — Evidence limits</span><span class="stars">★★</span></div><p>What does the finite capstone suite not establish?</p></div><details class="solution"><summary>Worked solution</summary><div class="details-body"><p>Production scalability, public-network TLS configuration, exhaustive absence of security flaws or multi-process contention behaviour. Those require separate designs and checks.</p></div></details><span class="section-anchor" id="quiz"></span><div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Self-check quiz</h2></div><p>Choose an answer for feedback; reset to retry. A text answer key is available without JavaScript.</p><div class="quiz"><div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><p>Authentication determines?</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">Caller identity</button></li><li><button class="quiz-opt" type="button" data-i="1">Input size only</button></li><li><button class="quiz-opt" type="button" data-i="2">SQL order</button></li></ol><div class="quiz-expl" hidden>Authorisation determines permissions.</div></div><div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><p>bool as integer ID should be?</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">Converted to admin</button></li><li><button class="quiz-opt" type="button" data-i="1">Rejected by this contract</button></li><li><button class="quiz-opt" type="button" data-i="2">Accepted automatically</button></li></ol><div class="quiz-expl" hidden>Python subclassing does not change the API meaning.</div></div><div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><p>Idempotent replay should?</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">Always consume a copy</button></li><li><button class="quiz-opt" type="button" data-i="1">Erase the prior loan</button></li><li><button class="quiz-opt" type="button" data-i="2">Return stored result without another decrement</button></li></ol><div class="quiz-expl" hidden>The same committed operation is not applied twice.</div></div><div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><p>Parameterised SQL replaces scopes?</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">No</button></li><li><button class="quiz-opt" type="button" data-i="1">Yes</button></li><li><button class="quiz-opt" type="button" data-i="2">Only for GET</button></li></ol><div class="quiz-expl" hidden>Data safety and access control differ.</div></div><div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><p>Default capstone execution?</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">Deletes user databases</button></li><li><button class="quiz-opt" type="button" data-i="1">Finite self-test and cleanup</button></li><li><button class="quiz-opt" type="button" data-i="2">Public server forever</button></li></ol><div class="quiz-expl" hidden>It uses a temporary local environment.</div></div><div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><p>Persistence test should?</p></div><ol class="quiz-opts"><li><button class="quiz-opt" type="button" data-i="0">Only inspect printed output</button></li><li><button class="quiz-opt" type="button" data-i="1">Reset stock every startup</button></li><li><button class="quiz-opt" type="button" data-i="2">Reopen and verify committed state</button></li></ol><div class="quiz-expl" hidden>Restart must not erase valid state.</div></div><div class="quiz-bar"><span class="quiz-score" role="status" aria-live="polite"></span><button class="quiz-reset" type="button">Reset quiz</button></div></div><details><summary>Answer key</summary><div class="details-body"><ol><li>A — Authorisation determines permissions.</li><li>B — Python subclassing does not change the API meaning.</li><li>C — The same committed operation is not applied twice.</li><li>A — Data safety and access control differ.</li><li>B — It uses a temporary local environment.</li><li>C — Restart must not erase valid state.</li></ol></div></details><span class="section-anchor" id="reading"></span><div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Guided reading</h2></div><ul><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html">OWASP authorisation guidance</a> — Read deny-by-default and per-request permission checks; identify those boundaries in the capstone.</li><li><a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html">OWASP SQL injection prevention</a> — Read parameterised-query examples and distinguish them from validation.</li></ul><span class="section-anchor" id="summary"></span><div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Review and the next step</h2></div><p>You have built and investigated a system from representation and algorithms through operating systems, networking and persistence. Present the capstone with its contract, module diagram, invariant, failure cases and evidence limits. Extend it with returns or multiple authors, preserving those guarantees.</p><span class="section-anchor" id="terms"></span><div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Key terms</h2></div><div class="table-scroll" tabindex="0" role="region" aria-label="Data table"><table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody><tr><td>Trust boundary</td><td>Where data or authority crosses between differently trusted contexts.</td></tr><tr><td>Scope</td><td>A permitted category of action for an identity.</td></tr><tr><td>Integration test</td><td>A check across collaborating components and their boundaries.</td></tr></tbody></table></div></div><div class="module-nav"><a href="module_13_EN.html">← Previous module</a><a href="index.html">Course overview</a></div><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div>
+<script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script><script src="assets/series-widgets.js" defer></script></body></html>

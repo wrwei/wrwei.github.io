@@ -21,7 +21,7 @@ final norm. With the usual $n_h d_h = d$ and $n_{kv} = n_h/4$, attention costs
 $d^2 + d^2/2 + d^2 = 2.5d^2$, so a layer is $(2.5 + 3d_{\text{ff}}/d)\,d^2$ plus the norms:
 $13d^2$ at $d_{\text{ff}} = 3.5d$ (Llama 3 8B), $13.75d^2$ at the case study's $3.75d$.
 
-The source's rule $N \approx 12Ld^2$ comes from an older block: full multi-head attention ($4d^2$)
+The rough rule $N \approx 12Ld^2$ comes from an older block: full multi-head attention ($4d^2$)
 and a GELU MLP of hidden width $4d$, two matrices of $d \times 4d$, $8d^2$. SwiGLU,
 $\mathbf{W}_{\text{down}}\big(\mathrm{SiLU}(\mathbf{W}_{\text{gate}}\mathbf{x}) \odot \mathbf{W}_{\text{up}}\mathbf{x}\big)$,
 has three matrices of $d \times d_{\text{ff}}$, so matching the GELU MLP's count needs
@@ -60,7 +60,7 @@ and the untied output head (622.9M).
 
 ### Choosing the shape
 
-The source's decision table for a model of 9–10B, with the reason for each row:
+Candidate choices for a model of 9–10B; validate them on proxy runs:
 
 | Decision | Typical choice | Reason |
 |---|---|---|
@@ -76,13 +76,9 @@ The source's decision table for a model of 9–10B, with the reason for each row
 | Biases | None | Marginal for quality; removed for stability and simplicity |
 | Dense or MoE | Dense at this size | A mixture of experts trades memory and communication for FLOPs (below) |
 
-The loss depends on $N$ far more than on how $N$ is shaped. Kaplan et al. (2020) found that at
-fixed $N$ it changes by only a few percent across aspect ratios $d/L$ from about 20 to 200; the
-case study's is $4{,}096/36 = 114$. Shape is therefore decided after $N$, by precedent and
-kernel-friendly sizes, with an eye on cost: a deeper model runs more sequential layers per token
-and needs more pipeline stages ([Section 10](#s10)). Architectural switches are ablated at
-100M–1B parameters and assumed to transfer, which they mostly do; the exceptions are what the
-literature is about.
+Choose shape after the parameter budget, checking kernel efficiency and
+sequential layer cost. Proxy ablations provide evidence for transfer; they do
+not guarantee that every switch behaves identically at the full scale.
 
 ### Mixture of experts at scale
 
@@ -115,15 +111,15 @@ experts by an all-to-all (the dispatch), and the outputs return by a second all-
 combine). Per token per MoE layer that moves about $2 \times k \times d \times 2$ bytes in bf16:
 $2 \times 2 \times 4{,}096 \times 2 = 32{,}768$ bytes for the variant above, or up to 9.7 GB per
 8,192-token sequence through 36 layers in the forward pass, and as much again in the backward.
-The experts usually sit on other nodes, across the slow links of [Section 9](#s9), so the
-all-to-all is the bottleneck an MoE layout is designed around (Figure 8.8).
+When selected experts sit on other nodes, the slower links of [Section 9](#s9)
+can make the all-to-all a bottleneck (Figure 8.8).
 
 ::: figure id=fig-08-8
-Expert parallelism on 4 GPUs, each holding 2 of the 8 experts. Tokens on each GPU are coloured by
-their top-2 destinations; the dispatch all-to-all sends every token to the GPUs that hold its
-experts, the experts compute, and the combine all-to-all returns the outputs to the token's own
-GPU. Side panel: one expert's capacity buffer of 2,560 slots, with the overflow tokens drawn
-passing through the residual path unchanged.
+Expert-parallel dispatch and combine on four GPUs holding two experts each.
+Each token is routed to two expert owners; outputs return to its original GPU.
+The example capacity is 2,560 assignments per expert. Overflow contributions
+are omitted from the expert sum; the residual path remains. Arrows show stages,
+not measured communication volumes.
 :::
 
 **Load balancing.** Left alone, the router collapses onto a few experts: the experts it favours
@@ -140,9 +136,11 @@ $E \cdot E \cdot (1/E^2) = 1$ and the loss equals $\alpha$ (Switch used $\alpha 
 count $f_i$ is not differentiable, so the gradient flows through $P_i$:
 $\partial\mathcal{L}_{\text{aux}}/\partial P_i = \alpha E f_i$, largest for the busiest experts.
 
-**Capacity.** Each expert processes at most $\mathrm{CF}\cdot kT/E$ tokens of a batch of $T$
-tokens, where CF is the **capacity factor**. Tokens beyond that are dropped from the layer and
-pass through the residual connection unchanged.
+**Capacity.** In a capacity-limited router, each expert processes at most
+$\mathrm{CF}\cdot kB_{\text{tok}}/E$ assignments from a routing-group batch of
+$B_{\text{tok}}$ tokens, where CF is the **capacity factor**. This policy drops
+overflow assignments; tokens with no retained assignment follow the residual
+path. Other routers use dropless dispatch. State the policy before comparing them.
 
 ::: worked title="An unbalanced router and an overflowing expert"
 Load-balancing loss with $E = 4$: $f = (0.55, 0.15, 0.15, 0.15)$ and
@@ -150,10 +148,11 @@ $P = (0.50, 0.167, 0.167, 0.167)$ give $E\sum_i f_i P_i = 4 \times (0.275 + 3 \t
 against 1.00 at perfect balance. The gradient on $P_1$ is proportional to $f_1 = 0.55$, 3.7 times
 that on each of the others, so expert 1 loses probability fastest.
 
-Capacity with 8,192 tokens per device, $k = 2$, $E = 8$ and $\mathrm{CF} = 1.25$:
+Capacity with 8,192 tokens in the whole routing group, $k = 2$, $E = 8$ and $\mathrm{CF} = 1.25$:
 $1.25 \times 2 \times 8{,}192/8 = 2{,}560$ slots per expert. An expert that attracts 30% of the
-16,384 routed assignments, 4,915 of them, drops $4{,}915 - 2{,}560 = 2{,}355$: almost half its
-tokens skip the layer.
+16,384 routed assignments, 4,915 of them, drops $4{,}915 - 2{,}560 = 2{,}355$:
+almost half this expert's assignments lose its contribution. A token whose other
+selected expert accepts it still receives that other output.
 :::
 
 Two later refinements, at concept level. DeepSeek-V3 balances load largely without an auxiliary
@@ -163,13 +162,11 @@ idle ones, so balancing no longer pulls against the language-modelling gradient.
 experts into many smaller ones, routing each token to more of them, and adds shared experts that
 every token passes through, so common knowledge need not be copied into every expert.
 
-**When MoE pays.** Published MoEs trade memory and communication for FLOPs: Mixtral 8x7B holds
-46.7B parameters and uses 12.9B per token; DeepSeek-V3 holds 671B and uses 37B. The source's rule
-of thumb put the switch above about 30B active parameters; MoEs with only a few billion active
-parameters were also published by 2026, so treat the choice as a cost calculation, not a size.
-At the case study's 9.5B a dense model is the norm: it trains on one node per replica
-([Section 9](#s9)), and the FLOPs an MoE would save do not pay for its memory, its all-to-all in
-every layer and its routing machinery.
+**When MoE pays.** Compare measured active arithmetic, all-expert storage
+and routing communication. Mixtral 8x7B's published counts are 46.7B total and
+12.9B active; DeepSeek-V3's are 671B and 37B. Active count alone does not predict
+latency or a dense-equivalent loss. This case study keeps a dense model to avoid
+expert routing and to fit one sharded node per replica.
 
 ### Carrying the learning rate across widths: muP
 
@@ -326,10 +323,9 @@ during the decay. That drop is noise being averaged out as the steps shrink, not
 being learned, which is why a WSD run looks worse than a cosine run until its last stretch.
 
 ::: figure id=fig-08-9
-Top: learning rate against step for a 10,000-step run with 500 warmup steps, under three
-schedules: warmup-cosine to 10% of the peak, WSD with the last 20% of steps decaying linearly to
-zero, and a constant rate. Bottom (schematic, no measured values): the corresponding loss curves,
-with WSD's loss above cosine's through the stable phase and dropping below it during the decay.
+Computed learning-rate schedules for 10,000 steps: warmup-cosine to 10% of peak,
+WSD with its last 20% decaying linearly to zero, and a constant rate without
+warmup. Warmup ends at step 500. These are schedules, not measured loss curves.
 :::
 
 ::: worked title="The case-study schedule"
@@ -502,20 +498,19 @@ precision: neighbouring values near $x$ are about $x \cdot 2^{-m}$ apart for $m$
 | fp32 | 1 / 8 / 23 | $3.4 \times 10^{38}$ | $1.2 \times 10^{-38}$ | $2^{-23} \approx 1.2 \times 10^{-7}$ |
 | fp16 | 1 / 5 / 10 | 65,504 | $6.1 \times 10^{-5}$; subnormals to $6.0 \times 10^{-8}$ | $2^{-10} \approx 9.8 \times 10^{-4}$ |
 | bf16 | 1 / 8 / 7 | $3.4 \times 10^{38}$ | $1.2 \times 10^{-38}$ | $2^{-7} \approx 7.8 \times 10^{-3}$ |
-| fp8 E4M3 | 1 / 4 / 3 | 448 | $1.6 \times 10^{-2}$ | $2^{-3} = 0.125$ |
+| fp8 E4M3FN | 1 / 4 / 3 | 448 | $1.6 \times 10^{-2}$ | $2^{-3} = 0.125$ |
 | fp8 E5M2 | 1 / 5 / 2 | 57,344 | $6.1 \times 10^{-5}$ | $2^{-2} = 0.25$ |
 
-bf16 is fp32 with the low 16 mantissa bits cut off: the same range, far less precision. fp16
-spends its bits the other way, with three more mantissa bits than bf16 but a range that ends at
+bf16 stores seven fraction bits against fp32's twenty-three, with the same exponent
+width and much less precision. fp16
+spends its bits the other way, with three more fraction bits than bf16 but a range that ends at
 65,504. [Module 10, Section 7](module_10_EN.html#s7) uses the same formats for inference.
 
 ::: figure id=fig-08-11
-Bit layouts of fp32, fp16, bf16, fp8 E4M3 and fp8 E5M2 as coloured bars (sign, exponent,
-mantissa), each with its largest value and relative spacing written beside it. Below, a log-scale
-number line from $10^{-10}$ to $10^{40}$ shading the range each format can represent, with fp16's
-underflow zone (below $6 \times 10^{-8}$) and overflow zone (above 65,504) marked, and a gradient
-of $2 \times 10^{-8}$ drawn before loss scaling, in the underflow zone, and after scaling by
-65,536, at $1.31 \times 10^{-3}$.
+Bit allocations and positive representable ranges, including subnormals, for
+fp32, fp16, bf16, E4M3FN and E5M2. Left-pointing markers indicate ranges extending
+below the displayed lower limit. A $2\times10^{-8}$ gradient lies below fp16's
+smallest subnormal; scaling by 65,536 moves it to $1.31\times10^{-3}$.
 :::
 
 ### Mixed precision as it is run
@@ -550,13 +545,15 @@ bf16 after update:  0.02001953125
 fp32 after update:  0.02002999932
 ```
 
-**fp16 and loss scaling.** fp16 is more precise than bf16 but its range is narrow: gradients below
-its smallest subnormal flush to zero, and attention scores or activations above 65,504 overflow to
+**fp16 and loss scaling.** fp16 is more precise than bf16 but its range is narrow:
+gradients below about half its smallest subnormal round to zero; some kernels
+also flush subnormals. Attention scores or activations above 65,504 overflow to
 infinity. Loss scaling (Micikevicius et al. 2018) multiplies the loss by a **loss scale** $s$
 before the backward pass, so every gradient is $s$ times larger and representable, and divides by
 $s$ before the update. Dynamic scaling finds $s$ automatically: on an inf or NaN in the gradients
 it halves $s$ and skips the step, and after a run of clean steps (2,000 in PyTorch's default) it
-doubles $s$. bf16 has fp32's exponent range and needs no scaling at all, which is the main reason
+doubles $s$. bf16 has fp32's exponent width and typical recipes avoid fp16-style
+loss scaling, which is a main reason
 modern runs are more stable than the fp16 runs before them.
 
 ::: worked title="A gradient rescued by loss scaling"
@@ -593,7 +590,7 @@ problem.
 Cross-entropy depends only on differences between logits. For logits $\mathbf{z}$ and target $y$
 the loss is $-z_y + \log Z$ with $Z = \sum_j e^{z_j}$; adding a constant $c$ to every logit adds
 $c$ to both terms, and they cancel. Nothing in the loss pins the overall level of the logits, so it
-can drift, and large logits lose precision in bf16 and can overflow. The **z-loss** pulls
+can drift, and large logits lose precision in bf16; unstable exponential implementations can also overflow. The **z-loss** pulls
 $\log Z$ towards 0. Using $\partial\log Z/\partial z_j = e^{z_j}/Z$:
 
 $$
@@ -642,8 +639,7 @@ shifted by 30: cross-entropy 4.4256, with z-loss 4.5448
 ### QK-norm and attention-logit growth
 
 Inside attention the logits are $\mathbf{q}\cdot\mathbf{k}/\sqrt{d_h}$, and nothing bounds them. As
-the query and key projections grow during training, the logits grow, the softmax saturates to
-one-hot, attention entropy collapses, and training stalls or diverges (Dehghani et al. 2023;
+the query and key projections grow during training, the logits grow, the softmax can become sharply concentrated, attention entropy falls, and training can stall or diverge (Dehghani et al. 2023;
 Wortsman et al. 2024). **QK-norm** applies an RMSNorm with a learned gain to $\mathbf{q}$ and
 $\mathbf{k}$ per head before the dot product. A unit-RMS vector of dimension $d_h$ has length
 $\sqrt{d_h}$, so
@@ -665,23 +661,25 @@ sensitivity**, how fast the loss degrades away from the best rate. [Lab 3](#lab3
 laptop and finds, as they did, that the instability of a small model at a high rate is
 attention-logit growth, which QK-norm removes and which warmup, clipping and z-loss alone do not.
 
-::: worked title="Lab 3 in advance"
-In a prototype run of Lab 3 (your numbers will differ in the details), a 4-layer model trained
-for 150 steps at a learning rate of $3 \times 10^{-2}$ drove the largest attention logit,
-$\max|\mathbf{q}\cdot\mathbf{k}|/\sqrt{d_h}$, to about 900, against 34 at $3 \times 10^{-3}$, and
-stalled at a loss of 5.44 against 4.58. Adding warmup, clipping and z-loss in turn left the logits
-between 600 and 1,300 and the loss between 5.37 and 5.46. Adding QK-norm held the logits at about
-12 and brought the loss to 4.79. With all four stabilisers the loss at $3 \times 10^{-3}$ improved
-too, to 4.18. The fix that works is the one aimed at the mechanism.
+::: worked title="Measured Lab 3 instability"
+In this environment, the 150-step reference at $3\times10^{-3}$ ends at mean
+loss 4.273 over its last twenty steps, with a final-batch maximum attention
+logit of 28.4. At $3\times10^{-2}$, loss is 5.234 and the logit 971.7.
+Warmup, clipping and z-loss added cumulatively leave loss between 5.389 and
+5.549 and logits between 753 and 1,138. Adding QK-norm lowers them to 4.786
+and 12.4. With all four at the reference rate, loss is 4.024. These are controlled
+training diagnostics, not nine held-out checkpoint comparisons.
 :::
 
 ::: check
-Why does bf16 not need loss scaling while fp16 does?
+Why do typical bf16 recipes avoid fp16-style loss scaling?
 :::
 
 ::: answer
-bf16 has 8 exponent bits, fp32's range, so small gradients do not underflow. fp16 has 5 and
-flushes values below about $6 \times 10^{-8}$ to zero.
+bf16 has 8 exponent bits and represents much smaller magnitudes. Extremely small
+values can still underflow. fp16 has 5 exponent bits and its least positive subnormal is
+about $6 \times 10^{-8}$. With gradual underflow and round-to-nearest, values below half that
+spacing round to zero; some kernels additionally flush subnormals to zero.
 :::
 
 ::: check
@@ -846,11 +844,10 @@ the latency, grows with $N_d$. Frameworks split the gradients into buckets and r
 as soon as the backward pass has produced it, hiding most of the time behind computation.
 
 ::: figure id=fig-08-14
-Ring all-reduce on 4 GPUs. The gradient on each GPU is split into 4 chunks. Three reduce-scatter
-steps pass one chunk per GPU to the next GPU around the ring, each receiver adding its own copy,
-until every GPU holds one fully summed chunk; three all-gather steps then pass the summed chunks on
-until every GPU holds all four. The partial sums each GPU holds are shown after every step. Each
-GPU sends $2(N_d - 1)/N_d \times S$ bytes in all, $1.5S$ for $N_d = 4$.
+Four-GPU ring all-reduce. The reduce-scatter table identifies the received
+chunk and contributing GPU ranks after each of three steps; the all-gather
+table lists fully summed chunks known after each of three steps. Every GPU
+sends six quarter-sized chunks, totalling $1.5S$ bytes for an $S$-byte gradient.
 :::
 
 The bandwidths to reason with (typical as of 2026): inside an 8-GPU H100 node, NVLink gives about
@@ -898,11 +895,10 @@ Without checkpointing only ZeRO-3 fits; with it, ZeRO-1 and ZeRO-2 fit too.
 :::
 
 ::: figure id=fig-08-13
-ZeRO stages as a 4 × 4 grid: rows for plain data parallelism, ZeRO-1, ZeRO-2 and ZeRO-3; columns
-for GPUs 0 to 3. Each cell stacks that GPU's weights, gradients and optimiser states; a part kept
-whole is drawn full width, a sharded part as a quarter-width slice in a distinct colour. At the
-end of each row, the per-GPU model-state memory for the case study, computed for 8 GPUs: 152.8,
-52.5, 35.8 and 19.1 GB.
+Case-study per-GPU total memory estimates on eight GPUs: DP and ZeRO stages
+1–3, with and without full activation checkpointing. Each bar includes model
+states, one 8,192-token sequence and fp32 logits; the 80 GB line excludes runtime
+allowances. Stage 3 passes the simplified bound without checkpointing.
 :::
 
 ### FSDP and hybrid sharding
@@ -957,4 +953,3 @@ What does ZeRO-3 pay for its $1/N_d$ memory?
 An extra all-gather of the weights in the backward pass, $3N$ elements per step against data
 parallelism's $2N$ (1.5 times), and a per-layer wait for the gather unless it is prefetched.
 :::
-

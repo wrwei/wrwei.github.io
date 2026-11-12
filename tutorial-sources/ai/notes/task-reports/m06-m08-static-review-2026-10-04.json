@@ -1,0 +1,139 @@
+{
+  "date": "2026-10-04",
+  "modules": [6, 7, 8],
+  "status": "static_review_complete_changes_requested",
+  "scope": {
+    "reviewed": [
+      "English concept sections, embedded lab code and recorded outputs",
+      "Worked examples, exercise solutions, quizzes and guided reading",
+      "Consistency of claims across concepts, labs and exercises",
+      "Widget source calculations and bilingual labels"
+    ],
+    "method": "Read-only source inspection, manual reasoning and primary-source documentation checks.",
+    "project_code_executed": false,
+    "tests_builds_training_or_browser_launched": false,
+    "tutorial_sources_changed": false,
+    "limitations": [
+      "Recorded lab outputs were inspected rather than rerun during this review.",
+      "This review does not establish runtime behaviour, browser layout or accessibility.",
+      "The Chinese prose and page metadata for Modules 6-8 remain to be produced and reviewed.",
+      "Translation and publication are paused following the user's instruction to review without running code."
+    ]
+  },
+  "findings": [
+    {
+      "id": "R1",
+      "priority": "P2",
+      "file": "tutorial-sources/ai/src/en/module_06/21-labs-b.md",
+      "line": 108,
+      "title": "Count both input biases for biased SwiGLU",
+      "evidence": "The generic parameter counter supports glu=True and bias='all', but adds only d_ff + d FFN bias parameters. SwiGLU has two d-to-d_ff projections and one d_ff-to-d projection, requiring 2*d_ff + d biases per layer.",
+      "impact": "This supported configuration silently undercounts parameters by L*d_ff. The listed reference configurations do not exercise the combination, so their successful comparisons would not reveal the error.",
+      "recommendation": "Replace the bias contribution with (2 if cfg.glu else 1) * cfg.d_ff + cfg.d. When execution is allowed again, compare this configuration against a corresponding instantiated model."
+    },
+    {
+      "id": "R2",
+      "priority": "P2",
+      "file": "tutorial-sources/ai/src/en/module_07/12-concepts-c.md",
+      "line": 823,
+      "title": "Make few-shot troubleshooting match the recorded experiment",
+      "evidence": "The paragraph attributes a roughly 20-point accuracy swing to reordering the same examples and says predictions follow the last labels. Lab 4 records AABB accuracy 0.6250 and BBAA 0.6875, a 6.25-point order difference. Their A prediction fractions are 0.8750 and 0.3125 respectively, opposite simple attraction to the final label. The 18.75-point accuracy spread belongs to different eight-shot example selections.",
+      "impact": "Learners are directed to diagnose recency bias from an experiment that does not support it. Exercise 8 already explains this correctly, creating an internal contradiction.",
+      "recommendation": "Separate example-selection sensitivity from order sensitivity, use the recorded differences, and describe label-frequency effects without claiming their mechanism has been identified.",
+      "related_locations": [
+        {"file": "tutorial-sources/ai/src/en/module_07/21-labs-b.md", "line": 285},
+        {"file": "tutorial-sources/ai/src/en/module_07/30-exercises.md", "line": 255}
+      ]
+    },
+    {
+      "id": "R3",
+      "priority": "P2",
+      "file": "tutorial-sources/ai/src/en/module_07/10-concepts-a.md",
+      "line": 780,
+      "title": "Describe E=1.69 as a fitted asymptote",
+      "evidence": "The check answer calls E the loss no model can beat and says a perfect model would have perplexity exp(1.69). Section 1 and Exercise 7 correctly state that the fit does not prove the true source entropy equals 1.69.",
+      "impact": "The answer turns an empirical model's fitted parameter into a universal lower bound, overstating what the fit establishes.",
+      "recommendation": "Say the fitted law tends to 1.69 nats/token, corresponding to perplexity about 5.4 under that extrapolation. Preserve the caveat that this is not proof of the corpus's exact entropy, and make the Section 4 parameter description agree.",
+      "related_locations": [
+        {"file": "tutorial-sources/ai/src/en/module_07/10-concepts-a.md", "line": 156},
+        {"file": "tutorial-sources/ai/src/en/module_07/30-exercises.md", "line": 233}
+      ]
+    },
+    {
+      "id": "R4",
+      "priority": "P2",
+      "file": "tutorial-sources/ai/src/en/module_08/11-concepts-b.md",
+      "line": 681,
+      "title": "Distinguish fp16 subnormal spacing, rounding and flushing",
+      "evidence": "The check answer says fp16 flushes values below about 6e-8 to zero. Its least positive subnormal is 2^-24, approximately 5.96e-8; with gradual underflow and round-to-nearest, values above half that spacing can round to a nonzero subnormal. For example, 4e-8 can round to 5.96e-8. Kernel-specific flushing is a separate behaviour. The section body already makes these distinctions.",
+      "impact": "The answer teaches the wrong universal zero threshold and contradicts the more precise explanation above it.",
+      "recommendation": "Make the answer agree with the body: values below half the least subnormal round to zero under round-to-nearest; some operations additionally flush subnormals.",
+      "primary_reference": "https://docs.nvidia.com/deeplearning/performance/mixed-precision-training/index.html#half-precision-format"
+    },
+    {
+      "id": "R5",
+      "priority": "P2",
+      "file": "tutorial-sources/ai/src/en/module_06/10-concepts-a.md",
+      "line": 709,
+      "title": "State view's stride condition rather than requiring global contiguity",
+      "evidence": "The prose and its check answer say view works only on contiguous memory. PyTorch allows views of noncontiguous tensors when the requested dimensions satisfy its size/stride compatibility condition. Merging the transposed head dimensions in this example does require a copy in the ordinary nondegenerate shape, but the general rule is broader.",
+      "impact": "Learners acquire an incorrect rule for reasoning about tensor layout and copies.",
+      "recommendation": "Explain that this head merge violates view's stride compatibility condition, and that reshape returns a view when possible and otherwise copies.",
+      "related_locations": [
+        {"file": "tutorial-sources/ai/src/en/module_06/10-concepts-a.md", "line": 897}
+      ],
+      "primary_reference": "https://docs.pytorch.org/docs/2.14/generated/torch.Tensor.view.html"
+    },
+    {
+      "id": "R6",
+      "priority": "P2",
+      "file": "tutorial-sources/ai/src/en/module_06/11-concepts-b.md",
+      "line": 72,
+      "title": "Avoid guaranteeing post-norm divergence without warmup",
+      "evidence": "The passage says a post-norm model trained at its full learning rate from step one therefore diverges, followed by a general claim that pre-norm trains with little or no warmup. The cited paper establishes a mechanism for instability at large learning rates and demonstrates successful pre-norm recipes without warmup; it does not establish inevitable divergence for every post-norm recipe.",
+      "impact": "An empirical and recipe-dependent stability result becomes a universal claim.",
+      "recommendation": "Use 'can become unstable at a large learning rate' and say pre-norm often reduces warmup requirements. Keep learning rate, depth, initialization and the rest of the recipe relevant to the claim.",
+      "primary_reference": "https://proceedings.mlr.press/v119/xiong20b.html"
+    },
+    {
+      "id": "R7",
+      "priority": "P2",
+      "file": "tutorial-sources/ai/src/en/module_08/10-concepts-a.md",
+      "line": 538,
+      "title": "Require exact verification for the false-candidate correctness claim",
+      "evidence": "The passage allows verification by either exact shingle Jaccard or the fraction of agreeing signature entries, then says false candidates cost time rather than correctness. Signature agreement is a random estimate and can accept a pair whose exact similarity is below the threshold.",
+      "impact": "Learners may substitute approximate verification while assuming it prevents erroneous removals.",
+      "recommendation": "Reserve the correctness claim for exact threshold verification under the declared clustering policy. If approximate signature verification is offered, describe its false-positive uncertainty. Lab 1 already uses exact word-shingle verification."
+    },
+    {
+      "id": "R8",
+      "priority": "P2",
+      "file": "tutorial-sources/ai/src/en/module_07/12-concepts-c.md",
+      "line": 690,
+      "title": "Limit Chinese cost ratios to the measured text and separate latency assumptions",
+      "evidence": "A single bilingual paragraph's tokenizer ratios are extrapolated to all input and output text, to decode time by the same factor, and to a claim that a bilingual tokenizer keeps Chinese at or below English cost. Token ratios depend on the corpus. Decode step costs also depend on context length, KV traffic, batching and hardware.",
+      "impact": "The case-study budget reads as a guaranteed language and latency relationship rather than a conditional estimate.",
+      "recommendation": "Label the numbers as a scenario using the measured paragraph's ratios. Calculate billing under an explicit equal-rate assumption and treat decode latency as approximate only under fixed per-token throughput. Recommend measuring representative bilingual inputs and outputs."
+    },
+    {
+      "id": "R9",
+      "priority": "P3",
+      "file": "tutorial-sources/ai/src/en/module_07/40-practice.md",
+      "line": 99,
+      "title": "Repair literal question marks in guided-reading punctuation",
+      "evidence": "Two linked paper titles contain literal question marks where quotes belong, and the reading instruction says 'Sections 1?3'. These remain present when the file is read as UTF-8.",
+      "impact": "The published reading list would contain visible punctuation corruption.",
+      "recommendation": "Restore ordinary quotation marks and the intended range dash. Do not globally replace question marks, which are valid elsewhere in the module.",
+      "related_locations": [
+        {"file": "tutorial-sources/ai/src/en/module_07/40-practice.md", "line": 117},
+        {"file": "tutorial-sources/ai/src/en/module_07/40-practice.md", "line": 121}
+      ]
+    }
+  ],
+  "next_steps_when_execution_is_allowed": [
+    "Correct the English findings and reconcile repeated explanations and answer keys.",
+    "Translate complete prose and metadata into Chinese using the repository translation guide and glossary.",
+    "Review bilingual figures, widgets, anchors and navigation in rendered pages.",
+    "Run the required authoring checks and build, then publish through the established repository workflow."
+  ]
+}

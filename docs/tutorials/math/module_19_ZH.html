@@ -1,0 +1,510 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>凸性、梯度方法与无约束优化 — 计算机科学与人工智能的数学基础</title><meta name="description" content="按明确假设证明凸性与下降，分析二次特征模态和条件，区分梯度、牛顿、坐标更新与不可靠停止启发式。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="19"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 19</button><div class="dropdown-menu" id="module-menu"><a href="module_19_ZH.html" class="active" aria-current="page">凸性、梯度方法与无约束优化</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_19_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>优化主张需要目标与假设</span></a><a href="#s1"><span class="num">2</span><span>目标、定义域、下确界与取得极小</span></a><a href="#s2"><span class="num">3</span><span>凸性、Jensen与光滑判据</span></a><a href="#s3"><span class="num">4</span><span>驻点、局部分类与全局证书</span></a><a href="#s4"><span class="num">5</span><span>梯度步、下降界与回溯</span></a><a href="#s5"><span class="num">6</span><span>二次模态、条件与坐标尺度</span></a><a href="#s6"><span class="num">7</span><span>牛顿、坐标方法与有条件终止</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个可复现实验</span></a><a href="#exercises"><span class="num">10</span><span>十四道练习与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自检</span></a><a href="#reading"><span class="num">12</span><span>有目标的阅读</span></a><a href="#summary"><span class="num">13</span><span>检索结业任务与下一步</span></a><a href="#terms"><span class="num">14</span><span>符号与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">凸性、梯度方法与无约束优化</h1><p class="module-lead">按明确假设证明凸性与下降，分析二次特征模态和条件，区分梯度、牛顿、坐标更新与不可靠停止启发式。</p><div class="hero-chips"><span class="chip chip-time">12 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>区分取得极小、下确界、局部全局及域边界。</li><li>证明平方范数凸与有限Jensen，写光滑一二阶判据。</li><li>分类驻点并解释凸与强凸增加什么。</li><li>推Lipschitz梯度下降界、实现保障回溯。</li><li>证明二次模态步长区间、解释条件与坐标尺度。</li><li>解牛顿系统、比较坐标更新、诊断奇异曲率及假停止。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>模块 13：对称特征模态与正定曲率；模块 18：列梯度、Hessian与正确目标尺度。下降证明用模块 16 中值定理，不隐含额外积分先修。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">优化主张需要目标与假设</a><a href="#s1">目标、定义域、下确界与取得极小</a><a href="#s2">凸性、Jensen与光滑判据</a><a href="#s3">驻点、局部分类与全局证书</a><a href="#s4">梯度步、下降界与回溯</a><a href="#s5">二次模态、条件与坐标尺度</a><a href="#s6">牛顿、坐标方法与有条件终止</a><a href="#misconceptions">常见误解</a><a href="#labs">三个可复现实验</a><a href="#exercises">十四道练习与完整解答</a><a href="#quiz">十题自检</a><a href="#reading">有目标的阅读</a><a href="#summary">检索结业任务与下一步</a><a href="#terms">符号与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">12 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">180 分钟</span></div><div class="session-title">凸性、目标与驻点候选</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节，证明凸例。</a></span><span class="act-min">110</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">28</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读凸与一阶判据。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">检索极小点与域区别。</a></span><span class="act-min">22</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m19:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">180 分钟</span></div><div class="session-title">下降证明与二次模态</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，证明下降保证。</a></span><span class="act-min">75</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">比较区间内、边界与不稳定步长。</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m19:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">180 分钟</span></div><div class="session-title">条件、尺度与方法选择</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节，探索曲率路径。</a></span><span class="act-min">84</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">比较原坐标与缩放迭代。</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">36</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m19:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">180 分钟</span></div><div class="session-title">牛顿保障与终止含义</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">修复奇异非下降系统与缩放假停止。</a></span><span class="act-min">75</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">诊断练习 11–12。</a></span><span class="act-min">24</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择与书面收敛约定。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读无约束与线搜索假设。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">完成结业，区分证明与训练启发式。</a></span><span class="act-min">46</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m19:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>优化主张需要目标与假设</h2></div>
+<p>梯度给局部敏感性，优化器据此寻较小目标。是否下降、收敛、留在域内、达到全局极小，还需额外假设。本课证明凸与下降，精确分析二次特征模态，对照数值训练中可能出现的停止和牛顿失败。</p>
+<p><strong>检索检查：</strong>用<a href="module_13_ZH.html#s1">模块13</a>对称模态、正定二次型与<a href="module_18_ZH.html#s2">模块18</a>列梯度、Hessian、损失归约。下降证明只用模块16中值定理，无隐藏积分先修。实验用课程固定NumPy基线。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>目标、定义域、下确界与取得极小</h2></div>
+<p>问题指定目标f、可行域D，最小化D内f。无约束常为全Rⁿ或对数正输入等自然开域，不表示允许域外评价。全局极小x<em>须属于D且对所有可行x有f(x</em>)≤f(x)。下确界是目标值最大下界，未必被任何点取得，逼近该界的算法不自动产生取得点。</p>
+<p>(0,1)上f=x下确界零但无极小点，实线exp下确界零只在x→−∞逼近；小梯度或长轨迹不能修复。−x²全实域无有限下界。非空紧致域上连续目标由最值定理取得极小，域、有界、取得都是选择求解器前的数学性质。</p>
+<p>局部极小只比较邻域内可行点，严格版对不同点严格不等。驻点是内部可导零梯度，只是候选；边界极小可梯度非零，折点极小可无经典梯度，下一模块系统处理约束。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">有唯一答案的二次问题</div>
+<p>f=xᵀAx/2−bᵀx，A=[[3,1],[1,3]]，b=(2,−1)。特征值二、四正定，解Ax*=b得(7/8,−5/8)。围绕解展开线性消去，差=(x−x*)ᵀA(x−x*)/2，对其他点严格正。所以唯一全局极小，值−19/16=−1.1875，与迭代是否达到独立。</p>
+</div>
+<p>乘正常数保留极小集合却缩放梯度H、步长和梯度容差解释；加常数保留导数极小却改目标数值。不同日志需比较归约尺度，低目标不自动等于准确参数或好预测，优化误差与泛化不同。</p>
+<p>可逆z=Sx且g(z)=f(S⁻¹z)时问题对应，但z欧氏梯度步映回通常是矩阵缩放更新而非原标量步。若特征变换却罚项不调整，目标可能变了，要说明再参数化还是新建模选择。</p>
+<p>实现报告初点、步选择、接受目标和停止量。最大步数结束尝试，小更新、梯度或目标变化只认证定理联系的量。有限几个起点成功不证明任意非凸网络全局保证。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>有限下确界保证取得吗？正缩放保留固定梯度容差含义吗？无约束为何仍写自然域？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>开区间x及全域exp否定取得；缩放保留极小但改导数阈值和步长。更新可离开对数域，即使没有显式约束方程。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>凸性、Jensen与光滑判据</h2></div>
+<p>凸集包含任两点的全部线段(1−t)x+ty，0≤t≤1。凸函数满足f(混合)≤(1−t)f(x)+tf(y)，图在弦下。不同点、内部t严格则严格凸。凸是全局线段性质，不要求光滑：|x|有折点仍凸；光滑不必凸，如−x²。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">用精确恒等式证明平方范数凸</div>
+<p>‖(1−t)x+ty‖²=(1−t)‖x‖²+t‖y‖²−t(1−t)‖x−y‖²。减的量非负给凸，不同点内部t严格。残差‖Xw−y‖²用X(w₁−w₂)同样凸，严格要求X无非零核方向。</p>
+</div>
+<p>有限Jensen：非负权α和一时f(Σα_i x_i)≤Σα_i f(x_i)。归纳去零权，将前k−1点按总权合成一点，与最后点用二点凸，再用前点归一权归纳。前总权零则只最后一点相等。这里是有限代数平均，期望与无限混合另需模型可积性。</p>
+<p>开凸域可导f的凸等价支持不等式f(y)≥f(x)+∇f(x)ᵀ(y−x)。凸段不等式重排差商、t↓0得它；反过来令z为混合，分别在z对x,y写支持，再加权梯度项消去，恢复凸。判据需所有点对，不是一次切线样本。</p>
+<p>C²开凸域H处处半正定等价凸。沿段二阶dᵀHd≥0，中值使一阶不减，给线段支持；反向凸使对称二阶差非负，除t²取极限得所有d的dᵀHd≥0。单点正曲率仅局部。</p>
+<p>μ&gt;0强凸定义f−μ‖x‖²/2凸。可导支持式多μ‖y−x‖²/2，C²时H处处≽μI充分。强凸给统一二次裕量，严格凸仅严格弦。x⁴全实线严格凸却零处二阶零，不能用任意正μ统一强凸。</p>
+<p>非负和、仿射复合保凸，负倍不行；有限凸函数最大值也凸，因为每函数段值≤加权端值≤加权端最大值。故凸可不光滑，光滑方法另检查可导假设。</p>
+<figure class="fig" id="fig-19-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="平方函数在两端点弦下、在半点支持切线上，强凸常数二给统一二次裕量。"><title>凸性与一阶支持</title><desc>平方函数在两端点弦下、在半点支持切线上，强凸常数二给统一二次裕量。</desc><defs><marker id="fig-19-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">凸弦与支持切线</text><defs><clipPath id="fig-19-1__convex-window"><rect x="90" y="65" width="585" height="225"/></clipPath></defs><g clip-path="url(#fig-19-1__convex-window)"><path d="M90,260H675M380,65V290" stroke="#94a3b8"/><path d="M155,88.125L159.49999999999997,94.93124999999998L164,101.6L168.5,108.13124999999997L173.00000000000003,114.52500000000003L177.5,120.78125L181.99999999999997,126.89999999999998L186.5,132.88125000000002L191,138.725L195.50000000000003,144.43125L200,150L204.5,155.43125L209,160.72500000000002L213.5,165.88125L218,170.89999999999998L222.5,175.78125L227,180.525L231.5,185.13125000000002L236,189.59999999999997L240.5,193.93124999999998L245,198.125L249.5,202.18125L254,206.10000000000002L258.5,209.88125L263,213.525L267.5,217.03125L272,220.4L276.5,223.63125000000002L281,226.725L285.5,229.68125L290,232.5L294.5,235.18125L299,237.725L303.5,240.13125L308,242.4L312.5,244.53125L317,246.525L321.5,248.38125L326,250.1L330.5,251.68125L335,253.125L339.5,254.43125L344,255.6L348.5,256.63125L353,257.525L357.5,258.28125L362,258.9L366.5,259.38125L371,259.725L375.5,259.93125L380,260L384.5,259.93125L389,259.725L393.5,259.38125L398,258.9L402.5,258.28125L407,257.525L411.5,256.63125L416,255.6L420.5,254.43125L425,253.125L429.5,251.68125L434,250.1L438.5,248.38125L443,246.525L447.5,244.53125L452,242.4L456.5,240.13125L461,237.725L465.5,235.18124999999998L470,232.5L474.5,229.68125L479,226.725L483.5,223.63125000000002L488,220.39999999999998L492.5,217.03125L497,213.525L501.5,209.88125L506,206.10000000000002L510.5,202.18124999999998L515,198.125L519.5,193.93125000000003L524,189.60000000000002L528.5,185.13124999999997L533,180.52499999999998L537.5,175.78125L542,170.90000000000003L546.5,165.88125000000002L551,160.72499999999997L555.5,155.43124999999998L560,150L564.5,144.43125L569,138.72500000000005L573.5,132.88124999999997L578,126.89999999999998L582.5,120.78125L587,114.52500000000003L591.5,108.13125000000005L596,101.59999999999997L600.5,94.93124999999998L605,88.125" fill="none" stroke="#c2410c" stroke-width="3"/><path d="M200,150H560" stroke="#15803d" stroke-width="3"/><path d="M290,342.5L293.06,340.63L296.12,338.76L299.18,336.89L302.24,335.02L305.3,333.15L308.36,331.28L311.42,329.40999999999997L314.48,327.53999999999996L317.54,325.67L320.6,323.8L323.65999999999997,321.93L326.71999999999997,320.06L329.78,318.19L332.84,316.32L335.9,314.45L338.96,312.58L342.02,310.71L345.08,308.84000000000003L348.14,306.97L351.2,305.1L354.26,303.23L357.32,301.36L360.38,299.49L363.44,297.62L366.5,295.75L369.56,293.88L372.62,292.01L375.68,290.14L378.74,288.27L381.8,286.4L384.85999999999996,284.53000000000003L387.92,282.65999999999997L390.98,280.79L394.03999999999996,278.92L397.1,277.05L400.15999999999997,275.18L403.22,273.31L406.28,271.44L409.34,269.57L412.4,267.7L415.46000000000004,265.83L418.52,263.96L421.58,262.09L424.64,260.22L427.7,258.35L430.76,256.48L433.82,254.61L436.88,252.74L439.94,250.87L443,249L446.06,247.13L449.12,245.26000000000002L452.17999999999995,243.39000000000001L455.24,241.52L458.3,239.65L461.36,237.78L464.41999999999996,235.91000000000003L467.48,234.04L470.53999999999996,232.17000000000002L473.6,230.3L476.65999999999997,228.43L479.71999999999997,226.56L482.78,224.69L485.84000000000003,222.82L488.9,220.95L491.96000000000004,219.07999999999998L495.02,217.21L498.08,215.34L501.14,213.47L504.2,211.60000000000002L507.26,209.73L510.32,207.86L513.38,205.99L516.44,204.12L519.5,202.25L522.56,200.38000000000002L525.62,198.51L528.68,196.64000000000001L531.74,194.77000000000004L534.8,192.89999999999998L537.8599999999999,191.03000000000003L540.9200000000001,189.15999999999997L543.98,187.29L547.04,185.42000000000002L550.1,183.55L553.16,181.68L556.22,179.81L559.28,177.94L562.3399999999999,176.07L565.4,174.2L568.46,172.33L571.52,170.45999999999998L574.5799999999999,168.59L577.64,166.72000000000003L580.7,164.85L583.76,162.98000000000002L586.8199999999999,161.11L589.88,159.24L592.9399999999999,157.37L596,155.5" fill="none" stroke="#2563eb" stroke-width="3"/><circle cx="470" cy="232.5" r="5" fill="#2563eb"/></g><text x="380" y="105" text-anchor="middle" font-size="20" fill="#1a2e4a">绿弦位于图上方</text><text x="525" y="245" text-anchor="start" font-size="18" fill="#1a2e4a">切点 x=.5</text><text x="380" y="325" text-anchor="middle" font-size="18" fill="#1a2e4a">f=x²；蓝支持线 x−1/4；强凸 μ=2。</text></g></svg></div><figcaption><span class="fig-num">图 19.1</span> <p>凸弦、支持切线和统一强凸裕量是不同断言，假设不同。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>凸总光滑吗？一点H正是否全局凸证明？残差平方严格凸需什么？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>|x|反例；全局C²判据需整凸域H半正定；X需满列秩区分全部非零参数位移。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>驻点、局部分类与全局证书</h2></div>
+<p>内部可导局部极小全部一阶方向率零，即梯度零。C²下驻点H正定严格局部最小、负定最大、不定鞍点，由二阶模型统一余项得。半正定带零方向无结论，高阶决定，都是邻域分类。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">零梯度可以是鞍点或整个平坦解族</div>
+<p>x²−y²零处梯度零、H=diag(2,−2)，沿x增沿y减，是鞍点。x²−2x的H=diag(2,0)，每(1,y)全局最小值−1。该零方向平坦，x⁴−y⁴零H却鞍点，仅零梯度不能区分。</p>
+</div>
+<p>凸改变证书：可导凸且可行内部梯度零，支持式使全域目标不更低。凸函数任何局部极小都全局，即使不可导：若远处更低，凸线段给任意近更低点，矛盾。严格凸让取得极小唯一，否则两同低点中点更低；仍不保证开或无界域取得。</p>
+<p>强凸且有无约束极小x<em>，双向支持相加得(∇f(x)−∇f(x</em>))ᵀ(x−x*)≥μ‖x−x*‖²，极小梯度零与柯西给距离≤‖∇f(x)‖/μ。强凸下模型最小化位移给目标差≤‖梯度‖²/(2μ)。都是统一μ及取得假设下界，不是任意模型小梯度解释。</p>
+<p>10⁻¹²(x−100)²有μ=2·10⁻¹²，零处梯度−2·10⁻¹⁰轻松过10⁻⁶容差，解距离却100，证书也是100。要距离≤.01需精确梯度≤2·10⁻¹⁴。目标差数字很小，可符合目标差标准却不符参数标准，需决定实际要哪一种精度。</p>
+<p>仅凸下支持给目标差≤梯度范数乘到解距离；已知距离界R才得R‖梯度‖。无R或更强结构，小梯度不决定有用统一目标差。非凸驻点需分类或其他全局证据。</p>
+<p>约束改变必要条件：[0,∞)上x在零最小、梯度一，可行方向不能向左。本课零梯度全局证书假设内部无约束和凸域，下一课改为明确乘子与边界条件。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>何时零梯度全局最优？强凸是否免查取得？如何把梯度容差转距离？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>可导凸目标有可行内部零梯度点。强凸给取得时唯一，仍需域存在检查。统一μ及无约束取得解给范数除μ，计算梯度需误差裕量。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>梯度步、下降界与回溯</h2></div>
+<p>梯度下降x_new=x−η∇f(x)，η正。负梯度是欧氏一阶最陡方向，有限步仍可过冲离域。设包含整段x到y的凸区域上梯度L-Lipschitz，L&gt;0，差范数≤L‖y−x‖，则下降引理f(y)≤f(x)+∇f(x)ᵀ(y−x)+L‖y−x‖²/2。</p>
+<p>无需积分的证明：d=y−x，φ(t)=f(x+td)−f(x)−t∇f(x)ᵀd−Lt²‖d‖²/2。导数=[∇f(x+td)−∇f(x)]ᵀd−Lt‖d‖²≤0，由柯西和L界。中值使φ不增，φ(1)≤φ(0)=0。整段须留在已知界的域。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">由有限变化界得充分步长区间</div>
+<p>y=x−ηg后，f_new≤f−η(1−Lη/2)‖g‖²。0&lt;η&lt;2/L且g非零认证严格下降。L=4、η=.2下降系数.12；η=.5系数零不认证严格下降，更大也未认证，二次例可真的发散。充分界未通过与已找违反仍需区分。</p>
+</div>
+<p>固定合法η、目标下有界，累加下降得Σ‖g_k‖²≤(f₀−f_inf)/[η(1−Lη/2)]，若假设始终成立，梯度范数趋零。前K最小平方梯度≤同常数/K，是驻残差保证，不证明全局最小或输入数列收敛，也不无条件套网络。</p>
+<p>凸与取得极小给目标速率。η=1/L、e=x−x<em>，平方距离递推与支持给‖e_next‖²≤‖e‖²−2(f−f</em>)/L+‖g‖²/L²，下降将最后项界为2(f−f_next)/L。于是f_next−f*≤L(‖e‖²−‖e_next‖²)/2。累加，再用目标递减使末差≤平均，得到k≥1时差≤L‖e₀‖²/(2k)。需光滑凸和取得，不只贴O(1/k)标签。</p>
+<p>若还有μ强凸，上一节‖g‖²≥2μ目标差，配下降给每步差最多因子1−μ/L。局部估曲率不自动建立统一μ、L，定理需全局或不变域假设；SPD二次的模态提供更精确参数率。</p>
+<p>回溯无需已知全局L：方向p先满足gᵀp&lt;0，初α正、缩因子β∈(0,1)、Armijo c∈(0,1)，仅在域内且f(x+αp)≤f(x)+cαgᵀp时接受。可导使方向商趋gᵀp，严格低于c gᵀp，所以足够小α在开邻域能通过，精确算术下有限次缩减停止。非下降牛顿方向不由此变合法，也不独自证明全局收敛。</p>
+<figure class="fig" id="fig-19-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="正曲率四的二次从一点用零点二步下降到零点二，用零点五五步过冲负一点二且目标增加。"><title>梯度步的有限变化</title><desc>正曲率四的二次从一点用零点二步下降到零点二，用零点五五步过冲负一点二且目标增加。</desc><defs><marker id="fig-19-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">下降方向仍可能被大步长过冲</text><path d="M100,275H665M380,60V290" stroke="#94a3b8"/><path d="M142.00000000000003,71.16000000000003L146.76000000000002,79.23206400000004L151.52,87.14105600000002L156.28000000000003,94.88697600000003L161.04000000000002,102.46982400000005L165.80000000000004,109.88960000000006L170.56,117.14630399999999L175.32,124.23993600000003L180.08,131.170496L184.84,137.93798400000003L189.60000000000002,144.54240000000001L194.36,150.98374400000003L199.12,157.26201599999996L203.88,163.377216L208.64,169.329344L213.4,175.1184L218.16,180.74438400000003L222.92000000000002,186.207296L227.68,191.507136L232.44,196.64390400000002L237.20000000000002,201.61760000000004L241.96,206.428224L246.72000000000003,211.07577600000002L251.48,215.56025599999998L256.24,219.881664L261,224.04000000000002L265.76,228.035264L270.52,231.867456L275.28,235.536576L280.03999999999996,239.042624L284.8,242.3856L289.56,245.565504L294.32,248.582336L299.08,251.436096L303.84,254.126784L308.6,256.6544L313.36,259.01894400000003L318.12,261.220416L322.88,263.25881599999997L327.64,265.134144L332.40000000000003,266.8464L337.15999999999997,268.395584L341.92,269.781696L346.68,271.004736L351.44,272.064704L356.2,272.9616L360.96,273.695424L365.71999999999997,274.266176L370.48,274.673856L375.24,274.918464L380,275L384.76,274.918464L389.52,274.673856L394.28,274.26617600000003L399.03999999999996,273.695424L403.8,272.9616L408.56,272.064704L413.32,271.004736L418.0799999999999,269.781696L422.84000000000003,268.395584L427.6,266.8464L432.35999999999996,265.134144L437.12,263.25881599999997L441.88,261.220416L446.64,259.01894400000003L451.40000000000003,256.6544L456.15999999999997,254.12678400000001L460.92,251.436096L465.67999999999995,248.58233600000003L470.44,245.565504L475.2,242.3856L479.96,239.04262400000002L484.72,235.536576L489.47999999999996,231.86745600000003L494.24,228.03526399999998L499,224.03999999999996L503.76,219.88166400000003L508.52000000000004,215.56025599999995L513.28,211.07577600000002L518.04,206.42822400000003L522.8000000000001,201.61759999999992L527.56,196.64390400000002L532.3199999999999,191.507136L537.0799999999999,186.207296L541.84,180.74438400000003L546.6,175.1184L551.36,169.329344L556.12,163.377216L560.88,157.26201599999996L565.64,150.98374399999997L570.4,144.54240000000007L575.1600000000001,137.93798399999997L579.92,131.17049600000007L584.68,124.23993600000006L589.4399999999999,117.14630400000007L594.2,109.88959999999994L598.96,102.46982400000005L603.72,94.88697600000003L608.48,87.14105600000002L613.24,79.23206400000004L618,71.16000000000003" fill="none" stroke="#2563eb" stroke-width="3"/><circle cx="550" cy="171" r="6" fill="#1a2e4a"/><circle cx="414" cy="270.84" r="6" fill="#15803d"/><circle cx="176" cy="125.24000000000001" r="6" fill="#c2410c"/><text x="590" y="170" text-anchor="start" font-size="18" fill="#1a2e4a">起点 (1,2)</text><text x="430" y="263" text-anchor="start" font-size="18" fill="#1a2e4a">η=.2 → f=.08</text><text x="180" y="106" text-anchor="middle" font-size="18" fill="#c2410c">η=.55 → f=2.88</text><text x="380" y="325" text-anchor="middle" font-size="20" fill="#1a2e4a">f=2x²，g(1)=4；新点 1−4η。</text></g></svg></div><figcaption><span class="fig-num">图 19.2</span> <p>局部切向与有限步上模型不同，回溯检验实际充分下降。</p>
+</figcaption></figure>
+<p>实际线搜索限制尝试次数并用数值容差，未成功应报告失败而非接受末个拒绝点。极小接受步可能反映曲率、域限制或错误方向，不认证小梯度或解误差，需报告不等式与停止原因，尤其求值有舍入噪声时。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>下降引理需什么？非凸下降中的梯度趋零是否全局最优？为何回溯要先下降方向？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>整合法步段梯度Lipschitz；趋零仍可能非全局驻点；负方向率提供足够小Armijo成功证明，任意方向没有。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>二次模态、条件与坐标尺度</h2></div>
+<p>对称SPD二次目标唯一解Ax*=b，误差e_new=(I−ηA)e。正交特征基每模态系数乘1−ηλ_i。对每个初误差都收敛需全部幅度&lt;1，所以精确区间0&lt;η&lt;2/λ_max，是本二次家族必要充分，不是把一般充分下降界误作所有目标必要。</p>
+<p>η=2/λ_max时激发最高模态恒幅交替，更大则增长；初误差没有该分量可能仍沿其他模态收敛，一次幸运轨迹不能证全局稳定。η=0不动，和模块13动力学、模块17欧拉因素呼应。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">完整步长区间与最优最坏模态选择</div>
+<p>A=[[3,1],[1,3]]，μ=2,L=4，保证0&lt;η&lt;.5。η=.2因子.6,.2；1/3为±1/3；.5为0,−1；.55为−.1,−1.2。实验起点激发最高模态，所以边界和过大步失败。1/3平衡端点幅度，最小化最坏收缩。</p>
+</div>
+<p>ρ=max|1−ηλ_i|，正交给‖e_k‖≤ρ^k‖e₀‖，目标差为加权模态平方，所以≤ρ^{2k}初差。谱区间[μ,L]最优固定最坏步2/(μ+L)，平衡低端1−ημ与高端ηL−1，因子(L−μ)/(L+μ)=(κ−1)/(κ+1)。仿射绝对值区间最大在端点；μ=L时η=1/L一次解完。</p>
+<p>diag(1,100)用η=.01立刻杀刚模态却慢因子.99，200步原慢一变约.13398。平衡2/101两幅99/101更快、刚模态可交替；η=.1刚因子−9发散，即使低曲率坐标改善。</p>
+<figure class="fig" id="fig-19-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="特征值二四时步长零点二、三分之一、零点五、零点五五的最坏因子分别零点六、三分之一、一、一点二，严格小于一才全起点收敛。"><title>二次谱步长表</title><desc>特征值二四时步长零点二、三分之一、零点五、零点五五的最坏因子分别零点六、三分之一、一、一点二，严格小于一才全起点收敛。</desc><defs><marker id="fig-19-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">同一步作用于两个特征模态</text><text x="100" y="83" text-anchor="middle" font-size="19" fill="#1a2e4a">η</text><text x="285" y="83" text-anchor="middle" font-size="19" fill="#1a2e4a">λ=2 因子</text><text x="470" y="83" text-anchor="middle" font-size="19" fill="#1a2e4a">λ=4 因子</text><text x="655" y="83" text-anchor="middle" font-size="19" fill="#1a2e4a">最坏幅度</text><rect x="25" y="98" width="710" height="40" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="100" y="125" text-anchor="middle" font-size="21" fill="#1a2e4a">.2</text><text x="285" y="125" text-anchor="middle" font-size="21" fill="#1a2e4a">.6</text><text x="470" y="125" text-anchor="middle" font-size="21" fill="#1a2e4a">.2</text><text x="655" y="125" text-anchor="middle" font-size="21" fill="#1a2e4a">.6</text><rect x="25" y="142" width="710" height="40" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="100" y="169" text-anchor="middle" font-size="21" fill="#1a2e4a">1/3</text><text x="285" y="169" text-anchor="middle" font-size="21" fill="#1a2e4a">1/3</text><text x="470" y="169" text-anchor="middle" font-size="21" fill="#1a2e4a">−1/3</text><text x="655" y="169" text-anchor="middle" font-size="21" fill="#1a2e4a">1/3</text><rect x="25" y="186" width="710" height="40" rx="10" fill="#fff7ed" stroke="#0ea5e9"/><text x="100" y="213" text-anchor="middle" font-size="21" fill="#1a2e4a">.5</text><text x="285" y="213" text-anchor="middle" font-size="21" fill="#1a2e4a">0</text><text x="470" y="213" text-anchor="middle" font-size="21" fill="#1a2e4a">−1</text><text x="655" y="213" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><rect x="25" y="230" width="710" height="40" rx="10" fill="#fff7ed" stroke="#0ea5e9"/><text x="100" y="257" text-anchor="middle" font-size="21" fill="#1a2e4a">.55</text><text x="285" y="257" text-anchor="middle" font-size="21" fill="#1a2e4a">−.1</text><text x="470" y="257" text-anchor="middle" font-size="21" fill="#1a2e4a">−1.2</text><text x="655" y="257" text-anchor="middle" font-size="21" fill="#1a2e4a">1.2</text><text x="380" y="319" text-anchor="middle" font-size="20" fill="#1a2e4a">ρ=max|1−ηλ|；保证全初值需 ρ&lt;1。</text></g></svg></div><figcaption><span class="fig-num">图 19.3</span> <p>分离模态显示慢、振荡、增长分量，一个标量步服务全部方向的能力由条件决定。</p>
+</figcaption></figure>
+<p>z=Sx、g=f(S⁻¹z)的H=S⁻ᵀA S⁻¹，S=diag(1,10)使diag(1,100)变单位阵，z单位步立即解。映回x_new=x−S⁻¹S⁻ᵀ∇f，是预条件更新，所有项一致变换时问题含义保留，坐标度量和算法改变，不宣称每个特征归一化总改进统计模型。</p>
+<p>奇异PSD二次若b在C(A)，解族x*+N(A)，正模态可收敛、初始核分量保持；若b有核方向n的非零分量，tn目标含−t bᵀn，沿一侧无下界。只逆非零曲率或加对角不能隐藏这一问题性质。</p>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="descent"></div><div class="widget-caption">
+<p>选二次曲率预设和步长，观察等高路径、谱乘数与固定更新次数后误差，边界及不稳定仍显示。</p>
+</div></div>
+<div class="check"><div class="check-label">检验理解</div>
+<p>严格区间为何每起点收敛必要？一条轨迹能隐藏不稳定模态吗？坐标缩放保原标量梯度法吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>特征向量起点隔离每乘数，幅度≥1破坏全称。未激发可隐藏，缩放保一致变换目标却映为另一预条件方法。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>牛顿、坐标方法与有条件终止</h2></div>
+<p>牛顿用二次局部模型解H(x)p=−∇f，提x+p。求解系统而非显式形成逆，数学作用同而可用适当数值求解器。H对称正定、g非零时gᵀp=−pᵀHp&lt;0，局部下降；远处全步仍需域和有限下降检查。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">精确二次一步与不定失败</div>
+<p>SPD二次H=A、g=A(x−x*)，解p=x*−x，所以精确全步到解。t⁴−3t²在.1有g=−.596、H=−5.88，p≈−.101360544、gp&gt;0，朝零局部最大移动、目标增。实验改用−g并检验Armijo，名为牛顿不自动认证极小。</p>
+</div>
+<p>奇异H可方向不唯一或系统不一致。diag(2,0)、g=(−2,0)最小范数方向(1,0)，从(0,5)到极小(1,5)，保平坦坐标，最小步范数非最小解范数。g不在H像则无精确解，最小二乘方向是不同局部近似，还需下降检查。</p>
+<p>阻尼将H改H+δI、选正定获得下降方向，修改局部步模型，不自动等于给原目标加ridge。若真改目标，梯度也要一致改。非凸保障可拒上坡，仍不无条件全局最优。</p>
+<p>坐标下降固定其他只改一坐标，SPD二次精确沿i最小为x_i−g_i/A_ii，下降量g_i²/(2A_ii)，除非坐标梯度零。循环后坐标使用刚更新值，不同于旧向量同时对角预条件步。收敛需适当日程假设，不能只凭有限坐标改善。</p>
+<p>旋转二次从零，第一坐标3x₁+x₂=2得2/3，第二用新值解x₁+3x₂=−1得−5/9，降低但还非(7/8,−5/8)。牛顿一次耦合解、梯度用统一标量，单步工作不同，迭代数不公平比较成本。</p>
+<figure class="fig" id="fig-19-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="梯度统一标量步，循环坐标用刚更新值，牛顿求耦合曲率系统，成本和非凸保障各不同。"><title>梯度坐标牛顿比较</title><desc>梯度统一标量步，循环坐标用刚更新值，牛顿求耦合曲率系统，成本和非凸保障各不同。</desc><defs><marker id="fig-19-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">同一目标，不同更新模型</text><rect x="35" y="70" width="215" height="210" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="275" y="70" width="210" height="210" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="510" y="70" width="215" height="210" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="142" y="109" text-anchor="middle" font-size="23" fill="#1a2e4a">梯度</text><text x="380" y="109" text-anchor="middle" font-size="20" fill="#1a2e4a">循环坐标</text><text x="617" y="109" text-anchor="middle" font-size="23" fill="#1a2e4a">牛顿</text><text x="142" y="163" text-anchor="middle" font-size="22" fill="#1a2e4a">x ← x−ηg</text><text x="380" y="163" text-anchor="middle" font-size="19" fill="#1a2e4a">xᵢ ← xᵢ−gᵢ/Aᵢᵢ</text><text x="617" y="163" text-anchor="middle" font-size="22" fill="#1a2e4a">Hp=−g</text><text x="142" y="218" text-anchor="middle" font-size="19" fill="#1a2e4a">统一标量步</text><text x="380" y="218" text-anchor="middle" font-size="18" fill="#1a2e4a">后步用新坐标</text><text x="617" y="218" text-anchor="middle" font-size="19" fill="#1a2e4a">求解而非显式逆</text><text x="380" y="329" text-anchor="middle" font-size="17" fill="#1a2e4a">比较目标下降、总成本与保障；不是只数迭代。</text></g></svg></div><figcaption><span class="fig-num">图 19.4</span> <p>同目标下梯度、坐标、牛顿局部模型与成本不同，曲率保障仍属于规格。</p>
+</figcaption></figure>
+<p>非退化极小附近牛顿可二次局部收敛，要求H足够正则、邻近可逆、起点在有效邻域，不适于直接套奇异极小或远起点。精确二次例整个目标等局部模型所以本课完整证明一步。回溯可能帮助到邻域，局部定理自身不证明所有起点到达。</p>
+<p>停止需命名精度量：目标变化小可舍入、平坦、阻尼造成，梯度小可目标缩放，更新小可人为小步。已证明强凸或其他界时把计算残差转请求距离或差并加误差裕量，否则报告真实残差、步和原因。</p>
+<p>训练目标优化不决定预测有效性，目标可能误设、评价数据可能不同、训练全局极小仍可泛化差，后面统计处理。本课成果是能推更新、检查域曲率、区分定理、有限轨迹和有用启发式。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>非凸牛顿为何查gp？最小范数步是否最小范数解？为何牛顿梯度等迭代数不够比较？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>不定曲率可上坡；平坦初坐标仍保留；系统求解、梯度求值、坐标更新成本信息不同。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>主张</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>有限下确界就是取得。</td>
+<td>开或无界域可仅逼近。</td>
+</tr>
+<tr>
+<td>凸就是光滑。</td>
+<td>绝对值凸折点。</td>
+</tr>
+<tr>
+<td>零梯度总全局。</td>
+<td>需凸或其他全局证据。</td>
+</tr>
+<tr>
+<td>下降方向任意步都降。</td>
+<td>检查整步和域。</td>
+</tr>
+<tr>
+<td>二次边界2/L总收敛。</td>
+<td>最高模态恒幅振荡。</td>
+</tr>
+<tr>
+<td>一成功起点证明稳定。</td>
+<td>可未激发坏模态。</td>
+</tr>
+<tr>
+<td>牛顿总指向最小。</td>
+<td>不定可上坡。</td>
+</tr>
+<tr>
+<td>小移动梯度总参数准。</td>
+<td>缩放阻尼平坦可误导。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个可复现实验</h2></div>
+<h3 id="lab1">实验1 · 精确二次模态与牛顿系统</h3>
+<p><a href="labs/module_19/lab1_quadratic_modes.py" download>下载 lab1_quadratic_modes.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Eigenmodes determine the full constant-step interval of a quadratic.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+A = np.array([[3.0,1.0], [1.0,3.0]])
+b = np.array([2.0,-1.0])
+optimum = np.linalg.solve(A, b)
+eigenvalues = np.linalg.eigvalsh(A)
+def objective(x):
+    return 0.5*x@A@x-b@x
+start = np.array([3.0,2.0])
+print(&quot;Eigenvalues / unique optimum / optimal objective:&quot;, eigenvalues, optimum, objective(optimum))
+print(&quot;eta      mode factors           error after 30      objective after 30&quot;)
+for eta in [0.2, 1/3, 0.5, 0.55]:
+    x = start.copy()
+    history = [objective(x)]
+    for _ in range(30):
+        x -= eta*(A@x-b)
+        history.append(objective(x))
+    factors = 1-eta*eigenvalues
+    error = np.linalg.norm(x-optimum)
+    print(f&quot;{eta:.6f}&quot;, factors, f&quot;{error:.10e}&quot;, f&quot;{objective(x):.10f}&quot;)
+    if np.max(np.abs(factors)) &lt; 1:
+        assert error &lt; 1e-5
+        assert all(next_value &lt;= value+1e-12 for value, next_value in zip(history, history[1:]))
+    else:
+        assert error &gt; 1
+print(&quot;Strict interval: 0 &lt; eta &lt; 2/lambda_max =&quot;, 2/eigenvalues[-1])
+newton = start-np.linalg.solve(A, A@start-b)
+print(&quot;Exact quadratic Newton result:&quot;, newton)
+assert np.allclose(newton, optimum, atol=1e-12, rtol=0)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Eigenvalues / unique optimum / optimal objective: [2. 4.] [ 0.875 -0.625] -1.1875
+eta      mode factors           error after 30      objective after 30
+0.200000 [0.6 0.2] 7.8161433852e-08 -1.1875000000
+0.333333 [ 0.333333 -0.333333] 1.6404273111e-14 -1.1875000000
+0.500000 [ 0. -1.] 3.3587572106e+00 21.3750000000
+0.550000 [-0.1 -1.2] 7.9728940561e+02 1271339.6050933360
+Strict interval: 0 &lt; eta &lt; 2/lambda_max = 0.5
+Exact quadratic Newton result: [ 0.875 -0.625]
+</code></pre></div>
+<p>先推解、谱和每因子，解释边界持续模态、过大增长、牛顿精确解。轨迹说明已推全称区间，不替代证明。</p>
+<h3 id="lab2">实验2 · 曲率、条件与坐标</h3>
+<p><a href="labs/module_19/lab2_scaling_conditioning.py" download>下载 lab2_scaling_conditioning.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A coordinate change changes curvature and the effective gradient metric.&quot;&quot;&quot;
+import numpy as np
+A = np.diag([1.0,100.0])
+start = np.array([1.0,1.0])
+print(&quot;Raw curvature eigenvalues / condition number:&quot;, np.diag(A), np.linalg.cond(A))
+print(&quot;eta      steps      endpoint                norm&quot;)
+for eta, steps in [(0.01,200), (2/101,200), (0.1,10)]:
+    x = start.copy()
+    for _ in range(steps):
+        x -= eta*(A@x)
+    print(eta, steps, x, np.linalg.norm(x))
+    if eta == 0.1:
+        assert np.linalg.norm(x) &gt; 1e9
+    else:
+        assert np.linalg.norm(x) &lt; np.linalg.norm(start)
+
+# z=S*x, so x=S^-1*z; preserve the mathematical objective under this change.
+S = np.diag([1.0,10.0])
+inverse_S = np.diag([1.0,0.1])
+transformed_A = inverse_S.T@A@inverse_S
+z = S@start
+assert np.allclose(transformed_A, np.eye(2))
+z -= transformed_A@z  # eta_z=1 on identity curvature.
+recovered = inverse_S@z
+print(&quot;Transformed curvature / condition number:&quot;, transformed_A, np.linalg.cond(transformed_A))
+print(&quot;One transformed-coordinate step, mapped back:&quot;, recovered)
+assert np.allclose(recovered, 0, atol=1e-12)
+preconditioned = start-inverse_S@inverse_S.T@(A@start)
+assert np.allclose(preconditioned, recovered)
+print(&quot;Same objective, different coordinate geometry; the equivalent raw update uses a matrix preconditioner.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Raw curvature eigenvalues / condition number: [  1. 100.] 100.0
+eta      steps      endpoint                norm
+0.01 200 [0.13397967 0.        ] 0.13397967485796206
+0.019801980198019802 200 [0.0183132 0.0183132] 0.0258987713130135
+0.1 10 [3.4867844e-01 3.4867844e+09] 3486784401.0
+Transformed curvature / condition number: [[1. 0.]
+ [0. 1.]] 1.0
+One transformed-coordinate step, mapped back: [0. 0.]
+Same objective, different coordinate geometry; the equivalent raw update uses a matrix preconditioner.
+</code></pre></div>
+<p>预测.01慢因子、2/101平衡因子、.1坏因子，验证变换H为单位再映回，说明原坐标的预条件含义。</p>
+<h3 id="lab3">实验3 · 奇异、非下降与停止故障</h3>
+<p><a href="labs/module_19/lab3_newton_and_stopping_faults.py" download>下载 lab3_newton_and_stopping_faults.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Singular or indefinite curvature and small gradients need qualified handling.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+
+H = np.diag([2.0,0.0])
+b = np.array([2.0,0.0])
+x = np.array([0.0,5.0])
+gradient = H@x-b
+try:
+    np.linalg.solve(H, -gradient)
+except np.linalg.LinAlgError:
+    print(&quot;Singular Newton system: direct solve has no unique direction.&quot;)
+direction, *_ = np.linalg.lstsq(H, -gradient, rcond=1e-12)
+next_x = x+direction
+print(&quot;Minimum-norm direction / resulting minimiser:&quot;, direction, next_x)
+assert np.allclose(next_x, [1,5])  # Flat coordinate is preserved, not forced to zero.
+print(&quot;Nonunique minima: first coordinate one, any second coordinate.&quot;)
+
+def f(t):
+    return t**4-3*t*t
+t = 0.1
+g, curvature = 4*t**3-6*t, 12*t*t-6
+newton_direction = -g/curvature
+print(&quot;Nonconvex Newton direction / gradient-dot-direction:&quot;, newton_direction, g*newton_direction)
+print(&quot;Objective before / raw Newton step:&quot;, f(t), f(t+newton_direction))
+assert g*newton_direction &gt; 0 and f(t+newton_direction) &gt; f(t)
+# Replace a non-descent direction by -gradient; backtrack with explicit Armijo c.
+descent, alpha, c = -g, 1.0, 1e-4
+for _ in range(50):
+    if f(t+alpha*descent) &lt;= f(t)+c*alpha*g*descent:
+        break
+    alpha *= 0.5
+else:
+    raise RuntimeError(&quot;No accepted finite backtracking step&quot;)
+print(&quot;Safeguarded step / objective:&quot;, alpha, f(t+alpha*descent))
+assert f(t+alpha*descent) &lt; f(t)
+
+# Zero gradient is not sufficient for a nonconvex minimum.
+print(&quot;Saddle x^2-y^2 at zero: gradient zero, value along (0,0.1) =&quot;, -0.1**2)
+assert -0.1**2 &lt; 0
+
+coefficient, location, target = 1e-12, 0.0, 100.0
+small_gradient = 2*coefficient*(location-target)
+mu = 2*coefficient
+gradient_tolerance = 1e-6
+print(&quot;Scaled objective gradient / tolerance:&quot;, small_gradient, gradient_tolerance)
+print(&quot;Naive gradient test passes / solution error:&quot;, abs(small_gradient)&lt;gradient_tolerance, abs(location-target))
+print(&quot;Strong-convexity error certificate ||gradient||/mu:&quot;, abs(small_gradient)/mu)
+assert abs(small_gradient) &lt; gradient_tolerance and abs(location-target) == 100
+print(&quot;For distance tolerance 0.01, sufficient gradient threshold:&quot;, mu*0.01)
+print(&quot;State which quantity termination certifies; objective scaling changes gradient thresholds.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Singular Newton system: direct solve has no unique direction.
+Minimum-norm direction / resulting minimiser: [1. 0.] [1. 5.]
+Nonunique minima: first coordinate one, any second coordinate.
+Nonconvex Newton direction / gradient-dot-direction: -0.10136054421768709 0.06041088435374151
+Objective before / raw Newton step: -0.029900000000000006 -5.553238278345991e-06
+Safeguarded step / objective: 1.0 -1.218589138944
+Saddle x^2-y^2 at zero: gradient zero, value along (0,0.1) = -0.010000000000000002
+Scaled objective gradient / tolerance: -2e-10 1e-06
+Naive gradient test passes / solution error: True 100.0
+Strong-convexity error certificate ||gradient||/mu: 100.0
+For distance tolerance 0.01, sufficient gradient threshold: 2e-14
+State which quantity termination certifies; objective scaling changes gradient thresholds.
+</code></pre></div>
+<p>区分最小步范数和平坦解，查非凸方向符号、Armijo接受、缩放距离证书。小目标差可符合哪标准，却参数仍远？</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>十四道练习与完整解答</h2></div>
+<p>1–12必做，13–14选做额外35分钟，不计入十二小时核心。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>x²在(0,∞)下确界、取得与强凸常数？为何兼容？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>零下确界未取得，H=2给μ=2强凸。它只保证取得时唯一，不闭合开域，没有可行零梯度点。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>x²、两点零二、t=1/4，求弦界与恒等式间隙。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>混合1/2值1/4，加权端值一，间隙3/4=t(1−t)(x−y)²，非负给凸，本例严格。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>谱二四，给全起点固定步区间、平衡步与最坏范数因子。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>0&lt;η&lt;.5，步1/3因子±1/3，最坏1/3；上边界最高−1不衰减，更大激发则增。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">7 分钟</span></div>
+<p>统一μ=.2、精确梯度范数.006且无约束解取得，给距离目标差界。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>距离≤.03，差≤.006²/.4=.00009。需强凸与取得，近似梯度先加误差界。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>不用可导证明凸函数局部极小全局。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>若可行y更低，则任意0&lt;t&lt;1的凸段点值≤加权端值&lt;局部最低，段点可任意近x*，矛盾。证明存在局部解的全局性，不证明所有域存在。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>用比较φ推下降引理和梯度步系数。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>φ=f(x+td)−f(x)−t梯度点积d−Lt²‖d‖²/2，整段L界与柯西使导数≤0，φ(1)≤0。d=−ηg给下降系数η(1−Lη/2)，正需0&lt;η&lt;2/L，整域界不可省。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证明SPD误差递推及全初值必要充分步区间。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>Ax*=b，g=Ae，e_new=(I−ηA)e。正交基各因子1−ηλ_i，全部幅度&lt;1恰所有初值收敛，否则对应特征向量起点反证。正谱得0&lt;η&lt;2/λmax，正交另给ρ^k范数界。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>旋转二次A=[[3,1],[1,3]]、b=(2,−1)，零起点一循环坐标扫，与牛顿比。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>先x₁=2/3，后用新值x₂=−5/9，下降未到(7/8,−5/8)。牛顿从零耦合一步到解，两类单步成本不等。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>diag(1,100)选S使变换H单位，推原坐标单位更新。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>S=diag(1,10)，逆diag(1,.1)，变换H为I。原步x−diag(1,.01)Ax=0，为同目标再参数化的矩阵预条件方法。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 分钟</span></div>
+<p>四次非凸在.1算牛顿方向符号并给保障接受条件。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>g−.596、H−5.88、p−.101360544、gp约.060410884正。改−g=.596，试正α留域并满足Armijo c∈(0,1)，负gp保证小步可接受，不证明非凸全局解。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>谱一百，仅第一模态初值用.1成功，声称全初值收敛。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>第一因子.9、第二−9，未激发第二掩盖不稳定。任意非零第二增，真实区间0&lt;η&lt;.02，应区分受限轨迹与谱保证。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 分钟</span></div>
+<p>缩放目标零处通过10⁻⁶梯度却承诺参数误差.01。修证书并说明奇异平坦牛顿。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>梯度2·10⁻¹⁰、μ2·10⁻¹²给距离100，不支持.01；充分阈值2·10⁻¹⁴。平坦最小范数步可保持任意核初值，所得解非唯一且未必最小范数。需报告精度量、数值裕量和选择代表。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>由[μ,L]推最优固定最坏步，写κ因子。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>仿射绝对值最大在端，平衡1−ημ=ηL−1得2/(μ+L)，ρ=(κ−1)/(κ+1)。μ=L一次解。这是固定二次最坏模态结果，不无条件优化所有非二次步日程。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>对称PSD下证明二次有解当且仅当b在C(A)，解释核迭代。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>C(A)=N(A)正交补，b有核分量则选n使bᵀn非零，tn目标−t bᵀn一侧无下界。b在像可解Ax*=b，差为半非负二次，等零恰x*+核。梯度的Ax,b无核投影，初核保持，正模态合法步衰减，选初始核代表。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自检</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>开域有限下确界说明什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">下界未必取得</button></li><li><button type="button" class="quiz-opt" data-i="1">必有极小点</button></li><li><button type="button" class="quiz-opt" data-i="2">每驻点全局</button></li></ol><div class="quiz-expl" hidden>正域x²逼零却无可行极小，取得另查。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>凸蕴含光滑吗？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总是</button></li><li><button type="button" class="quiz-opt" data-i="1">否，绝对值凸且折点</button></li><li><button type="button" class="quiz-opt" data-i="2">画图后才是</button></li></ol><div class="quiz-expl" hidden>凸是线段不等式，可导是局部正则。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>何时内部零梯度认证全局？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">每可导函数</button></li><li><button type="button" class="quiz-opt" data-i="1">一次差分零</button></li><li><button type="button" class="quiz-opt" data-i="2">凸域的可导凸目标</button></li></ol><div class="quiz-expl" hidden>支持式给全局比较，非凸可鞍或最大。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>合法步域上L光滑，何区间认证非驻点严格下降？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">0&lt;η&lt;2/L</button></li><li><button type="button" class="quiz-opt" data-i="1">任意正步</button></li><li><button type="button" class="quiz-opt" data-i="2">仅等边界2/L</button></li></ol><div class="quiz-expl" hidden>系数必须正，SPD全起点也需严格区间。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>坏模态未在初值激发，会怎样？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">证明全初值稳定</button></li><li><button type="button" class="quiz-opt" data-i="1">轨迹可收敛但全称失败</button></li><li><button type="button" class="quiz-opt" data-i="2">特征值消失</button></li></ol><div class="quiz-expl" hidden>初始激发与方法稳定不同。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>正缩放改变什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">极小集必变</button></li><li><button type="button" class="quiz-opt" data-i="1">步容差都不变</button></li><li><button type="button" class="quiz-opt" data-i="2">导数尺度及步阈值含义</button></li></ol><div class="quiz-expl" hidden>保极小但缩放算法导数信息。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>非凸牛顿gp&gt;0表示什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">局部上坡，需保障</button></li><li><button type="button" class="quiz-opt" data-i="1">全步总全局</button></li><li><button type="button" class="quiz-opt" data-i="2">不定自动凸</button></li></ol><div class="quiz-expl" hidden>局部驻二次不必最小方向。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>平坦目标最小范数方向说明什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">结果解必最小范数</button></li><li><button type="button" class="quiz-opt" data-i="1">仅步有该性质，初平坦坐标可保留</button></li><li><button type="button" class="quiz-opt" data-i="2">H可逆</button></li></ol><div class="quiz-expl" hidden>步(1,0)到(1,5)，解族很多。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>小梯度何时建立参数准确？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">无额外信息</button></li><li><button type="button" class="quiz-opt" data-i="1">仅应用步很小</button></li><li><button type="button" class="quiz-opt" data-i="2">提供合法误差界、尺度、假设</button></li></ol><div class="quiz-expl" hidden>距离≤梯度/μ，小μ可留下大误差。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m19:q10">
+<label for="q10-response">10. 推SPD误差递推、全起点步区间与范数界，再解释非凸零梯度或缩放小梯度为何不提供同一全局准确证书。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="写曲率、模态、严格界、激发与请求精度量。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我区分目标假设、有限轨迹与停止证书。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>SPD且Ax*=b给e_new=(I−ηA)e，因子1−ηλ，全起点需0&lt;η&lt;2/λmax，ρ给ρ^k范数界。边界可持续，未激发坏模态可隐藏。非凸零梯度可鞍；缩放小梯度须用如范数/μ且统一强凸、取得无约束解才成距离证书。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>有目标的阅读</h2></div>
+<p>用作者<a href="https://web.stanford.edu/~boyd/cvxbook/" target="_blank" rel="noopener">Convex Optimization伴随站</a>的凸函数与无约束极小选段，本课独立推支持、下降、谱界，实验写清约定。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>选读与问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第1次 · 20分钟</td>
+<td>凸支持：什么全局、什么局部、哪种正则？</td>
+</tr>
+<tr>
+<td>第4次 · 20分钟</td>
+<td>线搜索：何为下降方向、可接受步、可解释停止量？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索结业任务与下一步</h2></div>
+<p>证明凸例、局部全局证书、L下降及各二次模态，比较梯度、循环坐标、牛顿成本保障。</p>
+<p><strong>结业任务：</strong>diag(1,100)全称区间0&lt;η&lt;.02，平衡2/101因子99/101。解释.1为何仅首模态起点可成功，坐标尺度为何改更新度量。</p>
+<p><strong>可以继续：</strong>你能将行为联系目标域曲率假设。下一模块加入可行方向、乘子、KKT与对偶界。见<a href="index_ZH.html">总览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>符号与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语符号</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>下确界、极小点</td>
+<td>最大下界、可行取得点</td>
+<td>Infimum, minimiser</td>
+</tr>
+<tr>
+<td>凸、严格、强</td>
+<td>弦不等式、严格弦、统一二次裕量</td>
+<td>Convex, strict, strong</td>
+</tr>
+<tr>
+<td>L、μ</td>
+<td>梯度光滑界、强凸裕量</td>
+<td>Smoothness, strong convexity</td>
+</tr>
+<tr>
+<td>η、Armijo</td>
+<td>步尺度、充分下降接受</td>
+<td>Step, line search</td>
+</tr>
+<tr>
+<td>ρ、κ</td>
+<td>最坏模态幅度、曲率比</td>
+<td>Contraction, condition number</td>
+</tr>
+<tr>
+<td>预条件</td>
+<td>坐标度量下矩阵缩放更新</td>
+<td>Preconditioning</td>
+</tr>
+<tr>
+<td>牛顿、坐标步</td>
+<td>耦合曲率解、单坐标最小</td>
+<td>Newton, coordinate descent</td>
+</tr>
+<tr>
+<td>gp、终止</td>
+<td>方向变化率、明确有限停止</td>
+<td>Directional rate, termination</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_18_ZH.html">← 模块 18</a><a href="module_20_ZH.html">模块 20 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

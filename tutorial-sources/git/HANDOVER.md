@@ -12,6 +12,11 @@ two by beginners following every step on Windows, macOS and Linux and two techni
 they are in `notes/reviews/`. The replay runs 164 commands, all matching; `tools/check.mjs` reports no
 errors; both widgets pass `tools/widget-test.mjs` in both languages.
 
+On 12 November 2026 this series replaced the earlier 10-module "Git and Version Control" series,
+which had been published at the same paths (`docs/tutorials/git/`, `tutorial-sources/git/`), at the
+site owner's request. That series' pages and sources remain in Git history: see commit `cf0482f`
+on `main`.
+
 ## Where things are
 
 | Path | What it is |

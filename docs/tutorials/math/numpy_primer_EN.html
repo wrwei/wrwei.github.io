@@ -1,0 +1,124 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>NumPy array preparation — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Read shapes, axes, operators, and broadcasting before numerical linear algebra. Use an executed orientation script and the tested Python/NumPy baseline."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="numpy_primer"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">NumPy array preparation</button><div class="dropdown-menu" id="module-menu"><a href="numpy_primer_EN.html" class="active" aria-current="page">NumPy array preparation</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="numpy_primer_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>Prepare array notation before linear algebra</span></a><a href="#setup"><span class="num">2</span><span>Use the tested numerical environment</span></a><a href="#arrays"><span class="num">3</span><span>Arrays values and shapes</span></a><a href="#operations"><span class="num">4</span><span>Operators broadcasting and a deliberate fault</span></a><a href="#lab1"><span class="num">5</span><span>Execute the orientation</span></a><a href="#summary"><span class="num">6</span><span>Exit check and reference</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">NumPy array preparation</h1><p class="module-lead">Read shapes, axes, operators, and broadcasting before numerical linear algebra. Use an executed orientation script and the tested Python/NumPy baseline.</p><div class="hero-chips"><span class="chip chip-time">0.5 hours</span><span class="chip">1 labs</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Explain flat, row, and column array shapes.</li><li>Predict a reduction's axis and an operation's broadcast shape.</li><li>Run the orientation and distinguish entrywise multiplication from a dot product.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Basic Python from the lab primer. A Python 3.11 interpreter and the numerical requirements for the tested baseline.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">Prepare array notation before linear algebra</a><a href="#setup">Use the tested numerical environment</a><a href="#arrays">Arrays values and shapes</a><a href="#operations">Operators broadcasting and a deliberate fault</a><a href="#lab1">Execute the orientation</a><a href="#summary">Exit check and reference</a></nav></details><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>Prepare array notation before linear algebra</h2></div>
+<p>NumPy stores numerical arrays and applies operations to their entries or axes. A mathematical vector and its storage array are related but distinct: a three-coordinate vector may be stored as a flat array, a row, or a column. Reading the shape lets you decide which operation the code actually performs. Complete this orientation before the first numerical lab in Module 09; learners already familiar with these rules can use the exit check.</p>
+<p>Allow about thirty minutes. This is preparation time for the numerical branch, additional to the module estimates when you need it. Basic Python lists, loops, calls, and script execution come from the <a href="python_primer_EN.html">Python primer</a>. The geometric meaning of dot products and lengths is developed in Module 09; here the objective is to read and run the array syntax.</p>
+<span class="section-anchor" id="setup"></span>
+<div class="section-header" data-sec="setup"><span class="section-num">2</span><h2>Use the tested numerical environment</h2></div>
+<p>The current tested baseline is CPython 3.11.8 with NumPy 1.26.4 on a Windows CPU. The numerical requirements are recorded in <code>tutorial-sources/math/requirements.txt</code> in the repository. Modules 01–08 use only the standard library. Use a separate environment for the numerical labs so that the chosen packages are easy to reproduce.</p>
+<p>From the repository root in PowerShell, using an installed Python 3.11 interpreter:</p>
+<pre><code class="language-powershell">python -m venv .venv-math
+.\.venv-math\Scripts\python.exe -m pip install -r tutorial-sources/math/requirements.txt
+.\.venv-math\Scripts\python.exe -c &quot;import numpy as np; print(np.__version__)&quot;
+.\.venv-math\Scripts\python.exe tutorial-sources/math/labs/numpy_primer/orientation.py
+</code></pre>
+<p>For the tutorial builder, set its lab interpreter explicitly if needed:</p>
+<pre><code class="language-powershell">$env:MATH_PYTHON = (Resolve-Path .\.venv-math\Scripts\python.exe).Path
+node tutorial-sources/math/build.mjs
+</code></pre>
+<p>The virtual environment is local and is not course content. An import failure means the selected interpreter lacks the package; check which interpreter the terminal or editor runs. The pinned baseline is a tested combination, not a claim that every later Python or package release has been checked. You can run the downloaded lab directly with the same interpreter even when studying only the published pages.</p>
+<p>If you are using downloaded scripts rather than a repository checkout, save the <a href="labs/requirements.txt">numerical requirements file</a> alongside <code>orientation.py</code>. From that download folder, run <code>python -m pip install -r requirements.txt</code> in your chosen Python 3.11 environment, then <code>python orientation.py</code>. The repository paths above are for a full checkout; a saved standalone script does not require the site builder.</p>
+<span class="section-anchor" id="arrays"></span>
+<div class="section-header" data-sec="arrays"><span class="section-num">3</span><h2>Arrays values and shapes</h2></div>
+<p><code>import numpy as np</code> binds a short name for the package. <code>np.array([1,2,3], dtype=float)</code> creates a numerical array with shape <code>(3,)</code>: one axis containing three entries. <code>dtype=float</code> deliberately chooses floating-point storage. A list’s <code>+</code> concatenates lists, whereas an array’s <code>+</code> adds compatible entries. Identical symbols in Python do not guarantee identical mathematical operations across types.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Expression</th>
+<th>Shape or meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>v.shape</code></td>
+<td>Tuple of axis lengths</td>
+</tr>
+<tr>
+<td><code>v.ndim</code></td>
+<td>Number of array axes</td>
+</tr>
+<tr>
+<td><code>v.size</code></td>
+<td>Total entry count</td>
+</tr>
+<tr>
+<td><code>v[None, :]</code></td>
+<td>Add a row axis, yielding <code>(1,3)</code> for this v</td>
+</tr>
+<tr>
+<td><code>v[:, None]</code></td>
+<td>Add a column axis, yielding <code>(3,1)</code></td>
+</tr>
+<tr>
+<td><code>v.T</code></td>
+<td>Reverse axes; a flat <code>(3,)</code> array stays flat</td>
+</tr>
+</tbody>
+</table></div>
+<p>The comma in <code>(3,)</code> marks a one-element tuple. Array <code>ndim</code> is not the dimension of a mathematical vector space or a matrix’s algebraic rank. A <code>(100,3)</code> table has two array axes and one hundred rows of three coordinates; those are three separate counts.</p>
+<p>Zero-based <code>table[1,:]</code> selects the second row, and <code>table[:,0]</code> selects the first column. The colon means all entries on that axis. <code>sum(axis=1)</code> reduces the column axis and gives one sum per row; <code>sum(axis=0)</code> reduces the row axis and gives one sum per column. Before a reduction, state which entries belong to the same object and which axis you intend to remove.</p>
+<span class="section-anchor" id="operations"></span>
+<div class="section-header" data-sec="operations"><span class="section-num">4</span><h2>Operators broadcasting and a deliberate fault</h2></div>
+<p><code>v*v</code> is entrywise multiplication; for this example it gives [1,4,9]. For two compatible flat vectors, <code>v @ v</code> is their dot product, the sum of pairwise products, fourteen. Matrices and the general shape rule for <code>@</code> return in Module 10. A scalar such as <code>2*v</code> multiplies all entries. These operators should be chosen from the intended mathematical operation, not from whichever one happens to run.</p>
+<p><strong>Broadcasting</strong> aligns shapes from their last axes. Two aligned axis lengths must be equal or one must be one; missing leading axes behave as length one. Thus <code>(3,1)+(3,)</code> aligns as <code>(3,1)+(1,3)</code> and yields <code>(3,3)</code>, all pairwise additions. This can run successfully while implementing the wrong pairing. Reshape the second operand to <code>(3,1)</code> when the intention is three paired column entries. Check both inputs and the output, rather than assuming no exception proves correctness.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Predict a successful but wrong-shaped operation</div>
+<p>A column [1,2,3] of shape <code>(3,1)</code> plus flat [1,2,3] of shape <code>(3,)</code> yields rows [2,3,4], [3,4,5], [4,5,6]. Paired addition instead yields a <code>(3,1)</code> column [2,4,6]. The wrong result is numerically plausible because every displayed sum is a valid arithmetic sum; its axes implement a different question.</p>
+</div>
+<p>Floating-point arrays approximate many real calculations. <code>np.allclose</code> can compare values with declared tolerances, but first verify shapes explicitly because comparison operations may themselves broadcast. Exact small-integer mathematical identities and approximate numerical agreement are different evidence. Module 28 develops floating-point error in detail; earlier labs state local tolerances where needed.</p>
+<span class="section-anchor" id="lab1"></span>
+<div class="section-header" data-sec="lab1"><span class="section-num">5</span><h2>Execute the orientation</h2></div>
+<p>Predict list concatenation, array addition, shapes, axis sums, and the wrong broadcast before running. The script then checks the repaired shape and a small dot product. Its downloaded source generated the captured output below.</p>
+<p><a href="labs/numpy_primer/orientation.py" download>Download orientation.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Read array shapes before the vector labs. Tested with NumPy 1.26.4.&quot;&quot;&quot;
+import numpy as np
+
+items = [1, 2, 3]
+vector = np.array(items, dtype=float)
+row = vector[None, :]
+column = vector[:, None]
+print(&quot;NumPy:&quot;, np.__version__)
+print(&quot;Python list + itself:&quot;, items + items)
+print(&quot;Array + itself:&quot;, (vector + vector).tolist())
+print(&quot;Shapes vector / row / column:&quot;, vector.shape, row.shape, column.shape)
+print(&quot;Array dimensions / entries:&quot;, vector.ndim, vector.size)
+table = np.array([[1, 2, 3], [4, 5, 6]], dtype=float)
+print(&quot;Table shape:&quot;, table.shape)
+print(&quot;Second row / first column:&quot;, table[1, :].tolist(), table[:, 0].tolist())
+print(&quot;Row sums / column sums:&quot;, table.sum(axis=1).tolist(), table.sum(axis=0).tolist())
+wrong = column + vector
+assert wrong.shape == (3, 3)
+print(&quot;Column + flat vector broadcasts to:&quot;, wrong.shape)
+paired = column + vector[:, None]
+assert paired.shape == (3, 1)
+print(&quot;Paired column addition:&quot;, paired.shape, paired[:, 0].tolist())
+print(&quot;Flat transpose keeps shape:&quot;, vector.T.shape)
+print(&quot;Elementwise product:&quot;, (vector * vector).tolist())
+print(&quot;Dot product scalar:&quot;, float(vector @ vector))
+assert float(vector @ vector) == sum(x * x for x in items)
+try:
+    table + np.array([10.0, 20.0])
+except ValueError:
+    print(&quot;Rejected incompatible addition: (2,3) with (2,)&quot;)
+print(&quot;Use dtype=float deliberately; floating calculations may need tolerances.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>NumPy: 1.26.4
+Python list + itself: [1, 2, 3, 1, 2, 3]
+Array + itself: [2.0, 4.0, 6.0]
+Shapes vector / row / column: (3,) (1, 3) (3, 1)
+Array dimensions / entries: 1 3
+Table shape: (2, 3)
+Second row / first column: [4.0, 5.0, 6.0] [1.0, 4.0]
+Row sums / column sums: [6.0, 15.0] [5.0, 7.0, 9.0]
+Column + flat vector broadcasts to: (3, 3)
+Paired column addition: (3, 1) [2.0, 4.0, 6.0]
+Flat transpose keeps shape: (3,)
+Elementwise product: [1.0, 4.0, 9.0]
+Dot product scalar: 14.0
+Rejected incompatible addition: (2,3) with (2,)
+Use dtype=float deliberately; floating calculations may need tolerances.
+</code></pre></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">6</span><h2>Exit check and reference</h2></div>
+<p>Explain why <code>(3,)</code>, <code>(1,3)</code>, and <code>(3,1)</code> have the same entry count but different shapes. Predict <code>(4,2)+(2,)</code> as <code>(4,2)</code>, then explain why <code>(4,2)+(4,)</code> is incompatible: trailing lengths two and four are unequal and neither is one. Explain why a flat transpose is insufficient to make a column.</p>
+<p>Read the <a href="https://numpy.org/doc/1.26/user/absolute_beginners.html" target="_blank" rel="noopener">NumPy beginner guide</a> for basic array creation and axes, and the <a href="https://numpy.org/doc/1.26/user/basics.broadcasting.html" target="_blank" rel="noopener">official broadcasting rules</a> to verify aligned lengths. The orientation uses original examples and an executed script. Return to the <a href="index.html">course overview</a> and continue with vectors when the shapes and operator meanings are clear.</p>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="index.html">← Course overview</a><a href="index.html#modules">Full roadmap →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

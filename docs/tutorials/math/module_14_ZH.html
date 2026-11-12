@@ -1,0 +1,489 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>奇异值分解、低秩近似与主成分分析 — 计算机科学与人工智能的数学基础</title><meta name="description" content="构造矩形映射 SVD，推导伪逆与截断几何，证明重构误差界，实现不拟合留出数据的中心化 PCA。"><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="14"><a class="skip-link" href="#main">跳到正文</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index_ZH.html" class="crumb">数学系列</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">模块 14</button><div class="dropdown-menu" id="module-menu"><a href="module_14_ZH.html" class="active" aria-current="page">奇异值分解、低秩近似与主成分分析</a><a href="index_ZH.html#modules">完整路线</a></div></div><a class="lang-switch" href="module_14_EN.html" hreflang="en">English</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">进度: <span class="side-progress-n">0</span>/4 个时段已完成</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">目录</div><nav aria-label="目录"><a href="#start"><span class="num">1</span><span>矩形映射需要奇异方向</span></a><a href="#s1"><span class="num">2</span><span>推导 SVD，区分三种形状</span></a><a href="#s2"><span class="num">3</span><span>不同空间之间的旋转、缩放、再旋转</span></a><a href="#s3"><span class="num">4</span><span>伪逆、弱方向与数值分辨率</span></a><a href="#s4"><span class="num">5</span><span>截断、重构与最佳秩定理</span></a><a href="#s5"><span class="num">6</span><span>中心化 PCA、得分、重构与散布</span></a><a href="#s6"><span class="num">7</span><span>尺度、泄漏与解释方差边界</span></a><a href="#misconceptions"><span class="num">8</span><span>常见误解</span></a><a href="#labs"><span class="num">9</span><span>三个 CPU 实验</span></a><a href="#exercises"><span class="num">10</span><span>练习与完整解答</span></a><a href="#quiz"><span class="num">11</span><span>十题自测</span></a><a href="#reading"><span class="num">12</span><span>带着问题阅读</span></a><a href="#summary"><span class="num">13</span><span>检索结业任务与下一步</span></a><a href="#terms"><span class="num">14</span><span>记法与双语术语</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">计算机科学与人工智能的数学基础 — Ran Wei</div><h1 class="module-title">奇异值分解、低秩近似与主成分分析</h1><p class="module-lead">构造矩形映射 SVD，推导伪逆与截断几何，证明重构误差界，实现不拟合留出数据的中心化 PCA。</p><div class="hero-chips"><span class="chip chip-time">10 小时</span><span class="chip">4 个时段</span><span class="chip">3 个实验</span><span class="chip">12 道练习与 2 道拓展</span><span class="chip">10 道自测题</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">完成后你能够</h2><ul class="outcomes"><li>从对称谱定理推导 SVD，标明完整、约化、紧致形状。</li><li>解释矩形旋转反射、缩放、再旋转几何。</li><li>由奇异方向推导秩、四空间、条件与伪逆。</li><li>证明弗罗贝尼乌斯与算子范数最佳秩 k 误差。</li><li>计算训练中心化 PCA 分数、重构及散布特征值。</li><li>区分解释方差、重构、尺度与预测用途。</li><li>防止中心和方向泄漏，诊断弱逆方向。</li></ul></div><div class="glance-col"><h2 class="glance-h">开始之前</h2><p>模块 13：对称谱定理与半正定；模块 11–12：四空间、投影与最小范数最小二乘。概率解释留到模块 23。</p></div></section><details class="mobile-toc"><summary>目录</summary><nav aria-label="目录"><a href="#start">矩形映射需要奇异方向</a><a href="#s1">推导 SVD，区分三种形状</a><a href="#s2">不同空间之间的旋转、缩放、再旋转</a><a href="#s3">伪逆、弱方向与数值分辨率</a><a href="#s4">截断、重构与最佳秩定理</a><a href="#s5">中心化 PCA、得分、重构与散布</a><a href="#s6">尺度、泄漏与解释方差边界</a><a href="#misconceptions">常见误解</a><a href="#labs">三个 CPU 实验</a><a href="#exercises">练习与完整解答</a><a href="#quiz">十题自测</a><a href="#reading">带着问题阅读</a><a href="#summary">检索结业任务与下一步</a><a href="#terms">记法与双语术语</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">学习计划</h2><span class="plan-total">10 小时</span></div><p class="plan-lead">时间包含练习，是估计值；可按需要拆分时段。可选拓展练习额外需要 35 分钟。进度保存在当前浏览器，中英文版本共享。</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">时段 1</span><span class="session-min">150 分钟</span></div><div class="session-title">SVD 构造、形状与几何</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s1">阅读第 1–2 节并推导奇异方向。</a></span><span class="act-min">76</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e1">完成练习 1–4。</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读 SVD 形状与几何选段。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">不看笔记解释完整、约化与紧致因子。</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m14:s1"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 2</span><span class="session-min">150 分钟</span></div><div class="session-title">伪逆与最优截断</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s3">阅读第 3–4 节，追踪秩 k 误差证明。</a></span><span class="act-min">55</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab1">测生成矩阵截断误差与标量存储。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e5">完成证明练习 5–7。</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m14:s2"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 3</span><span class="session-min">150 分钟</span></div><div class="session-title">中心化 PCA 与训练变换</div><ul class="acts"><li class="act act-read"><span class="act-kind">阅读</span><span class="act-what"><a href="#s5">阅读第 5–6 节，区分重构与预测。</a></span><span class="act-min">61</span></li><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab2">训练记录拟合 PCA，再复用变换。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e8">完成应用练习 8–10。</a></span><span class="act-min">39</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m14:s3"> 已完成</label></div><div class="session"><div class="session-head"><span class="session-n">时段 4</span><span class="session-min">150 分钟</span></div><div class="session-title">泄漏、尺度与逆分辨率</div><ul class="acts"><li class="act act-lab"><span class="act-kind">实验</span><span class="act-what"><a href="#lab3">诊断未中心化、PCA 泄漏与伪逆阈值。</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">练习</span><span class="act-what"><a href="#e11">诊断练习 11–12。</a></span><span class="act-min">32</span></li><li class="act act-quiz"><span class="act-kind">自测</span><span class="act-what"><a href="#quiz">完成选择与书面 PCA 约定。</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">阅读</span><span class="act-what"><a href="#reading">阅读官方 SVD 与伪逆返回约定。</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">复习</span><span class="act-what"><a href="#summary">探索秩截断并完成结业任务。</a></span><span class="act-min">33</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m14:s4"> 已完成</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>矩形映射需要奇异方向</h2></div>
+<p>特征向量在同一空间比较方形映射输入输出。矩形设计、图像矩阵、嵌入表连接不同空间；即使方形非对称也可能没有标准正交特征基。奇异值分解为每个有限实矩阵提供标准正交输入、输出方向，用非负强度连接二者，推广对称谱几何而不声称任意特征向量正交。</p>
+<p>本课推导分解、伪逆、最佳秩近似，再用于中心化主成分分析。你将区分完整、约化、紧致形状，计算舍弃能量，并只在训练记录拟合预处理。高解释方差衡量特定几何目标，不证明预测用途。</p>
+<p><strong>检索检查：</strong>写实对称谱定理，解释 AᵀA 为何半正定。复习<a href="module_13_ZH.html#s3">模块 13</a>。投影、最小范数、四空间见<a href="module_12_ZH.html#s6">模块 12</a>及<a href="module_11_ZH.html#s4">11</a>。本课 PCA 散布计算为代数，概率统计解释留到模块 23。实验见 <a href="numpy_primer_ZH.html">NumPy 准备</a>。</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>推导 SVD，区分三种形状</h2></div>
+<p>m×n 的 A 使 AᵀA 为 n×n 对称半正定。谱定理给标准正交基 v₁,…,v_n，非负值从大到小排序。令 σᵢ 为其非负平方根，正 σᵢ 时定义 uᵢ=Avᵢ/σᵢ。uᵢᵀuⱼ=vᵢᵀAᵀAvⱼ/(σᵢσⱼ)，i=j 为一，其他零，故非零像方向标准正交。零值使 ‖Avᵢ‖²=0，所以 Avᵢ=0。</p>
+<p>用完整 v 基展开输入，Ax=Σ正值σᵢuᵢ(vᵢᵀx)，证明 A=Σ_{i=1}^rσᵢuᵢvᵢᵀ，r 为正值数。u 张成列空间，对应 v 张成行空间，其余 v 张成核。把 u 扩成 Rᵐ 正交基，得到<strong>奇异值分解</strong> A=UΣVᵀ，即 SVD。存在来自对称定理，A 本身可以矩形或亏损。</p>
+<p><strong>完整 SVD</strong>：U 为 m×m，V 为 n×n，矩形对角 Σ 为 m×n。前 q=min(m,n) 对角放奇异值，秩小于 q 时含零；其他项零。完整 U,V 描述全部输出输入基，包括未使用方向。m≠n 时不能拿 n×n 对角中因子与 m×m U 相乘，中间矩形形状不可忽略。</p>
+<p><strong>约化 SVD</strong> 保留 q 列：U_q 为 m×q，V_q 为 n×q，中对角 q×q，r&lt;q 时仍含零。<strong>秩 r 紧致 SVD</strong> 只保留正方向：U_r 为 m×r,V_r 为 n×r,Σ_r 为 r×r。秩亏时约化不等于紧致，库用语可不同，应写形状及是否含零。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">高矩阵秩二时约化与紧致不同</div>
+<p>5×3 秩二：完整 U5×5,Σ5×3,V3×3；约化 U_q5×3,Σ_q3×3,V_q3×3，有一个零值；紧致 U_r5×2,Σ_r2×2,V_r3×2。全部积 5×3。实 NumPy 约化 Vh=V_qᵀ 为 3×3，右向量在行而非列。</p>
+</div>
+<p>秩零紧致正列表为空，和为零矩阵，完整或约化仍可有任意零方向正交基。重复正值允许对应 u,v 同步正交旋转；同步反转一对符号不改外积。不能直接要求有符号列相同。</p>
+<p>通过 AᵀA 的构造证明存在，不要求数值算法形成格拉姆矩阵；平方弱强度可能损失分辨率。库 SVD 用专门算法，应查形状、正交、重构，决定有效零时记录 dtype 和容差。</p>
+<p>正交输入输出换基使 A 变 PᵀAQ，格拉姆变 QᵀAᵀAQ，特征值相同，因此奇异值、秩、两矩阵范数不变，方向坐标变。全映射乘 α，使强度乘 |α|；只缩放一特征一般不均匀改变，因为不是正交换基。这区分保欧几里得几何的重定向与改变度量的单位换算。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>full_matrices=False 保证只返回 r 个正方向吗？AᵀA 的零值为何识别输入核？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>不保证，约化 q 可大于 r。零值使 vᵀAᵀAv=‖Av‖²=0，所以 Av=0，完整右基对应方向张成全部核。</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>不同空间之间的旋转、缩放、再旋转</h2></div>
+<p>完整公式三步：Vᵀ 将输入表达为正交坐标并保长度，Σ 对匹配坐标非负缩放并按矩形需要插入或移除坐标，U 将输出坐标表达为正交输出基并保长度。正交因子可为旋转或反射，不能只说旋转而遗漏行列式负一。中强度非负，不同于有符号或复特征值。</p>
+<p>正对满足 Avᵢ=σᵢuᵢ、Aᵀuᵢ=σᵢvᵢ，第二来自 AᵀAvᵢ=σᵢ²vᵢ。所以 u 也是 AAᵀ 的值 σᵢ² 特征向量。两个格拉姆共享正值，零数可因维度不同而不同；是同一映射输入、输出方向强度，不说 A 普通特征值相同。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">矩形映射伸缩并嵌入圆</div>
+<p>A=[[3,0],[0,1],[0,0]] 从 R² 到 R³。坐标方向是奇异向量，强度三与一。单位圆 (cos t,sin t) 映到 (3cos t,sin t,0)，z=0 内半轴三、一椭圆。这是单位球在 A 下的像，模块 13 二次单位等值半径则是逆平方根，两个问题不同。</p>
+</div>
+<p>r&lt;n 时输入方向消失，完整 V 仍保其坐标；r&lt;m 时输出像为真子空间，部分方向不可达，完整 U 后面方向张成左零。前 r 右向量张成行、后面张成零；前 r 左张成列、后面张成左零。四空间同时可见。</p>
+<p>单位 x=Vc，‖Ax‖²=Σ正值σᵢ²cᵢ²≤σ₁²，第一右方向达到，故算子范数 ‖A‖₂=σ₁，零映射范数零。方阵可逆时最小值为最小伸缩，逆范数 1/σ_n，所以 κ₂=σ₁/σ_n，不需对称，修正无条件特征值比。</p>
+<p>满列秩矩形 X 的 σ₁/σ_d 衡量输入最大、最小伸缩及伪逆范数；XᵀX 值 σᵢ²，所以 κ₂(XᵀX)=(σ₁/σ_d)²，证明先前平方机制。秩亏有零输入方向，在全输入空间没有有限逆敏感界；若只谈正方向比，必须声明限制。</p>
+<p>实 NumPy s 一维，U 左向量在列，Vh 右向量在行。约化形状匹配时 U*s 广播缩放 U 列，缩放行是另一矩阵。复输出 Vh 为共轭转置，本课主要实例用普通转置。预期形状的重构能先发现方向错误。</p>
+<figure class="fig" id="fig-14-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="完整V转置输入基、m乘n中因子非负缩放、U输出基，正奇异方向对应行列空间，未用方向对应核。"><title>奇异分解的三个阶段</title><desc>完整V转置输入基、m乘n中因子非负缩放、U输出基，正奇异方向对应行列空间，未用方向对应核。</desc><defs><marker id="fig-14-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="19" fill="#1a2e4a">矩形映射：输入基 → 缩放与丢方向 → 输出基</text><rect x="20" y="95" width="190" height="130" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="115" y="145" text-anchor="middle" font-size="30" fill="#1a2e4a">Vᵀ</text><text x="115" y="197" text-anchor="middle" font-size="23" fill="#1a2e4a">n × n</text><rect x="280" y="95" width="200" height="130" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="145" text-anchor="middle" font-size="30" fill="#1a2e4a">Σ</text><text x="380" y="197" text-anchor="middle" font-size="23" fill="#1a2e4a">m × n</text><rect x="550" y="95" width="190" height="130" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="645" y="145" text-anchor="middle" font-size="30" fill="#1a2e4a">U</text><text x="645" y="197" text-anchor="middle" font-size="23" fill="#1a2e4a">m × m</text><path d="M220,158L270,158" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-14-1__arrow)"/><path d="M490,158L540,158" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-14-1__arrow)"/><text x="380" y="281" text-anchor="middle" font-size="27" fill="#1a2e4a">Avᵢ=σᵢuᵢ;     Aᵀuᵢ=σᵢvᵢ</text><text x="380" y="329" text-anchor="middle" font-size="18" fill="#1a2e4a">正方向：行 ↔ 列；未使用方向：零与左零。</text></g></svg></div><figcaption><span class="fig-num">图 14.1</span> <p>输入基、非负矩形缩放、输出基各有职责，正方向揭示行列，未用方向揭示两核。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>相同正奇异值为何可有不同零化度？负特征值会迫使负奇异值吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>核维数还依赖输入输出维数。奇异值是格拉姆值非负平方根，对称时为特征值绝对值，符号吸收到左右配对。</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>伪逆、弱方向与数值分辨率</h2></div>
+<p>紧致 A=U_rΣ_rV_rᵀ，定义 A⁺=V_rΣ_r⁻¹U_rᵀ，只逆正强度，形状 n×m。先取 u 坐标投影目标到列，再除强度，构造行空间输入，恰为模块 12 几何最小范数映射。普通逆是满秩方阵特例，不是公式前提。</p>
+<p>乘得 AA⁺=U_rU_rᵀ、A⁺A=V_rV_rᵀ，为列和行投影，对称幂等。因此 AA⁺A=A、A⁺AA⁺=A⁺，得到全部 Moore–Penrose 条件。w_min=A⁺y 的预测是唯一最近列投影，全部最小化者 w_min+n，核与行垂直保证最小范数唯一。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">秩一先投影再提升</div>
+<p>A=[[1,1],[0,0]] 正值 √2，右 (1,1)/√2，左 (1,0)。A⁺=[[1/2,0],[1/2,0]]。y=(4,3) 给 w=(2,2)，预测 (4,0)，残差 (0,3)。全部 (2+t,2−t) 同拟合，第二目标不可恢复，最小范数均分第一目标。</p>
+</div>
+<p>保留方向 σᵢ 时，εuᵢ 目标扰动导致 (ε/σᵢ)vᵢ 参数变化，长度分别 |ε| 与 |ε|/σᵢ。这是精确方向敏感，说明给定数据解得准仍可对测量扰动不稳定。</p>
+<p>diag(1,10⁻¹⁰) 对 (1,10⁻¹⁰) 给 (1,1)，加 (0,10⁻⁸) 后为 (1,101)。丢弃弱方向的数值伪逆给 (1,0)，留下第二残差。它主动改变有效逆以限制放大，不证明精确强度零。分辨率、拟合、参数响应之间有取舍，须声明容差目的。</p>
+<p>固定伪逆接口按最大奇异值相对阈值。绝对秩阈值、相对伪逆阈值、测量噪声策略不自动可互换。全局缩放对绝对与相对不同，单列缩放又改变几何。报告保留方向、单位、dtype、容差；临近阈值小变化可改变选秩与代表。</p>
+<p>约化列表含零，不能盲算 1/s；之后乘零也可能由无穷中间量产生 NaN。先建保留掩码或用明确库策略。全零伪逆为零，没有正方向可除。应验证选定投影与最小范数，而不只看调用无异常。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>A⁺ 还原每个输出吗？丢弃弱非零方向后仍是原实矩阵精确伪逆吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>AA⁺y 是列投影，只对可达目标等于 y。移除精确非零方向是在算有效截断映射的伪逆，应区分数值策略与原精确对象。</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>截断、重构与最佳秩定理</h2></div>
+<p>保留前 k 强项得 A_k=Σ_{i=1}^kσᵢuᵢvᵢᵀ，0≤k≤r，保留正值时秩 k，A₀=0。形状仍原矩阵。存因子可在 k 小时节省，标量数 k(m+n+1)，应与 mn 及实际编码开销比较；低秩不自动使文件小。</p>
+<p><strong>弗罗贝尼乌斯范数</strong> ‖M‖<em>F=√ΣᵢⱼMᵢⱼ²，等于各列长度平方和根。左正交乘保各列，右正交可对转置用同理保总和。因此在 SVD 坐标，差只含舍弃对角，‖A−A_k‖<em>F²=Σ</em>{i&gt;k}σᵢ²，算子误差是最大舍弃 σ</em>{k+1}，全部正项保留后零。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">三强度的精确误差预算</div>
+<p>强度六、三、一，总平方 36+9+1=46。秩一误差平方十，秩二一，秩三零；保留比例 36/46、45/46。实验 8×6 的一、二、三项因子标量数 15、30、45，对比原 48；不是测文件大小或任务质量。</p>
+</div>
+<p><strong>最佳秩 k 定理</strong>：秩至多 k 的任意 B 都不能使弗罗贝尼乌斯或算子误差小于 A_k。完整平方证明：P 投影到 C(B)，维 t≤k。逐列误差分内外成分，‖A−B‖_F²≥‖(I−P)A‖_F²=‖A‖_F²−‖PA‖_F²。左奇异基给后项 Σσᵢ²wᵢ，其中 wᵢ=‖Puᵢ‖²∈[0,1]。包含完整左基，对未用方向赋零强度，权重和 t，因为正交基投影平方和计 t 个单位方向。</p>
+<p>加权强度和不超过前 k 平方和。k&gt;0 时尾强度≤σ_k²，剩余预算≤k−Σ前k wᵢ，因此至多 Σ前k[σᵢ²wᵢ+σ_k²(1−wᵢ)]≤Σ前kσᵢ²。k=0 投影零。每候选误差至少尾平方，A_k 达到。论证覆盖任意候选像，而不是预设已经对齐。</p>
+<p>算子证明：k&lt;r，将 B 限制到前 k+1 右方向张成，其秩至多 k，由秩–零化度有单位 z 且 Bz=0。于是 ‖(A−B)z‖=‖Az‖≥σ_{k+1}，因为包含强度都不小于此值，截断达到。边界重复值时多个子空间可最优，最佳误差不保证唯一近似。</p>
+<figure class="fig" id="fig-14-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" role="img" aria-label="奇异值六、三、一，平方三十六、九、一，保留零、一、二、三项的误差平方四十六、十、一、零。"><title>截断误差的预算</title><desc>奇异值六、三、一，平方三十六、九、一，保留零、一、二、三项的误差平方四十六、十、一、零。</desc><defs><marker id="fig-14-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="380" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="21" fill="#1a2e4a">强度六、三、一：舍弃平方能量精确可算</text><rect x="110" y="91" width="110" height="144" fill="#2563eb"/><text x="165" y="265" text-anchor="middle" font-size="23" fill="#1a2e4a">σ₁²=36</text><rect x="320" y="199" width="110" height="36" fill="#2563eb"/><text x="375" y="265" text-anchor="middle" font-size="23" fill="#1a2e4a">σ₂²=9</text><rect x="530" y="231" width="110" height="4" fill="#2563eb"/><text x="585" y="265" text-anchor="middle" font-size="23" fill="#1a2e4a">σ₃²=1</text><text x="380" y="305" text-anchor="middle" font-size="24" fill="#1a2e4a">k=0,1,2,3 → 误差平方 46,10,1,0</text><text x="380" y="348" text-anchor="middle" font-size="19" fill="#1a2e4a">算子误差为最大舍弃强度，不是平方和。</text></g></svg></div><figcaption><span class="fig-num">图 14.2</span> <p>舍弃强度有可计算误差预算。最优针对矩阵范数，不针对未来预测或所有其他损失。</p>
+</figcaption></figure>
+<div class="widget-wrap"><div class="widget-label">交互演示</div><div class="widget" data-widget="truncation"></div><div class="widget-caption">
+<p>移动小生成矩阵的保留秩，比较重构项、舍弃平方能量与因子存储，包含零秩与完整重构。</p>
+</div></div>
+<div class="check"><div class="check-label">检验理解</div>
+<p>保留 99% 平方能量证明 99% 分类准确吗？秩三因子总省标量吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>都不能推。能量是重构目标，不是标签性能。存储依赖维数和 k，应比因子与原项，再计实际编码开销。</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>中心化 PCA、得分、重构与散布</h2></div>
+<p>X 有 m 行记录、d 列特征，训练行求均值 μ，Z=X−1μᵀ，每列和零。右奇异向量为主特征方向。保留 V_k，<strong>得分</strong> T=ZV_k 为 m×k，重构 X_hat=TV_kᵀ+1μᵀ。均值减加使原记录重构为仿射，其中心位移投影线性。</p>
+<p>散布 ZᵀZ 的方向 V，值 σᵢ²。m&gt;1 时除 m−1 为惯常样本协方差，值 σᵢ²/(m−1)。此处仅代数归一约定，分布估计后讲。TᵀT=diag(σ₁²,…,σ_k²) 解释中心坐标不相关，不声称统计独立。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">训练均值与两特征散布</div>
+<p>记录 (10,0),(12,1),(14,0),(16,1)，均值 (13,.5)，中心行 (−3,−.5),(−1,.5),(1,−.5),(3,.5)，散布 [[20,2],[2,1]]，值 (21±√377)/2。首单位方向约 (.994623,.103562)，解释约 .962297，舍第二平方重构误差 (21−√377)/2≈.791756。协方差值除三。</p>
+</div>
+<p>解释比例 σᵢ²/Σσⱼ²，保留和是中心训练平方散布的保留份额。全记录相同使 Z=0，分母零，比例未定义，不是自动完美。单记录样本协方差分母也零，应声明边界而非悄悄 NaN 或改定义。</p>
+<p>PCA 选正交 k 维特征子空间最小化中心重构。任意正交 W 的投影 ZWWᵀ，保留能量为所选 ZᵀZ 瑞利值和。最佳秩的投影权重证明界为前 k 平方强度，V_k 达到。得分重构恰 Z_k=U_kΣ_kV_kᵀ，所以最大方差、最小平方误差是同一目标两种代数视角。</p>
+<p>中心化 1ᵀZ=0，使秩≤min(d,m−1)，不只是 min(d,m)。小训练集尤重要，宽数据中心后不超过 m−1 正主成分。重复散布值使单方向不唯一，整体空间仍明确；符号反转同步反转得分，重构不变。</p>
+<p>新数学列 x 用 t=V_kᵀ(x−μ)，长 k；存储行用 (x−μ)V_k。复用训练参数。新残差不必零、留出得分均值不必零，均不表示失败，而是在训练固定坐标中测量。每批测试重拟合会改变变换与评估含义。</p>
+<p>对一个新位移 z，重构 V_kV_kᵀz，舍弃成分垂直，误差平方为舍弃坐标平方和。训练尾强度给训练总误差，不自动预测新点误差；新记录可主要在保留空间外，即使训练重构优秀。任务关心留出重构时，应单独评估。</p>
+<figure class="fig" id="fig-14-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 390" role="img" aria-label="训练拟合并保存中心尺度方向，留出记录应用同一参数，不将测试信息用于重拟合。"><title>训练拟合的PCA流程</title><desc>训练拟合并保存中心尺度方向，留出记录应用同一参数，不将测试信息用于重拟合。</desc><defs><marker id="fig-14-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="390" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">先分数据，再拟合；保存同一个变换</text><rect x="25" y="75" width="270" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="160" y="113" text-anchor="middle" font-size="25" fill="#1a2e4a">训练记录 X</text><text x="160" y="147" text-anchor="middle" font-size="20" fill="#1a2e4a">拟合 μ 与 V_k</text><path d="M305,120L440,120" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-14-3__arrow)"/><rect x="450" y="75" width="285" height="90" rx="10" fill="#f0fdf4" stroke="#15803d"/><text x="592" y="115" text-anchor="middle" font-size="20" fill="#1a2e4a">保存中心、尺度、方向</text><rect x="25" y="220" width="270" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="160" y="260" text-anchor="middle" font-size="24" fill="#1a2e4a">留出记录 X_new</text><path d="M305,265L440,265" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-14-3__arrow)"/><rect x="450" y="220" width="285" height="90" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="592" y="260" text-anchor="middle" font-size="25" fill="#1a2e4a">(X_new − μ)V_k</text><path d="M592,165V210" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-14-3__arrow)"/><text x="380" y="354" text-anchor="middle" font-size="21" fill="#1a2e4a">留出得分均值不必零；不重新拟合。</text></g></svg></div><figcaption><span class="fig-num">图 14.3</span> <p>训练确定中心和方向，留出复用同一变换，不另拟合。</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">检验理解</div>
+<p>为什么中心 PCA 至多 m−1 正成分？留出均值必零吗？得分对角协方差证明独立吗？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>全一左零向量限制秩；留出不必共享训练均值；对角交叉乘积或协方差说明线性不相关，无额外假设不保证独立。</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>尺度、泄漏与解释方差边界</h2></div>
+<p>PCA 依赖单位，因为欧几里得重构加坐标平方。某特征乘百，其散布贡献乘万，交叉项也变；同一物理测量可能改变最大方向。实验第二尺度改变使首方向近第二轴并改变解释比例，是度量改变，不自动是计算错。</p>
+<p>按训练均值尺度标准化是另一建模选择，零方差不可除零，应移除或声明策略。尺度、特征选择也属拟合变换，须只从训练估计；中心、尺度、基要一起保存以计算新分数并逆到原单位。</p>
+<div class="worked"><div class="worked-label">例题详解</div><div class="worked-title">几乎全部方差可以丢掉全部标签区别</div>
+<p>中心记录 (−100,−1),(−100,1),(100,−1),(100,1)，标签按第二符号。散布 diag(40000,4)，首方向解释 40000/40004≈99.99%。只保留它，同一第一值的异标签记录得分相同。小第二方向能完美区分，大第一不能；能量不能承诺分类。</p>
+</div>
+<p><strong>泄漏</strong>指保留用于评估的信息影响拟合模型或预处理。PCA 不用标签，但训练和留出特征合拟均值、方向仍改变过程。通常问题要求未用这些记录的训练变换。实验合入两条远测试使均值 (13,.5) 变约 (58.666667,5.333333)，尚未重算方向就已是不同变换。</p>
+<p>操作约定：先分记录，训练拟合中心、尺度、成分，保存后应用验证测试；验证选择 k 等，最终保留测试评价所选过程。交叉验证每折需自己的训练变换，不能把全部数据拟合组件复用于各折，否则访问留出特征。若有意采用允许未标记评估特征的传导式任务，应明确不同设置，不当普通归纳评估。</p>
+<p>未中心化 SVD 也不同，围绕原点近似原向量，混合均值位置与变化。离零很远时首方向可能主要表达共同位置而不是均值周围偏差。有明确应用时可用，但不默默叫中心 PCA。实验比较线投影以区分真实方向变化与任意符号。</p>
+<figure class="fig" id="fig-14-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 365" role="img" aria-label="四记录正负一百和正负一组合，标签依第二符号，第一方向解释百分之九十九点九九却将异标签映同分，竖方向为可见性放大。"><title>方差与标签区别</title><desc>四记录正负一百和正负一组合，标签依第二符号，第一方向解释百分之九十九点九九却将异标签映同分，竖方向为可见性放大。</desc><defs><marker id="fig-14-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="365" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="22" fill="#1a2e4a">高能量保留不保证保留标签信息</text><path d="M40,170H380M210,80V265" stroke="#94a3b8"/><circle cx="95" cy="125" r="10" fill="#c2410c"/><text x="112" y="131" text-anchor="start" font-size="23" fill="#1a2e4a">+</text><circle cx="95" cy="215" r="10" fill="#2563eb"/><text x="112" y="221" text-anchor="start" font-size="23" fill="#1a2e4a">−</text><circle cx="325" cy="125" r="10" fill="#c2410c"/><text x="342" y="131" text-anchor="start" font-size="23" fill="#1a2e4a">+</text><circle cx="325" cy="215" r="10" fill="#2563eb"/><text x="342" y="221" text-anchor="start" font-size="23" fill="#1a2e4a">−</text><text x="95" y="289" text-anchor="middle" font-size="19" fill="#1a2e4a">x₁=−100</text><text x="325" y="289" text-anchor="middle" font-size="19" fill="#1a2e4a">x₁=100</text><text x="210" y="329" text-anchor="middle" font-size="16" fill="#1a2e4a">竖向坐标 ±1（为可见性放大）</text><rect x="435" y="80" width="290" height="230" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="580" y="123" text-anchor="middle" font-size="20" fill="#1a2e4a">Scatter=diag(40000,4)</text><text x="580" y="170" text-anchor="middle" font-size="24" fill="#1a2e4a">第一方向：99.99%</text><text x="580" y="215" text-anchor="middle" font-size="21" fill="#1a2e4a">同分数，两个标签</text><text x="580" y="262" text-anchor="middle" font-size="21" fill="#1a2e4a">第二方向才能区分</text></g></svg></div><figcaption><span class="fig-num">图 14.4</span> <p>保留方差、尺度、标签用途是不同决策。不用标签也可能因留出预处理改变评估。</p>
+</figcaption></figure>
+<p>低秩支持图像、嵌入压缩和紧凑参数更新。定理保证指定范数最近矩阵，不保证下游最佳、最快实现、最小文件。两因子各 k 列的 UVᵀ 秩至多 k，但学习选择这种更新还引入优化统计问题，应分开代数秩与任务等价。</p>
+<p>最后须声明分辨率。重复或近重复强度可使单方向不稳定，而整体子空间重构较稳定；弱逆放噪，丢弃改变有效算子。记录 k、保留强度、训练中心尺度、dtype、容差及误差，使近似可复现、边界可判断，不将成功分解当所有用途证据。</p>
+<div class="check"><div class="check-label">检验理解</div>
+<p>无监督测试特征拟合就无泄漏吗？未中心 SVD 同目标吗？高解释比例证明什么？</p>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>普通留出中无标签也改变训练过程；未中心围绕零而不是训练均值；高比例证明指定度量下保留中心平方散布，不证明准确或因果。</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>常见误解</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>主张</th>
+<th>修正</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>约化总丢零方向</td>
+<td>保留 q，不一定 r。</td>
+</tr>
+<tr>
+<td>Vh 右向量在列</td>
+<td>实 NumPy 中在行。</td>
+</tr>
+<tr>
+<td>数值 SVD 必须形成 AᵀA</td>
+<td>存在证明可用，数值却可能损弱方向。</td>
+</tr>
+<tr>
+<td>伪逆精确到达全部目标</td>
+<td>先列投影。</td>
+</tr>
+<tr>
+<td>低秩总省存储</td>
+<td>比因子数与编码。</td>
+</tr>
+<tr>
+<td>解释方差等于预测准确</td>
+<td>标签可全在弱方向。</td>
+</tr>
+<tr>
+<td>无标签无预处理泄漏</td>
+<td>留出特征仍可改变换。</td>
+</tr>
+<tr>
+<td>PCA 无关单位</td>
+<td>单位改变目标与谱。</td>
+</tr>
+<tr>
+<td>得分零协方差证明独立</td>
+<td>只为线性二阶关系。</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>三个 CPU 实验</h2></div>
+<p>采用<a href="numpy_primer_ZH.html">数组准备</a>的 Python 3.11 和 NumPy。输出为运行可下载脚本捕获。先预测形状、方向与预算；符号可有无害差别，应比重构和子空间。</p>
+<h3 id="lab1">实验 A 生成矩阵压缩</h3>
+<p>由三组正交方向及六、三、一生成 8×6 矩阵。验证生成方向，比较约化尺寸与精确秩，每个 k 先预测舍弃误差及标量数。</p>
+<p><a href="labs/module_14/lab1_truncation.py" download>下载 lab1_truncation.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Generated low-rank matrix with known spectrum and measured truncation error.&quot;&quot;&quot;
+import numpy as np
+left = np.column_stack((np.ones(8), [1,-1,1,-1,1,-1,1,-1], [1,1,-1,-1,1,1,-1,-1]))/np.sqrt(8)
+right = np.column_stack((np.ones(6)/np.sqrt(6), np.array([1,-1,1,-1,1,-1])/np.sqrt(6), np.array([1,1,-2,1,1,-2])/np.sqrt(12)))
+assert np.allclose(left.T@left, np.eye(3)) and np.allclose(right.T@right, np.eye(3))
+A = (left*np.array([6., 3., 1.]))@right.T
+U, s, Vh = np.linalg.svd(A, full_matrices=False)
+print(&quot;A / reduced U / s / Vh shapes:&quot;, A.shape, U.shape, s.shape, Vh.shape)
+print(&quot;Singular values:&quot;, [round(float(v), 9) for v in s])
+print(&quot;Original scalar entries:&quot;, A.size)
+assert np.allclose(s[:3], [6,3,1]) and np.allclose(s[3:], 0)
+for k in range(4):
+    approximation = (U[:, :k]*s[:k])@Vh[:k, :]
+    error_squared = np.linalg.norm(A-approximation, &quot;fro&quot;)**2
+    tail_squared = s[k:]@s[k:]
+    scalar_storage = k*(A.shape[0]+A.shape[1]+1)
+    print(&quot;Rank / squared Frobenius error / discarded sum / factor scalars:&quot;, k, round(float(error_squared), 9), round(float(tail_squared), 9), scalar_storage)
+    assert np.allclose(error_squared, tail_squared)
+assert np.allclose((U*s)@Vh, A)
+print(&quot;Scalar-count savings are distinct from file-format overhead or predictive usefulness.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>A / reduced U / s / Vh shapes: (8, 6) (8, 6) (6,) (6, 6)
+Singular values: [6.0, 3.0, 1.0, 0.0, 0.0, 0.0]
+Original scalar entries: 48
+Rank / squared Frobenius error / discarded sum / factor scalars: 0 46.0 46.0 0
+Rank / squared Frobenius error / discarded sum / factor scalars: 1 10.0 10.0 15
+Rank / squared Frobenius error / discarded sum / factor scalars: 2 1.0 1.0 30
+Rank / squared Frobenius error / discarded sum / factor scalars: 3 0.0 0.0 45
+Scalar-count savings are distinct from file-format overhead or predictive usefulness.
+</code></pre></div>
+<p><strong>交付：</strong>秩、形状、误差、存储表及尾公式证明。舍入打印零不证明精确秩，本例精确主张来自已知生成构造。</p>
+<h3 id="lab2">实验 B 训练中心化 PCA</h3>
+<p>手算均值、散布，比谱与平方奇异值，重构一成分训练数据。对两留出批次复用参数不重拟，核对形状及总尾误差。</p>
+<p><a href="labs/module_14/lab2_training_pca.py" download>下载 lab2_training_pca.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Fit mean and principal directions on training records; reuse on held-out rows.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+training = np.array([[10.,0.], [12.,1.], [14.,0.], [16.,1.]])
+test = np.array([[20.,2.], [8.,-1.]])
+mean = training.mean(axis=0)
+centered = training-mean
+U, s, Vh = np.linalg.svd(centered, full_matrices=False)
+directions = Vh.T
+scores = centered@directions[:, :1]
+reconstruction = scores@directions[:, :1].T+mean
+test_scores = (test-mean)@directions[:, :1]
+scatter = centered.T@centered
+variances = s**2/(len(training)-1)
+ratio = s**2/np.sum(s**2)
+assert np.allclose(centered.mean(axis=0), 0)
+assert np.allclose(scatter@directions, directions*s**2)
+print(&quot;Training mean:&quot;, mean)
+print(&quot;Principal directions in columns:&quot;, directions.tolist())
+print(&quot;Sample covariance eigenvalues:&quot;, variances)
+print(&quot;Explained variance ratios:&quot;, ratio)
+print(&quot;Training rank-one reconstruction:&quot;, reconstruction.tolist())
+print(&quot;Held-out scores using training transform:&quot;, test_scores.ravel())
+error_squared = np.linalg.norm(training-reconstruction, &quot;fro&quot;)**2
+print(&quot;Rank-one reconstruction squared error:&quot;, error_squared)
+assert np.allclose(error_squared, s[1]**2)
+changed_test = np.array([[2000.,200.], [-800.,-100.]])
+changed_scores = (changed_test-mean)@directions[:, :1]
+print(&quot;Changed held-out scores using the same training transform:&quot;, changed_scores.ravel())
+print(&quot;Mean reused for both held-out batches:&quot;, mean)
+print(&quot;All-zero centred data variance ratio: undefined; guard division by zero.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Training mean: [13.   0.5]
+Principal directions in columns: [[0.9946229901291114, 0.10356209493161814], [0.10356209493161814, -0.9946229901291114]]
+Sample covariance eigenvalues: [6.736081 0.263919]
+Explained variance ratios: [0.962297 0.037703]
+Training rank-one reconstruction: [[9.980672702257417, 0.18562172467192445], [12.062227727769086, 0.4023573132283918], [13.937772272230914, 0.5976426867716081], [16.019327297742585, 0.8143782753280755]]
+Held-out scores using training transform: [ 7.117704 -5.128458]
+Rank-one reconstruction squared error: 0.7917560805262006
+Changed held-out scores using the same training transform: [1996.976519 -819.036482]
+Mean reused for both held-out batches: [13.   0.5]
+All-zero centred data variance ratio: undefined; guard division by zero.
+</code></pre></div>
+<p><strong>交付：</strong>保存均值和方向、训练得分重构、留出分数、解释比例。说明零散布未定义策略及训练、新记录误差区别。</p>
+<h3 id="lab3">实验 C 中心、泄漏、尺度与弱逆</h3>
+<p>比较中心与未中心线投影、算泄漏均值，改变单位解释主线旋转，比较小扰动下两个相对伪逆阈值。</p>
+<p><a href="labs/module_14/lab3_centering_and_pinv_faults.py" download>下载 lab3_centering_and_pinv_faults.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Uncentred directions, evaluation leakage, feature units and weak inverse modes.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+training = np.array([[10.,0.], [12.,1.], [14.,0.], [16.,1.]])
+test = np.array([[100.,10.], [200.,20.]])
+mean = training.mean(axis=0)
+centered = training-mean
+_, _, Vh = np.linalg.svd(centered, full_matrices=False)
+_, _, uncentered_Vh = np.linalg.svd(training, full_matrices=False)
+leaked_mean = np.vstack((training, test)).mean(axis=0)
+print(&quot;Correct training mean / leaked combined mean:&quot;, mean, leaked_mean)
+print(&quot;Centred / uncentred leading line projectors:&quot;, np.outer(Vh[0], Vh[0]).tolist(), np.outer(uncentered_Vh[0], uncentered_Vh[0]).tolist())
+assert not np.allclose(mean, leaked_mean)
+assert not np.allclose(np.outer(Vh[0], Vh[0]), np.outer(uncentered_Vh[0], uncentered_Vh[0]))
+rescaled = centered*np.array([1.,100.])
+_, scaled_s, scaled_Vh = np.linalg.svd(rescaled, full_matrices=False)
+print(&quot;After feature two multiplied by 100, leading projector:&quot;, np.outer(scaled_Vh[0], scaled_Vh[0]).tolist())
+print(&quot;Scaled leading explained ratio:&quot;, scaled_s[0]**2/(scaled_s@scaled_s))
+
+A = np.diag([1., 1e-10])
+target = np.array([1., 1e-10])
+perturbed = target+np.array([0.,1e-8])
+for cutoff in [1e-12,1e-8]:
+    inverse = np.linalg.pinv(A, rcond=cutoff)
+    base = inverse@target
+    changed = inverse@perturbed
+    print(&quot;Relative cutoff / base / changed weights / new residual:&quot;, cutoff, base, changed, format(np.linalg.norm(perturbed-A@changed), &quot;.6e&quot;))
+assert np.allclose(np.linalg.pinv(A, rcond=1e-12)@perturbed, [1,101])
+assert np.allclose(np.linalg.pinv(A, rcond=1e-8)@perturbed, [1,0])
+print(&quot;Dropping a weak singular direction trades resolution and residual for reduced amplification; it changes the effective inverse.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">输出</div><pre><code>Correct training mean / leaked combined mean: [13.   0.5] [58.666667  5.333333]
+Centred / uncentred leading line projectors: [[0.9892748924933744, 0.10300524052492092], [0.10300524052492092, 0.010725107506625487]] [[0.998380120869607, 0.04021511061772047], [0.04021511061772047, 0.0016198791303925755]]
+After feature two multiplied by 100, leading projector: [[0.000401121600379904, 0.02002400314226935], [0.02002400314226935, 0.9995988783996206]]
+Scaled leading explained ratio: 0.998403833102307
+Relative cutoff / base / changed weights / new residual: 1e-12 [1. 1.] [  1. 101.] 1.654361e-24
+Relative cutoff / base / changed weights / new residual: 1e-08 [1. 0.] [1. 0.] 1.010000e-08
+Dropping a weak singular direction trades resolution and residual for reduced amplification; it changes the effective inverse.
+</code></pre></div>
+<p><strong>交付：</strong>识别每种改变的目标或评估过程，报告逆分辨率取舍及实际残差，不把主动截断说成精确方向消失。</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>练习与完整解答</h2></div>
+<p>1–12 必做，13–14 额外 35 分钟。实因子应说明秩、保留维数及中心假设。</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">练习 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>5×3 秩二，列完整、约化、紧致形状，包含 Vh 和正值数。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>完整 U5×5,Σ5×3,V3×3；约化 U5×3,Σ3×3,V3×3；紧致 U5×2,Σ2×2,V3×2。正值二，约化一零。实 Vh=Vᵀ 为 3×3，右向量在行；紧致 V_rᵀ 为 2×3。每积 5×3。</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">练习 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>A=[[3,0],[0,1],[0,0]] 求强度、左右方向、单位圆像。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>强度三、一，右为 R² 两单位，左为 R³ 前两单位；像 (3cos t,sin t,0)，z=0 半轴三、一椭圆。左零 span{(0,0,1)}，输入核零。</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">练习 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>A=[[1,1],[0,0]],y=(4,3)，算伪逆解、预测、全部最小化者。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>A⁺=[[1/2,0],[1/2,0]],w_min=(2,2)，预测 (4,0)，残差 (0,3)，SSE9。全部 (2+t,2−t)，只和四影响可达第一坐标。范数平方 8+2t²，零 t 唯一最小，第二目标不可达。</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">练习 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">计算</span><span class="exercise-time">6 分钟</span></div>
+<p>强度六、三、一，给秩一平方误差、算子误差、能量比例；8×6 比存储数。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>尾平方 9+1=10，算子误差下一强度三，比例 36/46。因子 15 对原 48。针对重构与标量，不是实际文件或标签准确。</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">练习 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>从 AᵀA 特征对证明正左奇异向量标准正交，零右方向在核。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>uᵢᵀuⱼ=vᵢᵀAᵀAvⱼ/(σᵢσⱼ)=σⱼ²vᵢᵀvⱼ/(σᵢσⱼ)，同索引一、其他零。零 σ 给 ‖Avᵢ‖²=0。完整右基展开输入说明正对重构全部 A，零方向张成全核。</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">练习 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>推尾平方误差，用候选像投影证明秩至多 k 没有更小误差。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>正交换基保范数，截断对角误差为尾平方。B 的像投影 P 给 ‖A−B‖_F²≥‖A‖_F²−‖PA‖_F²。后项 Σσᵢ²wᵢ，w∈[0,1]、和≤k；排序使至多前 k 平方和：尾值≤σ_k²，并把剩余预算给前 k。于是误差至少尾，A_k 达到。k=0 时投影、候选都零。</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">练习 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 分钟</span></div>
+<p>证明 SVD 伪逆给行列投影及最小范数最小二乘。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>两紧致式相乘，正交性给 AA⁺=U_rU_rᵀ,A⁺A=V_rV_rᵀ。A⁺y 在行且预测为最近列投影，所有最小化者相差核 n。正交得 ‖A⁺y+n‖²=‖A⁺y‖²+‖n‖²，唯一 n=0 最小。投影式也推出四 Moore–Penrose 条件。</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">练习 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 分钟</span></div>
+<p>训练行 (10,0),(12,1),(14,0),(16,1)，求中心、散布、一成分平方误差。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>中心 (13,.5)，中心行 (−3,−.5),(−1,.5),(1,−.5),(3,.5)，外积和 [[20,2],[2,1]]，迹 21、行列式 16。值 (21±√377)/2，舍弱平方误差 (21−√377)/2≈.791756。协方差值除三，解释比除总 21。</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">练习 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 分钟</span></div>
+<p>按练习 8 中心和首方向 (.994623,.103562)，求 (20,2),(8,−1) 留出得分，均值必零吗？</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>中心行 (7,1.5),(−5,−1.5)，点积约 7.117704、−5.128458。均值不必零，使用训练中心不是留出中心。重拟合改变评估。反符号同时反两分数，重构不变。</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">练习 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">13 分钟</span></div>
+<p>全部四个 (±100,±1)，标签按第二符号，算散布、首解释比及丢失信息。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>均值零，交叉抵消，散布 diag(40000,4)，首比例约 .999900。得分只 ±100，同首值两标签映到同分。第二特征单独区分每标签，优秀能量保留未必保监督所需信息。</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">练习 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 分钟</span></div>
+<p>将原始 SVD 叫中心 PCA，以无标签为由合训练测试拟合并复用于验证折。修正。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>中心 PCA 先减训练特征均值，原始 SVD 围零且含均值位置。普通留出先分数据，训练拟合全部均值尺度组件；无标签的测试也可改变换，所以仍泄漏。每交叉验证折各用训练分区拟合。允许评估特征的传导设置必须明确为不同任务。</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">练习 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">16 分钟</span></div>
+<p>把 Vh 列当右方向，逆全部 s 包含零，并说阈值去掉 10⁻¹⁰ 证明精确秩一。修正三处。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>实 Vh 右方向在行，转置得特征方向列并核对形状。约化可含零，应先保正或可解析方向再取倒数，或用声明库阈值，盲除产生无穷 NaN。diag(1,10⁻¹⁰) 精确秩二；丢弱方向是有效分辨率与残差取舍，不是精确零证书。</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">练习 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 分钟</span></div>
+<p>在前 k+1 右方向用秩–零化度证明算子最佳秩误差。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>k&lt;r 时秩≤k 的 B 限制到 k+1 维空间有非零核，归一为 z，Bz=0，所以 ‖(A−B)z‖=‖Az‖≥σ_{k+1}。截断尾算子范数恰此值达到；k≥r 精确误差零。</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">练习 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 分钟</span></div>
+<p>满列秩 X 推 κ₂(XᵀX)=(σ₁/σ_d)²，解释为何是形成格拉姆警示，不是每次正规计算失败证明。</p>
+</div>
+<details class="solution"><summary>查看解答</summary><div class="details-body">
+<p>XᵀX=Vdiag(σᵢ²)Vᵀ 正定，范数 σ₁²、逆范数 1/σ_d²，条件为平方比。弱差进入平方强度可损分辨率，但实际误差还依赖条件、算术、数据，良好小问题正规方程可准。QR/SVD 避额外格拉姆损伤，不去原设计测量敏感。</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>十题自测</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>m×n 秩 r 的约化 SVD 保留什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">q=min(m,n) 方向，可能含零</button></li><li><button type="button" class="quiz-opt" data-i="1">总只有 r 正方向</button></li><li><button type="button" class="quiz-opt" data-i="2">矩形就只一方向</button></li></ol><div class="quiz-expl" hidden>紧致才丢零，约化按较小维数。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>实 NumPy 右向量存在哪？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Vh 列</button></li><li><button type="button" class="quiz-opt" data-i="1">Vh 行</button></li><li><button type="button" class="quiz-opt" data-i="2">强度数组元素</button></li></ol><div class="quiz-expl" hidden>Vh=Vᵀ，转置得方向列，一维数组为非负强度。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>AᵀA 正特征值是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A 有符号普通特征值</button></li><li><button type="button" class="quiz-opt" data-i="1">不平方奇异值</button></li><li><button type="button" class="quiz-opt" data-i="2">正奇异值平方</button></li></ol><div class="quiz-expl" hidden>构造定义非负平方根为强度。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>保留 k 项的平方误差？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">舍弃强度平方和</button></li><li><button type="button" class="quiz-opt" data-i="1">保留强度和</button></li><li><button type="button" class="quiz-opt" data-i="2">未来分类误差</button></li></ol><div class="quiz-expl" hidden>正交不变性把差转为舍弃对角，这是矩阵目标。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>伪逆对任意目标预测什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">每次目标本身</button></li><li><button type="button" class="quiz-opt" data-i="1">列空间投影</button></li><li><button type="button" class="quiz-opt" data-i="2">求解器新造目标维数</button></li></ol><div class="quiz-expl" hidden>不可达留残差，提升选最近预测的最小范数权重。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>普通留出中谁拟合 PCA 中心、方向？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">无标签所以训练测试合用</button></li><li><button type="button" class="quiz-opt" data-i="1">每批测试独立</button></li><li><button type="button" class="quiz-opt" data-i="2">只训练</button></li></ol><div class="quiz-expl" hidden>预处理属学习过程，无标签留出仍可影响。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>全中心训练数据零，解释比例为？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">总散布零所以未定义</button></li><li><button type="button" class="quiz-opt" data-i="1">每成分自动一</button></li><li><button type="button" class="quiz-opt" data-i="2">未来完美预测证明</button></li></ol><div class="quiz-expl" hidden>分母零应明确处理。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>保留训练方差 99.99% 推出什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">分类准确 99.99%</button></li><li><button type="button" class="quiz-opt" data-i="1">指定度量下中心平方散布保留该份额</button></li><li><button type="button" class="quiz-opt" data-i="2">单位不能影响</button></li></ol><div class="quiz-expl" hidden>标签可在低散布，尺度改变目标与谱。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>数值伪逆丢弱非零方向意味着？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">证明原精确秩小了</button></li><li><button type="button" class="quiz-opt" data-i="1">全目标精确拟合</button></li><li><button type="button" class="quiz-opt" data-i="2">选择带分辨率放大取舍的有效逆</button></li></ol><div class="quiz-expl" hidden>阈值改变保留方向，可多残差而少放噪，应声明。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m14:q10">
+<label for="q10-response">10. 指定训练中心化 PCA 留出流程，给形状、误差公式、零散布边界及高方差可能丢标签的理由。</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="说明拟合复用参数，区分几何与预测。"></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> 我没用留出拟合，并写边界与解释限制。</label>
+</div>
+<details class="answer"><summary>查看答案</summary><div class="details-body">
+<p>训练 X 为 m×d，拟 μ 长 d，对 Z=X−1μᵀ 做 SVD，保留 V_k 为 d×k，得分 m×k，重构 ZV_kV_kᵀ+1μᵀ 为 m×d。训练误差平方尾 σ² 和。新行复用中心方向，尺度也训练拟合。比例除总 σ²，零散布未定义。(±100,±1) 表明大第一方向可丢全部第二标签。重构与评估不同主张。</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>带着问题阅读</h2></div>
+<p>作者 <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning 配套网站</a>的 SVD、伪逆、PCA 选段，及官方 NumPy 1.26 <a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.svd.html" target="_blank" rel="noopener">SVD</a>、<a href="https://numpy.org/doc/1.26/reference/generated/numpy.linalg.pinv.html" target="_blank" rel="noopener">伪逆</a>形状与阈值约定。原创推导证明几何与近似。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>时间</th>
+<th>选段与问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>时段 1 · 20 分钟</td>
+<td>矩形映射输入、输出空间如何不同？</td>
+</tr>
+<tr>
+<td>时段 4 · 20 分钟</td>
+<td>右方向在哪里，数值策略丢哪些精确方向？</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>检索结业任务与下一步</h2></div>
+<p>不看笔记从 AᵀA 推方向，写三形状与四空间，证明一个最佳秩界，给伪逆与训练 PCA 流程及标签反例。</p>
+<p><strong>结业任务：</strong>diag(4,2,0) 秩二，秩一平方误差四、算子二，精确伪逆 diag(1/4,1/2,0)，目标第三项留残差。解释约化仍三项、零不可逆，以及阈值去掉二会改变什么。</p>
+<p><strong>进入下一课：</strong>区分精确几何、数值分辨率、重构与任务评估。下一块用线性代数发展极限、导数与优化。开放状态见<a href="index_ZH.html">课程概览</a>。</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>记法与双语术语</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>术语或记法</th>
+<th>含义</th>
+<th>English</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UΣVᵀ、σᵢ</td>
+<td>奇异因子、非负强度</td>
+<td>SVD / singular values</td>
+</tr>
+<tr>
+<td>完整、约化、紧致</td>
+<td>全基、q 方向、r 正方向</td>
+<td>Full / reduced / compact</td>
+</tr>
+<tr>
+<td>A⁺</td>
+<td>最小范数最小二乘映射</td>
+<td>Pseudoinverse</td>
+</tr>
+<tr>
+<td>A_k、‖·‖_F</td>
+<td>秩 k 截断、项平方能量范数</td>
+<td>Truncation / Frobenius norm</td>
+</tr>
+<tr>
+<td>μ、Z</td>
+<td>训练均值、中心数据</td>
+<td>Mean / centred data</td>
+</tr>
+<tr>
+<td>V_k、T</td>
+<td>主方向、得分</td>
+<td>Components / scores</td>
+</tr>
+<tr>
+<td>散布、协方差</td>
+<td>ZᵀZ、惯常除 m−1</td>
+<td>Scatter / covariance</td>
+</tr>
+<tr>
+<td>解释比例</td>
+<td>中心平方散布保留份额</td>
+<td>Explained ratio</td>
+</tr>
+<tr>
+<td>泄漏、阈值</td>
+<td>评估信息参与拟合、保留策略</td>
+<td>Leakage / cutoff</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="完整路线"><a href="module_13_ZH.html">← 模块 13</a><a href="module_15_ZH.html">模块 15 →</a></nav><footer class="site-footer">作者 Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

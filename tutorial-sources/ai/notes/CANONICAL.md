@@ -245,3 +245,41 @@ What still changes:
 - S2 reads for 47 minutes back to back (13 + 34). Move an exercise between the two blocks; S3 (110 minutes) has room to absorb it.
 - Case-study domain: s11 and the generalised refs draft 'a 20-entry hazard table from a hazard analysis and risk assessment', and Lab 6 uses an insulin pump. Use 'a 20-entry hazard log for the pressure-relief system', as in M07.
 - Paper 3 asks 'why is the smallest draft not always the best?'. In Leviathan et al.'s Table 2, T5-small, the smallest neural draft, gives the largest speed-up in every row. The evidence the question needs is Section 4.2: the bigram draft, with c = 0 and alpha = 0.2, yields only 1.25x. Reword the question to point there.
+
+## Module 09 arithmetic audit (4 October 2026)
+
+Keep earlier two-decimal figures as estimates, but avoid deriving three-decimal precision from
+their rounded inputs. For the canonical configuration, checkpointed activations from the stated
+formula are 3.60710144 GB (2.415919104 GB stored inputs + 1.191182336 GB one-layer workspace).
+The seven linear matrices total 8,304,721,920 parameters; block norms and final norm add 299,008.
+At 4.127 bits per linear weight with bf16 norms and both large tables, the QLoRA base estimate is
+6.77621301248 GB. Module 09 uses 3.607 and 6.776 in its three-decimal illustrations. Temporary
+buffers, kernels, allocator effects and unchunked logits remain outside these estimates.
+The illustrative serving format is a separate estimate: 4-bit block weights plus one fp16 scale
+per 128 weights, and 8-bit tables, about 5.53 GB before packaging. Do not confuse it with QLoRA's
+bf16-table training storage or uniform four-bit storage of every tensor.
+
+## Module 10 arithmetic and measurement audit (5 October 2026)
+
+The serving file now separates the seven linear matrices (8,304,721,920 weights at
+4.125 bits), all norms (299,008 at bf16) and both tables (622,854,144 each at eight bits).
+Its ideal size is 5.528428544 GB before table scales, headers and alignment; use the
+transparent rounded 5.5 GB convention in traffic/capacity calculations. This refines
+the earlier 8.305B rounded block estimate without changing the two-decimal 5.53 GB result.
+
+The bf16 cache remains 147,456 B/token, or 144 KiB. A conservative 24 decimal GB device
+with 2.5 GB assumed runtime memory leaves 16 GB and admits eighteen 6,000-token requests.
+At mean context 5,000 the full-batch traffic step is 18.77104 ms, giving 958.9 aggregate
+decode tokens/s before prefill interference. Cold/warm prefill bounds are 0.923/0.241 s
+at assumed 50% MFU. The simple prefill-inclusive full-load accounting gives about
+1,196 requests/hour and 2.39M output tokens/hour, rounded to 1,200/2.4M; saturated
+request latency is approximately 54–55 s, versus about 13.4 s at low load.
+
+All six labs were run sequentially on CPU. Lab 3 is a documented hybrid cost model,
+with unchecked static memory, actual-use cache admission, explicit preemption and
+256-position prefill chunks; it does not implement physical paging or benchmark an engine.
+Its final reference SLO search gives nominal 0.244 requests/s, realised 0.274 in 300
+seeded arrivals, 466.3 output tokens/s and assumed USD 0.596/million. Report costs from
+actual output throughput, not nominal rate times an assumed output length. Pooled p99
+ITL is distinct from a per-request maximum-gap guarantee. All prices, GPU efficiencies,
+power figures and hardware serving capacities are labelled assumptions or modelled bounds.

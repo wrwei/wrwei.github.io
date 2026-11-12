@@ -1,0 +1,513 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Expectation, joint distributions, covariance, and dependence — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Calculate exact joint moments and costs, prove expectation and conditional-variance identities, diagnose nonlinear uncorrelated dependence, and connect optional covariance geometry to centred PCA."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="23"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 23</button><div class="dropdown-menu" id="module-menu"><a href="module_23_EN.html" class="active" aria-current="page">Expectation, joint distributions, covariance, and dependence</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="module_23_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>Averages and dependence need a joint model</span></a><a href="#s1"><span class="num">2</span><span>Expectation of a variable a function and an algorithm cost</span></a><a href="#s2"><span class="num">3</span><span>Variance moments existence and changes of scale</span></a><a href="#s3"><span class="num">4</span><span>Joint marginal and conditional distributions</span></a><a href="#s4"><span class="num">5</span><span>Covariance correlation and dependence with zero covariance</span></a><a href="#s5"><span class="num">6</span><span>Conditional expectation and total mean and variance</span></a><a href="#s6"><span class="num">7</span><span>Optional AI extension covariance matrices Gaussian structure and PCA</span></a><a href="#misconceptions"><span class="num">8</span><span>Common misconceptions</span></a><a href="#labs"><span class="num">9</span><span>Three reproducible labs</span></a><a href="#exercises"><span class="num">10</span><span>Fourteen exercises with full solutions</span></a><a href="#quiz"><span class="num">11</span><span>Ten-question self-check</span></a><a href="#reading"><span class="num">12</span><span>Reading with a purpose</span></a><a href="#summary"><span class="num">13</span><span>Retrieval exit task and next step</span></a><a href="#terms"><span class="num">14</span><span>Notation and bilingual terminology</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">Expectation, joint distributions, covariance, and dependence</h1><p class="module-lead">Calculate exact joint moments and costs, prove expectation and conditional-variance identities, diagnose nonlinear uncorrelated dependence, and connect optional covariance geometry to centred PCA.</p><div class="hero-chips"><span class="chip chip-time">10 hours</span><span class="chip">4 sessions</span><span class="chip">3 labs</span><span class="chip">12 exercises + 2 extensions</span><span class="chip">10 quiz questions</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Compute weighted and function expectations with integrability and target-population checks.</li><li>Derive variance, scaling and moment-existence distinctions.</li><li>Construct joint, marginal and positive-case conditional distributions.</li><li>Prove covariance sum identities and disprove zero-correlation independence claims.</li><li>Derive total expectation, total variance and squared-risk conditional-mean optimality.</li><li>AI extension: prove covariance PSD and transformation, qualify Gaussian independence, and connect centred PCA to variance.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Module 22 for every route; Module 17 for continuous integrals. The optional vector-covariance extension uses Module 12, and the optional PCA connection revisits Module 14. All labs use the standard library.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">Averages and dependence need a joint model</a><a href="#s1">Expectation of a variable a function and an algorithm cost</a><a href="#s2">Variance moments existence and changes of scale</a><a href="#s3">Joint marginal and conditional distributions</a><a href="#s4">Covariance correlation and dependence with zero covariance</a><a href="#s5">Conditional expectation and total mean and variance</a><a href="#s6">Optional AI extension covariance matrices Gaussian structure and PCA</a><a href="#misconceptions">Common misconceptions</a><a href="#labs">Three reproducible labs</a><a href="#exercises">Fourteen exercises with full solutions</a><a href="#quiz">Ten-question self-check</a><a href="#reading">Reading with a purpose</a><a href="#summary">Retrieval exit task and next step</a><a href="#terms">Notation and bilingual terminology</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">10 hours</span></div><p class="plan-lead">Times include practice and are estimates. Split a session when useful. Optional extension exercises add 35 minutes. Progress is stored in this browser and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">150 min</span></div><div class="session-title">Expectation costs and moment existence</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2 and derive weighted costs and moments.</a></span><span class="act-min">90</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Complete Exercises 1–4.</a></span><span class="act-min">24</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read linearity and finite-moment assumptions.</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Retrieve expectation, variance and units.</a></span><span class="act-min">21</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m23:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">150 min</span></div><div class="session-title">Joint moments and covariance proofs</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Sections 3–4 and derive the joint-table summaries.</a></span><span class="act-min">58</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Compute exact moments and conditional decompositions.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e5">Complete proof Exercises 5–7.</a></span><span class="act-min">42</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m23:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">150 min</span></div><div class="session-title">Conditional information and optional geometry</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s5">Read Sections 5–6; CS practises finite conditional cases, AI adds covariance geometry.</a></span><span class="act-min">70</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Compare nonlinear dependence and independent-reference scatter.</a></span><span class="act-min">50</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Complete application Exercises 8–10 with the route alternative.</a></span><span class="act-min">30</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m23:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">150 min</span></div><div class="session-title">Dependence diagnosis and complete identities</div><ul class="acts"><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Repair the variance shortcut and inspect the applicable geometry extension.</a></span><span class="act-min">55</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e11">Complete diagnosis Exercises 11–12.</a></span><span class="act-min">20</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Complete choices and the written conditional decomposition.</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read conditional expectation and covariance limitations.</a></span><span class="act-min">15</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Complete the exit task and audit joint assumptions.</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m23:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>Averages and dependence need a joint model</h2></div>
+<p>Expectation turns a distribution into an average quantity, while variance and covariance describe selected aspects of variation. None of these summaries replaces a complete joint model. This lesson derives exact moments, proves linearity without independence, decomposes conditional variation, and connects covariance to geometry without confusing zero correlation with independence or explained variance with predictive usefulness.</p>
+<p><strong>Retrieval check:</strong> <a href="module_22_EN.html#s1">Module 22</a> supplies random variables and distributions. Continuous integrals require <a href="module_17_EN.html#s1">Module 17</a>. The optional vector-covariance extension uses <a href="module_12_EN.html#s1">Module 12</a>; the optional PCA connection revisits <a href="module_14_EN.html#s5">Module 14</a>. CS learners use all discrete examples and alternatives. Labs use the Python standard library, and their continuous/vector outputs are explicitly labelled.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>Expectation of a variable a function and an algorithm cost</h2></div>
+<p>For finite discrete X, expectation is E[X]=Σ_x x p_X(x), a weighted average in X’s units. It need not be a possible realised value: a fair Bernoulli expectation is1/2 even though every observation is0 or1. For a function g, E[g(X)]=Σ_x g(x)p_X(x); there is no need to construct a separate transformed table first. Grouping equal output preimages gives the same answer, proving this formula in the finite case. With a joint table the corresponding formula is E[g(X,Y)]=Σ_{x,y}g(x,y)p(x,y).</p>
+<p>For countable signed variables, a finite expectation is well-defined when E[|X|]=Σ|x|p_X(x)&lt;∞, allowing absolutely convergent rearrangements. A nonnegative variable can have extended expectation+∞. If positive and negative parts each have infinite expectation, subtracting them does not define E[X]. A symmetric truncation yielding zero cannot repair an undefined infinite-minus-infinite quantity. In the continuous branch use the corresponding density integral and absolute-integrability condition; the same conceptual distinctions apply.</p>
+<p>Linearity on a finite model follows directly from outcome sums: E[aX+bY]=Σ_ω(aX(ω)+bY(ω))p_ω=aE[X]+bE[Y]. No factorisation of the joint distribution is used, so no independence is needed. For finitely many integrable variables the same identity extends by justified sum/integral linearity. The product identity E[XY]=E[X]E[Y] is different: independence supplies it when the relevant moments exist, but linearity alone does not. Taking a function outside an expectation also fails generally: E[X²] need not equal(E[X])².</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Expected linear-search cost depends on the specified position law</div>
+<p>A successful search checks positions1,…,4 in order. Suppose the target position K has masses1/2,1/4,1/8,1/8. The number of comparisons is K, so E[K]=1/2+2/4+3/8+4/8=15/8=1.875. A uniform position model gives5/2 instead. The same algorithm therefore has different average cost under different input models; its worst successful cost remains4. If failure is possible, include its event and full-scan cost rather than silently condition on success.</p>
+</div>
+<p>Indicator variables make average costs easy to derive. For an event A, 1_A is1 on A and0 otherwise, hence E[1_A]=P(A). A count N=Σ_i1_{A_i} has expectationΣ_iP(A_i) even when the events are dependent. For a nonnegative integer count, the identity N=Σ_{k≥1}1{N≥k} gives E[N]=Σ_{k≥1}P(N≥k), with the infinite nonnegative interchange justified by monotone partial sums; finite bounded counts need only finite linearity. The search example’s tails1,1/2,1/4,1/8 sum to15/8.</p>
+<p>Infinite expectation can occur in a valid normalised model. Let P(X=n)=1/[n(n+1)] for n≥1. Telescoping its first N masses gives1−1/(N+1), so total probability is1. Yet E[X]=Σ1/(n+1) diverges: grouping successive powers-of-two blocks gives a positive lower contribution bounded away from zero in every block. A simulated finite average is always finite but does not make this population mean finite. Splitting the same magnitudes equally between ±n makes positive and negative expectations both infinite and the signed mean undefined.</p>
+<p>Expectation is a population property of a model. A sample average is a statistic of observed values and may estimate that property under an appropriate sampling design; it is not the definition of expectation. Repetition, selection and dependence can change what that statistic estimates. Module24 supplies finite-variance sample-mean and limit statements rather than treating every large dataset average as universally convergent. State integrability, target population and the generating assumptions before interpreting an average-cost or model-loss claim.</p>
+<figure class="fig" id="fig-23-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="Target positions one through four have probabilities one-half, one-quarter, one-eighth, one-eighth; expected comparisons15/8 differ from the uniform2.5."><title>Weighted search cost</title><desc>Target positions one through four have probabilities one-half, one-quarter, one-eighth, one-eighth; expected comparisons15/8 differ from the uniform2.5.</desc><defs><marker id="fig-23-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">Average cost depends on the input-position model</text><text x="100" y="99" text-anchor="middle" font-size="22" fill="#1a2e4a">K=1</text><rect x="170" y="73" width="375" height="34" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="580" y="99" text-anchor="start" font-size="21" fill="#1a2e4a">p=0.5</text><text x="100" y="148" text-anchor="middle" font-size="22" fill="#1a2e4a">K=2</text><rect x="170" y="122" width="187.5" height="34" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="580" y="148" text-anchor="start" font-size="21" fill="#1a2e4a">p=0.25</text><text x="100" y="197" text-anchor="middle" font-size="22" fill="#1a2e4a">K=3</text><rect x="170" y="171" width="93.75" height="34" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="580" y="197" text-anchor="start" font-size="21" fill="#1a2e4a">p=0.125</text><text x="100" y="246" text-anchor="middle" font-size="22" fill="#1a2e4a">K=4</text><rect x="170" y="220" width="93.75" height="34" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="580" y="246" text-anchor="start" font-size="21" fill="#1a2e4a">p=0.125</text><text x="380" y="307" text-anchor="middle" font-size="20" fill="#1a2e4a">E[K]=Σkp(k)=15/8; ΣP(K≥k)=15/8</text><text x="380" y="338" text-anchor="middle" font-size="19" fill="#1a2e4a">Uniform positions give5/2; worst successful cost remains4.</text></g></svg></div><figcaption><span class="fig-num">Figure 23.1</span> <p>Expected cost is a weighted sum or a sum of indicator probabilities. Linearity permits dependent events, but the input-position model must be specified.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does expectation have to be a possible observation? Does linearity need independence? Can a valid probability model have an infinite or undefined mean?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>A Bernoulli mean1/2 need not be realised. Finite linearity uses outcome sums without independence. The telescoping positive-magnitude model has infinite mean, and its symmetric signed version has undefined mean because both parts diverge.</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Variance moments existence and changes of scale</h2></div>
+<p>For X with finite second moment, μ=E[X] is finite and variance is Var(X)=E[(X−μ)²]≥0. Expanding the square gives Var(X)=E[X²]−μ². Finite second moment ensures first absolute moment through Cauchy–Schwarz with the constant variable1. Standard deviation is√Var(X) and has X’s original units; variance has squared units. The second raw moment E[X²] and second centred moment Var(X) are different objects. Higher moments need their own existence checks rather than inheriting validity from a finite mean.</p>
+<p>Variance zero means X=μ almost surely, which allows discrepancies on probability-zero outcomes. To prove it, if P(|X−μ|≥1/k)&gt;0 for some positive integer k, the expected squared deviation is at least that probability times1/k², contradicting zero. The event of any nonzero deviation is the countable union of these threshold events. This is a model statement; zero sample variance from a short run need not establish zero population variance. Some constant or degenerate models genuinely do have zero variance.</p>
+<p>For constants a,b, E[aX+b]=aμ+b and Var(aX+b)=a²Var(X), obtained by centring and squaring a(X−μ). Adding a constant does not change spread; changing units scales variance quadratically and standard deviation by|a|. If Var(X)&gt;0, Z=(X−μ)/σ has mean0 and variance1. Standardising does not make its distribution Gaussian, make distinct variables independent or remove all nonlinear relationships. It changes two moments and units, not the full model.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Bernoulli moments and an expectation that cannot pass through squaring</div>
+<p>For X Bernoulli(p), X²=X on every outcome, so E[X]=E[X²]=p and Var(X)=p−p²=p(1−p). At p=.3 these are.3,.3 and.21. But(E[X])²=.09, different from E[X²]. For Y=2X+5, mean is5.6 and variance is4(.21)=.84. The added five shifts location without changing variation.</p>
+</div>
+<p>A finite mean does not guarantee finite variance. On n≥1 choose masses proportional to1/n³; the normalising sum is finite by a geometric-block comparison. The first-moment series behaves likeΣ1/n² and converges by the same comparison, while the second-moment series behaves likeΣ1/n and diverges. You can use these block arguments on the discrete route without continuous integration. Report “infinite variance” rather than apply a finite-variance formula to a finite truncated approximation and declare the population quantity finite.</p>
+<p>In the continuous branch, uniform(−1,1) has mean0 and E[X²]=∫_{−1}^1 x²/2 dx=1/3, so variance1/3. Its fourth moment is1/5. For exponential rate λ, integrating the density gives mean1/λ and second moment2/λ², so variance1/λ²; the integrations and boundary terms use Module17. Gaussian μ,σ² has meanμ and varianceσ², explaining the parameter names, while a degenerate σ=0 case is handled as an atom. These properties require the stated model, not merely matching a sample’s centre and spread.</p>
+<p>For observed numbers, empirical variance often uses the average squared deviation with denominator N, whereas a classical unbiased sample-variance estimator under independent identically distributed finite-variance sampling uses N−1. They answer related but different questions. This lesson uses N when describing the empirical distribution’s covariance and explicitly labels an N−1 rescaling in Lab3; Module25 derives the unbiasedness statement. Neither denominator corrects dependence, selected populations or an undefined population moment by itself.</p>
+<p>Computing E[X²]−E[X]² numerically can subtract two large nearby numbers and lose a small variance. Centring observations before accumulating squared deviations usually reduces that cancellation, and later numerical modules discuss stable algorithms. A mathematically nonnegative variance can appear slightly negative through rounding; that observation is a numerical diagnostic, not permission to overlook large inconsistencies. Check units, the stated denominator and the model’s moment existence before interpreting a dispersion report.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>How do variance and standard deviation units differ? Does standardisation create a Gaussian? Does a finite mean guarantee finite second moment?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Variance uses squared units; standard deviation restores the original units. Standardisation changes location and scale without determining the distribution. The1/n³ example has finite mean but infinite second moment.</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>Joint marginal and conditional distributions</h2></div>
+<p>A joint PMF p(x,y)=P(X=x,Y=y) is nonnegative and sums to one over the joint support. Its marginals are p_X(x)=Σ_y p(x,y) and p_Y(y)=Σ_x p(x,y). Marginalising adds the masses of all outcomes compatible with the retained value. A pair of marginal tables does not determine the joint table; multiple couplings can share them. Independence is the particular factorisation p(x,y)=p_X(x)p_Y(y) for every pair, including zeros and support restrictions.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">One exact joint table supplies every marginal and moment</div>
+<p>Use joint masses p(0,0)=1/2, p(0,2)=1/4, p(1,0)=1/8, p(1,2)=1/8. Then P(X=1)=1/4, P(Y=2)=3/8, E[X]=1/4, E[Y]=3/4, E[XY]=1/4, Var(X)=3/16 and Var(Y)=15/16. The joint mass at(1,2) is1/8 while the marginal product is3/32, so the variables are dependent. Reading only the two marginals would hide that difference.</p>
+</div>
+<p>If p_Y(y)&gt;0, the conditional PMF p_{X|Y}(x|y)=p(x,y)/p_Y(y) normalises the column for that y. In the table, at Y=0 the X=1 probability is(1/8)/(5/8)=1/5; at Y=2 it is(1/8)/(3/8)=1/3. Conditional expectations then average against those conditional PMFs, not against the original marginal. Null y values have no elementary conditional ratio; a specification on a null case can be chosen without changing unconditional averages but must not be presented as a uniquely determined ratio.</p>
+<p>For independent integrable X,Y, the finite-table expectation of their product factors: Σ_xΣ_y xy p_X(x)p_Y(y)=(Σ_x x p_X(x))(Σ_y y p_Y(y)). Under the usual integrability assumptions the same holds for countable or density models with justified interchanges. The converse is false: a single product moment equalling the product of means supplies only one constraint, whereas independence constrains the entire joint distribution. Section4 gives a deterministic nonlinear counterexample.</p>
+<p><strong>Continuous AI branch:</strong> a joint density f(x,y)≥0 integrates to one. Marginals integrate out the other coordinate, and for f_Y(y)&gt;0 a conditional density can be defined as f(x,y)/f_Y(y), for the appropriate almost-everywhere version. This is not the elementary event ratio P(X∈A,Y=y)/P(Y=y), whose denominator is zero for an absolutely continuous Y. Integrating the conditional density over x produces one; its dependence on y describes how the conditional distribution changes along the joint model.</p>
+<p>A simple joint density constant2 on the triangle0&lt;x&lt;y&lt;1 and zero elsewhere is normalised because its area is1/2. Its marginals are f_Y(y)=2y for0&lt;y&lt;1 and f_X(x)=2(1−x) for0&lt;x&lt;1. Given an interior y, X has uniform density1/y on(0,y), hence conditional mean y/2. The triangular support itself couples the variables: not every pair of marginal-support values is possible. This branch requires Module17 for the integrals; CS learners use the finite table above instead.</p>
+<p>Joint models can be specified by a generative sequence: draw Y from its marginal, then draw X from its conditional model. Multiplying those factors reconstructs p(x,y) or the corresponding density. Reversing that sequence requires recalculated conditionals, not replacing them by the original forward mechanism. A stochastic programme implementing a conditional branch should keep its group or latent variable attached when computing joint events, so simulation counters can recover the intended table and not accidentally mix marginal and conditional targets.</p>
+<p>For vector observations, a joint distribution covers all coordinates. Pairwise marginal tables can still miss higher-order dependence, as the xor construction in Module21 shows. Covariance will summarise each pair’s centred product, but even the complete covariance matrix is usually less information than the full joint distribution. An exact data-generating story, a joint table, and a low-order summary serve different purposes; label which one supports an inference or algorithm claim.</p>
+<figure class="fig" id="fig-23-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 365" role="img" aria-label="Rows X zero and one, columns Y zero and two, have row sums3/4 and1/4, column sums5/8 and3/8, and conditional X-one rates1/5 and1/3."><title>Exact joint marginal conditional table</title><desc>Rows X zero and one, columns Y zero and two, have row sums3/4 and1/4, column sums5/8 and3/8, and conditional X-one rates1/5 and1/3.</desc><defs><marker id="fig-23-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="365" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">Sum joint masses, then normalise by the case</text><text x="105" y="85" text-anchor="middle" font-size="20" fill="#1a2e4a">X / Y</text><text x="285" y="85" text-anchor="middle" font-size="20" fill="#1a2e4a">0</text><text x="465" y="85" text-anchor="middle" font-size="20" fill="#1a2e4a">2</text><text x="645" y="85" text-anchor="middle" font-size="20" fill="#1a2e4a">Row sum</text><rect x="25" y="104" width="710" height="44" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="105" y="135" text-anchor="middle" font-size="21" fill="#1a2e4a">0</text><text x="285" y="135" text-anchor="middle" font-size="21" fill="#1a2e4a">1/2</text><text x="465" y="135" text-anchor="middle" font-size="21" fill="#1a2e4a">1/4</text><text x="645" y="135" text-anchor="middle" font-size="21" fill="#1a2e4a">3/4</text><rect x="25" y="156" width="710" height="44" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="105" y="187" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><text x="285" y="187" text-anchor="middle" font-size="21" fill="#1a2e4a">1/8</text><text x="465" y="187" text-anchor="middle" font-size="21" fill="#1a2e4a">1/8</text><text x="645" y="187" text-anchor="middle" font-size="21" fill="#1a2e4a">1/4</text><rect x="25" y="208" width="710" height="44" rx="10" fill="#fff7ed" stroke="#0ea5e9"/><text x="105" y="239" text-anchor="middle" font-size="21" fill="#1a2e4a">Column sum</text><text x="285" y="239" text-anchor="middle" font-size="21" fill="#1a2e4a">5/8</text><text x="465" y="239" text-anchor="middle" font-size="21" fill="#1a2e4a">3/8</text><text x="645" y="239" text-anchor="middle" font-size="21" fill="#1a2e4a">1</text><text x="380" y="309" text-anchor="middle" font-size="20" fill="#1a2e4a">P(X=1|Y=0)=1/5; P(X=1|Y=2)=1/3</text><text x="380" y="339" text-anchor="middle" font-size="17" fill="#1a2e4a">The conditional denominator is its column sum, not the original X marginal.</text></g></svg></div><figcaption><span class="fig-num">Figure 23.2</span> <p>Sum rows or columns to obtain marginals, then normalise a positive-probability column to condition. Moment calculations use the joint masses when both variables appear.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Do marginals determine the joint law? Which denominator normalises a conditional column? Is E[XY]=E[X]E[Y] by itself independence?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Different couplings can share the same marginals. Divide by that column’s positive Y mass. The product-moment equality supplies only one condition, not the full distributional factorisation.</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>Covariance correlation and dependence with zero covariance</h2></div>
+<p>For finite-variance X,Y, covariance is Cov(X,Y)=E[(X−μ_X)(Y−μ_Y)]=E[XY]−μ_Xμ_Y. Finite second moments make the centred product integrable through|ab|≤(a²+b²)/2. Covariance is symmetric, has the product of the two variables’ units, and scales as Cov(aX+b,cY+d)=acCov(X,Y). Positive or negative covariance describes linear centred association, not causation. Independence supplies zero covariance under these moment assumptions, while zero covariance does not generally supply independence.</p>
+<p>Expanding centred sums gives Var(X+Y)=Var(X)+Var(Y)+2Cov(X,Y) and Var(X−Y)=Var(X)+Var(Y)−2Cov(X,Y). More generally Var(Σa_i X_i)=Σa_i²Var(X_i)+2Σ_{i&lt;j}a_i a_j Cov(X_i,X_j). Independence permits the zero-cross-term shortcut; pairwise uncorrelated variables also permit that variance identity without implying mutual independence. The exact table has Cov=1/4−(1/4)(3/4)=1/16, so Var(X+Y)=3/16+15/16+2/16=5/4, larger than the incorrect shortcut9/8.</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo>+</mo><mi>Y</mi><mo stretchy="false">)</mo><mo>=</mo><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo><mo>+</mo><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>Y</mi><mo stretchy="false">)</mo><mo>+</mo><mn>2</mn><mi mathvariant="normal">Cov</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo separator="true">,</mo><mi>Y</mi><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\operatorname{Var}(X+Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)+2\operatorname{Cov}(X,Y).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop"><span class="mord mathrm" style="margin-right:0.0139em;">Cov</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></div>
+<p>If both variances are positive, correlation ρ=Cov(X,Y)/(σ_Xσ_Y) is dimensionless. The bound|ρ|≤1 follows by considering E[(X−μ_X−t(Y−μ_Y))²]≥0; choosing t=Cov/Var(Y) gives Cov²≤Var(X)Var(Y). If either variance is zero, the centred variable vanishes almost surely and covariance is zero, but the ordinary correlation ratio is undefined. Report that degeneracy instead of treating0/0 as zero correlation.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A deterministic square relation can have zero covariance</div>
+<p>Let X be equally likely−1,0,1 and set Y=X². Then E[X]=0, E[Y]=2/3 and E[XY]=E[X³]=0, so covariance and correlation are zero; both variances are positive. Nevertheless P(Y=0|X=0)=1 while P(Y=0)=1/3, proving dependence. In the continuous AI counterpart X uniform(−1,1), symmetry likewise gives Cov(X,X²)=0 and the square relation holds exactly. A small covariance can coexist with a completely determined nonlinear response.</p>
+</div>
+<p>Correlation±1, when variances are positive, has a stronger interpretation: equality in the preceding squared-residual bound makes one centred variable a nonzero scalar multiple of the other almost surely. The sign indicates whether that scalar is positive or negative. A deterministic nonlinear relation can instead have correlation zero, intermediate correlation or other values. Correlation is designed to measure this linear aspect, so failure to detect a nonlinear pattern is not a violation of its definition.</p>
+<p>Correlation can also change after conditioning or mixing. The latent-group and selected-union examples from Module21 already show why a global association need not describe every stratum. Rescaling a variable by a positive factor leaves correlation unchanged while changing covariance; rescaling by a negative factor flips its sign. A dataset report should therefore distinguish raw covariance, dimensionless correlation, group-conditioned quantities and the actual target population. Neither a correlation coefficient nor its sign establishes a causal mechanism.</p>
+<p>Finite sample covariance is an estimate or empirical-distribution quantity, depending on the convention. Even an exactly zero population covariance will usually produce a small nonzero sample result. Lab2 displays a square scatter and an independent reference with similarly small sample covariances; the shapes and conditional structure differ strongly. Its deterministic-relation residual is zero for the dependent sample, so the observed nonlinear pattern does not rely on deciding whether a rounded coefficient happened to equal zero.</p>
+<p>For mathematical claims, prove the relevant factorisation or conditional difference rather than rely on a visual association alone. A scatter plot can reveal a useful diagnostic and suggest a model, but absence of a visible pattern in a finite picture is not proof of independence. In high dimensions a covariance matrix can help organise pairwise summaries, yet higher-order or nonlinear dependence remains possible. The Gaussian exception in Section6 has explicit joint-distribution assumptions, not a blanket exemption for data that merely look bell-shaped marginally.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>When does independence give zero covariance? Does the reverse hold? What happens to ordinary correlation when one variance is zero?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Finite relevant moments justify the independent product expectation. The square relation disproves the converse. Zero variance makes the correlation ratio undefined even though covariance is zero.</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>Conditional expectation and total mean and variance</h2></div>
+<p>For a discrete positive-mass y, define m(y)=E[X|Y=y]=Σ_x x p(x,y)/p_Y(y). The object E[X|Y]=m(Y) is itself a random variable, not a single number: it assigns the appropriate conditional mean according to the realised Y. In finite models every such quantity exists; general versions require integrability. Null cases can be assigned a version without changing any expectation, and should not be treated as elementary ratios. More general conditioning is best understood as averaging with the information represented by Y.</p>
+<p>Total expectation follows by summing positive cases: E[m(Y)]=Σ_y p_Y(y)Σ_x x p(x,y)/p_Y(y)=Σ_{x,y}x p(x,y)=E[X]. It is a weighted average of conditional means using actual group probabilities. Replacing those weights by an equal average changes the target unless the groups truly have equal masses. For a function h(Y), the same conditional calculation gives E[h(Y)(X−m(Y))]=0 when integrable. This orthogonality explains both total variance and a prediction property.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Within-group and between-group variation add exactly</div>
+<p>In the exact joint table, Y=0 has mass5/8, conditional X mean1/5 and variance4/25; Y=2 has mass3/8, mean1/3 and variance2/9. Total mean is(5/8)(1/5)+(3/8)(1/3)=1/4. Expected conditional variance is11/60, and variance of the conditional mean is1/240. Their sum11/60+1/240=3/16 matches Var(X). Equal weighting of the two cases would give a different mean and decomposition target.</p>
+</div>
+<p>For finite-variance X, write X−E[X]=(X−m(Y))+(m(Y)−E[X]). Expand the square and take expectation. The cross term vanishes because E[X−m(Y)|Y]=0; conditional averaging of the first squared term gives E[Var(X|Y)], and the second is Var(m(Y)). Hence Var(X)=E[Var(X|Y)]+Var(E[X|Y]). Both terms are nonnegative. The decomposition separates variation remaining within information groups from variation of their conditional means; it does not require independence between X and Y.</p>
+<div class="math-d" data-done="1"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo><mo>=</mo><mi>E</mi><mo stretchy="false">[</mo><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>X</mi><mo>∣</mo><mi>Y</mi><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mo>+</mo><mi mathvariant="normal">Var</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>E</mi><mo stretchy="false">[</mo><mi>X</mi><mo>∣</mo><mi>Y</mi><mo stretchy="false">]</mo><mo stretchy="false">)</mo><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">\operatorname{Var}(X)=E[\operatorname{Var}(X\mid Y)]+\operatorname{Var}(E[X\mid Y]).</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mopen">[</span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">)]</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop"><span class="mord mathrm">Var</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∣</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.2222em;">Y</span><span class="mclose">])</span><span class="mord">.</span></span></span></span></span></div>
+<p>Conditional mean also minimises mean-squared prediction among functions of Y. For any square-integrable predictor a(Y), decompose X−a(Y)=(X−m(Y))+(m(Y)−a(Y)). The same orthogonality gives E[(X−a(Y))²]=E[(X−m(Y))²]+E[(m(Y)−a(Y))²]. The second term is nonnegative, so m is optimal, uniquely up to probability-zero discrepancies. This theorem presumes the true joint model and squared loss; a fitted predictor approximates m and needs data/estimation guarantees before inheriting its population performance.</p>
+<p>The chosen loss matters. If X is a binary label, E[X|Y] is the conditional success probability and is the optimal probability-valued prediction under squared loss. A hard zero-one decision instead compares the two conditional class probabilities: predicting one is optimal when that success probability exceeds one-half, with either choice optimal at a tie. For continuous targets an absolute-error loss generally selects a conditional median rather than the conditional mean. An averaging theorem therefore does not establish one universally optimal prediction rule for every application.</p>
+<p>If X and Y are independent and X integrable, every positive conditional distribution of X equals its marginal and m(Y)=E[X] almost surely. The converse “constant conditional mean means independence” is false: for symmetric X with Y=X², E[X|Y]=0 while Y still determines the magnitude of X. The conditional distribution can change even when its mean stays fixed. Higher moments and full conditional laws carry information that a mean alone cannot represent.</p>
+<p>Conditioning on more information uses nested versions of the tower property, but arbitrary successive conditionings cannot simply be erased. If Z is a function of Y, averaging E[X|Y] again given Z gives E[X|Z]; without that information nesting, the equality is not generally justified. This lesson’s finite partition proof supports the stated total-mean identity and appropriate nested case. Avoid treating every conditioning operation like multiplication by a constant or an order-free algebraic cancellation.</p>
+<p>In continuous models conditional means integrate against the conditional density where it is defined. For the triangular density of Section3, m(y)=y/2 and Y density2y, so E[X]=∫_0^1(y/2)(2y)dy=1/3. That agrees with the X-marginal integral. The CS route uses the exact finite table and prediction expansion; no density ratio at a zero-probability point is required to understand the discrete statements. Both branches use the same information and averaging logic with their appropriate distributions.</p>
+<div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" data-widget="jointmoments"></div><div class="widget-caption">
+</div></div>
+<p>The explorer varies c=P(X=1,Y=2) while preserving P(X=1)=1/4 and P(Y=2)=3/8. Its four masses are .375+c, .375−c, .25−c and c, requiring0≤c≤.25. Independence occurs at c=3/32. Watch the covariance, conditional means and within/between decomposition change even though both marginals and both individual variances remain fixed.</p>
+<figure class="fig" id="fig-23-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="Expected within-case variance11/60 and between-case variance1/240 sum to3/16, using actual case weights5/8 and3/8."><title>Total variance decomposition</title><desc>Expected within-case variance11/60 and between-case variance1/240 sum to3/16, using actual case weights5/8 and3/8.</desc><defs><marker id="fig-23-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">Total variance = within + between</text><rect x="35" y="65" width="325" height="210" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="400" y="65" width="325" height="210" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="197" y="107" text-anchor="middle" font-size="18" fill="#1a2e4a">Expected conditional variance</text><text x="562" y="107" text-anchor="middle" font-size="18" fill="#1a2e4a">Variance of conditional means</text><text x="197" y="157" text-anchor="middle" font-size="24" fill="#1a2e4a">E[Var(X|Y)]</text><text x="562" y="157" text-anchor="middle" font-size="24" fill="#1a2e4a">Var(E[X|Y])</text><text x="197" y="209" text-anchor="middle" font-size="29" fill="#1a2e4a">11/60</text><text x="562" y="209" text-anchor="middle" font-size="29" fill="#1a2e4a">1/240</text><text x="197" y="250" text-anchor="middle" font-size="18" fill="#1a2e4a">Case weights5/8 and3/8</text><text x="562" y="250" text-anchor="middle" font-size="18" fill="#1a2e4a">Means1/5 and1/3</text><text x="380" y="325" text-anchor="middle" font-size="23" fill="#1a2e4a">Var(X)=3/16=11/60+1/240</text></g></svg></div><figcaption><span class="fig-num">Figure 23.3</span> <p>Total variance adds expected within-case variation and variation of conditional means. A conditional mean can be useful without exhausting the conditional distribution.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Is E[X|Y] a number or a variable? Which weights prove total expectation? Does a constant conditional mean establish independence?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>It is the variable m(Y); each realised case supplies a value. Total expectation uses the Y marginal weights. The symmetric square relation has constant conditional mean but a changing conditional distribution, so independence does not follow.</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>Optional AI extension covariance matrices Gaussian structure and PCA</h2></div>
+<p>The shared discrete conclusion is already complete: expectation is linear, covariance enters sums, and conditional means/variances combine with explicit weights. <strong>AI vector extension requiring Module12:</strong> for a finite-second-moment random column vector X∈Rᵈ, mean is μ=E[X] componentwise and covariance matrix is Σ=E[(X−μ)(X−μ)ᵀ]. Its i,j entry is Cov(X_i,X_j). Symmetry is immediate; diagonal entries are coordinate variances. The matrix records all centred pair products but not arbitrary higher-order or nonlinear dependence.</p>
+<p>For any fixed vector a, aᵀΣa=E[(aᵀ(X−μ))²]=Var(aᵀX)≥0, so Σ is positive semidefinite. It need not be positive definite: if one coordinate is an exact linear combination of others, some nonzero projected direction has zero variance. More generally for Y=AX+b, mean is Aμ+b and covariance is AΣAᵀ, by multiplying the centred outer product. A coordinate scaling changes covariance units accordingly. This proof uses matrix dimensions and scalar variance, without needing an eigenvalue decomposition.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A singular covariance matrix still gives valid projection variances</div>
+<p>For four centred records(−2,−1),(−1,−.5),(1,.5),(2,1), the empirical-distribution covariance with denominator4 is [[2.5,1.25],[1.25,.625]]. Projection onto a=(2,1)/√5 has variance3.125; projection onto its perpendicular(−1,2)/√5 has variance0 because every record lies on y=x/2. The matrix is PSD and singular, not an invalid covariance. Using denominator3 scales it by4/3 without changing its principal direction.</p>
+</div>
+<p>For independent observations assembled as rows of a centred data matrix Z, the empirical covariance is C_N=ZᵀZ/N; this PSD identity also holds for a deterministic table interpreted as an empirical distribution. Independence is relevant when making a population estimation theorem, not necessary for the matrix product’s algebraic PSD property. If data are not centred, the product is a raw second-moment matrix rather than covariance. An N−1 estimator convention changes the scale and has its own sampling assumptions, developed in Module25.</p>
+<p><strong>Optional PCA connection requiring Module14:</strong> for a unit direction a, empirical projected variance is aᵀC_N a. A leading symmetric eigenvector maximises that Rayleigh quotient; an orthonormal k-dimensional projection maximises retained variance through the leading eigenspace, matching the centred SVD directions previously derived. Tied eigenvalues allow multiple bases of the same subspace. Explained variance measures squared reconstruction structure, not label relevance, causal importance or a guarantee that a classifier will perform well. Fit the centring and directions on training data and reuse them on held-out records.</p>
+<p><strong>Continuous Gaussian extension:</strong> a nondegenerate multivariate Gaussian with meanμ and SPD covarianceΣ has density exp(−(x−μ)ᵀΣ⁻¹(x−μ)/2)/[(2π)^{d/2}√detΣ]. This named distribution has the stated mean and covariance; its general construction and normalisation extend the one-dimensional Gaussian facts. The formula requires SPD Σ; singular Gaussian distributions can exist on lower-dimensional affine supports but lack this full-dimensional density. Do not divide by a zero determinant to represent them.</p>
+<p>Within a jointly Gaussian nondegenerate model, zero cross-covariance between coordinate blocks implies independence: a block-diagonal Σ has block-diagonal inverse and determinant equal to the product of block determinants, so the displayed density factors into the two marginal Gaussian densities. This proof relies on the joint Gaussian form, not merely on each marginal being Gaussian. Other joint couplings with Gaussian marginals can be dependent and uncorrelated. The general square counterexample remains valid outside this explicitly qualified exception.</p>
+<p>A concrete warning uses a standard Gaussian Z and an independent fair sign S∈{−1,1}. Set X=Z and Y=SZ. Symmetry makes both marginals standard Gaussian, and Cov(X,Y)=E[SZ²]=E[S]E[Z²]=0. Yet |Y|=|X| on every outcome, so the pair is dependent. Its joint law is supported on the two lines y=x and y=−x rather than having the nondegenerate two-dimensional Gaussian density. Knowing the two Gaussian marginal shapes, or even a diagonal covariance, does not supply that missing joint assumption. This example also shows why a covariance that is positive definite does not imply a particular density exists for every possible joint distribution.</p>
+<figure class="fig" id="fig-23-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="Four points lie on y=x/2, with principal variance3.125 and perpendicular variance zero; covariance is positive semidefinite and singular."><title>Singular covariance geometry</title><desc>Four points lie on y=x/2, with principal variance3.125 and perpendicular variance zero; covariance is positive semidefinite and singular.</desc><defs><marker id="fig-23-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">PSD permits a zero projected variance</text><path d="M70,205H420M245,60V300" stroke="#94a3b8"/><path d="M84,285.5L406,124.5" stroke="#15803d" stroke-width="3"/><circle cx="105" cy="275" r="6" fill="#15803d"/><circle cx="175" cy="240" r="6" fill="#15803d"/><circle cx="315" cy="170" r="6" fill="#15803d"/><circle cx="385" cy="135" r="6" fill="#15803d"/><path d="M245,205L175,65" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-23-4__arrow)"/><text x="472" y="100" text-anchor="start" font-size="18" fill="#1a2e4a">Empirical Cov, denominator N</text><text x="472" y="145" text-anchor="start" font-size="21" fill="#1a2e4a">[[2.5,1.25],</text><text x="472" y="176" text-anchor="start" font-size="21" fill="#1a2e4a"> [1.25,.625]]</text><text x="472" y="225" text-anchor="start" font-size="19" fill="#1a2e4a">Line direction Var=3.125</text><text x="472" y="267" text-anchor="start" font-size="19" fill="#1a2e4a">Perpendicular Var=0</text><text x="380" y="327" text-anchor="middle" font-size="17" fill="#1a2e4a">Every direction nonnegative, possibly singular; variance does not certify prediction.</text></g></svg></div><figcaption><span class="fig-num">Figure 23.4</span> <p>Covariance is PSD because every projected variance is nonnegative. A null direction can reflect an exact linear relation; high retained variance remains a geometric summary.</p>
+</figcaption></figure>
+<p>Lab3 repairs the variance shortcut for Y=X and checks empirical covariance directions in the optional AI portion. Lab2’s generated scatter contrasts nonlinear dependence with an independent reference, while retaining a finite discrete CS counterpart. These checks distinguish mathematical moments, finite-data summaries, estimation conventions and model assumptions. Your next step is to use the resulting finite-variance quantities in sample-mean, concentration and Monte Carlo statements with explicit independence contracts.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why is covariance PSD? Can it be singular? Does zero cross-covariance always imply independence, or does the Gaussian exception need a joint assumption?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Every quadratic projection is a nonnegative variance. Exact linear relations give null directions. The general implication fails; the density-factorisation proof requires a jointly Gaussian model with the stated nondegenerate covariance structure.</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>Common misconceptions</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Repair</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>An expectation must be realised.</td>
+<td>It is a weighted average, possibly outside the realised support.</td>
+</tr>
+<tr>
+<td>Linearity requires independence.</td>
+<td>Finite integrable sums are linear without factorisation.</td>
+</tr>
+<tr>
+<td>Finite mean guarantees finite variance.</td>
+<td>Second-moment existence is separate.</td>
+</tr>
+<tr>
+<td>Marginals determine dependence.</td>
+<td>A joint law or coupling is still needed.</td>
+</tr>
+<tr>
+<td>Zero correlation means independent.</td>
+<td>A deterministic square relation disproves it.</td>
+</tr>
+<tr>
+<td>Constant conditional mean means independent.</td>
+<td>Conditional distributions can still change.</td>
+</tr>
+<tr>
+<td>Every covariance matrix must be invertible.</td>
+<td>It is PSD and may have null directions.</td>
+</tr>
+<tr>
+<td>High PCA variance means useful prediction.</td>
+<td>Reconstruction variance does not certify target relevance.</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>Three reproducible labs</h2></div>
+<h3 id="lab1">Lab1 · Exact joint moments and conditional decomposition</h3>
+<p><a href="labs/module_23/lab1_exact_joint_moments.py" download>Download lab1_exact_joint_moments.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Joint moments and conditional expectation/variance with exact fractions.&quot;&quot;&quot;
+from fractions import Fraction as F
+
+if __name__ == &quot;__main__&quot;:
+    joint = {(0, 0): F(1, 2), (0, 2): F(1, 4), (1, 0): F(1, 8), (1, 2): F(1, 8)}
+    ex = sum((x*p for (x, y), p in joint.items()), F(0))
+    ey = sum((y*p for (x, y), p in joint.items()), F(0))
+    vx = sum(((x-ex)**2*p for (x, y), p in joint.items()), F(0))
+    vy = sum(((y-ey)**2*p for (x, y), p in joint.items()), F(0))
+    cov = sum(((x-ex)*(y-ey)*p for (x, y), p in joint.items()), F(0))
+    vsum = sum(((x+y-ex-ey)**2*p for (x, y), p in joint.items()), F(0))
+    assert sum(joint.values()) == 1
+    print(&quot;joint:&quot;, {xy: str(p) for xy, p in joint.items()})
+    print(&quot;E(X)=%s E(Y)=%s Var(X)=%s Var(Y)=%s Cov=%s&quot; % (ex, ey, vx, vy, cov))
+    print(&quot;Var(X+Y)=%s independent shortcut=%s&quot; % (vsum, vx+vy))
+    assert vsum == vx+vy+2*cov
+    cases = []
+    for y in (0, 2):
+        py = sum((p for (x, yy), p in joint.items() if yy == y), F(0))
+        conditional = sum((x*p/py for (x, yy), p in joint.items() if yy == y), F(0))
+        conditional_var = sum(((x-conditional)**2*p/py for (x, yy), p in joint.items() if yy == y), F(0))
+        cases.append((py, conditional, conditional_var))
+        print(&quot;Y=%d: probability=%s E(X|Y)=%s Var(X|Y)=%s&quot; % (y, py, conditional, conditional_var))
+    total_mean = sum((py*mean for py, mean, var in cases), F(0))
+    within = sum((py*var for py, mean, var in cases), F(0))
+    between = sum((py*(mean-ex)**2 for py, mean, var in cases), F(0))
+    print(&quot;total expectation=%s; within variance=%s between variance=%s total=%s&quot; % (
+        total_mean, within, between, within+between))
+    assert total_mean == ex and within+between == vx
+    positions = {1: F(1, 2), 2: F(1, 4), 3: F(1, 8), 4: F(1, 8)}
+    cost = sum(k*p for k, p in positions.items())
+    print(&quot;specified search-position model E(comparisons)=%s uniform alternative=5/2&quot; % cost)
+    print(&quot;PASS: linearity requires no independence; covariance and conditional mixtures matter&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>joint: {(0, 0): '1/2', (0, 2): '1/4', (1, 0): '1/8', (1, 2): '1/8'}
+E(X)=1/4 E(Y)=3/4 Var(X)=3/16 Var(Y)=15/16 Cov=1/16
+Var(X+Y)=5/4 independent shortcut=9/8
+Y=0: probability=5/8 E(X|Y)=1/5 Var(X|Y)=4/25
+Y=2: probability=3/8 E(X|Y)=1/3 Var(X|Y)=2/9
+total expectation=1/4; within variance=11/60 between variance=1/240 total=3/16
+specified search-position model E(comparisons)=15/8 uniform alternative=5/2
+PASS: linearity requires no independence; covariance and conditional mixtures matter
+</code></pre></div>
+<p>Predict both marginals, every moment, the covariance contribution to Var(X+Y), and the total-variance components. State the search-position model before comparing its expected cost with a uniform alternative.</p>
+<h3 id="lab2">Lab2 · Zero covariance and nonlinear dependence</h3>
+<p><a href="labs/module_23/lab2_zero_covariance_dependence.py" download>Download lab2_zero_covariance_dependence.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A dependent square relation with near-zero sample covariance; SVG scatter.&quot;&quot;&quot;
+import argparse
+from pathlib import Path
+import random
+
+
+def moments(pairs):
+    n = len(pairs)
+    mx = sum(x for x, y in pairs)/n
+    my = sum(y for x, y in pairs)/n
+    vx = sum((x-mx)**2 for x, y in pairs)/n
+    vy = sum((y-my)**2 for x, y in pairs)/n
+    cov = sum((x-mx)*(y-my) for x, y in pairs)/n
+    return mx, my, vx, vy, cov
+
+
+if __name__ == &quot;__main__&quot;:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(&quot;--output&quot;)
+    args = parser.parse_args()
+    generator = random.Random(23023)
+    xs = [generator.uniform(-1, 1) for _ in range(20000)]
+    dependent = [(x, x*x) for x in xs]
+    independent = [(x, generator.random()) for x in xs]
+    print(&quot;AI continuous population: X uniform(-1,1), Y=X^2&quot;)
+    print(&quot;exact E(X)=0 E(Y)=1/3 Cov(X,Y)=0; Y is determined by X&quot;)
+    for name, pairs in ((&quot;dependent square&quot;, dependent), (&quot;independent reference&quot;, independent)):
+        mx, my, vx, vy, cov = moments(pairs)
+        print(&quot;%s: meanX=%.6f meanY=%.6f covariance=%.6f correlation=%.6f&quot; % (
+            name, mx, my, cov, cov/(vx*vy)**.5))
+    residual = max(abs(y-x*x) for x, y in dependent)
+    print(&quot;square-relation maximum residual:&quot;, residual)
+    assert residual == 0
+    # CS counterpart uses three equiprobable values, no integration prerequisite.
+    discrete = [(-1., 1.), (0., 0.), (1., 1.)]
+    print(&quot;CS discrete counterpart X=-1,0,1 equally likely: covariance=%.1f&quot; % moments(discrete)[4])
+    if args.output:
+        drawing = ['&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 760 390&quot; role=&quot;img&quot; aria-label=&quot;Dependent square relation and independent reference scatter plots&quot;&gt;',
+                   '&lt;rect width=&quot;760&quot; height=&quot;390&quot; fill=&quot;white&quot;/&gt;',
+                   '&lt;g font-family=&quot;system-ui,sans-serif&quot; fill=&quot;#1a2e4a&quot;&gt;']
+        for offset, name, pairs in ((0, &quot;Y=X^2: dependent&quot;, dependent), (380, &quot;Independent reference&quot;, independent)):
+            drawing.append('&lt;text x=&quot;%d&quot; y=&quot;30&quot; font-size=&quot;21&quot; text-anchor=&quot;middle&quot;&gt;%s&lt;/text&gt;' % (offset+190, name))
+            drawing.append('&lt;path d=&quot;M%d,65V320H%d&quot; fill=&quot;none&quot; stroke=&quot;#94a3b8&quot;/&gt;' % (offset+55, offset+330))
+            for x, y in pairs[::50]:
+                px, py = offset+55+(x+1)*137.5, 320-y*250
+                drawing.append('&lt;circle cx=&quot;%.3f&quot; cy=&quot;%.3f&quot; r=&quot;2.1&quot; fill=&quot;#2563eb&quot; opacity=&quot;.55&quot;/&gt;' % (px, py))
+            for t in (-1, 0, 1):
+                drawing.append('&lt;text x=&quot;%.1f&quot; y=&quot;348&quot; text-anchor=&quot;middle&quot; font-size=&quot;16&quot;&gt;%d&lt;/text&gt;' % (offset+55+(t+1)*137.5, t))
+        drawing.append('&lt;text x=&quot;380&quot; y=&quot;378&quot; text-anchor=&quot;middle&quot; font-size=&quot;18&quot;&gt;Small covariance does not exclude a deterministic nonlinear relation.&lt;/text&gt;&lt;/g&gt;&lt;/svg&gt;')
+        Path(args.output).write_text(&quot;\n&quot;.join(drawing), encoding=&quot;utf8&quot;)
+        print(&quot;Scatter figure written; its dependent sample obeys the square relation exactly.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>AI continuous population: X uniform(-1,1), Y=X^2
+exact E(X)=0 E(Y)=1/3 Cov(X,Y)=0; Y is determined by X
+dependent square: meanX=0.002058 meanY=0.336513 covariance=-0.000509 correlation=-0.002920
+independent reference: meanX=0.002058 meanY=0.499427 covariance=-0.000252 correlation=-0.001497
+square-relation maximum residual: 0.0
+CS discrete counterpart X=-1,0,1 equally likely: covariance=0.0
+Scatter figure written; its dependent sample obeys the square relation exactly.
+</code></pre></div>
+<figure class="lab-plot"><img src="assets/m23-lab2_dependency.svg" alt="Two scatter plots compare the exact square relation Y=X squared with an independent uniform reference; both sample covariances are small, while only the first lies on a parabola." loading="lazy"><figcaption>Plot generated by the downloadable Python script.</figcaption></figure>
+<p>The CS counterpart has three equiprobable values and no integration prerequisite; AI learners additionally derive the continuous square relation with Module17. The script generates its actual scatter figure during the course build. Compare near-zero sample coefficients with the exact zero population covariance and the exactly satisfied nonlinear relation.</p>
+<h3 id="lab3">Lab3 · Variance faults and optional covariance geometry</h3>
+<p><a href="labs/module_23/lab3_variance_and_covariance_geometry.py" download>Download lab3_variance_and_covariance_geometry.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Repair an independence variance shortcut; optional AI covariance/PCA geometry.&quot;&quot;&quot;
+from fractions import Fraction as F
+from math import sqrt
+
+if __name__ == &quot;__main__&quot;:
+    p = F(3, 10)
+    vx = p*(1-p)
+    cov = vx  # Y=X, not an independent copy.
+    correct = vx+vx+2*cov
+    print(&quot;CS: X Bernoulli(.3), Y=X&quot;)
+    print(&quot;Var(X)=%s Cov(X,Y)=%s Var(X+Y)=%s wrong independent sum=%s&quot; % (
+        vx, cov, correct, 2*vx))
+    assert correct == F(21, 25)
+    data = [(-2., -1.), (-1., -.5), (1., .5), (2., 1.)]
+    n = len(data)
+    mean = [sum(row[i] for row in data)/n for i in range(2)]
+    centered = [[row[i]-mean[i] for i in range(2)] for row in data]
+    covariance = [[sum(row[i]*row[j] for row in centered)/n for j in range(2)] for i in range(2)]
+    principal, orthogonal = [2/sqrt(5), 1/sqrt(5)], [-1/sqrt(5), 2/sqrt(5)]
+    print(&quot;AI geometry (Modules12/14): covariance uses denominator N, training mean only&quot;)
+    print(&quot;mean:&quot;, mean, &quot;covariance:&quot;, covariance)
+    for name, direction, eigenvalue in ((&quot;principal&quot;, principal, 3.125), (&quot;orthogonal&quot;, orthogonal, 0.)):
+        scores = [sum(row[i]*direction[i] for i in range(2)) for row in centered]
+        variance = sum(s*s for s in scores)/n
+        matrix_product = [sum(covariance[i][j]*direction[j] for j in range(2)) for i in range(2)]
+        assert max(abs(matrix_product[i]-eigenvalue*direction[i]) for i in range(2)) &lt; 1e-12
+        assert abs(variance-eigenvalue) &lt; 1e-12
+        print(&quot;%s direction=(%.6f,%.6f) projected variance=%.6f eigenvalue=%.6f&quot; % (
+            name, *direction, variance, eigenvalue))
+    sample_covariance = [[v*n/(n-1) for v in row] for row in covariance]
+    print(&quot;denominator N-1 covariance:&quot;, sample_covariance)
+    print(&quot;Direction unchanged by common scaling; target covariance and estimator convention differ.&quot;)
+    print(&quot;PASS: dependence contributes twice its covariance; PSD covariance can be singular&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>CS: X Bernoulli(.3), Y=X
+Var(X)=21/100 Cov(X,Y)=21/100 Var(X+Y)=21/25 wrong independent sum=21/50
+AI geometry (Modules12/14): covariance uses denominator N, training mean only
+mean: [0.0, 0.0] covariance: [[2.5, 1.25], [1.25, 0.625]]
+principal direction=(0.894427,0.447214) projected variance=3.125000 eigenvalue=3.125000
+orthogonal direction=(-0.447214,0.894427) projected variance=0.000000 eigenvalue=0.000000
+denominator N-1 covariance: [[3.3333333333333335, 1.6666666666666667], [1.6666666666666667, 0.8333333333333334]]
+Direction unchanged by common scaling; target covariance and estimator convention differ.
+PASS: dependence contributes twice its covariance; PSD covariance can be singular
+</code></pre></div>
+<p>Repair the independence shortcut for Y=X. The optional AI section uses Modules12/14 to compare projected variance with eigenvalues and states its N denominator explicitly. Explain why changing to N−1 rescales the matrix without selecting a different direction in this example.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Fourteen exercises with full solutions</h2></div>
+<p>Exercises1–12 are required with equal-time branch alternatives. Optional Exercises13–14 add35 minutes beyond the ten-hour core schedule.</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>A search position has masses1:1/2,2:1/4,3:1/8,4:1/8. Compute expected comparisons and state what a uniform assumption changes.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Weighted sum15/8=1.875, also tail sum1+1/2+1/4+1/8. Uniform position gives5/2. Worst successful cost4 is unchanged. A failed-search case must be separately modelled if present.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>For X Bernoulli(.3), compute E[X²], variance, and variance of2X+5.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>X²=X, so E[X²]=.3. Var=.3−.09=.21. Affine variance4(.21)=.84; the shift5 changes only the mean.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>For the lesson’s exact joint table, compute Cov(X,Y) and Var(X+Y).</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>EX1/4,EY3/4,EXY1/4, so Cov1/16. Variances3/16 and15/16 give VarSum20/16=5/4. Dropping twice covariance incorrectly gives9/8.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">6 min</span></div>
+<p>For X equally likely−1,0,1 and Y=X², compute both means, covariance and one conditional demonstration of dependence.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>EX0,EY2/3,EXY0,Cov0. P(Y=0|X=0)=1 differs from P(Y=0)=1/3. Both variances are positive, so correlation0 is defined but does not imply independence.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove finite linearity of expectation without using independence and derive expected event count.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Sum(aX+bY)p_ω over outcomes and distribute the finite sum to obtain aEX+bEY. For indicators E1_A=P(A), so EΣ1_Ai=ΣP(A_i), even when events overlap or depend. No joint product assumption appears.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove the variance-of-sum identity and identify the independence shortcut’s assumptions.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Centre X,Y, expand(X_c+Y_c)², and average to obtain VX+VY+2Cov. Finite second moments ensure all terms exist. Independence gives E[XY]=EXEY and zero covariance, while uncorrelatedness alone also removes the cross term without establishing full independence.</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">14 min</span></div>
+<p>Prove total variance using the conditional-mean residual and explain the cross term.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Let m(Y)=E[X|Y]. Decompose X−EX=(X−m)+(m−EX). The squared residual’s expectation is EVar(X|Y); the mean-shift square is Var(m). Conditional averaging gives E[X−m|Y]=0, so the cross term vanishes. Finite variance and the correct marginal case weights are required.</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>In the joint table, calculate E[X|Y=0], E[X|Y=2] and their weighted total mean.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Column masses5/8 and3/8 give means1/5 and1/3. Their weighted average1/8+1/8=1/4 matches EX. The equal average4/15 would correspond to a different mixture, not this Y distribution.</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">Exercise 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>CS: Y=X for Bernoulli(.3); compute Var(X+Y). AI alternative: compute projected variances for the line-data covariance and its principal/perpendicular directions.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>CS: X+Y=2X, so variance4(.21)=.84, with covariance.21 supplying the missing cross terms. AI: aᵀCa is3.125 for(2,1)/√5 and0 for(−1,2)/√5, consistent with the exact line relation and PSD singularity.</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">Exercise 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">10 min</span></div>
+<p>Explain why E[X|Y] minimises squared prediction error among functions of Y, and what remains when a predictor is fitted from data.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The expansion gives risk(a)=risk(m)+E[(m−a)²], because conditional residual orthogonality kills the cross term. Thus the true conditional mean is optimal up to null sets. A fitted estimate still needs sampling, approximation and evaluation assumptions; the population theorem does not certify its finite-data performance.</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">Exercise 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 min</span></div>
+<p>A symmetric square sample has small correlation and is declared independent; another report assigns correlation zero when X is constant. Repair both.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The square relation determines Y from X despite zero population covariance; use its conditional distribution or relation residual to diagnose dependence. If X has zero variance, covariance is zero but correlation divides by zero and is undefined. A small sample coefficient alone is not an independence certificate.</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">Exercise 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">10 min</span></div>
+<p>A report averages conditional means equally despite unequal group masses and calls every PSD covariance invertible. Repair both.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Total expectation weights conditional means by actual group probabilities. The lesson table uses5/8 and3/8, not equal weights. PSD only guarantees nonnegative projected variances; exact linear relations produce zero directions and a singular matrix. Invertibility needs positive definiteness.</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 min</span></div>
+<p>CS: prove the squared-risk orthogonality expansion for a finite joint table. AI alternative: prove covariance transforms as AΣAᵀ and is PSD.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>CS: for each positive y, sum(X−m(y))p(x|y)=0; multiply by m(y)−a(y), then weight by p_Y(y) to kill the cross term. AI: Y−EY=A(X−μ), so expected outer products give AΣAᵀ. For every v, vᵀΣv=E[(vᵀ(X−μ))²]≥0.</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">Exercise 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 min</span></div>
+<p>CS: justify normalisation and infinite mean for masses1/[n(n+1)], then explain the symmetric signed mean. AI alternative: prove independence of Gaussian blocks with SPD block-diagonal covariance.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>CS: telescoping prefix1−1/(N+1)→1; meanΣ1/(n+1) diverges by powers-of-two blocks. Splitting signs gives both positive and negative expectations infinite, so the signed mean is undefined despite symmetric finite truncations. AI: inverse and determinant of block-diagonal Σ split by block, so its joint Gaussian density factors into marginal densities. The Gaussian joint assumption is essential.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Ten-question self-check</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>Does finite expectation linearity require independence?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">No, finite integrable outcome sums distribute directly</button></li><li><button type="button" class="quiz-opt" data-i="1">Yes, always</button></li><li><button type="button" class="quiz-opt" data-i="2">Only if the variables have different names</button></li></ol><div class="quiz-expl" hidden>Independence concerns product factorisation, not finite sum linearity.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>Must a model expectation be a possible realised value?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Always</button></li><li><button type="button" class="quiz-opt" data-i="1">No, a fair Bernoulli mean is1/2</button></li><li><button type="button" class="quiz-opt" data-i="2">Only for discrete variables</button></li></ol><div class="quiz-expl" hidden>Weighted averages need not belong to the realised support.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>What determines a marginal from a joint PMF?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Divide by the other marginal</button></li><li><button type="button" class="quiz-opt" data-i="1">Multiply the two marginal labels</button></li><li><button type="button" class="quiz-opt" data-i="2">Sum over the other variable’s values</button></li></ol><div class="quiz-expl" hidden>Division by a positive case mass creates a conditional, while summation marginalises.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>Which term is missing from Var(X)+Var(Y) in a general sum variance?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">2Cov(X,Y)</button></li><li><button type="button" class="quiz-opt" data-i="1">Always the mean alone</button></li><li><button type="button" class="quiz-opt" data-i="2">A fixed factor unrelated to dependence</button></li></ol><div class="quiz-expl" hidden>Centre and expand the square; zero covariance is an additional fact, not automatic.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>Does zero covariance generally imply independence?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Yes, without qualification</button></li><li><button type="button" class="quiz-opt" data-i="1">No, Y=X² with symmetric X is a counterexample</button></li><li><button type="button" class="quiz-opt" data-i="2">Only the sign of the covariance matters</button></li></ol><div class="quiz-expl" hidden>Covariance measures a centred product moment, not every joint event.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>A constant variable has which ordinary correlation property?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Correlation zero with everything by division</button></li><li><button type="button" class="quiz-opt" data-i="1">Correlation one automatically</button></li><li><button type="button" class="quiz-opt" data-i="2">The ratio is undefined because its standard deviation is zero</button></li></ol><div class="quiz-expl" hidden>Covariance is zero, but0/0 is not a defined correlation.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>How does total expectation combine conditional means?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Weight them by the conditioning variable’s marginal probabilities</button></li><li><button type="button" class="quiz-opt" data-i="1">Always take an equal average</button></li><li><button type="button" class="quiz-opt" data-i="2">Ignore zero-denominator checks</button></li></ol><div class="quiz-expl" hidden>The weighted partition identity recovers the original population rather than a new mixture.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>Does constant E[X|Y] imply independence?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Always</button></li><li><button type="button" class="quiz-opt" data-i="1">No, conditional distributions can change while means remain fixed</button></li><li><button type="button" class="quiz-opt" data-i="2">Only if every covariance is positive</button></li></ol><div class="quiz-expl" hidden>Symmetric X conditional on its squared magnitude has mean zero but remains dependent.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>What is guaranteed by positive-semidefinite covariance?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Invertibility automatically</button></li><li><button type="button" class="quiz-opt" data-i="1">Useful prediction automatically</button></li><li><button type="button" class="quiz-opt" data-i="2">Nonnegative variance in every linear projected direction</button></li></ol><div class="quiz-expl" hidden>A zero projected direction is possible, and geometric variance does not certify target relevance.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m23:q10">
+<label for="q10-response">10. For the four-cell joint table, derive both marginals, covariance, Var(X+Y), total expectation and both total-variance terms. Then distinguish uncorrelatedness from independence and a population moment from a finite sample summary.</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="State masses, conditioning weights, all finite-moment assumptions and a square-relation counterexample."></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> I used the joint model and actual group weights and separated moments from independence.</label>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>X=1 mass1/4, Y=2 mass3/8, EX1/4,EY3/4,EXY1/4,Cov1/16; variances3/16,15/16 give VarSum5/4. Conditional means1/5,1/3 with masses5/8,3/8 average to1/4. Expected conditional variance11/60 plus variance of conditional mean1/240 equals3/16. Symmetric X with Y=X² is dependent despite covariance zero. All table moments are finite; sample coefficients fluctuate and do not establish the whole population law.</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Reading with a purpose</h2></div>
+<p>Use expectation, joint distributions and conditioning in <a href="https://ocw.mit.edu/courses/6-041sc-probabilistic-systems-analysis-and-applied-probability-fall-2013/" target="_blank" rel="noopener">MIT 6.041SC</a>, with covariance and Gaussian selections in the authors’ <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning companion</a> for the optional AI branch. The lesson gives complete elementary finite proofs and explicit continuous prerequisites.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>Selection and question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session1 · 15 minutes</td>
+<td>Expectation and moments: which operations need independence and which only integrability?</td>
+</tr>
+<tr>
+<td>Session4 · 15 minutes</td>
+<td>Conditional expectation and covariance: which information survives a low-order summary?</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Retrieval exit task and next step</h2></div>
+<p>Compute weighted costs and joint moments, prove linearity and variance identities, explain zero covariance with dependence, and derive total expectation/variance. AI learners additionally prove covariance PSD and qualified Gaussian factorisation, then connect empirical variance to centred PCA.</p>
+<p><strong>Exit task:</strong> reproduce the exact table’s variance decomposition3/16=11/60+1/240 and explain why its conditional means need5/8 and3/8 weights. Give a separate nonlinear uncorrelated-but-dependent example.</p>
+<p><strong>Ready to move on:</strong> you can attach averages and variation to explicit distributions and moment assumptions. Limit theorems and Monte Carlo next use these quantities to describe sample-mean behaviour with stated independence and uncertainty contracts. See the <a href="index.html">course overview</a>.</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Notation and bilingual terminology</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term or notation</th>
+<th>Meaning</th>
+<th>中文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E[X] / E[</td>
+<td>X</td>
+<td>]</td>
+</tr>
+<tr>
+<td>Var / σ</td>
+<td>Centred second moment / standard deviation</td>
+<td>方差、标准差</td>
+</tr>
+<tr>
+<td>p(x,y) / marginal</td>
+<td>Joint masses / summed retained-variable law</td>
+<td>联合、边缘分布</td>
+</tr>
+<tr>
+<td>Cov / ρ</td>
+<td>Centred product moment / dimensionless correlation</td>
+<td>协方差、相关系数</td>
+</tr>
+<tr>
+<td>E[X</td>
+<td>Y] / total variance</td>
+<td>Conditional-mean variable / within-plus-between decomposition</td>
+</tr>
+<tr>
+<td>Σ / PSD</td>
+<td>Covariance matrix / nonnegative projected variance</td>
+<td>协方差矩阵、半正定</td>
+</tr>
+<tr>
+<td>Empirical distribution</td>
+<td>Mass1/N per observed record</td>
+<td>经验分布</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="module_22_EN.html">← Module 22</a><a href="module_24_EN.html">Module 24 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>

@@ -14,7 +14,7 @@
  "outcomes": [
   "Convert a language-model loss between nats, bits, perplexity and bits per byte, and explain why per-token perplexities of models with different tokenizers cannot be compared.",
   "Train byte-pair encoding by hand on a six-word corpus, encode a new word with the learned merges, and predict how a tokenizer's training mixture changes the token count of English and Chinese text.",
-  "Use C ≈ 6ND (derived in Module 06) to derive the compute-optimal allocation N_opt(C), D_opt(C) from the Chinchilla parametric law, evaluate it, and explain why the published fit does not reproduce the 20-tokens-per-parameter rule.",
+  "Use the approximate scaling-law count C_6 = 6ND to derive the optimal N and D allocation, evaluate the published parametric constants, and distinguish that approximation from Module 06's architecture-aware training count.",
   "Compute when a smaller model trained on more tokens is cheaper over its life than a compute-optimal one, and explain why exact-match metrics can make a smooth improvement look emergent.",
   "Implement greedy, temperature, top-k, top-p and min-p decoding on a model's logits, derive dH/dτ = Var_p(z)/τ³, and choose settings for a structured artifact versus open-ended text.",
   "Measure few-shot accuracy honestly: its dependence on the number, order and labels of demonstrations, and the chat template the model expects.",
@@ -208,7 +208,7 @@
      "kind": "papers",
      "minutes": 20,
      "refs": [
-      "p2"
+      "reading"
      ]
     },
     {
@@ -311,7 +311,7 @@
      "kind": "papers",
      "minutes": 25,
      "refs": [
-      "p1"
+      "reading"
      ]
     },
     {
@@ -327,7 +327,7 @@
      "kind": "review",
      "minutes": 10,
      "refs": [
-      "what_goes_wrong"
+      "wrong"
      ]
     }
    ]
@@ -360,11 +360,11 @@
    "figures": [
     {
      "id": "fig-07-1",
-     "description": "Autoregressive factorisation. Bottom: the tokens 'The | relief | valve | opens | at' entering one box labelled 'decoder (causal mask)'. Above positions 1-4, a small bar chart of the predicted next-token distribution (five bars each), with the bar of the actual next token highlighted and its value written under it: p = 0.50, 0.25, 0.125, 0.80, and '−log p = 0.69, 1.39, 2.08, 0.22'. A bracket over the row: 'loss = mean −log p = 1.095 nats = 1.58 bits; perplexity = e^1.095 = 2.99'."
+     "description": "Autoregressive next-token prediction with four illustrative target probabilities. Each target loss is minus its log probability; their mean is 1.096 nats, giving perplexity 2.99. The probabilities are a worked example, not model measurements."
     },
     {
      "id": "fig-07-2",
-     "description": "Bits per byte of SmolLM2-135M on seven texts (Lab 1), as a horizontal bar chart sorted by value: memorised public-domain sentence 0.13; the engineering paragraph read twice 0.48; English engineering prose 0.90; Python code 0.95; the same prose with words shuffled 1.88; its Chinese translation 1.88; random characters 5.53. A dashed vertical line at log2 37 = 5.21 bits, the entropy of the random text's source. Each bar is annotated with its per-token perplexity (1.55, 5.64, 25.8, 5.18, 873, 8.40, 166) to show that the two orderings disagree for Chinese."
+     "description": "Measured bits per byte on the seven embedded Lab 1 texts, with token perplexity beside each bar. The dashed line is the 37-symbol random generator's source entropy, an expected coding-cost bound rather than a bound on every finite sample."
     }
    ],
    "widget": null,
@@ -399,7 +399,7 @@
    "figures": [
     {
      "id": "fig-07-3",
-     "description": "BPE on the weld corpus as eight stacked panels (the start and merges 1-7). Each panel shows the six words as rows of symbol boxes with their counts at the left; the pair merged at that step is outlined in the colour of the new symbol; a side table lists the three largest pair counts with the winner in bold. A strip along the bottom plots corpus length in symbols against merge number: 257, 226, 196, 170, 150, 134, 124, 115."
+     "description": "The initial weighted weld corpus and the seven learned merges. Each ledger row records the winning pair, its weighted count and the corpus length after applying the merge. The widget shows every intermediate corpus and competing pair count."
     }
    ],
    "widget": "bpe-merge-stepper",
@@ -436,11 +436,11 @@
    "figures": [
     {
      "id": "fig-07-4",
-     "description": "Grouped bar chart from Lab 2. x axis: GPT-2, SmolLM2, Qwen2.5, with vocabulary sizes beneath (50,257; 49,152; 151,665). For each, two bars: tokens for the 80-word English paragraph (89, 89, 89) and for its 119-character Chinese translation (256, 219, 71). The Chinese/English ratio is printed above each pair (2.88, 2.46, 0.80)."
+     "description": "Measured token counts for one English paragraph and its Chinese translation under three pinned tokenizers. English uses 89 tokens in all three; Chinese uses 256, 219 and 71. Ratios describe these texts only."
     },
     {
      "id": "fig-07-5",
-     "description": "How three tokenizers split '1234567' and ' SAFETY': one row per tokenizer, one coloured box per token with its text inside. '1234567': GPT-2 123|45|67; SmolLM2 and Qwen2.5 1|2|3|4|5|6|7. ' SAFETY': GPT-2 and SmolLM2 ' SAF'|'ET'|'Y'; Qwen2.5 ' SAF'|'ETY'."
+     "description": "Token boundaries for the digit string `1234567` and the text ` SAFETY`, including its leading space, under the three tokenizers tested in Lab 2."
     }
    ],
    "widget": null,
@@ -460,7 +460,7 @@
    "must_cover": [
     "The observation that defines the field since 2020 (source): pretraining loss falls predictably, as a power law, in parameters N, tokens D and compute C over many orders of magnitude, so small runs predict large ones. Kaplan et al. (2020): L(N) = (N_c/N)^α_N with α_N ≈ 0.076 and N_c ≈ 8.8×10^13 non-embedding parameters; a power law in D with α_D ≈ 0.095; in minimum compute with α_C ≈ 0.050; their allocation N_opt ∝ C^0.73 (most extra compute into a bigger model trained short of convergence).",
     "C ≈ 6ND, recalled in one paragraph from Module 06, Section 11, which derives it (do not re-derive it here): a forward pass costs 2 FLOPs per matrix-multiply weight per token and the backward pass twice that, so training costs 6 per weight per token; attention adds 4·L·d·t per token at context t, which averages to 2·L·d·T over a causal sequence of length T (6·L·d·T in training). State the series' convention once, here: memory and Chinchilla's N count all parameters (N_total); FLOPs count the matrix-multiply weights, N_matmul = N_total − V·d when the input embedding (a lookup) is untied. For the case-study model: 1.79×10^10 forward FLOPs per token; 5.36×10^10 per training token plus 6·L·T·d = 7.25×10^9 at T = 8,192 (+13.5%); 2N_total = 1.91×10^10 is a +7% estimate and is labelled so wherever it is used. The attention term's ratio to the weight term is L·d·T/N_matmul: 6.8% at T = 4,096 and 54% at T = 32,768. Chinchilla's fit, and this section and the next when they use it, follow the paper: C = 6ND with N the total count and no attention term.",
-    "The Chinchilla study (Hoffmann et al. 2022): over 400 models from 70M to over 16B parameters trained on 5B to 500B tokens; three estimation approaches: (1) the envelope of training curves, (2) IsoFLOP profiles (fix C, vary N, take the minimum), (3) a parametric fit L(N, D) = E + A/N^α + B/D^β with E = 1.69, A = 406.4, B = 410.7, α = 0.34, β = 0.28, in nats per token on their corpus with their tokenizer. Interpret the terms: E is the irreducible loss (Section 1's entropy floor), A/N^α the cost of finite capacity, B/D^β the cost of finite data. Notation, said once: the law's constants keep the paper's names E, A, B, α and β in the scaling-law material (Sections 4-5, Lab 3, Exercises 6-7); everywhere else in the series B is the batch size.",
+    "The Chinchilla study (Hoffmann et al. 2022): over 400 models from 70M to over 16B parameters trained on 5B to 500B tokens; three estimation approaches: (1) the envelope of training curves, (2) IsoFLOP profiles (fix C, vary N, take the minimum), (3) a parametric fit L(N, D) = E + A/N^α + B/D^β with E = 1.69, A = 406.4, B = 410.7, α = 0.34, β = 0.28, in nats per token on their corpus with their tokenizer. Interpret the terms: E is a fitted asymptotic loss, not a proven measurement of Section 1's entropy floor, A/N^α the cost of finite capacity, B/D^β the cost of finite data. Notation, said once: the law's constants keep the paper's names E, A, B, α and β in the scaling-law material (Sections 4-5, Lab 3, Exercises 6-7); everywhere else in the series B is the batch size.",
     "Derive the compute-optimal allocation, written out: substitute D = C/(6N) to get L(N) = E + A N^−α + B (C/6)^−β N^β; set dL/dN = 0, giving αA N^−α = βB D^−β; hence N_opt = G (C/6)^a and D_opt = G^−1 (C/6)^b with a = β/(α+β), b = α/(α+β), G = (αA/(βB))^(1/(α+β)). Corollary: at the optimum the parameter term is β/α times the data term (0.82 with the published values). Note that L is convex in log N along the constraint, so the stationary point is the minimum.",
     "Evaluate it honestly. With the published constants a = 0.452 and G = 1.345, and at Chinchilla's budget C = 5.76×10^23 FLOPs: N_opt = 3.2×10^10, D_opt = 3.0×10^12, about 93 tokens per parameter, not the 70B parameters and 20 tokens per parameter of the Chinchilla model. The 20 comes from Approaches 1 and 2 (a ≈ 0.50); the paper's Table 3, from Approach 1, pairs 1B parameters with 20.2B tokens, 10B with 205.1B and 67B with 1.5T. The parametric exponents are poorly determined: the unrounded α = 0.3392, β = 0.2849 give 4.0×10^10 and 59 tokens per parameter at the same budget; Besiroglu et al. (2024) found the published Approach-3 estimates inconsistent with the paper's own data, its interval for a (0.454 to 0.455 in Table 2) implausibly narrow, and refitted E = 1.8172, A = 482.01, B = 2085.43, α = 0.3478, β = 0.3658, which gives 7.2×10^10 and about 18 tokens per parameter. The robust conclusion: grow N and D together, roughly in proportion; '20 tokens per parameter' is a rule of thumb with an error bar.",
     "Kaplan against Chinchilla: Kaplan's runs used a learning-rate schedule whose length was not matched to each run, counted non-embedding parameters and stopped at smaller scale. Pearce and Song (2024) attribute most of the difference to the parameter counting at small scale; Porian et al. (2024) to compute accounting, warmup and optimiser tuning, and find careful learning-rate decay less essential than Hoffmann et al. thought. Present both briefly and hedged.",
@@ -477,11 +477,11 @@
    "figures": [
     {
      "id": "fig-07-6",
-     "description": "IsoFLOP curves from the published parametric law. x axis: N from 10^7 to 10^12 (log); y axis: predicted loss in nats. One curve per budget C = 10^19, 10^20, 10^21, 10^22, 10^23 and 5.76×10^23, each with its minimum marked by a dot; a dashed line joins the minima (the compute-optimal frontier). Gopher (280B) and Chinchilla (70B) are marked on the 5.76×10^23 curve with their predicted losses 1.993 and 1.937."
+     "description": "Published parametric-law IsoFLOP curves, evaluated along D = C/(6N), with computed minima and the Gopher/Chinchilla allocations. Pale curve segments lie outside the original fit's N or D range. Losses are predictions under the law, not measured model evaluations."
     },
     {
      "id": "fig-07-7",
-     "description": "Compute-optimal N against C on log-log axes, C from 10^18 to 10^26: lines with slope 0.73 (Kaplan), 0.50 (Approaches 1-2), 0.452 (the published Approach-3 fit) and 0.513 (the replication's refit), each anchored by its own formula; Chinchilla (70B at 5.76×10^23) and Gopher (280B at the same budget) as points. The caption notes that the lines diverge as they are extrapolated."
+     "description": "Compute-optimal size under the published parametric constants, replication constants, and a square-root guide anchored to Table 3. A Kaplan-slope guide shares the published line's value at 10^18 FLOPs to compare slopes; it is not Kaplan's fitted intercept. Dashed segments extrapolate the original training-budget range."
     }
    ],
    "widget": null,
@@ -512,16 +512,7 @@
     "Lifetime-optimal size for the target loss L* = 1.939 (published fit): D_inf = 0 gives N* = 29B at 91 tokens per parameter and 4.7×10^23 FLOPs; D_inf = 10^12 gives 25B and 126; D_inf = 10^13 gives 15B and 387, total 8.6×10^23; D_inf = 10^14 gives 8.5B and 2,341 tokens per parameter, total 2.7×10^24: the over-trained 8B regime.",
     "Exact match from per-token accuracy for a 10-token answer: p = 0.5 → 0.001; 0.7 → 0.028; 0.8 → 0.107; 0.9 → 0.349; 0.95 → 0.599; 0.99 → 0.904."
    ],
-   "figures": [
-    {
-     "id": "fig-07-8",
-     "description": "Lifetime FLOPs (training plus serving) against N for the target loss 1.939 under the published fit. x axis: N from 5×10^9 to 5×10^11 (log); y axis: total FLOPs (log). Curves for D_inf = 0, 10^12, 10^13 and 10^14 served tokens, each minimum marked and labelled (29B, 25B, 15B, 8.5B); the training-only curve dashed."
-    },
-    {
-     "id": "fig-07-9",
-     "description": "'Emergence' from a smooth curve. x axis: log model size (arbitrary units). A thin line shows per-token accuracy p rising as a logistic from 0.5 to 0.99; thicker lines show exact-match accuracy p^k for k = 1, 5, 10 and 20, with apparent thresholds growing sharper as k grows."
-    }
-   ],
+   "figures": [],
    "widget": null,
    "checks": [
     "Why train an 8B model on 15T tokens when the compute-optimal ratio is about 20 tokens per parameter? -> serving cost over the model's life dominates; a smaller model trained longer reaches the same loss at lower lifetime cost.",
@@ -552,16 +543,11 @@
     "Template overhead (Lab 4): the source's system message and question are 25 content tokens; the rendered Qwen2.5 prompt is 38 tokens, so the template adds 13.",
     "Same weights, two prompts (Lab 4): Qwen2.5-0.5B-Instruct given the raw question 'What is a safety goal in ISO 26262?' continues it as a multiple-choice exam (' A. To ensure that the system will not cause any damage to people, property or the environment B. ...'); given the templated prompt it answers in prose."
    ],
-   "figures": [
-    {
-     "id": "fig-07-10",
-     "description": "Anatomy of a chat-templated prompt: the rendered token stream as a horizontal strip; special tokens (<|im_start|>, <|im_end|>, newline) in dark boxes, role words in medium boxes, content in light boxes; brackets mark the system turn, the user turn and the open assistant turn; an arrow at the end reads 'generation starts here'; a note at the right reads 'stop at <|im_end|>'."
-    }
-   ],
+   "figures": [],
    "widget": null,
    "checks": [
     "Why might a base model answer a question with another question? -> it continues documents, and lists of questions are common in its corpus; nothing taught it the assistant's role.",
-    "Why can reordering the same four demonstrations change a classifier's predictions? -> recency and majority-label biases: the output is conditioned on the sequence of labels the model has just read.",
+    "Why can reordering the same four demonstrations change a classifier's predictions? -> the model conditions on the entire ordered prompt. The measured prediction frequencies show order sensitivity but do not identify a simple recency mechanism.",
     "Why does chain of thought help a model with a fixed number of layers? -> each written step becomes context for the next, so the model spends more forward passes on the answer and conditions on its intermediate results."
    ],
    "from_source": "Section 4: few-shot and zero-shot learning, chain of thought, 'none of this is programmed', the base model as a poor assistant, the chat format and chat template; Section 11's chat-template code and its remark about template mismatch (the code itself moves to Lab 4).",
@@ -593,16 +579,7 @@
     "Greedy is not the best sequence: first token A (0.6) followed by its best continuation (0.3) gives 0.18; first token B (0.4) followed by 0.9 gives 0.36. Greedy chooses A.",
     "Repetition penalty θ = 1.3: a logit of 2.0 becomes 1.54; a logit of −1.0 becomes −1.3."
    ],
-   "figures": [
-    {
-     "id": "fig-07-11",
-     "description": "A 2 × 4 grid of small bar charts: rows are presets A and B; columns are the full distribution at τ = 1, top-k = 3, top-p = 0.9 and min-p = 0.1. Kept tokens are coloured and labelled with their renormalised probabilities; removed tokens are grey outlines; each panel is titled with the number of tokens kept and the entropy in bits (A: 12/3.31, 3/1.54, 10/3.08, 12/3.31; B: 12/1.09, 3/0.44, 3/0.44, 1/0)."
-    },
-    {
-     "id": "fig-07-12",
-     "description": "Entropy in bits against temperature τ from 0.1 to 10 (log x) for presets A and B; dashed horizontal lines at 0 and log2 12 = 3.585; markers at τ = 0.5, 1 and 1.5 with their values (A: 2.55, 3.31, 3.47; B: 0.05, 1.09, 2.30)."
-    }
-   ],
+   "figures": [],
    "widget": "sampling-explorer",
    "checks": [
     "Does temperature change which token is most likely? -> No; dividing the logits by τ > 0 preserves their order.",
@@ -630,12 +607,7 @@
    "worked_examples": [
     "Why bfloat16 loses the 1: bfloat16 keeps 8 significant bits (7 stored), so representable numbers near 256 are 2 apart and 256 + 1 rounds back to 256."
    ],
-   "figures": [
-    {
-     "id": "fig-07-13",
-     "description": "How a near-tie turns a tiny numerical difference into different text (schematic, labelled so). Top: the same prompt's two largest next-token logits computed in two batch shapes, which differ by about 10^-5 (the order of Lab 5's measured CPU difference, 3.1×10^-5); when the gap between the two tokens is smaller than that difference, the argmax flips. Bottom: two greedy token sequences that share a prefix and diverge from the flipped step onward."
-    }
-   ],
+   "figures": [],
    "widget": null,
    "checks": [
     "A colleague says: 'We use temperature 0, so the outputs are reproducible.' What can still change them? -> batch-dependent kernels on the server, near-ties at the argmax, model or hardware updates.",
@@ -664,16 +636,7 @@
     "The case-study KV cache: 2 × 36 × 8 × 128 × 2 B = 147,456 B per token; × 6,000 tokens = 0.885 GB; × 32,000 = 4.7 GB; × 128,000 = 18.9 GB.",
     "Prefill on an H100 sustaining 4×10^14 FLOP/s (an assumption: about 40% of its 989 TFLOP/s dense bf16 peak): T = 4,000 (the case study's request): 7.14×10^13 (weights) + 4.7×10^12 (attention) = 7.61×10^13 FLOPs, 0.19 s; T = 32,000: 5.7×10^14 + 3.0×10^14 = 8.7×10^14 FLOPs, 2.2 s; T = 128,000: 2.3×10^15 + 4.8×10^15 = 7.1×10^15 FLOPs, 17.8 s, with attention now twice the weight FLOPs."
    ],
-   "figures": [
-    {
-     "id": "fig-07-14",
-     "description": "Schematic U-shaped curve after Liu et al. (2024), explicitly labelled 'schematic, no data': x axis 'position of the relevant document among 20 (1 = first)'; y axis 'accuracy'; high at both ends and lowest in the middle; a dashed horizontal line labelled 'closed-book (no documents)' to show that the middle can fall towards it. No numeric values on the y axis."
-    },
-    {
-     "id": "fig-07-15",
-     "description": "Stacked bars of GPU memory for the case-study model: 4-bit weights (5.5 GB) plus the KV cache of one sequence at 6,000 tokens (one of the case study's requests, 0.885 GB), 32,000 tokens (4.7 GB) and 128,000 tokens (18.9 GB); horizontal reference lines at 24 GB and 80 GB."
-    }
-   ],
+   "figures": [],
    "widget": null,
    "checks": [
     "A prompt holds the instructions, then a 60-page standard, then the question. What would you change? -> put the question, and a restatement of the instructions, after the document, or retrieve only the relevant clauses.",
@@ -704,7 +667,7 @@
    "figures": [
     {
      "id": "fig-07-16",
-     "description": "The abstention threshold. x axis: the model's probability p of being right, from 0 to 1; y axis: expected score. A flat line at 0 for abstaining, and the lines p − λ(1 − p) for λ = 0, 1 and 3, each crossing zero at its threshold λ/(1 + λ) = 0, 0.5 and 0.75 (marked); the region where answering beats abstaining is shaded for λ = 3."
+     "description": "The abstention threshold. Expected score against the probability $p$ that the answer is right,\nfrom 0 to 1: a flat line at 0 for abstaining, and the lines $p - \\lambda(1-p)$ for\n$\\lambda = 0$, 1 and 3, which cross zero at their thresholds $\\lambda/(1+\\lambda) = 0$, 0.5 and\n0.75 (marked). The region where answering beats abstaining is shaded for $\\lambda = 3$."
     }
    ],
    "widget": null,
@@ -736,7 +699,7 @@
    "figures": [
     {
      "id": "fig-07-17",
-     "description": "Trust-boundary diagram. Left, the trusted zone: the engineer's request → a router that chooses the task and the allowed tools; the system prompt. Right, the untrusted zone: hazard-log entries, retrieved documents and web pages, entering the model call only inside a delimited data section. The model's output flows to an output validator, then either to a display (allowed) or to a write action (blocked unless 'validated + human approval'). The three legs of the lethal trifecta (private data, untrusted content, outbound channel) are labelled on the arrows, with the outbound channel drawn cut."
+     "description": "An application-enforced trust boundary. The trusted request selects the task and permitted operations before untrusted documents enter the model. Summaries reach a display; a separate write path requires structured validation and the responsible engineer's approval. The summariser has no outbound or write credential."
     }
    ],
    "widget": null,
@@ -771,7 +734,7 @@
    "figures": [
     {
      "id": "fig-07-18",
-     "description": "Dot-and-whisker plot of a hypothetical model's scores on three benchmarks with 95% intervals at the real test-set sizes (HumanEval 60 ± 7.5, GSM8K 80 ± 2.2, MMLU 70 ± 0.76), beside a second model scoring 3 points lower on each: the HumanEval intervals overlap almost entirely, the MMLU ones not at all."
+     "description": "Scores of a hypothetical model on three benchmarks with 95% intervals at the real test-set sizes\n(HumanEval 60 ± 7.5, GSM8K 80 ± 2.2, MMLU 70 ± 0.76), drawn as dots with whiskers beside a second\nmodel that scores 3 points lower on each. The HumanEval intervals overlap almost entirely, the\nGSM8K ones partly, the MMLU ones not at all."
     }
    ],
    "widget": null,
@@ -804,7 +767,7 @@
    "figures": [
     {
      "id": "fig-07-19",
-     "description": "Size classes on a log axis of parameter count (10^8 to 10^12): shaded bands labelled 'on-device (<1B)', 'one GPU (7-14B)', 'one node (~70B)' and 'MoE (hundreds of B total)'; markers for SmolLM2-135M, Qwen2.5-0.5B and the case-study model (9.5B); a 671B-total MoE drawn as a long bar with its 37B active part highlighted; under each band, its bf16 and 4-bit weight memory."
+     "description": "Weight-storage estimates for illustrative size classes, using 2 bytes per parameter in bf16 and 0.58 bytes per parameter for the stated 4-bit scenario. DeepSeek-V3's 37B active count is marked beside its 671B total. These bars do not assign a model to a particular device or predict latency."
     }
    ],
    "widget": null,
@@ -845,11 +808,11 @@
    "figures": [
     {
      "id": "fig-07-20",
-     "description": "The single-stream decode bound and what it costs. Left: decode ceilings in tokens/s (bandwidth ÷ weight bytes) for the case-study model in bf16 (19.10 GB) and at 4 bits (5.53 GB) on a 1.0 TB/s card and a 3.35 TB/s H100: 52, 181, 175 and 606 tokens/s, with the source's 'about 180' marked. Right: price per million output tokens at batch 1 on the H100 at an assumed USD 2.50 an hour, each step also reading the cache of a 5,000-token context: USD 4.11 (bf16) and USD 1.30 (4-bit), beside a dashed line at the API's assumed USD 0.80; a note that batching divides the GPU's figure (Module 10)."
+     "description": "Weights-only decode ceilings for two assumed bandwidths, and H100 output-token price estimates including a 5,000-token cache. All throughput values are idealised bounds; USD 2.50 per GPU-hour and USD 0.80 per million API output tokens are scenario inputs."
     },
     {
      "id": "fig-07-21",
-     "description": "Daily cost against requests per day (100 to 100,000, log-log), at the assumed prices: the API without caching (a straight line at USD 0.0024 per request), the API with caching (USD 0.00186 per request), and a dedicated H100 at USD 60 a day (flat), drawn solid up to its batch-1 capacity (about 7,200 requests a day in bf16, 22,000 at 4 bits) and dashed beyond, labelled 'needs batching (Module 10)'; break-even points marked at 25,000 (uncached) and 32,300 (cached) requests a day; the case study's 2,000 requests a day marked."
+     "description": "Daily scenario cost versus request volume. API lines use the stated uncached/cached input prices; a dedicated H100 costs USD 60 per day. Shading marks volumes above the estimated batch-one capacity for bf16 and 4-bit weights, where the flat GPU bill alone does not describe a feasible service."
     }
    ],
    "widget": null,
@@ -875,7 +838,7 @@
   "The model obeys an instruction hidden in a document it was asked to summarise (source) -> untrusted text shares one token stream with the instructions -> a trust boundary: route on trusted input before adding documents, delimit the data, allow no privileged action from model output without validation and approval, remove a leg of the lethal trifecta.",
   "A confident citation, clause number or hazard rating that does not exist (source) -> maximum-likelihood training produces plausible continuations and nothing rewarded abstaining -> require citations to retrieved documents and check them deterministically; allow 'unknown' in the output schema.",
   "A fine-tuned model 'does not follow instructions' or never stops (source) -> the chat template or end-of-turn token at serving differs from the one in the fine-tuning data -> print the templated prompt and its token IDs at both ends, use apply_chat_template, and make the template's end-of-turn token a stop token.",
-  "Few-shot accuracy swings by 20 points when the examples are reordered -> order sensitivity, majority-label and recency bias (Lab 4) -> balance and shuffle demonstrations, report the mean and spread over several orders, evaluate on held-out items.",
+  "Lab 4 accuracy changes by 18.75 points across two different eight-shot selections and by 6.25 points when the same four examples are reordered -> sensitivity to selection and order; these observations do not establish recency attraction -> balance and shuffle demonstrations, report the mean and spread over several orders, evaluate on held-out items.",
   "The prompt-cache hit rate is zero -> a timestamp, request ID or reordered tool list near the top changes the prefix -> keep the stable prefix byte-identical and put variable content last."
  ],
  "labs": [
@@ -890,14 +853,14 @@
    "steps": [
     "Load the tokenizer and the model with dtype=torch.float32 (bf16 matrix products are slow on most CPUs) and call model.eval(). Print the parameter count (134,515,008), len(tokenizer) (49,152) and ln V = 10.80, the loss of a uniform guess.",
     "token_losses(text): prepend the BOS token (id 0, '<|endoftext|>'), run one forward pass under torch.no_grad(), take log_softmax of logits[0, :-1] in float32 and gather the log-probability of each actual next token; return the per-token losses in nats.",
-    "For the seven texts print a table: tokens, mean loss (nats), bits per token, perplexity, bits per byte (sum of losses / (UTF-8 bytes × ln 2)). Expected from the planning run (last digits may differ): prose 89 tokens, 3.250 nats, PPL 25.8, 0.90 bits per byte; shuffled 6.772, 873, 1.88; Chinese 219 tokens, 2.129, 8.40, 1.88; code 74 tokens, 1.644, 5.18, 0.95; Declaration 44 tokens, 0.440, 1.55, 0.13; random 225 tokens, 5.113, 166, 5.53; prose twice 178 tokens, 1.729, 5.64, 0.48.",
-    "Split the repeated text's losses at the copy boundary: first copy 3.25 nats per token, second copy 0.21 (perplexity 1.23). Plot per-token loss against position (178 points) with the boundary marked.",
+    "For the seven texts print a table: tokens, mean loss (nats), bits per token, perplexity, bits per byte (sum of losses / (UTF-8 bytes × ln 2)). Expected from the planning run (last digits may differ): prose 89 tokens, 3.250 nats, PPL 25.8, 0.90 bits per byte; shuffled 6.772, 873, 1.88; Chinese 219 tokens, 2.129, 8.40, 1.88; embedded six-line code 53 tokens, 1.800, 6.05, 0.748; Declaration 44 tokens, 0.440, 1.55, 0.13; random 225 tokens, 5.113, 166, 5.53; prose twice 178 tokens, 1.729, 5.64, 0.48.",
+    "Split the repeated text at character len(EN_PARA), assigning the joining space to the second copy; verify offsets do not cross that boundary. The measured first/second losses are 3.250/0.208 nats with 89 tokens each. Plot all 178 token losses with the boundary marked.",
     "Print the ten most and the ten least surprising tokens of EN_PARA (decoded token and loss), to connect the average to individual predictions.",
     "Compare the random text with its source: 37 equiprobable symbols carry log2 37 = 5.21 bits per character; the model pays 5.53 bits per byte, more than the entropy, because its prior expects language."
    ],
    "expected_observations": [
     "Per-token perplexity ranks Chinese (8.4) easier than English (25.8); bits per byte ranks it twice as hard (1.88 against 0.90). Per-token numbers are not comparable across tokenisations.",
-    "The memorised sentence costs 0.13 bits per byte; shuffling the same words doubles the cost; no model beats the entropy of random text.",
+    "The familiar Declaration sentence costs 0.134 bits per byte; this is consistent with frequent exposure but does not identify training membership. Random-source entropy bounds expected loss across draws, not every finite sample.",
     "The second copy of the paragraph is almost free: the model copies from its context, the mechanism behind in-context learning (Section 6)."
    ],
    "extensions": [
@@ -910,7 +873,7 @@
    "title": "Byte-pair encoding from scratch, and three tokenizers on English and Chinese",
    "minutes": 40,
    "goal": "Reproduce Section 2's hand-worked merges in code, build a byte-level BPE that round-trips any string, and measure what production tokenizers do to the same content in English and Chinese, to numbers and to whitespace.",
-   "data": "Embedded, no dataset download. WELD = {'weld': 10, 'welded': 9, 'welds': 7, 'cooled': 7, 'melt': 5, 'heated': 4}. CORPUS_EN and CORPUS_ZH, written for the lab: six short paragraphs (about 600 words) on the case study's pressure-relief system (the system and its hazard, overpressure of a reactor vessel; the safety goal, a failure probability on demand below 10^-4; the argument strategy, over each failure mode of the valve; the evidence, proof tests, maintenance records and test report TR-104; assumptions and context, set pressure 12.5 bar and the operating envelope; open issues), and the Chinese translation of the first two paragraphs (about 250 characters). The held-out EN_PARA and ZH_PARA (verbatim in writer_notes) are not part of the training corpus. Downloads: tokenizer files only, gpt2 (2.9 MB), HuggingFaceTB/SmolLM2-135M (3.4 MB), Qwen/Qwen2.5-0.5B-Instruct (11.5 MB). The cl100k_base encoding of tiktoken (1.7 MB, outside the series' download list) appears only in a norun aside under 'Try this'.",
+   "data": "Embedded, no dataset download. WELD = {'weld': 10, 'welded': 9, 'welds': 7, 'cooled': 7, 'melt': 5, 'heated': 4}. CORPUS_EN and CORPUS_ZH, written for the lab: six short paragraphs (six paragraphs) on the case study's pressure-relief system (the system and its hazard, overpressure of a reactor vessel; the safety goal, a failure probability on demand below 10^-4; the argument strategy, over each failure mode of the valve; the evidence, proof tests, maintenance records and test report TR-104; assumptions and context, set pressure 12.5 bar and the operating envelope; open issues), and the Chinese translation of the first two paragraphs (two short paragraphs). The held-out EN_PARA and ZH_PARA (verbatim in writer_notes) are not part of the training corpus. Downloads: tokenizer files only, gpt2 (2.9 MB), HuggingFaceTB/SmolLM2-135M (3.4 MB), Qwen/Qwen2.5-0.5B-Instruct (11.5 MB). The cl100k_base encoding of tiktoken (1.7 MB, outside the series' download list) appears only in a norun aside under 'Try this'.",
    "download_mb": 18,
    "cpu_runtime_minutes": 1,
    "steps": [
@@ -948,16 +911,16 @@
     "Define law(N, D, E, A, B, alpha, beta) and optimum(C, ...) implementing N_opt = G (C/6)^a with a = β/(α+β) and G = (αA/(βB))^(1/(α+β)). Print the truth at C = 1e18, 1e20, 1e21 and 1e23: N_opt 8.44e7, 9.0e8, 2.94e9, 3.13e10; tokens per parameter 23.4, 20.6, 19.3, 17.0.",
     "Generate IsoFLOP runs: for each C in (1e18, 3e18, 1e19, 3e19, 1e20) and 9 sizes N = N_opt(C) × logspace(−1, 1, 9), set D = C/(6N) and L = law × exp(ε) with ε ~ N(0, 0.01) from np.random.default_rng(0). Print the 9 rows for C = 1e18 (N from 8.44e6 to 8.44e8; L from 3.94 down to 3.35 and back to 3.92).",
     "Plot the IsoFLOP curves, L against N on a log axis, one colour per budget.",
-    "Fit as Hoffmann et al. did: parameters (a, b, e, α, β) with A = e^a, B = e^b, E = e^e; prediction log L̂ = logsumexp(a − α log N, b − β log D, e); objective Σ Huber_δ(log L̂ − log L) with δ = 10^-3; scipy.optimize.minimize(method='L-BFGS-B') from 243 starts (a, b ∈ {2, 6, 10}; e ∈ {0, 0.5, 1}; α, β ∈ {0.2, 0.4, 0.6}); keep the best. Print the fitted constants (planning run: E 1.835, A 620, B 1736, α 0.368, β 0.361, against the truth 1.8, 480, 2100, 0.35, 0.37), the fit time (about 20 s) and the largest relative error of the fitted law against the truth over the 45 runs (0.7%).",
+    "Fit the log-space Huber objective (delta=1e-3) with analytic gradients using L-BFGS-B over 243 starts. Use ftol=1e-14, gtol=1e-9 and maxiter=2000, report termination, and check gradients by finite differences. Executed E=1.8355,A=620.4347,Bc=1736.2444,alpha=0.3675,beta=0.3609; maximum relative generating-law error 0.71%; about 9 seconds.",
     "Allocations from the fit against the truth: C = 1e20: 8.3e8 against 9.0e8; 1e21: 2.61e9 against 2.94e9; 1e23: 2.55e10 against 3.13e10 (tokens per parameter 25.6 against 17.0). Extrapolation multiplies small errors in the exponents.",
     "Approach 2: for each budget fit a parabola to L against log10 N and take its vertex as N_opt(C); regress log N_opt on log C; print the slope (0.4995) beside the parametric a (0.4954) and the truth (0.5139), and Approach 2's N_opt at 1e23 (2.65e10).",
-    "Bootstrap: 60 resamples of the 45 runs with replacement, each fitted from 16 starts (a, b ∈ {4, 8}; e = 0.5; α, β ∈ {0.3, 0.5}); print the 5th-95th percentile of N_opt(1e23) (planning run: 1.9e10 to 3.2e10, covering the truth 3.13e10) and the range of the fitted α (0.32 to 0.46). Repeat with a single start at the full-data optimum: the interval collapses to 2.49e10-2.64e10 and excludes the truth. Connect to Table 2's (0.454, 0.455) and the replication's criticism. About 100 s; use 30 resamples if the machine is slow.",
+    "Bootstrap 30 resamples by default (60 as an extension), using 16 starts and a one-start control with identical strict tolerances. Executed both intervals: N_opt(1e23) 5th?95th percentiles 2.210e10?3.032e10; alpha range 0.335?0.395. One-start excess objective at most 1.38e-8. The intervals agree and exclude the known truth in this realisation. Audit optimisation error and repeat original noise draws before claiming coverage.",
     "The published constants: print N_opt and tokens per parameter at C = 5.76e23 for (α, β) = (0.34, 0.28): 3.22e10 and 93; for (0.3392, 0.2849): 4.03e10 and 59; for the replication's refit (E 1.8172, A 482.01, B 2085.43, α 0.3478, β 0.3658): 7.2e10 and 18; and the Chinchilla model itself: 7.0e10 and 20."
    ],
    "expected_observations": [
     "The fitted law reproduces every run to within 1% while its constants are off by up to 30%: A trades off against α, and B against β.",
     "Approaches 2 and 3 agree on the exponent to about 0.005 on clean synthetic data, yet the allocation at a thousand times the largest training budget is off by about 20%.",
-    "Honest uncertainty needs several starts: a bootstrap that always starts at the full-data optimum reports a falsely narrow interval."
+    "The single-start and multi-start intervals agree when both fits converge under strict tolerances. A narrow interval from prematurely terminated fits would be an optimisation artefact; multiple starts do not automatically guarantee honest uncertainty or coverage."
    ],
    "extensions": [
     "Double the noise to 2% and repeat the bootstrap.",
@@ -977,16 +940,16 @@
     "Load the tokenizer and the model with dtype=torch.float32 (on the planning machine bf16 generation ran at about 4 tokens/s and float32 at about 10). Render the source's messages (system 'You are a safety engineer. Answer in one sentence.'; user 'What is a safety goal in ISO 26262?') with apply_chat_template(messages, add_generation_prompt=True, tokenize=False) and print the result: <|im_start|>system ... <|im_end|> ... <|im_start|>assistant. Print 38 templated tokens against 25 content tokens. Render a conversation with no system message to show Qwen's default one ('You are Qwen, created by Alibaba Cloud. You are a helpful assistant.').",
     "The source's generation code, fixed for transformers 5: enc = tok.apply_chat_template(messages, add_generation_prompt=True, return_tensors='pt', return_dict=True); model.generate(enc['input_ids'], attention_mask=enc['attention_mask'], max_new_tokens=60, do_sample=True, temperature=0.7, top_p=0.9) after torch.manual_seed(0), then again with do_sample=False. Print both answers and say what is wrong with them: an ISO 26262 safety goal is the top-level safety requirement resulting from the hazard analysis and risk assessment; the small model's answers are fluent and vague or wrong.",
     "Same weights, raw prompt: tokenize the question without the template and generate 40 greedy tokens. Planning run: the model continues an exam paper (' A. To ensure that the system will not cause any damage to people, property or the environment B. ...').",
-    "Scoring with a cached prefix: build messages = system + k pairs (user 'Statement: …', assistant label) + user 'Statement: XXXX'; render the template; split at 'XXXX' into prefix and suffix; run the prefix once with use_cache=True; for each test statement run tok(statement + suffix) with copy.deepcopy(cache) and logits_to_keep=1; the margin is log p(first token of label A) − log p(first token of label B). Check once that the cached margin equals the full-prompt margin (|Δ| about 10^-5): this is prefix caching (Section 9) on a laptop.",
-    "Abstract labels, A for claim and B for evidence, with the system message 'Classify each statement as A or B. Answer with the label only.': k = 0; then k = 2, 4 and 8 with three balanced demonstration sets each (random.Random(10k + i), i = 0, 1, 2). Print accuracy and the fraction predicted A. Planning run: k = 0: 0.50 (always A); k = 2: 0.50, 0.50, 0.50; k = 4: 0.56 three times; k = 8: 0.875, 0.688, 0.875 (mean 0.81).",
-    "Label bias and order (k = 4): all four demonstrations labelled A → fraction A 0.88; all B → 0.00; order A, A, B, B → 0.88 A; order B, B, A, A → 0.31 A (recency).",
+    "Tokenise full prompts first and find the common token prefix, avoiding BPE changes from string splitting. Cache it once per condition, deep-copy the mutable cache per test suffix, and score the margin between first tokens of the two labels. Across conditions cached/full margins differ by at most 9.54e-6; label IDs are printed.",
+    "Abstract A/B labels; balanced demonstration sets selected with random.Random(10*k+i), i=0,1,2. Measured accuracies: k0=.500; k2=.4375,.500,.500; k4=.625,.5625,.625; k8=.875,.6875,.875. Print predicted-A fraction too.",
+    "Four fixed demonstration texts: all A yields predicted-A fraction .9375; all B .000; AABB .875; BBAA .3125. These demonstrate label/order sensitivity, not simple attraction to the most recent label.",
     "Semantic labels with definitions in the system message ('Classify each statement from a safety case as CLAIM or EVIDENCE. A CLAIM is a proposition that must be supported by an argument. EVIDENCE is a record or result that supports a claim. Answer with the label only.'): k = 0 → 0.50 (always CLAIM); k = 8 → 0.81.",
     "Print a closing table of every condition with the number of test items (16) and the remark that one item is 6.25 points."
    ],
    "expected_observations": [
     "Without its template the instruct model behaves like a base model and continues a document.",
     "With no demonstrations the model gives one label to everything; eight demonstrations teach even an arbitrary A/B labelling to about 0.8 accuracy.",
-    "Accuracy at k = 8 varies by about 20 points between demonstration sets, and the last demonstrations' labels pull the predictions (recency): a few-shot number without its spread over orders is not a measurement."
+    "Accuracy at k8 spans .6875-.875 across three sets. AABB/BBAA order changes predicted-A fraction .875 to .3125, opposite to simple last-label attraction; do not identify the causal mechanism from this order effect alone."
    ],
    "extensions": [
     "Contextual calibration (Zhao et al. 2021): subtract the margin of the content-free input 'N/A' from every margin; on the planning run it made accuracy worse because the content-free input was not neutral; try the empty string and '[MASK]'.",
@@ -1009,7 +972,7 @@
     "generate(prompt, n=8, steps=30, **settings): repeat the prompt 8 times in one batch, run it once with use_cache=True, then loop: filter the last logits, sample with torch.multinomial (torch.Generator seeded 0) or take the argmax for greedy, and feed the 8 new tokens with the cache. For greedy, τ = 0.7, τ = 1.0, τ = 1.5, top-k = 40, top-p = 0.9, min-p = 0.1, and τ = 1.5 with min-p = 0.1, print the mean entropy in nats of the distribution actually sampled from (0 for greedy), distinct-2 (unique token bigrams divided by all bigrams across the 8 samples) and the first sample. Expected on P_OPEN from the planning run: greedy distinct-2 0.12 (8 identical samples); τ = 0.7: 1.57 nats, 0.74; τ = 1.0: 3.16, 0.90; τ = 1.5: 8.08, 1.00 (gibberish such as 'SER logo in Terminal Services Players'); top-k = 40: 2.23, 0.92; top-p = 0.9: 2.70, 0.91; min-p = 0.1: 1.29, 0.82; τ = 1.5 with min-p = 0.1: 2.10, 0.94 (readable again).",
     "Greedy degeneration: 80 greedy tokens from P_LOOP; print the text (planning run: 'The valve is used to control the flow of air in a pipe.' repeated) and the fraction of repeated 4-grams; then apply the CTRL repetition penalty θ = 1.3 to every token already generated, regenerate, and print the new fraction.",
     "Constrained choice by scoring: for P_SEV compute the summed log-probability of each continuation ' catastrophic', ' critical', ' marginal' and ' negligible' (teacher-forced, one forward pass each), renormalise over the four and print them beside the unconstrained top 5 next tokens (planning run: ' a' 0.271, ' \"' 0.049, ' an' 0.044, ' “' 0.042, ' high' 0.023). The chosen value is valid by construction; whether it is right is another question.",
-    "Batch invariance: set tok.pad_token = tok.eos_token (SmolLM2 has no pad token). Compare the last-position logits for P_OPEN run alone with (a) the same prompt inside a right-padded batch with three other prompts (read the logits at its last real position) and (b) the prompt repeated 8 times; print the maximum absolute difference (planning run: 0.0 and 3.1×10^-5). Run 60 greedy tokens at batch 1 and at batch 8 and print whether the sequences are identical (planning run: identical) and the smallest gap between the top two logits along the batch-1 path.",
+    "Set right padding with an explicit attention mask and read the prompt's last real position. Current float32 maximum logit differences for padded and repeated batches are 3.24e-5 and 3.48e-5. Batch-1 and batch-8 sixty-token greedy paths are identical; the batch-1 minimum top-two gap is .02179.",
     "Floating point: print float32 (1e8 + 1) − 1e8 and (1e8 − 1e8) + 1; bfloat16 256 + 1; and the sum of 100,000 uniform numbers (torch.Generator seeded 0) in natural, reversed and sorted order, by sequential float32 accumulation, and in float64 (planning run: 50027.621094, 50027.621094, 50027.625000, 50027.738281, 50027.622247)."
    ],
    "expected_observations": [
@@ -1091,7 +1054,7 @@
    "level": 1,
    "kind": "conceptual",
    "minutes": 5,
-   "prompt": "Across three sizes of a model family, per-token accuracy on 20-token answers rises 0.85 → 0.92 → 0.97. What exact-match accuracies does that imply, and what would you plot instead to decide whether the ability is 'emergent'?",
+   "prompt": "Across three sizes of a model family, per-token accuracy on 20-token answers rises 0.85 → 0.92 → 0.97. Under an independent, identical-error approximation, what exact-match accuracies does that imply, and what would you plot instead to decide whether the ability is 'emergent'?",
    "solution_sketch": "Exact match is p^20: 0.039, 0.189 and 0.544, which looks like a jump from 'cannot' to 'can' although the per-token accuracy rose by only 0.12. Plot a continuous measure against log model size: the per-token accuracy, a token edit distance, or the log-likelihood of the correct answer. If that rises smoothly, the 'emergence' is a property of the exact-match metric (Schaeffer et al. 2023)."
   },
   {
@@ -1108,7 +1071,7 @@
    "kind": "calculation",
    "minutes": 10,
    "prompt": "(The source's exercise 2, extended.) Use the published fit (E = 1.69, A = 406.4, B = 410.7, α = 0.34, β = 0.28). (a) Compute the predicted loss of a 9.5B model trained on 190B tokens, about 20 tokens per parameter. Section 5 found 1.939 for the same model on 15T tokens and Section 4 found 1.937 for the 70B model on 1.4T tokens: which of the three is lowest, and what does E mean? (b) What is the smallest model that could reach 1.939 however many tokens it were trained on? (c) How many tokens would a 4B model need to reach 1.939, and what does the answer say about over-training ever-smaller models?",
-   "solution_sketch": "(a) A/N^α = 406.4/(9.5×10^9)^0.34 = 0.165 and B/D^β = 410.7/(1.9×10^11)^0.28 = 0.285, so L = 1.69 + 0.165 + 0.285 = 2.140. The 70B model is lowest, by 0.002 over the 15T-token 9.5B model, which is equal for practical purposes; the 190B-token model is 0.2 nats worse. E = 1.69 nats is the irreducible loss, the entropy of that corpus under that tokenizer (perplexity 5.4), which no model can beat. (b) As D grows the data term vanishes, so the model needs A/N^α < 1.939 − 1.69 = 0.249: N > (406.4/0.249)^(1/0.34) = 2.8×10^9 parameters. (c) For N = 4×10^9, A/N^α = 0.221, leaving 0.028 for the data term: D = (410.7/0.028)^(1/0.28) ≈ 7.5×10^14 tokens, about 190,000 per parameter and 50 times Llama 3's 15T. The tokens needed grow without bound as N approaches 2.8×10^9, and the answer is very sensitive to the target (the unrounded 1.9386 gives 7.9×10^14). Over-training trades parameters for tokens only down to a size set by the target loss, and long before that the data runs out (Section 5's data wall)."
+   "solution_sketch": "(a) A/N^α = 406.4/(9.5×10^9)^0.34 = 0.165 and B/D^β = 410.7/(1.9×10^11)^0.28 = 0.285, so L = 1.69 + 0.165 + 0.285 = 2.140. The 70B model is lowest, by 0.002 over the 15T-token 9.5B model, which is equal for practical purposes; the 190B-token model is 0.2 nats worse. E = 1.69 nats is the fitted asymptote, motivated by irreducible uncertainty but not a proof of the true source entropy or validity under extrapolation. (b) As D grows the data term vanishes, so the model needs A/N^α < 1.939 − 1.69 = 0.249: N > (406.4/0.249)^(1/0.34) = 2.8×10^9 parameters. (c) For N = 4×10^9, A/N^α = 0.221, leaving 0.028 for the data term: D = (410.7/0.028)^(1/0.28) ≈ 7.5×10^14 tokens, about 190,000 per parameter and 50 times Llama 3's 15T. The tokens needed grow without bound as N approaches 2.8×10^9, and the answer is very sensitive to the target (the unrounded 1.9386 gives 7.9×10^14). Over-training trades parameters for tokens only down to a size set by the target loss, and long before that the data runs out (Section 5's data wall)."
   },
   {
    "id": "e8",
@@ -1116,7 +1079,7 @@
    "kind": "conceptual",
    "minutes": 5,
    "prompt": "In Lab 4, with abstract labels A and B, the model answered 'A' to every statement at k = 0; with four demonstrations in the order A, A, B, B it predicted A for 14 of the 16 test statements, and with B, B, A, A for 5 of 16. Name the two effects, and state how you would report a few-shot accuracy so that a reader can trust it.",
-   "solution_sketch": "At k = 0 the model has a label prior (it favours the first-listed label, A). The order effect is recency bias: the labels of the last demonstrations pull the predictions. Report the mean and the range over several random balanced demonstration sets and orders, the number of test items with an interval (16 items, so one item is 6.25 points), the exact template, and keep the demonstration pool separate from the test set."
+   "solution_sketch": "Zero-shot label preference and order sensitivity. The AABB/ BBAA results do not establish simple recency attraction: the last label is opposite to the majority prediction in both cases. Report exact template, separate demonstration/test pools, accuracy plus prediction frequencies and spread across balanced selections and orders; 16 items means 6.25 points per item."
   },
   {
    "id": "e9",
@@ -1140,7 +1103,7 @@
    "kind": "conceptual",
    "minutes": 5,
    "prompt": "A request contains, in order, the instructions (300 tokens), a 25,000-token standard and the question (100 tokens). Answers are often wrong when the relevant clause lies in the middle of the standard. Suggest two changes to the prompt and one to the system, and compute the KV-cache memory this request needs for the case-study model in bf16.",
-   "solution_sketch": "Prompt: put the question after the document (it already is) and restate the instructions after the document as well; quote the clause numbers to look for. System: retrieve and re-rank the relevant clauses instead of sending the whole standard, or split the standard and ask per section. KV cache: 25,400 tokens × 147,456 bytes = 3.7 GB."
+   "solution_sketch": "Prompt: restate the task after the document and identify relevant clause IDs, or place selected extracts near the question; quote the clause numbers to look for. System: retrieve and re-rank the relevant clauses instead of sending the whole standard, or split the standard and ask per section. KV cache: 25,400 tokens × 147,456 bytes = 3.7 GB."
   },
   {
    "id": "e12",
@@ -1203,11 +1166,11 @@
    "options": [
     "The model predicts Chinese better than English",
     "Chinese text has lower entropy than English text",
-    "The tokenizer splits Chinese characters into easily predicted byte pieces, so per-token perplexity flatters Chinese; per byte the model is about twice as uncertain on Chinese",
+    "Per-token loss depends on token size; the model pays more bits per byte on this Chinese translation despite lower token perplexity",
     "Bits per byte is undefined for multi-byte characters"
    ],
    "answer": 2,
-   "explanation": "Per-token loss depends on how much text each token covers. Chinese is split into one- or two-byte pieces whose continuations are easy, so the average per token is low; per byte of the same content the model needs 1.88 bits against 0.90. Bits per byte is well defined for any UTF-8 text."
+   "explanation": "Smaller token pieces can be easy to predict while requiring more predictions. The measured coding costs are 1.88 and 0.90 bits per UTF-8 byte. This is a comparison on these texts, not a general ranking of language ability or source entropy."
   },
   {
    "question": "With the published Chinchilla exponents α = 0.34 and β = 0.28, by what factor should the parameter count grow when the compute budget grows tenfold?",
@@ -1221,7 +1184,7 @@
    "explanation": "N_opt ∝ C^a with a = β/(α+β) = 0.452, and 10^0.452 = 2.83. 3.2 is √10, the answer for a = 0.5 (Approaches 1 and 2); 5.4 is Kaplan's 10^0.73; 10 would put all the extra compute into parameters."
   },
   {
-   "question": "Why are recent 8B models trained on about 15T tokens, far beyond about 20 tokens per parameter?",
+   "question": "Why might a team train an 8B model on 15T tokens, far beyond 20 tokens per parameter?",
    "options": [
     "The Chinchilla result has been shown to be wrong",
     "More tokens shrink the parameter term A/N^α",
@@ -1254,7 +1217,7 @@
    "explanation": "Min-p keeps tokens with p ≥ 0.1 × 0.849 = 0.0849, and only 'safe' qualifies. Top-k = 3 keeps three tokens; top-p = 0.9 needs safe, secure and robust to reach 0.914; temperature alone removes nothing."
   },
   {
-   "question": "A team sends the same prompt 1,000 times at temperature 0 to a hosted model and receives several different completions. What is the most likely cause?",
+   "question": "A model returns different completions for identical requests with sampling disabled. Which mechanism can explain this without random token selection?",
    "options": [
     "Kernels whose reduction order depends on the batch the request lands in, so the logits change in their last digits and near-ties flip",
     "The provider silently samples at temperature 1",
@@ -1262,7 +1225,7 @@
     "Random seeds are ignored at temperature 0"
    ],
    "answer": 0,
-   "explanation": "Floating-point sums depend on order, server kernels pick orders by batch shape, and one flipped near-tie changes the rest of the sequence (He and Thinking Machines Lab 2025). Tokenizers are deterministic; at temperature 0 no random numbers are drawn, so seeds are irrelevant; there is no evidence of hidden sampling."
+   "explanation": "Batch-dependent reduction order can change floating-point logits enough to flip a nearly tied argmax. Once a token changes, later context changes too. This is a possible mechanism; the observation alone does not identify the cause. Token sampling draws no random numbers in greedy decoding."
   },
   {
    "question": "For the case-study model (36 layers, 8 KV heads of dimension 128, bf16), how much KV-cache memory does one 32,000-token sequence need?",

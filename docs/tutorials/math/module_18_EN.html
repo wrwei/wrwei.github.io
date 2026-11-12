@@ -1,0 +1,601 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Multivariable derivatives, matrix calculus, and automatic differentiation — Mathematical Foundations for Computer Science and AI</title><meta name="description" content="Distinguish partials from total differentiability, derive correctly shaped Jacobians and matrix gradients, and verify reverse-mode accumulation through shared computations and a two-layer network."><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/katex.min.css"></head><body data-module="18"><a class="skip-link" href="#main">Skip to content</a><div id="progress-bar"></div><header id="topbar"><a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span><a href="index.html" class="crumb">Maths Series</a><div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-expanded="false" aria-controls="module-menu">Module 18</button><div class="dropdown-menu" id="module-menu"><a href="module_18_EN.html" class="active" aria-current="page">Multivariable derivatives, matrix calculus, and automatic differentiation</a><a href="index.html#modules">Full roadmap</a></div></div><a class="lang-switch" href="module_18_ZH.html" hreflang="zh-CN">中文</a></header><div id="layout"><aside id="sidebar"><div class="side-progress"><div class="side-progress-label">Progress: <span class="side-progress-n">0</span>/4 sessions done</div><div class="side-progress-bar"><span></span></div></div><div class="sidebar-label">Contents</div><nav aria-label="Contents"><a href="#start"><span class="num">1</span><span>Derivatives become linear maps with shapes</span></a><a href="#s1"><span class="num">2</span><span>Partials directional derivatives and level sets</span></a><a href="#s2"><span class="num">3</span><span>Total differentials and a column-gradient convention</span></a><a href="#s3"><span class="num">4</span><span>Jacobian composition JVP and VJP</span></a><a href="#s4"><span class="num">5</span><span>Hessians mixed partials and second-order models</span></a><a href="#s5"><span class="num">6</span><span>Matrix gradients through differentials</span></a><a href="#s6"><span class="num">7</span><span>Automatic differentiation and shared-node accumulation</span></a><a href="#misconceptions"><span class="num">8</span><span>Common misconceptions</span></a><a href="#labs"><span class="num">9</span><span>Three reproducible labs</span></a><a href="#exercises"><span class="num">10</span><span>Fourteen exercises with full solutions</span></a><a href="#quiz"><span class="num">11</span><span>Ten-question self-check</span></a><a href="#reading"><span class="num">12</span><span>Reading with a purpose</span></a><a href="#summary"><span class="num">13</span><span>Retrieval exit task and next step</span></a><a href="#terms"><span class="num">14</span><span>Notation and bilingual terminology</span></a></nav></aside><main id="main"><div class="module-hero"><div class="series">Mathematical Foundations for Computer Science and AI — Ran Wei</div><h1 class="module-title">Multivariable derivatives, matrix calculus, and automatic differentiation</h1><p class="module-lead">Distinguish partials from total differentiability, derive correctly shaped Jacobians and matrix gradients, and verify reverse-mode accumulation through shared computations and a two-layer network.</p><div class="hero-chips"><span class="chip chip-time">12 hours</span><span class="chip">4 sessions</span><span class="chip">3 labs</span><span class="chip">12 exercises + 2 extensions</span><span class="chip">10 quiz questions</span></div></div><section class="glance"><div class="glance-col"><h2 class="glance-h">By the end you can</h2><ul class="outcomes"><li>Compute partial and directional derivatives and exhibit their insufficiency for total differentiability.</li><li>Define the column gradient and output-by-input Jacobian as local linear maps.</li><li>Compose Jacobians and identify forward JVP and reverse VJP shapes.</li><li>Use Hessians and second-order expansions with mixed-partial hypotheses.</li><li>Derive dot-product, general quadratic and least-squares gradients through differentials.</li><li>Implement reverse-mode shared-node accumulation and verify all parameter gradients of a two-layer network.</li></ul></div><div class="glance-col"><h2 class="glance-h">Before you start</h2><p>Module 10: matrix products, transposes and batch shapes; Module 16: local linear models, chain rules, Taylor error and kink boundaries. Modules 11–14 strengthen geometric interpretations but are not required to execute the labs.</p></div></section><details class="mobile-toc"><summary>Contents</summary><nav aria-label="Contents"><a href="#start">Derivatives become linear maps with shapes</a><a href="#s1">Partials directional derivatives and level sets</a><a href="#s2">Total differentials and a column-gradient convention</a><a href="#s3">Jacobian composition JVP and VJP</a><a href="#s4">Hessians mixed partials and second-order models</a><a href="#s5">Matrix gradients through differentials</a><a href="#s6">Automatic differentiation and shared-node accumulation</a><a href="#misconceptions">Common misconceptions</a><a href="#labs">Three reproducible labs</a><a href="#exercises">Fourteen exercises with full solutions</a><a href="#quiz">Ten-question self-check</a><a href="#reading">Reading with a purpose</a><a href="#summary">Retrieval exit task and next step</a><a href="#terms">Notation and bilingual terminology</a></nav></details><section class="plan" id="plan"><div class="plan-head"><h2 class="plan-title">Study plan</h2><span class="plan-total">12 hours</span></div><p class="plan-lead">Times include practice and are estimates. Split a session when useful. Optional extension exercises add 35 minutes. Progress is stored in this browser and shared between language editions.</p><div class="sessions"><div class="session"><div class="session-head"><span class="session-n">Session 1</span><span class="session-min">180 min</span></div><div class="session-title">Partials total differentials and Jacobians</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s1">Read Sections 1–2 and test differentiability counterexamples.</a></span><span class="act-min">112</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e1">Complete Exercises 1–4.</a></span><span class="act-min">28</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read gradients and total derivative selections.</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Retrieve every derivative shape and convention.</a></span><span class="act-min">20</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m18:s1"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 2</span><span class="session-min">180 min</span></div><div class="session-title">Chain Hessian and matrix gradient proofs</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s3">Read Sections 3–5 and derive differential formulas.</a></span><span class="act-min">75</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab1">Check gradients Jacobians and Hessians numerically.</a></span><span class="act-min">60</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e5">Complete proof Exercises 5–7.</a></span><span class="act-min">45</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m18:s2"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 3</span><span class="session-min">180 min</span></div><div class="session-title">Reverse mode and shared computations</div><ul class="acts"><li class="act act-read"><span class="act-kind">Read</span><span class="act-what"><a href="#s6">Read automatic differentiation and explore graph adjoints.</a></span><span class="act-min">50</span></li><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab2">Implement reverse mode and trace shared-node accumulation.</a></span><span class="act-min">70</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e8">Complete application Exercises 8–10.</a></span><span class="act-min">36</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Explain JVP versus VJP and derivative conventions.</a></span><span class="act-min">24</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m18:s3"> Done</label></div><div class="session"><div class="session-head"><span class="session-n">Session 4</span><span class="session-min">180 min</span></div><div class="session-title">Two-layer backward verification</div><ul class="acts"><li class="act act-lab"><span class="act-kind">Lab</span><span class="act-what"><a href="#lab3">Verify every parameter gradient and diagnose three faults.</a></span><span class="act-min">75</span></li><li class="act act-exercises"><span class="act-kind">Exercises</span><span class="act-what"><a href="#e11">Diagnose Exercises 11–12.</a></span><span class="act-min">24</span></li><li class="act act-quiz"><span class="act-kind">Quiz</span><span class="act-what"><a href="#quiz">Complete choices and the written shape/backward contract.</a></span><span class="act-min">15</span></li><li class="act act-papers"><span class="act-kind">Reading</span><span class="act-what"><a href="#reading">Read matrix calculus and computation-graph selections.</a></span><span class="act-min">20</span></li><li class="act act-review"><span class="act-kind">Review</span><span class="act-what"><a href="#summary">Complete the exit task including accumulation and loss scaling.</a></span><span class="act-min">46</span></li></ul><label class="session-done"><input type="checkbox" data-key="math-series:m18:s4"> Done</label></div></div></section><div class="content"><span class="section-anchor" id="start"></span>
+<div class="section-header" data-sec="start"><span class="section-num">1</span><h2>Derivatives become linear maps with shapes</h2></div>
+<p>A scalar training objective depends on many parameters, often through repeated computations and batches of records. Its derivative must account for every dependency, distinguish a partial observation from a whole-input approximation, and preserve array shapes. This lesson develops total differentials, Jacobians, Hessians and matrix gradients before implementing the chain rule as automatic differentiation.</p>
+<p><strong>Retrieval check:</strong> recall <a href="module_10_EN.html#s1">Module10</a> matrix multiplication, transposes and batch shapes, and <a href="module_16_EN.html#s1">Module16</a> local models, chain rules and nondifferentiable boundaries. The NumPy labs use the course’s pinned baseline; the scalar reverse engine needs only standard-library Python.</p>
+<span class="section-anchor" id="s1"></span>
+<div class="section-header" data-sec="s1"><span class="section-num">2</span><h2>Partials directional derivatives and level sets</h2></div>
+<p>For a scalar f:Rⁿ→R on an open domain, the partial derivative with respect to coordinate i at a is the limit[f(a+h e_i)−f(a)]/h, where e_i is that coordinate’s unit vector. Other coordinates are held fixed. Partial existence only checks a coordinate line. It does not automatically certify continuity for simultaneous changes or a first-order approximation in every direction. A function’s multivariable domain still matters: a log of a coordinate combination or a zero denominator can exclude nearby paths.</p>
+<p>For a vector v, the directional derivative is D_v f(a)=lim_{t→0}[f(a+tv)−f(a)]/t when this finite limit exists. A unit v describes rate per unit distance; a nonunit v also scales the speed along the path. The two-sided definition here allows both signs of t. One-sided directional derivatives at a boundary or for a nonsmooth function are differently qualified objects. The symbol D_v is not a guarantee that all these limits form one linear map in v.</p>
+<p>A level set consists of inputs having the same scalar output. Where total differentiability holds, its gradient points in the direction of steepest first-order Euclidean increase and is perpendicular to differentiable level-set paths with nonzero tangent. These claims will follow from the differential and chain rule, rather than from a contour drawing alone. Different feature units change the Euclidean geometry unless a metric is specified; use the gradient under the chosen coordinate and inner-product convention.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Partials and a directional rate of an elliptical objective</div>
+<p>For f(x,y)=x²+3y² at(1,1), partials are2 and6. Along unit v=(.6,.8), the directional rate is2(.6)+6(.8)=6. The largest unit-direction rate is√40, attained along(2,6)/√40. The level set through the point is x²+3y²=4; tangent directions satisfy2v₁+6v₂=0. A direction’s length and orientation both affect its rate, so v=(3,4) would give30 instead of six.</p>
+</div>
+<p>Partials can miss discontinuity. Define f(x,y)=xy/(x²+y²) away from the origin and f(0,0)=0. Both coordinate-axis restrictions are zero, giving both partials zero at the origin. Along x=y=t≠0, the output is1/2, so continuity fails. Since differentiability implies continuity, those existing partials cannot establish total differentiability. Lab1 samples these paths to illustrate the already exact counterexample.</p>
+<p>Even continuity and every directional derivative can be insufficient. Set g(x,y)=x³/(x²+y²) away from zero, g(0,0)=0. Its magnitude is≤|x|≤‖(x,y)‖, so it is continuous at zero. For nonzero v, the directional quotient is v₁³/(v₁²+v₂²). Axis rates are one and zero, but along v=(1,1) the rate is1/2 rather than the linear candidate one. The map of directions is not linear, so no single total derivative can represent it. Testing many straight lines still does not replace the uniform small-vector remainder requirement below.</p>
+<figure class="fig" id="fig-18-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" role="img" aria-label="Both axis restrictions vanish and partials at the origin are zero, while diagonal values remain one-half, proving discontinuity there."><title>Partials versus total differentiability counterexample</title><desc>Both axis restrictions vanish and partials at the origin are zero, while diagonal values remain one-half, proving discontinuity there.</desc><defs><marker id="fig-18-1__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="350" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">Axis partials can miss a diagonal approach</text><rect x="35" y="65" width="325" height="215" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="400" y="65" width="325" height="215" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="195" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">Axes x=0 or y=0</text><text x="195" y="150" text-anchor="middle" font-size="27" fill="#1a2e4a">f=0</text><text x="195" y="220" text-anchor="middle" font-size="22" fill="#1a2e4a">∂ₓf(0)=∂ᵧf(0)=0</text><text x="562" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">Diagonal x=y=t≠0</text><text x="562" y="150" text-anchor="middle" font-size="27" fill="#1a2e4a">f=1/2</text><text x="562" y="220" text-anchor="middle" font-size="20" fill="#1a2e4a">Not continuous or differentiable</text><text x="380" y="325" text-anchor="middle" font-size="21" fill="#1a2e4a">f(x,y)=xy/(x²+y²); f(0,0)=0</text></g></svg></div><figcaption><span class="fig-num">Figure 18.1</span> <p>Axis restrictions can hide a diagonal discontinuity. Total differentiability requires one local linear map for all small-vector approaches.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Do existing coordinate partials prove continuity? Do all directional derivatives necessarily equal a dot product with one gradient? Why specify a unit direction for a geometric rate?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>The xy/(x²+y²) counterexample defeats continuity. The continuous x³/(x²+y²) example has nonlinear direction rates, defeating a total linear model. A nonunit direction changes path speed, so the rate is also multiplied by its length.</p>
+</div></details>
+<span class="section-anchor" id="s2"></span>
+<div class="section-header" data-sec="s2"><span class="section-num">3</span><h2>Total differentials and a column-gradient convention</h2></div>
+<p>A scalar f is differentiable at a when there exists a linear functional L with f(a+h)=f(a)+L(h)+r(h), where r(h)/‖h‖→0 as the whole vector h→0. The limit covers every small-vector path, not just coordinate directions. Every linear functional on finite-dimensional Euclidean space can be written gᵀh: expand h in coordinate basis, let g_i=L(e_i), and use linearity. The coefficients equal existing partials because restricting the remainder to one coordinate line recovers their limits.</p>
+<p>We use the <strong>column gradient</strong> ∇f(a) of shape n×1, so the differential is df=∇f(a)ᵀdx, a scalar. The row derivative mapping inputs to a scalar is its transpose, shape1×n. A NumPy flat array of shape(n,) can represent those coefficients in code but is neither an explicit row nor column. Annotate the mathematical convention and each operation’s stored shape; otherwise a transpose error can hide when square examples happen to fit.</p>
+<p>For a vector F:Rⁿ→Rᵐ, differentiability means F(a+h)=F(a)+Jh+r(h), with ‖r(h)‖/‖h‖→0. The Jacobian J has shape m×n: row i contains derivatives of output i with respect to all inputs. Its entries are J_{ij}=∂F_i/∂x_j. Thus dF=J dx. Componentwise scalar differentiability is equivalent in finite dimensions because a finite collection of vanishing remainders also vanishes in vector norm. The Jacobian is a linear map between input and output spaces, rather than a coordinate list with an arbitrary orientation.</p>
+<p>Continuous partial derivatives in a neighbourhood supply a sufficient differentiability condition. For a scalar function, change coordinates one at a time and telescope the total increment. Apply the one-variable mean value theorem to each change. The resulting coefficients are coordinate partials at intermediate points approaching a. Subtract the partials at a; continuity makes every coefficient error≤ε for all sufficiently small h. The total remainder is at most εΣ|h_i|≤ε√n‖h‖, so its ratio vanishes. This proves the C¹ sufficient condition. It is not a necessary condition; a function can be differentiable at one point without having a continuous derivative throughout a neighbourhood.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Reading a Jacobian as an input-to-output map</div>
+<p>Let F(x,y)=(x²y,sin x+y²). Its Jacobian is[[2xy,x²],[cos x,2y]], shape2×2. At(.7,−.4) it is approximately[[-.56,.49],[.764842,−.8]]. Applied to v=(.6,.8), Jv=(.056,−.181095). This predicts the first-order output increment tJv along input perturbation tv; the true increment also has a remainder small relative to|t|. Columns describe separate input-coordinate responses, while rows describe separate output gradients.</p>
+</div>
+<p>Total differentiability implies every directional derivative equals ∇fᵀv and implies continuity: a bounded linear map sends h→0 to zero and the remainder does too. For unit v, Cauchy–Schwarz gives ∇fᵀv≤‖∇f‖, with equality in the gradient direction if the gradient is nonzero. If it is zero, every first-order unit-direction rate is zero; higher-order responses may remain. Along a differentiable level-set path c(t), the chain rule yields ∇f(c(t))ᵀc′(t)=0, proving the normal interpretation under the specified assumptions.</p>
+<p>The differential is a mathematical first-order mapping, not a literal infinitesimal stored by Python. It can be applied to a specified finite perturbation as an approximation, with a remainder whose size must be controlled separately. Scaling coordinates or changing the metric changes which gradient vector represents the same differential. In a weighted inner product with positive-definite M, the representing gradient is M⁻¹ times the Euclidean gradient. The differential itself retains the same scalar action; geometric steepest directions depend on the chosen notion of length.</p>
+<p>An explicit example separates differentiability at a point from C¹ regularity nearby. Define s(x)=x²sin(1/x) for nonzero x and s(0)=0. Its quotient at zero is x sin(1/x), bounded in magnitude by|x|, so s′(0)=0. For nonzero x, the rules give s′(x)=2x sin(1/x)−cos(1/x), which oscillates near zero. The function f(x,y)=s(x)+y² is differentiable at the origin because its magnitude is at most x²+y²=‖(x,y)‖², giving a zero linear map and a vanishing remainder ratio. Its derivative is not continuous nearby. Thus the neighbourhood C¹ condition is useful and sufficient, while demanding it as the definition would exclude valid pointwise differentiability.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>For F:R⁴→R³, what is the Jacobian shape? For scalar f:R⁴→R, what are column-gradient and row-derivative shapes? Does C¹ mean partial existence only at the centre?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>J is3×4, ∇f is4×1 and the row derivative1×4. C¹ includes partial existence and continuity in a neighbourhood, providing the uniform coefficient control missing from isolated partial existence.</p>
+</div></details>
+<span class="section-anchor" id="s3"></span>
+<div class="section-header" data-sec="s3"><span class="section-num">4</span><h2>Jacobian composition JVP and VJP</h2></div>
+<p>For differentiable F:Rⁿ→Rᵐ and G:Rᵐ→Rᵖ with compatible local domains, the chain rule is J_{G∘F}(a)=J_G(F(a))J_F(a), shape(p×m)(m×n)=p×n. The inner map acts first on input increments, so its Jacobian is on the right. This order matches the matrix composition rule already established in Module10. A reversed product may be undefined or describe a different map even when square shapes permit it.</p>
+<p>The proof uses local remainders. Write ΔF=J_Fh+r_F(h), with ‖r_F‖/‖h‖→0. In particular ‖ΔF‖/‖h‖ is bounded near zero. The outer increment is J_GΔF+r_G(ΔF). After substitution, J_G r_F is negligible relative to‖h‖; the second remainder is bounded by[‖r_G(ΔF)‖/‖ΔF‖][‖ΔF‖/‖h‖], tending to zero when ΔF≠0, and is zero directly when ΔF=0. Thus the product is the total derivative. This is the same safeguard against dividing by a vanished inner increment used for the scalar chain rule.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Pulling a scalar objective back through a vector map</div>
+<p>Use F from Section2 and G(u,v)=u²+3v. The output column gradient is q=(2u,3). The input gradient is J_Fᵀq, not J_Fq under our convention. At(.7,−.4), u=−.196, giving input gradient approximately(2.514047,−2.59208). Directly differentiating (x²y)²+3(sin x+y²) gives(4x³y²+3cos x,2x⁴y+6y), agreeing with the pullback. Each output dependency contributes to its appropriate input coefficient.</p>
+</div>
+<p>A <strong>Jacobian–vector product</strong> or JVP computes Jv for an input direction v, returning an output perturbation direction of length m. A <strong>vector–Jacobian product</strong> or VJP is traditionally written qᵀJ for an output row seed qᵀ. In our column convention its transpose is Jᵀq, an input adjoint vector of length n. These two equivalent notations must not be confused with multiplying J by an output seed. The seed specifies which output combination is being differentiated; a vector output does not have one unique gradient without that choice.</p>
+<p>A rectangular example exposes shape mistakes that a square Jacobian can hide. Take F(x,y)=(xy,x²,y²) and L(u,v,w)=u+2v−3w. At(1,2), J_F has rows(2,1),(2,0),(0,4), so its shape is3×2. The output seed is q=(1,2,−3), length three. The valid pullback J_Fᵀq is(6,−11), length two, agreeing with derivatives of xy+2x²−3y². Trying J_Fq has incompatible inner dimensions. A direction v of length two instead produces three output rates through J_Fv. Writing shapes before numerical values makes the distinction visible without relying on an accidental dimension error later in a program.</p>
+<p>Forward mode propagates an input tangent through each local JVP. Reverse mode propagates an output adjoint through each local transpose-Jacobian action. For a scalar output with many inputs, one reverse pass returns all input coefficients for seed one. Obtaining a full m×n Jacobian can require n input-basis forward passes or m output-basis reverse passes; neither mode automatically produces every entry in the cost of one scalar path. Special structure can alter practical costs, but the shape and seed contract remains.</p>
+<p>For L(y) scalar and y=Ax, dy=A dx and dL=qᵀA dx, so the pullback is Aᵀq. For a composed nonlinear map, evaluate local Jacobians at the actual forward values before reversing them. Reusing a derivative from a different input or changing stored forward values before backward propagation can invalidate the result. Automatic differentiation systems store or recompute the required intermediate information; the chain rule explains why it is needed.</p>
+<p>Shared inputs require sums of contributions. If a variable feeds two outputs or two parents, its differential influences each path, and the final scalar coefficient adds those influences. Reverse traversal must wait until all downstream contributions have reached a shared node before applying its local backward rule. A unique-node topological order ensures this schedule; treating a graph as a tree by recursively backpropagating without accumulation can lose paths or propagate a shared total multiple times.</p>
+<figure class="fig" id="fig-18-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="img" aria-label="An m-by-n Jacobian maps n input tangents to m outputs; its transpose maps m output seeds to n input adjoints."><title>Forward JVP and reverse VJP shapes</title><desc>An m-by-n Jacobian maps n input tangents to m outputs; its transpose maps m output seeds to n input adjoints.</desc><defs><marker id="fig-18-2__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="360" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">Two propagation directions through one local linear map</text><rect x="45" y="70" width="260" height="85" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="455" y="70" width="260" height="85" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="175" y="120" text-anchor="middle" font-size="21" fill="#1a2e4a">Input tangent v ∈ Rⁿ</text><text x="585" y="120" text-anchor="middle" font-size="20" fill="#1a2e4a">Output tangent Jv ∈ Rᵐ</text><path d="M305,112L455,112" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-2__arrow)"/><text x="380" y="95" text-anchor="middle" font-size="20" fill="#1a2e4a">J: m×n</text><rect x="45" y="205" width="260" height="85" rx="10" fill="#dcfce7" stroke="#15803d"/><rect x="455" y="205" width="260" height="85" rx="10" fill="#dcfce7" stroke="#15803d"/><text x="175" y="255" text-anchor="middle" font-size="19" fill="#1a2e4a">Input adjoint Jᵀq ∈ Rⁿ</text><text x="585" y="255" text-anchor="middle" font-size="20" fill="#1a2e4a">Output seed q ∈ Rᵐ</text><path d="M455,247L305,247" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-2__arrow)"/><text x="380" y="230" text-anchor="middle" font-size="20" fill="#1a2e4a">Jᵀ: n×m</text><text x="380" y="335" text-anchor="middle" font-size="17" fill="#1a2e4a">Column convention: df=∇fᵀdx; outputs in rows, inputs in columns.</text></g></svg></div><figcaption><span class="fig-num">Figure 18.2</span> <p>Forward tangents move with Jacobian products; reverse adjoints move with transpose products and add at shared inputs.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>If F:R²→R³ and G:R³→R⁴, what multiplication composes their derivatives? What seed and shape does a reverse scalar pass use? Why are contributions added at a shared input?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>(4×3)(3×2)=4×2 in outer-times-inner order. A scalar output uses seed one and returns a two-component column adjoint through the transposed composition. The input affects every path, so linear differential contributions sum.</p>
+</div></details>
+<span class="section-anchor" id="s4"></span>
+<div class="section-header" data-sec="s4"><span class="section-num">5</span><h2>Hessians mixed partials and second-order models</h2></div>
+<p>For scalar f, the Hessian is the Jacobian of its column gradient, shape n×n. Entry H_{ij} is the derivative of gradient component i with respect to coordinate j. If second partials are continuous in a neighbourhood, mixed derivatives commute and H is symmetric. One justification considers the four-corner increment over a small coordinate rectangle and applies the mean value theorem in both orders. Dividing by the rectangle’s area and taking both widths to zero gives equal limits by mixed-partial continuity. State that hypothesis rather than assume every twice-written partial must agree.</p>
+<p>Without continuity, mixed partials can differ. For f(x,y)=xy(x²−y²)/(x²+y²) away from zero and f(0,0)=0, f_x(0,y)=−y while f_y(x,0)=x. Hence at zero the derivative of f_x with respect to y is−1, while the derivative of f_y with respect to x is1. The smooth symmetry theorem’s neighbourhood hypothesis fails. This is not a contradiction; it identifies the boundary of a theorem that automatic symbolic rearrangement might hide.</p>
+<p>For C² f, the second-order local model is f(a+h)=f(a)+∇f(a)ᵀh+(1/2)hᵀH(a)h+o(‖h‖²). To derive it, restrict to the scalar path g(t)=f(a+th). Chain rules give g′(t)=∇f(a+th)ᵀh and g″(t)=hᵀH(a+th)h. One-variable Taylor between zero and one provides an intermediate Hessian along that segment. Continuity of H makes its difference from H(a) vanish uniformly as h→0, so the quadratic remainder divided by‖h‖² tends to zero. This also shows why one fixed coordinate-axis expansion is weaker than the multivariable model.</p>
+<p>Listing existing second coordinate partials is weaker than proving the gradient itself has a total derivative. The unequal-mixed-partial example above supplies such entries but does not supply the smooth second-order map required by this Taylor argument. Its failure should therefore be described as a failure of the hypotheses, rather than inserting a nonsymmetric entry table into a C² theorem. In numerical work, a nearly nonsymmetric estimate can also arise from finite differences or implementation errors even for a smooth objective. Identify the mathematical regularity first, then assess the estimator and array convention separately.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A scalar objective with coupled curvature</div>
+<p>Let f(x,y)=x²y+exp(y). Gradient is(2xy,x²+exp(y)), Hessian[[2y,2x],[2x,exp(y)]]. At(.7,−.4), gradient(−.56,1.16032) and Hessian approximately[[-.8,1.4],[1.4,.67032]]. The off-diagonal terms record coupled changes. For a displacement(h₁,h₂), the quadratic correction is y h₁²+2x h₁h₂+exp(y)h₂²/2 at the centre. Dropping the mixed term changes predictions even when both pure curvatures are retained.</p>
+</div>
+<p>At an interior differentiable stationary point the gradient must be zero, by applying scalar Fermat along every coordinate. With C² regularity and positive-definite Hessian, the quadratic term dominates the smaller remainder and gives a strict local minimum; negative definite gives a maximum. An indefinite Hessian supplies positive and negative curvature directions and therefore a saddle. A positive-semidefinite Hessian with zero directions is inconclusive without more information. At zero, x⁴+y⁴ has a strict minimum, while x⁴−y⁴ is a saddle; both have zero Hessian. These are local classifications, with global optimisation developed next module.</p>
+<p>For a symmetric Hessian, the directional second derivative along v is vᵀHv. Hessian–vector multiplication Hv also describes first-order change of the gradient along v. Computing such products can avoid storing all n² entries, which matters for large models. It still differentiates a gradient under sufficient smoothness; at a kink the classical Hessian may not exist. A finite difference of gradients is a separate estimator with its own step and rounding errors.</p>
+<p>The positive-definite local-minimum test requires a uniform quadratic margin, not only positive values in a few sampled directions. The minimum of vᵀHv over the unit sphere is some λ&gt;0 by compactness and positivity. Thus hᵀHh≥λ‖h‖² for all h. The little-o remainder can be bounded by λ‖h‖²/4 in a sufficiently small neighbourhood, leaving the stationary function increment at least λ‖h‖²/4 for every nonzero h there. This completes the domination argument behind the strict local test and explains why zero curvature directions prevent this certificate.</p>
+<figure class="fig" id="fig-18-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 355" role="img" aria-label="For x²y+exp(y) at (0.7,-0.4), the gradient is (-0.56,1.16032) and the Hessian has mixed entries 1.4, recording coordinate coupling."><title>Gradient and coupled Hessian</title><desc>For x²y+exp(y) at (0.7,-0.4), the gradient is (-0.56,1.16032) and the Hessian has mixed entries 1.4, recording coordinate coupling.</desc><defs><marker id="fig-18-3__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="355" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="23" fill="#1a2e4a">First-order coefficients and second-order coupling differ</text><rect x="35" y="75" width="245" height="220" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><rect x="310" y="75" width="415" height="220" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="158" y="112" text-anchor="middle" font-size="24" fill="#1a2e4a">∇f: 2×1</text><text x="158" y="171" text-anchor="middle" font-size="27" fill="#1a2e4a">−0.56</text><text x="158" y="226" text-anchor="middle" font-size="27" fill="#1a2e4a">1.16032</text><text x="518" y="112" text-anchor="middle" font-size="24" fill="#1a2e4a">H: 2×2</text><text x="428" y="174" text-anchor="middle" font-size="27" fill="#1a2e4a">−0.8</text><text x="620" y="174" text-anchor="middle" font-size="27" fill="#c2410c">1.4</text><text x="428" y="230" text-anchor="middle" font-size="27" fill="#c2410c">1.4</text><text x="620" y="230" text-anchor="middle" font-size="27" fill="#1a2e4a">0.67032</text><text x="380" y="333" text-anchor="middle" font-size="21" fill="#1a2e4a">f=x²y+exp(y); a=(0.7,−0.4)</text></g></svg></div><figcaption><span class="fig-num">Figure 18.3</span> <p>Gradient and Hessian have different roles: a vector of first-order sensitivities and a square map of their changes, including mixed terms.</p>
+</figcaption></figure>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>When does Hessian symmetry follow here? Does a zero Hessian classify a stationary point? What is the shape and meaning of Hv?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>Continuous second partials in a neighbourhood suffice. Zero curvature is inconclusive, as the fourth-power examples show. Hv has length n and is the derivative of the gradient in direction v, while vᵀHv is a scalar directional curvature.</p>
+</div></details>
+<span class="section-anchor" id="s5"></span>
+<div class="section-header" data-sec="s5"><span class="section-num">6</span><h2>Matrix gradients through differentials</h2></div>
+<p>For vectors, collect the coefficient of dx in df=gᵀdx. For a matrix A, use the Frobenius inner product: df=Σ_{ij}(∇<em>A f)</em>{ij}dA_{ij}=tr((∇<em>A f)ᵀdA). The gradient has the same shape as A. Here tr sums a square matrix’s diagonal. The identity tr(BC)=tr(CB) for compatible rectangular factors follows by writing both asΣ</em>{ij}B_{ij}C_{ji}; cyclic rearrangements can then collect a matrix differential while preserving valid dimensions.</p>
+<p>For fixed b, f(x)=bᵀx gives df=bᵀdx and gradient b. For a general square A, f(x)=xᵀAx gives df=dxᵀAx+xᵀA dx=[(A+Aᵀ)x]ᵀdx. Thus the gradient is(A+Aᵀ)x, reducing to2Ax only when A is symmetric. The antisymmetric part contributes zero to the quadratic scalar and therefore no gradient. A formula2Ax for an arbitrary nonsymmetric A is not repaired merely because its output shape fits.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">Least-squares gradients with the residual shape intact</div>
+<p>Let X have shape B×d, w a d-component column and y a B-component column. Residual r=Xw−y is B×1. For L=‖r‖², dL=2rᵀdr=2rᵀX dw, so ∇_wL=2Xᵀr of shape d×1. Differentiating again gives Hessian2XᵀX. With X=[[1,0],[1,1],[1,2]],y=(1,2,2),w=(1,0),r=(0,−1,−1), the gradient is(−4,−6). A half-squared loss divides that gradient by two; a mean-squared loss divides it by B.</p>
+</div>
+<p>Loss reductions are mathematical definitions. For L=(1/B)Σr_i², gradient is(2/B)Xᵀr. If outputs have o columns and “mean” averages all B·o scalar entries, denominator is B·o rather than B. If it instead averages rows after summing output errors, denominator is B. These objectives differ by a factor o. Report the exact reduction; silently changing it alters derivatives and the effective scale of subsequent updates.</p>
+<p>For matrix predictions XW with X:B×d,W:d×o,Y:B×o, write R=XW−Y. The half-squared Frobenius objective L=(1/2)‖R‖_F² has differential tr(RᵀdR), with dR=X dW+dX W−dY. Collecting coefficients gives ∇_W L=XᵀR of shape d×o, ∇_X L=R Wᵀ of shape B×d, and ∇_Y L=−R of shape B×o. Verify each by a differential or indexed sum before implementing it. The residual and gradient arrays need explicit output columns to prevent accidental broadcasting with a flat target.</p>
+<p>Adding a shared bias b with mathematical shape o×1 gives prediction XW+1bᵀ. Its differential repeats db across B rows, so the bias gradient is Rᵀ1 for the half-squared objective, equivalently a sum of output adjoints over the batch. In NumPy b often has shape(o,), with backward sum(axis=0) returning that same stored shape. Broadcasting in the forward operation corresponds to summation in the backward operation because one parameter influences every replicated entry. Overwriting the bias with the last row’s contribution drops the others.</p>
+<p>These derivations also apply to a two-layer network. With Z=XW₁+1b₁ᵀ,H=tanh(Z),P=HW₂+1b₂ᵀ, and output adjoint G=∂L/∂P, gradients are HᵀG for W₂ and row sums of G for b₂. Hidden adjoint is G W₂ᵀ; multiply elementwise by1−H² for Z’s adjoint D. Then W₁ gradient is XᵀD and b₁ gradient sums D over rows. Matrix products and elementwise products serve different roles and cannot be exchanged. The lab annotates every shape and verifies every parameter entry numerically at a smooth point.</p>
+<p>For the lab’s batch of three records with two features, three hidden units and one output, W₁ is2×3, Z and H are3×3, W₂ is3×1, and P,G are3×1. The hidden pullback G W₂ᵀ is3×3; XᵀD is2×3, matching W₁. The stored biases have shapes(3,) and(1,), recovered by row sums. These dimensions deliberately make a missing output-weight transpose fail instead of silently multiplying square arrays. The loss is a mean over three scalar residual entries, so G=2R/3. Checking the stated loss before backward propagation is as necessary as checking the transposes: a correctly shaped gradient can still have the wrong reduction factor.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Why is a matrix gradient the same shape as its parameter? What is the general quadratic gradient? Why does a broadcast bias sum over rows? Does a mean over all output entries always divide by B alone?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>It supplies one coefficient for each parameter entry in the Frobenius differential. The quadratic gradient is(A+Aᵀ)x. Every repeated row contributes to the same bias, so contributions add. An all-entry mean divides by B·o; a row mean of summed outputs is a different definition.</p>
+</div></details>
+<span class="section-anchor" id="s6"></span>
+<div class="section-header" data-sec="s6"><span class="section-num">7</span><h2>Automatic differentiation and shared-node accumulation</h2></div>
+<p>Automatic differentiation applies local derivative rules to the executed computation graph. It is distinct from finite differences, which perturb inputs and divide output differences, and from symbolic differentiation, which constructs algebraic expressions. Forward mode carries values and tangents; reverse mode first records forward values and then propagates adjoints in reverse dependency order. Both evaluate chain-rule derivatives of the selected mathematical primitive operations, with ordinary numerical rounding in those evaluations.</p>
+<p>The literal floating-point input-output map includes discrete rounding behaviour; AD normally differentiates the intended real primitive formulas evaluated at stored values, rather than the staircase map of every rounding instruction. Thus “automatic” does not imply exact real arithmetic, eliminate conditioning, or establish differentiability across a branch. If a program selects a branch, the returned derivative describes that executed path under the primitive conventions. Thresholds and kinks need separate interpretation; a chosen ReLU backward value at zero remains a convention.</p>
+<div class="worked"><div class="worked-label">Worked example</div><div class="worked-title">A repeated intermediate collects every reverse path</div>
+<p>Let u=x<em>x and z=u</em>u+u+x. At x=2, u=4 and z=22. Reverse seed z̄=1 gives ū=2u+1=9: two multiplication edges plus the addition path. Then x̄=2x ū+1=37, including both x inputs of its multiplication and the direct path. Traversing a shared node once does not mean keeping only one edge contribution. The derivative of the expanded polynomial x⁴+x²+x is4x³+2x+1, confirming37.</p>
+</div>
+<figure class="fig" id="fig-18-4"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 525" role="img" aria-label="At x two, u four, v sixteen, w twenty and z twenty-two, output seed one gives adjoints z one, w one, v one, u nine, x thirty-seven. Both repeated multiplication edges and direct addition paths contribute."><title>Complete accumulation in a shared-square graph</title><desc>At x two, u four, v sixteen, w twenty and z twenty-two, output seed one gives adjoints z one, w one, v one, u nine, x thirty-seven. Both repeated multiplication edges and direct addition paths contribute.</desc><defs><marker id="fig-18-4__arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#2563eb"/></marker></defs><rect width="760" height="525" fill="white"/><g font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif"><text x="380" y="30" text-anchor="middle" font-size="24" fill="#1a2e4a">Shared graph: forward values and reverse adjoints</text><path d="M225,108L290,108" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M225,148L290,148" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M470,108L535,108" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M470,148L535,148" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M625,180L625,300" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M470,168L535,300" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M535,355L470,355" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><path d="M225,168L290,300" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#fig-18-4__arrow)"/><rect x="45" y="70" width="180" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="135" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">x</text><text x="135" y="136" text-anchor="middle" font-size="20" fill="#1a2e4a">value 2</text><text x="135" y="166" text-anchor="middle" font-size="20" fill="#15803d">adjoint 37</text><rect x="290" y="70" width="180" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">u=x*x</text><text x="380" y="136" text-anchor="middle" font-size="20" fill="#1a2e4a">value 4</text><text x="380" y="166" text-anchor="middle" font-size="20" fill="#15803d">adjoint 9</text><rect x="535" y="70" width="180" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="625" y="100" text-anchor="middle" font-size="21" fill="#1a2e4a">v=u*u</text><text x="625" y="136" text-anchor="middle" font-size="20" fill="#1a2e4a">value 16</text><text x="625" y="166" text-anchor="middle" font-size="20" fill="#15803d">adjoint 1</text><rect x="535" y="300" width="180" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="625" y="330" text-anchor="middle" font-size="21" fill="#1a2e4a">w=v+u</text><text x="625" y="366" text-anchor="middle" font-size="20" fill="#1a2e4a">value 20</text><text x="625" y="396" text-anchor="middle" font-size="20" fill="#15803d">adjoint 1</text><rect x="290" y="300" width="180" height="110" rx="10" fill="#f0f9ff" stroke="#0ea5e9"/><text x="380" y="330" text-anchor="middle" font-size="21" fill="#1a2e4a">z=w+x</text><text x="380" y="366" text-anchor="middle" font-size="20" fill="#1a2e4a">value 22</text><text x="380" y="396" text-anchor="middle" font-size="20" fill="#15803d">adjoint 1</text><text x="258" y="100" text-anchor="middle" font-size="18" fill="#1a2e4a">x</text><text x="258" y="145" text-anchor="middle" font-size="18" fill="#1a2e4a">x</text><text x="503" y="100" text-anchor="middle" font-size="18" fill="#1a2e4a">u</text><text x="503" y="145" text-anchor="middle" font-size="18" fill="#1a2e4a">u</text><text x="643" y="245" text-anchor="start" font-size="18" fill="#1a2e4a">1</text><text x="500" y="238" text-anchor="start" font-size="18" fill="#1a2e4a">1</text><text x="503" y="344" text-anchor="middle" font-size="18" fill="#1a2e4a">1</text><text x="250" y="238" text-anchor="start" font-size="18" fill="#1a2e4a">1</text><text x="380" y="463" text-anchor="middle" font-size="22" fill="#1a2e4a">ū=2u+1=9; x̄=2x·ū+1=37.</text><text x="380" y="498" text-anchor="middle" font-size="17" fill="#1a2e4a">Arrows show forward dependencies; every edge contributes backward.</text></g></svg></div><figcaption><span class="fig-num">Figure 18.4</span> <p>The repeated-square graph shows forward values and reverse adjoints. Shared intermediates accumulate contributions before their local rule runs.</p>
+</figcaption></figure>
+<div class="widget-wrap"><div class="widget-label">Interactive</div><div class="widget" data-widget="adjoints"></div><div class="widget-caption">
+<p>Vary x and the output seed for z=(x<em>x)²+x</em>x+x. Inspect the forward graph and every reverse contribution, including a zero or negative seed.</p>
+</div></div>
+<p>The lab engine stores parents and a local backward closure for each node. It first creates a topological list containing every reachable node once. Before a fresh backward pass it resets all adjoints, seeds the output, and traverses the reversed list. Each closure uses += for every parent edge, including when both operands are the same object. This ensures all downstream contributions are present before a shared node propagates its accumulated adjoint. Repeated passes with no reset would instead accumulate old and new requests, which is useful only when deliberately specified.</p>
+<p>A seed other than one computes a scalar VJP scaled by that seed. At x=2, seed two returns74 and seed zero returns zero, while the ordinary derivative remains37. For multiple outputs, a vector seed specifies a weighted output combination. Gradients are therefore answers to a defined differentiated quantity, not context-free attributes permanently attached to a variable. Model state, graph reuse and output reduction must be included in that specification.</p>
+<p>Gradient checks compare an analytic or AD result with central differences at selected smooth points and a range of meaningful step sizes. Use absolute and relative tolerances suitable for magnitude, and inspect shapes before comparing entries. An erroneous formula can agree at a symmetric or zero-residual point, so choose nontrivial values and perturb each parameter or independent directions. The network lab checks every small parameter entry, then explicitly exhibits a transpose fault, lost batch contribution and missing mean factor. Passing these checks supports that implementation on those examples; the differential derivation supplies the general formula.</p>
+<p>Reverse mode needs stored or recomputed intermediate values and a sound graph schedule. Its practical memory and execution cost depend on the computation, not only the parameter count. Large systems can use checkpointing or Hessian–vector products, but those engineering choices retain the same chain and accumulation contracts. This foundation is sufficient to assess a manual backward pass and interpret what an automatic one is calculating before studying optimisation.</p>
+<div class="check"><div class="check-label">Check your understanding</div>
+<p>Does AD estimate derivatives by choosing h? Why must a shared-node adjoint use addition? What does output seed zero return, and does it change the function’s derivative?</p>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>AD applies primitive chain rules rather than a finite perturbation quotient. Every path contributes to the same input coefficient, so adjoints add. Seed zero returns a zero pullback for the zero-weighted output; it does not change the ordinary derivative.</p>
+</div></details>
+<span class="section-anchor" id="misconceptions"></span>
+<div class="section-header" data-sec="misconceptions"><span class="section-num">8</span><h2>Common misconceptions</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Repair</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Existing partials certify total differentiability.</td>
+<td>Axis restrictions can hide discontinuity or nonlinear direction rates.</td>
+</tr>
+<tr>
+<td>A gradient and Jacobian use arbitrary orientation.</td>
+<td>State column gradients and output-by-input Jacobians.</td>
+</tr>
+<tr>
+<td>Reverse mode multiplies J by an output seed.</td>
+<td>Its column pullback is Jᵀq.</td>
+</tr>
+<tr>
+<td>Mixed derivatives always commute.</td>
+<td>Check the stated smoothness neighbourhood.</td>
+</tr>
+<tr>
+<td>General quadratic gradient is2Ax.</td>
+<td>It is(A+Aᵀ)x unless A is symmetric.</td>
+</tr>
+<tr>
+<td>Broadcast bias keeps one row’s gradient.</td>
+<td>Sum every replicated contribution.</td>
+</tr>
+<tr>
+<td>Mean and sum losses have identical gradients.</td>
+<td>Their reduction factors differ.</td>
+</tr>
+<tr>
+<td>AD proves differentiability at every branch.</td>
+<td>It follows executed primitives and stated kink conventions.</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="labs"></span>
+<div class="section-header" data-sec="labs"><span class="section-num">9</span><h2>Three reproducible labs</h2></div>
+<h3 id="lab1">Lab1 · Vector derivatives and a partials counterexample</h3>
+<p><a href="labs/module_18/lab1_vector_derivatives.py" download>Download lab1_vector_derivatives.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Finite differences check stated analytic vector derivatives at smooth points.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+
+def F(z):
+    x, y = z
+    return np.array([x*x*y, np.sin(x)+y*y])
+
+point = np.array([0.7, -0.4])
+x, y = point
+J = np.array([[2*x*y, x*x], [np.cos(x), 2*y]])
+h = 1e-5
+basis = np.eye(2)
+numerical_J = np.column_stack([(F(point+h*e)-F(point-h*e))/(2*h) for e in basis])
+print(&quot;Point / function value:&quot;, point, F(point))
+print(&quot;Analytic Jacobian (outputs by inputs):\n&quot;, J)
+print(&quot;Finite-difference Jacobian:\n&quot;, numerical_J)
+print(&quot;Jacobian maximum error:&quot;, np.max(np.abs(J-numerical_J)))
+assert J.shape == (2, 2) and np.allclose(J, numerical_J, atol=1e-9, rtol=0)
+
+direction = np.array([0.6, 0.8])
+directional = (F(point+h*direction)-F(point-h*direction))/(2*h)
+print(&quot;JVP / directional difference:&quot;, J@direction, directional)
+assert np.allclose(J@direction, directional, atol=1e-9, rtol=0)
+
+def loss(z):
+    return z[0]**2*z[1]+np.exp(z[1])
+def grad(z):
+    return np.array([2*z[0]*z[1], z[0]**2+np.exp(z[1])])
+H = np.array([[2*y, 2*x], [2*x, np.exp(y)]])
+numerical_grad = np.array([(loss(point+h*e)-loss(point-h*e))/(2*h) for e in basis])
+numerical_H = np.column_stack([(grad(point+h*e)-grad(point-h*e))/(2*h) for e in basis])
+print(&quot;Scalar gradient:&quot;, grad(point))
+print(&quot;Hessian:\n&quot;, H)
+print(&quot;Gradient / Hessian maximum errors:&quot;, np.max(np.abs(grad(point)-numerical_grad)), np.max(np.abs(H-numerical_H)))
+assert np.allclose(grad(point), numerical_grad, atol=1e-9, rtol=0)
+assert np.allclose(H, numerical_H, atol=1e-9, rtol=0)
+
+# Axis partials alone do not imply continuity, hence do not imply differentiability.
+def bad(z):
+    a, b = z
+    return a*b/(a*a+b*b) if a*a+b*b else 0.0
+print(&quot;Origin axis samples / diagonal samples:&quot;)
+for t in [1e-1, 1e-3, 1e-6]:
+    print(t, bad([t, 0]), bad([0, t]), bad([t, t]))
+    assert bad([t, 0]) == 0 and bad([0, t]) == 0 and bad([t, t]) == 0.5
+print(&quot;Smooth derivative checks illustrate the analytic claims; axis samples cannot certify total differentiability.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Point / function value: [ 0.7 -0.4] [-0.196     0.804218]
+Analytic Jacobian (outputs by inputs):
+ [[-0.56      0.49    ]
+ [ 0.764842 -0.8     ]]
+Finite-difference Jacobian:
+ [[-0.56      0.49    ]
+ [ 0.764842 -0.8     ]]
+Jacobian maximum error: 1.702149532434305e-11
+JVP / directional difference: [ 0.056    -0.181095] [ 0.056    -0.181095]
+Scalar gradient: [-0.56     1.16032]
+Hessian:
+ [[-0.8      1.4    ]
+ [ 1.4      0.67032]]
+Gradient / Hessian maximum errors: 1.24074084340009e-11 1.5253354135325026e-11
+Origin axis samples / diagonal samples:
+0.1 0.0 0.0 0.5
+0.001 0.0 0.0 0.5
+1e-06 0.0 0.0 0.5
+Smooth derivative checks illustrate the analytic claims; axis samples cannot certify total differentiability.
+</code></pre></div>
+<p>Derive J,∇f,H before running, then compare their shapes and numerical errors. Explain the JVP’s output dimension and the smoothness behind each check. The final axis/diagonal values illustrate a mathematical counterexample; they are not a sampling-based proof of continuity.</p>
+<h3 id="lab2">Lab2 · A minimal reverse-mode engine</h3>
+<p><a href="labs/module_18/lab2_reverse_engine.py" download>Download lab2_reverse_engine.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;A tiny scalar reverse engine: unique-node order, reset, seed, and += adjoints.&quot;&quot;&quot;
+import math
+
+class Value:
+    def __init__(self, data, parents=(), label=&quot;&quot;):
+        self.data, self.grad = float(data), 0.0
+        self.parents, self.label = parents, label
+        self._backward = lambda: None
+
+    def __add__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data+other.data, (self, other), &quot;+&quot;)
+        def backward():
+            self.grad += out.grad
+            other.grad += out.grad
+        out._backward = backward
+        return out
+    __radd__ = __add__
+
+    def __mul__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data*other.data, (self, other), &quot;*&quot;)
+        def backward():
+            self.grad += other.data*out.grad
+            other.grad += self.data*out.grad
+        out._backward = backward
+        return out
+    __rmul__ = __mul__
+
+    def tanh(self):
+        out = Value(math.tanh(self.data), (self,), &quot;tanh&quot;)
+        def backward():
+            self.grad += (1-out.data*out.data)*out.grad
+        out._backward = backward
+        return out
+
+    def backward(self, seed=1.0):
+        visited, order = set(), []
+        def visit(node):
+            if node in visited:
+                return
+            visited.add(node)
+            for parent in node.parents:
+                visit(parent)
+            order.append(node)
+        visit(self)
+        for node in order:
+            node.grad = 0.0
+        self.grad = float(seed)
+        for node in reversed(order):
+            node._backward()
+        return order
+
+x = Value(2, label=&quot;x&quot;)
+u = x*x
+u.label = &quot;u=x*x&quot;
+square = u*u
+square.label = &quot;u*u&quot;
+z = square+u+x
+z.label = &quot;z&quot;
+order = z.backward()
+print(&quot;Shared graph z=(x*x)^2+x*x+x at x=2&quot;)
+for node in order:
+    print(node.label, &quot;value&quot;, node.data, &quot;adjoint&quot;, node.grad)
+assert z.data == 22 and x.grad == 37 and u.grad == 9
+z.backward(seed=2)
+print(&quot;Seed two input adjoint:&quot;, x.grad)
+assert x.grad == 74
+z.backward()
+print(&quot;Fresh seeded pass resets rather than doubles:&quot;, x.grad)
+assert x.grad == 37
+
+a, b = Value(2), Value(-1)
+mixed = a*b+a*a
+mixed.backward()
+print(&quot;Two-input value / gradient:&quot;, mixed.data, a.grad, b.grad)
+assert mixed.data == 2 and (a.grad, b.grad) == (3, 2)
+
+v = Value(0.4)
+nonlinear = (v*v+0.5*v).tanh()
+nonlinear.backward()
+def reference(t):
+    return math.tanh(t*t+0.5*t)
+h = 1e-6
+finite = (reference(0.4+h)-reference(0.4-h))/(2*h)
+print(&quot;Nonlinear AD / finite difference:&quot;, v.grad, finite)
+assert abs(v.grad-finite) &lt; 1e-8
+print(&quot;Overwriting a shared adjoint would discard a path; addition is part of the chain rule.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Shared graph z=(x*x)^2+x*x+x at x=2
+x value 2.0 adjoint 37.0
+u=x*x value 4.0 adjoint 9.0
+u*u value 16.0 adjoint 1.0
++ value 20.0 adjoint 1.0
+z value 22.0 adjoint 1.0
+Seed two input adjoint: 74.0
+Fresh seeded pass resets rather than doubles: 37.0
+Two-input value / gradient: 2.0 3.0 2.0
+Nonlinear AD / finite difference: 1.1450754518266433 1.145075451791655
+Overwriting a shared adjoint would discard a path; addition is part of the chain rule.
+</code></pre></div>
+<p>Trace the unique-node topological order and distinguish it from parent-edge contributions. Explain why x*x adds two contributions even though both parents reference the same object. Predict seed-two and reset results, then compare the nonlinear example with a finite difference at a smooth point.</p>
+<h3 id="lab3">Lab3 · Every two-layer parameter gradient</h3>
+<p><a href="labs/module_18/lab3_network_backward.py" download>Download lab3_network_backward.py</a></p>
+<pre><code class="language-python">&quot;&quot;&quot;Check every two-layer tanh-network parameter and expose shape/scaling faults.&quot;&quot;&quot;
+import numpy as np
+np.set_printoptions(precision=6, suppress=True)
+X = np.array([[0.2,-0.3], [0.5,0.7], [-0.4,0.1]])
+Y = np.array([[0.1], [0.8], [-0.2]])
+parameters = {
+    &quot;W1&quot;: np.array([[0.3,-0.2,0.1], [0.4,0.2,-0.5]]),
+    &quot;b1&quot;: np.array([0.1,-0.1,0.05]),
+    &quot;W2&quot;: np.array([[0.5], [-0.3], [0.2]]),
+    &quot;b2&quot;: np.array([0.02]),
+}
+
+def forward(p):
+    H = np.tanh(X@p[&quot;W1&quot;]+p[&quot;b1&quot;])
+    prediction = H@p[&quot;W2&quot;]+p[&quot;b2&quot;]
+    residual = prediction-Y
+    return np.mean(residual*residual), H, prediction, residual
+
+loss, H, prediction, residual = forward(parameters)
+# Mean of B*o entries, here B=3 and o=1; the exact denominator is explicit.
+G = 2*residual/residual.size
+D = (G@parameters[&quot;W2&quot;].T)*(1-H*H)
+gradients = {&quot;W2&quot;: H.T@G, &quot;b2&quot;: G.sum(axis=0), &quot;W1&quot;: X.T@D, &quot;b1&quot;: D.sum(axis=0)}
+print(&quot;Loss / prediction:&quot;, loss, prediction.ravel())
+print(&quot;Batch / input / hidden / output shapes:&quot;, X.shape, parameters[&quot;W1&quot;].shape, H.shape, prediction.shape)
+h = 1e-6
+for name, array in parameters.items():
+    numerical = np.zeros_like(array)
+    for index in np.ndindex(array.shape):
+        saved = array[index]
+        array[index] = saved+h
+        plus = forward(parameters)[0]
+        array[index] = saved-h
+        minus = forward(parameters)[0]
+        array[index] = saved
+        numerical[index] = (plus-minus)/(2*h)
+    error = np.max(np.abs(numerical-gradients[name]))
+    print(name, &quot;shape&quot;, gradients[name].shape, &quot;maximum derivative error&quot;, error)
+    assert gradients[name].shape == array.shape and error &lt; 1e-9
+
+try:
+    G@parameters[&quot;W2&quot;]  # Missing transpose: (3,1) cannot multiply (3,1).
+except ValueError:
+    print(&quot;Missing transpose rejected by incompatible derivative shapes.&quot;)
+wrong_bias = D[-1]  # Overwrite rather than accumulate contributions from all rows.
+wrong_sum_scaling = 2*residual  # This differentiates a sum, not the stated mean.
+print(&quot;Bias overwrite maximum error:&quot;, np.max(np.abs(wrong_bias-gradients[&quot;b1&quot;])))
+print(&quot;Missing mean factor scales output adjoint by:&quot;, residual.size)
+assert not np.allclose(wrong_bias, gradients[&quot;b1&quot;])
+assert np.allclose(wrong_sum_scaling, residual.size*G)
+print(&quot;Shape, shared contributions, and loss reduction are separate parts of the backward contract.&quot;)
+</code></pre>
+<div class="output"><div class="output-label">Output</div><pre><code>Loss / prediction: 0.12469122832324815 [0.142506 0.231685 0.022003]
+Batch / input / hidden / output shapes: (3, 2) (2, 3) (3, 3) (3, 1)
+W1 shape (2, 3) maximum derivative error 2.7340560371236222e-11
+b1 shape (3,) maximum derivative error 8.312184274217316e-12
+W2 shape (3, 1) maximum derivative error 4.48385772955362e-12
+b2 shape (1,) maximum derivative error 5.846850781310309e-12
+Missing transpose rejected by incompatible derivative shapes.
+Bias overwrite maximum error: 0.13066171364054682
+Missing mean factor scales output adjoint by: 3
+Shape, shared contributions, and loss reduction are separate parts of the backward contract.
+</code></pre></div>
+<p>Annotate forward and backward shapes and write the exact mean loss. Check each parameter entry, inspect the rejected transpose, and explain why overwriting a shared bias or omitting the mean factor violates the contract even when resulting arrays have plausible shapes.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header" data-sec="exercises"><span class="section-num">10</span><h2>Fourteen exercises with full solutions</h2></div>
+<p>Exercises1–12 are required. Optional Exercises13–14 add35 minutes beyond the twelve-hour core schedule.</p>
+<div class="exercise" id="e1"><div class="exercise-head"><span class="exercise-n">Exercise 1</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">7 min</span></div>
+<p>For x²+3y² at(1,1), calculate the gradient and rate along unit(.6,.8). Give a unit steepest-increase direction.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Gradient column(2,6), rate2(.6)+6(.8)=6. Its norm is√40; normalising gives(2,6)/√40, which attains the maximal unit-direction rate by Cauchy–Schwarz. A nonunit direction changes the parameterised speed as well as direction.</p>
+</div></details>
+<div class="exercise" id="e2"><div class="exercise-head"><span class="exercise-n">Exercise 2</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">7 min</span></div>
+<p>For F(x,y)=(xy,x²,y²) at(1,2), give J and the column VJP for output seed(1,2,−3).</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>J=[[2,1],[2,0],[0,4]], shape3×2. Jᵀq=(2+4,1−12)=(6,−11), length two. It differentiates the scalar output combinationxy+2x²−3y². Jq is invalid because its inner dimensions are two and three.</p>
+</div></details>
+<div class="exercise" id="e3"><div class="exercise-head"><span class="exercise-n">Exercise 3</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">7 min</span></div>
+<p>For A=[[1,2],[0,3]],x=(1,−1), calculate the gradient of xᵀAx and compare with the incorrect2Ax.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>A+Aᵀ=[[2,2],[2,6]], so the correct gradient is(0,−4). Ax=(−1,−3), giving incorrect2Ax=(−2,−6). The general formula uses both differential paths; symmetry is required to simplify it to2Ax.</p>
+</div></details>
+<div class="exercise" id="e4"><div class="exercise-head"><span class="exercise-n">Exercise 4</span><span class="stars" title="level 1">★<span class="stars-off">★★</span></span><span class="exercise-kind">calculation</span><span class="exercise-time">7 min</span></div>
+<p>For X rows(1,0),(1,1),(1,2),y=(1,2,2),w=(1,0), calculate the mean-squared gradient and Hessian.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>r=(0,−1,−1),B=3,gradient(2/3)Xᵀr=(−4/3,−2). XᵀX=[[3,3],[3,5]], so Hessian(2/3)XᵀX=[[2,2],[2,10/3]]. Sum loss would multiply both by three. Keep y and predictions as matched columns or matched flat arrays, without mixing representations that broadcast into a matrix.</p>
+</div></details>
+<div class="exercise" id="e5"><div class="exercise-head"><span class="exercise-n">Exercise 5</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Prove continuous coordinate partials in a neighbourhood imply total differentiability, using coordinate telescoping and a norm bound.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Change input coordinates one at a time from a to a+h. Each scalar increment equals its coordinate change times the corresponding partial at an intermediate point by the one-variable mean value theorem. All such points approach a. SubtractΣ∂_i f(a)h_i; continuity bounds each coefficient discrepancy byε for sufficiently small‖h‖. Hence |r(h)|≤εΣ|h_i|≤ε√n‖h‖. Sinceε is arbitrary, r/‖h‖→0, giving the total differential. Partial existence only at a does not supply this neighbourhood control.</p>
+</div></details>
+<div class="exercise" id="e6"><div class="exercise-head"><span class="exercise-n">Exercise 6</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>Derive the multivariable chain rule from total local models and account for ΔF=0.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>LetΔF=J_Fh+r_F(h),with‖r_F‖/‖h‖→0. Outer incrementJ_GΔF+r_G(ΔF) gives main termJ_GJ_Fh. The remainderJ_G r_F is negligible; for nonzeroΔF,‖r_G(ΔF)‖/‖h‖ factors into a vanishing outer remainder ratio and bounded‖ΔF‖/‖h‖. WhenΔF=0 the outer remainder is zero directly. Thus total Jacobian is outer-times-inner, with compatible domains and differentiability at the relevant points.</p>
+</div></details>
+<div class="exercise" id="e7"><div class="exercise-head"><span class="exercise-n">Exercise 7</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">proof</span><span class="exercise-time">15 min</span></div>
+<p>For L=(1/2)‖XW−Y‖_F², derive gradients for W,X,Y using a differential and state all shapes.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>X:B×d,W:d×o,Y:B×o,R=XW−Y:B×o. dL=tr(Rᵀ[X dW+dX W−dY]). Cyclic coefficient collection or indexed sums give∇_W=XᵀR:d×o,∇_X=R Wᵀ:B×d,∇_Y=−R:B×o. Each has its parameter’s shape and supplies its Frobenius differential coefficient. A different loss scaling multiplies all three consistently.</p>
+</div></details>
+<div class="exercise" id="e8"><div class="exercise-head"><span class="exercise-n">Exercise 8</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 min</span></div>
+<p>For u=x<em>x,z=u</em>u+u+x atx=2, trace reverse seed−1 through u and x. Distinguish the seeded result from the ordinary derivative.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>u=4,z=22. Seed−1 gives u adjoint−(2u+1)=−9 and x adjoint2x(−9)−1=−37. Both multiplication edges and the direct addition path contribute. This is the derivative of−z with respect to x; the ordinary derivative of z is37. Resetting adjoints before a new seed-one pass recovers37 rather than accumulating−37 into it.</p>
+</div></details>
+<div class="exercise" id="e9"><div class="exercise-head"><span class="exercise-n">Exercise 9</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 min</span></div>
+<p>Residual matrix rows are(1,−1),(2,0),(−1,3). For a mean over all six squared entries, give the output adjoint and shared-bias gradient. Compare a sum loss and a row mean of summed outputs.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>All-entry mean givesG=2R/6=R/3,so bias gradient sums rows to(2/3,2/3). Sum loss givesG=2R and bias(4,4),six times the first. A mean over three row sums givesG=2R/3 and bias(4/3,4/3),twice the all-entry mean. Shape alone cannot identify the objective reduction.</p>
+</div></details>
+<div class="exercise" id="e10"><div class="exercise-head"><span class="exercise-n">Exercise 10</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">application</span><span class="exercise-time">12 min</span></div>
+<p>Write the second-order model of f=x²y+exp(y) about(.7,−.4) for displacement(.01,−.02). Explain which assumption controls its remainder.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Centre value−.196+exp(−.4). Linear correction−.56(.01)+(.49+exp(−.4))(−.02). Quadratic correction−.4(.01)²+1.4(.01)(−.02)+exp(−.4)(−.02)²/2. Their total prediction is about.445327710; actual value.71²(−.42)+exp(−.42)≈.445324820. The function is smooth, so a second-order little-o remainder applies locally; a specified finite error certificate would additionally need a bound on relevant higher derivatives over the displacement segment. The observed error is not itself that universal bound.</p>
+</div></details>
+<div class="exercise" id="e11"><div class="exercise-head"><span class="exercise-n">Exercise 11</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 min</span></div>
+<p>A proof finds two zero partials for xy/(x²+y²) at the origin and claims a zero total derivative. Repair it and name a valid sufficient alternative.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Set the origin value zero. Axes are zero, but diagonal values are1/2 for every nonzero step, so continuity and therefore total differentiability fail. Existing axis partials are insufficient. A direct uniform remainder proof or continuous partials throughout a neighbourhood would provide sufficient evidence for a total differential, but this function meets neither claim at the origin.</p>
+</div></details>
+<div class="exercise" id="e12"><div class="exercise-head"><span class="exercise-n">Exercise 12</span><span class="stars" title="level 2">★★<span class="stars-off">★</span></span><span class="exercise-kind">diagnosis</span><span class="exercise-time">12 min</span></div>
+<p>A backward pass multiplies G by W₂ instead of W₂ᵀ, overwrites a bias with the final batch row, and uses2R for an all-entry mean loss. Give three repairs.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>UseG W₂ᵀ soB×o timeso×hidden returnsB×hidden. Sum every row’s adjoint into the broadcast bias rather than overwrite; one shared parameter affects all records. For an all-entry mean useG=2R/(B·o),then propagate that scaling consistently through the entire graph. Each repair addresses a different part of the contract: shape, accumulated paths and differentiated objective.</p>
+</div></details>
+<div class="exercise" id="e13"><div class="exercise-head"><span class="exercise-n">Exercise 13</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">15 min</span></div>
+<p>Explain a Hessian–vector product as a derivative of the gradient along a path, and derive it for f(x)=xᵀAx with constant general A.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Under differentiability of the gradient, d/dt∇f(x+tv) atzero equalsH(x)v by the chain rule. Here∇f=(A+Aᵀ)x,soH=A+Aᵀ andHv=(A+Aᵀ)v. Directional curvature isvᵀHv. A JVP of a gradient computation can obtain this product without explicitly storing a full matrix; a finite difference of gradients is a different numerical estimator.</p>
+</div></details>
+<div class="exercise" id="e14"><div class="exercise-head"><span class="exercise-n">Exercise 14</span><span class="stars" title="level 3">★★★<span class="stars-off"></span></span><span class="exercise-kind">extension</span><span class="exercise-time">20 min</span></div>
+<p>For f=xy(x²−y²)/(x²+y²) away fromzero andf(0,0)=0, derive the unequal mixed partials and explain why a smooth Hessian theorem cannot be applied.</p>
+</div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>At fixed nonzero y, dividing f(h,y) by h and letting h→0 gives f_x(0,y)=−y; along y=0, the origin x partial is zero. Similarly f_y(x,0)=x, including zero. Thus ∂_y f_x(0,0)=−1 and ∂_x f_y(0,0)=1. The second partials are not continuous in a suitable neighbourhood, so the stated symmetry theorem fails. An entry table of coordinate second partials does not establish a total derivative of the gradient or the C² Taylor model.</p>
+</div></details>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header" data-sec="quiz"><span class="section-num">11</span><h2>Ten-question self-check</h2></div>
+<div class="quiz" data-n="9">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>Existing partials at one point establish what by themselves?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Coordinate-line rates, without necessarily a total derivative</button></li><li><button type="button" class="quiz-opt" data-i="1">Full continuity in every direction</button></li><li><button type="button" class="quiz-opt" data-i="2">A uniform linear remainder bound</button></li></ol><div class="quiz-expl" hidden>Axis restrictions can miss diagonal behaviour. Additional hypotheses or a direct total-model proof are needed.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>For F:R⁴→R³, what is the Jacobian shape here?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">4×3</button></li><li><button type="button" class="quiz-opt" data-i="1">3×4</button></li><li><button type="button" class="quiz-opt" data-i="2">One scalar</button></li></ol><div class="quiz-expl" hidden>Rows index outputs and columns inputs, so the map acts on a four-component increment to produce three components.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>How does a column output seed q pull back through J?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Jq in every case</button></li><li><button type="button" class="quiz-opt" data-i="1">q without a derivative map</button></li><li><button type="button" class="quiz-opt" data-i="2">Jᵀq</button></li></ol><div class="quiz-expl" hidden>The equivalent row VJP isqᵀJ. Distinguish an output seed from an input tangent.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>Which condition suffices for mixed-partial symmetry here?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Continuous second partials in a neighbourhood</button></li><li><button type="button" class="quiz-opt" data-i="1">Merely writing both derivative symbols</button></li><li><button type="button" class="quiz-opt" data-i="2">Equality of one sampled finite difference</button></li></ol><div class="quiz-expl" hidden>The four-corner argument needs smoothness to share the limiting value; isolated existence can fail.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>For a general square A, what is∇(xᵀAx)?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Always2Ax</button></li><li><button type="button" class="quiz-opt" data-i="1">(A+Aᵀ)x</button></li><li><button type="button" class="quiz-opt" data-i="2">tr(A) alone</button></li></ol><div class="quiz-expl" hidden>Both vector factors vary. The simplified2Ax formula requires symmetric A.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div>An all-entry mean over B×o squared residuals has output adjoint what?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">2R in every case</button></li><li><button type="button" class="quiz-opt" data-i="1">R with no specified scale</button></li><li><button type="button" class="quiz-opt" data-i="2">2R/(B·o)</button></li></ol><div class="quiz-expl" hidden>A row mean after summing output errors instead divides byB. Specify the reduction.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">7</span><div>A forward bias broadcasts over all rows. Its backward adjoint does what?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Sums contributions over those rows</button></li><li><button type="button" class="quiz-opt" data-i="1">Keeps only the last row</button></li><li><button type="button" class="quiz-opt" data-i="2">Adds a new output dimension</button></li></ol><div class="quiz-expl" hidden>Every replicated use depends on the same parameter, so chain contributions accumulate.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">8</span><div>Reverse mode at a shared node requires what?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Overwrite each earlier contribution</button></li><li><button type="button" class="quiz-opt" data-i="1">Accumulate downstream contributions before applying its local rule</button></li><li><button type="button" class="quiz-opt" data-i="2">Process its total repeatedly once per graph appearance</button></li></ol><div class="quiz-expl" hidden>A unique-node topological schedule and per-edge additions avoid lost or duplicated paths.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">9</span><div>Does automatic differentiation prove a classical derivative exists at a ReLU kink?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Yes, because no step h is chosen</button></li><li><button type="button" class="quiz-opt" data-i="1">Yes, if a number is returned</button></li><li><button type="button" class="quiz-opt" data-i="2">No; an executed backward value can be a convention</button></li></ol><div class="quiz-expl" hidden>AD follows primitive and branch rules. Mathematical differentiability needs its own hypotheses.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+<div class="free-response" data-free-response data-key="math-series:m18:q10">
+<label for="q10-response">10. Derive the mean-squared least-squares gradient with every shape, then trace z=(x*x)²+x*x+x at x=2 with reverse seed one. Explain shared accumulation and one limit of a numerical gradient check.</label>
+<textarea id="q10-response" aria-describedby="q10-review" rows="6" placeholder="State the column convention, residual reduction, transpose, path sums and evidence boundary."></textarea>
+<label class="self-check" id="q10-review"><input type="checkbox"> I kept shapes and loss scaling explicit and included every shared path.</label>
+</div>
+<details class="answer"><summary>Show answer</summary><div class="details-body">
+<p>For X:B×d,w:d×1,y:B×1,r=Xw−y:B×1,L=rᵀr/B, differential(2/B)rᵀXdw gives gradient(2/B)Xᵀr:d×1. For u=x*x,x=2,u=4,z=22,seedone givesū=2u+1=9 andx̄=2x·9+1=37. Each repeated operand edge and direct path contributes; reverse nodes run after downstream sums arrive. A finite check at selected smooth inputs can expose implementation faults but does not establish differentiability at a kink or prove a formula globally.</p>
+</div></details>
+<span class="section-anchor" id="reading"></span>
+<div class="section-header" data-sec="reading"><span class="section-num">12</span><h2>Reading with a purpose</h2></div>
+<p>Use gradient, Jacobian, Hessian and chain-rule selections in the authors’ <a href="https://mml-book.com/" target="_blank" rel="noopener">Mathematics for Machine Learning companion</a> and the primary <a href="https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/" target="_blank" rel="noopener">MIT OpenCourseWare multivariable calculus course</a>. The differential derivations and small reverse engine above provide the lesson’s own concrete shape and accumulation conventions.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>When</th>
+<th>Selection and question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session1 · 20 minutes</td>
+<td>Total derivatives and gradients: what does one uniform remainder require beyond partials?</td>
+</tr>
+<tr>
+<td>Session4 · 20 minutes</td>
+<td>Matrix calculus and chain rules: which transpose and reduction carry an output adjoint back to each parameter?</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header" data-sec="summary"><span class="section-num">13</span><h2>Retrieval exit task and next step</h2></div>
+<p>Give a partial-existence counterexample and a C¹ differentiability proof. State column-gradient and output-by-input Jacobian conventions, derive a chain pullback and a second-order model, then recover quadratic and least-squares gradients through differentials.</p>
+<p><strong>Exit task:</strong> For X:B×d,W:d×o and half-squared residualR=XW−Y,deriveXᵀR,RWᵀ and the row-summed bias contribution. Extend through a tanh hidden layer, specifying elementwise factors and the exact mean reduction. Explain how a unique-node reverse schedule still accumulates both edges of x*x.</p>
+<p><strong>Ready to move on:</strong> you can derive and verify local vector/matrix sensitivities and interpret an automatic backward pass. Optimisation next studies what those derivatives do and do not imply about minimisers and update convergence. See the <a href="index.html">course overview</a>.</p>
+<span class="section-anchor" id="terms"></span>
+<div class="section-header" data-sec="terms"><span class="section-num">14</span><h2>Notation and bilingual terminology</h2></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Term or notation</th>
+<th>Meaning</th>
+<th>中文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>∂_i f / D_v f</td>
+<td>Coordinate / path-direction rate</td>
+<td>偏导、方向导数</td>
+</tr>
+<tr>
+<td>df=∇fᵀdx</td>
+<td>Scalar total differential, column-gradient convention</td>
+<td>全微分、列梯度</td>
+</tr>
+<tr>
+<td>J:m×n</td>
+<td>Output-by-input local linear map</td>
+<td>雅可比矩阵</td>
+</tr>
+<tr>
+<td>Jv / Jᵀq</td>
+<td>Input tangent / output-adjoint propagation</td>
+<td>JVP、VJP</td>
+</tr>
+<tr>
+<td>H / hᵀHh</td>
+<td>Derivative of gradient / directional curvature</td>
+<td>Hessian、曲率</td>
+</tr>
+<tr>
+<td>Frobenius differential</td>
+<td>One coefficient per matrix parameter entry</td>
+<td>弗罗贝尼乌斯微分</td>
+</tr>
+<tr>
+<td>Reverse adjoint / seed</td>
+<td>Output sensitivity at a node / selected output weighting</td>
+<td>反向伴随量、种子</td>
+</tr>
+<tr>
+<td>Accumulation / broadcast</td>
+<td>Sum dependency contributions / replicated forward use</td>
+<td>累积、广播</td>
+</tr>
+<tr>
+<td>AD / finite difference</td>
+<td>Primitive chain propagation / perturbed numerical estimator</td>
+<td>自动微分、有限差分</td>
+</tr>
+</tbody>
+</table></div>
+</div><nav class="module-nav" aria-label="Full roadmap"><a href="module_17_EN.html">← Module 17</a><a href="module_19_EN.html">Module 19 →</a></nav><footer class="site-footer">Created by Ran Wei · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></footer></main></div><script src="../ai/assets/tutorial.js" defer></script><script src="assets/widgets.js" defer></script></body></html>
