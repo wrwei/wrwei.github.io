@@ -1,0 +1,284 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 6: Merge conflicts, calmly — Git and GitHub, Step by Step</title>
+<meta name="description" content="Make a merge conflict on purpose, read what Git is asking you, resolve it in VS Code, and finish the merge.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="6" data-lessons="11">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Git & GitHub</a><span class="sep">/</span><span class="crumb crumb-now">Lesson 6</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Lesson 6 of 11</button><div class="dropdown-menu"><a href="lesson_01_EN.html"><span class="dd-n">1</span>What are Git and GitHub?<span class="dd-done" data-lesson="1"></span></a>
+<a href="lesson_02_EN.html"><span class="dd-n">2</span>Install and set up<span class="dd-done" data-lesson="2"></span></a>
+<a href="lesson_03_EN.html"><span class="dd-n">3</span>Your first repository<span class="dd-done" data-lesson="3"></span></a>
+<a href="lesson_04_EN.html"><span class="dd-n">4</span>Saving changes and looking back<span class="dd-done" data-lesson="4"></span></a>
+<a href="lesson_05_EN.html"><span class="dd-n">5</span>Branches: try ideas safely<span class="dd-done" data-lesson="5"></span></a>
+<a href="lesson_06_EN.html" class="active"><span class="dd-n">6</span>Merge conflicts, calmly<span class="dd-done" data-lesson="6"></span></a>
+<a href="lesson_07_EN.html"><span class="dd-n">7</span>Put your project on GitHub<span class="dd-done" data-lesson="7"></span></a>
+<a href="lesson_08_EN.html"><span class="dd-n">8</span>Publish your page with GitHub Pages<span class="dd-done" data-lesson="8"></span></a>
+<a href="lesson_09_EN.html"><span class="dd-n">9</span>Working from two places: pull, push, clone<span class="dd-done" data-lesson="9"></span></a>
+<a href="lesson_10_EN.html"><span class="dd-n">10</span>Pull requests<span class="dd-done" data-lesson="10"></span></a>
+<a href="lesson_11_EN.html"><span class="dd-n">11</span>Undo and fix mistakes<span class="dd-done" data-lesson="11"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html"><span class="dd-n">&#9670;</span>Troubleshooting</a></div></div>
+  <a href="lesson_06_ZH.html" class="lang-switch" hreflang="zh-CN">中文</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#what"><span class="num">1</span><span class="side-t">What is a conflict?</span></a><a href="#make"><span class="num">2</span><span class="side-t">Make a conflict on purpose</span></a><a href="#status"><span class="num">3</span><span class="side-t">See what Git needs from you</span></a><a href="#abort"><span class="num">4</span><span class="side-t">The emergency exit: git merge --abort</span></a><a href="#markers"><span class="num">5</span><span class="side-t">Read the conflict</span></a><a href="#resolve"><span class="num">6</span><span class="side-t">Resolve it</span></a><a href="#fewer"><span class="num">7</span><span class="side-t">Fewer conflicts</span></a><a href="#summary"><span class="num">8</span><span class="side-t">What you learned</span></a><a href="#quiz"><span class="num">9</span><span class="side-t">Check yourself</span></a></nav>
+<div class="sidebar-label">Stuck?</div><div class="side-links"><a href="troubleshooting_EN.html">Troubleshooting</a><a href="cheatsheet_EN.html">Cheat sheet</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Git and GitHub, Step by Step</div>
+      <h1 class="module-title"><span class="title-n">Lesson 6</span>Merge conflicts, calmly</h1>
+      <p class="module-lead">Make a merge conflict on purpose, read what Git is asking you, resolve it in VS Code, and finish the merge.</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 30 min</span><span class="chip chip-needs">You need: Lesson 5 (branches and merging)</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">In this lesson you will</h3><ul><li>Understand why conflicts happen and why they are normal</li><li>Read the conflict markers Git writes into a file</li><li>Resolve a conflict in VS Code and finish the merge</li><li>Stop a merge you do not want to finish, with <code>git merge --abort</code></li></ul></section>
+<div class="content">
+<span class="section-anchor" id="what"></span>
+<div class="section-header"><span class="section-num">1</span><h2>What is a conflict?</h2></div>
+<p>In Lesson 5, Git combined two branches by itself, because they changed different parts of
+<code>index.html</code>. But what if both branches change <strong>the same line</strong>, in different ways? Git cannot
+know which version you want, so it stops and asks you. That is a <strong>merge conflict</strong>.</p>
+<p>A conflict is not an error, and nothing is broken or lost. It is Git saying: “you decide”.
+Everyone who uses Git meets them, and after you have solved one, they stop being scary. So make
+one on purpose.</p>
+<span class="section-anchor" id="make"></span>
+<div class="section-header"><span class="section-num">2</span><h2>Make a conflict on purpose</h2></div>
+<p>Open <code>my-page</code> in VS Code with a terminal. First, a branch that changes the heading:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git switch -c new-heading">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git switch -c new-heading</span></span><span class="t-out">Switched to a new branch 'new-heading'</span></code></pre></div>
+<p>Change the <code>&lt;h1&gt;</code> line in <code>index.html</code>:</p>
+<div class="file"><div class="file-bar"><span class="file-name">index.html</span><span class="file-note">highlighted: the lines to add or change</span><button type="button" class="copy-btn" data-copy="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;title&gt;About me&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to my page!&lt;/h1&gt;
+  &lt;p&gt;This is my first web page.&lt;/p&gt;
+  &lt;p&gt;I like walking, photography and good coffee.&lt;/p&gt;
+  &lt;h2&gt;My hobbies&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Walking&lt;/li&gt;
+    &lt;li&gt;Photography&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;">Copy</button></div><pre class="file-body"><code class="language-xml"><span class="ln"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>About me<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;style.css&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><span class="ln hl">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Welcome to my page!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>This is my first web page.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>I like walking, photography and good coffee.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>My hobbies<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Walking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Photography<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span></code></pre></div>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git add index.html
+git commit -m &quot;Change the heading&quot;">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add index.html</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit -m &quot;Change the heading&quot;</span></span><span class="t-out">[new-heading e54afda] Change the heading
+ 1 file changed, 1 insertion(+), 1 deletion(-)</span></code></pre></div>
+<p>Now go back to <code>main</code> and change <strong>the same line</strong>, differently:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git switch main">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git switch main</span></span><span class="t-out">Switched to branch 'main'</span></code></pre></div>
+<div class="file"><div class="file-bar"><span class="file-name">index.html</span><span class="file-note">highlighted: the lines to add or change</span><button type="button" class="copy-btn" data-copy="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;title&gt;About me&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello and welcome!&lt;/h1&gt;
+  &lt;p&gt;This is my first web page.&lt;/p&gt;
+  &lt;p&gt;I like walking, photography and good coffee.&lt;/p&gt;
+  &lt;h2&gt;My hobbies&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Walking&lt;/li&gt;
+    &lt;li&gt;Photography&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;">Copy</button></div><pre class="file-body"><code class="language-xml"><span class="ln"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>About me<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;style.css&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><span class="ln hl">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Hello and welcome!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>This is my first web page.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>I like walking, photography and good coffee.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>My hobbies<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Walking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Photography<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span></code></pre></div>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git add index.html
+git commit -m &quot;Make the heading friendlier&quot;">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add index.html</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit -m &quot;Make the heading friendlier&quot;</span></span><span class="t-out">[main 822c471] Make the heading friendlier
+ 1 file changed, 1 insertion(+), 1 deletion(-)</span></code></pre></div>
+<p>Now merge, and watch Git stop:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git merge new-heading">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git merge new-heading</span></span><span class="t-out">Auto-merging index.html
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.</span></code></pre></div>
+<p>“CONFLICT ... in index.html”: Git combined what it could, and left the rest for you. The merge is
+now <strong>in progress</strong>: Git is waiting for you to finish it. (On Windows, Git Bash’s prompt shows
+<code>(main|MERGING)</code> until the merge is finished or stopped.)</p>
+<span class="section-anchor" id="status"></span>
+<div class="section-header"><span class="section-num">3</span><h2>See what Git needs from you</h2></div>
+<p>As always, <code>git status</code> explains:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git status">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+You have unmerged paths.
+  (fix conflicts and run &quot;git commit&quot;)
+  (use &quot;git merge --abort&quot; to abort the merge)
+
+Unmerged paths:
+  (use &quot;git add &lt;file&gt;...&quot; to mark resolution)
+<span class="t-bad">	both modified:   index.html</span>
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)</span></code></pre></div>
+<p>“Both modified” means both branches changed <code>index.html</code> in a way Git could not combine. The
+hints give you the plan: fix the conflicts, <code>git add</code> the file, then <code>git commit</code>. Or abort.</p>
+<span class="section-anchor" id="abort"></span>
+<div class="section-header"><span class="section-num">4</span><h2>The emergency exit: git merge --abort</h2></div>
+<p>Before you solve the conflict, try the emergency exit, so that you know it works. If you are in
+the middle of a merge and want to stop, for example because you are not sure which version is
+right, <code>git merge --abort</code> takes you back to how things were before you typed <code>git merge</code>:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git merge --abort
+git status">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git merge --abort</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+nothing to commit, working tree clean</span></code></pre></div>
+<p>Everything is back to its state before the merge: your heading says “Hello and welcome!” again.
+Nothing is lost, and you can merge again whenever you like. Do it now:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git merge new-heading">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git merge new-heading</span></span><span class="t-out">Auto-merging index.html
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.</span></code></pre></div>
+<p>The same conflict, ready for you to solve.</p>
+<span class="section-anchor" id="markers"></span>
+<div class="section-header"><span class="section-num">5</span><h2>Read the conflict</h2></div>
+<p>Open <code>index.html</code> in VS Code. Git has written both versions into the file, between marker lines:</p>
+<div class="file"><div class="file-bar"><span class="file-name">index.html</span><span class="file-note">as Git left it</span></div><pre class="file-body"><code class="language-xml"><span class="ln"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>About me<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;style.css&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><span class="ln conflict">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Hello and welcome!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln conflict">=======</span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Welcome to my page!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln conflict">&gt;&gt;&gt;&gt;&gt;&gt;&gt; new-heading</span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>This is my first web page.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>I like walking, photography and good coffee.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>My hobbies<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Walking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Photography<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span></code></pre></div>
+<figure class="fig" id="fig-06-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300" role="img"><title>Anatomy of a merge conflict</title><defs></defs><rect x="20" y="20" width="360" height="232" rx="12" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/><text x="36" y="50" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start" xml:space="preserve">&lt;body&gt;</text><rect x="22" y="60" width="356" height="26" rx="0" fill="#FEE2E2" stroke="none" stroke-width="0"/><text x="36" y="78" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#991B1B" text-anchor="start" xml:space="preserve">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</text><rect x="22" y="88" width="356" height="26" rx="0" fill="#DBEAFE" stroke="none" stroke-width="0"/><text x="36" y="106" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start" xml:space="preserve">  &lt;h1&gt;Hello and welcome!&lt;/h1&gt;</text><rect x="22" y="116" width="356" height="26" rx="0" fill="#FEE2E2" stroke="none" stroke-width="0"/><text x="36" y="134" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#991B1B" text-anchor="start" xml:space="preserve">=======</text><rect x="22" y="144" width="356" height="26" rx="0" fill="#DCFCE7" stroke="none" stroke-width="0"/><text x="36" y="162" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start" xml:space="preserve">  &lt;h1&gt;Welcome to my page!&lt;/h1&gt;</text><rect x="22" y="172" width="356" height="26" rx="0" fill="#FEE2E2" stroke="none" stroke-width="0"/><text x="36" y="190" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#991B1B" text-anchor="start" xml:space="preserve">&gt;&gt;&gt;&gt;&gt;&gt;&gt; new-heading</text><text x="36" y="218" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start" xml:space="preserve">  &lt;p&gt;This is my first web page.&lt;/p&gt;</text><line x1="386" y1="74" x2="410" y2="74" stroke="#DC2626" stroke-width="1.6"/><text x="418" y="78.5" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#DC2626" text-anchor="start">start of the conflict</text><line x1="386" y1="102" x2="410" y2="102" stroke="#2563EB" stroke-width="1.6"/><text x="418" y="106.5" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#2563EB" text-anchor="start">your version: HEAD, the branch you are on (main)</text><line x1="386" y1="130" x2="410" y2="130" stroke="#DC2626" stroke-width="1.6"/><text x="418" y="134.5" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#DC2626" text-anchor="start">the divider</text><line x1="386" y1="158" x2="410" y2="158" stroke="#15803D" stroke-width="1.6"/><text x="418" y="162.5" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#15803D" text-anchor="start">the incoming version (from new-heading)</text><line x1="386" y1="186" x2="410" y2="186" stroke="#DC2626" stroke-width="1.6"/><text x="418" y="190.5" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#DC2626" text-anchor="start">end of the conflict</text><text x="20" y="284" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="600" fill="#1A2E4A" text-anchor="start">Keep the text you want, then delete the three marker lines.</text></svg>
+</div><figcaption><span class="fig-num">Figure 6.1</span> <p>Anatomy of a conflict. Between <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> and <code>=======</code> is your version: the branch you are
+on, here <code>main</code>. Between <code>=======</code> and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; new-heading</code> is the version from the branch you
+are merging in. Everything outside the markers was combined without trouble.</p>
+</figcaption></figure>
+<p>The three marker lines are not part of your page. Your job is to replace everything from
+<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> to <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> with the text you want, and remove the markers.</p>
+<p>VS Code helps. It colours the two versions and puts clickable links above them:</p>
+<ul>
+<li><strong>Accept Current Change</strong> keeps your version (from <code>HEAD</code>, the branch you are on).</li>
+<li><strong>Accept Incoming Change</strong> keeps the version from the branch you are merging in.</li>
+<li><strong>Accept Both Changes</strong> keeps both, one after the other.</li>
+<li><strong>Compare Changes</strong> shows them side by side.</li>
+</ul>
+<p>VS Code may also show a <strong>Resolve in Merge Editor</strong> button. You do not need it: the links are
+simpler.</p>
+<span class="section-anchor" id="resolve"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Resolve it</h2></div>
+<p>Decide which heading you want. Here, keep “Welcome to my page!”: click <strong>Accept Incoming Change</strong>.
+Or edit the file by hand: delete the marker lines and the line you do not want. Either way, the
+file must end up like this, with no markers left:</p>
+<div class="file"><div class="file-bar"><span class="file-name">index.html</span><button type="button" class="copy-btn" data-copy="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;title&gt;About me&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to my page!&lt;/h1&gt;
+  &lt;p&gt;This is my first web page.&lt;/p&gt;
+  &lt;p&gt;I like walking, photography and good coffee.&lt;/p&gt;
+  &lt;h2&gt;My hobbies&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Walking&lt;/li&gt;
+    &lt;li&gt;Photography&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;">Copy</button></div><pre class="file-body"><code class="language-xml"><span class="ln"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>About me<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;style.css&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Welcome to my page!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>This is my first web page.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>I like walking, photography and good coffee.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>My hobbies<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Walking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Photography<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span></code></pre></div>
+<p>You are not limited to the two versions. You could write a third heading of your own: whatever
+you leave in the file is what the merge will contain.</p>
+<details class="trouble"><summary>If something went wrong</summary><div class="details-body">
+<p><strong>I clicked the wrong link.</strong> Press <kbd>Ctrl</kbd>+<kbd>Z</kbd> (<kbd>Cmd</kbd>+<kbd>Z</kbd> on a
+Mac) to undo it, or edit the file by hand until it looks like the one above.</p>
+</div></details>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>Before you <code>git add</code> a file with a conflict, check that no marker lines are left: a forgotten
+<code>=======</code> ends up in your page. In VS Code, search the file (<kbd>Ctrl</kbd>+<kbd>F</kbd>, or
+<kbd>Cmd</kbd>+<kbd>F</kbd> on a Mac) for <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code> and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>.</p>
+</div>
+<p>Tell Git the conflict is solved by adding the file:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git add index.html
+git status">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add index.html</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+All conflicts fixed but you are still merging.
+  (use &quot;git commit&quot; to conclude merge)
+
+Changes to be committed:
+<span class="t-good">	modified:   index.html</span></span></code></pre></div>
+<p>“All conflicts fixed”. Finish the merge with <code>git commit</code>, without <code>-m</code>. Read this before you type
+it: as in Lesson 5, VS Code opens a tab, this time called <code>COMMIT_EDITMSG</code>. Its first line,
+<code>Merge branch 'new-heading'</code>, is the message. The lines below it that start with <code>#</code> are notes,
+which Git leaves out of the commit; one of them mentions <code>git update-ref</code>, which you do not need.
+Close the tab to accept the message, and the commit is made. Then click back in the terminal.</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git commit">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit</span></span><span class="t-out">[main 10984c7] Merge branch 'new-heading'</span></code></pre></div>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git log --oneline --graph -4">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git log --oneline --graph -4</span></span><span class="t-out">*   <span class="t-hash">10984c7</span> <span class="t-hash">(</span><span class="t-branch">HEAD -&amp;gt; main</span><span class="t-hash">)</span> Merge branch 'new-heading'
+|\
+| * <span class="t-hash">e54afda</span> (new-heading) Change the heading
+* | <span class="t-hash">822c471</span> Make the heading friendlier
+|/
+*   <span class="t-hash">618e8f4</span> Merge branch 'add-hobbies'
+|\</span></code></pre></div>
+<p><code>-4</code> shows only the four newest commits; the lines at the bottom lead on to the older ones. You
+resolved your first conflict. Delete the branch:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git branch -d new-heading">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git branch -d new-heading</span></span><span class="t-out">Deleted branch new-heading (was e54afda).</span></code></pre></div>
+<details class="trouble"><summary>If something went wrong</summary><div class="details-body">
+<p><strong><code>fatal: cannot switch branch while merging</code></strong>, <code>error: Merging is not possible because you have unmerged files</code>, or <code>fatal: You have not concluded your merge (MERGE_HEAD exists)</code>. A merge is
+still in progress. Finish it (fix the file, <code>git add</code>, <code>git commit</code>) or stop it with
+<code>git merge --abort</code>. Do not use <code>git merge --quit</code>, which Git also suggests: it leaves the
+half-finished merge in your files.</p>
+<p><strong>The page shows <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> in the browser.</strong> The marker lines are still in the file. Remove
+them, then <code>git add index.html</code>. If the merge is still in progress, <code>git commit</code> finishes it. If
+you already committed the merge, save the fix as a new commit:
+<code>git commit -m &quot;Remove conflict markers&quot;</code>.</p>
+</div></details>
+<span class="section-anchor" id="fewer"></span>
+<div class="section-header"><span class="section-num">7</span><h2>Fewer conflicts</h2></div>
+<p>You cannot avoid conflicts completely, but these habits make them rare and small:</p>
+<ul>
+<li><strong>Commit small changes often</strong>, rather than one huge change at the end.</li>
+<li><strong>Merge often</strong>, so branches do not drift apart for weeks.</li>
+<li>When you work with others, <strong>get their latest work before you start</strong> (Lesson 9) and agree who
+works on which part.</li>
+</ul>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">8</span><h2>What you learned</h2></div>
+<ul>
+<li>A <strong>conflict</strong> happens when two branches change the same lines differently. Git asks you to
+choose; nothing is lost.</li>
+<li>In the file, <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> to <code>=======</code> is your version; <code>=======</code> to <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; branch</code> is the
+incoming one.</li>
+<li>To resolve: edit the file to what you want (VS Code’s <strong>Accept ...</strong> links help), remove the
+markers, <code>git add</code> the file, then <code>git commit</code>.</li>
+<li><code>git merge --abort</code> cancels a merge in progress.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>git status</code></td>
+<td>During a merge: shows which files have conflicts</td>
+</tr>
+<tr>
+<td><code>git add FILE</code></td>
+<td>Marks a file’s conflict as resolved</td>
+</tr>
+<tr>
+<td><code>git commit</code></td>
+<td>Finishes the merge, with Git’s ready-made message</td>
+</tr>
+<tr>
+<td><code>git merge --abort</code></td>
+<td>Cancels the merge and goes back to before it</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">9</span><h2>Check yourself</h2></div>
+<div class="quiz" data-n="4">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>When does Git report a merge conflict?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Whenever two branches change the same file</button></li><li><button type="button" class="quiz-opt" data-i="1">When two branches change the same lines of a file in different ways</button></li><li><button type="button" class="quiz-opt" data-i="2">When a branch has more than one commit</button></li></ol><div class="quiz-expl" hidden>Changes to different parts of the same file merge without trouble, as in Lesson 5.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>In a conflict, which version is between <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> and <code>=======</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The version from the branch you are on</button></li><li><button type="button" class="quiz-opt" data-i="1">The version from the branch you are merging in</button></li><li><button type="button" class="quiz-opt" data-i="2">The version from the last commit both branches share</button></li></ol><div class="quiz-expl" hidden><code>HEAD</code> means where you are now, so it is your current branch’s version. The incoming one is below the <code>=======</code>.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">3</span><div>You fixed the file. What are the next two steps?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git merge</code> again, then <code>git push</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git add</code> the file, then <code>git commit</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git restore</code> the file, then <code>git commit</code></button></li></ol><div class="quiz-expl" hidden><code>git add</code> tells Git the conflict is resolved; <code>git commit</code> finishes the merge.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>You are halfway through a conflict and want to start again later. Which command?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git restore .</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git branch -d</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git merge --abort</code></button></li></ol><div class="quiz-expl" hidden>It puts everything back to how it was before you typed <code>git merge</code>.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="6"><div class="done-q">Finished this lesson?</div><button type="button" class="done-btn" data-yes="Done" data-no="Mark as done" data-undo="Mark as not done">Mark as done</button><div class="done-progress" data-label-en="{d} of {n} lessons done" data-label="{d} of {n} lessons done"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="lesson_05_EN.html"><span class="mnav-label">&larr; Previous</span><span class="mnav-title">Lesson 5: Branches: try ideas safely</span></a><a class="mnav next" href="lesson_07_EN.html"><span class="mnav-label">Next &rarr;</span><span class="mnav-title">Lesson 7: Put your project on GitHub</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p></footer>
+<script src="assets/widgets.js" defer></script>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

@@ -1,0 +1,351 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 11 课：撤销与修正错误 — 一步一步学 Git 与 GitHub</title>
+<meta name="description" content="帮你摆脱麻烦的命令，按情形整理成一份份“菜谱”。每一份都在你的项目上试一试，等真遇到的时候，你就知道该怎么做了。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="11" data-lessons="11">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index_ZH.html" class="crumb">Git 与 GitHub</a><span class="sep">/</span><span class="crumb crumb-now">第 11 课</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">第 11 课 / 共 11 课</button><div class="dropdown-menu"><a href="lesson_01_ZH.html"><span class="dd-n">1</span>Git 和 GitHub 是什么？<span class="dd-done" data-lesson="1"></span></a>
+<a href="lesson_02_ZH.html"><span class="dd-n">2</span>安装与设置<span class="dd-done" data-lesson="2"></span></a>
+<a href="lesson_03_ZH.html"><span class="dd-n">3</span>你的第一个仓库<span class="dd-done" data-lesson="3"></span></a>
+<a href="lesson_04_ZH.html"><span class="dd-n">4</span>保存改动，回顾历史<span class="dd-done" data-lesson="4"></span></a>
+<a href="lesson_05_ZH.html"><span class="dd-n">5</span>分支：放心尝试新想法<span class="dd-done" data-lesson="5"></span></a>
+<a href="lesson_06_ZH.html"><span class="dd-n">6</span>从容应对合并冲突<span class="dd-done" data-lesson="6"></span></a>
+<a href="lesson_07_ZH.html"><span class="dd-n">7</span>把项目放到 GitHub 上<span class="dd-done" data-lesson="7"></span></a>
+<a href="lesson_08_ZH.html"><span class="dd-n">8</span>用 GitHub Pages 发布网页<span class="dd-done" data-lesson="8"></span></a>
+<a href="lesson_09_ZH.html"><span class="dd-n">9</span>在两个地方工作：拉取、推送、克隆<span class="dd-done" data-lesson="9"></span></a>
+<a href="lesson_10_ZH.html"><span class="dd-n">10</span>拉取请求<span class="dd-done" data-lesson="10"></span></a>
+<a href="lesson_11_ZH.html" class="active"><span class="dd-n">11</span>撤销与修正错误<span class="dd-done" data-lesson="11"></span></a><div class="dd-sep"></div><a href="cheatsheet_ZH.html"><span class="dd-n">&#9670;</span>速查表</a>
+<a href="troubleshooting_ZH.html"><span class="dd-n">&#9670;</span>问题排查</a></div></div>
+  <a href="lesson_11_EN.html" class="lang-switch" hreflang="en">English</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">本页内容</div><nav><a href="#rules"><span class="num">1</span><span class="side-t">先记住两条规则</span></a><a href="#restore"><span class="num">2</span><span class="side-t">“我想丢弃对某个文件的改动”</span></a><a href="#old-version"><span class="num">3</span><span class="side-t">“我想把文件恢复成旧提交里的样子”</span></a><a href="#unstage"><span class="num">4</span><span class="side-t">“我不小心添加了一个文件”</span></a><a href="#ignore"><span class="num">5</span><span class="side-t">“我希望 Git 永远不跟踪这个文件”</span></a><a href="#amend"><span class="num">6</span><span class="side-t">“我上一次提交有错，而且还没推送”</span></a><a href="#reset"><span class="num">7</span><span class="side-t">“我想撤销上一次提交，但保留改动”</span></a><a href="#revert"><span class="num">8</span><span class="side-t">“我想撤销一个已经在 GitHub 上的提交”</span></a><a href="#reflog"><span class="num">9</span><span class="side-t">“我好像弄丢了一个提交”</span></a><a href="#which"><span class="num">10</span><span class="side-t">我该用哪种撤销？</span></a><a href="#summary"><span class="num">11</span><span class="side-t">小结</span></a><a href="#quiz"><span class="num">12</span><span class="side-t">自测题</span></a></nav>
+<div class="sidebar-label">遇到困难？</div><div class="side-links"><a href="troubleshooting_ZH.html">问题排查</a><a href="cheatsheet_ZH.html">速查表</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">一步一步学 Git 与 GitHub</div>
+      <h1 class="module-title"><span class="title-n">第 11 课</span>撤销与修正错误</h1>
+      <p class="module-lead">帮你摆脱麻烦的命令，按情形整理成一份份“菜谱”。每一份都在你的项目上试一试，等真遇到的时候，你就知道该怎么做了。</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 40 分钟</span><span class="chip chip-needs">开始之前：第 10 课（GitHub 上的 <code>my-page</code>，本地已是最新）</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">在本课中，你将</h3><ul><li>用 <code>git restore --staged</code> 把文件移出暂存区</li><li>用 <code>.gitignore</code> 让某些文件不进入 Git</li><li>在推送之前，用 <code>git commit --amend</code> 修正上一次提交</li><li>用 <code>git reset --soft</code> 撤销上一次提交，但保留改动</li><li>用 <code>git revert</code> 撤销一个已经在 GitHub 上的提交</li><li>用 <code>git reflog</code> 找回“丢失”的提交</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="rules"></span>
+<div class="section-header"><span class="section-num">1</span><h2>先记住两条规则</h2></div>
+<p>你提交（commit）过的工作，Git 几乎从不会弄丢。大多数“灾难”都可以撤销（undo）。只要遵守两条规则，就能一直如此：</p>
+<div class="callout keyidea"><div class="callout-label">要点</div>
+<ol>
+<li><strong>做任何有风险的尝试之前，先提交。</strong>提交过的东西可以找回来；从没提交过的改动就找不回来了。</li>
+<li><strong>只改写还没有推送（push）的提交。</strong><code>--amend</code> 和 <code>reset</code> 会改变你的历史。在你自己的电脑上这样做没问题，但如果 GitHub 上已经有了这些提交，就改用 <code>git revert</code>。</li>
+</ol>
+</div>
+<p>在 VS Code 中打开 <code>my-page</code> 和终端。下面每一节都是一份“菜谱”，标题就是它要解决的情形。</p>
+<span class="section-anchor" id="restore"></span>
+<div class="section-header"><span class="section-num">2</span><h2>“我想丢弃对某个文件的改动”</h2></div>
+<p>这个你在第 4 课见过：<code>git restore FILE</code> 会丢弃一个文件里还没暂存的改动，把它恢复成你上一次提交时的样子。如果你已经用 <code>git add</code> 暂存了这些改动，就先运行 <code>git restore --staged FILE</code>（见下文“我不小心添加了一个文件”）。同一个命令还能找回你误删的文件。现在不用试：你在第 4 课已经做过了。</p>
+<div class="term" data-norun><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git restore index.html">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git restore index.html</span></span></code></pre></div>
+<p>记住：丢弃的改动是找不回来的。</p>
+<span class="section-anchor" id="old-version"></span>
+<div class="section-header"><span class="section-num">3</span><h2>“我想把文件恢复成旧提交里的样子”</h2></div>
+<p>先在 <code>git log --oneline</code> 里找到那个提交，再把它的哈希值（hash）交给 <code>git restore --source</code>。例如，要把 <code>index.html</code> 恢复成你第一次提交时的样子（请用<strong>你自己</strong>列表里的哈希值）：</p>
+<div class="term" data-norun><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git restore --source c50e3a0 index.html">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git restore --source c50e3a0 index.html</span></span></code></pre></div>
+<p>现在你的文件就是当时的样子。其他什么都没变：如果你想保留这个旧版本，就用 <code>git add</code> 和 <code>git commit</code> 把它作为一次新的改动提交；如果不想要，<code>git restore index.html</code> 会让它回到你上一次提交时的样子。现在不用试。</p>
+<span class="section-anchor" id="unstage"></span>
+<div class="section-header"><span class="section-num">4</span><h2>“我不小心添加了一个文件”</h2></div>
+<p>假设你在项目文件夹里放了一些私人笔记。创建一个文件 <code>notes.txt</code>：</p>
+<div class="file"><div class="file-bar"><span class="file-name">notes.txt</span><button type="button" class="copy-btn" data-copy="Ideas for my page:
+- add a photo
+- try a different font">复制</button></div><pre class="file-body"><code class="language-plaintext"><span class="ln">Ideas for my page:</span><span class="ln">- add a photo</span><span class="ln">- try a different font</span></code></pre></div>
+<p>你习惯性地把所有文件都添加了：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git add .
+git status">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add .</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+<span class="t-good">	new file:   notes.txt</span></span></code></pre></div>
+<p>这些笔记眼看就要进入一个提交，接着被推送到 GitHub，在那里谁都能读到。Git 的提示告诉了你怎样把文件移出暂存区（staging area）：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git restore --staged notes.txt
+git status">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git restore --staged notes.txt</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+<span class="t-bad">	notes.txt</span>
+
+nothing added to commit but untracked files present (use &quot;git add&quot; to track)</span></code></pre></div>
+<p><code>notes.txt</code> 又回到了未跟踪（untracked）状态。<code>--staged</code> 只改变暂存区；你的文件本身原封未动。要一次把所有东西都移出暂存区，就用 <code>git restore --staged .</code>。</p>
+<span class="section-anchor" id="ignore"></span>
+<div class="section-header"><span class="section-num">5</span><h2>“我希望 Git 永远不跟踪这个文件”</h2></div>
+<p><code>notes.txt</code> 暂时安全了，但下一次 <code>git add .</code> 又会把它添加进去。要让 Git 永久忽略（ignore）一个文件，就把它列在一个名叫 <code>.gitignore</code> 的文件里（注意开头有一个点）。就像当初创建 <code>README.md</code> 那样，在 <code>my-page</code> 里、<code>index.html</code> 旁边创建它：</p>
+<div class="file"><div class="file-bar"><span class="file-name">.gitignore</span><button type="button" class="copy-btn" data-copy="# My private notes
+notes.txt">复制</button></div><pre class="file-body"><code class="language-plaintext"><span class="ln"><span class="hljs-comment"># My private notes</span></span><span class="ln">notes.txt</span></code></pre></div>
+<p>以 <code>#</code> 开头的行是注释。其余每一行都是一个要忽略的文件名或模式。</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git status">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+<span class="t-bad">	.gitignore</span>
+
+nothing added to commit but untracked files present (use &quot;git add&quot; to track)</span></code></pre></div>
+<p><code>notes.txt</code> 从列表里消失了：Git 现在会忽略它，VS Code 也会把它显示成灰色。<code>.gitignore</code> 本身是一个普通文件，也是项目的一部分，所以要提交它：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git add .gitignore
+git commit -m &quot;Ignore my private notes&quot;">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add .gitignore</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit -m &quot;Ignore my private notes&quot;</span></span><span class="t-out">[main 5841c42] Ignore my private notes
+ 1 file changed, 2 insertions(+)
+ create mode 100644 .gitignore</span></code></pre></div>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p><code>.gitignore</code> 里也可以写模式：<code>*.log</code> 会忽略所有以 <code>.log</code> 结尾的文件，<code>drafts/</code> 会忽略整个文件夹。</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p><code>.gitignore</code> 只对 Git 还没跟踪的文件起作用。已经提交过的文件会一直是已跟踪（tracked）的，直到你运行 <code>git rm --cached FILE</code> 并提交。还有，你推送过的任何内容都会留在 GitHub 上的历史里：如果有密码被推送上去了，就把这个密码改掉。</p>
+</div>
+<span class="section-anchor" id="amend"></span>
+<div class="section-header"><span class="section-num">6</span><h2>“我上一次提交有错，而且还没推送”</h2></div>
+<p>你又加了一个爱好，还想让列表项之间留出一点空隙。把两个文件都改一下：</p>
+<div class="file"><div class="file-bar"><span class="file-name">index.html</span><span class="file-note">高亮：需要添加或修改的行</span><button type="button" class="copy-btn" data-copy="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;title&gt;About me&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to my page!&lt;/h1&gt;
+  &lt;p&gt;This is my first web page, published with GitHub Pages.&lt;/p&gt;
+  &lt;p&gt;I like walking, photography and good coffee.&lt;/p&gt;
+  &lt;h2&gt;My hobbies&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Walking&lt;/li&gt;
+    &lt;li&gt;Photography&lt;/li&gt;
+    &lt;li&gt;Cooking&lt;/li&gt;
+    &lt;li&gt;Reading&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;h2&gt;Contact&lt;/h2&gt;
+  &lt;p&gt;You can find me on GitHub as your-username.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;">复制</button></div><pre class="file-body"><code class="language-xml"><span class="ln"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>About me<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;style.css&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Welcome to my page!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>This is my first web page, published with GitHub Pages.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>I like walking, photography and good coffee.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>My hobbies<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Walking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Photography<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Cooking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln hl">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Reading<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>Contact<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>You can find me on GitHub as your-username.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span></code></pre></div>
+<div class="file"><div class="file-bar"><span class="file-name">style.css</span><span class="file-note">高亮：需要添加或修改的行</span><button type="button" class="copy-btn" data-copy="body {
+  font-family: sans-serif;
+  max-width: 40em;
+  margin: 2em auto;
+  padding: 0 1em;
+  background: #1e1e2e;
+  color: #e6e6e6;
+}
+
+h1 {
+  color: #8ec5fc;
+}
+
+li {
+  margin-bottom: 0.3em;
+}">复制</button></div><pre class="file-body"><code class="language-css"><span class="ln"><span class="hljs-selector-tag">body</span> {</span><span class="ln">  <span class="hljs-attribute">font-family</span>: sans-serif;</span><span class="ln">  <span class="hljs-attribute">max-width</span>: <span class="hljs-number">40em</span>;</span><span class="ln">  <span class="hljs-attribute">margin</span>: <span class="hljs-number">2em</span> auto;</span><span class="ln">  <span class="hljs-attribute">padding</span>: <span class="hljs-number">0</span> <span class="hljs-number">1em</span>;</span><span class="ln">  <span class="hljs-attribute">background</span>: <span class="hljs-number">#1e1e2e</span>;</span><span class="ln">  <span class="hljs-attribute">color</span>: <span class="hljs-number">#e6e6e6</span>;</span><span class="ln">}</span><span class="ln"> </span><span class="ln"><span class="hljs-selector-tag">h1</span> {</span><span class="ln">  <span class="hljs-attribute">color</span>: <span class="hljs-number">#8ec5fc</span>;</span><span class="ln">}</span><span class="ln hl"> </span><span class="ln hl"><span class="hljs-selector-tag">li</span> {</span><span class="ln hl">  <span class="hljs-attribute">margin-bottom</span>: <span class="hljs-number">0.3em</span>;</span><span class="ln hl">}</span></code></pre></div>
+<p>然后你匆匆提交了：只提交了一个文件，提交信息里还有个拼写错误。</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git add index.html
+git commit -m &quot;Add redaing to my hobbies&quot;">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add index.html</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit -m &quot;Add redaing to my hobbies&quot;</span></span><span class="t-out">[main b0c7144] Add redaing to my hobbies
+ 1 file changed, 1 insertion(+)</span></code></pre></div>
+<p>两处错误：“redaing”拼错了，<code>style.css</code> 也被漏掉了。因为这个提交你<strong>还没推送</strong>，所以可以修正它。先添加漏掉的文件，再用 <code>--amend</code> 修改上一次提交，并写上正确的提交信息：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git add style.css
+git commit --amend -m &quot;Add reading to my hobbies&quot;">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add style.css</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit --amend -m &quot;Add reading to my hobbies&quot;</span></span><span class="t-out">[main cab53b1] Add reading to my hobbies
+ Date: Thu Nov 12 10:09:00 2026 +0000
+ 2 files changed, 5 insertions(+)</span></code></pre></div>
+<p><code>--amend</code> 会用一个新提交替换你的上一次提交：新提交包含原来那次提交的内容，加上现在已暂存（staged）的内容，提交信息则换成新的。<code>Date:</code> 这一行表明，它保留了原来那次提交的时间。检查一下：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git log --oneline -2">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git log --oneline -2</span></span><span class="t-out"><span class="t-hash">cab53b1</span> <span class="t-hash">(</span><span class="t-branch">HEAD -&amp;gt; main</span><span class="t-hash">)</span> Add reading to my hobbies
+<span class="t-hash">5841c42</span> Ignore my private notes</span></code></pre></div>
+<p>那个有拼写错误的提交已经从你的历史里消失了。注意哈希值变了：这是一个新提交。</p>
+<div class="callout tip"><div class="callout-label">提示</div>
+<p>如果只想补上漏掉的文件、不改提交信息，就用 <code>git commit --amend --no-edit</code>。</p>
+</div>
+<span class="section-anchor" id="reset"></span>
+<div class="section-header"><span class="section-num">7</span><h2>“我想撤销上一次提交，但保留改动”</h2></div>
+<p>有时你想让提交消失，但想留下其中的改动：也许还要再改一改，或者想换一种方式提交。只要还没推送，<code>git reset --soft</code> 就能收回上一次提交，并让它的改动保持已暂存。<code>--soft</code> 的意思是“保留改动”，<code>HEAD~1</code> 的意思是“<code>HEAD</code> 之前的一个提交”。<code>~</code> 是波浪号：在某些键盘上，要先按它，再按 <kbd>Space</kbd>。如果找不到这个键，就点<strong>复制</strong>按钮。</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git reset --soft HEAD~1
+git status">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git reset --soft HEAD~1</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use &quot;git push&quot; to publish your local commits)
+
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+<span class="t-good">	modified:   index.html</span>
+<span class="t-good">	modified:   style.css</span></span></code></pre></div>
+<p>提交“Add reading to my hobbies”被撤销了，但它的改动还在暂存区里等着，所以什么都没丢。“Ahead by 1 commit”（领先 1 个提交）指的是你还没推送的 <code>.gitignore</code> 那个提交。把这些改动再提交一次。这里原样提交，是为了看到确实什么都没丢；实际工作中，你会先改点什么，或者把文件分开提交。</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git commit -m &quot;Add reading to my hobbies&quot;">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit -m &quot;Add reading to my hobbies&quot;</span></span><span class="t-out">[main dc4f482] Add reading to my hobbies
+ 2 files changed, 5 insertions(+)</span></code></pre></div>
+<p>然后推送这两个提交：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git push">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git push</span></span><span class="t-out">Enumerating objects: 10, done.
+Counting objects: 100% (10/10), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (7/7), 856 bytes | 856.00 KiB/s, done.
+Total 7 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/your-username/my-page.git
+   32cd9ea..dc4f482  main -&gt; main</span></code></pre></div>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>你可能会在别处看到 <code>git reset --hard</code>。它会撤销提交，<strong>并且</strong>把它的改动从你的文件里删掉，连同你所有还没提交的工作。这些工作是找不回来的。在你确定自己理解它之前，不要用它。</p>
+</div>
+<span class="section-anchor" id="revert"></span>
+<div class="section-header"><span class="section-num">8</span><h2>“我想撤销一个已经在 GitHub 上的提交”</h2></div>
+<p>新加的爱好“Reading”现在已经上线了，可你又改了主意。这个提交已经在 GitHub 上了，所以<strong>不要</strong>用 <code>--amend</code> 修改它，也不要用 <code>reset</code> 重置它：否则 GitHub 上就会有你电脑上没有的提交，你下次推送时会被拒绝。正确的做法是还原（revert）它：用 <code>git revert</code> 加上这个提交的哈希值，创建一个新提交来撤销它。直接写 <code>HEAD</code> 也可以，因为它就是最新的提交。和合并（merge）时一样，VS Code 会打开一个标签页，里面是写好的提交信息 <code>Revert &quot;Add reading to my hobbies&quot;</code>：关闭这个标签页就表示接受，然后再点回终端。</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git revert HEAD">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git revert HEAD</span></span><span class="t-out">[main 3189807] Revert &quot;Add reading to my hobbies&quot;
+ 2 files changed, 5 deletions(-)</span></code></pre></div>
+<p>“Reading”那一行和列表的间距都从你的文件里消失了。现在你的历史里两个提交都在：一个是改动，一个是对它的撤销。这样既诚实又安全：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git log --oneline -3
+git push">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git log --oneline -3</span></span><span class="t-out"><span class="t-hash">3189807</span> <span class="t-hash">(</span><span class="t-branch">HEAD -&amp;gt; main</span><span class="t-hash">)</span> Revert &quot;Add reading to my hobbies&quot;
+<span class="t-hash">dc4f482</span> <span class="t-hash">(</span><span class="t-remote">origin/main</span><span class="t-hash">, </span><span class="t-remote">origin/HEAD</span><span class="t-hash">)</span> Add reading to my hobbies
+<span class="t-hash">5841c42</span> Ignore my private notes</span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git push</span></span><span class="t-out">Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 471 bytes | 471.00 KiB/s, done.
+Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/your-username/my-page.git
+   dc4f482..3189807  main -&gt; main</span></code></pre></div>
+<p>你可以还原任何一个提交，不只是最近的那个：用 <code>git log --oneline</code> 里它的哈希值就行。合并提交（merge commit）是例外，比如合并拉取请求（pull request）时产生的提交：要撤销一次合并带进来的内容，请用 <code>git revert -m 1 HASH</code>。</p>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p><strong>还原不会把任何东西藏起来。</strong>旧提交仍然留在历史里，而公开仓库的历史谁都能看。如果你推送了密码或密钥，请立刻到它所属的网站上把它改掉。把它从历史中删除，是一项高级操作。</p>
+</div>
+<span class="section-anchor" id="reflog"></span>
+<div class="section-header"><span class="section-num">9</span><h2>“我好像弄丢了一个提交”</h2></div>
+<p>你修改过一次提交（<code>--amend</code>），又重置过一次（<code>reset</code>）。旧的版本去哪儿了？暂时哪儿也没去。Git 会为 <code>HEAD</code> 到过的每一个位置记日记，这本日记叫 <strong>reflog</strong>（引用日志）：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git reflog -7">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git reflog -7</span></span><span class="t-out"><span class="t-hash">3189807</span> <span class="t-hash">(</span><span class="t-branch">HEAD -&amp;gt; main</span><span class="t-hash">, </span><span class="t-remote">origin/main</span><span class="t-hash">, </span><span class="t-remote">origin/HEAD</span><span class="t-hash">)</span> HEAD@{0}: revert: Revert &quot;Add reading to my hobbies&quot;
+<span class="t-hash">dc4f482</span> HEAD@{1}: commit: Add reading to my hobbies
+<span class="t-hash">5841c42</span> HEAD@{2}: reset: moving to HEAD~1
+<span class="t-hash">cab53b1</span> HEAD@{3}: commit (amend): Add reading to my hobbies
+<span class="t-hash">b0c7144</span> HEAD@{4}: commit: Add redaing to my hobbies
+<span class="t-hash">5841c42</span> HEAD@{5}: commit: Ignore my private notes
+<span class="t-hash">32cd9ea</span> HEAD@{6}: pull: Fast-forward</span></code></pre></div>
+<p>从下往上读：最下面是第 10 课结尾的那次拉取（pull），再往上是本课的经过。<code>HEAD@{0}</code> 是 <code>HEAD</code> 现在的位置，<code>HEAD@{1}</code> 是它上一步所在的位置，依此类推。就连那个有拼写错误的提交 <code>b0c7144</code> 也还在。要找回其中任何一个提交，就在它上面建一个分支（branch），哈希值请用<strong>你自己的</strong> reflog 里的：</p>
+<div class="term" data-norun><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git branch rescue b0c7144">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git branch rescue b0c7144</span></span></code></pre></div>
+<p>现在 <code>rescue</code> 指向那个提交，你可以切换过去看看。现在不必这样做。如果你试了，之后请用 <code>git branch -D rescue</code> 删掉这个分支（要用大写的 D，因为它的提交没有被合并）。Git 至少会把这类“丢失”的提交保留 30 天，所以要尽早把它们救回来。</p>
+<span class="section-anchor" id="which"></span>
+<div class="section-header"><span class="section-num">10</span><h2>我该用哪种撤销？</h2></div>
+<figure class="fig" id="fig-11-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" width="760" height="430" role="img"><title>该用哪种撤销</title><defs><marker id="fig-11-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker><marker id="fig-11-1__ah-94A3B8" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#94A3B8"/></marker></defs><rect x="260" y="14" width="240" height="44" rx="12" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1.5"/><text x="380" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">你想撤销什么？</text><path d="M380 58 L101 92" stroke="#94A3B8" stroke-width="1.6" fill="none"/><rect x="14" y="92" width="174" height="54" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="101" y="123" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">文件里尚未提交的改动</text><path d="M380 58 L287 92" stroke="#94A3B8" stroke-width="1.6" fill="none"/><rect x="200" y="92" width="174" height="54" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="287" y="123" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">暂存区里的文件</text><path d="M380 58 L473 92" stroke="#94A3B8" stroke-width="1.6" fill="none"/><rect x="386" y="92" width="174" height="54" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="473" y="123" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">最近一次提交</text><path d="M380 58 L659 92" stroke="#94A3B8" stroke-width="1.6" fill="none"/><rect x="572" y="92" width="174" height="54" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="659" y="123" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">找不到的提交</text><rect x="14" y="178" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.8"/><text x="101" y="202" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="700" fill="#DC2626" text-anchor="middle">git restore FILE</text><text x="101" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">改动会丢失</text><line x1="101" y1="146" x2="101" y2="174" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-11-1__ah-94A3B8)"/><rect x="200" y="178" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#15803D" stroke-width="1.8"/><text x="287" y="202" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="700" fill="#15803D" text-anchor="middle">git restore --staged FILE</text><text x="287" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">文件内容不变</text><line x1="287" y1="146" x2="287" y2="174" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-11-1__ah-94A3B8)"/><rect x="572" y="178" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#15803D" stroke-width="1.8"/><text x="659" y="202" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="700" fill="#15803D" text-anchor="middle">git reflog</text><line x1="659" y1="146" x2="659" y2="174" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-11-1__ah-94A3B8)"/><polygon points="473,170 563,212 473,254 383,212" fill="#FFFBEB" stroke="#B45309" stroke-width="1.6"/><line x1="473" y1="146" x2="473" y2="168" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-11-1__ah-94A3B8)"/><text x="473" y="208" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">它已经在</text><text x="473" y="224" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">GitHub 上了吗？</text><path d="M428 233 L300 312" stroke="#475569" stroke-width="1.8" fill="none" marker-end="url(#fig-11-1__ah-475569)"/><text x="352" y="270" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#475569" text-anchor="end">否</text><path d="M518 233 L640 312" stroke="#475569" stroke-width="1.8" fill="none" marker-end="url(#fig-11-1__ah-475569)"/><text x="594" y="270" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#475569" text-anchor="start">是</text><rect x="118" y="316" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.8"/><text x="205" y="340" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="700" fill="#2563EB" text-anchor="middle">git commit --amend</text><text x="205" y="360" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">修正它</text><rect x="300" y="316" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.8"/><text x="387" y="340" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="700" fill="#2563EB" text-anchor="middle">git reset --soft HEAD~1</text><text x="387" y="360" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">撤销它，保留改动</text><rect x="560" y="316" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#15803D" stroke-width="1.8"/><text x="647" y="340" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="700" fill="#15803D" text-anchor="middle">git revert HASH</text><text x="647" y="360" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">用新提交撤销它</text><text x="296" y="404" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">只能在推送之前使用</text></svg>
+</div><figcaption><span class="fig-num">图 11.1</span> <p>该用哪种撤销。从你想撤销的东西出发：文件里的改动、暂存区里的文件、你的上一次提交（推送之前或之后），或者一个找不到的提交。</p>
+</figcaption></figure>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>情况</th>
+<th>命令</th>
+<th>推送之后也安全吗？</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>丢弃文件中尚未暂存的改动</td>
+<td><code>git restore FILE</code></td>
+<td>与提交无关；改动会丢失</td>
+</tr>
+<tr>
+<td>把文件恢复成旧提交里的样子</td>
+<td><code>git restore --source HASH FILE</code></td>
+<td>安全：你会把结果作为一次新的改动来提交</td>
+</tr>
+<tr>
+<td>把文件移出暂存区</td>
+<td><code>git restore --staged FILE</code></td>
+<td>安全，它不会改变历史里的任何东西</td>
+</tr>
+<tr>
+<td>永不跟踪某个文件（尚未提交过）</td>
+<td>把它加入 <code>.gitignore</code></td>
+<td>安全</td>
+</tr>
+<tr>
+<td>修正上一次提交的信息或文件</td>
+<td><code>git commit --amend</code></td>
+<td><strong>不安全</strong>：只能在推送之前用</td>
+</tr>
+<tr>
+<td>撤销上一次提交，保留改动</td>
+<td><code>git reset --soft HEAD~1</code></td>
+<td><strong>不安全</strong>：只能在推送之前用</td>
+</tr>
+<tr>
+<td>撤销已经在 GitHub 上的提交</td>
+<td><code>git revert HASH</code></td>
+<td><strong>安全</strong>：就该用这个办法</td>
+</tr>
+<tr>
+<td>找回看似丢失的提交</td>
+<td><code>git reflog</code></td>
+<td>安全</td>
+</tr>
+</tbody>
+</table></div>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<p><strong>我对一个已经推送的提交用了 <code>--amend</code> 或 <code>reset</code>，现在推送被拒绝了。</strong>不要用 <code>git push --force</code>，尽管很多网站都这么建议：它会用你的历史替换 GitHub 上的历史，可能会删掉那里的提交。先拉取（<code>git pull</code>），如果有冲突，就像第 6 课那样解决，然后推送。你的历史里会多一个合并提交，但什么都不会丢。</p>
+<p><strong><code>git revert</code> 因冲突停了下来。</strong>后来的提交改动了相同的行。像第 6 课那样解决冲突，然后 <code>git add</code> 这些文件，再运行 <code>git revert --continue</code>。也可以用 <code>git revert --abort</code> 放弃。</p>
+<p><strong><code>error: commit ... is a merge but no -m option was given.</code></strong>（提交 ... 是一个合并提交，但没有给出 -m 选项。）你试图还原一个合并提交。请用 <code>git revert -m 1 HASH</code>：它会撤销这次合并给当时所在分支带进来的内容。</p>
+</div></details>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">11</span><h2>小结</h2></div>
+<ul>
+<li>做任何有风险的事之前先提交；提交过的东西还能再找回来。</li>
+<li>只对还没推送的提交改写历史（<code>--amend</code>、<code>reset</code>）。推送之后，用 <code>git revert</code>。</li>
+<li><code>git restore --staged FILE</code> 取消暂存；<code>.gitignore</code> 让还没提交过的文件不进入 Git。</li>
+<li><code>git restore --source HASH FILE</code> 能找回文件的旧版本。</li>
+<li><code>git reflog</code> 列出 <code>HEAD</code> 到过的每一个地方，所以“丢失”的提交能被找回来。</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>git restore --staged FILE</code></td>
+<td>把文件移出暂存区</td>
+</tr>
+<tr>
+<td><code>git restore --source HASH FILE</code></td>
+<td>把文件恢复成提交 <code>HASH</code> 里的样子</td>
+</tr>
+<tr>
+<td><code>git commit --amend -m &quot;...&quot;</code></td>
+<td>用已暂存的内容和新的提交信息替换上一次提交</td>
+</tr>
+<tr>
+<td><code>git reset --soft HEAD~1</code></td>
+<td>撤销上一次提交，并让它的改动保持已暂存</td>
+</tr>
+<tr>
+<td><code>git revert HASH</code></td>
+<td>创建一个新提交，撤销提交 <code>HASH</code></td>
+</tr>
+<tr>
+<td><code>git reflog</code></td>
+<td>列出 <code>HEAD</code> 指向过的每一个提交</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">12</span><h2>自测题</h2></div>
+<div class="quiz" data-n="4">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>你提交时，提交信息里有个拼写错误，而且还没推送。最简单的修正方法是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git commit --amend -m &quot;the right message&quot;</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git revert HEAD</code></button></li><li><button type="button" class="quiz-opt" data-i="2">删除 <code>.git</code> 文件夹，从头再来</button></li></ol><div class="quiz-expl" hidden><code>--amend</code> 会替换上一次提交。这样做是安全的，因为 GitHub 还没见过旧的那个提交。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>一个有错误的提交已经在 GitHub 上了。怎样撤销它？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git reset --soft HEAD~1</code>，然后推送</button></li><li><button type="button" class="quiz-opt" data-i="1">用 <code>git revert</code> 加上这个提交的哈希值，然后推送</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git commit --amend</code>，然后推送</button></li></ol><div class="quiz-expl" hidden><code>revert</code> 会添加一个新提交来撤销旧提交，所以 GitHub 上已有的历史保持完整。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>你运行了 <code>git add .</code>，把一个含有密码的文件也暂存了。你还没有提交。该怎么办？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">对这个文件运行 <code>git restore --staged</code>，并把它加入 <code>.gitignore</code></button></li><li><button type="button" class="quiz-opt" data-i="1">先提交，再还原</button></li><li><button type="button" class="quiz-opt" data-i="2">什么都不用做，Git 从来不会上传这类文件</button></li></ol><div class="quiz-expl" hidden>取消暂存能让它不进入这次提交；<code>.gitignore</code> 能让以后的每一次 <code>git add .</code> 都不再添加它。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>被你用 <code>--amend</code> 替换掉的提交，在哪里能找到？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">哪里都找不到，它会被立刻删除</button></li><li><button type="button" class="quiz-opt" data-i="1">在 GitHub 上</button></li><li><button type="button" class="quiz-opt" data-i="2">在 <code>git reflog</code> 里</button></li></ol><div class="quiz-expl" hidden>reflog 列出了 <code>HEAD</code> 最近指向过的提交。Git 会把丢失的提交在那里保留至少 30 天。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="11"><div class="done-q">学完这一课了吗？</div><button type="button" class="done-btn" data-yes="已完成" data-no="标记为已完成" data-undo="标记为未完成">标记为已完成</button><div class="done-progress" data-label-en="{d} of {n} lessons done" data-label="已完成 {d} / {n} 课"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="lesson_10_ZH.html"><span class="mnav-label">&larr; 上一课</span><span class="mnav-title">第 10 课：拉取请求</span></a><a class="mnav next" href="cheatsheet_ZH.html"><span class="mnav-label">下一课 &rarr;</span><span class="mnav-title">速查表</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p></footer>
+<script src="assets/widgets.js" defer></script>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

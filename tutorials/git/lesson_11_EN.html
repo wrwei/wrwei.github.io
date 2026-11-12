@@ -1,0 +1,409 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 11: Undo and fix mistakes — Git and GitHub, Step by Step</title>
+<meta name="description" content="The commands that get you out of trouble, as recipes. Try each one on your project, so you know what to do when it happens for real.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="11" data-lessons="11">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Git & GitHub</a><span class="sep">/</span><span class="crumb crumb-now">Lesson 11</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Lesson 11 of 11</button><div class="dropdown-menu"><a href="lesson_01_EN.html"><span class="dd-n">1</span>What are Git and GitHub?<span class="dd-done" data-lesson="1"></span></a>
+<a href="lesson_02_EN.html"><span class="dd-n">2</span>Install and set up<span class="dd-done" data-lesson="2"></span></a>
+<a href="lesson_03_EN.html"><span class="dd-n">3</span>Your first repository<span class="dd-done" data-lesson="3"></span></a>
+<a href="lesson_04_EN.html"><span class="dd-n">4</span>Saving changes and looking back<span class="dd-done" data-lesson="4"></span></a>
+<a href="lesson_05_EN.html"><span class="dd-n">5</span>Branches: try ideas safely<span class="dd-done" data-lesson="5"></span></a>
+<a href="lesson_06_EN.html"><span class="dd-n">6</span>Merge conflicts, calmly<span class="dd-done" data-lesson="6"></span></a>
+<a href="lesson_07_EN.html"><span class="dd-n">7</span>Put your project on GitHub<span class="dd-done" data-lesson="7"></span></a>
+<a href="lesson_08_EN.html"><span class="dd-n">8</span>Publish your page with GitHub Pages<span class="dd-done" data-lesson="8"></span></a>
+<a href="lesson_09_EN.html"><span class="dd-n">9</span>Working from two places: pull, push, clone<span class="dd-done" data-lesson="9"></span></a>
+<a href="lesson_10_EN.html"><span class="dd-n">10</span>Pull requests<span class="dd-done" data-lesson="10"></span></a>
+<a href="lesson_11_EN.html" class="active"><span class="dd-n">11</span>Undo and fix mistakes<span class="dd-done" data-lesson="11"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html"><span class="dd-n">&#9670;</span>Troubleshooting</a></div></div>
+  <a href="lesson_11_ZH.html" class="lang-switch" hreflang="zh-CN">中文</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#rules"><span class="num">1</span><span class="side-t">Two rules first</span></a><a href="#restore"><span class="num">2</span><span class="side-t">“I want to throw away my changes to a file”</span></a><a href="#old-version"><span class="num">3</span><span class="side-t">“I want a file as it was in an older commit”</span></a><a href="#unstage"><span class="num">4</span><span class="side-t">“I added a file I did not mean to”</span></a><a href="#ignore"><span class="num">5</span><span class="side-t">“Git should never track this file”</span></a><a href="#amend"><span class="num">6</span><span class="side-t">“My last commit has a mistake, and I have not pushed it”</span></a><a href="#reset"><span class="num">7</span><span class="side-t">“I want to undo my last commit, but keep the work”</span></a><a href="#revert"><span class="num">8</span><span class="side-t">“I want to undo a commit that is already on GitHub”</span></a><a href="#reflog"><span class="num">9</span><span class="side-t">“I think I lost a commit”</span></a><a href="#which"><span class="num">10</span><span class="side-t">Which undo do I need?</span></a><a href="#summary"><span class="num">11</span><span class="side-t">What you learned</span></a><a href="#quiz"><span class="num">12</span><span class="side-t">Check yourself</span></a></nav>
+<div class="sidebar-label">Stuck?</div><div class="side-links"><a href="troubleshooting_EN.html">Troubleshooting</a><a href="cheatsheet_EN.html">Cheat sheet</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Git and GitHub, Step by Step</div>
+      <h1 class="module-title"><span class="title-n">Lesson 11</span>Undo and fix mistakes</h1>
+      <p class="module-lead">The commands that get you out of trouble, as recipes. Try each one on your project, so you know what to do when it happens for real.</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 40 min</span><span class="chip chip-needs">You need: Lesson 10 (<code>my-page</code> on GitHub, up to date)</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">In this lesson you will</h3><ul><li>Take a file out of the staging area with <code>git restore --staged</code></li><li>Keep files out of Git with <code>.gitignore</code></li><li>Fix your last commit with <code>git commit --amend</code>, before you push</li><li>Undo your last commit but keep the work, with <code>git reset --soft</code></li><li>Undo a commit that is already on GitHub, with <code>git revert</code></li><li>Find “lost” commits with <code>git reflog</code></li></ul></section>
+<div class="content">
+<span class="section-anchor" id="rules"></span>
+<div class="section-header"><span class="section-num">1</span><h2>Two rules first</h2></div>
+<p>Git almost never loses work that you have committed. Most “disasters” can be undone. Two rules
+keep it that way:</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<ol>
+<li><strong>Commit before you try anything risky.</strong> What is committed can be recovered; changes that were
+never committed cannot.</li>
+<li><strong>Only rewrite commits that you have not pushed.</strong> <code>--amend</code> and <code>reset</code> change your history.
+That is fine on your computer, but if GitHub already has those commits, use <code>git revert</code>
+instead.</li>
+</ol>
+</div>
+<p>Open <code>my-page</code> in VS Code with a terminal. Each recipe below is headed by the situation it is
+for.</p>
+<span class="section-anchor" id="restore"></span>
+<div class="section-header"><span class="section-num">2</span><h2>“I want to throw away my changes to a file”</h2></div>
+<p>You met this in Lesson 4: <code>git restore FILE</code> throws away the changes to a file that you have not
+staged, and puts it back as it was in your last commit. If you have already staged the changes
+with <code>git add</code>, run <code>git restore --staged FILE</code> first (see “I added a file I did not mean to”,
+below). The same command also brings back a file you deleted by mistake. There is nothing to try
+now: you did this in Lesson 4.</p>
+<div class="term" data-norun><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git restore index.html">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git restore index.html</span></span></code></pre></div>
+<p>Remember that the changes you throw away cannot be recovered.</p>
+<span class="section-anchor" id="old-version"></span>
+<div class="section-header"><span class="section-num">3</span><h2>“I want a file as it was in an older commit”</h2></div>
+<p>Find the commit in <code>git log --oneline</code>, then give its hash to <code>git restore --source</code>. For example,
+to get <code>index.html</code> as it was in your very first commit (use a hash from <strong>your own</strong> list):</p>
+<div class="term" data-norun><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git restore --source c50e3a0 index.html">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git restore --source c50e3a0 index.html</span></span></code></pre></div>
+<p>Your file now looks as it did then. Nothing else has changed: if you want to keep the old
+version, <code>git add</code> and <code>git commit</code> it as a new change; if not, <code>git restore index.html</code> takes you
+back to your last commit. You do not need to try it now.</p>
+<span class="section-anchor" id="unstage"></span>
+<div class="section-header"><span class="section-num">4</span><h2>“I added a file I did not mean to”</h2></div>
+<p>Suppose you keep private notes in the project folder. Create a file <code>notes.txt</code>:</p>
+<div class="file"><div class="file-bar"><span class="file-name">notes.txt</span><button type="button" class="copy-btn" data-copy="Ideas for my page:
+- add a photo
+- try a different font">Copy</button></div><pre class="file-body"><code class="language-plaintext"><span class="ln">Ideas for my page:</span><span class="ln">- add a photo</span><span class="ln">- try a different font</span></code></pre></div>
+<p>Out of habit, you add everything:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git add .
+git status">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add .</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+<span class="t-good">	new file:   notes.txt</span></span></code></pre></div>
+<p>The notes are about to go into a commit, and then to GitHub, where anyone can read them. The hint
+says how to take a file back out of the staging area:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git restore --staged notes.txt
+git status">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git restore --staged notes.txt</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+<span class="t-bad">	notes.txt</span>
+
+nothing added to commit but untracked files present (use &quot;git add&quot; to track)</span></code></pre></div>
+<p><code>notes.txt</code> is untracked again. <code>--staged</code> only changes the staging area; your file is untouched.
+To take everything out of the staging area at once, use <code>git restore --staged .</code>.</p>
+<span class="section-anchor" id="ignore"></span>
+<div class="section-header"><span class="section-num">5</span><h2>“Git should never track this file”</h2></div>
+<p><code>notes.txt</code> is safe for now, but the next <code>git add .</code> would add it again. To tell Git to ignore a
+file for good, list it in a file called <code>.gitignore</code> (with a dot at the start). Create it in
+<code>my-page</code>, next to <code>index.html</code>, the way you created <code>README.md</code>:</p>
+<div class="file"><div class="file-bar"><span class="file-name">.gitignore</span><button type="button" class="copy-btn" data-copy="# My private notes
+notes.txt">Copy</button></div><pre class="file-body"><code class="language-plaintext"><span class="ln"><span class="hljs-comment"># My private notes</span></span><span class="ln">notes.txt</span></code></pre></div>
+<p>Lines starting with <code>#</code> are comments. Every other line is the name of a file, or a pattern, to
+ignore.</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git status">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+<span class="t-bad">	.gitignore</span>
+
+nothing added to commit but untracked files present (use &quot;git add&quot; to track)</span></code></pre></div>
+<p><code>notes.txt</code> has disappeared from the list: Git ignores it now, and VS Code shows it greyed out.
+<code>.gitignore</code> itself is a normal file that belongs in the project, so commit it:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git add .gitignore
+git commit -m &quot;Ignore my private notes&quot;">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add .gitignore</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit -m &quot;Ignore my private notes&quot;</span></span><span class="t-out">[main 5841c42] Ignore my private notes
+ 1 file changed, 2 insertions(+)
+ create mode 100644 .gitignore</span></code></pre></div>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p><code>.gitignore</code> takes patterns too: <code>*.log</code> ignores every file ending in <code>.log</code>, and <code>drafts/</code>
+ignores a whole folder.</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p><code>.gitignore</code> only works for files Git does not track yet. A file you have already committed stays
+tracked until you run <code>git rm --cached FILE</code> and commit. And anything you have pushed stays in the
+history on GitHub: if a password got there, change it.</p>
+</div>
+<span class="section-anchor" id="amend"></span>
+<div class="section-header"><span class="section-num">6</span><h2>“My last commit has a mistake, and I have not pushed it”</h2></div>
+<p>You add one more hobby, and some space between the list items. Change both files:</p>
+<div class="file"><div class="file-bar"><span class="file-name">index.html</span><span class="file-note">highlighted: the lines to add or change</span><button type="button" class="copy-btn" data-copy="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;title&gt;About me&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to my page!&lt;/h1&gt;
+  &lt;p&gt;This is my first web page, published with GitHub Pages.&lt;/p&gt;
+  &lt;p&gt;I like walking, photography and good coffee.&lt;/p&gt;
+  &lt;h2&gt;My hobbies&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Walking&lt;/li&gt;
+    &lt;li&gt;Photography&lt;/li&gt;
+    &lt;li&gt;Cooking&lt;/li&gt;
+    &lt;li&gt;Reading&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;h2&gt;Contact&lt;/h2&gt;
+  &lt;p&gt;You can find me on GitHub as your-username.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;">Copy</button></div><pre class="file-body"><code class="language-xml"><span class="ln"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>About me<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;style.css&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Welcome to my page!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>This is my first web page, published with GitHub Pages.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>I like walking, photography and good coffee.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>My hobbies<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Walking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Photography<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Cooking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln hl">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Reading<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>Contact<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>You can find me on GitHub as your-username.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span></code></pre></div>
+<div class="file"><div class="file-bar"><span class="file-name">style.css</span><span class="file-note">highlighted: the lines to add or change</span><button type="button" class="copy-btn" data-copy="body {
+  font-family: sans-serif;
+  max-width: 40em;
+  margin: 2em auto;
+  padding: 0 1em;
+  background: #1e1e2e;
+  color: #e6e6e6;
+}
+
+h1 {
+  color: #8ec5fc;
+}
+
+li {
+  margin-bottom: 0.3em;
+}">Copy</button></div><pre class="file-body"><code class="language-css"><span class="ln"><span class="hljs-selector-tag">body</span> {</span><span class="ln">  <span class="hljs-attribute">font-family</span>: sans-serif;</span><span class="ln">  <span class="hljs-attribute">max-width</span>: <span class="hljs-number">40em</span>;</span><span class="ln">  <span class="hljs-attribute">margin</span>: <span class="hljs-number">2em</span> auto;</span><span class="ln">  <span class="hljs-attribute">padding</span>: <span class="hljs-number">0</span> <span class="hljs-number">1em</span>;</span><span class="ln">  <span class="hljs-attribute">background</span>: <span class="hljs-number">#1e1e2e</span>;</span><span class="ln">  <span class="hljs-attribute">color</span>: <span class="hljs-number">#e6e6e6</span>;</span><span class="ln">}</span><span class="ln"> </span><span class="ln"><span class="hljs-selector-tag">h1</span> {</span><span class="ln">  <span class="hljs-attribute">color</span>: <span class="hljs-number">#8ec5fc</span>;</span><span class="ln">}</span><span class="ln hl"> </span><span class="ln hl"><span class="hljs-selector-tag">li</span> {</span><span class="ln hl">  <span class="hljs-attribute">margin-bottom</span>: <span class="hljs-number">0.3em</span>;</span><span class="ln hl">}</span></code></pre></div>
+<p>Then you commit in a hurry: only one file, and a typo in the message.</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git add index.html
+git commit -m &quot;Add redaing to my hobbies&quot;">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add index.html</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit -m &quot;Add redaing to my hobbies&quot;</span></span><span class="t-out">[main b0c7144] Add redaing to my hobbies
+ 1 file changed, 1 insertion(+)</span></code></pre></div>
+<p>Two mistakes: “redaing”, and <code>style.css</code> was left out. Because you have <strong>not pushed</strong> this commit,
+you can fix it. Add the forgotten file, then use <code>--amend</code> with the right message:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git add style.css
+git commit --amend -m &quot;Add reading to my hobbies&quot;">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add style.css</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit --amend -m &quot;Add reading to my hobbies&quot;</span></span><span class="t-out">[main cab53b1] Add reading to my hobbies
+ Date: Thu Nov 12 10:09:00 2026 +0000
+ 2 files changed, 5 insertions(+)</span></code></pre></div>
+<p><code>--amend</code> replaces your last commit with a new one, made from what it had plus what is staged now,
+and with the new message. <code>Date:</code> shows that it keeps the time of the original commit. Check:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git log --oneline -2">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git log --oneline -2</span></span><span class="t-out"><span class="t-hash">cab53b1</span> <span class="t-hash">(</span><span class="t-branch">HEAD -&amp;gt; main</span><span class="t-hash">)</span> Add reading to my hobbies
+<span class="t-hash">5841c42</span> Ignore my private notes</span></code></pre></div>
+<p>The commit with the typo is gone from your history. Notice that the hash changed: it is a new
+commit.</p>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>To add a forgotten file without changing the message, use <code>git commit --amend --no-edit</code>.</p>
+</div>
+<span class="section-anchor" id="reset"></span>
+<div class="section-header"><span class="section-num">7</span><h2>“I want to undo my last commit, but keep the work”</h2></div>
+<p>Sometimes you want the commit gone, but not the changes: to change them more, or to commit them
+differently. As long as you have not pushed, <code>git reset --soft</code> takes the last commit back and
+leaves its changes staged. <code>--soft</code> means “keep the changes”, and <code>HEAD~1</code> means “one commit
+before <code>HEAD</code>”. The <code>~</code> is a tilde: on some keyboards you press it and then <kbd>Space</kbd>. If
+you cannot find it, use the <strong>Copy</strong> button.</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git reset --soft HEAD~1
+git status">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git reset --soft HEAD~1</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use &quot;git push&quot; to publish your local commits)
+
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+<span class="t-good">	modified:   index.html</span>
+<span class="t-good">	modified:   style.css</span></span></code></pre></div>
+<p>The commit “Add reading to my hobbies” is undone, but its changes are waiting in the staging area,
+so nothing is lost. (“Ahead by 1 commit” is the <code>.gitignore</code> commit, which you have not pushed
+yet.) Commit them again. Here you commit them unchanged, to see that nothing was lost; in real
+life you would change something first, or commit the files separately.</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git commit -m &quot;Add reading to my hobbies&quot;">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit -m &quot;Add reading to my hobbies&quot;</span></span><span class="t-out">[main dc4f482] Add reading to my hobbies
+ 2 files changed, 5 insertions(+)</span></code></pre></div>
+<p>And push both commits:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git push">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git push</span></span><span class="t-out">Enumerating objects: 10, done.
+Counting objects: 100% (10/10), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (7/7), 856 bytes | 856.00 KiB/s, done.
+Total 7 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/your-username/my-page.git
+   32cd9ea..dc4f482  main -&gt; main</span></code></pre></div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>You may read about <code>git reset --hard</code>. It undoes the commit <em>and</em> deletes its changes from your
+files, together with any work you have not committed. That work cannot be recovered. Do not use it
+until you are sure you understand it.</p>
+</div>
+<span class="section-anchor" id="revert"></span>
+<div class="section-header"><span class="section-num">8</span><h2>“I want to undo a commit that is already on GitHub”</h2></div>
+<p>The reading hobby is online now, and you change your mind about it. The commit is on GitHub, so
+<strong>do not</strong> amend or reset it: GitHub would then have commits your computer does not, and your next
+push would be rejected. Instead, make a new commit that undoes it, with <code>git revert</code> and the
+commit’s hash. <code>HEAD</code> works too, because it is the latest commit. As with a merge, VS Code opens a
+tab with a ready-made message, <code>Revert &quot;Add reading to my hobbies&quot;</code>: close it to accept, then click
+back in the terminal.</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git revert HEAD">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git revert HEAD</span></span><span class="t-out">[main 3189807] Revert &quot;Add reading to my hobbies&quot;
+ 2 files changed, 5 deletions(-)</span></code></pre></div>
+<p>The reading line and the list spacing are gone from your files. Your history now has both
+commits, the change and its undoing, which is honest and safe:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git log --oneline -3
+git push">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git log --oneline -3</span></span><span class="t-out"><span class="t-hash">3189807</span> <span class="t-hash">(</span><span class="t-branch">HEAD -&amp;gt; main</span><span class="t-hash">)</span> Revert &quot;Add reading to my hobbies&quot;
+<span class="t-hash">dc4f482</span> <span class="t-hash">(</span><span class="t-remote">origin/main</span><span class="t-hash">, </span><span class="t-remote">origin/HEAD</span><span class="t-hash">)</span> Add reading to my hobbies
+<span class="t-hash">5841c42</span> Ignore my private notes</span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git push</span></span><span class="t-out">Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 471 bytes | 471.00 KiB/s, done.
+Total 4 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/your-username/my-page.git
+   dc4f482..3189807  main -&gt; main</span></code></pre></div>
+<p>You can revert any commit, not only the last one: use its hash from <code>git log --oneline</code>. A merge
+commit, such as a merged pull request, is the exception: to undo what a merge brought in, use
+<code>git revert -m 1 HASH</code>.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p><strong>A revert does not hide anything.</strong> The old commit stays in the history, and anyone can read the
+history of a public repository. If you pushed a password or a key, change it at once, on the site
+it belongs to. Removing it from the history is an advanced job.</p>
+</div>
+<span class="section-anchor" id="reflog"></span>
+<div class="section-header"><span class="section-num">9</span><h2>“I think I lost a commit”</h2></div>
+<p>You amended a commit and reset one. Where did the old versions go? Nowhere yet. Git keeps a diary
+of every place <code>HEAD</code> has been, called the <strong>reflog</strong>:</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git reflog -7">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git reflog -7</span></span><span class="t-out"><span class="t-hash">3189807</span> <span class="t-hash">(</span><span class="t-branch">HEAD -&amp;gt; main</span><span class="t-hash">, </span><span class="t-remote">origin/main</span><span class="t-hash">, </span><span class="t-remote">origin/HEAD</span><span class="t-hash">)</span> HEAD@{0}: revert: Revert &quot;Add reading to my hobbies&quot;
+<span class="t-hash">dc4f482</span> HEAD@{1}: commit: Add reading to my hobbies
+<span class="t-hash">5841c42</span> HEAD@{2}: reset: moving to HEAD~1
+<span class="t-hash">cab53b1</span> HEAD@{3}: commit (amend): Add reading to my hobbies
+<span class="t-hash">b0c7144</span> HEAD@{4}: commit: Add redaing to my hobbies
+<span class="t-hash">5841c42</span> HEAD@{5}: commit: Ignore my private notes
+<span class="t-hash">32cd9ea</span> HEAD@{6}: pull: Fast-forward</span></code></pre></div>
+<p>Read it from the bottom up: the pull at the end of Lesson 10, then the story of this lesson.
+<code>HEAD@{0}</code> is where <code>HEAD</code> is now, <code>HEAD@{1}</code> where it was one step before, and so on. Even the
+commit with the typo, <code>b0c7144</code>, is still there. To bring back any of these commits, put a branch
+on it, with a hash from <strong>your own</strong> reflog:</p>
+<div class="term" data-norun><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Terminal</span><button type="button" class="copy-btn" data-copy="git branch rescue b0c7144">Copy</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git branch rescue b0c7144</span></span></code></pre></div>
+<p>Now <code>rescue</code> points at that commit, and you can switch to it and look at it. You do not need to do
+this now. If you try it, delete the branch afterwards with <code>git branch -D rescue</code> (a capital D,
+because its commit is not merged). Git keeps such “lost” commits for at least 30 days, so rescue
+them soon.</p>
+<span class="section-anchor" id="which"></span>
+<div class="section-header"><span class="section-num">10</span><h2>Which undo do I need?</h2></div>
+<figure class="fig" id="fig-11-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" width="760" height="430" role="img"><title>Which undo to use</title><defs><marker id="fig-11-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker><marker id="fig-11-1__ah-94A3B8" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#94A3B8"/></marker></defs><rect x="260" y="14" width="240" height="44" rx="12" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1.5"/><text x="380" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">What do you want to undo?</text><path d="M380 58 L101 92" stroke="#94A3B8" stroke-width="1.6" fill="none"/><rect x="14" y="92" width="174" height="54" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="101" y="114" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">Changes to a file,</text><text x="101" y="131" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">not committed</text><path d="M380 58 L287 92" stroke="#94A3B8" stroke-width="1.6" fill="none"/><rect x="200" y="92" width="174" height="54" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="287" y="114" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">A file in the</text><text x="287" y="131" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">staging area</text><path d="M380 58 L473 92" stroke="#94A3B8" stroke-width="1.6" fill="none"/><rect x="386" y="92" width="174" height="54" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="473" y="123" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">My last commit</text><path d="M380 58 L659 92" stroke="#94A3B8" stroke-width="1.6" fill="none"/><rect x="572" y="92" width="174" height="54" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="659" y="114" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">A commit I</text><text x="659" y="131" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#1A2E4A" text-anchor="middle">cannot find</text><rect x="14" y="178" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.8"/><text x="101" y="202" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="700" fill="#DC2626" text-anchor="middle">git restore FILE</text><text x="101" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">the changes are lost</text><line x1="101" y1="146" x2="101" y2="174" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-11-1__ah-94A3B8)"/><rect x="200" y="178" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#15803D" stroke-width="1.8"/><text x="287" y="202" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="700" fill="#15803D" text-anchor="middle">git restore --staged FILE</text><text x="287" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">the file stays as it is</text><line x1="287" y1="146" x2="287" y2="174" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-11-1__ah-94A3B8)"/><rect x="572" y="178" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#15803D" stroke-width="1.8"/><text x="659" y="202" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="700" fill="#15803D" text-anchor="middle">git reflog</text><line x1="659" y1="146" x2="659" y2="174" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-11-1__ah-94A3B8)"/><polygon points="473,170 563,212 473,254 383,212" fill="#FFFBEB" stroke="#B45309" stroke-width="1.6"/><line x1="473" y1="146" x2="473" y2="168" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-11-1__ah-94A3B8)"/><text x="473" y="208" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Is it on GitHub</text><text x="473" y="224" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">already?</text><path d="M428 233 L300 312" stroke="#475569" stroke-width="1.8" fill="none" marker-end="url(#fig-11-1__ah-475569)"/><text x="352" y="270" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#475569" text-anchor="end">no</text><path d="M518 233 L640 312" stroke="#475569" stroke-width="1.8" fill="none" marker-end="url(#fig-11-1__ah-475569)"/><text x="594" y="270" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#475569" text-anchor="start">yes</text><rect x="118" y="316" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.8"/><text x="205" y="340" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="700" fill="#2563EB" text-anchor="middle">git commit --amend</text><text x="205" y="360" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">fix it</text><rect x="300" y="316" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.8"/><text x="387" y="340" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="700" fill="#2563EB" text-anchor="middle">git reset --soft HEAD~1</text><text x="387" y="360" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">undo it, keep the changes</text><rect x="560" y="316" width="174" height="58" rx="10" fill="#FFFFFF" stroke="#15803D" stroke-width="1.8"/><text x="647" y="340" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="700" fill="#15803D" text-anchor="middle">git revert HASH</text><text x="647" y="360" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">a new commit undoes it</text><text x="296" y="404" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">only before you push</text></svg>
+</div><figcaption><span class="fig-num">Figure 11.1</span> <p>Which undo to use. Start from what you want to undo: changes in a file, a file in the staging
+area, your last commit (before or after pushing), or a commit you cannot find.</p>
+</figcaption></figure>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Command</th>
+<th>Safe after pushing?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Throw away changes to a file that are not staged</td>
+<td><code>git restore FILE</code></td>
+<td>Not about commits; the changes are lost</td>
+</tr>
+<tr>
+<td>Get a file as it was in an older commit</td>
+<td><code>git restore --source HASH FILE</code></td>
+<td>Yes: you commit the result as a new change</td>
+</tr>
+<tr>
+<td>Take a file out of the staging area</td>
+<td><code>git restore --staged FILE</code></td>
+<td>Yes, it changes nothing in the history</td>
+</tr>
+<tr>
+<td>Never track a file (not yet committed)</td>
+<td>add it to <code>.gitignore</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Fix the last commit’s message or files</td>
+<td><code>git commit --amend</code></td>
+<td><strong>No</strong>: only before pushing</td>
+</tr>
+<tr>
+<td>Undo the last commit, keep the changes</td>
+<td><code>git reset --soft HEAD~1</code></td>
+<td><strong>No</strong>: only before pushing</td>
+</tr>
+<tr>
+<td>Undo a commit that is on GitHub</td>
+<td><code>git revert HASH</code></td>
+<td><strong>Yes</strong>: this is the way</td>
+</tr>
+<tr>
+<td>Find a commit that seems lost</td>
+<td><code>git reflog</code></td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table></div>
+<details class="trouble"><summary>If something went wrong</summary><div class="details-body">
+<p><strong>I amended or reset a commit that was already pushed, and now my push is rejected.</strong> Do not use
+<code>git push --force</code>, which many websites suggest: it replaces GitHub’s history with yours and can
+delete commits there. Pull (<code>git pull</code>), resolve any conflict as in Lesson 6, and push. Your
+history will have a merge commit, and nothing is lost.</p>
+<p><strong><code>git revert</code> stopped with a conflict.</strong> Later commits changed the same lines. Resolve it as in
+Lesson 6, then <code>git add</code> the files and <code>git revert --continue</code>. Or give up with
+<code>git revert --abort</code>.</p>
+<p><strong><code>error: commit ... is a merge but no -m option was given.</code></strong> You tried to revert a merge commit.
+Use <code>git revert -m 1 HASH</code>: it undoes what the merge brought into the branch it was made on.</p>
+</div></details>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">11</span><h2>What you learned</h2></div>
+<ul>
+<li>Commit before anything risky; what is committed can be found again.</li>
+<li>Rewrite history (<code>--amend</code>, <code>reset</code>) only for commits you have not pushed. After pushing, use
+<code>git revert</code>.</li>
+<li><code>git restore --staged FILE</code> unstages; <code>.gitignore</code> keeps files you have not committed out of Git.</li>
+<li><code>git restore --source HASH FILE</code> brings back an older version of a file.</li>
+<li><code>git reflog</code> lists everywhere <code>HEAD</code> has been, so “lost” commits can be found.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>git restore --staged FILE</code></td>
+<td>Takes a file out of the staging area</td>
+</tr>
+<tr>
+<td><code>git restore --source HASH FILE</code></td>
+<td>Brings back a file as it was in commit <code>HASH</code></td>
+</tr>
+<tr>
+<td><code>git commit --amend -m &quot;...&quot;</code></td>
+<td>Replaces the last commit, with what is staged and a new message</td>
+</tr>
+<tr>
+<td><code>git reset --soft HEAD~1</code></td>
+<td>Undoes the last commit and keeps its changes staged</td>
+</tr>
+<tr>
+<td><code>git revert HASH</code></td>
+<td>Makes a new commit that undoes commit <code>HASH</code></td>
+</tr>
+<tr>
+<td><code>git reflog</code></td>
+<td>Lists every commit <code>HEAD</code> has pointed at</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">12</span><h2>Check yourself</h2></div>
+<div class="quiz" data-n="4">
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">1</span><div>You committed with a typo in the message and have not pushed. What is the simplest fix?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git commit --amend -m &quot;the right message&quot;</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git revert HEAD</code></button></li><li><button type="button" class="quiz-opt" data-i="2">Delete the <code>.git</code> folder and start again</button></li></ol><div class="quiz-expl" hidden><code>--amend</code> replaces the last commit. It is safe because GitHub has not seen the old one.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">2</span><div>A commit with a mistake is already on GitHub. How do you undo it?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git reset --soft HEAD~1</code>, then push</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git revert</code> with the commit’s hash, then push</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git commit --amend</code>, then push</button></li></ol><div class="quiz-expl" hidden><code>revert</code> adds a new commit that undoes the old one, so the history GitHub has stays intact.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>You ran <code>git add .</code> and staged a file with passwords in it. You have not committed. What do you do?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git restore --staged</code> the file, and add it to <code>.gitignore</code></button></li><li><button type="button" class="quiz-opt" data-i="1">Commit, then revert</button></li><li><button type="button" class="quiz-opt" data-i="2">Nothing, Git never uploads such files</button></li></ol><div class="quiz-expl" hidden>Unstaging keeps it out of the commit; <code>.gitignore</code> keeps it out of every future <code>git add .</code>.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>Where can you find a commit that you replaced with <code>--amend</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Nowhere, it is deleted at once</button></li><li><button type="button" class="quiz-opt" data-i="1">On GitHub</button></li><li><button type="button" class="quiz-opt" data-i="2">In <code>git reflog</code></button></li></ol><div class="quiz-expl" hidden>The reflog lists the commits <code>HEAD</code> has pointed at recently. Git keeps lost commits there for at least 30 days.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="11"><div class="done-q">Finished this lesson?</div><button type="button" class="done-btn" data-yes="Done" data-no="Mark as done" data-undo="Mark as not done">Mark as done</button><div class="done-progress" data-label-en="{d} of {n} lessons done" data-label="{d} of {n} lessons done"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="lesson_10_EN.html"><span class="mnav-label">&larr; Previous</span><span class="mnav-title">Lesson 10: Pull requests</span></a><a class="mnav next" href="cheatsheet_EN.html"><span class="mnav-label">Next &rarr;</span><span class="mnav-title">Cheat sheet</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p></footer>
+<script src="assets/widgets.js" defer></script>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

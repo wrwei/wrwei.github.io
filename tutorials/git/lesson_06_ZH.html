@@ -1,0 +1,249 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 6 课：从容应对合并冲突 — 一步一步学 Git 与 GitHub</title>
+<meta name="description" content="故意制造一个合并冲突，看懂 Git 在问你什么，在 VS Code 中解决它，然后完成合并。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="6" data-lessons="11">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index_ZH.html" class="crumb">Git 与 GitHub</a><span class="sep">/</span><span class="crumb crumb-now">第 6 课</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">第 6 课 / 共 11 课</button><div class="dropdown-menu"><a href="lesson_01_ZH.html"><span class="dd-n">1</span>Git 和 GitHub 是什么？<span class="dd-done" data-lesson="1"></span></a>
+<a href="lesson_02_ZH.html"><span class="dd-n">2</span>安装与设置<span class="dd-done" data-lesson="2"></span></a>
+<a href="lesson_03_ZH.html"><span class="dd-n">3</span>你的第一个仓库<span class="dd-done" data-lesson="3"></span></a>
+<a href="lesson_04_ZH.html"><span class="dd-n">4</span>保存改动，回顾历史<span class="dd-done" data-lesson="4"></span></a>
+<a href="lesson_05_ZH.html"><span class="dd-n">5</span>分支：放心尝试新想法<span class="dd-done" data-lesson="5"></span></a>
+<a href="lesson_06_ZH.html" class="active"><span class="dd-n">6</span>从容应对合并冲突<span class="dd-done" data-lesson="6"></span></a>
+<a href="lesson_07_ZH.html"><span class="dd-n">7</span>把项目放到 GitHub 上<span class="dd-done" data-lesson="7"></span></a>
+<a href="lesson_08_ZH.html"><span class="dd-n">8</span>用 GitHub Pages 发布网页<span class="dd-done" data-lesson="8"></span></a>
+<a href="lesson_09_ZH.html"><span class="dd-n">9</span>在两个地方工作：拉取、推送、克隆<span class="dd-done" data-lesson="9"></span></a>
+<a href="lesson_10_ZH.html"><span class="dd-n">10</span>拉取请求<span class="dd-done" data-lesson="10"></span></a>
+<a href="lesson_11_ZH.html"><span class="dd-n">11</span>撤销与修正错误<span class="dd-done" data-lesson="11"></span></a><div class="dd-sep"></div><a href="cheatsheet_ZH.html"><span class="dd-n">&#9670;</span>速查表</a>
+<a href="troubleshooting_ZH.html"><span class="dd-n">&#9670;</span>问题排查</a></div></div>
+  <a href="lesson_06_EN.html" class="lang-switch" hreflang="en">English</a>
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">本页内容</div><nav><a href="#what"><span class="num">1</span><span class="side-t">什么是冲突？</span></a><a href="#make"><span class="num">2</span><span class="side-t">故意制造一个冲突</span></a><a href="#status"><span class="num">3</span><span class="side-t">看看 Git 需要你做什么</span></a><a href="#abort"><span class="num">4</span><span class="side-t">紧急出口：git merge --abort</span></a><a href="#markers"><span class="num">5</span><span class="side-t">读懂冲突</span></a><a href="#resolve"><span class="num">6</span><span class="side-t">解决冲突</span></a><a href="#fewer"><span class="num">7</span><span class="side-t">减少冲突</span></a><a href="#summary"><span class="num">8</span><span class="side-t">小结</span></a><a href="#quiz"><span class="num">9</span><span class="side-t">自测题</span></a></nav>
+<div class="sidebar-label">遇到困难？</div><div class="side-links"><a href="troubleshooting_ZH.html">问题排查</a><a href="cheatsheet_ZH.html">速查表</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">一步一步学 Git 与 GitHub</div>
+      <h1 class="module-title"><span class="title-n">第 6 课</span>从容应对合并冲突</h1>
+      <p class="module-lead">故意制造一个合并冲突，看懂 Git 在问你什么，在 VS Code 中解决它，然后完成合并。</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 30 分钟</span><span class="chip chip-needs">开始之前：第 5 课（分支与合并）</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">在本课中，你将</h3><ul><li>理解冲突为什么会发生，以及为什么它很正常</li><li>看懂 Git 写进文件的冲突标记</li><li>在 VS Code 中解决冲突并完成合并</li><li>用 <code>git merge --abort</code> 中止一次你不想完成的合并</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="what"></span>
+<div class="section-header"><span class="section-num">1</span><h2>什么是冲突？</h2></div>
+<p>在第 5 课里，Git 自己就把两个分支（branch）合在了一起，因为它们改的是 <code>index.html</code> 的不同部分。可如果两个分支以不同的方式修改了<strong>同一行</strong>呢？Git 没法知道你想要哪个版本，所以它会停下来问你。这就是<strong>合并冲突</strong>（merge conflict）。</p>
+<p>冲突不是错误，没有任何东西坏掉或丢失。这只是 Git 在说：“你来决定。”每个用 Git 的人都会遇到冲突；只要你解决过一次，它们就不再可怕了。所以，现在就来故意制造一个。</p>
+<span class="section-anchor" id="make"></span>
+<div class="section-header"><span class="section-num">2</span><h2>故意制造一个冲突</h2></div>
+<p>在 VS Code 中打开 <code>my-page</code>，并打开一个终端（terminal）。首先，建一个修改标题的分支：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git switch -c new-heading">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git switch -c new-heading</span></span><span class="t-out">Switched to a new branch 'new-heading'</span></code></pre></div>
+<p>修改 <code>index.html</code> 里的 <code>&lt;h1&gt;</code> 那一行：</p>
+<div class="file"><div class="file-bar"><span class="file-name">index.html</span><span class="file-note">高亮：需要添加或修改的行</span><button type="button" class="copy-btn" data-copy="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;title&gt;About me&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to my page!&lt;/h1&gt;
+  &lt;p&gt;This is my first web page.&lt;/p&gt;
+  &lt;p&gt;I like walking, photography and good coffee.&lt;/p&gt;
+  &lt;h2&gt;My hobbies&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Walking&lt;/li&gt;
+    &lt;li&gt;Photography&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;">复制</button></div><pre class="file-body"><code class="language-xml"><span class="ln"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>About me<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;style.css&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><span class="ln hl">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Welcome to my page!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>This is my first web page.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>I like walking, photography and good coffee.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>My hobbies<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Walking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Photography<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span></code></pre></div>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git add index.html
+git commit -m &quot;Change the heading&quot;">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add index.html</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit -m &quot;Change the heading&quot;</span></span><span class="t-out">[new-heading e54afda] Change the heading
+ 1 file changed, 1 insertion(+), 1 deletion(-)</span></code></pre></div>
+<p>现在回到 <code>main</code>，用另一种方式修改<strong>同一行</strong>：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git switch main">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git switch main</span></span><span class="t-out">Switched to branch 'main'</span></code></pre></div>
+<div class="file"><div class="file-bar"><span class="file-name">index.html</span><span class="file-note">高亮：需要添加或修改的行</span><button type="button" class="copy-btn" data-copy="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;title&gt;About me&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello and welcome!&lt;/h1&gt;
+  &lt;p&gt;This is my first web page.&lt;/p&gt;
+  &lt;p&gt;I like walking, photography and good coffee.&lt;/p&gt;
+  &lt;h2&gt;My hobbies&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Walking&lt;/li&gt;
+    &lt;li&gt;Photography&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;">复制</button></div><pre class="file-body"><code class="language-xml"><span class="ln"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>About me<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;style.css&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><span class="ln hl">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Hello and welcome!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>This is my first web page.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>I like walking, photography and good coffee.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>My hobbies<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Walking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Photography<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span></code></pre></div>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git add index.html
+git commit -m &quot;Make the heading friendlier&quot;">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add index.html</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit -m &quot;Make the heading friendlier&quot;</span></span><span class="t-out">[main 822c471] Make the heading friendlier
+ 1 file changed, 1 insertion(+), 1 deletion(-)</span></code></pre></div>
+<p>现在来合并，看着 Git 停下来：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git merge new-heading">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git merge new-heading</span></span><span class="t-out">Auto-merging index.html
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.</span></code></pre></div>
+<p>“CONFLICT ... in index.html”（index.html 中有冲突）：Git 把能合并的部分都合并了，剩下的留给你。这次合并现在<strong>正在进行中</strong>：Git 在等你把它完成。在 Windows 上，Git Bash 的提示符（prompt）会一直显示 <code>(main|MERGING)</code>，直到合并完成或被中止。</p>
+<span class="section-anchor" id="status"></span>
+<div class="section-header"><span class="section-num">3</span><h2>看看 Git 需要你做什么</h2></div>
+<p>和往常一样，<code>git status</code> 会给你解释：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git status">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+You have unmerged paths.
+  (fix conflicts and run &quot;git commit&quot;)
+  (use &quot;git merge --abort&quot; to abort the merge)
+
+Unmerged paths:
+  (use &quot;git add &lt;file&gt;...&quot; to mark resolution)
+<span class="t-bad">	both modified:   index.html</span>
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)</span></code></pre></div>
+<p>“Both modified”（双方都已修改）表示两个分支都修改了 <code>index.html</code>，而且改法 Git 没办法自动合在一起。括号里的提示给出了做法：解决冲突，对文件执行 <code>git add</code>，然后执行 <code>git commit</code>。或者中止合并。</p>
+<span class="section-anchor" id="abort"></span>
+<div class="section-header"><span class="section-num">4</span><h2>紧急出口：git merge --abort</h2></div>
+<p>解决冲突之前，先试试这个紧急出口，这样你就知道它管用。如果你正合并到一半，想停下来，比如因为不确定哪个版本才对，<code>git merge --abort</code> 会把一切带回到你输入 <code>git merge</code> 之前的样子：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git merge --abort
+git status">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git merge --abort</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+nothing to commit, working tree clean</span></code></pre></div>
+<p>一切都回到了合并之前的状态：你的标题又变回了“Hello and welcome!”。什么都没有丢，你随时可以再合并。现在就再合并一次：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git merge new-heading">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git merge new-heading</span></span><span class="t-out">Auto-merging index.html
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.</span></code></pre></div>
+<p>还是同一个冲突，等着你来解决。</p>
+<span class="section-anchor" id="markers"></span>
+<div class="section-header"><span class="section-num">5</span><h2>读懂冲突</h2></div>
+<p>在 VS Code 中打开 <code>index.html</code>。Git 已经把两个版本都写进了文件，夹在几行标记之间：</p>
+<div class="file"><div class="file-bar"><span class="file-name">index.html</span><span class="file-note">Git 留下的样子</span></div><pre class="file-body"><code class="language-xml"><span class="ln"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>About me<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;style.css&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><span class="ln conflict">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Hello and welcome!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln conflict">=======</span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Welcome to my page!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln conflict">&gt;&gt;&gt;&gt;&gt;&gt;&gt; new-heading</span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>This is my first web page.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>I like walking, photography and good coffee.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>My hobbies<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Walking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Photography<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span></code></pre></div>
+<figure class="fig" id="fig-06-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300" role="img"><title>合并冲突的结构</title><defs></defs><rect x="20" y="20" width="360" height="232" rx="12" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/><text x="36" y="50" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start" xml:space="preserve">&lt;body&gt;</text><rect x="22" y="60" width="356" height="26" rx="0" fill="#FEE2E2" stroke="none" stroke-width="0"/><text x="36" y="78" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#991B1B" text-anchor="start" xml:space="preserve">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</text><rect x="22" y="88" width="356" height="26" rx="0" fill="#DBEAFE" stroke="none" stroke-width="0"/><text x="36" y="106" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start" xml:space="preserve">  &lt;h1&gt;Hello and welcome!&lt;/h1&gt;</text><rect x="22" y="116" width="356" height="26" rx="0" fill="#FEE2E2" stroke="none" stroke-width="0"/><text x="36" y="134" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#991B1B" text-anchor="start" xml:space="preserve">=======</text><rect x="22" y="144" width="356" height="26" rx="0" fill="#DCFCE7" stroke="none" stroke-width="0"/><text x="36" y="162" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start" xml:space="preserve">  &lt;h1&gt;Welcome to my page!&lt;/h1&gt;</text><rect x="22" y="172" width="356" height="26" rx="0" fill="#FEE2E2" stroke="none" stroke-width="0"/><text x="36" y="190" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#991B1B" text-anchor="start" xml:space="preserve">&gt;&gt;&gt;&gt;&gt;&gt;&gt; new-heading</text><text x="36" y="218" font-family="'DM Mono', Consolas, 'SFMono-Regular', Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start" xml:space="preserve">  &lt;p&gt;This is my first web page.&lt;/p&gt;</text><line x1="386" y1="74" x2="410" y2="74" stroke="#DC2626" stroke-width="1.6"/><text x="418" y="78.5" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#DC2626" text-anchor="start">冲突开始</text><line x1="386" y1="102" x2="410" y2="102" stroke="#2563EB" stroke-width="1.6"/><text x="418" y="106.5" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#2563EB" text-anchor="start">你的版本：HEAD，即你所在的分支（main）</text><line x1="386" y1="130" x2="410" y2="130" stroke="#DC2626" stroke-width="1.6"/><text x="418" y="134.5" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#DC2626" text-anchor="start">分隔线</text><line x1="386" y1="158" x2="410" y2="158" stroke="#15803D" stroke-width="1.6"/><text x="418" y="162.5" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#15803D" text-anchor="start">传入的版本（来自 new-heading）</text><line x1="386" y1="186" x2="410" y2="186" stroke="#DC2626" stroke-width="1.6"/><text x="418" y="190.5" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="600" fill="#DC2626" text-anchor="start">冲突结束</text><text x="20" y="284" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="600" fill="#1A2E4A" text-anchor="start">保留你想要的文字，然后删除三行标记。</text></svg>
+</div><figcaption><span class="fig-num">图 6.1</span> <p>冲突的结构。<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 和 <code>=======</code> 之间是你的版本，也就是你所在的分支，这里是 <code>main</code>。<code>=======</code> 和 <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; new-heading</code> 之间是你要合并进来的那个分支的版本。标记以外的内容都已经顺利合并了。</p>
+</figcaption></figure>
+<p>这三行标记不是你页面的一部分。你要做的，是把从 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> 到 <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> 的所有内容换成你想要的文字，并删掉这些标记。</p>
+<p>VS Code 能帮上忙。它会用颜色区分两个版本，并在它们上方放几个可以点击的链接：</p>
+<ul>
+<li><strong>Accept Current Change</strong>（采用当前更改）保留你的版本（来自 <code>HEAD</code>，也就是你所在的分支）。</li>
+<li><strong>Accept Incoming Change</strong>（采用传入的更改）保留你要合并进来的那个分支的版本。</li>
+<li><strong>Accept Both Changes</strong>（保留双方更改）把两个版本都保留，一个接着一个。</li>
+<li><strong>Compare Changes</strong>（比较变更）把两个版本并排显示。</li>
+</ul>
+<p>VS Code 可能还会显示一个 <strong>Resolve in Merge Editor</strong>（在合并编辑器中解决）按钮。你不需要它：那几个链接更简单。</p>
+<span class="section-anchor" id="resolve"></span>
+<div class="section-header"><span class="section-num">6</span><h2>解决冲突</h2></div>
+<p>决定你想要哪个标题。这里保留“Welcome to my page!”：点击 <strong>Accept Incoming Change</strong>。你也可以手动编辑文件：删掉标记行和你不想要的那一行。无论用哪种方法，文件最后都必须是下面这样，不留任何标记：</p>
+<div class="file"><div class="file-bar"><span class="file-name">index.html</span><button type="button" class="copy-btn" data-copy="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;title&gt;About me&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Welcome to my page!&lt;/h1&gt;
+  &lt;p&gt;This is my first web page.&lt;/p&gt;
+  &lt;p&gt;I like walking, photography and good coffee.&lt;/p&gt;
+  &lt;h2&gt;My hobbies&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Walking&lt;/li&gt;
+    &lt;li&gt;Photography&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;">复制</button></div><pre class="file-body"><code class="language-xml"><span class="ln"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">&quot;en&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;utf-8&quot;</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>About me<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">&quot;stylesheet&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;style.css&quot;</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Welcome to my page!<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>This is my first web page.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>I like walking, photography and good coffee.<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>My hobbies<span class="hljs-tag">&lt;/<span class="hljs-name">h2</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Walking<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">    <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>Photography<span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span></span><span class="ln">  <span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><span class="ln"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span></code></pre></div>
+<p>你并不局限于这两个版本。你也可以自己写第三个标题：你在文件里留下什么，合并的结果就是什么。</p>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<p><strong>我点错了链接。</strong>按 <kbd>Ctrl</kbd>+<kbd>Z</kbd>（Mac 上是 <kbd>Cmd</kbd>+<kbd>Z</kbd>）撤销（undo），或者手动编辑文件，直到它和上面的一样。</p>
+</div></details>
+<div class="callout pitfall"><div class="callout-label">注意</div>
+<p>对有冲突的文件执行 <code>git add</code> 之前，先检查有没有留下标记行：一行忘了删的 <code>=======</code> 会出现在你的页面上。在 VS Code 中搜索这个文件（<kbd>Ctrl</kbd>+<kbd>F</kbd>，Mac 上是 <kbd>Cmd</kbd>+<kbd>F</kbd>），查找 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>、<code>=======</code> 和 <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>。</p>
+</div>
+<p>添加这个文件，就是告诉 Git 冲突已经解决了：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git add index.html
+git status">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git add index.html</span></span><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git status</span></span><span class="t-out">On branch main
+All conflicts fixed but you are still merging.
+  (use &quot;git commit&quot; to conclude merge)
+
+Changes to be committed:
+<span class="t-good">	modified:   index.html</span></span></code></pre></div>
+<p>“All conflicts fixed”（所有冲突都已解决）。用 <code>git commit</code> 完成合并，不要加 <code>-m</code>。输入之前先读完这一段：和第 5 课一样，VS Code 会打开一个标签页，这次叫 <code>COMMIT_EDITMSG</code>。它的第一行 <code>Merge branch 'new-heading'</code> 就是提交信息。下面那些以 <code>#</code> 开头的行是说明，Git 不会把它们写进提交（commit）里；其中一行提到了 <code>git update-ref</code>，你用不着它。关闭标签页就表示接受这条提交信息，提交随之完成。然后点回终端。</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git commit">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git commit</span></span><span class="t-out">[main 10984c7] Merge branch 'new-heading'</span></code></pre></div>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git log --oneline --graph -4">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git log --oneline --graph -4</span></span><span class="t-out">*   <span class="t-hash">10984c7</span> <span class="t-hash">(</span><span class="t-branch">HEAD -&amp;gt; main</span><span class="t-hash">)</span> Merge branch 'new-heading'
+|\
+| * <span class="t-hash">e54afda</span> (new-heading) Change the heading
+* | <span class="t-hash">822c471</span> Make the heading friendlier
+|/
+*   <span class="t-hash">618e8f4</span> Merge branch 'add-hobbies'
+|\</span></code></pre></div>
+<p><code>-4</code> 只显示最新的四个提交；最下面的几条线通向更早的提交。你解决了你的第一个冲突。删除这个分支：</p>
+<div class="term"><div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">终端</span><button type="button" class="copy-btn" data-copy="git branch -d new-heading">复制</button></div><pre class="term-body"><code><span class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">git branch -d new-heading</span></span><span class="t-out">Deleted branch new-heading (was e54afda).</span></code></pre></div>
+<details class="trouble"><summary>如果出了问题</summary><div class="details-body">
+<p><strong><code>fatal: cannot switch branch while merging</code></strong>（致命错误：合并过程中不能切换分支）、<code>error: Merging is not possible because you have unmerged files</code>（错误：无法合并，因为你有未合并的文件）或 <code>fatal: You have not concluded your merge (MERGE_HEAD exists)</code>（致命错误：你还没有完成合并，MERGE_HEAD 存在）。合并还在进行中。要么完成它（修好文件，执行 <code>git add</code> 和 <code>git commit</code>），要么用 <code>git merge --abort</code> 中止它。Git 也会建议 <code>git merge --quit</code>，但不要用它：它会把合并到一半的内容留在你的文件里。</p>
+<p><strong>浏览器里的页面显示了 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code>。</strong>标记行还在文件里。把它们删掉，然后执行 <code>git add index.html</code>。如果合并还在进行中，<code>git commit</code> 会完成它。如果你已经提交了这次合并，就把修复保存为一个新提交：<code>git commit -m &quot;Remove conflict markers&quot;</code>。</p>
+</div></details>
+<span class="section-anchor" id="fewer"></span>
+<div class="section-header"><span class="section-num">7</span><h2>减少冲突</h2></div>
+<p>冲突没法完全避免，但这些习惯能让冲突变得又少又小：</p>
+<ul>
+<li><strong>经常提交小改动</strong>，而不是到最后才提交一个巨大的改动。</li>
+<li><strong>经常合并</strong>，免得分支之间一连几周越走越远。</li>
+<li>和别人合作时，<strong>开始工作前先拿到他们的最新改动</strong>（第 9 课），并商量好谁负责哪一部分。</li>
+</ul>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">8</span><h2>小结</h2></div>
+<ul>
+<li>当两个分支以不同方式修改了同样的行时，就会发生<strong>冲突</strong>。Git 会请你来选择；什么都不会丢。</li>
+<li>在文件里，从 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 到 <code>=======</code> 是你的版本；从 <code>=======</code> 到 <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; branch</code> 是传入的版本。</li>
+<li>解决方法：把文件改成你想要的样子（VS Code 的 <strong>Accept ...</strong> 链接能帮上忙），删掉标记，对文件执行 <code>git add</code>，然后执行 <code>git commit</code>。</li>
+<li><code>git merge --abort</code> 会取消正在进行的合并。</li>
+</ul>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>git status</code></td>
+<td>合并过程中：显示哪些文件有冲突</td>
+</tr>
+<tr>
+<td><code>git add FILE</code></td>
+<td>把一个文件的冲突标记为已解决</td>
+</tr>
+<tr>
+<td><code>git commit</code></td>
+<td>用 Git 准备好的提交信息完成合并</td>
+</tr>
+<tr>
+<td><code>git merge --abort</code></td>
+<td>取消合并，回到合并之前的状态</td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">9</span><h2>自测题</h2></div>
+<div class="quiz" data-n="4">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>Git 什么时候会报告合并冲突？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">只要两个分支修改了同一个文件</button></li><li><button type="button" class="quiz-opt" data-i="1">当两个分支以不同方式修改了一个文件中同样的行时</button></li><li><button type="button" class="quiz-opt" data-i="2">当一个分支上有不止一个提交时</button></li></ol><div class="quiz-expl" hidden>对同一个文件不同部分的修改可以顺利合并，就像第 5 课那样。</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>发生冲突时，<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 和 <code>=======</code> 之间是哪个版本？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">你所在分支的版本</button></li><li><button type="button" class="quiz-opt" data-i="1">你要合并进来的那个分支的版本</button></li><li><button type="button" class="quiz-opt" data-i="2">两个分支最后一个共同提交里的版本</button></li></ol><div class="quiz-expl" hidden><code>HEAD</code> 表示你现在所在的位置，所以这是你当前分支的版本。传入的版本在 <code>=======</code> 下面。</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">3</span><div>你已经修好了文件。接下来的两步是什么？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">再执行一次 <code>git merge</code>，然后 <code>git push</code></button></li><li><button type="button" class="quiz-opt" data-i="1">对文件执行 <code>git add</code>，然后 <code>git commit</code></button></li><li><button type="button" class="quiz-opt" data-i="2">对文件执行 <code>git restore</code>，然后 <code>git commit</code></button></li></ol><div class="quiz-expl" hidden><code>git add</code> 告诉 Git 冲突已经解决；<code>git commit</code> 完成合并。</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>你解决冲突解决到一半，想以后再从头来。该用哪个命令（command）？</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>git restore .</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>git branch -d</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>git merge --abort</code></button></li></ol><div class="quiz-expl" hidden>它会把一切恢复到你输入 <code>git merge</code> 之前的样子。</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">重新作答</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="6"><div class="done-q">学完这一课了吗？</div><button type="button" class="done-btn" data-yes="已完成" data-no="标记为已完成" data-undo="标记为未完成">标记为已完成</button><div class="done-progress" data-label-en="{d} of {n} lessons done" data-label="已完成 {d} / {n} 课"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="lesson_05_ZH.html"><span class="mnav-label">&larr; 上一课</span><span class="mnav-title">第 5 课：分支：放心尝试新想法</span></a><a class="mnav next" href="lesson_07_ZH.html"><span class="mnav-label">下一课 &rarr;</span><span class="mnav-title">第 7 课：把项目放到 GitHub 上</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; 许可协议 <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p></footer>
+<script src="assets/widgets.js" defer></script>
+<script src="assets/tutorial.js" defer></script>
+</body></html>
