@@ -63,6 +63,14 @@ A hands-on 10-module series on model-driven engineering: metamodels, models, que
 
 ---
 
+## Isabelle for model verification
+
+A hands-on introduction to Isabelle/HOL using a small object model: definitions, logical notation, guards, state invariants, structured proofs, datatypes, induction and translation preservation. Includes an interactive guard explorer, downloadable theory files, eight exercises with complete answers, a quick reference, and an introduction to where Isabelle/UTP fits.
+
+[:octicons-arrow-right-24: Go to the Isabelle Tutorial](isabelle/index.md)
+
+---
+
 ## Git and GitHub, Step by Step
 
 A beginner's series in eleven short lessons, 15 to 45 minutes each: keep the history of your work with Git, put it on GitHub, work with branches and pull requests, undo mistakes, and publish your own web page with GitHub Pages. No experience needed, on Windows, macOS or Linux; every output shown was produced by running the commands. English and Chinese.
