@@ -1416,7 +1416,8 @@ and one measure. In general the message has four parts:
 
 A lexicographic order exists when Isabelle can pick measures one after another so that every call has `<`
 under one of the picked measures and `<=` under all the measures picked before it. When no choice works,
-the message ends with **Could not find lexicographic termination order**.
+the message ends with **Could not find lexicographic termination order**. Exercise 8.8 gives you three
+more reports to predict and read.
 
 ::: example A function nobody has proved terminating
 Module 5 ended its section on termination with the Collatz function, which counts the steps that the
@@ -1534,9 +1535,9 @@ termination
 with a single equation that is a formality. `termination` then asks for the termination proof, and you
 name the measure. `λ(i, n). n + 1 - i` is the function that maps the pair of arguments `(i, n)` to
 `n + 1 - i`; `measure` turns it into the relation "has a smaller measure", and the method `relation`
-makes Isabelle use that relation. `auto` proves the rest: that the relation is well-founded, as every
-measure is (Module 5), and that the call decreases the measure, from `n + 1 - i` to `n + 1 - (i + 1)`,
-because the call happens only when `¬ n < i`. Now `sum_from` is defined, and it computes:
+makes Isabelle use that relation. `auto` proves the rest: that the relation is well-founded, as it is
+for every measure (Module 5), and that the call decreases the measure, from `n + 1 - i` to
+`n + 1 - (i + 1)`, because the call happens only when `¬ n < i`. Now `sum_from` is defined, and it computes:
 
 ```isabelle
 value "sum_from 3 5"
@@ -1664,7 +1665,8 @@ same translation.
   comprehension. Subtraction on `nat` is truncated, `div` and `mod` are total, and overloaded
   operations are organised in type classes and sorts.
 - Every `fun` must terminate, or its equations could prove `0 = 1`. Isabelle searches for a decreasing
-  measure, reports it, and explains its failure with a matrix of calls and measures.
+  measure, reports it, and explains its failure with a matrix of calls and measures. With `function` and
+  `termination` you supply the measure yourself.
 - `export_code` translates definitions into Haskell, SML, OCaml or Scala.
 
 ## Exercises {#exercises}
@@ -1989,65 +1991,77 @@ Without `numeral_eq_Suc`, `simp` proves the cases for `Red` and `RedAmber` but g
 :::
 ::::
 
-:::: exercise Which definitions terminate? {#ex-8-8} ★★★
-For each definition, predict whether `fun` accepts it, and which measure it reports. Then try it.
+:::: exercise Termination in Isabelle's words {#ex-8-8} ★★★
+For each definition, predict whether `fun` accepts it, and what it reports: the termination order, or
+the entries of the result matrix. Then try it.
 
-1. `count_down n = (if n = 0 then [] else n # count_down (n - 1))`, with type `nat ⇒ nat list`
-2. Ackermann's function `ack :: nat ⇒ nat ⇒ nat`, with the equations `ack 0 n = Suc n`,
-   `ack (Suc m) 0 = ack m 1` and `ack (Suc m) (Suc n) = ack m (ack (Suc m) n)`
-3. `forever n = forever (n + 1)`, with type `nat ⇒ nat`
-
-Is `forever` as dangerous as `bad` in Section 8.7?
+1. `merge`, which merges two sorted lists into one sorted list, with the type
+   `'a::linorder list ⇒ 'a list ⇒ 'a list` and the equations `merge [] ys = ys`, `merge xs [] = xs` and
+   `merge (x # xs) (y # ys) = (if x ≤ y then x # merge xs (y # ys) else y # merge (x # xs) ys)`. The
+   class `linorder` contains the types with a linear order `≤`, such as `nat` and `int`.
+2. `forever n = forever (n + 1)`, with type `nat ⇒ nat`. Is it as dangerous as `bad` in Section 8.7?
+3. `count_up i n = (if i < n then count_up (i + 1) n + 1 else 0)`, with type `nat ⇒ nat ⇒ nat`, from
+   Exercise 5.8, which `fun` rejects. Define it with `function`, as `sum_from` in Section 8.7, and compute
+   `count_up 3 10`.
 
 ::: solution
-```isabelle
-fun count_down :: "nat ⇒ nat list" where
-  "count_down n = (if n = 0 then [] else n # count_down (n - 1))"
-```
+1. Accepted:
 
-```output
-consts
-  count_down :: "nat ⇒ nat list"
+   ```isabelle
+   fun merge :: "'a::linorder list ⇒ 'a list ⇒ 'a list" where
+     "merge [] ys = ys"
+   | "merge xs [] = xs"
+   | "merge (x # xs) (y # ys) =
+        (if x ≤ y then x # merge xs (y # ys) else y # merge (x # xs) ys)"
 
-Found termination order: "size <*mlex*> {}"
-```
+   value "merge [1, 4, 6] [2, 3, 7::nat]"
+   ```
 
-1. Accepted. The measure is `size`, the number `n` itself. The recursive call happens only when
-   `n ≠ 0`, and Isabelle uses this condition to prove `n - 1 < n`.
+   ```output all
+   ```
 
-```isabelle
-fun ack :: "nat ⇒ nat ⇒ nat" where
-  "ack 0 n = Suc n"
-| "ack (Suc m) 0 = ack m 1"
-| "ack (Suc m) (Suc n) = ack m (ack (Suc m) n)"
+   There are two recursive calls. The first makes the first list shorter and keeps the second; the
+   second call does the opposite. So neither length decreases at both calls, and no single measure works,
+   but a lexicographic order does, as for Ackermann's function in Module 5. Isabelle picked the length of
+   the second list first: it decreases (`<`) at the second call and stays the same (`<=`) at the first
+   call, where the length of the first list then decreases. Comparing the first lists first would work as
+   well.
 
-value "ack 2 3"
-```
+2. Rejected:
 
-```output all
-consts
-  ack :: "nat ⇒ nat ⇒ nat"
+   ```isabelle fails
+   fun forever :: "nat ⇒ nat" where
+     "forever n = forever (n + 1)"
+   ```
 
-Found termination order:
-  "(λp. size (fst p)) <*mlex*> (λp. size (snd p)) <*mlex*> {}"
+   ```output
+   ```
 
-"9"
-  :: "nat"
-```
+   The call goes from `n` to `n + 1`, so the size grows, and the matrix entry is `F`: the claim that the
+   size does not grow, `n + 1 ≤ n`, became plain `False`. No measure can work at all: it would have to
+   decrease from `n` to `n + 1` to `n + 2` and so on, an infinite descending chain of natural numbers.
+   But `forever` is not dangerous in the way `bad` is: every constant function satisfies
+   `forever n = forever (n + 1)`, so the equation is not contradictory. It is merely not a definition: it
+   does not determine which function `forever` is, and as a program it runs forever. Like `f n = f n` in
+   Module 5, it shows that `fun` rejects every recursion whose termination it cannot prove, whether the
+   equations are contradictory or not.
 
-2. Accepted, with a lexicographic order of two measures. In the calls `ack m 1` and
-   `ack m (ack (Suc m) n)` the first argument decreases, whatever happens to the second. In the inner call
-   `ack (Suc m) n` the first argument stays the same and the second decreases. That is exactly what
-   `<*mlex*>` expresses: compare the first arguments, and only when they are equal, the second ones.
-   Ackermann's function grows extremely fast; `ack 4 2` already has 19,729 digits.
+3. The measure is `n - i`. The call happens only when `i < n`, and then `n - (i + 1) < n - i`:
 
-3. Rejected, with "Could not find lexicographic termination order": the argument grows in every call, so
-   no measure can decrease. The result matrix even shows a fourth kind of entry, `F`: Isabelle found that
-   `n + 1 ≤ n` is false, so the size grows. But `forever` is not dangerous in the way `bad` is: every constant function
-   satisfies `forever n = forever (n + 1)`, so the equation is not contradictory. It is merely not a
-   definition: it does not determine which function `forever` is, and as a program it runs forever. `fun`
-   rejects every recursion whose termination it cannot prove, whether the equations are contradictory
-   or not.
+   ```isabelle
+   function count_up :: "nat ⇒ nat ⇒ nat" where
+     "count_up i n = (if i < n then count_up (i + 1) n + 1 else 0)"
+     by pat_completeness auto
+   termination
+     by (relation "measure (λ(i, n). n - i)") auto
+
+   value "count_up 3 10"
+   ```
+
+   ```output
+   ```
+
+   `count_up i n` counts the steps from `i` up to `n`, so it equals `n - i`, here 7.
 :::
 ::::
 

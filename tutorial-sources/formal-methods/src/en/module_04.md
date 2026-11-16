@@ -789,8 +789,9 @@ Well-founded relations are why programs terminate and why induction is sound.
   $n > 0$. When you define a function with `fun`, Isabelle looks for such a relation; that is the
   "termination order" it reported in Module 1.
 - **Induction.** To prove $P\,x$ for all $x$, it suffices to prove $P\,x$ assuming that $P$ holds for
-  everything smaller than $x$. If $P$ failed somewhere, the counterexamples would have a minimal element
-  $m$; $P$ holds below $m$, so the step proves $P\,m$, a contradiction.
+  everything smaller than $x$ (this proof is the induction step). If $P$ failed somewhere, the
+  counterexamples would have a minimal element $m$; $P$ holds below $m$, so the induction step proves
+  $P\,m$, a contradiction.
 
 Module 5 builds both ideas on this foundation.
 :::

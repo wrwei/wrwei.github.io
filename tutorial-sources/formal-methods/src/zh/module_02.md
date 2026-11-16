@@ -550,26 +550,21 @@ neither, because the method may have been too weak, and "no counterexample found
 Isabelle a question is settled only when `by …` succeeds or a counterexample appears.
 :::
 
-## Logical equivalence and the laws {#equivalence}
+## 逻辑等价与等价律 {#equivalence}
 
-A ⟶ B and ¬A ∨ B look different, yet they have the same truth table. Programmers meet the same question
-whenever they rewrite a condition: is the new `if` test the same as the old one?
+A ⟶ B 和 ¬A ∨ B 看起来不同，却有相同的真值表。程序员每次改写一个条件时，都会遇到同样的问题：新的 `if` 判断和原来的一样吗？
 
-::: definition Logical equivalence
-Two formulas φ and ψ are **logically equivalent**, written φ ≡ ψ and read "φ is equivalent to ψ", if
-they have the same truth value under every valuation.
+::: definition 逻辑等价
+如果两个公式 φ 和 ψ 在每个赋值下都有相同的真值，就称它们是**逻辑等价的**（logically equivalent），记作 φ ≡ ψ，读作“φ 等价于 ψ”。
 :::
 
-The symbol ≡ is not a connective. φ ≡ ψ is a statement *about* two formulas, made outside the logic, like
-"these two programs compute the same function"; the connective ⟷ lives inside formulas. The two are
-linked:
+符号 ≡ 不是联结词。φ ≡ ψ 是一个**关于**两个公式的陈述，是在逻辑之外做出的，就像“这两个程序计算的是同一个函数”一样；而联结词 ⟷ 位于公式内部。两者之间有这样的联系：
 
-::: fact Equivalence and ⟷
-φ ≡ ψ if and only if φ ⟷ ψ is a tautology.
+::: fact 等价与 ⟷
+φ ≡ ψ 当且仅当 φ ⟷ ψ 是重言式。
 :::
 
-This holds because φ ⟷ ψ is true in a row exactly when φ and ψ have the same value there. So a truth
-table with a column for each side checks an equivalence. Here is A ⟶ B ≡ ¬A ∨ B:
+这是因为 φ ⟷ ψ 在某一行中为真，恰好是在 φ 和 ψ 在这一行中取值相同的时候。所以，为两边各列一列的真值表就能检查一个等价式。下面是 A ⟶ B ≡ ¬A ∨ B：
 
 ```truthtable
 (A ⟶ B) ⟷ ¬A ∨ B
@@ -577,93 +572,81 @@ A ⟶ B
 ¬A ∨ B
 ```
 
-A small set of equivalences, the **laws** of propositional logic, does most of the everyday work. Each
-can be checked with a truth table like the one above.
+一小组等价式，即命题逻辑的**定律**（laws），能完成日常的大部分工作。每一条都可以用像上面那样的真值表来检查。
 
-::: fact Laws of equivalence
-| Law | Equivalences |
+::: fact 等价律
+| 定律 | 等价式 |
 |---|---|
-| Double negation | ¬¬A ≡ A |
-| De Morgan | ¬(A ∧ B) ≡ ¬A ∨ ¬B;  ¬(A ∨ B) ≡ ¬A ∧ ¬B |
-| Commutativity | A ∧ B ≡ B ∧ A;  A ∨ B ≡ B ∨ A |
-| Associativity | (A ∧ B) ∧ C ≡ A ∧ (B ∧ C);  (A ∨ B) ∨ C ≡ A ∨ (B ∨ C) |
-| Distributivity | A ∧ (B ∨ C) ≡ (A ∧ B) ∨ (A ∧ C);  A ∨ (B ∧ C) ≡ (A ∨ B) ∧ (A ∨ C) |
-| Idempotence | A ∧ A ≡ A;  A ∨ A ≡ A |
-| Absorption | A ∧ (A ∨ B) ≡ A;  A ∨ (A ∧ B) ≡ A |
-| Identity | A ∧ True ≡ A;  A ∨ False ≡ A |
-| Domination | A ∧ False ≡ False;  A ∨ True ≡ True |
-| Complement | A ∧ ¬A ≡ False;  A ∨ ¬A ≡ True |
-| Implication | A ⟶ B ≡ ¬A ∨ B |
-| Contrapositive | A ⟶ B ≡ ¬B ⟶ ¬A |
-| Negated implication | ¬(A ⟶ B) ≡ A ∧ ¬B |
-| Exportation | A ∧ B ⟶ C ≡ A ⟶ B ⟶ C |
-| Equivalence | A ⟷ B ≡ (A ⟶ B) ∧ (B ⟶ A) |
+| 双重否定律（double negation） | ¬¬A ≡ A |
+| 德摩根律（De Morgan） | ¬(A ∧ B) ≡ ¬A ∨ ¬B；¬(A ∨ B) ≡ ¬A ∧ ¬B |
+| 交换律（commutativity） | A ∧ B ≡ B ∧ A；A ∨ B ≡ B ∨ A |
+| 结合律（associativity） | (A ∧ B) ∧ C ≡ A ∧ (B ∧ C)；(A ∨ B) ∨ C ≡ A ∨ (B ∨ C) |
+| 分配律（distributivity） | A ∧ (B ∨ C) ≡ (A ∧ B) ∨ (A ∧ C)；A ∨ (B ∧ C) ≡ (A ∨ B) ∧ (A ∨ C) |
+| 幂等律（idempotence） | A ∧ A ≡ A；A ∨ A ≡ A |
+| 吸收律（absorption） | A ∧ (A ∨ B) ≡ A；A ∨ (A ∧ B) ≡ A |
+| 同一律（identity） | A ∧ True ≡ A；A ∨ False ≡ A |
+| 零律（domination） | A ∧ False ≡ False；A ∨ True ≡ True |
+| 互补律（complement） | A ∧ ¬A ≡ False；A ∨ ¬A ≡ True |
+| 蕴涵律（implication） | A ⟶ B ≡ ¬A ∨ B |
+| 逆否律（contrapositive） | A ⟶ B ≡ ¬B ⟶ ¬A |
+| 蕴涵否定律（negated implication） | ¬(A ⟶ B) ≡ A ∧ ¬B |
+| 输出律（exportation） | A ∧ B ⟶ C ≡ A ⟶ B ⟶ C |
+| 等价律（equivalence） | A ⟷ B ≡ (A ⟶ B) ∧ (B ⟶ A) |
 :::
 
-The laws are stated with atoms, but they hold for all formulas, and they can be used inside larger
-formulas:
+这些定律是用原子写出的，但它们对所有公式都成立，而且可以用在更大的公式内部：
 
-::: fact Substitution and replacement
-1. **Substitution.** If a formula is a tautology, replacing an atom everywhere in it by the same
-   formula gives a tautology. Each law of Fact 2.3, written with ⟷, is a tautology (Fact 2.2), so it
-   holds with any formulas in place of A, B and C.
-2. **Replacement.** If φ ≡ ψ, replacing an occurrence of φ inside a formula by ψ gives an equivalent
-   formula.
+::: fact 代入与置换
+1. **代入**（substitution）。如果一个公式是重言式，那么把其中某个原子的每一处出现都换成同一个公式，得到的仍是重言式。事实 2.3 中的每条定律用 ⟷ 写出来都是重言式（事实 2.2），所以把 A、B、C 换成任意公式，定律依然成立。
+2. **置换**（replacement）。如果 φ ≡ ψ，那么把一个公式中 φ 的某一处出现换成 ψ，得到的公式与原公式等价。
 :::
 
-Substitution holds because a tautology is true whatever values its atoms take, and so whatever values
-the substituted formulas take. Replacement holds because the value of a formula depends only on the
-values of its parts.
+代入之所以成立，是因为重言式无论其原子取什么值都为真，因而无论代入的公式取什么值也都为真。置换之所以成立，是因为一个公式的值只取决于它各部分的值。
 
-::: example Simplifying a condition in code
-A program contains the test
+::: example 化简代码中的条件
+一个程序中有这样的判断：
 
 ```text
 if not (valid and not expired) or expired:
 ```
 
-Write v for `valid` and e for `expired`, and simplify step by step, naming the law used at each step:
+用 v 表示 `valid`（有效），用 e 表示 `expired`（已过期），然后一步一步地化简，并写出每一步所用的定律：
 
 $$
 \begin{array}{lll}
  & \lnot(v \land \lnot e) \lor e & \\
-\equiv & (\lnot v \lor \lnot\lnot e) \lor e & \text{De Morgan} \\
-\equiv & (\lnot v \lor e) \lor e & \text{double negation} \\
-\equiv & \lnot v \lor (e \lor e) & \text{associativity} \\
-\equiv & \lnot v \lor e & \text{idempotence} \\
-\equiv & v \imp e & \text{implication}
+\equiv & (\lnot v \lor \lnot\lnot e) \lor e & \text{德摩根律} \\
+\equiv & (\lnot v \lor e) \lor e & \text{双重否定律} \\
+\equiv & \lnot v \lor (e \lor e) & \text{结合律} \\
+\equiv & \lnot v \lor e & \text{幂等律} \\
+\equiv & v \imp e & \text{蕴涵律}
 \end{array}
 $$
 
-So the test is equivalent to `if not valid or expired:`. Read as an implication, "if the ticket is
-valid, it has expired", it suggests that the original test does not say what its author meant.
-Simplifying a condition is a cheap way to find out what it really says.
+所以这个判断等价于 `if not valid or expired:`。把它读成蕴涵式，就是“如果票有效，那么它已经过期”，这表明原来的判断很可能没有表达出作者的本意。化简一个条件，是弄清它真正说了什么的一种廉价办法。
 :::
 
 ::: pitfall
-Three formulas look like A ⟶ B, and only one of them is equivalent to it:
+有三个公式看起来很像 A ⟶ B，但其中只有一个与它等价：
 
-| Formula | Name | Equivalent to A ⟶ B? |
+| 公式 | 名称 | 与 A ⟶ B 等价吗？ |
 |---|---|---|
-| ¬B ⟶ ¬A | contrapositive | yes |
-| B ⟶ A | converse | no |
-| ¬A ⟶ ¬B | inverse | no |
+| ¬B ⟶ ¬A | 逆否命题（contrapositive） | 是 |
+| B ⟶ A | 逆命题（converse） | 否 |
+| ¬A ⟶ ¬B | 否命题（inverse） | 否 |
 
-In the same way, ¬(A ∧ B) is equivalent to ¬A ∨ ¬B, not to ¬A ∧ ¬B: negation turns ∧ into ∨ and back.
+同样，¬(A ∧ B) 与 ¬A ∨ ¬B 等价，而不是与 ¬A ∧ ¬B 等价：否定把 ∧ 变成 ∨，也把 ∨ 变成 ∧。
 :::
 
 ::: isabelle
-In Isabelle, an equivalence is a lemma with ⟷. (Isabelle has a symbol ≡ too, but it uses it for
-definitions, as Module 7 explains.) `blast` proves the whole simplification of Example 2.5 in one step:
+在 Isabelle 中，等价式就是含 ⟷ 的引理。（Isabelle 也有符号 ≡，但它把这个符号用于定义，模块 7 会解释这一点。）`blast` 一步就能证明例 2.5 的整个化简过程：
 
 ```isabelle
 lemma "¬ (valid ∧ ¬ expired) ∨ expired ⟷ (valid ⟶ expired)"
   by blast
 ```
 
-The parentheses around `valid ⟶ expired` are not needed, since ⟷ and ⟶ group to the right, but write
-them whenever you mix the two. A wrong law produces a counterexample. Here is the wrong version of
-De Morgan's law:
+`valid ⟶ expired` 两边的括号其实不需要，因为 ⟷ 和 ⟶ 都向右结合；但只要混用这两个联结词，就把括号写上。错误的定律会产生反例。下面是德摩根律的错误版本：
 
 ```isabelle
 lemma "¬ (A ∧ B) ⟷ ¬ A ∧ ¬ B"
@@ -682,15 +665,11 @@ Evaluated terms:
   ¬ A ∧ ¬ B = False
 ```
 
-For an equivalence, Quickcheck also lists, under "Evaluated terms", the value of each side in the
-counterexample: here the left side is `True` and the right side `False`. The correct laws are in
-Isabelle's library; for example, the theorem `de_Morgan_conj` states ¬ (P ∧ Q) ⟷ ¬ P ∨ ¬ Q. The
-simplifier uses both of De Morgan's laws automatically.
+对于等价式，Quickcheck 还会在“Evaluated terms”（求值的项）下面列出反例中两边各自的值：这里左边是 `True`，右边是 `False`。正确的定律都在 Isabelle 的库中；例如，定理 `de_Morgan_conj` 陈述的是 ¬ (P ∧ Q) ⟷ ¬ P ∨ ¬ Q。化简器会自动使用德摩根律的两种形式。
 :::
 
 ::: pitfall
-In Isabelle, write ⟷ between formulas, not `=`. Because `=` binds more tightly than the connectives,
-`A ∧ B = B ∧ A` means A ∧ (B = B) ∧ A, which is not the commutativity law at all:
+在 Isabelle 中，公式之间要写 ⟷，而不要写 `=`。因为 `=` 比联结词结合得更紧，`A ∧ B = B ∧ A` 的意思是 A ∧ (B = B) ∧ A，这根本不是交换律：
 
 ```isabelle
 lemma "A ∧ B = B ∧ A"
@@ -706,103 +685,81 @@ Quickcheck found a counterexample:
   B = a⇩1
 ```
 
-The value a₁ for B shows that B is no longer even a truth value. In `B = B`, B could be anything, so
-Isabelle gave it an unknown type, and Quickcheck picked an element of that type; Module 3 explains such
-types. With ⟷, `A ∧ B ⟷ B ∧ A` means what it says.
+B 的值是 a₁，这说明 B 甚至已经不是真值了。在 `B = B` 中，B 可以是任何东西，所以 Isabelle 给了它一个未知的类型，Quickcheck 从这个类型中挑了一个元素；模块 3 会解释这样的类型。改用 ⟷ 后，`A ∧ B ⟷ B ∧ A` 的意思就正如它字面所示。
 :::
 
-## Logical consequence and arguments {#consequence}
+## 逻辑推论与论证 {#consequence}
 
-Reasoning about systems is full of arguments: *if all tests pass, the release is built; the release was
-not built; so some test failed*. An argument has premises and a conclusion, and the question is whether
-the conclusion must be true when the premises are.
+关于系统的推理中充满了论证：“如果所有测试都通过，发布版本就会被构建；发布版本没有被构建；所以有某个测试失败了。”一个论证有前提和结论，问题在于：当前提都为真时，结论是否一定为真。
 
-::: definition Logical consequence
-A formula ψ is a **logical consequence** of formulas φ₁, …, φₙ, written
+::: definition 逻辑推论
+公式 ψ 是公式 φ₁, …, φₙ 的**逻辑推论**（logical consequence），记作
 
 $$
 \varphi_1, \ldots, \varphi_n \models \psi
 $$
 
-if every valuation that makes all of φ₁, …, φₙ true also makes ψ true. The φᵢ are the **premises** and
-ψ is the **conclusion**; read ⊨ as "entails". An **argument** is **valid** if its conclusion is a logical
-consequence of its premises. With no premises, ⊨ ψ says that ψ is a tautology.
+是指：每个使 φ₁, …, φₙ 全都为真的赋值也都使 ψ 为真。φᵢ 称为**前提**（premise），ψ 称为**结论**（conclusion）；⊨ 读作“推出”（entails）。如果一个**论证**（argument）的结论是其前提的逻辑推论，就称这个论证是**有效的**。没有前提时，⊨ ψ 表示 ψ 是重言式。
 :::
 
-The symbol ⊨ is about truth. Module 6 introduces its partner ⊢, which is about proof: φ ⊢ ψ says that ψ
-can be *derived* from φ by the rules of a proof system. To check an argument with a truth table, look
-for a **bad row**: a row in which every premise is true and the conclusion is false. The argument is
-valid exactly when there is no bad row, which gives a second way to check it:
+符号 ⊨ 关乎真假。模块 6 会介绍它的搭档 ⊢，后者关乎证明：φ ⊢ ψ 表示 ψ 可以用某个证明系统的规则从 φ **推导**出来。要用真值表检查一个论证，就去找**坏行**（bad row）：在这一行中，每个前提都为真，而结论为假。论证有效，恰好是在没有坏行的时候；这就给出了检查论证的第二种方法：
 
-::: fact Consequence as a tautology
-φ₁, …, φₙ ⊨ ψ if and only if φ₁ ∧ … ∧ φₙ ⟶ ψ is a tautology.
+::: fact 推论与重言式
+φ₁, …, φₙ ⊨ ψ 当且仅当 φ₁ ∧ … ∧ φₙ ⟶ ψ 是重言式。
 :::
 
-The implication is false exactly in the bad rows. Six argument forms come up so often that they have
-names. Four are valid; the other two are mistakes common enough to be named too.
+这个蕴涵式恰好在坏行中为假。有六种论证形式（argument form）出现得非常频繁，都有了自己的名字。其中四种是有效的；另外两种是错误，只是因为太常见，也有了名字。
 
-| Name | Premises | Conclusion | Valid? |
+| 名称 | 前提 | 结论 | 有效吗？ |
 |---|---|---|---|
-| Modus ponens | A ⟶ B, A | B | yes |
-| Modus tollens | A ⟶ B, ¬B | ¬A | yes |
-| Chaining (hypothetical syllogism) | A ⟶ B, B ⟶ C | A ⟶ C | yes |
-| Disjunctive syllogism | A ∨ B, ¬A | B | yes |
-| Affirming the consequent | A ⟶ B, B | A | no |
-| Denying the antecedent | A ⟶ B, ¬A | ¬B | no |
+| 肯定前件式（modus ponens） | A ⟶ B，A | B | 是 |
+| 否定后件式（modus tollens） | A ⟶ B，¬B | ¬A | 是 |
+| 链式推理，即假言三段论（hypothetical syllogism） | A ⟶ B，B ⟶ C | A ⟶ C | 是 |
+| 析取三段论（disjunctive syllogism） | A ∨ B，¬A | B | 是 |
+| 肯定后件（affirming the consequent） | A ⟶ B，B | A | 否 |
+| 否定前件（denying the antecedent） | A ⟶ B，¬A | ¬B | 否 |
 
-By substitution (Fact 2.4) the valid forms stay valid with any formulas in place of A, B and C.
+由代入（事实 2.4），把 A、B、C 换成任意公式，有效的论证形式依然有效。
 
-::: example Two arguments about a release
-Write `tests` for "all tests pass" and `built` for "the release is built".
+::: example 关于发布的两个论证
+用 `tests` 表示“所有测试都通过”，用 `built` 表示“发布版本已构建”。
 
-1. *If all tests pass, the release is built. The release was not built. So not all tests passed.* This
-   is modus tollens, so the argument is valid.
-2. *If all tests pass, the release is built. The release was built. So all tests passed.* This is
-   affirming the consequent, and it is invalid. The truth table finds the bad row:
+1. “如果所有测试都通过，发布版本就会被构建。发布版本没有被构建。所以并非所有测试都通过了。”这是否定后件式，所以这个论证是有效的。
+2. “如果所有测试都通过，发布版本就会被构建。发布版本被构建了。所以所有测试都通过了。”这是肯定后件，这个论证是无效的。真值表能找出坏行：
 
 ```truthtable
 (tests ⟶ built) ∧ built ⟶ tests
 tests ⟶ built
 ```
 
-The premises are the columns `built` and `tests ⟶ built`, and the conclusion is the column `tests`. In
-the row with built = T and tests = F, both premises are true and the conclusion is false: someone built
-the release by hand although a test failed. One bad row is enough to make an argument invalid.
+前提是 `built` 列和 `tests ⟶ built` 列，结论是 `tests` 列。在 built = T、tests = F 的那一行中，两个前提都为真，结论却为假：有人在测试失败的情况下手工构建了发布版本。只要有一个坏行，论证就是无效的。
 :::
 
 ::: note
-Validity is about the form of an argument, not about the facts. A valid argument with a false premise
-can have a false conclusion, and an invalid argument can have a true conclusion by luck. When you review
-a design argument, ask both questions: is the form valid, and are the premises true?
+有效性关乎论证的形式，而与事实无关。一个有效的论证如果有假前提，就可能得出假结论；一个无效的论证也可能碰巧得出真结论。评审一个设计论证时，要问两个问题：形式是否有效？前提是否为真？
 :::
 
-One special case matters a great deal for specifications.
+有一种特殊情况对规约非常重要。
 
-::: fact Inconsistent premises entail everything
-If no valuation makes all of φ₁, …, φₙ true, then φ₁, …, φₙ ⊨ ψ for every formula ψ. In particular,
-A, ¬A ⊨ B.
+::: fact 不一致的前提推出一切
+如果没有任何赋值能使 φ₁, …, φₙ 全都为真，那么对每个公式 ψ，都有 φ₁, …, φₙ ⊨ ψ。特别地，A, ¬A ⊨ B。
 :::
 
-There is no row in which the premises are all true, so there is no bad row, whatever ψ is. This is the
-**principle of explosion**, known by its Latin name *ex falso quodlibet*: from a falsehood, anything
-follows.
+没有哪一行能使前提全都为真，所以无论 ψ 是什么，都不存在坏行。这就是**爆炸原理**（principle of explosion），它的拉丁文名称是 **ex falso quodlibet**：从谬误出发，可以推出任何东西。
 
 ::: keyidea
-Before you believe that a property follows from a set of requirements, check that the requirements are
-consistent. From inconsistent requirements every property follows, including its opposite, and every
-proof succeeds.
+在相信某条性质能从一组需求推出之前，先检查这些需求是否一致。从不一致的需求可以推出任何性质，包括它的反面，而且每个证明都会成功。
 :::
 
 ::: isabelle
-By Fact 2.5, an argument is valid when the implication from its premises to its conclusion is a
-tautology, so `blast` can check it. Modus tollens:
+由事实 2.5，当从前提到结论的蕴涵式是重言式时，论证就是有效的，所以 `blast` 可以检查它。以否定后件式为例：
 
 ```isabelle
 lemma "(A ⟶ B) ∧ ¬ B ⟶ ¬ A"
   by blast
 ```
 
-For an invalid argument, Nitpick finds the bad row:
+对于无效的论证，Nitpick 会找出坏行：
 
 ```isabelle
 lemma "(A ⟶ B) ∧ B ⟶ A"
@@ -819,8 +776,7 @@ Nitpick found a counterexample:
     B = True
 ```
 
-With A false and B true, the premises A ⟶ B and B hold and the conclusion A does not. Explosion is a
-theorem too:
+当 A 为假、B 为真时，前提 A ⟶ B 和 B 都成立，而结论 A 不成立。爆炸原理也是一条定理：
 
 ```isabelle
 lemma "A ∧ ¬ A ⟶ B"
@@ -828,127 +784,96 @@ lemma "A ∧ ¬ A ⟶ B"
 ```
 :::
 
-## Normal forms {#normal-forms}
+## 范式 {#normal-forms}
 
-Equivalent formulas can look very different, which makes them hard to compare and hard for programs to
-process. A **normal form** is a standard shape that every formula can be brought into without changing
-its meaning. Three are in common use.
+等价的公式看起来可能大不相同，这使它们难以比较，也难以用程序处理。**范式**（normal form）是一种标准形状，每个公式都可以在不改变意思的前提下化成这种形状。常用的范式有三种。
 
-::: definition Literal and clause
-A **literal** is an atom or a negated atom, such as A or ¬A. A **clause** is a disjunction of literals,
-such as ¬A ∨ B ∨ ¬C; a single literal counts as a clause too.
+::: definition 文字与子句
+**文字**（literal）是一个原子或一个原子的否定，例如 A 或 ¬A。**子句**（clause）是若干文字的析取，例如 ¬A ∨ B ∨ ¬C；单个文字也算一个子句。
 :::
 
-::: definition Normal forms
-- A formula is in **negation normal form (NNF)** if it uses only ¬, ∧ and ∨, and every ¬ stands directly
-  in front of an atom.
-- A formula is in **conjunctive normal form (CNF)** if it is a conjunction of clauses, such as
-  (A ∨ ¬B) ∧ (¬A ∨ C ∨ D) ∧ ¬C.
-- A formula is in **disjunctive normal form (DNF)** if it is a disjunction of conjunctions of literals,
-  such as (A ∧ ¬B) ∨ (¬A ∧ C) ∨ D.
+::: definition 范式
+- 如果一个公式只使用 ¬、∧ 和 ∨，并且每个 ¬ 都直接出现在原子前面，就说它是**否定范式**（negation normal form，NNF）。
+- 如果一个公式是若干子句的合取，例如 (A ∨ ¬B) ∧ (¬A ∨ C ∨ D) ∧ ¬C，就说它是**合取范式**（conjunctive normal form，CNF）。
+- 如果一个公式是若干个文字合取式的析取，例如 (A ∧ ¬B) ∨ (¬A ∧ C) ∨ D，就说它是**析取范式**（disjunctive normal form，DNF）。
 :::
 
-A CNF is a list of small rules that must all hold: the clause ¬A ∨ ¬B ∨ C says A ∧ B ⟶ C. SAT solvers
-take their input in CNF. A DNF lists the situations in which the formula is true, so its satisfiability
-can be read off: a DNF is satisfiable exactly when one of its conjunctions does not contain both an atom
-and its negation. NNF is the first step towards both.
+合取范式是一张必须全部成立的小规则清单：子句 ¬A ∨ ¬B ∨ C 说的是 A ∧ B ⟶ C。SAT 求解器的输入就是合取范式。析取范式列出了使公式为真的各种情形，所以从它可以直接看出公式是否可满足：一个析取范式是可满足的，当且仅当它的某个合取式不同时含有一个原子及其否定。否定范式是通往这两种范式的第一步。
 
-### Negation normal form {#nnf}
+### 否定范式 {#nnf}
 
-Three steps bring any formula into NNF:
+任何公式都可以经过三步化为否定范式：
 
-1. Replace each φ ⟷ ψ by (φ ⟶ ψ) ∧ (ψ ⟶ φ).
-2. Replace each φ ⟶ ψ by ¬φ ∨ ψ.
-3. Push each ¬ inwards: replace ¬¬φ by φ, ¬(φ ∧ ψ) by ¬φ ∨ ¬ψ, ¬(φ ∨ ψ) by ¬φ ∧ ¬ψ, ¬True by
-   False and ¬False by True.
+1. 把每个 φ ⟷ ψ 替换为 (φ ⟶ ψ) ∧ (ψ ⟶ φ)。
+2. 把每个 φ ⟶ ψ 替换为 ¬φ ∨ ψ。
+3. 把每个 ¬ 向内推：把 ¬¬φ 替换为 φ，¬(φ ∧ ψ) 替换为 ¬φ ∨ ¬ψ，¬(φ ∨ ψ) 替换为 ¬φ ∧ ¬ψ，¬True 替换为 False，¬False 替换为 True。
 
-Each step replaces a sub-formula by an equivalent one, using the equivalence, implication, double
-negation and De Morgan laws, so by Fact 2.4 the result is equivalent to the formula you started with.
+每一步都利用等价律、蕴涵律、双重否定律和德摩根律，把一个子公式替换成与它等价的公式，所以由事实 2.4，结果与最初的公式等价。
 
-::: example Negation normal form
-Bring ¬(A ⟶ B ∧ C) into NNF:
+::: example 否定范式
+把 ¬(A ⟶ B ∧ C) 化为否定范式：
 
 $$
 \begin{array}{lll}
  & \lnot(A \imp B \land C) & \\
-\equiv & \lnot(\lnot A \lor B \land C) & \text{implication} \\
-\equiv & \lnot\lnot A \land \lnot(B \land C) & \text{De Morgan} \\
-\equiv & A \land (\lnot B \lor \lnot C) & \text{double negation, De Morgan}
+\equiv & \lnot(\lnot A \lor B \land C) & \text{蕴涵律} \\
+\equiv & \lnot\lnot A \land \lnot(B \land C) & \text{德摩根律} \\
+\equiv & A \land (\lnot B \lor \lnot C) & \text{双重否定律、德摩根律}
 \end{array}
 $$
 
-The result is in NNF, and also in CNF: it is the conjunction of the clauses A and ¬B ∨ ¬C.
+结果是否定范式，同时也是合取范式：它是子句 A 和 ¬B ∨ ¬C 的合取。
 :::
 
-### Conjunctive and disjunctive normal form {#cnf-dnf}
+### 合取范式与析取范式 {#cnf-dnf}
 
-From NNF, the distributive laws do the rest:
+从否定范式出发，剩下的工作由分配律完成：
 
-- For **CNF**, move ∨ inside ∧: replace φ ∨ (ψ ∧ χ) by (φ ∨ ψ) ∧ (φ ∨ χ), and (φ ∧ ψ) ∨ χ by
-  (φ ∨ χ) ∧ (ψ ∨ χ), until no ∧ is inside an ∨.
-- For **DNF**, move ∧ inside ∨: replace φ ∧ (ψ ∨ χ) by (φ ∧ ψ) ∨ (φ ∧ χ), and (φ ∨ ψ) ∧ χ by
-  (φ ∧ χ) ∨ (ψ ∧ χ), until no ∨ is inside an ∧.
+- 要得到**合取范式**，就把 ∨ 移到 ∧ 的里面：把 φ ∨ (ψ ∧ χ) 替换为 (φ ∨ ψ) ∧ (φ ∨ χ)，把 (φ ∧ ψ) ∨ χ 替换为 (φ ∨ χ) ∧ (ψ ∨ χ)，直到 ∨ 里面不再有 ∧ 为止。
+- 要得到**析取范式**，就把 ∧ 移到 ∨ 的里面：把 φ ∧ (ψ ∨ χ) 替换为 (φ ∧ ψ) ∨ (φ ∧ χ)，把 (φ ∨ ψ) ∧ χ 替换为 (φ ∧ χ) ∨ (ψ ∧ χ)，直到 ∧ 里面不再有 ∨ 为止。
 
-Here χ ("chi") is one more letter for an arbitrary formula. Figure 2.3 shows the whole route.
+这里的 χ（chi）是又一个表示任意公式的字母。图 2.3 展示了整个过程。
 
 ::: figure id=fig-02-3
-From any formula to CNF and DNF, with (A ⟶ B) ⟶ C as the example. Steps 1 and 2 give the negation normal
-form; distributing one connective over the other then gives CNF or DNF.
+从任意公式到合取范式和析取范式，以 (A ⟶ B) ⟶ C 为例。第 1、2 步得到否定范式；然后用一个联结词对另一个联结词的分配律，就得到合取范式或析取范式。
 :::
 
-The door requirement `opens ⟶ badge ∧ pin ∨ fire` becomes ¬opens ∨ (badge ∧ pin) ∨ fire, which is
-already in DNF, and distributing gives the CNF (¬opens ∨ badge ∨ fire) ∧ (¬opens ∨ pin ∨ fire). Read
-back as rules, the two clauses say that when the door opens without a fire, there was a valid badge, and
-there was the right PIN.
+门禁需求 `opens ⟶ badge ∧ pin ∨ fire` 变成 ¬opens ∨ (badge ∧ pin) ∨ fire，这已经是析取范式了；再用分配律，就得到合取范式 (¬opens ∨ badge ∨ fire) ∧ (¬opens ∨ pin ∨ fire)。把这两个子句读回成规则，它们说的是：门在没有火警时打开了，就说明出示过有效的门禁卡，并且输入过正确的密码。
 
 ::: pitfall
-Distribution can make formulas explode. Bringing (A₁ ∧ B₁) ∨ (A₂ ∧ B₂) ∨ … ∨ (Aₙ ∧ Bₙ) into CNF by
-distribution gives $2^n$ clauses, one for each way of choosing Aᵢ or Bᵢ from every pair: 8 clauses for
-three pairs, more than a million for twenty. This is why Isabelle's simplifier does not use the
-distributive laws by default. A comment in `HOL.thy`, next to the list of laws the simplifier does use,
-says that adding them "might cause exponential blow-up".
+分配可能使公式爆炸式增长。用分配律把 (A₁ ∧ B₁) ∨ (A₂ ∧ B₂) ∨ … ∨ (Aₙ ∧ Bₙ) 化为合取范式，会得到 $2^n$ 个子句，从每一对中选出 Aᵢ 或 Bᵢ 的每一种选法都对应一个子句：三对时有 8 个子句，二十对时超过一百万个。这就是 Isabelle 的化简器默认不使用分配律的原因。在 `HOL.thy` 中化简器确实使用的定律列表旁边，有一条注释说，加入分配律“might cause exponential blow-up”（可能导致指数级膨胀）。
 :::
 
 ::: note
-SAT solvers avoid the explosion with the **Tseitin transformation**, which gives each sub-formula a new
-atom as its name and adds a few clauses that define it. The resulting CNF grows only in proportion to
-the original formula. It is not equivalent to the original, because it has extra atoms, but it is
-**equisatisfiable**: satisfiable if and only if the original is, which is all a SAT solver needs.
+SAT 求解器用 **Tseitin 变换**（Tseitin transformation）来避免这种爆炸：它给每个子公式一个新原子作为名字，并加上几个定义这个原子的子句。这样得到的合取范式只与原公式的规模成比例地增长。它与原公式并不等价，因为它多了一些原子，但它与原公式是**等可满足的**（equisatisfiable）：它可满足当且仅当原公式可满足，而 SAT 求解器需要的也只是这一点。
 :::
 
-### Normal forms from truth tables {#nf-tables}
+### 由真值表求范式 {#nf-tables}
 
-A truth table gives both normal forms directly.
+由真值表可以直接得到两种范式。
 
-- **DNF:** for each row in which the formula is T, write the conjunction of literals that describes the
-  row (A if A is T in the row, ¬A if A is F), and join these conjunctions with ∨.
-- **CNF:** for each row in which the formula is F, write the clause that rules the row out (¬A if A is T
-  in the row, A if A is F), and join these clauses with ∧.
+- **析取范式：** 对公式为 T 的每一行，写出描述这一行的文字合取式（这一行中 A 为 T 就写 A，为 F 就写 ¬A），再用 ∨ 把这些合取式连接起来。
+- **合取范式：** 对公式为 F 的每一行，写出排除这一行的子句（这一行中 A 为 T 就写 ¬A，为 F 就写 A），再用 ∧ 把这些子句连接起来。
 
-::: example Exclusive or
-Exclusive or, ¬(A ⟷ B), is true when exactly one of A and B is:
+::: example 异或
+异或 ¬(A ⟷ B) 在 A 和 B 恰好有一个为真时为真：
 
 ```truthtable
 ¬(A ⟷ B)
 A ⟷ B
 ```
 
-It is T in the rows A = T, B = F and A = F, B = T, so its DNF is (A ∧ ¬B) ∨ (¬A ∧ B). It is F in the rows
-A = T, B = T and A = F, B = F; the clauses that rule them out are ¬A ∨ ¬B and A ∨ B, so its CNF is
-(¬A ∨ ¬B) ∧ (A ∨ B).
+它在 A = T、B = F 和 A = F、B = T 这两行中为 T，所以它的析取范式是 (A ∧ ¬B) ∨ (¬A ∧ B)。它在 A = T、B = T 和 A = F、B = F 这两行中为 F；排除这两行的子句是 ¬A ∨ ¬B 和 A ∨ B，所以它的合取范式是 (¬A ∨ ¬B) ∧ (A ∨ B)。
 :::
 
-::: fact Normal forms exist
-Every formula is equivalent to a formula in DNF and to a formula in CNF.
+::: fact 范式的存在性
+每个公式都等价于某个析取范式，也等价于某个合取范式。
 :::
 
-The truth-table method proves it. In the corner cases, a formula with no T row gets the empty
-disjunction, which is `False`, and one with no F row gets the empty conjunction, which is `True`. Fact 2.7
-also shows that ¬, ∧ and ∨ can express every possible truth table; Exercise 2.7 shows that even fewer
-connectives suffice.
+真值表方法就证明了这一点。在边界情况下，没有 T 行的公式得到空析取，即 `False`；没有 F 行的公式得到空合取，即 `True`。事实 2.7 还说明 ¬、∧ 和 ∨ 能表达所有可能的真值表；练习 2.7 会说明，更少的联结词也就够了。
 
 ::: isabelle
-Each conversion is an equivalence, so `blast` can confirm it. Here are both results of Figure 2.3:
+每次转换都是一个等价式，所以 `blast` 可以确认它。下面是图 2.3 的两个结果：
 
 ```isabelle
 lemma "((A ⟶ B) ⟶ C) ⟷ (A ∧ ¬ B) ∨ C"
@@ -958,7 +883,7 @@ lemma "((A ⟶ B) ⟶ C) ⟷ (A ∨ C) ∧ (¬ B ∨ C)"
   by blast
 ```
 
-A slip shows up as a counterexample. Moving one pair of parentheses changes the meaning:
+一个疏忽会表现为一个反例。挪动一对括号就会改变意思：
 
 ```isabelle
 lemma "(A ∧ B) ∨ C ⟷ A ∧ (B ∨ C)"
@@ -976,7 +901,7 @@ Nitpick found a counterexample:
     C = True
 ```
 
-With A false and C true, the left side is true and the right side false.
+当 A 为假、C 为真时，左边为真而右边为假。
 :::
 
 ## 可满足性与 SAT 求解器 {#sat}

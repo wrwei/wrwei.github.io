@@ -989,48 +989,38 @@ lemma "(∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. 
 5. $\forall x\ y.\ R\ x\ y \imp \lnot\, R\ y\ x$
 
 ::: solution
-1. False. Counterexample $x = 3$: no element of the domain is larger than 3.
-2. True. Witness $y = 3$: $R\ 3\ x$ is false for every $x$, since nothing is larger than 3.
-3. False. Counterexample $x = 3$: 3 is odd, and no element is larger. (For $x = 1$ the witness $y = 2$
-   works, and for $x = 2$ the implication is vacuously true.)
-4. True. Witness $x = 1$: for $y = 1$, $x = y$ holds; for $y = 2$ and $y = 3$, $R\ 1\ y$ holds.
-5. True. $x < y$ and $y < x$ never hold together.
+1. 假。反例 $x = 3$：论域中没有比 3 大的元素。
+2. 真。见证 $y = 3$：对每个 $x$，$R\ 3\ x$ 都为假，因为没有比 3 大的元素。
+3. 假。反例 $x = 3$：3 是奇数，而没有比它大的元素。（对 $x = 1$，见证 $y = 2$ 可行；对 $x = 2$，蕴涵式空真。）
+4. 真。见证 $x = 1$：对 $y = 1$，$x = y$ 成立；对 $y = 2$ 和 $y = 3$，$R\ 1\ y$ 成立。
+5. 真。$x < y$ 和 $y < x$ 永远不会同时成立。
 
-You can check all five in the model explorer of Section 3.3 on a copy of $\mathcal M_2$: let $a$, $b$
-and $c$ stand for 1, 2 and 3, tick $P$ for $a$ and $c$, and switch $R$ on for the pairs $(a, b)$,
-$(a, c)$ and $(b, c)$.
+你可以在第 3.3 节的模型探索器中搭一个 $\mathcal M_2$ 的副本，检查全部五个语句：让 $a$、$b$、$c$ 分别代表 1、2、3，为 $a$ 和 $c$ 勾选 $P$，并为有序对 $(a, b)$、$(a, c)$ 和 $(b, c)$ 打开 $R$。
 :::
 ::::
 
-:::: exercise From English to formulas {#ex-3-3} ★
-The vocabulary has the one-place predicates $\mathit{train}$ and $\mathit{block}$, the two-place
-predicate $\mathit{occupies}\ t\ b$ ("train $t$ occupies block $b$") and the constant $\mathit{depot}$.
-Translate:
+:::: exercise 从自然语言到公式 {#ex-3-3} ★
+词汇表有一元谓词 $\mathit{train}$（是列车）和 $\mathit{block}$（是区段）、二元谓词 $\mathit{occupies}\ t\ b$（“列车 $t$ 占用区段 $b$”），以及常量 $\mathit{depot}$（车库）。把下面的句子翻译成公式：
 
-1. Every train occupies some block.
-2. No block is occupied by two different trains.
-3. Some block is free, that is, occupied by no train.
-4. Only trains occupy blocks.
-5. Exactly one train occupies the depot.
+1. 每列列车都占用某个区段。
+2. 没有哪个区段被两列不同的列车占用。
+3. 有某个区段是空闲的，也就是说，没有列车占用它。
+4. 只有列车才占用区段。
+5. 恰好有一列列车占用车库。
 
 ::: solution
 1. $\forall t.\ \mathit{train}\ t \imp (\exists b.\ \mathit{block}\ b \land \mathit{occupies}\ t\ b)$
-2. $\forall b\ t\ u.\ \mathit{block}\ b \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b \imp t = u$.
-   An equivalent form follows the English more closely:
-   $\lnot (\exists b\ t\ u.\ \mathit{block}\ b \land t \neq u \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b)$.
+2. $\forall b\ t\ u.\ \mathit{block}\ b \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b \imp t = u$。另一种等价的形式更贴近原句：$\lnot (\exists b\ t\ u.\ \mathit{block}\ b \land t \neq u \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b)$。
 3. $\exists b.\ \mathit{block}\ b \land \lnot (\exists t.\ \mathit{train}\ t \land \mathit{occupies}\ t\ b)$
-4. $\forall x\ b.\ \mathit{occupies}\ x\ b \imp \mathit{train}\ x$: "only" reverses the arrow.
+4. $\forall x\ b.\ \mathit{occupies}\ x\ b \imp \mathit{train}\ x$：“只有”使箭头反向。
 5. $\exists t.\ \mathit{train}\ t \land \mathit{occupies}\ t\ \mathit{depot} \land (\forall u.\ \mathit{train}\ u \land \mathit{occupies}\ u\ \mathit{depot} \imp u = t)$
 
-In 1 and 3, ∀ goes with ⟶ and ∃ with ∧, as the patterns of Section 3.7 say. In 2, guards
-$\mathit{train}\ t$ and $\mathit{train}\ u$ are unnecessary because of sentence 4, but adding them does
-no harm.
+正如第 3.7 节的模式所说，在 1 和 3 中，∀ 与 ⟶ 搭配，∃ 与 ∧ 搭配。在 2 中，由于第 4 句，守卫 $\mathit{train}\ t$ 和 $\mathit{train}\ u$ 是不必要的，但加上它们也无妨。
 :::
 ::::
 
-:::: exercise Valid or not? {#ex-3-4} ★★
-Decide whether each formula is valid. For a valid one, give a short argument; for the others, give a
-countermodel. Then check your answers in Isabelle with `blast` or with `nitpick [card = 2]`.
+:::: exercise 是否有效？ {#ex-3-4} ★★
+判断下面每个公式是否有效。对有效的公式，给出一个简短的论证；对其他公式，给出一个反模型。然后在 Isabelle 中用 `blast` 或 `nitpick [card = 2]` 检查你的答案。
 
 1. $(\exists x.\ P\ x \land Q\ x) \imp (\exists x.\ P\ x) \land (\exists x.\ Q\ x)$
 2. $(\exists x.\ P\ x) \land (\exists x.\ Q\ x) \imp (\exists x.\ P\ x \land Q\ x)$
@@ -1038,16 +1028,12 @@ countermodel. Then check your answers in Isabelle with `blast` or with `nitpick 
 4. $(\forall x.\ \exists y.\ R\ x\ y) \imp (\forall x.\ \exists y.\ R\ y\ x)$
 
 ::: solution
-1. Valid. A witness for $\exists x.\ P\ x \land Q\ x$ is a witness for both $\exists x.\ P\ x$ and
-   $\exists x.\ Q\ x$.
-2. Not valid: $D = \{a, b\}$, $P = \{a\}$, $Q = \{b\}$. Something is $P$ and something is $Q$, but
-   nothing is both.
-3. Valid. Take a witness $x$ of $P\ x$; the premise gives $Q\ x$ for it, so it is a witness of
-   $\exists x.\ Q\ x$.
-4. Not valid. "Everybody trusts somebody" does not imply "everybody is trusted by somebody":
-   $D = \{a, b\}$ with $R = \{(a, a), (b, a)\}$. Everybody trusts $a$, and nobody trusts $b$.
+1. 有效。$\exists x.\ P\ x \land Q\ x$ 的见证同时也是 $\exists x.\ P\ x$ 和 $\exists x.\ Q\ x$ 的见证。
+2. 无效：$D = \{a, b\}$，$P = \{a\}$，$Q = \{b\}$。有东西是 $P$，也有东西是 $Q$，但没有东西同时是两者。
+3. 有效。取 $P\ x$ 的一个见证 $x$；前提对它给出 $Q\ x$，所以它也是 $\exists x.\ Q\ x$ 的见证。
+4. 无效。“每个人都信任某个人”推不出“每个人都被某个人信任”：取 $D = \{a, b\}$，$R = \{(a, a), (b, a)\}$。每个人都信任 $a$，而没有人信任 $b$。
 
-In Isabelle:
+在 Isabelle 中：
 
 ```isabelle
 lemma "(∃x. P x ∧ Q x) ⟶ (∃x. P x) ∧ (∃x. Q x)"
@@ -1100,44 +1086,31 @@ Nitpick found a counterexample for card 'a = 2 and card 'b = 2:
   oops
 ```
 
-In formula 4, nothing forces `x` and `y` to have the same type, so Isabelle gives them two types, as
-in Section 3.5, and Nitpick's countermodel relates the elements of `'a` to those of `'b`; the option
-`[card = 2]` fixes the size of both. Read b₁ as a₁ and b₂ as a₂ to get a countermodel with one domain:
-everybody trusts a₂, and nobody trusts a₁. Nitpick's countermodels may differ from yours in which
-element is which; any countermodel will do.
+在公式 4 中，没有什么迫使 `x` 和 `y` 具有相同的类型，所以 Isabelle 和第 3.5 节一样给了它们两个类型，Nitpick 的反模型把 `'a` 的元素关联到 `'b` 的元素；选项 `[card = 2]` 固定了这两个类型的大小。把 b₁ 看成 a₁、b₂ 看成 a₂，就得到一个只有一个论域的反模型：每个人都信任 a₂，而没有人信任 a₁。Nitpick 的反模型与你的反模型在哪个元素是哪个上可能不同；任何反模型都可以。
 :::
 ::::
 
-:::: exercise Negate a specification {#ex-3-5} ★★
-Negate each requirement and push the negation inwards until it stands only in front of atomic formulas.
-Then say in English what a violation looks like.
+:::: exercise 否定规约 {#ex-3-5} ★★
+否定每条需求，并把否定向内推，直到它只出现在原子公式前面。然后用中文说出违反这条需求的情形是什么样的。（$\mathit{handles}\ s\ r$ 表示服务器 $s$ 处理请求 $r$，$\mathit{holds}\ x$ 表示 $x$ 持有锁。）
 
 1. $\forall r.\ \mathit{request}\ r \imp (\exists s.\ \mathit{server}\ s \land \mathit{handles}\ s\ r)$
 2. $\exists s.\ \mathit{server}\ s \land (\forall r.\ \mathit{request}\ r \imp \mathit{handles}\ s\ r)$
 3. $\forall x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y \imp x = y$
 
 ::: solution
-1. $\exists r.\ \mathit{request}\ r \land (\forall s.\ \mathit{server}\ s \imp \lnot\, \mathit{handles}\ s\ r)$:
-   some request is handled by no server. The steps: $\lnot \forall$ becomes $\exists \lnot$;
-   $\lnot (A \imp B)$ becomes $A \land \lnot B$; $\lnot \exists$ becomes $\forall \lnot$; and
-   $\lnot (C \land D)$ becomes $C \imp \lnot D$, an equivalence that a truth table confirms.
-2. $\forall s.\ \mathit{server}\ s \imp (\exists r.\ \mathit{request}\ r \land \lnot\, \mathit{handles}\ s\ r)$:
-   every server fails to handle some request, so no server handles them all.
-3. $\exists x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y \land x \neq y$: two different users hold
-   the lock.
+1. $\exists r.\ \mathit{request}\ r \land (\forall s.\ \mathit{server}\ s \imp \lnot\, \mathit{handles}\ s\ r)$：有某个请求没有任何服务器处理。步骤是：$\lnot \forall$ 变成 $\exists \lnot$；$\lnot (A \imp B)$ 变成 $A \land \lnot B$；$\lnot \exists$ 变成 $\forall \lnot$；$\lnot (C \land D)$ 变成 $C \imp \lnot D$，这个等价式可以用真值表验证。
+2. $\forall s.\ \mathit{server}\ s \imp (\exists r.\ \mathit{request}\ r \land \lnot\, \mathit{handles}\ s\ r)$：每台服务器都有某个请求没有处理，所以没有一台服务器能处理所有请求。
+3. $\exists x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y \land x \neq y$：有两个不同的用户持有锁。
 
 :::
 ::::
 
-:::: exercise Counting in Isabelle {#ex-3-6} ★★
-1. Prove with `blast` that the negation of "at most one element satisfies `P`" is "at least two elements
-   satisfy `P`", using the formulas of Example 3.9.
-2. Somebody writes "exactly one element satisfies `P`" as `∃x. ∀y. P y ⟶ y = x`. Use Nitpick to compare
-   this formula with `∃!x. P x`, and explain what the formula really says.
+:::: exercise 在 Isabelle 中计数 {#ex-3-6} ★★
+1. 利用例 3.9 中的公式，用 `blast` 证明：“至多有一个元素满足 `P`”的否定是“至少有两个元素满足 `P`”。
+2. 有人把“恰好有一个元素满足 `P`”写成 `∃x. ∀y. P y ⟶ y = x`。用 Nitpick 比较这个公式和 `∃!x. P x`，并解释这个公式实际上说的是什么。
 
 ::: solution
-1. Push the negation through: $\lnot \forall$ becomes $\exists \lnot$, and
-   $\lnot (P\ x \land P\ y \imp x = y)$ becomes $P\ x \land P\ y \land x \neq y$.
+1. 把否定推进去：$\lnot \forall$ 变成 $\exists \lnot$，$\lnot (P\ x \land P\ y \imp x = y)$ 变成 $P\ x \land P\ y \land x \neq y$。
 
    ```isabelle
    lemma "¬ (∀x y. P x ∧ P y ⟶ x = y) ⟷
@@ -1145,7 +1118,7 @@ Then say in English what a violation looks like.
      by blast
    ```
 
-2. Nitpick finds a structure in which the two formulas differ:
+2. Nitpick 找到一个使两个公式取值不同的结构：
 
    ```isabelle
    lemma "(∃x. ∀y. P y ⟶ y = x) ⟷ (∃!x. P x)"
@@ -1164,68 +1137,45 @@ Then say in English what a violation looks like.
      oops
    ```
 
-   In a one-element domain where `P` holds for nothing, `∃x. ∀y. P y ⟶ y = x` is true (vacuously, for
-   every `x`), but `∃!x. P x` is false. The formula says "at most one element satisfies `P`": it forgets
-   to say that one does.
+   在一个只有一个元素、并且 `P` 对什么都不成立的论域中，`∃x. ∀y. P y ⟶ y = x` 为真（对每个 `x` 都空真），而 `∃!x. P x` 为假。这个公式说的是“至多有一个元素满足 `P`”：它忘了说确实有一个元素满足 `P`。
 :::
 ::::
 
-:::: exercise Substitution {#ex-3-7} ★★★
-Compute each substitution, renaming bound variables where necessary:
+:::: exercise 代入 {#ex-3-7} ★★★
+计算下面每个代入，必要时给约束变元改名：
 
 1. $(\forall y.\ R\ x\ y)[z/x]$
 2. $(\forall y.\ R\ x\ y)[y/x]$
 3. $(\exists x.\ R\ x\ y \land P\ x)[f\ x/y]$
 4. $(P\ x \land (\exists x.\ R\ x\ y))[g\ y/x]$
 
-Then explain what goes wrong if you conclude $\exists y.\ y \neq y$ from $\forall x.\ \exists y.\ y \neq x$
-by putting $y$ for $x$, and in which structures the premise is true.
+然后解释：如果用 $y$ 代入 $x$，从 $\forall x.\ \exists y.\ y \neq x$ 推出 $\exists y.\ y \neq y$，哪里出了错？前提在哪些结构中为真？
 
 ::: solution
-1. $\forall y.\ R\ z\ y$. The term $z$ contains no bound variable of the formula, so nothing needs
-   renaming.
-2. Putting $y$ in directly would give $\forall y.\ R\ y\ y$, which captures it. Rename first:
-   $\forall w.\ R\ y\ w$.
-3. The term $f\ x$ contains $x$, which the formula binds. Rename the bound $x$ to $w$, giving
-   $\exists w.\ R\ w\ y \land P\ w$, then substitute: $\exists w.\ R\ w\ (f\ x) \land P\ w$.
-4. Only the first $x$ is free, and the term $g\ y$ contains no variable that the formula binds:
-   $P\ (g\ y) \land (\exists x.\ R\ x\ y)$.
+1. $\forall y.\ R\ z\ y$。项 $z$ 不含公式中的约束变元，所以不需要改名。
+2. 直接放入 $y$ 会得到 $\forall y.\ R\ y\ y$，$y$ 被捕获了。先改名：$\forall w.\ R\ y\ w$。
+3. 项 $f\ x$ 含有 $x$，而公式约束了 $x$。把约束的 $x$ 改名为 $w$，得到 $\exists w.\ R\ w\ y \land P\ w$，再代入：$\exists w.\ R\ w\ (f\ x) \land P\ w$。
+4. 只有第一个 $x$ 是自由的，而项 $g\ y$ 不含公式所约束的变元：$P\ (g\ y) \land (\exists x.\ R\ x\ y)$。
 
-The premise $\forall x.\ \exists y.\ y \neq x$ says that every element has a different element, which
-is true in every structure with at least two elements. Putting $y$ for $x$ without renaming captures the
-$y$ and gives $\exists y.\ y \neq y$, which is false in every structure. The correct instance renames
-first: $\exists w.\ w \neq y$, "something differs from $y$", which does follow.
+前提 $\forall x.\ \exists y.\ y \neq x$ 说的是每个元素都有一个与它不同的元素，这在每个至少有两个元素的结构中都为真。不改名就用 $y$ 代入 $x$，会捕获 $y$，得到 $\exists y.\ y \neq y$，它在每个结构中都为假。正确的实例要先改名：$\exists w.\ w \neq y$，即“有某样东西与 $y$ 不同”，这确实可以推出。
 :::
 ::::
 
-:::: exercise Only infinite countermodels {#ex-3-8} ★★★
-Show that the formula of Section 3.9,
-$(\forall x.\ \lnot\, R\ x\ x) \land (\forall x\ y\ z.\ R\ x\ y \land R\ y\ z \imp R\ x\ z) \imp \lnot (\forall x.\ \exists y.\ R\ x\ y)$,
-is true in every finite structure. Hint: suppose a finite structure in which $R$ is irreflexive and
-transitive and every element has an $R$-successor, start at any element and keep following successors.
+:::: exercise 只有无限反模型 {#ex-3-8} ★★★
+证明第 3.9 节的公式 $(\forall x.\ \lnot\, R\ x\ x) \land (\forall x\ y\ z.\ R\ x\ y \land R\ y\ z \imp R\ x\ z) \imp \lnot (\forall x.\ \exists y.\ R\ x\ y)$ 在每个有限结构中都为真。提示：假设有一个有限结构，其中 $R$ 反自反且传递，并且每个元素都有 $R$ 后继；从任意一个元素出发，一直沿着后继走下去。
 
 ::: solution
-Suppose, to the contrary, that $\mathcal M$ is finite, $R$ is irreflexive and transitive in
-$\mathcal M$, and every element has an $R$-successor. Pick any element $x_0$, then $x_1$ with
-$R\ x_0\ x_1$, then $x_2$ with $R\ x_1\ x_2$, and so on. Applying transitivity repeatedly gives
-$R\ x_i\ x_j$ whenever $i < j$. The domain is finite, so the sequence must repeat: $x_i = x_j$ for some
-$i < j$. Then $R\ x_i\ x_j$ is $R\ x_i\ x_i$, which irreflexivity forbids. So in a finite structure
-where the premises hold, some element has no successor, and the formula is true.
+反过来假设 $\mathcal M$ 是有限的，$R$ 在 $\mathcal M$ 中反自反且传递，并且每个元素都有 $R$ 后继。任取一个元素 $x_0$，再取满足 $R\ x_0\ x_1$ 的 $x_1$，再取满足 $R\ x_1\ x_2$ 的 $x_2$，依此类推。反复运用传递性，可以得到：只要 $i < j$，就有 $R\ x_i\ x_j$。论域是有限的，所以这个序列一定会重复：对某个 $i < j$，有 $x_i = x_j$。于是 $R\ x_i\ x_j$ 就是 $R\ x_i\ x_i$，而反自反性不允许这种情况。所以在前提成立的有限结构中，有某个元素没有后继，公式为真。
 
-The argument fails for an infinite domain, because the sequence need not repeat: in the natural numbers
-with $<$, the sequence $0, 1, 2, \dots$ goes on for ever. That is the infinite countermodel of
-Section 3.9.
+对无限论域，这个论证就不成立了，因为序列不一定会重复：在带有 $<$ 的自然数中，序列 $0, 1, 2, \dots$ 会永远延续下去。这就是第 3.9 节的那个无限反模型。
 :::
 ::::
 
-:::: exercise A typed policy in Isabelle {#ex-3-9} ★★★
-Extend the vocabulary of Section 3.8 with `can_read :: "user ⇒ doc ⇒ bool"` and a second user
-`bob :: user`. Take these requirements: nobody can delete a document they cannot read, and owners can
-delete their documents.
+:::: exercise Isabelle 中的类型化策略 {#ex-3-9} ★★★
+给第 3.8 节的词汇表加上 `can_read :: "user ⇒ doc ⇒ bool"` 和第二个用户 `bob :: user`。考虑这两条需求：谁都不能删除自己不能读的文档；所有者能删除自己的文档。
 
-1. Prove with `blast`: if, in addition, Alice owns the report, then Alice can read the report.
-2. Use Nitpick to show that the requirements and `admin bob` do not imply that Bob can read the
-   report. Explain the countermodel.
+1. 用 `blast` 证明：如果另外还有 Alice 拥有那份报告，那么 Alice 能读那份报告。
+2. 用 Nitpick 表明：这两条需求加上 `admin bob`，推不出 Bob 能读那份报告。解释这个反模型。
 
 ::: solution
 ```isabelle
@@ -1239,8 +1189,7 @@ lemma "(∀u d. can_delete u d ⟶ can_read u d) ∧
   by blast
 ```
 
-Alice owns the report, so she can delete it, so she can read it: two instances of the ∀-requirements,
-which `blast` finds.
+Alice 拥有那份报告，所以她能删除它，因而她能读它：这要用到两条 ∀ 需求的两个实例，`blast` 能找到它们。
 
 ```isabelle
 lemma "(∀u d. can_delete u d ⟶ can_read u d) ∧
@@ -1266,54 +1215,52 @@ Nitpick found a counterexample for card doc = 1 and card user = 1:
   oops
 ```
 
-In the countermodel Bob is an admin, but nobody owns anything and nobody can read or delete anything;
-both requirements hold, vacuously. Nothing in the requirements gives admins any rights. If admins should
-read everything, that is a further requirement, such as requirement 3 of Example 3.10.
+在这个反模型中，Bob 是管理员，但谁也不拥有任何东西，谁也不能读或删除任何东西；两条需求都空真地成立。需求中没有任何内容赋予管理员什么权限。如果管理员应当能读一切，那就需要再加一条需求，比如例 3.10 中的需求 3。
 :::
 ::::
 
-## Check yourself {#quiz}
+## 自测题 {#quiz}
 
 ```quiz
-? Which formula says "every admin is on call"?
+? 哪个公式表达“每个管理员都在值班”？
 - [ ] $\forall x.\ \mathit{admin}\ x \land \mathit{on\_call}\ x$
 - [x] $\forall x.\ \mathit{admin}\ x \imp \mathit{on\_call}\ x$
 - [ ] $\exists x.\ \mathit{admin}\ x \imp \mathit{on\_call}\ x$
 - [ ] $\forall x.\ \mathit{on\_call}\ x \imp \mathit{admin}\ x$
-> With ∀, the restriction to admins is a condition, so ∀ goes with ⟶. The first option says that everybody is an admin; the last says that only admins are on call.
+> 用 ∀ 时，“是管理员”这一限制是一个条件，所以 ∀ 与 ⟶ 搭配。第一个选项说的是每个人都是管理员；最后一个选项说的是只有管理员才值班。
 
-? With Isabelle's scope convention, which occurrence is free in $\forall x.\ P\ x \imp (\exists y.\ R\ x\ y) \land Q\ y$?
-- [ ] The $x$ in $R\ x\ y$
-- [ ] The $y$ in $R\ x\ y$
-- [ ] The $x$ in $P\ x$
-- [x] The $y$ in $Q\ y$
-> The parentheses end the scope of $\exists y$ after $R\ x\ y$, so the $y$ in $Q\ y$ lies outside it. The scope of $\forall x$ runs to the end of the formula.
+? 按照 Isabelle 的辖域约定，在 $\forall x.\ P\ x \imp (\exists y.\ R\ x\ y) \land Q\ y$ 中，哪一个出现是自由的？
+- [ ] $R\ x\ y$ 中的 $x$
+- [ ] $R\ x\ y$ 中的 $y$
+- [ ] $P\ x$ 中的 $x$
+- [x] $Q\ y$ 中的 $y$
+> 括号在 $R\ x\ y$ 之后结束了 $\exists y$ 的辖域，所以 $Q\ y$ 中的 $y$ 在这个辖域之外。$\forall x$ 的辖域一直延伸到公式末尾。
 
-? Which formula is valid?
+? 哪个公式是有效的？
 - [x] $(\exists y.\ \forall x.\ R\ x\ y) \imp (\forall x.\ \exists y.\ R\ x\ y)$
 - [ ] $(\forall x.\ \exists y.\ R\ x\ y) \imp (\exists y.\ \forall x.\ R\ x\ y)$
 - [ ] $(\forall x.\ P\ x \lor Q\ x) \imp (\forall x.\ P\ x) \lor (\forall x.\ Q\ x)$
 - [ ] $(\exists x.\ P\ x) \land (\exists x.\ Q\ x) \imp (\exists x.\ P\ x \land Q\ x)$
-> If one $y$ works for every $x$, then every $x$ has a $y$. The other three formulas have countermodels with two elements.
+> 如果有一个 $y$ 对每个 $x$ 都行得通，那么每个 $x$ 都有一个 $y$。另外三个公式都有含两个元素的反模型。
 
-? What does a countermodel of a formula show?
-- [ ] That the formula is unsatisfiable
-- [ ] That the formula is true in some structure
-- [x] That the formula is not valid
-- [ ] That `blast` cannot prove the formula but another method could
-> A countermodel is a structure in which the formula is false, so the formula is not true in every structure. It may still be satisfiable.
+? 一个公式的反模型能说明什么？
+- [ ] 这个公式不可满足
+- [ ] 这个公式在某个结构中为真
+- [x] 这个公式不是有效的
+- [ ] `blast` 证明不了这个公式，但别的方法可以
+> 反模型是一个使公式为假的结构，所以这个公式并非在每个结构中都为真。它仍然可能是可满足的。
 
-? How does Isabelle read `¬ x = y ∧ P x`?
+? Isabelle 怎样读 `¬ x = y ∧ P x`？
 - [ ] `¬ (x = y ∧ P x)`
 - [x] `(¬ (x = y)) ∧ P x`
 - [ ] `¬ x = (y ∧ P x)`
-- [ ] It rejects the formula as ambiguous
-> `=` binds more tightly than `¬`, and `¬` more tightly than `∧`. Isabelle prints the formula as `x ≠ y ∧ P x`.
+- [ ] 它认为这个公式有歧义，拒绝接受
+> `=` 比 `¬` 结合得更紧，`¬` 又比 `∧` 结合得更紧。Isabelle 把这个公式打印成 `x ≠ y ∧ P x`。
 
-? Nitpick answers "Nitpick found no counterexample" for a lemma. What do you know?
-- [ ] The lemma is valid
-- [ ] The lemma is unsatisfiable
-- [ ] The lemma has an infinite countermodel
-- [x] No countermodel exists among the finite structures that Nitpick searched; the lemma may still be false
-> Nitpick searches domains up to a size limit, 10 elements by default. Some formulas that are not valid, such as the one in Section 3.9, have only infinite countermodels.
+? Nitpick 对一条引理回答“Nitpick found no counterexample”。你能得出什么结论？
+- [ ] 这条引理是有效的
+- [ ] 这条引理不可满足
+- [ ] 这条引理有无限反模型
+- [x] 在 Nitpick 搜索过的有限结构中没有反模型；这条引理仍然可能是错的
+> Nitpick 只搜索不超过一定大小的论域，默认最多 10 个元素。有些无效的公式，例如第 3.9 节中的那个，只有无限反模型。
 ```

@@ -113,7 +113,17 @@ Use these everywhere. At a term's first use in a module, add the English in brac
 | introduction rule / elimination rule | 引入规则 / 消去规则 |
 | derivation / derivable | 推导 / 可推导的 |
 | assumption / discharge (an assumption) | 假设 / 解除（假设） |
-| proof by contradiction | 反证法 |
+| proof by contradiction / reductio ad absurdum (RAA) | 反证法 / 归谬法 |
+| premise / conclusion / axiom / inference rule | 前提 / 结论 / 公理 / 推理规则 |
+| open / discharged assumption | 未解除的假设 / 已解除的假设 |
+| eigenvariable / side condition / witness | 本征变元 / 附加条件 / 见证 |
+| case analysis | 情形分析 |
+| main connective | 主联结词 |
+| contrapositive / converse | 逆否命题 / 逆命题 |
+| modus ponens / modus tollens | 肯定前件式 / 否定后件式 |
+| excluded middle / double negation elimination / De Morgan's laws | 排中律 / 双重否定消去 / 德摩根律 |
+| classical logic / intuitionistic logic | 经典逻辑 / 直觉主义逻辑 |
+| safe rule (of a proof search) | 安全规则 |
 | proof state, goal, subgoal | 证明状态，目标，子目标 |
 | proof method | 证明方法 |
 | simplifier / rewriting / rewrite rule | 化简器 / 重写 / 重写规则 |

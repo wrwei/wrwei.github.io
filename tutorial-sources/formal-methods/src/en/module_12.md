@@ -124,12 +124,17 @@ begin
 end
 ```
 
-The Isabelle text of this module goes between `begin` and `end`. HOL-Library comes with Isabelle, but it
-is not part of `Main`; `"HOL-Library.Multiset"` names its theory `Multiset`, which defines the function
-`mset` of the specification. When you open a theory with this import, Isabelle/jEdit first loads
-`Multiset` and the theories it builds on, and only then checks your own text. That takes a little while,
-and the progress shows in the **Theories** panel. It happens each time you start Isabelle/jEdit, because
-the library theory is not part of the prebuilt HOL image.
+The Isabelle text of this module goes between `begin` and `end`. HOL-Library is a collection of theories
+that comes with Isabelle but is not part of `Main`. `"HOL-Library.Multiset"` names its theory
+`Multiset`, which defines multisets and the function `mset` of the specification. The quotation marks
+are needed because of the hyphen: without them Isabelle would read three imports, `HOL`, `-` and
+`Library.Multiset`. (Here they do not mark inner syntax, as they do in a `lemma`.)
+
+When you open a theory with this import, Isabelle/jEdit first checks `Multiset` and the library theory
+it builds on, and only then your own text. This can take up to a minute. The **Theories** panel shows
+the progress; until it has finished, your own text stays unchecked and the Output panel shows nothing
+for it. It happens each time you start Isabelle/jEdit, because HOL-Library is not part of the prebuilt
+HOL image that Isabelle/jEdit loads at the start.
 
 Now the two functions:
 
@@ -208,7 +213,8 @@ linear order, so use `linorder`.
 The specification has two halves, both made of library functions.
 
 **Sorted.** `sorted` from the library says that each element of a list is at most every element after
-it:
+it. The library defines `sorted` through a more general function, `sorted_wrt`, so its equations are
+not called `sorted.simps`; they are the lemma `sorted_simps`:
 
 ```isabelle
 thm sorted_simps
@@ -243,9 +249,9 @@ specification uses multisets.
 
 ::: definition Multiset and permutation
 A **multiset** (or *bag*) is a collection in which order does not matter but the number of copies of each
-element does. `mset xs` is the multiset of the elements of the list xs; `count M x` is the number of
-copies of x in M. A list ys is a **permutation** of xs if it has the same elements, each as often:
-`mset ys = mset xs`.
+element does. `mset xs`, of type `'a multiset`, is the multiset of the elements of the list xs;
+`count M x` is the number of copies of x in M. A list ys is a **permutation** of xs if it has the
+same elements, each as often: `mset ys = mset xs`.
 :::
 
 ```isabelle
@@ -485,8 +491,9 @@ next
 qed
 ```
 
-Insertion sort is verified: for every list of every linearly ordered type, `isort` returns a sorted
-permutation of its input.
+The command `theorem` means the same as `lemma`, as `corollary` did in Module 11; the name marks the main
+result. Insertion sort is verified: for every list of every linearly ordered type, `isort` returns a
+sorted permutation of its input.
 
 ::: keyidea
 Proofs about programs are found from the top down and written from the bottom up. You start with the
@@ -639,7 +646,8 @@ the tree is high. In a well-balanced tree with n keys that is about log₂ n ste
 ### Trees and the set they represent {#bst-trees}
 
 The trees are those of Module 11: a tree is either a leaf `Lf`, which holds nothing, or a node
-`Nd l x r` with a left subtree l, a key x and a right subtree r.
+`Nd l x r` with a left subtree l, a key x and a right subtree r. Your theory for this module needs its
+own copy of the datatype:
 
 ```isabelle
 datatype 'a btree = Lf | Nd "'a btree" 'a "'a btree"
@@ -673,7 +681,8 @@ thm btree.set
   set_btree ?x21.0 ∪ {?x22.0} ∪ set_btree ?x23.0
 ```
 
-This module defines its own function, so that the abstraction function is visible in the theory.
+`?x21.0` is the schematic variable `?x21`: Isabelle adds `.0` to a name that ends in a digit. This
+module defines its own function, so that the abstraction function is visible in the theory.
 :::
 
 ### Search and insertion {#bst-ops}
@@ -725,8 +734,8 @@ consts
 
 A set has no order: Isabelle prints the keys in the order in which the generated code collected them, and
 `{5, 2, 1, 4, 8, 9}` is the same set as `{1, 2, 4, 5, 8, 9}`. The search for 4 goes left at 5 and right
-at 2, and finds 4. The search for 7 goes right at 5, left at 8, and reaches a leaf: 7 is not there. Inserting 6 takes the same path as the search for 7, and puts a
-new node where that search ended:
+at 2, and finds 4. The search for 7 goes right at 5, left at 8, and reaches a leaf: 7 is not there.
+Inserting 6 takes the same path as the search for 7, and puts a new node where that search ended:
 
 ```isabelle
 value "tinsert 6 t0"
@@ -739,8 +748,8 @@ value "tinsert 6 t0"
 
 ::: figure id=fig-12-2
 The search tree `t0` before and after `tinsert 6`. Insertion follows the path of a search (right at 5,
-left at 8) and replaces the leaf where the search ends by a new node. Every key in a left subtree is
-smaller than the key above it, and every key in a right subtree is larger: the invariant `bst`.
+left at 8) and replaces the leaf where the search ends by a new node. At every node, the keys in the left
+subtree are smaller than the node's key and the keys in the right subtree are larger: the invariant `bst`.
 :::
 
 ### The invariant {#bst-invariant}
@@ -978,7 +987,9 @@ three lemmas, this proof would not change.
 
 A **queue** is a waiting line: elements join at the back and leave from the front, so the first to
 join is the first to leave. The abstract model is a list, with the front of the queue at the head of
-the list. Joining is `xs @ [x]`, leaving is `tl xs`, and the element at the front is `hd xs`.
+the list. Joining is `xs @ [x]`; leaving is `tl xs`, the **tail** of the list, which is the list
+without its first element; and the element at the front is `hd xs`, the **head** of the list. In
+Isabelle `tl [] = []`, while `hd []` has no specified value (Module 8).
 
 As a program, the plain list is slow: `xs @ [x]` copies the whole list, so a queue of n elements costs n
 steps for each element that joins. A classic functional implementation uses two lists. The **front**
@@ -1047,10 +1058,10 @@ value "deq (Queue [1] [4, 3, 2 :: nat])"
 ```
 
 Adding 5 puts it at the head of the back list. Removing 1 empties the front list, so `refill` reverses
-the back list into the front: `[4, 3, 2]` becomes `[2, 3, 4]`. Every element is moved from the back to the front
-at most once, so on average each operation takes a constant number of steps, although a single `deq`
-may take longer. (That is a claim about running time, which this module does not prove; the theory
-`Queue_2Lists`, described at the end of this section, does.)
+the back list into the front: `[4, 3, 2]` becomes `[2, 3, 4]`. Every element is moved from the back to
+the front at most once, so on average each operation takes a constant number of steps, although a
+single `deq` may take longer. (That is a claim about running time, which this module does not prove;
+the theory `Queue_2Lists`, described at the end of this section, does.)
 
 `first` returns the head of the front list. That is the right answer only if the front list is
 empty only when the whole queue is: otherwise the first element might be waiting in the back list. The
@@ -1109,10 +1120,10 @@ goal (1 subgoal):
 ```
 
 `cases q` names the two lists of the queue x1 and x2. `auto` has unfolded `enq` on the left and
-`list_of q` on the right, but it is stuck at `list_of (refill (Queue x1 (x # x2)))`. The equations of `refill` depend on
-whether the front list x1 is empty, and `auto` does not split on that by itself. You could tell it to,
-but there is a better way: state once and for all what `refill` does to the list a queue represents,
-namely nothing. That lemma will serve every operation that calls `refill`:
+`list_of q` on the right, but it is stuck at `list_of (refill (Queue x1 (x # x2)))`. The equations of
+`refill` depend on whether the front list x1 is empty, and `auto` does not split on that by itself.
+You could tell it to, but there is a better way: state once and for all what `refill` does to the list
+a queue represents, namely nothing. That lemma will serve every operation that calls `refill`:
 
 ```isabelle
 lemma list_of_refill: "list_of (refill q) = list_of q"
@@ -1174,8 +1185,8 @@ qed
 ```
 
 With an empty front list, the invariant says that the back list is empty too, so the queue is empty and
-`deq` correctly leaves it as it is. With a non-empty front list, `deq` removes its head, and `refill`
-does not change the list. The remaining parts are short:
+`deq` correctly leaves it as it is, since `tl [] = []`. With a non-empty front list, `deq` removes its
+head, and `refill` does not change the list. The remaining parts are short:
 
 ```isabelle
 lemma first_correct: "qinv q ⟹ list_of q ≠ [] ⟹ first q = hd (list_of q)"
@@ -1194,10 +1205,15 @@ lemma qinv_deq: "qinv q ⟹ qinv (deq q)"
   by (cases q rule: deq.cases) (auto simp: qinv_refill)
 ```
 
-`first_correct` has two premises: the invariant, and that the queue is not empty, because `hd []` has
-no specified value. The lemmas `qinv_qempty`, `qinv_enq` and `qinv_deq` say that every queue built from `qempty` with
-`enq` and `deq` satisfies the invariant, so the premise `qinv q` of `list_of_deq` and `first_correct` always holds for
-the queues a program can build.
+`first_correct` has two premises: the invariant, and that the queue is not empty. An empty queue has no
+front element: in the model, `hd []` has no specified value. So the specification promises nothing
+about `first` on an empty queue, and leaves an implementation free to return anything there. (This
+implementation happens to return `hd []` for the empty queue, so this particular proof would also work
+without the second premise.)
+
+The lemmas `qinv_qempty`, `qinv_enq` and `qinv_deq` say that every queue built from `qempty` with `enq`
+and `deq` satisfies the invariant, so the premise `qinv q` of `list_of_deq` and `first_correct` always
+holds for the queues a program can build.
 
 ### Verified data structures in practice {#practice}
 
@@ -1208,7 +1224,8 @@ general.
   collection of verified functional data structures (in the folder `src/HOL/Data_Structures` of your
   Isabelle installation). Its theory `Queue_Spec` states the queue specification of this section, with
   an emptiness test as well (Exercise 12.6): eight properties, with an abstraction function `list` and an
-  invariant `invar`. `Queue_2Lists` proves them for the two-list queue and bounds its running time.
+  invariant `invar`. `Queue_2Lists` proves them for the two-list queue, and proves that on average
+  each operation takes a constant number of steps.
   `Set_Specs` states the set specification of Section 12.5, with deletion as well, and theories such as
   `Tree_Set`, `AVL_Set` and `RBT_Set` prove it for unbalanced, AVL and red-black trees.
 - **The code generator.** When Isabelle generates code for sets, it represents a finite set by a list of
@@ -1245,7 +1262,7 @@ export_code isort tempty isin tinsert qempty enq deq first
 See theory exports
 ```
 
-As in Module 8, the batch build and the Output panel only say where the code went: Isabelle stores
+As in Module 8, the Output panel only says where the code went: Isabelle stores
 generated code as **theory exports**, files that belong to the theory, instead of printing it. In
 Isabelle/jEdit, *theory exports* in the message is a link. Click it, and the File Browser opens the
 folder of code exported by your theory, under the virtual address `isabelle-export:`. There, the folder
@@ -1258,8 +1275,9 @@ Each function has the equations that `fun` derived from yours, with `#` written 
 `reverse`, and the functions that the exported ones need are there too: `ins`, `refill` and the
 library's `hd`. The comparisons `≤` and `<` have become `less_eq` and `less`, the operations of a Haskell
 type class `Ord` that Isabelle generates from its own class `ord`; the classes `preorder`, `order` and
-`linorder` become Haskell classes too (Module 8 compared type classes with Haskell's). The first lines of the module list
-what it exports: the functions, and the types `Btree` and `Queue` without their constructors.
+`linorder` become Haskell classes too (Module 8 compared type classes with Haskell's). The first lines
+of the module list what it exports: the functions, the class `Linorder`, and the types `Btree` and
+`Queue` without their constructors.
 
 That last point protects the invariants. Other Haskell code can build trees only from `tempty` with
 `tinsert`, and queues only from `qempty` with `enq` and `deq`, so it cannot build a tree that breaks
@@ -1281,8 +1299,10 @@ your `fun` and `definition` commands, which are theorems (Module 8). The code ge
 equation into an equation of the target language and adds the definitions it needs from the library. So
 when the generated `isort` returns a list, that list is the value of `isort` in the logic, and the
 correctness theorem says that it is sorted and a permutation of the input. This guarantee, that every
-result the program produces is a result the logic agrees with, is called **partial correctness**: it
-speaks about the results the program returns, not about whether it returns at all.
+result the program produces is a result the logic agrees with, is called **partial correctness**
+(Module 8): it speaks about the results the program returns, not about whether it returns at all. The
+generated `first`, for example, stops with an error on an empty queue, because the library's `hd` has no
+equation for `[]`. That is no result, so it breaks no promise.
 
 What the guarantee rests on is the trusted base of Module 1, enlarged by the steps after the proof:
 
@@ -1298,7 +1318,10 @@ What the guarantee rests on is the trusted base of Module 1, enlarged by the ste
 - **The code around it.** The theorems about `isin`, `deq` and `first` assume the invariants `bst` and
   `qinv`. The generated module keeps them safe from other Haskell code, as described above, but not
   from code that edits the generated file or exports the constructors: a tree or queue that breaks its
-  invariant voids the promise.
+  invariant voids the promise. In the same way, the theorems about `isort` and the tree functions
+  assume that `≤` and `<` form a linear order. After `export_code open`, other code compares the
+  elements of its own types with operations that it supplies, and nothing checks that they obey the laws
+  of `linorder`.
 - **The specification.** A verified function does what its specification says. Whether that is what
   the users need is still validation.
 
@@ -1579,8 +1602,10 @@ Evaluated terms:
 ```
 
 Dropping y does not disorder the list: x ≤ y and y is at most every element of ys, so `x # ys` is still
-sorted. In fact `sorted (isort_bad xs)` holds for every list, by an induction like the one for `sorted_ins`. Only the permutation half notices that
-an element is lost. The fix is the equation of `ins`: `x # y # ys`.
+sorted. In fact `sorted (isort_bad xs)` holds for every list. The proof goes as for `sorted_ins` and
+`sorted_isort`, with the lemma `set (ins_bad x xs) ⊆ insert x (set xs)` in place of `set_ins`:
+`ins_bad` may lose elements, but it adds none except x. Only the permutation half notices that an
+element is lost. The fix is the equation of `ins`: `x # y # ys`.
 :::
 ::::
 
@@ -1690,10 +1715,11 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
    ```
 
    `sorted_inorder` is the hard one. With `sorted_append` and `set_inorder` alone, `auto` stops at a goal
-   `x ≤ xa` for a key x of the left subtree and a key xa of the right subtree: it has `x < x2` and
-   `x2 < xa` for the key x2 at the node, but does not chain them. The library rules `less_trans`
-   (from `x < y` and `y < z` conclude `x < z`) and `less_imp_le` (from `x < y` conclude `x ≤ y`), given
-   to `auto` with `intro:` (Module 9), supply the missing steps.
+   `x ≤ xa` for a key x of the left subtree and a key xa of the right subtree. Its premises say that
+   every key of the left subtree is smaller than the key x2 at the node and every key of the right
+   subtree is larger, so `x < x2` and `x2 < xa`, but `auto` does not chain the two. The library rules
+   `less_trans` (from `x < y` and `y < z` conclude `x < z`) and `less_imp_le` (from `x < y` conclude
+   `x ≤ y`), given to `auto` with `intro:` (Module 9), supply the missing steps.
 
 2. Quickcheck refutes the sorting specification at once:
 
@@ -1748,7 +1774,7 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
 - [x] A tree can have every node in order with its children and still have a key on the wrong side of an ancestor, where search misses it
 - [ ] Isabelle cannot express comparisons with children
 - [ ] It does not matter; both invariants make search correct
-> Quickcheck found such a tree for `bst_local`: the key is in the left subtree of a node although it is larger than that node's key.
+> Quickcheck found such a tree for `bst_local`: a₁ sits in the right subtree of a₂ although it is smaller than a₂, so the search goes left and misses it.
 
 ? What is `list_of (Queue [1, 2] [5, 4, 3])`?
 - [ ] `[1, 2, 5, 4, 3]`

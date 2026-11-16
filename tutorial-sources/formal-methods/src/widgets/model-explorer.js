@@ -67,12 +67,12 @@ FMWidgets.register('model-explorer', function (root, api) {
   }
 
   // ------------------------------------------------------------ messages in both languages
-  function list(xs) { return xs.join(t(', ', '，')) }
+  function list(xs) { return xs.join(t(', ', ', ')) }
   function parseMessage(m) {
     var r
     if (m === 'empty formula') return t('Type a formula first.', '请先输入一个公式。')
     if ((r = m.match(/^cannot read "(.*)"$/))) return t('Cannot read “' + r[1] + '”.', '无法识别“' + r[1] + '”。')
-    if ((r = m.match(/^expected a variable after (.)$/))) return t('A variable must follow ' + r[1] + '.', r[1] + ' 后面应当是一个变量。')
+    if ((r = m.match(/^expected a variable after (.)$/))) return t('A variable must follow ' + r[1] + '.', r[1] + ' 后面应当是一个变元。')
     if ((r = m.match(/^expected a term at the end$/))) return t('The formula stops where a term should follow.', '公式在应当出现项的地方结束了。')
     if ((r = m.match(/^expected a term before (.+)$/))) return t('A term should come before ' + r[1] + '.', '在 ' + r[1] + ' 之前应当是一个项。')
     if ((r = m.match(/^expected (.+) at the end$/))) return t('Missing ' + r[1] + ' at the end.', '末尾缺少 ' + r[1] + '。')
@@ -204,7 +204,7 @@ FMWidgets.register('model-explorer', function (root, api) {
         M.domain.forEach(function (d) { var e2 = Object.assign({}, e); e2[c.vars[k]] = d; go(k + 1, e2, vals.concat([d])) })
       })(0, {}, [])
       return [t('Each ' + vs + ' has its own ' + inner.vars.join(', ') + ': ', '每个 ' + vs + ' 都有各自的 ' + inner.vars.join(', ') + '：'),
-        isa(pairs.join(t(', ', '，'))), t('.', '。')]
+        isa(pairs.join(t(', ', ', '))), t('.', '。')]
     }
     if (f.k === 'ex' && !val && c.body.k === 'all') {
       // ∃y. ∀x. φ false: for each y, an x where φ fails
@@ -220,10 +220,10 @@ FMWidgets.register('model-explorer', function (root, api) {
     }
     if (f.k === 'all' && val) {
       if (c.body.k === 'imp' && !firstTuple(c.vars, c.body.l, M, {}, true))
-        return [t('True, vacuously: no ' + vs + ' satisfies ', '真，但只是空真：没有 ' + vs + ' 满足 '), isa(show(c.body.l)), t('.', '。')]
+        return [t('True, vacuously: no ' + vs + ' satisfies ', '空真：没有 ' + vs + ' 满足 '), isa(show(c.body.l)), t('.', '。')]
       return [t('True for every ' + vs + '.', '对每个 ' + vs + ' 都成立。')]
     }
-    return [t('No ' + vs + ' makes it true.', '没有任何 ' + vs + ' 使它成立。')]
+    return [t('No ' + vs + ' makes it true.', '没有哪个 ' + vs + ' 使它为真。')]
   }
 
   // ------------------------------------------------------------ the page elements
@@ -314,18 +314,18 @@ FMWidgets.register('model-explorer', function (root, api) {
   function evaluate(src, M) {
     var f
     if (/(∃|\bEX|\?)\s*!/.test(src)) return { text: src, error: t('This explorer has no ∃!. For “exactly one x with P x”, write ∃x. P x ∧ (∀y. P y ⟶ y = x).',
-      '本组件没有 ∃!。要表达“恰好有一个 x 满足 P x”，请写 ∃x. P x ∧ (∀y. P y ⟶ y = x)。') }
+      '模型探索器不支持 ∃!。要表达“恰好有一个 x 满足 P x”，请写 ∃x. P x ∧ (∀y. P y ⟶ y = x)。') }
     try { f = Logic.parse(src) } catch (e) { return { text: src, error: parseMessage(e.message) } }
     var shown = show(f)
     var problem = vocabularyProblem(f)
     if (!problem && boundCount(f) > MAX_BOUND) problem = t('This explorer evaluates formulas with at most ' + MAX_BOUND + ' quantified variables.',
-      '本组件只能求值至多含 ' + MAX_BOUND + ' 个量化变量的公式。')
+      '模型探索器最多只能处理含 ' + MAX_BOUND + ' 个约束变元的公式。')
     if (problem) return { text: shown, error: problem }
     try {
       var val = Logic.holds(f, M, {})
       return { text: shown, val: val, why: explain(f, val, M) }
     } catch (e) {
-      return { text: shown, error: t('Cannot evaluate this formula: ', '无法求值：') + e.message }
+      return { text: shown, error: t('Cannot evaluate this formula: ', '无法对这个公式求值：') + e.message }
     }
   }
 

@@ -243,7 +243,7 @@ goal (2 subgoals):
  2. ⋀s t. ⟦lreach s; lift_ok s; lstep s t⟧ ⟹ lift_ok t
 ```
 
-Subgoal 1 is the **initial case**: the initial state is safe. Subgoal 2 is the **step case**: for a
+Subgoal 1 is the base case: the initial state is safe. Subgoal 2 is the induction step: for a
 reachable state `s` that is safe and a step from `s` to `t`, the state `t` is safe. Both follow from the
 rules of `lstep`:
 
@@ -287,7 +287,7 @@ lemma "lreach (d, m) ⟹ m ⟶ d = Closed"
 The goal left over is false: it claims that for the `d` and `m` of the lemma, a moving lift has a
 closed door. The argument of `lreach` is the pair `(d, m)`, not a variable, and the induction rule is
 about a variable state `?x`. Given a pattern, the method does not replace `d` and `m` by the states of
-the rules; they stay as they are, so the initial case asks for the claim about `d` and `m` instead of
+the rules; they stay as they are, so the base case asks for the claim about `d` and `m` instead of
 about `(Closed, False)`. Module 11 met the same problem with a constant. Write the property as a
 function of the whole state, as `lift_ok` does, and the induction works.
 :::
@@ -322,7 +322,7 @@ record crossing =
 
 The record command defines the type `crossing` and, for each field, a function that selects it: if `s`
 is a crossing, `cars s` is its car light. A record value lists its fields in brackets, as in
-`⦇cars = Green, peds = DontWalk, req = False⦈`; type ⦇ as `(|` and ⦈ as `|)`. The notation
+`⦇cars = Green, peds = DontWalk, req = False⦈`; type `⦇` as `(|` and `⦈` as `|)`. The notation
 `s⦇cars := Amber⦈` is the **update** of a field: the crossing `s` with its car light changed to amber and
 the other fields unchanged. The simplifier knows how selectors and updates interact, so that it rewrites
 `cars (s⦇req := True⦈)` to `cars s` by itself.
@@ -450,7 +450,7 @@ thm reach.induct
 ⟹ ?P ?x
 ```
 
-The induction rule has the same two cases as before. In the step case, the event `e` is arbitrary: a
+The induction rule has the same two cases as before. In the induction step, the event `e` is arbitrary: a
 proof must deal with every event whose guard holds in a reachable state.
 
 ## When an invariant is not inductive {#strengthen}
@@ -484,7 +484,7 @@ qed
 ***  1. ⟦reach s; e = ToGreen; cars s = Red; ¬ req s; peds s = Walk⟧ ⟹ False
 ```
 
-The initial case went through, and so did five of the six events. The goal that is left belongs to
+The base case went through, and so did five of the six events. The goal that is left belongs to
 `ToGreen`. Read it as a state: the cars have red, no request is pending, and the pedestrians walk. The
 state is safe, because the cars have red. The guard of `ToGreen` holds in it, because the cars have red
 and no request is pending. After `ToGreen` the cars have green while the pedestrians walk, which is not
@@ -507,14 +507,14 @@ Quickcheck found a counterexample:
   e = ToGreen
 ```
 
-A state and an event that break the step case in this way are a **counterexample to induction**. Isabelle
+A state and an event that break the induction step in this way are a **counterexample to induction**. Isabelle
 does not know whether this state can occur. There are two possibilities, and they call for different
 actions:
 
 1. The state is **reachable**. Then some run leads to it, the next `ToGreen` makes it unsafe, and the
    design is wrong. Section 13.6 shows this case.
 2. The state is **not reachable**. Then the design may well be safe, but `safe` is too weak to carry
-   the induction: it allows states that never occur, and the step case fails on one of them.
+   the induction: it allows states that never occur, and the induction step fails on one of them.
 
 Quickcheck cannot answer this question. It tests a statement by running the definitions in it, and an
 inductive definition such as `reach` is not a function that it can run (Module 11):
@@ -609,13 +609,13 @@ several rounds; each round removes the unreachable states that the last failure 
 
 ::: pitfall
 - **Adding a fact that is false.** A fact that fails in some reachable state cannot be part of an
-  invariant: the initial case or a step case fails, however many rounds you add. Test a candidate
+  invariant: the base case or the induction step fails, however many rounds you add. Test a candidate
   first: `nitpick` on `reach s ⟹ invar s` should find no counterexample. A fact that is true but not
-  preserved together with the rest makes a step case fail too; then you need another round.
-- **Trying a stronger proof method.** No method can prove the failed step case for `safe` from `safe s`
-  and the guard alone: that claim is false, as Quickcheck showed. The step case also has the premise
+  preserved together with the rest makes the induction step fail too; then you need another round.
+- **Trying a stronger proof method.** No method can prove the failed induction step for `safe` from `safe s`
+  and the guard alone: that claim is false, as Quickcheck showed. The induction step also has the premise
   `reach s`, but using it needs a fact about all reachable states, which is the invariant you are
-  looking for. A failed step case asks for a stronger invariant, not for more automation.
+  looking for. A failed induction step asks for a stronger invariant, not for more automation.
 :::
 
 ## Counterexample traces {#traces}
@@ -727,7 +727,7 @@ of `ToGreen`, so that the controller checks the pedestrian signal itself (Exerci
 that this fix works).
 
 ::: keyidea
-When the step case of an invariant proof fails, the goal describes a state and an event. Find out whether
+When the induction step of an invariant proof fails, the goal describes a state and an event. Find out whether
 the state is reachable. If it is, the property you are proving fails in a reachable state; when that
 property is your safety property, the design is wrong: search for a trace with Nitpick, or with
 Quickcheck on an executable model, and fix the design. If it is not, the design may be right and the
@@ -879,7 +879,7 @@ next
 qed
 ```
 
-In the step case, a stutter step leads to the same abstract state, which is reachable by the induction
+In the induction step, a stutter step leads to the same abstract state, which is reachable by the induction
 hypothesis; any other step is a step of the crossing from a reachable state, which `reach.step` covers.
 And now the safety of the timed controller costs one line:
 
@@ -962,7 +962,7 @@ and **TLC** for specifications in Lamport's **TLA+**, the language that Amazon's
   [Isabelle for model verification](../isabelle/) applies these ideas to a small model of a lid: a
   record of state, a guard that admits an operation, a lemma that the operation preserves the state
   invariant, and a proof that a translation between two representations preserves meaning. Its guard
-  and update form an event in the sense of Section 13.4, and its lemma is the step case of an invariant
+  and update form an event in the sense of Section 13.4, and its lemma is the induction step of an invariant
   proof (Section 13.3); the translation theorem is of the kind that Module 14 proves for a compiler. The
   guide was written for Isabelle2025-2.
 - **The Archive of Formal Proofs** is a large online library of checked Isabelle developments, among
@@ -988,8 +988,8 @@ Module 14 ends the series with a different kind of system: a compiler, proved co
   as the reflexive–transitive closure `r⇧*` from the initial state.
 - A **safety property** must hold in every reachable state. An **invariant** holds in every reachable
   state; it is **inductive** if it holds initially and every step preserves it. Rule induction over the
-  reachable states proves an inductive invariant: an initial case and a step case.
-- A safety property is often not inductive. The failed step case shows a state and an event: a
+  reachable states proves an inductive invariant: a base case and an induction step.
+- A safety property is often not inductive. The failed induction step shows a state and an event: a
   **counterexample to induction**. If the state is unreachable, **strengthen** the invariant with a fact
   that holds in every reachable state. If it is reachable, the design is wrong.
 - Nitpick finds reachable bad states, also of inductive definitions, and with an executable `run` it finds
@@ -1070,7 +1070,7 @@ value "run [Press, Press, ToAmber, ToGreen, ToRed] start"
 :::: exercise Invariant, inductive, or neither? {#ex-13-4} ★★
 For the crossing of Section 13.4, decide for each property whether it holds in every reachable state,
 and whether it is inductive on its own. Use Figure 13.1 for the reachable states. When a property is not
-inductive, give a state and an event that break the step case; when it is not an invariant, give a run
+inductive, give a state and an event that break the induction step; when it is not an invariant, give a run
 that breaks it.
 
 1. `peds s = Walk ⟶ req s`
@@ -1111,7 +1111,7 @@ corollary "reach (run es start)"
   by (simp add: reach.init reach_run)
 ```
 
-In the step case, the simplifier splits the `if` in the definition of `run`. If the guard holds, the next
+In the induction step, the simplifier splits the `if` in the definition of `run`. If the guard holds, the next
 state is reachable by `reach.step`; if not, it is `s` itself. Together with `crossing_safe`, this shows
 that no run of events leads to an unsafe state: the property that Nitpick refuted for the colleague's
 design in Section 13.6 holds for the design of Section 13.4.
@@ -1159,7 +1159,7 @@ pending: `reach s ⟹ cars s = Amber ⟶ req s`. The rule induction alone fails 
 invariant `reach_invar`, which you have already proved.
 
 ::: solution
-In the step case, the premise `reach s` is available, so `reach_invar` gives `invar s` for the state
+In the induction step, the premise `reach s` is available, so `reach_invar` gives `invar s` for the state
 before the event. That is the missing fact: in the state where `EndWalk` clears the request, the
 pedestrians walk, so by `invar` the cars have red, not amber.
 
@@ -1301,9 +1301,9 @@ inductive lazy :: "crossing ⇒ bool" where
 - [ ] Every run must be finite
 - [x] Every step from any state that satisfies I must lead to a state that satisfies I
 - [ ] I must be a liveness property
-> An inductive invariant is preserved by every step from every state that satisfies it, including unreachable ones. That is what the step case of the rule induction checks.
+> An inductive invariant is preserved by every step from every state that satisfies it, including unreachable ones. That is what the induction step of the rule induction checks.
 
-? The step case of an invariant proof fails, and the goal describes a state s and an event e. What should you find out first?
+? The induction step of an invariant proof fails, and the goal describes a state s and an event e. What should you find out first?
 - [ ] Whether a stronger proof method such as auto or force proves the goal
 - [ ] Whether e is the last event of the datatype
 - [ ] Whether the initial state satisfies the invariant

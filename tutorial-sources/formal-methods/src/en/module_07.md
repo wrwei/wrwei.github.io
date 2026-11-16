@@ -2048,13 +2048,9 @@ on the lemma.
 2. The third, `?Q ⟹ ?R`: while proving ?R you may assume ?Q.
 3. As a paper rule, with the discharged assumption marked:
 
-   ```prooftree
-   R   (impE¹)
-     P ⟶ Q
-     P
-     R
-       [Q]¹
-   ```
+   $$
+   \dfrac{\begin{matrix}\\ \\ P \imp Q\end{matrix} \qquad \begin{matrix}\\ \\ P\end{matrix} \qquad \begin{matrix}[Q]^1\\ \vdots\\ R\end{matrix}}{R}\;(\mathrm{impE}^1)
+   $$
 
 4. With `erule`. It removes the assumption A ⟶ B and leaves two subgoals: prove A, and then prove C
    with B as an extra assumption.
