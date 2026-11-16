@@ -96,10 +96,7 @@ inductive lreach :: "door × bool ⇒ bool" where
 | step: "lreach s ⟹ lstep s t ⟹ lreach t"
 ```
 
-Rule `init` makes the initial state reachable. Rule `step` says that one step from a reachable state
-leads to a reachable state. Nothing else is reachable, because an inductive definition defines the
-smallest predicate closed under its rules (Module 11). A run is a derivation with these rules. Here is
-the run to `(Closing, False)`, step by step, in Isar (Module 10):
+规则 `init` 使初始状态可达。规则 `step` 说，从一个可达状态走一步，到达的还是可达状态。除此之外没有别的状态是可达的，因为归纳定义所定义的是对其规则封闭的最小谓词（模块 11）。一次运行就是用这些规则构造的一个推导。下面用 Isar（模块 10）一步一步地写出到达 `(Closing, False)` 的运行：
 
 ```isabelle
 lemma "lreach (Closing, False)"
@@ -112,11 +109,9 @@ proof -
 qed
 ```
 
-Each `lstep` fact is one event of the run, proved with its rule: `rule open_door` leaves the guard
-`¬ False` to prove, which `simp` does. Each `ultimately` adds the step to the run with rule
-`lreach.step`.
+每个 `lstep` 事实是这次运行中的一个事件，用相应的规则来证明：`rule open_door` 留下守卫条件 `¬ False` 待证，由 `simp` 证明。每个 `ultimately` 都用规则 `lreach.step` 把这一步加到运行上。
 
-To prove something about *every* reachable state, you need the induction rule of `lreach`:
+要证明关于**每一个**可达状态的事情，你需要 `lreach` 的归纳规则（induction rule）：
 
 ```isabelle
 thm lreach.induct
@@ -127,16 +122,11 @@ thm lreach.induct
 ⟹ ?P ?x
 ```
 
-Read it as the invariant method of Module 5. To prove that a property `?P` holds in every reachable
-state `?x`, prove that it holds in the initial state, and that one step from a reachable state with
-`?P` leads to a state with `?P`. Section 13.3 uses this rule.
+把它当作模块 5 的不变式方法来读。要证明性质 `?P` 在每个可达状态 `?x` 中都成立，就证明它在初始状态中成立，并且从一个满足 `?P` 的可达状态走一步，到达的状态也满足 `?P`。第 13.3 节会用到这条规则。
 
-### Reachability is a closure {#closure}
+### 可达性是一种闭包 {#closure}
 
-In Module 4 you met the reflexive–transitive closure `r⇧*` of a relation `r`: the pairs `(a, b)` such
-that `b` can be reached from `a` in zero or more steps of `r`. The reachable states of the lift are the
-states `s` with `((Closed, False), s)` in the closure of the step relation. Isabelle proves that the two
-definitions agree:
+你在模块 4 中见过关系 `r` 的自反传递闭包（reflexive–transitive closure）`r⇧*`：它由这样的有序对 `(a, b)` 组成，从 `a` 出发，经过零步或多步 `r` 可以到达 `b`。电梯的可达状态，就是使 `((Closed, False), s)` 属于单步关系的闭包的那些状态 `s`。Isabelle 证明了这两个定义是一致的：
 
 ```isabelle
 lemma lreach_rtrancl: "lreach s ⟷ ((Closed, False), s) ∈ {(s, t). lstep s t}⇧*"
