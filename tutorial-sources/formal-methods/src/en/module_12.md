@@ -491,8 +491,8 @@ next
 qed
 ```
 
-The command `theorem` means the same as `lemma`, as `corollary` did in Module 11; the word marks a main
-result. Insertion sort is verified: for every list of every linearly ordered type, `isort` returns a
+The command `theorem`, like `corollary` (Module 11) and `proposition`, means the same as `lemma`; the
+word marks a main result. Insertion sort is verified: for every list of every linearly ordered type, `isort` returns a
 sorted permutation of its input.
 
 ::: keyidea
@@ -1278,7 +1278,9 @@ library's `hd`. The comparisons `≤` and `<` have become `less_eq` and `less`, 
 type class `Ord` that Isabelle generates from its own class `ord`; the classes `preorder`, `order` and
 `linorder` become Haskell classes too (Module 8 compared type classes with Haskell's). The first lines
 of the module list what it exports: the functions, the class `Linorder`, and the types `Btree` and
-`Queue` without their constructors.
+`Queue` without their constructors. By default `export_code` exports only what its list names, together
+with the types and classes that their types mention, and it exports the constructors of a datatype only
+when the list names one of them.
 
 That last point protects the invariants. Other Haskell code can build trees only from `tempty` with
 `tinsert`, and queues only from `qempty` with `enq` and `deq`, so it cannot build a tree that breaks
@@ -1298,12 +1300,12 @@ designing the interface of verified code.
 Every function in the generated module comes from equations that are theorems in the logic: for your
 own functions, the equations of your `fun` and `definition` commands (Module 8). The code generator
 translates each equation into an equation of the target language and adds the definitions it needs from
-the library. So when the generated `isort` returns a list, that list is the value of `isort` in the logic, and the
-correctness theorem says that it is sorted and a permutation of the input. This guarantee, that every
-result the program produces is a result the logic agrees with, is called **partial correctness**
-(Module 8): it speaks about the results the program returns, not about whether it returns at all. The
-generated `first`, for example, stops with an error on an empty queue, because the library's `hd` has no
-equation for `[]`. That is no result, so it breaks no promise.
+the library. So when the generated `isort` returns a list, that list is the value of `isort` in the
+logic, and the correctness theorem says that it is sorted and a permutation of the input. This
+guarantee, that every result the program produces is a result the logic agrees with, is called
+**partial correctness** (Module 8): it speaks about the results the program returns, not about whether
+it returns at all. The generated `first`, for example, stops with an error on an empty queue, because
+the library's `hd` has no equation for `[]`. That is no result, so it breaks no promise.
 
 What the guarantee rests on is the trusted base of Module 1, enlarged by the steps after the proof:
 

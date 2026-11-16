@@ -1,28 +1,23 @@
 ---
-title: Structured proofs in Isar
+title: Isar 结构化证明
 part: 3
-lead: Write proofs that a reader can follow line by line and Isabelle checks step by step. You will state each step of a proof in Isar, pass facts from one step to the next, calculate with chains of equations and inequalities, and split proofs into cases and induction steps.
+lead: 写出读者能逐行读懂、Isabelle 能逐步检查的证明。你将用 Isar 陈述证明的每一步，把事实从一步传给下一步，用等式链和不等式链进行计算推理，并把证明拆分成若干情形和归纳步骤。
 minutes: 220
-needs: Modules 1–9, especially Module 5 (induction), Module 7 (rules in Isabelle) and Module 9 (automation)
+needs: 模块 1–9，尤其是模块 5（归纳）、模块 7（Isabelle 中的规则）和模块 9（自动化）
 goals:
-  - Write a proof as a proof … qed block with assume, fix, have and show
-  - Pass facts between steps with then, from, with, using, note, moreover and ultimately
-  - Prove chains of equations and inequalities with also, finally and …
-  - Split a proof into cases, and write inductions with named cases, ?case and the induction hypothesis
-  - Turn natural-deduction proofs and apply scripts into Isar, and repair an Isar proof from Isabelle's messages
+  - 用 assume、fix、have 和 show 把证明写成 proof … qed 块
+  - 用 then、from、with、using、note、moreover 和 ultimately 在步骤之间传递事实
+  - 用 also、finally 和 … 证明等式链和不等式链
+  - 把证明拆分成若干情形，并用命名情形、?case 和归纳假设写出归纳证明
+  - 把自然演绎证明和 apply 脚本改写成 Isar，并根据 Isabelle 的消息修复 Isar 证明
 imports: Main
 ---
 
-## Why structured proofs {#why}
+## 为什么需要结构化证明 {#why}
 
-In Module 7 you built proofs from `apply` steps, one rule at a time, and in Module 9 you let automation
-prove whole goals at once. Both work, and both have a weakness that shows once a proof grows beyond a few
-lines. Here is a proof in the style of Module 7. Read it, and ask yourself what is true after the fourth
-step.
+在模块 7 中，你用 `apply` 步骤构造证明，一次应用一条规则；在模块 9 中，你让自动化工具一次证明整个目标。两种做法都行得通，但也都有一个弱点，证明一旦超过几行，这个弱点就会显露出来。下面是一个模块 7 风格的证明。读一读它，然后问问自己：第四步之后，什么是成立的？
 
-The statement is about access control: if every administrator is a member of staff, and there is an
-administrator, then there is a member of staff. `∀u. admin u ⟶ staff u` reads "for every user u, if u
-is an administrator then u is staff".
+这个陈述与访问控制有关：如果每个管理员都是员工，并且存在一个管理员，那么存在一个员工。`∀u. admin u ⟶ staff u` 读作“对每个用户 u，如果 u 是管理员，那么 u 是员工”。
 
 ```isabelle
 lemma "(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)"
@@ -36,14 +31,9 @@ lemma "(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)"
   done
 ```
 
-Isabelle accepts the script. But it records what Isabelle should *do*, not what is *true*. Which user
-does `exI` choose? Which assumption does `erule allE` take apart? The answers are in the proof states,
-and the proof states are not in the text: to understand the script you have to replay it in Isabelle and
-read the state after every line. The same holds for whoever maintains the proof later. If a change in
-the library makes one step leave its subgoals in a different order, a later step fails, far from the
-cause, and the script gives no hint of what was intended.
+Isabelle 接受这个脚本。但脚本记录的是 Isabelle 应该**做什么**，而不是什么**为真**。`exI` 选的是哪个用户？`erule allE` 拆开的是哪个假设？答案都在证明状态（proof state）里，而证明状态并不在文本中：要读懂这个脚本，你得在 Isabelle 中重放它，并查看每一行之后的状态。以后维护这个证明的人也是一样。如果库中的某处改动使某一步留下的子目标（subgoal）换了顺序，后面的某一步就会失败，失败的地方离原因很远，而脚本丝毫看不出原本的意图是什么。
 
-Here is the same theorem proved in Isar:
+下面是用 Isar 证明的同一个定理：
 
 ```isabelle
 lemma "(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)"
@@ -56,46 +46,33 @@ proof (intro impI)
 qed
 ```
 
-You have not met these keywords yet, and you can probably read the proof all the same, because it says
-what holds at each step. It is the paper proof, line for line: *assume that every administrator is
-staff, and that there is an administrator. Call one of them a. By the first assumption, a is staff. So
-there is a member of staff.*
+这些关键字你都还没有学过，但多半照样能读懂这个证明，因为它说出了每一步成立的是什么。它就是纸上的证明，一行对一行：“假设每个管理员都是员工，并且存在一个管理员。把其中一个管理员叫作 a。由第一个假设，a 是员工。所以存在一个员工。”
 
-**Isar** is Isabelle's language for such structured proofs; the name stands for *Intelligible
-semi-automated reasoning*. An Isar proof is a text made of statements. Each step claims a fact, and
-Isabelle checks that the claim follows, usually with a short call to automation such as `by blast`.
-Three things follow from this design.
+**Isar** 是 Isabelle 用来写这种**结构化证明**（structured proof）的语言，它的名字是 Intelligible semi-automated reasoning（可理解的半自动推理）的缩写。Isar 证明是由陈述组成的文本。每一步断言一个事实，Isabelle 检查这个断言确实能够得出，通常只需简短地调用一下自动化工具，例如 `by blast`。这样的设计带来了三点好处。
 
-- **You can read the proof without running it.** The facts are in the text, not hidden in proof states.
-- **A failing step is marked where it fails.** Its statement tells you what was meant, so you know what
-  to repair.
-- **It matches paper proofs.** The natural-deduction proofs of Module 6 and the induction proofs of
-  Module 5 turn into Isar almost line for line (Section 10.7).
+- **不用运行就能读懂证明。** 事实都写在文本里，而不是藏在证明状态中。
+- **出错的步骤会在出错的地方被标出来。** 它的陈述告诉你原本想证明的是什么，所以你知道该修复什么。
+- **它与纸上的证明一一对应。** 模块 6 的自然演绎（natural deduction）证明和模块 5 的归纳证明，几乎可以一行对一行地改写成 Isar（第 10.7 节）。
 
-Isabelle's own tutorial, *Programming and Proving in Isabelle/HOL*, recommends Isar for larger proofs,
-and the rest of this series writes its longer proofs in it. Apply scripts stay useful for exploring a
-goal step by step, and short proofs stay `by simp` or `by auto`.
+Isabelle 自带的教程《Programming and Proving in Isabelle/HOL》建议用 Isar 写较大的证明，本系列此后较长的证明也都用 Isar 来写。**apply 脚本**（apply script）仍然适合一步一步地探索一个目标，而简短的证明仍然写成 `by simp` 或 `by auto`。
 
-| | Apply script | Isar proof |
+| | apply 脚本 | Isar 证明 |
 |---|---|---|
-| Each line says | which method to apply next | which fact holds next |
-| To follow it you need | Isabelle, to see each state | the text |
-| Its shape | a list of steps | nested blocks, like a program |
+| 每一行说的是 | 下一步应用哪个方法 | 下一步哪个事实成立 |
+| 要读懂它，你需要 | Isabelle，以便查看每个状态 | 文本本身 |
+| 它的形状 | 一串步骤 | 嵌套的块，像程序一样 |
 
 ::: keyidea
-An apply script tells Isabelle what to do to the goal. An Isar proof tells the reader what is true at
-each step, and Isabelle checks every claim.
+apply 脚本告诉 Isabelle 对目标做什么。Isar 证明告诉读者每一步什么为真，而 Isabelle 检查每一个断言。
 :::
 
-## The shape of an Isar proof {#shape}
+## Isar 证明的结构 {#shape}
 
-An Isar proof is built from a handful of commands. This section introduces them on small examples from
-logic, so that you can concentrate on the structure, and then on a first function from programming.
+Isar 证明由少数几个命令构成。本节先在逻辑的小例子上介绍这些命令，好让你专心看清结构，然后再把它们用在第一个来自编程的函数上。
 
-### Proof blocks {#shape-blocks}
+### 证明块 {#shape-blocks}
 
-You know two ways to finish a lemma: a single step `by method`, and an apply script that ends with
-`done`. Isar adds a third, the proof block:
+你已经知道完成一条引理的两种方式：一个单独的步骤 `by method`，以及以 `done` 结尾的 apply 脚本。Isar 增加了第三种方式，即证明块：
 
 ```isabelle norun
 lemma "statement"
@@ -104,17 +81,13 @@ proof method
 qed
 ```
 
-The method after `proof` makes the first move on the goal, as `apply` would. The steps between `proof`
-and `qed` then prove what is left, and `qed` closes the block.
+`proof` 后面的证明方法（proof method）对目标走出第一步，就像 `apply` 那样。然后，`proof` 和 `qed` 之间的步骤证明剩下的部分，最后由 `qed` 关闭这个块。
 
-::: definition Proof block
-A **proof block** `proof m … qed` proves the goal stated directly before it. The **initial method** m turns
-the goal into **pending goals**. The steps inside the block establish facts and solve the pending goals;
-`qed` closes the block once all of them are solved. Every claim inside the block needs a proof of its
-own, which is again either a single step `by m` or a proof block, so blocks nest.
+::: definition 证明块
+**证明块**（proof block）`proof m … qed` 证明紧挨在它前面陈述的目标。**初始方法**（initial method）m 把这个目标变成若干**待证目标**（pending goal）。块中的步骤确立事实，并解决这些待证目标；所有待证目标都解决之后，`qed` 关闭这个块。块中的每个断言都需要自己的证明，这个证明同样要么是一个单独的步骤 `by m`，要么是一个证明块，所以块可以嵌套。
 :::
 
-Take the formula you proved by hand in Module 6 and with `apply` in Module 7: A ∧ B ⟶ B ∧ A. State it:
+以 A ∧ B ⟶ B ∧ A 为例，你在模块 6 中手工证明过这个公式，在模块 7 中又用 `apply` 证明过它。先陈述它：
 
 ```isabelle
 lemma "A ∧ B ⟶ B ∧ A"

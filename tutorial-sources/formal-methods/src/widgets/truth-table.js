@@ -47,8 +47,8 @@ FMWidgets.register('truth-table', function (root, api) {
     { id: 'door', en: 'Door rule', zh: '门禁规则', f: 'opens ⟶ badge ∧ pin ∨ fire' },
   ]
   var PAIRS = [
-    { id: 'imp', en: 'Implication', zh: '蕴涵', a: 'A ⟶ B', b: '¬A ∨ B' },
-    { id: 'contrapos', en: 'Contrapositive', zh: '逆否', a: 'A ⟶ B', b: '¬B ⟶ ¬A' },
+    { id: 'imp', en: 'Implication', zh: '蕴涵律', a: 'A ⟶ B', b: '¬A ∨ B' },
+    { id: 'contrapos', en: 'Contrapositive', zh: '逆否命题', a: 'A ⟶ B', b: '¬B ⟶ ¬A' },
     { id: 'converse', en: 'Converse', zh: '逆命题', a: 'A ⟶ B', b: 'B ⟶ A' },
     { id: 'demorgan2', en: 'De Morgan', zh: '德摩根律', a: '¬(A ∧ B)', b: '¬A ∨ ¬B' },
     { id: 'wrongdm', en: 'Wrong De Morgan', zh: '错误的德摩根律', a: '¬(A ∧ B)', b: '¬A ∧ ¬B' },
@@ -59,11 +59,11 @@ FMWidgets.register('truth-table', function (root, api) {
   // Core parser messages, in Chinese.
   function msgZh(m) {
     var r
-    if ((r = m.match(/^expected (.+) before (.+)$/))) return '在 ' + r[2] + ' 之前应为 ' + r[1].replace('a term', '一个项')
+    if ((r = m.match(/^expected (.+) before (.+)$/))) return '在 ' + r[2] + ' 之前缺少 ' + r[1].replace('a term', '一个项')
     if ((r = m.match(/^expected (.+) at the end$/))) return '公式末尾缺少 ' + r[1].replace('a term', '一个项')
     if (m === 'unexpected end of formula') return '公式不完整'
     if ((r = m.match(/^unexpected (.+)$/))) return '此处不应出现 ' + r[1]
-    if ((r = m.match(/^cannot read "(.*)"$/))) return '无法识别 “' + r[1] + '”'
+    if ((r = m.match(/^cannot read "(.*)"$/))) return '无法识别“' + r[1] + '”'
     if (m === 'empty formula') return '公式为空'
     if (m === 'a number is not a formula') return '数字不是公式'
     return m
@@ -103,11 +103,11 @@ FMWidgets.register('truth-table', function (root, api) {
     if (bad) {
       var shown = '“' + Logic.show(bad) + '”'
       if (bad.k === 'eq') return { error: t(shown + ' uses = or ≠. Between formulas Isabelle reads = as ⟷, but = binds more tightly than every connective, so A ∧ B = B ∧ A means A ∧ (B = B) ∧ A. Write ⟷ in this widget.',
-        shown + ' 用了 = 或 ≠。在公式之间，Isabelle 把 = 读作 ⟷，但 = 比所有联结词结合得都紧，所以 A ∧ B = B ∧ A 的意思是 A ∧ (B = B) ∧ A。在本组件中请写 ⟷。') }
+        shown + '用了 = 或 ≠。在公式之间，Isabelle 把 = 读作 ⟷，但 = 比所有联结词结合得都紧，所以 A ∧ B = B ∧ A 的意思是 A ∧ (B = B) ∧ A。在本组件中请写 ⟷。') }
       return { error: bad.k === 'atom'
-        ? t(shown + ' is not a propositional formula. Is a connective missing between two atoms?', shown + ' 不是命题公式。两个原子之间是否缺少联结词？')
+        ? t(shown + ' is not a propositional formula. Is a connective missing between two atoms?', shown + '不是命题公式。两个原子之间是否缺少联结词？')
         : t(shown + ' is not a propositional formula. This widget handles atoms, True, False, ¬ ∧ ∨ ⟶ ⟷ and parentheses.',
-          shown + ' 不是命题公式。本组件只处理原子、True、False、¬ ∧ ∨ ⟶ ⟷ 和括号。') }
+          shown + '不是命题公式。本组件只处理原子、True、False、¬ ∧ ∨ ⟶ ⟷ 和括号。') }
     }
     return { ast: ast }
   }
@@ -179,7 +179,7 @@ FMWidgets.register('truth-table', function (root, api) {
     return t('This has ' + n + ' atoms, so its table would have ' + Math.pow(2, n) + ' rows. The widget shows tables with at most ' +
       MAX_ATOMS + ' atoms (' + Math.pow(2, MAX_ATOMS) + ' rows). Use fewer atoms, or let Isabelle decide the question.',
       '它有 ' + n + ' 个原子，真值表将有 ' + Math.pow(2, n) + ' 行。本组件最多显示 ' + MAX_ATOMS + ' 个原子（' +
-      Math.pow(2, MAX_ATOMS) + ' 行）的真值表。请减少原子，或交给 Isabelle 判断。')
+      Math.pow(2, MAX_ATOMS) + ' 行）的真值表。请少用几个原子，或者交给 Isabelle 来判定。')
   }
 
   // ------------------------------------------------------------------ the page
@@ -199,7 +199,7 @@ FMWidgets.register('truth-table', function (root, api) {
   var rowsList = h('ul', { class: 'tt-rows' })
   var tableWrap = h('div', { class: 'fmw-scroll' })
   var help = h('p', { class: 'fmw-msg tt-help' }, t('Type ~ & | --> <--> for ¬ ∧ ∨ ⟶ ⟷, or use the buttons. Priorities are Isabelle’s: ¬ binds most tightly, then ∧, then ∨, then ⟶ and ⟷, which group to the right.',
-    '可输入 ~ & | --> <--> 代表 ¬ ∧ ∨ ⟶ ⟷，也可以使用按钮。优先级与 Isabelle 相同：¬ 结合最紧，其次是 ∧，再次是 ∨，最后是 ⟶ 和 ⟷，二者向右结合。'))
+    '可以用 ~ & | --> <--> 输入 ¬ ∧ ∨ ⟶ ⟷，也可以使用按钮。优先级与 Isabelle 相同：¬ 结合得最紧，其次是 ∧，再次是 ∨，最后是 ⟶ 和 ⟷，它们都向右结合。'))
 
   SYMS.forEach(function (s) {
     symRow.appendChild(h('button', { type: 'button', class: 'fmw-btn fmw-sym', 'data-sym': s, 'aria-label': t('Insert ', '插入 ') + s, onclick: function () { insert(s) } }, s))
@@ -282,7 +282,7 @@ FMWidgets.register('truth-table', function (root, api) {
     var nTrue = rows.filter(function (r) { return r.val }).length, n = rows.length
     var firstT = -1, firstF = -1
     rows.forEach(function (r, i) { if (r.val && firstT < 0) firstT = i; if (!r.val && firstF < 0) firstF = i })
-    if (nTrue === n) { verdict.className = 'verdict taut'; verdict.textContent = t(n === 1 ? 'Tautology: true in its only row.' : 'Tautology: true in all ' + n + ' rows.', n === 1 ? '重言式：唯一的一行为真。' : '重言式：全部 ' + n + ' 行都为真。') }
+    if (nTrue === n) { verdict.className = 'verdict taut'; verdict.textContent = t(n === 1 ? 'Tautology: true in its only row.' : 'Tautology: true in all ' + n + ' rows.', n === 1 ? '重言式：在唯一的一行中为真。' : '重言式：全部 ' + n + ' 行都为真。') }
     else if (nTrue === 0) { verdict.className = 'verdict contra'; verdict.textContent = t(n === 1 ? 'Contradiction: false in its only row.' : 'Contradiction: false in all ' + n + ' rows.', n === 1 ? '矛盾式：唯一的一行为假。' : '矛盾式：全部 ' + n + ' 行都为假。') }
     else { verdict.className = 'verdict cont'; verdict.textContent = t('Satisfiable but not valid: true in ' + nTrue + ' of ' + n + ' rows.', '可满足但非有效：' + n + ' 行中有 ' + nTrue + ' 行为真。') }
     rowsList.appendChild(h('li', { class: 'tt-satrow' }, h('span', { class: 'mk', 'aria-hidden': 'true' }, '✓'), firstT >= 0
