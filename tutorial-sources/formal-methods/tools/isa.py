@@ -366,14 +366,16 @@ def main():
     # Results must come from this run only: remove the databases and logs of this run's own sessions
     # (Module_NN, Module_NN_Solutions, Module_NN_Probe_K; never Pure or HOL). Otherwise a killed build, or
     # probes renumbered since an earlier run, would let build_log read old messages for other blocks.
-    for heap_dir in glob.glob(os.path.expanduser(f'~/.isabelle/{VERSION}/heaps/*')):
-        for sess in sessions:
-            if not sess.startswith('Module_'):
-                continue
-            for f in (os.path.join(heap_dir, 'log', sess + '.db'), os.path.join(heap_dir, 'log', sess + '.gz'),
-                      os.path.join(heap_dir, 'log', sess), os.path.join(heap_dir, sess)):
-                if os.path.isfile(f):
-                    os.remove(f)
+    def clear_sessions(names):
+        for heap_dir in glob.glob(os.path.expanduser(f'~/.isabelle/{VERSION}/heaps/*')):
+            for sess in names:
+                if not sess.startswith('Module_'):
+                    continue
+                for f in (os.path.join(heap_dir, 'log', sess + '.db'), os.path.join(heap_dir, 'log', sess + '.gz'),
+                          os.path.join(heap_dir, 'log', sess), os.path.join(heap_dir, sess)):
+                    if os.path.isfile(f):
+                        os.remove(f)
+    clear_sessions(sessions)
     build = run([args.isabelle, 'build', '-d', isa_dir, '-j', args.jobs] + sessions)
     log = run([args.isabelle, 'build_log', '-U', '-v'] + sessions)
     msgs = parse_log(log.stdout)
@@ -385,11 +387,14 @@ def main():
         # log; what is missing in a bad log is the theory section with every other message.
         return sorted(s for s in names if not re.search(r'^Theory "' + re.escape(s) + r'\.', text, re.M))
     narrow = set(FALLBACK)
-    todo = incomplete(log.stdout, [s for s in sessions if '_Probe_' in s])
+    # Any session whose theory section is missing is built again (a finished session too: its database is
+    # removed first, so that Isabelle really builds it instead of reporting it up to date).
+    todo = incomplete(log.stdout, sessions)
     for _ in range(3):
         if not todo:
             break
         FALLBACK.clear()
+        clear_sessions(todo)
         run([args.isabelle, 'build', '-d', isa_dir, '-j', args.jobs] + todo)
         text = run([args.isabelle, 'build_log', '-U', '-v'] + todo).stdout
         again, again_narrow = parse_log(text), set(FALLBACK)

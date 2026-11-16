@@ -1286,8 +1286,9 @@ result is a theorem about every program it will ever compile.
 - The proof needs two ideas from Module 11: the auxiliary lemma `exec_append`, found from the stuck goal,
   and **generalisation over the stack**, with `arbitrary: stk`, because the code of the second operand
   runs on a stack that holds the value of the first.
-- **Constant folding** is proved correct by computation induction; theorems about passes compose, so
-  optimise-then-compile is correct with a one-line proof.
+- **Constant folding** is proved correct by structural induction, with a lemma about `fold_add` proved
+  by computation induction. Theorems about passes compose, so optimise-then-compile is correct with a
+  one-line proof.
 - `export_code` turns the verified functions into Haskell; the code generator and the Haskell compiler
   remain in the trusted base.
 - With jumps, the lemma about appended code fails; generalising over the code that follows,

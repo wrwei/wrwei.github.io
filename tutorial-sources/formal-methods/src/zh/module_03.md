@@ -670,74 +670,55 @@ lemma "(∃!x. P x) ⟷ (∃x. P x ∧ (∀y. P y ⟶ y = x))"
 ```
 :::
 
-## Writing specifications {#specifications}
+## 编写规约 {#specifications}
 
-Turning requirements into formulas is a craft, and a formula is only as good as the translation behind
-it. A routine helps:
+把需求变成公式是一门手艺，公式好不好，全看它背后的翻译好不好。按下面的步骤做会有帮助：
 
-1. Fix the domain and the vocabulary: which objects, which properties and relations, which functions.
-2. Translate each requirement on its own, using the patterns below.
-3. Read the formula back in plain English, literally, symbol by symbol, and compare it with the
-   requirement.
-4. Test it on small structures: one that should satisfy it and one that should not. The model explorer
-   of Section 3.3 and Nitpick both help.
+1. 确定论域和词汇表：有哪些对象，哪些性质和关系，哪些函数。
+2. 利用下面的模式，一条一条地翻译每个需求。
+3. 把公式逐个符号、按字面意思用平实的中文读回来，再与需求比较。
+4. 在小结构上检验它：找一个应当满足它的结构，再找一个不应当满足它的结构。第 3.3 节的模型探索器和 Nitpick 都能帮上忙。
 
-Most requirements follow a handful of patterns. $A$ and $B$ stand for properties.
+大多数需求都符合少数几种模式。$A$ 和 $B$ 代表性质。
 
-| English | Formula | Note |
+| 说法 | 公式 | 说明 |
 |---|---|---|
-| every $A$ is $B$ | $\forall x.\ A\ x \imp B\ x$ | ∀ goes with ⟶ |
-| some $A$ is $B$ | $\exists x.\ A\ x \land B\ x$ | ∃ goes with ∧ |
-| no $A$ is $B$ | $\forall x.\ A\ x \imp \lnot\, B\ x$ | the same as $\lnot (\exists x.\ A\ x \land B\ x)$ |
-| only $A$s are $B$ | $\forall x.\ B\ x \imp A\ x$ | "only" reverses the arrow |
-| at most one $A$ | $\forall x\ y.\ A\ x \land A\ y \imp x = y$ | Section 3.6 |
-| exactly one $A$ | $\exists x.\ A\ x \land (\forall y.\ A\ y \imp y = x)$ | Section 3.6 |
+| 每个 $A$ 都是 $B$ | $\forall x.\ A\ x \imp B\ x$ | ∀ 与 ⟶ 搭配 |
+| 有的 $A$ 是 $B$ | $\exists x.\ A\ x \land B\ x$ | ∃ 与 ∧ 搭配 |
+| 没有 $A$ 是 $B$ | $\forall x.\ A\ x \imp \lnot\, B\ x$ | 等同于 $\lnot (\exists x.\ A\ x \land B\ x)$ |
+| 只有 $A$ 才是 $B$ | $\forall x.\ B\ x \imp A\ x$ | “只有”使箭头反向 |
+| 至多有一个 $A$ | $\forall x\ y.\ A\ x \land A\ y \imp x = y$ | 第 3.6 节 |
+| 恰好有一个 $A$ | $\exists x.\ A\ x \land (\forall y.\ A\ y \imp y = x)$ | 第 3.6 节 |
 
 ::: pitfall
-**∀ with ∧.** "Every admin is on call" is not $\forall x.\ \mathit{admin}\ x \land \mathit{on\_call}\ x$:
-that says that everybody is an admin and everybody is on call. With ∀, the restriction to admins is a
-condition, so it goes in front of ⟶.
+**∀ 与 ∧ 连用。** “每个管理员都在值班”不是 $\forall x.\ \mathit{admin}\ x \land \mathit{on\_call}\ x$：这个公式说的是每个人都是管理员，并且每个人都在值班。用 ∀ 时，“是管理员”这一限制是一个条件，所以要放在 ⟶ 前面。
 
-**∃ with ⟶.** "Some admin is on call" is not $\exists x.\ \mathit{admin}\ x \imp \mathit{on\_call}\ x$:
-that is true as soon as one person is not an admin, because for that person the implication is
-vacuously true. With ∃, the restriction is part of what must hold, so it is joined with ∧.
+**∃ 与 ⟶ 连用。** “有管理员在值班”不是 $\exists x.\ \mathit{admin}\ x \imp \mathit{on\_call}\ x$：只要有一个人不是管理员，这个公式就为真，因为对这个人来说，蕴涵式空真。用 ∃ 时，这个限制是必须成立的内容的一部分，所以要用 ∧ 连接。
 :::
 
 ::: pitfall
-**"Only".** "Only admins can delete documents" means that whoever can delete a document is an admin:
-$\forall u\ d.\ \mathit{can\_delete}\ u\ d \imp \mathit{admin}\ u$. It does not say that admins can
-delete anything; that would be a separate requirement, with the arrow the other way round.
+**“只有”。** “只有管理员才能删除文档”的意思是：凡是能删除某份文档的人都是管理员，即 $\forall u\ d.\ \mathit{can\_delete}\ u\ d \imp \mathit{admin}\ u$。它并没有说管理员能删除任何东西；那是另一条需求，箭头方向相反。
 
-**"At most one" without ≠.** $\lnot (\exists x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y)$, meant
-as "no two users hold the lock", forbids even a single user to hold it: take $y$ to be $x$. Write
-$\forall x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y \imp x = y$.
+**不用 ≠ 表达“至多一个”。** 本意是“没有两个用户同时持有锁”的 $\lnot (\exists x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y)$，其实连一个用户持有锁都禁止了：取 $y$ 为 $x$ 就能看出来。应当写成 $\forall x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y \imp x = y$。
 :::
 
-::: example An access policy, formalised
-A document system has users and documents. In this example both live in one domain, and the predicates
-$\mathit{user}$ and $\mathit{doc}$ say which kind an object is; such predicates are called **guards**.
-The other symbols are $\mathit{admin}\ u$, $\mathit{owns}\ u\ d$, $\mathit{can\_read}\ u\ d$ and
-$\mathit{can\_delete}\ u\ d$.
+::: example 形式化一条访问策略
+一个文档系统中有用户和文档。在这个例子中，两者都在同一个论域里，谓词 $\mathit{user}$ 和 $\mathit{doc}$ 说明一个对象属于哪一类；这样的谓词称为**守卫**（guard）。其他符号是 $\mathit{admin}\ u$（$u$ 是管理员）、$\mathit{owns}\ u\ d$（$u$ 拥有 $d$）、$\mathit{can\_read}\ u\ d$（$u$ 能读 $d$）和 $\mathit{can\_delete}\ u\ d$（$u$ 能删除 $d$）。
 
-1. Every document has exactly one owner, and the owner is a user:
+1. 每份文档恰好有一个所有者，并且所有者是用户：
    $$\forall d.\ \mathit{doc}\ d \imp (\exists u.\ \mathit{user}\ u \land \mathit{owns}\ u\ d \land (\forall v.\ \mathit{owns}\ v\ d \imp v = u))$$
-2. Only the owner of a document or an admin can delete it:
+2. 只有文档的所有者或管理员才能删除它：
    $$\forall u\ d.\ \mathit{can\_delete}\ u\ d \imp \mathit{owns}\ u\ d \lor \mathit{admin}\ u$$
-3. Admins can read every document:
+3. 管理员能读每一份文档：
    $$\forall u\ d.\ \mathit{admin}\ u \land \mathit{doc}\ d \imp \mathit{can\_read}\ u\ d$$
-4. Some admin owns no document:
+4. 有某个管理员不拥有任何文档：
    $$\exists u.\ \mathit{admin}\ u \land \lnot (\exists d.\ \mathit{doc}\ d \land \mathit{owns}\ u\ d)$$
 
-Now read them back. Requirement 1 is the "exactly one" pattern inside a ∀. Requirement 2 contains
-"only", so the arrow points from $\mathit{can\_delete}$ to the condition. Requirement 3 needs the guard
-$\mathit{doc}\ d$: without it, it would also say that admins can read users. Requirement 4 is the "some
-$A$ is $B$" pattern, with "owns no document" written as a negated ∃.
+现在把它们读回来。需求 1 是在一个 ∀ 里面套用“恰好一个”模式。需求 2 含有“只有”，所以箭头从 $\mathit{can\_delete}$ 指向条件。需求 3 需要守卫 $\mathit{doc}\ d$：没有它，这条需求还会说管理员能“读”用户。需求 4 是“有的 $A$ 是 $B$”模式，其中“不拥有任何文档”写成了一个被否定的 ∃。
 :::
 
 ::: isabelle
-Isabelle can compare two translations. If they are equivalent, `blast` proves the `⟷`. If they are not,
-Nitpick produces a structure that tells them apart, and that structure shows which formula says what you
-meant. Here are the two ways of saying "exactly one" from Section 3.6:
+Isabelle 可以比较两种译法。如果它们等价，`blast` 能证明两者之间的 `⟷`。如果不等价，Nitpick 会给出一个能区分它们的结构，从这个结构可以看出哪个公式说的才是你的本意。下面是第 3.6 节中表达“恰好一个”的两种方式：
 
 ```isabelle
 lemma "(∃x. holds x ∧ (∀y. holds y ⟶ y = x)) ⟷
@@ -745,7 +726,7 @@ lemma "(∃x. holds x ∧ (∀y. holds y ⟶ y = x)) ⟷
   by blast
 ```
 
-And here is the correct translation of "some admin is on call" against the mistaken one:
+下面把“有管理员在值班”的正确译法和错误译法放在一起比较：
 
 ```isabelle
 lemma "(∃x. admin x ∧ on_call x) ⟷ (∃x. admin x ⟶ on_call x)"
@@ -761,50 +742,28 @@ Nitpick found a counterexample for card 'a = 1:
     on_call = (λx. _)(a⇩1 := False)
 ```
 
-A single element that is not an admin: the mistaken formula is true there, and the correct one false.
+论域只有一个元素，而且它不是管理员：错误的公式在这里为真，正确的公式为假。
 
 ```isabelle
   oops
 ```
 :::
 
-For more practice in translating, work through
-[Logic, quantifiers, and specifications](../math/module_02_EN.html) in the Mathematical Foundations
-series.
+想多练习翻译，可以学习数学基础系列中的[逻辑、量词与规格说明](../math/module_02_ZH.html)。
 
-## Types: from many-sorted logic to HOL {#types}
+## 类型：从多类别逻辑到 HOL {#types}
 
-The policy of Example 3.10 needed the guards $\mathit{user}$ and $\mathit{doc}$ because one domain held
-two kinds of object. Guards are tedious, and forgetting one changes the meaning without any warning.
-Leave the guard out of requirement 3 and it says that admins can read users. Write "every document has
-an owner" as $\forall d.\ \exists u.\ \mathit{owns}\ u\ d$ and you have claimed that every object, users
-included, is owned by something. And a function symbol such as $\mathit{owner}$ must give a value even
-for a user, because a structure interprets it by a function on the whole domain.
+例 3.10 的策略需要守卫 $\mathit{user}$ 和 $\mathit{doc}$，因为一个论域里装着两类对象。守卫写起来很烦琐，而漏掉一个就会悄无声息地改变意思。去掉需求 3 中的守卫，它就会说管理员能“读”用户。把“每份文档都有所有者”写成 $\forall d.\ \exists u.\ \mathit{owns}\ u\ d$，你就断言了每个对象（包括用户）都被某个东西拥有。还有，像 $\mathit{owner}$ 这样的函数符号即使对用户也必须给出一个值，因为结构是用整个论域上的函数来解释它的。
 
-::: definition Many-sorted logic
-In a **many-sorted** or **typed** logic, the vocabulary gives each constant, each argument of a function
-or predicate symbol and each function result a **sort**, also called a **type**. A structure has one
-domain per sort, and each variable ranges over the domain of one sort:
-$\forall d{::}\mathit{doc}.\ \exists u{::}\mathit{user}.\ \mathit{owns}\ u\ d$ reads "for every document
-$d$ there is a user $u$ who owns $d$". An expression that puts an argument of the wrong sort somewhere is
-not a formula at all.
+::: definition 多类别逻辑
+在**多类别逻辑**（many-sorted logic）或**类型化逻辑**（typed logic）中，词汇表给每个常量、函数符号或谓词符号的每个参数以及每个函数的结果都指定一个**类别**（sort），类别也叫**类型**（type）。结构为每个类别各配一个论域，每个变元只在一个类别的论域上取值：$\forall d{::}\mathit{doc}.\ \exists u{::}\mathit{user}.\ \mathit{owns}\ u\ d$ 读作“对每份文档 $d$，都有一个拥有 $d$ 的用户 $u$”。一个表达式如果在某处放了类别不对的参数，它根本就不是公式。
 :::
 
-Types add no expressive power: $\forall d{::}\mathit{doc}.\ \varphi$ says what
-$\forall d.\ \mathit{doc}\ d \imp \varphi$ says, and $\exists u{::}\mathit{user}.\ \varphi$ what
-$\exists u.\ \mathit{user}\ u \land \varphi$ says, exactly the patterns of Section 3.7. What types add is
-a check. The mistakes above become type errors, which a computer finds before anybody reasons with the
-formula.
+类型并不增加表达能力：$\forall d{::}\mathit{doc}.\ \varphi$ 说的就是 $\forall d.\ \mathit{doc}\ d \imp \varphi$ 所说的，$\exists u{::}\mathit{user}.\ \varphi$ 说的就是 $\exists u.\ \mathit{user}\ u \land \varphi$ 所说的，正是第 3.7 节的那些模式。类型增加的是一道检查。上面那些错误都变成了类型错误，在任何人用这个公式推理之前，计算机就能发现它们。
 
-Isabelle/HOL is typed through and through. Every term has a type. Formulas are terms of type `bool`,
-whose two values are `True` and `False`. A predicate on objects of type `τ` (tau) is a function of type
-`τ ⇒ bool`, which maps each object to `True` or `False`, and a relation between `τ` and `σ` (sigma) is a
-function of type `τ ⇒ σ ⇒ bool`. So `P x` in Isabelle is a function applied to an argument, and the
-result is a formula. Because predicates and functions are values like any other, HOL also lets you
-quantify over them, as in `∀P. P x ⟶ P x`: that is what makes it a **higher-order** logic. Module 8
-covers HOL's types and functions in depth.
+Isabelle/HOL 从头到尾都是有类型的。每个项都有一个类型。公式是类型为 `bool` 的项，`bool` 的两个值是 `True` 和 `False`。类型为 `τ`（tau）的对象上的谓词，是一个类型为 `τ ⇒ bool` 的函数，它把每个对象映射到 `True` 或 `False`；`τ` 与 `σ`（sigma）之间的关系，是一个类型为 `τ ⇒ σ ⇒ bool` 的函数。所以 Isabelle 中的 `P x` 是把一个函数应用于一个参数，结果是一个公式。由于谓词和函数都和其他东西一样是值，HOL 还允许你对它们进行量化，例如 `∀P. P x ⟶ P x`：正是这一点使它成为一种**高阶**逻辑（higher-order logic）。模块 8 会深入讲解 HOL 的类型和函数。
 
-To declare a vocabulary in Isabelle, you declare its types with `typedecl` and its symbols with `consts`:
+在 Isabelle 中声明一个词汇表时，用 `typedecl` 声明它的类型，用 `consts` 声明它的符号：
 
 ```isabelle
 typedecl user
@@ -818,20 +777,14 @@ consts
   report :: doc
 ```
 
-`typedecl user` declares a new type about which nothing is known except that it has at least one
-element: a domain. `consts` declares constants with their types but without definitions. They are
-**uninterpreted**, exactly like the symbols of a vocabulary: a structure decides what they mean, and
-Isabelle proves a lemma about them only if it holds whatever they mean. Here, at last, is the argument of
-Section 3.1:
+`typedecl user` 声明一个新类型，关于它，除了它至少有一个元素之外一无所知：它就是一个论域。`consts` 声明常量及其类型，但不给出定义。它们是**未解释的**（uninterpreted），和词汇表中的符号完全一样：由结构决定它们的含义；而一条关于它们的引理，只有在无论它们是什么含义都成立时，Isabelle 才能证明它。现在，终于可以写出第 3.1 节的那个论证了：
 
 ```isabelle
 lemma "(∀u d. admin u ⟶ can_delete u d) ∧ admin alice ⟶ can_delete alice report"
   by blast
 ```
 
-The variables `u` and `d` need no guards: their types follow from `admin u` and `can_delete u d`. Now
-something that does not follow. If owners can delete their documents, can Alice delete the report? Only
-if she owns it. Nitpick needs the option `show_consts` to display the values of constants:
+变元 `u` 和 `d` 不需要守卫：它们的类型可以从 `admin u` 和 `can_delete u d` 推断出来。现在来看一个推不出来的结论。如果所有者能删除自己的文档，Alice 能删除那份报告吗？只有当报告归她所有时才行。Nitpick 需要选项 `show_consts` 才会显示常量的值：
 
 ```isabelle
 lemma "(∀u d. owns u d ⟶ can_delete u d) ⟶ can_delete alice report"
@@ -850,14 +803,13 @@ Nitpick found a counterexample for card doc = 1 and card user = 2:
     report = d⇩1
 ```
 
-Nitpick names the elements after their types: u₁ and u₂ are users, d₁ is a document. In this structure
-nobody owns anything, so the premise is vacuously true, and nobody can delete anything.
+Nitpick 按类型给元素起名：u₁ 和 u₂ 是用户，d₁ 是文档。在这个结构中，谁也不拥有任何东西，所以前提空真，而谁也不能删除任何东西。
 
 ```isabelle
   oops
 ```
 
-Types catch mistakes like those of the pitfall in Section 3.2, and more. Swap the arguments of `owns`:
+类型能抓住第 3.2 节“注意”框中的那类错误，而且不止这些。把 `owns` 的两个参数对调一下：
 
 ```isabelle fails
 lemma "owns report alice"
@@ -873,25 +825,19 @@ lemma "owns report alice"
 ***
 ```
 
-Isabelle refuses the statement before trying to prove anything. The message names the function
-(`Operator`) and the argument that does not fit (`Operand`): `owns` expects a `user` first, and `report`
-is a `doc`.
+Isabelle 在尝试证明任何东西之前就拒绝了这个陈述。消息指出了函数（`Operator`，运算符）和不匹配的参数（`Operand`，操作数）：`owns` 的第一个参数应当是 `user`，而 `report` 是 `doc`。
 
-When you write a lemma without declarations, Isabelle infers the most general types. In
-`(∀x. P x) ⟶ (∃x. P x)` nothing says what `x` is, so `x` gets a type variable `'a`, and `P` the type
-`'a ⇒ bool`. A lemma proved for a type variable holds for every type, that is, for every domain:
+如果你写引理时不做声明，Isabelle 会推断出最一般的类型。在 `(∀x. P x) ⟶ (∃x. P x)` 中，没有任何东西说明 `x` 是什么，所以 `x` 得到一个类型变量 `'a`，`P` 得到类型 `'a ⇒ bool`。对类型变量证明的引理对每个类型都成立，也就是对每个论域都成立：
 
 ```isabelle
 lemma "(∀x. P x) ⟶ (∃x. P x)"
   by blast
 ```
 
-The formula is valid because every type, like every domain of a structure, has at least one element.
-Over an empty domain, `∀x. P x` would be vacuously true and `∃x. P x` false.
+这个公式之所以有效，是因为每个类型都和结构的每个论域一样，至少有一个元素。在空论域上，`∀x. P x` 会空真，而 `∃x. P x` 为假。
 
 ::: trouble
-- **A predicate with too many arguments.** Use `P` with one argument in one place and two in another,
-  and Isabelle cannot give it a type:
+- **谓词的参数太多。** 如果 `P` 在一处用了一个参数，在另一处用了两个，Isabelle 就无法给它指定类型：
 
   ```isabelle fails
   lemma "P x ⟶ P x y"
@@ -907,11 +853,8 @@ Over an empty domain, `∀x. P x` would be vacuously true and `∃x. P x` false.
   ***
   ```
 
-  From `P x`, Isabelle decided that `P x` is a formula, of type `bool`, and a formula cannot be applied
-  to `y`; `??'a` stands for a type that Isabelle had not yet worked out. Give each predicate the same
-  number of arguments everywhere.
-- **A name that is a keyword.** Some English words are keywords of Isabelle's command language, and
-  `file` is one of them:
+  根据 `P x`，Isabelle 判定 `P x` 是一个类型为 `bool` 的公式，而公式不能应用于 `y`；`??'a` 代表一个 Isabelle 还没有推断出来的类型。每个谓词在各处都要用相同个数的参数。
+- **名字是关键字。** 有些英文单词是 Isabelle 命令语言的关键字，`file` 就是其中之一：
 
   ```isabelle fails
   typedecl file
@@ -922,77 +865,47 @@ Over an empty domain, `∀x. P x` would be vacuously true and `∃x. P x` false.
   *** but keyword file⌂ was found
   ```
 
-  Choose another name, such as `doc`.
+  换一个名字，例如 `doc`。
 :::
 
-## Decidability: what tools can and cannot do {#decidability}
+## 可判定性：工具能做什么，不能做什么 {#decidability}
 
-For propositional logic, Module 2 gave an algorithm that decides validity: compute the truth table. It
-may be slow, but it always finishes with the right answer. Is there such an algorithm for predicate
-logic? David Hilbert and Wilhelm Ackermann asked this in 1928, as the *Entscheidungsproblem*, the
-"decision problem". The answer came in two parts.
+对于命题逻辑，模块 2 给出了一个判定有效性的算法：计算真值表。这个算法可能很慢，但它总会结束，并给出正确的答案。谓词逻辑有这样的算法吗？大卫·希尔伯特（David Hilbert）和威廉·阿克曼（Wilhelm Ackermann）在 1928 年提出了这个问题，称为**判定问题**（Entscheidungsproblem）。答案分两部分给出。
 
-::: fact Gödel's completeness theorem
-There are proof systems for predicate logic, natural deduction among them (Module 6), in which a formula
-can be proved exactly when it is valid. Kurt Gödel proved this for one such system in his doctoral thesis
-of 1929, published in 1930.
+::: fact 哥德尔完备性定理
+谓词逻辑有这样的证明系统（自然演绎就是其中之一，见模块 6）：在其中，一个公式能被证明，当且仅当它是有效的。库尔特·哥德尔（Kurt Gödel）在 1929 年的博士论文中对其中一个这样的系统证明了这一点，论文发表于 1930 年。
 :::
 
-Completeness has a practical consequence. Proofs are finite texts that a program can check, so a program
-can list all proofs, shortest first, together with the formulas they prove. Every valid formula appears
-in the list sooner or later. To find out whether a formula is valid, run the program and wait for the
-formula to appear: if it is valid, the answer "yes" comes in the end. If it is not, you wait for ever,
-and at no point do you know whether waiting longer would help.
+完备性（completeness）有一个实际的推论。证明是程序可以检查的有限文本，所以程序可以按从短到长的顺序列出所有证明，连同它们证明的公式。每个有效公式迟早都会出现在这个列表中。要弄清一个公式是否有效，就运行这个程序，等着这个公式出现：如果它是有效的，最终会得到答案“是”。如果它不是有效的，你就会永远等下去，而且在任何时刻，你都不知道再等一会儿是否有用。
 
-::: fact Undecidability of predicate logic
-No algorithm decides, for every formula of predicate logic, whether it is valid. Alonzo Church and Alan
-Turing proved this independently in 1936. Validity stays undecidable even when the vocabulary has a
-single predicate symbol, with two arguments.
+::: fact 谓词逻辑的不可判定性
+没有算法能对谓词逻辑的每个公式判定它是否有效。阿朗佐·丘奇（Alonzo Church）和艾伦·图灵（Alan Turing）在 1936 年各自独立地证明了这一点。即使词汇表只有一个二元谓词符号，有效性仍然是不可判定的（undecidable）。
 :::
 
-Turing's proof connects to the halting problem that Module 1 mentioned: for every program you can write
-a formula that is valid exactly when the program halts, so an algorithm for validity would decide
-halting, which no algorithm can.
+图灵的证明与模块 1 提到的停机问题有关：对每个程序，都可以写出一个公式，使这个公式有效当且仅当这个程序会停机；所以，判定有效性的算法也就能判定停机，而没有算法能做到这一点。
 
-::: definition Decidable and semi-decidable
-A question about inputs is **decidable** if some algorithm answers it correctly for every input and
-always terminates. It is **semi-decidable** if some algorithm answers "yes" for every input whose answer
-is yes, but may run for ever on the others.
+::: definition 可判定与半可判定
+一个关于输入的问题，如果有某个算法对每个输入都能正确地回答它，并且总会终止，这个问题就是**可判定的**（decidable）。如果有某个算法对每个答案为“是”的输入都回答“是”，但对其他输入可能永远运行下去，这个问题就是**半可判定的**（semi-decidable）。
 :::
 
-Validity in predicate logic is semi-decidable but not decidable. The same holds for unsatisfiability,
-since $\varphi$ is unsatisfiable exactly when $\lnot \varphi$ is valid; satisfiability is not even
-semi-decidable.
+谓词逻辑中的有效性是半可判定的，但不是可判定的。不可满足性也是如此，因为 $\varphi$ 不可满足当且仅当 $\lnot \varphi$ 有效；而可满足性连半可判定都不是。
 
-Two theorems of Gödel are easily confused. The **completeness theorem** (1929/1930) is about the valid
-formulas, those true in every structure: all of them can be proved. His **incompleteness theorems**
-(1931), which Module 1 mentioned, are about the formulas true in one particular structure, the natural
-numbers: no proof system whose axioms a program can check, and which proves only true statements, proves
-all of them. HOL can describe the natural numbers, so incompleteness applies to Isabelle's logic too.
+哥德尔的两个定理很容易混淆。**完备性定理**（completeness theorem，1929/1930）讲的是有效的公式，即在每个结构中都为真的公式：它们全都能被证明。他的**不完备性定理**（incompleteness theorems，1931），也就是模块 1 提到的那个结果，讲的是在一个特定结构（自然数）中为真的公式：任何证明系统，只要它的公理能由程序检查，并且它只证明真的陈述，就不能证明所有这些公式。HOL 能描述自然数，所以不完备性也适用于 Isabelle 的逻辑。
 
 ::: figure id=fig-03-3
-What a search can settle in principle. Valid formulas have proofs, and a systematic proof search finds
-one in the end. Formulas with a finite countermodel are refuted by searching finite structures. For
-formulas whose countermodels are all infinite, neither search ever stops. Isabelle's tools search only
-up to a limit, so in practice they can also give up on formulas of the first two kinds.
+原则上，搜索能解决什么。有效的公式都有证明，系统的证明搜索终将找到一个。有有限反模型的公式，可以通过搜索有限结构来驳倒。对于反模型全都是无限的公式，两种搜索都永远不会停止。Isabelle 的工具只搜索到一定的界限，所以在实践中，它们对前两类公式也可能放弃。
 :::
 
-Why do some formulas defeat both kinds of search? Because a countermodel can be infinite. Take
+为什么有些公式能让两种搜索都无功而返？因为反模型可以是无限的。看这个公式：
 
 $$
 (\forall x.\ \lnot\, R\ x\ x) \land (\forall x\ y\ z.\ R\ x\ y \land R\ y\ z \imp R\ x\ z) \imp \lnot (\forall x.\ \exists y.\ R\ x\ y)
 $$
 
-"If $R$ is irreflexive and transitive, then some element has no $R$-successor." It is not valid: with the
-natural numbers as domain and $<$ as $R$, both premises hold, and every number has a larger one. But it
-is true in every finite structure (Exercise 3.8 asks you to show why), so a search through finite
-structures never finds a countermodel, and a proof search never finds a proof, because there is none.
-Such formulas must exist. If every formula that is not valid had a finite countermodel, you could run a
-proof search and a countermodel search side by side; one of them would always finish, and validity would
-be decidable, which Church and Turing showed it is not.
+“如果 $R$ 是反自反（irreflexive）且传递的，那么有某个元素没有 $R$ 后继。”它不是有效的：以自然数为论域、以 $<$ 为 $R$，两个前提都成立，而每个数都有比它大的数。但它在每个有限结构中都为真（练习 3.8 请你说明原因），所以在有限结构中搜索永远找不到反模型，而证明搜索也永远找不到证明，因为根本没有证明。这样的公式一定存在。如果每个无效的公式都有有限反模型，你就可以让证明搜索和反模型搜索并排运行；两者之中总有一个会结束，有效性也就是可判定的了，而丘奇和图灵已经证明它不是。
 
 ::: isabelle
-Both of Isabelle's tools give up on this formula. Nitpick tries domains of 1 to 10 elements:
+Isabelle 的两种工具都拿这个公式没办法。Nitpick 尝试了 1 到 10 个元素的论域：
 
 ```isabelle
 lemma "(∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. ∃y. R x y)"
@@ -1009,7 +922,7 @@ Nitpick found no counterexample
   oops
 ```
 
-and `blast` fails:
+而 `blast` 失败了：
 
 ```isabelle fails
 lemma "(∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. ∃y. R x y)"

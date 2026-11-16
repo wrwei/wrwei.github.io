@@ -52,3 +52,9 @@ scratch builds (`out/scratch/rev1011`).
 
 - Module 13 uses "step case" and "initial case" for its invariant proofs, Module 5 "induction step".
 - Modules 5 and 10 name trees `tree2` with `Tip`/`Node`; Modules 11 and 12 `btree` with `Lf`/`Nd`.
+- `tools/isa.py`: once, with other builds queued, the main session `Module_11` left an almost empty log
+  (`Module_11.gz`, 20 bytes) and `isa.py` reported "Isabelle printed nothing for this block" for 39
+  blocks instead of retrying, as it does for probes; the next run was clean. A retry for incomplete
+  main-session logs would avoid false alarms.
+- Other inductive definitions that fail (any module) will show the same unstable message order as
+  `odd'`; they need `output varies`.

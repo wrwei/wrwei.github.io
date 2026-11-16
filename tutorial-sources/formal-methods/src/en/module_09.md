@@ -388,9 +388,10 @@ The simplifier is right to stop: the claim is false when `v = u`.
 
 ::: pitfall
 The conditions of a rule must be simpler than its left side, or the simplifier can run in circles. The rule
-`Suc n < m ⟹ (n < m) = True` is true, but as a simp rule it loops: to rewrite `n < m`, the simplifier must
-first prove `Suc n < m`, which the same rule rewrites if it can prove `Suc (Suc n) < m`, and so on. The
-simplifier gives up only after 100 nested attempts, the default of its option `simp_depth_limit`.
+`Suc n < m ⟹ (n < m) = True` is true, but as a simp rule it is useless: to rewrite `n < m`, the
+simplifier must first prove `Suc n < m`, which the same rule rewrites if it can prove `Suc (Suc n) < m`,
+and so on. The simplifier gives up only after 40 nested attempts, the default of its option
+`simp_depth_limit`, and then leaves `n < m` as it was.
 :::
 
 ### How simp uses assumptions {#assumptions}
@@ -425,9 +426,12 @@ rewrite the goal `allows es u Read` with it, the simplifier had to prove `allows
 assumption, now the rule `allows es u Write = True`, did that.
 
 ::: tip
-Assumptions can also make the simplifier loop. An assumption such as `∀x. f x = g (f x)` becomes a rule
-that rewrites `f x` to a term that contains `f x` again. If a goal has such an assumption that the proof
-does not need, `simp (no_asm)` ignores the assumptions of the subgoal.
+Assumptions can also make the simplifier loop. An assumption such as `∀x. f x = g (f (g x))` becomes a
+rule that rewrites `f x` to a term that contains `f (g x)`, which the same rule rewrites again, and so on
+for ever. (Isabelle notices simpler cases, such as `∀x. f x = g (f x)`, and turns them round, but not this
+one.) If a goal has such an assumption that the proof does not need, `simp (no_asm)` ignores the
+assumptions of the subgoal. Section 9.8 shows a goal whose own assumptions send the simplifier round in
+circles.
 :::
 
 ### Case splits {#splits}
@@ -1276,17 +1280,21 @@ cvc5's suggestion is the proof you found by hand in Section 9.6:
 Whichever suggestion you choose, the proof is carried out by an Isabelle method, `simp` here, and the kernel
 checks every step. The `sledgehammer` command itself proves nothing: delete it once you have a proof.
 
-Sledgehammer is at its best when a goal follows from a few library facts in a way that the simplifier does
-not see. Two segments of a log that commute and have the same length are equal. `simp`, `auto` and
-`blast` all fail on this goal, but Sledgehammer finds the library lemma `append_eq_append_conv`, which says
-when two appended lists are equal, and suggests a proof such as this one:
+Sledgehammer is at its best when a goal follows from a few library facts in a way that the other methods
+miss. Two segments of a log that commute and have the same length are equal:
+`⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs`. `blast` fails on this goal, and `simp` and `auto`
+do worse: they never finish. The simplifier rewrites the first assumption with the library's simp rule
+`append_eq_append_conv`, which says when two appended lists are equal, into `es = fs ∧ fs = es`. Then it
+uses these two equations as rewrite rules, turning `es` into `fs` and `fs` back into `es`, for ever. You
+would have to stop it by hand. Sledgehammer uses the same library lemma as a fact rather than as a rewrite
+rule, and suggests a proof such as this one:
 
 ```isabelle
 lemma "⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs"
   by (metis append_eq_append_conv)
 ```
 
-You may not have known that the lemma existed, but Sledgehammer did.
+You may not have thought of using the lemma in this way, but Sledgehammer found it.
 
 Isabelle/jEdit also has a **Sledgehammer** panel at the bottom of the window. Put the cursor in a proof
 and click **Apply**: the provers run in the background while you go on working, and the results appear in

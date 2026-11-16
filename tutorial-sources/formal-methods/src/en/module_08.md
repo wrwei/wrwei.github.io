@@ -3,7 +3,7 @@ title: Functional programming in HOL
 part: 3
 lead: Use Isabelle/HOL as a typed functional programming language. Define your own data types and functions, compute with them, read the types and messages Isabelle prints, see why every function must terminate, and turn your definitions into Haskell code.
 minutes: 210
-needs: Modules 1–7, especially recursion and induction from Module 5
+needs: Modules 1–7
 goals:
   - Read and write HOL types and terms, and inspect them with `typ`, `term` and `value`
   - Use λ-abstraction, currying and partial application
@@ -652,8 +652,9 @@ they accept, in what they prove for you, and in how proofs use them.
 ### Non-recursive functions: definition {#definition}
 
 The traffic light stands at a crossroads, where two lights control the two directions, north–south and
-east–west. A simple, strict safety rule says that at every moment at least one of the two lights shows
-red. The state of the junction is a pair of lights, and the rule is a function on such pairs:
+east–west. A simple, strict safety rule says that at every moment at least one of the two lights is in
+the state `Red` (red alone, not red and amber). The state of the junction is a pair of lights, and the
+rule is a function on such pairs:
 
 ```isabelle
 definition safe :: "light × light ⇒ bool" where
@@ -816,7 +817,9 @@ Found termination order: "{}"
 ```
 
 Isabelle accepts the definition with a warning, and completes it with the equation
-`top_value Empty = undefined`. Here `undefined` is a constant of every type about which nothing is known:
+`top_value Empty = undefined`. It uses this equation to construct the function, but it does not add it
+to `top_value.simps`, so `simp` cannot use it. Here `undefined` is a constant of every type about which
+nothing is known:
 `top_value Empty` is *some* element, but no proof can tell which. The function is total, as every HOL
 function is, but on `Empty` it is **unspecified**. When you try to compute that value, the code behind
 `value` has no equation to use and stops with an exception (Section 8.8 explains where this code comes
@@ -1091,8 +1094,9 @@ value "[(l, duration l). l ← trace 4 Red, duration l < 10]"
   :: "(light × nat) list"
 ```
 
-The pattern `(l, duration l)` builds a pair for each element; `duration l < 10` is a condition. There can
-be several generators and conditions, separated by commas.
+The expression `(l, duration l)` builds a pair for each element; `l ← trace 4 Red` is a **generator**,
+which takes the elements `l` of the list one by one; `duration l < 10` is a condition. There can be
+several generators and conditions, separated by commas.
 
 ::: pitfall
 Some list functions are unspecified for some arguments: `hd []`, the first element of the empty list,
@@ -1111,8 +1115,9 @@ HOL has several types of numbers: `nat`, `int`, and, with the theory `Complex_Ma
 
 The type `nat` behaves like a datatype with two constructors, `0` and `Suc`: every natural number is
 either `0` or `Suc n` for a smaller natural number `n`. That is why you can define functions on `nat` by
-pattern matching on `0` and `Suc n`, as `trace` does. A numeral such as `3` is another way of writing
-`Suc (Suc (Suc 0))`, and `value` prints natural numbers as numerals:
+pattern matching on `0` and `Suc n`, as `trace` does. A numeral such as `3` denotes the same number as
+`Suc (Suc (Suc 0))` (though the two are written differently, which matters for `simp`, as the pitfall at
+the end of this section shows), and `value` prints natural numbers as numerals:
 
 ```isabelle
 value "Suc (Suc 0)"
@@ -1553,10 +1558,14 @@ types whose elements can be listed, the class `enum`, and `nat` is not in it.
 
 The code does not appear in the Output panel. In Isabelle/jEdit, the words *theory exports* in the
 message are a link: click it, and jEdit's File Browser opens on the generated files, in a virtual folder
-whose name begins with `isabelle-export:`. The Haskell module is the file `Traffic.hs`. Here is its main
-part; the beginning of the file, a list of `import` declarations, is left out.
+whose name begins with `isabelle-export:`. The Haskell module is the file `Traffic.hs`, in a folder
+`export1` (`export_code` numbers the exports of a theory `export1`, `export2`, …). Here it is, without
+its first line, an option for the Haskell compiler, and without the `import` declarations that follow
+the `module` line:
 
 ```text
+module Traffic(Nat, Num, Light, next_light, trace, duration) where {
+
 data Nat = Zero_nat | Suc Nat;
 
 data Num = One | Bit0 Num | Bit1 Num;
@@ -1598,7 +1607,8 @@ duration Amber = nat_of_num (Bit1 One);
 }
 ```
 
-The translation follows your equations closely. The datatype `light` becomes a Haskell `data` type with
+The translation follows your equations closely. The `module` line names the module `Traffic`, as
+`module_name` asked, and lists what it exports. The datatype `light` becomes a Haskell `data` type with
 the same constructors, and `next_light` and `trace` have the same equations as in Isabelle. Everything
 else is the natural numbers, translated as the logic builds them: a datatype `Nat` with the constructors
 `Zero_nat` and `Suc`, and numerals in binary, built from `One` with `Bit0` (append the binary digit 0)
@@ -1777,7 +1787,8 @@ value "(7::nat) mod 0"
 2. `7 div 2 = 3`, and `3 * 2 = 6`: integer division throws the remainder away.
 3. `div` on `int` rounds down, so `-7 div 2 = -4` (not −3), and then `-7 mod 2 = 1`, because
    `(-4) * 2 + 1 = -7`.
-4. `a mod 0 = a`, the library's choice that makes `mod` total (Fact 8.1).
+4. `a mod 0 = a`: `mod` is total, like every HOL function, and this is the value the library chooses
+   for a remainder by 0 (Fact 8.1).
 :::
 ::::
 
@@ -1806,8 +1817,8 @@ value "map (λl. safe (l, cross l)) [Red, RedAmber, Green, Amber]"
   :: "bool list"
 ```
 
-The states with `l = RedAmber` and `l = Amber` are unsafe: then neither light is red, because one shows
-red and amber and the other amber. A safe cycle lets each direction run its sequence while the other is
+The states with `l = RedAmber` and `l = Amber` are unsafe: then neither light is in the state `Red`,
+because one shows red and amber and the other amber. A safe cycle lets each direction run its sequence while the other is
 red, with both red in between:
 
 ```isabelle
@@ -2059,7 +2070,7 @@ Found termination order:
 ? Why does `fun` refuse a recursive definition whose termination it cannot prove?
 - [ ] Because non-terminating functions would make `value` slow
 - [ ] Because HOL has no type for infinite computations
-- [x] Because the equations of a non-terminating "definition" can contradict each other, as `f x = f x + 1` implies `0 = 1`
+- [x] Because the equations of a non-terminating "definition" can be contradictory, as `f x = f x + 1` implies `0 = 1`
 - [ ] Because the code generator cannot translate such functions
 > `fun` proves your equations from a construction that needs a termination argument. Without one, accepting the equations could make the logic inconsistent.
 

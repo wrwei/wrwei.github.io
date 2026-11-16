@@ -612,10 +612,10 @@ several rounds; each round removes the unreachable states that the last failure 
   invariant: the initial case or a step case fails, however many rounds you add. Test a candidate
   first: `nitpick` on `reach s ⟹ invar s` should find no counterexample. A fact that is true but not
   preserved together with the rest makes a step case fail too; then you need another round.
-- **Trying a stronger proof method.** From `safe s` and the guard alone, no method can prove the step
-  case, because that claim is false: Quickcheck found a counterexample. The step case also has the
-  premise `reach s`, but using it needs a fact about all reachable states, which is the invariant you
-  are looking for. A failed step case asks for a stronger invariant, not for more automation.
+- **Trying a stronger proof method.** No method can prove the failed step case for `safe` from `safe s`
+  and the guard alone: that claim is false, as Quickcheck showed. The step case also has the premise
+  `reach s`, but using it needs a fact about all reachable states, which is the invariant you are
+  looking for. A failed step case asks for a stronger invariant, not for more automation.
 :::
 
 ## Counterexample traces {#traces}
@@ -728,7 +728,8 @@ that this fix works).
 
 ::: keyidea
 When the step case of an invariant proof fails, the goal describes a state and an event. Find out whether
-the state is reachable. If it is, the design is wrong: search for a trace with Nitpick, or with
+the state is reachable. If it is, the property you are proving fails in a reachable state; when that
+property is your safety property, the design is wrong: search for a trace with Nitpick, or with
 Quickcheck on an executable model, and fix the design. If it is not, the design may be right and the
 invariant too weak: strengthen it.
 :::
@@ -1307,7 +1308,7 @@ inductive lazy :: "crossing ⇒ bool" where
 - [ ] Whether e is the last event of the datatype
 - [ ] Whether the initial state satisfies the invariant
 - [x] Whether s is reachable
-> If s is reachable, the design is wrong and a trace shows how. If it is not, the invariant is too weak and must be strengthened.
+> If s is reachable, the property fails in a reachable state, and a trace shows how; for a safety property, the design is wrong. If it is not, the invariant is too weak and must be strengthened.
 
 ? Why can Quickcheck test `safe (run es start)` but not `reach s ⟹ safe s`?
 - [x] Quickcheck executes definitions, and an inductive predicate such as reach is not executable by default
