@@ -283,7 +283,7 @@ FMWidgets.register('truth-table', function (root, api) {
     var firstT = -1, firstF = -1
     rows.forEach(function (r, i) { if (r.val && firstT < 0) firstT = i; if (!r.val && firstF < 0) firstF = i })
     if (nTrue === n) { verdict.className = 'verdict taut'; verdict.textContent = t(n === 1 ? 'Tautology: true in its only row.' : 'Tautology: true in all ' + n + ' rows.', n === 1 ? '重言式：在唯一的一行中为真。' : '重言式：全部 ' + n + ' 行都为真。') }
-    else if (nTrue === 0) { verdict.className = 'verdict contra'; verdict.textContent = t(n === 1 ? 'Contradiction: false in its only row.' : 'Contradiction: false in all ' + n + ' rows.', n === 1 ? '矛盾式：唯一的一行为假。' : '矛盾式：全部 ' + n + ' 行都为假。') }
+    else if (nTrue === 0) { verdict.className = 'verdict contra'; verdict.textContent = t(n === 1 ? 'Contradiction: false in its only row.' : 'Contradiction: false in all ' + n + ' rows.', n === 1 ? '矛盾式：在唯一的一行中为假。' : '矛盾式：全部 ' + n + ' 行都为假。') }
     else { verdict.className = 'verdict cont'; verdict.textContent = t('Satisfiable but not valid: true in ' + nTrue + ' of ' + n + ' rows.', '可满足但非有效：' + n + ' 行中有 ' + nTrue + ' 行为真。') }
     rowsList.appendChild(h('li', { class: 'tt-satrow' }, h('span', { class: 'mk', 'aria-hidden': 'true' }, '✓'), firstT >= 0
       ? t('Row ' + (firstT + 1) + ' makes it true (a model): ', '第 ' + (firstT + 1) + ' 行使它为真（一个模型）：') + describe(atoms, rows[firstT].v)

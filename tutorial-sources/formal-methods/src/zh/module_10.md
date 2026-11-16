@@ -99,7 +99,7 @@ goal (1 subgoal):
  1. A ∧ B ⟶ B ∧ A
 ```
 
-Start the block with the rule for implication from Module 7:
+用模块 7 中蕴涵的规则开始这个块：
 
 ```isabelle
 proof (rule impI)
@@ -111,8 +111,7 @@ goal (1 subgoal):
  1. A ∧ B ⟹ B ∧ A
 ```
 
-The goal now says: assuming A ∧ B, show B ∧ A. The arrow ⟹ is Isabelle's own implication, which you met
-in Module 7. In a paper proof you would now write "Assume A ∧ B". In Isar too:
+现在目标说的是：假设 A ∧ B，证明 B ∧ A。箭头 ⟹ 是 Isabelle 自己的蕴涵，你在模块 7 中见过它。在纸上的证明中，你接下来会写“假设 A ∧ B”。在 Isar 中也是这样：
 
 ```isabelle
   assume ab: "A ∧ B"
@@ -127,9 +126,7 @@ goal (1 subgoal):
  1. A ∧ B ⟹ B ∧ A
 ```
 
-`assume` adds the assumption to the proof and calls it `ab`. The state lists it under `this:`, the most
-recent fact. The goal has not changed: an assumption proves nothing by itself, it is something you may
-use. Now claim the conclusion:
+`assume` 把这个假设加入证明，并把它命名为 `ab`。证明状态把它列在 `this:` 下面，`this` 就是最近得到的事实。目标没有变化：假设本身什么也没有证明，它只是你可以使用的东西。现在断言结论：
 
 ```isabelle
   show "B ∧ A"
