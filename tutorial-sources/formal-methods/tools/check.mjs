@@ -66,6 +66,23 @@ function skeleton(src) {
   return out
 }
 
+// Style (English prose only, outside code): filler words the series avoids, and American spellings.
+const FILLER = /\b(simply|just|obviously|clearly|of course|trivially easy|easy to see)\b/i
+const AMERICAN = /\b(formaliz\w*|behavior\w*|colou?r(?<!colour)s?|modeling|modeled|analyz\w*|organiz\w*|recogniz\w*|generaliz\w*|minimiz\w*|maximiz\w*|realiz\w*|specializ\w*|utiliz\w*|optimiz\w*|summariz\w*|emphasiz\w*|characteriz\w*|initializ\w*|normaliz\w*|center|centers|favor\w*|labeled|labeling|traveled|license(?=d? to)|catalog)\b/
+function styleCheck(f, src) {
+  let fence = null
+  src.split('\n').forEach((ln, i) => {
+    const m = ln.match(/^\s*(`{3,})/)
+    if (m) { if (!fence) fence = m[1]; else if (ln.trim().startsWith(fence)) fence = null; return }
+    if (fence || /^---|^\s*(title|lead|needs|goals|minutes|part|imports):/.test(ln)) return
+    const prose = ln.replace(/`[^`]*`/g, '').replace(/\$[^$]*\$/g, '').replace(/\]\([^)]*\)/g, ']')
+    const a = prose.match(FILLER), b = prose.match(AMERICAN)
+    if (a) warn(`en/${f}:${i + 1}`, `filler word "${a[1]}"`)
+    if (b) warn(`en/${f}:${i + 1}`, `American spelling "${b[1]}"`)
+    if (/!\s*$|!\s+[A-Z]/.test(prose) && !/^\s*[-*]?\s*\*\*/.test(prose) && !/<!--/.test(prose)) warn(`en/${f}:${i + 1}`, 'exclamation mark')
+  })
+}
+
 const pages = fs.readdirSync(path.join(ROOT, 'src', 'en')).filter(f => f.endsWith('.md')).sort()
 const names = new Set(pages.map(f => f.replace(/\.md$/, '')))
 for (const f of pages) {
@@ -75,6 +92,7 @@ for (const f of pages) {
     const src = read(lang, f)
     if (src == null) { if (lang === 'zh') warn(`zh/${f}`, 'not translated yet'); continue }
     sk[lang] = skeleton(src)
+    if (lang === 'en') styleCheck(f, src)
     const s = sk[lang]
     for (const id of s.figures) {
       const ok = ['en', lang].some(l => fs.existsSync(path.join(ROOT, 'src', 'figures', l, `${id}.svg`)))

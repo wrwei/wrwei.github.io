@@ -66,7 +66,7 @@ design.
 
 Everyday language is good for talking and bad for specifying. Take a requirement from a school's
 software: *"Sort the list of scores before printing it."* Highest first or lowest first? What happens to
-two equal scores? And, less obviously: may the sorting function return the empty list? An empty list is
+two equal scores? And a question that is easy to miss: may the sorting function return the empty list? An empty list is
 certainly sorted. Nobody would write that function on purpose, but nothing in the sentence forbids it,
 and a program that loses scores is exactly the kind of bug that slips through.
 
@@ -147,7 +147,7 @@ which uses a SAT solver) and a bridge to automatic provers and SMT solvers (**Sl
 Z3, cvc5 and others), all checked by the same small kernel.
 
 ::: note
-Why can a computer not simply decide whether any statement is true? Because no algorithm can: Alan
+Why can a computer not decide by itself whether any statement is true? Because no algorithm can: Alan
 Turing showed in 1936 that no program can decide, for every program and input, whether it halts, and
 Kurt Gödel had shown that no proof system can prove every truth about arithmetic. So for expressive
 logics, some human guidance is unavoidable. Module 3 returns to this.
@@ -319,7 +319,7 @@ end
 `theory First` names the theory, and the name must match the file name: a theory `First` lives in
 `First.thy`. `imports Main` makes the standard library available: numbers, lists, sets and thousands of
 proved facts about them. Everything else goes between `begin` and `end`. The commands below go on new
-lines just before `end`.
+lines before `end`.
 
 ::: trouble
 If Isabelle underlines `First` and says
@@ -726,7 +726,7 @@ Suppose a programmer adds a bug to Isabelle's simplifier, outside the kernel, th
 `simp`, and why the LCF architecture matters here.
 
 ::: solution
-In an LCF-style prover the simplifier cannot simply announce a theorem: to produce one it must build it
+In an LCF-style prover the simplifier cannot announce a theorem on its own authority: to produce one it must build it
 by applying the kernel's inference rules, because only the kernel can create values of type `thm`. The
 kernel checks each step. Rewriting `0` to `1` is not a valid step: no rule allows it, because the
 equation `0 = 1` is not a theorem. So the buggy simplifier either fails, or raises an error when it tries
