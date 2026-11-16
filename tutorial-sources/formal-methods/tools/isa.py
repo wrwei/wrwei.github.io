@@ -26,6 +26,7 @@ Output block options (first line, after ```output):
            (combine with the others, e.g. ```output result varies)
 """
 import argparse
+import fcntl
 import glob
 import os
 import re
@@ -221,6 +222,9 @@ def run(cmd, **kw):
     return subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, **kw)
 
 
+FALLBACK = set()   # (file, line) of errors known only from the "Build errors" copy (narrower layout)
+
+
 def parse_log(text):
     """Messages from `isabelle build_log -U -v`: (file basename, line) -> [(kind, body)]."""
     msgs = {}
@@ -250,6 +254,7 @@ def parse_log(text):
                 key = (os.path.basename(m.group(2)), int(m.group(1)))
                 if not any(k == 'Error' for k, _ in msgs.get(key, [])):
                     msgs.setdefault(key, []).append(('Error', '\n'.join(pending)))
+                    FALLBACK.add(key)
                 pending = []
             elif ln.startswith('*** '):
                 pending.append(ln)
@@ -342,9 +347,32 @@ def main():
     # at the same time; only a full run writes the downloads.
     isa_dir = os.path.join(OUT, 'isa' if not wanted else 'isa-' + '-'.join(sorted(wanted)))
     sessions = write_sessions(plans, isa_dir)
+    # One Isabelle build at a time on this machine: each build needs 2-4 GB, and parallel builds by
+    # several authors have run the container out of memory. Runs queue on a lock file.
+    os.makedirs(OUT, exist_ok=True)
+    lock = open(os.path.join(OUT, '.isa-build.lock'), 'w')
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print('waiting for another isa.py run to finish its Isabelle build ...', flush=True)
+        fcntl.flock(lock, fcntl.LOCK_EX)
     build = run([args.isabelle, 'build', '-d', isa_dir, '-j', args.jobs] + sessions)
     log = run([args.isabelle, 'build_log', '-U', '-v'] + sessions)
     msgs = parse_log(log.stdout)
+    # For a failed probe, the theory-level error message is sometimes missing from the log, and only the
+    # "Build errors" copy (wrapped at a narrower margin) is there. Build such probes again, up to twice.
+    for _ in range(2):
+        retry = sorted({f[:-4] for f, _ in FALLBACK if '_Probe_' in f})
+        if not retry:
+            break
+        FALLBACK.clear()
+        run([args.isabelle, 'build', '-d', isa_dir, '-j', args.jobs] + retry)
+        again = parse_log(run([args.isabelle, 'build_log', '-U', '-v'] + retry).stdout)
+        for key in [k for k in msgs if k[0][:-4] in retry]:
+            del msgs[key]
+        msgs.update(again)
+    lock.close()
+    killed = 'Killed' in build.stdout or 'Interrupt' in build.stdout
 
     problems = 0
     changes = {}          # page path -> list of (start, end, indent, new body lines)
@@ -377,7 +405,12 @@ def main():
                     have = b['output']['text']
                     checked += 1
                     varies = 'varies' in b['output']['opts']
-                    if varies and [x for x in have if x.strip()] and want:
+                    if not want and [x for x in have if x.strip()]:
+                        problems += 1
+                        print(f'--- {rel}:{b["output"]["start"] + 1}: Isabelle printed nothing for this block'
+                              + (' (the build was killed or interrupted; run again)' if killed else '')
+                              + '; the output block is kept as it is')
+                    elif varies and [x for x in have if x.strip()] and want:
                         pass        # captured once from a real run; differs between runs (e.g. Sledgehammer)
                     elif same_text(have, want):
                         pass        # equal up to line wrapping (Isabelle wraps the two copies of an error differently)
