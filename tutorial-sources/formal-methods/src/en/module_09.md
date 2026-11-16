@@ -202,7 +202,7 @@ grows as theories are loaded:
 - the equations of every function defined with `fun` or `primrec`, such as `allows.simps` and
   `revoke.simps`;
 - facts that `datatype` proves: the constructors are different (`Read ≠ Write`), and a constructor applied
-  to different arguments gives different values, so `((a, b) = (c, d)) = (a = c ∧ b = d)`;
+  to different arguments gives different values, so `(x # xs = y # ys) = (x = y ∧ xs = ys)`;
 - thousands of library lemmas that carry the attribute `[simp]`, such as `rev (rev xs) = xs`;
 - your own lemmas, when you give them `[simp]`.
 
@@ -253,9 +253,8 @@ lemma "allows (grant u Read (grant v Write es)) v Write"
 ```
 
 ::: pitfall
-To the simplifier, `u = v` and `v = u` are different terms. No simp rule turns one into the other: such a
-rule could be applied again and again. So the order in which you write an equation can decide whether
-`simp` succeeds. State `allows_grant` with the sides of the equation swapped, and the same proof fails:
+To the simplifier, `u = v` and `v = u` are different terms, and no rule in the simp set turns one into the
+other. So the order in which you write an equation can decide whether `simp` succeeds. State `allows_grant` with the sides of the equation swapped, and the same proof fails:
 
 ```isabelle fails
 lemma "allows (grant u p es) v q = ((v, q) = (u, p) ∨ allows es v q)"
@@ -265,10 +264,7 @@ lemma "allows (grant u p es) v q = ((v, q) = (u, p) ∨ allows es v q)"
 ```output
 *** Failed to finish proof⌂:
 *** goal (1 subgoal):
-***  1. (u = v ∧ p = q ∨ allows es v q) =
-***     (v = u ∧ q = p ∨
-***      allows es v
-***       q)
+***  1. (u = v ∧ p = q ∨ allows es v q) = (v = u ∧ q = p ∨ allows es v q)
 ```
 
 The simplifier rewrote both sides as far as it could and was left with `u = v ∧ p = q` on the left and
@@ -364,7 +360,7 @@ conditions. Before the simplifier replaces an instance of `l` by the same instan
 the same instance of each condition `Hᵢ`, by simplification. If it cannot, it does not use the rule.
 :::
 
-Two concrete users are clearly different, and the simplifier can prove it:
+Two concrete users are different, and the simplifier can prove it:
 
 ```isabelle
 lemma "allows (revoke ''ann'' es) ''bob'' Read = allows es ''bob'' Read"
@@ -400,7 +396,7 @@ simplifier gives up only after 100 nested attempts, the default of its option `s
 By default the simplifier uses the assumptions of a subgoal, the formulas before ⟹, as extra rewrite rules,
 and it simplifies the assumptions too. It turns each assumption into a rule:
 
-- an equation `t = s` is used to rewrite `t` to `s`;
+- an equation `t = s` is usually used to rewrite `t` to `s`;
 - a negation `¬ P` becomes `P = False`, so `v ≠ u` becomes `(v = u) = False`;
 - any other formula `P` becomes `P = True`;
 - `∀x. P x ⟶ Q x` becomes the conditional rule `P ?x ⟹ Q ?x = True`.
@@ -491,8 +487,8 @@ definition may_delete :: "'u ⇒ 'u acl ⇒ bool" where
   "may_delete u es = (case owner es of None ⇒ False | Some v ⇒ v = u)"
 ```
 
-The type `'u option` (Module 8) has the values `None` and `Some v`. `snd e` is the second component of `e`,
-its permission. After unfolding the definition, the simplifier gets stuck at the `case`:
+The type `'u option` has the values `None`, for no result, and `Some v`, for the result `v`. `snd e` is the
+second component of `e`, its permission. After unfolding the definition, the simplifier gets stuck at the `case`:
 
 ```isabelle
 lemma "may_delete u es = (owner es = Some u)"
@@ -517,7 +513,7 @@ thm option.split
 ((?option = None ⟶ ?P ?f1.0) ∧ (∀x2. ?option = Some x2 ⟶ ?P (?f2.0 x2)))
 ```
 
-The rule turns the `case` into two implications, one for each constructor, just as `if_split` does for an
+The rule turns the `case` into two implications, one for each constructor, as `if_split` does for an
 `if`. With it, the simplifier finishes:
 
 ```isabelle
@@ -779,6 +775,9 @@ lemma "⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n 
 ```
 
 ```output
+*** Failed to apply initial proof method⌂:
+*** goal (1 subgoal):
+***  1. ⟦∀xs∈A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n
 ```
 
 `auto` could do nothing with this goal, and `blast` fails too, because the proof needs the equation
@@ -851,8 +850,8 @@ weaker version of the same procedure. Use `linarith` when `simp` and `auto` leav
 
 `linarith` combines inequalities by adding multiples of them, as you would to solve a system of
 inequalities over the real numbers, plus one rule for whole numbers: from `a < b` it concludes
-`a + 1 ≤ b`. It does not know that an even number is never odd. Suppose a load balancer sends requests with even numbers to one server
-and odd ones to another; no request should go to both:
+`a + 1 ≤ b`. It does not know that an even number is never odd. Suppose a load balancer sends requests
+with even numbers to one server and odd ones to another; no request should go to both:
 
 ```isabelle fails
 lemma "(2::int) * x ≠ 2 * y + 1"
@@ -907,7 +906,7 @@ numbers, polynomial equations and inequalities are decidable again (Alfred Tarsk
 algorithms take very long on all but small problems.
 :::
 
-So there is no complete method for arithmetic with products, and there cannot be one. Isabelle's answer is
+So for whole numbers there is no complete method for arithmetic with products, and there cannot be one. Isabelle's answer is
 the library: it contains thousands of proved facts about multiplication. The next section shows how to find
 the one you need, and Section 9.8 shows a tool that finds it for you.
 
@@ -919,8 +918,8 @@ as in `(2::int)`, whenever a number could belong to several types.
 
 ## Searching the library {#find}
 
-Isabelle's library contains tens of thousands of theorems, and their names follow conventions that take a
-while to learn. `find_theorems` searches them by shape and by name. Type it in a theory, or use the **Query**
+Even the library loaded by `Main` contains more than 20,000 theorems, and their names follow conventions
+that take a while to learn. `find_theorems` searches them by shape and by name. Type it in a theory, or use the **Query**
 panel of Isabelle/jEdit: its **Find Theorems** tab has a **Find:** field for the same criteria and an
 **Apply** button. A pattern is a term in quotes, with `_` for any term:
 
@@ -1149,10 +1148,11 @@ Nitpick found a counterexample for card 'r = 2 and card 'u = 1:
 
 The option `card 'r = 2` tells Nitpick to try a type `'r` with exactly two elements. Without the option
 it tries sizes 1 to 10 in parallel, and the size of the counterexample it reports can change from run to
-run. Nitpick names the elements of each type after the type: `u₁` is a user, `r₁` and `r₂` are roles, and
-`p₁` is a permission. Read the counterexample: user `u₁` has both roles, and both grant `p₁`. Take role
-`r₂` away, and `u₁` still has `p₁` through `r₁`. A user may get a permission from several roles. Add the
-assumption that no other role of `u` grants `p`, and Nitpick finds nothing; `blast` then proves the claim:
+run. Even with the option, your run may show a different counterexample. Nitpick names the elements of each
+type after the type: `u₁` is a user, `r₁` and `r₂` are roles. Read the counterexample: both roles grant
+`Read`, and user `u₁` has role `r₁`. The claim takes role `r₂` away from `u₁`, but `u₁` can still read
+through `r₁`. The claim forgot that a user may get a permission from another role. Add the assumption that
+no other role of `u` grants `Read`, and Nitpick finds nothing; `blast` then proves the claim:
 
 ```isabelle
 lemma "⟦(r::'r, Read) ∈ RP; ∀r'. (u::'u, r') ∈ UR ∧ (r', Read) ∈ RP ⟶ r' = r⟧
@@ -1256,14 +1256,15 @@ Read the output from the top. "Sledgehammering..." means that the provers have s
 "… found a proof..." comes from one prover, and is followed by its suggestion, "Try this:", with the time
 the suggested proof took to check in parentheses. "Duplicate proof" means that a prover found a proof that
 was already suggested. "Done" means that all provers have finished. In Isabelle/jEdit you click a
-suggestion to insert it. Choose a short and fast one, and replace the `sledgehammer` line with it:
+suggestion to insert it. Choose a short and fast one, and replace the `sledgehammer` line with it. Here
+cvc5's suggestion is the proof you found by hand in Section 9.6:
 
 ```isabelle
-  by (metis mult_le_mono)
+  by (simp add: mult_le_mono)
 ```
 
-The lemma is now proved by `metis`, and the kernel has checked every step. The `sledgehammer` command itself
-proves nothing: delete it once you have a proof.
+Whichever suggestion you choose, the proof is carried out by an Isabelle method, `simp` here, and the kernel
+checks every step. The `sledgehammer` command itself proves nothing: delete it once you have a proof.
 
 Sledgehammer is at its best when a goal follows from a few library facts in a way that the simplifier does
 not see. Two segments of a log that commute and have the same length are equal. `simp`, `auto` and
@@ -1374,7 +1375,7 @@ lemma "may_delete u es ⟹ allows es u Admin"
 ```
 
 The proof uses steps 3, 4 and 6 together: it unfolds `may_delete`, splits the `case` in the assumption,
-and uses the lemma just proved.
+and uses the lemma proved above.
 
 ::: keyidea
 Automation fails for a reason, and the reason is usually visible: in the remaining subgoals, in a
@@ -1511,7 +1512,7 @@ lemma "x ∈ set (revoke u es) ⟹ fst x ≠ u"
 ::::
 
 :::: exercise More laws for revoke {#ex-9-4} ★★
-Prove these three laws. Each needs induction for some of them; choose `simp` or `auto` for the cases.
+Prove these three laws. Some of them need induction; choose `simp` or `auto` for the cases.
 
 1. `revoke u (grant u p es) = revoke u es`
 2. `revoke u (revoke v es) = revoke v (revoke u es)`
@@ -1619,8 +1620,8 @@ Nitpick found a counterexample for card 'r = 1 and card 'u = 1:
     u = u⇩1
 ```
 
-With a single role, the user gets `p` only through `r`; when `r` loses `p`, so does the user. The claim
-holds if `u` has `p` through some role other than `r`:
+Here `p₂` is one of the three permissions. With a single role, the user gets `p` only through `r`; when `r`
+loses `p`, so does the user. The claim holds if `u` has `p` through some role other than `r`:
 
 ```isabelle
 lemma "⟦(u, r') ∈ UR; (r', p) ∈ RP; r' ≠ r⟧ ⟹ (u, p) ∈ UR O (RP - {(r, p)})"
@@ -1669,11 +1670,12 @@ The empty list is well formed, but after granting `Write` alone the user may wri
 
 ```isabelle
 lemma "wf_acl es ⟹ wf_acl (grant u Read (grant u Write es))"
-  by (auto simp add: wf_acl_def)
+  by (simp add: wf_acl_def)
 ```
 
-`auto` is needed for the third: after rewriting with `allows_grant`, the goal compares the new entries
-with every user `w`, which needs a case distinction on `w = u`.
+After unfolding, `allows_grant` compares each user `w` with the two new entries. For `w = u` both
+`Write` and `Read` hold; for any other user the old list decides both, and the assumption, again a
+conditional rule, finishes the proof.
 :::
 ::::
 
@@ -1736,7 +1738,7 @@ lemma "insert a (insert b (insert c A)) = insert c (insert a (insert b A))"
 - [x] The goal multiplies two variables, so it is not linear arithmetic
 > Linear arithmetic allows multiplication by numbers only. Arithmetic with products of variables is undecidable in general, so the proof needs a lemma such as `mult_le_mono`.
 
-? Sledgehammer suggests `by (metis mult_le_mono)`. Why can you trust the resulting theorem?
+? Sledgehammer suggests a proof `by (metis …)` that uses two library lemmas. Why can you trust the resulting theorem?
 - [ ] Because the external provers are verified programs
 - [ ] Because several provers agreed
 - [ ] Because Sledgehammer double-checks the translation

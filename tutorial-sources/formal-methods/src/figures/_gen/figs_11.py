@@ -106,7 +106,7 @@ def fig_11_2(L):
          'zh': dict(title='计算归纳沿着 merge 的递归进行',
                     run='一次运行：', eqs='merge 的定义方程', cases='merge.induct 的情形',
                     c3='假设', ih='每个递归调用对应一个归纳假设',
-                    shrink1='第一个表变短', shrink2='第二个表变短')}[L]
+                    shrink1='第一个列表变短', shrink2='第二个列表变短')}[L]
     s = SVG(760, 372, T['title'])
     # a run
     s.text(20, 28, T['run'], size=12.5, weight=700, fill=C['slate'])

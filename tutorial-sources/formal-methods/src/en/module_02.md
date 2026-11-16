@@ -449,8 +449,7 @@ lemma "((A ⟶ B) ⟶ A) ⟶ A"
 ```output
 *** Failed to apply initial proof method⌂:
 *** goal (1 subgoal):
-***  1. ((A ⟶ B) ⟶ A) ⟶
-***     A
+***  1. ((A ⟶ B) ⟶ A) ⟶ A
 ```
 
 "Failed to apply initial proof method" means that `simp` could not even start: none of its equations

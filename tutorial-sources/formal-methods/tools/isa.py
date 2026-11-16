@@ -405,7 +405,12 @@ def main():
                     have = b['output']['text']
                     checked += 1
                     varies = 'varies' in b['output']['opts']
-                    if not want and [x for x in have if x.strip()]:
+                    if not want and not [x for x in have if x.strip()]:
+                        problems += 1
+                        print(f'--- {rel}:{b["output"]["start"] + 1}: Isabelle printed nothing for this block and the output '
+                              'block is empty' + (' (the build was killed or interrupted; run again)' if killed else
+                                                  ': remove the output block, or change the Isabelle text'))
+                    elif not want and [x for x in have if x.strip()]:
                         problems += 1
                         print(f'--- {rel}:{b["output"]["start"] + 1}: Isabelle printed nothing for this block'
                               + (' (the build was killed or interrupted; run again)' if killed else '')

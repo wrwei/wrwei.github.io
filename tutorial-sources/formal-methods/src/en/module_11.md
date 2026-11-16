@@ -30,7 +30,8 @@ whole module: the IH is the claim itself, for the smaller list, *with every othe
 
 ### A running total {#running-total}
 
-Here is a loop that adds up a list of payments, in a language like Python:
+Module 10 added up the items of a bill with `mysum`, which recurses directly on the list. A loop in a
+language like Python does the same job with a running total:
 
 ```text
 total = 0
@@ -227,7 +228,7 @@ $$
 \mathit{sum\_list}\ xs = acc + \mathit{sum\_list}\ (x \# xs)
 $$
 
-In Isabelle you ask for this with `arbitrary:`:
+In Isabelle you ask for this by adding `arbitrary: acc` to the induction:
 
 ```isabelle
 lemma "sumacc xs acc = acc + sum_list xs"
@@ -243,9 +244,9 @@ goal (2 subgoals):
        sumacc (a # xs) acc = acc + sum_list (a # xs)
 ```
 
-The IH in subgoal 2 is now `(⋀acc. sumacc xs acc = acc + sum_list xs)`, which reads "for all `acc`,
-`sumacc xs acc = acc + sum_list xs`". The simplifier may use it with any accumulator, in particular with
-`acc + a`:
+The IH in subgoal 2 is now `(⋀acc. sumacc xs acc = acc + sum_list xs)`, which reads "for an arbitrary
+`acc`, `sumacc xs acc = acc + sum_list xs`" (Module 7): it holds for every value of `acc`. The
+simplifier may use it with any accumulator, in particular with `acc + a`:
 
 ```isabelle
   apply auto
@@ -386,120 +387,129 @@ for one.
 
 ## Auxiliary lemmas {#lemmas}
 
-Generalising changes the claim. Sometimes the claim is fine, and the step needs a fact about the
-function that the simplifier does not know. Then you have to find that fact, state it as a separate
-lemma, and prove it first. Here is a classic case: list reversal by the same two equations that define
-the library's `rev`. It is called `slowrev` here because it takes quadratic time; `@` walks along the
-whole list at every step:
+Generalising changes the claim. Sometimes the claim is fine, and the step needs a fact about another
+function that the simplifier does not know. You met this in Module 5: reversing a list twice needed a
+lemma about reversing an append, and the stuck goal pointed to it. This section turns that experience
+into a method and applies it to a new example.
+
+A binary counter stores a number as a list of bits, the least significant bit first: `[True, False, True]`
+is $1 + 0 \cdot 2 + 1 \cdot 4 = 5$. `val` computes the value of a bit list, `inc` adds one and passes the
+carry on, and `counter n` is what the counter shows after `n` increments, starting from the empty list:
 
 ```isabelle
-fun slowrev :: "'a list ⇒ 'a list" where
-  "slowrev [] = []"
-| "slowrev (x # xs) = slowrev xs @ [x]"
+fun val :: "bool list ⇒ nat" where
+  "val [] = 0"
+| "val (b # bs) = (if b then 1 else 0) + 2 * val bs"
+
+fun inc :: "bool list ⇒ bool list" where
+  "inc [] = [True]"
+| "inc (b # bs) = (if b then False # inc bs else True # bs)"
+
+fun counter :: "nat ⇒ bool list" where
+  "counter 0 = []"
+| "counter (Suc n) = inc (counter n)"
 ```
 
-Reversing twice should give the list back:
+```isabelle
+value "counter 6"
+```
+
+```output
+```
+
+Six is 110 in binary, and the list holds its bits from right to left. The counter should count
+correctly, `val (counter n) = n`:
 
 ```isabelle
-lemma "slowrev (slowrev xs) = xs"
-  apply (induction xs)
+lemma "val (counter n) = n"
+  apply (induction n)
   apply auto
 ```
 
 ```output state
-proof (prove)
-goal (1 subgoal):
- 1. ⋀a xs. slowrev (slowrev xs) = xs ⟹ slowrev (slowrev xs @ [a]) = a # xs
 ```
 
 ```isabelle
   oops
 ```
 
-Read the stuck goal. The IH is `slowrev (slowrev xs) = xs`, and the conclusion needs
-`slowrev (slowrev xs @ [a]) = a # xs`. The simplifier knows what `slowrev` does to `[]` and to `x # xs`,
-but here its argument is an append, `slowrev xs @ [a]`, and none of the equations applies. Generalising
-does not help: no variable is fixed in the wrong way. What is missing is a fact about `slowrev` of an
-append.
+Read the stuck goal. The IH is `val (counter n) = n`, and the conclusion needs
+`val (inc (counter n)) = Suc n`. The simplifier knows what `inc` does to `[]` and to `b # bs`, but
+`counter n` is neither, so no equation of `inc` applies. Generalising does not help: no variable is
+fixed in the wrong way. What is missing is a fact about `val` and `inc`.
 
-Which fact? Look at the subterm the simplifier cannot touch, `slowrev (slowrev xs @ [a])`. The inner
-`slowrev xs` is an accident of this proof; the lemma should hold for any list there. Write `ys` for it
-and compute an example:
+Which fact? Look at the subterm the simplifier cannot touch, `val (inc (counter n))`. The inner
+`counter n` is an accident of this proof; the fact should hold for every bit list there. Write `bs` for
+it and compute an example:
 
 ```isabelle
-value "slowrev ([1, 2] @ [3 :: nat])"
+value "val (inc [True, True, False])"
 ```
 
 ```output
-"[3, 2, 1]"
-  :: "nat list"
 ```
 
-The appended element comes out first, followed by the reversed rest. So the conjecture is
-`slowrev (ys @ [a]) = a # slowrev ys`. Test it before proving it:
+`[True, True, False]` is 3, and incrementing it gives 4. So the conjecture is
+`val (inc bs) = Suc (val bs)`: incrementing adds one to the value. Test it before proving it:
 
 ```isabelle
-lemma "slowrev (ys @ [a]) = a # slowrev ys"
+lemma "val (inc bs) = Suc (val bs)"
   quickcheck
   oops
 ```
 
 ```output result
-Testing conjecture with Quickcheck-exhaustive...
-
-Quickcheck found no counterexample.
 ```
 
-No counterexample. The lemma has its own short induction, and the attribute `[simp]` adds it to the
+No counterexample. The lemma has its own short induction on the bit list, in which `auto` splits the
+`if` of `inc` into the two cases for the lowest bit. The attribute `[simp]` adds the lemma to the
 simplifier's rules (Module 9), so that later proofs use it automatically:
 
 ```isabelle
-lemma slowrev_snoc [simp]: "slowrev (ys @ [a]) = a # slowrev ys"
-  by (induction ys) auto
+lemma val_inc [simp]: "val (inc bs) = Suc (val bs)"
+  by (induction bs) auto
 
-lemma slowrev_slowrev: "slowrev (slowrev xs) = xs"
-  by (induction xs) auto
+lemma val_counter: "val (counter n) = n"
+  by (induction n) auto
 ```
 
-With the lemma available, the stuck goal rewrites in two steps: `slowrev (slowrev xs @ [a])` becomes
-`a # slowrev (slowrev xs)` by the lemma, and then `a # xs` by the IH.
+With the lemma available, the stuck goal rewrites in two steps: `val (inc (counter n))` becomes
+`Suc (val (counter n))` by the lemma, and then `Suc n` by the IH.
 
 ::: keyidea
 From a stuck goal to an auxiliary lemma:
 
-1. Find the subterm that the simplifier cannot rewrite, such as `slowrev (slowrev xs @ [a])`.
-2. Replace the parts that are specific to this proof by fresh variables (`slowrev xs` becomes `ys`).
+1. Find the subterm that the simplifier cannot rewrite, such as `val (inc (counter n))`.
+2. Replace the parts that are specific to this proof by fresh variables (`counter n` becomes `bs`).
 3. Guess the right-hand side from examples with `value`, and test the conjecture with `quickcheck`.
 4. Prove the lemma, usually by its own induction; add it with `[simp]` or `simp add:`, and retry.
 :::
 
-For a function from the library, the lemma you need usually exists already. `find_theorems` (Module 9)
-searches for it by pattern; the underscores stand for any term:
+For a function from the library, the lemma you need usually exists already. Module 5's lemma about
+reversing an append, for example, is in the library for `rev`. `find_theorems` (Module 9) searches for
+it by pattern; the underscores stand for any term:
 
 ```isabelle
 find_theorems "rev (_ @ _)"
 ```
 
 ```output result
-find_theorems
-  "rev (_ @ _)"
-
-found 1 theorem(s):
-  List.rev_append: rev (?xs @ ?ys) = rev ?ys @ rev ?xs
 ```
 
 ::: pitfall
-Do not state the stuck goal itself as the lemma. `slowrev (slowrev xs @ [a]) = a # xs` mentions the
-specific list `slowrev xs`, and its induction gets stuck in the same way. The lemma has to be more
-general than the goal. Sledgehammer (Module 9) does not help here either: it searches for a proof from
-facts that already exist, and it does not do induction, so it cannot invent `slowrev_snoc` for you.
+Do not state the stuck goal itself as the lemma. `val (inc (counter n)) = Suc n` mentions the specific
+list `counter n`, and an induction on `n` only moves the problem: its step needs
+`val (inc (inc (counter n)))`. The lemma has to be more general than the goal. Sledgehammer (Module 9) does not help here either: it
+searches for a proof from facts that already exist, and it does not do induction, so it cannot invent
+`val_inc` for you.
 :::
 
 ## Induction on trees {#trees}
 
-Lists are not the only data structure. In Module 5 you met binary trees; here is a datatype of binary
-trees with a value in every node, and four functions on it: the number of nodes, the height, the mirror
-image and the in-order traversal (left subtree, node, right subtree).
+Lists are not the only data structure. In Module 5 you met binary trees. Each module has a theory of
+its own, so this one defines its own copy, with the constructors `Lf` (leaf) and `Nd` (node), and four
+functions on it: the number of nodes, the height, the mirror image and the in-order traversal (left
+subtree, node, right subtree).
 
 ```isabelle
 datatype 'a btree = Lf | Nd "'a btree" 'a "'a btree"
@@ -615,8 +625,36 @@ are about.
 ## Computation induction {#computation}
 
 Structural induction follows the shape of the data: one case per constructor. Many functions do not
-recurse that way. They take two arguments and shorten one or the other, or they test a condition first.
-For such functions it pays to follow the recursion of the function instead.
+recurse that way. They look back more than one step, or take two arguments and shorten one or the other,
+or test a condition first. For such functions it pays to follow the recursion of the function instead.
+
+### Following the recursion of fib {#fib}
+
+Module 5 proved `fib n < 2 ^ n` only after strengthening the claim. Plain induction on `n` gives an IH
+for `n` alone, but `fib (Suc (Suc n))` is made from `fib n` and `fib (Suc n)`. Every function defined
+with `fun` comes with an induction rule that follows its own recursion (Module 8 mentioned it); for
+`fib` it is called `fib.induct`:
+
+```isabelle
+fun fib :: "nat ⇒ nat" where
+  "fib 0 = 0"
+| "fib (Suc 0) = 1"
+| "fib (Suc (Suc n)) = fib n + fib (Suc n)"
+
+lemma "fib n < 2 ^ n"
+  apply (induction n rule: fib.induct)
+```
+
+```output state
+```
+
+There is one case for each equation of `fib`, and the third case has two IHs, one for each recursive
+call: exactly the two facts that the step needs. The original claim goes through without strengthening:
+
+```isabelle
+  apply auto
+  done
+```
 
 ### A function on two lists {#merge}
 
@@ -682,8 +720,8 @@ not apply. Structural induction on either list does not match the recursion.
 
 ### The induction rule of a function {#f-induct}
 
-For every function defined with `fun`, Isabelle proves an induction rule that follows the function's own
-recursion. It is called `merge.induct`, after the function:
+As for `fib`, the induction rule of `merge` follows the function's own recursion. It is called
+`merge.induct`:
 
 ```isabelle
 thm merge.induct
@@ -803,8 +841,9 @@ the meaning of programs are all defined this way, by **rules**.
 ::: definition Inductive definition
 An **inductive definition** of a predicate $I$ is a list of rules of the form
 $$I\ a_1 \Imp \dots \Imp I\ a_n \Imp I\ a$$
-called **introduction rules** ($n$ may be 0). $I\ x$ holds exactly when it can be derived by finitely
-many rule applications. Equivalently, $I$ is the *smallest* predicate closed under the rules: it holds
+called **introduction rules** ($n$ may be 0, and a rule may have further premises that do not mention
+$I$, called side conditions). $I\ x$ holds exactly when it can be derived by finitely many rule
+applications. Equivalently, $I$ is the *smallest* predicate closed under the rules: it holds
 for what the rules force, and for nothing else.
 :::
 
@@ -897,7 +936,8 @@ derivations (Figure 11.3).
 ::: definition Rule induction
 To prove $I\ x \Imp P\ x$ for an inductively defined $I$, prove for each rule
 $I\ a_1 \Imp \dots \Imp I\ a_n \Imp I\ a$ that $P\ a$ follows from the premises $I\ a_1, …, I\ a_n$
-and the induction hypotheses $P\ a_1, …, P\ a_n$. Rules without premises about $I$ give base cases.
+and the induction hypotheses $P\ a_1, …, P\ a_n$; side conditions of the rule may be assumed as well.
+Rules without premises about $I$ give base cases.
 :::
 
 ::: figure id=fig-11-3
@@ -1450,10 +1490,11 @@ variable, `(n::nat)`, and the error goes away.
 :::
 
 ::: note
-Complete induction and computation induction are close relatives. `merge.induct` is complete induction
-along the termination order of `merge`, cut to the shape of its recursion. When a function recurses on
-`n div 2` or on a shorter list of any kind, its own induction rule is usually the most convenient
-form of complete induction.
+Complete induction and computation induction are close relatives. `fib.induct` and `merge.induct` are
+complete induction along the termination orders of `fib` and `merge`, cut to the shape of their
+recursion. When a function recurses on `n div 2`, on `n - 2` or on a shorter list of any kind, its own
+induction rule is usually the most convenient form of complete induction. Exercise 11.7 proves the
+bound on `fib` with `less_induct` as well.
 :::
 
 ## Choosing the induction {#choose}
@@ -1475,7 +1516,7 @@ Then, if the proof gets stuck, read the stuck goal and compare the IH with the c
 |---|---|
 | the IH fixes an argument (`0`, `[]`, `acc`) that the conclusion needs with another value | generalise: a variable instead of a constant, and `arbitrary:` |
 | an IH that is true but says too little (`∃k. …`) | strengthen the claim |
-| a subterm the simplifier cannot rewrite, such as `f (g xs @ [a])` | an auxiliary lemma, generalised, as `[simp]` |
+| a subterm the simplifier cannot rewrite, such as `val (inc (counter n))` | an auxiliary lemma, generalised, as `[simp]` |
 | an IH about the wrong argument, or about the wrong list | computation induction |
 | goals that make no sense after rule induction | variables in the inductive premise, or `induction t rule: …` |
 | a fact about a term built from constructors | rule inversion |
@@ -1492,12 +1533,12 @@ Before you start a long proof by hand, check the claim with `quickcheck`, and tr
 - If a recursive call changes an argument, as an **accumulator** does, **generalise** the claim to every
   value of that argument and use `induction xs arbitrary: acc`; the IH is then bound by ⋀.
 - If the IH is true but too weak, **strengthen** the claim (`oddsum n = n * n` rather than "a square").
-- If the simplifier cannot rewrite a subterm such as `slowrev (slowrev xs @ [a])`, find an
-  **auxiliary lemma**: generalise the subterm, test with `value` and `quickcheck`, prove it, add it to the
-  simplifier.
+- If the simplifier cannot rewrite a subterm such as `val (inc (counter n))`, find an **auxiliary
+  lemma**: generalise the subterm, test with `value` and `quickcheck`, prove it, add it to the simplifier.
 - Induction on a tree has one IH per subtree (`Nd.IH(1)`, `Nd.IH(2)`).
 - **Computation induction** with `rule: f.induct` has one case per defining equation and one IH per
-  recursive call; in Isar the cases are numbered, and `"3.IH"` needs quotes.
+  recursive call (two in the last case of `fib`); in Isar the cases are numbered, and `"3.IH"` needs
+  quotes.
 - An **inductive definition** (`inductive`) defines the smallest predicate closed under its rules.
   **Rule induction** (`rule: I.induct`) proves facts about all its members and works on the first
   premise, whose arguments must be variables; **rule inversion** (`cases`, `inductive_cases`) draws
@@ -1557,25 +1598,45 @@ lemma "itrev xs [] = rev xs"
 For each goal, say which kind of induction you would try first, and on what. Use the functions and
 predicates of this module.
 
-1. `length (slowrev xs) = length xs`
+1. `nodes (mirror t) = nodes t`
 2. `steps r a b ⟹ r b c ⟹ steps r a c`
 3. `count_list (merge xs ys) z = count_list xs z + count_list ys z`
-4. `sumacc xs (acc + d) = sumacc xs acc + d`
+4. `sumacc (xs @ ys) acc = sumacc ys (sumacc xs acc)`
 5. `ev n ⟹ ¬ ev (Suc n)`
 6. `0 < n ⟹ n div 2 < n` for natural numbers
 
 ::: solution
-1. Structural induction on `xs`: `slowrev` recurses on the tail, one equation per constructor. (With
-   `length_append` in the simplifier, `by (induction xs) auto` works.)
+1. Structural induction on `t`: `mirror` and `nodes` have one equation per constructor.
 2. Rule induction on `steps r a b`, the first premise; `c` appears only in the conclusion and in
    `r b c`, which becomes part of the claim.
 3. Computation induction with `merge.induct` on `xs ys`, as for `length` in Section 11.5.
 4. Structural induction on `xs` with `arbitrary: acc`: the accumulator changes in the recursive call.
 5. Rule induction on `ev n`, with rule inversion in both cases: `¬ ev (Suc 0)` by `ev_1E`, and in case
-   `ev_SS`, `ev (Suc (Suc (Suc n)))` would give `ev (Suc n)` by `ev_SSE`, against the IH. In Isabelle,
-   `by (induction rule: ev.induct) (auto elim: ev_SSE ev_1E)`.
+   `ev_SS`, `ev (Suc (Suc (Suc n)))` would give `ev (Suc n)` by `ev_SSE`, against the IH.
 6. No induction at all: this is linear arithmetic about `div`, which `simp` or `arith` proves. Not
    every goal about numbers needs induction; check with automation first.
+
+In Isabelle, one line each:
+
+```isabelle
+lemma "nodes (mirror t) = nodes t"
+  by (induction t) auto
+
+lemma "steps r a b ⟹ r b c ⟹ steps r a c"
+  by (induction rule: steps.induct) (auto intro: step stay)
+
+lemma "count_list (merge xs ys) z = count_list xs z + count_list ys z"
+  by (induction xs ys rule: merge.induct) auto
+
+lemma "sumacc (xs @ ys) acc = sumacc ys (sumacc xs acc)"
+  by (induction xs arbitrary: acc) auto
+
+lemma "ev n ⟹ ¬ ev (Suc n)"
+  by (induction rule: ev.induct) (auto elim: ev_SSE ev_1E)
+
+lemma "0 < n ⟹ (n::nat) div 2 < n"
+  by simp
+```
 :::
 ::::
 
@@ -1698,22 +1759,41 @@ something is not a member.
 :::
 ::::
 
-:::: exercise Merge counts every element {#ex-11-7} ★★
-`count_list xs z` counts how often `z` occurs in `xs`. Prove that `merge` neither loses nor duplicates
-elements: `count_list (merge xs ys) z = count_list xs z + count_list ys z`. Then explain why the
-equation for `set` in Section 11.5 says less than this one.
+:::: exercise Fibonacci by complete induction {#ex-11-7} ★★
+Prove Module 5's bound `fib n < 2 ^ n` once more, this time with `less_induct`. Distinguish the three forms
+of `n` with `cases n rule: fib.cases`, which has one case for each equation of `fib`.
 
 ::: solution
-Computation induction, exactly as for `length`:
+In the third case `n = Suc (Suc k)`. Both `k` and `Suc k` are smaller than `n`, so the IH applies to
+both:
 
 ```isabelle
-lemma "count_list (merge xs ys) z = count_list xs z + count_list ys z"
-  by (induction xs ys rule: merge.induct) auto
+lemma "fib n < 2 ^ n"
+proof (induction n rule: less_induct)
+  case (less n)
+  show ?case
+  proof (cases n rule: fib.cases)
+    case 1
+    then show ?thesis by simp
+  next
+    case 2
+    then show ?thesis by simp
+  next
+    case (3 k)
+    have "fib k < 2 ^ k" by (rule less.IH) (simp add: 3)
+    moreover have "fib (Suc k) < 2 ^ Suc k" by (rule less.IH) (simp add: 3)
+    ultimately show ?thesis using 3 by simp
+  qed
+qed
 ```
 
-The equation for `set` holds also for a function that drops duplicates or adds extra copies of
-elements that are already there: `set [1, 1] = set [1]`. Counting each element rules that out. (Module 12
-expresses the same idea with multisets.)
+Each IH is used as a rule: `rule less.IH` reduces `fib k < 2 ^ k` to `k < n`, which follows from the
+case's fact `n = Suc (Suc k)`, named `3`. (Passing `less.IH` to `simp` instead does not work here: the
+simplifier first rewrites `2 ^ Suc k` to `2 * 2 ^ k`, and then the IH no longer matches.) `fib.cases`
+is the case analysis that `fun` generates together with `fib.induct`. Compare the three
+proofs of the bound: by strengthening (Module 5), by computation induction (Section 11.5) and by
+complete induction. Computation induction gives the shortest proof, because `fib.induct` provides
+induction hypotheses for exactly the calls that `fib` makes.
 :::
 ::::
 

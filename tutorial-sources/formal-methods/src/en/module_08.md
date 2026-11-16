@@ -18,7 +18,7 @@ imports: Main
 
 In Part II you used Isabelle to check proofs about formulas. Part III turns to the other half of
 Isabelle/HOL: it is also a programming language. HOL contains a small, typed **functional programming
-language**, close to Haskell, OCaml and Standard ML (the language in which Isabelle itself is written).
+language**, close to Haskell, OCaml and Standard ML (the language of Isabelle's own core).
 You write programs as equations, Isabelle runs them, and because the programs are part of the logic,
 you can prove facts about them. Modules 9 to 11 are about the proving; this module is about the
 programming.
@@ -973,8 +973,8 @@ argument, so the computation reaches `trace 0` and stops.
 
 ### The list library {#library}
 
-The theory `List`, part of `Main`, defines several hundred functions on lists and proves thousands of
-facts about them. These are the ones you will use most:
+The theory `List`, part of `Main`, defines about a hundred functions on lists and proves more than a
+thousand lemmas about them. These are the ones you will use most:
 
 | Function | What it computes | Example |
 |---|---|---|
@@ -1052,15 +1052,20 @@ value "zip [0..<4] (trace 4 Red)"
   :: "(nat × light) list"
 ```
 
-`take`, `drop` and `!` cut lists and select elements. Positions count from 0:
+`length` counts elements, and `take`, `drop` and `!` cut lists and select elements. Positions count
+from 0:
 
 ```isabelle
+value "length (trace 6 Red)"
 value "take 2 (trace 6 Red)"
 value "drop 4 (trace 6 Red)"
 value "trace 6 Red ! 2"
 ```
 
 ```output all
+"6"
+  :: "nat"
+
 "[Red, RedAmber]"
   :: "light list"
 
@@ -1188,7 +1193,7 @@ In HOL, `a div 0 = 0` and `a mod 0 = a` for every `a` (the library's lemmas `div
 
 This is not a mistake. Every HOL function is total, so `17 div 0` must be some number. The library
 chooses 0, a value that makes many laws hold without side conditions. A program that divides by zero is
-still wrong; the logic just does not stop with an error. When division by zero matters, state `b ≠ 0`
+still wrong; the logic does not stop with an error. When division by zero matters, state `b ≠ 0`
 as an assumption in your lemmas.
 
 The functions `int :: nat ⇒ int` and `nat :: int ⇒ nat` convert between the two types; `nat` maps
@@ -1205,6 +1210,13 @@ value "next_light 3"
 ```
 
 ```output
+*** Type unification failed: No type arity light :: numeral
+***
+*** Type error in application: incompatible operand type
+***
+*** Operator:  next_light :: light ⇒ light
+*** Operand:   3::??'a :: ??'a
+***
 ```
 
 "No type arity light :: numeral" says that the type `light` is not in the class `numeral`, the class of
@@ -1251,6 +1263,9 @@ value "2 + 2"
 ```
 
 ```output
+*** Wellsortedness error:
+*** Type 'a not of sort term_of
+*** Cannot derive subsort relation numeral < term_of
 ```
 
 To print a result, `value` must turn the computed value back into a term. It does so with an overloaded
@@ -1452,7 +1467,7 @@ is the Collatz conjecture, posed by Lothar Collatz in 1937 and still unsolved. N
 termination proof, so nobody can define this function with `fun`.
 :::
 
-### A function that terminates, but not obviously {#termination-help}
+### When Isabelle needs help {#termination-help}
 
 Some functions terminate, but not by a measure that Isabelle tries. How long must a driver wait for
 green? From each state, add up the durations until the light turns green:

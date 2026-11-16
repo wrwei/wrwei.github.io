@@ -457,7 +457,7 @@ qed
 
 A pipeline breaks as soon as a step needs an older fact. `from` names the facts to pass, so `then` is
 the same as `from this`. Facts can be referred to by name, or by their statement between the quotes
-‹ and ›. `‹A›` reads "the fact A" and refers to the fact of the proof whose statement is A.
+`‹` and `›`: `‹A›` reads "the fact A" and refers to the fact of the proof whose statement is A.
 
 ```isabelle
 lemma "A ∧ B ⟶ B ∧ A"
@@ -472,8 +472,8 @@ qed
 `with ‹A›` is short for `from ‹A› this`: it passes the named fact *and* the current one, here B.
 
 ::: tip
-To type ‹ and › in Isabelle/jEdit, type a back-quote (`` ` ``) and accept the first completion, which
-inserts ‹› with the cursor between the two quotes.
+To type `‹` and `›` in Isabelle/jEdit, type a back-quote (`` ` ``) and accept the first completion,
+which inserts `‹›` with the cursor between the two quotes.
 :::
 
 `note` puts facts into `this` without proving anything, and can give the group a name:
@@ -533,9 +533,7 @@ lemma
 ```output
 *** Failed to finish proof⌂:
 *** goal (1 subgoal):
-***  1. hi < x ⟶
-***     ¬ x < lo ⟶
-***     lo ≤ hi
+***  1. hi < x ⟶ ¬ x < lo ⟶ lo ≤ hi
 ```
 
 The simplifier unfolded `clamp` and split the `if`s, and what remains is the one case that needs the
@@ -574,8 +572,7 @@ qed
 ```output result
 *** Failed to apply initial proof method⌂:
 *** goal (1 subgoal):
-***  1. (⋀a. admin a ⟹ thesis) ⟹
-***     thesis
+***  1. (⋀a. admin a ⟹ thesis) ⟹ thesis
 ```
 
 The goal in the message is what `obtain` has to prove: whatever you want to show (`thesis`), if it
@@ -1105,6 +1102,9 @@ follows from `Cons.prems`. So both are passed.
   ```
 
   ```output result
+  *** Failed to apply initial proof method⌂:
+  *** goal (1 subgoal):
+  ***  1. mysum (xs @ ys) = mysum xs + mysum ys
   ```
 
   `simp` cannot prove the lemma about an unknown list, so the step fails. Write `?case`.
@@ -1122,6 +1122,7 @@ follows from `Cons.prems`. So both are passed.
   ```
 
   ```output
+  *** Undefined case: "Empty"⌂
   ```
 
   The proof outline and `print_cases` show the right names.
@@ -1139,6 +1140,9 @@ follows from `Cons.prems`. So both are passed.
   ```
 
   ```output result
+  *** Failed to finish proof⌂:
+  *** goal (1 subgoal):
+  ***  1. mysum (xs @ ys) = mysum xs + mysum ys
   ```
 
   The remaining goal is the induction hypothesis itself: a sure sign that it was not passed.
@@ -1349,6 +1353,7 @@ qed
 ```
 
 ```output
+*** Illegal application of proof command in "prove" mode
 ```
 
 After `have "B"` Isabelle is in `prove` mode and expects a proof; `show` is not one.
@@ -1367,6 +1372,7 @@ qed
 ```
 
 ```output result
+*** Failed to refine any pending goal
 ```
 
 To find out what is wrong, change `show` into `have`: if the step is then accepted, the claim is right

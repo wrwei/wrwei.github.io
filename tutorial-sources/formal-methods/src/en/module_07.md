@@ -16,10 +16,11 @@ imports: Main
 
 ## Two logics in one system {#meta}
 
-In Module 6 you built natural-deduction proofs on paper. You started from the formula you wanted, chose
-the rule that could have produced it, and worked upwards until every branch ended in an assumption.
-Isabelle builds proofs in exactly this way, and checks every step. In this module you redo the proofs of
-Module 6 in Isabelle, rule by rule, so that each paper tree becomes a short proof script.
+In [Module 6](module_06_EN.html) you built natural-deduction proofs on paper. You started from the
+formula you wanted, chose the rule that could have produced it, and worked upwards until every branch
+ended in an assumption. Isabelle builds proofs in exactly this way, and checks every step. In this module
+you redo the proofs of Module 6 in Isabelle, rule by rule, so that each paper tree becomes a short proof
+script.
 
 Before the first proof you need to read the notation Isabelle uses for rules and goals. It involves a
 second, smaller logic underneath HOL.
@@ -277,7 +278,7 @@ The table puts each one next to its paper rule:
 | (⟶E) | `mp` | `⟦?P ⟶ ?Q; ?P⟧ ⟹ ?Q` |
 | (⟶E), elimination form | `impE` | `⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R` |
 | (¬I) | `notI` | `(?P ⟹ False) ⟹ ¬ ?P` |
-| (¬E), then (⊥E) | `notE` | `⟦¬ ?P; ?P⟧ ⟹ ?R` |
+| (¬E), with ⊥ as ?R | `notE` | `⟦¬ ?P; ?P⟧ ⟹ ?R` |
 | (⊥E) | `FalseE` | `False ⟹ ?P` |
 | (∀I) | `allI` | `(⋀x. ?P x) ⟹ ∀x. ?P x` |
 | (∀E) | `spec` | `∀x. ?P x ⟹ ?P ?x` |
@@ -299,8 +300,8 @@ A few things to notice:
   below), and `1` and `2` for the two versions of a rule. `mp` is *modus ponens*, `spec` is
   *specialisation*, `refl` is *reflexivity*.
 - ⊥ is `False`, and Isabelle prints ¬ followed by a space: `¬ ?P`.
-- `notE` concludes any formula `?R`. It is (¬E), which derives ⊥ from ¬P and P, followed by (⊥E), which
-  derives anything from ⊥. With `?R` taken to be `False`, it is (¬E) itself.
+- `notE` concludes any formula `?R`. With `?R` taken to be `False` it is (¬E), which derives ⊥ from ¬P
+  and P. With any other `?R` it is (¬E) followed by (⊥E), which derives anything from ⊥.
 - `ccontr` is (RAA) exactly: if assuming ¬P leads to ⊥, then P. Section 7.7 explains `classical`.
 - On formulas, Isabelle prints ⟷ as `=` (Module 3), so `?P = ?Q` in `iffI` is ?P ⟷ ?Q. Module 6's list
   has no rules for ⟷: `iffI` proves an equivalence from the two implications, and `iffD1` and `iffD2`
@@ -345,7 +346,8 @@ their side conditions without any words.
 
 ### The plan {#backward-plan}
 
-Take the first theorem that Module 6 derived, A ∧ B ⟶ B ∧ A (Section 6.4). Here is its tree:
+Take the first theorem that Module 6 derived, A ∧ B ⟶ B ∧ A ([Section
+6.4](module_06_EN.html#connectives)). Here is its tree:
 
 ```prooftree
 A ∧ B ⟶ B ∧ A   (⟶I¹)
@@ -385,8 +387,8 @@ assumptions may be missing. The **proof state** is the list of subgoals. The pro
 list is empty.
 :::
 
-A subgoal is the goal Γ ⊢ C of Module 6's backward search (Section 6.7), written in Pure: the
-assumptions Γ go before ⟹, and the conclusion C after it.
+A subgoal is the goal Γ ⊢ C of Module 6's backward search ([Section 6.7](module_06_EN.html#search)),
+written in Pure: the assumptions Γ go before ⟹, and the conclusion C after it.
 
 ::: definition The method rule
 `apply (rule r)` applies the rule r backwards to subgoal 1. It unifies the conclusion of r with the
@@ -894,7 +896,8 @@ Section 7.1 showed that HOL defines ¬A as A ⟶ False, in the same way as Modul
 follow from that definition:
 
 - `notI`, `(?P ⟹ False) ⟹ ¬ ?P`, is (¬I): to prove ¬A, assume A and derive False.
-- `notE`, `⟦¬ ?P; ?P⟧ ⟹ ?R`, is (¬E) followed by (⊥E): from ¬A and A, anything follows.
+- `notE`, `⟦¬ ?P; ?P⟧ ⟹ ?R`, is (¬E) when ?R is False, and (¬E) followed by (⊥E) otherwise: from ¬A
+  and A, anything follows.
 - `FalseE`, `False ⟹ ?P`, is (⊥E).
 
 You use `notE` with `erule`, and its effect is worth remembering: **to use an assumption ¬A, prove A**.
@@ -1263,12 +1266,17 @@ goal (1 subgoal):
 
 The witness is now `?x4 y`. It was created when only y was fixed, so it may be built from y but not from
 x, which `exE` fixed afterwards. To close the subgoal, Isabelle would have to make the two sides of ⟹
-identical, and that needs the witness to be x. Unification may not do that, so `assumption` fails, with
-the message Failed to apply proof method (Section 7.8) and the subgoal above unchanged:
+identical, and that needs the witness to be x. Unification may not do that, so `assumption` fails:
 
 ```isabelle fails
   apply assumption
   done
+```
+
+```output
+*** Failed to apply proof method⌂:
+*** goal (1 subgoal):
+***  1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y
 ```
 
 No other method can help either. The proof is stuck, and the only way out is to go back:
@@ -1290,9 +1298,9 @@ afterwards. This is the advice of Section 6.7, to open existential assumptions f
 instances and witnesses, and Isabelle's unknowns show why it works.
 :::
 
-For a statement that is not valid, no order works. The converse, (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y),
-says that if every door has a key, there is a master key. Section 6.6 gave a countermodel, and
-Exercise 7.9 lets you watch the attempt get stuck.
+For a statement that is not valid, no order works. The converse, (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y), says
+that if every door has a key, there is a master key. [Section 6.6](module_06_EN.html#quantifiers) gave a
+countermodel, and Exercise 7.9 lets you watch the attempt get stuck.
 
 ### Choosing an instance yourself {#quantifiers-inst}
 
@@ -1310,11 +1318,17 @@ goal (1 subgoal):
 ```
 
 No assumption says which number `?n` should be, and `simp` (Module 1) cannot solve an equation for an
-unknown. It fails with Failed to apply proof method and leaves the subgoal as it is:
+unknown:
 
 ```isabelle fails
   apply simp
   done
+```
+
+```output
+*** Failed to apply proof method⌂:
+*** goal (1 subgoal):
+***  1. ?n + ?n = 6
 ```
 
 ```isabelle
@@ -1430,8 +1444,8 @@ Arguments of this kind, about every state a system can reach, return in Module 1
 ### Proof by contradiction {#classical-raa}
 
 All the rules used so far are intuitionistic: none of them is (RAA). Module 6 showed that some
-tautologies cannot be derived without (RAA) (Section 6.5), and A ∨ ¬A, the law of excluded middle, is the
-standard example. Try it without:
+tautologies cannot be derived without (RAA) ([Section 6.5](module_06_EN.html#classical)), and A ∨ ¬A, the
+law of excluded middle, is the standard example. Try it without:
 
 ```isabelle
 lemma "A ∨ ¬ A"
@@ -1657,8 +1671,9 @@ two of them.
 
 `refl`, `?t = ?t`, is (=I), and `subst`, `⟦?s = ?t; ?P ?s⟧ ⟹ ?P ?t`, is (=E): if s = t and some property
 holds of s, it holds of t. The property `?P` is a schematic variable of function type, which unification
-fills in with a function. Module 6 derived symmetry from these two rules (Section 6.8), with x = s as
-P x. Written as a rule, from s = t to t = s, the derivation is:
+fills in with a function. Module 6 derived symmetry from these two rules ([Section
+6.8](module_06_EN.html#equality)), with x = s as P x. Written as a rule, from s = t to t = s, the
+derivation is:
 
 ```prooftree
 t = s   (=E)
@@ -1757,11 +1772,14 @@ lemma "A ∨ ¬ A"
 ```
 
 ```output
+*** Failed to apply proof method⌂:
+*** goal (1 subgoal):
+***  1. A
 ```
 
 `disjI1` left the subgoal A, which has no assumptions at all, so `assumption` has nothing to unify with.
-Three other causes are common. Each gives the same message, followed by the goal as it was before the
-failing step.
+Three other causes are common. Each gives the same message, followed by the proof state as it was before
+the failing step.
 
 **Taking an assumption apart before it is one.** In the goal A ∧ B ⟶ B ∧ A, the conjunction A ∧ B is
 not an assumption; it is part of the implication, so `erule conjE` finds nothing to work on:
@@ -1770,6 +1788,12 @@ not an assumption; it is part of the implication, so `erule conjE` finds nothing
 lemma "A ∧ B ⟶ B ∧ A"
   apply (erule conjE)
   done
+```
+
+```output
+*** Failed to apply proof method⌂:
+*** goal (1 subgoal):
+***  1. A ∧ B ⟶ B ∧ A
 ```
 
 Apply `impI` first: it moves A ∧ B into the assumptions.
@@ -1785,6 +1809,13 @@ lemma "A ∧ B ⟶ B ∧ A"
   done
 ```
 
+```output
+*** Failed to apply proof method⌂:
+*** goal (2 subgoals):
+***  1. A ∧ B ⟹ B
+***  2. A ∧ B ⟹ A
+```
+
 `assumption` only unifies whole formulas. Take the assumption apart first, with `erule conjE`.
 
 **Using a rule for the wrong connective.** `disjI1` concludes a disjunction, but the conclusion of the
@@ -1795,6 +1826,12 @@ lemma "A ∧ B ⟶ B ∧ A"
   apply (rule impI)
   apply (rule disjI1)
   done
+```
+
+```output
+*** Failed to apply proof method⌂:
+*** goal (1 subgoal):
+***  1. A ∧ B ⟹ B ∧ A
 ```
 
 When in doubt, look the rule up with `thm`: for `rule`, its conclusion must have the same main connective
@@ -1813,9 +1850,7 @@ lemma "A ∧ B ⟶ B ∧ A"
 ```
 
 ```output
-*** Failed to finish proof:
-*** goal (1 subgoal):
-***  1. A
+*** Undefined fact: "conjl"⌂
 ```
 
 ### Failed to finish proof {#errors-done}
@@ -1830,7 +1865,9 @@ lemma "A ∨ ¬ A"
 ```
 
 ```output
-*** Bad context for command "lemma"⌂
+*** Failed to finish proof:
+*** goal (1 subgoal):
+***  1. A
 ```
 
 `done` never proves anything itself, not even a subgoal whose conclusion is one of its assumptions. Add
@@ -1903,12 +1940,12 @@ start.
 
 ## Letting Isabelle search: blast and auto {#blast}
 
-Module 6 ended by letting `blast` prove its derivations (Section 6.9). You have now done by hand what
-`blast` does automatically. `blast` belongs to Isabelle's **classical reasoner**, a family of proof
-methods built on natural-deduction rules. It applies introduction and elimination rules like the ones in
-this module: the safe ones of Section 6.7 freely, the others as choices. When a choice leads nowhere, it
-goes back and tries another, and in the end it either finds a complete proof or fails. Each example of
-this module takes a single call:
+Module 6 ended by letting `blast` prove its derivations ([Section 6.9](module_06_EN.html#isabelle)). You
+have now done by hand what `blast` does automatically. `blast` belongs to Isabelle's **classical
+reasoner**, a family of proof methods built on natural-deduction rules. It applies introduction and
+elimination rules like the ones in this module: the safe ones of Section 6.7 freely, the others as
+choices. When a choice leads nowhere, it goes back and tries another, and in the end it either finds a
+complete proof or fails. Each example of this module takes a single call:
 
 ```isabelle
 lemma "¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B"
@@ -1925,12 +1962,17 @@ lemma "⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))"
 fails, it tries another. And whatever `blast` finds, the theorem is built by Isabelle's kernel from the
 rules of the logic, as for every other method (Module 1).
 
-When the statement is not valid, `blast` fails. Section 6.9 showed this for the master key: Isabelle
-reports Failed to apply initial proof method, followed by the goal:
+When the statement is not valid, `blast` fails, as Section 6.9 showed for the master key:
 
 ```isabelle fails
 lemma "(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)"
   by blast
+```
+
+```output
+*** Failed to apply initial proof method⌂:
+*** goal (1 subgoal):
+***  1. (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)
 ```
 
 The message says only that `blast` found no proof. It does not say whether the statement is false or too

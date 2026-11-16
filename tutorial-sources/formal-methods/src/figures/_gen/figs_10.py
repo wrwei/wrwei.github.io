@@ -34,7 +34,7 @@ def fig_10_1(L):
                     show='断言 B ∧ A，它的证明是块 2',
                     g2='块 2 的目标：', g2a='1. B', g2b='2. A',
                     s1='解决块 2 的目标 1',
-                    nx='开始块 2 的新的一部分',
+                    nx='在块 2 中开始新的一部分',
                     s2='解决块 2 的目标 2',
                     q2=['块 2 结束，于是', 'show "B ∧ A" 解决块 1 的目标'],
                     flow='事实 ab 流入嵌套的块')}[L]
@@ -94,7 +94,7 @@ def fig_10_1(L):
 def fig_10_2(L):
     T = {'en': dict(title='A natural-deduction tree and its Isar proof', tree='The tree (Module 6)',
                     isar='The Isar proof', foot='Each rule of the tree is one step of the Isar text.'),
-         'zh': dict(title='自然演绎证明树与对应的 Isar 证明', tree='证明树（第 6 模块）',
+         'zh': dict(title='自然演绎证明树与对应的 Isar 证明', tree='证明树（模块 6）',
                     isar='Isar 证明', foot='证明树中的每条规则对应 Isar 证明中的一步。')}[L]
     s = SVG(760, 300, T['title'])
     col = {'imp': C['blue'], 'e2': C['green'], 'e1': C['amber'], 'ci': C['purple']}
