@@ -1000,14 +1000,16 @@ another matter, since a truth table has $2^n$ rows.
 SAT is **NP-complete** (Stephen Cook, 1971).
 :::
 
-**NP** is the class of problems whose solutions can be *checked* quickly, that is, in a number of steps
-bounded by a polynomial in the size of the problem. Timetabling exams without clashes, solving Sudoku
-and choosing compatible versions of software packages are all in NP. A problem is **NP-complete** if it
-is in NP and every problem in NP can be translated into it efficiently. SAT was the first problem shown
-to be NP-complete; Leonid Levin found the same result independently. So a fast (polynomial-time)
-algorithm for SAT would give fast algorithms for every problem in NP. Nobody knows whether one exists:
-this is the **P versus NP** question, open since 1971 and one of the seven Millennium Prize Problems of
-the Clay Mathematics Institute.
+**NP** is the class of yes-or-no problems in which a "yes" can be *checked* quickly once someone proposes
+a solution, that is, in a number of steps bounded by a polynomial in the size of the problem. SAT is one:
+a proposed valuation is checked by evaluating the formula. Can these exams be timetabled without clashes?
+Can this Sudoku be completed? Can these versions of software packages be installed together? These
+problems are in NP too. A problem is **NP-complete** if it is in NP and every problem in NP can be
+translated into it efficiently. SAT was the first problem shown to be NP-complete; Leonid Levin found the
+same result independently. So a fast (polynomial-time) algorithm for SAT would give fast algorithms for
+every problem in NP. Nobody knows whether one exists: this is the **P versus NP** question (P is the
+class of problems that can be *solved* in polynomial time), open since 1971 and one of the seven
+Millennium Prize Problems of the Clay Mathematics Institute.
 
 Even so, SAT solving is one of the great practical successes of computer science. The worst case is
 exponential, but formulas from real problems have structure, and solvers exploit it. Most solvers
@@ -1016,8 +1018,12 @@ the early 1960s. It works on a CNF and repeats two steps:
 
 1. **Unit propagation.** If every literal of a clause but one is false, the remaining literal must be
    true: set it. Repeat while possible.
-2. **Decision.** Otherwise, choose an atom without a value and try a value for it. When a clause becomes
-   false (a **conflict**), undo the latest decision and try the other value.
+2. **Decision.** Otherwise, choose an atom without a value and try a value for it.
+
+When a clause becomes false (a **conflict**), the procedure goes back to its latest decision whose other
+value it has not tried yet, undoes everything it did after that decision, and tries the other value. If
+every clause becomes true, the formula is satisfiable; if a conflict leaves no decision to go back to,
+the formula is unsatisfiable.
 
 Since the late 1990s, solvers have added **conflict-driven clause learning (CDCL)**: after a conflict,
 the solver works out which decisions caused it and adds a clause that rules out that combination, so the
@@ -1100,7 +1106,7 @@ valuation makes all of them true.
 ### Consistency {#consistency}
 
 ::: isabelle
-Nitpick looks for counterexamples, and by Fact 2.1 a counterexample to ¬C is a model of C. So to find a
+Nitpick looks for counterexamples, and by Fact 2.1 a counterexample to ¬φ is a model of φ. So to find a
 model of the requirements, state their negation and ask Nitpick for a counterexample:
 
 ```isabelle
@@ -1262,8 +1268,8 @@ systems that change over time.
   connectives group to the right. Isabelle prints ⟷ as `=`. Mix ⟶ and ⟷ only with parentheses.
 - A **valuation** gives each atom a truth value, and a **truth table** lists all $2^n$ valuations.
   A ⟶ B is false only when A is true and B false.
-- A formula is a **tautology** (true in every row), **contingent** (true in some) or a **contradiction**
-  (true in none); φ is a tautology exactly when ¬φ is unsatisfiable.
+- A formula is a **tautology** (true in every row), **contingent** (true in some rows and false in
+  others) or a **contradiction** (true in none); φ is a tautology exactly when ¬φ is unsatisfiable.
 - φ ≡ ψ when φ ⟷ ψ is a tautology. The **laws** (De Morgan, distributivity, contrapositive …) transform
   formulas without changing their meaning.
 - φ₁, …, φₙ ⊨ ψ when no row makes the premises true and ψ false. Modus ponens and modus tollens are
@@ -1276,7 +1282,7 @@ systems that change over time.
   a tautology, and each counterexample is a situation to discuss.
 - In Isabelle, a lemma whose variables have type `bool` claims a tautology. `simp`, `blast` and `auto`
   prove tautologies (`blast` and `auto` more of them than `simp`); `quickcheck` and `nitpick` find
-  counterexamples; a counterexample to ¬C is a model of C.
+  counterexamples; a counterexample to ¬φ is a model of φ.
 
 The Mathematical Foundations series covers propositional and predicate logic for computing in general,
 with more practice, in [Logic, quantifiers, and specifications](../math/module_02_EN.html).
@@ -1531,6 +1537,10 @@ lemma "¬ ((low ∧ ¬ manual ⟶ pump) ∧
    Ask the engineers which requirement wins. Protecting the tank from overflowing is the likely
    answer, so R3 becomes R3′: `manual ∧ ¬ high ⟶ pump`.
 
+   There is a second conflict, which R3′ does not remove: in automatic mode, with the water reported
+   both low and high, R1 says the pump runs and R2 says it does not. Working sensors never report
+   both; part 3 turns this into an assumption.
+
 3. Not on its own. Nitpick finds a situation in which the water is reported both low and high, in manual
    mode, and the pump is off:
 
@@ -1648,8 +1658,9 @@ lemma "(p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)) ⟶ p ∧ ¬ q"
   by blast
 ```
 
-   Q's constraint alone already forces p: q ⟷ (p ⟷ q) is equivalent to p, because ⟷ is associative and
-   q ⟷ q is `True`.
+   Q's constraint alone already forces p: q ⟷ (p ⟷ q) is equivalent to p. If p is true, p ⟷ q has the
+   same value as q, so the constraint is true; if p is false, p ⟷ q has the opposite value to q, so the
+   constraint is false. With p true, P's constraint p ⟷ ¬q makes q false.
 :::
 ::::
 
@@ -1696,5 +1707,5 @@ lemma "(p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)) ⟶ p ∧ ¬ q"
 - [ ] The requirements are inconsistent
 - [ ] One of the requirements is wrong
 - [x] The requirements are consistent: the counterexample satisfies all three
-> A counterexample to ¬C makes ¬C false, so it makes C true. It is a model of the requirements, which shows that they can all hold at once.
+> A counterexample to ¬(R1 ∧ R2 ∧ R3) makes that negation false, so it makes R1 ∧ R2 ∧ R3 true. It is a model of the requirements, which shows that they can all hold at once.
 ```

@@ -92,3 +92,68 @@ completion (Tab or Return, jedit.pdf §3.7).
 `isabelle.tooltip` CS+b, `isabelle.message` CS+m, `isabelle.line-status` CS+l, `isabelle.first-error`
 CS+a, `isabelle.last-error` CS+z, `isabelle.next-error` CS+n, `isabelle.prev-error` CS+p
 (C = Control, S = Shift; Command instead of Control on macOS).
+
+## Facts the modules rely on
+
+Collected from the module authors' reports (November 2026); each was checked against the source named, or
+by a run of Isabelle2026 ("run").
+
+### Automatic tools in Isabelle/jEdit
+
+| Fact | Source |
+|---|---|
+| By default jEdit runs Auto Quickcheck and Auto solve_direct on every new statement; Auto Nitpick and Auto Sledgehammer are off. The batch build runs none of them. | `src/HOL/Tools/etc/options`; `isabelle options -l` |
+| Quickcheck's defaults in HOL are size 5 and 50 iterations; it prints predicates as sets, e.g. `P = {a⇩1}`. | `HOL.thy` (`quickcheck_params`); run |
+| Nitpick's defaults: `card` 1–10, timeout 30 s; constants are shown only with `show_consts`; `nitpick [satisfy]` prints "Nitpick found a model". | nitpick manual §5; run |
+| Sledgehammer runs cvc5, verit, z3, e, spass, vampire and zipperposition, plus proof methods such as `metis`; timeout 30 s. Its panel has Provers:, Isar proofs, Try methods, Apply, Cancel, Locate. | sledgehammer manual; `sledgehammer_dockable.scala` |
+| jEdit pauses after 1000 trace messages ("Tracing paused…"); batch builds drop tracing messages. | `etc/options`, `isabelle_process.ML`; run |
+| jEdit shows free variables in blue (`free_color`). | `src/Tools/jEdit/etc/options` |
+
+### Syntax, priorities and input
+
+| Fact | Source |
+|---|---|
+| Priorities: ¬ 40; ∧ infixr 35; ∨ infixr 30; ⟶ and ⟷ infixr 25; `=` 50; binders 10. ⟷ prints as `=`; `¬ x = y` prints as `x ≠ y`; `¬ (∃x. P x)` as `∄x. P x`. | `HOL.thy` 92–186 |
+| Input: ⟦ ⟧ `[|` `|]`; ⦇ ⦈ `(|` `|)`; ∈ `:`; ∉ `~:`; ⊆ `(=`; ∪ `Un`; ∩ `Int`; × `<*>` (ASCII `*`); ∄ `~?`; `⇧*` `^*`; `…` `...`; cartouches ‹› by a back-quote completion. | `etc/symbols`; `Transitive_Closure.thy`; jedit §3.7.1 |
+| `typedecl file` is an outer syntax error (`file` is a keyword). | run |
+| "Isar" stands for "Intelligible semi-automated reasoning"; `hence`/`thus` still work but are left-overs (prefer `then have`/`then show`). | isar-ref, Preface and §6.2.4 |
+| `theorem`, `corollary` and `proposition` mean the same as `lemma`. | isar-ref |
+
+### Proof methods and rules
+
+| Fact | Source |
+|---|---|
+| `simp` works on subgoal 1 only; `auto` and `simp_all` on all subgoals. | prog-prove §2.5.4 |
+| `by m₁ m₂` abbreviates `proof m₁ qed m₂`; `by m` also closes leftover subgoals by assumption, `done` only checks that none is left. | isar-ref §6.4.2, §7.1; run |
+| `fun` equations and `datatype` distinctness and injectivity facts are simp rules; equations are selected as `f.simps(i)`; overlapping equations are taken in order and split, with new variables named `v va`. | prog-prove §2.3.1, §2.5.1; isar-ref; functions §2.1; run |
+| The default simp set has De Morgan's laws but not distributivity, which "might cause exponential blow-up". | `HOL.thy` ~1424 |
+| `intro`/`elim` apply the given rules repeatedly to subgoal 1 and its descendants; instantiation `rule_tac x = t in r` or `r[of _ t]`. | isar-ref §9.2.1, §7.3; prog-prove §3.4.1 |
+| `blast` is "a separate classical tableau prover" and raises its bound on unsafe steps from 0 to 20; "A safe rule must never reduce a provable goal to an unprovable set of subgoals." | isar-ref §9.4 |
+| `arith` is `linarith`, then `presburger`; `smt` replays proofs in the kernel; `sat` uses the internal CDCL solver "cdclite" and replays its proofs. | `arith_data.ML`; `SMT.thy`; `sat.ML` |
+| `not_def`: `¬ ?P ≡ ?P ⟶ False`; `ccontr = FalseE [THEN classical]`. | `HOL.thy` |
+| Rule induction uses the first premise; `f.induct` cases are numbered and their hypotheses need quotes (`"3.IH"`); `less_induct` has the case name `less` and is the `wellorder` class axiom. | prog-prove §3.5.3, §4.4.3; `Orderings.thy` |
+| HOL's types are non-empty, "otherwise the quantifier rules would be unsound"; Isabelle "is designed around natural deduction". | tutorial §8.5, §5.1 |
+
+### Evaluation and code generation
+
+| Fact | Source |
+|---|---|
+| `value` compiles closed terms with the code generator (and `term_of`) and evaluates terms with variables symbolically (normalisation by evaluation); quantifiers evaluate only over `enum` types ("Type nat not of sort enum"); an inductive predicate has "No code equations". | `value_command.ML`; `Enum.thy`; run |
+| `export_code` prints "See theory exports"; the files appear under `isabelle-export:` in jEdit's File Browser, with the default prefix `export` and a number. | `export.ML`; jedit §2.4.2; codegen §1.2 |
+| Generated Haskell represents characters as eight Booleans and `int` as `Zero_int | Pos | Neg`; `HOL-Library.Code_Target_Int` and `Code_Target_Nat` switch to the target's integers. | run; library headers |
+| `card` of an infinite set is 0; `value` fails on `sym r` but works on `sym_on A r`. | run |
+
+### Library names used
+
+`rev_rev_ident` (List.thy), `Cantors_theorem` (Set.thy), `wf_iff_no_infinite_down_chain` (Hilbert_Choice.thy),
+`wf_less` (Wellfounded.thy), `quotient_disj` (Equiv_Relations.thy), `card_Pow` (Power.thy), `pigeonhole`
+(Finite_Set.thy), `div_by_0` and `mod_by_0` (Rings.thy), `numeral_eq_Suc` (Num.thy); `rtrancl` is defined with
+`inductive_set` (Transitive_Closure.thy).
+
+### Messages quoted on the pages (all from runs)
+
+"Failed to apply proof method", "Failed to apply initial proof method", "Failed to finish proof",
+"Undefined fact", "Bad context for command …", "Illegal application of proof command in "prove" mode",
+"Local statement fails to refine any pending goal" (a jEdit warning), "Vacuous calculation result",
+"Function has no arguments", "Could not find lexicographic termination order", "Bad theory name … for file …",
+"Wellsortedness error".

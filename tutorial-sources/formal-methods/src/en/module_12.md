@@ -1207,13 +1207,13 @@ general.
 
 - **Isabelle's own library.** The Isabelle distribution contains the session HOL-Data_Structures, a
   collection of verified functional data structures (in the folder `src/HOL/Data_Structures` of your
-  Isabelle installation). Its theory `Queue_Spec` states the queue specification of this section, with an
-  emptiness test as well (Exercise 12.6): eight properties, with an abstraction function `list` and an
-  invariant `invar`. `Queue_2Lists` proves them for the two-list queue and bounds its running time. `Set_Specs` states the set specification of
-  Section 12.5, and theories such as `Tree_Set`, `AVL_Set` and `RBT_Set` prove it for unbalanced, AVL
-  and red-black trees.
-- **The code generator.** When Isabelle generates code for sets, it represents a finite set by a list of its
-  elements, a data refinement built into the library; importing `HOL-Library.RBT_Set` switches to
+  Isabelle installation). Its theory `Queue_Spec` states the queue specification of this section, with
+  an emptiness test as well (Exercise 12.6): eight properties, with an abstraction function `list` and an
+  invariant `invar`. `Queue_2Lists` proves them for the two-list queue and bounds its running time.
+  `Set_Specs` states the set specification of Section 12.5, with deletion as well, and theories such as
+  `Tree_Set`, `AVL_Set` and `RBT_Set` prove it for unbalanced, AVL and red-black trees.
+- **The code generator.** When Isabelle generates code for sets, it represents a finite set by a list of
+  its elements, a data refinement built into the library; importing `HOL-Library.RBT_Set` switches to
   red-black trees. Multisets are represented by lists too, which is why `value` printed `mset [3, 1]` in
   Section 12.2.
 - **Large systems.** The seL4 proof (Module 1) is a refinement proof on a large scale: it shows that the
