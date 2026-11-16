@@ -1255,10 +1255,13 @@ inductive lazy :: "crossing ⇒ bool" where
    The `have` states the new state in the form that `reach.step` produces: `rule reach.step` takes the
    induction hypothesis `reach s` for its first premise and leaves the guard `guard Press s`, which
    `simp` proves. In the last step, `simp` turns `effect Press s` into `s⦇req := True⦈`.
-2. ```isabelle
+2. The cars have green in `start`, and a press does not change the car light:
+
+   ```isabelle
    lemma "lazy s ⟹ cars s = Green"
      by (induction rule: lazy.induct) (auto simp: start_def)
    ```
+
 3. The lazy controller is safe, and it never lets anyone cross: after a press, the pedestrians never
    walk, so it breaks R2. Refinement preserves safety properties, but not liveness properties. A
    refinement may do less than the abstract model, including nothing at all.
