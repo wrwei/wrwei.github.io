@@ -301,7 +301,7 @@ natural deduction has no axioms for the connectives. Instead you may assume any 
 which say how to use one.
 
 Which rules apply to a formula depends on its **main connective**: the connective applied last when the
-formula is built, at the root of its syntax tree. In A ∧ B ⟶ B ∧ A the main connective is ⟶, because ∧
+formula is built, at the root of its parse tree. In A ∧ B ⟶ B ∧ A the main connective is ⟶, because ∧
 binds more tightly (Module 2). In the rules below, A, B and C stand for any formulas: a rule applies to
 every formula of the right shape.
 

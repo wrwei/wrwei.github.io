@@ -126,10 +126,10 @@ end
 
 The Isabelle text of this module goes between `begin` and `end`. HOL-Library comes with Isabelle, but it
 is not part of `Main`; `"HOL-Library.Multiset"` names its theory `Multiset`, which defines the function
-`mset` of the specification. The first time you open a theory with
-this import, Isabelle/jEdit loads `Multiset` and the theories it builds on before it checks your own text,
-and that takes a little while; the progress shows in the **Theories** panel. It happens again each time
-you start Isabelle/jEdit, because the library theory is not part of the prebuilt HOL image.
+`mset` of the specification. When you open a theory with this import, Isabelle/jEdit first loads
+`Multiset` and the theories it builds on, and only then checks your own text. That takes a little while,
+and the progress shows in the **Theories** panel. It happens each time you start Isabelle/jEdit, because
+the library theory is not part of the prebuilt HOL image.
 
 Now the two functions:
 
@@ -543,9 +543,9 @@ Evaluated terms:
 The counterexample is a list with one element, a₁. Quickcheck tests a claim about an unknown element type
 on small types whose values it calls a₁, a₂, a₃ and so on. The evaluated terms show the two sides of the
 equation, each multiset printed as `mset` of a list, as `value` prints it: the empty multiset on the
-left, a multiset with a₁ on the right. Nitpick (Module 9) agrees.
-It tries several sizes of the element type at once, so which counterexample it reports first can vary
-from run to run; the option `card 'a = 2` fixes the size of `'a` to two values:
+left, a multiset with a₁ on the right. Nitpick (Module 9) agrees. It tries several sizes of the element
+type at once, so which counterexample it reports first can vary from run to run; the option
+`card 'a = 2` fixes the size of `'a` to two values:
 
 ```isabelle
   nitpick [card 'a = 2]
@@ -725,8 +725,7 @@ consts
 
 A set has no order: Isabelle prints the keys in the order in which the generated code collected them, and
 `{5, 2, 1, 4, 8, 9}` is the same set as `{1, 2, 4, 5, 8, 9}`. The search for 4 goes left at 5 and right
-at 2, and finds 4. The search for 7 goes right at 5, left at
-8, and reaches a leaf: 7 is not there. Inserting 6 takes the same path as the search for 7, and puts a
+at 2, and finds 4. The search for 7 goes right at 5, left at 8, and reaches a leaf: 7 is not there. Inserting 6 takes the same path as the search for 7, and puts a
 new node where that search ended:
 
 ```isabelle
@@ -1047,8 +1046,8 @@ value "deq (Queue [1] [4, 3, 2 :: nat])"
   :: "nat queue"
 ```
 
-Adding 5 puts it at the head of the back list. Removing 1 empties the front list, so `refill` reverses the back
-list into the front: `[4, 3, 2]` becomes `[2, 3, 4]`. Every element is moved from the back to the front
+Adding 5 puts it at the head of the back list. Removing 1 empties the front list, so `refill` reverses
+the back list into the front: `[4, 3, 2]` becomes `[2, 3, 4]`. Every element is moved from the back to the front
 at most once, so on average each operation takes a constant number of steps, although a single `deq`
 may take longer. (That is a claim about running time, which this module does not prove; the theory
 `Queue_2Lists`, described at the end of this section, does.)
@@ -1109,8 +1108,8 @@ goal (1 subgoal):
   oops
 ```
 
-`cases q` names the two lists of the queue x1 and x2. `auto` has unfolded `enq` and `list_of` on the
-right, but on the left it is stuck at `refill (Queue x1 (x # x2))`. The equations of `refill` depend on
+`cases q` names the two lists of the queue x1 and x2. `auto` has unfolded `enq` on the left and
+`list_of q` on the right, but it is stuck at `list_of (refill (Queue x1 (x # x2)))`. The equations of `refill` depend on
 whether the front list x1 is empty, and `auto` does not split on that by itself. You could tell it to,
 but there is a better way: state once and for all what `refill` does to the list a queue represents,
 namely nothing. That lemma will serve every operation that calls `refill`:
@@ -1196,8 +1195,8 @@ lemma qinv_deq: "qinv q ⟹ qinv (deq q)"
 ```
 
 `first_correct` has two premises: the invariant, and that the queue is not empty, because `hd []` has
-no specified value. The three `qinv` lemmas say that every queue built from `qempty` with `enq` and `deq`
-satisfies the invariant, so the premise `qinv q` of `list_of_deq` and `first_correct` always holds for
+no specified value. The lemmas `qinv_qempty`, `qinv_enq` and `qinv_deq` say that every queue built from `qempty` with
+`enq` and `deq` satisfies the invariant, so the premise `qinv q` of `list_of_deq` and `first_correct` always holds for
 the queues a program can build.
 
 ### Verified data structures in practice {#practice}
@@ -1257,10 +1256,9 @@ Open `Verified.hs` and you find your theory again, in Haskell. The datatypes hav
 declarations: `Btree` with the constructors `Lf` and `Nd`, and `Queue` with the constructor `Queue`.
 Each function has the equations that `fun` derived from yours, with `#` written `:` and `rev` written
 `reverse`, and the functions that the exported ones need are there too: `ins`, `refill` and the
-library's `hd`. The
-comparisons `≤` and `<` have become `less_eq` and `less`, the operations of a Haskell type class `Ord`
-that Isabelle generates from its own class `ord`; the classes `preorder`, `order` and `linorder` become
-Haskell classes too (Module 8 compared type classes with Haskell's). The first lines of the module list
+library's `hd`. The comparisons `≤` and `<` have become `less_eq` and `less`, the operations of a Haskell
+type class `Ord` that Isabelle generates from its own class `ord`; the classes `preorder`, `order` and
+`linorder` become Haskell classes too (Module 8 compared type classes with Haskell's). The first lines of the module list
 what it exports: the functions, and the types `Btree` and `Queue` without their constructors.
 
 That last point protects the invariants. Other Haskell code can build trees only from `tempty` with
@@ -1706,6 +1704,13 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
    ```
 
    ```output result
+   Testing conjecture with Quickcheck-exhaustive...
+
+   Quickcheck found a counterexample:
+     xs = [a⇩1, a⇩1]
+   Evaluated terms:
+     mset (tsort xs) = mset [a⇩1]
+     mset xs = mset [a⇩1, a⇩1]
    ```
 
    A search tree stores a set: `tinsert` leaves the tree unchanged when the key is already there. So

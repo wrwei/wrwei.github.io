@@ -1002,15 +1002,14 @@ SAT is **NP-complete** (Stephen Cook, 1971).
 :::
 
 **NP** is the class of yes-or-no problems in which a "yes" can be *checked* quickly once someone proposes
-a solution, that is, in a number of steps bounded by a polynomial in the size of the problem. SAT is one:
-a proposed valuation is checked by evaluating the formula. Can these exams be timetabled without clashes?
-Can this Sudoku be completed? Can these versions of software packages be installed together? These
-problems are in NP too. A problem is **NP-complete** if it is in NP and every problem in NP can be
-translated into it efficiently. SAT was the first problem shown to be NP-complete; Leonid Levin found the
-same result independently. So a fast (polynomial-time) algorithm for SAT would give fast algorithms for
-every problem in NP. Nobody knows whether one exists: this is the **P versus NP** question (P is the
-class of problems that can be *solved* in polynomial time), open since 1971 and one of the seven
-Millennium Prize Problems of the Clay Mathematics Institute.
+a solution, that is, in a number of steps bounded by a polynomial in the size of the problem. SAT is one
+of them. So are these: Can the exams be timetabled without clashes? Can this Sudoku be completed? Can
+these versions of software packages be installed together? A problem is **NP-complete** if it is in NP
+and every problem in NP can be translated into it efficiently. SAT was the first problem shown to be
+NP-complete; Leonid Levin found the same result independently. So a fast (polynomial-time) algorithm for
+SAT would give fast algorithms for every problem in NP. Nobody knows whether one exists: this is the
+**P versus NP** question (P is the class of problems that can be *solved* in polynomial time), open since
+1971 and one of the seven Millennium Prize Problems of the Clay Mathematics Institute.
 
 Even so, SAT solving is one of the great practical successes of computer science. The worst case is
 exponential, but formulas from real problems have structure, and solvers exploit it. Most solvers

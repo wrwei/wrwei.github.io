@@ -75,6 +75,7 @@ produced by `tools/isa.py` and checked on every build.
 | ∀ | `\forall` | `!` |
 | ∃ | `\exists` | `?` |
 | ⟶ | `\longrightarrow` | `-->` |
+| ⟷ | `\longleftrightarrow` | `<-->` (also `<->` and `<>`, but `<->` is also the abbreviation of ↔, which jEdit offers first and HOL rejects) |
 | ∧ | `\and` | `&` |
 | ∨ | `\or` | `\|` |
 | ¬ | `\not` | `~` |
@@ -85,7 +86,8 @@ produced by `tools/isa.py` and checked on every build.
 Other input methods (same section): the Symbols panel; copy and paste of rendered Unicode text between
 applications (so copying a block from the pages into jEdit works); completion of a symbol's name after
 a backslash. The pages show Unicode and tell readers to type the abbreviation or `\name` and accept the
-completion (Tab or Return, jedit.pdf §3.7).
+completion with Tab (Return does not select by default: `jedit_completion_select_enter = false`,
+`jedit_completion_select_tab = true` in `src/Tools/jEdit/etc/options`; jedit.pdf §3.7.4).
 
 ## Keyboard actions in jEdit (jedit.pdf §3.2)
 

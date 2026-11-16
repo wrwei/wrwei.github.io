@@ -22,7 +22,7 @@ nothing else and explains every idea on paper before Isabelle checks it.
 
 ## How it works {#how}
 
-Fourteen modules in four parts, about 40 hours in all. Each module has worked examples, exercises at
+Fourteen modules in four parts, about 50 hours in all. Each module has worked examples, exercises at
 three levels with full solutions, and a short quiz. Every Isabelle output on these pages, including
 every error message, was produced by Isabelle2026 from the text shown, and every proof, including the
 exercise solutions, is checked by Isabelle. Start with Module 1, which also installs Isabelle.

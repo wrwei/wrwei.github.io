@@ -53,7 +53,7 @@ science or software engineering, or engineers who want to verify designs. They w
 
 ## 3. The series
 
-Four parts, fourteen modules, about 40 hours of study. Each module takes 2 to 4 hours with its exercises.
+Four parts, fourteen modules, about 50 hours of study. Each module takes 2 to 4 hours with its exercises.
 Section ids are fixed (the Chinese pages keep them).
 
 ### Part I: Foundations

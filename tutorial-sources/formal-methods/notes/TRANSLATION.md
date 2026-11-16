@@ -70,6 +70,7 @@ Use these everywhere. At a term's first use in a module, add the English in brac
 | predicate / predicate logic / first-order logic | 谓词 / 谓词逻辑 / 一阶逻辑 |
 | higher-order logic | 高阶逻辑 |
 | connective | 联结词 |
+| parse tree / sub-formula | 语法树 / 子公式 |
 | conjunction / disjunction / negation | 合取 / 析取 / 否定 |
 | implication / biconditional (iff) | 蕴涵 / 双条件（当且仅当） |
 | truth table / truth value / valuation | 真值表 / 真值 / 赋值 |

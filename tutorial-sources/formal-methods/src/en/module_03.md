@@ -268,8 +268,8 @@ A **structure** $\mathcal M$ for a vocabulary consists of
 
 An **$n$-tuple** is a list $(d_1, \dots, d_n)$ of $n$ elements, in order; a 2-tuple is a pair. Read
 $c^{\mathcal M}$ as "$c$ in $\mathcal M$": what $\mathcal M$ makes the symbol $c$ mean; likewise
-$f^{\mathcal M}$ and $P^{\mathcal M}$. Items 2 to 4 are the **interpretation** of the vocabulary. Structures are also called **models** or
-**interpretations**.
+$f^{\mathcal M}$ and $P^{\mathcal M}$. Items 2 to 4 are the **interpretation** of the vocabulary.
+Structures are also called **models** or **interpretations**.
 :::
 
 The domain may be finite or infinite, but by convention it is never empty; Isabelle follows the same
@@ -1160,8 +1160,8 @@ and at no point do you know whether waiting longer would help.
 
 ::: fact Undecidability of predicate logic
 No algorithm decides, for every formula of predicate logic, whether it is valid. Alonzo Church and Alan
-Turing proved this independently in 1936. Validity stays undecidable even when the vocabulary has just
-one predicate symbol, with two arguments.
+Turing proved this independently in 1936. Validity stays undecidable even when the vocabulary has a
+single predicate symbol, with two arguments.
 :::
 
 Turing's proof connects to the halting problem that Module 1 mentioned: for every program you can write
