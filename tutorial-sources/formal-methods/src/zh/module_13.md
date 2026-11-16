@@ -732,86 +732,57 @@ theorem timed_safe: "treach c ⟹ safe (lights c)"
 
 模块 14 将用另一种系统为本系列收尾：一个经过证明的、正确的编译器。
 
-## What you learned {#summary}
+## 小结 {#summary}
 
-- A **state machine** has states, initial states and a transition relation. Its steps are **events**, each
-  with a **guard** (when it can happen) and an **effect** (how it changes the state). A **run** follows
-  the steps from an initial state; a **trace** lists its events; a state is **reachable** if a run leads
-  to it.
-- In Isabelle, a state is a datatype, a pair or a **record** (fields `cars s`, values
-  `⦇cars = …, …⦈`, updates `s⦇cars := …⦈`). The transition relation is an `inductive` definition with
-  one rule per event, or a pair of functions `guard` and `effect`, which `value` can run. The reachable
-  states are an inductive definition with a rule for the initial state and a rule for a step, the same
-  as the reflexive–transitive closure `r⇧*` from the initial state.
-- A **safety property** must hold in every reachable state. An **invariant** holds in every reachable
-  state; it is **inductive** if it holds initially and every step preserves it. Rule induction over the
-  reachable states proves an inductive invariant: a base case and an induction step.
-- A safety property is often not inductive. The failed induction step shows a state and an event: a
-  **counterexample to induction**. If the state is unreachable, **strengthen** the invariant with a fact
-  that holds in every reachable state. If it is reachable, the design is wrong.
-- Nitpick finds reachable bad states, also of inductive definitions, and with an executable `run` it finds
-  **counterexample traces**: lists of events that lead to a bad state. `value` replays them. Fix the
-  option `card` to make Nitpick report the same counterexample every time.
-- A concrete model **refines** an abstract one if an **abstraction function** maps initial states to
-  initial states and every concrete step to an abstract step or a **stutter step**. Then every invariant
-  of the abstract model holds, through the abstraction function, in the concrete one.
-- A **liveness property** says that something good eventually happens. Invariants and refinement do not
-  cover it; temporal logic and model checkers such as SPIN, nuXmv and TLC do.
+- **状态机**有状态、初始状态和迁移关系。它的每一步由**事件**给出，每个事件都有一个**守卫条件**（它什么时候可以发生）和一个**效果**（它怎样改变状态）。**运行**从一个初始状态出发，沿着这些步前进；**轨迹**列出运行中的事件；如果某次运行到达一个状态，这个状态就是**可达的**。
+- 在 Isabelle 中，状态是一个数据类型、一个有序对或一个**记录**（字段 `cars s`，值 `⦇cars = …, …⦈`，更新 `s⦇cars := …⦈`）。迁移关系可以是每个事件一条规则的 `inductive` 定义，也可以是一对函数 `guard` 和 `effect`，后者可以用 `value` 运行。可达状态是一个归纳定义，一条规则针对初始状态，一条规则针对一步，它与从初始状态出发的自反传递闭包 `r⇧*` 是一回事。
+- **安全性质**必须在每个可达状态中都成立。**不变式**在每个可达状态中都成立；如果它在初始时成立，并且被每一步保持，它就是**归纳的**。对可达状态做规则归纳，可以证明一个归纳不变式：一个基础情形和一个归纳步骤。
+- 安全性质往往不是归纳的。失败的归纳步骤会给出一个状态和一个事件，即一个**归纳反例**。如果这个状态不可达，就用一个在每个可达状态中都成立的事实**加强**不变式。如果它可达，设计就是错的。
+- Nitpick 能找到可达的坏状态，对归纳定义也一样；借助可执行的 `run`，它还能找到**反例轨迹**，即通向坏状态的事件列表。`value` 可以重放它们。固定选项 `card`，可以让 Nitpick 每次都报告同一个反例。
+- 如果一个**抽象函数**把初始状态映射到初始状态，并把每个具体的步映射到一个抽象的步或一个**停顿步**，那么具体模型就**精化**了抽象模型。这时，抽象模型的每个不变式都通过抽象函数在具体模型中成立。
+- **活性性质**说的是好事最终会发生。不变式和精化都覆盖不了它；时序逻辑以及 SPIN、nuXmv 和 TLC 这样的模型检测器能处理它。
 
-## Exercises {#exercises}
+## 练习 {#exercises}
 
-:::: exercise Runs of the lift {#ex-13-1} ★
-Use the lift of Example 13.1.
+:::: exercise 电梯的运行 {#ex-13-1} ★
+使用例 13.1 中的电梯。
 
-1. Which events can happen in the state where the door is open and the lift stands still, and to which
-   states do they lead?
-2. Give a trace from the initial state to the state where the door is closed and the lift moves, that
-   passes through the state where the door is closing.
-3. Why is the state "door closing, lift moving" unreachable? Look at the events that could lead to it.
+1. 在门打开、电梯静止的状态中，哪些事件可以发生？它们分别到达哪些状态？
+2. 给出一条从初始状态到“门关闭、电梯移动”这个状态的轨迹，要求它经过门正在关闭的状态。
+3. 为什么状态“门正在关闭，电梯移动”不可达？看一看哪些事件可能到达它。
 
 ::: solution
-1. *open* (the door stays open: same state), *close* (the door becomes Closing, the lift still) and
-   *stop* (same state). *shut* needs a closing door and *start* a closed one.
-2. *open, close, shut, start*: (Closed, still) → (Open, still) → (Closing, still) → (Closed, still) →
-   (Closed, moving).
-3. Only *close* leads to a closing door, and it keeps the motion as it is, so the state before would
-   have to be "door open, lift moving". No event leads to that state: *open* needs a lift that stands
-   still and keeps it still, *start* needs a closed door, and *close*, *shut* and *stop* never produce an
-   open door with a moving lift. So neither unsafe state can be reached. The proof of `lift_safe` makes
-   this argument for every state at once.
+1. *open*（门保持打开：状态不变）、*close*（门变为 Closing，电梯静止）和 *stop*（状态不变）。*shut* 需要正在关闭的门，*start* 需要关闭的门。
+2. *open, close, shut, start*：(Closed, 静止) → (Open, 静止) → (Closing, 静止) → (Closed, 静止) → (Closed, 移动)。
+3. 只有 *close* 会得到正在关闭的门，而它不改变电梯是否移动，所以之前的状态必须是“门打开，电梯移动”。没有任何事件能到达那个状态：*open* 要求电梯静止，并让它保持静止；*start* 要求门是关闭的；而 *close*、*shut* 和 *stop* 都不会得到门打开、电梯移动的状态。所以两个不安全的状态都不可达。`lift_safe` 的证明一次性地对每个状态做了这个论证。
 :::
 ::::
 
-:::: exercise Safety or liveness? {#ex-13-2} ★
-Say whether each requirement is a safety or a liveness property.
+:::: exercise 安全性还是活性？ {#ex-13-2} ★
+说明下面每条需求是安全性质还是活性性质。
 
-1. Two trains are never on the same section of track.
-2. Every print job is eventually printed.
-3. The balance of an account never becomes negative.
-4. A message that is sent is eventually delivered.
-5. The program never divides by zero.
-6. The program terminates.
+1. 两列火车永远不会在同一段轨道上。
+2. 每个打印任务最终都会被打印出来。
+3. 账户余额永远不会变成负数。
+4. 发出的消息最终会送达。
+5. 程序永远不会除以零。
+6. 程序会终止。
 
 ::: solution
-1. Safety: the bad state is two trains on one section, and a finite run can reach it.
-2. Liveness: something good (the printout) must eventually happen; a counterexample is an infinite run
-   in which the job is never printed.
-3. Safety.
-4. Liveness.
-5. Safety: the bad thing is a division by zero, and a finite run that performs one is a counterexample.
-6. Liveness: termination says that the program eventually stops. No finite run shows that a program
-   never stops; the counterexample is an infinite run.
+1. 安全性质：坏状态是两列火车在同一段轨道上，一次有限的运行就可以到达它。
+2. 活性性质：某件好事（打印出来）必须最终发生；反例是一次这个任务永远没有被打印的无限运行。
+3. 安全性质。
+4. 活性性质。
+5. 安全性质：坏事是除以零，而一次执行了除以零的有限运行就是反例。
+6. 活性性质：终止说的是程序最终会停下来。没有哪次有限的运行能表明程序永远不停；反例是一次无限运行。
 :::
 ::::
 
-:::: exercise Predict a run {#ex-13-3} ★
-Work out on paper the result of `run [Press, Press, ToAmber, ToGreen, ToRed] start`, event by event.
-Then check it with `value`.
+:::: exercise 预测一次运行 {#ex-13-3} ★
+在纸上逐个事件地算出 `run [Press, Press, ToAmber, ToGreen, ToRed] start` 的结果。然后用 `value` 检验。
 
 ::: solution
-`Press` sets the request. The second `Press` changes nothing, since the request is already set. `ToAmber`
-is enabled (green, request) and makes the car light amber. `ToGreen` needs red, so `run` skips it. `ToRed`
-makes the car light red. The pedestrians never walk, and the request is still pending:
+`Press` 设置请求。第二个 `Press` 什么也不改变，因为请求已经设置了。`ToAmber` 可以发生（绿灯，有请求），它把汽车信号灯变成黄灯。`ToGreen` 需要红灯，所以 `run` 跳过它。`ToRed` 把汽车信号灯变成红灯。行人一直没有通行，请求仍在等待处理：
 
 ```isabelle
 value "run [Press, Press, ToAmber, ToGreen, ToRed] start"
@@ -824,11 +795,8 @@ value "run [Press, Press, ToAmber, ToGreen, ToRed] start"
 :::
 ::::
 
-:::: exercise Invariant, inductive, or neither? {#ex-13-4} ★★
-For the crossing of Section 13.4, decide for each property whether it holds in every reachable state,
-and whether it is inductive on its own. Use Figure 13.1 for the reachable states. When a property is not
-inductive, give a state and an event that break the induction step; when it is not an invariant, give a run
-that breaks it.
+:::: exercise 不变式、归纳不变式，还是都不是？ {#ex-13-4} ★★
+对第 13.4 节的人行横道模型，判断下面每个性质是否在每个可达状态中都成立，以及它单独来看是不是归纳的。可达状态见图 13.1。如果一个性质不是归纳的，给出破坏归纳步骤的一个状态和一个事件；如果它不是不变式，给出一次破坏它的运行。
 
 1. `peds s = Walk ⟶ req s`
 2. `cars s = Amber ⟶ req s`
@@ -836,29 +804,18 @@ that breaks it.
 4. `cars s = Amber ⟶ peds s = DontWalk`
 
 ::: solution
-1. **Invariant and inductive.** Only `StartWalk` makes the pedestrians walk, and its guard needs the
-   request. While they walk, only `EndWalk` clears the request, and it ends the walk. No other event
-   changes the two fields involved, except `Press`, which sets the request. (This is the part that
-   Section 13.5 added to `safe`.)
-2. **Invariant, not inductive.** The only reachable state with amber has a request. But take the
-   unreachable state ⦇cars = Amber, peds = Walk, req = True⦈: it satisfies the property, and `EndWalk`
-   clears the request and keeps the amber light. Exercise 13.7 proves the invariant.
-3. **Not an invariant**, so not inductive either. The run *Press, ToAmber, ToRed, StartWalk* reaches a
-   state where the pedestrians walk.
-4. **Invariant, not inductive.** In the reachable states, amber comes only with don't walk. But the
-   unreachable state ⦇cars = Green, peds = Walk, req = True⦈ satisfies the property (the cars are not
-   amber), and `ToAmber` leads to amber while the pedestrians walk.
+1. **是不变式，也是归纳的。** 只有 `StartWalk` 会让行人通行，而它的守卫条件需要请求。行人通行期间，只有 `EndWalk` 会清除请求，而它同时结束了通行。除了设置请求的 `Press` 之外，没有别的事件会改变涉及的这两个字段。（这正是第 13.5 节加到 `safe` 上的那一部分。）
+2. **是不变式，但不是归纳的。** 唯一一个黄灯的可达状态有请求。但是取不可达的状态 ⦇cars = Amber, peds = Walk, req = True⦈：它满足这个性质，而 `EndWalk` 会清除请求，同时保持黄灯不变。练习 13.7 证明了这个不变式。
+3. **不是不变式**，所以也不是归纳的。运行 *Press, ToAmber, ToRed, StartWalk* 会到达一个行人在通行的状态。
+4. **是不变式，但不是归纳的。** 在可达状态中，黄灯只与“禁止通行”同时出现。但不可达的状态 ⦇cars = Green, peds = Walk, req = True⦈ 满足这个性质（汽车信号灯不是黄灯），而 `ToAmber` 会在行人通行时把汽车信号灯变成黄灯。
 :::
 ::::
 
-:::: exercise Runs reach reachable states {#ex-13-5} ★★
-Prove that every state that `run` produces from a reachable state is reachable, and conclude that
-`run es start` is reachable for every list of events `es`. Which variable must be generalised in the
-induction, and why?
+:::: exercise 运行到达的都是可达状态 {#ex-13-5} ★★
+证明：`run` 从一个可达状态出发产生的每个状态都是可达的，并由此得出：对每个事件列表 `es`，`run es start` 都是可达的。在归纳中必须推广哪个变量？为什么？
 
 ::: solution
-Induct on `es`. In the recursive call `run es (…)`, the state changes, so the induction hypothesis must
-hold for every state: generalise `s` with `arbitrary:` (Module 11).
+对 `es` 做归纳。在递归调用 `run es (…)` 中，状态会变化，所以归纳假设必须对每个状态都成立：用 `arbitrary:` 推广 `s`（模块 11）。
 
 ```isabelle
 lemma reach_run: "reach s ⟹ reach (run es s)"

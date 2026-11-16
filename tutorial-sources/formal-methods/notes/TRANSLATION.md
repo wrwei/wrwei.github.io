@@ -109,6 +109,13 @@ Use these everywhere. At a term's first use in a module, add the English in brac
 | complete (course-of-values) induction / well-founded induction | 完全归纳法（累积归纳法） / 良基归纳法 |
 | termination / measure | 终止性 / 度量 |
 | invariant | 不变式 |
+| generalise (the goal) / auxiliary lemma | 推广 / 辅助引理 |
+| computation induction / rule induction / rule inversion | 计算归纳 / 规则归纳 / 规则反演 |
+| inductive definition / introduction rules of a predicate | 归纳定义 / 引入规则 |
+| accumulator / tail-recursive | 累加器 / 尾递归的 |
+| well-order / monotone | 良序 / 单调的 |
+| calculational reasoning (also/finally) | 计算推理 |
+| corollary | 推论 |
 | natural deduction | 自然演绎 |
 | introduction rule / elimination rule | 引入规则 / 消去规则 |
 | derivation / derivable | 推导 / 可推导的 |
