@@ -364,7 +364,7 @@ the short name would have two meanings, so from then on Isabelle prints yours wi
 theory in front, as in `T.comp (Num 1)` for a theory `T`, in every goal and message. Before you name a
 function, ask Isabelle whether the name is free. `term` prints the type of a constant that exists; a name
 that is not a constant is printed with type `'a`, because Isabelle reads it as a free variable (Module
-8). `find_consts` (Module 9) searches by name or by type.
+8). `find_consts` (Module 9) searches by type, and with the criterion `name:` also by name.
 :::
 
 ### What correct means {#correct}

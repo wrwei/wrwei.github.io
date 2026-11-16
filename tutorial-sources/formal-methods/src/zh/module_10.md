@@ -1386,14 +1386,12 @@ proof
 qed
 ```
 
-The proof uses (∃E), (∀I), (∀E) and (∃I) in this order. The same x, here a, works for every y. The
-converse does not hold: each y may need a different x.
+这个证明依次使用 (∃E)、(∀I)、(∀E) 和 (∃I)。同一个 x（这里是 a）对每个 y 都适用。逆命题不成立：每个 y 可能需要一个不同的 x。
 :::
 ::::
 
-:::: exercise A calculation {#ex-10-6} ★★
-Prove `(a + b) * (a - b) = a * a - b * b` for integers a and b with a chain of equations, one law per
-step, as in Section 10.4.1.
+:::: exercise 一个计算推理 {#ex-10-6} ★★
+像第 10.4.1 节那样，用一条等式链证明：对整数 a 和 b，`(a + b) * (a - b) = a * a - b * b`。每一步用一条定律。
 
 ::: solution
 ```isabelle
@@ -1408,14 +1406,12 @@ proof -
 qed
 ```
 
-`right_diff_distrib` is the law a(b − c) = ab − ac. The last step uses commutativity, b · a = a · b, so
-that the middle terms cancel.
+`right_diff_distrib` 是定律 a(b − c) = ab − ac。最后一步用到交换律 b · a = a · b，使中间的两项相互抵消。
 :::
 ::::
 
-:::: exercise The total of a reversed bill {#ex-10-7} ★★
-Prove `mysum (rev xs) = mysum xs` by induction with named cases. Use the lemma `mysum_append` of
-Section 10.6.1 in the induction step, inside a calculation.
+:::: exercise 反转后的账单总额 {#ex-10-7} ★★
+用带命名情形的归纳证明 `mysum (rev xs) = mysum xs`。在归纳步骤中，在一个计算推理里使用第 10.6.1 节的引理 `mysum_append`。
 
 ::: solution
 ```isabelle
@@ -1433,14 +1429,12 @@ next
 qed
 ```
 
-The second step is an instance of `mysum_append`, with `rev xs` for xs and `[x]` for ys; `rule` finds
-the instance. Without the lemma, `simp` would get stuck at `mysum (rev xs @ [x])`.
+第二步是 `mysum_append` 的一个实例，其中 xs 换成了 `rev xs`，ys 换成了 `[x]`；`rule` 会找到这个实例。没有这条引理，`simp` 会卡在 `mysum (rev xs @ [x])` 上。
 :::
 ::::
 
-:::: exercise Mirror a tree {#ex-10-8} ★★★
-Module 5 defined binary trees and the function `mirror`, and proved on paper, in the example *Mirroring
-twice*, that mirroring a tree twice gives the tree back. Here are the definitions again:
+:::: exercise 镜像一棵树 {#ex-10-8} ★★★
+模块 5 定义了二叉树和函数 `mirror`，并在“镜像两次”这个例子中，在纸上证明了把一棵树镜像两次会得到原来的树。下面再列出这些定义：
 
 ```isabelle
 datatype 'a tree2 = Tip | Node "'a tree2" 'a "'a tree2"
@@ -1450,9 +1444,7 @@ fun mirror :: "'a tree2 ⇒ 'a tree2" where
 | "mirror (Node l x r) = Node (mirror r) x (mirror l)"
 ```
 
-Prove `mirror (mirror t) = t` in Isar by induction on t, with named cases. Write the induction step as
-a calculation with the three steps of the paper proof. How many induction hypotheses does the induction
-step have, and how do you refer to each one?
+在 Isar 中对 t 做归纳，用命名情形证明 `mirror (mirror t) = t`。把归纳步骤写成计算推理，包含纸上证明的那三步。归纳步骤有几个归纳假设？怎样分别引用它们？
 
 ::: solution
 ```isabelle
@@ -1469,17 +1461,12 @@ next
 qed
 ```
 
-The cases are named after the constructors, `Tip` and `Node`. A node has two subtrees, so the induction
-step has two induction hypotheses, one for l and one for r. `Node.IH` is the list of both; `Node.IH(1)` is
-the one for l and `Node.IH(2)` the one for r. The first two steps use the second equation of `mirror`,
-the third uses both hypotheses.
+情形以构造子 `Tip` 和 `Node` 命名。一个结点有两棵子树，所以归纳步骤有两个归纳假设，l 和 r 各一个。`Node.IH` 是由两者组成的列表；`Node.IH(1)` 是关于 l 的那个，`Node.IH(2)` 是关于 r 的那个。前两步用的是 `mirror` 的第二个等式，第三步用到了两个归纳假设。
 :::
 ::::
 
-:::: exercise Filtering never lengthens a list {#ex-10-9} ★★★
-`filter P xs` keeps the elements of xs that satisfy P. Prove `length (filter P xs) ≤ length xs` by
-induction on xs. In the induction step, split on whether `P x` holds, with a nested `proof (cases "P x")`,
-and use a calculation in the case where it does not.
+:::: exercise 过滤不会让列表变长 {#ex-10-9} ★★★
+`filter P xs` 保留 xs 中满足 P 的元素。对 xs 做归纳，证明 `length (filter P xs) ≤ length xs`。在归纳步骤中，用一个嵌套的 `proof (cases "P x")` 按 `P x` 是否成立分情形，并在它不成立的情形中使用计算推理。
 
 ::: solution
 ```isabelle
@@ -1503,53 +1490,52 @@ next
 qed
 ```
 
-Inside the nested block, `?thesis` is the claim of the `show` it proves, which is the claim of the case.
-In the case where P x holds, filter keeps x, and both sides grow by one; the hypothesis does the rest.
+在嵌套的块中，`?thesis` 是这个块所证明的那个 `show` 的断言，也就是这种情形的断言。在 P x 成立的情形中，filter 保留 x，两边都增加 1；剩下的交给归纳假设。
 :::
 ::::
 
-## Check yourself {#quiz}
+## 自测题 {#quiz}
 
 ```quiz
-? In `then have "B" by blast`, what does `then` do?
-- [ ] It proves B from the pending goal
-- [x] It passes the most recent fact, `this`, to the proof of B
-- [ ] It starts a fresh block, like `next`
-- [ ] It is needed before every `have`
-> `then` is short for `from this`: the fact produced by the previous step is passed to the method that proves the next claim.
+? 在 `then have "B" by blast` 中，`then` 做了什么？
+- [ ] 它由待证目标证明 B
+- [x] 它把最近的事实 `this` 传给 B 的证明
+- [ ] 它像 `next` 一样开始一个新的块
+- [ ] 每个 `have` 之前都需要它
+> `then` 是 `from this` 的简写：前一步产生的事实被传给证明下一个断言的方法。
 
-? Which command solves a pending goal of the enclosing block?
+? 哪个命令能解决它所在块中的一个待证目标？
 - [ ] `have`
 - [ ] `assume`
 - [ ] `note`
 - [x] `show`
-> `have` only adds a fact. `show` claims a statement and, once its proof is finished, uses it to solve a pending goal.
+> `have` 只是增加一个事实。`show` 断言一个陈述，并在这个陈述的证明完成之后，用它来解决一个待证目标。
 
-? In `also have "… = x + 1"`, what does `…` stand for?
-- [x] The right-hand side of the previous step
-- [ ] The left-hand side of the first step of the chain
-- [ ] The whole previous equation
-- [ ] Any term that makes the step true
-> `…` abbreviates the right-hand side of the previous fact, so the chain continues from where it stopped.
+? 在 `also have "… = x + 1"` 中，`…` 代表什么？
+- [x] 上一步的右边
+- [ ] 链中第一步的左边
+- [ ] 上一个完整的等式
+- [ ] 任何能使这一步成立的项
+> `…` 是上一个事实右边的缩写，所以链会从上次停下的地方继续下去。
 
-? `proof` fails on the goal `False`, while `proof -` works. Why?
-- [ ] `False` cannot be proved in Isar
-- [ ] `proof -` proves the goal immediately
-- [x] `proof` applies a standard rule for the goal, and none fits `False`; `proof -` leaves the goal as it is
-- [ ] `proof` needs the assumptions to be named first
-> Without a method, `proof` applies a standard introduction rule chosen by the goal. `proof -` applies no rule, so the steps inside the block have to prove the goal.
+? 对目标 `False`，`proof` 会失败，而 `proof -` 可以。为什么？
+- [ ] `False` 在 Isar 中无法证明
+- [ ] `proof -` 立即证明了目标
+- [x] `proof` 对目标应用一条标准规则，而没有哪条标准规则适合 `False`；`proof -` 则让目标保持原样
+- [ ] `proof` 要求先给假设命名
+> 不带方法时，`proof` 应用一条由目标选定的标准引入规则。`proof -` 不应用任何规则，所以必须由块中的步骤来证明目标。
 
-? In `case (Cons x xs)` of a proof by `induction xs`, what is `Cons.IH`?
-- [ ] The claim of the case, `?case`
-- [ ] The assumption `xs = x # xs`
-- [x] The induction hypothesis: the claim for the tail `xs`
-- [ ] The premises of the lemma
-> The induction step assumes the claim for the shorter list. `Cons.prems` holds the premises, and `?case` the claim to prove.
+? 在用 `induction xs` 做的证明中，`case (Cons x xs)` 里的 `Cons.IH` 是什么？
+- [ ] 这种情形的断言 `?case`
+- [ ] 假设 `xs = x # xs`
+- [x] 归纳假设：关于尾部 `xs` 的断言
+- [ ] 引理的前提
+> 归纳步骤假设断言对较短的列表成立。`Cons.prems` 存放前提，`?case` 是要证明的断言。
 
-? Isabelle reports "Failed to refine any pending goal" at a `show`. What is the most likely cause?
-- [ ] The method after `by` is too weak
-- [x] The shown statement, with the assumptions of its block, solves no pending goal, for example because a `next` is missing
-- [ ] A fact name is misspelt
-- [ ] The theory has no `end`
-> The claim itself was proved, but it does not fit any goal. Compare it with the goal in the state, and check `next`, `?case` and the assumptions.
+? Isabelle 在一个 `show` 处报告“Failed to refine any pending goal”。最可能的原因是什么？
+- [ ] `by` 后面的方法太弱
+- [x] `show` 的陈述连同它所在块的假设，解决不了任何待证目标，例如因为缺少一个 `next`
+- [ ] 某个事实的名字拼错了
+- [ ] 理论没有 `end`
+> 断言本身已经得到证明，但它与任何目标都不相符。把它和状态中的目标比较一下，并检查 `next`、`?case` 和那些假设。
 ```

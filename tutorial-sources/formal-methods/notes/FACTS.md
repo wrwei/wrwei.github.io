@@ -126,6 +126,7 @@ by a run of Isabelle2026 ("run").
 | Fact | Source |
 |---|---|
 | `simp` works on subgoal 1 only; `auto` and `simp_all` on all subgoals. | prog-prove §2.5.4 |
+| The simplifier's depth limit `simp_depth_limit` is 40 in Isabelle2026 (the isar-ref still says 100). | `src/Pure/raw_simplifier.ML`; Module 9 review |
 | `by m₁ m₂` abbreviates `proof m₁ qed m₂`; `by m` also closes leftover subgoals by assumption, `done` only checks that none is left. | isar-ref §6.4.2, §7.1; run |
 | `fun` equations and `datatype` distinctness and injectivity facts are simp rules; equations are selected as `f.simps(i)`; overlapping equations are taken in order and split, with new variables named `v va`. | prog-prove §2.3.1, §2.5.1; isar-ref; functions §2.1; run |
 | The default simp set has De Morgan's laws but not distributivity, which "might cause exponential blow-up". | `HOL.thy` ~1424 |

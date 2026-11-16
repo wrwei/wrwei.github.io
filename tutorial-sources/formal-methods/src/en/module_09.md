@@ -522,8 +522,9 @@ thm option.split
 ```
 
 The rule turns the `case` into two implications, one for each constructor, as `if_split` does for an
-`if`. (`?f1.0` is how Isabelle prints a schematic variable whose name ends in a digit, here `?f1`.) With
-it, the simplifier finishes:
+`if`. Read `?f1.0` as the schematic variable named `f1` with index 0 (Module 7 explained indexes with
+`?P5`): when a name ends in a digit, Isabelle puts a dot before the index, so that the two cannot run
+together. With this rule, the simplifier finishes:
 
 ```isabelle
   apply (simp split: option.split)

@@ -447,8 +447,8 @@ goal (2 subgoals):
 
 `conjunct2` is `?P ∧ ?Q ⟹ ?Q`. Its conclusion ?Q matches B, so its premise becomes a conjunction whose
 right half is B and whose left half is not yet known. Isabelle keeps that left half as a schematic
-variable in the new subgoal, renamed `?P5` so that it cannot clash with other variables (the number has
-no other meaning). On paper you would look at the assumptions and write A ∧ B at once. Isabelle postpones
+variable in the new subgoal, `?P5`: the variable `?P` with the number 5 attached, its **index**, so that
+it cannot clash with other variables (the index has no other meaning). On paper you would look at the assumptions and write A ∧ B at once. Isabelle postpones
 the choice until a later step settles it.
 
 ### Closing a subgoal with an assumption {#backward-assumption}

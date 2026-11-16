@@ -381,7 +381,7 @@ def main():
     msgs = parse_log(log.stdout)
     # A failed probe's log is sometimes incomplete: its whole theory section (every message) can be missing,
     # or its error is known only from the "Build errors" copy, wrapped at a narrower margin. Build such probes
-    # again, up to three times, and keep a complete result as soon as one comes.
+    # again, up to six times, and keep a complete result as soon as one comes.
     def incomplete(text, names):
         # Errors at definitions (fun, primrec, definition …) appear only under "Build errors", even in a complete
         # log; what is missing in a bad log is the theory section with every other message.
@@ -393,7 +393,7 @@ def main():
     def interrupted(m):
         return {k[0][:-4] for k, v in m.items() for _, body in v if 'Interrupt' in body and 'exception' in body}
     todo = sorted(set(incomplete(log.stdout, sessions)) | interrupted(msgs))
-    for _ in range(3):
+    for _ in range(6):
         if not todo:
             break
         FALLBACK.clear()
@@ -413,7 +413,7 @@ def main():
     FALLBACK.clear()
     FALLBACK.update(narrow)
     if todo:
-        print('incomplete Isabelle log for ' + ', '.join(todo) + ' after three attempts; its outputs may be partial')
+        print('incomplete Isabelle log for ' + ', '.join(todo) + ' after six attempts; its outputs may be partial')
     lock.close()
     killed = 'Killed' in build.stdout or 'Interrupt' in build.stdout
 

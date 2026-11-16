@@ -1206,10 +1206,7 @@ goal (2 subgoals):
   oops
 ```
 
-In subgoal 1 (rule `bal_wrap`), the IH is about `w` read on its own from count 0. The goal reads `w` with
-one bracket open and then the closing `RP`. Subgoal 2 (rule `bal_cat`) has the same problem: after `v`
-come further brackets. The IH is too special in two ways, so generalise both. A balanced word, followed by
-anything, leaves the count unchanged:
+在子目标 1（规则 `bal_wrap`）中，归纳假设说的是从计数 0 开始单独读 `w`，而目标是在有一个括号未闭合的情况下读 `w`，然后再读闭合的 `RP`。子目标 2（规则 `bal_cat`）有同样的问题：`v` 后面还有别的括号。归纳假设在两个方面都太特殊了，所以把两者都推广。一个平衡的串，无论后面跟着什么，都不会改变计数：
 
 ```isabelle
 lemma bal_chk: "bal w ⟹ chk (w @ v) n = chk v n"
@@ -1234,38 +1231,29 @@ goal (3 subgoals):
   done
 ```
 
-Now each IH holds for every continuation `v` and every count `n`, and `auto` uses them with the values
-the cases need. The claim about the checker is the special case `v = []` and `n = 0`. The attribute
-`[of w "[]" 0]` instantiates the variables of `bal_chk` in the order in which they first occur. The
-command `corollary` means the same as `lemma`; the name signals a fact that follows from the one before:
+现在每个归纳假设都对每个后续部分 `v` 和每个计数 `n` 成立，`auto` 会取各个情形所需的值来使用它们。关于检查器的断言就是 `v = []` 且 `n = 0` 的特例。属性 `[of w "[]" 0]` 按照 `bal_chk` 中各变量首次出现的顺序把它们实例化。命令 `corollary`（推论）和 `lemma` 的意思相同；这个名字表明，它是由前一个事实推出的事实：
 
 ```isabelle
 corollary bal_chk0: "bal w ⟹ chk w 0"
   using bal_chk[of w "[]" 0] by simp
 ```
 
-The other direction, that every word the checker accepts is balanced, is true as well, but its proof
-needs further lemmas about `bal`; this module leaves it out.
+另一个方向，即检查器接受的每个串都是平衡的，也同样成立，但它的证明需要更多关于 `bal` 的引理；本模块略去不讲。
 
-## Complete induction {#complete}
+## 完全归纳法 {#complete}
 
-Some arguments need the claim not for the predecessor of $n$ but for some smaller number. Module 5
-called this strong induction; it is also known as **complete induction**.
+有些论证需要的不是断言对 $n$ 的前驱成立，而是对某个更小的数成立。模块 5 把这种归纳叫做强归纳法；它也叫**完全归纳法**（complete induction）。
 
-::: example Powers of two
-Every positive number is a power of two times an odd number: $40 = 2^3 \cdot 5$, $12 = 2^2 \cdot 3$,
-$7 = 2^0 \cdot 7$. In binary, the power counts the zeros at the end: $40$ is $101000_2$, and
-$101_2 = 5$. Proof for $n > 0$, assuming the claim for all smaller positive numbers:
+::: example 2 的幂
+每个正整数都是 2 的某个幂乘以一个奇数：$40 = 2^3 \cdot 5$，$12 = 2^2 \cdot 3$，$7 = 2^0 \cdot 7$。在二进制中，这个幂的指数就是末尾 0 的个数：$40$ 是 $101000_2$，而 $101_2 = 5$。下面对 $n > 0$ 给出证明，假设断言对所有更小的正整数都成立：
 
-- If $n$ is odd, take $2^0 \cdot n$.
-- If $n$ is even, then $n = 2h$ with $0 < h < n$. The claim for $h$ gives $h = 2^k \cdot m$ with $m$
-  odd, so $n = 2^{k+1} \cdot m$.
+- 如果 $n$ 是奇数，取 $2^0 \cdot n$。
+- 如果 $n$ 是偶数，那么 $n = 2h$，其中 $0 < h < n$。由断言对 $h$ 成立，得 $h = 2^k \cdot m$，其中 $m$ 是奇数，所以 $n = 2^{k+1} \cdot m$。
 
-The claim for $n - 1$ would be no use: the decomposition of 39 says nothing about 40. The step needs
-$h = n / 2$.
+知道断言对 $n - 1$ 成立是没有用的：39 的分解对 40 什么也说明不了。归纳步骤需要的是 $h = n / 2$。
 :::
 
-In Isabelle, complete induction on natural numbers is the rule `less_induct`:
+在 Isabelle 中，自然数上的完全归纳法就是规则 `less_induct`：
 
 ```isabelle
 thm less_induct
@@ -1275,10 +1263,7 @@ thm less_induct
 (⋀x. (⋀y. y < x ⟹ ?P y) ⟹ ?P x) ⟹ ?P ?a
 ```
 
-To prove `?P ?a`, prove `?P x` for an arbitrary `x`, assuming `?P y` for every `y < x`. The rule holds
-for every type whose order is a **well-order**, a linear order with no infinite descending chain
-($x_1 > x_2 > x_3 > \dots$); `nat` is one. For `nat` the library also has `nat_less_induct`, the same
-principle stated with ∀. Applied to the claim:
+要证明 `?P ?a`，就对任意的 `x` 证明 `?P x`，同时可以假设 `?P y` 对每个 `y < x` 都成立。这条规则对每个其序为**良序**（well-order）的类型都成立；良序是没有无穷递降链（$x_1 > x_2 > x_3 > \dots$）的全序，`nat` 上的序就是一个良序。对于 `nat`，库中还有 `nat_less_induct`，它用 ∀ 陈述同一个原理。把规则应用到这个断言上：
 
 ```isabelle
 lemma "0 < (n::nat) ⟹ ∃k m. n = 2 ^ k * m ∧ odd m"
@@ -1296,8 +1281,7 @@ goal (1 subgoal):
   oops
 ```
 
-The premise `0 < n` has become part of the claim: the IH may be used for a `y` that is both smaller than
-`x` and positive. In Isar the single case is called `less`, and its IH is `less.IH`:
+前提 `0 < n` 已经成为断言的一部分：对于既小于 `x` 又是正数的 `y`，可以使用归纳假设。在 Isar 中，唯一的情形叫做 `less`，它的归纳假设是 `less.IH`：
 
 ```isabelle
 lemma odd_part: "0 < (n::nat) ⟹ ∃k m. n = 2 ^ k * m ∧ odd m"
@@ -1319,12 +1303,10 @@ proof (induction n rule: less_induct)
 qed
 ```
 
-The library rule `evenE` turns `even n` into a witness `h` with `n = 2 * h`. The IH is applied to `h`
-after `h < n` and `0 < h` have been shown, the two conditions the IH asks for. A single `have` can claim
-several facts, joined by `and`; `simp_all` (Module 5) proves both.
+库中的规则 `evenE` 把 `even n` 变成一个满足 `n = 2 * h` 的见证 `h`。先证明 `h < n` 和 `0 < h` 这两个归纳假设所要求的条件，再把归纳假设应用到 `h` 上。一个 `have` 可以同时断言几个事实，它们用 `and` 连接；`simp_all`（模块 5）把两者都证明出来。
 
 ::: trouble
-Leave out the annotation `(n::nat)` and the induction fails with an alarming message:
+如果去掉标注 `(n::nat)`，归纳就会失败，并给出一条吓人的消息：
 
 ```isabelle fails
 lemma "0 < n ⟹ ∃k m. n = 2 ^ k * m ∧ odd m"
@@ -1339,73 +1321,56 @@ lemma "0 < n ⟹ ∃k m. n = 2 ^ k * m ∧ odd m"
 ***   ?P ?a
 ```
 
-The numbers in the claim could belong to any type with `0`, `^` and `odd`, so Isabelle gives `n` a type
-variable. The proof state shows the symptom as `(2::'a)`. `less_induct` is stated for well-ordered
-types, and Isabelle cannot match it with a type it knows nothing about. Annotate the
-variable, `(n::nat)`, and the error goes away.
+断言中的数可以属于任何带有 `0`、`^` 和 `odd` 的类型，所以 Isabelle 给 `n` 的类型是一个类型变量。在证明状态中，这个症状表现为 `(2::'a)`。`less_induct` 是针对良序类型陈述的，Isabelle 无法把它与一个一无所知的类型匹配起来。给变量加上标注 `(n::nat)`，错误就消失了。
 :::
 
 ::: note
-Complete induction and computation induction are close relatives. `fib.induct` and `merge.induct` are
-complete induction along the termination orders of `fib` and `merge`, cut to the shape of their
-recursion. When a function recurses on `n div 2`, on `n - 2` or on a shorter list of any kind, its own
-induction rule is usually the most convenient form of complete induction. Exercise 11.7 proves the
-bound on `fib` with `less_induct` as well.
+完全归纳法和计算归纳是近亲。`fib.induct` 和 `merge.induct` 就是沿着 `fib` 和 `merge` 的终止序进行的完全归纳，只是按照它们递归的形状做了剪裁。当一个函数在 `n div 2`、`n - 2` 或任何一种更短的列表上递归时，它自己的归纳规则通常就是最方便的完全归纳形式。练习 11.7 也用 `less_induct` 证明了 `fib` 的上界。
 :::
 
-## Choosing the induction {#choose}
+## 选择归纳方式 {#choose}
 
-Most failed inductions fall into a few patterns. First choose the induction from the shape of the goal:
+大多数失败的归纳都可以归入少数几种模式。首先根据目标的形状选择归纳方式：
 
-| The goal is about | Use | In Isabelle |
+| 目标涉及 | 使用 | 在 Isabelle 中 |
 |---|---|---|
-| a function defined by one equation per constructor | structural induction | `induction xs` |
-| a function whose recursion changes another argument | structural induction, generalised | `induction xs arbitrary: acc` |
-| a function with its own pattern of recursion | computation induction | `induction xs ys rule: f.induct` |
-| a premise `I x` with `I` defined by `inductive` | rule induction | `induction rule: I.induct` |
-| what a single fact `I t` implies | rule inversion | `cases`, `inductive_cases` |
-| a step that needs some smaller value | complete induction | `induction n rule: less_induct` |
+| 每个构造子各用一个等式定义的函数 | 结构归纳法 | `induction xs` |
+| 递归时会改变另一个参数的函数 | 结构归纳法，并做推广 | `induction xs arbitrary: acc` |
+| 有自己独特递归模式的函数 | 计算归纳 | `induction xs ys rule: f.induct` |
+| 一个前提 `I x`，其中 `I` 由 `inductive` 定义 | 规则归纳 | `induction rule: I.induct` |
+| 单个事实 `I t` 蕴涵着什么 | 规则反演 | `cases`、`inductive_cases` |
+| 需要某个更小的值的归纳步骤 | 完全归纳法 | `induction n rule: less_induct` |
 
-Then, if the proof gets stuck, read the stuck goal and compare the IH with the conclusion:
+然后，如果证明卡住了，就读一读卡住的目标，把归纳假设和结论对照一下：
 
-| The stuck goal shows | Remedy |
+| 卡住的目标显示 | 补救办法 |
 |---|---|
-| the IH fixes an argument (`0`, `[]`, `acc`) that the conclusion needs with another value | generalise: a variable instead of a constant, and `arbitrary:` |
-| an IH that is true but says too little (`∃k. …`) | strengthen the claim |
-| a subterm the simplifier cannot rewrite, such as `val (inc (counter n))` | an auxiliary lemma, generalised, as `[simp]` |
-| an IH about the wrong argument, or about the wrong list | computation induction |
-| goals that make no sense after rule induction | variables in the inductive premise, or `induction t rule: …` |
-| a fact about a term built from constructors | rule inversion |
+| 归纳假设固定了一个参数（`0`、`[]`、`acc`），而结论需要这个参数取另一个值 | 推广：用变量代替常量，并使用 `arbitrary:` |
+| 归纳假设是对的，但说得太少（`∃k. …`） | 加强断言 |
+| 化简器无法重写的子项，例如 `val (inc (counter n))` | 一条经过推广的辅助引理，声明为 `[simp]` |
+| 归纳假设涉及错误的参数，或者涉及错误的列表 | 计算归纳 |
+| 规则归纳之后出现毫无意义的目标 | 让归纳所针对的前提中是变量，或者使用 `induction t rule: …` |
+| 一个关于由构造子构成的项的事实 | 规则反演 |
 
 ::: tip
-Before you start a long proof by hand, check the claim with `quickcheck`, and try `auto` after each
-`apply (induction …)`. The goal that `auto` leaves behind is the quickest guide to what is missing.
+在动手写一个很长的证明之前，先用 `quickcheck` 检查断言，并在每个 `apply (induction …)` 之后试一试 `auto`。`auto` 留下的目标，是找出缺了什么的最快线索。
 :::
 
-## What you learned {#summary}
+## 小结 {#summary}
 
-- An induction gets stuck when its **induction hypothesis** is too weak. Read the stuck goal and compare
-  the IH with the conclusion: the difference tells you what to change.
-- If a recursive call changes an argument, as an **accumulator** does, **generalise** the claim to every
-  value of that argument and use `induction xs arbitrary: acc`; the IH is then bound by ⋀.
-- If the IH is true but too weak, **strengthen** the claim (`oddsum n = n * n` rather than "a square").
-- If the simplifier cannot rewrite a subterm such as `val (inc (counter n))`, find an **auxiliary
-  lemma**: generalise the subterm, test with `value` and `quickcheck`, prove it, add it to the simplifier.
-- Induction on a tree has one IH per subtree (`Nd.IH(1)`, `Nd.IH(2)`).
-- **Computation induction** with `rule: f.induct` has one case per defining equation and one IH per
-  recursive call (two in the last case of `fib`); in Isar the cases are numbered, and `"3.IH"` needs
-  quotes.
-- An **inductive definition** (`inductive`) defines the smallest predicate closed under its rules.
-  **Rule induction** (`rule: I.induct`) proves facts about all its members and works on the first
-  premise, whose arguments must be variables; **rule inversion** (`cases`, `inductive_cases`) draws
-  conclusions from one fact, including negative facts.
-- **Complete induction** with `less_induct` lets the step use the claim for any smaller value.
+- 当**归纳假设**太弱时，归纳就会卡住。读一读卡住的目标，把归纳假设和结论对照一下：两者的差别会告诉你该改什么。
+- 如果递归调用会改变某个参数，就像**累加器**那样，就把断言**推广**到这个参数的每一个值，并使用 `induction xs arbitrary: acc`；这时归纳假设由 ⋀ 约束。
+- 如果归纳假设是对的但太弱，就**加强**断言（用 `oddsum n = n * n`，而不是“是一个平方数”）。
+- 如果化简器无法重写像 `val (inc (counter n))` 这样的子项，就找一条**辅助引理**：推广这个子项，用 `value` 和 `quickcheck` 测试，证明它，再把它加入化简器。
+- 树上的归纳每棵子树各有一个归纳假设（`Nd.IH(1)`、`Nd.IH(2)`）。
+- 用 `rule: f.induct` 做**计算归纳**时，每个定义等式对应一个情形，每个递归调用对应一个归纳假设（`fib` 的最后一个情形有两个）；在 Isar 中，情形是编号的，而 `"3.IH"` 需要加引号。
+- **归纳定义**（`inductive`）定义的是在其规则下封闭的最小谓词。**规则归纳**（`rule: I.induct`）证明关于它的所有成员的事实，作用于第一个前提，而这个前提的参数必须是变量；**规则反演**（`cases`、`inductive_cases`）从单个事实中得出结论，包括否定的事实。
+- **完全归纳法**（`less_induct`）允许归纳步骤对任何更小的值使用断言。
 
-## Exercises {#exercises}
+## 练习 {#exercises}
 
-:::: exercise Read a stuck goal {#ex-11-1} ★
-Here is a tail-recursive list reversal, which stacks the elements of its first argument onto the
-second:
+:::: exercise 读懂卡住的目标 {#ex-11-1} ★
+下面是一个尾递归的列表反转函数，它把第一个参数中的元素逐个堆到第二个参数上：
 
 ```isabelle
 fun itrev :: "'a list ⇒ 'a list ⇒ 'a list" where
@@ -1427,18 +1392,14 @@ goal (1 subgoal):
   oops
 ```
 
-1. Compare the IH with the conclusion. Which argument differs?
-2. Generalise the claim. What should `itrev xs ys` equal for every `ys`? Check your answer on
-   `itrev [1, 2] [3]`.
-3. Prove the general claim and derive `itrev xs [] = rev xs` from it.
+1. 把归纳假设和结论对照一下。哪个参数不同？
+2. 推广这个断言。对每个 `ys`，`itrev xs ys` 应该等于什么？用 `itrev [1, 2] [3]` 检验你的答案。
+3. 证明这个一般的断言，并由它推出 `itrev xs [] = rev xs`。
 
 ::: solution
-1. The IH is about `itrev xs []`, the conclusion about `itrev xs [a]`: the second argument, the
-   accumulator, differs.
-2. `itrev xs ys` reverses `xs` onto the front of `ys`: `itrev xs ys = rev xs @ ys`. For example,
-   `itrev [1, 2] [3] = itrev [2] [1, 3] = itrev [] [2, 1, 3] = [2, 1, 3]`, and
-   `rev [1, 2] @ [3] = [2, 1, 3]`. With `ys = []` the claim becomes the original one.
-3. The accumulator changes in the recursive call, so it goes after `arbitrary:`:
+1. 归纳假设说的是 `itrev xs []`，结论说的是 `itrev xs [a]`：不同的是第二个参数，也就是累加器。
+2. `itrev xs ys` 把 `xs` 反转后放到 `ys` 的前面：`itrev xs ys = rev xs @ ys`。例如，`itrev [1, 2] [3] = itrev [2] [1, 3] = itrev [] [2, 1, 3] = [2, 1, 3]`，而 `rev [1, 2] @ [3] = [2, 1, 3]`。取 `ys = []`，这个断言就变成原来的断言。
+3. 累加器在递归调用中会改变，所以把它写在 `arbitrary:` 后面：
 
 ```isabelle
 lemma itrev_rev: "itrev xs ys = rev xs @ ys"
@@ -1450,29 +1411,25 @@ lemma "itrev xs [] = rev xs"
 :::
 ::::
 
-:::: exercise Which induction? {#ex-11-2} ★
-For each goal, say which kind of induction you would try first, and on what. Use the functions and
-predicates of this module; `count_list xs z`, from the library, counts how often z occurs in xs.
+:::: exercise 用哪种归纳？ {#ex-11-2} ★
+对下面每个目标，说出你会首先尝试哪种归纳，以及对什么做归纳。使用本模块中的函数和谓词；库函数 `count_list xs z` 计算 z 在 xs 中出现的次数。
 
 1. `nodes (mirror t) = nodes t`
 2. `steps r a b ⟹ r b c ⟹ steps r a c`
 3. `count_list (merge xs ys) z = count_list xs z + count_list ys z`
 4. `sumacc (xs @ ys) acc = sumacc ys (sumacc xs acc)`
 5. `ev n ⟹ ¬ ev (Suc n)`
-6. `0 < n ⟹ n div 2 < n` for natural numbers
+6. `0 < n ⟹ n div 2 < n`，其中 n 是自然数
 
 ::: solution
-1. Structural induction on `t`: `mirror` and `nodes` have one equation per constructor.
-2. Rule induction on `steps r a b`, the first premise; `c` appears only in the conclusion and in
-   `r b c`, which becomes part of the claim.
-3. Computation induction with `merge.induct` on `xs ys`, as for `length` in Section 11.5.
-4. Structural induction on `xs` with `arbitrary: acc`: the accumulator changes in the recursive call.
-5. Rule induction on `ev n`, with rule inversion in both cases: `¬ ev (Suc 0)` by `ev_1E`, and in case
-   `ev_SS`, `ev (Suc (Suc (Suc n)))` would give `ev (Suc n)` by `ev_SSE`, against the IH.
-6. No induction at all: this is linear arithmetic about `div`, which `simp` or `arith` proves. Not
-   every goal about numbers needs induction; check with automation first.
+1. 对 `t` 做结构归纳：`mirror` 和 `nodes` 都是每个构造子各有一个等式。
+2. 对第一个前提 `steps r a b` 做规则归纳；`c` 只出现在结论和 `r b c` 中，而 `r b c` 会成为断言的一部分。
+3. 用 `merge.induct` 对 `xs ys` 做计算归纳，就像第 11.5 节中关于 `length` 的证明那样。
+4. 对 `xs` 做结构归纳，并加上 `arbitrary: acc`：累加器在递归调用中会改变。
+5. 对 `ev n` 做规则归纳，两个情形中都要用到规则反演：`¬ ev (Suc 0)` 由 `ev_1E` 得出；在情形 `ev_SS` 中，由 `ev_SSE`，`ev (Suc (Suc (Suc n)))` 会推出 `ev (Suc n)`，与归纳假设矛盾。
+6. 根本不需要归纳：这是关于 `div` 的线性算术，`simp` 或 `arith` 就能证明。并不是每个关于数的目标都需要归纳；先用自动化工具检查一下。
 
-In Isabelle, one line each:
+在 Isabelle 中，每个只需一行：
 
 ```isabelle
 lemma "nodes (mirror t) = nodes t"
@@ -1496,28 +1453,21 @@ lemma "0 < n ⟹ (n::nat) div 2 < n"
 :::
 ::::
 
-:::: exercise Two derivations {#ex-11-3} ★
-The word `()()()` is balanced. Draw two different derivations of it with the rules of `bal`. Does it
-matter for rule induction that a word can have several derivations?
+:::: exercise 两个推导 {#ex-11-3} ★
+串 `()()()` 是平衡的。用 `bal` 的规则画出它的两个不同的推导。一个串可以有好几个推导，这对规则归纳有影响吗？
 
 ::: solution
-Write ε for the empty word. Both derivations first derive `()` from ε with `bal_wrap`. Then:
+用 ε 表示空串。两个推导都先用 `bal_wrap` 由 ε 推导出 `()`。然后：
 
-- Derivation 1: `bal_cat` joins `()` and `()` into `()()`, and a second `bal_cat` joins `()()` and `()`
-  into `()()()`.
-- Derivation 2: `bal_cat` joins `()` and `()` into `()()`, and a second `bal_cat` joins `()` and `()()`
-  into `()()()`.
+- 推导 1：`bal_cat` 把 `()` 和 `()` 连接成 `()()`，第二次 `bal_cat` 再把 `()()` 和 `()` 连接成 `()()()`。
+- 推导 2：`bal_cat` 把 `()` 和 `()` 连接成 `()()`，第二次 `bal_cat` 再把 `()` 和 `()()` 连接成 `()()()`。
 
-They differ in how the three parts are grouped, like $(a + b) + c$ and $a + (b + c)$. A grammar with
-several derivations for one word is called **ambiguous**. For rule induction this does not matter: the
-proof shows that *every* rule passes the property on, so the property holds whichever derivation
-exists.
+它们的区别在于三个部分的组合方式，就像 $(a + b) + c$ 和 $a + (b + c)$ 那样。如果一个文法能为同一个串给出几个不同的推导，就称它是**有二义性的**（ambiguous）。这对规则归纳没有影响：证明表明**每条**规则都会把性质传递下去，所以无论存在的是哪个推导，性质都成立。
 :::
 ::::
 
-:::: exercise Flattening with an accumulator {#ex-11-4} ★★
-The function `inorder` uses `@` at every node, which makes it slow on large trees. Define the
-accumulator version
+:::: exercise 用累加器展平树 {#ex-11-4} ★★
+函数 `inorder` 在每个结点上都要用 `@`，这使它在大树上很慢。定义使用累加器的版本
 
 ```text
 flat Lf acc = acc
