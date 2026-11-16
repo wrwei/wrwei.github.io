@@ -8,18 +8,22 @@ For each page src/en/module_NN.md:
    Module_NN_Solutions (which imports Module_NN); ```isabelle fails blocks each go into a probe
    theory made of the module's earlier blocks plus the failing one; ```isabelle norun blocks are
    only shown. Unicode symbols are written as Isabelle symbols (\\<forall> etc.).
-2. Writes the theories and a ROOT file under out/isa/ and runs
+2. Writes the theories and a ROOT file under out/isa/ (out/isa-NN/ with --module NN, so that runs
+   for different modules can go on at the same time) and runs
    `isabelle build -o show_states`, then reads every message with `isabelle build_log -U -v`.
 3. Maps the messages to the blocks. A normal block must not produce an error; a fails block must.
    The ```output block after an isabelle block must equal what Isabelle printed for the last
    command of that block (with --update, it is rewritten).
-4. Writes the downloadable theories, a ROOT file and a ZIP under out/theories/.
+4. Writes the downloadable theories, a ROOT file and a ZIP under out/theories/ (full runs only).
 
 Output block options (first line, after ```output):
   (none)   every message of the block's last line that has messages
   state    only the proof state of that line
   result   everything but the proof state
   all      every message of every line of the block
+  varies   output that differs between runs (Sledgehammer, timings): filled in by --update when the
+           block is empty, never compared afterwards; the page labels it as an example run
+           (combine with the others, e.g. ```output result varies)
 """
 import argparse
 import os
@@ -315,7 +319,9 @@ def main():
         print('no Isabelle blocks found')
         return
 
-    isa_dir = os.path.join(OUT, 'isa')
+    # A run for some modules only uses its own directory, so that runs for different modules can go on
+    # at the same time; only a full run writes the downloads.
+    isa_dir = os.path.join(OUT, 'isa' if not wanted else 'isa-' + '-'.join(sorted(wanted)))
     sessions = write_sessions(plans, isa_dir)
     build = run([args.isabelle, 'build', '-d', isa_dir, '-j', args.jobs] + sessions)
     log = run([args.isabelle, 'build_log', '-U', '-v'] + sessions)
@@ -351,7 +357,10 @@ def main():
                     want = '\n\n'.join(got).split('\n') if got else []
                     have = b['output']['text']
                     checked += 1
-                    if [x.rstrip() for x in have] != [x.rstrip() for x in want]:
+                    varies = 'varies' in b['output']['opts']
+                    if varies and [x for x in have if x.strip()] and want:
+                        pass        # captured once from a real run; differs between runs (e.g. Sledgehammer)
+                    elif [x.rstrip() for x in have] != [x.rstrip() for x in want]:
                         problems += 1
                         print(f'--- {rel}:{b["output"]["start"] + 1}: output differs')
                         for x in have:
@@ -382,7 +391,8 @@ def main():
                 fh.write('\n'.join(lines))
             print(f'updated {len(edits)} output block(s) in {os.path.relpath(path, ROOT)}')
 
-    write_downloads(plans, symbols)
+    if not wanted:
+        write_downloads(plans, symbols)
     print(f'{len(plans)} module(s), {sum(len(t["blocks"]) for p in plans for t in p["theories"] if t["expect_error"] is None)} '
           f'block(s) checked with {VERSION}; {checked} output block(s); '
           + ('all outputs match' if not problems else f'{problems} problem(s)'))

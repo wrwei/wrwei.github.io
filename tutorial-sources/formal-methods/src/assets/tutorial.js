@@ -206,7 +206,7 @@
     setupQuizzes()
     setupProgress()
     setupChrome()
-    if (window.GitWidgets && window.GitWidgets.mountAll) window.GitWidgets.mountAll()
+    if (window.FMWidgets && window.FMWidgets.mountAll) window.FMWidgets.mountAll()
     if (location.hash) { var t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView() }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start)

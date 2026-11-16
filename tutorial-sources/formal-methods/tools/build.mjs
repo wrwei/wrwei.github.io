@@ -158,8 +158,7 @@ ${nav}
   </main>
 </div>
 ${footer(lang)}
-<script src="assets/widgets.js" defer></script>
-<script src="assets/tutorial.js" defer></script>
+${widgetScripts(env.widgets)}<script src="assets/tutorial.js" defer></script>
 </body></html>
 `
   fs.writeFileSync(path.join(OUT, pageFile(`module_${pad(l.n)}`, lang)), page)
@@ -189,12 +188,18 @@ ${html}
   </main>
 </div>
 ${footer(lang)}
-<script src="assets/widgets.js" defer></script>
 <script src="assets/tutorial.js" defer></script>
 </body></html>
 `
   fs.writeFileSync(path.join(OUT, pageFile(name, lang)), page)
   return env
+}
+
+// Script tags for the widgets a page uses: the shared core first, then one file per widget.
+function widgetScripts(names) {
+  const used = [...new Set(names.filter(Boolean))].filter(n => fs.existsSync(path.join(ROOT, 'src', 'widgets', `${n}.js`)))
+  for (const n of new Set(names.filter(Boolean))) if (!used.includes(n)) problems.push(`widget ${n} has no src/widgets/${n}.js`)
+  return used.length ? ['_core', ...used].map(n => `<script src="assets/widgets/${n}.js" defer></script>\n`).join('') : ''
 }
 
 function renderIndex(lang, list) {
@@ -242,9 +247,12 @@ function copyAssets() {
     }
   }
   copyDir(path.join(ROOT, 'src', 'assets'), ad)
+  // Each widget is its own script (assets/widgets/NAME.js), so that an error in one cannot stop the others.
   const wd = path.join(ROOT, 'src', 'widgets')
-  const parts = fs.existsSync(wd) ? fs.readdirSync(wd).filter(f => f.endsWith('.js')).sort().map(f => `/* ---- ${f} ---- */\n` + read(path.join(wd, f))) : []
-  fs.writeFileSync(path.join(ad, 'widgets.js'), parts.join('\n;\n') || '/* no widgets */\n')
+  fs.rmSync(path.join(ad, 'widgets'), { recursive: true, force: true })
+  fs.mkdirSync(path.join(ad, 'widgets'), { recursive: true })
+  if (fs.existsSync(wd)) for (const f of fs.readdirSync(wd).filter(f => f.endsWith('.js'))) fs.copyFileSync(path.join(wd, f), path.join(ad, 'widgets', f))
+  fs.rmSync(path.join(ad, 'widgets.js'), { force: true })
   const katexDist = path.dirname(require.resolve('katex/dist/katex.min.css'))
   fs.copyFileSync(path.join(katexDist, 'katex.min.css'), path.join(ad, 'katex.min.css'))
   copyDir(path.join(katexDist, 'fonts'), path.join(ad, 'fonts'))

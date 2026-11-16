@@ -30,6 +30,7 @@ export const LABELS = {
     exercise: 'Exercise', solution: 'Show solution', figure: 'Figure', interactive: 'Try it',
     trouble: 'If something went wrong', copy: 'Copy', copied: 'Copied', quizReset: 'Try again',
     terminal: 'Terminal', isaTitle: 'Isabelle', isaFails: 'fails on purpose', isaNorun: 'not checked', output: 'Output',
+    varies: 'one run; yours may differ',
     tt: { tautology: 'Tautology: true in every row.', contradiction: 'Contradiction: false in every row.',
       satisfiable: n => `Satisfiable but not valid: true in ${n}.`, row: r => r === 1 ? '1 row' : `${r} rows` },
   },
@@ -39,6 +40,7 @@ export const LABELS = {
     exercise: '练习', solution: '查看解答', figure: '图', interactive: '动手试试',
     trouble: '如果出了问题', copy: '复制', copied: '已复制', quizReset: '重新作答',
     terminal: '终端', isaTitle: 'Isabelle', isaFails: '故意出错的例子', isaNorun: '未检查', output: '输出',
+    varies: '某一次运行的结果，你的可能不同',
     tt: { tautology: '重言式：每一行都为真。', contradiction: '矛盾式：每一行都为假。',
       satisfiable: n => `可满足但非有效：${n}为真。`, row: r => `${r} 行` },
   },
@@ -213,7 +215,7 @@ function renderIsabelle(content, info, L) {
   return `<div class="isa${fails ? ' isa-fails' : ''}"><div class="isa-bar"><span class="isa-title">${L.isaTitle}</span>${tag}${fails ? '' : `<button type="button" class="copy-btn" data-copy="${escapeHtml(text)}">${L.copy}</button>`}</div><pre class="isa-body"><code>${isaHighlight(text)}</code></pre></div>\n`
 }
 
-function renderOutput(content, L) {
+function renderOutput(content, L, varies) {
   const lines = content.replace(/\n$/, '').split('\n')
   let html = '', cls = null, buf = []
   const flush = () => { if (buf.length) html += cls ? `<span class="${cls}">${buf.join('\n')}</span>\n` : buf.join('\n') + '\n'; buf = [] }
@@ -224,7 +226,7 @@ function renderOutput(content, L) {
     buf.push(subscripts(escapeHtml(text)))
   }
   flush()
-  return `<div class="isa-output"><div class="isa-output-bar">${L.output}</div><pre class="isa-output-body"><code>${html.replace(/\n$/, '')}</code></pre></div>\n`
+  return `<div class="isa-output${varies ? ' varies' : ''}"><div class="isa-output-bar">${L.output}${varies ? `<span class="isa-varies">${L.varies}</span>` : ''}</div><pre class="isa-output-body"><code>${html.replace(/\n$/, '')}</code></pre></div>\n`
 }
 
 // ---------- terminal (shell commands: installing Isabelle, building theories) ----------
@@ -277,17 +279,18 @@ export function parseFormula(src) {
   }
   let k = 0
   const peek = () => toks[k], eat = t => { if (toks[k] !== t) throw new Error(`expected ${t}`); k++ }
-  const bin = (next, op) => () => { const l = next(); if (peek() === op) { k++; return { op, l, r: bin(next, op)() } } return l }
+  // Isabelle's priorities: ¬ 40, ∧ 35, ∨ 30, ⟶ and ⟷ both 25; all binary ones group to the right.
+  const bin = (next, ...ops) => function self() { const l = next(); const op = peek(); if (ops.includes(op)) { k++; return { op, l, r: self() } } return l }
   const atom = () => {
     const t = toks[k++]
     if (t === '¬') return { op: '¬', l: atom() }
-    if (t === '(') { const e = iff(); eat(')'); return e }
+    if (t === '(') { const e = top(); eat(')'); return e }
     if (t === 'True' || t === 'False') return { op: 'const', v: t === 'True' }
     if (t && /^[A-Za-z]/.test(t)) return { op: 'var', name: t }
     throw new Error(`unexpected ${t || 'end of formula'}`)
   }
-  const and = bin(atom, '∧'), or = bin(and, '∨'), imp = bin(or, '⟶'), iff = bin(imp, '⟷')
-  const f = iff()
+  const and = bin(atom, '∧'), or = bin(and, '∨'), top = bin(or, '⟶', '⟷')
+  const f = top()
   if (k !== toks.length) throw new Error(`unexpected ${toks[k]}`)
   return f
 }
@@ -404,7 +407,7 @@ export function makeMd({ lang = 'en', figDirs = [] } = {}) {
     const kind = info.split(/\s+/)[0] || ''
     if (kind === 'quiz') return renderQuiz(md, t.content, env)
     if (kind === 'isabelle') { env.counts.isabelle++; return renderIsabelle(t.content, info, L) }
-    if (kind === 'output') { env.counts.output++; return renderOutput(t.content, L) }
+    if (kind === 'output') { env.counts.output++; return renderOutput(t.content, L, /\bvaries\b/.test(info)) }
     if (kind === 'prooftree') { env.counts.prooftree++; return renderProofTree(t.content, env) }
     if (kind === 'terminal') { env.counts.terminal = (env.counts.terminal || 0) + 1; return renderTerminal(t.content, L) }
     if (kind === 'truthtable') { env.counts.truthtable++; return renderTruthTable(t.content, L, env) }
