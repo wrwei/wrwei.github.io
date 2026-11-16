@@ -78,6 +78,13 @@ only as good as its specification: a proof against a specification that says too
 little. Section 12.4 shows what happens when half of a specification is missing.
 :::
 
+::: note
+The correctness in this module is **functional correctness**: it is about which result a program
+computes. How long it takes and how much memory it uses are other properties, with specifications of
+their own. They can be verified too, but this module does not; Section 12.6 points to a library theory
+that does it for one of the programs here.
+:::
+
 ## Insertion sort and its specification {#isort}
 
 ### The program {#isort-program}
