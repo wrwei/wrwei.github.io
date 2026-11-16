@@ -175,7 +175,8 @@ Blocks:
         [A ∧ B]¹
   ```
 
-- ` ```truthtable ` — one propositional formula (with optional sub-formula columns after `|`); the
+- ` ```truthtable ` — one propositional formula on the first line (optional sub-formula columns on the
+  following lines); the
   build computes the table and the verdict (tautology, contradiction, satisfiable).
 - ` ```quiz ` — as in the other series (`? question`, `- [x]` right answer, `> explanation`).
 - Mathematics in prose: `$...$` and `$$...$$` (KaTeX). Logic in prose uses the same symbols as Isabelle
