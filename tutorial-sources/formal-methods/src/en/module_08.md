@@ -9,7 +9,7 @@ goals:
   - Use λ-abstraction, currying and partial application
   - Define data types, and functions on them with `definition`, `fun` and `primrec`
   - Compute with lists and numbers, and explain overloaded notation with type classes
-  - Explain why every function must terminate, and read Isabelle's termination messages
+  - Explain why every function must terminate, read Isabelle's termination messages, and supply a measure when Isabelle cannot find one
   - Generate Haskell code from your definitions with `export_code`
 imports: Main
 ---
@@ -1544,6 +1544,8 @@ value "sum_from 3 5"
 ```
 
 ```output
+"12"
+  :: "nat"
 ```
 
 The manual *Defining Recursive Functions in Isabelle/HOL*, under **functions** in the Documentation
@@ -2018,6 +2020,14 @@ the entries of the result matrix. Then try it.
    ```
 
    ```output all
+   consts
+     merge :: "'a list ⇒ 'a list ⇒ 'a list"
+
+   Found termination order:
+     "(λp. length (snd p)) <*mlex*> (λp. length (fst p)) <*mlex*> {}"
+
+   "[1, 2, 3, 4, 6, 7]"
+     :: "nat list"
    ```
 
    There are two recursive calls. The first makes the first list shorter and keeps the second; the
@@ -2035,6 +2045,21 @@ the entries of the result matrix. Then try it.
    ```
 
    ```output
+   consts
+     forever :: "nat ⇒ nat"
+
+   *** Unfinished subgoals:
+   *** (a, 1, <):
+   ***  1. False
+   *** Calls:
+   ***   a) n ~> n + 1
+   *** Measures:
+   ***   1) size
+   *** Result matrix:
+   ***     1
+   *** a:  F
+   ***
+   *** Could not find lexicographic termination order.
    ```
 
    The call goes from `n` to `n + 1`, so the size grows, and the matrix entry is `F`: the claim that the
@@ -2059,6 +2084,8 @@ the entries of the result matrix. Then try it.
    ```
 
    ```output
+   "7"
+     :: "nat"
    ```
 
    `count_up i n` counts the steps from `i` up to `n`, so it equals `n - i`, here 7.

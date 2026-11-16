@@ -16,7 +16,7 @@ def fig_02_1(L):
                     conn='connective', atom='atom'),
          'zh': dict(title='一条需求的语法树', main='主联结词', sit='某一种情形',
                     res='公式的值', broken='需求被违反',
-                    how=['从叶子往上计算：', '每个联结词合并', '其子结点的值。'],
+                    how=['从叶子开始往上算：', '每个联结词的值由', '其子结点的值算出。'],
                     conn='联结词', atom='原子')}[L]
     s = SVG(760, 340, T['title'])
     # nodes: name -> (x, y, label, is_connective, value)
@@ -63,9 +63,9 @@ def fig_02_2(L):
                     contra='Contradictions', contrak='true in no row (unsatisfiable)',
                     neg='¬ swaps these two classes', negc='¬ keeps a contingent formula contingent'),
          'zh': dict(title='重言式、可满足但非有效的公式与矛盾式', all='所有公式',
-                    sat='可满足的公式', satk='至少在一行中为真', taut='重言式', tautk='每一行都为真',
-                    cont='可满足但非有效', contk=['有的行为真，', '有的行为假'],
-                    contra='矛盾式', contrak='没有一行为真（不可满足）',
+                    sat='可满足的公式', satk='至少在一行中为真', taut='重言式', tautk='在每一行中都为真',
+                    cont='可满足但非有效', contk=['在一些行中为真，', '在另一些行中为假'],
+                    contra='矛盾式', contrak='任何一行都不为真（不可满足）',
                     neg='¬ 使这两类互换', negc='¬ 作用于这类公式，结果仍属这一类')}[L]
     s = SVG(760, 352, T['title'])
     s.rect(14, 14, 732, 324, fill=C['bg'], stroke=C['border'], r=16, sw=1.5)

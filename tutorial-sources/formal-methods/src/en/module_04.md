@@ -1194,7 +1194,7 @@ lemma "card (f ` A) < card A ⟶ ¬ inj_on f A"
 
 ::: pitfall
 In Isabelle, `card` of an infinite set is 0. That keeps `card` a total function, but statements about
-`card` usually need the assumption `finite A`, as in the lemma above.
+`card` usually need the assumption `finite A`, as in the lemma about power sets above.
 
 ```isabelle
 lemma "card (UNIV :: nat set) = 0"

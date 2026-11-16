@@ -254,7 +254,8 @@ lemma "allows (grant u Read (grant v Write es)) v Write"
 
 ::: pitfall
 To the simplifier, `u = v` and `v = u` are different terms, and no rule in the simp set turns one into the
-other. So the order in which you write an equation can decide whether `simp` succeeds. State `allows_grant` with the sides of the equation swapped, and the same proof fails:
+other. So the order in which you write an equation can decide whether `simp` succeeds. State
+`allows_grant` with the sides of the equation swapped, and the same proof fails:
 
 ```isabelle fails
 lemma "allows (grant u p es) v q = ((v, q) = (u, p) ∨ allows es v q)"
@@ -494,7 +495,8 @@ definition may_delete :: "'u ⇒ 'u acl ⇒ bool" where
 ```
 
 The type `'u option` has the values `None`, for no result, and `Some v`, for the result `v`. `snd e` is the
-second component of `e`, its permission. After unfolding the definition, the simplifier gets stuck at the `case`:
+second component of `e`, its permission. After unfolding the definition, the simplifier gets stuck at the
+`case`:
 
 ```isabelle
 lemma "may_delete u es = (owner es = Some u)"
@@ -645,7 +647,9 @@ lemma "allows (grant u Read es) u Read"
   using [[simp_trace]] by simp
 ```
 
-The **trace** appears in the Output panel, below the proof state. For this proof it reads:
+The **trace** appears in the Output panel, below the proof state. The build that checks the outputs on
+these pages does not record traces, so this one was copied from a run of Isabelle2026. For this proof it
+reads:
 
 ```text
 [1]SIMPLIFIER INVOKED ON THE FOLLOWING TERM:
@@ -854,9 +858,9 @@ lemma "⟦used ≤ quota; new ≤ quota - used⟧ ⟹ used + new ≤ (quota :: n
   by linarith
 ```
 
-`linarith` proves goals of linear arithmetic over `nat`, `int` and `real`. Subtraction on `nat` is tricky, because
-`3 - 5 = 0` for natural numbers, and `linarith` takes care of it by distinguishing the cases
-`used ≤ quota` and `quota < used`. In fact `simp` proves this goal too: the simplifier calls a fast but
+`linarith` proves goals of linear arithmetic over `nat`, `int` and `real`. Subtraction on `nat` is
+tricky, because `3 - 5 = 0` for natural numbers, and `linarith` takes care of it by distinguishing the
+cases `used ≤ quota` and `quota < used`. In fact `simp` proves this goal too: the simplifier calls a fast but
 weaker version of the same procedure. Use `linarith` when `simp` and `auto` leave an arithmetic goal.
 
 `linarith` combines inequalities by adding multiples of them, as you would to solve a system of
@@ -934,9 +938,9 @@ as in `(2::int)`, whenever a number could belong to several types.
 ## Searching the library {#find}
 
 Even the library loaded by `Main` contains more than 20,000 theorems, and their names follow conventions
-that take a while to learn. `find_theorems` searches them by shape and by name. Type it in a theory, or use the **Query**
-panel of Isabelle/jEdit: its **Find Theorems** tab has a **Find:** field for the same criteria and an
-**Apply** button. A pattern is a term in quotes, with `_` for any term:
+that take a while to learn. `find_theorems` searches them by shape and by name. Type it in a theory, or
+use the **Query** panel of Isabelle/jEdit: its **Find Theorems** tab has a **Find:** field for the same
+criteria and an **Apply** button. A pattern is a term in quotes, with `_` for any term:
 
 ```isabelle
 find_theorems "rev (rev _)"
@@ -1205,8 +1209,9 @@ recursive functions on lists, Nitpick often runs out of time; Quickcheck is the 
 
 The goal `x * x ≤ y * y` from Section 9.5 needed the lemma `mult_le_mono`. Finding it with `find_theorems`
 took some thought. **Sledgehammer** searches for you. It hands the goal, together with up to about a
-thousand library facts that look relevant, to several automatic theorem provers that run outside Isabelle. If one of
-them finds a proof, Sledgehammer turns it into a one-line Isabelle proof that you can paste into your theory.
+thousand library facts that look relevant, to several automatic theorem provers that run outside
+Isabelle. If one of them finds a proof, Sledgehammer turns it into a one-line Isabelle proof that you can
+paste into your theory.
 
 ::: figure id=fig-09-2
 From a goal to a checked proof. Sledgehammer selects facts, translates the problem for external provers and
@@ -1269,8 +1274,8 @@ Done
 
 Read the output from the top. "Sledgehammering..." means that the provers have started. Each
 "… found a proof..." comes from one prover. That prover's suggestion follows, at once or a few lines
-later, as "prover: Try this: …", with the time the suggested proof took to check in parentheses. "Duplicate proof" means that a prover found a proof that
-was already suggested. "Done" means that all provers have finished. In Isabelle/jEdit you click a
+later, as "prover: Try this: …", with the time the suggested proof took to check in parentheses.
+"Duplicate proof" means that a prover found a proof that was already suggested. "Done" means that all provers have finished. In Isabelle/jEdit you click a
 suggestion to insert it. Choose a short and fast one, and replace the `sledgehammer` line with it. Here
 cvc5's suggestion is the proof you found by hand in Section 9.6:
 
@@ -1485,18 +1490,20 @@ Inner parts first:
 
 1. `revoke u [(u, Read)]` matches the second equation of `revoke`, with `(u, Read)` for `e` and `[]` for
    `es`: it becomes `if fst (u, Read) = u then revoke u [] else (u, Read) # revoke u []`.
-2. In the condition, `fst (u, Read)` becomes `u` by `fst_conv`, and then `u = u` becomes `True` by
-   `(x = x) = True`.
-3. `if True then revoke u [] else …` becomes `revoke u []` by `if_True`.
-4. `revoke u []` becomes `[]` by the first equation of `revoke`.
-5. `allows [] u Read` becomes `False` by the first equation of `allows`.
+2. Now the parts of this new term. In the condition, `fst (u, Read)` becomes `u` by `fst_conv`, and then
+   `u = u` becomes `True` by `(x = x) = True`. In both branches, `revoke u []` becomes `[]` by the first
+   equation of `revoke`.
+3. `if True then [] else [(u, Read)]` becomes `[]` by `if_True`.
+4. `allows [] u Read` becomes `False` by the first equation of `allows`.
 
 ```isabelle
 lemma "allows (revoke u [(u, Read)]) u Read = False"
   by (simp only: revoke.simps allows.simps fst_conv simp_thms if_True)
 ```
 
-After step 5 the lemma reads `False = False`, which `(x = x) = True` from `simp_thms` turns into `True`.
+After step 4 the lemma reads `False = False`, which `(x = x) = True` from `simp_thms` turns into `True`.
+(Rewriting in another order, for example resolving the `if` before simplifying its branches, reaches the
+same result.)
 :::
 ::::
 

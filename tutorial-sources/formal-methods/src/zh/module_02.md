@@ -1,178 +1,135 @@
 ---
-title: Propositional logic
+title: 命题逻辑
 part: 1
-lead: Read and write formulas built with ¬, ∧, ∨, ⟶ and ⟷, decide with truth tables whether they are tautologies, equivalences or valid arguments, put them into normal forms, and use Isabelle to check requirements written as formulas.
+lead: 读写由 ¬、∧、∨、⟶ 和 ⟷ 构成的公式，用真值表判定公式是不是重言式、两个公式是否等价、论证是否有效，把公式化为范式，并用 Isabelle 检查写成公式的需求。
 minutes: 210
-needs: Module 1
+needs: 模块 1
 goals:
-  - Read and write formulas with ¬, ∧, ∨, ⟶ and ⟷, and know how Isabelle groups them
-  - Compute truth tables and classify a formula as a tautology, a contradiction or contingent
-  - Transform formulas with the equivalence laws and into the normal forms NNF, CNF and DNF
-  - Tell valid argument forms from invalid ones, and show a counterexample for an invalid one
-  - Write requirements as formulas, check that they are consistent and that a property follows from them
-  - Prove tautologies in Isabelle with `simp`, `blast` and `auto`, and find counterexamples with `quickcheck` and `nitpick`
+  - 读写含有 ¬、∧、∨、⟶ 和 ⟷ 的公式，并了解 Isabelle 按怎样的优先级和结合方向读它们
+  - 计算真值表，并判断一个公式是重言式、矛盾式，还是可满足但非有效的公式
+  - 用等价定律变换公式，并把公式化为否定范式、合取范式和析取范式
+  - 区分有效和无效的论证形式，并为无效的论证形式给出反例
+  - 把需求写成公式，检查它们是否一致，以及某条性质是否能由它们推出
+  - 在 Isabelle 中用 `simp`、`blast` 和 `auto` 证明重言式，用 `quickcheck` 和 `nitpick` 寻找反例
 imports: Main
 ---
 
-## Propositions and connectives {#connectives}
+## 命题与联结词 {#connectives}
 
-Module 1 wrote the specification of sorting with an "and" in the middle: sorted ys ∧ mset ys = mset xs.
-Requirements are full of such small words: *not*, *and*, *or*, *if … then*, *only if*, *unless*. Each
-builds a larger statement from smaller ones, and whether the larger one is true depends only on whether
-the smaller ones are. **Propositional logic** is the logic of these words. It is the simplest logic in
-this series, and already a useful one: SAT solvers, programs that decide questions of propositional
-logic, check hardware designs and software configurations every day. Every later logic, Isabelle's
-included, contains it.
+模块 1 写排序的规约时，中间用了一个“并且”：sorted ys ∧ mset ys = mset xs。需求里满是这样的小词：**不**、**并且**、**或者**、**如果……那么**、**仅当**、**除非**。每个小词都由较小的陈述构成一个较大的陈述，而较大的陈述是否为真，只取决于那些较小的陈述是否为真。**命题逻辑**（propositional logic）就是关于这些小词的逻辑。它是本系列中最简单的逻辑，却已经很有用：SAT 求解器是判定命题逻辑问题的程序，每天都在检查硬件设计和软件配置。后面的每一种逻辑，包括 Isabelle 的逻辑，都包含命题逻辑。
 
-One example runs through this module: the controller of a server-room door, which reads a badge reader,
-a PIN pad, the fire alarm and a lockdown switch, and decides whether to unlock the door.
+有一个例子贯穿本模块：机房门的控制器。它读取门禁读卡器、密码键盘、火警报警器和封锁开关的状态，然后决定是否给门解锁。
 
-::: definition Proposition
-A **proposition** is a statement that is either true or false. An **atomic proposition**, or **atom**,
-is one that is not built from other propositions. In formulas, atoms are names such as A, B or `fire`.
-Propositional logic never looks inside an atom: all it uses is whether the atom is true or false.
+::: definition 命题
+**命题**（proposition）是一个要么为真、要么为假的陈述。**原子命题**（atomic proposition），简称**原子**（atom），是不由其他命题构成的命题。在公式中，原子用名字表示，例如 A、B 或 `fire`。命题逻辑从不考察原子的内部：它用到的只是原子为真还是为假。
 :::
 
-For the door, "the fire alarm is on" and "a valid badge is shown" are atoms. A command such as "unlock
-the door" is not a proposition, and neither is "x > 3" until you know what x is; statements about
-variables are the subject of Module 3. Five **connectives** build larger propositions from smaller ones.
+对于这扇门，“火警正在报警”和“出示了有效的门禁卡”都是原子。像“给门解锁”这样的命令不是命题；在知道 x 是什么之前，“x > 3”也不是命题，关于变量的陈述是模块 3 的主题。有五个**联结词**（connective）可以由较小的命题构成较大的命题。
 
-::: definition Connectives
-| Formula | Read it as | Name | True exactly when |
+::: definition 联结词
+| 公式 | 读作 | 名称 | 恰好在以下情况为真 |
 |---|---|---|---|
-| ¬A | "not A" | negation | A is false |
-| A ∧ B | "A and B" | conjunction | A and B are both true |
-| A ∨ B | "A or B" | disjunction | at least one of A and B is true |
-| A ⟶ B | "A implies B", "if A then B" | implication | A is false, or B is true |
-| A ⟷ B | "A if and only if B" | equivalence | A and B are both true, or both false |
+| ¬A | “非 A” | 否定（negation） | A 为假 |
+| A ∧ B | “A 并且 B” | 合取（conjunction） | A 和 B 都为真 |
+| A ∨ B | “A 或 B” | 析取（disjunction） | A 和 B 中至少有一个为真 |
+| A ⟶ B | “A 蕴涵 B”，“如果 A，那么 B” | 蕴涵（implication） | A 为假，或者 B 为真 |
+| A ⟷ B | “A 当且仅当 B” | 等价（equivalence），也称双条件 | A 和 B 同为真，或同为假 |
 
-There are also two constants: `True`, which is always true, and `False`, which is always false. In
-A ⟶ B, A is the **antecedent** and B the **consequent**.
+此外还有两个常量：`True` 总是为真，`False` 总是为假。在 A ⟶ B 中，A 是**前件**（antecedent），B 是**后件**（consequent）。
 :::
 
-Section 2.3 makes the last column exact. In Isabelle/jEdit you type the symbols with the abbreviations
-from Module 1: `~` for ¬, `&` for ∧, `|` for ∨, `-->` for ⟶ and `<-->` for ⟷.
+第 2.3 节会把最后一列说得更精确。在 Isabelle/jEdit 中，用模块 1 中的缩写输入这些符号：`~` 输入 ¬，`&` 输入 ∧，`|` 输入 ∨，`-->` 输入 ⟶，`<-->` 输入 ⟷。
 
-### From English to formulas {#english}
+### 从日常语言到公式 {#english}
 
-English has many ways to express each connective:
+中文里，每个联结词都有许多种说法：
 
-| English | Formula |
+| 中文说法 | 公式 |
 |---|---|
-| not A; it is not the case that A | ¬A |
-| A and B; A but B; A although B | A ∧ B |
-| A or B (or both) | A ∨ B |
-| either A or B, but not both | ¬(A ⟷ B) |
-| neither A nor B | ¬A ∧ ¬B |
-| if A then B; B if A; B whenever A; A only if B | A ⟶ B |
-| A is sufficient for B; B is necessary for A | A ⟶ B |
-| A unless B | ¬B ⟶ A, which says the same as A ∨ B |
-| A if and only if B; A exactly when B | A ⟷ B |
+| 非 A；并非 A；A 不成立 | ¬A |
+| A 并且 B；A 而且 B；A 但是 B；虽然 A，但是 B | A ∧ B |
+| A 或者 B（也可以两者都成立） | A ∨ B |
+| 要么 A，要么 B，但不会两者都成立 | ¬(A ⟷ B) |
+| 既不 A，也不 B | ¬A ∧ ¬B |
+| 如果 A，那么 B；只要 A，就 B；每当 A，就 B；A 仅当 B；只有 B，才 A | A ⟶ B |
+| A 是 B 的充分条件；B 是 A 的必要条件 | A ⟶ B |
+| 除非 B，否则 A；A，除非 B | ¬B ⟶ A，它与 A ∨ B 意思相同 |
+| A 当且仅当 B；A 恰好在 B 成立时成立 | A ⟷ B |
 
-Two entries deserve a second look. **Or** is inclusive in logic: A ∨ B is true when both A and B are
-true, whereas the "or" of "tea or coffee?" means one but not both, which is *exclusive or*, ¬(A ⟷ B).
-And **but** adds a contrast that logic ignores: "the badge is valid but the door stays shut" is
-`badge ∧ ¬ opens`.
+其中有两行值得再看一眼。在逻辑中，**或**是相容的：A 和 B 都为真时，A ∨ B 也为真；而“喝茶还是喝咖啡？”中的“还是”表示只选其一、不能都要，这是**异或**（exclusive or），即 ¬(A ⟷ B)。**但是**带有一层转折的意味，而逻辑不理会这层意味：“门禁卡有效，但是门仍然关着”就是 `badge ∧ ¬ opens`。
 
 ::: pitfall
-"A only if B" is A ⟶ B, not B ⟶ A. "The door opens only if the badge is valid" says that whenever the
-door opens, the badge was valid: `opens ⟶ badge`. It does not say that a valid badge opens the door;
-that would be `badge ⟶ opens`, "the door opens if the badge is valid". A requirement with "only if"
-limits what the system may do; it never forces the system to act.
+“A 仅当 B”是 A ⟶ B，而不是 B ⟶ A。“仅当门禁卡有效时，门才打开”（也可以说“只有门禁卡有效，门才打开”）的意思是：只要门打开了，门禁卡就是有效的，即 `opens ⟶ badge`。它并没有说有效的门禁卡会让门打开；那是 `badge ⟶ opens`，即“如果门禁卡有效，门就打开”。带有“仅当”的需求限制系统可以做什么，但从不强迫系统做什么。
 :::
 
-::: example Formalising an access rule
-The security team's first requirement reads: *"The door opens only if a valid badge is shown and the
-correct PIN is entered, unless the fire alarm is on."* Choose an atom for each basic statement:
+::: example 把一条门禁规则形式化
+安全团队的第一条需求是：“仅当出示了有效的门禁卡并输入了正确的密码时，门才打开，除非火警正在报警。”为每个基本陈述选一个原子：
 
-| Atom | Meaning |
+| 原子 | 含义 |
 |---|---|
-| `opens` | the door unlocks |
-| `badge` | a valid badge is shown |
-| `pin` | the correct PIN is entered |
-| `fire` | the fire alarm is on |
+| `opens` | 门解锁 |
+| `badge` | 出示了有效的门禁卡 |
+| `pin` | 输入了正确的密码 |
+| `fire` | 火警正在报警 |
 
-"The door opens only if a valid badge is shown and the correct PIN is entered" is
-`opens ⟶ badge ∧ pin`, and "X unless F" is ¬F ⟶ X, so the requirement is
+“仅当出示了有效的门禁卡并输入了正确的密码时，门才打开”是 `opens ⟶ badge ∧ pin`，而“X，除非 F”是 ¬F ⟶ X，所以这条需求是
 
 $$
 \lnot \mathit{fire} \imp (\mathit{opens} \imp \mathit{badge} \land \mathit{pin})
 $$
 
-An equally natural reading is "the door may open only when there is a valid badge and the right PIN, or
-a fire":
+另一种同样自然的理解是“只有出示了有效的门禁卡并输入了正确的密码，或者发生了火警，门才可以打开”：
 
 $$
 \mathit{opens} \imp \mathit{badge} \land \mathit{pin} \lor \mathit{fire}
 $$
 
-The two formulas look different but say the same thing, as Exercise 2.3 shows. Notice what the
-requirement does *not* say: that a valid badge with the right PIN does open the door. "Only if" states a
-necessary condition, so another requirement must say when the door has to open.
+这两个公式看起来不同，说的却是同一件事，练习 2.3 会说明这一点。请注意这条需求**没有**说什么：它没有说有效的门禁卡加上正确的密码就一定能打开门。“仅当”陈述的是必要条件，所以门在什么时候必须打开，要由另一条需求来规定。
 :::
 
-## The structure of formulas {#syntax}
+## 公式的结构 {#syntax}
 
-To evaluate formulas, transform them or let a computer check them, you need to know exactly what counts
-as a formula and how each one is put together.
+要对公式求值、变换公式，或者让计算机检查公式，你需要确切地知道什么才算一个公式，以及每个公式是怎样构造起来的。
 
-### Formation rules {#formation}
+### 形成规则 {#formation}
 
-::: definition Formula
-The **formulas** of propositional logic are built by these rules, and only by them:
+::: definition 公式
+命题逻辑的**公式**（formula）由下面这些规则构造，而且只由这些规则构造：
 
-1. Every atom is a formula, and so are `True` and `False`.
-2. If φ is a formula, then ¬φ is a formula.
-3. If φ and ψ are formulas, then (φ ∧ ψ), (φ ∨ ψ), (φ ⟶ ψ) and (φ ⟷ ψ) are formulas.
+1. 每个原子都是公式，`True` 和 `False` 也是公式。
+2. 如果 φ 是公式，那么 ¬φ 是公式。
+3. 如果 φ 和 ψ 是公式，那么 (φ ∧ ψ)、(φ ∨ ψ)、(φ ⟶ ψ) 和 (φ ⟷ ψ) 都是公式。
 :::
 
-The Greek letters φ ("phi") and ψ ("psi") stand for any formulas, not only atoms. For example, A, B and C
-are formulas by rule 1, so ¬A is a formula by rule 2, (¬A ∧ B) by rule 3, and ((¬A ∧ B) ⟶ C) by rule 3
-again. A ∧ ∨ B and A ¬ B are not formulas: no rule produces them. A definition of this shape, with basic
-cases and rules that build larger objects from smaller ones, is an **inductive definition**. In Module 5
-such definitions support proofs by induction and become datatypes in Isabelle.
+希腊字母 φ（phi）和 ψ（psi）代表任意公式，而不只是原子。例如，由规则 1，A、B 和 C 是公式；于是由规则 2，¬A 是公式；由规则 3，(¬A ∧ B) 是公式；再用一次规则 3，((¬A ∧ B) ⟶ C) 也是公式。A ∧ ∨ B 和 A ¬ B 不是公式：没有哪条规则能产生它们。像这样由基本情形和“由较小的对象构造较大的对象”的规则组成的定义，叫做**归纳定义**（inductive definition）。在模块 5 中，这样的定义将支撑归纳证明，并在 Isabelle 中成为数据类型。
 
-Every formula remembers how it was built. Draw the last rule used as the root of a tree and the parts it
-combined as its children, and repeat for the parts: the result is the formula's **parse tree**
-(Figure 2.1).
+每个公式都记得自己是怎样构造出来的。把最后使用的那条规则画成一棵树的根，把它所组合的各部分画成根的子结点，再对各部分重复这一过程，得到的就是这个公式的**语法树**（parse tree），如图 2.1 所示。
 
 ::: figure id=fig-02-1
-The parse tree of `opens ⟶ badge ∧ pin ∨ fire`. Each inner node is a connective, and each node stands
-for the sub-formula written beside it. The T and F labels evaluate the formula for one situation, as
-Section 2.3 explains.
+`opens ⟶ badge ∧ pin ∨ fire` 的语法树。每个内部结点是一个联结词，每个结点代表写在它旁边的子公式。T 和 F 标记给出了这个公式在一种情形下的求值，第 2.3 节会解释。
 :::
 
-::: definition Sub-formula and main connective
-The **sub-formulas** of a formula are the formulas at the nodes of its parse tree, the formula itself
-included. The **main connective** is the connective at the root. A formula is named after its main
-connective: ¬(A ∧ B) is a negation, while ¬A ∧ B is a conjunction.
+::: definition 子公式与主联结词
+一个公式的**子公式**（sub-formula）是它的语法树各结点上的公式，包括这个公式本身。**主联结词**（main connective）是根结点上的联结词。公式按它的主联结词命名：¬(A ∧ B) 是一个否定式，而 ¬A ∧ B 是一个合取式。
 :::
 
-In Figure 2.1 the main connective is ⟶, so the requirement is an implication. Its sub-formulas are the
-four atoms, `badge ∧ pin`, `badge ∧ pin ∨ fire` and the whole formula.
+在图 2.1 中，主联结词是 ⟶，所以这条需求是一个蕴涵式。它的子公式是四个原子、`badge ∧ pin`、`badge ∧ pin ∨ fire` 以及整个公式。
 
-### Priorities and grouping {#priorities}
+### 优先级与结合方向 {#priorities}
 
-Rule 3 puts parentheses around every binary connective, so that each formula has exactly one parse
-tree. But the parentheses make formulas hard to read: the door requirement would be
-(opens ⟶ ((badge ∧ pin) ∨ fire)). School algebra solves the same problem with a convention: × binds more
-tightly than +, so 2 + 3 × 4 means 2 + (3 × 4). Logic has the same kind of convention: each connective
-has a **priority**, and a higher priority binds more tightly. In Isabelle, the binary connectives also
-**group to the right**:
+规则 3 在每个二元联结词两边都加上括号，这样每个公式都恰好只有一棵语法树。但括号让公式很难读：门禁需求就得写成 (opens ⟶ ((badge ∧ pin) ∨ fire))。中学代数用一个约定解决同样的问题：× 比 + 结合得更紧，所以 2 + 3 × 4 的意思是 2 + (3 × 4)。逻辑也有同样的约定：每个联结词有一个**优先级**（priority），优先级越高，结合得越紧。在 Isabelle 中，二元联结词还都**向右结合**（group to the right）：
 
-| Connective | Priority in Isabelle | Grouping |
+| 联结词 | Isabelle 中的优先级 | 结合方向 |
 |---|---|---|
-| ¬ | 40 | (applies to what follows) |
-| ∧ | 35 | to the right |
-| ∨ | 30 | to the right |
-| ⟶ | 25 | to the right |
-| ⟷ | 25 | to the right |
+| ¬ | 40 | （作用于后面的公式） |
+| ∧ | 35 | 向右 |
+| ∨ | 30 | 向右 |
+| ⟶ | 25 | 向右 |
+| ⟷ | 25 | 向右 |
 
-The numbers are Isabelle's own. In the library theory `HOL.thy`, where the connectives are introduced,
-∧ is declared `infixr 35` ("infix, grouping to the right, priority 35"), ∨ `infixr 30`, ⟶ and ⟷
-`infixr 25`, and ¬ has priority 40. So:
+这些数字取自 Isabelle 本身。在引入这些联结词的库理论 `HOL.thy` 中，∧ 被声明为 `infixr 35`（“中缀，向右结合，优先级 35”），∨ 为 `infixr 30`，⟶ 和 ⟷ 为 `infixr 25`，¬ 的优先级是 40。所以：
 
-| You write | It means |
+| 你写的 | 它的意思 |
 |---|---|
 | ¬A ∧ B | (¬A) ∧ B |
 | A ∧ B ∨ C | (A ∧ B) ∨ C |
@@ -181,21 +138,15 @@ The numbers are Isabelle's own. In the library theory `HOL.thy`, where the conne
 | A ⟶ B ⟶ C | A ⟶ (B ⟶ C) |
 | A ⟶ B ⟷ C | A ⟶ (B ⟷ C) |
 
-Grouping to the right suits implication: A ⟶ (B ⟶ C) reads "if A, then if B, then C", which says the
-same as "if A and B, then C", while (A ⟶ B) ⟶ C is rarely what anyone means. For ∧ and ∨ the grouping
-changes the parse tree but not the meaning (Section 2.5).
+向右结合很适合蕴涵：A ⟶ (B ⟶ C) 读作“如果 A，那么如果 B，那么 C”，它与“如果 A 并且 B，那么 C”意思相同；而 (A ⟶ B) ⟶ C 很少是人们想表达的意思。对于 ∧ 和 ∨，结合方向会改变语法树，但不改变意思（第 2.5 节）。
 
 ::: pitfall
-- ¬A ∧ B is (¬A) ∧ B. To negate the whole conjunction, write ¬(A ∧ B).
-- ⟶ and ⟷ have the same priority, so A ⟶ B ⟷ C means A ⟶ (B ⟷ C). Books and tools differ here; some
-  give ⟷ a lower priority than ⟶ and read the same text as (A ⟶ B) ⟷ C. Whenever you mix ⟶ and ⟷,
-  write the parentheses.
+- ¬A ∧ B 是 (¬A) ∧ B。要否定整个合取式，请写 ¬(A ∧ B)。
+- ⟶ 和 ⟷ 的优先级相同，所以 A ⟶ B ⟷ C 的意思是 A ⟶ (B ⟷ C)。在这一点上，各种书和工具的约定并不相同；有的让 ⟷ 的优先级低于 ⟶，把同样的文字读成 (A ⟶ B) ⟷ C。只要混用 ⟶ 和 ⟷，就把括号写出来。
 :::
 
 ::: isabelle
-Isabelle prints a formula with only the parentheses its priorities need, so it can show you how it read
-yours. `value`, which you met in Module 1, cannot compute a truth value for a formula with variables;
-for formulas like these, it prints the formula back. Put the cursor on each line in turn:
+Isabelle 打印公式时只保留优先级所需要的括号，所以它能告诉你它是怎样读你的公式的。你在模块 1 中见过的 `value` 无法为含变量的公式算出真值；对于下面这样的公式，它会把公式重新打印出来。把光标依次放在每一行上：
 
 ```isabelle
 value "(¬ A) ∧ (B ⟶ C)"
@@ -214,9 +165,7 @@ value "(A ⟶ B) ⟶ C"
   :: "bool"
 ```
 
-Isabelle dropped the parentheses that the priorities make unnecessary and kept those that change the
-meaning. The type `bool` in the output is the type of formulas: in Isabelle a formula is a term of type
-`bool`, whose only two values are `True` and `False`. One more example holds a surprise:
+Isabelle 去掉了按优先级来看多余的括号，保留了会改变意思的括号。输出中的类型 `bool` 是公式的类型：在 Isabelle 中，公式是类型为 `bool` 的项，这个类型只有 `True` 和 `False` 两个值。再看一个例子，结果会让你有点意外：
 
 ```isabelle
 value "A ⟶ (B ⟷ C)"
@@ -227,25 +176,18 @@ value "A ⟶ (B ⟷ C)"
   :: "bool"
 ```
 
-Isabelle prints ⟷ as `=`. For truth values, "if and only if" is equality: A ⟷ B holds exactly when A
-and B have the same value. The equals sign binds more tightly than every connective (its priority is
-50), so `A ⟶ B = C` means A ⟶ (B ⟷ C). In Isabelle's output, read `=` between two formulas as ⟷;
-Module 3 says more about the two.
+Isabelle 把 ⟷ 打印成 `=`。对于真值来说，“当且仅当”就是相等：A ⟷ B 成立，恰好是在 A 和 B 取值相同的时候。等号比所有联结词结合得都紧（它的优先级是 50），所以 `A ⟶ B = C` 的意思是 A ⟶ (B ⟷ C)。在 Isabelle 的输出中，把两个公式之间的 `=` 读作 ⟷；模块 3 会进一步讨论这两者。
 :::
 
-## Truth tables {#truth-tables}
+## 真值表 {#truth-tables}
 
-The connectives table in Section 2.1 described each connective in words. Truth tables make the
-descriptions exact.
+第 2.1 节的联结词表格用文字描述了每个联结词。真值表让这些描述变得精确。
 
-::: definition Valuation
-A **valuation** assigns a truth value, T (true) or F (false), to each atom. A valuation gives every
-formula a truth value: an atom gets its value from the valuation, `True` is T, `False` is F, and each
-connective combines the values of its parts according to its truth table below.
+::: definition 赋值
+**赋值**（valuation）给每个原子指定一个真值（truth value）：T（真）或 F（假）。这样，一个赋值就确定了每个公式的真值：原子的值来自赋值，`True` 为 T，`False` 为 F，每个联结词则按照下面它的真值表，由各部分的值组合出整体的值。
 :::
 
-Here are the truth tables of all the connectives in one table. Each row is one valuation of A and B, and
-each column gives the value of one formula in that row.
+下面把所有联结词的真值表合在一张表里。每一行是 A 和 B 的一种赋值，每一列给出一个公式在该行中的值。
 
 ```truthtable
 A ⟷ B
@@ -255,73 +197,51 @@ A ∨ B
 A ⟶ B
 ```
 
-The tables on these pages are computed from their formulas when the page is built, so they contain no
-slips. They list the atoms in alphabetical order, start with the row in which every atom is T, and end
-with a line that classifies the last column; Section 2.4 explains the words.
+这些页面上的真值表是在生成页面时根据公式计算出来的，所以不会有笔误。表中的原子按字母顺序排列，第一行是所有原子都为 T 的那一行，表格末尾有一句结论，给最后一列的公式归类；第 2.4 节会解释其中的用语。
 
-The column for A ⟶ B surprises most people. An implication is false in exactly one row: when its
-antecedent is true and its consequent false. When A is false, A ⟶ B is true whatever B is; it is then
-said to be **vacuously true**.
+A ⟶ B 这一列会让大多数人感到意外。蕴涵式恰好只在一行中为假：前件为真而后件为假的那一行。当 A 为假时，无论 B 是什么，A ⟶ B 都为真；这时称它为**空真**（vacuously true）。
 
 ::: analogy
-Think of A ⟶ B as a promise: "if you pass the exam, I will buy you dinner". The promise is broken only
-if you pass and I do not buy dinner. If you fail the exam, I have kept my promise whether I buy dinner
-or not.
+把 A ⟶ B 想象成一个承诺：“如果你考试及格，我就请你吃晚饭。”只有在你及格了而我没有请你吃饭时，这个承诺才被违背。如果你没及格，那么无论我请不请你吃饭，我都信守了承诺。
 :::
 
-For specifications this is what you want. The rule "during a lockdown, the door stays shut",
-`lockdown ⟶ ¬ opens`, constrains the door only during a lockdown; on an ordinary day it holds whatever
-the door does. Nor is implication about cause: "if 2 + 2 = 5, the door is open" is true, because its
-antecedent is false.
+对规约来说，这正是你想要的。规则“封锁期间，门保持关闭”，即 `lockdown ⟶ ¬ opens`，只在封锁期间约束门；在平常的日子里，无论门怎样，这条规则都成立。蕴涵也与因果无关：“如果 2 + 2 = 5，那么门是开着的”为真，因为它的前件为假。
 
-To find the value of a formula under a valuation, work up its parse tree from the atoms, applying the
-table of each connective on the way.
+要求出一个公式在某个赋值下的值，就从原子开始沿着语法树往上算，一路上应用每个联结词的真值表。
 
-::: example Evaluating the door requirement
-Someone shows a valid badge, types the wrong PIN, there is no fire, and the door opens. The valuation is
-opens = T, badge = T, pin = F, fire = F. Work up the tree of Figure 2.1:
+::: example 对门禁需求求值
+有人出示了有效的门禁卡，输错了密码，没有火警，门却打开了。这个赋值是 opens = T，badge = T，pin = F，fire = F。沿着图 2.1 的树往上算：
 
-1. `badge ∧ pin` is T ∧ F, which is F.
-2. `badge ∧ pin ∨ fire` is F ∨ F, which is F.
-3. `opens ⟶ badge ∧ pin ∨ fire` is T ⟶ F, which is F.
+1. `badge ∧ pin` 是 T ∧ F，即 F。
+2. `badge ∧ pin ∨ fire` 是 F ∨ F，即 F。
+3. `opens ⟶ badge ∧ pin ∨ fire` 是 T ⟶ F，即 F。
 
-The requirement is false in this situation: the controller has broken it. The labels in Figure 2.1 show
-the same computation.
+在这种情形下需求为假：控制器违反了它。图 2.1 中的标记展示的是同样的计算。
 :::
 
-::: definition Truth table
-The **truth table** of a formula has one row for each valuation of its atoms and gives the formula's
-value in each row. A formula with n atoms has $2^n$ rows, because each atom can be T or F independently
-of the others.
+::: definition 真值表
+一个公式的**真值表**（truth table）为它的原子的每一种赋值各列一行，并给出公式在每一行中的值。含 n 个原子的公式有 $2^n$ 行，因为每个原子都可以独立于其他原子取 T 或 F。
 :::
 
-::: example A truth table
-Here is the truth table of `opens ⟶ badge ∧ pin`, the first requirement without its fire exception,
-with a column for the sub-formula `badge ∧ pin`:
+::: example 一张真值表
+下面是 `opens ⟶ badge ∧ pin` 的真值表，也就是去掉火警这一例外的第一条需求；表中还有一列给出子公式 `badge ∧ pin` 的值：
 
 ```truthtable
 opens ⟶ badge ∧ pin
 badge ∧ pin
 ```
 
-The formula is false in exactly three rows: those in which the door opens without both a valid badge and
-the right PIN.
+这个公式恰好在三行中为假：就是门打开了，却没有同时具备有效门禁卡和正确密码的那三行。
 :::
 
-Truth tables always work, but they grow fast. The full door requirement, with `fire`, has 16 rows; ten
-atoms give 1,024 rows, twenty more than a million, and thirty more than a billion. Section 2.8 returns
-to this problem.
+真值表总是管用的，但它增长得很快。完整的门禁需求（含 `fire`）有 16 行；10 个原子有 1024 行，20 个原子有一百多万行，30 个原子则超过十亿行。第 2.8 节会再回到这个问题。
 
 ::: widget name=truth-table
-Type a formula, with symbols or in ASCII (`~ & | --> <-->`); the table updates as you type. Start with
-the full door requirement, `opens --> badge & pin | fire`: in how many rows is it false, and why? Then try
-the presets, and switch to **Compare** to see whether two formulas have the same truth table.
+输入一个公式，可以用符号，也可以用 ASCII 字符（`~ & | --> <-->`）；真值表会随着你的输入即时更新。先输入完整的门禁需求 `opens --> badge & pin | fire`：它在多少行中为假？为什么？然后试试示例按钮，再切换到**比较两个公式**，看看两个公式的真值表是否相同。
 :::
 
 ::: isabelle
-A valuation turns a formula into one without variables: replace each atom by `True` or `False`. `value`
-computes such a formula, and its result is one row of the truth table. Here is the row of Example 2.2,
-with opens = T, badge = T, pin = F and fire = F:
+一个赋值把公式变成不含变量的公式：把每个原子替换成 `True` 或 `False`。`value` 能计算这样的公式，结果就是真值表中的一行。下面是例 2.2 的那一行，其中 opens = T，badge = T，pin = F，fire = F：
 
 ```isabelle
 value "True ⟶ True ∧ False ∨ False"
@@ -332,8 +252,7 @@ value "True ⟶ True ∧ False ∨ False"
   :: "bool"
 ```
 
-With variables, `value` does not try the valuations for you. It prints the formula back, even when the
-formula is true in every row:
+如果公式含有变量，`value` 不会替你逐一尝试各种赋值。即使公式在每一行中都为真，它也只是把公式打印回来：
 
 ```isabelle
 value "A ∨ ¬ A"
@@ -344,64 +263,53 @@ value "A ∨ ¬ A"
   :: "bool"
 ```
 
-To show that a formula is true in every row you need a proof, the subject of the next section.
+要表明一个公式在每一行中都为真，你需要一个证明，这是下一节的主题。
 :::
 
-## Tautologies, contradictions and satisfiable formulas {#classify}
+## 重言式、矛盾式与可满足的公式 {#classify}
 
-Some formulas are true in every row of their truth table, some in none. These two extremes, and the
-formulas between them, are the central ideas of propositional logic.
+有些公式在其真值表的每一行中都为真，有些则在任何一行中都不为真。这两个极端，以及介于两者之间的公式，是命题逻辑的核心概念。
 
-::: definition Tautology, satisfiable, contradiction
-Let φ be a formula.
+::: definition 重言式、可满足、矛盾式
+设 φ 是一个公式。
 
-- φ is a **tautology**, or **valid**, if it is true under every valuation: every row of its truth table
-  is T.
-- φ is **satisfiable** if it is true under at least one valuation. A valuation that makes φ true
-  **satisfies** φ and is called a **model** of φ.
-- φ is a **contradiction**, or **unsatisfiable**, if it is true under no valuation.
-- φ is **contingent** if it is satisfiable but not a tautology. A valuation that makes φ false is a
-  **counterexample** to φ.
+- 如果 φ 在每个赋值下都为真，也就是它的真值表的每一行都是 T，就称 φ 是**重言式**（tautology），或者说 φ 是**有效的**（valid）。
+- 如果 φ 至少在一个赋值下为真，就称 φ 是**可满足的**（satisfiable）。使 φ 为真的赋值**满足**（satisfy）φ，称为 φ 的一个**模型**（model）。
+- 如果 φ 在任何赋值下都不为真，就称 φ 是**矛盾式**（contradiction），或者说 φ 是**不可满足的**（unsatisfiable）。
+- 如果 φ 是可满足的，但不是重言式，就称 φ 是**可满足但非有效的**（contingent）。使 φ 为假的赋值是 φ 的一个**反例**（counterexample）。
 :::
 
-The verdicts under the computed tables use these words, with "Satisfiable but not valid" for a
-contingent formula. The simplest tautology is the **law of excluded middle**: every proposition is true
-or false.
+计算出的真值表下方的结论用的就是这些说法：“重言式”“矛盾式”和“可满足但非有效”。最简单的重言式是**排中律**（law of excluded middle）：每个命题要么为真，要么为假。
 
 ```truthtable
 A ∨ ¬A
 ¬A
 ```
 
-Its opposite is the simplest contradiction:
+它的反面是最简单的矛盾式：
 
 ```truthtable
 A ∧ ¬A
 ¬A
 ```
 
-The requirement of Example 2.3 is contingent: three rows are counterexamples and the others satisfy it.
-Figure 2.2 shows how the classes fit together.
+例 2.3 中的需求是可满足但非有效的：有三行是反例，其余各行满足它。图 2.2 展示了这几类公式之间的关系。
 
 ::: figure id=fig-02-2
-Every formula is in exactly one of three classes. The satisfiable formulas include the tautologies.
-Negation turns each tautology into a contradiction and back, and turns contingent formulas into
-contingent formulas.
+每个公式恰好属于三类中的一类。可满足的公式包括重言式。否定把每个重言式变成矛盾式，也把矛盾式变成重言式；可满足但非有效的公式经过否定，仍然是可满足但非有效的。
 :::
 
-::: fact Negation and the three classes
-For every formula φ:
+::: fact 否定与三类公式
+对每个公式 φ：
 
-1. φ is a tautology if and only if ¬φ is a contradiction.
-2. φ is satisfiable if and only if ¬φ is not a tautology.
+1. φ 是重言式，当且仅当 ¬φ 是矛盾式。
+2. φ 是可满足的，当且仅当 ¬φ 不是重言式。
 :::
 
-The reason is that ¬ flips every row of the truth table. Fact 2.1 turns one question into another: to
-show that φ is a tautology, show that ¬φ has no model; to find a model of φ, look for a counterexample to
-¬φ. SAT solvers and Isabelle's Nitpick both rely on it (Sections 2.8 and 2.9).
+原因是 ¬ 把真值表的每一行都翻转过来。事实 2.1 把一个问题转化成另一个问题：要表明 φ 是重言式，就表明 ¬φ 没有模型；要找 φ 的模型，就去找 ¬φ 的反例。SAT 求解器和 Isabelle 的 Nitpick 都依赖这一点（第 2.8 节和第 2.9 节）。
 
-::: example Peirce's law
-Is ((A ⟶ B) ⟶ A) ⟶ A a tautology? Looking at it does not tell you. The truth table does:
+::: example 皮尔士定律
+((A ⟶ B) ⟶ A) ⟶ A 是重言式吗？光看是看不出来的。真值表能告诉你：
 
 ```truthtable
 ((A ⟶ B) ⟶ A) ⟶ A
@@ -409,14 +317,11 @@ A ⟶ B
 (A ⟶ B) ⟶ A
 ```
 
-Every row is T. The formula is called Peirce's law, after the logician Charles Sanders Peirce.
+每一行都是 T。这个公式叫做皮尔士定律（Peirce's law），得名于逻辑学家查尔斯·桑德斯·皮尔士（Charles Sanders Peirce）。
 :::
 
 ::: isabelle
-**Tautologies are lemmas.** When a lemma contains variables, Isabelle reads it as a claim about every
-value of the variables, as with `xs` in Module 1. In a formula, Isabelle infers from the connectives
-that the variables have type `bool`, so the claim is that the formula is true for every combination of
-`True` and `False`: proving the lemma shows that the formula is a tautology.
+**重言式就是引理。** 当一条引理含有变量时，Isabelle 把它理解为关于变量所有取值的断言，就像模块 1 中的 `xs` 那样。在公式中，Isabelle 根据联结词推断出变量的类型是 `bool`，所以这条断言说的是：公式对 `True` 和 `False` 的每一种组合都为真。证明了这条引理，就表明这个公式是重言式。
 
 ```isabelle
 lemma "A ∨ ¬ A"
@@ -432,16 +337,13 @@ goal (1 subgoal):
   by simp
 ```
 
-Three proof methods prove tautologies:
+有三种证明方法可以证明重言式：
 
-- `simp`, the simplifier from Module 1, rewrites the goal with equations it knows until it becomes
-  `True`.
-- `blast` searches for a proof: it takes the formula apart, considers cases and backtracks when a
-  choice leads nowhere. It either proves the goal completely or fails.
-- `auto` combines the simplifier with logical steps of the kind `blast` takes, and leaves behind what it
-  cannot prove.
+- `simp`，即模块 1 中的化简器，用它知道的等式重写目标，直到目标变成 `True`。
+- `blast` 搜索证明：它把公式拆开，分情况讨论，当某个选择走不通时就回溯。它要么完全证明目标，要么失败。
+- `auto` 把化简器与 `blast` 所用的那类逻辑步骤结合起来，并把它证明不了的部分留下来。
 
-Rewriting is not enough for every tautology. Peirce's law defeats `simp`:
+并不是每个重言式都能靠重写证明。皮尔士定律就难倒了 `simp`：
 
 ```isabelle fails
 lemma "((A ⟶ B) ⟶ A) ⟶ A"
@@ -454,23 +356,20 @@ lemma "((A ⟶ B) ⟶ A) ⟶ A"
 ***  1. ((A ⟶ B) ⟶ A) ⟶ A
 ```
 
-"Failed to apply initial proof method" means that `simp` could not even start: none of its equations
-applies to the goal. `blast` proves it:
+“Failed to apply initial proof method”（未能应用初始证明方法）的意思是 `simp` 根本无法开始：它的等式没有一条适用于这个目标。`blast` 则能证明它：
 
 ```isabelle
 lemma "((A ⟶ B) ⟶ A) ⟶ A"
   by blast
 ```
 
-So a failed proof does not mean that the formula is false. In this module, when `simp` fails, try
-`blast` or `auto`; Module 9 explains what each method can and cannot do.
+所以，证明失败并不意味着公式是假的。在本模块中，如果 `simp` 失败了，就试试 `blast` 或 `auto`；模块 9 会解释每种方法能做什么、不能做什么。
 :::
 
-What happens when the formula is not a tautology? Take A ⟶ B ⟶ A ∧ B ∧ C, which claims too much: from
-A and B it concludes not only A ∧ B but also C.
+如果公式不是重言式，会怎样？看 A ⟶ B ⟶ A ∧ B ∧ C，它断言得太多了：由 A 和 B，它不仅推出 A ∧ B，还推出了 C。
 
 ::: isabelle
-Every proof method fails, each in its own way. `simp` gets as far as it can and shows what is left:
+每种证明方法都会失败，各有各的失败方式。`simp` 尽可能地往前推进，然后显示剩下的部分：
 
 ```isabelle fails
 lemma "A ⟶ B ⟶ A ∧ B ∧ C"
@@ -483,9 +382,7 @@ lemma "A ⟶ B ⟶ A ∧ B ∧ C"
 ***  1. A ⟶ B ⟶ C
 ```
 
-The remaining goal, A ⟶ B ⟶ C, shows what is missing: nothing says that C holds. `blast` fails with
-"Failed to apply initial proof method", as above, because it never leaves a partial result. `auto` shows
-its remaining goal in a different notation:
+剩下的目标 A ⟶ B ⟶ C 显示了缺少什么：没有任何东西说明 C 成立。`blast` 失败时报告的是“Failed to apply initial proof method”，和上面一样，因为它从不留下部分结果。`auto` 用另一种记法显示它剩下的目标：
 
 ```isabelle fails
 lemma "A ⟶ B ⟶ A ∧ B ∧ C"
@@ -498,10 +395,9 @@ lemma "A ⟶ B ⟶ A ∧ B ∧ C"
 ***  1. ⟦A; B⟧ ⟹ C
 ```
 
-Read ⟦A; B⟧ ⟹ C as "assuming A and B, show C"; Module 7 explains this notation.
+把 ⟦A; B⟧ ⟹ C 读作“假设 A 和 B，证明 C”；模块 7 会解释这种记法。
 
-A failed proof cannot tell you whether the formula is false. To find out, ask for a counterexample with
-one of Isabelle's two tools for this, Quickcheck and Nitpick:
+证明失败不能告诉你公式是不是假的。要弄清这一点，就请 Isabelle 找反例。Isabelle 有两个找反例的工具，Quickcheck 和 Nitpick：
 
 ```isabelle
 lemma "A ⟶ B ⟶ A ∧ B ∧ C"
@@ -535,22 +431,14 @@ Nitpick found a counterexample:
   oops
 ```
 
-Both found the same counterexample: A and B true, C false. In that row the formula is T ⟶ T ⟶ F, which
-is F. Quickcheck *tests*: it evaluates the formula for one valuation after another until one makes it
-false. Nitpick *searches*: it translates the question into a satisfiability problem for a SAT solver
-(Section 2.8). For propositional formulas both answer at once. On a tautology both come back
-empty-handed, with "Quickcheck found no counterexample." and "Nitpick found no counterexample".
-Isabelle/jEdit runs Quickcheck automatically on every new lemma, as you saw in Module 1; Nitpick runs
-only when you call it.
+两者找到了同一个反例：A 和 B 为真，C 为假。在这一行中，公式是 T ⟶ T ⟶ F，即 F。Quickcheck 做的是**测试**：它对一个又一个赋值求公式的值，直到找到一个使公式为假的赋值。Nitpick 做的是**搜索**：它把问题转换成一个可满足性问题，交给 SAT 求解器（第 2.8 节）。对于命题公式，两者都能立即给出答案。对于重言式，两者都会空手而归，分别报告“Quickcheck found no counterexample.”（Quickcheck 没有找到反例）和“Nitpick found no counterexample”（Nitpick 没有找到反例）。正如你在模块 1 中看到的，Isabelle/jEdit 会对每条新引理自动运行 Quickcheck；Nitpick 则只在你调用它时才运行。
 :::
 
 ::: keyidea
-A proof shows that a formula is a tautology; a counterexample shows that it is not. A failed proof shows
-neither, because the method may have been too weak, and "no counterexample found" is not a proof. In
-Isabelle a question is settled only when `by …` succeeds or a counterexample appears.
+证明表明一个公式是重言式；反例表明它不是。失败的证明两者都不能表明，因为可能只是方法太弱；而“没有找到反例”也不是证明。在 Isabelle 中，只有当 `by …` 成功或者出现了反例时，问题才算有了定论。
 :::
 
-## 逻辑等价与等价律 {#equivalence}
+## 逻辑等价与等价定律 {#equivalence}
 
 A ⟶ B 和 ¬A ∨ B 看起来不同，却有相同的真值表。程序员每次改写一个条件时，都会遇到同样的问题：新的 `if` 判断和原来的一样吗？
 
@@ -574,7 +462,7 @@ A ⟶ B
 
 一小组等价式，即命题逻辑的**定律**（laws），能完成日常的大部分工作。每一条都可以用像上面那样的真值表来检查。
 
-::: fact 等价律
+::: fact 等价定律
 | 定律 | 等价式 |
 |---|---|
 | 双重否定律（double negation） | ¬¬A ≡ A |
@@ -591,7 +479,7 @@ A ⟶ B
 | 逆否律（contrapositive） | A ⟶ B ≡ ¬B ⟶ ¬A |
 | 蕴涵否定律（negated implication） | ¬(A ⟶ B) ≡ A ∧ ¬B |
 | 输出律（exportation） | A ∧ B ⟶ C ≡ A ⟶ B ⟶ C |
-| 等价律（equivalence） | A ⟷ B ≡ (A ⟶ B) ∧ (B ⟶ A) |
+| 双条件律（equivalence） | A ⟷ B ≡ (A ⟶ B) ∧ (B ⟶ A) |
 :::
 
 这些定律是用原子写出的，但它们对所有公式都成立，而且可以用在更大的公式内部：
@@ -808,7 +696,7 @@ lemma "A ∧ ¬ A ⟶ B"
 2. 把每个 φ ⟶ ψ 替换为 ¬φ ∨ ψ。
 3. 把每个 ¬ 向内推：把 ¬¬φ 替换为 φ，¬(φ ∧ ψ) 替换为 ¬φ ∨ ¬ψ，¬(φ ∨ ψ) 替换为 ¬φ ∧ ¬ψ，¬True 替换为 False，¬False 替换为 True。
 
-每一步都利用等价律、蕴涵律、双重否定律和德摩根律，把一个子公式替换成与它等价的公式，所以由事实 2.4，结果与最初的公式等价。
+每一步都利用双条件律、蕴涵律、双重否定律和德摩根律，把一个子公式替换成与它等价的公式，所以由事实 2.4，结果与最初的公式等价。
 
 ::: example 否定范式
 把 ¬(A ⟶ B ∧ C) 化为否定范式：
@@ -951,7 +839,7 @@ lemma "¬ ((A ∨ B) ∧ (¬ A ∨ C) ∧ (¬ B ∨ C) ∧ (¬ C ∨ D) ∧ ¬ D
   by sat
 ```
 
-为什么要信任求解器？你不必信任它。当求解器发现否定后的目标不可满足时，它还会返回推理的各个步骤，即一个归结证明（proof by resolution），而 Isabelle 会在内核中重放每一步：这正是模块 1 中的 LCF 思想。当目标不是重言式时，求解器会找到目标的否定的一个模型，于是 `sat` 失败，并给出这个赋值，也就是一个反例：
+为什么要信任求解器？你不必信任它。当求解器发现否定后的目标不可满足时，它还会返回推理的各个步骤，即一个归结证明（proof by resolution），而 Isabelle 会在内核中重放每一步：这正是模块 1 中的 LCF 思想。当目标不是重言式时，求解器会为目标的否定找到一个模型，于是 `sat` 失败，并给出这个赋值，也就是一个反例：
 
 ```isabelle fails
 lemma "A ⟶ B ⟶ A ∧ B ∧ C"
@@ -1239,7 +1127,7 @@ lemma "(¬ fire ⟶ (opens ⟶ badge ∧ pin)) ⟷ (opens ⟶ badge ∧ pin ∨ 
 
 ::: solution
 1. `warm ⟶ fast`, `¬ fast` ⊨ `¬ warm`（`warm`、`fast` 分别表示缓存是热的、请求很快）：否定后件式，有效。
-2. `ok ⟶ accepts`, `¬ ok` ⊨ `¬ accepts`（`ok` 表示“输入合法”，`accepts` 表示解析器接受输入）：否定前件，无效。反例：ok = F，accepts = T，即一个宽松的解析器接受了某个不合法的输入。
+2. `ok ⟶ accepts`, `¬ ok` ⊨ `¬ accepts`（`ok` 表示“输入合法”，`accepts` 表示“解析器接受输入”）：否定前件，无效。反例：ok = F，accepts = T，即一个宽松的解析器接受了某个不合法的输入。
 3. `tls ∨ internal`, `¬ internal` ⊨ `tls`（`tls`、`internal` 分别表示使用 TLS、运行在内部网络上）：析取三段论，有效。
 4. `night ⟶ early`, `early ⟶ ready`, `ready` ⊨ `night`（`night`、`early`、`ready` 分别表示作业在夜间运行、提早完成、报告已准备好）：无效，这是肯定后件的一种形式。反例：night = F，ready = T；报告可能因为别的原因而准备好了。
 
@@ -1320,7 +1208,7 @@ lemma "¬ (A ∨ B ⟶ C) ⟷ (A ∧ ¬ C) ∨ (B ∧ ¬ C)"
 3. 按你的修复，能推出“如果水位低，水泵就运行”吗？如果再加上“水位不可能既低又高”这个假设，能推出吗？
 
 ::: solution
-1. R1 是 `low ∧ ¬ manual ⟶ pump`，R2 是 `high ⟶ ¬ pump`，R3 是 `manual ⟶ pump`。它们的否定的反例，就是这三条需求的一个模型：
+1. R1 是 `low ∧ ¬ manual ⟶ pump`，R2 是 `high ⟶ ¬ pump`，R3 是 `manual ⟶ pump`。对它们的否定找到的反例，就是这三条需求的一个模型：
 
 ```isabelle
 lemma "¬ ((low ∧ ¬ manual ⟶ pump) ∧
@@ -1430,7 +1318,7 @@ lemma "(A ⟷ B) ⟷ (((A ⟶ B) ⟶ (B ⟶ A) ⟶ False) ⟶ False)"
 
 ::: solution
 1. 如果 P 是骑士，P 说的话为真；如果 P 是无赖，P 说的话为假。所以“P 说 S”意味着 p ⟷ S。P 说的是 ¬q，于是得到 p ⟷ ¬q。Q 说 P 和 Q 是同一类人，即 p ⟷ q，于是得到 q ⟷ (p ⟷ q)。
-2. 约束的否定的反例，就是约束的一个模型：
+2. 对约束的否定找到的反例，就是约束的一个模型：
 
 ```isabelle
 lemma "¬ ((p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)))"

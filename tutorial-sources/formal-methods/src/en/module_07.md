@@ -1586,8 +1586,8 @@ thm excluded_middle
 ### A De Morgan law {#classical-demorgan}
 
 Of the four directions of De Morgan's laws, Section 6.5 showed that one needs (RAA):
-¬(A ∧ B) ⟶ ¬A ∨ ¬B. The idea: suppose ¬A ∨ ¬B were false. Then A would have to hold, since otherwise ¬A ∨ ¬B would; and B likewise. But A ∧ B contradicts
-¬(A ∧ B).
+¬(A ∧ B) ⟶ ¬A ∨ ¬B. The idea: suppose ¬A ∨ ¬B were false. Then A would have to hold, since otherwise
+¬A ∨ ¬B would; and B likewise. But A ∧ B contradicts ¬(A ∧ B).
 
 ```prooftree
 ¬(A ∧ B) ⟶ ¬A ∨ ¬B   (⟶I¹)
@@ -1762,8 +1762,9 @@ The steps before it are not affected, so you can replace the failing step with a
 This is the most common message. It means that the method could do nothing with subgoal 1: for `rule`,
 the conclusion of the rule does not unify with the conclusion of the subgoal; for `erule`, either that or
 no assumption fits the rule's major premise; for `drule` and `frule`, no assumption fits the major
-premise; for `assumption`, no assumption unifies with the conclusion. Isabelle shows the proof state it was given. Here is the early choice of a side that Module 6
-warned about (Section 6.4), followed by a hopeful `assumption`:
+premise; for `assumption`, no assumption unifies with the conclusion. Isabelle shows the proof state it
+was given. Here is the early choice of a side that Module 6 warned about (Section 6.4), followed by a
+hopeful `assumption`:
 
 ```isabelle fails
 lemma "A ∨ ¬ A"

@@ -491,7 +491,7 @@ next
 qed
 ```
 
-The command `theorem` means the same as `lemma`, as `corollary` did in Module 11; the name marks the main
+The command `theorem` means the same as `lemma`, as `corollary` did in Module 11; the word marks a main
 result. Insertion sort is verified: for every list of every linearly ordered type, `isort` returns a
 sorted permutation of its input.
 
@@ -692,7 +692,8 @@ Searching compares the key with the key of the node and goes left, goes right, o
 ```isabelle
 fun isin :: "'a::linorder ⇒ 'a btree ⇒ bool" where
   "isin x Lf = False"
-| "isin x (Nd l y r) = (if x < y then isin x l else if y < x then isin x r else True)"
+| "isin x (Nd l y r) =
+     (if x < y then isin x l else if y < x then isin x r else True)"
 ```
 
 Insertion searches in the same way. If it finds the key, the tree stays as it is; if it reaches a leaf,
@@ -987,9 +988,9 @@ three lemmas, this proof would not change.
 
 A **queue** is a waiting line: elements join at the back and leave from the front, so the first to
 join is the first to leave. The abstract model is a list, with the front of the queue at the head of
-the list. Joining is `xs @ [x]`; leaving is `tl xs`, the **tail** of the list, which is the list
-without its first element; and the element at the front is `hd xs`, the **head** of the list. In
-Isabelle `tl [] = []`, while `hd []` has no specified value (Module 8).
+the list. Joining is `xs @ [x]`. Leaving is `tl xs`, the tail of the list: the list without its first
+element. The element at the front is `hd xs`, the head of the list. In Isabelle `tl [] = []`, while
+`hd []` has no specified value (Module 8).
 
 As a program, the plain list is slow: `xs @ [x]` copies the whole list, so a queue of n elements costs n
 steps for each element that joins. A classic functional implementation uses two lists. The **front**
@@ -1262,12 +1263,12 @@ export_code isort tempty isin tinsert qempty enq deq first
 See theory exports
 ```
 
-As in Module 8, the Output panel only says where the code went: Isabelle stores
-generated code as **theory exports**, files that belong to the theory, instead of printing it. In
-Isabelle/jEdit, *theory exports* in the message is a link. Click it, and the File Browser opens the
-folder of code exported by your theory, under the virtual address `isabelle-export:`. There, the folder
-`export1` holds the file `Verified.hs`: `export_code` numbers the exports of a theory `export1`,
-`export2`, … unless you name the folder yourself with the option `file_prefix`.
+As in Module 8, the Output panel only says where the code went: Isabelle stores generated code as
+**theory exports**, files that belong to the theory, instead of printing it. In Isabelle/jEdit,
+*theory exports* in the message is a link. Click it, and the File Browser opens the folder of code
+exported by your theory, under the virtual address `isabelle-export:`. There, the folder `export1`
+holds the file `Verified.hs`: `export_code` numbers the exports of a theory `export1`, `export2`, …
+unless you name the folder yourself with the option `file_prefix`.
 
 Open `Verified.hs` and you find your theory again, in Haskell. The datatypes have become Haskell `data`
 declarations: `Btree` with the constructors `Lf` and `Nd`, and `Queue` with the constructor `Queue`.
@@ -1294,10 +1295,10 @@ designing the interface of verified code.
 
 ### What is guaranteed {#guarantee}
 
-Every function in the generated module comes from equations that Isabelle has proved: the equations of
-your `fun` and `definition` commands, which are theorems (Module 8). The code generator translates each
-equation into an equation of the target language and adds the definitions it needs from the library. So
-when the generated `isort` returns a list, that list is the value of `isort` in the logic, and the
+Every function in the generated module comes from equations that are theorems in the logic: for your
+own functions, the equations of your `fun` and `definition` commands (Module 8). The code generator
+translates each equation into an equation of the target language and adds the definitions it needs from
+the library. So when the generated `isort` returns a list, that list is the value of `isort` in the logic, and the
 correctness theorem says that it is sorted and a permutation of the input. This guarantee, that every
 result the program produces is a result the logic agrees with, is called **partial correctness**
 (Module 8): it speaks about the results the program returns, not about whether it returns at all. The
@@ -1507,8 +1508,9 @@ value "tinsert 3 t0"
 Prove `length (isort xs) = length xs` in two ways.
 
 1. By induction, with a lemma about the length of `ins x xs`.
-2. Without induction, from `mset_isort`. Use `find_theorems` to find a library fact that relates the
-   size of `mset xs` to the length of xs.
+2. Without induction, from `mset_isort`. The number of elements of a multiset M, counted with their
+   copies, is `size M`. Use `find_theorems` to find a library fact that relates `size (mset xs)` to the
+   length of xs.
 
 ::: solution
 1. The lemma and the induction:
@@ -1521,8 +1523,7 @@ Prove `length (isort xs) = length xs` in two ways.
      by (induction xs) (auto simp: length_ins)
    ```
 
-2. The number of elements of a multiset, counted with their copies, is `size`. Search for facts about
-   the size of `mset`:
+2. Search for facts about the size of `mset xs`; the underscore stands for any term:
 
    ```isabelle
    find_theorems "size (mset _)"
@@ -1702,7 +1703,8 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
      by (induction t) auto
 
    lemma sorted_inorder: "bst t ⟹ sorted (inorder t)"
-     by (induction t) (auto simp: sorted_append set_inorder intro: less_imp_le less_trans)
+     by (induction t)
+        (auto simp: sorted_append set_inorder intro: less_imp_le less_trans)
 
    lemma bst_build: "bst (build xs)"
      by (induction xs) (auto simp: bst_tinsert)
