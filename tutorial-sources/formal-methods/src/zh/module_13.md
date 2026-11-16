@@ -141,48 +141,29 @@ next
 qed
 ```
 
-`{(s, t). lstep s t}` is the step relation as a set of pairs, and `⇧*` (type `^*`) is the closure. In
-each half, `then` passes the assumption to the `induction` method, which then needs no arguments: it
-inducts on that fact with the fact's own induction rule. The first half is a rule induction on
-`lreach s`. The second is an induction on the closure, with the library's rule `rtrancl_induct`. The
-library rule `rtrancl_into_rtrancl` adds one step at the end of a path, as `lreach.step` does.
+`{(s, t). lstep s t}` 是写成有序对集合的单步关系，`⇧*`（输入 `^*`）是闭包。在两半证明中，`then` 都把假设传给 `induction` 方法，于是这个方法不需要参数：它用这个事实自己的归纳规则对这个事实做归纳。前一半是对 `lreach s` 的规则归纳。后一半是对闭包的归纳，用的是库中的规则 `rtrancl_induct`。库中的规则 `rtrancl_into_rtrancl` 在一条路径的末尾加上一步，就像 `lreach.step` 那样。
 
-You could work with `r⇧*` directly. A definition of your own, such as `lreach`, gives its induction rule
-exactly the two cases of the invariant method, with names you choose, and builds the initial state into
-the definition. Module 11 defined reachability with the step at the front instead (`steps`). For
-invariants, the step at the end is more convenient: the induction hypothesis is then about the state
-*before* the last step, exactly as in the invariant method, and the initial state stays fixed. With the
-step at the front, a rule induction about the runs from one initial state meets the problem that Module
-11 met with `steps move Done s`: the induction rule replaces the start of the run by a variable.
+你也可以直接使用 `r⇧*`。而像 `lreach` 这样自己写的定义，它的归纳规则恰好有不变式方法的两种情形，情形的名字由你来取，并且初始状态直接写在定义里。模块 11 定义可达性时，则是把那一步放在前面（`steps`）。对不变式来说，把那一步放在末尾更方便：这样，归纳假设说的就是最后一步**之前**的状态，与不变式方法完全一致，而初始状态保持固定。如果把那一步放在前面，对从某一个初始状态出发的运行做规则归纳，就会遇到模块 11 中 `steps move Done s` 遇到的问题：归纳规则会把运行的起点换成一个变量。
 
-## Safety properties and invariants {#invariants}
+## 安全性质与不变式 {#invariants}
 
-The property you want for the lift is that it never moves unless its door is closed. Properties of this
-kind have a name.
+你希望电梯具有的性质是：除非门已经关闭，否则它永远不会移动。这类性质有一个专门的名字。
 
-::: definition Safety property
-A **safety property** says that something bad never happens. In this module the bad thing is a bad
-state, so a safety property is a property of states that must hold in every reachable state. A run that
-reaches a state where it fails is a **counterexample** to it.
+::: definition 安全性质
+**安全性质**（safety property）说的是：坏事永远不会发生。在本模块中，坏事就是坏状态，所以安全性质是状态的一个性质，它必须在每个可达状态中都成立。如果一次运行到达了一个使它不成立的状态，这次运行就是它的一个**反例**（counterexample）。
 :::
 
-::: definition Invariant and inductive invariant
-A property $I$ of states is an **invariant** of a state machine if it holds in every reachable state. It
-is **inductive** if it holds in every initial state and every step from a state that satisfies $I$ leads
-to a state that satisfies $I$.
+::: definition 不变式与归纳不变式
+如果状态的一个性质 $I$ 在每个可达状态中都成立，它就是状态机的一个**不变式**（invariant）。如果 $I$ 在每个初始状态中都成立，并且从每个满足 $I$ 的状态出发，每一步都到达一个满足 $I$ 的状态，那么 $I$ 是**归纳的**（inductive）。
 :::
 
-Module 5 called a property an invariant when it holds initially and every step preserves it, which is
-the second notion. From now on the difference matters: every inductive property is an invariant, but
-Section 13.5 shows an invariant that is not inductive.
+模块 5 把一个初始时成立、并被每一步保持的性质称为不变式，那正是这里的第二个概念。从现在起，两者的区别很重要：每个归纳的性质都是不变式，但第 13.5 节会给出一个不是归纳的不变式。
 
-::: fact Inductive invariants hold in every reachable state
-If $I$ is inductive, then $I$ holds in every reachable state.
+::: fact 归纳不变式在每个可达状态中都成立
+如果 $I$ 是归纳的，那么 $I$ 在每个可达状态中都成立。
 :::
 
-The proof is a rule induction over reachability: $I$ holds in the initial state, and the rule for a step
-passes $I$ from a reachable state to the next one. In Isabelle, write the safety property of the lift
-as a function of the state, and start the rule induction:
+证明是对可达性的规则归纳：$I$ 在初始状态中成立，而关于一步的那条规则把 $I$ 从一个可达状态传到下一个状态。在 Isabelle 中，把电梯的安全性质写成状态的函数，然后开始规则归纳：
 
 ```isabelle
 fun lift_ok :: "door × bool ⇒ bool" where
@@ -199,35 +180,26 @@ goal (2 subgoals):
  2. ⋀s t. ⟦lreach s; lift_ok s; lstep s t⟧ ⟹ lift_ok t
 ```
 
-Subgoal 1 is the base case: the initial state is safe. Subgoal 2 is the induction step: for a
-reachable state `s` that is safe and a step from `s` to `t`, the state `t` is safe. Both follow from the
-rules of `lstep`:
+子目标 1 是基础情形（base case）：初始状态是安全的。子目标 2 是归纳步骤（induction step）：对于一个安全的可达状态 `s`，以及从 `s` 到 `t` 的一步，状态 `t` 也是安全的。两者都可以由 `lstep` 的规则得出：
 
 ```isabelle
   apply (auto elim: lstep.cases)
   done
 ```
 
-`lstep.cases` is rule inversion (Module 11): from `lstep s t` it produces one case for each rule, with
-`s` and `t` replaced by the states in that rule and the guard as an assumption. In four of the five cases
-the new state is safe whatever the old state was: *open* needs a lift that stands still and keeps it
-still, *start* needs a closed door, and *shut* and *stop* lead to a closed door or a still lift. In the
-case *close*, the induction hypothesis matters. The door was open, so by `lift_ok s` the lift did not
-move, and the new state `(Closing, False)` is safe. That is why an invariant proof needs the induction
-hypothesis: an event that leaves part of the state alone relies on that part being safe already.
+`lstep.cases` 就是模块 11 中的规则反演（rule inversion）：由 `lstep s t`，它为每条规则各产生一种情形，其中 `s` 和 `t` 换成了该规则中的状态，守卫条件则成为一个假设。在五种情形中的四种里，无论原来的状态如何，新状态都是安全的：*open* 要求电梯静止，并让它保持静止；*start* 要求门是关闭的；*shut* 和 *stop* 分别得到关闭的门和静止的电梯。在 *close* 这种情形中，归纳假设（induction hypothesis）就起作用了。门原来是打开的，所以由 `lift_ok s`，电梯没有在移动，于是新状态 `(Closing, False)` 是安全的。这就是不变式证明需要归纳假设的原因：一个让状态的某一部分保持不变的事件，要依靠这一部分本来就是安全的。
 
-The theorem answers the question of Section 13.1:
+这个定理回答了第 13.1 节的问题：
 
 ```isabelle
 corollary "¬ lreach (Open, True)"
   using lift_safe by force
 ```
 
-Isabelle treats `corollary` and `theorem` exactly as it treats `lemma`. The words tell the reader what
-role a result plays: a theorem is a main result, and a corollary follows directly from one.
+Isabelle 对待 `corollary` 和 `theorem` 与对待 `lemma` 完全一样。这些词是告诉读者一个结果起什么作用：定理（theorem）是主要结果，推论（corollary）则直接由某个定理得出。
 
 ::: pitfall
-State the property for a state variable, not for a pattern. This version looks the same, but fails:
+要对一个状态变量陈述性质，而不要对一个模式陈述。下面这个版本看起来一样，却会失败：
 
 ```isabelle fails
 lemma "lreach (d, m) ⟹ m ⟶ d = Closed"
@@ -240,31 +212,21 @@ lemma "lreach (d, m) ⟹ m ⟶ d = Closed"
 ***  1. m ⟹ d = Closed
 ```
 
-The goal left over is false: it claims that for the `d` and `m` of the lemma, a moving lift has a
-closed door. The argument of `lreach` is the pair `(d, m)`, not a variable, and the induction rule is
-about a variable state `?x`. Given a pattern, the method does not replace `d` and `m` by the states of
-the rules; they stay as they are, so the base case asks for the claim about `d` and `m` instead of
-about `(Closed, False)`. Module 11 met the same problem with a constant. Write the property as a
-function of the whole state, as `lift_ok` does, and the induction works.
+剩下的目标是假的：它断言，对于引理中的 `d` 和 `m`，移动中的电梯的门是关闭的。`lreach` 的参数是有序对 `(d, m)`，而不是一个变量，而归纳规则针对的是一个变量状态 `?x`。参数是模式时，这个方法不会把 `d` 和 `m` 换成各条规则中的状态；它们保持原样，于是基础情形要求证明的是关于 `d` 和 `m` 的断言，而不是关于 `(Closed, False)` 的断言。模块 11 在一个常量上遇到过同样的问题。像 `lift_ok` 那样，把性质写成整个状态的函数，归纳就能成功。
 :::
 
-## Modelling a pedestrian crossing {#crossing}
+## 为人行横道建模 {#crossing}
 
-The rest of the module works with one larger system: a pedestrian crossing with a push button. Cars see a
-traffic light (green, amber, red); pedestrians see a signal (walk or don't walk). The controller should
-meet these requirements:
+本模块其余部分只研究一个更大的系统：一个带按钮的人行横道。汽车看的是交通信号灯（绿灯、黄灯、红灯，在 Isabelle 中写作 Green、Amber、Red）；行人看的是行人信号灯（通行或禁止通行，写作 Walk、DontWalk）。控制器应当满足以下需求：
 
-- **R1.** Pedestrians may walk only when the cars have red.
-- **R2.** After someone presses the button, the pedestrians eventually get to walk.
+- **R1.** 只有当汽车信号灯是红灯时，行人才可以通行。
+- **R2.** 有人按下按钮之后，行人最终能够通行。
 
-R1 is a safety property, and Sections 13.5 to 13.7 prove it. R2 is of another kind, which Section 13.8
-discusses.
+R1 是一条安全性质，第 13.5 节到第 13.7 节会证明它。R2 属于另一类性质，第 13.8 节会讨论它。
 
-### States as records {#records}
+### 用记录表示状态 {#records}
 
-The state has three parts: the car light, the pedestrian signal, and whether a request is pending (the
-button was pressed and the pedestrians have not walked yet). A pair would do for two parts. For three or
-more, give the parts names with a **record**: a tuple whose components, its **fields**, have names.
+状态有三部分：汽车信号灯，行人信号灯，以及是否有待处理的请求（按钮已经按下，而行人还没有通行）。两个部分用有序对就够了。三个或更多部分时，就用**记录**（record）给各部分起名字：记录是一种元组，它的各个分量，即它的**字段**（field），都有名字。
 
 ```isabelle
 datatype light = Green | Amber | Red
@@ -276,12 +238,7 @@ record crossing =
   req  :: bool
 ```
 
-The record command defines the type `crossing` and, for each field, a function that selects it: if `s`
-is a crossing, `cars s` is its car light. A record value lists its fields in brackets, as in
-`⦇cars = Green, peds = DontWalk, req = False⦈`; type `⦇` as `(|` and `⦈` as `|)`. The notation
-`s⦇cars := Amber⦈` is the **update** of a field: the crossing `s` with its car light changed to amber and
-the other fields unchanged. The simplifier knows how selectors and updates interact, so that it rewrites
-`cars (s⦇req := True⦈)` to `cars s` by itself.
+`record` 命令定义类型 `crossing`，并为每个字段定义一个选取该字段的函数：如果 `s` 是一个 `crossing` 类型的值，`cars s` 就是它的汽车信号灯。记录值把它的字段列在括号里，例如 `⦇cars = Green, peds = DontWalk, req = False⦈`；`⦇` 输入为 `(|`，`⦈` 输入为 `|)`。记号 `s⦇cars := Amber⦈` 是对一个字段的**更新**（update）：它表示把 `s` 的汽车信号灯改为黄灯、其他字段保持不变所得到的状态。化简器知道这些选择函数（selector）和更新怎样相互作用，所以它会自己把 `cars (s⦇req := True⦈)` 重写成 `cars s`。
 
 ```isabelle
 definition start :: crossing where
@@ -296,8 +253,7 @@ value "start⦇cars := Amber⦈"
 ```
 
 ::: trouble
-An update needs `:=`. With `=`, Isabelle reads `⦇cars = Amber⦈` as a record value, which must list
-every field of the record, in the order of the `record` command:
+更新要用 `:=`。如果用 `=`，Isabelle 会把 `⦇cars = Amber⦈` 读成一个记录值，而记录值必须按 `record` 命令中的顺序列出记录的每一个字段：
 
 ```isabelle fails
 value "start⦇cars = Amber⦈"
@@ -309,28 +265,23 @@ value "start⦇cars = Amber⦈"
 ***   ??.cars = Amber::<position>
 ```
 
-The message says that the record value lacks fields; `??.cars = Amber` is the field that Isabelle
-read, in its internal form. Write `start⦇cars := Amber⦈`.
+这条消息（“Error in record input: expecting more fields”，记录输入有误：还需要更多字段）说的是记录值缺少字段；`??.cars = Amber` 是 Isabelle 读到的那个字段，以它的内部形式显示。应该写成 `start⦇cars := Amber⦈`。
 :::
 
-### Events with guards and effects {#events}
+### 带守卫条件和效果的事件 {#events}
 
-The controller reacts to six events. The button press comes from outside; the other five are the
-controller's own decisions.
+控制器对六个事件作出反应。按下按钮来自外部；其余五个是控制器自己的决定。
 
-| Event | Guard | Effect |
+| 事件 | 守卫条件 | 效果 |
 |---|---|---|
-| Press | always | the request is set |
-| ToAmber | cars have green and a request is pending | cars get amber |
-| ToRed | cars have amber | cars get red |
-| StartWalk | cars have red, pedestrians don't walk, a request is pending | pedestrians walk |
-| EndWalk | pedestrians walk | pedestrians stop; the request is cleared |
-| ToGreen | cars have red and no request is pending | cars get green |
+| Press | 任何时候 | 设置请求 |
+| ToAmber | 汽车信号灯是绿灯，并且有待处理的请求 | 汽车信号灯变为黄灯 |
+| ToRed | 汽车信号灯是黄灯 | 汽车信号灯变为红灯 |
+| StartWalk | 汽车信号灯是红灯，行人没有在通行，并且有待处理的请求 | 行人开始通行 |
+| EndWalk | 行人正在通行 | 行人停止通行；清除请求 |
+| ToGreen | 汽车信号灯是红灯，并且没有待处理的请求 | 汽车信号灯变为绿灯 |
 
-Notice how the design uses the request. It stays set until the walk has ended, and the cars get green
-only when no request is pending. For the lift, each event was a rule of an inductive definition. This
-time, write the guards and the effects as two functions. Functions can be computed with `value`, so you
-can run the model, which will matter when you look for bugs in Section 13.6.
+注意这个设计是怎样使用请求的。请求一旦设置，就一直保留到行人通行结束；而只有在没有待处理的请求时，汽车信号灯才会变成绿灯。在电梯的例子中，每个事件是归纳定义中的一条规则。这一次，把守卫条件和效果写成两个函数。函数可以用 `value` 计算，所以你可以运行这个模型，这在第 13.6 节查找错误时会很重要。
 
 ```isabelle
 datatype event = Press | ToAmber | ToRed | StartWalk | EndWalk | ToGreen
@@ -352,9 +303,7 @@ fun effect :: "event ⇒ crossing ⇒ crossing" where
 | "effect ToGreen s = s⦇cars := Green⦈"
 ```
 
-The transition relation of the crossing is: $s \to t$ when $t$ = `effect e s` for some event `e` whose
-guard holds in $s$. To run the model, apply a list of events in order. An event whose guard is false
-cannot happen, and `run` skips it:
+人行横道的迁移关系是：如果对某个守卫条件在 $s$ 中成立的事件 `e` 有 $t$ = `effect e s`，那么 $s \to t$。要运行这个模型，就按顺序应用一个事件列表。守卫条件为假的事件不能发生，`run` 会跳过它：
 
 ```isabelle
 fun run :: "event list ⇒ crossing ⇒ crossing" where
@@ -369,8 +318,7 @@ value "run [Press, ToAmber, ToRed, StartWalk] start"
   :: "crossing"
 ```
 
-A pedestrian pressed the button, the car light went through amber to red, and the pedestrians walk. Now
-the same events without the press:
+一位行人按下了按钮，汽车信号灯经过黄灯变成红灯，行人开始通行。现在去掉按按钮这一步，再运行同样的事件：
 
 ```isabelle
 value "run [ToAmber, ToRed, StartWalk] start"
@@ -381,17 +329,13 @@ value "run [ToAmber, ToRed, StartWalk] start"
   :: "crossing"
 ```
 
-Nothing happened. Without a request the guard of `ToAmber` is false, and while the car light is green,
-the guards of `ToRed` and `StartWalk` are false too, so `run` skips all three events. Figure 13.1 shows
-every state that runs can reach.
+什么也没有发生。没有请求时，`ToAmber` 的守卫条件为假；而汽车信号灯是绿灯时，`ToRed` 和 `StartWalk` 的守卫条件也为假，所以 `run` 跳过了全部三个事件。图 13.1 展示了运行所能到达的每一个状态。
 
 ::: figure id=fig-13-1
-The reachable states of the crossing and the events between them. In each box, the small light shows the
-car light. The thick box is the initial state `start`.
+人行横道的可达状态以及它们之间的事件。每个方框中的小信号灯显示的是汽车信号灯。粗框是初始状态 `start`。
 :::
 
-The reachable states are defined as for the lift, with a rule for the initial state and a rule for one
-event:
+可达状态的定义方式和电梯一样：一条规则针对初始状态，一条规则针对一个事件：
 
 ```isabelle
 inductive reach :: "crossing ⇒ bool" where
@@ -406,22 +350,20 @@ thm reach.induct
 ⟹ ?P ?x
 ```
 
-The induction rule has the same two cases as before. In the induction step, the event `e` is arbitrary: a
-proof must deal with every event whose guard holds in a reachable state.
+这条归纳规则和前面一样有两种情形。在归纳步骤中，事件 `e` 是任意的：证明必须处理守卫条件在某个可达状态中成立的每一个事件。
 
-## When an invariant is not inductive {#strengthen}
+## 当不变式不是归纳的 {#strengthen}
 
-Requirement R1 says: if the pedestrians walk, the cars have red.
+需求 R1 说：如果行人在通行，那么汽车信号灯是红灯。
 
 ```isabelle
 definition safe :: "crossing ⇒ bool" where
   "safe s ⟷ (peds s = Walk ⟶ cars s = Red)"
 ```
 
-### The proof that fails {#fails}
+### 失败的证明 {#fails}
 
-Try the proof of the lift. In Isar, with one case for the initial state and one for an event, and
-`cases e` to consider every event in turn:
+试试电梯的那种证明。这次用 Isar 来写，初始状态一种情形，事件一种情形，并用 `cases e` 依次考虑每一个事件：
 
 ```isabelle fails
 theorem "reach s ⟹ safe s"
@@ -440,14 +382,9 @@ qed
 ***  1. ⟦reach s; e = ToGreen; cars s = Red; ¬ req s; peds s = Walk⟧ ⟹ False
 ```
 
-The base case went through, and so did five of the six events. The goal that is left belongs to
-`ToGreen`. Read it as a state: the cars have red, no request is pending, and the pedestrians walk. The
-state is safe, because the cars have red. The guard of `ToGreen` holds in it, because the cars have red
-and no request is pending. After `ToGreen` the cars have green while the pedestrians walk, which is not
-safe. So `safe` is *not inductive*: a step from a safe state can lead to an unsafe one.
+基础情形通过了，六个事件中的五个也通过了。剩下的目标属于 `ToGreen`。把它当作一个状态来读：汽车信号灯是红灯，没有待处理的请求，而行人在通行。这个状态是安全的，因为汽车信号灯是红灯。`ToGreen` 的守卫条件在这个状态中成立，因为汽车信号灯是红灯，并且没有待处理的请求。`ToGreen` 之后，汽车信号灯变成绿灯，而行人还在通行，这就不安全了。所以 `safe` **不是归纳的**：从一个安全的状态走一步，可能到达一个不安全的状态。
 
-You can ask Isabelle for such a step directly. The lemma below says that every event preserves `safe`,
-from any state, reachable or not. Quickcheck tests it:
+你可以直接让 Isabelle 找出这样的一步。下面的引理说，从任何状态出发（无论它是否可达），每个事件都保持 `safe`。用 Quickcheck 来检验它：
 
 ```isabelle
 lemma "safe s ⟹ guard e s ⟹ safe (effect e s)"
@@ -463,17 +400,12 @@ Quickcheck found a counterexample:
   e = ToGreen
 ```
 
-A state and an event that break the induction step in this way are a **counterexample to induction**. Isabelle
-does not know whether this state can occur. There are two possibilities, and they call for different
-actions:
+像这样破坏归纳步骤的一个状态和一个事件，称为一个**归纳反例**（counterexample to induction）。Isabelle 并不知道这个状态能否出现。有两种可能，它们需要不同的处理：
 
-1. The state is **reachable**. Then some run leads to it, the next `ToGreen` makes it unsafe, and the
-   design is wrong. Section 13.6 shows this case.
-2. The state is **not reachable**. Then the design may well be safe, but `safe` is too weak to carry
-   the induction: it allows states that never occur, and the induction step fails on one of them.
+1. 这个状态是**可达的**。那么有某次运行到达它，接下来的 `ToGreen` 就会导致不安全，设计是错的。第 13.6 节展示的就是这种情况。
+2. 这个状态是**不可达的**。那么设计很可能是安全的，但 `safe` 太弱，撑不起归纳：它允许一些永远不会出现的状态，而归纳步骤在其中一个状态上失败了。
 
-Quickcheck cannot answer this question. It tests a statement by running the definitions in it, and an
-inductive definition such as `reach` is not a function that it can run (Module 11):
+Quickcheck 回答不了这个问题。它通过运行陈述中的定义来检验陈述，而像 `reach` 这样的归纳定义不是它能运行的函数（模块 11），所以 Isabelle 报告“No code equations for reach”（reach 没有代码等式）：
 
 ```isabelle fails
 lemma "reach s ⟹ safe s"
@@ -487,8 +419,7 @@ lemma "reach s ⟹ safe s"
 ***
 ```
 
-Nitpick (Module 9) works differently: it searches for a model of the definitions, and it handles
-inductive definitions. Let it search the reachable states for an unsafe one:
+Nitpick（模块 9）的工作方式不同：它为这些定义搜索模型，而且能处理归纳定义。让它在可达状态中搜索一个不安全的状态：
 
 ```isabelle
 lemma "reach s ⟹ safe s"
@@ -502,16 +433,11 @@ Nitpicking formula...
 Nitpick found no counterexample
 ```
 
-Nitpick finds no reachable state that breaks `safe`. That is not a proof, but it points to the second
-possibility. Find out on paper why the state of the goal cannot be reached. The pedestrians start to
-walk only through `StartWalk`, whose guard needs a request. While they walk, the request stays set,
-since only `EndWalk` clears it, and `EndWalk` also ends the walk. So in every reachable state: *if the pedestrians walk, a
-request is pending*. The state in the goal violates exactly this.
+Nitpick 没有找到破坏 `safe` 的可达状态。这不是证明，但它指向第二种可能。在纸上弄清楚，为什么目标中的那个状态不可达。行人只能通过 `StartWalk` 开始通行，而它的守卫条件需要一个请求。行人通行期间，请求一直保持设置，因为只有 `EndWalk` 会清除请求，而 `EndWalk` 同时也结束了通行。所以在每个可达状态中：**如果行人在通行，那么有一个待处理的请求**。目标中的状态恰恰违反了这一点。
 
-### Strengthen the invariant {#strengthen-invar}
+### 加强不变式 {#strengthen-invar}
 
-Add the missing fact to the property you prove. The new invariant says that pedestrians walk only when
-the cars have red *and* a request is pending:
+把缺少的事实加到你要证明的性质里。新的不变式说：只有当汽车信号灯是红灯，**并且**有待处理的请求时，行人才会通行：
 
 ```isabelle
 definition invar :: "crossing ⇒ bool" where
@@ -527,59 +453,35 @@ next
 qed
 ```
 
-The proof is the same as before, and this time it goes through. Check the critical event on paper: in a
-state that satisfies `invar`, the guard of `ToGreen` says that no request is pending, so by `invar` the
-pedestrians do not walk, and turning the cars green is safe. The other events keep `invar` too: `Press`
-only sets the request; `StartWalk` needs red and a request, and keeps both; `EndWalk` ends the walk;
-`ToAmber` and `ToRed` happen only when the cars do not have red, so by `invar` the pedestrians do not
-walk. Safety follows at once, because `invar` says more than `safe`:
+证明和前面一样，这一次却成功了。在纸上检查那个关键的事件：在满足 `invar` 的状态中，`ToGreen` 的守卫条件说没有待处理的请求，所以由 `invar`，行人没有在通行，把汽车信号灯变成绿灯是安全的。其他事件也保持 `invar`：`Press` 只是设置请求；`StartWalk` 需要红灯和请求，并且两者都保持不变；`EndWalk` 结束通行；`ToAmber` 和 `ToRed` 只在汽车信号灯不是红灯时发生，所以由 `invar`，行人没有在通行。安全性随即可得，因为 `invar` 说的比 `safe` 更多：
 
 ```isabelle
 theorem crossing_safe: "reach s ⟹ safe s"
   using reach_invar by (simp add: invar_def safe_def)
 ```
 
-The crossing has $3 \times 2 \times 2 = 12$ states, few enough to draw them all. Figure 13.2 shows how the
-three sets of states fit together.
+人行横道有 $3 \times 2 \times 2 = 12$ 个状态，少到可以全部画出来。图 13.2 展示了这三个状态集合之间的关系。
 
 ::: figure id=fig-13-2
-The 12 states of the crossing. The 6 reachable states (the thick box is `start`) lie inside the 7
-states that satisfy `invar`, which lie inside the 8 states that satisfy `safe`. No step leads out of
-`invar`. From the one state that satisfies `safe` but not `invar` (cars red, pedestrians walking, no
-request), the event `ToGreen` leads out of `safe`.
+人行横道的 12 个状态。6 个可达状态（粗框是 `start`）位于满足 `invar` 的 7 个状态之内，而这 7 个状态又位于满足 `safe` 的 8 个状态之内。没有哪一步会离开 `invar`。唯一一个满足 `safe` 但不满足 `invar` 的状态（汽车红灯、行人在通行、没有请求）经事件 `ToGreen` 会离开 `safe`。
 :::
 
 ::: keyidea
-To prove that every reachable state is safe, find an **inductive invariant** in between: a set of
-states that contains the initial state, that no step leaves, and that contains only safe states. The
-reachable states themselves form such a set, but you rarely have a description of them. The safety
-property itself is often too large, because it contains unreachable states from which a step leads out.
-**Strengthening** the invariant shrinks it, by adding facts that hold in every reachable state, until no
-step leads out.
+要证明每个可达状态都是安全的，就在两者之间找一个**归纳不变式**（inductive invariant）：一个状态集合，它包含初始状态，没有哪一步会离开它，并且它只包含安全的状态。可达状态本身就构成这样一个集合，但你很少能给出对它们的描述。安全性质本身往往太大，因为它包含一些不可达的状态，从这些状态走一步就会离开它。**加强**（strengthen）不变式，就是不断添加在每个可达状态中都成立的事实来缩小它，直到没有哪一步能离开它。
 :::
 
-When an invariant proof fails, the goal left over tells you what to add. It describes a state that
-satisfies your invariant but is not reachable (if the design is right). Find a fact about reachable
-states that this state violates, add it to the invariant with ∧, and try again. A larger system may need
-several rounds; each round removes the unreachable states that the last failure showed.
+当不变式证明失败时，剩下的目标会告诉你要添加什么。它描述的是一个满足你的不变式、却不可达的状态（如果设计是正确的）。找出一个关于可达状态、而这个状态恰好违反的事实，用 ∧ 把它加到不变式中，然后再试一次。更大的系统可能需要好几轮；每一轮都会去掉上一次失败所暴露出来的那些不可达状态。
 
 ::: pitfall
-- **Adding a fact that is false.** A fact that fails in some reachable state cannot be part of an
-  invariant: the base case or the induction step fails, however many rounds you add. Test a candidate
-  first: `nitpick` on `reach s ⟹ invar s` should find no counterexample. A fact that is true but not
-  preserved together with the rest makes the induction step fail too; then you need another round.
-- **Trying a stronger proof method.** No method can prove the failed induction step for `safe` from `safe s`
-  and the guard alone: that claim is false, as Quickcheck showed. The induction step also has the premise
-  `reach s`, but using it needs a fact about all reachable states, which is the invariant you are
-  looking for. A failed induction step asks for a stronger invariant, not for more automation.
+- **加入一个假的事实。** 在某个可达状态中不成立的事实，不可能是不变式的一部分：无论你再加多少轮，基础情形或归纳步骤总会失败。先检验一下候选的不变式：对 `reach s ⟹ invar s` 运行 `nitpick`，应当找不到反例。一个为真、但和其余部分合在一起时不被保持的事实，同样会使归纳步骤失败；这时你还需要再加一轮。
+- **换用更强的证明方法。** 只由 `safe s` 和守卫条件，任何方法都证明不了 `safe` 的那个失败的归纳步骤：正如 Quickcheck 所表明的，这个断言是假的。归纳步骤还有前提 `reach s`，但要用上它，就需要一个关于所有可达状态的事实，而这正是你在寻找的不变式。归纳步骤失败，需要的是更强的不变式，而不是更多的自动化。
 :::
 
-## Counterexample traces {#traces}
+## 反例轨迹 {#traces}
 
-Not every failed proof is a weak invariant. Sometimes the design is wrong, and then you want to see how.
+并不是每次证明失败都是因为不变式太弱。有时候是设计错了，这时你会想看看它是怎样出错的。
 
-Suppose a colleague proposes a change: the request has been served as soon as the pedestrians start to
-walk, so `StartWalk` should clear it, and `EndWalk` need not. Only two effects change:
+假设一位同事提议做一处修改：行人一开始通行，请求就已经得到了处理，所以应该由 `StartWalk` 清除请求，而 `EndWalk` 不必再清除。只有两个效果发生了变化：
 
 ```isabelle
 fun effect_early :: "event ⇒ crossing ⇒ crossing" where
@@ -588,8 +490,7 @@ fun effect_early :: "event ⇒ crossing ⇒ crossing" where
 | "effect_early e s = effect e s"
 ```
 
-`fun` reads overlapping equations in order, so the last equation covers the four other events: for them,
-`effect_early` does what `effect` does. Define the reachable states of the new design as before:
+`fun` 按顺序读取相互重叠的等式，所以最后一个等式涵盖了其余四个事件：对这些事件，`effect_early` 和 `effect` 做的事情一样。像前面那样定义新设计的可达状态：
 
 ```isabelle
 inductive reach_early :: "crossing ⇒ bool" where
@@ -597,8 +498,7 @@ inductive reach_early :: "crossing ⇒ bool" where
 | "reach_early s ⟹ guard e s ⟹ reach_early (effect_early e s)"
 ```
 
-The failed proof of Section 13.5, run on `reach_early`, stops at the same goal for `ToGreen`. This time
-Nitpick finds a reachable state that is not safe:
+把第 13.5 节中失败的那个证明用在 `reach_early` 上，它会停在同一个关于 `ToGreen` 的目标上。这一次，Nitpick 找到了一个不安全的可达状态：
 
 ```isabelle
 lemma "reach_early s ⟹ safe s"
@@ -614,15 +514,9 @@ Nitpick found a counterexample:
     s = ⦇cars = Green, peds = Walk, req = False⦈
 ```
 
-The cars have green while the pedestrians walk. The option `card = 6` fixes the size of the models
-that Nitpick tries: six values for each type whose size it has to choose, such as states and lists of
-events. Six are enough here, and with one fixed size Nitpick reports the same counterexample every time.
-Without the option it tries the sizes 1 to 10, and which counterexample it reports can change from run
-to run.
+汽车信号灯是绿灯，而行人在通行。选项 `card = 6` 固定了 Nitpick 所尝试的模型的大小：对于每个需要由它来选定大小的类型（例如状态和事件列表），都取六个值。在这里六个就够了，而且大小固定后，Nitpick 每次报告的反例都相同。不加这个选项时，它会依次尝试 1 到 10 的大小，而它报告的是哪一个反例，每次运行都可能不同。
 
-Nitpick shows the bad state but not how to get there. To see the run, search for a list of events
-instead. Define `run_early` as `run` was defined, with the new effects, and ask whether every run of the
-new design ends in a safe state:
+Nitpick 给出了坏状态，却没有说明怎样到达那里。要看到这次运行，就改为搜索一个事件列表。像定义 `run` 那样定义 `run_early`，只是换用新的效果，然后问：新设计的每一次运行是否都结束在安全的状态？
 
 ```isabelle
 fun run_early :: "event list ⇒ crossing ⇒ crossing" where
@@ -643,9 +537,7 @@ Nitpick found a counterexample:
     es = [Press, ToAmber, ToRed, StartWalk, ToGreen]
 ```
 
-That is a **counterexample trace**: five events from `start` to an unsafe state. Replay it with `value`
-to see every state on the way. `take n es` is the first `n` events of `es`, so the list below holds the
-state after 0, 1, …, 5 events:
+这就是一条**反例轨迹**（counterexample trace）：从 `start` 到一个不安全状态的五个事件。用 `value` 重放它，就能看到途中的每一个状态。`take n es` 是 `es` 的前 `n` 个事件，所以下面的列表依次是经过 0、1、……、5 个事件之后的状态：
 
 ```isabelle
 value "map (λn. run_early (take n [Press, ToAmber, ToRed, StartWalk, ToGreen]) start)
@@ -662,42 +554,25 @@ value "map (λn. run_early (take n [Press, ToAmber, ToRed, StartWalk, ToGreen]) 
   :: "crossing list"
 ```
 
-As a story: someone presses the button; the car light turns amber, then red; the pedestrian signal
-shows walk and, in the new design, the request is cleared; the controller sees no request and turns the
-car light green, while the pedestrians are still on the road.
+把它当作一个故事来讲：有人按下按钮；汽车信号灯变成黄灯，再变成红灯；行人信号灯显示通行，并且在新设计中，请求被清除了；控制器看到没有请求，就把汽车信号灯变成绿灯，而这时行人还在马路上。
 
-| After | Event | cars | peds | req |
+| 经过 | 事件 | cars | peds | req |
 |---|---|---|---|---|
-| 0 events | | Green | DontWalk | False |
+| 0 个事件 | | Green | DontWalk | False |
 | 1 | Press | Green | DontWalk | True |
 | 2 | ToAmber | Amber | DontWalk | True |
 | 3 | ToRed | Red | DontWalk | True |
 | 4 | StartWalk | Red | Walk | False |
 | 5 | ToGreen | Green | Walk | False |
 
-Compare the state after 4 events with the goal of the failed proof in Section 13.5: cars red, pedestrians
-walking, no request. In the design of Section 13.4 that state is unreachable, and the remedy was a
-stronger invariant. In the new design it is reachable, and the remedy is to fix the design. Keep the
-request until the walk ends, as the design of Section 13.4 does; or add `peds s = DontWalk` to the guard
-of `ToGreen`, so that the controller checks the pedestrian signal itself (Exercise 13.6 asks you to prove
-that this fix works).
+把 4 个事件之后的状态与第 13.5 节失败证明中的目标比较一下：汽车红灯，行人在通行，没有请求。在第 13.4 节的设计中，这个状态不可达，补救的办法是更强的不变式。在新设计中，它是可达的，补救的办法是修正设计：要么像第 13.4 节的设计那样，把请求保留到通行结束；要么在 `ToGreen` 的守卫条件中加上 `peds s = DontWalk`，让控制器自己检查行人信号灯（练习 13.6 要你证明这个修正是有效的）。
 
 ::: keyidea
-When the induction step of an invariant proof fails, the goal describes a state and an event. Find out whether
-the state is reachable. If it is, the property you are proving fails in a reachable state; when that
-property is your safety property, the design is wrong: search for a trace with Nitpick, or with
-Quickcheck on an executable model, and fix the design. If it is not, the design may be right and the
-invariant too weak: strengthen it.
+当不变式证明的归纳步骤失败时，目标描述的是一个状态和一个事件。弄清楚这个状态是否可达。如果可达，你要证明的性质就在某个可达状态中不成立；当这个性质就是你的安全性质时，设计就是错的：用 Nitpick，或者在可执行的模型上用 Quickcheck 搜索一条轨迹，然后修正设计。如果不可达，设计可能是正确的，只是不变式太弱：加强它。
 :::
 
 ::: tip
-Quickcheck and Nitpick search in different ways. Quickcheck runs the definitions on many small values,
-so it needs functions it can execute, such as `guard`, `effect_early` and `run_early`. Nitpick translates
-the problem into a SAT problem, which also covers inductive definitions such as `reach`. Quickcheck's
-exhaustive search tries small values first and stops early (by default at size 5). On
-`safe (run_early es start)` it finds nothing, because the shortest bad run has five events and its
-search does not get that far. Fix the length of the run, with one variable for each event, and it finds
-the trace at once:
+Quickcheck 和 Nitpick 的搜索方式不同。Quickcheck 在许多较小的值上运行定义，所以它需要能执行的函数，例如 `guard`、`effect_early` 和 `run_early`。Nitpick 把问题转换成一个 SAT 问题，这也涵盖了像 `reach` 这样的归纳定义。Quickcheck 的穷举搜索先尝试较小的值，并且很早就会停止（默认在大小 5 处停止）。对 `safe (run_early es start)`，它什么也找不到，因为最短的坏运行有五个事件，而它的搜索走不到那么远。把运行的长度固定下来，每个事件用一个变量，它立刻就能找到这条轨迹：
 
 ```isabelle
 lemma "safe (run_early [e1, e2, e3, e4, e5] start)"
@@ -716,22 +591,16 @@ Quickcheck found a counterexample:
   e5 = ToGreen
 ```
 
-Isabelle/jEdit runs Quickcheck on every new lemma by itself, but not Nitpick: call `nitpick` yourself.
+Isabelle/jEdit 会自动对每条新引理运行 Quickcheck，但不会运行 Nitpick：`nitpick` 要你自己调用。
 :::
 
-## Refinement: from abstract to concrete {#refinement}
+## 精化：从抽象到具体 {#refinement}
 
-The crossing of Section 13.4 has no time. A real controller keeps the amber light on for a few seconds,
-gives the pedestrians a minimum time to cross, and gives the cars a minimum green time before it serves
-the next request. You could add a timer to the model and prove safety again, with a new invariant. There
-is a better way: show that the timed controller **refines** the crossing, and let the safety theorem
-carry over.
+第 13.4 节的人行横道模型中没有时间。真实的控制器会让黄灯亮几秒钟，给行人一段最短的过街时间，并且在响应下一个请求之前，给汽车一段最短的绿灯时间。你可以在模型中加入一个计时器，再用一个新的不变式把安全性重新证明一遍。还有更好的办法：证明带计时器的控制器**精化**（refine）了人行横道模型，让安全性定理直接沿用过来。
 
-### Two models of one system {#two-models}
+### 同一系统的两个模型 {#two-models}
 
-The timed controller has the lights of the crossing and a timer, which counts down the ticks that the
-current phase still lasts. A light may change only when the timer has run out, and a change sets the
-timer to the length of the new phase. The button can be pressed at any time.
+带计时器的控制器有人行横道模型中的那些信号灯，外加一个计时器，它倒数当前阶段还要持续的节拍（tick）数。只有在计时器归零时，信号灯才可以变化，而每次变化都会把计时器设为新阶段的长度。按钮在任何时候都可以按下。
 
 ```isabelle
 record timed =
@@ -757,41 +626,26 @@ inductive treach :: "timed ⇒ bool" where
 | step: "treach c ⟹ tstep c c' ⟹ treach c'"
 ```
 
-Amber lasts 3 ticks, the pedestrians get 6, and green lasts at least 10. A press does not start a phase,
-so the value of `delay Press` is never used. The event `tick` is new: it changes the timer and leaves the
-lights alone. The other events of the crossing are still there, with a stronger guard: the timer must
-have run out.
+黄灯持续 3 个节拍，行人有 6 个节拍，绿灯至少持续 10 个节拍。按按钮不会开始一个新阶段，所以 `delay Press` 的值从来不会被用到。事件 `tick` 是新增的：它改变计时器，而不动信号灯。人行横道模型的其他事件仍然存在，只是守卫条件更强了：计时器必须已经归零。
 
-The two models describe the same crossing at two levels of detail. The crossing is the **abstract**
-model, the timed controller the **concrete** one. They are related by an **abstraction function**: the
-field selector `lights` maps a concrete state to the abstract state it represents, by forgetting the
-timer. In Module 12, an abstraction function mapped a data structure to the value it represents. Here it
-maps the states of one machine to the states of another.
+这两个模型以两种详细程度描述同一个人行横道。人行横道模型是**抽象**（abstract）模型，带计时器的控制器是**具体**（concrete）模型。两者通过一个**抽象函数**（abstraction function）联系起来：字段选择函数 `lights` 忘掉计时器，从而把一个具体状态映射到它所表示的抽象状态。在模块 12 中，抽象函数把一个数据结构映射到它所表示的值。这里，它把一台状态机的状态映射到另一台状态机的状态。
 
-::: definition Refinement
-Let $\alpha$ map the states of a concrete machine $C$ to the states of an abstract machine $A$. Then $C$
-**refines** $A$ (with abstraction function $\alpha$) if
+::: definition 精化
+设 $\alpha$ 把具体状态机 $C$ 的状态映射到抽象状态机 $A$ 的状态。如果下面两条成立，就说 $C$（以 $\alpha$ 为抽象函数）**精化**了 $A$：
 
-1. $\alpha$ maps every initial state of $C$ to an initial state of $A$, and
-2. for every step $c \to c'$ of $C$, either $\alpha\ c \to \alpha\ c'$ is a step of $A$, or
-   $\alpha\ c' = \alpha\ c$. A step of the second kind is a **stutter step**: the abstract state does
-   not change.
+1. $\alpha$ 把 $C$ 的每个初始状态映射到 $A$ 的一个初始状态；
+2. 对于 $C$ 的每一步 $c \to c'$，要么 $\alpha\ c \to \alpha\ c'$ 是 $A$ 的一步，要么 $\alpha\ c' = \alpha\ c$。第二种步称为**停顿步**（stutter step）：抽象状态没有变化。
 :::
 
-Stutter steps are what allow the concrete model to take more steps than the abstract one. Every `tick`
-of the timed controller is a stutter step: the timer changes, the lights do not. Figure 13.3 shows a
-run of the timed controller and the run of the crossing that it represents.
+正是停顿步让具体模型可以比抽象模型走更多的步。带计时器的控制器的每个 `tick` 都是停顿步：计时器变了，信号灯没有变。图 13.3 展示了带计时器的控制器的一次运行，以及它所表示的人行横道模型的运行。
 
 ::: figure id=fig-13-3
-A run of the timed controller (below) and its image under `lights` (above). The three ticks change only
-the timer, so they are stutter steps; every other step is a step of the crossing.
+带计时器的控制器的一次运行（下）及其在 `lights` 下的像（上）。三次 tick 只改变计时器，所以它们是停顿步；其余每一步都是人行横道模型的一步。
 :::
 
-### The proof {#refinement-proof}
+### 证明 {#refinement-proof}
 
-The initial states match: `lights ⦇lights = start, timer = 0⦈` is `start`. For the steps, prove that
-each concrete step is a stutter step or a step of the crossing. In Isar, `proof cases` takes the step
-apart by rule inversion, one case for each rule of `tstep`:
+初始状态是对应的：`lights ⦇lights = start, timer = 0⦈` 就是 `start`。对于各步，要证明每个具体的步要么是停顿步，要么是人行横道模型的一步。在 Isar 中，`proof cases` 用规则反演把这一步拆开，`tstep` 的每条规则对应一种情形：
 
 ```isabelle
 lemma sim:
@@ -812,14 +666,9 @@ next
 qed
 ```
 
-Case `tick` is a stutter step. Case `press` is the abstract event `Press`: the `have` states the step
-with `Press` in place of `e`, and `blast` then proves the disjunction with `Press` as the witness for
-`∃e`. Case `switch` is the abstract event `e`, and its abstract guard holds because it is part of the
-concrete guard.
+情形 `tick` 是停顿步。情形 `press` 是抽象事件 `Press`：`have` 陈述了用 `Press` 代替 `e` 的那一步，然后 `blast` 以 `Press` 作为 `∃e` 的见证（witness）证明这个析取式。情形 `switch` 是抽象事件 `e`，它的抽象守卫条件成立，因为这个守卫条件是具体守卫条件的一部分。
 
-Now the general argument: every reachable concrete state represents a reachable abstract state. It is a
-rule induction over `treach`, and it uses only the two conditions of the definition: the initial states
-match, and `sim`.
+现在来看一般性的论证：每个可达的具体状态都表示一个可达的抽象状态。这是一个对 `treach` 的规则归纳，它只用到定义中的两个条件：初始状态相对应，以及 `sim`。
 
 ```isabelle
 lemma treach_reach: "treach c ⟹ reach (lights c)"
@@ -835,101 +684,53 @@ next
 qed
 ```
 
-In the induction step, a stutter step leads to the same abstract state, which is reachable by the induction
-hypothesis; any other step is a step of the crossing from a reachable state, which `reach.step` covers.
-And now the safety of the timed controller costs one line:
+在归纳步骤中，停顿步到达的是同一个抽象状态，由归纳假设，它是可达的；其他任何一步都是人行横道模型从一个可达状态出发的一步，由 `reach.step` 处理。现在，带计时器的控制器的安全性只需一行：
 
 ```isabelle
 theorem timed_safe: "treach c ⟹ safe (lights c)"
   using treach_reach crossing_safe by blast
 ```
 
-No new invariant was needed. The timed controller has more states than the crossing (one for every
-value of the timer), but its proof only had to check that each of its steps is one the crossing allows.
+不需要新的不变式。带计时器的控制器比人行横道模型的状态多（计时器的每一个值都带来不同的状态），但它的证明只需检查它的每一步都是人行横道模型所允许的。
 
-::: fact Refinement preserves invariants
-If $C$ refines $A$ with abstraction function $\alpha$, then $\alpha$ maps every reachable state of $C$ to
-a reachable state of $A$. So for every invariant $I$ of $A$, the property "$I(\alpha\ c)$" is an
-invariant of $C$.
+::: fact 精化保持不变式
+如果 $C$ 以抽象函数 $\alpha$ 精化了 $A$，那么 $\alpha$ 把 $C$ 的每个可达状态都映射到 $A$ 的一个可达状态。所以对于 $A$ 的每个不变式 $I$，性质“$I(\alpha\ c)$”都是 $C$ 的不变式。
 :::
 
-This is the idea behind **refinement-based development**, used for example in the B method, with which
-the software of Paris Métro line 14 was developed (Module 1), and in its successor Event-B. You start with
-an abstract model in which the important properties are simple to state and prove. Then you add detail in
-small steps, timers, buttons, messages, data structures, and prove that each step is a refinement. The
-safety properties proved at the top hold all the way down.
+这就是**基于精化的开发**（refinement-based development）背后的思想。例如 B 方法就采用了这种思想（巴黎地铁 14 号线的软件就是用它开发的，见模块 1），它的后继者 Event-B 也是如此。你从一个抽象模型开始，在其中，重要的性质很容易陈述和证明。然后你一小步一小步地加入细节，例如计时器、按钮、消息和数据结构，并证明每一步都是一次精化。在最顶层证明的安全性质，会一直保持到最底层。
 
 ::: note
-An abstraction function is a special case. In general, a concrete state may correspond to several
-abstract states. Then a **simulation relation** $R$ between concrete and abstract states takes the place
-of $\alpha$: every initial concrete state is related to some initial abstract state, and whenever
-$R\ c\ a$ and $c \to c'$, there is an $a'$ with $R\ c'\ a'$ that $a$ reaches in zero steps or one. The
-proof has the same shape.
+抽象函数只是一种特殊情况。一般来说，一个具体状态可能对应几个抽象状态。这时，用具体状态和抽象状态之间的一个**模拟关系**（simulation relation）$R$ 来代替 $\alpha$：每个初始的具体状态都与某个初始的抽象状态相关；并且只要 $R\ c\ a$ 且 $c \to c'$，就存在一个 $a'$，使得 $R\ c'\ a'$，并且 $a$ 经过零步或一步可以到达 $a'$。证明的形状是一样的。
 :::
 
 ::: pitfall
-The direction matters. The definition says that every concrete step is allowed by the abstract model;
-that is why safety properties carry over from the abstract model to the concrete one. It does not say
-that the concrete model can do everything the abstract one can. A concrete model may do *less*: the
-timed controller never changes a light while its timer runs, which the crossing would allow. Section
-13.8 shows what refinement therefore does not preserve.
+方向很重要。定义说的是：每个具体的步都是抽象模型所允许的；正因为如此，安全性质才能从抽象模型沿用到具体模型。它并没有说具体模型能做抽象模型能做的一切。具体模型可能做得**更少**：带计时器的控制器在计时器运行期间从不改变信号灯，而人行横道模型是允许这样做的。第 13.8 节会说明，正因为如此，精化不能保持什么。
 :::
 
-## Beyond safety, and where to go next {#next}
+## 安全性之外，以及接下来学什么 {#next}
 
-### Liveness {#liveness}
+### 活性 {#liveness}
 
-Requirement R2 says that after a press, the pedestrians *eventually* walk. It is not about bad states.
+需求 R2 说：按下按钮之后，行人**最终**能够通行。它说的不是坏状态。
 
-::: definition Liveness property
-A **liveness property** says that something good eventually happens: a request is eventually served, a
-message is eventually delivered, a program eventually terminates.
+::: definition 活性性质
+**活性性质**（liveness property）说的是：好事最终会发生。例如请求最终会得到处理，消息最终会送达，程序最终会终止。
 :::
 
-No finite run can break a liveness property, because the good thing might still happen later. A
-counterexample is an infinite run in which it never happens, typically a loop that repeats forever. The
-crossing has one: press the button again and again, forever, and nothing else ever happens. Every state
-of this run is reachable and safe, and the pedestrians never walk. To rule out such runs, a model needs a
-**fairness** assumption, such as "an event whose guard stays true is eventually taken". Proofs of
-liveness then use a measure that decreases until the good thing happens, like the termination measures
-of Module 5. Leslie Lamport introduced the words *safety* and *liveness* for these two kinds of
-properties in 1977.
+任何有限的运行都不能破坏活性性质，因为那件好事可能还会在以后发生。反例是一次那件好事永远不会发生的无限运行，通常是一个永远重复下去的循环。人行横道模型就有这样的运行：一次又一次地按按钮，永远如此，其他事情一件也不发生。这次运行中的每个状态都是可达的、安全的，而行人永远不能通行。要排除这样的运行，模型需要一个**公平性**（fairness）假设，例如“守卫条件一直为真的事件最终会被执行”。这样，活性的证明就可以使用一个不断减小、直到好事发生为止的度量，就像模块 5 中的终止性度量那样。莱斯利·兰伯特（Leslie Lamport）在 1977 年为这两类性质引入了“安全性”（safety）和“活性”（liveness）这两个名称。
 
-An invariant cannot express a liveness property, because it talks about one state at a time. And
-refinement as defined in Section 13.7 does not preserve liveness: a controller that never changes its
-lights, whatever happens, refines the crossing, since all its steps are presses and stutter steps
-(Exercise 13.9). It is perfectly safe and perfectly useless. Refinement methods add proof obligations
-for liveness. Event-B, for example, can ask you to show that new events such as `tick` cannot run
-forever, with a measure that each of them decreases, here the timer; that rules out a controller that
-only ticks. A requirement such as R2 still needs a proof of its own.
+不变式无法表达活性性质，因为它每次只谈论一个状态。而且第 13.7 节定义的精化也不保持活性：一个无论发生什么都从不改变信号灯的控制器同样精化了人行横道模型，因为它的所有步都是按按钮和停顿步（练习 13.9）。它绝对安全，也绝对没用。精化方法会为活性增加证明义务（proof obligation）。例如，Event-B 可以要求你证明像 `tick` 这样的新事件不能永远运行下去，所用的是一个这些事件每次都会使之减小的度量，这里就是计时器；这就排除了只会 tick 的控制器。像 R2 这样的需求仍然需要单独的证明。
 
-Liveness is the home ground of **temporal logic**, which Amir Pnueli proposed for programs in 1977. Its
-operators speak about runs: □ *P* ("always *P*") and ◇ *P* ("eventually *P*"). Requirement R2 becomes
-□(*req* ⟶ ◇ *Walk*): at every point of a run, if a request is pending, the pedestrians walk then or at
-some later point.
-**Model checkers** check such formulas on finite models automatically, and print a counterexample run
-when they fail: **SPIN** for models in its language Promela, **nuXmv** for models in the SMV language,
-and **TLC** for specifications in Lamport's **TLA+**, the language that Amazon's engineers used
-(Module 1). Isabelle can prove liveness too, but that needs more machinery than this series covers.
+活性是**时序逻辑**（temporal logic）的主场，阿米尔·伯努利（Amir Pnueli）在 1977 年提出把它用于程序。它的算子谈论的是运行：□ *P*（“总是 *P*”）和 ◇ *P*（“最终 *P*”）。需求 R2 变成 □(*req* ⟶ ◇ *Walk*)：在一次运行的每一个时刻，如果有待处理的请求，那么行人在这一时刻或之后的某个时刻会通行。**模型检测器**能在有限模型上自动检查这样的公式，并在公式不成立时打印出一次反例运行：**SPIN** 检查用它自己的语言 Promela 写的模型，**nuXmv** 检查用 SMV 语言写的模型，**TLC** 检查用兰伯特的 **TLA+** 写的规约，亚马逊的工程师用的就是 TLA+（模块 1）。Isabelle 也能证明活性，但那需要的工具超出了本系列的范围。
 
-### Where to go next {#further}
+### 接下来学什么 {#further}
 
-- **Isabelle for model verification.** The site's single-page guide
-  [Isabelle for model verification](../isabelle/) applies these ideas to a small model of a lid: a
-  record of state, a guard that admits an operation, a lemma that the operation preserves the state
-  invariant, and a proof that a translation between two representations preserves meaning. Its guard
-  and update form an event in the sense of Section 13.4, and its lemma is the induction step of an invariant
-  proof (Section 13.3); the translation theorem is of the kind that Module 14 proves for a compiler. The
-  guide was written for Isabelle2025-2.
-- **The Archive of Formal Proofs** is a large online library of checked Isabelle developments, among
-  them models of protocols, algorithms and systems with their invariants and refinements.
-- **Event-B** and its tool, the Rodin platform, are built around refinement: abstract machines, events
-  with guards and actions, invariants, and refinement proofs, discharged mostly by automatic provers.
-- **Model checkers** such as TLC, SPIN and nuXmv explore finite models automatically and handle
-  liveness. They are the quickest way to find a counterexample trace in a design; a proof covers what a
-  finite model cannot.
+- **Isabelle 模型验证。** 本站的单页指南 [Isabelle 模型验证](../isabelle/)（英文）把这些思想用在一个关于盖子的小模型上：一个表示状态的记录，一个允许某个操作的守卫条件，一条说明该操作保持状态不变式的引理，以及一个证明，说明两种表示之间的转换保持含义。它的守卫条件和更新构成第 13.4 节意义上的一个事件，它的引理就是不变式证明（第 13.3 节）中的归纳步骤；而那个关于转换的定理，与模块 14 为编译器证明的定理属于同一类。这份指南是为 Isabelle2025-2 编写的。
+- **形式化证明档案库**（Archive of Formal Proofs）是一个大型在线库，收录了经过检查的 Isabelle 项目，其中包括协议、算法和系统的模型，以及它们的不变式和精化。
+- **Event-B** 及其工具 Rodin 平台都是围绕精化构建的：抽象机、带守卫条件和动作的事件、不变式，以及精化证明，这些证明大多由自动证明器完成。
+- TLC、SPIN 和 nuXmv 这样的**模型检测器**能自动探索有限模型，也能处理活性。要在设计中找出反例轨迹，它们是最快的途径；而证明能覆盖有限模型覆盖不了的东西。
 
-Module 14 ends the series with a different kind of system: a compiler, proved correct.
+模块 14 将用另一种系统为本系列收尾：一个经过证明的、正确的编译器。
 
 ## What you learned {#summary}
 

@@ -462,7 +462,7 @@ qed
 
 What `proof` with no method does depends on the goal ([10.2.6](module_10_EN.html#shape-start)):
 
-| Goal | `proof` applies | Inside the block |
+| Goal | Standard rule | Inside the block |
 |---|---|---|
 | `A ⟶ B` | `impI` | `assume "A"` … `show "B"` |
 | `A ∧ B` | `conjI` | `show "A"` … `next` … `show "B"` |
