@@ -517,8 +517,9 @@ three sets of states fit together.
 
 ::: figure id=fig-13-2
 The 12 states of the crossing. The 6 reachable states (the thick box is `start`) lie inside the 7
-states that satisfy `invar`, which lie inside the 8 states that satisfy `safe`. No step leaves `invar`.
-From the safe but unreachable state on the right of `safe`, the event `ToGreen` leaves it.
+states that satisfy `invar`, which lie inside the 8 states that satisfy `safe`. No step leads out of
+`invar`. From the one state that satisfies `safe` but not `invar` (cars red, pedestrians walking, no
+request), the event `ToGreen` leads out of `safe`.
 :::
 
 ::: keyidea
@@ -785,7 +786,7 @@ invariant of $C$.
 
 This is the idea behind **refinement-based development**, used for example in the B method, with which
 the software of Paris Métro line 14 was developed (Module 1), and in its successor Event-B. You start with
-an abstract model in which the important properties are easy to state and prove. Then you add detail in
+an abstract model in which the important properties are simple to state and prove. Then you add detail in
 small steps, timers, buttons, messages, data structures, and prove that each step is a refinement. The
 properties proved at the top hold all the way down.
 
@@ -898,11 +899,11 @@ Use the lift of Example 13.1.
    *stop* (same state). *shut* needs a closing door and *start* a closed one.
 2. *open, close, shut, start*: (Closed, still) → (Open, still) → (Closing, still) → (Closed, still) →
    (Closed, moving).
-3. Only *close* leads to a closing door, and it keeps the motion as it was, from a state with an open
-   door. So the state before would be "door open, lift moving", which is unreachable too: *start* needs a
-   closed door, and *open* needs a lift that stands still. Both unsafe states can be reached only from
-   each other, and neither from the initial state. This is the argument that `lift_safe` makes for every
-   state at once.
+3. Only *close* leads to a closing door, and it keeps the motion as it is, so the state before would
+   have to be "door open, lift moving". No event leads to that state: *open* needs a lift that stands
+   still and keeps it still, *start* needs a closed door, and *close*, *shut* and *stop* never produce an
+   open door with a moving lift. So neither unsafe state can be reached. The proof of `lift_safe` makes
+   this argument for every state at once.
 :::
 ::::
 
@@ -1027,7 +1028,7 @@ qed
 
 No strengthening is needed: `safe` is inductive in this design. The guard of `ToGreen` now checks the
 pedestrian signal itself, so the step that broke the proof in Section 13.5 is no longer possible. A
-guard that checks the property it protects makes the proof easy; a design that relies on another
+guard that checks the property it protects makes the proof short; a design that relies on another
 variable, as the request did, needs an invariant that relates the two.
 :::
 ::::

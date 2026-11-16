@@ -84,13 +84,13 @@ def fig_04_2(L):
 def fig_04_3(L):
     T = {'en': dict(title='A transitive closure, and the reachable states of a door with a lock',
                     left='R and the pairs R⁺ adds', solid='in R', dashed='added by R⁺',
-                    right='the door: reachable states shaded', start='start',
+                    right='the door: reachable states in green', start='start',
                     unlock='unlock', lock='lock', open='open', close='close', bug='lock (added)',
                     desc={'CL': 'closed, locked', 'CU': 'closed, unlocked', 'OU': 'open, unlocked',
                           'OL': 'open, locked: bad'}),
          'zh': dict(title='传递闭包，以及带锁门的可达状态',
                     left='R 以及 R⁺ 添加的有序对', solid='R 中的有序对', dashed='R⁺ 添加的',
-                    right='门：可达状态带底色', start='初始',
+                    right='门：可达状态为绿色', start='初始',
                     unlock='开锁', lock='上锁', open='开门', close='关门', bug='上锁（新增）',
                     desc={'CL': '关闭，已锁', 'CU': '关闭，未锁', 'OU': '打开，未锁', 'OL': '打开，已锁：危险'})}[L]
     s = SVG(760, 330, T['title'])

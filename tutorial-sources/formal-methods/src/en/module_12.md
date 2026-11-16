@@ -952,7 +952,46 @@ The specification follows the pattern of Definition 12.5, with lists as the abst
 | Front element | `hd xs` | `first q` |
 | Connection | | α = `list_of`, I = `qinv` |
 
-Before proving, ask whether the invariant is really needed. Is `deq` correct on every queue?
+Start with the empty queue, which needs only the definition of `qempty`:
+
+```isabelle
+lemma list_of_qempty: "list_of qempty = []"
+  by (simp add: qempty_def)
+```
+
+Next, `enq`. A queue is always of the form `Queue f b`, so split the proof into that one case with
+`cases q` (Module 10) and try `auto`:
+
+```isabelle
+lemma "list_of (enq x q) = list_of q @ [x]"
+  apply (cases q)
+  apply auto
+```
+
+```output state
+```
+
+```isabelle
+  oops
+```
+
+ENQ_STUCK_EXPLANATION
+
+```isabelle
+lemma list_of_refill: "list_of (refill q) = list_of q"
+  by (cases q rule: refill.cases) auto
+
+lemma list_of_enq: "list_of (enq x q) = list_of q @ [x]"
+  by (cases q) (simp add: list_of_refill)
+```
+
+`cases q rule: refill.cases` splits the proof into the cases of the equations of `refill`: a queue with
+an empty front list, and one with a non-empty front list. It is the case analysis that follows a
+function's patterns, as `rule: f.induct` is the induction that follows its recursion (Module 11). Note
+that `list_of_enq` has no premise: `enq` is correct on every queue, invariant or not, because it only
+ever adds to the back.
+
+Is `deq` correct on every queue too? Ask Quickcheck before proving:
 
 ```isabelle
 lemma "list_of (deq q) = tl (list_of q)"
@@ -967,29 +1006,6 @@ lemma "list_of (deq q) = tl (list_of q)"
 ```
 
 QUEUE_COUNTEREXAMPLE_EXPLANATION
-
-So the correspondence for `deq` needs the invariant as a premise. Start with the easy parts. The empty
-queue represents the empty list, and `refill` does not change the list a queue represents, which is
-the lemma every other proof will use:
-
-```isabelle
-lemma list_of_qempty: "list_of qempty = []"
-  by (simp add: qempty_def)
-
-lemma list_of_refill: "list_of (refill q) = list_of q"
-  by (cases q rule: refill.cases) auto
-```
-
-`cases q rule: refill.cases` splits the proof into the cases of the equations of `refill`: a queue with
-an empty front list, and one with a non-empty front list. It is the case analysis that follows a
-function's patterns, as `rule: f.induct` is the induction that follows its recursion (Module 11).
-
-`enq` is correct on every queue, invariant or not, because it only ever adds to the back:
-
-```isabelle
-lemma list_of_enq: "list_of (enq x q) = list_of q @ [x]"
-  by (cases q) (simp add: list_of_refill)
-```
 
 For `deq` the invariant is needed exactly when the front list is empty. The Isar proof makes that
 visible:
@@ -1078,7 +1094,12 @@ export_code isort isin tinsert qempty enq deq first
 ```output
 ```
 
-EXPORT_EXPLANATION
+As in Module 8, the batch build and the Output panel only say where the code went: Isabelle stores
+generated code as **theory exports**, files that belong to the theory, instead of printing it. In
+Isabelle/jEdit, *theory exports* in the message is a link. Click it, and the File Browser opens the
+folder of code exported by your theory, under the virtual address `isabelle-export:`. EXPORT_FOLDER
+
+EXPORT_CONTENT
 
 ### What is guaranteed {#guarantee}
 
