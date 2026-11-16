@@ -34,7 +34,7 @@ calls programs outside Isabelle; Section 9.8 shows how.
 | `auto` | `simp` plus logical reasoning, on every subgoal | many easy subgoals at once |
 | `blast` | searches for a proof with the rules of logic | logic, sets and relations |
 | `force`, `fastforce` | logic and rewriting together, on the first subgoal | quantifiers mixed with equations |
-| `linarith`, `arith`, `presburger` | decide questions of arithmetic | inequalities; even and odd; `div` and `mod` by numbers |
+| `linarith`, `arith`, `presburger` | prove facts of linear arithmetic | inequalities; even and odd; `div` and `mod` by numbers |
 | `find_theorems` | searches the library | finding the lemma you need |
 | `quickcheck`, `nitpick` | search for counterexamples | testing a claim before you try to prove it |
 | `sledgehammer` | asks external provers, returns a proof that Isabelle checks | goals that follow from a few library lemmas |
@@ -283,6 +283,9 @@ You have now seen most of the ways to change the rules that the simplifier uses.
 | `simp only: a b` | only `a` and `b`, plus the assumptions |
 | `simp_all` | like `simp`, on every subgoal |
 
+Even with `only:`, a few built-in helpers stay: the simplifier still closes a goal that has become
+trivial, such as `t = t`, and it may still call linear arithmetic (Section 9.5) to finish a goal.
+
 `del:` removes a rule for one call, for example a simp rule that rewrites a term into a form you do not
 want. Without `allows_grant` the simplifier is back where it started:
 
@@ -513,7 +516,8 @@ thm option.split
 ```
 
 The rule turns the `case` into two implications, one for each constructor, as `if_split` does for an
-`if`. With it, the simplifier finishes:
+`if`. (`?f1.0` is how Isabelle prints a schematic variable whose name ends in a digit, here `?f1`.) With
+it, the simplifier finishes:
 
 ```isabelle
   apply (simp split: option.split)
@@ -674,15 +678,17 @@ small goal, suspect a rule that loops. Remove `using [[simp_trace]]` when you ar
 
 The simplifier rewrites. It never searches: it does not try a step, find that it leads nowhere, and go back
 to try another. Many goals need such a search. Which assumption should be used? Which value should an
-`∃` get? Isabelle's **classical reasoner** answers these questions by searching. It applies the
-introduction and elimination rules of natural deduction from Modules 6 and 7, together with the rules
-declared for sets and relations, and it backtracks when a choice fails.
+`∃` get? Isabelle's **classical reasoner**, which you met with `blast` in Module 7, answers these
+questions by searching. It applies the introduction and elimination rules of natural deduction from
+Modules 6 and 7, together with the rules declared for sets and relations, and it backtracks when a choice
+fails.
 
 ::: definition Safe and unsafe rules
 A rule is **safe** if applying it to a provable goal always leaves provable subgoals, as `conjI` and `impI`
-do. A rule is **unsafe** if it might turn a provable goal into an unprovable one: `disjI1` reduces `P ∨ Q`
-to `P`, which may be the wrong choice, and `allE` must guess a term for the variable. The classical reasoner
-applies safe rules freely and unsafe rules only with backtracking.
+do: these are the safe steps of Section 6.7. A rule is **unsafe** if it might turn a provable goal into an
+unprovable one: `disjI1` reduces `P ∨ Q` to `P`, which may be the wrong choice, and `allE` must guess a
+term for the variable. The classical reasoner applies safe rules freely and unsafe rules only with
+backtracking.
 :::
 
 To give the classical reasoner real work, extend the running example with roles. In a larger service,
@@ -720,10 +726,10 @@ lemma "UR ⊆ UR' ⟹ UR O RP ⊆ UR' O RP"
   by blast
 ```
 
-`blast` is a **complete** method for first-order logic: given unlimited time, it finds a proof of every
-valid first-order formula. In practice it searches only to a limited depth. It does no rewriting and knows
-little about equality, so it fails on goals that need definitions unfolded, functions computed or
-arithmetic:
+In principle `blast` is a **complete** method for first-order logic: if its search had no limit, it would
+find a proof of every valid first-order formula. In practice its search is bounded, as Section 6.9
+described. It does no rewriting and knows little about equality, so it fails on goals that need
+definitions unfolded, functions computed or arithmetic:
 
 ```isabelle fails
 lemma "allows (grant u Read es) u Read"
@@ -822,10 +828,11 @@ says that role `y` grants `Read`.
 | `force`, `fastforce` | first subgoal | fails, with no hint |
 | `clarsimp` | first subgoal | does not try to finish; leaves the goal tidied |
 
-`auto`, `force`, `fastforce` and `clarsimp` accept the simplifier's modifiers, written `simp add:`,
-`simp del:` and `split:`, because `add:` alone would be ambiguous. They also accept rules for the
-classical reasoner: `intro:`, `elim:` and `dest:`, with the rules of Module 7. So `auto simp add: grant_def`
-unfolds `grant`, and `blast intro: r` lets `blast` use a rule `r` of your own.
+`auto`, `force`, `fastforce` and `clarsimp` accept the simplifier's modifiers, written `simp add:` (or
+`simp:` for short), `simp del:` and `split:`, because `add:` alone would be ambiguous. They also accept
+rules for the classical reasoner: `intro:`, `elim:` and `dest:`, with the rules of Module 7. So
+`auto simp add: grant_def`, or `auto simp: grant_def` as Module 4 wrote it, unfolds `grant`, and
+`blast intro: r` lets `blast` use a rule `r` of your own.
 
 ## Arithmetic {#arith}
 
@@ -842,15 +849,17 @@ lemma "⟦used ≤ quota; new ≤ quota - used⟧ ⟹ used + new ≤ (quota :: n
   by linarith
 ```
 
-`linarith` proves linear arithmetic over `nat`, `int` and `real`. Subtraction on `nat` is tricky, because
+`linarith` proves goals of linear arithmetic over `nat`, `int` and `real`. Subtraction on `nat` is tricky, because
 `3 - 5 = 0` for natural numbers, and `linarith` takes care of it by distinguishing the cases
 `used ≤ quota` and `quota < used`. In fact `simp` proves this goal too: the simplifier calls a fast but
 weaker version of the same procedure. Use `linarith` when `simp` and `auto` leave an arithmetic goal.
 
 `linarith` combines inequalities by adding multiples of them, as you would to solve a system of
 inequalities over the real numbers, plus one rule for whole numbers: from `a < b` it concludes
-`a + 1 ≤ b`. It does not know that an even number is never odd. Suppose a load balancer sends requests
-with even numbers to one server and odd ones to another; no request should go to both:
+`a + 1 ≤ b`. That is enough for many goals about whole numbers, but not for all of them: for `nat` and
+`int`, `linarith` is not a decision procedure. It does not know, for example, that an even number is never
+odd. Suppose a load balancer sends requests with even numbers to one server and odd ones to another; no
+request should go to both:
 
 ```isabelle fails
 lemma "(2::int) * x ≠ 2 * y + 1"
@@ -898,16 +907,18 @@ methods decide.
 
 ::: fact Deciding arithmetic
 Presburger arithmetic, the first-order theory of the natural numbers with addition, is decidable (Mojżesz
-Presburger, 1929). With multiplication of variables it is not: there is no algorithm that decides, for
-every polynomial equation with integer coefficients, whether it has a solution in whole numbers (Yuri
-Matiyasevich, 1970, completing work of Martin Davis, Hilary Putnam and Julia Robinson). Over the real
-numbers, polynomial equations and inequalities are decidable again (Alfred Tarski), but the known
-algorithms take very long on all but small problems.
+Presburger, 1929). With multiplication of variables it is not, not even for single equations: no
+algorithm decides, for every polynomial equation with integer coefficients, whether it has a solution in
+whole numbers (Yuri Matiyasevich, 1970, completing work of Martin Davis, Hilary Putnam and Julia
+Robinson). Over the real numbers, formulas with addition and multiplication are decidable again (Alfred
+Tarski), but the known algorithms take very long on all but small problems.
 :::
 
-So for whole numbers there is no complete method for arithmetic with products, and there cannot be one. Isabelle's answer is
-the library: it contains thousands of proved facts about multiplication. The next section shows how to find
-the one you need, and Section 9.8 shows a tool that finds it for you.
+A goal such as `x ≤ y ⟹ x * x ≤ y * y` is true exactly when the opposite, `x ≤ y` together with
+`y * y < x * x`, has no solution. So for whole numbers there is no complete method for arithmetic with
+products, and there cannot be one: it would answer questions that, by the fact above, no algorithm can
+answer. Isabelle's answer is the library: it contains thousands of proved facts about multiplication. The
+next section shows how to find the one you need, and Section 9.8 shows a tool that finds it for you.
 
 ::: tip
 Decision procedures need the right type. `2 * x ≠ 2 * y + 1` is false for real numbers (take
@@ -1029,9 +1040,9 @@ not `"rev (rev xs)"`. For an operator, give a whole term such as `"_ * _"`, not 
 ## Counterexamples: Quickcheck and Nitpick {#refute}
 
 Trying to prove a false statement wastes time, and automation fails on false statements without saying
-that they are false. So test a claim before you try to prove it. Isabelle has two counterexample finders.
-Isabelle/jEdit runs Quickcheck automatically on every new `lemma` (Module 1); the examples here call the
-tools explicitly, as you can too.
+that they are false. So test a claim before you try to prove it. Isabelle has two counterexample finders,
+Quickcheck (Module 1) and Nitpick (Modules 2 and 3). Isabelle/jEdit runs Quickcheck automatically on
+every new `lemma`; the examples here call the tools explicitly, as you can too.
 
 ### Quickcheck {#quickcheck}
 
@@ -1252,8 +1263,8 @@ Done
 ```
 
 Read the output from the top. "Sledgehammering..." means that the provers have started. Each
-"… found a proof..." comes from one prover, and is followed by its suggestion, "Try this:", with the time
-the suggested proof took to check in parentheses. "Duplicate proof" means that a prover found a proof that
+"… found a proof..." comes from one prover. That prover's suggestion follows, at once or a few lines
+later, as "prover: Try this: …", with the time the suggested proof took to check in parentheses. "Duplicate proof" means that a prover found a proof that
 was already suggested. "Done" means that all provers have finished. In Isabelle/jEdit you click a
 suggestion to insert it. Choose a short and fast one, and replace the `sledgehammer` line with it. Here
 cvc5's suggestion is the proof you found by hand in Section 9.6:
@@ -1397,8 +1408,9 @@ unfold, a case to split, an induction to start, or a lemma to prove first.
   are safe, because Isabelle applies them only to sort terms. `using [[simp_trace]]` shows every step.
 - `blast` searches first-order logic, sets and relations; `auto` simplifies and reasons on all subgoals and
   leaves what it cannot prove; `force` and `fastforce` mix search and rewriting; `clarsimp` tidies a goal.
-- `linarith` decides linear arithmetic, `presburger` adds divisibility and quantifiers, and `arith` tries
-  both. Arithmetic with products of variables is undecidable; use library lemmas.
+- `linarith` proves linear arithmetic (on `nat` and `int`, not all of it); `presburger` decides linear
+  arithmetic on whole numbers, with divisibility and quantifiers; `arith` tries both. Arithmetic on whole
+  numbers with products of variables is undecidable; use library lemmas.
 - `find_theorems` and `find_consts` search the library; Quickcheck and Nitpick search for counterexamples.
 - **Sledgehammer** asks external provers for the facts that a proof needs and reconstructs a proof that the
   kernel checks.

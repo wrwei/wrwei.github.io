@@ -21,13 +21,15 @@ compiler with a machine-checked proof of correctness. Compilers deserve that att
 you run has been translated by one, and a bug in the translation breaks programs whose source code is
 correct. It breaks proofs too. A proof about a C function speaks about the C code, but the computer runs
 whatever the compiler produced. In Exercise 1.6 the compiler appeared on the list of things that a
-verified program still has to trust. A verified compiler takes it off that list: its correctness theorem
-says that the code it produces does what the source program means, for every source program.
+verified program still has to trust. A verified compiler takes it off that list, or nearly so (Section
+14.7 says what remains): its correctness theorem says that the code it produces does what the source
+program means, for every source program.
 
 The idea is almost as old as compilers. In 1967 John McCarthy and James Painter proved on paper that a
 compiler for arithmetic expressions is correct, the first proof of its kind. In 1972 Robin Milner and
-Richard Weyhrauch checked a compiler proof by machine, in Stanford LCF, the forerunner of the LCF system
-of Module 1. Today CompCert compiles a large subset of C, and CakeML, verified in the prover HOL4,
+Richard Weyhrauch checked such a proof by machine, for a compiler from arithmetic expressions to code
+for a stack machine, in Stanford LCF, the forerunner of the LCF system of Module 1. Today CompCert
+compiles a large subset of C, and CakeML, verified in the prover HOL4,
 compiles a dialect of ML. Their proofs run to many thousands of lines, but the central argument is the
 one you will write in this module, for the language McCarthy and Painter started with.
 
@@ -79,8 +81,8 @@ appear in the tree. In Isabelle, abstract syntax is a datatype.
 :::
 
 Expressions contain variables, so you need names for variables and a way to give them values. Names are
-strings. Isabelle writes a string between two pairs of single quotes, as in `''x''`, because the double
-quote already marks the end of a term (Module 1). Values are integers (`int`, Module 8), so that
+strings. As in Module 4, a string is written between two pairs of single quotes, as in `''x''`, because
+the double quote already marks the end of a term. Values are integers (`int`, Module 8), so that
 subtraction makes sense when Section 14.8 adds it. The values of all variables at one moment form a
 **state**: a function from names to values.
 
@@ -483,8 +485,8 @@ and Quickcheck, which tries small values first, finds the smallest expression th
 ::: keyidea
 Test before you prove. `value` checks one example; Quickcheck checks thousands of small ones and reports
 the first failure it finds, which is usually the simplest. Neither proves anything, but both are fast,
-and a counterexample shows you exactly what is wrong. A proof attempt on a false claim only fails,
-without telling you why.
+and a counterexample shows you exactly what is wrong. A proof attempt on a false claim only fails, and
+the goal it leaves does not tell you whether the claim or the proof is at fault.
 :::
 
 ## The correctness proof {#proof}
@@ -630,7 +632,8 @@ goal (1 subgoal):
 
 Progress: the code of e1 has run, by `exec_append` and the hypothesis for e1, and left `[eval e1 s]`.
 Now the code of e2 runs on the stack `[eval e1 s]`, but the hypothesis for e2 speaks only about the empty
-stack. This is the second point of the paper proof, and no lemma can help: the hypothesis is too weak.
+stack. This is the second point of the paper proof. The hypothesis is too weak, and the remedy is to
+change the claim, not to add a lemma.
 
 ```isabelle
   oops
@@ -933,14 +936,14 @@ theorem compile_cfold_correct:
 `compile_correct` turns the left-hand side into `eval (cfold e) s # stk`, and `cfold_correct` turns that
 into the right-hand side. Verified compilers grow in this way. CompCert translates C in a long series of
 passes, through several intermediate languages, and each pass has its own proof that it preserves the
-meaning; because the theorems compose, the whole compiler is correct.
+meaning; the theorems compose into one about the whole chain of passes.
 
 ::: pitfall
 An optimisation is correct with respect to a semantics, here the semantics of mathematical integers.
 For other kinds of numbers it may be wrong. In IEEE floating-point arithmetic, which almost every
 processor uses, adding 0.0 to −0.0 gives +0.0. So replacing `x + 0.0` by `x` changes the result when x
-is −0.0, and compilers do not make that replacement. A proof about the wrong semantics proves nothing
-about the real program.
+is −0.0, and compilers that follow the IEEE rules do not make that replacement. A proof about the wrong
+semantics proves nothing about the real program.
 :::
 
 ## From proof to program {#export}
@@ -958,9 +961,10 @@ See theory exports
 
 As in Module 8, the code does not appear in the Output panel. In Isabelle/jEdit the words *theory
 exports* are a link: click it, and the File Browser opens on the generated files, in a virtual folder
-whose name begins with `isabelle-export:`. The folder `export1`, named after the first `export_code` of
-the theory, holds the Haskell module `StackCompiler.hs`. Here are its central parts, as Isabelle2026
-generates them. The two datatypes:
+whose name begins with `isabelle-export:`. Each `export_code` of a theory writes into a folder of its
+own, `export1` for the first, `export2` for the second, and so on; here `export1` holds the Haskell
+module `StackCompiler.hs`. Here are its central parts, as Isabelle2026 generates them. The two
+datatypes:
 
 ```text
 data Expr = Num Int | Var [Char] | Add Expr Expr;
@@ -996,10 +1000,16 @@ compile (Add a b) = compile a ++ compile b ++ [ADD];
 `cfold` and `compile` have the same equations as in Isabelle, with Haskell's `++` for `@`. `fold_add`
 has the five equations that `fun` derived from its two (Section 14.6.2), and the test `b = Num 0` has
 become a call of `equal_expr`, an equality test that the code generator wrote for the datatype. The parts
-left out define the types `Char` and `Int`. Characters become a datatype with eight Boolean fields, and
-integers are written in binary with the constructors `Zero_int`, `Pos` and `Neg`, as natural numbers were
-in Module 8. That is faithful but slow; the library theory `HOL-Library.Code_Target_Int` makes the code
-use Haskell's own integers instead.
+left out are the module header and the types `Char` and `Int`, with the operations on them that the
+functions need, such as `plus_int`. Characters become a datatype with eight Boolean fields, and integers
+are built from the constructors `Zero_int`, `Pos` and `Neg` and the binary numerals `One`, `Bit0` and
+`Bit1` of Module 8. That is faithful but slow; the library theory `HOL-Library.Code_Target_Int` makes the
+code use Haskell's own integers instead.
+
+The module header lists what the module exports: the types `Char`, `Int`, `Expr` and `Instr` and the
+functions `cfold` and `compile`, but no constructors. Module 12 explained why `export_code` does this.
+Here it means that other Haskell code cannot build an expression to give to `compile`. Write
+`export_code open compile cfold …` to export everything, constructors included.
 
 What does the proof guarantee for this program? The theorems are about the HOL functions. The code
 generator is designed so that each step of the generated program corresponds to rewriting with
@@ -1066,8 +1076,9 @@ Found termination order: "(λp. length (fst p)) <*mlex*> {}"
 `drop n c` is c without its first n elements, so a jump forward is a recursive call on a shorter
 program. The last equation catches what the others leave out, an `ADD2` or `SUB` on a short stack and a
 `JMPZ` on the empty one, and skips the instruction. Jumps only go forwards, so every recursive call is on
-a shorter list, and Isabelle finds the termination order, the length of the program, without help. With backward jumps a program
-could run for ever, and `exec2` could not be a function (more on that in Section 14.8.4).
+a shorter list, and Isabelle finds the termination order, the length of the program, without help. With
+backward jumps a program could run for ever, and `fun` could not define `exec2` (more on that in
+Section 14.8.4).
 
 ### The order of operands {#operand-order}
 
@@ -1222,7 +1233,7 @@ This module used almost every part of the series. Here is where each piece came 
 |---|---|---|
 | 1 | `value`, `lemma`, Quickcheck; compilers in the trusted base | testing, Section 14.1 |
 | 2–3 | Logic; free variables of a lemma are universally quantified | "for every e, s and stk" |
-| 4 | Functions as values | the state, a function from names to values |
+| 4 | Functions | the state, a function from names to values |
 | 5 | Recursion and structural induction | `eval`, `exec`, `compile`, every proof |
 | 6–7 | Proof rules, `rule`, schematic variables | `rule Add.IH(2)` with `?stk` |
 | 8 | `datatype`, `fun`, lists, `export_code` | the language, the machine, the export |
@@ -1232,12 +1243,12 @@ This module used almost every part of the series. Here is where each piece came 
 | 12 | Specification against implementation | `eval` against `compile` and `exec` |
 | 13 | State machines | the stack machine itself |
 
-The series started with truth tables, which decide a formula by checking finitely many cases. Truth
-tables cannot reach a statement about every expression: there are infinitely many. Proof can. Along the
-way you learned to write such statements in logic, to prove them on paper with rules, and to let Isabelle
-check every step. The compiler is small, but its proof has the structure of the proofs behind seL4 and
-CompCert: a semantics for each language, a precise statement of what correct means, an induction that
-follows the structure of the programs, and lemmas found by reading the goals where the proof stops.
+Module 2 began with truth tables, which decide a formula by checking finitely many cases. Truth tables
+cannot reach a statement about every expression: there are infinitely many. Proof can. Along the way you
+learned to write such statements in logic, to prove them on paper with rules, and to let Isabelle check
+every step. The compiler is small, but its proof has the ingredients of the proofs behind CompCert and
+seL4: a semantics for each language, a precise statement of what correct means, an induction that follows
+the structure of the programs, and lemmas found by reading the goals where the proof stops.
 
 Where to go from here:
 
@@ -1479,9 +1490,9 @@ from it. Which variables must be arbitrary, and why?
 
 ::: solution
 Both c and stk must be arbitrary: in the case `Add a b`, the hypothesis for a is used with the
-continuation `compile b @ ADD # c`, and the hypothesis for b with the stack `eval a s # stk`. Since
-`exec_append` is a simp rule, remove it with `simp del:` (Module 9), or the simplifier would split the
-program before the hypotheses can be used:
+continuation `compile b @ ADD # c`, and the hypothesis for b with the stack `eval a s # stk`.
+`exec_append` is a simp rule, so `auto` would use it without being asked. Remove it with `simp del:`
+(Module 9), so that the proof really does without it:
 
 ```isabelle
 lemma compile_cont:

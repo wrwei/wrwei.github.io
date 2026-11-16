@@ -245,7 +245,7 @@ FMWidgets.register('eval-stepper', function (root, api) {
     var e = tree()
     if (k !== toks.length) throw err()
     var n = 0; (function count(e) { if (e.k === 'node') { n++; count(e.l); count(e.r) } })(e)
-    if (n > MAX_TREE) throw bad('Use a tree with at most ' + MAX_TREE + ' nodes.', '树最多 ' + MAX_TREE + ' 个结点。')
+    if (n > MAX_TREE) throw bad('Use a tree with at most ' + MAX_TREE + ' nodes.', '树最多只能有 ' + MAX_TREE + ' 个结点。')
     return e
   }
   function readArg(kind, s) {
@@ -288,7 +288,7 @@ FMWidgets.register('eval-stepper', function (root, api) {
     MENU.map(function (m) { return h('option', { value: m.f }, m.f) }))
   var argBox = h('div', { class: 'evs-args' })
   var msg = h('div', { class: 'fmw-msg evs-msg', role: 'status' })
-  var eqBox = h('div', { class: 'evs-eqs', 'aria-label': t('Equations', '方程') })
+  var eqBox = h('div', { class: 'evs-eqs', 'aria-label': t('Equations', '等式') })
   var chain = h('div', { class: 'evs-chain', 'aria-label': t('Evaluation so far', '到目前为止的求值过程') })
   var why = h('div', { class: 'fmw-msg evs-why', 'aria-live': 'polite' })
   var counter = h('span', { class: 'evs-count' })
@@ -398,13 +398,13 @@ FMWidgets.register('eval-stepper', function (root, api) {
     counter.textContent = t('Step ' + i + ' of ' + last, '第 ' + i + ' 步，共 ' + last + ' 步')
     if (!used) {
       why.textContent = last
-        ? t('Press Next to rewrite the highlighted part with an equation.', '按“下一步”，用一个方程改写高亮的部分。')
-        : t('This term is already a value: there is nothing to rewrite.', '这个项已经是一个值，没有什么可改写的。')
+        ? t('Press Next to rewrite the highlighted part with an equation.', '按“下一步”，用一个等式重写高亮的部分。')
+        : t('This term is already a value: there is nothing to rewrite.', '这个项已经是一个值，没有什么可以重写的了。')
     } else if (used.arith) {
       why.textContent = t('Arithmetic: ', '算术：') + used.arith
     } else {
       var bind = used.bind.map(function (b) { return b[0] + ' = ' + show(b[1]) }).join(', ')
-      why.textContent = t('Equation ' + used.eq + ' of ' + used.f, '用 ' + used.f + ' 的第 ' + used.eq + ' 个方程') +
+      why.textContent = t('Equation ' + used.eq + ' of ' + used.f, '用 ' + used.f + ' 的第 ' + used.eq + ' 个等式') +
         (bind ? t(', with ', '，其中 ') + bind : '') + (used.note ? t(' (because ', '（因为 ') + used.note + t(')', '）') : '')
     }
     result.innerHTML = ''
@@ -413,7 +413,7 @@ FMWidgets.register('eval-stepper', function (root, api) {
       Object.keys(state.tally).forEach(function (k) { calls += state.tally[k] })
       result.appendChild(h('div', { class: 'fmw-ok' },
         t('Value: ', '值：') + show(steps[last].term) + t(' after ' + last + (last === 1 ? ' step (' : ' steps (') + calls + ' by equations, ' + (last - calls) + ' by arithmetic).',
-          '，共 ' + last + ' 步（' + calls + ' 步用方程，' + (last - calls) + ' 步是算术）。')))
+          '，共 ' + last + ' 步（' + calls + ' 步用等式，' + (last - calls) + ' 步做算术）。')))
       if (state.item.f === 'fib') {
         var keys = Object.keys(state.tally).sort(function (a, b) { return parseInt(b.slice(4), 10) - parseInt(a.slice(4), 10) })
         var rep = keys.filter(function (k) { return state.tally[k] > 1 })

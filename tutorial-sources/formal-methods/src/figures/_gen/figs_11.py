@@ -67,7 +67,7 @@ def fig_11_3(L):
         s.line(x1, y, x2, y, stroke=C['navy'], sw=1.6)
         s.text(x2 + 8, y + 4, rule, size=11.5, fill=C['purple'], mono=True, weight=600)
 
-    lx, rx, cx = 120, 310, 215
+    lx, rx, cx = 110, 320, 215
     e = T['eps']
     # left branch: bal ε -> bal () -> bal (())
     bar(lx - 50, lx + 50, 58, 'bal_nil')

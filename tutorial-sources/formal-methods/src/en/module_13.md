@@ -3,7 +3,7 @@ title: Modelling systems: state machines and invariants
 part: 4
 lead: Describe a system as a state machine and prove in Isabelle that nothing bad ever happens in it. You will model states, events, guards and effects, define the reachable states, prove safety properties with invariants, strengthen an invariant that is not inductive, turn a counterexample into a trace, and carry what you proved about an abstract model over to a more concrete one.
 minutes: 230
-needs: Modules 4, 5 and 10 to 12 (relations and `r⇧*`, invariants on paper, Isar, inductive definitions and rule induction, abstraction functions)
+needs: Modules 1–12, especially Modules 4 (relations and `r⇧*`), 5 (invariants), 10 (Isar), 11 (inductive definitions and rule induction) and 12 (abstraction functions)
 goals:
   - Model a system as a state machine with states, an initial state, and events that have guards and effects
   - Define the transitions and the reachable states of a model with `inductive`, and relate reachability to `r⇧*`
@@ -49,6 +49,9 @@ The event *shut* is the door mechanism reporting that the door has finished clos
 *open* allows the door to reopen while it is closing, as real lift doors do when someone steps in.
 :::
 
+Module 4 introduced state machines, with a door and its lock as the example, and found their reachable
+states with the closure `r⇧*`. This module uses the same definition and describes the steps by events.
+
 ::: definition State machine
 A **state machine**, or **transition system**, consists of a set of **states**, a set of **initial
 states**, and a **transition relation**: $s \to t$ means that the machine can go from state $s$ to state
@@ -57,9 +60,9 @@ when its **guard** holds in $s$, and it leads to the state given by its **effect
 :::
 
 ::: definition Run, trace and reachable state
-A **run** is a sequence of states $s_0 \to s_1 \to s_2 \to \dots$ that starts in an initial state and
-follows the transition relation. Written as the list of its events, with the states they lead to, a run
-is a **trace**. A state is **reachable** if some run leads to it.
+A **run** is a sequence of states $s_0 \to s_1 \to s_2 \to \dots$, finite or infinite, that starts in
+an initial state and follows the transition relation. A **trace** describes a run by the list of its
+events; the states follow from them. A state is **reachable** if some run leads to it.
 :::
 
 Here is a run of the lift, from the initial state, with the events written over the arrows:
@@ -192,7 +195,9 @@ You could work with `r⇧*` directly. A definition of your own, such as `lreach`
 exactly the two cases of the invariant method, with names you choose, and builds the initial state into
 the definition. Module 11 defined reachability with the step at the front instead (`steps`). For
 invariants, the step at the end is more convenient: the induction hypothesis is then about the state
-*before* the last step, exactly as in the invariant method.
+*before* the last step, exactly as in the invariant method, and the initial state stays fixed. With the
+step at the front, a rule induction about the runs from one initial state meets the problem that Module
+11 met with `steps move Done s`: the induction rule replaces the start of the run by a variable.
 
 ## Safety properties and invariants {#invariants}
 
@@ -200,9 +205,9 @@ The property you want for the lift is that it never moves unless its door is clo
 kind have a name.
 
 ::: definition Safety property
-A **safety property** says that something bad never happens. For a state machine, it is a property of
-states that must hold in every reachable state. A run that reaches a state where it fails is a
-**counterexample** to it.
+A **safety property** says that something bad never happens. In this module the bad thing is a bad
+state, so a safety property is a property of states that must hold in every reachable state. A run that
+reaches a state where it fails is a **counterexample** to it.
 :::
 
 ::: definition Invariant and inductive invariant
@@ -261,6 +266,9 @@ The theorem answers the question of Section 13.1:
 corollary "¬ lreach (Open, True)"
   using lift_safe by force
 ```
+
+Isabelle treats `corollary` and `theorem` exactly as it treats `lemma`. The words tell the reader what
+role a result plays: a theorem is a main result, and a corollary follows directly from one.
 
 ::: pitfall
 State the property for a state variable, not for a pattern. This version looks the same, but fails:
@@ -600,13 +608,14 @@ states that this state violates, add it to the invariant with ∧, and try again
 several rounds; each round removes the unreachable states that the last failure showed.
 
 ::: pitfall
-- **Adding a fact that is false.** If the new part does not hold initially, the initial case fails. If
-  it holds in every reachable state but is not preserved together with the rest, another step case
-  fails, and you need another round. Test a candidate first: `nitpick` on `reach s ⟹ invar s` should
-  find no counterexample.
-- **Trying a stronger proof method.** No method can prove the step case for `safe`, because it is
-  false: Quickcheck showed a counterexample. A failed step case asks for a stronger invariant, not for
-  more automation.
+- **Adding a fact that is false.** A fact that fails in some reachable state cannot be part of an
+  invariant: the initial case or a step case fails, however many rounds you add. Test a candidate
+  first: `nitpick` on `reach s ⟹ invar s` should find no counterexample. A fact that is true but not
+  preserved together with the rest makes a step case fail too; then you need another round.
+- **Trying a stronger proof method.** From `safe s` and the guard alone, no method can prove the step
+  case, because that claim is false: Quickcheck found a counterexample. The step case also has the
+  premise `reach s`, but using it needs a fact about all reachable states, which is the invariant you
+  are looking for. A failed step case asks for a stronger invariant, not for more automation.
 :::
 
 ## Counterexample traces {#traces}
@@ -632,8 +641,8 @@ inductive reach_early :: "crossing ⇒ bool" where
 | "reach_early s ⟹ guard e s ⟹ reach_early (effect_early e s)"
 ```
 
-The proof of Section 13.5 fails here with the same goal. This time Nitpick finds a reachable state that
-is not safe:
+The failed proof of Section 13.5, run on `reach_early`, stops at the same goal for `ToGreen`. This time
+Nitpick finds a reachable state that is not safe:
 
 ```isabelle
 lemma "reach_early s ⟹ safe s"
@@ -846,12 +855,14 @@ next
 qed
 ```
 
-Case `tick` is a stutter step. Case `press` is the abstract event `Press`; the `have` names it as the
-witness for `∃e`, which `blast` then needs. Case `switch` is the abstract event `e`, and its abstract
-guard holds because it is part of the concrete guard.
+Case `tick` is a stutter step. Case `press` is the abstract event `Press`: the `have` states the step
+with `Press` in place of `e`, and `blast` then proves the disjunction with `Press` as the witness for
+`∃e`. Case `switch` is the abstract event `e`, and its abstract guard holds because it is part of the
+concrete guard.
 
 Now the general argument: every reachable concrete state represents a reachable abstract state. It is a
-rule induction over `treach`, and it uses nothing about the crossing except `sim`:
+rule induction over `treach`, and it uses only the two conditions of the definition: the initial states
+match, and `sim`.
 
 ```isabelle
 lemma treach_reach: "treach c ⟹ reach (lights c)"
@@ -889,21 +900,22 @@ This is the idea behind **refinement-based development**, used for example in th
 the software of Paris Métro line 14 was developed (Module 1), and in its successor Event-B. You start with
 an abstract model in which the important properties are simple to state and prove. Then you add detail in
 small steps, timers, buttons, messages, data structures, and prove that each step is a refinement. The
-properties proved at the top hold all the way down.
+safety properties proved at the top hold all the way down.
 
 ::: note
 An abstraction function is a special case. In general, a concrete state may correspond to several
-abstract states, or the correspondence may depend on more than the concrete state. Then a **simulation
-relation** $R$ between concrete and abstract states takes the place of $\alpha$: related states are
-related initially, and whenever $R\ c\ a$ and $c \to c'$, there is an $a'$ with $R\ c'\ a'$ that $a$
-reaches in zero or one step. The proof has the same shape.
+abstract states. Then a **simulation relation** $R$ between concrete and abstract states takes the place
+of $\alpha$: every initial concrete state is related to some initial abstract state, and whenever
+$R\ c\ a$ and $c \to c'$, there is an $a'$ with $R\ c'\ a'$ that $a$ reaches in zero steps or one. The
+proof has the same shape.
 :::
 
 ::: pitfall
-The direction matters. The definition says that every concrete step is allowed by the abstract model,
-not that the concrete model can do everything the abstract one can. A concrete model may do *less*: the
-timed controller never changes a light while its timer runs, which the crossing would allow. That is
-why refinement preserves safety properties. Section 13.8 shows what it does not preserve.
+The direction matters. The definition says that every concrete step is allowed by the abstract model;
+that is why safety properties carry over from the abstract model to the concrete one. It does not say
+that the concrete model can do everything the abstract one can. A concrete model may do *less*: the
+timed controller never changes a light while its timer runs, which the crossing would allow. Section
+13.8 shows what refinement therefore does not preserve.
 :::
 
 ## Beyond safety, and where to go next {#next}
@@ -930,12 +942,14 @@ An invariant cannot express a liveness property, because it talks about one stat
 refinement as defined in Section 13.7 does not preserve liveness: a controller that never changes its
 lights, whatever happens, refines the crossing, since all its steps are presses and stutter steps
 (Exercise 13.9). It is perfectly safe and perfectly useless. Refinement methods add proof obligations
-against this; Event-B, for example, asks you to show that new events such as `tick` cannot run forever,
-with a decreasing measure, here the timer.
+for liveness. Event-B, for example, can ask you to show that new events such as `tick` cannot run
+forever, with a measure that each of them decreases, here the timer; that rules out a controller that
+only ticks. A requirement such as R2 still needs a proof of its own.
 
 Liveness is the home ground of **temporal logic**, which Amir Pnueli proposed for programs in 1977. Its
 operators speak about runs: □ *P* ("always *P*") and ◇ *P* ("eventually *P*"). Requirement R2 becomes
-□(*req* ⟶ ◇ *Walk*): at every point, if a request is pending, the pedestrians walk at some later point.
+□(*req* ⟶ ◇ *Walk*): at every point of a run, if a request is pending, the pedestrians walk then or at
+some later point.
 **Model checkers** check such formulas on finite models automatically, and print a counterexample run
 when they fail: **SPIN** for models in its language Promela, **nuXmv** for models in the SMV language,
 and **TLC** for specifications in Lamport's **TLA+**, the language that Amazon's engineers used
@@ -944,10 +958,12 @@ and **TLC** for specifications in Lamport's **TLA+**, the language that Amazon's
 ### Where to go next {#further}
 
 - **Isabelle for model verification.** The site's single-page guide
-  [Isabelle for model verification](../isabelle/) applies the ideas of this module to a small object
-  model: a record of state, a guard that admits an operation, a lemma that the operation preserves the
-  state invariant, and a proof that a translation between two representations preserves meaning. You
-  can now read it as an application of Sections 13.4, 13.5 and 13.7.
+  [Isabelle for model verification](../isabelle/) applies these ideas to a small model of a lid: a
+  record of state, a guard that admits an operation, a lemma that the operation preserves the state
+  invariant, and a proof that a translation between two representations preserves meaning. Its guard
+  and update form an event in the sense of Section 13.4, and its lemma is the step case of an invariant
+  proof (Section 13.3); the translation theorem is of the kind that Module 14 proves for a compiler. The
+  guide was written for Isabelle2025-2.
 - **The Archive of Formal Proofs** is a large online library of checked Isabelle developments, among
   them models of protocols, algorithms and systems with their invariants and refinements.
 - **Event-B** and its tool, the Rodin platform, are built around refinement: abstract machines, events
@@ -962,8 +978,8 @@ Module 14 ends the series with a different kind of system: a compiler, proved co
 
 - A **state machine** has states, initial states and a transition relation. Its steps are **events**, each
   with a **guard** (when it can happen) and an **effect** (how it changes the state). A **run** follows
-  the steps from an initial state; a **trace** lists its events and states; a state is **reachable** if a
-  run leads to it.
+  the steps from an initial state; a **trace** lists its events; a state is **reachable** if a run leads
+  to it.
 - In Isabelle, a state is a datatype, a pair or a **record** (fields `cars s`, values
   `⦇cars = …, …⦈`, updates `s⦇cars := …⦈`). The transition relation is an `inductive` definition with
   one rule per event, or a pair of functions `guard` and `effect`, which `value` can run. The reachable
@@ -1069,8 +1085,8 @@ that breaks it.
 2. **Invariant, not inductive.** The only reachable state with amber has a request. But take the
    unreachable state ⦇cars = Amber, peds = Walk, req = True⦈: it satisfies the property, and `EndWalk`
    clears the request and keeps the amber light. Exercise 13.7 proves the invariant.
-3. **Not an invariant.** The run *Press, ToAmber, ToRed, StartWalk* reaches a state where the
-   pedestrians walk.
+3. **Not an invariant**, so not inductive either. The run *Press, ToAmber, ToRed, StartWalk* reaches a
+   state where the pedestrians walk.
 4. **Invariant, not inductive.** In the reachable states, amber comes only with don't walk. But the
    unreachable state ⦇cars = Green, peds = Walk, req = True⦈ satisfies the property (the cars are not
    amber), and `ToAmber` leads to amber while the pedestrians walk.
@@ -1229,13 +1245,14 @@ inductive lazy :: "crossing ⇒ bool" where
 | press: "lazy s ⟹ lazy (s⦇req := True⦈)"
 ```
 
-1. Prove that it refines the crossing, with the identity as abstraction function: `lazy s ⟹ reach s`.
-   Conclude that it is safe.
+1. Each step of the lazy controller is the abstract event `Press`, so it refines the crossing, with the
+   identity as abstraction function. Prove what follows by Fact 13.2, `lazy s ⟹ reach s`, by rule
+   induction as for `treach_reach`, and conclude that the lazy controller is safe.
 2. Prove that in the lazy controller the cars always have green.
 3. What do 1 and 2 say about requirement R2, and about what refinement preserves?
 
 ::: solution
-1. Each step of the lazy controller is the abstract event `Press`:
+1. In case `press`, the step is the abstract event `Press` from a reachable state:
 
    ```isabelle
    lemma lazy_reach: "lazy s ⟹ reach s"

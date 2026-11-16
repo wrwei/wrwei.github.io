@@ -100,6 +100,13 @@ Use these everywhere. At a term's first use in a module, add the English in brac
 | induction; mathematical, strong, structural induction | 归纳；数学归纳法，强归纳法，结构归纳法 |
 | base case / step case / induction hypothesis | 基础情形 / 归纳步骤 / 归纳假设 |
 | recursion / recursive definition | 递归 / 递归定义 |
+| recursive case / base case (of a definition) | 递归情形 / 基础情形 |
+| equation, defining equation (of a function) | 等式，定义等式（not 方程） |
+| constructor / pattern / successor | 构造子 / 模式 / 后继 |
+| head / tail (of a list); node; total function | 头部 / 尾部；结点；全函数 |
+| simplification rule (simp rule) | 化简规则 |
+| termination order / lexicographic order | 终止序 / 字典序 |
+| complete (course-of-values) induction / well-founded induction | 完全归纳法（累积归纳法） / 良基归纳法 |
 | termination / measure | 终止性 / 度量 |
 | invariant | 不变式 |
 | natural deduction | 自然演绎 |

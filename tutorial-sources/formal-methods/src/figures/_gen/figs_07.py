@@ -20,14 +20,14 @@ def under(s, x1, x2, y, label, col, size=12):
 def fig_07_1(L):
     T = {'en': dict(title='Pure and HOL', hol='HOL: the object logic', holk='formulas, of type bool',
                     pure='Pure: the meta-logic', purek='rules and goals, of type prop',
-                    rows=['from … infer', 'for an arbitrary …', 'is defined as'],
+                    rows=['from … infer', 'for an arbitrary …', 'equals (used in definitions)'],
                     right='A rule, written in both', prem='premises', concl='conclusion', infer='from … infer',
                     goal='A subgoal, written the same way', assm='assumption',
                     note=['Pure (purple) gives the structure: what is assumed',
                           'and what follows. HOL (blue) gives the formulas.']),
          'zh': dict(title='Pure 与 HOL', hol='HOL：对象逻辑', holk='公式，类型为 bool',
                     pure='Pure：元逻辑', purek='规则与目标，类型为 prop',
-                    rows=['由……推出', '对任意的……', '定义为'],
+                    rows=['由……推出', '对任意的……', '等于（用于定义）'],
                     right='一条规则，两层合写', prem='前提', concl='结论', infer='由……推出',
                     goal='一个子目标，写法相同', assm='假设',
                     note=['Pure（紫色）提供结构：哪些是假设，推出什么。', 'HOL（蓝色）提供公式。'])}[L]

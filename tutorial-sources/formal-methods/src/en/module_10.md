@@ -178,7 +178,8 @@ qed
 
 `using ab` hands the fact `ab` to `blast`; Section 10.3.3 explains why you have to. When the proof of
 the `show` succeeds, Isabelle uses the shown fact to solve the pending goal, and `qed` finds nothing
-left to do.
+left to do. This works because `ab` is the premise A ∧ B of the goal. An `assume` must match a premise
+of the goal: assume something else, and the `show` at the end fails (Section 10.8).
 
 ::: note
 The first line of every proof state names the **mode** Isabelle is in, which tells you what may come
@@ -279,9 +280,9 @@ qed
 ```
 
 ::: definition Fixed variable
-`fix x` introduces a **fixed variable** x: a name for an arbitrary value, about which the proof knows
-nothing except what it assumes. When the block is closed, a fact proved for the fixed x holds for every
-value of x.
+`fix x` introduces a **fixed variable** x, like the variables bound by ⋀ in Module 7: a name for an
+arbitrary value, about which the proof knows nothing except what it assumes. When the block is closed,
+a fact proved for the fixed x holds for every value of x.
 :::
 
 ### Lemmas with assumptions: assumes, shows and ?thesis {#shape-assms}
@@ -375,7 +376,7 @@ For the standard rule, the block then follows the patterns of natural deduction:
 
 ::: pitfall
 `proof` on its own fails when no standard rule fits the goal, for example when the goal is `False` or an
-equation:
+equation between numbers:
 
 ```isabelle fails
 lemma
@@ -539,8 +540,9 @@ lemma
 The simplifier unfolded `clamp` and split the `if`s, and what remains is the one case that needs the
 assumption: when x is above the range, `clamp` returns hi, and lo ≤ hi is exactly what `simp` did not
 know. The assumption was in the proof all the time, but **a proof method sees only the goal and the
-facts passed to it** with `then`, `from`, `with` or `using`. This is deliberate: you decide which facts
-matter, and automation does not get lost among hundreds of them.
+facts passed to it** with `then`, `from`, `with` or `using`, besides the rules it always uses (for
+`simp`, the simp rules, which include the equation of `clamp`). This is deliberate: you decide which
+facts matter, and automation does not get lost among hundreds of them.
 
 ::: keyidea
 Assumptions and proved facts are available in a proof, but a method uses them only when you pass them.
@@ -583,8 +585,8 @@ with `using` after the clause.
 ### Collecting facts: moreover and ultimately {#facts-moreover}
 
 Sometimes a step needs several facts that are proved one after another. Instead of naming each one, you
-can collect them: `moreover` adds the next fact to a collection, and `ultimately` passes the whole
-collection to the next claim.
+can collect them: `moreover` adds the most recent fact, `this`, to a collection, and `ultimately` adds
+the last one and passes the whole collection to the next claim.
 
 ```isabelle
 lemma clamp_in_range:
@@ -669,8 +671,9 @@ proof -
 qed
 ```
 
-The chain is < then = then ≤, so the result is `2 * i + 1 < 2 * n`. Only the last step needs the
-assumption, and only that step is given it.
+`fixes i n :: nat` declares the lemma's variables with their type, for the whole statement; without
+it, Isabelle would not know which kind of numbers i and n are. The chain is < then = then ≤, so the
+result is `2 * i + 1 < 2 * n`. Only the last step needs the assumption, and only that step is given it.
 :::
 
 ::: pitfall
@@ -767,8 +770,9 @@ goal (2 subgoals):
  2. ¬ x < lo ⟹ clamp lo hi x = max lo (min hi x)
 ```
 
-`case True` assumes the condition of the case, which the state lists under `this:`. The goal to prove is
-still `?thesis`:
+`case True` assumes the condition of the case, which the state lists under `this:`. The state still
+lists both pending goals, and the claim to prove is still `?thesis`, the statement of the lemma. Shown
+under the assumption x < lo, it solves the first goal:
 
 ```isabelle
   then show ?thesis using assms by simp
@@ -827,21 +831,23 @@ goal (2 subgoals):
   case Nil
   then show ?thesis by simp
 next
-  case (Cons y ys)
+  case (Cons z zs)
 ```
 
 ```output state
 proof (state)
 this:
-  xs = y # ys
+  xs = z # zs
 
 goal (1 subgoal):
  1. ⋀a list.
        xs = a # list ⟹ first_or d (xs @ ys) = first_or (first_or d ys) xs
 ```
 
-`case (Cons y ys)` gives names to the head and tail of xs: the state shows the assumption xs = y # ys,
-while the goal still uses Isabelle's own names for them, `a` and `list`. Finish the case:
+`case (Cons z zs)` gives names to the head and tail of xs: the state shows the assumption xs = z # zs,
+while the goal still uses Isabelle's own names for them, `a` and `list`. Choose names that the lemma does
+not use already. `case (Cons y ys)` would create a second `ys`, which hides the lemma's own `ys` for the
+rest of the case, although Isabelle prints both as `ys`. Finish the case:
 
 ```isabelle
   then show ?thesis by simp
@@ -856,7 +862,7 @@ lemma "first_or d (xs @ ys) = first_or (first_or d ys) xs"
 proof (cases xs)
   case Nil
   then show ?thesis by simp
-  case (Cons y ys)
+  case (Cons z zs)
   then show ?thesis by simp
 qed
 ```
@@ -865,7 +871,7 @@ qed
 *** Failed to refine any pending goal
 ```
 
-The second `show` proves its claim under both xs = [] and xs = y # ys, and no pending goal has both
+The second `show` proves its claim under both xs = [] and xs = z # zs, and no pending goal has both
 assumptions, so the shown fact solves none of them. Put `next` between the cases.
 :::
 
@@ -930,7 +936,7 @@ a proof, `consider` is the local form.
 ## Induction with named cases {#induction}
 
 In Module 5 you proved properties of recursive functions with `apply (induction xs)` and read the base
-case and the step case off the proof state. In Isar, each case of the induction becomes a named part of
+case and the induction step off the proof state. In Isar, each case of the induction becomes a named part of
 the block, and the induction hypothesis becomes a named fact.
 
 ### The skeleton of an induction {#induction-skeleton}
@@ -966,7 +972,7 @@ goal (2 subgoals):
        mysum ((a # xs) @ ys) = mysum (a # xs) + mysum ys
 ```
 
-These are the base case and the step case of Module 5. The proof outline that Isabelle/jEdit shows
+These are the base case and the induction step of Module 5. The proof outline that Isabelle/jEdit shows
 names the two cases after the constructors of lists:
 
 ```text
@@ -979,7 +985,7 @@ next
 qed
 ```
 
-Prove the base case, then enter the step case with names of your choice for the head and the tail:
+Prove the base case, then enter the induction step with names of your choice for the head and the tail:
 
 ```isabelle
   case Nil
@@ -1011,9 +1017,10 @@ qed
 
 ::: definition Named case
 In a proof by `cases` or `induction`, **`case c`** enters the case named c, and **`case (c x y …)`** also
-gives names to its variables. The case assumes its facts, available together under the name c, and sets
-**`?case`** to the claim of the case. In an induction, **c.IH** is the induction hypothesis and
-**c.prems** are the premises of the claim (Section 10.6.2).
+gives names to its variables. The case assumes its facts, available together under the name c. In an
+induction, `case` also sets **`?case`** to the claim of the case, **c.IH** is the induction hypothesis
+and **c.prems** are the premises of the claim (Section 10.6.2). In a proof by `cases`, every case proves
+the same claim, `?thesis`.
 :::
 
 For natural numbers the cases are called `0` and `Suc`: `case 0`, then `case (Suc n)` with the
@@ -1021,7 +1028,7 @@ hypothesis `Suc.IH`. For a datatype of your own they are named after its constru
 
 ### The induction hypothesis, premises and ?case {#induction-names}
 
-A paper proof of the step case is a calculation that uses the induction hypothesis once. The Isar proof
+A paper proof of the induction step is a calculation that uses the induction hypothesis once. The Isar proof
 can say exactly that, with the hypothesis named `Cons.IH`:
 
 ```isabelle
@@ -1178,8 +1185,8 @@ lemma "A ∧ B ⟶ B ∧ A"
   done
 ```
 
-The Isar proof follows the tree rule by rule. It needs the elimination rules for ∧ in the forward form
-of the tree, which the library calls `conjunct1` and `conjunct2`:
+The Isar proof follows the tree rule by rule. It needs (∧E₁) and (∧E₂) in the form the tree uses them,
+from A ∧ B to A and to B: the destruction rules `conjunct1` and `conjunct2` of Module 7.
 
 ```isabelle
 thm conjunct1 conjunct2
@@ -1236,7 +1243,7 @@ Every rule of natural deduction has an Isar counterpart. In the table, A, B and 
 | (∃E) | `erule exE` | `from ex obtain a where "P a" by blast` |
 | (RAA) | `rule ccontr` | `proof (rule ccontr)` `assume "¬ A"` … `show False` |
 
-`spec` is the forward form of (∀E): from ∀x. P x it gives P x for any x.
+`spec` is the destruction rule for (∀E) (Module 7): from ∀x. P x it gives P x for any x.
 
 ### An induction {#translate-induction}
 
@@ -1330,7 +1337,8 @@ qed
 ## When an Isar proof fails {#errors}
 
 Because every step of an Isar proof is a statement, Isabelle can tell you which step failed and what
-remained of it. The messages you will meet most often, all shown in this module, are these.
+remained of it. These are the messages you will meet most often; you have seen most of them in this
+module already.
 
 | Message | Meaning | What to do |
 |---|---|---|
@@ -1617,7 +1625,7 @@ that the middle terms cancel.
 
 :::: exercise The total of a reversed bill {#ex-10-7} ★★
 Prove `mysum (rev xs) = mysum xs` by induction with named cases. Use the lemma `mysum_append` of
-Section 10.6.1 in the step case, inside a calculation.
+Section 10.6.1 in the induction step, inside a calculation.
 
 ::: solution
 ```isabelle
@@ -1652,9 +1660,9 @@ fun mirror :: "'a tree2 ⇒ 'a tree2" where
 | "mirror (Node l x r) = Node (mirror r) x (mirror l)"
 ```
 
-Prove `mirror (mirror t) = t` in Isar by induction on t, with named cases. Write the step case as a
-calculation with the three steps of the paper proof. How many induction hypotheses does the step case
-have, and how do you refer to each one?
+Prove `mirror (mirror t) = t` in Isar by induction on t, with named cases. Write the induction step as
+a calculation with the three steps of the paper proof. How many induction hypotheses does the induction
+step have, and how do you refer to each one?
 
 ::: solution
 ```isabelle
@@ -1671,8 +1679,8 @@ next
 qed
 ```
 
-The cases are named after the constructors, `Tip` and `Node`. A node has two subtrees, so the step case
-has two induction hypotheses, one for l and one for r. `Node.IH` is the list of both; `Node.IH(1)` is
+The cases are named after the constructors, `Tip` and `Node`. A node has two subtrees, so the induction
+step has two induction hypotheses, one for l and one for r. `Node.IH` is the list of both; `Node.IH(1)` is
 the one for l and `Node.IH(2)` the one for r. The first two steps use the second equation of `mirror`,
 the third uses both hypotheses.
 :::
@@ -1680,7 +1688,7 @@ the third uses both hypotheses.
 
 :::: exercise Filtering never lengthens a list {#ex-10-9} ★★★
 `filter P xs` keeps the elements of xs that satisfy P. Prove `length (filter P xs) ≤ length xs` by
-induction on xs. In the step case, split on whether `P x` holds, with a nested `proof (cases "P x")`,
+induction on xs. In the induction step, split on whether `P x` holds, with a nested `proof (cases "P x")`,
 and use a calculation in the case where it does not.
 
 ::: solution
@@ -1746,7 +1754,7 @@ In the case where P x holds, filter keeps x, and both sides grow by one; the hyp
 - [ ] The assumption `xs = x # xs`
 - [x] The induction hypothesis: the claim for the tail `xs`
 - [ ] The premises of the lemma
-> The step case assumes the claim for the shorter list. `Cons.prems` holds the premises, and `?case` the claim to prove.
+> The induction step assumes the claim for the shorter list. `Cons.prems` holds the premises, and `?case` the claim to prove.
 
 ? Isabelle reports "Failed to refine any pending goal" at a `show`. What is the most likely cause?
 - [ ] The method after `by` is too weak

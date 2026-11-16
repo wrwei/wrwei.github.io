@@ -34,7 +34,8 @@ Every other logic, HOL included, is defined inside Pure.
 ::: definition Meta-logic and object logic
 A **meta-logic** is a logic for stating rules and proofs about another logic, the **object logic**. In
 Isabelle the meta-logic is **Pure** and the object logic is **HOL**. Pure has three symbols of its own:
-⟹ ("from … infer"), ⋀ ("for an arbitrary …") and ≡ ("is defined as").
+⟹ ("from … infer"), ⋀ ("for an arbitrary …") and ≡, Pure's own equality, which Isabelle uses above all
+to state definitions.
 :::
 
 Each Pure symbol has a HOL counterpart that you already know from Modules 2 and 3:
@@ -43,7 +44,7 @@ Each Pure symbol has a HOL counterpart that you already know from Modules 2 and 
 |---|---|---|---|
 | `A ⟹ B` | from A, infer B | `A ⟶ B` | A implies B |
 | `⋀x. P x` | for an arbitrary x, P x | `∀x. P x` | for all x, P x |
-| `a ≡ b` | a is defined as b | `a = b` | a equals b |
+| `a ≡ b` | a equals b; in a definition, a is defined as b | `a = b` | a equals b |
 
 In Isabelle/jEdit you type ⟹ as `==>`, ⋀ as `!!` and ≡ as `==`. The brackets ⟦ and ⟧, which appear
 below, are `[|` and `|]`.
@@ -139,7 +140,7 @@ Read it as "¬P is defined as P ⟶ False". Isabelle writes ⊥ as `False`. The 
 in Section 7.2.
 
 ::: pitfall
-⟹ belongs to Pure, so it can only appear at the outside of a statement, never inside a HOL formula:
+⟹ belongs to Pure. It joins statements, but it can never appear inside a HOL formula:
 
 ```isabelle fails
 lemma "(A ⟹ B) ∧ C"
@@ -309,15 +310,16 @@ A few things to notice:
 
 ### Three shapes of rule {#rules-shapes}
 
-The rules in the table come in three shapes. The shape decides how you use a rule (Sections 7.3 and
-7.4), so it is worth learning to see it.
+Most rules in the table come in one of three shapes. The shape decides how you use a rule (Sections 7.3
+and 7.4), so it is worth learning to see it.
 
 ::: definition Introduction, elimination and destruction rules
 - An **introduction rule** has the connective in its conclusion: `conjI`, `disjI1`, `disjI2`, `impI`,
   `notI`, `allI`, `exI`, `iffI`.
-- An **elimination rule** has the connective in its first premise, the **major premise**, and an
-  arbitrary formula (`?R` or `?Q`) as its conclusion. Its other premises say what you may assume while
-  you prove that formula: `conjE`, `disjE`, `impE`, `notE`, `FalseE`, `allE`, `exE`.
+- An **elimination rule** has the connective (or `False`) in its first premise, the **major premise**,
+  and an arbitrary formula, a schematic variable such as `?R`, as its conclusion. Its other premises say
+  what you may assume while you prove that formula: `conjE`, `disjE`, `impE`, `notE`, `FalseE`, `allE`,
+  `exE`.
 - A **destruction rule** has the connective in its major premise and a part of the major premise as its
   conclusion: `conjunct1`, `conjunct2`, `mp`, `spec`, `iffD1`, `iffD2`.
 :::
@@ -346,7 +348,7 @@ their side conditions without any words.
 
 ### The plan {#backward-plan}
 
-Take the first theorem that Module 6 derived, A ∧ B ⟶ B ∧ A ([Section
+Take the first theorem that Module 6 derived with natural deduction, A ∧ B ⟶ B ∧ A ([Section
 6.4](module_06_EN.html#connectives)). Here is its tree:
 
 ```prooftree
@@ -1024,10 +1026,10 @@ Module 6 proved that a universally quantified conjunction gives two universally 
 ```
 
 ::: pitfall
-On paper this formula is written ∀x.(P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x), with the quantifier applying
-to the bracket after it. In Isabelle the body of ∀x reaches as far to the right as possible (Module 3),
-so `∀x. (P x ∧ Q x) ⟶ …` would put the whole implication inside the quantifier. Put the parentheses around the quantifier instead:
-`(∀x. P x ∧ Q x) ⟶ …`.
+Some books write this formula ∀x.(P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x), with the quantifier applying only
+to the bracket after it. In Isabelle, as in Modules 3 and 6, the body of ∀x reaches as far to the right
+as possible, so `∀x. (P x ∧ Q x) ⟶ …` would put the whole implication inside the quantifier. Put the
+parentheses around the quantifier instead: `(∀x. P x ∧ Q x) ⟶ …`.
 :::
 
 ```isabelle
@@ -1548,9 +1550,8 @@ goal (1 subgoal):
   done
 ```
 
-The first three steps, `rule ccontr`, `rule notE` and `assumption`, occur so often together that HOL
-provides them as one rule, `classical`, `(¬ ?P ⟹ ?P) ⟹ ?P`: assume the negation of the goal, and prove
-the goal itself.
+The first three steps, `rule ccontr`, `rule notE` and `assumption`, together do the work of a single
+rule, `classical`, `(¬ ?P ⟹ ?P) ⟹ ?P`: assume the negation of the goal, and prove the goal itself.
 
 ```isabelle
 lemma "A ∨ ¬ A"
@@ -1759,9 +1760,9 @@ The steps before it are not affected, so you can replace the failing step with a
 ### Failed to apply proof method {#errors-apply}
 
 This is the most common message. It means that the method could do nothing with subgoal 1: for `rule`,
-the conclusion of the rule does not unify with the conclusion of the subgoal; for `erule` and `drule`, in
-addition, no assumption fits the rule's major premise; for `assumption`, no assumption unifies with the
-conclusion. Isabelle shows the proof state it was given. Here is the early choice of a side that Module 6
+the conclusion of the rule does not unify with the conclusion of the subgoal; for `erule`, either that or
+no assumption fits the rule's major premise; for `drule` and `frule`, no assumption fits the major
+premise; for `assumption`, no assumption unifies with the conclusion. Isabelle shows the proof state it was given. Here is the early choice of a side that Module 6
 warned about (Section 6.4), followed by a hopeful `assumption`:
 
 ```isabelle fails
@@ -1975,9 +1976,10 @@ lemma "(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)"
 ***  1. (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)
 ```
 
-The message says only that `blast` found no proof. It does not say whether the statement is false or too
-hard for `blast`; `nitpick` (Module 3) can look for a counterexample. `auto` behaves differently: it does
-what it can and shows you what is left.
+With `by`, Isabelle calls the method the *initial* proof method, so the message says only that `blast`
+found no proof. It does not say whether the statement is false or too hard for `blast`; `nitpick`
+(Modules 2 and 3) can look for a counterexample. `auto` behaves differently: it does what it can and
+shows you what is left.
 
 ```isabelle
 lemma "(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)"

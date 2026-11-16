@@ -12,14 +12,14 @@ def fig_06_1(L):
                     sound='soundness', soundk='⊢ implies ⊨', comp='completeness', compk='⊨ implies ⊢',
                     foot=['Natural deduction has both properties, for propositional and first-order logic:',
                           'Γ ⊢ A exactly when Γ ⊨ A. So a counterexample shows that no derivation exists.']),
-         'zh': dict(title='可推导性与逻辑后承：可靠性与完备性',
+         'zh': dict(title='可推导性与逻辑推论：可靠性与完备性',
                     der='A 可由 Γ 推导出', derk='规则与推导：语法',
                     dern=['由规则步骤组成的有限树，', '每一步都可以机械地检查'], ders='要确立它：给出一个推导。',
                     con='只要 Γ 为真，A 就为真', conk='赋值与结构：语义',
                     conn=['在 A ∧ B 为真的每一行，', 'B 都为真'], cons='要反驳它：给出一个反例。',
                     sound='可靠性', soundk='⊢ 蕴涵 ⊨', comp='完备性', compk='⊨ 蕴涵 ⊢',
-                    foot=['自然演绎同时具有这两个性质（对命题逻辑和一阶逻辑都成立）：',
-                          'Γ ⊢ A 当且仅当 Γ ⊨ A。因此，一个反例就说明推导不存在。'])}[L]
+                    foot=['对命题逻辑和一阶逻辑，自然演绎都同时具有这两个性质：',
+                          'Γ ⊢ A 当且仅当 Γ ⊨ A。所以一个反例就能说明推导不存在。'])}[L]
     s = SVG(760, 330, T['title'])
     # left: derivability
     s.rect(16, 16, 290, 236, fill=C['skyp'], stroke=C['blue'], r=12, sw=1.8)
@@ -74,13 +74,13 @@ def fig_06_2(L):
                           'the part of the derivation above the rule that discharges it.'],
                     bad=['This [A]¹ is not above (⟶I¹).', 'Here A is an open assumption, so the',
                          'tree shows only A ⊢ (A ⟶ A) ∧ A.']),
-         'zh': dict(title='被解除假设的作用域',
-                    left='正确推导中的作用域', right='错误：[A]¹ 在作用域之外被使用',
-                    s1='[A ⟶ B]¹ 的作用域', s2='[B ⟶ C]² 的作用域', s3='[A]³ 的作用域', sw='(⟶I¹) 的作用域',
-                    note=['每个假设只能在它的作用域内使用：',
-                          '即解除它的那条规则之上的那部分推导。'],
+         'zh': dict(title='被解除假设的辖域',
+                    left='正确推导中的辖域', right='错误：[A]¹ 在辖域之外被使用',
+                    s1='[A ⟶ B]¹ 的辖域', s2='[B ⟶ C]² 的辖域', s3='[A]³ 的辖域', sw='(⟶I¹) 的辖域',
+                    note=['每个假设只能在它的辖域内使用，',
+                          '即推导中位于解除它的规则之上的部分。'],
                     bad=['这个 [A]¹ 不在 (⟶I¹) 之上。', '在这里 A 是未解除的假设，所以',
-                         '这棵树只说明 A ⊢ (A ⟶ A) ∧ A。'])}[L]
+                         '这棵树只说明了 A ⊢ (A ⟶ A) ∧ A。'])}[L]
     s = SVG(760, 316, T['title'])
     s.text(20, 28, T['left'], size=14, weight=700, fill=C['navy'])
     x0 = 30         # the tree is drawn around x = 257 + x0
@@ -139,8 +139,8 @@ def fig_06_3(L):
                     safe='safe', unsafe='not safe', both='safe: two goals', dead=['✗ dead end: false when', 'A = T and B = F'],
                     closed='✓ an assumption'),
          'zh': dict(title='A ∨ B ⟶ B ∨ A 的反向搜索',
-                    leg1='子目标：都必须证明', leg2='另一种步骤：死路',
-                    safe='安全', unsafe='不安全', both='安全：两个目标', dead=['✗ 死路：当 A = T、', 'B = F 时为假'],
+                    leg1='子目标：必须全部证明', leg2='另一种走法：通向死路',
+                    safe='安全', unsafe='不安全', both='安全：两个目标', dead=['✗ 死路：', '当 A = T、B = F 时为假'],
                     closed='✓ 是假设之一')}[L]
     s = SVG(760, 380, T['title'])
 

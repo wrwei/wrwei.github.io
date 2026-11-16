@@ -24,8 +24,8 @@ to change the proof so that it goes through. The same techniques carry the verif
 Part IV; the compiler proof of Module 14, for example, rests on a generalised induction.
 
 Recall what an induction proof over lists does. To prove a claim $P\ xs$ for every list, you prove it
-for `[]` (the **base case**) and you prove it for `x # xs` while assuming it for `xs` (the **step
-case**). The assumption is the **induction hypothesis**, IH for short. The point to keep in mind for the
+for `[]` (the **base case**) and you prove it for `x # xs` while assuming it for `xs` (the **induction
+step**). The assumption is the **induction hypothesis**, IH for short. The point to keep in mind for the
 whole module: the IH is the claim itself, for the smaller list, *with every other variable unchanged*.
 
 ### A running total {#running-total}
@@ -68,7 +68,7 @@ value "sumacc [3, 1, 4] 0"
 ::: definition Accumulator and tail recursion
 An **accumulator** is an argument in which a function collects its result as it goes. A function is
 **tail-recursive** when the recursive call is the last thing it does: nothing remains to be done after
-the call returns, so a compiler can run it as a loop, without a call stack.
+the call returns, so a compiler can run it as a loop, without growing the call stack.
 :::
 
 Evaluate `sumacc [3, 1, 4] 0` by hand, one equation at a time:
@@ -85,7 +85,7 @@ directly, so the natural claim is that the loop computes the same total: `sumacc
 Prove `sumacc xs 0 = sum_list xs` by induction on `xs`.
 
 - Base case: `sumacc [] 0 = 0` and `sum_list [] = 0`. Done.
-- Step case: assume the IH `sumacc xs 0 = sum_list xs` and show
+- Induction step: assume the IH `sumacc xs 0 = sum_list xs` and show
   `sumacc (x # xs) 0 = sum_list (x # xs)`. The right-hand side is `x + sum_list xs`. The left-hand side
   is `sumacc xs (0 + x)`, that is, `sumacc xs x`. So you need `sumacc xs x = x + sum_list xs`.
 
@@ -123,9 +123,9 @@ goal (2 subgoals):
        sumacc xs 0 = sum_list xs ⟹ sumacc (a # xs) 0 = sum_list (a # xs)
 ```
 
-Subgoal 1 is the base case and subgoal 2 the step case. Read subgoal 2 aloud: "for all `a` and `xs`, if
-`sumacc xs 0 = sum_list xs`, then `sumacc (a # xs) 0 = sum_list (a # xs)`". Isabelle has called the
-head of the list `a`; the IH stands before ⟹. Now let `auto` do what it can:
+Subgoal 1 is the base case and subgoal 2 the induction step. Read subgoal 2 aloud: "for arbitrary `a`
+and `xs`, if `sumacc xs 0 = sum_list xs`, then `sumacc (a # xs) 0 = sum_list (a # xs)`". Isabelle has
+called the head of the list `a`; the IH stands before ⟹. Now let `auto` do what it can:
 
 ```isabelle
   apply auto
@@ -137,9 +137,9 @@ goal (1 subgoal):
  1. ⋀a xs. sumacc xs 0 = sum_list xs ⟹ sumacc xs a = a + sum_list xs
 ```
 
-`auto` has solved the base case and simplified the step case as far as it can. What is left is the goal
-you met on paper: the IH speaks about `sumacc xs 0`, the conclusion about `sumacc xs a`. No rewriting
-turns one into the other. The proof is abandoned:
+`auto` has solved the base case and simplified the induction step as far as it can. What is left is
+the goal you met on paper: the IH speaks about `sumacc xs 0`, the conclusion about `sumacc xs a`. No
+rewriting turns one into the other. The proof is abandoned:
 
 ```isabelle
   oops
@@ -164,8 +164,9 @@ $$
 \mathit{sumacc}\ xs\ acc = acc + \mathit{sum\_list}\ xs
 $$
 
-and the original claim is the case `acc = 0`. In the words of Module 5, the claim is a **loop
-invariant**: a property that holds before and after every iteration (Figure 11.1).
+and the original claim is the case `acc = 0`. In the words of Module 5, the general claim describes an
+**invariant** of the loop: "`acc + sum_list xs` is the final total" holds at the first call, and every
+call passes it on to the next (Figure 11.1).
 
 ::: figure id=fig-11-1
 The accumulator changes in every call. The claim with `0` describes the first call only; the general
@@ -525,9 +526,9 @@ searches for a proof from facts that already exist, and it does not do induction
 ## Induction on trees {#trees}
 
 Lists are not the only data structure. In Module 5 you met binary trees. Each module has a theory of
-its own, so this one defines its own copy, with the constructors `Lf` (leaf) and `Nd` (node), and four
-functions on it: the number of nodes, the height, the mirror image and the in-order traversal (left
-subtree, node, right subtree).
+its own, so this one defines its own copy, `btree`, with shorter names for the constructors: `Lf` (leaf)
+for Module 5's `Tip`, and `Nd` (node) for its `Node`. Four functions on it follow: the number of nodes,
+the height, the mirror image and the in-order traversal (left subtree, node, right subtree).
 
 ```isabelle
 datatype 'a btree = Lf | Nd "'a btree" 'a "'a btree"
@@ -759,10 +760,10 @@ thm merge.induct
 ⟹ ?P ?a0.0 ?a1.0
 ```
 
-Read it from the inside. To prove `?P ?a0.0 ?a1.0` for all arguments, prove three cases, one for each
-defining equation. The third case comes with two IHs, one for each recursive call, and each IH carries
-the condition under which that call happens: `x ≤ y` for the first call, `¬ x ≤ y` for the second.
-Figure 11.2 shows the correspondence.
+Read it from its conclusion. To prove `?P ?a0.0 ?a1.0` for all arguments, prove three cases, one for
+each defining equation. The third case comes with two IHs, one for each recursive call, and each IH
+carries the condition under which that call happens: `x ≤ y` for the first call, `¬ x ≤ y` for the
+second. Figure 11.2 shows the correspondence.
 
 ::: figure id=fig-11-2
 Computation induction for `merge`: one case per equation and one induction hypothesis per recursive
@@ -817,10 +818,9 @@ each recursive call on the right-hand side, under the conditions that lead to th
 sound because `f` terminates: it is induction along the termination order.
 :::
 
-In Isar, the cases of `merge.induct` are numbered `1`, `2` and `3`, after the equations. With the cursor
-on the `proof` line, Isabelle prints a *proof outline* with these case names as an information message,
-which you can copy into the theory. Because `3.IH` starts with a digit, it must be written in quotes,
-`"3.IH"`, and its parts are `"3.IH"(1)` and `"3.IH"(2)`:
+In Isar, the cases of `merge.induct` are numbered `1`, `2` and `3`, after the equations. The proof
+outline that Isabelle/jEdit shows at the `proof` line (Module 10) lists them. Because `3.IH` starts
+with a digit, it must be written in quotes, `"3.IH"`, and its parts are `"3.IH"(1)` and `"3.IH"(2)`:
 
 ```isabelle
 lemma set_merge: "set (merge xs ys) = set xs ∪ set ys"
@@ -1165,16 +1165,18 @@ gives you exactly the cases that matter.
 ::: pitfall
 The predicate being defined may appear in the premises of its rules only *positively*, not under a
 negation. A rule such as "if `odd' n` does not hold, then `odd' (Suc n)` holds" does not describe a
-smallest predicate, and Isabelle rejects it. It starts the usual proofs, then reports that a proof
-failed. The goal it could not prove, `mono (…)`, says that the rules must be *monotone*: when more
-facts `odd' n` hold, the rules may not derive fewer conclusions. A negated premise does exactly that.
+smallest predicate, and Isabelle rejects it. It starts the usual proofs and reports that one of them
+failed. That proof runs in parallel with the others, so on your screen the messages may come in a
+different order. The goal it could not prove, `mono (…)`, says that the rules must be *monotone*: when
+more facts `odd' n` hold, the rules may not derive fewer conclusions. A negated premise does exactly
+that.
 
 ```isabelle fails
 inductive odd' :: "nat ⇒ bool" where
   "¬ odd' n ⟹ odd' (Suc n)"
 ```
 
-```output
+```output varies
 Proofs for inductive predicate(s) "odd'"
 
   Proving monotonicity ...
@@ -1341,8 +1343,9 @@ goal (2 subgoals):
 
 ::: pitfall
 Rule induction needs variables in the inductive premise. If an argument is a constant or a compound
-term, generalise it by hand (`a = Done` as an extra premise), or name the terms after `induction`. Module
-13 meets the same situation: the reachable states of a system all start from one fixed initial state.
+term, generalise it by hand (`a = Done` as an extra premise), or name the terms after `induction`.
+Module 13 meets the same situation with a state written as a pair, and avoids it for the initial state
+by building that state into its definition of reachability.
 :::
 
 ### A grammar: balanced brackets {#grammar}
@@ -1359,8 +1362,8 @@ inductive bal :: "paren list ⇒ bool" where
 | bal_cat: "bal v ⟹ bal w ⟹ bal (v @ w)"
 ```
 
-Figure 11.3 above shows a derivation of the word `(())()`. A parser does not search for derivations; it
-checks a word in one pass, counting the brackets that are open:
+Figure 11.3 above shows a derivation of the word `(())()`. A program that checks brackets does not
+search for derivations; it reads the word once, counting the brackets that are open:
 
 ```isabelle
 fun chk :: "paren list ⇒ nat ⇒ bool" where
@@ -1441,7 +1444,8 @@ goal (3 subgoals):
 
 Now each IH holds for every continuation `v` and every count `n`, and `auto` uses them with the values
 the cases need. The claim about the checker is the special case `v = []` and `n = 0`. The attribute
-`[of w "[]" 0]` instantiates the variables of `bal_chk` in the order in which they first occur:
+`[of w "[]" 0]` instantiates the variables of `bal_chk` in the order in which they first occur. The
+command `corollary` means the same as `lemma`; the name signals a fact that follows from the one before:
 
 ```isabelle
 corollary bal_chk0: "bal w ⟹ chk w 0"
@@ -1524,7 +1528,8 @@ qed
 ```
 
 The library rule `evenE` turns `even n` into a witness `h` with `n = 2 * h`. The IH is applied to `h`
-after `h < n` and `0 < h` have been shown, the two conditions the IH asks for.
+after `h < n` and `0 < h` have been shown, the two conditions the IH asks for. A single `have` can claim
+several facts, joined by `and`; `simp_all` (Module 5) proves both.
 
 ::: trouble
 Leave out the annotation `(n::nat)` and the induction fails with an alarming message:
@@ -1655,7 +1660,7 @@ lemma "itrev xs [] = rev xs"
 
 :::: exercise Which induction? {#ex-11-2} ★
 For each goal, say which kind of induction you would try first, and on what. Use the functions and
-predicates of this module.
+predicates of this module; `count_list xs z`, from the library, counts how often z occurs in xs.
 
 1. `nodes (mirror t) = nodes t`
 2. `steps r a b ⟹ r b c ⟹ steps r a c`
@@ -1731,7 +1736,8 @@ and prove `flat t [] = inorder t`. Which generalisation do you need?
 
 ::: solution
 `flat t acc` puts the traversal of `t` in front of `acc`, so the general claim is
-`flat t acc = inorder t @ acc`. Both recursive calls pass a different accumulator, so generalise `acc`:
+`flat t acc = inorder t @ acc`. The recursive call on `l` passes a different accumulator,
+`x # flat r acc`, so generalise `acc`:
 
 ```isabelle
 fun flat :: "'a btree ⇒ 'a list ⇒ 'a list" where
@@ -1885,8 +1891,8 @@ lemma "ev n ⟷ even n"
   using ev_even even_ev by blast
 ```
 
-`cases m` excludes `n = Suc 0`: then `n` would be odd, which contradicts `less.prems`. The text
-`‹n = Suc (Suc k)›` in cartouches refers to the fact with that statement. Computation induction with a
+`cases m` excludes `n = Suc 0`: then `n` would be odd, which contradicts `less.prems`. As in Module 10,
+`‹n = Suc (Suc k)›` refers to the fact with that statement. Computation induction with a
 function that recurses on `n - 2` would work as well; complete induction needs no extra function.
 :::
 ::::

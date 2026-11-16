@@ -3,7 +3,7 @@ title: Sets, relations and functions
 part: 1
 lead: The vocabulary that specifications are written in. You will describe collections with sets, connect their elements with relations, find the states a system can reach, compare the sizes of sets with functions, and see why some infinite sets are larger than others, with Isabelle checking each step.
 minutes: 210
-needs: Modules 1–3 (propositional and predicate logic, and a first Isabelle theory)
+needs: Modules 1–3
 goals:
   - Describe sets by listing and by set-builder notation, and prove set laws by turning them into propositional logic
   - Decide whether a relation is reflexive, symmetric, antisymmetric, transitive or total, with a witness whenever a property fails
@@ -83,8 +83,8 @@ For all sets $A$ and $B$:
 :::
 
 For the first, $x \in \emptyset$ is false for every $x$, so $x \in \emptyset \imp x \in A$ is vacuously
-true (Module 2); vacuous truth will come back in this module. The second combines extensionality with
-the law $(p \iff q) \iff (p \imp q) \land (q \imp p)$.
+true (Module 2); vacuous truth will come back in this module. And $x \in A \imp x \in A$ holds whatever
+$x$ is. The second combines extensionality with the law $(p \iff q) \iff (p \imp q) \land (q \imp p)$.
 It is also how you usually prove two sets equal: show that each is a subset of the other.
 
 Because HOL is typed (Module 3), a universe is always the universe of one type: `UNIV :: bool set` is
@@ -513,9 +513,9 @@ $$
 R \mathbin{O} S = \{(x, z).\; \exists y.\; (x, y) \in R \land (y, z) \in S\}
 $$
 
-The **image** of a set $S$ under $R$ is the set of everything related to an element of $S$:
-$R[S] = \{y.\; \exists x \in S.\; (x, y) \in R\}$. Isabelle writes `r¯` (type `^-1`), `r O s`, and
-for the image ```r `` S```, with two backquotes.
+The **image** of a set $X$ under $R$ is the set of everything related to an element of $X$:
+$R[X] = \{y.\; \exists x \in X.\; (x, y) \in R\}$. Isabelle writes `r¯` (type `^-1`), `r O s`, and
+for the image ```r `` X```, with two backquotes.
 :::
 
 The converse of $<$ is $>$, and the converse of "is a parent of" is "is a child of"; in the graph, it
@@ -600,9 +600,11 @@ value "{(''alice'', ''admin''), (''bob'', ''guest'')}
   :: "(char list × char list) set"
 ```
 
-To prove the facts above for all relations, `auto` must see the definitions of `trans` and `sym`. The
-library states them as theorems named after the constants, `trans_def` and `sym_def`, and
-`auto simp: trans_def` tells `auto` to use one. Module 9 explains this mechanism in depth.
+To prove the facts above for all relations, `auto` must see the definitions of `trans` and `sym`: by
+itself, it does not replace `trans r` by what it means. The library states the definitions as
+theorems, `trans_def` and `sym_def`, and `auto simp: trans_def` hands one of them to `auto`, which then
+rewrites `trans r` into the ∀-formula of the definition and proves the rest as before. Module 9
+explains this mechanism in depth.
 
 ```isabelle
 lemma "trans r ⟷ r O r ⊆ r"
@@ -657,8 +659,8 @@ partition of $A$ defines an equivalence relation, "is in the same block as", who
 blocks.
 :::
 
-Here is the proof of the first half. Reflexivity puts every $x$ into its own class, so the classes are
-non-empty and cover $A$. It remains to show that two classes that meet are equal. Suppose $z$ is in
+Here is the proof of the first half. The classes are subsets of $A$, because $R$ is a relation on $A$.
+Reflexivity puts every $x$ into its own class, so the classes are non-empty and cover $A$. It remains to show that two classes that meet are equal. Suppose $z$ is in
 $[x]$ and in $[y]$, so $(x, z) \in R$ and $(y, z) \in R$. By symmetry $(z, y) \in R$, and by
 transitivity $(x, y) \in R$. Now for any $w \in [y]$, transitivity turns $(x, y)$ and $(y, w)$ into
 $(x, w)$, so $w \in [x]$. Hence $[y] \subseteq [x]$; the same argument with $x$ and $y$ swapped gives
@@ -669,8 +671,9 @@ block (reflexive), the wording is symmetric, and two blocks that share an elemen
 Equivalence relations appear wherever software ignores a detail. **Equivalence partitioning**, a
 standard way of designing tests, splits the inputs into classes that the program should treat alike
 (parcels up to 1 kg, up to 5 kg, heavier) and tests one representative of each, plus the boundaries.
-And for any function $f$, "has the same value under $f$" is an equivalence relation; Module 12 uses
-this when it relates a data structure to the abstract value it represents.
+And for any function $f$, "has the same value under $f$" is an equivalence relation. In Module 12, $f$
+is an abstraction function, which maps each data structure to the abstract value it represents: two
+structures that represent the same value are equivalent in this sense.
 
 ::: isabelle
 Isabelle writes `equiv A r` for "r is an equivalence relation on A", ```r `` {x}``` for the class of
@@ -725,7 +728,7 @@ a relation that is irreflexive and transitive.
 :::
 
 Partial orders are usually written $\le$ and strict orders $<$, and each gives the other:
-$x < y \iff x \le y \land x \neq y$. A strict order is **asymmetric**: $x < y$ and $y < x$ would give
+$x < y \iff x \le y \land x \neq y$, and $x \le y \iff x < y \lor x = y$. A strict order is **asymmetric**: $x < y$ and $y < x$ would give
 $x < x$ by transitivity, which irreflexivity forbids.
 
 ::: example Orders, total and partial
@@ -739,7 +742,7 @@ $x < x$ by transitivity, which irreflexivity forbids.
 ### Hasse diagrams {#hasse}
 
 The graph of a partial order has many arrows: a loop at every node, and a shortcut for every path. A
-**Hasse diagram** leaves out what the properties imply. It puts smaller elements lower, draws no loops
+**Hasse diagram** of a partial order on a finite set leaves out what the properties imply. It puts smaller elements lower, draws no loops
 and no arrowheads, and draws a line from $x$ up to $y$ only when $y$ **covers** $x$: $x < y$ with
 nothing strictly between them. Then $x \le y$ exactly when an upward path leads from $x$ to $y$.
 
@@ -861,8 +864,9 @@ draws $R$ with the pairs that $R^+$ adds.
 
 On a set with $n$ elements, paths longer than $n$ steps add nothing new: such a path visits some node
 twice, and cutting out the loop between the two visits gives a shorter path with the same ends. So you
-can compute $R^+$ by composing with $R$ until nothing changes, which is what the closure buttons of the
-widget in Section 4.2 do.
+can compute $R^+$ by adding the pairs of $R \mathbin{O} R$, then of $R \mathbin{O} R \mathbin{O} R$, and
+so on, until nothing changes. The **Transitive closure** button of the widget in Section 4.2 computes
+the same relation.
 
 ::: pitfall
 - **Zero steps count in $R^*$.** $(x, x) \in R^*$ for every $x$, even when $R$ has no loop at $x$;
@@ -907,8 +911,9 @@ Real systems have billions of states, or infinitely many, which is why model che
 reachability by machine and why Module 13 proves safety properties with invariants instead.
 
 ::: isabelle
-To give the door's transition relation a name, use `definition`, which is like `fun` from Module 1
-for a value without arguments (Module 8 says more about both):
+To give the door's transition relation a name, use `definition`. Like `fun` in Module 1, it introduces
+a new constant with its type and a defining equation, but it allows no recursion, and a set written out
+pair by pair needs none (Module 8 says more about both commands):
 
 ```isabelle
 definition door :: "(string × string) set" where
@@ -957,7 +962,8 @@ value "{(1::nat, 2), (2, 3), (3, 4)}⇧+"
   :: "(nat × nat) set"
 ```
 
-And for all relations, $R^+$ contains $R$, it is transitive, and closing a closure again adds nothing:
+And for all relations, $R^+$ contains $R$ and is transitive, and taking the reflexive-transitive
+closure twice adds nothing:
 
 ```isabelle
 lemma "r ⊆ r⇧+"
@@ -990,9 +996,10 @@ codomain is $\N$ and the range is $\{0, 1, 4, 9, \dots\}$.
 In HOL, functions are not sets of pairs: `nat ⇒ nat` is a type of its own (Module 1), and its elements
 are written with $\lambda$. `λn. 2 * n` is the function that takes `n` to `2 * n`, written $n \mapsto 2n$
 in mathematics (type `\lambda` or `%`). Every HOL function is **total**: it has a value for every
-element of its argument type. A relation in which every input has *at most* one output is a **partial
-function**, such as the function computed by a program that may loop or fail; HOL models the missing
-values explicitly. Isabelle writes the image of a set as `` f ` A `` (one backquote) and the range as
+element of its argument type. (This sense of "total" has nothing to do with the total relations of
+Section 4.2.) A relation in which every input has *at most* one output is a **partial function**, such
+as the function computed by a program that may loop or fail; HOL models one as a total function whose
+result says whether there is a value, with the type `option` of Module 8. Isabelle writes the image of a set as `` f ` A `` (one backquote) and the range as
 `range f`.
 
 ### Injective, surjective, bijective {#inj-surj}
@@ -1168,12 +1175,19 @@ value "inj_on (λn::nat. n mod 12) {0..12}"
   :: "bool"
 ```
 
-The library proves the counting rules for all finite sets; the rule for power sets is `card_Pow`, and
-the pigeonhole principle is `pigeonhole`:
+The library proves the counting rules for all finite sets. The rule for power sets is `card_Pow`:
 
 ```isabelle
 lemma "finite A ⟶ card (Pow A) = 2 ^ card A"
   by (simp add: card_Pow)
+```
+
+The pigeonhole principle is `pigeonhole`. It speaks about the image `` f ` A `` of Section 4.6: if the
+image has fewer elements than `A`, two elements of `A` share an image, so `f` is not injective on `A`.
+
+```isabelle
+lemma "card (f ` A) < card A ⟶ ¬ inj_on f A"
+  by (simp add: pigeonhole)
 ```
 :::
 
@@ -1220,21 +1234,22 @@ $$
 D = \{x \in A.\; x \notin f\,x\}
 $$
 
-$D \subseteq A$, so $D \in \pow(A)$. If $f$ were surjective, then $D = f\,d$ for some $d \in A$. Is $d$
-in $D$? By the definition of $D$,
+$D \subseteq A$, so $D \in \pow(A)$. Suppose $f$ were surjective. Then $D = f\,d$ for some $d \in A$.
+Is $d$ in $D$? The first step below is the definition of $D$ (it applies because $d \in A$); the second
+replaces $f\,d$ by $D$, which is equal to it:
 
 $$
 d \in D \iff d \notin f\,d \iff d \notin D
 $$
 
-and a proposition equivalent to its own negation is impossible:
+So $d \in D \iff d \notin D$, and a proposition equivalent to its own negation is impossible:
 
 ```truthtable
 P ⟷ ¬P
 ```
 
-So $D$ is not $f\,d$ for any $d$, and $f$ is not surjective. Figure 4.4 shows where the name comes
-from.
+The assumption that $f$ is surjective has led to a contradiction, so it is false: no $d$ has
+$f\,d = D$, and $f$ is not surjective. Figure 4.4 shows where the name comes from.
 
 ::: figure id=fig-04-4
 The diagonal argument for $A = \N$. Row $i$ shows which numbers are in the set $f\,i$ (1 for "in",
@@ -1248,9 +1263,10 @@ $f\,0, f\,1, f\,2, \dots$, and Cantor's $D$ is a set that no program decides: un
 exist. Turing's proof that the halting problem is undecidable (Module 1) is a diagonal argument too.
 
 ::: note
-Bertrand Russell found in 1901 that the same trick breaks naive set theory: if there were a set of all
-sets, then $R = \{x.\; x \notin x\}$ would be one, and $R \in R \iff R \notin R$. In HOL, `x ∈ x` is a
-type error, because a set and its elements have different types. This is why there is no set of
+Bertrand Russell found in 1901 that the same trick breaks naive set theory, which lets every property
+define a set: then $R = \{x.\; x \notin x\}$, the set of all sets that are not elements of themselves,
+would be a set, and $R \in R \iff R \notin R$. HOL avoids the paradox with types: `x ∈ x` is a type
+error, because a set and its elements have different types, and for the same reason there is no set of
 everything (Section 4.1).
 :::
 
@@ -1263,8 +1279,10 @@ lemma diagonal: "{x. x ∉ f x} ∉ range f"
   by auto
 ```
 
-Cantor's theorem for every type follows. `auto` does not find this proof, but `force`, a slower and
-more thorough relative of `auto` (Module 9), finds it on its own:
+Cantor's theorem for every type follows: a surjective `f` would have every set in its range, the
+diagonal set included. `auto` does not find this proof, but `force` does. `force` is a relative of
+`auto` that searches harder, and more slowly, and either proves the goal completely or fails; Module 9
+introduces it properly. Here it even finds the diagonal set by itself:
 
 ```isabelle
 lemma cantor: "¬ surj (f :: 'a ⇒ 'a set)"

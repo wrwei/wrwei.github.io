@@ -67,10 +67,10 @@ def fig_13_1(L):
 
 def fig_13_2(L):
     T = {'en': dict(title='Reachable states, an inductive invariant and the safety property',
-                    all='all 12 states', safe='safe: 8 states', inv='inv: 7 states, inductive',
+                    all='all 12 states', safe='safe: 8 states', inv='invar: 7 states, inductive',
                     reach='reachable: 6 states', unsafe='not safe'),
          'zh': dict(title='可达状态、归纳不变式与安全性质',
-                    all='全部 12 个状态', safe='safe：8 个状态', inv='inv：7 个状态，归纳的',
+                    all='全部 12 个状态', safe='safe：8 个状态', inv='invar：7 个状态，归纳的',
                     reach='可达：6 个状态', unsafe='不安全')}[L]
     s = SVG(760, 312, T['title'])
     # nested regions (outermost first)

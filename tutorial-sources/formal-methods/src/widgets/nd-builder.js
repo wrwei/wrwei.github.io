@@ -244,10 +244,10 @@ FMWidgets.register('nd-builder', function (root, api) {
     if (fo) {
       var dom = '{' + M.domain.join(', ') + '}'
       return t('Dead end: in the structure with domain ' + dom + (parts.length ? ', ' + parts.join(', ') : '') + ', ' + what + '. By soundness no rule can prove it.',
-        '死路：在论域为 ' + dom + (parts.length ? '、' + parts.join('、') : '') + ' 的结构中，' + what + '。由可靠性，任何规则都证不出它。')
+        '死路：在论域为 ' + dom + ' 的结构中' + (parts.length ? '，取 ' + parts.join('、') : '') + '，' + what + '。由可靠性，任何规则都无法证明它。')
     }
     return t('Dead end: ' + (parts.length ? 'with ' + parts.join(', ') + ', ' : '') + what + '. By soundness no rule can prove it.',
-      '死路：' + (parts.length ? '当 ' + parts.join('、') + ' 时，' : '') + what + '。由可靠性，任何规则都证不出它。')
+      '死路：' + (parts.length ? '当 ' + parts.join('、') + ' 时，' : '') + what + '。由可靠性，任何规则都无法证明它。')
   }
   function findCounter(hyps, goal) {
     var fs = hyps.concat([goal]), sym = { preds: {}, funcs: {}, props: {}, terms: {}, bad: null }, consts = {}
@@ -308,13 +308,13 @@ FMWidgets.register('nd-builder', function (root, api) {
       and: t('a conjunction A ∧ B', '合取 A ∧ B'), or: t('a disjunction A ∨ B', '析取 A ∨ B'),
       imp: t('an implication A ⟶ B', '蕴涵 A ⟶ B'), not: t('a negation ¬A', '否定 ¬A'),
       all: t('a universal statement ∀x. P x', '全称命题 ∀x. P x'), ex: t('an existential statement ∃x. P x', '存在命题 ∃x. P x'),
-      eq: t('an equation s = t', '等式 s = t'), iff: t('an equivalence', '等价式'), const: t('a constant', '常量'),
+      eq: t('an equation s = t', '等式 s = t'), iff: t('an equivalence', '双条件式'), const: t('a constant', '常量'),
       atom: t('an atomic formula', '原子公式'),
     }[k] || k
   }
   function describeF(f) { return isBot(f) ? '⊥' : kindName(f.k) }
   function introHint(f) {
-    if (isBot(f)) return t(' To prove ⊥, select a negated assumption ¬A and use ¬E.', '要证明 ⊥，请选中一个否定形式的假设 ¬A 并使用 ¬E。')
+    if (isBot(f)) return t(' To prove ⊥, select a negated assumption ¬A and use ¬E.', '要证明 ⊥，请选中一个形如 ¬A 的假设，再用 ¬E。')
     var r = { and: '∧I', or: '∨I₁ / ∨I₂', imp: '⟶I', not: '¬I', all: '∀I', ex: '∃I', eq: '=I / =E' }[f.k]
     return r ? t(' Try ' + r + '.', '试试 ' + r + '。')
       : t(' No introduction rule proves it: use an assumption, an elimination rule, ⊥E or RAA.', '没有引入规则能证明它：请用假设、消去规则、⊥E 或 RAA。')
@@ -384,7 +384,7 @@ FMWidgets.register('nd-builder', function (root, api) {
     var holder = fs.filter(function (f) { return fvs(f)[name] })[0]
     if (holder) {
       throw new Refusal(t(name + ' is not fresh: it occurs free in ' + show(holder) + '. (' + rule + ') needs a name that occurs in no assumption and not in the goal.',
-        name + ' 不是新名字：它在 ' + show(holder) + ' 中自由出现。(' + rule + ') 需要一个不出现在任何假设和目标中的名字。'))
+        name + ' 不是新名字：它在 ' + show(holder) + ' 中自由出现。(' + rule + ') 需要一个既不出现在任何假设中、也不出现在目标中的名字。'))
     }
     return name
   }
@@ -398,7 +398,7 @@ FMWidgets.register('nd-builder', function (root, api) {
     need(id && g.ctx.indexOf(id) >= 0, t('(' + rule + ') works on an assumption: first select one of this goal\'s assumptions (click it).', '(' + rule + ') 作用于假设：请先选中这个目标的一个假设（点击它）。'))
     var hy = N.hyps[id]
     if (k === 'imp' && hy.f.k === 'not') throw new Refusal(t(show(hy.f) + ' is a negation: use ¬E.', show(hy.f) + ' 是否定式：请用 ¬E。'))
-    need(hy.f.k === k, t('(' + rule + ') uses ' + kindName(k) + ', but the selected assumption ' + show(hy.f) + ' is ' + describeF(hy.f) + '.', '(' + rule + ') 使用' + kindName(k) + '，但选中的假设 ' + show(hy.f) + ' 是' + describeF(hy.f) + '。'))
+    need(hy.f.k === k, t('(' + rule + ') uses ' + kindName(k) + ', but the selected assumption ' + show(hy.f) + ' is ' + describeF(hy.f) + '.', '(' + rule + ') 作用于' + kindName(k) + '，但选中的假设 ' + show(hy.f) + ' 是' + describeF(hy.f) + '。'))
     return hy
   }
   function addDerived(N, g, f, rule, from) {
@@ -406,7 +406,7 @@ FMWidgets.register('nd-builder', function (root, api) {
     var nh = addHyp(N, f, { k: 'rule', rule: rule, from: from })
     var a = addNode(N, g.ctx.concat([nh]), g.goal)
     g.step = { kind: 'ctx', kids: [a] }
-    return t('(' + rule + '): ' + show(f) + ' is now an assumption.', '(' + rule + ')：' + show(f) + ' 现在是假设。')
+    return t('(' + rule + '): ' + show(f) + ' is now an assumption.', '(' + rule + ')：' + show(f) + ' 已加入假设。')
   }
 
   var RULES = {
@@ -417,9 +417,9 @@ FMWidgets.register('nd-builder', function (root, api) {
       return t('Closed: the goal is one of its assumptions.', '已关闭：目标就是它的一个假设。')
     },
     eqI: function (N, g) {
-      need(g.goal.k === 'eq' && canonT(g.goal.l, []) === canonT(g.goal.r, []), t('(=I) proves only t = t, with the same term on both sides.', '(=I) 只能证明两边是同一个项的 t = t。'))
+      need(g.goal.k === 'eq' && canonT(g.goal.l, []) === canonT(g.goal.r, []), t('(=I) proves only t = t, with the same term on both sides.', '(=I) 只能证明 t = t 这种两边是同一个项的等式。'))
       g.step = { kind: 'intro', rule: '=I', kids: [] }
-      return t('(=I): t = t holds with no premises.', '(=I)：t = t 不需要前提。')
+      return t('(=I): t = t holds with no premises.', '(=I)：t = t 无需前提即成立。')
     },
     andI: function (N, g) {
       introShape(g, 'and', '∧I')
@@ -441,7 +441,7 @@ FMWidgets.register('nd-builder', function (root, api) {
       introShape(g, 'imp', '⟶I')
       var n = ++N.label, hid = addHyp(N, g.goal.l, { k: 'hyp', label: n })
       g.step = { kind: 'intro', rule: '⟶I', label: n, kids: [addNode(N, g.ctx.concat([hid]), g.goal.r)] }
-      return t('(⟶I' + sup(n) + '): ' + show(g.goal.l) + ' is now an assumption, marked ' + n + '.', '(⟶I' + sup(n) + ')：' + show(g.goal.l) + ' 现在是假设，标号 ' + n + '。')
+      return t('(⟶I' + sup(n) + '): ' + show(g.goal.l) + ' is now an assumption, marked ' + n + '.', '(⟶I' + sup(n) + ')：' + show(g.goal.l) + ' 现在是假设，编号为 ' + n + '。')
     },
     notI: function (N, g) {
       introShape(g, 'not', '¬I')
@@ -467,7 +467,7 @@ FMWidgets.register('nd-builder', function (root, api) {
       var hy = selHyp(N, g, 'or', '∨E'), n = ++N.label
       var h1 = addHyp(N, hy.f.l, { k: 'hyp', label: n }), h2 = addHyp(N, hy.f.r, { k: 'hyp', label: n })
       g.step = { kind: 'elim', rule: '∨E', label: n, h: hy.id, kids: [addNode(N, g.ctx.concat([h1]), g.goal), addNode(N, g.ctx.concat([h2]), g.goal)] }
-      return t('(∨E' + sup(n) + '): two cases, one assuming ' + show(hy.f.l) + ', one assuming ' + show(hy.f.r) + '.', '(∨E' + sup(n) + ')：两种情形，一个假设 ' + show(hy.f.l) + '，一个假设 ' + show(hy.f.r) + '。')
+      return t('(∨E' + sup(n) + '): two cases, one assuming ' + show(hy.f.l) + ', one assuming ' + show(hy.f.r) + '.', '(∨E' + sup(n) + ')：两种情形，一种假设 ' + show(hy.f.l) + '，另一种假设 ' + show(hy.f.r) + '。')
     },
     impE: function (N, g) {
       var hy = selHyp(N, g, 'imp', '⟶E'), A = hy.f.l, B = hy.f.r
@@ -531,15 +531,15 @@ FMWidgets.register('nd-builder', function (root, api) {
       ['allI', '∀I', t('To prove ∀x. P x, prove P a for a new name a', '要证 ∀x. P x，对新名字 a 证 P a')],
       ['exI', '∃I', t('To prove ∃x. P x, prove P t for the term t in the box', '要证 ∃x. P x，对输入框中的项 t 证 P t')]] },
     { label: t('Elimination rules, on the selected assumption', '消去规则，作用于选中的假设'), rules: [
-      ['andE1', '∧E₁', t('From A ∧ B, add A', '由 A ∧ B 加入 A')],
-      ['andE2', '∧E₂', t('From A ∧ B, add B', '由 A ∧ B 加入 B')],
+      ['andE1', '∧E₁', t('From A ∧ B, add A', '由 A ∧ B，把 A 加入假设')],
+      ['andE2', '∧E₂', t('From A ∧ B, add B', '由 A ∧ B，把 B 加入假设')],
       ['orE', '∨E', t('From A ∨ B, prove the goal twice: assuming A, and assuming B', '由 A ∨ B 分两种情形证明目标：假设 A，以及假设 B')],
       ['impE', '⟶E', t('From A ⟶ B: if the goal is B, prove A; otherwise prove A, then use B', '由 A ⟶ B：若目标是 B，就证 A；否则先证 A，再使用 B')],
       ['notE', '¬E', t('From ¬A, prove the goal ⊥ by proving A', '由 ¬A，通过证 A 来证目标 ⊥')],
-      ['allE', '∀E', t('From ∀x. P x, add P t for the term t in the box', '由 ∀x. P x 加入 P t（t 为输入框中的项）')],
-      ['exE', '∃E', t('From ∃x. P x, add P a for a new name a', '由 ∃x. P x 加入 P a（a 为新名字）')],
+      ['allE', '∀E', t('From ∀x. P x, add P t for the term t in the box', '由 ∀x. P x，把 P t 加入假设（t 为输入框中的项）')],
+      ['exE', '∃E', t('From ∃x. P x, add P a for a new name a', '由 ∃x. P x，把 P a 加入假设（a 为新名字）')],
       ['eqE', '=E', t('From s = t, replace t by s in the goal', '由 s = t，把目标中的 t 换成 s')]] },
-    { label: t('Falsity and proof by contradiction', '矛盾与反证'), rules: [
+    { label: t('Falsity and proof by contradiction', '恒假与反证法'), rules: [
       ['botE', '⊥E', t('Prove any goal by proving ⊥', '通过证明 ⊥ 来证明任何目标')],
       ['raa', 'RAA', t('Assume the negation of the goal and prove ⊥ (classical)', '假设目标的否定并证明 ⊥（经典逻辑）')]] },
   ]
@@ -620,7 +620,7 @@ FMWidgets.register('nd-builder', function (root, api) {
   root.appendChild(h('div', { class: 'fmw ndb' },
     h('div', { class: 'fmw-row' }, h('label', { class: 'nd-k', for: presetIn.id, text: t('Goal', '目标') }), presetIn),
     h('div', { class: 'fmw-row' }, formulaIn, startBtn),
-    h('div', { class: 'fmw-msg nd-help' }, t('Select a goal, then a rule. Elimination rules act on the assumption you select. ASCII works too: ', '先选一个目标，再选一条规则。消去规则作用于你选中的假设。也可以输入 ASCII：'),
+    h('div', { class: 'fmw-msg nd-help' }, t('Select a goal, then a rule. Elimination rules act on the assumption you select. ASCII works too: ', '先选一个目标，再选一条规则。消去规则作用于你选中的假设。也可以用 ASCII 字符输入：'),
       h('span', { class: 'fmw-isa', text: '& | --> ~ ALL EX False' }), t(' (False is ⊥).', '（False 即 ⊥）。')),
     statusBox, goalsBox, panel, msgBox,
     h('div', { class: 'fmw-row' }, undoBtn, resetBtn),
@@ -714,7 +714,7 @@ FMWidgets.register('nd-builder', function (root, api) {
           ? g.ctx.map(function (hid) {
             var hy = S.hyps[hid], txt = show(hy.f)
             return h('button', { class: 'nd-hyp', type: 'button', 'data-f': txt, 'data-key': 'h:' + gid + ':' + hid, 'aria-pressed': sel && S.selHyp === hid ? 'true' : 'false',
-              title: hy.src.k === 'hyp' ? t('assumption ' + hy.src.label + ', discharged by the rule marked ' + hy.src.label, '假设 ' + hy.src.label + '，由标号为 ' + hy.src.label + ' 的规则解除') : t('derived by (' + hy.src.rule + ')', '由 (' + hy.src.rule + ') 推出'),
+              title: hy.src.k === 'hyp' ? t('assumption ' + hy.src.label + ', discharged by the rule marked ' + hy.src.label, '假设 ' + hy.src.label + '，由编号为 ' + hy.src.label + ' 的规则解除') : t('derived by (' + hy.src.rule + ')', '由 (' + hy.src.rule + ') 推出'),
               text: txt, onclick: safe(function () { select(gid, hid) }) })
           })
           : [h('span', { class: 'nd-none', text: t('none', '无') })]

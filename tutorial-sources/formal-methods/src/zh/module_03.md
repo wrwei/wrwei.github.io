@@ -1,0 +1,1446 @@
+---
+title: 谓词逻辑
+part: 1
+lead: 说出什么对每个对象都成立、什么对某些对象成立，判断一个公式在某个结构中是否为真，寻找反模型，并把需求变成精确的公式；在纸上做，也在 Isabelle 中做。
+minutes: 240
+needs: 学完模块 1 和模块 2
+goals:
+  - 读写含有谓词、函数、∀ 和 ∃ 的公式，分清自由变元和约束变元
+  - 手工判断一个公式在一个小结构中是否为真，并构造反模型
+  - 运用量词定律，并认出那些不成立的“定律”
+  - 把用自然语言写成的需求翻译成谓词逻辑，避开经典的错误
+  - 在 Isabelle 中用 `blast` 和 `nitpick` 检查一阶逻辑的断言，并声明带类型的词汇表
+  - 解释为什么没有程序能判定谓词逻辑公式的有效性，以及这对工具意味着什么
+imports: Main
+---
+
+## 命题逻辑之外 {#beyond}
+
+模块 2 把每个陈述都看作一个不可分割的原子。对于“如果门开着并且警报已布防，警笛就会响”这样的规则，这就够用了。但大多数需求会同时谈到许多对象：“**每个**请求”“**某台**服务器”“**没有**两列火车”“文件的**所有者**”。下面是一条访问控制策略，以及任何人都会从中得出的结论：
+
+1. 每个管理员都能删除每一份文档。
+2. Alice 是管理员。
+3. 所以，Alice 能删除那份季度报告。
+
+在命题逻辑中，每个句子都变成一个原子，比如 $A$、$B$ 和 $C$，整个论证就变成公式 $A \land B \imp C$。它的真值表是：
+
+```truthtable
+A ∧ B ⟶ C
+```
+
+第二行使公式为假：$A$ 和 $B$ 为真，$C$ 为假。就命题逻辑所能看到的而言，结论推不出来。可它明明推得出来，原因藏在句子**内部**：第 2 句中的 Alice 就是第 3 句中的 Alice，第 1 句中的“每个管理员”包括她，“每一份文档”也包括那份报告。要捕捉这样的原因，逻辑需要
+
+- **对象的名字**，例如 Alice 和那份报告；
+- 对象的**性质和关系**，例如“是管理员”和“能删除”；
+- **量词**（quantifier），即“每个”“某个”这类表示数量的词，以及在这些对象上取值的变元。
+
+**谓词逻辑**（predicate logic）正是在模块 2 的联结词之上加入了这些东西。它也叫**一阶逻辑**（first-order logic），因为它的变元在对象上取值，对象是“第一阶”的东西，而变元不在对象的性质上取值。戈特洛布·弗雷格（Gottlob Frege）在 1879 年的《概念文字》（Begriffsschrift）中引入了量词，此后谓词逻辑逐渐成为精确陈述数学的标准语言。用它来写，整个论证就是一个公式：
+
+$$
+(\forall u\ d.\ \mathit{admin}\ u \imp \mathit{can\_delete}\ u\ d) \land \mathit{admin}\ \mathit{alice} \imp \mathit{can\_delete}\ \mathit{alice}\ \mathit{report}
+$$
+
+读作“如果每个管理员 $u$ 都能删除每一份文档 $d$，并且 Alice 是管理员，那么 Alice 能删除那份报告”。学完本模块，你就会知道“无论怎样解释其中的词，这个公式都为真”是什么意思，而 Isabelle 只用一行就能证明它（第 3.8 节）。
+
+谓词逻辑是规约的语言：模块 1 中的排序规约 $\mathit{sorted}\ ys \land \mathit{mset}\ ys = \mathit{mset}\ xs$ 就是它的一个公式，而 Isabelle 的逻辑 HOL 是它的扩展。
+
+## 项、谓词与公式 {#language}
+
+谓词逻辑的公式由两类符号构成。**逻辑符号**在每个应用中都一样：模块 2 的联结词、量词、等号，还有变元。其他符号则为某个特定应用中的事物命名，例如用户、文档和权限。这些符号组成了这个应用的词汇表。
+
+::: definition 词汇表
+**词汇表**（vocabulary），也称**签名**（signature），列出一种语言的非逻辑符号，并给出每个符号的参数个数，即它的**元数**（arity）：
+
+- **常量**（constant）为单个对象命名：$\mathit{alice}$、$\mathit{report}$、$0$；
+- **函数符号**（function symbol）为得出一个对象的运算命名：$\mathit{owner}$（一个参数：一份文档的所有者）、$+$（两个参数）；
+- **谓词符号**（predicate symbol）为性质和关系命名，性质和关系要么成立，要么不成立：$\mathit{admin}$（一个参数：是管理员）、$\mathit{can\_delete}$（两个参数：能删除）、$<$（两个参数）。
+:::
+
+大多数逻辑书写作 $P(x)$、$R(x, y)$ 和 $f(x)$。本系列按 Isabelle 的方式书写：先写符号，再写参数，中间用空格隔开：$P\ x$、$R\ x\ y$、$f\ x$。括号只用来分组：$\mathit{can\_delete}\ (\mathit{owner}\ d)\ d$ 把 $\mathit{can\_delete}$ 应用于两个参数 $\mathit{owner}\ d$ 和 $d$。$+$ 和 $<$ 这样的符号照常写在两个参数之间。
+
+### 项 {#terms}
+
+::: definition 项
+**项**（term）是下面两者之一：
+
+1. 一个变元（$x$、$y$、$z$……）或一个常量；
+2. $f\ t_1\ \dots\ t_n$，其中 $f$ 是有 $n$ 个参数的函数符号，$t_1, \dots, t_n$ 都是项。
+
+项为一个对象命名。它永远不会为真或为假。
+:::
+
+$\mathit{alice}$、$d$、$\mathit{owner}\ d$、$x + 1$ 和 $2 * (x + y)$ 都是项。$\mathit{owner}\ d$ 指的是 $d$ 所代表的那份文档的所有者，$x + 1$ 指的是一个数。项就像编程语言中的表达式：它们计算出值。
+
+### 原子公式 {#atoms}
+
+::: definition 原子公式
+**原子公式**（atomic formula）要么是 $P\ t_1\ \dots\ t_n$，其中 $P$ 是有 $n$ 个参数的谓词符号，$t_1, \dots, t_n$ 是项；要么是两个项之间的等式 $t_1 = t_2$。
+:::
+
+$\mathit{admin}\ \mathit{alice}$、$\mathit{can\_delete}\ x\ \mathit{report}$、$x < y + 1$ 和 $\mathit{owner}\ \mathit{report} = \mathit{alice}$ 都是原子公式。一旦知道其中的项代表哪些对象，每个原子公式就有了真假。没有参数的谓词符号就是模块 2 中的命题原子，所以命题逻辑的每个公式也都是谓词逻辑的公式。
+
+::: pitfall
+项和公式处在不同的层次上，一个不能出现在另一个该出现的位置。$\mathit{admin}\ (\mathit{can\_delete}\ \mathit{alice}\ \mathit{report})$ 不是公式：$\mathit{admin}$ 需要一个对象，而 $\mathit{can\_delete}\ \mathit{alice}\ \mathit{report}$ 是一个陈述。$\mathit{owner}\ \mathit{report} \land \mathit{admin}\ \mathit{alice}$ 也不是公式：$\land$ 连接的是陈述，而 $\mathit{owner}\ \mathit{report}$ 是一个对象。Isabelle 会拒绝这样的表达式，第 3.8 节会演示这一点。
+:::
+
+### 量词 {#quantifiers}
+
+新的成分是对对象的量化。下面的 $\varphi$（希腊字母 phi）和 $\psi$（psi）代表任意公式。
+
+- $\forall x.\ \varphi$ 读作“对所有 $x$，$\varphi$”。它说的是：无论 $x$ 代表哪个对象，$\varphi$ 都成立。$\forall$ 是**全称量词**（universal quantifier）。
+- $\exists x.\ \varphi$ 读作“存在 $x$，使得 $\varphi$”，或“对某个 $x$，$\varphi$”。它说的是：$\varphi$ 至少对一个对象成立。$\exists$ 是**存在量词**（existential quantifier）。
+
+一个量词可以引入多个变元：$\forall x\ y.\ \varphi$ 是 $\forall x.\ \forall y.\ \varphi$ 的简写。
+
+::: definition 公式
+一个词汇表上的**公式**（formula）按下面的规则构造：
+
+1. 每个原子公式都是公式，$\mathit{True}$ 和 $\mathit{False}$ 也是公式。
+2. 如果 $\varphi$ 和 $\psi$ 是公式，那么 $\lnot \varphi$、$\varphi \land \psi$、$\varphi \lor \psi$、$\varphi \imp \psi$ 和 $\varphi \iff \psi$ 也是公式；按模块 2 的优先级需要括号的地方要加上括号。
+3. 如果 $\varphi$ 是公式，$x$ 是变元，那么 $\forall x.\ \varphi$ 和 $\exists x.\ \varphi$ 是公式。
+:::
+
+要流畅地读公式，需要练习。先逐个符号地把公式念出来，再用平实的中文说出它的意思。
+
+::: example 读公式
+| 公式 | 读作 | 用平实的中文说 |
+|---|---|---|
+| $\forall x.\ \mathit{admin}\ x \imp \mathit{on\_call}\ x$ | 对所有 $x$，如果 $x$ 是管理员，那么 $x$ 在值班 | 每个管理员都在值班 |
+| $\exists x.\ \mathit{admin}\ x \land \lnot\, \mathit{on\_call}\ x$ | 存在 $x$，使得 $x$ 是管理员并且 $x$ 不在值班 | 有的管理员不在值班 |
+| $\forall x.\ \exists y.\ \mathit{trusts}\ x\ y$ | 对所有 $x$，存在 $y$，使得 $x$ 信任 $y$ | 每个人都信任某个人 |
+| $\exists y.\ \forall x.\ \mathit{trusts}\ x\ y$ | 存在 $y$，使得对所有 $x$，$x$ 信任 $y$ | 有某个人被所有人信任 |
+| $\forall x\ y.\ x < y \imp (\exists z.\ x < z \land z < y)$ | 对所有 $x$ 和 $y$，如果 $x < y$，那么存在 $z$，使得 $x < z$ 并且 $z < y$ | 两个不同的数之间还有第三个数 |
+
+第三行和第四行只是量词的顺序不同，说的却是很不一样的事情。第 3.3 节和第 3.5 节会再回到这一点。最后一行对分数成立，对整数却不成立：1 和 2 之间没有整数。
+:::
+
+Isabelle 中量词的写法和这里一样：∀ 或 ∃，接一个变元，再接一个点。输入时用 `\forall` 和 `\exists`（模块 1）。
+
+### 辖域、自由变元与约束变元 {#scope}
+
+在 $\forall x.\ \varphi$ 中，公式 $\varphi$ 是这个量词的**辖域**（scope）：在这个范围里，$x$ 指的就是这个量词所引入的变元。公式没有括号时，辖域延伸到哪里为止？本系列遵循 Isabelle 的约定：**量词的辖域尽可能向右延伸**。所以 $\forall x.\ P\ x \imp Q\ x$ 的意思是 $\forall x.\ (P\ x \imp Q\ x)$。要让辖域提前结束，就加括号：$(\forall x.\ P\ x) \imp Q\ x$。
+
+::: pitfall
+许多逻辑教科书采用相反的约定：在那里，量词和 $\lnot$ 结合得一样紧，$\forall x\, P(x) \imp Q(x)$ 的意思是 $(\forall x\, P(x)) \imp Q(x)$。读其他书时，先弄清它们的约定。为 Isabelle 写公式时，要记住量词的辖域一直延伸到公式的末尾，或者延伸到量词所在的那组括号的右括号为止。
+:::
+
+::: definition 自由变元与约束变元
+变元 $x$ 在公式中的一次出现，如果位于某个量词 $\forall x$ 或 $\exists x$ 的辖域之内，就是**约束的**（bound），并且属于包围它的、离它最近的那个这样的量词。否则，这次出现是**自由的**（free）。有约束出现的变元称为**约束变元**（bound variable），有自由出现的变元称为**自由变元**（free variable）。没有任何变元自由出现的公式称为**语句**（sentence），也叫闭公式。
+:::
+
+图 3.1 标出了一个公式中的各个辖域，在这个公式里，同一个变元名既有约束出现，也有自由出现。
+
+::: figure id=fig-03-1
+$\forall x.\ P\ x \imp (\exists y.\ R\ x\ y) \land Q\ y$ 中的辖域。$\forall x$ 的辖域一直延伸到末尾，所以每个 $x$ 都是约束的。括号结束了 $\exists y$ 的辖域，所以最后一个 $y$ 是自由的：它和那个约束的 $y$ 同名，却是另一个变元。
+:::
+
+一旦语句中的符号有了含义，语句就有了真假。含有自由变元的公式还取决于这些变元代表什么：在 $x$ 取值之前，$x < 3$ 既不为真也不为假；而 $\exists x.\ x < 3$ 是一个语句，在自然数上为真。自由变元就像函数的参数，约束变元就像局部变量：在约束变元的整个辖域中把它统一换成一个新名字，什么也不会改变，所以 $\forall x.\ P\ x$ 和 $\forall y.\ P\ y$ 说的是同一件事。
+
+::: example 找出辖域和自由变元
+1. $\forall x.\ P\ x \imp Q\ x$：$\forall x$ 的辖域是 $P\ x \imp Q\ x$，$x$ 的两次出现都是约束的。这是一个语句。
+2. $(\forall x.\ P\ x) \imp Q\ x$：辖域只有 $P\ x$。$Q\ x$ 中的 $x$ 是自由的。
+3. $\forall x.\ \exists y.\ R\ x\ y \land \lnot\, R\ y\ z$：$x$ 和 $y$ 是约束的，$z$ 是自由的。不是语句。
+4. $\exists x.\ P\ x \land (\forall x.\ Q\ x) \imp R\ x$：里面的 $\forall x$ 只约束 $Q\ x$ 中的 $x$。$\exists x$ 的辖域一直延伸到末尾，所以 $R\ x$ 中的 $x$ 属于 $\exists x$。这是一个语句，但容易把人弄糊涂：最好给每个量词用一个它自己的变元。
+:::
+
+::: isabelle
+想知道 Isabelle 怎样读一个公式，就把它写成一条引理，然后看 **Output**（输出）面板中的目标。Isabelle 打印公式时会尽量少用括号，所以从目标可以看出你加的括号中哪些起了作用：
+
+```isabelle
+lemma "∀x. (P x ⟶ Q x)"
+```
+
+```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ∀x. P x ⟶ Q x
+```
+
+括号不见了：`∀x` 的辖域本来就延伸到末尾，所以这对括号什么也没改变。用 `oops` 放弃这条引理，然后移动括号：
+
+```isabelle
+  oops
+```
+
+```isabelle
+lemma "(∀x. P x) ⟶ Q x"
+```
+
+```output state
+proof (prove)
+goal (1 subgoal):
+ 1. (∀x. P x) ⟶ Q x
+```
+
+这次括号保留了下来，因为它们让 `∀x` 的辖域提前结束。`Q x` 中的 `x` 是自由的；引理中的自由变元是什么意思，是第 3.4 节要讲的内容。
+
+```isabelle
+  oops
+```
+:::
+
+## 结构与真值 {#structures}
+
+$\forall x.\ \exists y.\ R\ x\ y$ 为真吗？这个问题现在还没有答案。如果 $x$ 和 $y$ 在自然数上取值，$R$ 是 $<$，它就为真：每个数都有比它大的数。如果 $R$ 是 $>$，它就为假：没有比 0 小的自然数。只有说清楚变元在什么范围内取值、符号是什么意思，公式才有真值。这些信息就是一个结构。
+
+::: definition 结构
+一个词汇表的**结构**（structure）$\mathcal M$ 由以下几部分组成：
+
+1. 一个非空集合 $D$，称为**论域**（domain）：变元在其中取值的那些对象；
+2. 对每个常量 $c$，$D$ 中的一个元素 $c^{\mathcal M}$；
+3. 对每个有 $n$ 个参数的函数符号 $f$，一个函数 $f^{\mathcal M}$，它把由 $D$ 的元素组成的每个 $n$ 元组映射到 $D$ 的一个元素；
+4. 对每个有 $n$ 个参数的谓词符号 $P$，一个由 $D$ 的元素组成的 $n$ 元组的集合 $P^{\mathcal M}$：也就是使 $P$ 成立的那些元组。
+
+**$n$ 元组**（$n$-tuple）是按顺序排列的 $n$ 个元素 $(d_1, \dots, d_n)$；2 元组就是**有序对**（pair）。$c^{\mathcal M}$ 读作“$\mathcal M$ 中的 $c$”，即 $\mathcal M$ 让符号 $c$ 表示的东西；$f^{\mathcal M}$ 和 $P^{\mathcal M}$ 也是这样读。第 2 到第 4 项合起来是词汇表的**解释**（interpretation）。结构也叫**模型**（model）或解释。
+:::
+
+论域可以是有限的，也可以是无限的，但按照惯例，它永远不是空的；Isabelle 也遵循同样的惯例。函数符号被解释为一个对每个参数都给出值的函数，即使对某些参数来说这个值毫无意义，比如一个不是文档的东西的“所有者”。第 3.8 节会说明类型怎样避免这类无意义的东西。
+
+要对含有自由变元的公式求值，还需要给这些变元一些值。
+
+::: definition 结构中的真值
+**赋值**（assignment）$s$ 给每个变元一个 $D$ 中的值。项的**值**由它的变元和常量的值，借助 $\mathcal M$ 中的函数算出。公式是否**在 $\mathcal M$ 中、在 $s$ 下为真**，按以下规则确定：
+
+- 当 $t_1, \dots, t_n$ 的值组成的元组属于 $P^{\mathcal M}$ 时，$P\ t_1\ \dots\ t_n$ 为真；当两个项的值相同时，$t_1 = t_2$ 为真。
+- $\lnot$、$\land$、$\lor$、$\imp$ 和 $\iff$ 按模块 2 中它们的真值表计算。
+- 当 $x$ 取 $D$ 中的**每一个**值（其他变元保持原值）时 $\varphi$ 都为真，$\forall x.\ \varphi$ 就为真。
+- 当 $x$ 取 $D$ 中**至少一个**值时 $\varphi$ 为真，$\exists x.\ \varphi$ 就为真。
+
+对于语句，赋值不起作用。这时写作 $\mathcal M \models \varphi$，读作“$\varphi$ 在 $\mathcal M$ 中为真”，或“$\mathcal M$ 是 $\varphi$ 的模型”。
+:::
+
+::: analogy
+在有限论域上，量词就是一个循环。$\forall x$ 是一个只有每一轮都成功才算成功的循环；$\exists x$ 则只要有一轮成功就成功。在 Python 中，在列表 `D` 上求 $\forall x.\ \exists y.\ R\ x\ y$ 的值就是 `all(any(R(x, y) for y in D) for x in D)`。在无限论域上，循环永远不会结束，这时你需要的是证明。
+:::
+
+现在手工做一个例子。图 3.2 画出了一个结构，它的词汇表有两个一元谓词 $P$ 和 $Q$，以及一个二元谓词 $R$。
+
+::: figure id=fig-03-2
+结构 $\mathcal M_1$。它的论域有三个元素；$P$ 对 $a$ 和 $b$ 成立，$Q$ 只对 $b$ 成立；从 $x$ 指向 $y$ 的箭头表示 $R\ x\ y$ 成立。
+:::
+
+写出来，$\mathcal M_1$ 的论域是 $D = \{a, b, c\}$，并且 $P^{\mathcal M_1} = \{a, b\}$，$Q^{\mathcal M_1} = \{b\}$，$R^{\mathcal M_1} = \{(a, b), (b, c), (c, c)\}$。如果具体的解读对你有帮助，可以把它想成三台服务器：$P$ 表示“正在生产环境中运行”，$Q$ 表示“已经备份”，$R\ x\ y$ 表示“$x$ 把日志转发给 $y$”。求值并不依赖于这种解读。
+
+::: example 手工求公式的值
+1. $\forall x.\ P\ x \imp Q\ x$，“每个 $P$ 都是 $Q$”。逐个试每个元素。对 $a$，$P\ a \imp Q\ a$ 是 $\mathit{True} \imp \mathit{False}$，为假。一次失败就够了：这个公式在 $\mathcal M_1$ 中为假，$a$ 是一个**反例**（counterexample）。
+2. $\exists x.\ P\ x \land Q\ x$，“有的 $P$ 是 $Q$”。对 $b$，$P\ b \land Q\ b$ 为真。这个公式为真，$b$ 是一个**见证**（witness）。
+3. $\exists x.\ R\ x\ x$，“有某个元素有一个指向自己的箭头”。为真，见证是 $c$。
+4. $\forall x.\ P\ x \imp (\exists y.\ R\ x\ y \land Q\ y)$，“每个 $P$ 都有一个指向某个 $Q$ 的箭头”。这个需要列一张表，$x$ 的每个值占一行：
+
+   | $x$ | $P\ x$ | 有从 $x$ 指向某个 $Q$ 的箭头吗？ | $P\ x \imp (\exists y.\ R\ x\ y \land Q\ y)$ |
+   |---|---|---|---|
+   | $a$ | 真 | 有：$R\ a\ b$ 并且 $Q\ b$ | 真 |
+   | $b$ | 真 | 没有：它唯一的箭头指向 $c$，而 $Q\ c$ 为假 | 假 |
+   | $c$ | 假 | 没有 | 真 |
+
+   $b$ 这一行为假，所以这个公式在 $\mathcal M_1$ 中为假，反例是 $b$。
+:::
+
+::: example 量词的顺序
+在 $\mathcal M_1$ 中，语句 $\forall x.\ \exists y.\ R\ x\ y$ 说的是每个元素都有一个向外的箭头。确实如此：$a \to b$、$b \to c$ 和 $c \to c$。每个 $x$ 都有自己的见证 $y$。
+
+$\exists y.\ \forall x.\ R\ x\ y$ 说的是有某个元素从每个元素（包括它自己）那里都收到一个箭头。逐个试每个候选的 $y$：$a$ 没有收到任何箭头；$b$ 只从 $a$ 那里收到箭头；$c$ 从 $b$ 和 $c$ 那里收到箭头，但没有从 $a$ 那里收到。没有一个候选行得通，所以这个语句为假。
+
+这两个语句只是 $\forall x$ 和 $\exists y$ 的顺序不同。在第一个语句中，$y$ 可以依赖于 $x$；在第二个语句中，必须由同一个 $y$ 满足每一个 $x$。
+:::
+
+一个 ∀ 语句为真，还可能出于一个不那么明显的原因。在没有任何元素具有性质 $P$ 的结构中，无论 $Q$ 是什么，语句 $\forall x.\ P\ x \imp Q\ x$ 都为真：对每个 $x$，条件 $P\ x$ 都为假，所以蕴涵式为真。这样的语句是**空真**的（vacuously true）。在一家没有管理员的公司里，“每个管理员都在值班”成立；对一台从未收到请求的服务器来说，“每个请求都得到了响应”也成立。写规约时必须考虑到这一点。
+
+::: widget name=model-explorer
+点击就能修改结构：添加或删除元素，在 $P$ 和 $Q$ 成立的地方打勾，并在网格中打开或关闭 $R$ 的箭头（第 $x$ 行、第 $y$ 列）。每次点击之后，每个公式都会重新求值；为假的 ∀ 公式会给出一个反例，为真的 ∃ 公式会给出一个见证。试着让 $\forall x.\ \exists y.\ R\ x\ y$ 为真，同时让 $\exists y.\ \forall x.\ R\ x\ y$ 保持为假。然后让 $\forall x.\ P\ x \imp Q\ x$ 为真，而 $\exists x.\ P\ x \land Q\ x$ 为假；$P$ 只有一种选法。你也可以添加自己的公式，用 Isabelle 的记法或 ASCII 写法（`ALL`、`EX`、`~`、`&`、`|`、`-->`）都可以。
+:::
+
+::: isabelle
+当论域是一个 Isabelle 能列出全部元素的类型时，它就能对带量词的公式求值。类型 `bool` 有两个元素：`True` 和 `False`。取 ≠（“不同于”）作为关系，比较量词的两种顺序：
+
+```isabelle
+value "∀x::bool. ∃y. y ≠ x"
+```
+
+```output
+"True"
+  :: "bool"
+```
+
+```isabelle
+value "∃y::bool. ∀x. y ≠ x"
+```
+
+```output
+"False"
+  :: "bool"
+```
+
+量词中的 `x::bool` 表示 `x` 在 `bool` 上取值。每个 `x` 都有一个与它不同的 `y`，但没有哪个 `y` 与每个 `x` 都不同，因为任何东西都不会与自己不同。像 `nat` 这样有无穷多个元素的类型，没法逐个走一遍：`value "∀x::nat. x < x + 1"` 会报错停止，错误消息说 `nat` 不属于 sort `enum`，也就是不属于 Isabelle 能列出全部元素的那一类类型。对这样的类型，你需要的是证明。
+:::
+
+## 有效性、可满足性与反模型 {#validity}
+
+模块 2 的核心概念都可以沿用过来，只是把“真值表的每一行”换成“每一个结构”。
+
+::: definition 有效性与可满足性
+公式 $\varphi$ 是
+
+- **有效的**（valid），记作 $\models \varphi$，如果它在每个结构中、在每个赋值下都为真；
+- **可满足的**（satisfiable），如果它至少在一个结构中、在至少一个赋值下为真；
+- **不可满足的**（unsatisfiable），如果它在任何结构中、任何赋值下都不为真。
+
+如果在每一个使 $\Gamma$ 中所有公式都为真的结构和赋值下，$\varphi$ 都为真，就说公式集 $\Gamma$（gamma）**逻辑蕴涵**（entails）$\varphi$，记作 $\Gamma \models \varphi$。这时 $\varphi$ 是 $\Gamma$ 的**逻辑推论**（logical consequence）。
+:::
+
+和模块 2 一样，$\varphi$ 是有效的，当且仅当 $\lnot \varphi$ 不可满足。区别在于情况的数目：真值表只有有限多行，结构却有无穷多个，大小各异，你不可能把它们全部检查一遍。不过，要表明一个公式**不是**有效的，一个结构就够了。
+
+::: definition 反模型
+$\varphi$ 的**反模型**（countermodel）是一个结构，连同对 $\varphi$ 的自由变元的一个赋值，使 $\varphi$ 在其中为假。一个公式是有效的，当且仅当它没有反模型。
+:::
+
+::: example 一个反模型
+$(\forall x.\ P\ x \lor Q\ x) \imp (\forall x.\ P\ x) \lor (\forall x.\ Q\ x)$ 是有效的吗？它说的是：“如果每样东西都是 $P$ 或 $Q$，那么每样东西都是 $P$，或者每样东西都是 $Q$”。这听起来似乎有道理，直到你设想一个只是 $P$ 的元素和另一个只是 $Q$ 的元素：$D = \{a, b\}$，$P = \{a\}$，$Q = \{b\}$。前提为真，因为 $a$ 是 $P$，$b$ 是 $Q$。但 $\forall x.\ P\ x$ 在 $b$ 处不成立，$\forall x.\ Q\ x$ 在 $a$ 处不成立，所以结论为假。这个结构就是一个反模型，因此这个公式不是有效的。不过它是可满足的：在每样东西都是 $P$ 的每个结构中，它都为真。
+:::
+
+要表明一个公式**是**有效的，就要对一个任意的结构进行论证：关于论域和解释，论证中除了公式本身所说的，什么也不能用。
+
+::: example 证明有效性
+断言：$(\forall x.\ P\ x \imp Q\ x) \land P\ c \imp Q\ c$ 是有效的。任取一个结构 $\mathcal M$。如果蕴涵式的左边在 $\mathcal M$ 中为假，那么蕴涵式为真。否则两个合取项都为真。第一个合取项说 $P\ x \imp Q\ x$ 对 $x$ 的每个值都成立，特别是对元素 $c^{\mathcal M}$ 成立；第二个合取项说 $P$ 对 $c^{\mathcal M}$ 成立。两者合起来就得到 $Q\ c$。无论哪种情况，这个公式在 $\mathcal M$ 中都为真；而 $\mathcal M$ 是任意取的，所以这个公式是有效的。这就是第 3.1 节那个论证的缩影。
+:::
+
+有效的公式包括命题重言式的每一个实例，例如 $P\ x \lor \lnot\, P\ x$，还包括许多命题逻辑无法解释的公式，例如 $(\forall x.\ P\ x) \imp P\ c$。
+
+::: isabelle
+在 Isabelle 的引理中，**自由变元隐含地是全称量化的**：引理断言，无论这些变元取什么值，它的公式都成立。自由的 `P` 代表任意谓词，自由的 `c` 代表任意元素，而这些元素可以来自任何论域。所以，一条含有自由变元的引理断言的是：它的公式是有效的。模块 2 用来证明重言式的 `blast` 也能在谓词逻辑中搜索证明：
+
+```isabelle
+lemma "(∀x. P x ⟶ Q x) ∧ P c ⟶ Q c"
+  by blast
+```
+
+证明成功了：例 3.6 得到了检验。现在来看一个无效的断言。从某一个 `a` 满足 `P a`，推不出 `P` 对一切都成立。Nitpick 会搜索反模型：
+
+```isabelle
+lemma "P a ⟶ (∀x. P x)"
+  nitpick [card 'a = 2]
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 2:
+  Free variables:
+    P = (λx. _)(a⇩1 := False, a⇩2 := True)
+    a = a⇩2
+  Skolem constant:
+    x = a⇩1
+```
+
+从上往下读 Nitpick 的回答。
+
+- `card 'a = 2`：论域有两个元素，Nitpick 把它们叫做 a₁ 和 a₂。`'a` 这个名字来自 Isabelle：它给 `x` 和 `a` 指定了类型 `'a`（读作“alpha”），这是一个**类型变量**（type variable），代表任意类型，所以这条引理同时谈论所有的论域。选项 `[card 'a = 2]` 让 Nitpick 尝试恰好有两个元素的论域。
+- `P = (λx. _)(a₁ := False, a₂ := True)` 是 Nitpick 表示“由一张表给出的函数”的记法：`P a₁` 是 `False`，`P a₂` 是 `True`。所以 `P` 只对 a₂ 成立。
+- `a = a₂` 是自由变元 `a` 的值。
+- 在 **Skolem constant**（斯科伦常量）下面，Nitpick 列出它为约束变元选定的值：`x = a₁` 就是使 `∀x. P x` 不成立的那个元素。
+
+所以 `P a` 为真而 `∀x. P x` 为假：这正是定义 3.9 所说的反模型。
+
+```isabelle
+  oops
+```
+
+不加选项时，Nitpick 会并行地尝试 1 到 10 个元素的论域，它最先报告的反模型有多大，每次运行都可能不同；`[card 'a = 2]` 让它的回答可以重现。Isabelle/jEdit 还会对每条新引理运行 Quickcheck，所以在你调用 Nitpick 之前，可能就已经出现了一个反例。Quickcheck 把谓词写成使它为真的那些元素组成的集合，例如 `P = {a₁}`。
+:::
+
+::: pitfall
+“Nitpick found no counterexample”（Nitpick 没有找到反例）并不意味着引理为真。Nitpick 只搜索不超过一定大小的论域，而第 3.9 节会给出一个公式，它不是有效的，但它的反模型全都是无限的。只有证明才能表明一个公式是有效的。
+:::
+
+## 量词推理 {#reasoning}
+
+如果两个公式恰好在相同的结构和赋值下为真，也就是说 $\varphi \iff \psi$ 是有效的，就说它们是**等价的**（equivalent），记作 $\varphi \equiv \psi$。利用等价式可以改写公式：化简一个规约，否定一条需求，看懂一个证明。本节汇集了你最常用的定律，以及那些看起来对、其实不成立的“定律”。
+
+### 量词定律 {#quantifier-laws}
+
+在两个元素的论域 $\{a, b\}$ 上，$\forall x.\ P\ x$ 的意思是 $P\ a \land P\ b$，$\exists x.\ P\ x$ 的意思是 $P\ a \lor P\ b$。所以 ∀ 就像一个长长的合取，∃ 就像一个长长的析取，模块 2 中关于 ∧ 和 ∨ 的定律都有对应的量词版本。
+
+::: fact 量词的否定
+$$
+\lnot (\forall x.\ \varphi) \equiv \exists x.\ \lnot \varphi
+\qquad\qquad
+\lnot (\exists x.\ \varphi) \equiv \forall x.\ \lnot \varphi
+$$
+:::
+
+“并非一切都是 $\varphi$”意味着“有某样东西不是 $\varphi$”，“没有东西是 $\varphi$”意味着“一切都不是 $\varphi$”。这就是量词的德摩根律（De Morgan's laws）。把否定向内推时，它经过的每个量词都会变成另一种量词。
+
+::: example 否定一条需求
+一条需求和对它的违反互为否定。以“每个请求都得到响应”为例：
+
+$$\forall r.\ \mathit{request}\ r \imp \mathit{answered}\ r$$
+
+它的否定描述了测试或模型检测器要表明这条需求被违反，必须找到什么：
+
+$$
+\lnot (\forall r.\ \mathit{request}\ r \imp \mathit{answered}\ r)
+\;\equiv\; \exists r.\ \lnot (\mathit{request}\ r \imp \mathit{answered}\ r)
+\;\equiv\; \exists r.\ \mathit{request}\ r \land \lnot\, \mathit{answered}\ r
+$$
+
+“有某个请求没有得到响应。”最后一步用到了模块 2 中的 $\lnot (A \imp B) \equiv A \land \lnot B$。遇到嵌套的量词，否定会依次穿过每一个量词：$\lnot (\forall x.\ \exists y.\ \mathit{trusts}\ x\ y) \equiv \exists x.\ \forall y.\ \lnot\, \mathit{trusts}\ x\ y$，即“有某个人谁也不信任”。
+:::
+
+::: fact 分配律
+$$
+\forall x.\ (\varphi \land \psi) \equiv (\forall x.\ \varphi) \land (\forall x.\ \psi)
+\qquad\qquad
+\exists x.\ (\varphi \lor \psi) \equiv (\exists x.\ \varphi) \lor (\exists x.\ \psi)
+$$
+
+另外两种组合只在一个方向上成立：
+
+$$
+(\forall x.\ \varphi) \lor (\forall x.\ \psi) \models \forall x.\ (\varphi \lor \psi)
+\qquad\qquad
+\exists x.\ (\varphi \land \psi) \models (\exists x.\ \varphi) \land (\exists x.\ \psi)
+$$
+:::
+
+例 3.5 已经表明，第一条单向定律不能反过来。第二条也不能：“有人是管理员，也有人在值班”并不意味着有管理员在值班。反模型仍然是 $D = \{a, b\}$，$P = \{a\}$，$Q = \{b\}$。
+
+::: fact 量词与不含该变元的公式
+如果 $x$ 不在 $\psi$ 中自由出现：
+
+$$
+\forall x.\ (\psi \imp \varphi) \equiv \psi \imp (\forall x.\ \varphi)
+\qquad\qquad
+\forall x.\ (\varphi \imp \psi) \equiv (\exists x.\ \varphi) \imp \psi
+$$
+
+$$
+\exists x.\ (\varphi \land \psi) \equiv (\exists x.\ \varphi) \land \psi
+\qquad\qquad
+\forall x.\ (\varphi \lor \psi) \equiv (\forall x.\ \varphi) \lor \psi
+$$
+:::
+
+第二条定律乍一看令人意外：从蕴涵式左边移出来的 ∀ 变成了 ∃。举个例子就容易接受了：“对每个用户 $x$，如果 $x$ 已登录，那么服务器忙”与“如果有某个用户已登录，那么服务器忙”说的是同一件事。模块 6 和模块 7 中 ∃ 的证明规则，背后正是这条定律的思想。
+
+::: fact 量词的顺序
+$$
+\forall x.\ \forall y.\ \varphi \equiv \forall y.\ \forall x.\ \varphi
+\qquad\qquad
+\exists x.\ \exists y.\ \varphi \equiv \exists y.\ \exists x.\ \varphi
+$$
+
+$$
+\exists y.\ \forall x.\ \varphi \models \forall x.\ \exists y.\ \varphi\text{，但反过来不成立。}
+$$
+:::
+
+同一种量词可以交换次序；∀ 和 ∃ 却不能。如果有一个 $y$ 对每个 $x$ 都行得通，那么每个 $x$ 都有一个 $y$，也就是那一个。反过来不成立，因为 $y$ 可以依赖于 $x$：每把锁都有一把能打开它的钥匙，但不一定有一把能打开所有锁的万能钥匙。例 3.4 给出了一个结构，其中 $\forall x.\ \exists y.\ R\ x\ y$ 为真而 $\exists y.\ \forall x.\ R\ x\ y$ 为假。
+
+::: isabelle
+`blast` 能证明这些定律。下面是其中的四条。`S` 是类型为 `bool` 的自由变元，所以它代表一个不含 `x` 的公式：
+
+```isabelle
+lemma "¬ (∀x. P x) ⟷ (∃x. ¬ P x)"
+  by blast
+
+lemma "(∀x. P x ∧ Q x) ⟷ (∀x. P x) ∧ (∀x. Q x)"
+  by blast
+
+lemma "(∀x. P x ⟶ S) ⟷ ((∃x. P x) ⟶ S)"
+  by blast
+
+lemma "(∃y. ∀x. R x y) ⟶ (∀x. ∃y. R x y)"
+  by blast
+```
+
+对于不成立的定律，Nitpick 会找到反模型。下面是最后一条引理的逆：
+
+```isabelle
+lemma "(∀x. ∃y. R x y) ⟶ (∃y. ∀x. R x y)"
+  nitpick [card = 2]
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 2 and card 'b = 2:
+  Free variable:
+    R = (λx. _)
+        (a⇩1 := (λx. _)(b⇩1 := False, b⇩2 := True),
+           a⇩2 := (λx. _)(b⇩1 := True, b⇩2 := False))
+  Skolem constants:
+    λy. x = (λx. _)(b⇩1 := a⇩1, b⇩2 := a⇩2)
+    λx. y = (λx. _)(a⇩1 := b⇩2, a⇩2 := b⇩1)
+```
+
+这一次有两个类型变量。公式中没有任何东西说明 `x` 和 `y` 是同一类东西，所以 Isabelle 给了它们不同的类型 `'a` 和 `'b`，`R` 把 `'a` 的元素关联到 `'b` 的元素。选项 `[card = 2]` 让每个类型都有两个元素。`R` 是一张由表组成的表：`R a₁` 是只在 b₂ 处为真的函数，所以 `R a₁ b₂` 成立；同样，`R a₂ b₁` 也成立；其他所有的对都为假。每个 `x` 都有一个 `y`，但没有一个 `y` 能同时满足两个 `x`。有两个类型的反模型不一定能看作只有一个论域的反模型，但这一个可以：把 b₁ 看成 a₁，b₂ 看成 a₂，`R` 就把 {a₁, a₂} 中的每个元素关联到另一个元素。斯科伦常量显示了这种依赖关系：`λx. y` 是 Nitpick 为每个 `x` 选定的、使左边为真的 `y`，它是 `x` 的函数；`λy. x` 则对每个 `y` 给出一个使 `∀x. R x y` 不成立的 `x`。
+
+```isabelle
+  oops
+```
+:::
+
+::: pitfall
+如果你把一条定律输入 Isabelle 时漏掉了事实框里的括号，辖域就会给你制造麻烦。去掉上面第二条引理中 `∀x. P x ∧ Q x` 两边的括号：
+
+```isabelle
+lemma "∀x. P x ∧ Q x ⟷ (∀x. P x) ∧ (∀x. Q x)"
+```
+
+```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ∀x. (P x ∧ Q x) = ((∀x. P x) ∧ (∀x. Q x))
+```
+
+目标显示了 Isabelle 的读法。第一个 `∀x` 把它右边的一切都当作自己的辖域，所以这条引理现在断言的是：对每个 `x`，`P x ∧ Q x` 与 `(∀x. P x) ∧ (∀x. Q x)` 等价。（Isabelle 把 `⟷` 打印成 `=`；第 3.6 节会解释原因。）这是另一个断言，而且是错的：
+
+```isabelle
+  nitpick [card 'a = 2]
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 2:
+  Free variables:
+    P = (λx. _)(a⇩1 := False, a⇩2 := True)
+    Q = (λx. _)(a⇩1 := False, a⇩2 := True)
+  Skolem constant:
+    x = a⇩2
+```
+
+在这个反模型中，`P` 和 `Q` 都只对 a₂ 成立。取 `x = a₂`：`P x ∧ Q x` 为真，但因为 a₁，`∀x. P x` 为假，所以等价式两边的值不同。把括号加回去，`blast` 就能证明这条定律。
+
+```isabelle
+  oops
+```
+:::
+
+### 代入与变元捕获 {#substitution}
+
+从 $\forall x.\ \varphi$ 可以对任何一个特定的对象推出 $\varphi$：从“每个管理员都在值班”可以推出“如果 Alice 是管理员，那么 Alice 在值班”。这一步把变元 $x$ 替换成了一个项。
+
+::: definition 代入
+$\varphi[t/x]$ 读作“在 $\varphi$ 中用 $t$ 代入 $x$”，是把 $\varphi$ 中变元 $x$ 的每一次**自由**出现都替换为项 $t$ 后得到的公式。这种操作称为**代入**（substitution）。$x$ 的约束出现保持原样。
+:::
+
+例如，$(P\ x \land (\forall x.\ Q\ x))[a/x]$ 是 $P\ a \land (\forall x.\ Q\ x)$：只有第一个 $x$ 是自由的。
+
+::: fact 实例化
+$$
+\forall x.\ \varphi \models \varphi[t/x]
+\qquad\qquad
+\varphi[t/x] \models \exists x.\ \varphi
+$$
+
+前提是：把 $t$ 放到 $x$ 的位置上时，$t$ 中没有任何变元因此被约束。
+:::
+
+这个附加条件并不是吹毛求疵。设 $\varphi$ 是 $\exists y.\ R\ x\ y$，即“$x$ 有一个 $R$ 后继”。那么 $\forall x.\ \varphi$ 说的是每样东西都有后继。如果不小心用 $y$ 代入 $x$，就会得到 $\exists y.\ R\ y\ y$，即“有某样东西是它自己的后继”：你代入的 $y$ 被 $\exists y$ **捕获**（capture）了，意思也就变了。以自然数为论域、以 $<$ 为 $R$，$\forall x.\ \exists y.\ x < y$ 为真，而 $\exists y.\ y < y$ 为假，所以这个粗心的步骤从一个真命题推出了一个假命题。补救的办法是先给约束变元改名。$\exists y.\ R\ x\ y$ 与 $\exists z.\ R\ x\ z$ 等价，而 $(\exists z.\ R\ x\ z)[y/x]$ 是 $\exists z.\ R\ y\ z$，即“$y$ 有一个后继”，这确实可以推出。
+
+只在约束变元的名字上不同的公式，例如 $\exists y.\ R\ x\ y$ 和 $\exists z.\ R\ x\ z$，称为 **α 等价的**（alpha-equivalent）。它们的意思相同；谈论代入时，总是允许先做这样的改名。
+
+::: example 带改名的代入
+计算 $(\forall y.\ R\ x\ y \imp P\ y)[f\ y/x]$。项 $f\ y$ 含有 $y$，而公式约束了 $y$，所以直接放入 $f\ y$ 会捕获它的 $y$。先把约束的 $y$ 改名为一个新的 $z$，得到 $\forall z.\ R\ x\ z \imp P\ z$，然后再代入：
+
+$$\forall z.\ R\ (f\ y)\ z \imp P\ z$$
+
+$f\ y$ 中的 $y$ 仍然是自由的，和它在你代入的那个项中一样。
+:::
+
+::: isabelle
+Isabelle 在代入时从不捕获变元。在 Isabelle 内部，约束变元不是按名字存储的，而是存成一个数，这个数数的是它与自己的量词之间隔着多少个量词（称为德布鲁因索引，de Bruijn index）；名字只是为了打印才保留的。`blast` 能证明正确的实例：
+
+```isabelle
+lemma "(∀x. ∃y. R x y) ⟶ (∃z. R y z)"
+  by blast
+```
+
+而 Nitpick 会驳倒发生了捕获的那个：
+
+```isabelle
+lemma "(∀x. ∃y. R x y) ⟶ (∃y. R y y)"
+  nitpick [card 'a = 2]
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 2:
+  Free variable:
+    R = (λx. _)
+        (a⇩1 := (λx. _)(a⇩1 := False, a⇩2 := True),
+           a⇩2 := (λx. _)(a⇩1 := True, a⇩2 := False))
+  Skolem constant:
+    λx. y = (λx. _)(a⇩1 := a⇩2, a⇩2 := a⇩1)
+```
+
+在这个反模型中，`R` 把 a₁ 关联到 a₂，又把 a₂ 关联到 a₁：每个元素都有后继，但没有一个元素是它自己的后继。
+
+```isabelle
+  oops
+```
+:::
+
+## Equality {#equality}
+
+Equality is a predicate with a fixed meaning. A structure chooses what $P$ and $R$ mean, but not what
+$=$ means: in every structure, $t_1 = t_2$ is true exactly when $t_1$ and $t_2$ stand for the same
+element. That is why $=$ counts as a logical symbol. Its laws hold in every structure.
+
+::: fact Laws of equality
+- Reflexivity: $t = t$.
+- Symmetry: $t = u \imp u = t$.
+- Transitivity: $t = u \land u = v \imp t = v$.
+- Substitution of equals: $t = u \imp (\varphi[t/x] \imp \varphi[u/x])$.
+:::
+
+The last law says that equal objects have the same properties. If
+$\mathit{owner}\ \mathit{report} = \mathit{alice}$ and $\mathit{admin}\ (\mathit{owner}\ \mathit{report})$,
+then $\mathit{admin}\ \mathit{alice}$.
+
+With equality you can count. Two variables need not stand for different objects:
+$\exists x\ y.\ P\ x \land P\ y$ is true as soon as a single element has $P$, with $x$ and $y$ both
+standing for it. To say "two", you must say that they differ.
+
+::: example Counting with equality
+| English | Formula |
+|---|---|
+| at least one $P$ | $\exists x.\ P\ x$ |
+| at least two $P$ | $\exists x\ y.\ x \neq y \land P\ x \land P\ y$ |
+| at most one $P$ | $\forall x\ y.\ P\ x \land P\ y \imp x = y$ |
+| exactly one $P$ | $\exists x.\ P\ x \land (\forall y.\ P\ y \imp y = x)$ |
+
+$x \neq y$ abbreviates $\lnot (x = y)$. "At most one" does not claim that any $P$ exists: when nothing is
+$P$, it is vacuously true. "Exactly one" combines "at least one" with "at most one". Isabelle has a
+quantifier for it: $\exists!\, x.\ P\ x$ reads "there is exactly one $x$ such that $P\ x$".
+:::
+
+::: isabelle
+Two details of `=` in Isabelle catch many beginners.
+
+First, `=` binds more tightly than `¬`. So `¬ x = y` means `¬ (x = y)`, and Isabelle prints it with `≠`:
+
+```isabelle
+lemma "¬ x = y"
+```
+
+```output state
+proof (prove)
+goal (1 subgoal):
+ 1. x ≠ y
+```
+
+```isabelle
+  oops
+```
+
+Second, between two formulas `=` means "if and only if": on the type `bool` of formulas, `=` and `⟷`
+are the same function. Isabelle even prints `⟷` as `=`, as you saw in Section 3.5. But the parser gives
+the two symbols different priorities: `=` binds more tightly than `∧`, while `⟷` binds more loosely,
+like `⟶`. Compare:
+
+```isabelle
+lemma "(A = B ∧ C) ⟷ (A ⟷ B ∧ C)"
+```
+
+```output state
+proof (prove)
+goal (1 subgoal):
+ 1. (A = B ∧ C) = (A = (B ∧ C))
+```
+
+The goal shows Isabelle's reading. `A = B ∧ C` is `(A = B) ∧ C`, but `A ⟷ B ∧ C` is `A ⟷ (B ∧ C)`,
+which Isabelle prints as `A = (B ∧ C)`. The two are not equivalent:
+
+```isabelle
+  nitpick
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    A = False
+    B = True
+    C = False
+```
+
+With `A` false, `B` true and `C` false, the left-hand side is false and the right-hand side true. Hence
+the rule: write `=` between terms, which stand for objects, and `⟷` between formulas.
+
+```isabelle
+  oops
+```
+
+The `∃!` quantifier is written as in the text (type `∃`, then `!`), and `blast` confirms its meaning:
+
+```isabelle
+lemma "(∃!x. P x) ⟷ (∃x. P x ∧ (∀y. P y ⟶ y = x))"
+  by blast
+```
+:::
+
+## Writing specifications {#specifications}
+
+Turning requirements into formulas is a craft, and a formula is only as good as the translation behind
+it. A routine helps:
+
+1. Fix the domain and the vocabulary: which objects, which properties and relations, which functions.
+2. Translate each requirement on its own, using the patterns below.
+3. Read the formula back in plain English, literally, symbol by symbol, and compare it with the
+   requirement.
+4. Test it on small structures: one that should satisfy it and one that should not. The model explorer
+   of Section 3.3 and Nitpick both help.
+
+Most requirements follow a handful of patterns. $A$ and $B$ stand for properties.
+
+| English | Formula | Note |
+|---|---|---|
+| every $A$ is $B$ | $\forall x.\ A\ x \imp B\ x$ | ∀ goes with ⟶ |
+| some $A$ is $B$ | $\exists x.\ A\ x \land B\ x$ | ∃ goes with ∧ |
+| no $A$ is $B$ | $\forall x.\ A\ x \imp \lnot\, B\ x$ | the same as $\lnot (\exists x.\ A\ x \land B\ x)$ |
+| only $A$s are $B$ | $\forall x.\ B\ x \imp A\ x$ | "only" reverses the arrow |
+| at most one $A$ | $\forall x\ y.\ A\ x \land A\ y \imp x = y$ | Section 3.6 |
+| exactly one $A$ | $\exists x.\ A\ x \land (\forall y.\ A\ y \imp y = x)$ | Section 3.6 |
+
+::: pitfall
+**∀ with ∧.** "Every admin is on call" is not $\forall x.\ \mathit{admin}\ x \land \mathit{on\_call}\ x$:
+that says that everybody is an admin and everybody is on call. With ∀, the restriction to admins is a
+condition, so it goes in front of ⟶.
+
+**∃ with ⟶.** "Some admin is on call" is not $\exists x.\ \mathit{admin}\ x \imp \mathit{on\_call}\ x$:
+that is true as soon as one person is not an admin, because for that person the implication is
+vacuously true. With ∃, the restriction is part of what must hold, so it is joined with ∧.
+:::
+
+::: pitfall
+**"Only".** "Only admins can delete documents" means that whoever can delete a document is an admin:
+$\forall u\ d.\ \mathit{can\_delete}\ u\ d \imp \mathit{admin}\ u$. It does not say that admins can
+delete anything; that would be a separate requirement, with the arrow the other way round.
+
+**"At most one" without ≠.** $\lnot (\exists x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y)$, meant
+as "no two users hold the lock", forbids even a single user to hold it: take $y$ to be $x$. Write
+$\forall x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y \imp x = y$.
+:::
+
+::: example An access policy, formalised
+A document system has users and documents. In this example both live in one domain, and the predicates
+$\mathit{user}$ and $\mathit{doc}$ say which kind an object is; such predicates are called **guards**.
+The other symbols are $\mathit{admin}\ u$, $\mathit{owns}\ u\ d$, $\mathit{can\_read}\ u\ d$ and
+$\mathit{can\_delete}\ u\ d$.
+
+1. Every document has exactly one owner, and the owner is a user:
+   $$\forall d.\ \mathit{doc}\ d \imp (\exists u.\ \mathit{user}\ u \land \mathit{owns}\ u\ d \land (\forall v.\ \mathit{owns}\ v\ d \imp v = u))$$
+2. Only the owner of a document or an admin can delete it:
+   $$\forall u\ d.\ \mathit{can\_delete}\ u\ d \imp \mathit{owns}\ u\ d \lor \mathit{admin}\ u$$
+3. Admins can read every document:
+   $$\forall u\ d.\ \mathit{admin}\ u \land \mathit{doc}\ d \imp \mathit{can\_read}\ u\ d$$
+4. Some admin owns no document:
+   $$\exists u.\ \mathit{admin}\ u \land \lnot (\exists d.\ \mathit{doc}\ d \land \mathit{owns}\ u\ d)$$
+
+Now read them back. Requirement 1 is the "exactly one" pattern inside a ∀. Requirement 2 contains
+"only", so the arrow points from $\mathit{can\_delete}$ to the condition. Requirement 3 needs the guard
+$\mathit{doc}\ d$: without it, it would also say that admins can read users. Requirement 4 is the "some
+$A$ is $B$" pattern, with "owns no document" written as a negated ∃.
+:::
+
+::: isabelle
+Isabelle can compare two translations. If they are equivalent, `blast` proves the `⟷`. If they are not,
+Nitpick produces a structure that tells them apart, and that structure shows which formula says what you
+meant. Here are the two ways of saying "exactly one" from Section 3.6:
+
+```isabelle
+lemma "(∃x. holds x ∧ (∀y. holds y ⟶ y = x)) ⟷
+       (∃x. holds x) ∧ (∀x y. holds x ∧ holds y ⟶ x = y)"
+  by blast
+```
+
+And here is the correct translation of "some admin is on call" against the mistaken one:
+
+```isabelle
+lemma "(∃x. admin x ∧ on_call x) ⟷ (∃x. admin x ⟶ on_call x)"
+  nitpick [card 'a = 1]
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 1:
+  Free variables:
+    admin = (λx. _)(a⇩1 := False)
+    on_call = (λx. _)(a⇩1 := False)
+```
+
+A single element that is not an admin: the mistaken formula is true there, and the correct one false.
+
+```isabelle
+  oops
+```
+:::
+
+For more practice in translating, work through
+[Logic, quantifiers, and specifications](../math/module_02_EN.html) in the Mathematical Foundations
+series.
+
+## Types: from many-sorted logic to HOL {#types}
+
+The policy of Example 3.10 needed the guards $\mathit{user}$ and $\mathit{doc}$ because one domain held
+two kinds of object. Guards are tedious, and forgetting one changes the meaning without any warning.
+Leave the guard out of requirement 3 and it says that admins can read users. Write "every document has
+an owner" as $\forall d.\ \exists u.\ \mathit{owns}\ u\ d$ and you have claimed that every object, users
+included, is owned by something. And a function symbol such as $\mathit{owner}$ must give a value even
+for a user, because a structure interprets it by a function on the whole domain.
+
+::: definition Many-sorted logic
+In a **many-sorted** or **typed** logic, the vocabulary gives each constant, each argument of a function
+or predicate symbol and each function result a **sort**, also called a **type**. A structure has one
+domain per sort, and each variable ranges over the domain of one sort:
+$\forall d{::}\mathit{doc}.\ \exists u{::}\mathit{user}.\ \mathit{owns}\ u\ d$ reads "for every document
+$d$ there is a user $u$ who owns $d$". An expression that puts an argument of the wrong sort somewhere is
+not a formula at all.
+:::
+
+Types add no expressive power: $\forall d{::}\mathit{doc}.\ \varphi$ says what
+$\forall d.\ \mathit{doc}\ d \imp \varphi$ says, and $\exists u{::}\mathit{user}.\ \varphi$ what
+$\exists u.\ \mathit{user}\ u \land \varphi$ says, exactly the patterns of Section 3.7. What types add is
+a check. The mistakes above become type errors, which a computer finds before anybody reasons with the
+formula.
+
+Isabelle/HOL is typed through and through. Every term has a type. Formulas are terms of type `bool`,
+whose two values are `True` and `False`. A predicate on objects of type `τ` (tau) is a function of type
+`τ ⇒ bool`, which maps each object to `True` or `False`, and a relation between `τ` and `σ` (sigma) is a
+function of type `τ ⇒ σ ⇒ bool`. So `P x` in Isabelle is a function applied to an argument, and the
+result is a formula. Because predicates and functions are values like any other, HOL also lets you
+quantify over them, as in `∀P. P x ⟶ P x`: that is what makes it a **higher-order** logic. Module 8
+covers HOL's types and functions in depth.
+
+To declare a vocabulary in Isabelle, you declare its types with `typedecl` and its symbols with `consts`:
+
+```isabelle
+typedecl user
+typedecl doc
+
+consts
+  admin :: "user ⇒ bool"
+  owns :: "user ⇒ doc ⇒ bool"
+  can_delete :: "user ⇒ doc ⇒ bool"
+  alice :: user
+  report :: doc
+```
+
+`typedecl user` declares a new type about which nothing is known except that it has at least one
+element: a domain. `consts` declares constants with their types but without definitions. They are
+**uninterpreted**, exactly like the symbols of a vocabulary: a structure decides what they mean, and
+Isabelle proves a lemma about them only if it holds whatever they mean. Here, at last, is the argument of
+Section 3.1:
+
+```isabelle
+lemma "(∀u d. admin u ⟶ can_delete u d) ∧ admin alice ⟶ can_delete alice report"
+  by blast
+```
+
+The variables `u` and `d` need no guards: their types follow from `admin u` and `can_delete u d`. Now
+something that does not follow. If owners can delete their documents, can Alice delete the report? Only
+if she owns it. Nitpick needs the option `show_consts` to display the values of constants:
+
+```isabelle
+lemma "(∀u d. owns u d ⟶ can_delete u d) ⟶ can_delete alice report"
+  nitpick [card user = 2, card doc = 1, show_consts]
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card doc = 1 and card user = 2:
+  Constants:
+    alice = u⇩1
+    can_delete =
+      (λx. _)(u⇩1 := (λx. _)(d⇩1 := False), u⇩2 := (λx. _)(d⇩1 := False))
+    owns = (λx. _)(u⇩1 := (λx. _)(d⇩1 := False), u⇩2 := (λx. _)(d⇩1 := False))
+    report = d⇩1
+```
+
+Nitpick names the elements after their types: u₁ and u₂ are users, d₁ is a document. In this structure
+nobody owns anything, so the premise is vacuously true, and nobody can delete anything.
+
+```isabelle
+  oops
+```
+
+Types catch mistakes like those of the pitfall in Section 3.2, and more. Swap the arguments of `owns`:
+
+```isabelle fails
+lemma "owns report alice"
+```
+
+```output
+*** Type unification failed: Clash of types "doc" and "user"
+***
+*** Type error in application: incompatible operand type
+***
+*** Operator:  owns :: user ⇒ doc ⇒ bool
+*** Operand:   report :: doc
+***
+```
+
+Isabelle refuses the statement before trying to prove anything. The message names the function
+(`Operator`) and the argument that does not fit (`Operand`): `owns` expects a `user` first, and `report`
+is a `doc`.
+
+When you write a lemma without declarations, Isabelle infers the most general types. In
+`(∀x. P x) ⟶ (∃x. P x)` nothing says what `x` is, so `x` gets a type variable `'a`, and `P` the type
+`'a ⇒ bool`. A lemma proved for a type variable holds for every type, that is, for every domain:
+
+```isabelle
+lemma "(∀x. P x) ⟶ (∃x. P x)"
+  by blast
+```
+
+The formula is valid because every type, like every domain of a structure, has at least one element.
+Over an empty domain, `∀x. P x` would be vacuously true and `∃x. P x` false.
+
+::: trouble
+- **A predicate with too many arguments.** Use `P` with one argument in one place and two in another,
+  and Isabelle cannot give it a type:
+
+  ```isabelle fails
+  lemma "P x ⟶ P x y"
+  ```
+
+  ```output
+  *** Type unification failed: Clash of types "_ ⇒ _" and "bool"
+  ***
+  *** Type error in application: operator not of function type
+  ***
+  *** Operator:  P x :: bool
+  *** Operand:   y :: ??'a
+  ***
+  ```
+
+  From `P x`, Isabelle decided that `P x` is a formula, of type `bool`, and a formula cannot be applied
+  to `y`; `??'a` stands for a type that Isabelle had not yet worked out. Give each predicate the same
+  number of arguments everywhere.
+- **A name that is a keyword.** Some English words are keywords of Isabelle's command language, and
+  `file` is one of them:
+
+  ```isabelle fails
+  typedecl file
+  ```
+
+  ```output
+  *** Outer syntax error⌂: name expected,
+  *** but keyword file⌂ was found
+  ```
+
+  Choose another name, such as `doc`.
+:::
+
+## Decidability: what tools can and cannot do {#decidability}
+
+For propositional logic, Module 2 gave an algorithm that decides validity: compute the truth table. It
+may be slow, but it always finishes with the right answer. Is there such an algorithm for predicate
+logic? David Hilbert and Wilhelm Ackermann asked this in 1928, as the *Entscheidungsproblem*, the
+"decision problem". The answer came in two parts.
+
+::: fact Gödel's completeness theorem
+There are proof systems for predicate logic, natural deduction among them (Module 6), in which a formula
+can be proved exactly when it is valid. Kurt Gödel proved this for one such system in his doctoral thesis
+of 1929, published in 1930.
+:::
+
+Completeness has a practical consequence. Proofs are finite texts that a program can check, so a program
+can list all proofs, shortest first, together with the formulas they prove. Every valid formula appears
+in the list sooner or later. To find out whether a formula is valid, run the program and wait for the
+formula to appear: if it is valid, the answer "yes" comes in the end. If it is not, you wait for ever,
+and at no point do you know whether waiting longer would help.
+
+::: fact Undecidability of predicate logic
+No algorithm decides, for every formula of predicate logic, whether it is valid. Alonzo Church and Alan
+Turing proved this independently in 1936. Validity stays undecidable even when the vocabulary has a
+single predicate symbol, with two arguments.
+:::
+
+Turing's proof connects to the halting problem that Module 1 mentioned: for every program you can write
+a formula that is valid exactly when the program halts, so an algorithm for validity would decide
+halting, which no algorithm can.
+
+::: definition Decidable and semi-decidable
+A question about inputs is **decidable** if some algorithm answers it correctly for every input and
+always terminates. It is **semi-decidable** if some algorithm answers "yes" for every input whose answer
+is yes, but may run for ever on the others.
+:::
+
+Validity in predicate logic is semi-decidable but not decidable. The same holds for unsatisfiability,
+since $\varphi$ is unsatisfiable exactly when $\lnot \varphi$ is valid; satisfiability is not even
+semi-decidable.
+
+Two theorems of Gödel are easily confused. The **completeness theorem** (1929/1930) is about the valid
+formulas, those true in every structure: all of them can be proved. His **incompleteness theorems**
+(1931), which Module 1 mentioned, are about the formulas true in one particular structure, the natural
+numbers: no proof system whose axioms a program can check, and which proves only true statements, proves
+all of them. HOL can describe the natural numbers, so incompleteness applies to Isabelle's logic too.
+
+::: figure id=fig-03-3
+What a search can settle in principle. Valid formulas have proofs, and a systematic proof search finds
+one in the end. Formulas with a finite countermodel are refuted by searching finite structures. For
+formulas whose countermodels are all infinite, neither search ever stops. Isabelle's tools search only
+up to a limit, so in practice they can also give up on formulas of the first two kinds.
+:::
+
+Why do some formulas defeat both kinds of search? Because a countermodel can be infinite. Take
+
+$$
+(\forall x.\ \lnot\, R\ x\ x) \land (\forall x\ y\ z.\ R\ x\ y \land R\ y\ z \imp R\ x\ z) \imp \lnot (\forall x.\ \exists y.\ R\ x\ y)
+$$
+
+"If $R$ is irreflexive and transitive, then some element has no $R$-successor." It is not valid: with the
+natural numbers as domain and $<$ as $R$, both premises hold, and every number has a larger one. But it
+is true in every finite structure (Exercise 3.8 asks you to show why), so a search through finite
+structures never finds a countermodel, and a proof search never finds a proof, because there is none.
+Such formulas must exist. If every formula that is not valid had a finite countermodel, you could run a
+proof search and a countermodel search side by side; one of them would always finish, and validity would
+be decidable, which Church and Turing showed it is not.
+
+::: isabelle
+Both of Isabelle's tools give up on this formula. Nitpick tries domains of 1 to 10 elements:
+
+```isabelle
+lemma "(∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. ∃y. R x y)"
+  nitpick
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found no counterexample
+```
+
+```isabelle
+  oops
+```
+
+and `blast` fails:
+
+```isabelle fails
+lemma "(∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. ∃y. R x y)"
+  by blast
+```
+
+```output
+*** Failed to apply initial proof method⌂:
+*** goal (1 subgoal):
+***  1. (∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. ∃y. R x y)
+```
+
+`blast` searches for a proof with a growing bound on its "unsafe" steps, such as choosing an instance of
+a ∀ that it may need again later, from 0 up to 20 by default, and then gives up with this message.
+Neither message settles the question. You need to think, and here the thought is the infinite
+countermodel above.
+:::
+
+What this means in practice:
+
+- **Proof search** (`simp`, `blast`, `auto`, and the provers that Sledgehammer calls in Module 9)
+  succeeds or gives up. Success gives a theorem; giving up tells you nothing.
+- **Countermodel search** (Nitpick and Quickcheck) is the other half: a genuine counterexample shows that
+  a formula is not valid; finding none shows nothing.
+- When both give up, the work is yours: find the idea of the proof and guide Isabelle through it, as
+  Parts II and III teach, or find a countermodel that the tools cannot see.
+
+Not everything is undecidable. Propositional logic is decidable, and so is the part of predicate logic
+in which every predicate takes one argument and there are no function symbols. SAT and SMT solvers
+(Module 1) decide useful fragments efficiently, which is why Isabelle's tools call them for help.
+
+::: keyidea
+Validity in predicate logic is semi-decidable: a systematic search finds a proof whenever one exists,
+but no program can always tell you that none exists. That is why Isabelle offers both provers and
+counterexample finders, why automation sometimes gives up on true statements, and why the rest of this
+series teaches you to guide proofs yourself.
+:::
+
+## What you learned {#summary}
+
+- Predicate logic adds **terms**, which name objects, **predicates**, which state properties and
+  relations, and the **quantifiers** ∀ ("for all") and ∃ ("there exists") to propositional logic.
+- In Isabelle a quantifier's **scope** extends as far to the right as possible. Occurrences of a variable
+  in the scope of its quantifier are **bound**, the others **free**; a **sentence** has no free variables.
+- A **structure** is a non-empty domain with an interpretation of the vocabulary. A false ∀ has a
+  **counterexample**, a true ∃ a **witness**.
+- A formula is **valid** if it is true in every structure, **satisfiable** if it is true in some. One
+  **countermodel** refutes validity; validity needs an argument about every structure.
+- Negation swaps ∀ and ∃; ∀ distributes over ∧ and ∃ over ∨, but not the other way round; ∃y. ∀x
+  implies ∀x. ∃y, but not conversely. **Substitution** must not **capture** variables.
+- In specifications, ∀ goes with ⟶ and ∃ with ∧, "only" reverses the arrow, and counting needs `=`.
+- In Isabelle, predicates are functions to `bool`; `typedecl` and `consts` declare a vocabulary; free
+  variables of a lemma are implicitly universal; `blast` proves first-order goals and `nitpick` finds
+  countermodels. `=` binds more tightly than `¬` and `∧`, `⟷` as loosely as `⟶`.
+- Validity is **semi-decidable** (Gödel's completeness theorem) but **undecidable** (Church and Turing,
+  1936): provers may give up on valid formulas, and countermodel finders miss infinite countermodels.
+
+## Exercises {#exercises}
+
+:::: exercise Free or bound? {#ex-3-1} ★
+For each formula, say which occurrences of variables are free, and which quantifier each bound
+occurrence belongs to. Which formulas are sentences? Use Isabelle's convention for scopes.
+
+1. $\forall x.\ R\ x\ y \imp (\exists y.\ R\ y\ x)$
+2. $(\exists x.\ P\ x) \land Q\ x$
+3. $\exists x.\ P\ x \land Q\ x$
+4. $\forall x.\ (\exists x.\ R\ x\ x) \imp P\ x$
+
+::: solution
+1. The scope of $\forall x$ is all the rest of the formula. In $R\ x\ y$, the $x$ belongs to $\forall x$
+   and the $y$ is free. In $\exists y.\ R\ y\ x$, the $y$ belongs to $\exists y$ and the $x$ to
+   $\forall x$. Not a sentence, because of the first $y$.
+2. The parentheses close the scope of $\exists x$ after $P\ x$, so the $x$ in $Q\ x$ is free. Not a
+   sentence.
+3. The scope of $\exists x$ runs to the end, so both occurrences of $x$ belong to it. A sentence.
+   Formulas 2 and 3 differ only in their parentheses, and they mean different things.
+4. Both occurrences of $x$ in $R\ x\ x$ belong to the inner $\exists x$, whose scope ends at the closing
+   parenthesis. The $x$ in $P\ x$ belongs to $\forall x$. A sentence.
+:::
+::::
+
+:::: exercise True in a structure? {#ex-3-2} ★
+Let $\mathcal M_2$ have the domain $\{1, 2, 3\}$, $P^{\mathcal M_2} = \{1, 3\}$ ("is odd"), and let
+$R\ x\ y$ hold when $x < y$. Decide whether each sentence is true in $\mathcal M_2$. Give a witness for
+each true ∃ and a counterexample for each false ∀.
+
+1. $\forall x.\ \exists y.\ R\ x\ y$
+2. $\exists y.\ \forall x.\ \lnot\, R\ y\ x$
+3. $\forall x.\ P\ x \imp (\exists y.\ R\ x\ y)$
+4. $\exists x.\ \forall y.\ x = y \lor R\ x\ y$
+5. $\forall x\ y.\ R\ x\ y \imp \lnot\, R\ y\ x$
+
+::: solution
+1. False. Counterexample $x = 3$: no element of the domain is larger than 3.
+2. True. Witness $y = 3$: $R\ 3\ x$ is false for every $x$, since nothing is larger than 3.
+3. False. Counterexample $x = 3$: 3 is odd, and no element is larger. (For $x = 1$ the witness $y = 2$
+   works, and for $x = 2$ the implication is vacuously true.)
+4. True. Witness $x = 1$: for $y = 1$, $x = y$ holds; for $y = 2$ and $y = 3$, $R\ 1\ y$ holds.
+5. True. $x < y$ and $y < x$ never hold together.
+
+You can check all five in the model explorer of Section 3.3 on a copy of $\mathcal M_2$: let $a$, $b$
+and $c$ stand for 1, 2 and 3, tick $P$ for $a$ and $c$, and switch $R$ on for the pairs $(a, b)$,
+$(a, c)$ and $(b, c)$.
+:::
+::::
+
+:::: exercise From English to formulas {#ex-3-3} ★
+The vocabulary has the one-place predicates $\mathit{train}$ and $\mathit{block}$, the two-place
+predicate $\mathit{occupies}\ t\ b$ ("train $t$ occupies block $b$") and the constant $\mathit{depot}$.
+Translate:
+
+1. Every train occupies some block.
+2. No block is occupied by two different trains.
+3. Some block is free, that is, occupied by no train.
+4. Only trains occupy blocks.
+5. Exactly one train occupies the depot.
+
+::: solution
+1. $\forall t.\ \mathit{train}\ t \imp (\exists b.\ \mathit{block}\ b \land \mathit{occupies}\ t\ b)$
+2. $\forall b\ t\ u.\ \mathit{block}\ b \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b \imp t = u$.
+   An equivalent form follows the English more closely:
+   $\lnot (\exists b\ t\ u.\ \mathit{block}\ b \land t \neq u \land \mathit{occupies}\ t\ b \land \mathit{occupies}\ u\ b)$.
+3. $\exists b.\ \mathit{block}\ b \land \lnot (\exists t.\ \mathit{train}\ t \land \mathit{occupies}\ t\ b)$
+4. $\forall x\ b.\ \mathit{occupies}\ x\ b \imp \mathit{train}\ x$: "only" reverses the arrow.
+5. $\exists t.\ \mathit{train}\ t \land \mathit{occupies}\ t\ \mathit{depot} \land (\forall u.\ \mathit{train}\ u \land \mathit{occupies}\ u\ \mathit{depot} \imp u = t)$
+
+In 1 and 3, ∀ goes with ⟶ and ∃ with ∧, as the patterns of Section 3.7 say. In 2, guards
+$\mathit{train}\ t$ and $\mathit{train}\ u$ are unnecessary because of sentence 4, but adding them does
+no harm.
+:::
+::::
+
+:::: exercise Valid or not? {#ex-3-4} ★★
+Decide whether each formula is valid. For a valid one, give a short argument; for the others, give a
+countermodel. Then check your answers in Isabelle with `blast` or with `nitpick [card = 2]`.
+
+1. $(\exists x.\ P\ x \land Q\ x) \imp (\exists x.\ P\ x) \land (\exists x.\ Q\ x)$
+2. $(\exists x.\ P\ x) \land (\exists x.\ Q\ x) \imp (\exists x.\ P\ x \land Q\ x)$
+3. $(\forall x.\ P\ x \imp Q\ x) \imp (\exists x.\ P\ x) \imp (\exists x.\ Q\ x)$
+4. $(\forall x.\ \exists y.\ R\ x\ y) \imp (\forall x.\ \exists y.\ R\ y\ x)$
+
+::: solution
+1. Valid. A witness for $\exists x.\ P\ x \land Q\ x$ is a witness for both $\exists x.\ P\ x$ and
+   $\exists x.\ Q\ x$.
+2. Not valid: $D = \{a, b\}$, $P = \{a\}$, $Q = \{b\}$. Something is $P$ and something is $Q$, but
+   nothing is both.
+3. Valid. Take a witness $x$ of $P\ x$; the premise gives $Q\ x$ for it, so it is a witness of
+   $\exists x.\ Q\ x$.
+4. Not valid. "Everybody trusts somebody" does not imply "everybody is trusted by somebody":
+   $D = \{a, b\}$ with $R = \{(a, a), (b, a)\}$. Everybody trusts $a$, and nobody trusts $b$.
+
+In Isabelle:
+
+```isabelle
+lemma "(∃x. P x ∧ Q x) ⟶ (∃x. P x) ∧ (∃x. Q x)"
+  by blast
+
+lemma "(∀x. P x ⟶ Q x) ⟶ (∃x. P x) ⟶ (∃x. Q x)"
+  by blast
+```
+
+```isabelle
+lemma "(∃x. P x) ∧ (∃x. Q x) ⟶ (∃x. P x ∧ Q x)"
+  nitpick [card = 2]
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 2:
+  Free variables:
+    P = (λx. _)(a⇩1 := False, a⇩2 := True)
+    Q = (λx. _)(a⇩1 := True, a⇩2 := False)
+  Skolem constants:
+    x = a⇩2
+    x = a⇩1
+```
+
+```isabelle
+  oops
+```
+
+```isabelle
+lemma "(∀x. ∃y. R x y) ⟶ (∀x. ∃y. R y x)"
+  nitpick [card = 2]
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 2 and card 'b = 2:
+  Free variable:
+    R = (λx. _)
+        (a⇩1 := (λx. _)(b⇩1 := False, b⇩2 := True),
+           a⇩2 := (λx. _)(b⇩1 := False, b⇩2 := True))
+  Skolem constants:
+    x = b⇩1
+    λx. y = (λx. _)(a⇩1 := b⇩2, a⇩2 := b⇩2)
+```
+
+```isabelle
+  oops
+```
+
+In formula 4, nothing forces `x` and `y` to have the same type, so Isabelle gives them two types, as
+in Section 3.5, and Nitpick's countermodel relates the elements of `'a` to those of `'b`; the option
+`[card = 2]` fixes the size of both. Read b₁ as a₁ and b₂ as a₂ to get a countermodel with one domain:
+everybody trusts a₂, and nobody trusts a₁. Nitpick's countermodels may differ from yours in which
+element is which; any countermodel will do.
+:::
+::::
+
+:::: exercise Negate a specification {#ex-3-5} ★★
+Negate each requirement and push the negation inwards until it stands only in front of atomic formulas.
+Then say in English what a violation looks like.
+
+1. $\forall r.\ \mathit{request}\ r \imp (\exists s.\ \mathit{server}\ s \land \mathit{handles}\ s\ r)$
+2. $\exists s.\ \mathit{server}\ s \land (\forall r.\ \mathit{request}\ r \imp \mathit{handles}\ s\ r)$
+3. $\forall x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y \imp x = y$
+
+::: solution
+1. $\exists r.\ \mathit{request}\ r \land (\forall s.\ \mathit{server}\ s \imp \lnot\, \mathit{handles}\ s\ r)$:
+   some request is handled by no server. The steps: $\lnot \forall$ becomes $\exists \lnot$;
+   $\lnot (A \imp B)$ becomes $A \land \lnot B$; $\lnot \exists$ becomes $\forall \lnot$; and
+   $\lnot (C \land D)$ becomes $C \imp \lnot D$, an equivalence that a truth table confirms.
+2. $\forall s.\ \mathit{server}\ s \imp (\exists r.\ \mathit{request}\ r \land \lnot\, \mathit{handles}\ s\ r)$:
+   every server fails to handle some request, so no server handles them all.
+3. $\exists x\ y.\ \mathit{holds}\ x \land \mathit{holds}\ y \land x \neq y$: two different users hold
+   the lock.
+
+:::
+::::
+
+:::: exercise Counting in Isabelle {#ex-3-6} ★★
+1. Prove with `blast` that the negation of "at most one element satisfies `P`" is "at least two elements
+   satisfy `P`", using the formulas of Example 3.9.
+2. Somebody writes "exactly one element satisfies `P`" as `∃x. ∀y. P y ⟶ y = x`. Use Nitpick to compare
+   this formula with `∃!x. P x`, and explain what the formula really says.
+
+::: solution
+1. Push the negation through: $\lnot \forall$ becomes $\exists \lnot$, and
+   $\lnot (P\ x \land P\ y \imp x = y)$ becomes $P\ x \land P\ y \land x \neq y$.
+
+   ```isabelle
+   lemma "¬ (∀x y. P x ∧ P y ⟶ x = y) ⟷
+          (∃x y. x ≠ y ∧ P x ∧ P y)"
+     by blast
+   ```
+
+2. Nitpick finds a structure in which the two formulas differ:
+
+   ```isabelle
+   lemma "(∃x. ∀y. P y ⟶ y = x) ⟷ (∃!x. P x)"
+     nitpick [card 'a = 1]
+   ```
+
+   ```output result
+   Nitpicking formula...
+
+   Nitpick found a counterexample for card 'a = 1:
+     Free variable:
+       P = (λx. _)(a⇩1 := False)
+   ```
+
+   ```isabelle
+     oops
+   ```
+
+   In a one-element domain where `P` holds for nothing, `∃x. ∀y. P y ⟶ y = x` is true (vacuously, for
+   every `x`), but `∃!x. P x` is false. The formula says "at most one element satisfies `P`": it forgets
+   to say that one does.
+:::
+::::
+
+:::: exercise Substitution {#ex-3-7} ★★★
+Compute each substitution, renaming bound variables where necessary:
+
+1. $(\forall y.\ R\ x\ y)[z/x]$
+2. $(\forall y.\ R\ x\ y)[y/x]$
+3. $(\exists x.\ R\ x\ y \land P\ x)[f\ x/y]$
+4. $(P\ x \land (\exists x.\ R\ x\ y))[g\ y/x]$
+
+Then explain what goes wrong if you conclude $\exists y.\ y \neq y$ from $\forall x.\ \exists y.\ y \neq x$
+by putting $y$ for $x$, and in which structures the premise is true.
+
+::: solution
+1. $\forall y.\ R\ z\ y$. The term $z$ contains no bound variable of the formula, so nothing needs
+   renaming.
+2. Putting $y$ in directly would give $\forall y.\ R\ y\ y$, which captures it. Rename first:
+   $\forall w.\ R\ y\ w$.
+3. The term $f\ x$ contains $x$, which the formula binds. Rename the bound $x$ to $w$, giving
+   $\exists w.\ R\ w\ y \land P\ w$, then substitute: $\exists w.\ R\ w\ (f\ x) \land P\ w$.
+4. Only the first $x$ is free, and the term $g\ y$ contains no variable that the formula binds:
+   $P\ (g\ y) \land (\exists x.\ R\ x\ y)$.
+
+The premise $\forall x.\ \exists y.\ y \neq x$ says that every element has a different element, which
+is true in every structure with at least two elements. Putting $y$ for $x$ without renaming captures the
+$y$ and gives $\exists y.\ y \neq y$, which is false in every structure. The correct instance renames
+first: $\exists w.\ w \neq y$, "something differs from $y$", which does follow.
+:::
+::::
+
+:::: exercise Only infinite countermodels {#ex-3-8} ★★★
+Show that the formula of Section 3.9,
+$(\forall x.\ \lnot\, R\ x\ x) \land (\forall x\ y\ z.\ R\ x\ y \land R\ y\ z \imp R\ x\ z) \imp \lnot (\forall x.\ \exists y.\ R\ x\ y)$,
+is true in every finite structure. Hint: suppose a finite structure in which $R$ is irreflexive and
+transitive and every element has an $R$-successor, start at any element and keep following successors.
+
+::: solution
+Suppose, to the contrary, that $\mathcal M$ is finite, $R$ is irreflexive and transitive in
+$\mathcal M$, and every element has an $R$-successor. Pick any element $x_0$, then $x_1$ with
+$R\ x_0\ x_1$, then $x_2$ with $R\ x_1\ x_2$, and so on. Applying transitivity repeatedly gives
+$R\ x_i\ x_j$ whenever $i < j$. The domain is finite, so the sequence must repeat: $x_i = x_j$ for some
+$i < j$. Then $R\ x_i\ x_j$ is $R\ x_i\ x_i$, which irreflexivity forbids. So in a finite structure
+where the premises hold, some element has no successor, and the formula is true.
+
+The argument fails for an infinite domain, because the sequence need not repeat: in the natural numbers
+with $<$, the sequence $0, 1, 2, \dots$ goes on for ever. That is the infinite countermodel of
+Section 3.9.
+:::
+::::
+
+:::: exercise A typed policy in Isabelle {#ex-3-9} ★★★
+Extend the vocabulary of Section 3.8 with `can_read :: "user ⇒ doc ⇒ bool"` and a second user
+`bob :: user`. Take these requirements: nobody can delete a document they cannot read, and owners can
+delete their documents.
+
+1. Prove with `blast`: if, in addition, Alice owns the report, then Alice can read the report.
+2. Use Nitpick to show that the requirements and `admin bob` do not imply that Bob can read the
+   report. Explain the countermodel.
+
+::: solution
+```isabelle
+consts
+  can_read :: "user ⇒ doc ⇒ bool"
+  bob :: user
+
+lemma "(∀u d. can_delete u d ⟶ can_read u d) ∧
+       (∀u d. owns u d ⟶ can_delete u d) ∧
+       owns alice report ⟶ can_read alice report"
+  by blast
+```
+
+Alice owns the report, so she can delete it, so she can read it: two instances of the ∀-requirements,
+which `blast` finds.
+
+```isabelle
+lemma "(∀u d. can_delete u d ⟶ can_read u d) ∧
+       (∀u d. owns u d ⟶ can_delete u d) ∧
+       admin bob ⟶ can_read bob report"
+  nitpick [card user = 1, card doc = 1, show_consts]
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card doc = 1 and card user = 1:
+  Constants:
+    admin = (λx. _)(u⇩1 := True)
+    can_delete = (λx. _)(u⇩1 := (λx. _)(d⇩1 := False))
+    owns = (λx. _)(u⇩1 := (λx. _)(d⇩1 := False))
+    report = d⇩1
+    bob = u⇩1
+    can_read = (λx. _)(u⇩1 := (λx. _)(d⇩1 := False))
+```
+
+```isabelle
+  oops
+```
+
+In the countermodel Bob is an admin, but nobody owns anything and nobody can read or delete anything;
+both requirements hold, vacuously. Nothing in the requirements gives admins any rights. If admins should
+read everything, that is a further requirement, such as requirement 3 of Example 3.10.
+:::
+::::
+
+## Check yourself {#quiz}
+
+```quiz
+? Which formula says "every admin is on call"?
+- [ ] $\forall x.\ \mathit{admin}\ x \land \mathit{on\_call}\ x$
+- [x] $\forall x.\ \mathit{admin}\ x \imp \mathit{on\_call}\ x$
+- [ ] $\exists x.\ \mathit{admin}\ x \imp \mathit{on\_call}\ x$
+- [ ] $\forall x.\ \mathit{on\_call}\ x \imp \mathit{admin}\ x$
+> With ∀, the restriction to admins is a condition, so ∀ goes with ⟶. The first option says that everybody is an admin; the last says that only admins are on call.
+
+? With Isabelle's scope convention, which occurrence is free in $\forall x.\ P\ x \imp (\exists y.\ R\ x\ y) \land Q\ y$?
+- [ ] The $x$ in $R\ x\ y$
+- [ ] The $y$ in $R\ x\ y$
+- [ ] The $x$ in $P\ x$
+- [x] The $y$ in $Q\ y$
+> The parentheses end the scope of $\exists y$ after $R\ x\ y$, so the $y$ in $Q\ y$ lies outside it. The scope of $\forall x$ runs to the end of the formula.
+
+? Which formula is valid?
+- [x] $(\exists y.\ \forall x.\ R\ x\ y) \imp (\forall x.\ \exists y.\ R\ x\ y)$
+- [ ] $(\forall x.\ \exists y.\ R\ x\ y) \imp (\exists y.\ \forall x.\ R\ x\ y)$
+- [ ] $(\forall x.\ P\ x \lor Q\ x) \imp (\forall x.\ P\ x) \lor (\forall x.\ Q\ x)$
+- [ ] $(\exists x.\ P\ x) \land (\exists x.\ Q\ x) \imp (\exists x.\ P\ x \land Q\ x)$
+> If one $y$ works for every $x$, then every $x$ has a $y$. The other three formulas have countermodels with two elements.
+
+? What does a countermodel of a formula show?
+- [ ] That the formula is unsatisfiable
+- [ ] That the formula is true in some structure
+- [x] That the formula is not valid
+- [ ] That `blast` cannot prove the formula but another method could
+> A countermodel is a structure in which the formula is false, so the formula is not true in every structure. It may still be satisfiable.
+
+? How does Isabelle read `¬ x = y ∧ P x`?
+- [ ] `¬ (x = y ∧ P x)`
+- [x] `(¬ (x = y)) ∧ P x`
+- [ ] `¬ x = (y ∧ P x)`
+- [ ] It rejects the formula as ambiguous
+> `=` binds more tightly than `¬`, and `¬` more tightly than `∧`. Isabelle prints the formula as `x ≠ y ∧ P x`.
+
+? Nitpick answers "Nitpick found no counterexample" for a lemma. What do you know?
+- [ ] The lemma is valid
+- [ ] The lemma is unsatisfiable
+- [ ] The lemma has an infinite countermodel
+- [x] No countermodel exists among the finite structures that Nitpick searched; the lemma may still be false
+> Nitpick searches domains up to a size limit, 10 elements by default. Some formulas that are not valid, such as the one in Section 3.9, have only infinite countermodels.
+```
