@@ -318,6 +318,27 @@ value "start⦇cars := Amber⦈"
 ```output
 ```
 
+::: trouble
+An update needs `:=`. With `=`, Isabelle cannot parse the term:
+
+```isabelle fails
+value "start⦇cars = Amber⦈"
+```
+
+```output
+```
+
+A record value must list the fields in the order of the `record` command. Here the first two are
+swapped:
+
+```isabelle fails
+value "⦇peds = DontWalk, cars = Green, req = False⦈"
+```
+
+```output
+```
+:::
+
 ### Events with guards and effects {#events}
 
 The controller reacts to six events. The button press comes from outside; the other five are the
