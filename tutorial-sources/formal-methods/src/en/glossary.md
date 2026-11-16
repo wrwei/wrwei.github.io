@@ -341,7 +341,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **priority**<br>优先级 | How tightly a connective binds. In Isabelle, ¬ binds most tightly, then ∧, then ∨, then ⟶ and ⟷. | [2.2.2](module_02_EN.html#priorities) |
 | **proof**<br>证明 | A chain of steps, each justified by a rule, from the assumptions to the conclusion. | [6.1](module_06_EN.html#informal) |
 | **proof assistant**<br>证明助手 | A program that checks proofs written in a formal logic and helps you find them; also called an interactive theorem prover. | [1.4](module_01_EN.html#trust) |
-| **proof block**<br>证明块 | `proof m … qed`: proves the goal stated just before it. The steps inside establish facts and solve the pending goals. | [10.2.1](module_10_EN.html#shape-blocks) |
+| **proof block**<br>证明块 | `proof m … qed`: proves the goal stated directly before it. The steps inside establish facts and solve the pending goals. | [10.2.1](module_10_EN.html#shape-blocks) |
 | **proof by contradiction**<br>反证法 | To prove A, assume ¬A and derive a contradiction: the rule (RAA), `ccontr` in Isabelle. | [6.1](module_06_EN.html#informal), [6.5](module_06_EN.html#classical) |
 | **proof method**<br>证明方法 | A step that Isabelle applies to a goal, such as `simp`, `auto`, `blast`, `rule` or `induction`. | [5.4.2](module_05_EN.html#induction-state) |
 | **proof outline**<br>证明大纲 | The skeleton of the cases that Isabelle/jEdit shows after `proof (cases …)` or `proof (induction …)`; click it to insert it. | [10.5.1](module_10_EN.html#cases-bool) |

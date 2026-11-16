@@ -1419,7 +1419,7 @@ lemma "itrev xs [] = rev xs"
 3. `count_list (merge xs ys) z = count_list xs z + count_list ys z`
 4. `sumacc (xs @ ys) acc = sumacc ys (sumacc xs acc)`
 5. `ev n ⟹ ¬ ev (Suc n)`
-6. `0 < n ⟹ n div 2 < n`，其中 n 是自然数
+6. `0 < n ⟹ n div 2 < n`，其中 `n` 是自然数
 
 ::: solution
 1. 对 `t` 做结构归纳：`mirror` 和 `nodes` 都是每个构造子各有一个等式。
@@ -1630,53 +1630,52 @@ lemma "sorted xs ⟹ sorted ys ⟹ sorted (merge xs ys)"
   by (induction xs ys rule: merge.induct) (auto simp: set_merge)
 ```
 
-Without `set_merge`, the simplifier is stuck at goals about `set (merge xs (y # ys))`: this is the
-auxiliary-lemma situation of Section 11.3, with the lemma already proved.
+没有 `set_merge`，化简器就会卡在关于 `set (merge xs (y # ys))` 的目标上：这正是第 11.3 节中需要辅助引理的那种情况，只不过这条引理已经证明过了。
 :::
 ::::
 
-## Check yourself {#quiz}
+## 自测题 {#quiz}
 
 ```quiz
-? An induction on `xs` gets stuck with the goal `⋀a xs. f xs 0 = g xs ⟹ f xs a = a + g xs`. What is the most likely fix?
-- [ ] Add `f.simps` to the simplifier
-- [ ] Use `less_induct` instead of structural induction
-- [x] Generalise: prove the claim for every value of the second argument, with `arbitrary:`
-- [ ] Use `blast` instead of `auto`
-> The IH fixes the second argument to `0`, but the conclusion needs it with value `a`. The claim must speak about every value of that argument, and the induction must not fix it.
+? 对 `xs` 做的归纳卡在目标 `⋀a xs. f xs 0 = g xs ⟹ f xs a = a + g xs` 上。最可能的补救办法是什么？
+- [ ] 把 `f.simps` 加入化简器
+- [ ] 用 `less_induct` 代替结构归纳法
+- [x] 推广：用 `arbitrary:` 对第二个参数的每个值证明断言
+- [ ] 用 `blast` 代替 `auto`
+> 归纳假设把第二个参数固定为 `0`，而结论需要它取值 `a`。断言必须涉及这个参数的每一个值，而且归纳不能把它固定住。
 
-? What does `arbitrary: acc` change in an induction?
-- [x] `acc` is bound by ⋀ in the induction hypothesis, so the hypothesis holds for every value of `acc`
-- [ ] Isabelle chooses a value for `acc` that makes the proof work
-- [ ] The induction is done on `acc` instead of the list
-- [ ] `acc` is removed from the goal
-> The claim is proved for all values of `acc` at once, so in the step the IH can be used with the value the recursive call passes, such as `acc + x`.
+? `arbitrary: acc` 在归纳中改变了什么？
+- [x] `acc` 在归纳假设中由 ⋀ 约束，所以归纳假设对 `acc` 的每个值都成立
+- [ ] Isabelle 为 `acc` 选一个能使证明成功的值
+- [ ] 改为对 `acc` 而不是对列表做归纳
+- [ ] `acc` 从目标中被删除
+> 断言一次性地对 `acc` 的所有值得到证明，所以在归纳步骤中，可以取递归调用所传递的值（例如 `acc + x`）来使用归纳假设。
 
-? How many cases and induction hypotheses does `f.induct` have for a function `f` defined by `fun`?
-- [ ] One case per constructor of the argument type, one IH per case
-- [ ] Always two cases, base and step
-- [ ] One case per recursive call, no IH
-- [x] One case per defining equation, one IH per recursive call in that equation
-> Computation induction follows the recursion of the function. An IH can carry a condition, such as `x ≤ y`, when the call happens only under that condition.
+? 对于用 `fun` 定义的函数 `f`，`f.induct` 有多少个情形和归纳假设？
+- [ ] 参数类型的每个构造子一个情形，每个情形一个归纳假设
+- [ ] 总是两个情形：基础情形和归纳步骤
+- [ ] 每个递归调用一个情形，没有归纳假设
+- [x] 每个定义等式一个情形，该等式中的每个递归调用一个归纳假设
+> 计算归纳沿着函数的递归进行。如果某次调用只在某个条件下发生，对应的归纳假设就会带上这个条件，例如 `x ≤ y`。
 
-? An inductive definition of `ev` has rules `ev 0` and `ev n ⟹ ev (Suc (Suc n))`. Why is `ev 1` false?
-- [ ] Because `value "ev 1"` returns `False`
-- [x] Because no derivation ends in `ev 1`: no rule has a conclusion of that form
-- [ ] Because 1 is odd in the library
-- [ ] It is not false; nothing excludes it
-> The predicate holds exactly for what the rules can derive. Rule inversion makes this formal: no rule's conclusion matches `ev (Suc 0)`, so the fact is impossible.
+? `ev` 的归纳定义有规则 `ev 0` 和 `ev n ⟹ ev (Suc (Suc n))`。为什么 `ev 1` 不成立？
+- [ ] 因为 `value "ev 1"` 返回 `False`
+- [x] 因为没有哪个推导以 `ev 1` 结尾：没有哪条规则的结论具有这种形式
+- [ ] 因为在库中 1 是奇数
+- [ ] 它并非不成立：没有什么能排除它
+> 这个谓词恰好对规则能推导出的那些值成立。规则反演把这一点形式化了：没有哪条规则的结论与 `ev (Suc 0)` 匹配，所以这个事实不可能成立。
 
-? You try `apply (induction rule: steps.induct)` on `steps move Done s ⟹ s = Done` and get goals such as `c = b ⟹ c = a`. Why?
-- [ ] The lemma is false
-- [ ] Rule induction only works for `nat`
-- [ ] `blast` should have been used first
-- [x] The inductive premise has a constant where the rule expects a variable, so the claim lost its meaning
-> Rule induction is about `steps r x y` for variables `x` and `y`. Generalise: state `steps move a s ⟹ a = Done ⟹ s = Done`, or write `induction Done s rule: steps.induct`.
+? 你对 `steps move Done s ⟹ s = Done` 尝试 `apply (induction rule: steps.induct)`，得到了 `c = b ⟹ c = a` 这样的目标。为什么？
+- [ ] 这条引理是错的
+- [ ] 规则归纳只适用于 `nat`
+- [ ] 应该先用 `blast`
+- [x] 归纳所针对的前提中，在规则期望变量的位置上出现了常量，所以断言失去了原来的意义
+> 规则归纳针对的是变量 `x` 和 `y` 的 `steps r x y`。要推广：陈述 `steps move a s ⟹ a = Done ⟹ s = Done`，或者写 `induction Done s rule: steps.induct`。
 
-? In a proof by `induction n rule: less_induct`, what may you assume when you prove the claim for `n`?
-- [ ] The claim for `n - 1` only
-- [ ] Nothing: `less_induct` has no induction hypothesis
-- [x] The claim for every `y < n`
-- [ ] The claim for every `y > n`
-> Complete induction lets the step use any smaller value, such as `n div 2` or `n - 3`, not only the predecessor.
+? 在用 `induction n rule: less_induct` 做的证明中，当你对 `n` 证明断言时，可以假设什么？
+- [ ] 只能假设断言对 `n - 1` 成立
+- [ ] 什么也不能假设：`less_induct` 没有归纳假设
+- [x] 断言对每个 `y < n` 都成立
+- [ ] 断言对每个 `y > n` 都成立
+> 完全归纳法允许归纳步骤使用任何更小的值，例如 `n div 2` 或 `n - 3`，而不只是前驱。
 ```
