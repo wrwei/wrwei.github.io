@@ -266,7 +266,9 @@ A **structure** $\mathcal M$ for a vocabulary consists of
 4. for each predicate symbol $P$ with $n$ arguments, a set $P^{\mathcal M}$ of $n$-tuples of elements of
    $D$: the tuples for which $P$ holds.
 
-Items 2 to 4 are the **interpretation** of the vocabulary. Structures are also called **models** or
+An **$n$-tuple** is a list $(d_1, \dots, d_n)$ of $n$ elements, in order; a 2-tuple is a pair. Read
+$c^{\mathcal M}$ as "$c$ in $\mathcal M$": what $\mathcal M$ makes the symbol $c$ mean; likewise
+$f^{\mathcal M}$ and $P^{\mathcal M}$. Items 2 to 4 are the **interpretation** of the vocabulary. Structures are also called **models** or
 **interpretations**.
 :::
 
