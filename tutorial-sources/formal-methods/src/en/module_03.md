@@ -55,10 +55,9 @@ Read it as "if every administrator $u$ can delete every document $d$, and Alice 
 Alice can delete the report". By the end of this module you will know what it means for this formula to
 be true however its words are interpreted, and Isabelle will prove it in one line (Section 3.8).
 
-Predicate logic is the language of specifications. The sorting specification of Module 1,
-$\mathit{sorted}\ ys \land \mathit{mset}\ ys = \mathit{mset}\ xs$, is a formula of predicate logic, and
-so are the invariants of Module 13 and the correctness theorem of the compiler in Module 14. Isabelle's
-logic, HOL, extends it. This module teaches you to read it, to give it a meaning, and to write it.
+Predicate logic is the language of specifications: the sorting specification of Module 1,
+$\mathit{sorted}\ ys \land \mathit{mset}\ ys = \mathit{mset}\ xs$, is one of its formulas, and
+Isabelle's logic, HOL, extends it.
 
 ## Terms, predicates and formulas {#language}
 
@@ -192,12 +191,11 @@ end, so every $x$ is bound. The parentheses close the scope of $\exists y$, so t
 different variable from the bound $y$, with the same name.
 :::
 
-Free variables change what a formula is. A sentence is true or false once its symbols have a meaning. A
-formula with free variables also depends on what its free variables stand for: $x < 3$ is neither true
-nor false until $x$ has a value, while $\exists x.\ x < 3$ is a sentence, true of the natural numbers. A
-free variable is like a parameter of a function, a bound variable like a local variable. Renaming a bound
-variable everywhere in its scope, with a name not used elsewhere, leaves the meaning unchanged:
-$\forall x.\ P\ x$ and $\forall y.\ P\ y$ say the same thing.
+A sentence is true or false once its symbols have a meaning. A formula with free variables also depends
+on what they stand for: $x < 3$ is neither true nor false until $x$ has a value, while
+$\exists x.\ x < 3$ is a sentence, true of the natural numbers. A free variable is like a parameter of a
+function, a bound variable like a local variable: renaming a bound variable throughout its scope, with a
+fresh name, changes nothing, so $\forall x.\ P\ x$ and $\forall y.\ P\ y$ say the same thing.
 
 ::: example Finding scopes and free variables
 1. $\forall x.\ P\ x \imp Q\ x$: the scope of $\forall x$ is $P\ x \imp Q\ x$, and both occurrences of
@@ -418,10 +416,10 @@ is true in every structure and under every assignment that make all the formulas
 $\varphi$ is then a **logical consequence** of $\Gamma$.
 :::
 
-As in Module 2, $\varphi$ is valid exactly when $\lnot \varphi$ is unsatisfiable. The great difference
-lies in the number of cases. A truth table has finitely many rows. There are infinitely many structures,
-of every size, infinite ones included, and you cannot inspect them all. To show that a formula is *not*
-valid, though, one structure is enough.
+As in Module 2, $\varphi$ is valid exactly when $\lnot \varphi$ is unsatisfiable. The difference lies
+in the number of cases: a truth table has finitely many rows, but there are infinitely many structures,
+of every size, and you cannot inspect them all. To show that a formula is *not* valid, though, one
+structure is enough.
 
 ::: definition Countermodel
 A **countermodel** of $\varphi$ is a structure, together with an assignment for the free variables of
@@ -1250,13 +1248,12 @@ countermodel above.
 
 What this means in practice:
 
-- **Proof search** (`simp`, `blast`, `auto`, and the automatic provers that Sledgehammer calls in
-  Module 9) can only succeed or give up. Success gives a theorem; giving up tells you nothing about
-  whether the formula is valid.
-- **Countermodel search** (Nitpick and Quickcheck) is the other half. A genuine counterexample shows
-  that a formula is not valid; finding none shows nothing.
+- **Proof search** (`simp`, `blast`, `auto`, and the provers that Sledgehammer calls in Module 9)
+  succeeds or gives up. Success gives a theorem; giving up tells you nothing.
+- **Countermodel search** (Nitpick and Quickcheck) is the other half: a genuine counterexample shows that
+  a formula is not valid; finding none shows nothing.
 - When both give up, the work is yours: find the idea of the proof and guide Isabelle through it, as
-  Parts II and III teach, or find the countermodel that the tools cannot see.
+  Parts II and III teach, or find a countermodel that the tools cannot see.
 
 Not everything is undecidable. Propositional logic is decidable, and so is the part of predicate logic
 in which every predicate takes one argument and there are no function symbols. SAT and SMT solvers
@@ -1271,27 +1268,22 @@ series teaches you to guide proofs yourself.
 
 ## What you learned {#summary}
 
-- Predicate logic extends propositional logic with **terms**, which name objects (variables, constants,
-  function applications), **predicates**, which state properties and relations, and the **quantifiers**
-  ∀ ("for all") and ∃ ("there exists").
-- In Isabelle the **scope** of a quantifier extends as far to the right as possible. Occurrences of a
-  variable in the scope of its quantifier are **bound**, the others **free**; a **sentence** has no free
-  variables.
-- A **structure** consists of a non-empty domain and an interpretation of the vocabulary. ∀x. φ is true
-  when φ holds for every element, ∃x. φ when it holds for at least one. A false ∀ has a
+- Predicate logic adds **terms**, which name objects, **predicates**, which state properties and
+  relations, and the **quantifiers** ∀ ("for all") and ∃ ("there exists") to propositional logic.
+- In Isabelle a quantifier's **scope** extends as far to the right as possible. Occurrences of a variable
+  in the scope of its quantifier are **bound**, the others **free**; a **sentence** has no free variables.
+- A **structure** is a non-empty domain with an interpretation of the vocabulary. A false ∀ has a
   **counterexample**, a true ∃ a **witness**.
 - A formula is **valid** if it is true in every structure, **satisfiable** if it is true in some. One
-  **countermodel** refutes validity; showing validity takes an argument about every structure.
-- Negation turns ∀ into ∃ and back; ∀ distributes over ∧ and ∃ over ∨, but not the other way round;
-  quantifiers of the same kind commute, while ∃y. ∀x implies ∀x. ∃y but not conversely.
-  **Substitution** must not **capture** variables.
+  **countermodel** refutes validity; validity needs an argument about every structure.
+- Negation swaps ∀ and ∃; ∀ distributes over ∧ and ∃ over ∨, but not the other way round; ∃y. ∀x
+  implies ∀x. ∃y, but not conversely. **Substitution** must not **capture** variables.
 - In specifications, ∀ goes with ⟶ and ∃ with ∧, "only" reverses the arrow, and counting needs `=`.
-- In Isabelle, predicates are functions to `bool`, `typedecl` and `consts` declare a vocabulary, free
-  variables of a lemma are implicitly universal, `blast` proves first-order goals and `nitpick` finds
-  countermodels. `=` binds more tightly than `¬` and `∧`; `⟷` binds loosely, like `⟶`.
-- Validity in predicate logic is **semi-decidable**, by Gödel's completeness theorem, but **undecidable**
-  (Church and Turing, 1936). Provers may give up on valid formulas, and countermodel finders miss
-  infinite countermodels.
+- In Isabelle, predicates are functions to `bool`; `typedecl` and `consts` declare a vocabulary; free
+  variables of a lemma are implicitly universal; `blast` proves first-order goals and `nitpick` finds
+  countermodels. `=` binds more tightly than `¬` and `∧`, `⟷` as loosely as `⟶`.
+- Validity is **semi-decidable** (Gödel's completeness theorem) but **undecidable** (Church and Turing,
+  1936): provers may give up on valid formulas, and countermodel finders miss infinite countermodels.
 
 ## Exercises {#exercises}
 
