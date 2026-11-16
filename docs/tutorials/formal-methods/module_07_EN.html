@@ -1,0 +1,1901 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 7: Natural deduction in Isabelle — Formal Methods with Isabelle</title>
+<meta name="description" content="Turn the paper proofs of Module 6 into Isabelle proof scripts, rule by rule, read every proof state on the way, and recognise what went wrong when a step fails.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="7" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Formal methods</a><span class="sep">/</span><span class="crumb crumb-now">Module 7</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Module 7 of 14</button><div class="dropdown-menu"><a href="module_01_EN.html"><span class="dd-n">1</span>Formal methods, what and why<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_EN.html"><span class="dd-n">2</span>Propositional logic<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_EN.html"><span class="dd-n">3</span>Predicate logic<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_EN.html"><span class="dd-n">4</span>Sets, relations and functions<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_EN.html"><span class="dd-n">5</span>Induction and recursion<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_EN.html"><span class="dd-n">6</span>What is a proof? Natural deduction<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_EN.html" class="active"><span class="dd-n">7</span>Natural deduction in Isabelle<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_EN.html"><span class="dd-n">8</span>Functional programming in HOL<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_EN.html"><span class="dd-n">9</span>Proof automation<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_EN.html"><span class="dd-n">10</span>Structured proofs in Isar<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_EN.html"><span class="dd-n">11</span>Induction in depth<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_EN.html"><span class="dd-n">12</span>Verifying functional programs<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_EN.html"><span class="dd-n">13</span>Modelling systems: state machines and invariants<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_EN.html"><span class="dd-n">14</span>Capstone: a verified compiler<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html"><span class="dd-n">&#9670;</span>Troubleshooting</a>
+<a href="glossary_EN.html"><span class="dd-n">&#9670;</span>Glossary</a></div></div>
+  
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#meta"><span class="num">1</span><span class="side-t">Two logics in one system</span></a><a href="#rules"><span class="num">2</span><span class="side-t">Rules are theorems</span></a><a href="#backward"><span class="num">3</span><span class="side-t">Proving backwards: rule and assumption</span></a><a href="#assumptions"><span class="num">4</span><span class="side-t">Using assumptions: erule, drule and frule</span></a><a href="#negation"><span class="num">5</span><span class="side-t">Negation and falsity</span></a><a href="#quantifiers"><span class="num">6</span><span class="side-t">Quantifiers and fixed variables</span></a><a href="#classical"><span class="num">7</span><span class="side-t">Classical reasoning and equality</span></a><a href="#errors"><span class="num">8</span><span class="side-t">When a step fails</span></a><a href="#blast"><span class="num">9</span><span class="side-t">Letting Isabelle search: blast and auto</span></a><a href="#summary"><span class="num">10</span><span class="side-t">What you learned</span></a><a href="#exercises"><span class="num">11</span><span class="side-t">Exercises</span></a><a href="#quiz"><span class="num">12</span><span class="side-t">Check yourself</span></a></nav>
+<div class="sidebar-label">Reference</div><div class="side-links"><a href="cheatsheet_EN.html">Cheat sheet</a><a href="troubleshooting_EN.html">Troubleshooting</a><a href="glossary_EN.html">Glossary</a><a href="formal-methods-theories.zip">Theory files (ZIP)</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Formal Methods with Isabelle &middot; Part II · Formal proof</div>
+      <h1 class="module-title"><span class="title-n">Module 7</span>Natural deduction in Isabelle</h1>
+      <p class="module-lead">Turn the paper proofs of Module 6 into Isabelle proof scripts, rule by rule, read every proof state on the way, and recognise what went wrong when a step fails.</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 240 min</span><span class="chip chip-needs">You need: Modules 1–3 and 6</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Tell Isabelle’s meta-logic (⟹, ⋀, ≡) from the object logic HOL (⟶, ∀, =) and read rules written with ⟹</li><li>Look up the Isabelle name and statement of every natural-deduction rule with <code>thm</code></li><li>Build proofs backwards with <code>rule</code>, <code>erule</code>, <code>drule</code>, <code>frule</code>, <code>assumption</code>, <code>intro</code> and <code>elim</code>, and close them with <code>done</code></li><li>Explain schematic variables, unification and fixed variables, and why quantifier steps must come in the right order</li><li>Prove classical laws with <code>ccontr</code> and <code>classical</code>, and repair a step from its error message</li><li>Let <code>blast</code> find such proofs automatically, knowing what it does for you</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="meta"></span>
+<div class="section-header"><span class="section-num">1</span><h2>Two logics in one system</h2></div>
+<p>In <a href="module_06_EN.html">Module 6</a> you built natural-deduction proofs on paper. You started from the
+formula you wanted, chose the rule that could have produced it, and worked upwards until every branch
+ended in an assumption. Isabelle builds proofs in exactly this way, and checks every step. In this module
+you redo the proofs of Module 6 in Isabelle, rule by rule, so that each paper tree becomes a short proof
+script.</p>
+<p>Before the first proof you need to read the notation Isabelle uses for rules and goals. It involves a
+second, smaller logic underneath HOL.</p>
+<h3 id="meta-pure">Pure, the meta-logic</h3>
+<p>Module 1 described Isabelle as a framework in which many logics can be defined. The framework has a small
+logic of its own, <strong>Isabelle/Pure</strong>, or Pure for short. Its only job is to say what rules and proofs are.
+Every other logic, HOL included, is defined inside Pure.</p>
+<div class="box box-definition"><div class="box-label">Definition 7.1<span class="box-title">Meta-logic and object logic</span></div>
+<p>A <strong>meta-logic</strong> is a logic for stating rules and proofs about another logic, the <strong>object logic</strong>. In
+Isabelle the meta-logic is <strong>Pure</strong> and the object logic is <strong>HOL</strong>. Pure has three symbols of its own:
+⟹ (“from … infer”), ⋀ (“for an arbitrary …”) and ≡, Pure’s own equality, which Isabelle uses above all
+to state definitions.</p>
+</div>
+<p>Each Pure symbol has a HOL counterpart that you already know from Modules 2 and 3:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pure</th>
+<th>Read it as</th>
+<th>HOL</th>
+<th>Read it as</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A ⟹ B</code></td>
+<td>from A, infer B</td>
+<td><code>A ⟶ B</code></td>
+<td>A implies B</td>
+</tr>
+<tr>
+<td><code>⋀x. P x</code></td>
+<td>for an arbitrary x, P x</td>
+<td><code>∀x. P x</code></td>
+<td>for all x, P x</td>
+</tr>
+<tr>
+<td><code>a ≡ b</code></td>
+<td>a equals b; in a definition, a is defined as b</td>
+<td><code>a = b</code></td>
+<td>a equals b</td>
+</tr>
+</tbody>
+</table></div>
+<p>In Isabelle/jEdit you type ⟹ as <code>==&gt;</code>, ⋀ as <code>!!</code> and ≡ as <code>==</code>. The brackets ⟦ and ⟧, which appear
+below, are <code>[|</code> and <code>|]</code>.</p>
+<p>Why does Isabelle need two arrows? Because a rule of natural deduction is not a formula. The rule (∧I) of
+Module 6 does not say “A ∧ B is true”. It says “if you have derived A and you have derived B, you may
+write down A ∧ B”. It is a statement about derivations, which Module 6 drew as a horizontal line. Pure
+gives Isabelle a language for statements of this kind. In Pure, (∧I) reads</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo mathvariant="normal" lspace="0em" rspace="0em">⟦</mo><mi>A</mi><mo separator="true">;</mo><mtext> </mtext><mi>B</mi><mo mathvariant="normal" lspace="0em" rspace="0em">⟧</mo><mo>⟹</mo><mi>A</mi><mo>∧</mo><mi>B</mi></mrow><annotation encoding="application/x-tex">\llbracket A;\ B \rrbracket \Imp A \land B
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen"><span class="mopen">[</span><span class="mspace" style="margin-right:-0.1778em;"></span><span class="mopen">[</span></span><span class="mord mathnormal">A</span><span class="mpunct">;</span><span class="mspace"> </span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mclose"><span class="mclose">]</span><span class="mspace" style="margin-right:-0.1778em;"></span><span class="mclose">]</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span></span></span></span></span></div>
+<p>“from A and B, infer A ∧ B”. The formulas A, B and A ∧ B belong to HOL; the brackets, the semicolon and
+⟹ belong to Pure. HOL formulas have the type <code>bool</code>. Pure statements have a type of their own, <code>prop</code>,
+and Isabelle turns each HOL formula into a Pure statement where one is needed, without showing you.</p>
+<div class="box box-fact"><div class="box-label">Fact 7.1<span class="box-title">Rules with several premises</span></div>
+<p><code>A₁ ⟹ A₂ ⟹ … ⟹ Aₙ ⟹ C</code> means <code>A₁ ⟹ (A₂ ⟹ … ⟹ (Aₙ ⟹ C))</code>, and Isabelle prints it as
+<code>⟦A₁; A₂; …; Aₙ⟧ ⟹ C</code>: from the premises A₁ to Aₙ, infer the conclusion C. A premise can itself be a
+rule: in <code>(A ⟹ B) ⟹ C</code>, the premise <code>A ⟹ B</code> is a derivation of B that may assume A.</p>
+</div>
+<p>Figure 7.1 shows the two layers, and how one rule uses both.</p>
+<figure class="fig" id="fig-07-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="760" height="340" role="img"><title>Pure and HOL</title><defs><marker id="fig-07-1__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><rect x="20" y="20" width="340" height="130" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="40" y="50" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">HOL: the object logic</text><text x="40" y="70" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">formulas, of type bool</text><text x="40" y="108" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" fill="#2563EB" text-anchor="start">¬  ∧  ∨  ⟶  ⟷  ∀  ∃  =</text><text x="40" y="136" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#2563EB" text-anchor="start">True  False</text><rect x="20" y="170" width="340" height="150" rx="12" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.8"/><text x="40" y="200" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#6D28D9" text-anchor="start">Pure: the meta-logic</text><text x="40" y="220" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">rules and goals, of type prop</text><text x="52" y="252" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" fill="#6D28D9" text-anchor="middle">⟹</text><text x="80" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="start">from … infer</text><text x="52" y="278" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" fill="#6D28D9" text-anchor="middle">⋀</text><text x="80" y="278" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="start">for an arbitrary …</text><text x="52" y="304" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" fill="#6D28D9" text-anchor="middle">≡</text><text x="80" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="start">equals (used in definitions)</text><text x="400" y="46" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="start">A rule, written in both</text><text x="400" y="112" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#6D28D9">⟦</tspan><tspan fill="#2563EB">?P</tspan><tspan fill="#6D28D9">; </tspan><tspan fill="#2563EB">?Q</tspan><tspan fill="#6D28D9">⟧ ⟹ </tspan><tspan fill="#2563EB">?P ∧ ?Q</tspan></text><text x="502.6" y="80" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="middle">from … infer</text><line x1="502.6" y1="85" x2="502.6" y2="95" stroke="#6D28D9" stroke-width="1.5" marker-end="url(#fig-07-1__ah-6D28D9)"/><path d="M400 120 V127 H486.4 V120" stroke="#6D28D9" stroke-width="1.6" fill="none"/><text x="443.2" y="144" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="middle">premises</text><path d="M518.8 120 V127 H594.4 V120" stroke="#2563EB" stroke-width="1.6" fill="none"/><text x="556.5999999999999" y="144" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">conclusion</text><text x="400" y="192" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="start">A subgoal, written the same way</text><text x="400" y="236" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="18" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#2563EB">A ∧ B</tspan><tspan fill="#6D28D9"> ⟹ </tspan><tspan fill="#2563EB">B ∧ A</tspan></text><path d="M400 244 V251 H454.0 V244" stroke="#2563EB" stroke-width="1.6" fill="none"/><text x="427.0" y="268" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">assumption</text><path d="M486.4 244 V251 H540.4 V244" stroke="#2563EB" stroke-width="1.6" fill="none"/><text x="513.4" y="268" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">conclusion</text><text x="400" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">Pure (purple) gives the structure: what is assumed</text><text x="400" y="323" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">and what follows. HOL (blue) gives the formulas.</text></svg>
+</div><figcaption><span class="fig-num">Figure 7.1</span> <p>Isabelle’s two layers. HOL formulas, of type <code>bool</code>, are written with ¬ ∧ ∨ ⟶ ∀ ∃ and =. Rules and
+goals are Pure statements, of type <code>prop</code>, built from HOL formulas with ⟹, ⋀ and ≡.</p>
+</figcaption></figure>
+<h3 id="meta-goals">Goals use the same arrow</h3>
+<p>Isabelle writes goals with ⟹ too. Compare two lemmas:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ⟹ A ∨ B&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟹ A ∨ B&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ⟹ A ∨ B</code></pre></div>
+<p>This goal is a rule: from A, infer A ∨ B. A is an <strong>assumption</strong> you may use, and A ∨ B is the
+<strong>conclusion</strong> you must reach. <code>blast</code>, from Module 2, proves it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by blast">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> blast</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ⟶ A ∨ B&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ A ∨ B&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ⟶ A ∨ B</code></pre></div>
+<p>Here the whole goal is one HOL formula, and there are no assumptions yet. It says the same thing, and
+<code>blast</code> proves it too:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by blast">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>The difference lies in how you work with the two forms. On paper, the first step of a proof of
+A ⟶ A ∨ B is (⟶I): assume A, then prove A ∨ B. In Isabelle that step turns the ⟶ of the goal into ⟹,
+after which the goal looks exactly like the first lemma. You will take this step in Section 7.3.</p>
+<p>The manual <em>Programming and Proving in Isabelle/HOL</em> gives a practical rule: state a lemma as
+⟦A₁; …; Aₙ⟧ ⟹ C rather than A₁ ∧ … ∧ Aₙ ⟶ C when you want to use it as a rule later, because Isabelle
+can apply the first form directly. In this module the lemmas keep the ⟶ form of Module 6, so that each
+Isabelle proof follows its paper tree step by step.</p>
+<h3 id="meta-def">Definitions with ≡</h3>
+<p>The third symbol of Pure, ≡, appears in definitions. Module 6 explained ¬A as A ⟶ ⊥. HOL defines
+negation in the same way, as the command <code>thm</code> shows (it displays a stored theorem by its
+name; Section 7.2 uses it all the time):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm not_def">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> not_def</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>¬ ?P ≡ ?P ⟶ False</code></pre></div>
+<p>Read it as “¬P is defined as P ⟶ False”. Isabelle writes ⊥ as <code>False</code>. The question marks are explained
+in Section 7.2.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>⟹ belongs to Pure. It joins statements, but it can never appear inside a HOL formula:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟹ B) ∧ C&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Inner syntax error⌂
+at &quot;∧ C&quot;
+Failed to parse prop</span></code></pre></div>
+<p>Isabelle read <code>(A ⟹ B)</code> as a Pure statement and then could not go on with <code>∧ C</code>, because ∧ joins HOL
+formulas. Inside a formula, write ⟶. Note also that ⟹ binds more weakly than every symbol of HOL:
+<code>A ∧ B ⟹ C</code> means <code>(A ∧ B) ⟹ C</code>.</p>
+</div>
+<span class="section-anchor" id="rules"></span>
+<div class="section-header"><span class="section-num">2</span><h2>Rules are theorems</h2></div>
+<h3 id="rules-thm">Look a rule up with thm</h3>
+<p>In Isabelle a rule is not a separate kind of object. It is a theorem whose statement uses ⟹, and <code>thm</code>
+shows it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm conjI">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> conjI</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q</code></pre></div>
+<p>Compare it with (∧I) as Module 6 drew it:</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:1.6rem"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">P</span></div><div class="pt-node pt-leaf"><span class="pt-f">Q</span></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">P ∧ Q</span></div></div></div></div>
+<p>The premises above the line become the premises before ⟹, and the conclusion below the line becomes the
+conclusion after it. The name, conjI, is short for <em>conjunction introduction</em>.</p>
+<div class="box box-definition"><div class="box-label">Definition 7.2<span class="box-title">Schematic variable</span></div>
+<p>A <strong>schematic variable</strong>, or <strong>unknown</strong>, is a variable written with a question mark, such as <code>?P</code>. It is
+a placeholder: when a theorem is used, Isabelle may replace it with any term of the right type, the same
+term at every occurrence. When Isabelle stores a proved lemma, it turns the lemma’s free variables into
+schematic variables, which records that the lemma holds for all their values.</p>
+</div>
+<p>So conjI works for any two formulas. You can choose them yourself with <code>of</code>, which replaces the schematic
+variables from left to right:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm conjI[of &quot;door_closed&quot; &quot;lift_stopped&quot;]">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> conjI[of <span class="isa-inner">&quot;door_closed&quot;</span> <span class="isa-inner">&quot;lift_stopped&quot;</span>]</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>⟦door_closed; lift_stopped⟧ ⟹ door_closed ∧ lift_stopped</code></pre></div>
+<p>Here <code>door_closed</code> and <code>lift_stopped</code> are free variables of type <code>bool</code>: two facts about a lift, say.
+Usually you do not choose by hand. Isabelle finds the right replacement itself, by unification
+(Section 7.3).</p>
+<h3 id="rules-table">The rules of Module 6</h3>
+<p>Here are the rules of Module 6 as Isabelle states them. Each <code>thm</code> command below shows several rules, one
+per line, in the order of their names:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm conjI conjunct1 conjunct2 conjE disjI1 disjI2 disjE">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> conjI conjunct1 conjunct2 conjE disjI1 disjI2 disjE</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  ⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q
+  ?P ∧ ?Q ⟹ ?P
+  ?P ∧ ?Q ⟹ ?Q
+  ⟦?P ∧ ?Q; ⟦?P; ?Q⟧ ⟹ ?R⟧ ⟹ ?R
+  ?P ⟹ ?P ∨ ?Q
+  ?Q ⟹ ?P ∨ ?Q
+  ⟦?P ∨ ?Q; ?P ⟹ ?R; ?Q ⟹ ?R⟧ ⟹ ?R</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm impI mp impE notI notE FalseE">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> impI mp impE notI notE FalseE</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  (?P ⟹ ?Q) ⟹ ?P ⟶ ?Q
+  ⟦?P ⟶ ?Q; ?P⟧ ⟹ ?Q
+  ⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R
+  (?P ⟹ False) ⟹ ¬ ?P
+  ⟦¬ ?P; ?P⟧ ⟹ ?R
+  False ⟹ ?P</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm allI spec allE exI exE">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> allI spec allE exI exE</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  (⋀x. ?P x) ⟹ ∀x. ?P x
+  ∀x. ?P x ⟹ ?P ?x
+  ⟦∀x. ?P x; ?P ?x ⟹ ?R⟧ ⟹ ?R
+  ?P ?x ⟹ ∃x. ?P x
+  ⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm ccontr classical refl subst ssubst iffI iffD1 iffD2">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> ccontr classical refl subst ssubst iffI iffD1 iffD2</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  (¬ ?P ⟹ False) ⟹ ?P
+  (¬ ?P ⟹ ?P) ⟹ ?P
+  ?t = ?t
+  ⟦?s = ?t; ?P ?s⟧ ⟹ ?P ?t
+  ⟦?t = ?s; ?P ?s⟧ ⟹ ?P ?t
+  ⟦?P ⟹ ?Q; ?Q ⟹ ?P⟧ ⟹ ?P = ?Q
+  ⟦?Q = ?P; ?Q⟧ ⟹ ?P
+  ⟦?P = ?Q; ?Q⟧ ⟹ ?P</code></pre></div>
+<p>The table puts each one next to its paper rule:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Paper rule (Module 6)</th>
+<th>Isabelle name</th>
+<th>Statement, as <code>thm</code> prints it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(∧I)</td>
+<td><code>conjI</code></td>
+<td><code>⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q</code></td>
+</tr>
+<tr>
+<td>(∧E₁)</td>
+<td><code>conjunct1</code></td>
+<td><code>?P ∧ ?Q ⟹ ?P</code></td>
+</tr>
+<tr>
+<td>(∧E₂)</td>
+<td><code>conjunct2</code></td>
+<td><code>?P ∧ ?Q ⟹ ?Q</code></td>
+</tr>
+<tr>
+<td>(∧E₁) and (∧E₂) at once</td>
+<td><code>conjE</code></td>
+<td><code>⟦?P ∧ ?Q; ⟦?P; ?Q⟧ ⟹ ?R⟧ ⟹ ?R</code></td>
+</tr>
+<tr>
+<td>(∨I₁)</td>
+<td><code>disjI1</code></td>
+<td><code>?P ⟹ ?P ∨ ?Q</code></td>
+</tr>
+<tr>
+<td>(∨I₂)</td>
+<td><code>disjI2</code></td>
+<td><code>?Q ⟹ ?P ∨ ?Q</code></td>
+</tr>
+<tr>
+<td>(∨E)</td>
+<td><code>disjE</code></td>
+<td><code>⟦?P ∨ ?Q; ?P ⟹ ?R; ?Q ⟹ ?R⟧ ⟹ ?R</code></td>
+</tr>
+<tr>
+<td>(⟶I)</td>
+<td><code>impI</code></td>
+<td><code>(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q</code></td>
+</tr>
+<tr>
+<td>(⟶E)</td>
+<td><code>mp</code></td>
+<td><code>⟦?P ⟶ ?Q; ?P⟧ ⟹ ?Q</code></td>
+</tr>
+<tr>
+<td>(⟶E), elimination form</td>
+<td><code>impE</code></td>
+<td><code>⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R</code></td>
+</tr>
+<tr>
+<td>(¬I)</td>
+<td><code>notI</code></td>
+<td><code>(?P ⟹ False) ⟹ ¬ ?P</code></td>
+</tr>
+<tr>
+<td>(¬E), with ⊥ as ?R</td>
+<td><code>notE</code></td>
+<td><code>⟦¬ ?P; ?P⟧ ⟹ ?R</code></td>
+</tr>
+<tr>
+<td>(⊥E)</td>
+<td><code>FalseE</code></td>
+<td><code>False ⟹ ?P</code></td>
+</tr>
+<tr>
+<td>(∀I)</td>
+<td><code>allI</code></td>
+<td><code>(⋀x. ?P x) ⟹ ∀x. ?P x</code></td>
+</tr>
+<tr>
+<td>(∀E)</td>
+<td><code>spec</code></td>
+<td><code>∀x. ?P x ⟹ ?P ?x</code></td>
+</tr>
+<tr>
+<td>(∀E), elimination form</td>
+<td><code>allE</code></td>
+<td><code>⟦∀x. ?P x; ?P ?x ⟹ ?R⟧ ⟹ ?R</code></td>
+</tr>
+<tr>
+<td>(∃I)</td>
+<td><code>exI</code></td>
+<td><code>?P ?x ⟹ ∃x. ?P x</code></td>
+</tr>
+<tr>
+<td>(∃E)</td>
+<td><code>exE</code></td>
+<td><code>⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q</code></td>
+</tr>
+<tr>
+<td>(RAA)</td>
+<td><code>ccontr</code></td>
+<td><code>(¬ ?P ⟹ False) ⟹ ?P</code></td>
+</tr>
+<tr>
+<td>(RAA), variant</td>
+<td><code>classical</code></td>
+<td><code>(¬ ?P ⟹ ?P) ⟹ ?P</code></td>
+</tr>
+<tr>
+<td>(=I)</td>
+<td><code>refl</code></td>
+<td><code>?t = ?t</code></td>
+</tr>
+<tr>
+<td>(=E)</td>
+<td><code>subst</code></td>
+<td><code>⟦?s = ?t; ?P ?s⟧ ⟹ ?P ?t</code></td>
+</tr>
+<tr>
+<td>(=E), right to left</td>
+<td><code>ssubst</code></td>
+<td><code>⟦?t = ?s; ?P ?s⟧ ⟹ ?P ?t</code></td>
+</tr>
+<tr>
+<td>none</td>
+<td><code>iffI</code></td>
+<td><code>⟦?P ⟹ ?Q; ?Q ⟹ ?P⟧ ⟹ ?P = ?Q</code></td>
+</tr>
+<tr>
+<td>none</td>
+<td><code>iffD1</code></td>
+<td><code>⟦?Q = ?P; ?Q⟧ ⟹ ?P</code></td>
+</tr>
+<tr>
+<td>none</td>
+<td><code>iffD2</code></td>
+<td><code>⟦?P = ?Q; ?Q⟧ ⟹ ?P</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>A few things to notice:</p>
+<ul>
+<li>The names follow a pattern: <code>I</code> for introduction, <code>E</code> for elimination, <code>D</code> for destruction (explained
+below), and <code>1</code> and <code>2</code> for the two versions of a rule. <code>mp</code> is <em>modus ponens</em>, <code>spec</code> is
+<em>specialisation</em>, <code>refl</code> is <em>reflexivity</em>.</li>
+<li>⊥ is <code>False</code>, and Isabelle prints ¬ followed by a space: <code>¬ ?P</code>.</li>
+<li><code>notE</code> concludes any formula <code>?R</code>. With <code>?R</code> taken to be <code>False</code> it is (¬E), which derives ⊥ from ¬P
+and P. With any other <code>?R</code> it is (¬E) followed by (⊥E), which derives anything from ⊥.</li>
+<li><code>ccontr</code> is (RAA) exactly: if assuming ¬P leads to ⊥, then P. Section 7.7 explains <code>classical</code>.</li>
+<li>On formulas, Isabelle prints ⟷ as <code>=</code> (Module 3), so <code>?P = ?Q</code> in <code>iffI</code> is ?P ⟷ ?Q. Module 6’s list
+has no rules for ⟷: <code>iffI</code> proves an equivalence from the two implications, and <code>iffD1</code> and <code>iffD2</code>
+use one in either direction.</li>
+</ul>
+<h3 id="rules-shapes">Three shapes of rule</h3>
+<p>Most rules in the table come in one of three shapes. The shape decides how you use a rule (Sections 7.3
+and 7.4), so it is worth learning to see it.</p>
+<div class="box box-definition"><div class="box-label">Definition 7.3<span class="box-title">Introduction, elimination and destruction rules</span></div>
+<ul>
+<li>An <strong>introduction rule</strong> has the connective in its conclusion: <code>conjI</code>, <code>disjI1</code>, <code>disjI2</code>, <code>impI</code>,
+<code>notI</code>, <code>allI</code>, <code>exI</code>, <code>iffI</code>.</li>
+<li>An <strong>elimination rule</strong> has the connective (or <code>False</code>) in its first premise, the <strong>major premise</strong>,
+and an arbitrary formula, a schematic variable such as <code>?R</code>, as its conclusion. Its other premises say
+what you may assume while you prove that formula: <code>conjE</code>, <code>disjE</code>, <code>impE</code>, <code>notE</code>, <code>FalseE</code>, <code>allE</code>,
+<code>exE</code>.</li>
+<li>A <strong>destruction rule</strong> has the connective in its major premise and a part of the major premise as its
+conclusion: <code>conjunct1</code>, <code>conjunct2</code>, <code>mp</code>, <code>spec</code>, <code>iffD1</code>, <code>iffD2</code>.</li>
+</ul>
+</div>
+<p>Isabelle often offers two versions of one paper rule: a destruction rule that reads like the paper rule
+(<code>conjunct1</code>, <code>mp</code>, <code>spec</code>), and an elimination rule that does the same work in a form better suited to
+reasoning about assumptions (<code>conjE</code>, <code>impE</code>, <code>allE</code>). Section 7.4 shows why the second form helps.</p>
+<p>The rules that discharge assumptions or need an eigenvariable deserve a closer look, because Pure states
+their side conditions without any words.</p>
+<div class="box box-fact"><div class="box-label">Fact 7.2<span class="box-title">How Pure writes discharge and eigenvariables</span></div>
+<ul>
+<li>In <code>impI</code>, <code>(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q</code>, the premise <code>?P ⟹ ?Q</code> is a derivation of ?Q that may use the
+assumption ?P: the [A]¹ of Module 6. The assumption is available exactly inside that premise, so no
+discharge numbers are needed.</li>
+<li>In <code>disjE</code>, the premises <code>?P ⟹ ?R</code> and <code>?Q ⟹ ?R</code> are the two cases, each with its own assumption.</li>
+<li>In <code>allI</code>, <code>(⋀x. ?P x) ⟹ ∀x. ?P x</code>, the premise says “?P x for an arbitrary x”. The variable x is
+local to the premise, so it cannot occur in any assumption from outside. This is the eigenvariable
+condition of (∀I).</li>
+<li>In <code>exE</code>, <code>⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q</code>, the second premise says “for an arbitrary x with ?P x,
+derive ?Q”. ?Q stands outside the scope of ⋀x, so it cannot mention x. This is the condition of (∃E)
+that the eigenvariable must not occur in the conclusion.</li>
+</ul>
+</div>
+<span class="section-anchor" id="backward"></span>
+<div class="section-header"><span class="section-num">3</span><h2>Proving backwards: rule and assumption</h2></div>
+<h3 id="backward-plan">The plan</h3>
+<p>Take the first theorem that Module 6 derived with natural deduction, A ∧ B ⟶ B ∧ A (<a href="module_06_EN.html#connectives">Section
+6.4</a>). Here is its tree:</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ∧ B]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∧E₂</span></div><div class="pt-concl"><span class="pt-f">B</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ∧ B]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∧E₁</span></div><div class="pt-concl"><span class="pt-f">A</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">B ∧ A</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">A ∧ B ⟶ B ∧ A</span></div></div></div></div>
+<p>Read it from the bottom up, the way you found it. The formula is an implication, so the last step is
+(⟶I): assume A ∧ B and prove B ∧ A. That is a conjunction, so the step above is (∧I), which leaves B and
+A. Each of them comes out of the assumption, by (∧E₂) and (∧E₁). In Isabelle you take the same steps in
+the same order. Each step names a rule; Isabelle applies it to the goal and shows you what is left.</p>
+<h3 id="backward-rule">Applying a rule</h3>
+<p>State the lemma. The name <code>swap_and</code> lets you refer to it later:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma swap_and: &quot;A ∧ B ⟶ B ∧ A&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> swap_and: <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟶ B ∧ A</code></pre></div>
+<p><code>proof (prove)</code> means that Isabelle is waiting for proof steps. Below it are the <strong>subgoals</strong> still to be
+proved, numbered. At the start there is one: the whole statement.</p>
+<div class="box box-definition"><div class="box-label">Definition 7.4<span class="box-title">Subgoal and proof state</span></div>
+<p>A <strong>subgoal</strong> has the form <code>⋀x₁ … xₖ. ⟦H₁; …; Hₙ⟧ ⟹ C</code>: for arbitrary values of the variables x₁ … xₖ
+(Section 7.6), and under the <strong>assumptions</strong> H₁ … Hₙ, prove the <strong>conclusion</strong> C. The variables and the
+assumptions may be missing. The <strong>proof state</strong> is the list of subgoals. The proof is complete when the
+list is empty.</p>
+</div>
+<p>A subgoal is the goal Γ ⊢ C of Module 6’s backward search (<a href="module_06_EN.html#search">Section 6.7</a>),
+written in Pure: the assumptions Γ go before ⟹, and the conclusion C after it.</p>
+<div class="box box-definition"><div class="box-label">Definition 7.5<span class="box-title">The method rule</span></div>
+<p><code>apply (rule r)</code> applies the rule r backwards to subgoal 1. It unifies the conclusion of r with the
+conclusion of the subgoal (see “Unification” below), and replaces the subgoal with one new subgoal for
+each premise of r. Each new subgoal keeps the assumptions of the old one; a premise of the form <code>P ⟹ Q</code>
+adds P to them.</p>
+</div>
+<p>The first step is (⟶I):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule impI)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</code></pre></div>
+<p><code>impI</code> is <code>(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q</code>. Its conclusion <code>?P ⟶ ?Q</code> matches the goal with ?P = A ∧ B and
+?Q = B ∧ A, so the new subgoal is the premise, <code>A ∧ B ⟹ B ∧ A</code>. A ∧ B is now an assumption. It is
+available in this subgoal and in every subgoal that grows out of it, exactly like the open assumption
+[A ∧ B]¹ in the tree.</p>
+<p>Next, (∧I):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ∧ B ⟹ B
+ 2. A ∧ B ⟹ A</code></pre></div>
+<p><code>conjI</code> has two premises, so there are now two subgoals, one for each branch of the tree. Both keep the
+assumption A ∧ B. Methods work on subgoal 1; subgoal 2 waits its turn.</p>
+<p>Now (∧E₂), used backwards:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjunct2)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjunct2)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ∧ B ⟹ ?P5 ∧ B
+ 2. A ∧ B ⟹ A</code></pre></div>
+<p><code>conjunct2</code> is <code>?P ∧ ?Q ⟹ ?Q</code>. Its conclusion ?Q matches B, so its premise becomes a conjunction whose
+right half is B and whose left half is not yet known. Isabelle keeps that left half as a schematic
+variable in the new subgoal, <code>?P5</code>: the variable <code>?P</code> with the number 5 attached, its <strong>index</strong>, so that
+it cannot clash with other variables (the index has no other meaning). On paper you would look at the assumptions and write A ∧ B at once. Isabelle postpones
+the choice until a later step settles it.</p>
+<h3 id="backward-assumption">Closing a subgoal with an assumption</h3>
+<div class="box box-definition"><div class="box-label">Definition 7.6<span class="box-title">The method assumption</span></div>
+<p><code>apply assumption</code> proves subgoal 1 if its conclusion unifies with one of its assumptions. Schematic
+variables in the conclusion are instantiated as needed, everywhere in the proof state.</p>
+</div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟹ A</code></pre></div>
+<p>Unifying <code>?P5 ∧ B</code> with the assumption <code>A ∧ B</code> sets ?P5 to A, and the subgoal is closed: that is the leaf
+[A ∧ B]¹ of the left branch. The right branch goes the same way with <code>conjunct1</code>, whose premise becomes a
+conjunction with A on the left:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjunct1)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjunct1)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟹ A ∧ ?Q7</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal:
+No subgoals!</code></pre></div>
+<p>No subgoals are left. <code>done</code> ends the proof:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">done</span></code></pre></div>
+<div class="box box-definition"><div class="box-label">Definition 7.7<span class="box-title">The command done</span></div>
+<p><code>done</code> finishes a proof when no subgoals are left. It does not prove anything itself: if any subgoal
+remains, <code>done</code> fails (Section 7.8).</p>
+</div>
+<p>Isabelle has now stored the lemma under its name:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm swap_and">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> swap_and</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>?A ∧ ?B ⟶ ?B ∧ ?A</code></pre></div>
+<p>The free variables A and B have become schematic. <code>swap_and</code> holds for any two formulas, and you can use
+it as a rule, like <code>conjI</code>. Figure 7.2 puts the tree and the script side by side.</p>
+<figure class="fig" id="fig-07-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" width="760" height="430" role="img"><title>From proof tree to proof script</title><defs></defs><text x="20" y="36" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="start">The tree of Module 6</text><text x="100" y="150" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">[A ∧ B]¹</text><text x="250" y="150" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">[A ∧ B]¹</text><circle cx="100" cy="124" r="9" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="100" y="128" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text><circle cx="250" cy="124" r="9" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="250" y="128" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">6</text><line x1="60" y1="162" x2="140" y2="162" stroke="#1A2E4A" stroke-width="1.6"/><line x1="210" y1="162" x2="290" y2="162" stroke="#1A2E4A" stroke-width="1.6"/><text x="145" y="167" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="start">∧E₂</text><text x="295" y="167" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="start">∧E₁</text><circle cx="46" cy="162" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="46" y="166" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text><circle cx="196" cy="162" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="196" y="166" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text><text x="100" y="184" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">B</text><text x="250" y="184" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">A</text><line x1="70" y1="198" x2="280" y2="198" stroke="#1A2E4A" stroke-width="1.6"/><text x="285" y="203" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="start">∧I</text><circle cx="56" cy="198" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="56" y="202" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text><text x="175" y="220" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">B ∧ A</text><line x1="50" y1="234" x2="300" y2="234" stroke="#1A2E4A" stroke-width="1.6"/><text x="305" y="239" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="start">⟶I¹</text><circle cx="36" cy="234" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="36" y="238" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text><text x="175" y="256" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">A ∧ B ⟶ B ∧ A</text><circle cx="34" cy="300" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="34" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle"></text><text x="50" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">rule: one inference</text><circle cx="34" cy="324" r="9" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="34" y="328" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle"></text><text x="50" y="328" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">assumption: closes a leaf</text><text x="26" y="364" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">Steps 1, 2, 3 and 5 add the inferences</text><text x="26" y="382" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">from the root upwards; steps 4 and 6</text><text x="26" y="400" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start">close the leaves [A ∧ B]¹.</text><text x="360" y="36" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="start">The script and the goal after each step</text><text x="390" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="600" fill="#1A2E4A" text-anchor="start">lemma swap_and: &quot;A ∧ B ⟶ B ∧ A&quot;</text><text x="390" y="89" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟶ B ∧ A</tspan></text><circle cx="372" cy="110" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="372" y="114" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text><text x="390" y="115" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply (rule impI)</text><text x="390" y="134" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟹ B ∧ A</tspan></text><circle cx="372" cy="155" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="372" y="159" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text><text x="390" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply (rule conjI)</text><text x="390" y="179" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟹ B    2. A ∧ B ⟹ A</tspan></text><circle cx="372" cy="200" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="372" y="204" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text><text x="390" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply (rule conjunct2)</text><text x="390" y="224" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟹ ?P5 ∧ B    2. A ∧ B ⟹ A</tspan></text><circle cx="372" cy="245" r="9" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="372" y="249" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text><text x="390" y="250" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply assumption</text><text x="390" y="269" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟹ A</tspan></text><circle cx="372" cy="290" r="9" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="372" y="294" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text><text x="390" y="295" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply (rule conjunct1)</text><text x="390" y="314" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">1. A ∧ B ⟹ A ∧ ?Q7</tspan></text><circle cx="372" cy="335" r="9" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="372" y="339" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">6</text><text x="390" y="340" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">apply assumption</text><text x="390" y="359" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start" xml:space="preserve"><tspan fill="#475569">No subgoals!</tspan></text><text x="390" y="385" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">done</text></svg>
+</div><figcaption><span class="fig-num">Figure 7.2</span> <p>The tree of A ∧ B ⟶ B ∧ A and its proof script. Each <code>rule</code> step adds one inference to the tree,
+starting at the root; each <code>assumption</code> step closes one leaf. The goal after each step lists the
+branches that are still open.</p>
+</figcaption></figure>
+<div class="callout analogy"><div class="callout-label">Think of it like this</div>
+<p>The proof state is a to-do list. Each <code>apply</code> takes the first item off the list and may put new, smaller
+items in its place; <code>done</code> checks that the list is empty.</p>
+</div>
+<h3 id="backward-unification">Unification</h3>
+<div class="box box-definition"><div class="box-label">Definition 7.8<span class="box-title">Unification</span></div>
+<p><strong>Unification</strong> makes two terms identical by choosing values for their schematic variables. Isabelle uses
+it whenever it applies a rule: in <code>rule</code>, between the conclusion of the rule and the conclusion of the
+subgoal; in <code>assumption</code>, between the conclusion of the subgoal and an assumption. If no choice of values
+makes the two terms identical, the step fails.</p>
+</div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Unify</th>
+<th>with</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>?P ⟶ ?Q</code></td>
+<td><code>A ∧ B ⟶ B ∧ A</code></td>
+<td>?P = A ∧ B and ?Q = B ∧ A</td>
+</tr>
+<tr>
+<td><code>?P5 ∧ B</code></td>
+<td><code>A ∧ B</code></td>
+<td>?P5 = A</td>
+</tr>
+<tr>
+<td><code>?P ∧ ?Q</code></td>
+<td><code>A ∧ (B ∨ C)</code></td>
+<td>?P = A and ?Q = B ∨ C</td>
+</tr>
+<tr>
+<td><code>?P ∨ ?Q</code></td>
+<td><code>B ∧ A</code></td>
+<td>impossible: ∨ is not ∧</td>
+</tr>
+<tr>
+<td><code>A ∧ ?Q</code></td>
+<td><code>B ∧ A</code></td>
+<td>impossible: A is not B</td>
+</tr>
+</tbody>
+</table></div>
+<p>The last row matters. A and B in the goal are not schematic: they are free variables that stand for
+fixed but arbitrary formulas, and unification never replaces them. That is why the proof works for every
+A and B. It never used anything about them.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>Proving in Isabelle is building the paper tree from the root upwards. <code>rule</code> adds an inference on top of
+an open branch, <code>assumption</code> closes a branch at an open assumption, and schematic variables are the parts
+of the tree you have not filled in yet.</p>
+</div>
+<span class="section-anchor" id="assumptions"></span>
+<div class="section-header"><span class="section-num">4</span><h2>Using assumptions: erule, drule and frule</h2></div>
+<p>In Section 7.3 the conjunction A ∧ B sat among the assumptions, and you reached its parts by working
+backwards from B and from A, leaving Isabelle to guess ?P5 on the way. On paper you think the other way
+round: you have A ∧ B, so you take it apart. Elimination and destruction rules are made for that, and
+Isabelle has three methods that apply them to assumptions.</p>
+<h3 id="assumptions-erule">erule: take an assumption apart</h3>
+<div class="box box-definition"><div class="box-label">Definition 7.9<span class="box-title">The method erule</span></div>
+<p><code>apply (erule r)</code> applies an elimination rule r to an assumption of subgoal 1. It unifies the major
+premise of r with an assumption, and the conclusion of r with the conclusion of the subgoal. It removes
+that assumption and adds one new subgoal for each of the other premises of r.</p>
+</div>
+<p>With <code>conjE</code>, <code>⟦?P ∧ ?Q; ⟦?P; ?Q⟧ ⟹ ?R⟧ ⟹ ?R</code>, the effect is to replace an assumption P ∧ Q with the two
+assumptions P and Q. The swap proof becomes shorter:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+  apply (rule impI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule conjE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule conjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A; B⟧ ⟹ B ∧ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦A; B⟧ ⟹ B
+ 2. ⟦A; B⟧ ⟹ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>After <code>erule conjE</code>, A and B are separate assumptions, so each half of B ∧ A is closed by <code>assumption</code>
+with nothing to guess. This is the usual way to use a conjunction you have.</p>
+<h3 id="assumptions-cases">Proof by cases: disjE</h3>
+<p>Disjunction elimination, (∨E), is a proof by cases: to use A ∨ B, prove the goal once assuming A and once
+assuming B. Here is A ∨ B ⟶ B ∨ A from Module 6:</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ∨ B]¹</span></div><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A]²</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₂</span></div><div class="pt-concl"><span class="pt-f">B ∨ A</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[B]²</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₁</span></div><div class="pt-concl"><span class="pt-f">B ∨ A</span></div></div></div><div class="pt-bar"><span class="pt-rule">∨E²</span></div><div class="pt-concl"><span class="pt-f">B ∨ A</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">A ∨ B ⟶ B ∨ A</span></div></div></div></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma swap_or: &quot;A ∨ B ⟶ B ∨ A&quot;
+  apply (rule impI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> swap_or: <span class="isa-inner">&quot;A ∨ B ⟶ B ∨ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∨ B ⟹ B ∨ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule disjE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule disjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ⟹ B ∨ A
+ 2. B ⟹ B ∨ A</code></pre></div>
+<p><code>disjE</code> is <code>⟦?P ∨ ?Q; ?P ⟹ ?R; ?Q ⟹ ?R⟧ ⟹ ?R</code>. <code>erule</code> matched its major premise with the assumption
+A ∨ B and removed it. The two other premises became the two cases, each with its own assumption: [A]²
+and [B]² in the tree. In the first case, B ∨ A follows from A by (∨I₂):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI2)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI2)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ⟹ A
+ 2. B ⟹ B ∨ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. B ⟹ B ∨ A</code></pre></div>
+<p>The second case uses (∨I₁):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI1)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. B ⟹ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<h3 id="assumptions-drule">drule and frule: reason forwards</h3>
+<div class="box box-definition"><div class="box-label">Definition 7.10<span class="box-title">The methods drule and frule</span></div>
+<p><code>apply (drule r)</code> applies a destruction rule r forwards. It unifies the major premise of r with an
+assumption of subgoal 1 and removes that assumption. Each other premise of r becomes a new subgoal, and
+then the original subgoal comes back with the conclusion of r as a new assumption. <code>apply (frule r)</code> does
+the same but keeps the assumption it used.</p>
+</div>
+<p>Modus ponens is the typical destruction rule. Module 6 proved (A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C) with three
+(⟶I) steps and two (⟶E) steps:</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[B ⟶ C]²</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ⟶ B]¹</span></div><div class="pt-node pt-leaf"><span class="pt-f">[A]³</span></div></div><div class="pt-bar"><span class="pt-rule">⟶E</span></div><div class="pt-concl"><span class="pt-f">B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶E</span></div><div class="pt-concl"><span class="pt-f">C</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I³</span></div><div class="pt-concl"><span class="pt-f">A ⟶ C</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I²</span></div><div class="pt-concl"><span class="pt-f">(B ⟶ C) ⟶ (A ⟶ C)</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">(A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)</span></div></div></div></div>
+<p>In Isabelle the three implications become three assumptions, one <code>rule impI</code> for each (⟶I) of the
+tree:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma imp_chain: &quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)&quot;
+  apply (rule impI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> imp_chain: <span class="isa-inner">&quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ⟶ B ⟹ (B ⟶ C) ⟶ A ⟶ C</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule impI)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A ⟶ B; B ⟶ C⟧ ⟹ A ⟶ C</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule impI)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A ⟶ B; B ⟶ C; A⟧ ⟹ C</code></pre></div>
+<p>The assumptions appear in the order of the discharge numbers, [A ⟶ B]¹, [B ⟶ C]² and [A]³, and Isabelle
+has dropped the parentheses around A ⟶ C because ⟶ groups to the right (Module 2). Now reason forwards,
+from the leaves of the tree: A and A ⟶ B give B.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (drule mp)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (drule mp)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦B ⟶ C; A⟧ ⟹ A
+ 2. ⟦B ⟶ C; A; B⟧ ⟹ C</code></pre></div>
+<p><code>mp</code> is <code>⟦?P ⟶ ?Q; ?P⟧ ⟹ ?Q</code>. <code>drule</code> matched its major premise with the first implication among the
+assumptions, A ⟶ B, and removed it. The second premise of <code>mp</code>, here A, became subgoal 1: to use A ⟶ B,
+you must show A. Subgoal 2 is the original goal with the conclusion B added to the assumptions.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦B ⟶ C; A; B⟧ ⟹ C</code></pre></div>
+<p>The same again, with B ⟶ C:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (drule mp)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (drule mp)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦A; B⟧ ⟹ B
+ 2. ⟦A; B; C⟧ ⟹ C</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>erule impE</code> does the same work as <code>drule mp</code>, since <code>impE</code> is the elimination form of <code>mp</code>; which of the
+two you use is a matter of taste.</p>
+<p><code>frule</code> matters when you need an assumption again after using it. A small demonstration: <code>frule conjunct1</code> adds A but keeps A ∧ B, so that <code>drule conjunct2</code> can still take B from it.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+  apply (rule impI)
+  apply (frule conjunct1)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (frule conjunct1)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A ∧ B; A⟧ ⟹ B ∧ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (drule conjunct2)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (drule conjunct2)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A; B⟧ ⟹ B ∧ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)
+  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>Section 7.6 has a case where <code>frule</code> is necessary: a quantified assumption that is needed twice.</p>
+<h3 id="assumptions-intro">Many steps at once: intro and elim</h3>
+<div class="box box-definition"><div class="box-label">Definition 7.11<span class="box-title">The methods intro and elim</span></div>
+<p><code>apply (intro r₁ … rₙ)</code> applies the given introduction rules to subgoal 1, then again to the subgoals
+that result, for as long as one of them applies. <code>apply (elim r₁ … rₙ)</code> does the same with elimination
+rules on assumptions.</p>
+</div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+  apply (intro impI conjI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (intro impI conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ∧ B ⟹ B
+ 2. A ∧ B ⟹ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (elim conjE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (elim conjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦A; B⟧ ⟹ B
+ 2. A ∧ B ⟹ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  apply (elim conjE)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (elim conjE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>intro</code> applied <code>impI</code> and then <code>conjI</code>, which split the goal; <code>elim</code> took the conjunction apart in
+subgoal 1 only. In <code>imp_chain</code> above, <code>apply (intro impI)</code> would replace the three <code>rule impI</code> steps.</p>
+<h3 id="assumptions-which">Which method when</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Kind of rule</th>
+<th>Method</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The conclusion has a connective to break up</td>
+<td>introduction</td>
+<td><code>rule</code></td>
+<td><code>apply (rule conjI)</code></td>
+</tr>
+<tr>
+<td>An assumption has a connective to take apart</td>
+<td>elimination</td>
+<td><code>erule</code></td>
+<td><code>apply (erule disjE)</code></td>
+</tr>
+<tr>
+<td>An assumption gives a new fact</td>
+<td>destruction</td>
+<td><code>drule</code>, or <code>frule</code> to keep it</td>
+<td><code>apply (drule mp)</code></td>
+</tr>
+<tr>
+<td>The conclusion is one of the assumptions</td>
+<td>none</td>
+<td><code>assumption</code></td>
+<td><code>apply assumption</code></td>
+</tr>
+<tr>
+<td>Many steps of one kind</td>
+<td>introduction or elimination</td>
+<td><code>intro</code>, <code>elim</code></td>
+<td><code>apply (intro impI conjI)</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>Look at the subgoal before you look for a rule. If you want to attack the main connective of the
+conclusion, apply its introduction rule with <code>rule</code>. If you want to use an assumption, apply the
+elimination rule of its connective with <code>erule</code>. Section 7.8 shows what happens when the two are mixed
+up.</p>
+</div>
+<span class="section-anchor" id="negation"></span>
+<div class="section-header"><span class="section-num">5</span><h2>Negation and falsity</h2></div>
+<p>Section 7.1 showed that HOL defines ¬A as A ⟶ False, in the same way as Module 6. The negation rules
+follow from that definition:</p>
+<ul>
+<li><code>notI</code>, <code>(?P ⟹ False) ⟹ ¬ ?P</code>, is (¬I): to prove ¬A, assume A and derive False.</li>
+<li><code>notE</code>, <code>⟦¬ ?P; ?P⟧ ⟹ ?R</code>, is (¬E) when ?R is False, and (¬E) followed by (⊥E) otherwise: from ¬A
+and A, anything follows.</li>
+<li><code>FalseE</code>, <code>False ⟹ ?P</code>, is (⊥E).</li>
+</ul>
+<p>You use <code>notE</code> with <code>erule</code>, and its effect is worth remembering: <strong>to use an assumption ¬A, prove A</strong>.
+<code>erule notE</code> removes ¬A, and whatever the conclusion was, it becomes A. Here is
+¬(A ∨ B) ⟶ ¬A ∧ ¬B from Module 6:</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∨ B)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A]²</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₁</span></div><div class="pt-concl"><span class="pt-f">A ∨ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬I²</span></div><div class="pt-concl"><span class="pt-f">¬A</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∨ B)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[B]³</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₂</span></div><div class="pt-concl"><span class="pt-f">A ∨ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬I³</span></div><div class="pt-concl"><span class="pt-f">¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">¬A ∧ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">¬(A ∨ B) ⟶ ¬A ∧ ¬B</span></div></div></div></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (A ∨ B) ⟶ ¬ A ∧ ¬ B&quot;
+  apply (rule impI)
+  apply (rule conjI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (A ∨ B) ⟶ ¬ A ∧ ¬ B&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ¬ (A ∨ B) ⟹ ¬ A
+ 2. ¬ (A ∨ B) ⟹ ¬ B</code></pre></div>
+<p>To prove ¬A, assume A and derive False, (¬I²):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule notI)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦¬ (A ∨ B); A⟧ ⟹ False
+ 2. ¬ (A ∨ B) ⟹ ¬ B</code></pre></div>
+<p>False follows from ¬(A ∨ B) once you show A ∨ B, (¬E):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ⟹ A ∨ B
+ 2. ¬ (A ∨ B) ⟹ ¬ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI1)
+  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (A ∨ B) ⟹ ¬ B</code></pre></div>
+<p>The second half is the same with <code>disjI2</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule notI)
+  apply (erule notE)
+  apply (rule disjI2)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI2)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>When False itself is among the assumptions, <code>erule FalseE</code> closes the subgoal at once, because <code>FalseE</code>
+has no other premises:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;False ⟶ A&quot;
+  apply (rule impI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;False ⟶ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. False ⟹ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule FalseE)
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule FalseE)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p><code>erule</code> uses the first assumption that fits. With several negated assumptions, <code>erule notE</code> takes the
+first one, which may not be the one you want. Section 7.7 has a proof where the first one is right, and
+Section 7.6 shows how to name the formula you want (Exercise 7.5 needs it).</p>
+</div>
+<span class="section-anchor" id="quantifiers"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Quantifiers and fixed variables</h2></div>
+<h3 id="quantifiers-all">∀ and fixed variables</h3>
+<p>Module 6 proved that a universally quantified conjunction gives two universally quantified formulas:</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:1.6rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[∀x. P x ∧ Q x]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∀E</span></div><div class="pt-concl"><span class="pt-f">P a ∧ Q a</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧E₁</span></div><div class="pt-concl"><span class="pt-f">P a</span></div></div></div><div class="pt-bar"><span class="pt-rule">∀I</span></div><div class="pt-concl"><span class="pt-f">∀x. P x</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[∀x. P x ∧ Q x]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∀E</span></div><div class="pt-concl"><span class="pt-f">P a ∧ Q a</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧E₂</span></div><div class="pt-concl"><span class="pt-f">Q a</span></div></div></div><div class="pt-bar"><span class="pt-rule">∀I</span></div><div class="pt-concl"><span class="pt-f">∀x. Q x</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">(∀x. P x) ∧ (∀x. Q x)</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">(∀x. P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x)</span></div></div></div></div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>Some books write this formula ∀x.(P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x), with the quantifier applying only
+to the bracket after it. In Isabelle, as in Modules 3 and 6, the body of ∀x reaches as far to the right
+as possible, so <code>∀x. (P x ∧ Q x) ⟶ …</code> would put the whole implication inside the quantifier. Put the
+parentheses around the quantifier instead: <code>(∀x. P x ∧ Q x) ⟶ …</code>.</p>
+</div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀x. P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x)&quot;
+  apply (rule impI)
+  apply (rule conjI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀x. P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ∀x. P x ∧ Q x ⟹ ∀x. P x
+ 2. ∀x. P x ∧ Q x ⟹ ∀x. Q x</code></pre></div>
+<p>Subgoal 1 asks for ∀x. P x, so the next step is (∀I):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule allI)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀x. ∀x. P x ∧ Q x ⟹ P x
+ 2. ∀x. P x ∧ Q x ⟹ ∀x. Q x</code></pre></div>
+<p><code>allI</code>, <code>(⋀x. ?P x) ⟹ ∀x. ?P x</code>, replaced the HOL quantifier ∀x with the Pure quantifier ⋀x. The subgoal
+now reads: for an arbitrary x, assuming ∀x. P x ∧ Q x, prove P x. The x inside the assumption is bound by
+its own ∀ and is a different variable that happens to have the same name. The x after ⋀ is the arbitrary
+one; the paper tree calls it a.</p>
+<div class="box box-definition"><div class="box-label">Definition 7.12<span class="box-title">Fixed variable</span></div>
+<p>A variable bound by ⋀ at the front of a subgoal is a <strong>fixed variable</strong>; Isabelle also calls it a
+<strong>parameter</strong>. It stands for an arbitrary value: it belongs to its subgoal alone, and unification never
+replaces it. <code>allI</code> creates one, and in doing so enforces the eigenvariable condition of (∀I).</p>
+</div>
+<p>Now use the assumption, by (∀E) in its elimination form <code>allE</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule allE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule allE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀x. P (?x7 x) ∧ Q (?x7 x) ⟹ P x
+ 2. ∀x. P x ∧ Q x ⟹ ∀x. Q x</code></pre></div>
+<p><code>allE</code>, <code>⟦∀x. ?P x; ?P ?x ⟹ ?R⟧ ⟹ ?R</code>, replaced the assumption ∀x. P x ∧ Q x with an instance P t ∧ Q t
+for a term t that is not chosen yet. Isabelle writes that term as <code>?x7 x</code>: a schematic variable applied
+to the fixed variable x. This records that the term may be built from x, since x was fixed before the
+unknown was created.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule conjE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule conjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀x. ⟦P (?x7 x); Q (?x7 x)⟧ ⟹ P x
+ 2. ∀x. P x ∧ Q x ⟹ ∀x. Q x</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ∀x. P x ∧ Q x ⟹ ∀x. Q x</code></pre></div>
+<p><code>assumption</code> unified P (?x7 x) with P x, which makes the term x itself: the instance chosen for (∀E) is
+the arbitrary x, as the tree uses a in both places. The second half goes the same way. This time it
+uses <code>spec</code>, the destruction form of (∀E), through <code>drule</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule allI)
+  apply (drule spec)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)
+  <span class="isa-proof">apply</span> (drule spec)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀x. P (?x13 x) ∧ Q (?x13 x) ⟹ Q x</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule conjE)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>⟹ binds more weakly than ∀. So <code>∀x. P x ⟹ P x</code> is not a statement about one x: it means
+(∀x. P x) ⟹ P x, and the x of the conclusion is a free variable, unrelated to the bound one. The stored
+theorem shows it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma all_inst: &quot;∀x. P x ⟹ P x&quot;
+  apply (erule allE)
+  apply assumption
+  done
+
+thm all_inst">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> all_inst: <span class="isa-inner">&quot;∀x. P x ⟹ P x&quot;</span>
+  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span>
+
+<span class="isa-cmd">thm</span> all_inst</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>∀x. ?P x ⟹ ?P ?x</code></pre></div>
+<p>The x of the conclusion has become <code>?x</code>, a separate schematic variable. Here no harm is done, since the
+lemma is (∀E) itself. But if you mean “for every x, P x implies P x”, write <code>⋀x. P x ⟹ P x</code> or
+<code>∀x. P x ⟶ P x</code>.</p>
+</div>
+<h3 id="quantifiers-ex">∃ and the order of steps</h3>
+<p><code>exI</code>, <code>?P ?x ⟹ ∃x. ?P x</code>, is (∃I): to prove ∃x. P x, prove P t for some term t, the witness. Used
+backwards, it leaves the witness as an unknown, to be settled later by unification. <code>exE</code>,
+<code>⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q</code>, is (∃E): to use ∃x. P x, take a new x for which P x holds. Used with
+<code>erule</code>, it turns the assumption ∃x. P x into a fixed variable x and an assumption P x.</p>
+<p>Module 6’s example swaps the quantifiers of ∃x. ∀y. R x y. Read R x y as “key x opens door y”: a master
+key opens every door, so every door has a key.</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[∃x. ∀y. R x y]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[∀y. R a y]²</span></div></div><div class="pt-bar"><span class="pt-rule">∀E</span></div><div class="pt-concl"><span class="pt-f">R a b</span></div></div></div><div class="pt-bar"><span class="pt-rule">∃I</span></div><div class="pt-concl"><span class="pt-f">∃x. R x b</span></div></div></div><div class="pt-bar"><span class="pt-rule">∃E²</span></div><div class="pt-concl"><span class="pt-f">∃x. R x b</span></div></div></div><div class="pt-bar"><span class="pt-rule">∀I</span></div><div class="pt-concl"><span class="pt-f">∀y. ∃x. R x y</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)</span></div></div></div></div>
+<p>Read from the bottom: (⟶I), then (∀I) with the eigenvariable b, then (∃E) with the eigenvariable a, then
+(∃I) with the witness a, then (∀E) with the instance b. In Isabelle:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma ex_all: &quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;
+  apply (rule impI)
+  apply (rule allI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> ex_all: <span class="isa-inner">&quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y. ∃x. ∀y. R x y ⟹ ∃x. R x y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule exE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule exE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. ∀y. R x y ⟹ ∃x. R x y</code></pre></div>
+<p>Two fixed variables now: y, which <code>allI</code> fixed (the b of the tree), and x, which <code>exE</code> fixed (the a).</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule exI)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. ∀y. R x y ⟹ R (?x6 y x) y</code></pre></div>
+<p>The witness is an unknown applied to both fixed variables: it may be built from y and from x.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule allE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule allE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. R x (?y8 y x) ⟹ R (?x6 y x) y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>assumption</code> made the two sides of ⟹ identical, by taking x as the witness and y as the instance of ∀y.</p>
+<h3 id="quantifiers-order">Fix first, guess later</h3>
+<p>What if you introduce the existential quantifier before eliminating the other one? Apply <code>exI</code> before
+<code>exE</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;
+  apply (rule impI)
+  apply (rule allI)
+  apply (rule exI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y. ∃x. ∀y. R x y ⟹ R (?x4 y) y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule exE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule exE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. ∀y. R x y ⟹ R (?x4 y) y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule allE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule allE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y</code></pre></div>
+<p>The witness is now <code>?x4 y</code>. It was created when only y was fixed, so it may be built from y but not from
+x, which <code>exE</code> fixed afterwards. To close the subgoal, Isabelle would have to make the two sides of ⟹
+identical, and that needs the witness to be x. Unification may not do that, so <code>assumption</code> fails:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y</span></code></pre></div>
+<p>No other method can help either. The proof is stuck, and the only way out is to go back:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>On paper the same thing happens. Applying (∃I) below (∃E) in the tree means choosing the witness before
+the eigenvariable a of (∃E) exists. The only witness that works is a, and then the conclusion of (∃E)
+would mention its own eigenvariable, which the side condition forbids. Isabelle’s check is the same
+condition in another form.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p><strong>Fix first, guess later.</strong> <code>rule allI</code> and <code>erule exE</code> fix variables; <code>rule exI</code>, <code>erule allE</code> and
+<code>drule spec</code> create unknowns. An unknown can only become a term built from variables that were fixed
+before it was created. So apply the rules that fix variables first, and the rules that create unknowns
+afterwards. This is the advice of Section 6.7, to open existential assumptions first and then choose
+instances and witnesses, and Isabelle’s unknowns show why it works.</p>
+</div>
+<p>For a statement that is not valid, no order works. The converse, (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y), says
+that if every door has a key, there is a master key. <a href="module_06_EN.html#quantifiers">Section 6.6</a> gave a
+countermodel, and Exercise 7.9 lets you watch the attempt get stuck.</p>
+<h3 id="quantifiers-inst">Choosing an instance yourself</h3>
+<p>Unification finds a witness only when the goal shows what it must be. Here it does not:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;∃n::nat. n + n = 6&quot;
+  apply (rule exI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∃n::nat. n + n = 6&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ?n + ?n = 6</code></pre></div>
+<p>No assumption says which number <code>?n</code> should be, and <code>simp</code> (Module 1) cannot solve an equation for an
+unknown:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> simp
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. ?n + ?n = 6</span></code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>Name the witness yourself:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;∃n::nat. n + n = 6&quot;
+  apply (rule_tac x = 3 in exI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∃n::nat. n + n = 6&quot;</span>
+  <span class="isa-proof">apply</span> (rule_tac x = 3 <span class="isa-minor">in</span> exI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. 3 + 3 = 6</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply simp
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> simp
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="box box-definition"><div class="box-label">Definition 7.13<span class="box-title">The methods rule_tac, erule_tac, drule_tac and frule_tac</span></div>
+<p><code>apply (rule_tac x = t in r)</code> applies the rule r as <code>rule</code> does, after replacing its schematic variable
+<code>?x</code> with the term t. Name the variable as <code>thm r</code> shows it, without the question mark, and put t in
+quotation marks unless it is a single name or number; several instantiations are separated by <code>and</code>.
+<code>erule_tac</code>, <code>drule_tac</code> and <code>frule_tac</code> work in the same way. Alternatively, instantiate the rule with
+<code>of</code> (Section 7.2) and apply the result: <code>apply (rule exI[of _ 3])</code>, where <code>_</code> skips ?P.</p>
+</div>
+<p>Unification can also choose wrongly. Here is a small invariant argument: if every step from a safe
+state leads to a safe state, and s is safe, then two steps from s lead to a safe state.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;
+  apply (frule spec)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;</span>
+  <span class="isa-proof">apply</span> (frule spec)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦∀x. safe x ⟶ safe (step x); safe s; safe ?x ⟶ safe (step ?x)⟧
+    ⟹ safe (step (step s))</code></pre></div>
+<p>The quantified assumption is needed twice, once for each step, so <code>frule spec</code> keeps it while adding an
+instance with an unknown <code>?x</code>. <code>erule impE</code> uses that instance; its premise <code>safe ?x</code> becomes subgoal 1,
+which <code>assumption</code> closes with ?x = s:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule impE)
+  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦∀x. safe x ⟶ safe (step x); safe s; safe (step s)⟧
+    ⟹ safe (step (step s))</code></pre></div>
+<p>For the second step, the same three methods:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule allE)
+  apply (erule impE)
+  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦safe s; safe (step s); safe (step s)⟧ ⟹ safe (step (step s))</code></pre></div>
+<p>This time <code>assumption</code> had two candidates for <code>safe ?x</code>: safe s and safe (step s). It took the first,
+so the unknown became s again, and the proof is stuck: no assumption says safe (step (step s)).</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>Tell Isabelle which instance you want:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma safe_twice: &quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;
+  apply (frule spec)
+  apply (erule impE)
+  apply assumption
+  apply (erule_tac x = &quot;step s&quot; in allE)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> safe_twice: <span class="isa-inner">&quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;</span>
+  <span class="isa-proof">apply</span> (frule spec)
+  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (erule_tac x = <span class="isa-inner">&quot;step s&quot;</span> <span class="isa-minor">in</span> allE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦safe s; safe (step s); safe (step s) ⟶ safe (step (step s))⟧
+    ⟹ safe (step (step s))</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule impE)
+  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>Arguments of this kind, about every state a system can reach, return in Module 13.</p>
+<span class="section-anchor" id="classical"></span>
+<div class="section-header"><span class="section-num">7</span><h2>Classical reasoning and equality</h2></div>
+<h3 id="classical-raa">Proof by contradiction</h3>
+<p>All the rules used so far are intuitionistic: none of them is (RAA). Module 6 showed that some
+tautologies cannot be derived without (RAA) (<a href="module_06_EN.html#classical">Section 6.5</a>), and A ∨ ¬A, the
+law of excluded middle, is the standard example. Try it without:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ ¬ A&quot;
+  apply (rule disjI1)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A</code></pre></div>
+<p>A is not provable: nothing is known about A. <code>disjI2</code> would leave ¬A, which is no better. Abandon the
+attempt:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>The way out is (RAA), which in Isabelle is <code>ccontr</code>. Here is the derivation from Section 6.5:</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.6rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∨ ¬A)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∨ ¬A)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A]²</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₁</span></div><div class="pt-concl"><span class="pt-f">A ∨ ¬A</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬I²</span></div><div class="pt-concl"><span class="pt-f">¬A</span></div></div></div><div class="pt-bar"><span class="pt-rule">∨I₂</span></div><div class="pt-concl"><span class="pt-f">A ∨ ¬A</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA¹</span></div><div class="pt-concl"><span class="pt-f">A ∨ ¬A</span></div></div></div></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ ¬ A&quot;
+  apply (rule ccontr)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> ccontr)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (A ∨ ¬ A) ⟹ False</code></pre></div>
+<p>(RAA¹): assume the negation, and derive False. The next step is the (¬E) at the bottom of the tree,
+used backwards:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule notE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ¬ (A ∨ ¬ A) ⟹ ¬ ?P2
+ 2. ¬ (A ∨ ¬ A) ⟹ ?P2</code></pre></div>
+<p>To derive False, find a formula <code>?P2</code> such that both ¬?P2 and ?P2 hold. This step uses <code>rule notE</code>, not
+<code>erule notE</code>, because the assumption ¬(A ∨ ¬A) is needed again further up the tree, and <code>erule</code> would
+remove it.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (A ∨ ¬ A) ⟹ A ∨ ¬ A</code></pre></div>
+<p>Subgoal 1 unified with the assumption, which set ?P2 to A ∨ ¬A: that is the leaf [¬(A ∨ ¬A)]¹. The rest
+follows the tree: (∨I₂), (¬I²), (¬E) and (∨I₁).</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI2)
+  apply (rule notI)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI2)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦¬ (A ∨ ¬ A); A⟧ ⟹ False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ⟹ A ∨ ¬ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI1)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>The first three steps, <code>rule ccontr</code>, <code>rule notE</code> and <code>assumption</code>, together do the work of a single
+rule, <code>classical</code>, <code>(¬ ?P ⟹ ?P) ⟹ ?P</code>: assume the negation of the goal, and prove the goal itself.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ ¬ A&quot;
+  apply (rule classical)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> classical)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (A ∨ ¬ A) ⟹ A ∨ ¬ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule disjI2)
+  apply (rule notI)
+  apply (erule notE)
+  apply (rule disjI1)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI2)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>The library has this law already, with the disjuncts the other way round:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm excluded_middle">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> excluded_middle</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>¬ ?P ∨ ?P</code></pre></div>
+<h3 id="classical-demorgan">A De Morgan law</h3>
+<p>Of the four directions of De Morgan’s laws, Section 6.5 showed that one needs (RAA):
+¬(A ∧ B) ⟶ ¬A ∨ ¬B. The idea: suppose ¬A ∨ ¬B were false. Then A would have to hold, since otherwise
+¬A ∨ ¬B would; and B likewise. But A ∧ B contradicts ¬(A ∧ B).</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(A ∧ B)]¹</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:2.6rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(¬A ∨ ¬B)]²</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬A]³</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₁</span></div><div class="pt-concl"><span class="pt-f">¬A ∨ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA³</span></div><div class="pt-concl"><span class="pt-f">A</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬(¬A ∨ ¬B)]²</span></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[¬B]⁴</span></div></div><div class="pt-bar"><span class="pt-rule">∨I₂</span></div><div class="pt-concl"><span class="pt-f">¬A ∨ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA⁴</span></div><div class="pt-concl"><span class="pt-f">B</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">A ∧ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">¬E</span></div><div class="pt-concl"><span class="pt-f">⊥</span></div></div></div><div class="pt-bar"><span class="pt-rule">RAA²</span></div><div class="pt-concl"><span class="pt-f">¬A ∨ ¬B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">¬(A ∧ B) ⟶ ¬A ∨ ¬B</span></div></div></div></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma de_morgan_and: &quot;¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B&quot;
+  apply (rule impI)
+  apply (rule ccontr)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> de_morgan_and: <span class="isa-inner">&quot;¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> ccontr)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦¬ (A ∧ B); ¬ (¬ A ∨ ¬ B)⟧ ⟹ False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (¬ A ∨ ¬ B) ⟹ A ∧ B</code></pre></div>
+<p><code>erule notE</code> took the first negated assumption, ¬(A ∧ B), and left its opposite, A ∧ B, to prove: the
+(¬E) at the bottom of the tree, with [¬(A ∧ B)]¹ as its first premise. Each half of A ∧ B is another
+proof by contradiction:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)
+  apply (rule ccontr)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> ccontr)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦¬ (¬ A ∨ ¬ B); ¬ A⟧ ⟹ False
+ 2. ¬ (¬ A ∨ ¬ B) ⟹ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)
+  apply (rule disjI1)
+  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ¬ (¬ A ∨ ¬ B) ⟹ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule ccontr)
+  apply (erule notE)
+  apply (rule disjI2)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> ccontr)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI2)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>The other three directions of the De Morgan laws need no classical rule; Exercise 7.5 asks you to prove
+two of them.</p>
+<h3 id="classical-eq">Equality</h3>
+<p><code>refl</code>, <code>?t = ?t</code>, is (=I), and <code>subst</code>, <code>⟦?s = ?t; ?P ?s⟧ ⟹ ?P ?t</code>, is (=E): if s = t and some property
+holds of s, it holds of t. The property <code>?P</code> is a schematic variable of function type, which unification
+fills in with a function. Module 6 derived symmetry from these two rules (<a href="module_06_EN.html#equality">Section
+6.8</a>), with x = s as P x. Written as a rule, from s = t to t = s, the
+derivation is:</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:1.6rem"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">s = t</span></div><div class="pt-node"><div class="pt-prem pt-axiom"></div><div class="pt-bar"><span class="pt-rule">=I</span></div><div class="pt-concl"><span class="pt-f">s = s</span></div></div></div><div class="pt-bar"><span class="pt-rule">=E</span></div><div class="pt-concl"><span class="pt-f">t = s</span></div></div></div></div>
+<p>Here (=E) uses the property “equal to s”: it holds of s, so it holds of t.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;s = t ⟹ t = s&quot;
+  apply (erule subst)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;s = t ⟹ t = s&quot;</span>
+  <span class="isa-proof">apply</span> (erule subst)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. s = s</code></pre></div>
+<p><code>erule</code> unified the major premise <code>?s = ?t</code> with the assumption s = t, and the conclusion <code>?P t</code> with
+t = s. For the second, Isabelle had to find a property ?P such that ?P t is t = s. The new subgoal shows
+which one it chose: the property “equal to s”, since the remaining premise ?P s has become s = s.
+<code>refl</code> proves it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule refl)
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> refl)
+  <span class="isa-proof">done</span></code></pre></div>
+<p>In everyday proofs you rarely use <code>subst</code> by hand, because the simplifier rewrites with equations
+automatically (Module 9). But <code>subst</code> is what such rewriting means in natural deduction.</p>
+<h3 id="classical-iff">Equivalence</h3>
+<p>For ⟷, <code>iffI</code> turns one goal into two implications. Notice how Isabelle prints the goal:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟷ B ∧ A&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟷ B ∧ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. (A ∧ B) = (B ∧ A)</code></pre></div>
+<p>On formulas, ⟷ and = are the same, and Isabelle prints both as =. <code>iffI</code> gives the two directions:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule iffI)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> iffI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ∧ B ⟹ B ∧ A
+ 2. B ∧ A ⟹ A ∧ B</code></pre></div>
+<p>Each subgoal is the swap lemma again, without the implication:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule conjE)
+  apply (rule conjI)
+  apply assumption
+  apply assumption
+  apply (erule conjE)
+  apply (rule conjI)
+  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>To use an equivalence that you have, <code>iffD1</code> and <code>iffD2</code> act like <code>mp</code> in either direction.</p>
+<span class="section-anchor" id="errors"></span>
+<div class="section-header"><span class="section-num">8</span><h2>When a step fails</h2></div>
+<p>Any step can fail, and Isabelle’s messages are short. This section collects the ones you will meet,
+with their causes and fixes. Isabelle marks the step that failed and shows the proof state it was given.
+The steps before it are not affected, so you can replace the failing step with another.</p>
+<h3 id="errors-apply">Failed to apply proof method</h3>
+<p>This is the most common message. It means that the method could do nothing with subgoal 1: for <code>rule</code>,
+the conclusion of the rule does not unify with the conclusion of the subgoal; for <code>erule</code>, either that or
+no assumption fits the rule’s major premise; for <code>drule</code> and <code>frule</code>, no assumption fits the major
+premise; for <code>assumption</code>, no assumption unifies with the conclusion. Isabelle shows the proof state it
+was given. Here is the early choice of a side that Module 6 warned about (Section 6.4), followed by a
+hopeful <code>assumption</code>:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. A</span></code></pre></div>
+<p><code>disjI1</code> left the subgoal A, which has no assumptions at all, so <code>assumption</code> has nothing to unify with.
+Three other causes are common. Each gives the same message, followed by the proof state as it was before
+the failing step.</p>
+<p><strong>Taking an assumption apart before it is one.</strong> In the goal A ∧ B ⟶ B ∧ A, the conjunction A ∧ B is
+not an assumption; it is part of the implication, so <code>erule conjE</code> finds nothing to work on:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. A ∧ B ⟶ B ∧ A</span></code></pre></div>
+<p>Apply <code>impI</code> first: it moves A ∧ B into the assumptions.</p>
+<p><strong>Expecting assumption to look inside a formula.</strong> After <code>impI</code> and <code>conjI</code>, subgoal 1 is A ∧ B ⟹ B. B
+is part of the assumption, but it is not the assumption, so <code>assumption</code> fails:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (2 subgoals):
+ 1. A ∧ B ⟹ B
+ 2. A ∧ B ⟹ A</span></code></pre></div>
+<p><code>assumption</code> only unifies whole formulas. Take the assumption apart first, with <code>erule conjE</code>.</p>
+<p><strong>Using a rule for the wrong connective.</strong> <code>disjI1</code> concludes a disjunction, but the conclusion of the
+subgoal A ∧ B ⟹ B ∧ A is a conjunction:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</span></code></pre></div>
+<p>When in doubt, look the rule up with <code>thm</code>: for <code>rule</code>, its conclusion must have the same main connective
+as the conclusion of the subgoal.</p>
+<h3 id="errors-name">Undefined fact</h3>
+<p>A misspelt rule name gives a different message. Many rule names end in a capital I, which looks much
+like a lower-case l:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjl)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Undefined fact: &quot;conjl&quot;⌂</span></code></pre></div>
+<h3 id="errors-done">Failed to finish proof</h3>
+<p><code>done</code> fails if subgoals remain, and lists them. Take the same early choice as above and write <code>done</code>
+straight after it:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjI1)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof:
+goal (1 subgoal):
+ 1. A</span></code></pre></div>
+<p><code>done</code> never proves anything itself, not even a subgoal whose conclusion is one of its assumptions. Add
+the missing steps or, if the subgoal left is unprovable, as here, go back and choose differently. (A
+one-line proof <code>by m</code>, as in <code>by blast</code>, behaves a little differently: after the method m, it closes the
+subgoals that are left by assumption, and reports Failed to finish proof only if something else
+remains.)</p>
+<h3 id="errors-forget">Forgetting done</h3>
+<p>Without <code>done</code>, the proof is still open when the next command arrives, and the next lemma is refused:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> assumption
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;B ⟶ B&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Bad context for command &quot;lemma&quot;⌂</span></code></pre></div>
+<p>A lemma cannot start inside a proof. Add <code>done</code> after the last <code>apply</code>. If the unfinished proof is the
+last one in the theory, <code>end</code> is refused instead, with the message “Illegal application of proof command
+in “prove” mode”.</p>
+<h3 id="errors-rule">A detour, not an error: rule instead of erule</h3>
+<p>Some mistakes produce no error at all, only a strange proof state. Applying an elimination rule with
+<code>rule</code> instead of <code>erule</code> is the usual one:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ B ⟶ B ∨ A&quot;
+  apply (rule impI)
+  apply (rule disjE)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ B ⟶ B ∨ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> disjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (3 subgoals):
+ 1. A ∨ B ⟹ ?P2 ∨ ?Q2
+ 2. ⟦A ∨ B; ?P2⟧ ⟹ B ∨ A
+ 3. ⟦A ∨ B; ?Q2⟧ ⟹ B ∨ A</code></pre></div>
+<p><code>rule</code> unified only the conclusion ?R of <code>disjE</code> with B ∨ A. The major premise became subgoal 1, so
+Isabelle asks you to prove some disjunction it does not know yet, and the two cases speak of unknown
+formulas. <code>apply assumption</code> would repair this by unifying the unknown disjunction with A ∨ B, and the
+result would be the <code>erule</code> version with the assumption A ∨ B kept in both cases. Use <code>erule</code> from the
+start.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<details class="trouble"><summary>If something went wrong</summary><div class="details-body">
+<ul>
+<li><strong>Failed to apply proof method</strong>: the rule does not fit subgoal 1, or no assumption fits its major
+premise. Check the main connective; use <code>impI</code> before taking an assumption apart; read the rule with
+<code>thm</code>.</li>
+<li><strong>Undefined fact</strong>: a misspelt rule name, such as <code>conjl</code> for <code>conjI</code>.</li>
+<li><strong>Failed to finish proof</strong>: subgoals remain at <code>done</code>; they are listed.</li>
+<li><strong>Bad context for command “lemma”</strong>: the previous proof has no <code>done</code>.</li>
+<li><strong>Inner syntax error … Failed to parse prop</strong>: a mistake in the statement itself, such as ⟹ inside a
+formula (Section 7.1).</li>
+<li><strong>A subgoal that cannot be closed, with unknowns such as <code>?x4 y</code></strong>: a quantifier rule came too early.
+Fix variables before you create unknowns (Section 7.6).</li>
+</ul>
+</div></details>
+<span class="section-anchor" id="blast"></span>
+<div class="section-header"><span class="section-num">9</span><h2>Letting Isabelle search: blast and auto</h2></div>
+<p>Module 6 ended by letting <code>blast</code> prove its derivations (<a href="module_06_EN.html#isabelle">Section 6.9</a>). You
+have now done by hand what <code>blast</code> does automatically. <code>blast</code> belongs to Isabelle’s <strong>classical
+reasoner</strong>, a family of proof methods built on natural-deduction rules. It applies introduction and
+elimination rules like the ones in this module: the safe ones of Section 6.7 freely, the others as
+choices. When a choice leads nowhere, it goes back and tries another, and in the end it either finds a
+complete proof or fails. Each example of this module takes a single call:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B&quot;
+  by blast
+
+lemma &quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;
+  by blast
+
+lemma &quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (A ∧ B) ⟶ ¬ A ∨ ¬ B&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p><code>blast</code> found the instance step s that unification alone got wrong in Section 7.6: when one choice
+fails, it tries another. And whatever <code>blast</code> finds, the theorem is built by Isabelle’s kernel from the
+rules of the logic, as for every other method (Module 1).</p>
+<p>When the statement is not valid, <code>blast</code> fails, as Section 6.9 showed for the master key:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)</span></code></pre></div>
+<p>With <code>by</code>, Isabelle calls the method the <em>initial</em> proof method, so the message says only that <code>blast</code>
+found no proof. It does not say whether the statement is false or too hard for <code>blast</code>; <code>nitpick</code>
+(Modules 2 and 3) can look for a counterexample. <code>auto</code> behaves differently: it does what it can and
+shows you what is left.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;
+  apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;</span>
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ∀y. ∃x. R x y ⟹ ∃x. ∀y. R x y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p><code>auto</code> turned the implication into an assumption and stopped there. <code>auto</code> combines classical reasoning
+with the simplifier, and leaves the subgoals it cannot prove; Module 9 covers it in depth. <code>blast</code> does
+no rewriting and knows little about equality, but <em>Programming and Proving in Isabelle/HOL</em> calls it “the
+method of choice for complex logical goals”.</p>
+<p>So which should you use? For routine logic, <code>blast</code> or <code>auto</code>. But automation fails often enough, on
+goals that are too big or not quite true, and then the manual steps are how you find out why: apply a
+few rules by hand, look at the subgoals, and call <code>blast</code> on the pieces, or discover that one of them
+cannot be proved. That is why this module did everything by hand first.</p>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>A good routine when <code>blast</code> fails: apply the obvious introduction rules with <code>intro</code> (<code>impI</code>, <code>allI</code>,
+<code>conjI</code>, …) and take apart the obvious assumptions with <code>elim</code> (<code>conjE</code>, <code>exE</code>, …). Then try <code>blast</code> on
+each subgoal. A subgoal that looks false is a hint that the whole statement may be false; try <code>nitpick</code>
+on the lemma.</p>
+</div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">10</span><h2>What you learned</h2></div>
+<ul>
+<li>Isabelle has two levels of logic: the meta-logic <strong>Pure</strong>, with ⟹, ⋀ and ≡, in which rules and goals
+are written, and the object logic <strong>HOL</strong>, with ¬ ∧ ∨ ⟶ ∀ ∃ and =, in which formulas are written.</li>
+<li>A rule is a theorem: <code>thm conjI</code> shows <code>⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q</code>. <strong>Schematic variables</strong> such as <code>?P</code> can
+be replaced by any term: by <strong>unification</strong> automatically, or by hand with <code>of</code> and <code>rule_tac</code>.</li>
+<li>Each rule of Module 6 has an Isabelle name: <code>conjI</code>, <code>conjunct1</code>, <code>conjunct2</code>, <code>conjE</code>, <code>disjI1</code>,
+<code>disjI2</code>, <code>disjE</code>, <code>impI</code>, <code>mp</code>, <code>impE</code>, <code>notI</code>, <code>notE</code>, <code>FalseE</code>, <code>allI</code>, <code>spec</code>, <code>allE</code>, <code>exI</code>,
+<code>exE</code>, <code>ccontr</code>, <code>classical</code>, <code>refl</code> and <code>subst</code>.</li>
+<li>A proof script builds the paper tree from the root: <code>rule</code> applies an introduction rule to the
+conclusion; <code>erule</code>, <code>drule</code> and <code>frule</code> apply elimination and destruction rules to assumptions;
+<code>assumption</code> closes a branch; <code>intro</code> and <code>elim</code> repeat; <code>done</code> checks that nothing is left.</li>
+<li><code>allI</code> and <code>exE</code> create <strong>fixed variables</strong> (⋀x), which enforce the eigenvariable conditions; <code>exI</code>,
+<code>allE</code> and <code>spec</code> create unknowns. Fix first, guess later.</li>
+<li>Classical proofs use <code>ccontr</code>, which is (RAA), or <code>classical</code>.</li>
+<li>The common messages are Failed to apply proof method, Undefined fact, Failed to finish proof and Bad
+context for command.</li>
+<li><code>blast</code> searches with the same rules and either succeeds or fails; <code>auto</code> shows what it could not
+prove.</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">11</span><h2>Exercises</h2></div>
+<div class="exercise" id="ex-7-1"><div class="ex-label"><span class="ex-num">Exercise 7.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">Read a rule</span></div>
+<p><code>thm impE</code> prints <code>⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R</code>.</p>
+<ol>
+<li>Which premise is the major premise?</li>
+<li>Which premise has an assumption of its own, and what is it?</li>
+<li>Draw the rule as a paper rule, in the style of Module 6.</li>
+<li>With which method do you normally use <code>impE</code>? What does it do to the subgoal ⟦A ⟶ B; A⟧ ⟹ C?</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>
+<p><code>?P ⟶ ?Q</code>: it contains the connective that the rule eliminates.</p>
+</li>
+<li>
+<p>The third, <code>?Q ⟹ ?R</code>: while proving ?R you may assume ?Q.</p>
+</li>
+<li>
+<p>As a paper rule, with the discharged assumption marked:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mstyle scriptlevel="0" displaystyle="true"><mfrac><mrow><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>P</mi><mo>⟶</mo><mi>Q</mi></mrow></mstyle></mtd></mtr></mtable><mspace width="2em"/><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mi>P</mi></mstyle></mtd></mtr></mtable><mspace width="2em"/><mtable rowspacing="0.16em" columnalign="center" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mo stretchy="false">[</mo><mi>Q</mi><msup><mo stretchy="false">]</mo><mn>1</mn></msup></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">⋮</mi><mpadded height="0em" voffset="0em"><mspace mathbackground="black" width="0em" height="1.5em"></mspace></mpadded></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mi>R</mi></mstyle></mtd></mtr></mtable></mrow><mi>R</mi></mfrac></mstyle><mtext>  </mtext><mo stretchy="false">(</mo><msup><mrow><mi mathvariant="normal">i</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">E</mi></mrow><mn>1</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\dfrac{\begin{matrix}\\ \\ P \imp Q\end{matrix} \qquad \begin{matrix}\\ \\ P\end{matrix} \qquad \begin{matrix}[Q]^1\\ \vdots\\ R\end{matrix}}{R}\;(\mathrm{impE}^1)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:5.336em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:4.65em;"><span style="top:-3.694em;"><span class="pstrut" style="height:4.38em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0077em;">R</span></span></span><span style="top:-4.61em;"><span class="pstrut" style="height:4.38em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-6.65em;"><span class="pstrut" style="height:4.38em;"></span><span class="mord"><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal">Q</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:2em;"></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.38em;"><span style="top:-5.2275em;"><span class="pstrut" style="height:3.6875em;"></span><span class="mord"><span class="mopen">[</span><span class="mord mathnormal">Q</span><span class="mclose"><span class="mclose">]</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span><span style="top:-3.3675em;"><span class="pstrut" style="height:3.6875em;"></span><span class="mord"><span class="mord"><span class="mord">⋮</span><span class="mord rule" style="border-right-width:0em;border-top-width:1.5em;bottom:0em;"></span></span></span></span><span style="top:-2.1675em;"><span class="pstrut" style="height:3.6875em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0077em;">R</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.88em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord mathrm">impE</span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8873em;"><span style="top:-3.1362em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></span></div>
+</li>
+<li>
+<p>With <code>erule</code>. It removes the assumption A ⟶ B and leaves two subgoals: prove A, and then prove C
+with B as an extra assumption.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦A ⟶ B; A⟧ ⟹ C&quot;
+  apply (erule impE)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦A ⟶ B; A⟧ ⟹ C&quot;</span>
+  <span class="isa-proof">apply</span> (erule impE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ⟹ A
+ 2. ⟦A; B⟧ ⟹ C</code></pre></div>
+<p>The first subgoal is closed by <code>assumption</code>; the second cannot be proved, because C is unrelated to A
+and B, so abandon the attempt:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-2"><div class="ex-label"><span class="ex-num">Exercise 7.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">From tree to script</span></div>
+<p>Write an apply script that follows this tree step by step. Say which command closes which leaf. Then check
+your script in Isabelle.</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A]¹</span></div><div class="pt-node pt-leaf"><span class="pt-f">[B]²</span></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">A ∧ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I²</span></div><div class="pt-concl"><span class="pt-f">B ⟶ A ∧ B</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">A ⟶ B ⟶ A ∧ B</span></div></div></div></div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Two <code>impI</code> steps for (⟶I¹) and (⟶I²), one <code>conjI</code> step for (∧I), and one <code>assumption</code> for each leaf:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ⟶ B ⟶ A ∧ B&quot;
+  apply (rule impI)
+  apply (rule impI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ B ⟶ A ∧ B&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦A; B⟧ ⟹ A ∧ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)
+  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>The first <code>assumption</code> closes the leaf [A]¹ (subgoal 1 is A), the second closes [B]².</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-3"><div class="ex-label"><span class="ex-num">Exercise 7.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">Which method?</span></div>
+<p>For each subgoal, name the first step you would take (method and rule), and say what is left after it.
+Then finish each proof in Isabelle.</p>
+<ol>
+<li><code>⟦A; B⟧ ⟹ B ∧ A</code></li>
+<li><code>A ∧ B ⟹ B</code></li>
+<li><code>¬ A ⟹ A ⟶ B</code></li>
+<li><code>∀x. P x ⟹ P c</code></li>
+<li><code>P c ⟹ ∃x. P x</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><code>rule conjI</code> leaves B and A, each closed by <code>assumption</code>.</li>
+<li><code>erule conjE</code> leaves ⟦A; B⟧ ⟹ B, closed by <code>assumption</code>.</li>
+<li><code>rule impI</code> leaves ⟦¬ A; A⟧ ⟹ B. Then <code>erule notE</code> turns the goal into A, closed by <code>assumption</code>.</li>
+<li><code>erule allE</code> replaces the assumption with an instance P t, where t is an unknown, and <code>assumption</code>
+sets t to c. (<code>drule spec</code> works too.)</li>
+<li><code>rule exI</code> leaves P t to prove, with an unknown witness t, and <code>assumption</code> sets t to c.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦A; B⟧ ⟹ B ∧ A&quot;
+  apply (rule conjI)
+  apply assumption
+  apply assumption
+  done
+
+lemma &quot;A ∧ B ⟹ B&quot;
+  apply (erule conjE)
+  apply assumption
+  done
+
+lemma &quot;¬ A ⟹ A ⟶ B&quot;
+  apply (rule impI)
+  apply (erule notE)
+  apply assumption
+  done
+
+lemma &quot;∀x. P x ⟹ P c&quot;
+  apply (erule allE)
+  apply assumption
+  done
+
+lemma &quot;P c ⟹ ∃x. P x&quot;
+  apply (rule exI)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦A; B⟧ ⟹ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟹ B&quot;</span>
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ A ⟹ A ⟶ B&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∀x. P x ⟹ P c&quot;</span>
+  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;P c ⟹ ∃x. P x&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-4"><div class="ex-label"><span class="ex-num">Exercise 7.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Currying</span></div>
+<p>Exercise 6.4 derived these two formulas on paper. Prove them in Isabelle with <code>rule</code>, <code>erule</code>, <code>drule</code> and
+<code>assumption</code>:</p>
+<ol>
+<li><code>(A ⟶ B ⟶ C) ⟶ (A ∧ B ⟶ C)</code></li>
+<li><code>(A ∧ B ⟶ C) ⟶ (A ⟶ B ⟶ C)</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>In the first, take the conjunction apart and use the nested implication twice, with <code>drule mp</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B ⟶ C) ⟶ (A ∧ B ⟶ C)&quot;
+  apply (rule impI)
+  apply (rule impI)
+  apply (erule conjE)
+  apply (drule mp)
+  apply assumption
+  apply (drule mp)
+  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B ⟶ C) ⟶ (A ∧ B ⟶ C)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (drule mp)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (drule mp)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>In the second, <code>erule impE</code> asks you to prove A ∧ B, which <code>conjI</code> splits:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ∧ B ⟶ C) ⟶ (A ⟶ B ⟶ C)&quot;
+  apply (rule impI)
+  apply (rule impI)
+  apply (rule impI)
+  apply (erule impE)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ∧ B ⟶ C) ⟶ (A ⟶ B ⟶ C)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule impE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦A; B⟧ ⟹ A ∧ B
+ 2. ⟦A; B; C⟧ ⟹ C</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule conjI)
+  apply assumption
+  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-5"><div class="ex-label"><span class="ex-num">Exercise 7.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Two De Morgan laws without RAA</span></div>
+<p>Exercise 6.5 and Section 6.5 derived <code>¬ A ∨ ¬ B ⟶ ¬ (A ∧ B)</code> and <code>¬ A ∧ ¬ B ⟶ ¬ (A ∨ B)</code> on paper. Prove
+both in Isabelle without <code>ccontr</code> or <code>classical</code>. In the second you will meet the pitfall of Section 7.5:
+<code>erule notE</code> takes the first negated assumption. Name the one you want with <code>erule_tac P = B in notE</code>
+(the variable of <code>notE</code> is called P).</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ A ∨ ¬ B ⟶ ¬ (A ∧ B)&quot;
+  apply (rule impI)
+  apply (rule notI)
+  apply (erule conjE)
+  apply (erule disjE)
+  apply (erule notE)
+  apply assumption
+  apply (erule notE)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ A ∨ ¬ B ⟶ ¬ (A ∧ B)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (erule disjE)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>In the second law, the case split leaves two subgoals with both ¬A and ¬B among the assumptions:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ A ∧ ¬ B ⟶ ¬ (A ∨ B)&quot;
+  apply (rule impI)
+  apply (erule conjE)
+  apply (rule notI)
+  apply (erule disjE)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ A ∧ ¬ B ⟶ ¬ (A ∨ B)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)
+  <span class="isa-proof">apply</span> (erule disjE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⟦¬ A; ¬ B; A⟧ ⟹ False
+ 2. ⟦¬ A; ¬ B; B⟧ ⟹ False</code></pre></div>
+<p>In the first case, ¬A is the right one, and it comes first. In the second case, <code>erule notE</code> would take
+¬A again and leave A to prove, which is impossible; choose ¬B instead:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)
+  apply assumption
+  apply (erule_tac P = B in notE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (erule_tac P = B <span class="isa-minor">in</span> notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦¬ A; B⟧ ⟹ B</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-6"><div class="ex-label"><span class="ex-num">Exercise 7.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Write access</span></div>
+<p>In an access-control policy, every administrator may write. Prove that whoever may not write is not an
+administrator:</p>
+<p><code>(∀u. admin u ⟶ can_write u) ⟶ (∀u. ¬ can_write u ⟶ ¬ admin u)</code></p>
+<p>Plan the order of the quantifier steps first: which rule fixes a variable, and which creates an
+unknown?</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p><code>allI</code> fixes u in the conclusion, and <code>allE</code> creates an unknown instance of the assumption. Fix first:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀u. admin u ⟶ can_write u) ⟶ (∀u. ¬ can_write u ⟶ ¬ admin u)&quot;
+  apply (rule impI)
+  apply (rule allI)
+  apply (rule impI)
+  apply (rule notI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀u. admin u ⟶ can_write u) ⟶ (∀u. ¬ can_write u ⟶ ¬ admin u)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀u. ⟦∀u. admin u ⟶ can_write u; ¬ can_write u; admin u⟧ ⟹ False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule allE)
+  apply (erule impE)
+  apply assumption">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀u. ⟦¬ can_write u; admin u; can_write u⟧ ⟹ False</code></pre></div>
+<p><code>assumption</code> instantiated the unknown with the fixed u, which is possible because u was fixed first.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule notE)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-7"><div class="ex-label"><span class="ex-num">Exercise 7.7</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Splitting an existential</span></div>
+<p>Prove <code>(∃x. P x ∧ Q x) ⟶ (∃x. P x) ∧ (∃x. Q x)</code>, which Exercise 6.6 derived on paper. Then explain in a
+sentence or two, in terms of fixed variables and unknowns, why the converse,
+<code>(∃x. P x) ∧ (∃x. Q x) ⟶ (∃x. P x ∧ Q x)</code>, cannot be proved.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∃x. P x ∧ Q x) ⟶ (∃x. P x) ∧ (∃x. Q x)&quot;
+  apply (rule impI)
+  apply (erule exE)
+  apply (erule conjE)
+  apply (rule conjI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. P x ∧ Q x) ⟶ (∃x. P x) ∧ (∃x. Q x)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule exE)
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀x. ⟦P x; Q x⟧ ⟹ ∃x. P x
+ 2. ⋀x. ⟦P x; Q x⟧ ⟹ ∃x. Q x</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule exI)
+  apply assumption
+  apply (rule exI)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>The converse is not valid: P could be “is even” and Q “is odd” on the natural numbers. Both have
+witnesses, but no number is both. In a proof attempt, the two <code>exE</code> steps fix two different variables,
+one with P and one with Q, and the single unknown witness of <code>exI</code> cannot become both: unification never
+makes two different fixed variables equal. This is the broken eigenvariable condition of Exercise 6.6 in
+Isabelle’s form.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-8"><div class="ex-label"><span class="ex-num">Exercise 7.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Peirce’s law</span></div>
+<p>Exercise 6.8 derived Peirce’s law, ((A ⟶ B) ⟶ A) ⟶ A, on paper with (RAA). Turn that derivation into an
+apply script with <code>ccontr</code>, following the tree step by step, and say which step does the work of (⊥E).
+Then shorten the script with <code>classical</code>.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>At the bottom of the tree of Exercise 6.8 are (⟶I¹), (RAA²) and (¬E) with the premises [¬A]² and A. As in
+Section 7.7, <code>rule ccontr</code>, <code>rule notE</code> and <code>assumption</code> take the last two steps and leave A to prove:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;((A ⟶ B) ⟶ A) ⟶ A&quot;
+  apply (rule impI)
+  apply (rule ccontr)
+  apply (rule notE)
+  apply assumption">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ A) ⟶ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> ccontr)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> notE)
+  <span class="isa-proof">apply</span> assumption</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦(A ⟶ B) ⟶ A; ¬ A⟧ ⟹ A</code></pre></div>
+<p>A comes from the assumption (A ⟶ B) ⟶ A by (⟶E), which needs A ⟶ B:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule impE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule impE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ¬ A ⟹ A ⟶ B
+ 2. ⟦¬ A; A⟧ ⟹ A</code></pre></div>
+<p>To prove A ⟶ B, assume A (⟶I³). The goal is then B, and <code>erule notE</code> turns it into A, using ¬A:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (rule impI)
+  apply (erule notE)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule notE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. A ⟹ A
+ 2. ⟦¬ A; A⟧ ⟹ A</code></pre></div>
+<p>This single <code>erule notE</code> does the work of both (¬E) and (⊥E) in the tree, because <code>notE</code> concludes any
+formula, here B. Both subgoals left are assumptions:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>With <code>classical</code>, the three steps after <code>impI</code> become one:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;((A ⟶ B) ⟶ A) ⟶ A&quot;
+  apply (rule impI)
+  apply (rule classical)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ A) ⟶ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> classical)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⟦(A ⟶ B) ⟶ A; ¬ A⟧ ⟹ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (erule impE)
+  apply (rule impI)
+  apply (erule notE)
+  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (erule impE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule notE)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-7-9"><div class="ex-label"><span class="ex-num">Exercise 7.9</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">A proof that must fail</span></div>
+<p>Section 6.7 showed that a backward search for (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y) never closes. Watch it
+happen in Isabelle: apply the quantifier rules in the best order you can find, and show the state where
+you get stuck. Then explain, with fixed variables and unknowns, why no order can work.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The conclusion starts with ∃x, so the only rule for the conclusion is <code>exI</code>, and it creates the unknown
+witness before anything is fixed:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;
+  apply (rule impI)
+  apply (rule exI)
+  apply (rule allI)
+  apply (erule allE)
+  apply (erule exE)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> allI)
+  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> (erule exE)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y x. R x (?y6 y) ⟹ R ?x2 y</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>To close the subgoal, R x (?y6 y) and R ?x2 y must become identical. The instance ?y6 y can become y,
+because <code>allI</code> fixed y before <code>allE</code> created ?y6. But the witness ?x2 would have to become x, which <code>exE</code>
+fixed after <code>exI</code> created ?x2, and that is not allowed. Taking the assumption apart first only moves the
+problem: <code>erule allE</code> and <code>erule exE</code> then fix x before the witness is created, so the witness can become
+x, but the instance of ∀y is created before <code>allI</code> fixes y, so it cannot become y. One unknown is always
+created too early. The y of the conclusion can only be fixed after the witness is created, since its ∀y
+lies inside ∃x; and the x of the assumption can only be fixed after the instance is created, since its ∃x
+lies inside ∀y.</p>
+<p>This is the never-ending search of Section 6.7 in Isabelle’s terms: each new door needs a new key. The
+formula is not valid (Section 6.6 gives a countermodel), so no order could have worked; the conditions
+that make Isabelle refuse these unifications are what keep its proofs sound.</p>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">12</span><h2>Check yourself</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>In the subgoal <code>⟦A ⟶ B; A⟧ ⟹ B</code>, what does ⟹ say?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That the formula (A ⟶ B) ∧ A ⟶ B has already been proved</button></li><li><button type="button" class="quiz-opt" data-i="1">That B must be proved, and A ⟶ B and A may be used as assumptions</button></li><li><button type="button" class="quiz-opt" data-i="2">That A ⟶ B and A are the conclusions of the subgoal</button></li><li><button type="button" class="quiz-opt" data-i="3">Nothing more than ⟶: Isabelle prints the two arrows differently only for display</button></li></ol><div class="quiz-expl" hidden>⟹ is Pure’s “from … infer”. Left of it are the assumptions of the subgoal, right of it the conclusion still to be proved.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div><code>thm exI</code> prints <code>?P ?x ⟹ ∃x. ?P x</code>. What does the question mark in <code>?x</code> mean?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That x is optional</button></li><li><button type="button" class="quiz-opt" data-i="1">That x is a fixed variable of the current subgoal</button></li><li><button type="button" class="quiz-opt" data-i="2">That ?x is a schematic variable: when the rule is used, it can be replaced by any term</button></li><li><button type="button" class="quiz-opt" data-i="3">That x has not been defined</button></li></ol><div class="quiz-expl" hidden>Schematic variables are placeholders. Isabelle fills them in by unification, or you choose them with <code>of</code> or <code>rule_tac</code>.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>The subgoal is <code>A ∨ B ⟹ B ∨ A</code>. Which step performs (∨E) on the assumption, leaving one subgoal per case?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>apply (rule disjI1)</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>apply (rule disjE)</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>apply (drule disjI2)</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>apply (erule disjE)</code></button></li></ol><div class="quiz-expl" hidden><code>erule</code> matches the major premise A ∨ B with the assumption and leaves the two cases. <code>rule disjE</code> leaves three subgoals with unknown formulas.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>After <code>apply (rule allI)</code> the subgoal reads <code>⋀x. ∀x. P x ∧ Q x ⟹ P x</code>. What is the x after ⋀?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">A fixed variable: it stands for an arbitrary value and unification never replaces it</button></li><li><button type="button" class="quiz-opt" data-i="1">A schematic variable that unification will choose later</button></li><li><button type="button" class="quiz-opt" data-i="2">The same variable as the x bound by ∀ in the assumption</button></li><li><button type="button" class="quiz-opt" data-i="3">A constant from Isabelle’s library</button></li></ol><div class="quiz-expl" hidden><code>allI</code> turns the HOL quantifier into Pure’s ⋀. The fixed variable is what Module 6 called the eigenvariable.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>A proof is stuck at <code>⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y</code>, and <code>apply assumption</code> fails. Why?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The relation R would have to be reflexive</button></li><li><button type="button" class="quiz-opt" data-i="1">The unknown ?x4 was created before x was fixed, so it cannot become x</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>assumption</code> cannot handle two fixed variables</button></li><li><button type="button" class="quiz-opt" data-i="3">The statement being proved is false</button></li></ol><div class="quiz-expl" hidden>The statement is valid (it is <code>ex_all</code>), but <code>exI</code> came before <code>exE</code>. Fix first, guess later.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">6</span><div><code>by blast</code> reports “Failed to apply initial proof method”. What do you know?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The statement is false</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>blast</code> needs a <code>done</code> after it</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>blast</code> found no proof; the statement may be false, or too hard for <code>blast</code></button></li><li><button type="button" class="quiz-opt" data-i="3">The kernel rejected a proof that <code>blast</code> found</button></li></ol><div class="quiz-expl" hidden><code>blast</code> either finds a complete proof or fails. A failure says nothing about truth; use <code>nitpick</code> to look for a counterexample, or apply some rules by hand.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="7"><div class="done-q">Finished this module?</div><button type="button" class="done-btn" data-yes="Done" data-no="Mark as done" data-undo="Mark as not done">Mark as done</button><div class="done-progress" data-label="{d} of {n} modules done"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_06_EN.html"><span class="mnav-label">&larr; Previous</span><span class="mnav-title">Module 6: What is a proof? Natural deduction</span></a><a class="mnav next" href="module_08_EN.html"><span class="mnav-label">Next &rarr;</span><span class="mnav-title">Module 8: Functional programming in HOL</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

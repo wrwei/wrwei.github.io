@@ -1,0 +1,1712 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 2: Propositional logic — Formal Methods with Isabelle</title>
+<meta name="description" content="Read and write formulas built with ¬, ∧, ∨, ⟶ and ⟷, decide with truth tables whether they are tautologies, equivalences or valid arguments, put them into normal forms, and use Isabelle to check requirements written as formulas.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="2" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Formal methods</a><span class="sep">/</span><span class="crumb crumb-now">Module 2</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Module 2 of 14</button><div class="dropdown-menu"><a href="module_01_EN.html"><span class="dd-n">1</span>Formal methods, what and why<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_EN.html" class="active"><span class="dd-n">2</span>Propositional logic<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_EN.html"><span class="dd-n">3</span>Predicate logic<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_EN.html"><span class="dd-n">4</span>Sets, relations and functions<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_EN.html"><span class="dd-n">5</span>Induction and recursion<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_EN.html"><span class="dd-n">6</span>What is a proof? Natural deduction<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_EN.html"><span class="dd-n">7</span>Natural deduction in Isabelle<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_EN.html"><span class="dd-n">8</span>Functional programming in HOL<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_EN.html"><span class="dd-n">9</span>Proof automation<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_EN.html"><span class="dd-n">10</span>Structured proofs in Isar<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_EN.html"><span class="dd-n">11</span>Induction in depth<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_EN.html"><span class="dd-n">12</span>Verifying functional programs<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_EN.html"><span class="dd-n">13</span>Modelling systems: state machines and invariants<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_EN.html"><span class="dd-n">14</span>Capstone: a verified compiler<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html"><span class="dd-n">&#9670;</span>Troubleshooting</a>
+<a href="glossary_EN.html"><span class="dd-n">&#9670;</span>Glossary</a></div></div>
+  
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#connectives"><span class="num">1</span><span class="side-t">Propositions and connectives</span></a><a href="#syntax"><span class="num">2</span><span class="side-t">The structure of formulas</span></a><a href="#truth-tables"><span class="num">3</span><span class="side-t">Truth tables</span></a><a href="#classify"><span class="num">4</span><span class="side-t">Tautologies, contradictions and satisfiable formulas</span></a><a href="#equivalence"><span class="num">5</span><span class="side-t">Logical equivalence and the laws</span></a><a href="#consequence"><span class="num">6</span><span class="side-t">Logical consequence and arguments</span></a><a href="#normal-forms"><span class="num">7</span><span class="side-t">Normal forms</span></a><a href="#sat"><span class="num">8</span><span class="side-t">Satisfiability and SAT solvers</span></a><a href="#requirements"><span class="num">9</span><span class="side-t">Requirements as propositional constraints</span></a><a href="#summary"><span class="num">10</span><span class="side-t">What you learned</span></a><a href="#exercises"><span class="num">11</span><span class="side-t">Exercises</span></a><a href="#quiz"><span class="num">12</span><span class="side-t">Check yourself</span></a></nav>
+<div class="sidebar-label">Reference</div><div class="side-links"><a href="cheatsheet_EN.html">Cheat sheet</a><a href="troubleshooting_EN.html">Troubleshooting</a><a href="glossary_EN.html">Glossary</a><a href="formal-methods-theories.zip">Theory files (ZIP)</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Formal Methods with Isabelle &middot; Part I · Foundations</div>
+      <h1 class="module-title"><span class="title-n">Module 2</span>Propositional logic</h1>
+      <p class="module-lead">Read and write formulas built with ¬, ∧, ∨, ⟶ and ⟷, decide with truth tables whether they are tautologies, equivalences or valid arguments, put them into normal forms, and use Isabelle to check requirements written as formulas.</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 210 min</span><span class="chip chip-needs">You need: Module 1</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Read and write formulas with ¬, ∧, ∨, ⟶ and ⟷, and know how Isabelle groups them</li><li>Compute truth tables and classify a formula as a tautology, a contradiction or contingent</li><li>Transform formulas with the equivalence laws and into the normal forms NNF, CNF and DNF</li><li>Tell valid argument forms from invalid ones, and show a counterexample for an invalid one</li><li>Write requirements as formulas, check that they are consistent and that a property follows from them</li><li>Prove tautologies in Isabelle with <code>simp</code>, <code>blast</code> and <code>auto</code>, and find counterexamples with <code>quickcheck</code> and <code>nitpick</code></li></ul></section>
+<div class="content">
+<span class="section-anchor" id="connectives"></span>
+<div class="section-header"><span class="section-num">1</span><h2>Propositions and connectives</h2></div>
+<p>Module 1 wrote the specification of sorting with an “and” in the middle: sorted ys ∧ mset ys = mset xs.
+Requirements are full of such small words: <em>not</em>, <em>and</em>, <em>or</em>, <em>if … then</em>, <em>only if</em>, <em>unless</em>. Each
+builds a larger statement from smaller ones, and whether the larger one is true depends only on whether
+the smaller ones are. <strong>Propositional logic</strong> is the logic of these words. It is the simplest logic in
+this series, and already a useful one: SAT solvers, programs that decide questions of propositional
+logic, check hardware designs and software configurations every day. Every later logic, Isabelle’s
+included, contains it.</p>
+<p>One example runs through this module: the controller of a server-room door, which reads a badge reader,
+a PIN pad, the fire alarm and a lockdown switch, and decides whether to unlock the door.</p>
+<div class="box box-definition"><div class="box-label">Definition 2.1<span class="box-title">Proposition</span></div>
+<p>A <strong>proposition</strong> is a statement that is either true or false. An <strong>atomic proposition</strong>, or <strong>atom</strong>,
+is one that is not built from other propositions. In formulas, atoms are names such as A, B or <code>fire</code>.
+Propositional logic never looks inside an atom: all it uses is whether the atom is true or false.</p>
+</div>
+<p>For the door, “the fire alarm is on” and “a valid badge is shown” are atoms. A command such as “unlock
+the door” is not a proposition, and neither is “x &gt; 3” until you know what x is; statements about
+variables are the subject of Module 3. Five <strong>connectives</strong> build larger propositions from smaller ones.</p>
+<div class="box box-definition"><div class="box-label">Definition 2.2<span class="box-title">Connectives</span></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Formula</th>
+<th>Read it as</th>
+<th>Name</th>
+<th>True exactly when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¬A</td>
+<td>“not A”</td>
+<td>negation</td>
+<td>A is false</td>
+</tr>
+<tr>
+<td>A ∧ B</td>
+<td>“A and B”</td>
+<td>conjunction</td>
+<td>A and B are both true</td>
+</tr>
+<tr>
+<td>A ∨ B</td>
+<td>“A or B”</td>
+<td>disjunction</td>
+<td>at least one of A and B is true</td>
+</tr>
+<tr>
+<td>A ⟶ B</td>
+<td>“A implies B”, “if A then B”</td>
+<td>implication</td>
+<td>A is false, or B is true</td>
+</tr>
+<tr>
+<td>A ⟷ B</td>
+<td>“A if and only if B”</td>
+<td>equivalence</td>
+<td>A and B are both true, or both false</td>
+</tr>
+</tbody>
+</table></div>
+<p>There are also two constants: <code>True</code>, which is always true, and <code>False</code>, which is always false. In
+A ⟶ B, A is the <strong>antecedent</strong> and B the <strong>consequent</strong>.</p>
+</div>
+<p>Section 2.3 makes the last column exact. In Isabelle/jEdit you type the symbols with the abbreviations
+from Module 1: <code>~</code> for ¬, <code>&amp;</code> for ∧, <code>|</code> for ∨, <code>--&gt;</code> for ⟶ and <code>&lt;--&gt;</code> for ⟷.</p>
+<h3 id="english">From English to formulas</h3>
+<p>English has many ways to express each connective:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>English</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>not A; it is not the case that A</td>
+<td>¬A</td>
+</tr>
+<tr>
+<td>A and B; A but B; A although B</td>
+<td>A ∧ B</td>
+</tr>
+<tr>
+<td>A or B (or both)</td>
+<td>A ∨ B</td>
+</tr>
+<tr>
+<td>either A or B, but not both</td>
+<td>¬(A ⟷ B)</td>
+</tr>
+<tr>
+<td>neither A nor B</td>
+<td>¬A ∧ ¬B</td>
+</tr>
+<tr>
+<td>if A then B; B if A; B whenever A; A only if B</td>
+<td>A ⟶ B</td>
+</tr>
+<tr>
+<td>A is sufficient for B; B is necessary for A</td>
+<td>A ⟶ B</td>
+</tr>
+<tr>
+<td>A unless B</td>
+<td>¬B ⟶ A, which says the same as A ∨ B</td>
+</tr>
+<tr>
+<td>A if and only if B; A exactly when B</td>
+<td>A ⟷ B</td>
+</tr>
+</tbody>
+</table></div>
+<p>Two entries deserve a second look. <strong>Or</strong> is inclusive in logic: A ∨ B is true when both A and B are
+true, whereas the “or” of “tea or coffee?” means one but not both, which is <em>exclusive or</em>, ¬(A ⟷ B).
+And <strong>but</strong> adds a contrast that logic ignores: “the badge is valid but the door stays shut” is
+<code>badge ∧ ¬ opens</code>.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>“A only if B” is A ⟶ B, not B ⟶ A. “The door opens only if the badge is valid” says that whenever the
+door opens, the badge was valid: <code>opens ⟶ badge</code>. It does not say that a valid badge opens the door;
+that would be <code>badge ⟶ opens</code>, “the door opens if the badge is valid”. A requirement with “only if”
+limits what the system may do; it never forces the system to act.</p>
+</div>
+<div class="box box-example"><div class="box-label">Example 2.1<span class="box-title">Formalising an access rule</span></div>
+<p>The security team’s first requirement reads: <em>“The door opens only if a valid badge is shown and the
+correct PIN is entered, unless the fire alarm is on.”</em> Choose an atom for each basic statement:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Atom</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>opens</code></td>
+<td>the door unlocks</td>
+</tr>
+<tr>
+<td><code>badge</code></td>
+<td>a valid badge is shown</td>
+</tr>
+<tr>
+<td><code>pin</code></td>
+<td>the correct PIN is entered</td>
+</tr>
+<tr>
+<td><code>fire</code></td>
+<td>the fire alarm is on</td>
+</tr>
+</tbody>
+</table></div>
+<p>“The door opens only if a valid badge is shown and the correct PIN is entered” is
+<code>opens ⟶ badge ∧ pin</code>, and “X unless F” is ¬F ⟶ X, so the requirement is</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">¬</mi><mrow><mi>f</mi><mi>i</mi><mi>r</mi><mi>e</mi></mrow><mo>⟶</mo><mo stretchy="false">(</mo><mrow><mi>o</mi><mi>p</mi><mi>e</mi><mi>n</mi><mi>s</mi></mrow><mo>⟶</mo><mrow><mi>b</mi><mi>a</mi><mi>d</mi><mi>g</mi><mi>e</mi></mrow><mo>∧</mo><mrow><mi>p</mi><mi>i</mi><mi>n</mi></mrow><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\lnot \mathit{fire} \imp (\mathit{opens} \imp \mathit{badge} \land \mathit{pin})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord">¬</span><span class="mord"><span class="mord mathit">fire</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">opens</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">badge</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">pin</span></span><span class="mclose">)</span></span></span></span></span></div>
+<p>An equally natural reading is “the door may open only when there is a valid badge and the right PIN, or
+a fire”:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi>o</mi><mi>p</mi><mi>e</mi><mi>n</mi><mi>s</mi></mrow><mo>⟶</mo><mrow><mi>b</mi><mi>a</mi><mi>d</mi><mi>g</mi><mi>e</mi></mrow><mo>∧</mo><mrow><mi>p</mi><mi>i</mi><mi>n</mi></mrow><mo>∨</mo><mrow><mi>f</mi><mi>i</mi><mi>r</mi><mi>e</mi></mrow></mrow><annotation encoding="application/x-tex">\mathit{opens} \imp \mathit{badge} \land \mathit{pin} \lor \mathit{fire}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7054em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">opens</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">badge</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8498em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">pin</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">fire</span></span></span></span></span></span></div>
+<p>The two formulas look different but say the same thing, as Exercise 2.3 shows. Notice what the
+requirement does <em>not</em> say: that a valid badge with the right PIN does open the door. “Only if” states a
+necessary condition, so another requirement must say when the door has to open.</p>
+</div>
+<span class="section-anchor" id="syntax"></span>
+<div class="section-header"><span class="section-num">2</span><h2>The structure of formulas</h2></div>
+<p>To evaluate formulas, transform them or let a computer check them, you need to know exactly what counts
+as a formula and how each one is put together.</p>
+<h3 id="formation">Formation rules</h3>
+<div class="box box-definition"><div class="box-label">Definition 2.3<span class="box-title">Formula</span></div>
+<p>The <strong>formulas</strong> of propositional logic are built by these rules, and only by them:</p>
+<ol>
+<li>Every atom is a formula, and so are <code>True</code> and <code>False</code>.</li>
+<li>If φ is a formula, then ¬φ is a formula.</li>
+<li>If φ and ψ are formulas, then (φ ∧ ψ), (φ ∨ ψ), (φ ⟶ ψ) and (φ ⟷ ψ) are formulas.</li>
+</ol>
+</div>
+<p>The Greek letters φ (“phi”) and ψ (“psi”) stand for any formulas, not only atoms. For example, A, B and C
+are formulas by rule 1, so ¬A is a formula by rule 2, (¬A ∧ B) by rule 3, and ((¬A ∧ B) ⟶ C) by rule 3
+again. A ∧ ∨ B and A ¬ B are not formulas: no rule produces them. A definition of this shape, with basic
+cases and rules that build larger objects from smaller ones, is an <strong>inductive definition</strong>. In Module 5
+such definitions support proofs by induction and become datatypes in Isabelle.</p>
+<p>Every formula remembers how it was built. Draw the last rule used as the root of a tree and the parts it
+combined as its children, and repeat for the parts: the result is the formula’s <strong>parse tree</strong>
+(Figure 2.1).</p>
+<figure class="fig" id="fig-02-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="760" height="340" role="img"><title>Parse tree of a requirement</title><defs></defs><line x1="262" y1="62" x2="112" y2="150" stroke="#94A3B8" stroke-width="2"/><line x1="262" y1="62" x2="372" y2="150" stroke="#94A3B8" stroke-width="2"/><line x1="372" y1="150" x2="282" y2="235" stroke="#94A3B8" stroke-width="2"/><line x1="372" y1="150" x2="462" y2="235" stroke="#94A3B8" stroke-width="2"/><line x1="282" y1="235" x2="207" y2="315" stroke="#94A3B8" stroke-width="2"/><line x1="282" y1="235" x2="357" y2="315" stroke="#94A3B8" stroke-width="2"/><circle cx="262" cy="62" r="19" fill="#F0F9FF" stroke="#2563EB" stroke-width="2"/><text x="262" y="68" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="17" font-weight="700" fill="#1A2E4A" text-anchor="middle">⟶</text><circle cx="282" cy="45" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="282" y="49" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><rect x="80.5" y="135" width="63" height="30" rx="8" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="1.6"/><text x="112" y="155" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">opens</text><circle cx="145.5" cy="135" r="10" fill="#DCFCE7" stroke="#15803D" stroke-width="1.6"/><text x="145.5" y="139" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">T</text><circle cx="372" cy="150" r="19" fill="#F0F9FF" stroke="#2563EB" stroke-width="2"/><text x="372" y="156" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="17" font-weight="700" fill="#1A2E4A" text-anchor="middle">∨</text><circle cx="392" cy="133" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="392" y="137" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><circle cx="282" cy="235" r="19" fill="#F0F9FF" stroke="#2563EB" stroke-width="2"/><text x="282" y="241" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="17" font-weight="700" fill="#1A2E4A" text-anchor="middle">∧</text><circle cx="302" cy="218" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="302" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><rect x="434.5" y="220" width="55" height="30" rx="8" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="1.6"/><text x="462" y="240" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">fire</text><circle cx="491.5" cy="220" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="491.5" y="224" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><rect x="175.5" y="300" width="63" height="30" rx="8" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="1.6"/><text x="207" y="320" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">badge</text><circle cx="240.5" cy="300" r="10" fill="#DCFCE7" stroke="#15803D" stroke-width="1.6"/><text x="240.5" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">T</text><rect x="333.5" y="300" width="47" height="30" rx="8" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="1.6"/><text x="357" y="320" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">pin</text><circle cx="382.5" cy="300" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="382.5" y="304" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><text x="262" y="28" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#475569" text-anchor="middle">opens ⟶ badge ∧ pin ∨ fire</text><text x="404" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">badge ∧ pin ∨ fire</text><text x="252" y="240" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#475569" text-anchor="end">badge ∧ pin</text><text x="224" y="70" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#2563EB" text-anchor="end" font-style="italic">main connective</text><rect x="556" y="20" width="190" height="300" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="578" y="46" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#1A2E4A" text-anchor="start">One situation</text><text x="580" y="76" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">opens =</text><circle cx="668" cy="72" r="10" fill="#DCFCE7" stroke="#15803D" stroke-width="1.6"/><text x="668" y="76" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">T</text><text x="580" y="103" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">badge =</text><circle cx="668" cy="99" r="10" fill="#DCFCE7" stroke="#15803D" stroke-width="1.6"/><text x="668" y="103" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">T</text><text x="580" y="130" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">pin =</text><circle cx="668" cy="126" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="668" y="130" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><text x="580" y="157" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">fire =</text><circle cx="668" cy="153" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="668" y="157" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><line x1="578" y1="184" x2="728" y2="184" stroke="#CBD5E1" stroke-width="1.2"/><text x="578" y="208" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="600" fill="#1A2E4A" text-anchor="start">Value of the formula</text><circle cx="590" cy="232" r="10" fill="#FEE2E2" stroke="#DC2626" stroke-width="1.6"/><text x="590" y="236" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">F</text><text x="608" y="236" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#DC2626" text-anchor="start" font-style="italic">requirement broken</text><text x="578" y="268" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">Work from the leaves up:</text><text x="578" y="284" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">each connective combines</text><text x="578" y="300" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">the values of its children.</text></svg>
+</div><figcaption><span class="fig-num">Figure 2.1</span> <p>The parse tree of <code>opens ⟶ badge ∧ pin ∨ fire</code>. Each inner node is a connective, and each node stands
+for the sub-formula written beside it. The T and F labels evaluate the formula for one situation, as
+Section 2.3 explains.</p>
+</figcaption></figure>
+<div class="box box-definition"><div class="box-label">Definition 2.4<span class="box-title">Sub-formula and main connective</span></div>
+<p>The <strong>sub-formulas</strong> of a formula are the formulas at the nodes of its parse tree, the formula itself
+included. The <strong>main connective</strong> is the connective at the root. A formula is named after its main
+connective: ¬(A ∧ B) is a negation, while ¬A ∧ B is a conjunction.</p>
+</div>
+<p>In Figure 2.1 the main connective is ⟶, so the requirement is an implication. Its sub-formulas are the
+four atoms, <code>badge ∧ pin</code>, <code>badge ∧ pin ∨ fire</code> and the whole formula.</p>
+<h3 id="priorities">Priorities and grouping</h3>
+<p>Rule 3 puts parentheses around every binary connective, so that each formula has exactly one parse
+tree. But the parentheses make formulas hard to read: the door requirement would be
+(opens ⟶ ((badge ∧ pin) ∨ fire)). School algebra solves the same problem with a convention: × binds more
+tightly than +, so 2 + 3 × 4 means 2 + (3 × 4). Logic has the same kind of convention: each connective
+has a <strong>priority</strong>, and a higher priority binds more tightly. In Isabelle, the binary connectives also
+<strong>group to the right</strong>:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Connective</th>
+<th>Priority in Isabelle</th>
+<th>Grouping</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¬</td>
+<td>40</td>
+<td>(applies to what follows)</td>
+</tr>
+<tr>
+<td>∧</td>
+<td>35</td>
+<td>to the right</td>
+</tr>
+<tr>
+<td>∨</td>
+<td>30</td>
+<td>to the right</td>
+</tr>
+<tr>
+<td>⟶</td>
+<td>25</td>
+<td>to the right</td>
+</tr>
+<tr>
+<td>⟷</td>
+<td>25</td>
+<td>to the right</td>
+</tr>
+</tbody>
+</table></div>
+<p>The numbers are Isabelle’s own. In the library theory <code>HOL.thy</code>, where the connectives are introduced,
+∧ is declared <code>infixr 35</code> (“infix, grouping to the right, priority 35”), ∨ <code>infixr 30</code>, ⟶ and ⟷
+<code>infixr 25</code>, and ¬ has priority 40. So:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>It means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¬A ∧ B</td>
+<td>(¬A) ∧ B</td>
+</tr>
+<tr>
+<td>A ∧ B ∨ C</td>
+<td>(A ∧ B) ∨ C</td>
+</tr>
+<tr>
+<td>A ∨ B ∧ C</td>
+<td>A ∨ (B ∧ C)</td>
+</tr>
+<tr>
+<td>A ∧ B ⟶ C</td>
+<td>(A ∧ B) ⟶ C</td>
+</tr>
+<tr>
+<td>A ⟶ B ⟶ C</td>
+<td>A ⟶ (B ⟶ C)</td>
+</tr>
+<tr>
+<td>A ⟶ B ⟷ C</td>
+<td>A ⟶ (B ⟷ C)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Grouping to the right suits implication: A ⟶ (B ⟶ C) reads “if A, then if B, then C”, which says the
+same as “if A and B, then C”, while (A ⟶ B) ⟶ C is rarely what anyone means. For ∧ and ∨ the grouping
+changes the parse tree but not the meaning (Section 2.5).</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<ul>
+<li>¬A ∧ B is (¬A) ∧ B. To negate the whole conjunction, write ¬(A ∧ B).</li>
+<li>⟶ and ⟷ have the same priority, so A ⟶ B ⟷ C means A ⟶ (B ⟷ C). Books and tools differ here; some
+give ⟷ a lower priority than ⟶ and read the same text as (A ⟶ B) ⟷ C. Whenever you mix ⟶ and ⟷,
+write the parentheses.</li>
+</ul>
+</div>
+<div class="box box-isabelle"><div class="box-label">Check it in Isabelle</div>
+<p>Isabelle prints a formula with only the parentheses its priorities need, so it can show you how it read
+yours. <code>value</code>, which you met in Module 1, cannot compute a truth value for a formula with variables;
+for formulas like these, it prints the formula back. Put the cursor on each line in turn:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(¬ A) ∧ (B ⟶ C)&quot;
+value &quot;A ⟶ (B ⟶ C)&quot;
+value &quot;(A ⟶ B) ⟶ C&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(¬ A) ∧ (B ⟶ C)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;A ⟶ (B ⟶ C)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(A ⟶ B) ⟶ C&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;¬ A ∧ (B ⟶ C)&quot;
+  :: &quot;bool&quot;
+
+&quot;A ⟶ B ⟶ C&quot;
+  :: &quot;bool&quot;
+
+&quot;(A ⟶ B) ⟶ C&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>Isabelle dropped the parentheses that the priorities make unnecessary and kept those that change the
+meaning. The type <code>bool</code> in the output is the type of formulas: in Isabelle a formula is a term of type
+<code>bool</code>, whose only two values are <code>True</code> and <code>False</code>. One more example holds a surprise:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;A ⟶ (B ⟷ C)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;A ⟶ (B ⟷ C)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;A ⟶ B = C&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>Isabelle prints ⟷ as <code>=</code>. For truth values, “if and only if” is equality: A ⟷ B holds exactly when A
+and B have the same value. The equals sign binds more tightly than every connective (its priority is
+50), so <code>A ⟶ B = C</code> means A ⟶ (B ⟷ C). In Isabelle’s output, read <code>=</code> between two formulas as ⟷;
+Module 3 says more about the two.</p>
+</div>
+<span class="section-anchor" id="truth-tables"></span>
+<div class="section-header"><span class="section-num">3</span><h2>Truth tables</h2></div>
+<p>The connectives table in Section 2.1 described each connective in words. Truth tables make the
+descriptions exact.</p>
+<div class="box box-definition"><div class="box-label">Definition 2.5<span class="box-title">Valuation</span></div>
+<p>A <strong>valuation</strong> assigns a truth value, T (true) or F (false), to each atom. A valuation gives every
+formula a truth value: an atom gets its value from the valuation, <code>True</code> is T, <code>False</code> is F, and each
+connective combines the values of its parts according to its truth table below.</p>
+</div>
+<p>Here are the truth tables of all the connectives in one table. Each row is one valuation of A and B, and
+each column gives the value of one formula in that row.</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>¬A</th><th>A ∧ B</th><th>A ∨ B</th><th>A ⟶ B</th><th class="tt-main">A ⟷ B</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">Satisfiable but not valid: true in 2 rows.</p></div>
+<p>The tables on these pages are computed from their formulas when the page is built, so they contain no
+slips. They list the atoms in alphabetical order, start with the row in which every atom is T, and end
+with a line that classifies the last column; Section 2.4 explains the words.</p>
+<p>The column for A ⟶ B surprises most people. An implication is false in exactly one row: when its
+antecedent is true and its consequent false. When A is false, A ⟶ B is true whatever B is; it is then
+said to be <strong>vacuously true</strong>.</p>
+<div class="callout analogy"><div class="callout-label">Think of it like this</div>
+<p>Think of A ⟶ B as a promise: “if you pass the exam, I will buy you dinner”. The promise is broken only
+if you pass and I do not buy dinner. If you fail the exam, I have kept my promise whether I buy dinner
+or not.</p>
+</div>
+<p>For specifications this is what you want. The rule “during a lockdown, the door stays shut”,
+<code>lockdown ⟶ ¬ opens</code>, constrains the door only during a lockdown; on an ordinary day it holds whatever
+the door does. Nor is implication about cause: “if 2 + 2 = 5, the door is open” is true, because its
+antecedent is false.</p>
+<p>To find the value of a formula under a valuation, work up its parse tree from the atoms, applying the
+table of each connective on the way.</p>
+<div class="box box-example"><div class="box-label">Example 2.2<span class="box-title">Evaluating the door requirement</span></div>
+<p>Someone shows a valid badge, types the wrong PIN, there is no fire, and the door opens. The valuation is
+opens = T, badge = T, pin = F, fire = F. Work up the tree of Figure 2.1:</p>
+<ol>
+<li><code>badge ∧ pin</code> is T ∧ F, which is F.</li>
+<li><code>badge ∧ pin ∨ fire</code> is F ∨ F, which is F.</li>
+<li><code>opens ⟶ badge ∧ pin ∨ fire</code> is T ⟶ F, which is F.</li>
+</ol>
+<p>The requirement is false in this situation: the controller has broken it. The labels in Figure 2.1 show
+the same computation.</p>
+</div>
+<div class="box box-definition"><div class="box-label">Definition 2.6<span class="box-title">Truth table</span></div>
+<p>The <strong>truth table</strong> of a formula has one row for each valuation of its atoms and gives the formula’s
+value in each row. A formula with n atoms has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> rows, because each atom can be T or F independently
+of the others.</p>
+</div>
+<div class="box box-example"><div class="box-label">Example 2.3<span class="box-title">A truth table</span></div>
+<p>Here is the truth table of <code>opens ⟶ badge ∧ pin</code>, the first requirement without its fire exception,
+with a column for the sub-formula <code>badge ∧ pin</code>:</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">badge</th><th class="tt-atom">opens</th><th class="tt-atom">pin</th><th>badge ∧ pin</th><th class="tt-main">opens ⟶ badge ∧ pin</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">Satisfiable but not valid: true in 5 rows.</p></div>
+<p>The formula is false in exactly three rows: those in which the door opens without both a valid badge and
+the right PIN.</p>
+</div>
+<p>Truth tables always work, but they grow fast. The full door requirement, with <code>fire</code>, has 16 rows; ten
+atoms give 1,024 rows, twenty more than a million, and thirty more than a billion. Section 2.8 returns
+to this problem.</p>
+<div class="widget-wrap"><div class="widget-label">Try it</div><div class="widget" data-widget="truth-table"></div><div class="widget-caption">
+<p>Type a formula, with symbols or in ASCII (<code>~ &amp; | --&gt; &lt;--&gt;</code>); the table updates as you type. Start with
+the full door requirement, <code>opens --&gt; badge &amp; pin | fire</code>: in how many rows is it false, and why? Then try
+the presets, and switch to <strong>Compare</strong> to see whether two formulas have the same truth table.</p>
+</div></div>
+<div class="box box-isabelle"><div class="box-label">Check it in Isabelle</div>
+<p>A valuation turns a formula into one without variables: replace each atom by <code>True</code> or <code>False</code>. <code>value</code>
+computes such a formula, and its result is one row of the truth table. Here is the row of Example 2.2,
+with opens = T, badge = T, pin = F and fire = F:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;True ⟶ True ∧ False ∨ False&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;True ⟶ True ∧ False ∨ False&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;False&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>With variables, <code>value</code> does not try the valuations for you. It prints the formula back, even when the
+formula is true in every row:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;A ∨ ¬ A&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;A ∨ ¬ A&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>To show that a formula is true in every row you need a proof, the subject of the next section.</p>
+</div>
+<span class="section-anchor" id="classify"></span>
+<div class="section-header"><span class="section-num">4</span><h2>Tautologies, contradictions and satisfiable formulas</h2></div>
+<p>Some formulas are true in every row of their truth table, some in none. These two extremes, and the
+formulas between them, are the central ideas of propositional logic.</p>
+<div class="box box-definition"><div class="box-label">Definition 2.7<span class="box-title">Tautology, satisfiable, contradiction</span></div>
+<p>Let φ be a formula.</p>
+<ul>
+<li>φ is a <strong>tautology</strong>, or <strong>valid</strong>, if it is true under every valuation: every row of its truth table
+is T.</li>
+<li>φ is <strong>satisfiable</strong> if it is true under at least one valuation. A valuation that makes φ true
+<strong>satisfies</strong> φ and is called a <strong>model</strong> of φ.</li>
+<li>φ is a <strong>contradiction</strong>, or <strong>unsatisfiable</strong>, if it is true under no valuation.</li>
+<li>φ is <strong>contingent</strong> if it is satisfiable but not a tautology. A valuation that makes φ false is a
+<strong>counterexample</strong> to φ.</li>
+</ul>
+</div>
+<p>The verdicts under the computed tables use these words, with “Satisfiable but not valid” for a
+contingent formula. The simplest tautology is the <strong>law of excluded middle</strong>: every proposition is true
+or false.</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th>¬A</th><th class="tt-main">A ∨ ¬A</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">Tautology: true in every row.</p></div>
+<p>Its opposite is the simplest contradiction:</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th>¬A</th><th class="tt-main">A ∧ ¬A</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr></tbody></table></div><p class="tt-verdict">Contradiction: false in every row.</p></div>
+<p>The requirement of Example 2.3 is contingent: three rows are counterexamples and the others satisfy it.
+Figure 2.2 shows how the classes fit together.</p>
+<figure class="fig" id="fig-02-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 352" width="760" height="352" role="img"><title>Tautologies, contingent formulas and contradictions</title><defs><marker id="fig-02-2__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><rect x="14" y="14" width="732" height="324" rx="16" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="32" y="40" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#475569" text-anchor="start">All formulas</text><rect x="34" y="56" width="468" height="216" rx="14" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="52" y="80" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#2563EB" text-anchor="start">Satisfiable</text><text x="156.6" y="80" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#2563EB" text-anchor="start" font-style="italic">true in at least one row</text><rect x="52" y="96" width="200" height="160" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="68" y="120" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#15803D" text-anchor="start">Tautologies</text><text x="68" y="138" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#15803D" text-anchor="start" font-style="italic">true in every row</text><text x="68" y="170" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">A ∨ ¬A</text><text x="68" y="194" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">A ⟶ A</text><text x="68" y="218" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">((A ⟶ B) ⟶ A) ⟶ A</text><text x="272" y="120" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="start">Contingent</text><text x="272" y="138" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">true in some rows,</text><text x="272" y="154" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">false in others</text><text x="272" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">A ⟶ B</text><text x="272" y="209" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">A ∧ B</text><text x="272" y="232" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">opens ⟶ badge ∧ pin ∨ fire</text><rect x="522" y="56" width="206" height="216" rx="14" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.8"/><text x="538" y="80" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#DC2626" text-anchor="start">Contradictions</text><text x="538" y="98" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#DC2626" text-anchor="start" font-style="italic">true in no row</text><text x="538" y="114" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#DC2626" text-anchor="start" font-style="italic">(unsatisfiable)</text><text x="538" y="170" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">A ∧ ¬A</text><text x="538" y="194" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">False</text><text x="538" y="218" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">(A ⟶ B) ∧ A ∧ ¬B</text><path d="M 400 306 H 152 V 260" stroke="#6D28D9" stroke-width="2" fill="none" marker-end="url(#fig-02-2__ah-6D28D9)"/><path d="M 400 306 H 625 V 276" stroke="#6D28D9" stroke-width="2" fill="none" marker-end="url(#fig-02-2__ah-6D28D9)"/><circle cx="400" cy="306" r="15" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.8"/><text x="400" y="312" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="16" font-weight="700" fill="#6D28D9" text-anchor="middle">¬</text><text x="424" y="326" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="start">¬ swaps these two classes</text><text x="272" y="261" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#6D28D9" text-anchor="start" font-style="italic">¬ keeps a contingent formula contingent</text></svg>
+</div><figcaption><span class="fig-num">Figure 2.2</span> <p>Every formula is in exactly one of three classes. The satisfiable formulas include the tautologies.
+Negation turns each tautology into a contradiction and back, and turns contingent formulas into
+contingent formulas.</p>
+</figcaption></figure>
+<div class="box box-fact"><div class="box-label">Fact 2.1<span class="box-title">Negation and the three classes</span></div>
+<p>For every formula φ:</p>
+<ol>
+<li>φ is a tautology if and only if ¬φ is a contradiction.</li>
+<li>φ is satisfiable if and only if ¬φ is not a tautology.</li>
+</ol>
+</div>
+<p>The reason is that ¬ flips every row of the truth table. Fact 2.1 turns one question into another: to
+show that φ is a tautology, show that ¬φ has no model; to find a model of φ, look for a counterexample to
+¬φ. SAT solvers and Isabelle’s Nitpick both rely on it (Sections 2.8 and 2.9).</p>
+<div class="box box-example"><div class="box-label">Example 2.4<span class="box-title">Peirce’s law</span></div>
+<p>Is ((A ⟶ B) ⟶ A) ⟶ A a tautology? Looking at it does not tell you. The truth table does:</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟶ B</th><th>(A ⟶ B) ⟶ A</th><th class="tt-main">((A ⟶ B) ⟶ A) ⟶ A</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">Tautology: true in every row.</p></div>
+<p>Every row is T. The formula is called Peirce’s law, after the logician Charles Sanders Peirce.</p>
+</div>
+<div class="box box-isabelle"><div class="box-label">Check it in Isabelle</div>
+<p><strong>Tautologies are lemmas.</strong> When a lemma contains variables, Isabelle reads it as a claim about every
+value of the variables, as with <code>xs</code> in Module 1. In a formula, Isabelle infers from the connectives
+that the variables have type <code>bool</code>, so the claim is that the formula is true for every combination of
+<code>True</code> and <code>False</code>: proving the lemma shows that the formula is a tautology.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ ¬ A&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ ¬ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∨ ¬ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by simp">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>Three proof methods prove tautologies:</p>
+<ul>
+<li><code>simp</code>, the simplifier from Module 1, rewrites the goal with equations it knows until it becomes
+<code>True</code>.</li>
+<li><code>blast</code> searches for a proof: it takes the formula apart, considers cases and backtracks when a
+choice leads nowhere. It either proves the goal completely or fails.</li>
+<li><code>auto</code> combines the simplifier with logical steps of the kind <code>blast</code> takes, and leaves behind what it
+cannot prove.</li>
+</ul>
+<p>Rewriting is not enough for every tautology. Peirce’s law defeats <code>simp</code>:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ A) ⟶ A&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. ((A ⟶ B) ⟶ A) ⟶ A</span></code></pre></div>
+<p>“Failed to apply initial proof method” means that <code>simp</code> could not even start: none of its equations
+applies to the goal. <code>blast</code> proves it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;((A ⟶ B) ⟶ A) ⟶ A&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ A) ⟶ A&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>So a failed proof does not mean that the formula is false. In this module, when <code>simp</code> fails, try
+<code>blast</code> or <code>auto</code>; Module 9 explains what each method can and cannot do.</p>
+</div>
+<p>What happens when the formula is not a tautology? Take A ⟶ B ⟶ A ∧ B ∧ C, which claims too much: from
+A and B it concludes not only A ∧ B but also C.</p>
+<div class="box box-isabelle"><div class="box-label">Check it in Isabelle</div>
+<p>Every proof method fails, each in its own way. <code>simp</code> gets as far as it can and shows what is left:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ B ⟶ A ∧ B ∧ C&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. A ⟶ B ⟶ C</span></code></pre></div>
+<p>The remaining goal, A ⟶ B ⟶ C, shows what is missing: nothing says that C holds. <code>blast</code> fails with
+“Failed to apply initial proof method”, as above, because it never leaves a partial result. <code>auto</code> shows
+its remaining goal in a different notation:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ B ⟶ A ∧ B ∧ C&quot;</span>
+  <span class="isa-proof">by</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ⟦A; B⟧ ⟹ C</span></code></pre></div>
+<p>Read ⟦A; B⟧ ⟹ C as “assuming A and B, show C”; Module 7 explains this notation.</p>
+<p>A failed proof cannot tell you whether the formula is false. To find out, ask for a counterexample with
+one of Isabelle’s two tools for this, Quickcheck and Nitpick:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ⟶ B ⟶ A ∧ B ∧ C&quot;
+  quickcheck">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ B ⟶ A ∧ B ∧ C&quot;</span>
+  <span class="isa-cmd">quickcheck</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  A = True
+  B = True
+  C = False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  nitpick">Copy</button></div><pre class="isa-body"><code>  <span class="isa-cmd">nitpick</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    A = True
+    B = True
+    C = False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>Both found the same counterexample: A and B true, C false. In that row the formula is T ⟶ T ⟶ F, which
+is F. Quickcheck <em>tests</em>: it evaluates the formula for one valuation after another until one makes it
+false. Nitpick <em>searches</em>: it translates the question into a satisfiability problem for a SAT solver
+(Section 2.8). For propositional formulas both answer at once. On a tautology both come back
+empty-handed, with “Quickcheck found no counterexample.” and “Nitpick found no counterexample”.
+Isabelle/jEdit runs Quickcheck automatically on every new lemma, as you saw in Module 1; Nitpick runs
+only when you call it.</p>
+</div>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>A proof shows that a formula is a tautology; a counterexample shows that it is not. A failed proof shows
+neither, because the method may have been too weak, and “no counterexample found” is not a proof. In
+Isabelle a question is settled only when <code>by …</code> succeeds or a counterexample appears.</p>
+</div>
+<span class="section-anchor" id="equivalence"></span>
+<div class="section-header"><span class="section-num">5</span><h2>Logical equivalence and the laws</h2></div>
+<p>A ⟶ B and ¬A ∨ B look different, yet they have the same truth table. Programmers meet the same question
+whenever they rewrite a condition: is the new <code>if</code> test the same as the old one?</p>
+<div class="box box-definition"><div class="box-label">Definition 2.8<span class="box-title">Logical equivalence</span></div>
+<p>Two formulas φ and ψ are <strong>logically equivalent</strong>, written φ ≡ ψ and read “φ is equivalent to ψ”, if
+they have the same truth value under every valuation.</p>
+</div>
+<p>The symbol ≡ is not a connective. φ ≡ ψ is a statement <em>about</em> two formulas, made outside the logic, like
+“these two programs compute the same function”; the connective ⟷ lives inside formulas. The two are
+linked:</p>
+<div class="box box-fact"><div class="box-label">Fact 2.2<span class="box-title">Equivalence and ⟷</span></div>
+<p>φ ≡ ψ if and only if φ ⟷ ψ is a tautology.</p>
+</div>
+<p>This holds because φ ⟷ ψ is true in a row exactly when φ and ψ have the same value there. So a truth
+table with a column for each side checks an equivalence. Here is A ⟶ B ≡ ¬A ∨ B:</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟶ B</th><th>¬A ∨ B</th><th class="tt-main">(A ⟶ B) ⟷ ¬A ∨ B</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">Tautology: true in every row.</p></div>
+<p>A small set of equivalences, the <strong>laws</strong> of propositional logic, does most of the everyday work. Each
+can be checked with a truth table like the one above.</p>
+<div class="box box-fact"><div class="box-label">Fact 2.3<span class="box-title">Laws of equivalence</span></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Law</th>
+<th>Equivalences</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Double negation</td>
+<td>¬¬A ≡ A</td>
+</tr>
+<tr>
+<td>De Morgan</td>
+<td>¬(A ∧ B) ≡ ¬A ∨ ¬B;  ¬(A ∨ B) ≡ ¬A ∧ ¬B</td>
+</tr>
+<tr>
+<td>Commutativity</td>
+<td>A ∧ B ≡ B ∧ A;  A ∨ B ≡ B ∨ A</td>
+</tr>
+<tr>
+<td>Associativity</td>
+<td>(A ∧ B) ∧ C ≡ A ∧ (B ∧ C);  (A ∨ B) ∨ C ≡ A ∨ (B ∨ C)</td>
+</tr>
+<tr>
+<td>Distributivity</td>
+<td>A ∧ (B ∨ C) ≡ (A ∧ B) ∨ (A ∧ C);  A ∨ (B ∧ C) ≡ (A ∨ B) ∧ (A ∨ C)</td>
+</tr>
+<tr>
+<td>Idempotence</td>
+<td>A ∧ A ≡ A;  A ∨ A ≡ A</td>
+</tr>
+<tr>
+<td>Absorption</td>
+<td>A ∧ (A ∨ B) ≡ A;  A ∨ (A ∧ B) ≡ A</td>
+</tr>
+<tr>
+<td>Identity</td>
+<td>A ∧ True ≡ A;  A ∨ False ≡ A</td>
+</tr>
+<tr>
+<td>Domination</td>
+<td>A ∧ False ≡ False;  A ∨ True ≡ True</td>
+</tr>
+<tr>
+<td>Complement</td>
+<td>A ∧ ¬A ≡ False;  A ∨ ¬A ≡ True</td>
+</tr>
+<tr>
+<td>Implication</td>
+<td>A ⟶ B ≡ ¬A ∨ B</td>
+</tr>
+<tr>
+<td>Contrapositive</td>
+<td>A ⟶ B ≡ ¬B ⟶ ¬A</td>
+</tr>
+<tr>
+<td>Negated implication</td>
+<td>¬(A ⟶ B) ≡ A ∧ ¬B</td>
+</tr>
+<tr>
+<td>Exportation</td>
+<td>A ∧ B ⟶ C ≡ A ⟶ B ⟶ C</td>
+</tr>
+<tr>
+<td>Equivalence</td>
+<td>A ⟷ B ≡ (A ⟶ B) ∧ (B ⟶ A)</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>The laws are stated with atoms, but they hold for all formulas, and they can be used inside larger
+formulas:</p>
+<div class="box box-fact"><div class="box-label">Fact 2.4<span class="box-title">Substitution and replacement</span></div>
+<ol>
+<li><strong>Substitution.</strong> If a formula is a tautology, replacing an atom everywhere in it by the same
+formula gives a tautology. Each law of Fact 2.3, written with ⟷, is a tautology (Fact 2.2), so it
+holds with any formulas in place of A, B and C.</li>
+<li><strong>Replacement.</strong> If φ ≡ ψ, replacing an occurrence of φ inside a formula by ψ gives an equivalent
+formula.</li>
+</ol>
+</div>
+<p>Substitution holds because a tautology is true whatever values its atoms take, and so whatever values
+the substituted formulas take. Replacement holds because the value of a formula depends only on the
+values of its parts.</p>
+<div class="box box-example"><div class="box-label">Example 2.5<span class="box-title">Simplifying a condition in code</span></div>
+<p>A program contains the test</p>
+<pre class="code"><code class="language-text">if not (valid and not expired) or expired:
+</code></pre>
+<p>Write v for <code>valid</code> and e for <code>expired</code>, and simplify step by step, naming the law used at each step:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.16em" columnalign="left left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mo stretchy="false">(</mo><mi>v</mi><mo>∧</mo><mi mathvariant="normal">¬</mi><mi>e</mi><mo stretchy="false">)</mo><mo>∨</mo><mi>e</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>v</mi><mo>∨</mo><mi mathvariant="normal">¬</mi><mi mathvariant="normal">¬</mi><mi>e</mi><mo stretchy="false">)</mo><mo>∨</mo><mi>e</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>De Morgan</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>v</mi><mo>∨</mo><mi>e</mi><mo stretchy="false">)</mo><mo>∨</mo><mi>e</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>double negation</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mi>v</mi><mo>∨</mo><mo stretchy="false">(</mo><mi>e</mi><mo>∨</mo><mi>e</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>associativity</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mi>v</mi><mo>∨</mo><mi>e</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>idempotence</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>v</mi><mo>⟶</mo><mi>e</mi></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>implication</mtext></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{array}{lll}
+&amp; \lnot(v \land \lnot e) \lor e &amp; \\
+\equiv &amp; (\lnot v \lor \lnot\lnot e) \lor e &amp; \text{De Morgan} \\
+\equiv &amp; (\lnot v \lor e) \lor e &amp; \text{double negation} \\
+\equiv &amp; \lnot v \lor (e \lor e) &amp; \text{associativity} \\
+\equiv &amp; \lnot v \lor e &amp; \text{idempotence} \\
+\equiv &amp; v \imp e &amp; \text{implication}
+\end{array}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:7.2em;vertical-align:-3.35em;"></span><span class="mord"><span class="mtable"><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.85em;"><span style="top:-6.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-0.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:3.35em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.85em;"><span style="top:-6.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">¬</span><span class="mord mathnormal">e</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span></span></span><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">¬¬</span><span class="mord mathnormal">e</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span><span class="mclose">)</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">e</span></span></span><span style="top:-0.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">v</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:3.35em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.85em;"><span style="top:-6.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">De Morgan</span></span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">double negation</span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">associativity</span></span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">idempotence</span></span></span></span><span style="top:-0.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">implication</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:3.35em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span></span></span></span></span></span></span></div>
+<p>So the test is equivalent to <code>if not valid or expired:</code>. Read as an implication, “if the ticket is
+valid, it has expired”, it suggests that the original test does not say what its author meant.
+Simplifying a condition is a cheap way to find out what it really says.</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>Three formulas look like A ⟶ B, and only one of them is equivalent to it:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Formula</th>
+<th>Name</th>
+<th>Equivalent to A ⟶ B?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>¬B ⟶ ¬A</td>
+<td>contrapositive</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>B ⟶ A</td>
+<td>converse</td>
+<td>no</td>
+</tr>
+<tr>
+<td>¬A ⟶ ¬B</td>
+<td>inverse</td>
+<td>no</td>
+</tr>
+</tbody>
+</table></div>
+<p>In the same way, ¬(A ∧ B) is equivalent to ¬A ∨ ¬B, not to ¬A ∧ ¬B: negation turns ∧ into ∨ and back.</p>
+</div>
+<div class="box box-isabelle"><div class="box-label">Check it in Isabelle</div>
+<p>In Isabelle, an equivalence is a lemma with ⟷. (Isabelle has a symbol ≡ too, but it uses it for
+definitions, as Module 7 explains.) <code>blast</code> proves the whole simplification of Example 2.5 in one step:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (valid ∧ ¬ expired) ∨ expired ⟷ (valid ⟶ expired)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (valid ∧ ¬ expired) ∨ expired ⟷ (valid ⟶ expired)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>The parentheses around <code>valid ⟶ expired</code> are not needed, since ⟷ and ⟶ group to the right, but write
+them whenever you mix the two. A wrong law produces a counterexample. Here is the wrong version of
+De Morgan’s law:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (A ∧ B) ⟷ ¬ A ∧ ¬ B&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (A ∧ B) ⟷ ¬ A ∧ ¬ B&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  A = True
+  B = False
+Evaluated terms:
+  ¬ (A ∧ B) = True
+  ¬ A ∧ ¬ B = False</code></pre></div>
+<p>For an equivalence, Quickcheck also lists, under “Evaluated terms”, the value of each side in the
+counterexample: here the left side is <code>True</code> and the right side <code>False</code>. The correct laws are in
+Isabelle’s library; for example, the theorem <code>de_Morgan_conj</code> states ¬ (P ∧ Q) ⟷ ¬ P ∨ ¬ Q. The
+simplifier uses both of De Morgan’s laws automatically.</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>In Isabelle, write ⟷ between formulas, not <code>=</code>. Because <code>=</code> binds more tightly than the connectives,
+<code>A ∧ B = B ∧ A</code> means A ∧ (B = B) ∧ A, which is not the commutativity law at all:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B = B ∧ A&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B = B ∧ A&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  A = False
+  B = a<sub>1</sub></code></pre></div>
+<p>The value a₁ for B shows that B is no longer even a truth value. In <code>B = B</code>, B could be anything, so
+Isabelle gave it an unknown type, and Quickcheck picked an element of that type; Module 3 explains such
+types. With ⟷, <code>A ∧ B ⟷ B ∧ A</code> means what it says.</p>
+</div>
+<span class="section-anchor" id="consequence"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Logical consequence and arguments</h2></div>
+<p>Reasoning about systems is full of arguments: <em>if all tests pass, the release is built; the release was
+not built; so some test failed</em>. An argument has premises and a conclusion, and the question is whether
+the conclusion must be true when the premises are.</p>
+<div class="box box-definition"><div class="box-label">Definition 2.9<span class="box-title">Logical consequence</span></div>
+<p>A formula ψ is a <strong>logical consequence</strong> of formulas φ₁, …, φₙ, written</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>φ</mi><mn>1</mn></msub><mo separator="true">,</mo><mo>…</mo><mo separator="true">,</mo><msub><mi>φ</mi><mi>n</mi></msub><mo>⊨</mo><mi>ψ</mi></mrow><annotation encoding="application/x-tex">\varphi_1, \ldots, \varphi_n \models \psi
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.999em;vertical-align:-0.249em;"></span><span class="mord"><span class="mord mathnormal">φ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">φ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⊨</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">ψ</span></span></span></span></span></div>
+<p>if every valuation that makes all of φ₁, …, φₙ true also makes ψ true. The φᵢ are the <strong>premises</strong> and
+ψ is the <strong>conclusion</strong>; read ⊨ as “entails”. An <strong>argument</strong> is <strong>valid</strong> if its conclusion is a logical
+consequence of its premises. With no premises, ⊨ ψ says that ψ is a tautology.</p>
+</div>
+<p>The symbol ⊨ is about truth. Module 6 introduces its partner ⊢, which is about proof: φ ⊢ ψ says that ψ
+can be <em>derived</em> from φ by the rules of a proof system. To check an argument with a truth table, look
+for a <strong>bad row</strong>: a row in which every premise is true and the conclusion is false. The argument is
+valid exactly when there is no bad row, which gives a second way to check it:</p>
+<div class="box box-fact"><div class="box-label">Fact 2.5<span class="box-title">Consequence as a tautology</span></div>
+<p>φ₁, …, φₙ ⊨ ψ if and only if φ₁ ∧ … ∧ φₙ ⟶ ψ is a tautology.</p>
+</div>
+<p>The implication is false exactly in the bad rows. Six argument forms come up so often that they have
+names. Four are valid; the other two are mistakes common enough to be named too.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Premises</th>
+<th>Conclusion</th>
+<th>Valid?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Modus ponens</td>
+<td>A ⟶ B, A</td>
+<td>B</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Modus tollens</td>
+<td>A ⟶ B, ¬B</td>
+<td>¬A</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Chaining (hypothetical syllogism)</td>
+<td>A ⟶ B, B ⟶ C</td>
+<td>A ⟶ C</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Disjunctive syllogism</td>
+<td>A ∨ B, ¬A</td>
+<td>B</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Affirming the consequent</td>
+<td>A ⟶ B, B</td>
+<td>A</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Denying the antecedent</td>
+<td>A ⟶ B, ¬A</td>
+<td>¬B</td>
+<td>no</td>
+</tr>
+</tbody>
+</table></div>
+<p>By substitution (Fact 2.4) the valid forms stay valid with any formulas in place of A, B and C.</p>
+<div class="box box-example"><div class="box-label">Example 2.6<span class="box-title">Two arguments about a release</span></div>
+<p>Write <code>tests</code> for “all tests pass” and <code>built</code> for “the release is built”.</p>
+<ol>
+<li><em>If all tests pass, the release is built. The release was not built. So not all tests passed.</em> This
+is modus tollens, so the argument is valid.</li>
+<li><em>If all tests pass, the release is built. The release was built. So all tests passed.</em> This is
+affirming the consequent, and it is invalid. The truth table finds the bad row:</li>
+</ol>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">built</th><th class="tt-atom">tests</th><th>tests ⟶ built</th><th class="tt-main">(tests ⟶ built) ∧ built ⟶ tests</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">Satisfiable but not valid: true in 3 rows.</p></div>
+<p>The premises are the columns <code>built</code> and <code>tests ⟶ built</code>, and the conclusion is the column <code>tests</code>. In
+the row with built = T and tests = F, both premises are true and the conclusion is false: someone built
+the release by hand although a test failed. One bad row is enough to make an argument invalid.</p>
+</div>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>Validity is about the form of an argument, not about the facts. A valid argument with a false premise
+can have a false conclusion, and an invalid argument can have a true conclusion by luck. When you review
+a design argument, ask both questions: is the form valid, and are the premises true?</p>
+</div>
+<p>One special case matters a great deal for specifications.</p>
+<div class="box box-fact"><div class="box-label">Fact 2.6<span class="box-title">Inconsistent premises entail everything</span></div>
+<p>If no valuation makes all of φ₁, …, φₙ true, then φ₁, …, φₙ ⊨ ψ for every formula ψ. In particular,
+A, ¬A ⊨ B.</p>
+</div>
+<p>There is no row in which the premises are all true, so there is no bad row, whatever ψ is. This is the
+<strong>principle of explosion</strong>, known by its Latin name <em>ex falso quodlibet</em>: from a falsehood, anything
+follows.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>Before you believe that a property follows from a set of requirements, check that the requirements are
+consistent. From inconsistent requirements every property follows, including its opposite, and every
+proof succeeds.</p>
+</div>
+<div class="box box-isabelle"><div class="box-label">Check it in Isabelle</div>
+<p>By Fact 2.5, an argument is valid when the implication from its premises to its conclusion is a
+tautology, so <code>blast</code> can check it. Modus tollens:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ∧ ¬ B ⟶ ¬ A&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ∧ ¬ B ⟶ ¬ A&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>For an invalid argument, Nitpick finds the bad row:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ∧ B ⟶ A&quot;
+  nitpick
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ∧ B ⟶ A&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    A = False
+    B = True</code></pre></div>
+<p>With A false and B true, the premises A ⟶ B and B hold and the conclusion A does not. Explosion is a
+theorem too:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ ¬ A ⟶ B&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ ¬ A ⟶ B&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+</div>
+<span class="section-anchor" id="normal-forms"></span>
+<div class="section-header"><span class="section-num">7</span><h2>Normal forms</h2></div>
+<p>Equivalent formulas can look very different, which makes them hard to compare and hard for programs to
+process. A <strong>normal form</strong> is a standard shape that every formula can be brought into without changing
+its meaning. Three are in common use.</p>
+<div class="box box-definition"><div class="box-label">Definition 2.10<span class="box-title">Literal and clause</span></div>
+<p>A <strong>literal</strong> is an atom or a negated atom, such as A or ¬A. A <strong>clause</strong> is a disjunction of literals,
+such as ¬A ∨ B ∨ ¬C; a single literal counts as a clause too.</p>
+</div>
+<div class="box box-definition"><div class="box-label">Definition 2.11<span class="box-title">Normal forms</span></div>
+<ul>
+<li>A formula is in <strong>negation normal form (NNF)</strong> if it uses only ¬, ∧ and ∨, and every ¬ stands directly
+in front of an atom.</li>
+<li>A formula is in <strong>conjunctive normal form (CNF)</strong> if it is a conjunction of clauses, such as
+(A ∨ ¬B) ∧ (¬A ∨ C ∨ D) ∧ ¬C.</li>
+<li>A formula is in <strong>disjunctive normal form (DNF)</strong> if it is a disjunction of conjunctions of literals,
+such as (A ∧ ¬B) ∨ (¬A ∧ C) ∨ D.</li>
+</ul>
+</div>
+<p>A CNF is a list of small rules that must all hold: the clause ¬A ∨ ¬B ∨ C says A ∧ B ⟶ C. SAT solvers
+take their input in CNF. A DNF lists the situations in which the formula is true, so its satisfiability
+can be read off: a DNF is satisfiable exactly when one of its conjunctions does not contain both an atom
+and its negation. NNF is the first step towards both.</p>
+<h3 id="nnf">Negation normal form</h3>
+<p>Three steps bring any formula into NNF:</p>
+<ol>
+<li>Replace each φ ⟷ ψ by (φ ⟶ ψ) ∧ (ψ ⟶ φ).</li>
+<li>Replace each φ ⟶ ψ by ¬φ ∨ ψ.</li>
+<li>Push each ¬ inwards: replace ¬¬φ by φ, ¬(φ ∧ ψ) by ¬φ ∨ ¬ψ, ¬(φ ∨ ψ) by ¬φ ∧ ¬ψ, ¬True by
+False and ¬False by True.</li>
+</ol>
+<p>Each step replaces a sub-formula by an equivalent one, using the equivalence, implication, double
+negation and De Morgan laws, so by Fact 2.4 the result is equivalent to the formula you started with.</p>
+<div class="box box-example"><div class="box-label">Example 2.7<span class="box-title">Negation normal form</span></div>
+<p>Bring ¬(A ⟶ B ∧ C) into NNF:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.16em" columnalign="left left left" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mo stretchy="false">(</mo><mi>A</mi><mo>⟶</mo><mi>B</mi><mo>∧</mo><mi>C</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>A</mi><mo>∨</mo><mi>B</mi><mo>∧</mo><mi>C</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>implication</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi mathvariant="normal">¬</mi><mi mathvariant="normal">¬</mi><mi>A</mi><mo>∧</mo><mi mathvariant="normal">¬</mi><mo stretchy="false">(</mo><mi>B</mi><mo>∧</mo><mi>C</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>De Morgan</mtext></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mo lspace="0em" rspace="0em">≡</mo></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>A</mi><mo>∧</mo><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>B</mi><mo>∨</mo><mi mathvariant="normal">¬</mi><mi>C</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mtext>double negation, De Morgan</mtext></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{array}{lll}
+&amp; \lnot(A \imp B \land C) &amp; \\
+\equiv &amp; \lnot(\lnot A \lor B \land C) &amp; \text{implication} \\
+\equiv &amp; \lnot\lnot A \land \lnot(B \land C) &amp; \text{De Morgan} \\
+\equiv &amp; A \land (\lnot B \lor \lnot C) &amp; \text{double negation, De Morgan}
+\end{array}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:4.8em;vertical-align:-2.15em;"></span><span class="mord"><span class="mtable"><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mrel">≡</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬</span><span class="mopen">(</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟶</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬</span><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">¬¬</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">¬</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.65em;"><span style="top:-4.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">implication</span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">De Morgan</span></span></span></span><span style="top:-1.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">double negation, De Morgan</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.15em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span></span></span></span></span></span></span></div>
+<p>The result is in NNF, and also in CNF: it is the conjunction of the clauses A and ¬B ∨ ¬C.</p>
+</div>
+<h3 id="cnf-dnf">Conjunctive and disjunctive normal form</h3>
+<p>From NNF, the distributive laws do the rest:</p>
+<ul>
+<li>For <strong>CNF</strong>, move ∨ inside ∧: replace φ ∨ (ψ ∧ χ) by (φ ∨ ψ) ∧ (φ ∨ χ), and (φ ∧ ψ) ∨ χ by
+(φ ∨ χ) ∧ (ψ ∨ χ), until no ∧ is inside an ∨.</li>
+<li>For <strong>DNF</strong>, move ∧ inside ∨: replace φ ∧ (ψ ∨ χ) by (φ ∧ ψ) ∨ (φ ∧ χ), and (φ ∨ ψ) ∧ χ by
+(φ ∧ χ) ∨ (ψ ∧ χ), until no ∨ is inside an ∧.</li>
+</ul>
+<p>Here χ (“chi”) is one more letter for an arbitrary formula. Figure 2.3 shows the whole route.</p>
+<figure class="fig" id="fig-02-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 312" width="760" height="312" role="img"><title>From a formula to CNF and DNF</title><defs><marker id="fig-02-3__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="8" y="16" width="234" height="112" rx="12" fill="#FFFFFF" stroke="#475569" stroke-width="1.8"/><text x="22" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#475569" text-anchor="start">Any formula</text><text x="125" y="100" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">(A ⟶ B) ⟶ C</text><rect x="263" y="16" width="234" height="112" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="277" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#2563EB" text-anchor="start">1. Remove ⟷ and ⟶</text><text x="277" y="66" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="400" fill="#475569" text-anchor="start">A ⟶ B  ≡  ¬A ∨ B</text><text x="380" y="100" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬(¬A ∨ B) ∨ C</text><rect x="518" y="16" width="234" height="112" rx="12" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.8"/><text x="532" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#6D28D9" text-anchor="start">2. Push ¬ inwards</text><text x="532" y="66" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="400" fill="#475569" text-anchor="start">De Morgan;  ¬¬A ≡ A</text><text x="635" y="100" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">(A ∧ ¬B) ∨ C</text><rect x="704.0" y="27" width="36" height="21" rx="10.5" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="722.0" y="43" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">NNF</text><rect x="263" y="184" width="234" height="112" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="277" y="210" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#15803D" text-anchor="start">3a. Distribute ∨ over ∧</text><text x="277" y="234" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="400" fill="#475569" text-anchor="start">(A ∧ B) ∨ C ≡ (A ∨ C) ∧ (B ∨ C)</text><text x="380" y="268" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">(A ∨ C) ∧ (¬B ∨ C)</text><rect x="449.0" y="195" width="36" height="21" rx="10.5" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="467.0" y="211" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">CNF</text><rect x="518" y="184" width="234" height="112" rx="12" fill="#FFFBEB" stroke="#B45309" stroke-width="1.8"/><text x="532" y="210" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#B45309" text-anchor="start">3b. Distribute ∧ over ∨</text><text x="532" y="234" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="400" fill="#475569" text-anchor="start">A ∧ (B ∨ C) ≡ (A ∧ B) ∨ (A ∧ C)</text><text x="635" y="268" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">(A ∧ ¬B) ∨ C</text><text x="635" y="287" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">already a DNF</text><rect x="704.0" y="195" width="36" height="21" rx="10.5" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="722.0" y="211" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#475569" text-anchor="middle">DNF</text><line x1="244" y1="72" x2="259" y2="72" stroke="#475569" stroke-width="2" marker-end="url(#fig-02-3__ah-475569)"/><line x1="499" y1="72" x2="514" y2="72" stroke="#475569" stroke-width="2" marker-end="url(#fig-02-3__ah-475569)"/><line x1="635" y1="130" x2="635" y2="180" stroke="#475569" stroke-width="2" marker-end="url(#fig-02-3__ah-475569)"/><line x1="560" y1="130" x2="420" y2="180" stroke="#475569" stroke-width="2" marker-end="url(#fig-02-3__ah-475569)"/><text x="22" y="214" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">Each step replaces a sub-formula</text><text x="22" y="233" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">by an equivalent one, so every box</text><text x="22" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">holds a formula equivalent to</text><text x="22" y="271" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">the one you started with.</text></svg>
+</div><figcaption><span class="fig-num">Figure 2.3</span> <p>From any formula to CNF and DNF, with (A ⟶ B) ⟶ C as the example. Steps 1 and 2 give the negation normal
+form; distributing one connective over the other then gives CNF or DNF.</p>
+</figcaption></figure>
+<p>The door requirement <code>opens ⟶ badge ∧ pin ∨ fire</code> becomes ¬opens ∨ (badge ∧ pin) ∨ fire, which is
+already in DNF, and distributing gives the CNF (¬opens ∨ badge ∨ fire) ∧ (¬opens ∨ pin ∨ fire). Read
+back as rules, the two clauses say that when the door opens without a fire, there was a valid badge, and
+there was the right PIN.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>Distribution can make formulas explode. Bringing (A₁ ∧ B₁) ∨ (A₂ ∧ B₂) ∨ … ∨ (Aₙ ∧ Bₙ) into CNF by
+distribution gives <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> clauses, one for each way of choosing Aᵢ or Bᵢ from every pair: 8 clauses for
+three pairs, more than a million for twenty. This is why Isabelle’s simplifier does not use the
+distributive laws by default. A comment in <code>HOL.thy</code>, next to the list of laws the simplifier does use,
+says that adding them “might cause exponential blow-up”.</p>
+</div>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>SAT solvers avoid the explosion with the <strong>Tseitin transformation</strong>, which gives each sub-formula a new
+atom as its name and adds a few clauses that define it. The resulting CNF grows only in proportion to
+the original formula. It is not equivalent to the original, because it has extra atoms, but it is
+<strong>equisatisfiable</strong>: satisfiable if and only if the original is, which is all a SAT solver needs.</p>
+</div>
+<h3 id="nf-tables">Normal forms from truth tables</h3>
+<p>A truth table gives both normal forms directly.</p>
+<ul>
+<li><strong>DNF:</strong> for each row in which the formula is T, write the conjunction of literals that describes the
+row (A if A is T in the row, ¬A if A is F), and join these conjunctions with ∨.</li>
+<li><strong>CNF:</strong> for each row in which the formula is F, write the clause that rules the row out (¬A if A is T
+in the row, A if A is F), and join these clauses with ∧.</li>
+</ul>
+<div class="box box-example"><div class="box-label">Example 2.8<span class="box-title">Exclusive or</span></div>
+<p>Exclusive or, ¬(A ⟷ B), is true when exactly one of A and B is:</p>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟷ B</th><th class="tt-main">¬(A ⟷ B)</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr></tbody></table></div><p class="tt-verdict">Satisfiable but not valid: true in 2 rows.</p></div>
+<p>It is T in the rows A = T, B = F and A = F, B = T, so its DNF is (A ∧ ¬B) ∨ (¬A ∧ B). It is F in the rows
+A = T, B = T and A = F, B = F; the clauses that rule them out are ¬A ∨ ¬B and A ∨ B, so its CNF is
+(¬A ∨ ¬B) ∧ (A ∨ B).</p>
+</div>
+<div class="box box-fact"><div class="box-label">Fact 2.7<span class="box-title">Normal forms exist</span></div>
+<p>Every formula is equivalent to a formula in DNF and to a formula in CNF.</p>
+</div>
+<p>The truth-table method proves it. In the corner cases, a formula with no T row gets the empty
+disjunction, which is <code>False</code>, and one with no F row gets the empty conjunction, which is <code>True</code>. Fact 2.7
+also shows that ¬, ∧ and ∨ can express every possible truth table; Exercise 2.7 shows that even fewer
+connectives suffice.</p>
+<div class="box box-isabelle"><div class="box-label">Check it in Isabelle</div>
+<p>Each conversion is an equivalence, so <code>blast</code> can confirm it. Here are both results of Figure 2.3:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;((A ⟶ B) ⟶ C) ⟷ (A ∧ ¬ B) ∨ C&quot;
+  by blast
+
+lemma &quot;((A ⟶ B) ⟶ C) ⟷ (A ∨ C) ∧ (¬ B ∨ C)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ C) ⟷ (A ∧ ¬ B) ∨ C&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;((A ⟶ B) ⟶ C) ⟷ (A ∨ C) ∧ (¬ B ∨ C)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>A slip shows up as a counterexample. Moving one pair of parentheses changes the meaning:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ∧ B) ∨ C ⟷ A ∧ (B ∨ C)&quot;
+  nitpick
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ∧ B) ∨ C ⟷ A ∧ (B ∨ C)&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    A = False
+    B = False
+    C = True</code></pre></div>
+<p>With A false and C true, the left side is true and the right side false.</p>
+</div>
+<span class="section-anchor" id="sat"></span>
+<div class="section-header"><span class="section-num">8</span><h2>Satisfiability and SAT solvers</h2></div>
+<p>All the questions of this module come down to one problem.</p>
+<div class="box box-definition"><div class="box-label">Definition 2.12<span class="box-title">The satisfiability problem</span></div>
+<p>The <strong>satisfiability problem</strong>, <strong>SAT</strong> for short, asks: given a propositional formula, usually in
+CNF, is it satisfiable? A <strong>SAT solver</strong> is a program that answers this question and, when the answer
+is yes, returns a satisfying valuation.</p>
+</div>
+<p>By Fact 2.1, φ is a tautology exactly when ¬φ is unsatisfiable. By Fact 2.5, φ₁, …, φₙ ⊨ ψ exactly when
+φ₁ ∧ … ∧ φₙ ∧ ¬ψ is unsatisfiable, because a model of that formula is a bad row. And requirements are
+consistent exactly when their conjunction is satisfiable. So one SAT solver answers every question of
+this module.</p>
+<p>How hard is SAT? Checking a proposed valuation is quick: evaluate the formula once. Finding one is
+another matter, since a truth table has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> rows.</p>
+<div class="box box-fact"><div class="box-label">Fact 2.8<span class="box-title">Cook’s theorem</span></div>
+<p>SAT is <strong>NP-complete</strong> (Stephen Cook, 1971).</p>
+</div>
+<p><strong>NP</strong> is the class of yes-or-no problems in which a “yes” can be <em>checked</em> quickly once someone proposes
+a solution, that is, in a number of steps bounded by a polynomial in the size of the problem. SAT is one
+of them. So are these: Can the exams be timetabled without clashes? Can this Sudoku be completed? Can
+these versions of software packages be installed together? A problem is <strong>NP-complete</strong> if it is in NP
+and every problem in NP can be translated into it efficiently. SAT was the first problem shown to be
+NP-complete; Leonid Levin found the same result independently. So a fast (polynomial-time) algorithm for
+SAT would give fast algorithms for every problem in NP. Nobody knows whether one exists: this is the
+<strong>P versus NP</strong> question (P is the class of problems that can be <em>solved</em> in polynomial time), open since
+1971 and one of the seven Millennium Prize Problems of the Clay Mathematics Institute.</p>
+<p>Even so, SAT solving is one of the great practical successes of computer science. The worst case is
+exponential, but formulas from real problems have structure, and solvers exploit it. Most solvers
+descend from the <strong>DPLL procedure</strong>, named after Davis, Putnam, Logemann and Loveland, who described it in
+the early 1960s. It works on a CNF and repeats two steps:</p>
+<ol>
+<li><strong>Unit propagation.</strong> If every literal of a clause but one is false, the remaining literal must be
+true: set it. Repeat while possible.</li>
+<li><strong>Decision.</strong> Otherwise, choose an atom without a value and try a value for it.</li>
+</ol>
+<p>When a clause becomes false (a <strong>conflict</strong>), the procedure goes back to its latest decision whose other
+value it has not tried yet, undoes everything it did after that decision, and tries the other value. If
+every clause becomes true, the formula is satisfiable; if a conflict leaves no decision to go back to,
+the formula is unsatisfiable.</p>
+<p>Since the late 1990s, solvers have added <strong>conflict-driven clause learning (CDCL)</strong>: after a conflict,
+the solver works out which decisions caused it and adds a clause that rules out that combination, so the
+search never makes the same mistake twice. Modern CDCL solvers often decide formulas from industry with
+hundreds of thousands of atoms and millions of clauses.</p>
+<div class="box box-example"><div class="box-label">Example 2.9<span class="box-title">Unit propagation</span></div>
+<p>Is this CNF satisfiable?</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mi>A</mi><mo>∨</mo><mi>B</mi><mo stretchy="false">)</mo><mo>∧</mo><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>A</mi><mo>∨</mo><mi>C</mi><mo stretchy="false">)</mo><mo>∧</mo><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>B</mi><mo>∨</mo><mi>C</mi><mo stretchy="false">)</mo><mo>∧</mo><mo stretchy="false">(</mo><mi mathvariant="normal">¬</mi><mi>C</mi><mo>∨</mo><mi>D</mi><mo stretchy="false">)</mo><mo>∧</mo><mi mathvariant="normal">¬</mi><mi>D</mi></mrow><annotation encoding="application/x-tex">(A \lor B) \land (\lnot A \lor C) \land (\lnot B \lor C) \land (\lnot C \lor D) \land \lnot D
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∨</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">¬</span><span class="mord mathnormal" style="margin-right:0.0278em;">D</span></span></span></span></span></div>
+<p>The last clause is a single literal, so D = F. Then the clause ¬C ∨ D forces C = F. Then ¬A ∨ C forces
+A = F, and ¬B ∨ C forces B = F. Now A ∨ B is false: a conflict, reached without a single decision. The
+formula is unsatisfiable, and the solver has shown it without writing the 16 rows of its truth table.</p>
+</div>
+<p>SAT solvers are at work wherever a problem can be phrased as many yes-or-no choices with constraints
+between them: checking that two circuits compute the same function, and searching a design for a run
+that breaks a property within a fixed number of steps (bounded model checking); deciding which software
+packages can be installed together (the Eclipse development environment resolves the dependencies of its
+plug-ins with the SAT solver Sat4j); timetables and rosters. SMT solvers, such as Z3 and cvc5 from
+Module 1, extend SAT solving with numbers, arrays and other data, and power program verifiers. And
+Isabelle’s Nitpick turns the search for a counterexample into a SAT problem.</p>
+<div class="box box-isabelle"><div class="box-label">Check it in Isabelle</div>
+<p>Isabelle contains a small CDCL solver of its own, and the proof method <code>sat</code> uses it. <code>sat</code> converts the
+negation of the goal into CNF and asks the solver whether that is satisfiable. Here it confirms
+Example 2.9:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((A ∨ B) ∧ (¬ A ∨ C) ∧ (¬ B ∨ C) ∧ (¬ C ∨ D) ∧ ¬ D)&quot;
+  by sat">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((A ∨ B) ∧ (¬ A ∨ C) ∧ (¬ B ∨ C) ∧ (¬ C ∨ D) ∧ ¬ D)&quot;</span>
+  <span class="isa-proof">by</span> sat</code></pre></div>
+<p>Why trust the solver? You do not have to. When the solver finds the negated goal unsatisfiable, it also
+returns the steps of its reasoning, a proof by resolution, and Isabelle replays every step in its
+kernel: the LCF idea of Module 1. When the goal is not a tautology, the solver finds a model of its
+negation, and <code>sat</code> fails with that valuation, a counterexample:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ⟶ B ⟶ A ∧ B ∧ C&quot;</span>
+  <span class="isa-proof">by</span> sat</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">exception THM 0 raised⌂: SAT solver found a countermodel:
+A: true, B: true, C: false</span></code></pre></div>
+<p>The first line of the message is technical; the second is the counterexample you found in Section 2.4.
+A second method, <code>satx</code>, first applies a definitional CNF transformation of the Tseitin kind, which keeps
+the CNF of large goals small.</p>
+</div>
+<span class="section-anchor" id="requirements"></span>
+<div class="section-header"><span class="section-num">9</span><h2>Requirements as propositional constraints</h2></div>
+<p>Back to the server-room door. After some discussion, the security team agrees on four requirements:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Requirement</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td>The door opens only if a valid badge is shown and the correct PIN is entered, or the fire alarm is on.</td>
+<td><code>opens ⟶ badge ∧ pin ∨ fire</code></td>
+</tr>
+<tr>
+<td>R2</td>
+<td>When the fire alarm is on, the door opens.</td>
+<td><code>fire ⟶ opens</code></td>
+</tr>
+<tr>
+<td>R3</td>
+<td>During a lockdown, the door stays shut.</td>
+<td><code>lockdown ⟶ ¬ opens</code></td>
+</tr>
+<tr>
+<td>R4</td>
+<td>A valid badge with the correct PIN opens the door.</td>
+<td><code>badge ∧ pin ⟶ opens</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The atoms <code>badge</code>, <code>pin</code>, <code>fire</code> and <code>lockdown</code> describe the situation: the sensors report them, and the
+controller cannot choose them. <code>opens</code> is the controller’s decision. Three questions matter:</p>
+<ol>
+<li>Are the requirements consistent: can a controller meet them all at once?</li>
+<li>Can it meet them in every situation, whatever the sensors report?</li>
+<li>Do they guarantee the properties the team cares about?</li>
+</ol>
+<div class="box box-definition"><div class="box-label">Definition 2.13<span class="box-title">Consistent requirements</span></div>
+<p>A set of requirements, written as formulas, is <strong>consistent</strong> if their conjunction is satisfiable: some
+valuation makes all of them true.</p>
+</div>
+<h3 id="consistency">Consistency</h3>
+<div class="box box-isabelle"><div class="box-label">Check it in Isabelle</div>
+<p>Nitpick looks for counterexamples, and by Fact 2.1 a counterexample to ¬φ is a model of φ. So to find a
+model of the requirements, state their negation and ask Nitpick for a counterexample:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
+         (fire ⟶ opens) ∧
+         (lockdown ⟶ ¬ opens) ∧
+         (badge ∧ pin ⟶ opens))&quot;
+  nitpick
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
+         (fire ⟶ opens) ∧
+         (lockdown ⟶ ¬ opens) ∧
+         (badge ∧ pin ⟶ opens))&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    badge = True
+    fire = False
+    lockdown = False
+    opens = False
+    pin = False</code></pre></div>
+<p>The counterexample to the negation is a model of the requirements: with a valid badge, the wrong PIN, no
+fire and no lockdown, a shut door meets all four. So the requirements are consistent.</p>
+</div>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>Nitpick can also look for a model directly: <code>nitpick [satisfy]</code> on the requirements themselves (without
+the ¬) reports “Nitpick found a model”, followed by the valuation.</p>
+</div>
+<h3 id="scenarios">Situations that break the requirements</h3>
+<p>One model is not enough: the door must work in every situation, including rare ones. What happens during
+a lockdown when the fire alarm goes off? Add <code>fire</code> and <code>lockdown</code> to the requirements and ask whether the
+result is still satisfiable:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
+         (fire ⟶ opens) ∧
+         (lockdown ⟶ ¬ opens) ∧
+         (badge ∧ pin ⟶ opens) ∧
+         fire ∧ lockdown)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
+         (fire ⟶ opens) ∧
+         (lockdown ⟶ ¬ opens) ∧
+         (badge ∧ pin ⟶ opens) ∧
+         fire ∧ lockdown)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>Isabelle proves that no valuation satisfies them. In a fire during a lockdown, R2 says that the door
+must open and R3 that it must stay shut, and no controller can do both. The same happens between R3 and
+R4 when someone shows a valid badge and the right PIN during a lockdown. Conflicts like these hide in
+combinations of rare events, which is exactly where testing seldom looks. And in these situations
+Fact 2.6 applies: from the requirements, Isabelle would prove anything, even that the door is both open
+and shut. Proofs about inconsistent requirements succeed, and mean nothing.</p>
+<h3 id="repair">Repairing the requirements</h3>
+<p>The conflicts are not mistakes in logic but decisions nobody has made, and only the people who wrote the
+requirements can make them; this is validation, in the sense of Module 1. Suppose the team decides that
+people’s safety comes first: a fire overrides a lockdown, and a lockdown overrides badges. R3 and R4
+become:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Requirement</th>
+<th>Formula</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R3′</td>
+<td>During a lockdown, the door stays shut unless the fire alarm is on.</td>
+<td><code>lockdown ∧ ¬ fire ⟶ ¬ opens</code></td>
+</tr>
+<tr>
+<td>R4′</td>
+<td>A valid badge with the correct PIN opens the door, except during a lockdown.</td>
+<td><code>badge ∧ pin ∧ ¬ lockdown ⟶ opens</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Now a stronger check is possible. Together with R1 and R2, the new requirements fix the door’s behaviour
+completely: they force <code>opens</code> to have the same value as fire ∨ (badge ∧ pin ∧ ¬lockdown).</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma door_determined:
+  &quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+   (fire ⟶ opens) ∧
+   (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+   (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+   ⟶ (opens ⟷ fire ∨ badge ∧ pin ∧ ¬ lockdown)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> door_determined:
+  <span class="isa-inner">&quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+   (fire ⟶ opens) ∧
+   (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+   (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+   ⟶ (opens ⟷ fire ∨ badge ∧ pin ∧ ¬ lockdown)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>Conversely, a controller that opens the door exactly when fire ∨ (badge ∧ pin ∧ ¬lockdown) meets all
+four requirements, whatever the sensors report:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma door_rule_ok:
+  &quot;(opens ⟷ fire ∨ badge ∧ pin ∧ ¬ lockdown) ⟶
+   (opens ⟶ badge ∧ pin ∨ fire) ∧
+   (fire ⟶ opens) ∧
+   (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+   (badge ∧ pin ∧ ¬ lockdown ⟶ opens)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> door_rule_ok:
+  <span class="isa-inner">&quot;(opens ⟷ fire ∨ badge ∧ pin ∧ ¬ lockdown) ⟶
+   (opens ⟶ badge ∧ pin ∨ fire) ∧
+   (fire ⟶ opens) ∧
+   (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+   (badge ∧ pin ∧ ¬ lockdown ⟶ opens)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>The lemma <code>door_rule_ok</code> is verification in miniature. The requirements are the specification, the rule
+for <code>opens</code> is the implementation, and the proof covers all sixteen situations of the four sensors at
+once. It also shows that the repaired requirements are consistent in every situation, since in each one
+the rule’s decision meets them all. The lemma <code>door_determined</code> adds that no other decision would: the
+requirements leave the controller no choice.</p>
+<h3 id="properties">Properties that follow, and one that does not</h3>
+<p>Finally, the properties. The team wants to be sure that, outside a fire, nobody gets in without the
+right PIN: <code>opens ∧ ¬ fire ⟶ pin</code>. It follows from the requirements:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+       (fire ⟶ opens) ∧
+       (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+       (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+       ⟶ (opens ∧ ¬ fire ⟶ pin)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+       (fire ⟶ opens) ∧
+       (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+       (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+       ⟶ (opens ∧ ¬ fire ⟶ pin)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>The old promise “during a lockdown, the door stays shut” no longer follows:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+       (fire ⟶ opens) ∧
+       (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+       (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+       ⟶ (lockdown ⟶ ¬ opens)&quot;
+  nitpick
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(opens ⟶ badge ∧ pin ∨ fire) ∧
+       (fire ⟶ opens) ∧
+       (lockdown ∧ ¬ fire ⟶ ¬ opens) ∧
+       (badge ∧ pin ∧ ¬ lockdown ⟶ opens)
+       ⟶ (lockdown ⟶ ¬ opens)&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    badge = False
+    fire = True
+    lockdown = True
+    opens = True
+    pin = False</code></pre></div>
+<p>The counterexample is a fire during a lockdown, with the door open: exactly the decision the team made.
+A counterexample is not always a bug. Here it documents a deliberate trade-off in one concrete
+situation, which is the best way to show it to the people who must accept it. If they did not expect
+it, the requirements are wrong, not the proof.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>To analyse requirements with propositional logic: choose atoms, separating what the environment decides
+from what the system decides; write each requirement as a formula; check that the requirements are
+consistent, also in the rare situations that matter; prove that the properties you need follow; and
+read every counterexample as a situation to discuss. Each of these checks is a satisfiability question.</p>
+</div>
+<p>Propositional logic has limits. It cannot say “the door locks again ten seconds after the alarm stops”,
+which is about time, or “every employee’s badge opens the doors of their own department”, which is about
+many objects at once. Predicate logic in Module 3 adds objects and quantifiers, and Module 13 models
+systems that change over time.</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">10</span><h2>What you learned</h2></div>
+<ul>
+<li>A <strong>proposition</strong> is true or false. Formulas are built from <strong>atoms</strong>, <code>True</code> and <code>False</code> with ¬, ∧, ∨,
+⟶ and ⟷, by an inductive definition, and each formula has a <strong>parse tree</strong>.</li>
+<li>In Isabelle, ¬ binds most tightly, then ∧, then ∨, then ⟶ and ⟷, which share a priority; the binary
+connectives group to the right. Isabelle prints ⟷ as <code>=</code>. Mix ⟶ and ⟷ only with parentheses.</li>
+<li>A <strong>valuation</strong> gives each atom a truth value, and a <strong>truth table</strong> lists all <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mi>n</mi></msup></mrow><annotation encoding="application/x-tex">2^n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6644em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span></span></span></span> valuations.
+A ⟶ B is false only when A is true and B false.</li>
+<li>A formula is a <strong>tautology</strong> (true in every row), <strong>contingent</strong> (true in some rows and false in
+others) or a <strong>contradiction</strong> (true in none); φ is a tautology exactly when ¬φ is unsatisfiable.</li>
+<li>φ ≡ ψ when φ ⟷ ψ is a tautology. The <strong>laws</strong> (De Morgan, distributivity, contrapositive …) transform
+formulas without changing their meaning.</li>
+<li>φ₁, …, φₙ ⊨ ψ when no row makes the premises true and ψ false. Modus ponens and modus tollens are
+valid; affirming the consequent and denying the antecedent are not. Inconsistent premises entail
+everything.</li>
+<li>Every formula has an equivalent <strong>NNF</strong>, <strong>CNF</strong> and <strong>DNF</strong>. Distribution can make a CNF exponentially
+large; the Tseitin transformation avoids that.</li>
+<li><strong>SAT</strong> is NP-complete (Cook, 1971), yet CDCL solvers decide very large formulas in practice.</li>
+<li>For requirements, <strong>consistency</strong> is satisfiability, a property follows when requirements ⟶ property is
+a tautology, and each counterexample is a situation to discuss.</li>
+<li>In Isabelle, a lemma whose variables have type <code>bool</code> claims a tautology. <code>simp</code>, <code>blast</code> and <code>auto</code>
+prove tautologies (<code>blast</code> and <code>auto</code> more of them than <code>simp</code>); <code>quickcheck</code> and <code>nitpick</code> find
+counterexamples; a counterexample to ¬φ is a model of φ.</li>
+</ul>
+<p>The Mathematical Foundations series covers propositional and predicate logic for computing in general,
+with more practice, in <a href="../math/module_02_EN.html">Logic, quantifiers, and specifications</a>.</p>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">11</span><h2>Exercises</h2></div>
+<div class="exercise" id="ex-2-1"><div class="ex-label"><span class="ex-num">Exercise 2.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">Parentheses and main connectives</span></div>
+<p>Add all the parentheses that Isabelle’s priorities imply, and name the main connective of each formula.</p>
+<ol>
+<li>¬A ∨ B ∧ C</li>
+<li>A ∧ B ⟶ C ∨ D</li>
+<li>A ⟶ B ⟶ C ∧ D</li>
+<li>A ∨ B ⟷ C ⟶ D</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>(¬A) ∨ (B ∧ C). The main connective is ∨.</li>
+<li>(A ∧ B) ⟶ (C ∨ D). The main connective is ⟶.</li>
+<li>A ⟶ (B ⟶ (C ∧ D)). The main connective is the first ⟶, because ⟶ groups to the right.</li>
+<li>(A ∨ B) ⟷ (C ⟶ D). ∨ binds more tightly than ⟷ and ⟶, which have the same priority and group to the
+right. The main connective is ⟷.</li>
+</ol>
+<p><code>value</code> confirms the third answer: it prints the fully parenthesised formula without the parentheses
+that the priorities make unnecessary.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;A ⟶ (B ⟶ (C ∧ D))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;A ⟶ (B ⟶ (C ∧ D))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;A ⟶ B ⟶ C ∧ D&quot;
+  :: &quot;bool&quot;</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-2"><div class="ex-label"><span class="ex-num">Exercise 2.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">Classify by truth table</span></div>
+<p>Use truth tables to classify each formula as a tautology, a contradiction or contingent. For each
+contingent formula, give a model and a counterexample.</p>
+<ol>
+<li>(A ⟶ B) ∨ (B ⟶ A)</li>
+<li>(A ⟶ B) ∧ A ∧ ¬B</li>
+<li>(A ⟶ B) ⟶ (B ⟶ A)</li>
+<li>(A ∧ B ⟶ C) ⟶ (A ⟶ C) ∨ (B ⟶ C)</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>A tautology. Whatever the values, one of the two implications is true: if B is true, A ⟶ B is; if B
+is false, B ⟶ A is.</li>
+</ol>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟶ B</th><th>B ⟶ A</th><th class="tt-main">(A ⟶ B) ∨ (B ⟶ A)</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">Tautology: true in every row.</p></div>
+<ol start="2">
+<li>A contradiction: A ⟶ B and A force B, which contradicts ¬B.</li>
+</ol>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟶ B</th><th>¬B</th><th class="tt-main">(A ⟶ B) ∧ A ∧ ¬B</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-f">F</td></tr></tbody></table></div><p class="tt-verdict">Contradiction: false in every row.</p></div>
+<ol start="3">
+<li>Contingent. A model: A = T, B = T. A counterexample: A = F, B = T, where A ⟶ B is true but its
+converse B ⟶ A is false.</li>
+</ol>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th>A ⟶ B</th><th>B ⟶ A</th><th class="tt-main">(A ⟶ B) ⟶ (B ⟶ A)</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-main tt-f">F</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">Satisfiable but not valid: true in 3 rows.</p></div>
+<ol start="4">
+<li>A tautology, perhaps surprisingly. The conclusion is false only when both A ⟶ C and B ⟶ C are false,
+that is, when A and B are true and C is false; but then the premise A ∧ B ⟶ C is false too.</li>
+</ol>
+<div class="truthtable"><div class="table-wrap"><table><thead><tr><th class="tt-atom">A</th><th class="tt-atom">B</th><th class="tt-atom">C</th><th>A ∧ B ⟶ C</th><th>(A ⟶ C) ∨ (B ⟶ C)</th><th class="tt-main">(A ∧ B ⟶ C) ⟶ (A ⟶ C) ∨ (B ⟶ C)</th></tr></thead><tbody><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr><tr><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-f">F</td><td class="tt-t">T</td><td class="tt-t">T</td><td class="tt-main tt-t">T</td></tr></tbody></table></div><p class="tt-verdict">Tautology: true in every row.</p></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-3"><div class="ex-label"><span class="ex-num">Exercise 2.3</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Equivalences by the laws</span></div>
+<p>Show with the laws of Fact 2.3, step by step and naming each law, that</p>
+<ol>
+<li>(A ⟶ B) ∧ (A ⟶ C) ≡ A ⟶ B ∧ C</li>
+<li>A ⟶ (B ⟶ C) ≡ B ⟶ (A ⟶ C)</li>
+<li>¬fire ⟶ (opens ⟶ badge ∧ pin) ≡ opens ⟶ badge ∧ pin ∨ fire (the two readings of Example 2.1)</li>
+</ol>
+<p>Then check all three in Isabelle.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>(A ⟶ B) ∧ (A ⟶ C) ≡ (¬A ∨ B) ∧ (¬A ∨ C) by implication, twice; ≡ ¬A ∨ (B ∧ C) by distributivity,
+read from right to left; ≡ A ⟶ B ∧ C by implication.</li>
+<li>A ⟶ (B ⟶ C) ≡ A ∧ B ⟶ C by exportation; ≡ B ∧ A ⟶ C by commutativity; ≡ B ⟶ (A ⟶ C) by exportation.</li>
+<li>¬fire ⟶ (opens ⟶ badge ∧ pin) ≡ ¬fire ∧ opens ⟶ badge ∧ pin by exportation; ≡ ¬(¬fire ∧ opens) ∨
+(badge ∧ pin) by implication; ≡ (fire ∨ ¬opens) ∨ (badge ∧ pin) by De Morgan and double negation;
+≡ ¬opens ∨ ((badge ∧ pin) ∨ fire) by commutativity and associativity; ≡ opens ⟶ badge ∧ pin ∨ fire by
+implication.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ∧ (A ⟶ C) ⟷ (A ⟶ B ∧ C)&quot;
+  by blast
+
+lemma &quot;(A ⟶ (B ⟶ C)) ⟷ (B ⟶ (A ⟶ C))&quot;
+  by blast
+
+lemma &quot;(¬ fire ⟶ (opens ⟶ badge ∧ pin)) ⟷ (opens ⟶ badge ∧ pin ∨ fire)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ∧ (A ⟶ C) ⟷ (A ⟶ B ∧ C)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ (B ⟶ C)) ⟷ (B ⟶ (A ⟶ C))&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(¬ fire ⟶ (opens ⟶ badge ∧ pin)) ⟷ (opens ⟶ badge ∧ pin ∨ fire)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-4"><div class="ex-label"><span class="ex-num">Exercise 2.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Valid or invalid?</span></div>
+<p>Write each argument with premises and a conclusion, and decide whether it is valid. For each invalid
+argument, give a counterexample. Then check your answers in Isabelle.</p>
+<ol>
+<li>If the cache is warm, the request is fast. The request is not fast. So the cache is not warm.</li>
+<li>If the input is valid, the parser accepts it. The input is not valid. So the parser does not accept
+it.</li>
+<li>The service uses TLS or runs on an internal network. It does not run on an internal network. So it
+uses TLS.</li>
+<li>If the job runs at night, it finishes early. If it finishes early, the report is ready. The report is
+ready. So the job ran at night.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><code>warm ⟶ fast</code>, <code>¬ fast</code> ⊨ <code>¬ warm</code>: modus tollens, valid.</li>
+<li><code>ok ⟶ accepts</code>, <code>¬ ok</code> ⊨ <code>¬ accepts</code> (with <code>ok</code> for “the input is valid”): denying the antecedent,
+invalid. Counterexample: ok = F, accepts = T, a lenient parser that accepts some invalid input.</li>
+<li><code>tls ∨ internal</code>, <code>¬ internal</code> ⊨ <code>tls</code>: disjunctive syllogism, valid.</li>
+<li><code>night ⟶ early</code>, <code>early ⟶ ready</code>, <code>ready</code> ⊨ <code>night</code>: invalid, a form of affirming the consequent.
+Counterexample: night = F, ready = T; the report can be ready for another reason.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(warm ⟶ fast) ∧ ¬ fast ⟶ ¬ warm&quot;
+  by blast
+
+lemma &quot;(ok ⟶ accepts) ∧ ¬ ok ⟶ ¬ accepts&quot;
+  nitpick
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(warm ⟶ fast) ∧ ¬ fast ⟶ ¬ warm&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(ok ⟶ accepts) ∧ ¬ ok ⟶ ¬ accepts&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    accepts = True
+    ok = False</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(tls ∨ internal) ∧ ¬ internal ⟶ tls&quot;
+  by blast
+
+lemma &quot;(night ⟶ early) ∧ (early ⟶ ready) ∧ ready ⟶ night&quot;
+  nitpick
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(tls ∨ internal) ∧ ¬ internal ⟶ tls&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(night ⟶ early) ∧ (early ⟶ ready) ∧ ready ⟶ night&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    early = False
+    night = False
+    ready = True</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-5"><div class="ex-label"><span class="ex-num">Exercise 2.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Normal forms</span></div>
+<p>Bring each formula into NNF, then into CNF and DNF. Check your answers in Isabelle.</p>
+<ol>
+<li>A ⟷ B</li>
+<li>¬(A ∨ B ⟶ C)</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>Remove ⟷, then ⟶: A ⟷ B ≡ (A ⟶ B) ∧ (B ⟶ A) ≡ (¬A ∨ B) ∧ (¬B ∨ A). This is in NNF and already in
+CNF. For DNF, distribute: (¬A ∧ ¬B) ∨ (¬A ∧ A) ∨ (B ∧ ¬B) ∨ (B ∧ A). The middle two conjunctions are
+contradictions, equivalent to False, and φ ∨ False ≡ φ, so the DNF is (¬A ∧ ¬B) ∨ (A ∧ B).</li>
+<li>Remove ⟶ and push ¬ inwards: ¬(A ∨ B ⟶ C) ≡ ¬(¬(A ∨ B) ∨ C) ≡ ¬¬(A ∨ B) ∧ ¬C ≡ (A ∨ B) ∧ ¬C. This is
+in NNF and in CNF (two clauses). Distributing gives the DNF (A ∧ ¬C) ∨ (B ∧ ¬C).</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟷ B) ⟷ (¬ A ∨ B) ∧ (¬ B ∨ A)&quot;
+  by blast
+
+lemma &quot;(A ⟷ B) ⟷ (¬ A ∧ ¬ B) ∨ (A ∧ B)&quot;
+  by blast
+
+lemma &quot;¬ (A ∨ B ⟶ C) ⟷ (A ∨ B) ∧ ¬ C&quot;
+  by blast
+
+lemma &quot;¬ (A ∨ B ⟶ C) ⟷ (A ∧ ¬ C) ∨ (B ∧ ¬ C)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟷ B) ⟷ (¬ A ∨ B) ∧ (¬ B ∨ A)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟷ B) ⟷ (¬ A ∧ ¬ B) ∨ (A ∧ B)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (A ∨ B ⟶ C) ⟷ (A ∨ B) ∧ ¬ C&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (A ∨ B ⟶ C) ⟷ (A ∧ ¬ C) ∨ (B ∧ ¬ C)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-6"><div class="ex-label"><span class="ex-num">Exercise 2.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">A pump controller</span></div>
+<p>A pump fills a water tank. Two sensors report <code>low</code> (the water is below the low mark) and <code>high</code> (the
+water is above the high mark); a switch selects <code>manual</code> mode; the controller decides <code>pump</code>. The
+requirements are:</p>
+<ul>
+<li>R1: If the water is low and the mode is automatic, the pump runs.</li>
+<li>R2: If the water is high, the pump does not run.</li>
+<li>R3: In manual mode, the pump runs.</li>
+</ul>
+<ol>
+<li>Write the requirements as formulas and use Nitpick to show that they are consistent.</li>
+<li>Find a situation in which they conflict, and prove the conflict in Isabelle. How would you repair
+the requirements?</li>
+<li>With your repair, does “if the water is low, the pump runs” follow? Does it follow if you add the
+assumption that the water cannot be both low and high?</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>R1 is <code>low ∧ ¬ manual ⟶ pump</code>, R2 is <code>high ⟶ ¬ pump</code>, R3 is <code>manual ⟶ pump</code>. A counterexample to
+their negation is a model of the three:</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((low ∧ ¬ manual ⟶ pump) ∧
+         (high ⟶ ¬ pump) ∧
+         (manual ⟶ pump))&quot;
+  nitpick
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((low ∧ ¬ manual ⟶ pump) ∧
+         (high ⟶ ¬ pump) ∧
+         (manual ⟶ pump))&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    high = False
+    low = False
+    manual = False
+    pump = True</code></pre></div>
+<p>In automatic mode, with the water between the marks, the pump may run.</p>
+<ol start="2">
+<li>In manual mode with the water high, R3 says the pump runs and R2 says it does not:</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((low ∧ ¬ manual ⟶ pump) ∧
+         (high ⟶ ¬ pump) ∧
+         (manual ⟶ pump) ∧
+         manual ∧ high)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((low ∧ ¬ manual ⟶ pump) ∧
+         (high ⟶ ¬ pump) ∧
+         (manual ⟶ pump) ∧
+         manual ∧ high)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>Ask the engineers which requirement wins. Protecting the tank from overflowing is the likely
+answer, so R3 becomes R3′: <code>manual ∧ ¬ high ⟶ pump</code>.</p>
+<p>There is a second conflict, which R3′ does not remove: in automatic mode, with the water reported
+both low and high, R1 says the pump runs and R2 says it does not. Working sensors never report
+both; part 3 turns this into an assumption.</p>
+<ol start="3">
+<li>Not on its own. Nitpick finds a situation in which the water is reported both low and high, in manual
+mode, and the pump is off:</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(low ∧ ¬ manual ⟶ pump) ∧
+       (high ⟶ ¬ pump) ∧
+       (manual ∧ ¬ high ⟶ pump)
+       ⟶ (low ⟶ pump)&quot;
+  nitpick
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(low ∧ ¬ manual ⟶ pump) ∧
+       (high ⟶ ¬ pump) ∧
+       (manual ∧ ¬ high ⟶ pump)
+       ⟶ (low ⟶ pump)&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    high = True
+    low = True
+    manual = True
+    pump = False</code></pre></div>
+<p>With the assumption <code>¬ (low ∧ high)</code>, which describes the sensors (the environment) rather than the
+controller, the property follows:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ (low ∧ high) ∧
+       (low ∧ ¬ manual ⟶ pump) ∧
+       (high ⟶ ¬ pump) ∧
+       (manual ∧ ¬ high ⟶ pump)
+       ⟶ (low ⟶ pump)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ (low ∧ high) ∧
+       (low ∧ ¬ manual ⟶ pump) ∧
+       (high ⟶ ¬ pump) ∧
+       (manual ∧ ¬ high ⟶ pump)
+       ⟶ (low ⟶ pump)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>Assumptions about the environment are part of a specification: without them, a correct controller
+can look wrong.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-7"><div class="ex-label"><span class="ex-num">Exercise 2.7</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Two connectives are enough</span></div>
+<ol>
+<li>Show that every formula is equivalent to one that uses only ⟶ and <code>False</code>: give such formulas for
+¬A, A ∨ B, A ∧ B and A ⟷ B, and check them in Isabelle. Why does this cover every formula?</li>
+<li>Show that ∧ and ∨ alone are not enough: no formula built from atoms with ∧ and ∨ only (without ¬,
+⟶, ⟷, <code>True</code> or <code>False</code>) is equivalent to ¬A. Hint: what is the value of such a formula when every
+atom is T?</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>¬A ≡ A ⟶ False, as the truth tables show. Then A ∨ B ≡ ¬A ⟶ B ≡ (A ⟶ False) ⟶ B, and
+A ∧ B ≡ ¬(A ⟶ ¬B) ≡ (A ⟶ B ⟶ False) ⟶ False. For ⟷, use A ⟷ B ≡ (A ⟶ B) ∧ (B ⟶ A) and the
+formula for ∧: ((A ⟶ B) ⟶ (B ⟶ A) ⟶ False) ⟶ False.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ A ⟷ (A ⟶ False)&quot;
+  by blast
+
+lemma &quot;A ∨ B ⟷ ((A ⟶ False) ⟶ B)&quot;
+  by blast
+
+lemma &quot;A ∧ B ⟷ ((A ⟶ B ⟶ False) ⟶ False)&quot;
+  by blast
+
+lemma &quot;(A ⟷ B) ⟷ (((A ⟶ B) ⟶ (B ⟶ A) ⟶ False) ⟶ False)&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ A ⟷ (A ⟶ False)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ B ⟷ ((A ⟶ False) ⟶ B)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟷ ((A ⟶ B ⟶ False) ⟶ False)&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟷ B) ⟷ (((A ⟶ B) ⟶ (B ⟶ A) ⟶ False) ⟶ False)&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>This covers every formula: by substitution (Fact 2.4) the equivalences hold with any formulas in
+place of A and B, so you can replace the connectives one at a time, from the inside out, and by
+replacement each step gives an equivalent formula. <code>True</code> is equivalent to False ⟶ False.</p>
+<ol start="2">
+<li>Every formula built from atoms with ∧ and ∨ only is T under the valuation that makes every atom T.
+Atoms are T under it; and if φ and ψ are T, so are φ ∧ ψ and φ ∨ ψ. Since the formulas are built by
+these rules and only by them (Definition 2.3), every such formula is T. But ¬A is F under that
+valuation, so none of them is equivalent to ¬A. This style of argument, which follows the rules of an
+inductive definition, is <strong>structural induction</strong>; Module 5 treats it properly.</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-2-8"><div class="ex-label"><span class="ex-num">Exercise 2.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Knights and knaves</span></div>
+<p>On an island, knights always tell the truth and knaves always lie. You meet two inhabitants, P and Q.
+P says: “Q is a knave.” Q says: “P and I are of the same kind.” Let <code>p</code> mean “P is a knight” and <code>q</code>
+“Q is a knight”.</p>
+<ol>
+<li>Explain why P’s statement gives the constraint p ⟷ ¬q, and write Q’s statement as a constraint.</li>
+<li>Use Nitpick to find out who is a knight and who a knave.</li>
+<li>Prove in Isabelle that this is the only solution.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>If P is a knight, what P says is true; if P is a knave, it is false. So “P says S” means p ⟷ S. P says
+¬q, which gives p ⟷ ¬q. Q says that P and Q are of the same kind, p ⟷ q, which gives q ⟷ (p ⟷ q).</li>
+<li>A counterexample to the negation of the constraints is a model of them:</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;¬ ((p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)))&quot;
+  nitpick
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ ((p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)))&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    p = True
+    q = False</code></pre></div>
+<p>P is a knight and Q is a knave. Check: P truthfully says that Q is a knave, and Q falsely claims that
+the two are of the same kind.</p>
+<ol start="3">
+<li>The constraints imply this solution:</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)) ⟶ p ∧ ¬ q&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(p ⟷ ¬ q) ∧ (q ⟷ (p ⟷ q)) ⟶ p ∧ ¬ q&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>Q’s constraint alone already forces p: q ⟷ (p ⟷ q) is equivalent to p. If p is true, p ⟷ q has the
+same value as q, so the constraint is true; if p is false, p ⟷ q has the opposite value to q, so the
+constraint is false. With p true, P’s constraint p ⟷ ¬q makes q false.</p>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">12</span><h2>Check yourself</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>How does Isabelle read ¬A ∧ B ⟶ C?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">¬(A ∧ B ⟶ C)</button></li><li><button type="button" class="quiz-opt" data-i="1">((¬A) ∧ B) ⟶ C</button></li><li><button type="button" class="quiz-opt" data-i="2">(¬A) ∧ (B ⟶ C)</button></li><li><button type="button" class="quiz-opt" data-i="3">(¬(A ∧ B)) ⟶ C</button></li></ol><div class="quiz-expl" hidden>¬ binds most tightly, then ∧, then ⟶. So ¬ applies to A alone, ∧ joins ¬A and B, and ⟶ is the main connective.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">2</span><div>When is A ⟶ B false?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">When A is false</button></li><li><button type="button" class="quiz-opt" data-i="1">When A and B are both false</button></li><li><button type="button" class="quiz-opt" data-i="2">When B is true and A is false</button></li><li><button type="button" class="quiz-opt" data-i="3">Only when A is true and B is false</button></li></ol><div class="quiz-expl" hidden>An implication is broken only when its antecedent holds and its consequent does not. When A is false, A ⟶ B is vacuously true.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>A formula φ and its negation ¬φ are both satisfiable. What is φ?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Contingent: true in some rows and false in others</button></li><li><button type="button" class="quiz-opt" data-i="1">A tautology</button></li><li><button type="button" class="quiz-opt" data-i="2">A contradiction</button></li><li><button type="button" class="quiz-opt" data-i="3">This cannot happen</button></li></ol><div class="quiz-expl" hidden>φ satisfiable means some row makes φ true; ¬φ satisfiable means some row makes φ false. So φ is neither a tautology nor a contradiction.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div>Which argument form is invalid?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">From A ⟶ B and A, conclude B</button></li><li><button type="button" class="quiz-opt" data-i="1">From A ⟶ B and ¬B, conclude ¬A</button></li><li><button type="button" class="quiz-opt" data-i="2">From A ⟶ B and B, conclude A</button></li><li><button type="button" class="quiz-opt" data-i="3">From A ∨ B and ¬A, conclude B</button></li></ol><div class="quiz-expl" hidden>This is affirming the consequent. The row A = F, B = T makes both premises true and the conclusion false.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div><code>by simp</code> fails on a lemma about a propositional formula. What do you know?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The formula is not a tautology</button></li><li><button type="button" class="quiz-opt" data-i="1">Nothing yet: try <code>blast</code> or <code>auto</code>, or look for a counterexample with <code>quickcheck</code> or <code>nitpick</code></button></li><li><button type="button" class="quiz-opt" data-i="2">The formula is a contradiction</button></li><li><button type="button" class="quiz-opt" data-i="3">Isabelle cannot handle propositional formulas</button></li></ol><div class="quiz-expl" hidden>A failed proof is not a counterexample: <code>simp</code> fails on Peirce’s law, which is a tautology. Only a successful proof or a counterexample settles the question.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>Nitpick finds a counterexample to ¬(R1 ∧ R2 ∧ R3). What does that show?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">R1 ∧ R2 ∧ R3 is a tautology</button></li><li><button type="button" class="quiz-opt" data-i="1">The requirements are inconsistent</button></li><li><button type="button" class="quiz-opt" data-i="2">One of the requirements is wrong</button></li><li><button type="button" class="quiz-opt" data-i="3">The requirements are consistent: the counterexample satisfies all three</button></li></ol><div class="quiz-expl" hidden>A counterexample to ¬(R1 ∧ R2 ∧ R3) makes that negation false, so it makes R1 ∧ R2 ∧ R3 true. It is a model of the requirements, which shows that they can all hold at once.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="2"><div class="done-q">Finished this module?</div><button type="button" class="done-btn" data-yes="Done" data-no="Mark as done" data-undo="Mark as not done">Mark as done</button><div class="done-progress" data-label="{d} of {n} modules done"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_01_EN.html"><span class="mnav-label">&larr; Previous</span><span class="mnav-title">Module 1: Formal methods, what and why</span></a><a class="mnav next" href="module_03_EN.html"><span class="mnav-label">Next &rarr;</span><span class="mnav-title">Module 3: Predicate logic</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/widgets/_core.js" defer></script>
+<script src="assets/widgets/truth-table.js" defer></script>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

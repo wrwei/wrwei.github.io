@@ -140,7 +140,7 @@ end
 | `'a × 'b` | `(3, True)` | [8.1.1](module_08_EN.html#types) |
 | `'a option` | `None`, `Some 5` | [8.1.1](module_08_EN.html#types) |
 | `'a ⇒ 'b` | `Suc`, `rev` | [8.1.1](module_08_EN.html#types) |
-| `'a set` | `{1, 2, 3}`, `{x. P x}`, `{}`, `UNIV` | [4.1.4](module_04_EN.html#sets-isabelle) |
+| `'a set` | `{1, 2, 3}`, `{x. x < 5}`, `{}`, `UNIV` | [4.1.4](module_04_EN.html#sets-isabelle) |
 | `string` | `''x''`; another name for `char list` | [14.2.1](module_14_EN.html#syntax) |
 
 - A type annotation fixes a type: `value "2 + 3 :: nat"` ([1.7.2](module_01_EN.html#first-compute),
@@ -219,7 +219,7 @@ Search criteria for `find_theorems`, which you can combine ([9.6](module_09_EN.h
 | `fun` | a function by equations with patterns; termination is proved | `f.simps` (simp rules), `f.induct` | [5.1.2](module_05_EN.html#nat-functions), [8.4.2](module_08_EN.html#fun-primrec) |
 | `primrec` | primitive recursion, one equation per constructor | `f.simps` | [8.4.2](module_08_EN.html#fun-primrec) |
 | `definition` | a non-recursive constant, one equation | `f_def`, not a simp rule | [8.4.1](module_08_EN.html#definition) |
-| `inductive` | the smallest predicate closed under rules | `I.intros`, `I.induct`, `I.cases` | [11.6.1](module_11_EN.html#ev) |
+| `inductive` | the smallest predicate closed under rules | for `ev` below: `ev.intros`, `ev.induct`, `ev.cases` | [11.6.1](module_11_EN.html#ev) |
 | `inductive_cases` | an inversion rule for one shape of fact | an elimination rule | [11.6.3](module_11_EN.html#inversion) |
 | `record` | a tuple with named fields | selectors, `s⦇cars := Amber⦈` updates | [13.4.1](module_13_EN.html#records) |
 | `type_synonym` | a new name for an existing type | nothing new | [14.2.1](module_14_EN.html#syntax) |
@@ -264,7 +264,7 @@ Nitpick and Sledgehammer run when you call them.
 | Command | Options, for example | What it does | Section |
 |---|---|---|---|
 | `quickcheck` | `[random]`, `[size = 5]`, `[timeout = 30]`, `[expect = counterexample]` | runs the claim on many small values | [1.7.5](module_01_EN.html#first-refute), [9.7.1](module_09_EN.html#quickcheck) |
-| `nitpick` | `[card 'a = 2]`, `[card = 6]`, `[show_consts]`, `[satisfy]` | searches for a finite countermodel with a SAT solver | [2.4](module_02_EN.html#classify), [9.7.2](module_09_EN.html#nitpick) |
+| `nitpick` | `[card 'a = 2]`, `[card = 6]`, `[satisfy]` | searches for a finite countermodel with a SAT solver; the option `show_consts` also shows the values of constants | [2.4](module_02_EN.html#classify), [3.8](module_03_EN.html#types), [9.7.2](module_09_EN.html#nitpick) |
 | `sledgehammer` | `[timeout = 60]` | asks external provers, and suggests a proof to paste | [9.8](module_09_EN.html#sledgehammer) |
 
 ### Code {#commands-code}
@@ -545,5 +545,5 @@ On macOS, use <kbd>Cmd</kbd> instead of <kbd>Ctrl</kbd>.
 | a red **!** and a red underline | an error in that command | [1.7.5](module_01_EN.html#first-refute) |
 | ⌂ in a message | a link to the position the message is about | [1.7.5](module_01_EN.html#first-refute) |
 | a name in blue | a free variable, perhaps a misspelt constant | [8.1.2](module_08_EN.html#terms) |
-| `theorem …` above a failed proof | nothing: the red message is what counts | [1.7.5](module_01_EN.html#first-refute) |
+| a line starting with `theorem` above a failed proof | nothing: the red message is what counts | [1.7.5](module_01_EN.html#first-refute) |
 | **Proof outline with cases:** | a skeleton for the proof; click it to insert it | [10.5.1](module_10_EN.html#cases-bool) |

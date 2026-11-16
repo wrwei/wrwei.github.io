@@ -1,0 +1,1805 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 10: Structured proofs in Isar — Formal Methods with Isabelle</title>
+<meta name="description" content="Write proofs that a reader can follow line by line and Isabelle checks step by step. You will state each step of a proof in Isar, pass facts from one step to the next, calculate with chains of equations and inequalities, and split proofs into cases and induction steps.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="10" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Formal methods</a><span class="sep">/</span><span class="crumb crumb-now">Module 10</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Module 10 of 14</button><div class="dropdown-menu"><a href="module_01_EN.html"><span class="dd-n">1</span>Formal methods, what and why<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_EN.html"><span class="dd-n">2</span>Propositional logic<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_EN.html"><span class="dd-n">3</span>Predicate logic<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_EN.html"><span class="dd-n">4</span>Sets, relations and functions<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_EN.html"><span class="dd-n">5</span>Induction and recursion<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_EN.html"><span class="dd-n">6</span>What is a proof? Natural deduction<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_EN.html"><span class="dd-n">7</span>Natural deduction in Isabelle<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_EN.html"><span class="dd-n">8</span>Functional programming in HOL<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_EN.html"><span class="dd-n">9</span>Proof automation<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_EN.html" class="active"><span class="dd-n">10</span>Structured proofs in Isar<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_EN.html"><span class="dd-n">11</span>Induction in depth<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_EN.html"><span class="dd-n">12</span>Verifying functional programs<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_EN.html"><span class="dd-n">13</span>Modelling systems: state machines and invariants<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_EN.html"><span class="dd-n">14</span>Capstone: a verified compiler<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html"><span class="dd-n">&#9670;</span>Troubleshooting</a>
+<a href="glossary_EN.html"><span class="dd-n">&#9670;</span>Glossary</a></div></div>
+  
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#why"><span class="num">1</span><span class="side-t">Why structured proofs</span></a><a href="#shape"><span class="num">2</span><span class="side-t">The shape of an Isar proof</span></a><a href="#facts"><span class="num">3</span><span class="side-t">Passing facts along</span></a><a href="#calc"><span class="num">4</span><span class="side-t">Calculations</span></a><a href="#cases"><span class="num">5</span><span class="side-t">Case analysis</span></a><a href="#induction"><span class="num">6</span><span class="side-t">Induction with named cases</span></a><a href="#translate"><span class="num">7</span><span class="side-t">From paper and apply scripts to Isar</span></a><a href="#errors"><span class="num">8</span><span class="side-t">When an Isar proof fails</span></a><a href="#summary"><span class="num">9</span><span class="side-t">What you learned</span></a><a href="#exercises"><span class="num">10</span><span class="side-t">Exercises</span></a><a href="#quiz"><span class="num">11</span><span class="side-t">Check yourself</span></a></nav>
+<div class="sidebar-label">Reference</div><div class="side-links"><a href="cheatsheet_EN.html">Cheat sheet</a><a href="troubleshooting_EN.html">Troubleshooting</a><a href="glossary_EN.html">Glossary</a><a href="formal-methods-theories.zip">Theory files (ZIP)</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Formal Methods with Isabelle &middot; Part III · Isabelle/HOL in practice</div>
+      <h1 class="module-title"><span class="title-n">Module 10</span>Structured proofs in Isar</h1>
+      <p class="module-lead">Write proofs that a reader can follow line by line and Isabelle checks step by step. You will state each step of a proof in Isar, pass facts from one step to the next, calculate with chains of equations and inequalities, and split proofs into cases and induction steps.</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 220 min</span><span class="chip chip-needs">You need: Modules 1–9</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Write a proof as a proof … qed block with assume, fix, have and show</li><li>Pass facts between steps with then, from, with, using, note, moreover and ultimately</li><li>Prove chains of equations and inequalities with also, finally and …</li><li>Split a proof into cases, and write inductions with named cases, ?case and the induction hypothesis</li><li>Turn natural-deduction proofs and apply scripts into Isar, and repair an Isar proof from Isabelle’s messages</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="why"></span>
+<div class="section-header"><span class="section-num">1</span><h2>Why structured proofs</h2></div>
+<p>In Module 7 you built proofs from <code>apply</code> steps, one rule at a time, and in Module 9 you let automation
+prove whole goals at once. Both work, and both have a weakness that shows once a proof grows beyond a few
+lines. Here is a proof in the style of Module 7. Read it, and ask yourself what is true after the fourth
+step.</p>
+<p>The statement is about access control: if every administrator is a member of staff, and there is an
+administrator, then there is a member of staff. <code>∀u. admin u ⟶ staff u</code> reads “for every user u, if u
+is an administrator then u is staff”.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)&quot;
+  apply (rule impI)
+  apply (rule impI)
+  apply (erule exE)
+  apply (rule exI)
+  apply (erule allE)
+  apply (erule mp)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule exE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">apply</span> (erule allE)
+  <span class="isa-proof">apply</span> (erule mp)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>Isabelle accepts the script. But it records what Isabelle should <em>do</em>, not what is <em>true</em>. Which user
+does <code>exI</code> choose? Which assumption does <code>erule allE</code> take apart? The answers are in the proof states,
+and the proof states are not in the text: to understand the script you have to replay it in Isabelle and
+read the state after every line. The same holds for whoever maintains the proof later. If a change in
+the library makes one step leave its subgoals in a different order, a later step fails, far from the
+cause, and the script gives no hint of what was intended.</p>
+<p>Here is the same theorem proved in Isar:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)&quot;
+proof (intro impI)
+  assume all: &quot;∀u. admin u ⟶ staff u&quot;
+  assume &quot;∃u. admin u&quot;
+  then obtain a where &quot;admin a&quot; by blast
+  with all have &quot;staff a&quot; by blast
+  then show &quot;∃u. staff u&quot; by blast
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∀u. admin u ⟶ staff u) ⟶ (∃u. admin u) ⟶ (∃u. staff u)&quot;</span>
+<span class="isa-proof">proof</span> (intro impI)
+  <span class="isa-proof">assume</span> all: <span class="isa-inner">&quot;∀u. admin u ⟶ staff u&quot;</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;∃u. admin u&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">obtain</span> a <span class="isa-minor">where</span> <span class="isa-inner">&quot;admin a&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">with</span> all <span class="isa-proof">have</span> <span class="isa-inner">&quot;staff a&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;∃u. staff u&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p>You have not met these keywords yet, and you can probably read the proof all the same, because it says
+what holds at each step. It is the paper proof, line for line: <em>assume that every administrator is
+staff, and that there is an administrator. Call one of them a. By the first assumption, a is staff. So
+there is a member of staff.</em></p>
+<p><strong>Isar</strong> is Isabelle’s language for such structured proofs; the name stands for <em>Intelligible
+semi-automated reasoning</em>. An Isar proof is a text made of statements. Each step claims a fact, and
+Isabelle checks that the claim follows, usually with a short call to automation such as <code>by blast</code>.
+Three things follow from this design.</p>
+<ul>
+<li><strong>You can read the proof without running it.</strong> The facts are in the text, not hidden in proof states.</li>
+<li><strong>A failing step is marked where it fails.</strong> Its statement tells you what was meant, so you know what
+to repair.</li>
+<li><strong>It matches paper proofs.</strong> The natural-deduction proofs of Module 6 and the induction proofs of
+Module 5 turn into Isar almost line for line (Section 10.7).</li>
+</ul>
+<p>Isabelle’s own tutorial, <em>Programming and Proving in Isabelle/HOL</em>, recommends Isar for larger proofs,
+and the rest of this series writes its longer proofs in it. Apply scripts stay useful for exploring a
+goal step by step, and short proofs stay <code>by simp</code> or <code>by auto</code>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Apply script</th>
+<th>Isar proof</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Each line says</td>
+<td>which method to apply next</td>
+<td>which fact holds next</td>
+</tr>
+<tr>
+<td>To follow it you need</td>
+<td>Isabelle, to see each state</td>
+<td>the text</td>
+</tr>
+<tr>
+<td>Its shape</td>
+<td>a list of steps</td>
+<td>nested blocks, like a program</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>An apply script tells Isabelle what to do to the goal. An Isar proof tells the reader what is true at
+each step, and Isabelle checks every claim.</p>
+</div>
+<span class="section-anchor" id="shape"></span>
+<div class="section-header"><span class="section-num">2</span><h2>The shape of an Isar proof</h2></div>
+<p>An Isar proof is built from a handful of commands. This section introduces them on small examples from
+logic, so that you can concentrate on the structure, and then on a first function from programming.</p>
+<h3 id="shape-blocks">Proof blocks</h3>
+<p>You know two ways to finish a lemma: a single step <code>by method</code>, and an apply script that ends with
+<code>done</code>. Isar adds a third, the proof block:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag">not checked</span><button type="button" class="copy-btn" data-copy="lemma &quot;statement&quot;
+proof method
+  steps
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;statement&quot;</span>
+<span class="isa-proof">proof</span> method
+  steps
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The method after <code>proof</code> makes the first move on the goal, as <code>apply</code> would. The steps between <code>proof</code>
+and <code>qed</code> then prove what is left, and <code>qed</code> closes the block.</p>
+<div class="box box-definition"><div class="box-label">Definition 10.1<span class="box-title">Proof block</span></div>
+<p>A <strong>proof block</strong> <code>proof m … qed</code> proves the goal stated directly before it. The <strong>initial method</strong> m turns
+the goal into <strong>pending goals</strong>. The steps inside the block establish facts and solve the pending goals;
+<code>qed</code> closes the block once all of them are solved. Every claim inside the block needs a proof of its
+own, which is again either a single step <code>by m</code> or a proof block, so blocks nest.</p>
+</div>
+<p>Take the formula you proved by hand in Module 6 and with <code>apply</code> in Module 7: A ∧ B ⟶ B ∧ A. State it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∧ B ⟶ B ∧ A</code></pre></div>
+<p>Start the block with the rule for implication from Module 7:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="proof (rule impI)">Copy</button></div><pre class="isa-body"><code><span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</code></pre></div>
+<p>The goal now says: assuming A ∧ B, show B ∧ A. The arrow ⟹ is Isabelle’s own implication, which you met
+in Module 7. In a paper proof you would now write “Assume A ∧ B”. In Isar too:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  assume ab: &quot;A ∧ B&quot;">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+this:
+  A ∧ B
+
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</code></pre></div>
+<p><code>assume</code> adds the assumption to the proof and calls it <code>ab</code>. The state lists it under <code>this:</code>, the most
+recent fact. The goal has not changed: an assumption proves nothing by itself, it is something you may
+use. Now claim the conclusion:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  show &quot;B ∧ A&quot;">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. B ∧ A</code></pre></div>
+<p><code>show</code> states a claim that solves a pending goal. Like a lemma, the claim needs a proof, and the state
+shows it as a goal of its own. Prove it with <code>blast</code>, giving it the assumption, and close the block:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="    using ab by blast
+qed">Copy</button></div><pre class="isa-body"><code>    <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>using ab</code> hands the fact <code>ab</code> to <code>blast</code>; Section 10.3.3 explains why you have to. When the proof of
+the <code>show</code> succeeds, Isabelle uses the shown fact to solve the pending goal, and <code>qed</code> finds nothing
+left to do. This works because <code>ab</code> is the premise A ∧ B of the goal. An <code>assume</code> must match a premise
+of the goal: assume something else, and the <code>show</code> at the end fails (Section 10.8).</p>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>The first line of every proof state names the <strong>mode</strong> Isabelle is in, which tells you what may come
+next. <code>proof (prove)</code>: a claim (<code>lemma</code>, <code>have</code>, <code>show</code>) has been stated, and its proof comes next.
+<code>proof (state)</code>: you are inside a block and may assume, claim or close it. <code>proof (chain)</code>: facts have
+been picked up for the next claim (Section 10.3).</p>
+</div>
+<h3 id="shape-have">Steps on the way: have</h3>
+<p>A paper proof rarely jumps to its conclusion: it reaches it through intermediate facts. <code>have</code> states
+such a fact, with its own proof, and adds it to the proof for later steps. Unlike <code>show</code>, <code>have</code> does not
+touch the pending goals.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+proof (rule impI)
+  assume ab: &quot;A ∧ B&quot;
+  have b: &quot;B&quot; using ab by blast
+  have a: &quot;A&quot; using ab by blast
+  show &quot;B ∧ A&quot; using b a by blast
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">have</span> b: <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+  <span class="isa-proof">have</span> a: <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span> <span class="isa-proof">using</span> b a <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p>Each <code>have</code> gets a name, <code>b</code> and <code>a</code>, and the <code>show</code> uses both. The proof reads as on paper: from A ∧ B
+we get B, and we get A, so B ∧ A.</p>
+<h3 id="shape-nested">Nested blocks and next</h3>
+<p>The proof of a <code>have</code> or a <code>show</code> can itself be a block. Here the conclusion B ∧ A is proved with the
+rule for conjunction, which leaves two goals:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+proof (rule impI)
+  assume ab: &quot;A ∧ B&quot;
+  show &quot;B ∧ A&quot;
+  proof (rule conjI)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span>
+  <span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> conjI)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+goal (2 subgoals):
+ 1. B
+ 2. A</code></pre></div>
+<p>Each of the two goals gets its own <code>show</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="    show &quot;B&quot; using ab by blast
+  next
+    show &quot;A&quot; using ab by blast
+  qed
+qed">Copy</button></div><pre class="isa-body"><code>    <span class="isa-proof">show</span> <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">show</span> <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p>A <code>show</code> may solve any pending goal of its block, not only the first: Isabelle looks for a goal that the
+shown fact solves. <code>next</code> separates the proofs of different goals. It closes the current part of the
+block and opens a fresh one, so that whatever you assume for one goal is not available for the next.
+Here nothing is assumed inside the inner block, so <code>next</code> could be left out; with case analysis and
+induction (Sections 10.5 and 10.6) it is needed. Figure 10.1 shows the structure of this proof.</p>
+<figure class="fig" id="fig-10-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 350" width="760" height="350" role="img"><title>The block structure of an Isar proof</title><defs><marker id="fig-10-1__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><rect x="44" y="49" width="330" height="252" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="364" y="65" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#2563EB" text-anchor="end">block 1</text><rect x="67.652" y="133" width="300" height="140" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.6"/><text x="359.652" y="149" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="end">block 2</text><line x1="114.782" y1="203" x2="359.652" y2="203" stroke="#15803D" stroke-width="1.2" stroke-dasharray="5 4"/><text x="60.0" y="40" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">lemma &quot;A ∧ B ⟶ B ∧ A&quot;</text><text x="60.0" y="68" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">proof (rule impI)</text><text x="75.652" y="96" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">assume ab: &quot;A ∧ B&quot;</text><text x="75.652" y="124" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">show &quot;B ∧ A&quot;</text><text x="75.652" y="152" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">proof (rule conjI)</text><text x="91.304" y="180" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">show &quot;B&quot; using ab by blast</text><text x="75.652" y="208" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">next</text><text x="91.304" y="236" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">show &quot;A&quot; using ab by blast</text><text x="75.652" y="264" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">qed</text><text x="60.0" y="292" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#1A2E4A" text-anchor="start">qed</text><circle cx="30" cy="92" r="4" fill="#6D28D9" stroke="#6D28D9" stroke-width="1"/><line x1="30" y1="92" x2="71.652" y2="92" stroke="#6D28D9" stroke-width="1.8"/><path d="M30 92 V176 H85.304" stroke="#6D28D9" stroke-width="1.8" fill="none" marker-end="url(#fig-10-1__ah-6D28D9)"/><path d="M30 176 V232 H85.304" stroke="#6D28D9" stroke-width="1.8" fill="none" marker-end="url(#fig-10-1__ah-6D28D9)"/><line x1="380" y1="63" x2="396" y2="63" stroke="#2563EB" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="68" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="600" fill="#2563EB" text-anchor="start">goal of block 1:</text><text x="526.0" y="68" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">A ∧ B ⟹ B ∧ A</text><line x1="380" y1="91" x2="396" y2="91" stroke="#6D28D9" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="96" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#6D28D9" text-anchor="start">adds the fact ab to block 1</text><line x1="380" y1="119" x2="396" y2="119" stroke="#2563EB" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="124" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">claims B ∧ A; its proof is block 2</text><line x1="380" y1="147" x2="396" y2="147" stroke="#15803D" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="152" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="600" fill="#15803D" text-anchor="start">goals of block 2:</text><text x="533.0" y="152" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#15803D" text-anchor="start">1. B</text><text x="581.0" y="152" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#15803D" text-anchor="start">2. A</text><line x1="380" y1="175" x2="396" y2="175" stroke="#15803D" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="180" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#15803D" text-anchor="start">solves goal 1 of block 2</text><line x1="380" y1="203" x2="396" y2="203" stroke="#475569" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="208" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start">starts a fresh part of block 2</text><line x1="380" y1="231" x2="396" y2="231" stroke="#15803D" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="236" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#15803D" text-anchor="start">solves goal 2 of block 2</text><line x1="380" y1="259" x2="396" y2="259" stroke="#2563EB" stroke-width="1.1" stroke-dasharray="3 3"/><text x="404" y="264" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">block 2 is finished, so</text><text x="404" y="282" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">show &quot;B ∧ A&quot; solves the goal of block 1</text><text x="26" y="336" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#6D28D9" text-anchor="start" font-style="italic">the fact ab flows into the nested block</text></svg>
+</div><figcaption><span class="fig-num">Figure 10.1</span> <p>The block structure of the nested proof. Each <code>proof … qed</code> opens a block with its own pending goals,
+and each <code>show</code> solves one of them. The fact <code>ab</code>, assumed in the outer block, can be used in every block
+nested inside it.</p>
+</figcaption></figure>
+<h3 id="shape-fix">Arbitrary values: fix</h3>
+<p>To prove a statement for all x, a paper proof says “let x be arbitrary” and proves the statement for
+that x. This is the rule (∀I) of Module 6. Isar says <code>fix x</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;∀u. admin u ⟶ admin u ∨ staff u&quot;
+proof">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∀u. admin u ⟶ admin u ∨ staff u&quot;</span>
+<span class="isa-proof">proof</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+goal (1 subgoal):
+ 1. ⋀u. admin u ⟶ admin u ∨ staff u</code></pre></div>
+<p><code>proof</code> without a method applied the rule for ∀ (Section 10.2.6 lists what it does for each
+connective). The goal starts with ⋀u, Isabelle’s own “for every u” from Module 7. Fix such a u and
+prove the statement for it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  fix u
+  show &quot;admin u ⟶ admin u ∨ staff u&quot;
+  proof
+    assume a: &quot;admin u&quot;
+    show &quot;admin u ∨ staff u&quot; using a by blast
+  qed
+qed">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">fix</span> u
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;admin u ⟶ admin u ∨ staff u&quot;</span>
+  <span class="isa-proof">proof</span>
+    <span class="isa-proof">assume</span> a: <span class="isa-inner">&quot;admin u&quot;</span>
+    <span class="isa-proof">show</span> <span class="isa-inner">&quot;admin u ∨ staff u&quot;</span> <span class="isa-proof">using</span> a <span class="isa-proof">by</span> blast
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="box box-definition"><div class="box-label">Definition 10.2<span class="box-title">Fixed variable</span></div>
+<p><code>fix x</code> introduces a <strong>fixed variable</strong> x, like the variables bound by ⋀ in Module 7: a name for an
+arbitrary value, about which the proof knows nothing except what it assumes. When the block is closed,
+a fact proved for the fixed x holds for every value of x.</p>
+</div>
+<h3 id="shape-assms">Lemmas with assumptions: assumes, shows and ?thesis</h3>
+<p>Statements about programs usually have conditions. Here is a function that every programmer has written
+in some form: <code>clamp lo hi x</code> keeps a value x inside the range from lo to hi, as a volume control or a
+sensor reading does.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun clamp :: &quot;int ⇒ int ⇒ int ⇒ int&quot; where
+  &quot;clamp lo hi x = (if x &lt; lo then lo else if hi &lt; x then hi else x)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> clamp :: <span class="isa-inner">&quot;int ⇒ int ⇒ int ⇒ int&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;clamp lo hi x = (if x &lt; lo then lo else if hi &lt; x then hi else x)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  clamp :: &quot;int ⇒ int ⇒ int ⇒ int&quot;
+
+Found termination order: &quot;{}&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;clamp 0 100 150&quot;
+value &quot;clamp 0 100 (-5)&quot;
+value &quot;clamp 0 100 42&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;clamp 0 100 150&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;clamp 0 100 (-5)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;clamp 0 100 42&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;100&quot;
+  :: &quot;int&quot;
+
+&quot;0&quot;
+  :: &quot;int&quot;
+
+&quot;42&quot;
+  :: &quot;int&quot;</code></pre></div>
+<p>The result is never below lo, provided the range is not empty. A lemma can state the condition
+separately, with <code>assumes</code>, and the claim with <code>shows</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma clamp_lower:
+  assumes &quot;lo ≤ hi&quot;
+  shows &quot;lo ≤ clamp lo hi x&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> clamp_lower:
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;lo ≤ hi&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;lo ≤ clamp lo hi x&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. lo ≤ clamp lo hi x</code></pre></div>
+<p>The goal shows only the claim. The assumption is available as a fact called <code>assms</code>, the list of all
+assumptions of the lemma:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="proof -
+  show ?thesis using assms by simp
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-proof">proof</span> -
+  <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<p>Two new things appear here. <code>proof -</code> starts a block without changing the goal: the hyphen is the
+method that does nothing. And <code>?thesis</code>, read “the thesis”, is an abbreviation that Isabelle defines for
+every claim: it stands for the statement after <code>shows</code> (or after <code>lemma</code>, <code>have</code> or <code>show</code>), here
+<code>lo ≤ clamp lo hi x</code>. It saves you from copying long statements. You can also name each assumption,
+<code>assumes order: &quot;lo ≤ hi&quot;</code>, or refer to the i-th one as <code>assms(i)</code>. The result of the lemma is the
+implication <code>lo ≤ hi ⟹ lo ≤ clamp lo hi x</code>, which later proofs use under the name <code>clamp_lower</code>.</p>
+<p>A one-step proof works too: <code>using assms by simp</code> directly after the statement. The block form pays off
+when the proof needs several steps.</p>
+<h3 id="shape-start">How a block starts</h3>
+<p>The initial method decides which pending goals the block has to prove. Three forms cover most proofs:</p>
+<ul>
+<li><code>proof (rule r)</code> applies the rule r backwards, as <code>apply (rule r)</code> does, for example <code>rule impI</code>.</li>
+<li><code>proof</code> with no method applies one <strong>standard rule</strong> chosen by the main connective of the goal (or, when
+facts are passed to it, an elimination rule for them; Section 10.5.3).</li>
+<li><code>proof -</code> leaves the goal as it is.</li>
+</ul>
+<p>For the standard rule, the block then follows the patterns of natural deduction:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Goal</th>
+<th><code>proof</code> applies</th>
+<th>Inside the block</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A ⟶ B</code></td>
+<td><code>impI</code></td>
+<td><code>assume &quot;A&quot;</code> … <code>show &quot;B&quot;</code></td>
+</tr>
+<tr>
+<td><code>A ∧ B</code></td>
+<td><code>conjI</code></td>
+<td><code>show &quot;A&quot;</code> … <code>next</code> … <code>show &quot;B&quot;</code></td>
+</tr>
+<tr>
+<td><code>A ⟷ B</code></td>
+<td><code>iffI</code></td>
+<td><code>assume &quot;A&quot;</code> … <code>show &quot;B&quot;</code> <code>next</code> <code>assume &quot;B&quot;</code> … <code>show &quot;A&quot;</code></td>
+</tr>
+<tr>
+<td><code>¬ A</code></td>
+<td><code>notI</code></td>
+<td><code>assume &quot;A&quot;</code> … <code>show False</code></td>
+</tr>
+<tr>
+<td><code>∀x. P x</code></td>
+<td><code>allI</code></td>
+<td><code>fix x</code> … <code>show &quot;P x&quot;</code></td>
+</tr>
+<tr>
+<td><code>∃x. P x</code></td>
+<td><code>exI</code></td>
+<td><code>show &quot;P t&quot;</code> for a witness t of your choice</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p><code>proof</code> on its own fails when no standard rule fits the goal, for example when the goal is <code>False</code> or an
+equation between numbers:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;A&quot;</span> <span class="isa-minor">and</span> <span class="isa-inner">&quot;¬ A&quot;</span>
+  <span class="isa-minor">shows</span> False
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">show</span> False <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method:
+goal (1 subgoal):
+ 1. False</span></code></pre></div>
+<p>The fix is <code>proof -</code>, which starts the block without applying any rule:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma
+  assumes &quot;A&quot; and &quot;¬ A&quot;
+  shows False
+proof -
+  show False using assms by blast
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;A&quot;</span> <span class="isa-minor">and</span> <span class="isa-inner">&quot;¬ A&quot;</span>
+  <span class="isa-minor">shows</span> False
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">show</span> False <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+</div>
+<span class="section-anchor" id="facts"></span>
+<div class="section-header"><span class="section-num">3</span><h2>Passing facts along</h2></div>
+<p>The proofs so far handed facts to methods with <code>using</code>. Isar has several ways to pass facts from one
+step to the next. They make the flow of a proof visible, as words like “hence” and “from this” do on
+paper.</p>
+<h3 id="facts-then">Chaining facts with then</h3>
+<div class="box box-definition"><div class="box-label">Definition 10.3<span class="box-title">Fact, this and chaining</span></div>
+<p>A <strong>fact</strong> is a proved statement available in a proof: an assumption, the result of <code>have</code> or <code>show</code>, or
+a lemma from the library or from your theory. After each step, the fact it produced is called
+<strong>this</strong>. <strong>Forward chaining</strong> passes facts to the next claim, whose proof method receives them, as
+<code>using</code> does.</p>
+</div>
+<p><code>then</code> chains <code>this</code> into the next claim. A proof in which every step uses the result of the step before
+reads like a pipeline:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ (A ⟶ B) ⟶ B ∨ C&quot;
+proof (rule impI)
+  assume &quot;A ∧ (A ⟶ B)&quot;
+  then have &quot;B&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ (A ⟶ B) ⟶ B ∨ C&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A ∧ (A ⟶ B)&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;B&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (chain)
+picking this:
+  A ∧ (A ⟶ B)
+
+proof (prove)
+using this:
+  A ∧ (A ⟶ B)
+
+goal (1 subgoal):
+ 1. B</code></pre></div>
+<p>Isabelle prints two states for the last line, one for each command. After <code>then</code> the mode is
+<code>proof (chain)</code>, and <code>picking this</code> shows the fact being passed. After <code>have &quot;B&quot;</code> the new goal appears,
+with the fact it will use listed under <code>using this</code>. In Isabelle/jEdit you see the state of the command
+under the cursor. Finish the pipeline:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="    by blast
+  then show &quot;B ∨ C&quot; by blast
+qed">Copy</button></div><pre class="isa-body"><code>    <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∨ C&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<h3 id="facts-names">Names, from, with, using and note</h3>
+<p>A pipeline breaks as soon as a step needs an older fact. <code>from</code> names the facts to pass, so <code>then</code> is
+the same as <code>from this</code>. Facts can be referred to by name, or by their statement between the quotes
+<code>‹</code> and <code>›</code>: <code>‹A›</code> reads “the fact A” and refers to the fact of the proof whose statement is A.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+proof (rule impI)
+  assume ab: &quot;A ∧ B&quot;
+  from ab have &quot;A&quot; by blast
+  from ab have &quot;B&quot; by blast
+  with ‹A› show &quot;B ∧ A&quot; by blast
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">with</span> <span class="isa-cartouche">‹A›</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>with ‹A›</code> is short for <code>from ‹A› this</code>: it passes the named fact <em>and</em> the current one, here B.</p>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>To type <code>‹</code> and <code>›</code> in Isabelle/jEdit, type a back-quote (<code>`</code>) and accept the first completion,
+which inserts <code>‹›</code> with the cursor between the two quotes.</p>
+</div>
+<p><code>note</code> puts facts into <code>this</code> without proving anything, and can give the group a name:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+proof (rule impI)
+  assume ab: &quot;A ∧ B&quot;
+  from ab have a: &quot;A&quot; by blast
+  from ab have b: &quot;B&quot; by blast
+  note both = b a">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> a: <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> b: <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">note</span> both = b a</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+this:
+    B
+    A
+
+goal (1 subgoal):
+ 1. A ∧ B ⟹ B ∧ A</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  from both show &quot;B ∧ A&quot; by (rule conjI)
+qed">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">from</span> both <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> conjI)
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The order of the facts matters here: <code>rule conjI</code> uses the first fact for the left conjunct and the
+second for the right one. For <code>blast</code>, <code>simp</code> and <code>auto</code> the order makes no difference.</p>
+<div class="box box-fact"><div class="box-label">Fact 10.1<span class="box-title">Chaining shorthands</span></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>It means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>then</code></td>
+<td><code>from this</code></td>
+</tr>
+<tr>
+<td><code>with a</code></td>
+<td><code>from a this</code></td>
+</tr>
+<tr>
+<td><code>have &quot;P&quot; using a</code></td>
+<td><code>from a have &quot;P&quot;</code></td>
+</tr>
+<tr>
+<td><code>hence</code></td>
+<td><code>then have</code></td>
+</tr>
+<tr>
+<td><code>thus</code></td>
+<td><code>then show</code></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>You will meet <code>hence</code> and <code>thus</code> in older proofs, including the Isabelle tutorial. Isabelle2026 still
+accepts them, but its reference manual calls them left-overs from the early history of Isar and
+recommends the longer forms, which this series uses.</p>
+<h3 id="facts-visible">Methods see only the facts you give them</h3>
+<p>In Section 10.2.5 the proof of <code>clamp_lower</code> said <code>using assms</code>. Leave it out:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;lo ≤ hi&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;lo ≤ clamp lo hi x&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. hi &lt; x ⟶ ¬ x &lt; lo ⟶ lo ≤ hi</span></code></pre></div>
+<p>The simplifier unfolded <code>clamp</code> and split the <code>if</code>s, and what remains is the one case that needs the
+assumption: when x is above the range, <code>clamp</code> returns hi, and lo ≤ hi is exactly what <code>simp</code> did not
+know. The assumption was in the proof all the time, but <strong>a proof method sees only the goal and the
+facts passed to it</strong> with <code>then</code>, <code>from</code>, <code>with</code> or <code>using</code>, besides the rules it always uses (for
+<code>simp</code>, the simp rules, which include the equation of <code>clamp</code>). This is deliberate: you decide which
+facts matter, and automation does not get lost among hundreds of them.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>Assumptions and proved facts are available in a proof, but a method uses them only when you pass them.
+When a step fails, first check that it receives the facts it needs.</p>
+</div>
+<h3 id="facts-obtain">Using an existential: obtain</h3>
+<p>The rule (∃E) of Module 6 says: from ∃x. P x you may introduce a new name a with P a, provided the
+conclusion does not mention a. In Isar this is <code>obtain</code>. Look again at the Isar proof of Section 10.1:</p>
+<ul>
+<li><code>assume all: …</code> and <code>assume &quot;∃u. admin u&quot;</code> take the two premises that <code>proof (intro impI)</code> left.</li>
+<li><code>then obtain a where &quot;admin a&quot; by blast</code> introduces a new fixed variable <code>a</code> and the fact <code>admin a</code>.
+The proof, <code>by blast</code>, shows that such an <code>a</code> exists, using the chained fact ∃u. admin u.</li>
+<li><code>with all have &quot;staff a&quot;</code> passes <code>all</code> and <code>admin a</code> to <code>blast</code>.</li>
+<li><code>then show &quot;∃u. staff u&quot;</code> uses <code>staff a</code>: <code>a</code> is the witness.</li>
+</ul>
+<p>Forget to chain the existential, and <code>obtain</code> cannot be proved:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃u. admin u) ⟶ (∃u. admin u ∨ staff u)&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;∃u. admin u&quot;</span>
+  <span class="isa-proof">obtain</span> a <span class="isa-minor">where</span> <span class="isa-inner">&quot;admin a&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;∃u. admin u ∨ staff u&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. (⋀a. admin a ⟹ thesis) ⟹ thesis</span></code></pre></div>
+<p>The goal in the message is what <code>obtain</code> has to prove: whatever you want to show (<code>thesis</code>), if it
+follows from <code>admin a</code> for an arbitrary <code>a</code>, then it holds. <code>blast</code> cannot prove that without the fact
+∃u. admin u. Write <code>then obtain</code>, or name the fact and write <code>obtain a where &quot;admin a&quot; using ex by blast</code>
+with <code>using</code> after the clause.</p>
+<h3 id="facts-moreover">Collecting facts: moreover and ultimately</h3>
+<p>Sometimes a step needs several facts that are proved one after another. Instead of naming each one, you
+can collect them: <code>moreover</code> adds the most recent fact, <code>this</code>, to a collection, and <code>ultimately</code> adds
+the last one and passes the whole collection to the next claim.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma clamp_in_range:
+  assumes &quot;lo ≤ hi&quot;
+  shows &quot;lo ≤ clamp lo hi x ∧ clamp lo hi x ≤ hi&quot;
+proof -
+  have &quot;lo ≤ clamp lo hi x&quot; using assms by simp
+  moreover have &quot;clamp lo hi x ≤ hi&quot; using assms by simp
+  ultimately show ?thesis by blast
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> clamp_in_range:
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;lo ≤ hi&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;lo ≤ clamp lo hi x ∧ clamp lo hi x ≤ hi&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;lo ≤ clamp lo hi x&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">moreover</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;clamp lo hi x ≤ hi&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">ultimately</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The proof says what a reviewer wants to see: the result is at least lo, it is at most hi, so it lies in
+the range.</p>
+<span class="section-anchor" id="calc"></span>
+<div class="section-header"><span class="section-num">4</span><h2>Calculations</h2></div>
+<p>Much of mathematics, and much reasoning about programs, is calculation: a chain of equations or
+inequalities in which each step follows from the one before.</p>
+<h3 id="calc-eq">Chains of equations</h3>
+<p>On paper, you multiply out (a + b)(a + b) like this:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mo stretchy="false">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo><mo stretchy="false">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>a</mi><mo stretchy="false">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo><mo>+</mo><mi>b</mi><mo stretchy="false">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>a</mi><mo>⋅</mo><mi>a</mi><mo>+</mo><mi>a</mi><mo>⋅</mo><mi>b</mi><mo>+</mo><mo stretchy="false">(</mo><mi>b</mi><mo>⋅</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo>⋅</mo><mi>b</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mi>a</mi><mo>⋅</mo><mi>a</mi><mo>+</mo><mn>2</mn><mi>a</mi><mi>b</mi><mo>+</mo><mi>b</mi><mo>⋅</mo><mi>b</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+(a + b)(a + b) &amp;= a(a + b) + b(a + b) \\
+&amp;= a \cdot a + a \cdot b + (b \cdot a + b \cdot b) \\
+&amp;= a \cdot a + 2ab + b \cdot b
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:4.2em;vertical-align:-1.85em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal">a</span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mopen">(</span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mclose">)</span></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">a</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">2</span><span class="mord mathnormal">ab</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">b</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span></span></span></span></span></span></span></div>
+<p>and conclude that the first term equals the last. Isar writes the same chain:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(a + b) * (a + b) = a * a + 2 * a * b + b * (b :: int)&quot;
+proof -
+  have &quot;(a + b) * (a + b) = a * (a + b) + b * (a + b)&quot; by (rule distrib_right)
+  also have &quot;… = a * a + a * b + (b * a + b * b)&quot; by (simp add: distrib_left)
+  also have &quot;… = a * a + 2 * a * b + b * b&quot; by (simp add: algebra_simps)
+  finally show ?thesis .
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(a + b) * (a + b) = a * a + 2 * a * b + b * (b :: int)&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;(a + b) * (a + b) = a * (a + b) + b * (a + b)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> distrib_right)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = a * a + a * b + (b * a + b * b)&quot;</span> <span class="isa-proof">by</span> (simp add: distrib_left)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = a * a + 2 * a * b + b * b&quot;</span> <span class="isa-proof">by</span> (simp add: algebra_simps)
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?thesis .
+<span class="isa-proof">qed</span></code></pre></div>
+<ul>
+<li><code>…</code> reads “the right-hand side of the previous step”. To type it, type three dots <code>...</code>: Isabelle/jEdit
+offers the symbol …, and the three dots work as well.</li>
+<li><code>also</code> adds the new step to the chain. Isabelle composes the steps by transitivity: from a = b and
+b = c it derives a = c.</li>
+<li><code>finally</code> composes the last step and passes the result, first term = last term, to the next claim.</li>
+<li><code>.</code> (a single dot) is a proof that succeeds when the claim is exactly the fact passed to it. Here the
+claim is <code>?thesis</code>, the statement of the lemma.</li>
+</ul>
+<p>Each step has its own justification: <code>distrib_right</code> is the law (a + b)c = ac + bc, <code>distrib_left</code> the
+law a(b + c) = ab + ac, and <code>algebra_simps</code> a collection of laws such as commutativity, which <code>simp</code>
+uses to rearrange terms.</p>
+<div class="box box-definition"><div class="box-label">Definition 10.4<span class="box-title">Calculation</span></div>
+<p>A <strong>calculation</strong> is a chain of steps t₁ R t₂, t₂ R t₃, …, each with its own proof, from which Isabelle
+derives t₁ R tₙ by <strong>transitivity</strong>: a R b and b R c give a R c. In Isar, <code>also</code> extends the chain and
+<code>finally</code> ends it; <code>…</code> stands for the right-hand side of the previous step.</p>
+</div>
+<h3 id="calc-ineq">Inequalities</h3>
+<p>Chains may mix <code>=</code>, <code>≤</code> and <code>&lt;</code>. The result has the strictest relation of the chain: one <code>&lt;</code> anywhere
+makes the whole chain <code>&lt;</code>.</p>
+<div class="box box-example"><div class="box-label">Example 10.1<span class="box-title">Indices in a binary heap</span></div>
+<p>A binary heap is often stored in an array: the node at index i has its left child at index 2i + 1.
+If i is one of the first n indices, is the child within the first 2n?</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma heap_child:
+  fixes i n :: nat
+  assumes &quot;i &lt; n&quot;
+  shows &quot;2 * i + 1 &lt; 2 * n&quot;
+proof -
+  have &quot;2 * i + 1 &lt; 2 * i + 2&quot; by simp
+  also have &quot;… = 2 * (i + 1)&quot; by simp
+  also have &quot;… ≤ 2 * n&quot; using assms by simp
+  finally show ?thesis .
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> heap_child:
+  <span class="isa-minor">fixes</span> i n :: nat
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;i &lt; n&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;2 * i + 1 &lt; 2 * n&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;2 * i + 1 &lt; 2 * i + 2&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = 2 * (i + 1)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ 2 * n&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?thesis .
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>fixes i n :: nat</code> declares the lemma’s variables with their type, for the whole statement; without
+it, Isabelle would not know which kind of numbers i and n are. The chain is &lt; then = then ≤, so the
+result is <code>2 * i + 1 &lt; 2 * n</code>. Only the last step needs the assumption, and only that step is given it.</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p><code>finally</code> produces the strictest relation, and <code>.</code> accepts only that exact fact. A weaker claim fails,
+even though it follows:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">fixes</span> x y z :: nat
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;x &lt; y&quot;</span> <span class="isa-minor">and</span> <span class="isa-inner">&quot;y ≤ z&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;x ≤ z&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;x &lt; y&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ z&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;x ≤ z&quot;</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method:
+using this:
+  x &lt; z
+goal (1 subgoal):
+ 1. x ≤ z</span></code></pre></div>
+<p>The message shows the fact the chain produced (<code>using this: x &lt; z</code>) and the claim. Either claim
+<code>x &lt; z</code>, or replace <code>.</code> by a method that can weaken it, here <code>by simp</code>.</p>
+<p>Chains with <code>≥</code> and <code>&gt;</code> do not work as you might expect. Isabelle reads a ≥ b as b ≤ a, so <code>…</code> stands for
+a, not b, and the steps no longer fit together:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">fixes</span> a b c :: nat
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;a ≥ b&quot;</span> <span class="isa-minor">and</span> <span class="isa-inner">&quot;b ≥ c&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;a ≥ c&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;a ≥ b&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≥ c&quot;</span> <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;a ≥ c&quot;</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Vacuous calculation result: (⋀x y. x ≤ y ⟹ a ≤ a) ⟹ b ≤ a
+derived as projection (1) from:
+    b ≤ a
+    c ≤ a</span></code></pre></div>
+<p>Write chains from the small end to the big end, with <code>≤</code> and <code>&lt;</code>.</p>
+</div>
+<span class="section-anchor" id="cases"></span>
+<div class="section-header"><span class="section-num">5</span><h2>Case analysis</h2></div>
+<p>Many proofs about programs split into cases: the list is empty or not, the condition of an <code>if</code> holds or
+not, the input is below, inside or above a range. In Isar each case gets its own part of the block,
+separated by <code>next</code>.</p>
+<h3 id="cases-bool">Two cases: true or false</h3>
+<p><code>clamp lo hi x</code> should agree with the mathematical description “the maximum of lo and the minimum of hi
+and x”. Prove it by cases on the first test of <code>clamp</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma clamp_max_min:
+  assumes &quot;lo ≤ hi&quot;
+  shows &quot;clamp lo hi x = max lo (min hi x)&quot;
+proof (cases &quot;x &lt; lo&quot;)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> clamp_max_min:
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;lo ≤ hi&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;clamp lo hi x = max lo (min hi x)&quot;</span>
+<span class="isa-proof">proof</span> (cases <span class="isa-inner">&quot;x &lt; lo&quot;</span>)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+goal (2 subgoals):
+ 1. x &lt; lo ⟹ clamp lo hi x = max lo (min hi x)
+ 2. ¬ x &lt; lo ⟹ clamp lo hi x = max lo (min hi x)</code></pre></div>
+<p><code>proof (cases &quot;x &lt; lo&quot;)</code> splits the goal into the case where x &lt; lo holds and the case where it does
+not. The command <code>case True</code> enters the first case:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  case True">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">case</span> True</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+this:
+  x &lt; lo
+
+goal (2 subgoals):
+ 1. x &lt; lo ⟹ clamp lo hi x = max lo (min hi x)
+ 2. ¬ x &lt; lo ⟹ clamp lo hi x = max lo (min hi x)</code></pre></div>
+<p><code>case True</code> assumes the condition of the case, which the state lists under <code>this:</code>. The state still
+lists both pending goals, and the claim to prove is still <code>?thesis</code>, the statement of the lemma. Shown
+under the assumption x &lt; lo, it solves the first goal:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  then show ?thesis using assms by simp
+next
+  case False
+  then show ?thesis using assms by simp
+qed">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> False
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<p>When you write <code>proof (cases …)</code> or <code>proof (induction …)</code>, Isabelle/jEdit also shows a message that
+begins <strong>Proof outline with cases:</strong>, with the skeleton of the rest of the proof. For this lemma it is</p>
+<pre class="code"><code class="language-text">Proof outline with cases:
+  case True
+  then show ?thesis sorry
+next
+  case False
+  then show ?thesis sorry
+qed
+</code></pre>
+<p>Click on the skeleton and Isabelle/jEdit inserts it into your text. Each <code>sorry</code> marks a proof still to
+be written: Isabelle/jEdit accepts it in place of a proof while you work, but a theory that contains
+<code>sorry</code> is not proved. Replace every one.</p>
+<h3 id="cases-datatype">Cases of a datatype</h3>
+<p>For a list, the cases are the two ways of building one: the empty list <code>[]</code>, called <code>Nil</code>, and <code>y # ys</code>,
+called <code>Cons</code>. Take a function that returns the first element of a list, or a default value d for the
+empty list:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun first_or :: &quot;'a ⇒ 'a list ⇒ 'a&quot; where
+  &quot;first_or d [] = d&quot;
+| &quot;first_or d (y # ys) = y&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> first_or :: <span class="isa-inner">&quot;'a ⇒ 'a list ⇒ 'a&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;first_or d [] = d&quot;</span>
+| <span class="isa-inner">&quot;first_or d (y # ys) = y&quot;</span></code></pre></div>
+<p>The first element of <code>xs @ ys</code> is the first element of xs, unless xs is empty; then it is the first
+element of ys:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma first_or_append: &quot;first_or d (xs @ ys) = first_or (first_or d ys) xs&quot;
+proof (cases xs)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> first_or_append: <span class="isa-inner">&quot;first_or d (xs @ ys) = first_or (first_or d ys) xs&quot;</span>
+<span class="isa-proof">proof</span> (cases xs)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+goal (2 subgoals):
+ 1. xs = [] ⟹ first_or d (xs @ ys) = first_or (first_or d ys) xs
+ 2. ⋀a list.
+       xs = a # list ⟹ first_or d (xs @ ys) = first_or (first_or d ys) xs</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  case Nil
+  then show ?thesis by simp
+next
+  case (Cons z zs)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons z zs)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+this:
+  xs = z # zs
+
+goal (1 subgoal):
+ 1. ⋀a list.
+       xs = a # list ⟹ first_or d (xs @ ys) = first_or (first_or d ys) xs</code></pre></div>
+<p><code>case (Cons z zs)</code> gives names to the head and tail of xs: the state shows the assumption xs = z # zs,
+while the goal still uses Isabelle’s own names for them, <code>a</code> and <code>list</code>. Choose names that the lemma does
+not use already. <code>case (Cons y ys)</code> would create a second <code>ys</code>, which hides the lemma’s own <code>ys</code> for the
+rest of the case, although Isabelle prints both as <code>ys</code>. Finish the case:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  then show ?thesis by simp
+qed">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>Without <code>next</code>, the assumption of the first case stays in force in the second:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;first_or d (xs @ ys) = first_or (first_or d ys) xs&quot;</span>
+<span class="isa-proof">proof</span> (cases xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+  <span class="isa-proof">case</span> (Cons z zs)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to refine any pending goal</span></code></pre></div>
+<p>The second <code>show</code> proves its claim under both xs = [] and xs = z # zs, and no pending goal has both
+assumptions, so the shown fact solves none of them. Put <code>next</code> between the cases.</p>
+</div>
+<h3 id="cases-or">Cases from a disjunction</h3>
+<p>The rule (∨E) of Module 6 proves C from A ∨ B by proving C once from A and once from B. In Isar, pass the
+disjunction to <code>proof</code> and give each case its <code>assume</code>. Here a user may read a file if they own it, or if
+they are an administrator:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma
+  assumes who: &quot;owner u ∨ admin u&quot;
+    and owners: &quot;∀v. owner v ⟶ may_read v&quot;
+    and admins: &quot;∀v. admin v ⟶ may_read v&quot;
+  shows &quot;may_read u&quot;
+  using who
+proof
+  assume &quot;owner u&quot;
+  with owners show ?thesis by blast
+next
+  assume &quot;admin u&quot;
+  with admins show ?thesis by blast
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> who: <span class="isa-inner">&quot;owner u ∨ admin u&quot;</span>
+    <span class="isa-minor">and</span> owners: <span class="isa-inner">&quot;∀v. owner v ⟶ may_read v&quot;</span>
+    <span class="isa-minor">and</span> admins: <span class="isa-inner">&quot;∀v. admin v ⟶ may_read v&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;may_read u&quot;</span>
+  <span class="isa-proof">using</span> who
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;owner u&quot;</span>
+  <span class="isa-proof">with</span> owners <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> blast
+<span class="isa-proof">next</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;admin u&quot;</span>
+  <span class="isa-proof">with</span> admins <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>using who</code> before <code>proof</code> passes the disjunction to the initial method, so <code>proof</code> applies the
+elimination rule for ∨ instead of an introduction rule. In both cases <code>?thesis</code> is the claim of the
+lemma, <code>may_read u</code>.</p>
+<h3 id="cases-consider">Your own cases: consider</h3>
+<p>Sometimes the natural cases are neither a datatype nor a single condition. <code>clamp</code> distinguishes three:
+x below the range, inside it, or above it. <code>consider</code> states such a split, with a name for each case, and
+proves that the cases cover every possibility:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma
+  assumes &quot;lo ≤ hi&quot;
+  shows &quot;lo ≤ clamp lo hi x ∧ clamp lo hi x ≤ hi&quot;
+proof -
+  consider (below) &quot;x &lt; lo&quot; | (inside) &quot;lo ≤ x&quot; &quot;x ≤ hi&quot; | (above) &quot;hi &lt; x&quot;
+    by linarith
+  then show ?thesis
+  proof cases
+    case below
+    then show ?thesis using assms by simp
+  next
+    case inside
+    then show ?thesis by simp
+  next
+    case above
+    then show ?thesis using assms by simp
+  qed
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;lo ≤ hi&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;lo ≤ clamp lo hi x ∧ clamp lo hi x ≤ hi&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">consider</span> (below) <span class="isa-inner">&quot;x &lt; lo&quot;</span> | (inside) <span class="isa-inner">&quot;lo ≤ x&quot;</span> <span class="isa-inner">&quot;x ≤ hi&quot;</span> | (above) <span class="isa-inner">&quot;hi &lt; x&quot;</span>
+    <span class="isa-proof">by</span> linarith
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis
+  <span class="isa-proof">proof</span> cases
+    <span class="isa-proof">case</span> below
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">case</span> inside
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">case</span> above
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> assms <span class="isa-proof">by</span> simp
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The proof of <code>consider</code>, here <code>linarith</code> from Module 9, shows that every x falls into one of the three
+cases. <code>then show ?thesis proof cases</code> then splits the proof along them, and <code>case inside</code> assumes both
+facts of that case. A lemma can state such a split for later use, with <code>obtains</code> in place of <code>shows</code>; in
+a proof, <code>consider</code> is the local form.</p>
+<span class="section-anchor" id="induction"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Induction with named cases</h2></div>
+<p>In Module 5 you proved properties of recursive functions with <code>apply (induction xs)</code> and read the base
+case and the induction step off the proof state. In Isar, each case of the induction becomes a named part of
+the block, and the induction hypothesis becomes a named fact.</p>
+<h3 id="induction-skeleton">The skeleton of an induction</h3>
+<p>Here is the total of a list of amounts, such as the items of a bill:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun mysum :: &quot;nat list ⇒ nat&quot; where
+  &quot;mysum [] = 0&quot;
+| &quot;mysum (x # xs) = x + mysum xs&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> mysum :: <span class="isa-inner">&quot;nat list ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;mysum [] = 0&quot;</span>
+| <span class="isa-inner">&quot;mysum (x # xs) = x + mysum xs&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  mysum :: &quot;nat list ⇒ nat&quot;
+
+Found termination order: &quot;size_list size &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<p>The total of two bills put together is the sum of their totals. Start an induction on xs:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma mysum_append: &quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;
+proof (induction xs)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> mysum_append: <span class="isa-inner">&quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+goal (2 subgoals):
+ 1. mysum ([] @ ys) = mysum [] + mysum ys
+ 2. ⋀a xs.
+       mysum (xs @ ys) = mysum xs + mysum ys ⟹
+       mysum ((a # xs) @ ys) = mysum (a # xs) + mysum ys</code></pre></div>
+<p>These are the base case and the induction step of Module 5. The proof outline that Isabelle/jEdit shows
+names the two cases after the constructors of lists:</p>
+<pre class="code"><code class="language-text">Proof outline with cases:
+  case Nil
+  then show ?case sorry
+next
+  case (Cons a xs)
+  then show ?case sorry
+qed
+</code></pre>
+<p>Prove the base case, then enter the induction step with names of your choice for the head and the tail:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+this:
+  mysum (xs @ ys) = mysum xs + mysum ys
+
+goal (1 subgoal):
+ 1. ⋀a xs.
+       mysum (xs @ ys) = mysum xs + mysum ys ⟹
+       mysum ((a # xs) @ ys) = mysum (a # xs) + mysum ys</code></pre></div>
+<p><code>case (Cons x xs)</code> does three things. It fixes x and xs, your names for the variables the goal calls
+<code>a</code> and <code>xs</code>. It assumes the induction hypothesis, which the state shows under <code>this:</code>. And it sets
+<code>?case</code>, read “the case”, to the claim of this case:
+<code>mysum ((x # xs) @ ys) = mysum (x # xs) + mysum ys</code>. Pass the hypothesis to <code>simp</code> with <code>then</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  then show ?case by simp
+qed">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="box box-definition"><div class="box-label">Definition 10.5<span class="box-title">Named case</span></div>
+<p>In a proof by <code>cases</code> or <code>induction</code>, <strong><code>case c</code></strong> enters the case named c, and <strong><code>case (c x y …)</code></strong> also
+gives names to its variables. The case assumes its facts, available together under the name c. In an
+induction, <code>case</code> also sets <strong><code>?case</code></strong> to the claim of the case, <strong>c.IH</strong> is the induction hypothesis
+and <strong>c.prems</strong> are the premises of the claim (Section 10.6.2). In a proof by <code>cases</code>, every case proves
+the same claim, <code>?thesis</code>.</p>
+</div>
+<p>For natural numbers the cases are called <code>0</code> and <code>Suc</code>: <code>case 0</code>, then <code>case (Suc n)</code> with the
+hypothesis <code>Suc.IH</code>. For a datatype of your own they are named after its constructors.</p>
+<h3 id="induction-names">The induction hypothesis, premises and ?case</h3>
+<p>A paper proof of the induction step is a calculation that uses the induction hypothesis once. The Isar proof
+can say exactly that, with the hypothesis named <code>Cons.IH</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have &quot;mysum ((x # xs) @ ys) = x + mysum (xs @ ys)&quot; by simp
+  also have &quot;… = x + (mysum xs + mysum ys)&quot; using Cons.IH by simp
+  also have &quot;… = mysum (x # xs) + mysum ys&quot; by simp
+  finally show ?case .
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;mysum ((x # xs) @ ys) = x + mysum (xs @ ys)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = x + (mysum xs + mysum ys)&quot;</span> <span class="isa-proof">using</span> Cons.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = mysum (x # xs) + mysum ys&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<p>When the claim has a premise, the induction keeps it apart from the hypothesis.</p>
+<div class="box box-example"><div class="box-label">Example 10.2<span class="box-title">A bill whose items are bounded</span></div>
+<p>If every item of a bill costs at most m, the total is at most m times the number of items. <code>set xs</code> is
+the set of the elements of xs, so ∀x ∈ set xs. x ≤ m says that every item is at most m.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma mysum_bound: &quot;(∀x ∈ set xs. x ≤ m) ⟹ mysum xs ≤ length xs * m&quot;
+proof (induction xs)
+  print_cases">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> mysum_bound: <span class="isa-inner">&quot;(∀x ∈ set xs. x ≤ m) ⟹ mysum xs ≤ length xs * m&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  print_cases</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>cases:
+  Nil:
+    let &quot;?case&quot; = &quot;mysum [] ≤ length [] * m&quot;
+    assume prems : &quot;∀x∈set []. x ≤ m&quot;
+  Cons:
+    fix a_ xs_
+    let &quot;?case&quot; = &quot;mysum (a_ # xs_) ≤ length (a_ # xs_) * m&quot;
+    assume IH : &quot;∀x∈set xs_. x ≤ m ⟹ mysum xs_ ≤ length xs_ * m&quot; and
+      prems : &quot;∀x∈set (a_ # xs_). x ≤ m&quot;</code></pre></div>
+<p><code>print_cases</code> lists the cases with everything they provide: the fixed variables, <code>?case</code>, the
+induction hypothesis under <code>IH</code> and the premise of the claim under <code>prems</code>. The names <code>a_</code> and <code>xs_</code>,
+with a trailing underscore, are hidden: the proof cannot refer to them until <code>case (Cons a xs)</code> gives
+them names. Each case receives the premise for its own list, and the hypothesis is the whole
+implication for the shorter list xs.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  case Nil
+  then show ?case by simp
+next
+  case (Cons a xs)
+  have &quot;mysum (a # xs) = a + mysum xs&quot; by simp
+  also have &quot;… ≤ m + mysum xs&quot; using Cons.prems by simp
+  also have &quot;… ≤ m + length xs * m&quot; using Cons.IH Cons.prems by simp
+  also have &quot;… = length (a # xs) * m&quot; by simp
+  finally show ?case .
+qed">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons a xs)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;mysum (a # xs) = a + mysum xs&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ m + mysum xs&quot;</span> <span class="isa-proof">using</span> Cons.prems <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ m + length xs * m&quot;</span> <span class="isa-proof">using</span> Cons.IH Cons.prems <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = length (a # xs) * m&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The second step needs only the premise: a ≤ m, because a is in the list. The third step needs the
+hypothesis, and the hypothesis needs its own premise, that every item of xs is at most m, which again
+follows from <code>Cons.prems</code>. So both are passed.</p>
+</div>
+<details class="trouble"><summary>If something went wrong</summary><div class="details-body">
+<ul>
+<li>
+<p><strong><code>show ?thesis</code> instead of <code>show ?case</code>.</strong> In an induction, <code>?thesis</code> is the whole lemma for the
+original xs, not the claim of the case:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. mysum (xs @ ys) = mysum xs + mysum ys</span></code></pre></div>
+<p><code>simp</code> cannot prove the lemma about an unknown list, so the step fails. Write <code>?case</code>.</p>
+</li>
+<li>
+<p><strong>A case name that does not exist.</strong> The names come from the constructors, here <code>Nil</code> and <code>Cons</code>:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Empty
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Undefined case: &quot;Empty&quot;⌂</span></code></pre></div>
+<p>The proof outline and <code>print_cases</code> show the right names.</p>
+</li>
+<li>
+<p><strong>The hypothesis is not passed.</strong> Without <code>then</code> (or <code>using Cons.IH</code>), <code>simp</code> does not see it:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mysum (xs @ ys) = mysum xs + mysum ys&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. mysum (xs @ ys) = mysum xs + mysum ys</span></code></pre></div>
+<p>The remaining goal is the induction hypothesis itself: a sure sign that it was not passed.</p>
+</li>
+</ul>
+</div></details>
+<span class="section-anchor" id="translate"></span>
+<div class="section-header"><span class="section-num">7</span><h2>From paper and apply scripts to Isar</h2></div>
+<p>You have now seen every part of Isar that this series needs. This section puts it side by side with the
+proofs of Modules 5, 6 and 7, so that you can translate in both directions.</p>
+<h3 id="translate-nd">A natural-deduction proof</h3>
+<p>In Module 6 you proved A ∧ B ⟶ B ∧ A with this tree:</p>
+<div class="prooftree"><div class="pt-scroll"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node"><div class="pt-prem"><div class="pt-node" style="margin-right:2.1rem"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ∧ B]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∧E₂</span></div><div class="pt-concl"><span class="pt-f">B</span></div></div><div class="pt-node"><div class="pt-prem"><div class="pt-node pt-leaf"><span class="pt-f">[A ∧ B]¹</span></div></div><div class="pt-bar"><span class="pt-rule">∧E₁</span></div><div class="pt-concl"><span class="pt-f">A</span></div></div></div><div class="pt-bar"><span class="pt-rule">∧I</span></div><div class="pt-concl"><span class="pt-f">B ∧ A</span></div></div></div><div class="pt-bar"><span class="pt-rule">⟶I¹</span></div><div class="pt-concl"><span class="pt-f">A ∧ B ⟶ B ∧ A</span></div></div></div></div>
+<p>In Module 7 you replayed it with <code>apply</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+  apply (rule impI)
+  apply (erule conjE)
+  apply (rule conjI)
+  apply assumption
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">apply</span> (erule conjE)
+  <span class="isa-proof">apply</span> (<span class="isa-minor">rule</span> conjI)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>The Isar proof follows the tree rule by rule. It needs (∧E₁) and (∧E₂) in the form the tree uses them,
+from A ∧ B to A and to B: the destruction rules <code>conjunct1</code> and <code>conjunct2</code> of Module 7.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm conjunct1 conjunct2">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> conjunct1 conjunct2</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  ?P ∧ ?Q ⟹ ?P
+  ?P ∧ ?Q ⟹ ?Q</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ B ∧ A&quot;
+proof (rule impI)
+  assume ab: &quot;A ∧ B&quot;
+  from ab have b: &quot;B&quot; by (rule conjunct2)
+  from ab have a: &quot;A&quot; by (rule conjunct1)
+  from b a show &quot;B ∧ A&quot; by (rule conjI)
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> b: <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> conjunct2)
+  <span class="isa-proof">from</span> ab <span class="isa-proof">have</span> a: <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> conjunct1)
+  <span class="isa-proof">from</span> b a <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> conjI)
+<span class="isa-proof">qed</span></code></pre></div>
+<p>Each rule of the tree is one line of the proof (Figure 10.2). The assumption [A ∧ B]¹, which the tree
+discharges with (⟶I), is the <code>assume</code> inside the block that <code>rule impI</code> opened. The tree is read from
+the leaves down, the Isar text from the top down, and both contain the same steps. The apply script, in
+contrast, works backwards from the goal and never states B or A at all.</p>
+<figure class="fig" id="fig-10-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300" role="img"><title>A natural-deduction tree and its Isar proof</title><defs></defs><text x="20" y="30" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="start">The tree (Module 6)</text><text x="82" y="88" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">[A ∧ B]¹</text><text x="218" y="88" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">[A ∧ B]¹</text><line x1="38" y1="100" x2="126" y2="100" stroke="#15803D" stroke-width="2.4"/><text x="130" y="105" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#15803D" text-anchor="start">∧E₂</text><line x1="174" y1="100" x2="262" y2="100" stroke="#B45309" stroke-width="2.4"/><text x="266" y="105" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#B45309" text-anchor="start">∧E₁</text><text x="82" y="126" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">B</text><text x="218" y="126" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">A</text><line x1="58" y1="140" x2="242" y2="140" stroke="#6D28D9" stroke-width="2.4"/><text x="248" y="145" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#6D28D9" text-anchor="start">∧I</text><text x="150" y="166" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">B ∧ A</text><line x1="68" y1="180" x2="232" y2="180" stroke="#2563EB" stroke-width="2.4"/><text x="238" y="185" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#2563EB" text-anchor="start">⟶I¹</text><text x="150" y="206" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="400" fill="#1A2E4A" text-anchor="middle">A ∧ B ⟶ B ∧ A</text><text x="318" y="30" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="start">The Isar proof</text><text x="320.0" y="62" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">lemma &quot;A ∧ B ⟶ B ∧ A&quot;</text><rect x="312" y="77" width="440" height="23" rx="5" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.2"/><text x="744" y="93" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#2563EB" text-anchor="end">⟶I</text><text x="320.0" y="93" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">proof (rule impI)</text><rect x="312" y="108" width="440" height="23" rx="5" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.2"/><text x="744" y="124" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#2563EB" text-anchor="end">[A ∧ B]¹</text><text x="334.448" y="124" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">assume ab: &quot;A ∧ B&quot;</text><rect x="312" y="139" width="440" height="23" rx="5" fill="#F0FDF4" stroke="#15803D" stroke-width="1.2"/><text x="744" y="155" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#15803D" text-anchor="end">∧E₂</text><text x="334.448" y="155" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">from ab have b: &quot;B&quot; by (rule conjunct2)</text><rect x="312" y="170" width="440" height="23" rx="5" fill="#FFFBEB" stroke="#B45309" stroke-width="1.2"/><text x="744" y="186" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#B45309" text-anchor="end">∧E₁</text><text x="334.448" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">from ab have a: &quot;A&quot; by (rule conjunct1)</text><rect x="312" y="201" width="440" height="23" rx="5" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.2"/><text x="744" y="217" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#6D28D9" text-anchor="end">∧I</text><text x="334.448" y="217" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">from b a show &quot;B ∧ A&quot; by (rule conjI)</text><text x="320.0" y="248" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">qed</text><text x="380" y="288" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">Each rule of the tree is one step of the Isar text.</text></svg>
+</div><figcaption><span class="fig-num">Figure 10.2</span> <p>The natural-deduction tree of Module 6 and its Isar proof. Each rule of the tree, in its colour, is one
+step of the Isar text; the discharged assumption [A ∧ B]¹ is the <code>assume</code>.</p>
+</figcaption></figure>
+<p>Writing the rule names is useful for learning. In practice you let Isabelle choose the rule: <code>..</code>
+(two dots) is a proof by one standard rule step, so <code>from ab have &quot;B&quot; ..</code> works as well, and <code>by blast</code>
+proves such steps too.</p>
+<h3 id="translate-rules">Rule by rule</h3>
+<p>Every rule of natural deduction has an Isar counterpart. In the table, A, B and C are formulas, and
+<code>ab</code>, <code>imp</code>, <code>a</code>, <code>b</code>, <code>na</code>, <code>all</code>, <code>pa</code> and <code>ex</code> are the names of facts A ∧ B, A ⟶ B, A, B, ¬ A,
+∀x. P x, P a and ∃x. P x.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Rule (Module 6)</th>
+<th>Apply step (Module 7)</th>
+<th>Isar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(⟶I)</td>
+<td><code>rule impI</code></td>
+<td><code>assume &quot;A&quot;</code> … <code>show &quot;B&quot;</code></td>
+</tr>
+<tr>
+<td>(⟶E)</td>
+<td><code>erule impE</code></td>
+<td><code>from imp a have &quot;B&quot; by (rule mp)</code></td>
+</tr>
+<tr>
+<td>(∧I)</td>
+<td><code>rule conjI</code></td>
+<td><code>from a b have &quot;A ∧ B&quot; by (rule conjI)</code></td>
+</tr>
+<tr>
+<td>(∧E₁), (∧E₂)</td>
+<td><code>erule conjE</code></td>
+<td><code>from ab have &quot;A&quot; by (rule conjunct1)</code></td>
+</tr>
+<tr>
+<td>(∨I₁)</td>
+<td><code>rule disjI1</code></td>
+<td><code>from a have &quot;A ∨ B&quot; by (rule disjI1)</code></td>
+</tr>
+<tr>
+<td>(∨E)</td>
+<td><code>erule disjE</code></td>
+<td><code>from ‹A ∨ B› show &quot;C&quot; proof</code> … <code>next</code> … <code>qed</code></td>
+</tr>
+<tr>
+<td>(¬I)</td>
+<td><code>rule notI</code></td>
+<td><code>assume &quot;A&quot;</code> … <code>show False</code></td>
+</tr>
+<tr>
+<td>(¬E)</td>
+<td><code>erule notE</code></td>
+<td><code>from na a show False by (rule notE)</code></td>
+</tr>
+<tr>
+<td>(∀I)</td>
+<td><code>rule allI</code></td>
+<td><code>fix x</code> … <code>show &quot;P x&quot;</code></td>
+</tr>
+<tr>
+<td>(∀E)</td>
+<td><code>erule allE</code></td>
+<td><code>from all have &quot;P a&quot; by (rule spec)</code></td>
+</tr>
+<tr>
+<td>(∃I)</td>
+<td><code>rule exI</code></td>
+<td><code>from pa have &quot;∃x. P x&quot; by (rule exI)</code></td>
+</tr>
+<tr>
+<td>(∃E)</td>
+<td><code>erule exE</code></td>
+<td><code>from ex obtain a where &quot;P a&quot; by blast</code></td>
+</tr>
+<tr>
+<td>(RAA)</td>
+<td><code>rule ccontr</code></td>
+<td><code>proof (rule ccontr)</code> <code>assume &quot;¬ A&quot;</code> … <code>show False</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><code>spec</code> is the destruction rule for (∀E) (Module 7): from ∀x. P x it gives P x for any x.</p>
+<h3 id="translate-induction">An induction</h3>
+<p>Module 5 proved the sum formula <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>⋅</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>_</mi><mi>u</mi><mi>p</mi><mi>t</mi><mi>o</mi></mrow><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>=</mo><mi>n</mi><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">2 \cdot \mathit{sum\_upto}(n) = n \cdot (n + 1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord"><span class="mord mathit">sum_upto</span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span> twice: on paper, in
+the example <em>The sum formula</em>, and in Isabelle, with an apply script. Here are the definition and the
+script again:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun sum_upto :: &quot;nat ⇒ nat&quot; where
+  &quot;sum_upto 0 = 0&quot;
+| &quot;sum_upto (Suc n) = sum_upto n + Suc n&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> sum_upto :: <span class="isa-inner">&quot;nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;sum_upto 0 = 0&quot;</span>
+| <span class="isa-inner">&quot;sum_upto (Suc n) = sum_upto n + Suc n&quot;</span></code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;2 * sum_upto n = n * (n + 1)&quot;
+  apply (induction n)
+  apply simp
+  apply simp
+  done">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;2 * sum_upto n = n * (n + 1)&quot;</span>
+  <span class="isa-proof">apply</span> (induction n)
+  <span class="isa-proof">apply</span> simp
+  <span class="isa-proof">apply</span> simp
+  <span class="isa-proof">done</span></code></pre></div>
+<p>The script does not say what the two cases are, or how the step uses the induction hypothesis. The
+paper proof does: its step is a chain of four equations. The Isar proof repeats that chain line for
+line:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma sum_formula: &quot;2 * sum_upto n = n * (n + 1)&quot;
+proof (induction n)
+  case 0
+  show ?case by simp
+next
+  case (Suc n)
+  have &quot;2 * sum_upto (Suc n) = 2 * (sum_upto n + Suc n)&quot; by simp
+  also have &quot;… = 2 * sum_upto n + 2 * Suc n&quot; by simp
+  also have &quot;… = n * (n + 1) + 2 * Suc n&quot; using Suc.IH by simp
+  also have &quot;… = Suc n * (Suc n + 1)&quot; by simp
+  finally show ?case .
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> sum_formula: <span class="isa-inner">&quot;2 * sum_upto n = n * (n + 1)&quot;</span>
+<span class="isa-proof">proof</span> (induction n)
+  <span class="isa-proof">case</span> 0
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Suc n)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;2 * sum_upto (Suc n) = 2 * (sum_upto n + Suc n)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = 2 * sum_upto n + 2 * Suc n&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = n * (n + 1) + 2 * Suc n&quot;</span> <span class="isa-proof">using</span> Suc.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = Suc n * (Suc n + 1)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>On paper (Module 5)</th>
+<th>In Isar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Proof by induction on <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span>⁠.</td>
+<td><code>proof (induction n)</code></td>
+</tr>
+<tr>
+<td>Base case <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mn>0</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P(0)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord">0</span><span class="mclose">)</span></span></span></span>⁠.</td>
+<td><code>case 0</code>, <code>show ?case by simp</code></td>
+</tr>
+<tr>
+<td>Let <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> be any number, and assume the IH.</td>
+<td><code>next</code>, <code>case (Suc n)</code></td>
+</tr>
+<tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>2</mn><mo>⋅</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>_</mi><mi>u</mi><mi>p</mi><mi>t</mi><mi>o</mi></mrow><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>=</mo><mn>2</mn><mo>⋅</mo><mo stretchy="false">(</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>_</mi><mi>u</mi><mi>p</mi><mi>t</mi><mi>o</mi></mrow><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>+</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">2 \cdot \mathit{sum\_upto}(n+1) = 2 \cdot (\mathit{sum\_upto}(n) + (n+1))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord"><span class="mord mathit">sum_upto</span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">sum_upto</span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">))</span></span></span></span>⁠, by sum_upto.2</td>
+<td><code>have &quot;2 * sum_upto (Suc n) = …&quot; by simp</code></td>
+</tr>
+<tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mn>2</mn><mo>⋅</mo><mrow><mi>s</mi><mi>u</mi><mi>m</mi><mi>_</mi><mi>u</mi><mi>p</mi><mi>t</mi><mi>o</mi></mrow><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>+</mo><mn>2</mn><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">= 2 \cdot \mathit{sum\_upto}(n) + 2 \cdot (n+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.3669em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord"><span class="mord mathit">sum_upto</span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>⁠, arithmetic</td>
+<td><code>also have &quot;… = …&quot; by simp</code></td>
+</tr>
+<tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mi>n</mi><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>+</mo><mn>2</mn><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">= n \cdot (n+1) + 2 \cdot (n+1)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.3669em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span></span></span></span>⁠, by the IH</td>
+<td><code>also have &quot;… = …&quot; using Suc.IH by simp</code></td>
+</tr>
+<tr>
+<td><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>+</mo><mn>2</mn><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">= (n+1) \cdot (n+2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.3669em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mclose">)</span></span></span></span>⁠, arithmetic</td>
+<td><code>also have &quot;… = …&quot; by simp</code></td>
+</tr>
+<tr>
+<td>By induction, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">P(n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span> holds for every <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span>⁠.</td>
+<td><code>finally show ?case .</code>, <code>qed</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Isabelle writes n + 1 as <code>Suc n</code>, as in the subgoals of Module 5. Each step is checked on its own, so
+the proof shows exactly where the hypothesis is used.</p>
+<h3 id="translate-recipe">From an apply script to Isar: a recipe</h3>
+<p>To turn an apply script into Isar, run the script in Isabelle/jEdit and read the proof state after each
+line. Then write down what the states say, not what the methods do:</p>
+<ol>
+<li>The first steps usually only introduce: <code>rule impI</code>, <code>rule allI</code>, <code>intro impI</code>. They become
+<code>proof (intro …)</code> or <code>proof</code>, followed by <code>assume</code> for each premise and <code>fix</code> for each ⋀-variable
+that the state then shows.</li>
+<li>A step that derives a new fact, such as <code>drule mp</code> or <code>erule conjE</code>, becomes a <code>have</code> with that fact
+as its statement.</li>
+<li>The step that finishes the goal becomes <code>show</code>.</li>
+<li>Prove each step with the rule of the apply step, or with automation.</li>
+</ol>
+<p>Here is a script in the style of Module 7, for the transitivity of implication:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C&quot;
+  apply (intro impI)
+  apply (erule mp)
+  apply (erule mp)
+  apply assumption
+  done">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C&quot;</span>
+  <span class="isa-proof">apply</span> (intro impI)
+  <span class="isa-proof">apply</span> (erule mp)
+  <span class="isa-proof">apply</span> (erule mp)
+  <span class="isa-proof">apply</span> assumption
+  <span class="isa-proof">done</span></code></pre></div>
+<p>After <code>intro impI</code> the state has the premises A ⟶ B, B ⟶ C and A and the conclusion C. The first
+<code>erule mp</code> works backwards from C to B, the second from B to A. Written forwards, as a reader thinks:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C&quot;
+proof (intro impI)
+  assume ab: &quot;A ⟶ B&quot; and bc: &quot;B ⟶ C&quot; and a: &quot;A&quot;
+  from ab a have b: &quot;B&quot; by (rule mp)
+  from bc b show &quot;C&quot; by (rule mp)
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C&quot;</span>
+<span class="isa-proof">proof</span> (intro impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ⟶ B&quot;</span> <span class="isa-minor">and</span> bc: <span class="isa-inner">&quot;B ⟶ C&quot;</span> <span class="isa-minor">and</span> a: <span class="isa-inner">&quot;A&quot;</span>
+  <span class="isa-proof">from</span> ab a <span class="isa-proof">have</span> b: <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> mp)
+  <span class="isa-proof">from</span> bc b <span class="isa-proof">show</span> <span class="isa-inner">&quot;C&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> mp)
+<span class="isa-proof">qed</span></code></pre></div>
+<span class="section-anchor" id="errors"></span>
+<div class="section-header"><span class="section-num">8</span><h2>When an Isar proof fails</h2></div>
+<p>Because every step of an Isar proof is a statement, Isabelle can tell you which step failed and what
+remained of it. These are the messages you will meet most often; you have seen most of them in this
+module already.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Message</th>
+<th>Meaning</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Failed to finish proof, or Failed to apply initial proof method, at a <code>by</code></td>
+<td>The method could not prove this step from the facts it was given. The message shows what remained.</td>
+<td>Pass the missing facts (<code>then</code>, <code>using</code>); add a lemma (<code>simp add:</code>); split the step; try <code>sledgehammer</code> (Module 9).</td>
+</tr>
+<tr>
+<td>Failed to apply initial proof method, at <code>proof</code></td>
+<td>The initial method cannot start, for example no standard rule fits the goal.</td>
+<td>Use <code>proof -</code>, or name the rule.</td>
+</tr>
+<tr>
+<td>Failed to refine any pending goal</td>
+<td>The shown fact, under the assumptions of its block, solves no pending goal.</td>
+<td>Compare the claim with the goal in the state; check <code>?case</code> and <code>?thesis</code>, <code>next</code>, and assumptions that are not premises of the goal.</td>
+</tr>
+<tr>
+<td>Illegal application of proof command in “prove” mode</td>
+<td>A claim has no proof, so the next command comes too early.</td>
+<td>Give the claim a proof, <code>by …</code> or <code>proof … qed</code>.</td>
+</tr>
+<tr>
+<td>Undefined case, Undefined fact</td>
+<td>A case or fact name is wrong.</td>
+<td>Use the proof outline or <code>print_cases</code>.</td>
+</tr>
+<tr>
+<td>Vacuous calculation result</td>
+<td>The steps of a chain do not fit together.</td>
+<td>Write chains with <code>=</code>, <code>≤</code> and <code>&lt;</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The fourth message appears, for example, when a <code>have</code> has no proof:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> ab: <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;B&quot;</span>
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∧ A&quot;</span> <span class="isa-proof">using</span> ab <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Illegal application of proof command in &quot;prove&quot; mode</span></code></pre></div>
+<p>After <code>have &quot;B&quot;</code> Isabelle is in <code>prove</code> mode and expects a proof; <code>show</code> is not one.</p>
+<p>“Failed to refine any pending goal” deserves a closer look, because the step itself succeeded: the claim
+was proved, but it does not fit the goal. Isabelle/jEdit warns about this before the proof of the
+<code>show</code> has finished, with the message “Local statement fails to refine any pending goal”. Here is the
+typical case, a claim that is not the goal:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ B ∧ A&quot;</span>
+<span class="isa-proof">proof</span> (<span class="isa-minor">rule</span> impI)
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;A ∧ B&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to refine any pending goal</span></code></pre></div>
+<p>To find out what is wrong, change <code>show</code> into <code>have</code>: if the step is then accepted, the claim is right
+and the mismatch is between the claim and the goal. Look at the goal in the state and compare.</p>
+<p>A few habits make Isar proofs easier to write and to keep working:</p>
+<ul>
+<li><strong>Write the skeleton first.</strong> State the lemma, write <code>proof …</code>, the <code>assume</code>, <code>fix</code> and <code>show</code> lines
+and <code>qed</code>, and let the proof outline fill in cases. Then prove the steps, one at a time.</li>
+<li><strong>One idea per step.</strong> If a <code>by</code> needs a long list of facts or a clever method, put an intermediate
+<code>have</code> in between.</li>
+<li><strong>Chain what you need and nothing else.</strong> Pass a fact where it is used, with <code>then</code>, <code>with</code> or
+<code>using</code>; name it only if it is used further away.</li>
+<li><strong>Let automation do the small steps.</strong> <code>simp</code>, <code>blast</code>, <code>auto</code> and <code>linarith</code> prove the steps;
+Isar provides the structure that a person reads.</li>
+</ul>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">9</span><h2>What you learned</h2></div>
+<ul>
+<li><strong>Isar</strong> writes proofs as structured text: each step states what is true, and Isabelle checks it.
+Such proofs can be read without Isabelle, and a failing step is marked where it fails.</li>
+<li>A <strong>proof block</strong> <code>proof m … qed</code> starts with an initial method: <code>proof (rule r)</code>, <code>proof</code> (a standard
+rule for the goal) or <code>proof -</code> (nothing). Inside it, <code>assume</code> takes a premise, <code>fix</code> an arbitrary
+value, <code>have</code> proves an intermediate fact and <code>show</code> solves a pending goal. <code>next</code> separates the
+proofs of different goals.</li>
+<li><strong>Facts</strong> flow from step to step: <code>then</code> passes <code>this</code>, <code>from a</code> passes named facts, <code>with a</code> passes
+both, <code>using a</code> comes after the claim, <code>note</code> collects facts, and <code>moreover … ultimately</code> collects
+several before using them. <code>hence</code> and <code>thus</code> are old forms of <code>then have</code> and <code>then show</code>. A method
+sees only the facts passed to it.</li>
+<li><code>obtain x where …</code> uses an existential fact, as the rule (∃E) does.</li>
+<li><strong>Calculations</strong> chain steps with <code>also</code> and end them with <code>finally</code>; <code>…</code> stands for the previous
+right-hand side, and <code>.</code> proves the claim that the chain produced. The result has the strictest
+relation of the chain.</li>
+<li><strong>Case analysis</strong> uses <code>proof (cases …)</code> with <code>case True</code>/<code>case False</code> or the constructors of a
+datatype, <code>consider</code> for cases of your own, and <code>proof</code> with a disjunction passed to it.</li>
+<li><strong>Induction</strong> uses <code>proof (induction x)</code> with <code>case Nil</code>, <code>case (Cons x xs)</code>, <code>case 0</code>,
+<code>case (Suc n)</code>; inside a case, <code>?case</code> is its claim, <code>c.IH</code> the induction hypothesis and <code>c.prems</code> the
+premises.</li>
+<li>Natural-deduction proofs and apply scripts translate into Isar step by step, and Isabelle’s messages
+(Failed to finish proof, Failed to refine any pending goal, Undefined case, …) point to the step to
+repair.</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">10</span><h2>Exercises</h2></div>
+<div class="exercise" id="ex-10-1"><div class="ex-label"><span class="ex-num">Exercise 10.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">Read a proof</span></div>
+<p>Here is a proof about a login check: a user who is not locked out and enters a valid password may log
+in.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma
+  assumes valid: &quot;valid pw&quot;
+    and fresh: &quot;¬ locked u&quot;
+    and policy: &quot;∀p v. valid p ∧ ¬ locked v ⟶ login v p&quot;
+  shows &quot;login u pw ∧ valid pw&quot;
+proof -
+  from valid fresh have &quot;valid pw ∧ ¬ locked u&quot; by blast
+  with policy have &quot;login u pw&quot; by blast
+  then show ?thesis using valid by blast
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">assumes</span> valid: <span class="isa-inner">&quot;valid pw&quot;</span>
+    <span class="isa-minor">and</span> fresh: <span class="isa-inner">&quot;¬ locked u&quot;</span>
+    <span class="isa-minor">and</span> policy: <span class="isa-inner">&quot;∀p v. valid p ∧ ¬ locked v ⟶ login v p&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;login u pw ∧ valid pw&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">from</span> valid fresh <span class="isa-proof">have</span> <span class="isa-inner">&quot;valid pw ∧ ¬ locked u&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">with</span> policy <span class="isa-proof">have</span> <span class="isa-inner">&quot;login u pw&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> valid <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<ol>
+<li>What is <code>this</code> after the first <code>have</code>?</li>
+<li>Which facts does <code>blast</code> receive in the second step?</li>
+<li>What does <code>?thesis</code> stand for?</li>
+<li>Rewrite the second step with <code>from</code> instead of <code>with</code>.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><code>valid pw ∧ ¬ locked u</code>, the fact that this step proved.</li>
+<li><code>policy</code> and <code>this</code>, that is ∀p v. valid p ∧ ¬ locked v ⟶ login v p and valid pw ∧ ¬ locked u:
+<code>with policy</code> is short for <code>from policy this</code>.</li>
+<li>The statement after <code>shows</code>: <code>login u pw ∧ valid pw</code>.</li>
+<li><code>from policy ‹valid pw ∧ ¬ locked u› have &quot;login u pw&quot; by blast</code>.</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-2"><div class="ex-label"><span class="ex-num">Exercise 10.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">Spell out the shorthands</span></div>
+<p>Rewrite this proof without <code>hence</code>, <code>thus</code> and <code>with</code>: use only <code>from</code> with names. Check your version in
+Isabelle.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ∧ A ⟶ B ∨ C&quot;
+proof
+  assume prem: &quot;(A ⟶ B) ∧ A&quot;
+  hence &quot;A ⟶ B&quot; by blast
+  with prem have &quot;B&quot; by blast
+  thus &quot;B ∨ C&quot; by blast
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ∧ A ⟶ B ∨ C&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> prem: <span class="isa-inner">&quot;(A ⟶ B) ∧ A&quot;</span>
+  <span class="isa-proof">hence</span> <span class="isa-inner">&quot;A ⟶ B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">with</span> prem <span class="isa-proof">have</span> <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">thus</span> <span class="isa-inner">&quot;B ∨ C&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p><code>hence</code> is <code>then have</code>, that is <code>from this have</code>; <code>with prem</code> is <code>from prem this</code>; <code>thus</code> is
+<code>from this show</code>. With names for the intermediate facts:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(A ⟶ B) ∧ A ⟶ B ∨ C&quot;
+proof
+  assume prem: &quot;(A ⟶ B) ∧ A&quot;
+  from prem have ab: &quot;A ⟶ B&quot; by blast
+  from prem ab have b: &quot;B&quot; by blast
+  from b show &quot;B ∨ C&quot; by blast
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(A ⟶ B) ∧ A ⟶ B ∨ C&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> prem: <span class="isa-inner">&quot;(A ⟶ B) ∧ A&quot;</span>
+  <span class="isa-proof">from</span> prem <span class="isa-proof">have</span> ab: <span class="isa-inner">&quot;A ⟶ B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">from</span> prem ab <span class="isa-proof">have</span> b: <span class="isa-inner">&quot;B&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">from</span> b <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∨ C&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-3"><div class="ex-label"><span class="ex-num">Exercise 10.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">Predict the error</span></div>
+<p>Each of these proofs fails. Say which message Isabelle gives, why, and how to repair the proof.</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ A&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;A ∧ B&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. P x ∧ Q x) ⟶ (∃x. P x)&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;∃x. P x ∧ Q x&quot;</span>
+  <span class="isa-proof">obtain</span> a <span class="isa-minor">where</span> <span class="isa-inner">&quot;P a ∧ Q a&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;∃x. P x&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;clamp lo hi x ≤ max lo x&quot;</span>
+<span class="isa-proof">proof</span> (cases <span class="isa-inner">&quot;x &lt; lo&quot;</span>)
+  <span class="isa-proof">case</span> True
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+  <span class="isa-proof">case</span> False
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><strong>Failed to refine any pending goal.</strong> The proof of <code>A ∧ B</code> succeeds, but the pending goal is A
+(under the assumption A ∧ B). Claim the goal: <code>then show &quot;A&quot; by blast</code>.</li>
+<li><strong>Failed to apply initial proof method</strong>, at the proof of <code>obtain</code>, with the goal
+<code>(⋀a. P a ∧ Q a ⟹ thesis) ⟹ thesis</code>. The existential is not passed to <code>blast</code>. Write
+<code>then obtain</code>.</li>
+<li><strong>Failed to refine any pending goal</strong>, at the second <code>show</code>: without <code>next</code>, the second case still
+has the assumption x &lt; lo of the first, so its result fits no pending goal. Insert <code>next</code> before
+<code>case False</code>.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∧ B ⟶ A&quot;
+proof
+  assume &quot;A ∧ B&quot;
+  then show &quot;A&quot; by blast
+qed
+
+lemma &quot;(∃x. P x ∧ Q x) ⟶ (∃x. P x)&quot;
+proof
+  assume &quot;∃x. P x ∧ Q x&quot;
+  then obtain a where &quot;P a ∧ Q a&quot; by blast
+  then show &quot;∃x. P x&quot; by blast
+qed
+
+lemma &quot;clamp lo hi x ≤ max lo x&quot;
+proof (cases &quot;x &lt; lo&quot;)
+  case True
+  then show ?thesis by simp
+next
+  case False
+  then show ?thesis by simp
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∧ B ⟶ A&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A ∧ B&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;A&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. P x ∧ Q x) ⟶ (∃x. P x)&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;∃x. P x ∧ Q x&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">obtain</span> a <span class="isa-minor">where</span> <span class="isa-inner">&quot;P a ∧ Q a&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;∃x. P x&quot;</span> <span class="isa-proof">by</span> blast
+<span class="isa-proof">qed</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;clamp lo hi x ≤ max lo x&quot;</span>
+<span class="isa-proof">proof</span> (cases <span class="isa-inner">&quot;x &lt; lo&quot;</span>)
+  <span class="isa-proof">case</span> True
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> False
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-4"><div class="ex-label"><span class="ex-num">Exercise 10.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Disjunction the Isar way</span></div>
+<p>Module 7 proved <code>A ∨ B ⟶ B ∨ A</code> with <code>erule disjE</code>. Prove it in Isar, with a case split on the assumed
+disjunction as in Section 10.5.3. Use <code>blast</code> only for the steps inside the cases.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;A ∨ B ⟶ B ∨ A&quot;
+proof
+  assume &quot;A ∨ B&quot;
+  then show &quot;B ∨ A&quot;
+  proof
+    assume &quot;A&quot;
+    then show &quot;B ∨ A&quot; by blast
+  next
+    assume &quot;B&quot;
+    then show &quot;B ∨ A&quot; by blast
+  qed
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;A ∨ B ⟶ B ∨ A&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A ∨ B&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∨ A&quot;</span>
+  <span class="isa-proof">proof</span>
+    <span class="isa-proof">assume</span> <span class="isa-inner">&quot;A&quot;</span>
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∨ A&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">assume</span> <span class="isa-inner">&quot;B&quot;</span>
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;B ∨ A&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The outer <code>proof</code> applies <code>impI</code>. The inner <code>proof</code> receives the disjunction through <code>then</code>, so it
+applies the elimination rule <code>disjE</code> and leaves two goals, one for each case. The steps inside the
+cases are (∨I₂) and (∨I₁); <code>by (rule disjI2)</code> and <code>by (rule disjI1)</code> work as well.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-5"><div class="ex-label"><span class="ex-num">Exercise 10.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Swap the quantifiers</span></div>
+<p>Prove <code>(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)</code> in Isar with <code>obtain</code> and <code>fix</code>. Read the formula in words
+first: if one x is related to every y, then every y has some x related to it.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;
+proof
+  assume &quot;∃x. ∀y. R x y&quot;
+  then obtain a where a: &quot;∀y. R a y&quot; by blast
+  show &quot;∀y. ∃x. R x y&quot;
+  proof
+    fix b
+    from a have &quot;R a b&quot; by (rule spec)
+    then show &quot;∃x. R x b&quot; by (rule exI)
+  qed
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;∃x. ∀y. R x y&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">obtain</span> a <span class="isa-minor">where</span> a: <span class="isa-inner">&quot;∀y. R a y&quot;</span> <span class="isa-proof">by</span> blast
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;∀y. ∃x. R x y&quot;</span>
+  <span class="isa-proof">proof</span>
+    <span class="isa-proof">fix</span> b
+    <span class="isa-proof">from</span> a <span class="isa-proof">have</span> <span class="isa-inner">&quot;R a b&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> spec)
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;∃x. R x b&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> exI)
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The proof uses (∃E), (∀I), (∀E) and (∃I) in this order. The same x, here a, works for every y. The
+converse does not hold: each y may need a different x.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-6"><div class="ex-label"><span class="ex-num">Exercise 10.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">A calculation</span></div>
+<p>Prove <code>(a + b) * (a - b) = a * a - b * b</code> for integers a and b with a chain of equations, one law per
+step, as in Section 10.4.1.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma
+  fixes a b :: int
+  shows &quot;(a + b) * (a - b) = a * a - b * b&quot;
+proof -
+  have &quot;(a + b) * (a - b) = a * (a - b) + b * (a - b)&quot; by (rule distrib_right)
+  also have &quot;… = (a * a - a * b) + (b * a - b * b)&quot; by (simp add: right_diff_distrib)
+  also have &quot;… = a * a - b * b&quot; by (simp add: algebra_simps)
+  finally show ?thesis .
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span>
+  <span class="isa-minor">fixes</span> a b :: int
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;(a + b) * (a - b) = a * a - b * b&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;(a + b) * (a - b) = a * (a - b) + b * (a - b)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> distrib_right)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = (a * a - a * b) + (b * a - b * b)&quot;</span> <span class="isa-proof">by</span> (simp add: right_diff_distrib)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = a * a - b * b&quot;</span> <span class="isa-proof">by</span> (simp add: algebra_simps)
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?thesis .
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>right_diff_distrib</code> is the law a(b − c) = ab − ac. The last step uses commutativity, b · a = a · b, so
+that the middle terms cancel.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-7"><div class="ex-label"><span class="ex-num">Exercise 10.7</span><span class="ex-stars" title="2">★★</span><span class="ex-title">The total of a reversed bill</span></div>
+<p>Prove <code>mysum (rev xs) = mysum xs</code> by induction with named cases. Use the lemma <code>mysum_append</code> of
+Section 10.6.1 in the induction step, inside a calculation.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mysum (rev xs) = mysum xs&quot;
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have &quot;mysum (rev (x # xs)) = mysum (rev xs @ [x])&quot; by simp
+  also have &quot;… = mysum (rev xs) + mysum [x]&quot; by (rule mysum_append)
+  also have &quot;… = mysum xs + x&quot; using Cons.IH by simp
+  also have &quot;… = mysum (x # xs)&quot; by simp
+  finally show ?case .
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mysum (rev xs) = mysum xs&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;mysum (rev (x # xs)) = mysum (rev xs @ [x])&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = mysum (rev xs) + mysum [x]&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> mysum_append)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = mysum xs + x&quot;</span> <span class="isa-proof">using</span> Cons.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = mysum (x # xs)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The second step is an instance of <code>mysum_append</code>, with <code>rev xs</code> for xs and <code>[x]</code> for ys; <code>rule</code> finds
+the instance. Without the lemma, <code>simp</code> would get stuck at <code>mysum (rev xs @ [x])</code>.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-8"><div class="ex-label"><span class="ex-num">Exercise 10.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Mirror a tree</span></div>
+<p>Module 5 defined binary trees and the function <code>mirror</code>, and proved on paper, in the example <em>Mirroring
+twice</em>, that mirroring a tree twice gives the tree back. Here are the definitions again:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype 'a tree2 = Tip | Node &quot;'a tree2&quot; 'a &quot;'a tree2&quot;
+
+fun mirror :: &quot;'a tree2 ⇒ 'a tree2&quot; where
+  &quot;mirror Tip = Tip&quot;
+| &quot;mirror (Node l x r) = Node (mirror r) x (mirror l)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> 'a tree2 = Tip | Node <span class="isa-inner">&quot;'a tree2&quot;</span> 'a <span class="isa-inner">&quot;'a tree2&quot;</span>
+
+<span class="isa-cmd">fun</span> mirror :: <span class="isa-inner">&quot;'a tree2 ⇒ 'a tree2&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;mirror Tip = Tip&quot;</span>
+| <span class="isa-inner">&quot;mirror (Node l x r) = Node (mirror r) x (mirror l)&quot;</span></code></pre></div>
+<p>Prove <code>mirror (mirror t) = t</code> in Isar by induction on t, with named cases. Write the induction step as
+a calculation with the three steps of the paper proof. How many induction hypotheses does the induction
+step have, and how do you refer to each one?</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mirror (mirror t) = t&quot;
+proof (induction t)
+  case Tip
+  show ?case by simp
+next
+  case (Node l x r)
+  have &quot;mirror (mirror (Node l x r)) = mirror (Node (mirror r) x (mirror l))&quot; by simp
+  also have &quot;… = Node (mirror (mirror l)) x (mirror (mirror r))&quot; by simp
+  also have &quot;… = Node l x r&quot; using Node.IH by simp
+  finally show ?case .
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mirror (mirror t) = t&quot;</span>
+<span class="isa-proof">proof</span> (induction t)
+  <span class="isa-proof">case</span> Tip
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Node l x r)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;mirror (mirror (Node l x r)) = mirror (Node (mirror r) x (mirror l))&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = Node (mirror (mirror l)) x (mirror (mirror r))&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = Node l x r&quot;</span> <span class="isa-proof">using</span> Node.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The cases are named after the constructors, <code>Tip</code> and <code>Node</code>. A node has two subtrees, so the induction
+step has two induction hypotheses, one for l and one for r. <code>Node.IH</code> is the list of both; <code>Node.IH(1)</code> is
+the one for l and <code>Node.IH(2)</code> the one for r. The first two steps use the second equation of <code>mirror</code>,
+the third uses both hypotheses.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-10-9"><div class="ex-label"><span class="ex-num">Exercise 10.9</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Filtering never lengthens a list</span></div>
+<p><code>filter P xs</code> keeps the elements of xs that satisfy P. Prove <code>length (filter P xs) ≤ length xs</code> by
+induction on xs. In the induction step, split on whether <code>P x</code> holds, with a nested <code>proof (cases &quot;P x&quot;)</code>,
+and use a calculation in the case where it does not.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;length (filter P xs) ≤ length xs&quot;
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases &quot;P x&quot;)
+    case True
+    then show ?thesis using Cons.IH by simp
+  next
+    case False
+    then have &quot;length (filter P (x # xs)) = length (filter P xs)&quot; by simp
+    also have &quot;… ≤ length xs&quot; by (rule Cons.IH)
+    also have &quot;… ≤ length (x # xs)&quot; by simp
+    finally show ?thesis .
+  qed
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;length (filter P xs) ≤ length xs&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons x xs)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span>
+  <span class="isa-proof">proof</span> (cases <span class="isa-inner">&quot;P x&quot;</span>)
+    <span class="isa-proof">case</span> True
+    <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">using</span> Cons.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">case</span> False
+    <span class="isa-proof">then</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;length (filter P (x # xs)) = length (filter P xs)&quot;</span> <span class="isa-proof">by</span> simp
+    <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ length xs&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> Cons.IH)
+    <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ length (x # xs)&quot;</span> <span class="isa-proof">by</span> simp
+    <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?thesis .
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p>Inside the nested block, <code>?thesis</code> is the claim of the <code>show</code> it proves, which is the claim of the case.
+In the case where P x holds, filter keeps x, and both sides grow by one; the hypothesis does the rest.</p>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">11</span><h2>Check yourself</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>In <code>then have &quot;B&quot; by blast</code>, what does <code>then</code> do?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">It proves B from the pending goal</button></li><li><button type="button" class="quiz-opt" data-i="1">It passes the most recent fact, <code>this</code>, to the proof of B</button></li><li><button type="button" class="quiz-opt" data-i="2">It starts a fresh block, like <code>next</code></button></li><li><button type="button" class="quiz-opt" data-i="3">It is needed before every <code>have</code></button></li></ol><div class="quiz-expl" hidden><code>then</code> is short for <code>from this</code>: the fact produced by the previous step is passed to the method that proves the next claim.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">2</span><div>Which command solves a pending goal of the enclosing block?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>have</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>assume</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>note</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>show</code></button></li></ol><div class="quiz-expl" hidden><code>have</code> only adds a fact. <code>show</code> claims a statement and, once its proof is finished, uses it to solve a pending goal.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">3</span><div>In <code>also have &quot;… = x + 1&quot;</code>, what does <code>…</code> stand for?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The right-hand side of the previous step</button></li><li><button type="button" class="quiz-opt" data-i="1">The left-hand side of the first step of the chain</button></li><li><button type="button" class="quiz-opt" data-i="2">The whole previous equation</button></li><li><button type="button" class="quiz-opt" data-i="3">Any term that makes the step true</button></li></ol><div class="quiz-expl" hidden><code>…</code> abbreviates the right-hand side of the previous fact, so the chain continues from where it stopped.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">4</span><div><code>proof</code> fails on the goal <code>False</code>, while <code>proof -</code> works. Why?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>False</code> cannot be proved in Isar</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>proof -</code> proves the goal immediately</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>proof</code> applies a standard rule for the goal, and none fits <code>False</code>; <code>proof -</code> leaves the goal as it is</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>proof</code> needs the assumptions to be named first</button></li></ol><div class="quiz-expl" hidden>Without a method, <code>proof</code> applies a standard introduction rule chosen by the goal. <code>proof -</code> applies no rule, so the steps inside the block have to prove the goal.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>In <code>case (Cons x xs)</code> of a proof by <code>induction xs</code>, what is <code>Cons.IH</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The claim of the case, <code>?case</code></button></li><li><button type="button" class="quiz-opt" data-i="1">The assumption <code>xs = x # xs</code></button></li><li><button type="button" class="quiz-opt" data-i="2">The induction hypothesis: the claim for the tail <code>xs</code></button></li><li><button type="button" class="quiz-opt" data-i="3">The premises of the lemma</button></li></ol><div class="quiz-expl" hidden>The induction step assumes the claim for the shorter list. <code>Cons.prems</code> holds the premises, and <code>?case</code> the claim to prove.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">6</span><div>Isabelle reports “Failed to refine any pending goal” at a <code>show</code>. What is the most likely cause?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The method after <code>by</code> is too weak</button></li><li><button type="button" class="quiz-opt" data-i="1">The shown statement, with the assumptions of its block, solves no pending goal, for example because a <code>next</code> is missing</button></li><li><button type="button" class="quiz-opt" data-i="2">A fact name is misspelt</button></li><li><button type="button" class="quiz-opt" data-i="3">The theory has no <code>end</code></button></li></ol><div class="quiz-expl" hidden>The claim itself was proved, but it does not fit any goal. Compare it with the goal in the state, and check <code>next</code>, <code>?case</code> and the assumptions.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="10"><div class="done-q">Finished this module?</div><button type="button" class="done-btn" data-yes="Done" data-no="Mark as done" data-undo="Mark as not done">Mark as done</button><div class="done-progress" data-label="{d} of {n} modules done"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_09_EN.html"><span class="mnav-label">&larr; Previous</span><span class="mnav-title">Module 9: Proof automation</span></a><a class="mnav next" href="module_11_EN.html"><span class="mnav-label">Next &rarr;</span><span class="mnav-title">Module 11: Induction in depth</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

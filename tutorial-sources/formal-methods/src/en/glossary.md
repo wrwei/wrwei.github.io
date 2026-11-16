@@ -339,7 +339,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **polymorphic**<br>多态的 | A function whose type contains a type variable, such as `rev :: 'a list ⇒ 'a list`, works for every instance of that type. | [8.1.1](module_08_EN.html#types) |
 | **postfix notation**<br>后缀表示法 | Writing the operands before the operator, as the code for a stack machine does; also called reverse Polish notation. | [14.4.1](module_14_EN.html#compiling) |
 | **power set**<br>幂集 | The set of all subsets of A. Isabelle writes `Pow A`; a set of n elements has 2ⁿ subsets. | [4.1.2](module_04_EN.html#sets-ops) |
-| **predicate**<br>谓词 | A property or relation that holds or does not hold of objects. In Isabelle, a function to `bool`, such as `P :: 'a ⇒ bool`. | [3.1](module_03_EN.html#beyond), [3.8](module_03_EN.html#types) |
+| **predicate**<br>谓词 | A property or relation that holds or does not hold of objects. In Isabelle, a function to `bool`, of type `'a ⇒ bool`. | [3.1](module_03_EN.html#beyond), [3.8](module_03_EN.html#types) |
 | **predicate logic**<br>谓词逻辑 | Propositional logic extended with terms, predicates and the quantifiers ∀ and ∃; also called first-order logic. | [3.1](module_03_EN.html#beyond) |
 | **predicate symbol**<br>谓词符号 | A symbol that names a property or a relation, such as `admin` or <. | [3.2](module_03_EN.html#language) |
 | **premise**<br>前提 | A formula that an argument or a rule starts from. In Isabelle, a premise of a rule stands before ⟹. | [2.6](module_02_EN.html#consequence), [6.2](module_06_EN.html#systems) |

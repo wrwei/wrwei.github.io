@@ -13,8 +13,8 @@ lead: Isabelle's messages that beginners meet most often, grouped by what you we
    ([Section 1.6](module_01_EN.html#tour)).
 4. **Test the claim.** A proof of a false statement fails whatever you do; `quickcheck` and `nitpick` find
    many false claims in seconds ([Section 9.9](module_09_EN.html#strategy)).
-5. **Only the red message counts.** A line `theorem …` above a failed proof does not mean that the proof
-   worked ([Section 1.7.5](module_01_EN.html#first-refute)).
+5. **Only the red message counts.** A line starting with `theorem` above a failed proof does not mean that
+   the proof worked ([Section 1.7.5](module_01_EN.html#first-refute)).
 
 The messages below are copied from the modules, where Isabelle2026 printed them. The goals in them belong
 to the modules' examples; yours will show your own. ⌂ marks a position: in Isabelle/jEdit it is a link to
@@ -71,8 +71,8 @@ at "∧ C"
 Failed to parse prop
 ```
 
-The text between the quotation marks is not a well-formed statement; `at "…"` shows where Isabelle stopped
-reading. The usual cause is ⟹ inside a formula: ⟹ belongs to Pure and may appear only at the outside of a
+The text between the quotation marks is not a well-formed statement; the line `at "∧ C"` shows where Isabelle
+stopped reading. The usual cause is ⟹ inside a formula: ⟹ belongs to Pure and may appear only at the outside of a
 statement. Inside a formula, write ⟶ ([Section 7.1.3](module_07_EN.html#meta-def)).
 
 ### Clash of types: incompatible operand type {#type-clash}
@@ -472,7 +472,8 @@ Undefined fact: "conjl"⌂
 No theorem has this name. Often a capital I has become a lower-case l, as in `conjl` for `conjI`
 ([Section 7.8.2](module_07_EN.html#errors-name)), or a function name is misspelt, as in `duraton.simps`
 ([Section 8.4.4](module_08_EN.html#names)). A definition's equation is called `f_def`, the equations of a
-`fun` `f.simps`. Search with `find_theorems name:` ([Section 9.6](module_09_EN.html#find)).
+`fun` `f.simps`. To search by name, give `find_theorems` the criterion `name: s`
+([Section 9.6](module_09_EN.html#find)).
 
 ### SAT solver found a countermodel {#sat-countermodel}
 

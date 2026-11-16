@@ -1242,6 +1242,12 @@ Type classes play the role of interfaces in Java or traits in Rust, and Haskell'
 same idea. A sort says which interfaces an unknown type must implement.
 :::
 
+::: pitfall
+"Sort" has a different meaning here from the one in Module 3. There, in many-sorted logic, a sort was a
+kind of individual, much what Isabelle calls a type. In Isabelle a sort is a set of type classes: a
+constraint on a type, not a type.
+:::
+
 Isabelle hides sorts unless you ask for them. The option `show_sorts` makes them visible:
 
 ```isabelle
