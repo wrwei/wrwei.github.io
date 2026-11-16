@@ -138,8 +138,7 @@ goal (1 subgoal):
  1. B ∧ A
 ```
 
-`show` states a claim that solves a pending goal. Like a lemma, the claim needs a proof, and the state
-shows it as a goal of its own. Prove it with `blast`, giving it the assumption, and close the block:
+`show` 陈述一个断言，用它来解决一个待证目标。和引理一样，这个断言需要证明，证明状态把它显示为一个单独的目标。把假设交给 `blast`，用 `blast` 证明它，然后关闭这个块：
 
 ```isabelle
     using ab by blast
