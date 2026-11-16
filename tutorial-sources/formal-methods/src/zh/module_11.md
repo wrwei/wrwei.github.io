@@ -1528,17 +1528,15 @@ next
 qed
 ```
 
-In the step, `Suc.IH` is `ev m ⟹ ev (m * n)` and `Suc.prems` is `ev m`; `then` passes both to `simp`.
+在归纳步骤中，`Suc.IH` 是 `ev m ⟹ ev (m * n)`，`Suc.prems` 是 `ev m`；`then` 把两者都传给 `simp`。
 :::
 ::::
 
-:::: exercise Words the checker rejects {#ex-11-6} ★★
-Prove `¬ bal [RP, LP]` and `¬ bal [LP]`. Rule inversion alone is awkward here: rule `bal_cat` can
-split `[RP, LP]` in several ways, among them `[] @ [RP, LP]`, which leads back to the same question. Use
-the checker instead.
+:::: exercise 检查器拒绝的串 {#ex-11-6} ★★
+证明 `¬ bal [RP, LP]` 和 `¬ bal [LP]`。在这里只用规则反演会很别扭：规则 `bal_cat` 可以用好几种方式拆分 `[RP, LP]`，其中包括 `[] @ [RP, LP]`，而这又回到了同一个问题。改用检查器吧。
 
 ::: solution
-By `bal_chk0`, a balanced word passes the check; `simp` computes that these words do not:
+由 `bal_chk0`，平衡的串都能通过检查；而 `simp` 算出这两个串通不过检查：
 
 ```isabelle
 lemma "¬ bal [RP, LP]"
@@ -1556,18 +1554,15 @@ proof
 qed
 ```
 
-A proved property of all members (here: "passes the check") is often the easiest way to show that
-something is not a member.
+要说明某个东西不是成员，最简单的办法往往是借助一个已经证明的、所有成员都具有的性质（这里是“能通过检查”）。
 :::
 ::::
 
-:::: exercise Fibonacci by complete induction {#ex-11-7} ★★
-Prove Module 5's bound `fib n < 2 ^ n` once more, this time with `less_induct`. Distinguish the three forms
-of `n` with `cases n rule: fib.cases`, which has one case for each equation of `fib`.
+:::: exercise 用完全归纳法证明斐波那契上界 {#ex-11-7} ★★
+再证明一次模块 5 中的上界 `fib n < 2 ^ n`，这次用 `less_induct`。用 `cases n rule: fib.cases` 区分 `n` 的三种形式，`fib.cases` 为 `fib` 的每个等式各给出一个情形。
 
 ::: solution
-In the third case `n = Suc (Suc k)`. Both `k` and `Suc k` are smaller than `n`, so the IH applies to
-both:
+在第三个情形中，`n = Suc (Suc k)`。`k` 和 `Suc k` 都比 `n` 小，所以归纳假设对两者都适用：
 
 ```isabelle
 lemma "fib n < 2 ^ n"
