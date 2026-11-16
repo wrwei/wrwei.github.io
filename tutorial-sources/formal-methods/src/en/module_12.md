@@ -3,7 +3,7 @@ title: Verifying functional programs
 part: 4
 lead: Prove that a program does what its specification says, for every input. You will verify insertion sort, a binary search tree and a queue made of two lists, see why a specification needs each of its parts, and turn the verified functions into Haskell code.
 minutes: 230
-needs: Modules 1–11, especially Module 8 (functions), Module 10 (Isar) and Module 11 (auxiliary lemmas)
+needs: Modules 1–11
 goals:
   - Separate a specification (what a program must do) from an implementation (how it does it), and state the theorem that connects them
   - Verify insertion sort against the specification "sorted, and a permutation of the input", finding the lemmas the proofs need

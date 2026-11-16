@@ -16,7 +16,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | 术语 | 释义 | 出处 |
 |---|---|---|
 | **α 等价的**<br>α-equivalent | 只在约束变元的名字上不同的公式是 α 等价的，例如 ∃y. R x y 和 ∃z. R x z；它们的含义相同。 | [3.5.2](module_03_ZH.html#substitution) |
-| **安全的**<br>safe | 如果一个步骤或规则永远不会把可证的目标变成不可证的子目标（例如 `conjI` 和 `impI`），它就是安全的；不安全的（例如 `disjI1` 和 `allE`）则可能会。 | [6.7](module_06_ZH.html#search), [9.4](module_09_ZH.html#classical) |
+| **安全规则**<br>safe rule | 如果一条规则（或证明搜索中的一步）永远不会把可证的目标变成不可证的子目标（例如 `conjI` 和 `impI`），它就是安全的；不安全的规则（例如 `disjI1` 和 `allE`）则可能会。 | [6.7](module_06_ZH.html#search), [9.4](module_09_ZH.html#classical) |
 | **安全性质**<br>safety property | 说明坏事永远不会发生的性质：它必须在每个可达状态中成立。 | [4.5.2](module_04_ZH.html#reachability), [13.3](module_13_ZH.html#invariants) |
 | **apply 脚本**<br>apply script | 由一串 `apply` 步骤组成、以 `done` 结束的证明。 | [5.4.2](module_05_ZH.html#induction-state) |
 
@@ -158,7 +158,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **公式**<br>formula | 按形成规则构造的表达式：由原子（或原子公式）、`True` 和 `False` 出发，用联结词以及（在谓词逻辑中）量词构成。 | [2.2.1](module_02_ZH.html#formation), [3.2.3](module_03_ZH.html#quantifiers) |
 | **功能正确性**<br>functional correctness | 关于程序计算出什么结果的正确性，不涉及它花多长时间、用多少内存。 | [12.1](module_12_ZH.html#verify) |
 | **构造子**<br>constructor | 构造数据类型的值的函数之一，例如列表的 `[]` 和 `#`，或者交通灯的 `Red`。 | [5.2.2](module_05_ZH.html#trees), [8.3.1](module_08_ZH.html#enumerations) |
-| **固定变量**<br>fixed variable | 子目标中由 ⋀ 约束的变量，或在 Isar 中由 `fix` 引入的变量。它代表一个任意的值，合一永远不会替换它。Isabelle 也称之为参数。 | [7.6.1](module_07_ZH.html#quantifiers-all), [10.2.4](module_10_ZH.html#shape-fix) |
+| **固定变元**<br>fixed variable | 子目标中由 ⋀ 约束的变元，或在 Isar 中由 `fix` 引入的变元。它代表一个任意的值，合一永远不会替换它。Isabelle 也称之为参数。 | [7.6.1](module_07_ZH.html#quantifiers-all), [10.2.4](module_10_ZH.html#shape-fix) |
 | **关系**<br>relation | 有序对的集合：从 A 到 B 的关系是 A × B 的子集。 | [4.2.2](module_04_ZH.html#rel-def) |
 | **归谬法（RAA）**<br>RAA (reductio ad absurdum) | 拉丁语 reductio ad absurdum 的缩写，指这样一条规则：要证明 A，假设 ¬A 并推出 ⊥。它使自然演绎成为经典的；在 Isabelle 中是 `ccontr`。 | [6.5](module_06_ZH.html#classical) |
 | **归纳**<br>induction | 先证明结论对最小的值成立，再证明它能从较小的值传到较大的值，以此证明它对每个值成立。数学归纳法、结构归纳法、强归纳法和规则归纳都是它的形式。 | [5.3.1](module_05_ZH.html#principle) |
@@ -414,6 +414,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **推导**<br>derivation | 由公式组成的树，其中每个公式要么是假设，要么由紧挨在它上方的公式通过一条规则得到。 | [6.2](module_06_ZH.html#systems), [11.6.1](module_11_ZH.html#ev) |
 | **推广**<br>generalise | 对某个变元的所有值一起证明结论，使归纳假设可以用于其他的值。`arbitrary:` 就是做这件事的。 | [11.2](module_11_ZH.html#generalise), [14.5.1](module_14_ZH.html#paper) |
 | **推理规则**<br>inference rule | 有零个或多个前提和一个结论的规则，说明可以由什么推导出什么。 | [6.2](module_06_ZH.html#systems) |
+| **推论**<br>corollary | 直接由某个定理得出的事实。在 Isabelle 中，命令 `corollary` 与 `lemma` 的意思相同；这个名字只是给读者看的。 | [11.7.3](module_11_ZH.html#grammar), [14.5.4](module_14_ZH.html#isar) |
 | **拓扑排序**<br>topological sort | 按照与某个偏序一致的顺序列出所有元素，例如任务的安排。 | [4.4.2](module_04_ZH.html#hasse) |
 
 <div class="section-anchor" id="g-w"></div>
@@ -429,7 +430,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **完全的（关系）**<br>total (relation) | 如果 A 中任意两个不同的元素都以某个方向相关，关系在 A 上就是完全的。 | [4.2.3](module_04_ZH.html#rel-props) |
 | **完全归纳法**<br>complete induction | 强归纳法的另一个名称：归纳步骤可以使用结论对所有更小值成立。在 Isabelle 中用 `rule: less_induct`。 | [5.6](module_05_ZH.html#strong), [11.8](module_11_ZH.html#complete) |
 | **尾部**<br>tail | 列表 x # xs 中头部之后的其余部分 xs。 | [5.2.1](module_05_ZH.html#lists) |
-| **尾递归**<br>tail recursion | 如果递归调用是函数做的最后一件事，函数就是尾递归的，它可以像循环一样运行。 | [11.1.1](module_11_ZH.html#running-total) |
+| **尾递归的**<br>tail-recursive | 如果递归调用是函数做的最后一件事，函数就是尾递归的，它可以像循环一样运行。 | [11.1.1](module_11_ZH.html#running-total) |
 | **未解除的假设**<br>open assumption | 下方没有任何规则解除的假设。推导的结论只依赖于它的未解除的假设。 | [6.4.2](module_06_ZH.html#imp) |
 | **未解释的**<br>uninterpreted | 像用 `consts` 那样只声明而不定义：关于这类符号的引理，只有在无论它们表示什么都成立时，Isabelle 才能证明。 | [3.8](module_03_ZH.html#types) |
 | **未指定的**<br>unspecified | 全函数的一个一无所知的值，例如 `hd []`；`value` 对它求值时会因异常而停止。 | [8.4.3](module_08_ZH.html#patterns) |

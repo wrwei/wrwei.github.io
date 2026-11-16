@@ -3,7 +3,7 @@ title: Structured proofs in Isar
 part: 3
 lead: Write proofs that a reader can follow line by line and Isabelle checks step by step. You will state each step of a proof in Isar, pass facts from one step to the next, calculate with chains of equations and inequalities, and split proofs into cases and induction steps.
 minutes: 220
-needs: Modules 1–9, especially Module 5 (induction), Module 7 (rules in Isabelle) and Module 9 (automation)
+needs: Modules 1–9
 goals:
   - Write a proof as a proof … qed block with assume, fix, have and show
   - Pass facts between steps with then, from, with, using, note, moreover and ultimately

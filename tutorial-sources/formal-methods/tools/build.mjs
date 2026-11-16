@@ -16,6 +16,8 @@ const argv = process.argv.slice(2)
 const arg = k => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : null }
 const OUT = arg('--out') ? path.resolve(arg('--out')) : path.join(ROOT, 'out', 'site')
 const LANGS = arg('--lang') ? [arg('--lang')] : ['en', 'zh']
+// Built in one language only (e.g. --lang en while the Chinese edition is in preparation): no language switch.
+const BILINGUAL = LANGS.length > 1
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap'
 export const ZIP = 'formal-methods-theories.zip'
 
@@ -110,7 +112,7 @@ function topbar(lang, list, current, other) {
   <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
   <a href="${pageFile('index', lang)}" class="crumb">${ui.crumb}</a><span class="sep">/</span><span class="crumb crumb-now">${now}</span>
   ${dropdown(lang, list, current)}
-  <a href="${other}" class="lang-switch" hreflang="${UI[lang === 'en' ? 'zh' : 'en'].htmlLang}">${ui.switchTo}</a>
+  ${BILINGUAL ? `<a href="${other}" class="lang-switch" hreflang="${UI[lang === 'en' ? 'zh' : 'en'].htmlLang}">${ui.switchTo}</a>` : ''}
 </header>`
 }
 
@@ -216,11 +218,11 @@ function renderIndex(lang, list) {
   const total = list.reduce((a, l) => a + Number(l.meta.minutes || 0), 0)
   const page = `${head(lang, `${ui.series} — ${ui.tagline}`, meta.lead)}
 <body class="index-page" data-lessons="${list.length}" data-series="formal-methods">
-<nav class="site-nav"><a class="nav-brand" href="../../tutorials/">Ran <span>Wei</span></a><span class="nav-sep">/</span><a class="nav-crumb" href="${pageFile('index', lang)}">${ui.crumb}</a><a class="lang-switch" href="${pageFile('index', lang === 'en' ? 'zh' : 'en')}">${ui.switchTo}</a></nav>
+<nav class="site-nav"><a class="nav-brand" href="../../tutorials/">Ran <span>Wei</span></a><span class="nav-sep">/</span><a class="nav-crumb" href="${pageFile('index', lang)}">${ui.crumb}</a>${BILINGUAL ? `<a class="lang-switch" href="${pageFile('index', lang === 'en' ? 'zh' : 'en')}">${ui.switchTo}</a>` : ''}</nav>
 <div class="index-hero">
   <h1>${meta.title_html || escapeHtml(ui.series)}</h1>
   <p class="lead">${inl(meta.lead)}</p>
-  <div class="hero-tags"><span class="tag tag-module">${list.length} ${ui.modules}</span><span class="tag tag-theme">${ui.hours(Math.round(total / 60))}</span><span class="tag tag-time">Isabelle2026</span><span class="tag tag-time">EN · 中文</span></div>
+  <div class="hero-tags"><span class="tag tag-module">${list.length} ${ui.modules}</span><span class="tag tag-theme">${ui.hours(Math.round(total / 60))}</span><span class="tag tag-time">Isabelle2026</span>${BILINGUAL ? '<span class="tag tag-time">EN · 中文</span>' : ''}</div>
   ${progress}
 </div>
 <div class="index-body content">

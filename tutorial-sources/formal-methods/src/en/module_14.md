@@ -3,7 +3,7 @@ title: "Capstone: a verified compiler"
 part: 4
 lead: Build a small compiler in Isabelle, from arithmetic expressions to code for a stack machine, test it, and prove that the code it produces is right for every expression. Then verify an optimisation, export the compiler as Haskell code, and extend it with subtraction, conditionals and jumps.
 minutes: 240
-needs: Modules 1–13, especially Modules 8 (datatypes and functions), 10 (Isar) and 11 (generalisation and auxiliary lemmas)
+needs: Modules 1–13
 goals:
   - Define a small language by a datatype, and its meaning by an evaluation function
   - Define a stack machine and a compiler for it, and compare evaluation with execution on examples

@@ -18,7 +18,7 @@ def fig_13_1(L):
     T = {'en': dict(title='The pedestrian crossing as a state machine', start='start',
                     note=['In a state where req is already True,', 'Press changes nothing.']),
          'zh': dict(title='把人行横道看作状态机', start='初始',
-                    note=['在 req 已经为 True 的状态中，', 'Press 不改变任何东西。'])}[L]
+                    note=['在 req 已经为 True 的状态中，', 'Press 什么也不改变。'])}[L]
     s = SVG(760, 372, T['title'])
     W, H = 176, 80
     pos = {1: (40, 60), 2: (292, 60), 3: (544, 60), 6: (40, 228), 5: (292, 228), 4: (544, 228)}
@@ -70,7 +70,7 @@ def fig_13_2(L):
                     all='all 12 states', safe='safe: 8 states', inv='invar: 7 states, inductive',
                     reach='reachable: 6 states', unsafe='not safe'),
          'zh': dict(title='可达状态、归纳不变式与安全性质',
-                    all='全部 12 个状态', safe='safe：8 个状态', inv='invar：7 个状态，归纳的',
+                    all='全部 12 个状态', safe='safe：8 个状态', inv='invar：7 个状态，是归纳的',
                     reach='可达：6 个状态', unsafe='不安全')}[L]
     s = SVG(760, 312, T['title'])
     # nested regions (outermost first)

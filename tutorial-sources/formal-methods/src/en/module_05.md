@@ -3,7 +3,7 @@ title: Induction and recursion
 part: 1
 lead: Define functions on numbers, lists and trees by recursion and evaluate them step by step; prove that a property holds for every input by induction, on paper and in Isabelle; and see why every recursive definition must terminate.
 minutes: 240
-needs: Modules 1–4, especially well-founded relations (Module 4)
+needs: Modules 1–4
 goals:
   - Define functions on natural numbers, lists and binary trees by recursion, and evaluate them by rewriting
   - Prove a statement for every natural number by induction, naming the base case, the induction step and the induction hypothesis

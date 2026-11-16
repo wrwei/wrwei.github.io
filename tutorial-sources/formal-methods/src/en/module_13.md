@@ -3,7 +3,7 @@ title: Modelling systems: state machines and invariants
 part: 4
 lead: Describe a system as a state machine and prove in Isabelle that nothing bad ever happens in it. You will model states, events, guards and effects, define the reachable states, prove safety properties with invariants, strengthen an invariant that is not inductive, turn a counterexample into a trace, and carry what you proved about an abstract model over to a more concrete one.
 minutes: 230
-needs: Modules 1–12, especially Modules 4 (relations and `r⇧*`), 5 (invariants), 10 (Isar), 11 (inductive definitions and rule induction) and 12 (abstraction functions)
+needs: Modules 1–12
 goals:
   - Model a system as a state machine with states, an initial state, and events that have guards and effects
   - Define the transitions and the reachable states of a model with `inductive`, and relate reachability to `r⇧*`

@@ -24,6 +24,23 @@ pages is generated from this folder; never edit the published HTML by hand.
 | `tools/shot.mjs`, `tools/shot-parts.mjs` | Screenshots of built pages, for checking layout |
 | `out/` | Build output (ignored by Git) |
 
+## Status (16 November 2026)
+
+- **English edition: complete and published** (`docs/tutorials/formal-methods/`, built with `--lang en`).
+  Every module was written, reviewed by a second reader (logs in `notes/reviews/`) and checked with
+  Isabelle2026: 14 modules, 889 Isabelle blocks (87 of them failing on purpose), 507 output blocks, all
+  matching; 117 exercises, 84 quiz questions, 44 figures, 5 widgets; the downloadable theories build as one
+  session.
+- **Chinese edition: paused at the user's request**, to be finished later. Translated and checked against
+  the English pages at the time: `index`, Modules 1, 2, 3, 5, 6, 10 and 11. Translated but not finally
+  checked (the translators were stopped during their last checks): Modules 13 and 14. Partly translated
+  (the English text still stands in the rest): Modules 4, 7, 8, 9 and 12, and drafts of the three reference
+  pages. The figures' and widgets' Chinese strings are done for the modules translated so far.
+  To resume: finish each page by `notes/TRANSLATION.md` (the term table has grown with every module;
+  use it), re-sync any English changes made since, then `node tools/check.mjs` (full parity) must pass
+  before publishing both languages with `node tools/build.mjs --out ../../docs/tutorials/formal-methods`
+  (no `--lang`), which also restores the language switch.
+
 ## Requirements
 
 - Isabelle2026 (from isabelle.in.tum.de). `tools/isa.py` looks for it at the path in `ISABELLE_TOOL`
@@ -42,7 +59,7 @@ python3 -I src/figures/_gen/figs.py     # redraw all figures (both languages)
 node tools/check.mjs                    # structure, links, parity, style
 node tools/build.mjs                    # build the site into out/site
 node tools/widget-test.mjs              # test every widget in English and Chinese
-node tools/build.mjs --out ../../docs/tutorials/formal-methods   # publish
+node tools/build.mjs --lang en --out ../../docs/tutorials/formal-methods   # publish (English only, for now)
 ```
 
 `isa.py` assembles the Isabelle blocks of each module page into theories (`Module_NN`, with the

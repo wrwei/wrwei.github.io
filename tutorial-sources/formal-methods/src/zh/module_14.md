@@ -1,120 +1,81 @@
 ---
-title: "Capstone: a verified compiler"
+title: 综合项目：一个经过验证的编译器
 part: 4
-lead: Build a small compiler in Isabelle, from arithmetic expressions to code for a stack machine, test it, and prove that the code it produces is right for every expression. Then verify an optimisation, export the compiler as Haskell code, and extend it with subtraction, conditionals and jumps.
+lead: 在 Isabelle 中构造一个小型编译器，把算术表达式编译成栈机的代码，测试它，并证明它生成的代码对每个表达式都是正确的。然后验证一项优化，把编译器导出为 Haskell 代码，再用减法、条件表达式和跳转来扩展它。
 minutes: 240
-needs: Modules 1–13, especially Modules 8 (datatypes and functions), 10 (Isar) and 11 (generalisation and auxiliary lemmas)
+needs: 模块 1–13，尤其是模块 8（数据类型和函数）、模块 10（Isar）和模块 11（推广和辅助引理）
 goals:
-  - Define a small language by a datatype, and its meaning by an evaluation function
-  - Define a stack machine and a compiler for it, and compare evaluation with execution on examples
-  - Test a compiler with value and Quickcheck before proving anything about it
-  - Prove the compiler correct by induction, generalising over the stack and adding the lemma about appended code
-  - Prove an optimisation correct, combine the two theorems, and export the verified compiler as code
-  - Extend the language and the machine, and judge which parts of the proof carry over
+  - 用数据类型定义一个小型语言，用求值函数定义它的含义
+  - 定义一台栈机和面向它的编译器，并在例子上比较求值与执行的结果
+  - 在证明任何东西之前，先用 value 和 Quickcheck 测试编译器
+  - 用归纳法证明编译器是正确的：对栈进行推广，并补上关于连接代码的引理
+  - 证明一项优化是正确的，把两个定理结合起来，并把经过验证的编译器导出为代码
+  - 扩展语言和机器，并判断证明的哪些部分仍然适用
 imports: Main
 ---
 
-## Closing the circle {#circle}
+## 回到起点 {#circle}
 
-Module 1 began with software that must not fail, and one of its examples was a compiler: CompCert, a C
-compiler with a machine-checked proof of correctness. Compilers deserve that attention. Every program
-you run has been translated by one, and a bug in the translation breaks programs whose source code is
-correct. It breaks proofs too. A proof about a C function speaks about the C code, but the computer runs
-whatever the compiler produced. In Exercise 1.6 the compiler appeared on the list of things that a
-verified program still has to trust. A verified compiler takes it off that list, or nearly so (Section
-14.7 says what remains): its correctness theorem says that the code it produces does what the source
-program means, for every source program.
+模块 1 从不能出错的软件讲起，其中一个例子就是编译器（compiler）：CompCert，一个带有经过机器检查的正确性证明的 C 编译器。编译器值得这样的关注。你运行的每个程序都经过了编译器的翻译，而翻译中的一个错误，会让源代码本来正确的程序出错。证明也会因此落空：关于一个 C 函数的证明谈论的是 C 代码，而计算机运行的却是编译器生成的东西，不管那是什么。练习 1.6 列出了一个经过验证的程序仍然必须信任的东西，编译器就在其中。经过验证的编译器能把它从这份清单上划掉，或者说几乎划掉（第 14.7 节会说明还剩下什么）：它的正确性定理（correctness theorem）说的是：对每一个源程序，编译器生成的代码所做的事，都正是这个源程序的含义所规定的。
 
-The idea is almost as old as compilers. In 1967 John McCarthy and James Painter proved on paper that a
-compiler for arithmetic expressions is correct, the first proof of its kind. In 1972 Robin Milner and
-Richard Weyhrauch checked such a proof by machine, for a compiler from arithmetic expressions to code
-for a stack machine, in Stanford LCF, the forerunner of the LCF system of Module 1. Today CompCert
-compiles a large subset of C, and CakeML, verified in the prover HOL4,
-compiles a dialect of ML. Their proofs run to many thousands of lines, but the central argument is the
-one you will write in this module, for the language McCarthy and Painter started with.
+这个想法几乎和编译器一样古老。1967 年，约翰·麦卡锡（John McCarthy）和詹姆斯·佩因特（James Painter）在纸上证明了一个算术表达式编译器是正确的，这是此类证明中的第一个。1972 年，罗宾·米尔纳（Robin Milner）和理查德·韦劳赫（Richard Weyhrauch）在斯坦福 LCF 中用机器检查了这样一个证明，针对的是一个把算术表达式编译成栈机代码的编译器；斯坦福 LCF 是模块 1 中那个 LCF 系统的前身。如今，CompCert 能编译 C 语言的一个很大的子集，而在证明器 HOL4 中验证的 CakeML 能编译 ML 的一种方言。它们的证明长达成千上万行，但其中的核心论证，正是你将在本模块中写出的那一个，所用的语言也正是麦卡锡和佩因特当年起步时的那个语言。
 
-You will build every piece yourself:
+每一部分都由你亲手构造：
 
-1. a source language of arithmetic expressions, and its meaning (Section 14.2);
-2. a target machine that computes with a stack (Section 14.3);
-3. the compiler, and tests that compare source and target (Section 14.4);
-4. the proof that the compiler is correct (Section 14.5);
-5. an optimisation with its own proof, and the verified code exported to Haskell (Sections 14.6
-   and 14.7);
-6. extensions: subtraction, conditionals and jumps (Section 14.8).
+1. 一种由算术表达式组成的源语言，以及它的含义（第 14.2 节）；
+2. 一台用栈来计算的目标机器（第 14.3 节）；
+3. 编译器，以及比较源语言与目标机器的测试（第 14.4 节）；
+4. 编译器正确性的证明（第 14.5 节）；
+5. 一项带有自己的证明的优化，以及导出为 Haskell 的经过验证的代码（第 14.6 节和第 14.7 节）；
+6. 扩展：减法、条件表达式和跳转（第 14.8 节）。
 
-What does "correct" mean for a compiler? Figure 14.1 shows the answer that this module proves. From an
-expression there are two ways to a result. You can evaluate the expression directly, using the meaning
-of the source language. Or you can compile it and run the code on the machine. The compiler is correct
-if the two ways always agree.
+对编译器来说，“正确”是什么意思？图 14.1 给出了本模块要证明的答案。从一个表达式出发，有两条路可以得到结果。你可以利用源语言的含义，直接对表达式求值（evaluate）；也可以先编译它，再在机器上运行得到的代码。如果这两条路的结果总是一致，编译器就是正确的。
 
 ::: figure id=fig-14-1
-Evaluating an expression and running its compiled code must agree. The theorem `compile_correct` of
-Section 14.5 says that they do, for every expression, every state of the variables and every stack.
+对一个表达式求值和运行它编译出的代码，结果必须一致。第 14.5 节的定理 `compile_correct` 说明它们确实一致：对每个表达式、变量的每个状态和每个栈都是如此。
 :::
 
-The machine is a **stack machine**: it keeps intermediate results on a stack, and its instructions take
-their operands from the top of the stack and put their results back there. This is a realistic design.
-The Java Virtual Machine, WebAssembly and the interpreter of Python all run instructions for stack
-machines of this kind, and their compilers produce such code.
+这台机器是一台**栈机**（stack machine）：它把中间结果放在一个栈上，它的指令（instruction）从栈顶取出操作数，再把结果放回栈顶。这是一种很实际的设计。Java 虚拟机、WebAssembly 和 Python 的解释器运行的都是这类栈机的指令，它们的编译器生成的也正是这样的代码。
 
 ::: keyidea
-A compiler translates, and a correct translation preserves meaning. To prove that it does, you need the
-meaning of both languages as mathematical functions: an evaluation function for the source and an
-execution function for the target. "Preserves meaning" then becomes an equation between the two, which
-you can test on examples and prove by induction.
+编译器做的是翻译，而正确的翻译保持含义。要证明它保持了含义，你需要把两种语言的含义都写成数学函数：源语言的求值函数和目标机器的执行函数。这样，“保持含义”就变成了这两者之间的一个等式，你可以在例子上测试它，也可以用归纳法证明它。
 :::
 
-## Expressions and their meaning {#source}
+## 表达式及其含义 {#source}
 
-### Names, states and expressions {#syntax}
+### 名字、状态和表达式 {#syntax}
 
-Programs are written as text, but a compiler works on their structure. The text `x + (2 + y)` is an
-addition whose left operand is the variable x and whose right operand is another addition, of the number
-2 and the variable y. The program that turns text into structure is the **parser**. Parsing is a subject
-of its own, and this module, like most compiler proofs, starts after it.
+程序是以文本形式写成的，但编译器处理的是程序的结构。文本 `x + (2 + y)` 是一个加法，它的左操作数是变量 x，右操作数是另一个加法，即数 2 与变量 y 相加。把文本变成结构的程序叫做**语法分析器**（parser）。语法分析本身是一门独立的学问；本模块和大多数编译器证明一样，从语法分析之后讲起。
 
-::: definition Abstract syntax
-The **abstract syntax** of a language describes its programs as trees: each node is an operation and its
-children are the operands. Parentheses and spaces belong to the text, the **concrete syntax**, and do not
-appear in the tree. In Isabelle, abstract syntax is a datatype.
+::: definition 抽象语法
+一种语言的**抽象语法**（abstract syntax）把它的程序描述成树：每个结点（node）是一个运算，它的子结点是运算的操作数。括号和空格属于文本，即**具体语法**（concrete syntax），它们不出现在树中。在 Isabelle 中，抽象语法就是一个数据类型（datatype）。
 :::
 
-Expressions contain variables, so you need names for variables and a way to give them values. Names are
-strings. As in Module 4, a string is written between two pairs of single quotes, as in `''x''`, because
-the double quote already marks the end of a term. Values are integers (`int`, Module 8), so that
-subtraction makes sense when Section 14.8 adds it. The values of all variables at one moment form a
-**state**: a function from names to values.
+表达式中含有变量，所以你需要变量的名字，以及给变量赋值的办法。名字是字符串。和模块 4 中一样，字符串写在两对单引号之间，例如 `''x''`，因为双引号已经用来标记项（term）的结束了。值是整数（`int`，模块 8），这样等第 14.8 节加入减法时，减法才有意义。某一时刻所有变量的值合在一起，构成一个**状态**（state）：一个从名字到值的函数。
 
 ```isabelle
 type_synonym vname = string
 type_synonym state = "vname ⇒ int"
 ```
 
-`type_synonym` introduces a new name for an existing type. `vname` is another name for `string`, which is
-itself `char list`, a list of characters, and `state` is another name for `vname ⇒ int`. Nothing new is
-created: Isabelle's output often shows the full types instead of the short names.
+`type_synonym` 给一个已有的类型起一个新名字。`vname` 是 `string` 的另一个名字，而 `string` 本身就是 `char list`，即字符的列表；`state` 是 `vname ⇒ int` 的另一个名字。这里并没有创造出任何新东西：Isabelle 的输出常常显示完整的类型，而不是这些简短的名字。
 
-An expression is a number, a variable, or the sum of two expressions:
+一个表达式要么是一个数，要么是一个变量，要么是两个表达式之和：
 
 ```isabelle
 datatype expr = Num int | Var vname | Add expr expr
 ```
 
-The datatype is recursive, like the trees of Module 5, and its values are exactly the trees described
-above: `Add` makes a node with two children, and `Num` and `Var` make leaves. The text `x + (2 + y)`
-becomes the tree `Add (Var ''x'') (Add (Num 2) (Var ''y''))`. It will serve as the running example, so
-give it a name:
+这个数据类型是递归的，就像模块 5 中的树一样，它的值正是上面所描述的那些树：`Add` 构造一个有两个子结点的结点，`Num` 和 `Var` 构造叶结点。文本 `x + (2 + y)` 变成了树 `Add (Var ''x'') (Add (Num 2) (Var ''y''))`。本模块会一直用它作例子，所以给它起个名字：
 
 ```isabelle
 definition sample :: expr where
   "sample = Add (Var ''x'') (Add (Num 2) (Var ''y''))"
 ```
 
-### Evaluation {#eval}
+### 求值 {#eval}
 
-The meaning of an expression is its value, and its value depends on the state. A recursive function says
-what each kind of node means:
+表达式的含义就是它的值，而它的值取决于状态。下面这个递归函数说明每一种结点的含义：
 
 ```isabelle
 fun eval :: "expr ⇒ state ⇒ int" where
@@ -130,23 +91,13 @@ consts
 Found termination order: "(λp. size (fst p)) <*mlex*> {}"
 ```
 
-Read the equations aloud: a number means itself; a variable means its value in the state s; a sum means
-the sum of the meanings of its parts. On the left, `Add` is a piece of syntax; on the right, `+` is the
-addition of integers. `eval` connects the two. Isabelle shows the type of `eval` with the synonyms
-unfolded, `state` as `char list ⇒ int`, and reports that `eval` terminates because each recursive call
-is on a smaller expression, the first of its two arguments (Module 8).
+把这些等式读出来：一个数的含义就是它自己；一个变量的含义是它在状态 s 中的值；一个和的含义是它的各部分的含义之和。左边的 `Add` 是一段语法；右边的 `+` 是整数的加法。`eval` 把两者联系了起来。Isabelle 显示 `eval` 的类型时，把类型同义词展开了，`state` 显示成了 `char list ⇒ int`；它还报告 `eval` 会终止，因为每次递归调用都作用在一个更小的表达式上，也就是它的两个参数中的第一个（模块 8）。
 
-::: definition Semantics
-The **semantics** of a language gives each of its programs a precise mathematical meaning, the second
-ingredient of a formal method in Module 1. Here the meaning of an expression e in a state s is the
-integer `eval e s`. The definition is **compositional**: the meaning of a node is computed from the
-meanings of its children.
+::: definition 语义
+一种语言的**语义**（semantics）给它的每个程序一个精确的数学含义，这是模块 1 所说的形式化方法（formal method）的第二个要素。在这里，表达式 e 在状态 s 中的含义就是整数 `eval e s`。这个定义是**组合式的**（compositional）：一个结点的含义由它的子结点的含义计算出来。
 :::
 
-To try `eval`, you need a state. Isabelle writes `f(a := v)` for the function that maps a to v and every
-other argument b to `f b`; you met this notation in Nitpick's counterexamples in Module 3. Start from
-`λ_. 0`, the function that maps every name to 0 (the underscore is a variable whose name does not
-matter), and update it twice:
+要试用 `eval`，你需要一个状态。Isabelle 用 `f(a := v)` 表示这样一个函数：它把 a 映射到 v，而把其他每个参数 b 映射到 `f b`；你在模块 3 中 Nitpick 给出的反例里见过这种记号。从 `λ_. 0` 出发，它是把每个名字都映射到 0 的函数（下划线是一个名字无关紧要的变量），然后对它更新两次：
 
 ```isabelle
 definition s0 :: state where
@@ -160,8 +111,7 @@ value "(s0 ''x'', s0 ''y'', s0 ''z'')"
   :: "int × int × int"
 ```
 
-In the state `s0` the variable x has the value 5, y has 7 and every other variable has 0. Now evaluate
-the running example:
+在状态 `s0` 中，变量 x 的值是 5，y 的值是 7，其他每个变量的值都是 0。现在对这个例子求值：
 
 ```isabelle
 value "eval sample s0"
@@ -172,9 +122,8 @@ value "eval sample s0"
   :: "int"
 ```
 
-::: example Evaluating by hand
-The equations of `eval` produce the same result step by step. Unfold `sample` and work from the outside
-in:
+::: example 手工求值
+`eval` 的等式一步一步地得出同样的结果。展开 `sample`，从外向内计算：
 
 $$
 \begin{aligned}
@@ -186,14 +135,13 @@ $$
 $$
 :::
 
-## A stack machine {#machine}
+## 一台栈机 {#machine}
 
-The target machine knows nothing about expressions. It has a stack of integers, reads variables from the
-state, as the expressions do, and understands three instructions:
+目标机器对表达式一无所知。它有一个整数栈，像表达式一样从状态中读取变量，并且懂得三条指令：
 
-- `PUSH n` puts the number n on top of the stack;
-- `LOAD x` puts the value of the variable x on top of the stack;
-- `ADD` takes the two numbers on top of the stack off and puts their sum on.
+- `PUSH n` 把数 n 放到栈顶；
+- `LOAD x` 把变量 x 的值放到栈顶；
+- `ADD` 从栈顶取下两个数，再把它们的和放上去。
 
 ```isabelle
 datatype instr = PUSH int | LOAD vname | ADD
@@ -201,16 +149,13 @@ datatype instr = PUSH int | LOAD vname | ADD
 type_synonym stack = "int list"
 ```
 
-A stack is a list whose head is the top: in `[2, 5]` the 2 lies on top of the 5. Putting a value on the
-stack is `#`, and taking values off is pattern matching on `#`.
+栈是一个列表，它的头部（head）就是栈顶：在 `[2, 5]` 中，2 位于 5 的上面。把一个值放到栈上用 `#`，从栈上取下值则用对 `#` 的模式匹配（pattern matching）。
 
-::: definition Stack machine
-A **stack machine** computes with a **stack**, a list of values that is used only at one end, its
-**top**. Each instruction takes its operands from the top of the stack and leaves its result there. A
-**program** for the machine is a list of instructions, executed from left to right.
+::: definition 栈机
+**栈机**用一个**栈**（stack）进行计算。栈是一个值的列表，只在它的一端使用，这一端叫做**栈顶**（top）。每条指令都从栈顶取出它的操作数，并把结果留在栈顶。这台机器的**程序**（program）是一个指令列表，从左到右执行。
 :::
 
-The function `exec1` executes one instruction:
+函数 `exec1` 执行一条指令：
 
 ```isabelle
 fun exec1 :: "instr ⇒ state ⇒ stack ⇒ stack" where
@@ -220,17 +165,9 @@ fun exec1 :: "instr ⇒ state ⇒ stack ⇒ stack" where
 | "exec1 ADD s stk = stk"
 ```
 
-The third equation does the work of `ADD`: j is the top of the stack and i the number below it, and the
-sum i + j replaces both. The order of i and j looks irrelevant now, but it will matter when you add
-subtraction in Section 14.8. The fourth equation is there because every HOL function is total (Module
-8): `exec1` must return a stack even when `ADD` finds fewer than two numbers. A real machine would stop
-with an error, a **stack underflow**; this one leaves the stack as it is. The choice does not affect the
-compiler, whose code never meets this case. Exercise 14.7 builds a machine that stops instead, and
-proves that.
+第三个等式完成 `ADD` 的工作：j 是栈顶，i 是它下面的数，它们的和 i + j 取代了这两个数。i 和 j 的顺序现在看起来无关紧要，但在第 14.8 节加入减法时就要紧了。之所以需要第四个等式，是因为模块 8 讲过，每个 HOL 函数都是全函数（total function）：即使 `ADD` 发现栈上的数不到两个，`exec1` 也必须返回一个栈。真实的机器这时会报错并停止，这种错误叫做**栈下溢**（stack underflow）；这台机器则让栈保持原样。这个选择不影响编译器，因为编译器生成的代码从不会遇到这种情况。练习 14.7 构造了一台遇到这种情况就停下来的机器，并证明了这一点。
 
-The third and fourth equations overlap: a stack with two or more numbers matches both. `fun` resolves the
-overlap in order, the earlier equation first (Module 8). `thm exec1.simps` shows the equations that
-`fun` has derived from the definition, the ones `simp` uses:
+第三个和第四个等式有重叠：一个有两个或更多个数的栈与两者都匹配。`fun` 按顺序处理这种重叠，排在前面的等式优先（模块 8）。`thm exec1.simps` 显示 `fun` 从定义中推导出的等式，也就是 `simp` 所使用的那些等式：
 
 ```isabelle
 thm exec1.simps
@@ -244,10 +181,9 @@ thm exec1.simps
   exec1 ADD ?s [?v] = [?v]
 ```
 
-The fourth equation has become two, for the empty stack and for a stack with one number: exactly the
-stacks that the third equation does not cover.
+第四个等式变成了两个，一个针对空栈，一个针对只有一个数的栈：恰好就是第三个等式没有覆盖的那些栈。
 
-A program runs one instruction after the other, each on the stack that the previous one left:
+程序一条接一条地执行指令，每条指令都作用在前一条指令留下的栈上：
 
 ```isabelle
 fun exec :: "instr list ⇒ state ⇒ stack ⇒ stack" where
@@ -255,8 +191,7 @@ fun exec :: "instr list ⇒ state ⇒ stack ⇒ stack" where
 | "exec (i # c) s stk = exec c s (exec1 i s stk)"
 ```
 
-The letter c stands for code, a list of instructions. Now run the machine, first one instruction, then a
-whole program:
+字母 c 代表代码（code），即一个指令列表。现在运行这台机器，先运行一条指令，再运行一整个程序：
 
 ```isabelle
 value "exec1 ADD s0 [7, 5]"
@@ -276,15 +211,13 @@ value "exec [LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD] s0 []"
   :: "int list"
 ```
 
-Figure 14.2 shows the stack after each instruction of this program. The stack grows to three numbers
-when `LOAD ''y''` has run, and each `ADD` makes it one shorter.
+图 14.2 显示了这个程序的每条指令执行之后的栈。`LOAD ''y''` 执行之后，栈增长到三个数，而每条 `ADD` 都让它少一个数。
 
 ::: figure id=fig-14-2
-The program `LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD` run in the state `s0` on the empty stack. Each
-`ADD` replaces the two numbers on top by their sum.
+程序 `LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD` 在状态 `s0` 中从空栈开始运行。每条 `ADD` 都把栈顶的两个数换成它们的和。
 :::
 
-What was on the stack before a program started stays where it is, below the new values:
+程序开始之前已经在栈上的东西会留在原处，位于新的值下面：
 
 ```isabelle
 value "exec [LOAD ''x'', PUSH 2] s0 [100]"
@@ -295,15 +228,13 @@ value "exec [LOAD ''x'', PUSH 2] s0 [100]"
   :: "int list"
 ```
 
-This property, code that leaves the rest of the stack alone, is what will make the compiler work.
+这个性质，即代码不去动栈的其余部分，正是编译器得以正确工作的关键。
 
-## The compiler {#compiler}
+## 编译器 {#compiler}
 
-### Compiling expressions {#compiling}
+### 编译表达式 {#compiling}
 
-How does the machine compute `Add a b`? It runs code that leaves the value of a on the stack, then code
-that leaves the value of b on top of it, and then `ADD`. Numbers and variables need one instruction
-each. That is the whole compiler:
+机器怎样计算 `Add a b`？它先运行一段把 a 的值留在栈上的代码，再运行一段把 b 的值留在 a 的值上面的代码，然后执行 `ADD`。数和变量各需要一条指令。这就是整个编译器：
 
 ```isabelle
 fun compile :: "expr ⇒ instr list" where
@@ -312,8 +243,7 @@ fun compile :: "expr ⇒ instr list" where
 | "compile (Add a b) = compile a @ compile b @ [ADD]"
 ```
 
-`@` appends lists (Module 1). Like `eval`, the compiler has one equation for each kind of node, and the
-code for a node is built from the code of its children. Compile the running example:
+`@` 把列表连接起来（模块 1）。和 `eval` 一样，编译器对每种结点各有一个等式，而一个结点的代码由它的子结点的代码构造而成。编译这个例子：
 
 ```isabelle
 value "compile sample"
@@ -324,16 +254,13 @@ value "compile sample"
   :: "instr list"
 ```
 
-This is the program of Figure 14.2. The operands come before their operator: first x, then 2 and y, then
-the inner `ADD`, then the outer one. This order is called **postfix** or **reverse Polish** notation.
+这正是图 14.2 中的程序。操作数排在它们的运算符前面：先是 x，然后是 2 和 y，然后是内层的 `ADD`，最后是外层的 `ADD`。这种顺序称为**后缀表示法**（postfix notation），也叫**逆波兰表示法**（reverse Polish notation）。
 
 ::: analogy
-Some pocket calculators work in reverse Polish notation. To compute 2 + 3 you key in 2, Enter, 3 and
-then +. The calculator keeps the numbers on a stack until the + combines them, exactly as `ADD` does. The
-compiler translates the notation you learned at school into the keystrokes for such a calculator.
+有些袖珍计算器使用逆波兰表示法。要计算 2 + 3，你依次按下 2、Enter、3，最后按 +。计算器把数保存在一个栈上，直到 + 把它们合在一起，这和 `ADD` 的做法完全一样。编译器把你在学校里学的写法，翻译成这种计算器上的按键顺序。
 :::
 
-Now compare evaluation and execution on the example, with 100 already on the stack:
+现在在这个例子上比较求值和执行的结果，这次栈上已经有了 100：
 
 ```isabelle
 value "(exec (compile sample) s0 [100], eval sample s0 # [100])"
@@ -344,11 +271,10 @@ value "(exec (compile sample) s0 [100], eval sample s0 # [100])"
   :: "int list × int list"
 ```
 
-Both give 14 on top of the 100.
+两者都在 100 的上面得到 14。
 
 ::: pitfall
-Why is the compiler called `compile` and not the shorter `comp`? Because `comp` is taken. It is function
-composition, written ∘:
+为什么编译器叫 `compile`，而不叫更短的 `comp`？因为 `comp` 已经被占用了。它是函数复合（composition），写作 ∘：
 
 ```isabelle
 term comp
@@ -359,43 +285,32 @@ term comp
   :: "('a ⇒ 'b) ⇒ ('c ⇒ 'a) ⇒ 'c ⇒ 'b"
 ```
 
-Isabelle would accept a function of your own called `comp`, and the name would then refer to yours. But
-the short name would have two meanings, so from then on Isabelle prints yours with the name of your
-theory in front, as in `T.comp (Num 1)` for a theory `T`, in every goal and message. Before you name a
-function, ask Isabelle whether the name is free. `term` prints the type of a constant that exists; a name
-that is not a constant is printed with type `'a`, because Isabelle reads it as a free variable (Module
-8). `find_consts` (Module 9) searches by type, and with the criterion `name:` also by name.
+Isabelle 会接受你自己定义的、名叫 `comp` 的函数，此后这个名字就指你的函数。但这样一来，这个短名字就有了两个含义，所以从此以后，Isabelle 在每个目标和每条消息中打印你的函数时，都会在前面加上你的理论的名字，例如在理论 `T` 中打印成 `T.comp (Num 1)`。给函数起名字之前，先问问 Isabelle 这个名字有没有被占用。对已经存在的常量，`term` 会打印出它的类型；不是常量的名字则被打印成类型 `'a`，因为 Isabelle 把它看作一个自由变元（free variable，见模块 8）。`find_consts`（模块 9）按类型搜索；加上条件 `name:` 也可以按名字搜索。
 :::
 
-### What correct means {#correct}
+### “正确”是什么意思 {#correct}
 
-On the example, the two ways agree. "Correct" means that they agree always:
+在这个例子上，两条路的结果一致。“正确”的意思是它们总是一致：
 
-::: definition Compiler correctness
-The compiler is **correct** if for every expression e, every state s and every stack stk,
+::: definition 编译器正确性
+编译器是**正确的**（correct），是指对每个表达式 e、每个状态 s 和每个栈 stk，都有
 
 $$
 \mathit{exec}\ (\mathit{compile}\ e)\ s\ \mathit{stk} = \mathit{eval}\ e\ s\ \#\ \mathit{stk}
 $$
 
-In words: running the code of e on any stack puts the value of e on top of that stack and changes nothing
-below it.
+用文字来说：在任意一个栈上运行 e 的代码，都会把 e 的值放到这个栈的顶上，而不改变它下面的任何东西。
 :::
 
-Three things about this statement are worth noticing.
+关于这个陈述，有三点值得注意。
 
-- It is a **specification** in the sense of Module 12: `eval` says what the value must be, and
-  `compile` with `exec` is the implementation.
-- It speaks about every stack, although a user starts with the empty one. The compiler combines code:
-  the code of b in `Add a b` runs on a stack that already holds the value of a. Section 14.5 shows that
-  the proof needs the general form.
-- It describes the whole stack. A weaker claim, "the top of the stack is the value of e", would allow
-  code that destroys what lies below, and such code would break the code around it.
+- 它是模块 12 意义上的一个**规约**（specification）：`eval` 说明值必须是什么，而 `compile` 加上 `exec` 是实现（implementation）。
+- 它谈论的是每一个栈，尽管用户是从空栈开始的。编译器会把代码组合起来：`Add a b` 中 b 的代码运行在一个已经存放着 a 的值的栈上。第 14.5 节会说明，证明需要这种一般的形式。
+- 它描述的是整个栈。一个更弱的断言，比如“栈顶是 e 的值”，会允许代码破坏它下面的东西，而这样的代码会破坏它周围的代码。
 
-### Test before you prove {#testing}
+### 先测试，再证明 {#testing}
 
-A proof takes effort; a test takes seconds. Module 9 advised testing every claim before trying to prove
-it, so start with Quickcheck:
+证明要花力气，测试只需几秒钟。模块 9 建议，在尝试证明一个断言之前先测试它，所以从 Quickcheck 开始：
 
 ```isabelle
 lemma "exec (compile e) s stk = eval e s # stk"
@@ -409,13 +324,9 @@ Testing conjecture with Quickcheck-exhaustive...
 Quickcheck found no counterexample.
 ```
 
-Quickcheck tried every expression, state and stack up to size 3 and found nothing wrong. The option
-`size = 3` limits the search to small values. Without it, Quickcheck searches up to its default size, and
-on this claim it stops with "Quickcheck ran out of time" when its time limit is reached: the state is a
-function from strings to integers, and there are very many small functions of that kind. On a false
-claim the plain command is fast, because Quickcheck stops at the first counterexample it finds.
+Quickcheck 尝试了大小不超过 3 的每个表达式、状态和栈，没有发现任何问题。选项 `size = 3` 把搜索限制在较小的值上。没有这个选项时，Quickcheck 会一直搜索到它的默认大小，而对这个断言，它会在达到时间限制时停下来，报告“Quickcheck ran out of time”（Quickcheck 超时了）：状态是一个从字符串到整数的函数，而这样的小函数非常多。对于错误的断言，不带选项的命令会很快，因为 Quickcheck 找到第一个反例（counterexample）就会停下来。
 
-Quickcheck is at its best on claims that are wrong. Here is a correctness claim that forgets the stack:
+Quickcheck 最擅长对付错误的断言。下面是一个忘记了栈的正确性断言：
 
 ```isabelle
 lemma "exec (compile e) s stk = [eval e s]"
@@ -435,13 +346,9 @@ Evaluated terms:
   [eval e s] = [- 1]
 ```
 
-Read the counterexample. The expression is the number −1 (Isabelle prints negative numbers with a
-space, Module 8), the state maps every name to −2, which does not matter here, and the stack already
-holds −1. The code pushes −1 on top, so the result has two numbers where the claim expects one. The
-claim, not the compiler, is wrong.
+读一读这个反例。表达式是数 −1（Isabelle 打印负数时会带一个空格，见模块 8），状态把每个名字都映射到 −2，这在这里无关紧要，而栈上已经有一个 −1。代码把 −1 压到栈顶，所以结果中有两个数，而断言期望的只有一个。错的是断言，而不是编译器。
 
-Now a compiler with a bug. Writing each operator between its operands, in the order of the text
-`x + y`, is a natural first attempt:
+现在来看一个有错误的编译器。按照文本 `x + y` 的顺序，把每个运算符写在它的两个操作数之间，是很自然的第一次尝试：
 
 ```isabelle
 fun compile_bad :: "expr ⇒ instr list" where
@@ -457,9 +364,7 @@ value "(compile_bad sample, exec (compile_bad sample) s0 [])"
   :: "instr list × int list"
 ```
 
-The first `ADD` finds a single number and changes nothing, the second adds 2 to 5, and the value of y
-ends up on the stack next to the 7. On a single example you might wonder whether you set it up wrongly.
-Quickcheck removes the doubt:
+第一条 `ADD` 只找到一个数，什么也没有改变；第二条把 2 加到 5 上；而 y 的值最后落在栈上，挨着那个 7。只看一个例子，你可能会怀疑是不是自己哪里弄错了。Quickcheck 消除了这个疑虑：
 
 ```isabelle
 lemma "exec (compile_bad e) s stk = eval e s # stk"
@@ -479,54 +384,41 @@ Evaluated terms:
   eval e s # stk = [0]
 ```
 
-The smallest counterexample is 0 + 0. The numbers do not matter: the order of the instructions is wrong,
-and Quickcheck, which tries small values first, finds the smallest expression that contains an `ADD`.
+最小的反例是 0 + 0。数的大小无关紧要：错的是指令的顺序，而 Quickcheck 先尝试小的值，所以它找到的是代码中含有 `ADD` 的最小表达式。
 
 ::: keyidea
-Test before you prove. `value` checks one example; Quickcheck checks thousands of small ones and reports
-the first failure it finds, which is usually the simplest. Neither proves anything, but both are fast,
-and a counterexample shows you exactly what is wrong. A proof attempt on a false claim only fails, and
-the goal it leaves does not tell you whether the claim or the proof is at fault.
+先测试，再证明。`value` 检查一个例子；Quickcheck 检查成千上万个小例子，并报告它找到的第一个失败的例子，而这通常就是最简单的那个。两者都证明不了任何东西，但都很快，而且一个反例能让你准确地看到错在哪里。对一个错误的断言尝试证明，只会失败，而失败后留下的目标并不能告诉你，错的是断言还是证明。
 :::
 
-## The correctness proof {#proof}
+## 正确性证明 {#proof}
 
-### On paper {#paper}
+### 纸上的证明 {#paper}
 
-**Claim.** For every expression e, state s and stack stk, `exec (compile e) s stk = eval e s # stk`.
+**断言**：对每个表达式 e、状态 s 和栈 stk，`exec (compile e) s stk = eval e s # stk`。
 
-**Proof** by structural induction on e (Module 5), with one case for each constructor.
+**证明**：对 e 用结构归纳法（structural induction，见模块 5），每个构造子（constructor）对应一种情形。
 
-- *Case* `Num n`. The code is `[PUSH n]`, which puts n on the stack, and `eval (Num n) s = n`.
-- *Case* `Var x`. The code is `[LOAD x]`, which puts `s x` on the stack, and `eval (Var x) s = s x`.
-- *Case* `Add a b`, where the claim holds for a and for b (the induction hypotheses). The code is
-  `compile a @ compile b @ [ADD]`. Run it in three stages (Figure 14.3):
-  1. `compile a` runs on stk. By the hypothesis for a, it leaves `eval a s # stk`.
-  2. `compile b` runs on `eval a s # stk`. By the hypothesis for b, applied to *this* stack, it leaves
-     `eval b s # eval a s # stk`.
-  3. `ADD` replaces the two numbers on top by their sum, which gives
-     `(eval a s + eval b s) # stk`, and that is `eval (Add a b) s # stk`. ∎
+- **情形** `Num n`：代码是 `[PUSH n]`，它把 n 放到栈上，而 `eval (Num n) s = n`。
+- **情形** `Var x`：代码是 `[LOAD x]`，它把 `s x` 放到栈上，而 `eval (Var x) s = s x`。
+- **情形** `Add a b`，其中断言对 a 和 b 都成立，这就是两个归纳假设（induction hypothesis）。代码是 `compile a @ compile b @ [ADD]`。分三个阶段运行它（图 14.3）：
+  1. `compile a` 在 stk 上运行。由 a 的归纳假设，它留下 `eval a s # stk`。
+  2. `compile b` 在 `eval a s # stk` 上运行。把 b 的归纳假设用于**这个**栈，它留下 `eval b s # eval a s # stk`。
+  3. `ADD` 把栈顶的两个数换成它们的和，得到 `(eval a s + eval b s) # stk`，而这就是 `eval (Add a b) s # stk`。∎
 
 ::: figure id=fig-14-3
-The case `Add a b` of the proof. The hypothesis for a is used with the stack of the claim, the
-hypothesis for b with a different one.
+证明中的情形 `Add a b`。a 的归纳假设用于断言中的那个栈，b 的归纳假设则用于另一个栈。
 :::
 
-Two steps of this argument use more than the equations of the functions.
+这个论证中有两步用到的不只是函数的等式。
 
-- *"Run it in three stages."* That running `c1 @ c2` means running c1 and then running c2 on the stack
-  c1 leaves is a property of `exec`. It is true, but it needs its own proof: an **auxiliary lemma**
-  (Module 11).
-- *"Applied to this stack."* Stage 2 uses the hypothesis for b with the stack `eval a s # stk`, not with
-  stk. That is allowed only if the claim, and with it the induction hypothesis, speaks about every stack.
-  The induction must be **generalised** over the stack (Module 11).
+- **“分三个阶段运行它。”**运行 `c1 @ c2` 等于先运行 c1、再在 c1 留下的栈上运行 c2，这是 `exec` 的一个性质。它是对的，但需要单独证明：它是一条**辅助引理**（auxiliary lemma，见模块 11）。
+- **“用于这个栈。”**第 2 阶段把 b 的归纳假设用于栈 `eval a s # stk`，而不是 stk。只有当断言，以及随之而来的归纳假设，谈论的是每一个栈时，这样做才是允许的。归纳必须对栈进行**推广**（generalise，见模块 11）。
 
-The next two sections let Isabelle discover both points from its proof states.
+接下来的两节让 Isabelle 从它的证明状态（proof state）中找出这两点。
 
-### The lemma about appended code {#append}
+### 关于连接代码的引理 {#append}
 
-The claim a user of the compiler cares about starts with the empty stack and expects one number at the
-end. Try to prove it with the usual induction:
+编译器的用户所关心的断言，从空栈开始，并期望最后得到一个数。试着用通常的归纳来证明它：
 
 ```isabelle
 lemma "exec (compile e) s [] = [eval e s]"
@@ -544,18 +436,13 @@ goal (1 subgoal):
           [eval e1 s + eval e2 s]
 ```
 
-`auto` has proved the cases `Num` and `Var` and unfolded `compile` in the case `Add`; Isabelle calls the
-two subexpressions e1 and e2, after the type `expr`. Then it stopped. Module 11's recipe starts with the
-subterm that the simplifier cannot rewrite: `exec (compile e1 @ compile e2 @ [ADD]) s []`. The equations
-of `exec` are about `[]` and about `i # c`, and this argument is an append. Abandon the attempt:
+`auto` 证明了情形 `Num` 和 `Var`，并在情形 `Add` 中展开了 `compile`；Isabelle 根据类型名 `expr`，把两个子表达式叫做 e1 和 e2。然后它就停下了。按照模块 11 的做法，先找出化简器（simplifier）无法重写的子项：`exec (compile e1 @ compile e2 @ [ADD]) s []`。`exec` 的等式讲的是 `[]` 和 `i # c`，而这里的参数是用 `@` 连接起来的。放弃这次尝试：
 
 ```isabelle
   oops
 ```
 
-Next, replace the parts that are specific to this proof by variables: the question is what
-`exec (c1 @ c2) s stk` is, for any code c1 and c2. The paper proof gives the answer, run c1 first and c2
-afterwards, and an example agrees:
+接下来，把这个证明中特有的部分换成变量：问题就变成了，对任意的代码 c1 和 c2，`exec (c1 @ c2) s stk` 是什么。纸上的证明给出了答案：先运行 c1，再运行 c2。一个例子也与之相符：
 
 ```isabelle
 value "(exec ([LOAD ''x'', PUSH 2] @ [ADD]) s0 [1],
@@ -567,7 +454,7 @@ value "(exec ([LOAD ''x'', PUSH 2] @ [ADD]) s0 [1],
   :: "int list × int list"
 ```
 
-Test the conjecture:
+测试这个猜想：
 
 ```isabelle
 lemma "exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)"
@@ -581,8 +468,7 @@ Testing conjecture with Quickcheck-exhaustive...
 Quickcheck found no counterexample.
 ```
 
-Prove it by induction on c1. The recursive call of `exec` receives a new stack, `exec1 i s stk`, so the
-stack must be arbitrary, as Module 11's tip says for every argument that changes in a recursive call:
+对 c1 做归纳来证明它。`exec` 的递归调用接收的是一个新的栈 `exec1 i s stk`，所以栈必须是任意的；模块 11 的提示说过，凡是在递归调用中会改变的参数都应当如此：
 
 ```isabelle
 lemma exec_append [simp]: "exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)"
@@ -598,21 +484,18 @@ goal (2 subgoals):
        exec ((a # c1) @ c2) s stk = exec c2 s (exec (a # c1) s stk)
 ```
 
-In subgoal 2, the hypothesis holds for every stack (⋀stk). The simplifier rewrites `(a # c1) @ c2` to
-`a # (c1 @ c2)`, executes `a`, and then needs the hypothesis for the stack `exec1 a s stk`, which it may
-now use:
+在子目标 2 中，归纳假设对每个栈都成立（⋀stk）。化简器把 `(a # c1) @ c2` 重写成 `a # (c1 @ c2)`，执行 `a`，然后需要把归纳假设用于栈 `exec1 a s stk`，而现在它可以这样用了：
 
 ```isabelle
   apply auto
   done
 ```
 
-The attribute `[simp]` adds the lemma to the simplifier's rules (Module 9), so that `simp` and `auto`
-split appended code from now on.
+属性 `[simp]` 把这条引理加入化简器的规则（模块 9），这样从现在起，`simp` 和 `auto` 就会把连接起来的代码拆开。
 
-### Generalise over the stack {#generalise}
+### 对栈进行推广 {#generalise}
 
-With `exec_append` available, try the claim about the empty stack again:
+有了 `exec_append`，再试一次关于空栈的断言：
 
 ```isabelle
 lemma "exec (compile e) s [] = [eval e s]"
@@ -630,44 +513,33 @@ goal (1 subgoal):
           [eval e1 s + eval e2 s]
 ```
 
-Progress: the code of e1 has run, by `exec_append` and the hypothesis for e1, and left `[eval e1 s]`.
-Now the code of e2 runs on the stack `[eval e1 s]`, but the hypothesis for e2 speaks only about the empty
-stack. This is the second point of the paper proof. The hypothesis is too weak, and the remedy is to
-change the claim, not to add a lemma.
+有进展了：借助 `exec_append` 和 e1 的归纳假设，e1 的代码已经运行完毕，留下了 `[eval e1 s]`。现在 e2 的代码在栈 `[eval e1 s]` 上运行，但 e2 的归纳假设只谈论空栈。这就是纸上证明中的第二点。归纳假设太弱了，补救的办法是修改断言，而不是增加引理。
 
 ```isabelle
   oops
 ```
 
-Module 11 showed what to do, in two steps:
+模块 11 讲过该怎么做，分两步：
 
-1. Replace the constant by a variable: claim the result for any stack stk. The expected result then
-   becomes `eval e s # stk` instead of `[eval e s]`. This is the statement of Definition 14.4.
-2. Make the variable arbitrary in the induction, so that the hypotheses hold for every stack, including
-   the stack `eval e1 s # stk` on which the code of e2 runs.
+1. 把常量换成变量：对任意的栈 stk 断言这个结果。于是期望的结果变成了 `eval e s # stk`，而不再是 `[eval e s]`。这正是定义 14.4 中的陈述。
+2. 在归纳中让这个变量成为任意的，这样归纳假设就对每个栈都成立，包括 e2 的代码运行时所在的栈 `eval e1 s # stk`。
 
-With both steps the proof goes through:
+两步都做了，证明就能通过：
 
 ```isabelle
 lemma "exec (compile e) s stk = eval e s # stk"
   by (induction e arbitrary: stk) auto
 ```
 
-Step 1 alone is not enough. Without `arbitrary: stk`, stk is fixed for the whole induction, the
-hypothesis for e2 speaks about that one stack, and the code of e2 still runs on another one. The box at
-the end of Section 14.5.4 shows the error you get.
+只做第 1 步是不够的。没有 `arbitrary: stk`，stk 在整个归纳中都是固定的，e2 的归纳假设只谈论那一个栈，而 e2 的代码仍然在另一个栈上运行。第 14.5.4 节末尾的**如果出了问题**框展示了你会遇到的错误。
 
 ::: keyidea
-State the claim in the form that the recursion needs. `compile` places the code of b after the code of
-a, so the code of b runs on a stack that already holds the value of a. A claim about the empty stack
-cannot describe that; a claim about every stack can. The stronger claim is the easier one to prove: it
-is Module 11's inventor's paradox once more.
+按照递归的需要来陈述断言。`compile` 把 b 的代码放在 a 的代码之后，所以 b 的代码运行在一个已经存放着 a 的值的栈上。关于空栈的断言描述不了这种情况，关于每个栈的断言却可以。更强的断言反而更容易证明：这又是模块 11 中的发明者悖论（inventor's paradox）。
 :::
 
-### The proof in Isar {#isar}
+### 用 Isar 写证明 {#isar}
 
-The one-line proof hides the argument. The Isar proof follows the paper proof step by step, and Isabelle
-checks every step. `theorem` means the same as `lemma`; it marks the main results of a theory.
+一行的证明把论证藏了起来。Isar 证明一步一步地跟着纸上的证明走，而 Isabelle 会检查其中的每一步。`theorem` 和 `lemma` 的意思相同；它用来标出一个理论中的主要结果。
 
 ```isabelle
 theorem compile_correct: "exec (compile e) s stk = eval e s # stk"
@@ -685,10 +557,7 @@ goal (3 subgoals):
        ⟹ exec (compile (Add e1 e2)) s stk = eval (Add e1 e2) s # stk
 ```
 
-Read subgoal 3 aloud: "for all e1, e2 and stk: if for every stack the claim holds for e1, and for every
-stack it holds for e2, then it holds for `Add e1 e2` and stk". The ⋀stk inside the hypotheses is the
-effect of `arbitrary: stk`. The cases `Num` and `Var` follow from the definitions; enter the case `Add`
-with names of your own for the subexpressions:
+把子目标 3 读出来：“对所有的 e1、e2 和 stk：如果对每个栈，断言对 e1 成立，并且对每个栈，断言对 e2 成立，那么断言对 `Add e1 e2` 和 stk 成立”。归纳假设里面的 ⋀stk 就是 `arbitrary: stk` 的效果。情形 `Num` 和 `Var` 可以由定义推出；进入情形 `Add` 时，给两个子表达式起你自己的名字：
 
 ```isabelle
   case (Num n)
@@ -713,10 +582,7 @@ goal (1 subgoal):
        ⟹ exec (compile (Add e1 e2)) s stk = eval (Add e1 e2) s # stk
 ```
 
-The induction hypotheses are listed under `this`, with the schematic variable `?stk` (Module 7): they
-may be used with any stack. `Add.IH(1)` is the hypothesis for a, and `Add.IH(2)` the one for b. The
-paper proof uses each of them once, a with the stack stk and b with the stack `eval a s # stk`. State
-the two facts and let `rule` instantiate `?stk`:
+归纳假设列在 `this` 下面，其中出现了图式变量（schematic variable）`?stk`（模块 7）：它们可以用于任何栈。`Add.IH(1)` 是 a 的归纳假设，`Add.IH(2)` 是 b 的归纳假设。纸上的证明各用了它们一次：a 的用于栈 stk，b 的用于栈 `eval a s # stk`。陈述这两个事实，让 `rule` 去实例化 `?stk`：
 
 ```isabelle
   have run_a: "exec (compile a) s stk = eval a s # stk"
@@ -735,7 +601,7 @@ goal (1 subgoal):
     by (rule Add.IH(2))
 ```
 
-Now the calculation of Module 10, in the three stages of Figure 14.3:
+现在写出模块 10 中的计算推理（calculation），按照图 14.3 的三个阶段进行：
 
 ```isabelle
   have "exec (compile (Add a b)) s stk
@@ -751,26 +617,21 @@ Now the calculation of Module 10, in the three stages of Figure 14.3:
 qed
 ```
 
-The first step is the shape of the code: `simp` unfolds `compile` and applies `exec_append` twice, so
-that the code of a runs first, then the code of b, then `ADD`. The second and third steps rewrite with
-`run_a` and `run_b` only (`simp only`, Module 9). The last step executes `ADD` and unfolds `eval`. The
-theorem a user wants, for the empty stack, is now an instance:
+第一步处理的是代码的形状：`simp` 展开 `compile`，并两次应用 `exec_append`，使得 a 的代码先运行，然后是 b 的代码，最后是 `ADD`。第二步和第三步只用 `run_a` 和 `run_b` 来重写（`simp only`，模块 9）。最后一步执行 `ADD` 并展开 `eval`。用户想要的那个关于空栈的定理，现在只是它的一个实例：
 
 ```isabelle
 corollary compile_correct_empty: "exec (compile e) s [] = [eval e s]"
   by (simp add: compile_correct)
 ```
 
-`corollary` is another synonym of `lemma`, for a result that follows directly from a theorem.
+`corollary` 是 `lemma` 的另一个同义词，用于直接由某个定理得出的结果，即推论。
 
-::: fact The compiler is correct
-For every expression e, state s and stack stk, `exec (compile e) s stk = eval e s # stk`. In
-particular, `exec (compile e) s [] = [eval e s]`. (Theorems `compile_correct` and
-`compile_correct_empty`.)
+::: fact 编译器是正确的
+对每个表达式 e、状态 s 和栈 stk，`exec (compile e) s stk = eval e s # stk`。特别地，`exec (compile e) s [] = [eval e s]`。（定理 `compile_correct` 和 `compile_correct_empty`。）
 :::
 
 ::: trouble
-Leave out `arbitrary: stk`, and the step `run_b` fails:
+去掉 `arbitrary: stk`，步骤 `run_b` 就会失败：
 
 ```isabelle fails
 lemma "exec (compile e) s stk = eval e s # stk"
@@ -795,32 +656,22 @@ qed
 ***  1. exec (compile b) s (eval a s # stk) = eval b s # eval a s # stk
 ```
 
-Without `arbitrary`, `Add.IH(2)` says `exec (compile b) s stk = eval b s # stk` for the one stack stk of
-the claim. It does not fit the goal, which is about the stack `eval a s # stk`, so `rule` cannot apply
-it. When `rule` with an induction hypothesis fails like this, look for a variable that should be
-arbitrary (Module 11).
+没有 `arbitrary` 时，`Add.IH(2)` 说的是：对断言中的那一个栈 stk，`exec (compile b) s stk = eval b s # stk`。它与目标对不上，因为目标谈论的是栈 `eval a s # stk`，所以 `rule` 无法应用它。当带着归纳假设的 `rule` 像这样失败时，就去找一个本应是任意的变量（模块 11）。
 :::
 
-## A verified optimisation {#optimise}
+## 一项经过验证的优化 {#optimise}
 
-Real compilers improve the code they produce: they **optimise** it. Every optimisation is a new chance
-for a bug, because the improved code must do exactly what the original did, in every case. A verified
-compiler proves that for each optimisation.
+真实的编译器会改进它们生成的代码，也就是对代码进行**优化**（optimise）。每一项优化都是出错的新机会，因为改进后的代码在每种情况下都必须与原来的代码做完全相同的事。经过验证的编译器会为每一项优化证明这一点。
 
-### Constant folding {#folding}
+### 常量折叠 {#folding}
 
-Part of an expression may not depend on the state at all. In `(2 + 3) + (x + 0)`, the sum 2 + 3 is 5 in
-every state, and adding 0 changes nothing. A compiler can do that work once, at compile time, instead of
-every time the code runs.
+表达式的某一部分可能根本不依赖于状态。在 `(2 + 3) + (x + 0)` 中，和 2 + 3 在每个状态中都是 5，而加上 0 什么也不改变。编译器可以在编译时把这些工作一次做完，而不必在代码每次运行时都做一遍。
 
-::: definition Constant folding
-**Constant folding** replaces the parts of a program whose value does not depend on the state by their
-value, and removes operations that have no effect. An optimisation is **correct**, or
-**semantics-preserving**, if the optimised program has the same meaning as the original in every state.
+::: definition 常量折叠
+**常量折叠**（constant folding）把程序中值不依赖于状态的部分替换成它们的值，并去掉不起作用的运算。如果优化后的程序在每个状态中都与原来的程序含义相同，就说这项优化是**正确的**，或者说是**保持语义的**（semantics-preserving）。
 :::
 
-The work is done one addition at a time, by a function that builds an addition and simplifies it where it
-can:
+这项工作一次处理一个加法，由一个函数来完成：它构造一个加法，并在可能的地方把它化简：
 
 ```isabelle
 fun fold_add :: "expr ⇒ expr ⇒ expr" where
@@ -828,9 +679,7 @@ fun fold_add :: "expr ⇒ expr ⇒ expr" where
 | "fold_add a b = (if b = Num 0 then a else Add a b)"
 ```
 
-Two numbers are added at once. Otherwise an addition of 0 on the right is dropped, and anything else
-stays an addition. The two equations overlap, and the first one wins. The optimiser folds the children
-of a node first, and then the node itself:
+两个数会被立即相加。否则，右边加 0 的加法会被去掉，其他情况仍然是一个加法。这两个等式有重叠，第一个优先。优化器先折叠一个结点的子结点，再折叠这个结点本身：
 
 ```isabelle
 fun cfold :: "expr ⇒ expr" where
@@ -839,7 +688,7 @@ fun cfold :: "expr ⇒ expr" where
 | "cfold (Add a b) = fold_add (cfold a) (cfold b)"
 ```
 
-Try it on `(2 + 3) + (x + 0)`:
+在 `(2 + 3) + (x + 0)` 上试一试：
 
 ```isabelle
 definition sample2 :: expr where
@@ -853,7 +702,7 @@ value "cfold sample2"
   :: "expr"
 ```
 
-The result is `5 + x`. The code shrinks from seven instructions to three:
+结果是 `5 + x`。代码从七条指令缩减到了三条：
 
 ```isabelle
 value "(compile sample2, compile (cfold sample2))"
@@ -865,7 +714,7 @@ value "(compile sample2, compile (cfold sample2))"
   :: "instr list × instr list"
 ```
 
-`cfold` folds only where two numbers meet. In `2 + (3 + x)` they do not, and nothing changes:
+`cfold` 只在两个数相遇的地方折叠。在 `2 + (3 + x)` 中它们没有相遇，所以什么也没有改变：
 
 ```isabelle
 value "cfold (Add (Num 2) (Add (Num 3) (Var ''x'')))"
@@ -876,13 +725,11 @@ value "cfold (Add (Num 2) (Add (Num 3) (Var ''x'')))"
   :: "expr"
 ```
 
-Turning it into `5 + x` would need the associative law, a cleverer optimiser and a proof to match.
+要把它变成 `5 + x`，就需要用到结合律，需要一个更聪明的优化器，还需要一个与之相配的证明。
 
-### Folding preserves meaning {#folding-correct}
+### 折叠保持含义 {#folding-correct}
 
-The claim is `eval (cfold e) s = eval e s`. Its case `Add` needs a fact about `fold_add`: whatever it
-builds has the value of the sum of its arguments. Prove that first, by computation induction on
-`fold_add` (Module 11):
+要证明的断言是 `eval (cfold e) s = eval e s`。它的情形 `Add` 需要一个关于 `fold_add` 的事实：无论 `fold_add` 构造出什么，它的值都等于两个参数之和。先证明这个事实，对 `fold_add` 做计算归纳（computation induction，见模块 11）：
 
 ```isabelle
 lemma eval_fold_add [simp]: "eval (fold_add a b) s = eval a s + eval b s"
@@ -900,32 +747,25 @@ goal (5 subgoals):
  5. ⋀a v va. eval (fold_add a (Add v va)) s = eval a s + eval (Add v va) s
 ```
 
-The cases follow the equations of `fold_add`, after `fun` has made them non-overlapping, as it did for
-`exec1`. The second equation has become four: one for each shape of a and b that the first equation does
-not cover. In every case the simplifier can evaluate `fold_add`, and `auto` splits the `if` into its
-two cases:
+这些情形对应于 `fold_add` 的等式，即 `fun` 消除重叠之后的那些等式，就像它对 `exec1` 所做的那样。第二个等式变成了四个：第一个等式没有覆盖的 a 和 b 的每一种形状各有一个。在每种情形中，化简器都能对 `fold_add` 求值，而 `auto` 会把 `if` 拆成两种情形：
 
 ```isabelle
   apply auto
   done
 ```
 
-The theorem follows by structural induction:
+定理可以用结构归纳法证明：
 
 ```isabelle
 theorem cfold_correct: "eval (cfold e) s = eval e s"
   by (induction e) auto
 ```
 
-This time no variable is arbitrary. `eval` passes the state unchanged to its recursive calls, so the
-hypotheses for the same s are exactly what the case `Add` needs. Compare `exec`, whose recursive call
-receives a new stack: Module 11's tip asks which arguments change in the recursive calls, and only those
-need generalising.
+这一次没有哪个变量需要是任意的。`eval` 把状态原封不动地传给它的递归调用，所以关于同一个 s 的归纳假设正是情形 `Add` 所需要的。对比一下 `exec`，它的递归调用接收的是一个新的栈：模块 11 的提示要你看看哪些参数在递归调用中会改变，只有这些参数才需要推广。
 
-### Optimise, then compile {#pipeline}
+### 先优化，再编译 {#pipeline}
 
-The two theorems fit together. Optimise first, then compile, and the code still computes the value of
-the original expression:
+这两个定理正好可以拼在一起。先优化，再编译，得到的代码计算的仍然是原来那个表达式的值：
 
 ```isabelle
 theorem compile_cfold_correct:
@@ -933,23 +773,15 @@ theorem compile_cfold_correct:
   by (simp add: compile_correct cfold_correct)
 ```
 
-`compile_correct` turns the left-hand side into `eval (cfold e) s # stk`, and `cfold_correct` turns that
-into the right-hand side. Verified compilers grow in this way. CompCert translates C in a long series of
-passes, through several intermediate languages, and each pass has its own proof that it preserves the
-meaning; the theorems compose into one about the whole chain of passes.
+`compile_correct` 把左边变成 `eval (cfold e) s # stk`，`cfold_correct` 再把它变成右边。经过验证的编译器就是这样一步步搭建起来的。CompCert 经过很长的一系列遍（pass）来翻译 C，途经好几种中间语言，而每一遍都有自己的证明，说明它保持含义；这些定理可以组合成一个定理，涵盖由各遍组成的整条链。
 
 ::: pitfall
-An optimisation is correct with respect to a semantics, here the semantics of mathematical integers.
-For other kinds of numbers it may be wrong. In IEEE floating-point arithmetic, which almost every
-processor uses, adding 0.0 to −0.0 gives +0.0. So replacing `x + 0.0` by `x` changes the result when x
-is −0.0, and compilers that follow the IEEE rules do not make that replacement. A proof about the wrong
-semantics proves nothing about the real program.
+一项优化是相对于某个语义而言正确的，这里是数学上的整数的语义。对于其他种类的数，它可能是错的。在几乎所有处理器都采用的 IEEE 浮点运算中，−0.0 加上 0.0 得到的是 +0.0。所以当 x 是 −0.0 时，把 `x + 0.0` 替换成 `x` 会改变结果，因此遵循 IEEE 规则的编译器不会做这种替换。关于错误语义的证明，对真实的程序什么也证明不了。
 :::
 
-## From proof to program {#export}
+## 从证明到程序 {#export}
 
-The compiler is a function in HOL, and Module 8 showed how to turn such functions into programs in
-other languages. Export the verified compiler and optimiser as Haskell:
+编译器是 HOL 中的一个函数，而模块 8 讲过怎样把这样的函数变成其他语言的程序。把经过验证的编译器和优化器导出为 Haskell 代码：
 
 ```isabelle
 export_code compile cfold in Haskell module_name StackCompiler
@@ -959,12 +791,7 @@ export_code compile cfold in Haskell module_name StackCompiler
 See theory exports
 ```
 
-As in Module 8, the code does not appear in the Output panel. In Isabelle/jEdit the words *theory
-exports* are a link: click it, and the File Browser opens on the generated files, in a virtual folder
-whose name begins with `isabelle-export:`. Each `export_code` of a theory writes into a folder of its
-own, `export1` for the first, `export2` for the second, and so on; here `export1` holds the Haskell
-module `StackCompiler.hs`. Here are its central parts, as Isabelle2026 generates them. The two
-datatypes:
+和模块 8 中一样，代码不会出现在 **Output**（输出）面板中。在 Isabelle/jEdit 中，**theory exports**（理论的导出文件）这两个词是一个链接：点击它，**File Browser**（文件浏览器）就会打开生成的文件，它们位于一个名字以 `isabelle-export:` 开头的虚拟文件夹中。一个理论中的每条 `export_code` 都写入它自己的文件夹，第一条写入 `export1`，第二条写入 `export2`，依此类推；这里，`export1` 中存放着 Haskell 模块 `StackCompiler.hs`。下面是它的核心部分，与 Isabelle2026 生成的一模一样。两个数据类型：
 
 ```text
 data Expr = Num Int | Var [Char] | Add Expr Expr;
@@ -972,7 +799,7 @@ data Expr = Num Int | Var [Char] | Add Expr Expr;
 data Instr = PUSH Int | LOAD [Char] | ADD;
 ```
 
-and the three functions:
+以及三个函数：
 
 ```text
 fold_add :: Expr -> Expr -> Expr;
@@ -997,40 +824,19 @@ compile (Var x) = [LOAD x];
 compile (Add a b) = compile a ++ compile b ++ [ADD];
 ```
 
-`cfold` and `compile` have the same equations as in Isabelle, with Haskell's `++` for `@`. `fold_add`
-has the five equations that `fun` derived from its two (Section 14.6.2), and the test `b = Num 0` has
-become a call of `equal_expr`, an equality test that the code generator wrote for the datatype. The parts
-left out are the module header and the types `Char` and `Int`, with the operations on them that the
-functions need, such as `plus_int`. Characters become a datatype with eight Boolean fields, and integers
-are built from the constructors `Zero_int`, `Pos` and `Neg` and the binary numerals `One`, `Bit0` and
-`Bit1` of Module 8. That is faithful but slow; the library theory `HOL-Library.Code_Target_Int` makes the
-code use Haskell's own integers instead.
+`cfold` 和 `compile` 的等式和在 Isabelle 中一样，只是用 Haskell 的 `++` 代替了 `@`。`fold_add` 有五个等式，它们是 `fun` 从原来的两个等式推导出来的（第 14.6.2 节），而判断 `b = Num 0` 变成了对 `equal_expr` 的调用，这是代码生成器（code generator）为这个数据类型编写的相等性判断。省略的部分是模块头，以及类型 `Char` 和 `Int`，连同这些函数所需要的、作用于它们的运算，例如 `plus_int`。字符变成了一个带有八个布尔字段的数据类型，而整数由构造子 `Zero_int`、`Pos` 和 `Neg` 以及模块 8 中表示二进制数字的 `One`、`Bit0` 和 `Bit1` 构造而成。这样的表示忠实可靠，但很慢；库理论 `HOL-Library.Code_Target_Int` 能让代码改用 Haskell 自己的整数。
 
-The module header lists what the module exports: the types `Char`, `Int`, `Expr` and `Instr` and the
-functions `cfold` and `compile`, but no constructors. Module 12 explained why `export_code` does this.
-Here it means that other Haskell code cannot build an expression to give to `compile`. Write
-`export_code open compile cfold …` to export everything, constructors included.
+模块头列出了这个模块导出的东西：类型 `Char`、`Int`、`Expr` 和 `Instr`，以及函数 `cfold` 和 `compile`，但没有任何构造子。模块 12 解释过 `export_code` 为什么这样做。在这里，这意味着其他 Haskell 代码无法构造一个表达式交给 `compile`。写成 `export_code open compile cfold …` 就能导出所有东西，包括构造子。
 
-What does the proof guarantee for this program? The theorems are about the HOL functions. The code
-generator is designed so that each step of the generated program corresponds to rewriting with
-equations that are theorems, but it is not part of the kernel (Module 8): it belongs to the trusted
-base, together with the Haskell compiler that turns the generated code into machine code, and the
-hardware. The trusted base has not disappeared. It has moved from your compiler to a few general tools
-that many people use and check. CompCert is in the same position: it is written and proved in Rocq and
-turned into OCaml code by Rocq's own code extraction.
+对这个程序，证明能保证什么？定理是关于 HOL 函数的。代码生成器的设计，使生成的程序的每一步都对应于用等式进行的重写，而这些等式都是定理；但代码生成器不是内核（kernel）的一部分（模块 8）：它属于可信基（trusted base），同属可信基的还有把生成的代码变成机器码的 Haskell 编译器，以及硬件。可信基并没有消失，而是从你的编译器转移到了少数几个通用工具上，这些工具有很多人在用、在检查。CompCert 的处境也一样：它是在 Rocq 中编写和证明的，再由 Rocq 自己的代码提取（code extraction）功能变成 OCaml 代码。
 
-## Extending the compiler ★★★ {#extensions}
+## 扩展编译器 ★★★ {#extensions}
 
-This section is a stretch, at the level of the ★★★ exercises. It adds subtraction and a conditional
-expression to the language, and subtraction and jumps to the machine. Most of the development carries
-over; the lemma about appended code does not, and its replacement is a lesson in generalisation.
+本节是挑战内容，难度相当于 ★★★ 练习。它给语言加上减法和条件表达式，给机器加上减法和跳转。已有的大部分开发都能沿用；关于连接代码的引理却不行，而替代它的东西，是一堂关于推广的课。
 
-In your own theory you would extend `expr`, `instr` and the functions in place. On this page the earlier
-definitions must stay as they are, so the extended versions get new names: the types and functions end
-in 2, and so do the old constructors (`Num2`, `Var2`, `Add2`, `PUSH2`, `LOAD2`, `ADD2`); the new
-constructors have plain names.
+在你自己的理论中，你会直接修改 `expr`、`instr` 和那些函数。在本页中，前面的定义必须保持原样，所以扩展后的版本用了新名字：类型和函数的名字以 2 结尾，原有的构造子也是如此（`Num2`、`Var2`、`Add2`、`PUSH2`、`LOAD2`、`ADD2`）；新的构造子则用普通的名字。
 
-### Subtraction and conditionals {#extended-language}
+### 减法与条件表达式 {#extended-language}
 
 ```isabelle
 datatype expr2 = Num2 int | Var2 vname | Add2 expr2 expr2
@@ -1044,12 +850,9 @@ fun eval2 :: "expr2 ⇒ state ⇒ int" where
 | "eval2 (Cond t a b) s = (if eval2 t s ≠ 0 then eval2 a s else eval2 b s)"
 ```
 
-`Sub a b` is a − b. `Cond t a b` is a conditional expression, written `t ? a : b` in C: its value is the
-value of a if the test t is not 0, and the value of b otherwise. As in C, 0 counts as false.
+`Sub a b` 表示 a − b。`Cond t a b` 是一个条件表达式（conditional expression），在 C 中写作 `t ? a : b`：如果条件 t 不为 0，它的值就是 a 的值，否则就是 b 的值。和在 C 中一样，0 算作假。
 
-The machine gets an instruction for subtraction and two **jumps**. `JMP n` skips the next n
-instructions. `JMPZ n` takes the number on top of the stack off and skips the next n instructions if that
-number is 0; otherwise execution continues with the next instruction.
+机器得到一条做减法的指令和两条**跳转**（jump）指令。`JMP n` 跳过接下来的 n 条指令。`JMPZ n` 从栈顶取下一个数，如果这个数是 0，就跳过接下来的 n 条指令；否则继续执行下一条指令。
 
 ```isabelle
 datatype instr2 = PUSH2 int | LOAD2 vname | ADD2 | SUB | JMP nat | JMPZ nat
@@ -1073,17 +876,11 @@ consts
 Found termination order: "(λp. length (fst p)) <*mlex*> {}"
 ```
 
-`drop n c` is c without its first n elements, so a jump forward is a recursive call on a shorter
-program. The last equation catches what the others leave out, an `ADD2` or `SUB` on a short stack and a
-`JMPZ` on the empty one, and skips the instruction. Jumps only go forwards, so every recursive call is on
-a shorter list, and Isabelle finds the termination order, the length of the program, without help. With
-backward jumps a program could run for ever, and `fun` could not define `exec2` (more on that in
-Section 14.8.4).
+`drop n c` 是去掉前 n 个元素之后的 c，所以向前跳转就是在一个更短的程序上做递归调用。最后一个等式兜住了其他等式遗漏的情况，即在太短的栈上执行 `ADD2` 或 `SUB`，以及在空栈上执行 `JMPZ`，这时它跳过这条指令。跳转只会向前，所以每次递归调用都作用在一个更短的列表上，Isabelle 不需要帮助就能找到终止序（termination order），即程序的长度。如果有向后的跳转，程序就可能永远运行下去，`fun` 也就无法定义 `exec2` 了（第 14.8.4 节会再谈这一点）。
 
-### The order of operands {#operand-order}
+### 操作数的顺序 {#operand-order}
 
-`SUB` computes i − j, where j is the top of the stack and i the number below it. So the compiler must
-push a first and b second, as it does for addition:
+`SUB` 计算 i − j，其中 j 是栈顶，i 是它下面的数。所以编译器必须先压入 a，再压入 b，就像对加法那样：
 
 ```isabelle
 fun compile2 :: "expr2 ⇒ instr2 list" where
@@ -1096,8 +893,7 @@ fun compile2 :: "expr2 ⇒ instr2 list" where
      [JMP (length (compile2 b))] @ compile2 b"
 ```
 
-For addition the order did not matter, because addition is commutative; for subtraction it does. Had the
-`Sub` equation pushed b first, the code would compute b − a. Quickcheck catches the swap at once:
+对加法来说，顺序无关紧要，因为加法满足交换律；对减法来说，顺序就要紧了。如果 `Sub` 的等式先压入 b，代码算出的就是 b − a。Quickcheck 立刻就能抓住这种对调：
 
 ```isabelle
 lemma "exec2 (compile2 b @ compile2 a @ [SUB]) s stk
@@ -1119,22 +915,18 @@ Evaluated terms:
   (eval2 a s - eval2 b s) # stk = [- 1]
 ```
 
-With a = −1 and b = 0, the value of a − b is −1, but the swapped code computes 0 − (−1) = 1. A bug of
-this kind can survive tests on hand-picked examples: whenever a and b have the same value, the swapped
-code gives the right answer.
+当 a = −1、b = 0 时，a − b 的值是 −1，但对调后的代码算出的是 0 − (−1) = 1。这类错误可能在手工挑选的测试例子面前蒙混过关：只要 a 和 b 的值相同，对调后的代码给出的答案就是对的。
 
-### Conditionals and jumps {#jumps}
+### 条件表达式与跳转 {#jumps}
 
-The code for `Cond t a b` evaluates the test and then jumps over the code it does not need:
+`Cond t a b` 的代码先对条件求值，然后跳过它不需要的那段代码：
 
 ```text
-code of t | JMPZ k | code of a | JMP m | code of b |
-            k = length (code of a) + 1     m = length (code of b)
+t 的代码 | JMPZ k | a 的代码 | JMP m | b 的代码 |
+          k = length (a 的代码) + 1     m = length (b 的代码)
 ```
 
-If the test is 0, `JMPZ k` skips the code of a and the `JMP` after it, and execution continues with the
-code of b. Otherwise the code of a runs, and `JMP m` skips the code of b. Either way, execution continues
-after the code of b with one new value on the stack. Two runs, in the state `s0` where x is 5 and z is 0:
+如果条件为 0，`JMPZ k` 就跳过 a 的代码以及它后面的 `JMP`，从 b 的代码继续执行。否则，a 的代码运行，然后 `JMP m` 跳过 b 的代码。无论哪种情况，执行都会在 b 的代码之后继续，而栈上多了一个新的值。下面是两次运行，所在的状态 `s0` 中 x 是 5，z 是 0：
 
 ```isabelle
 value "compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))"
@@ -1155,7 +947,7 @@ value "(exec2 (compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))) s0 [],
   :: "int list × int list"
 ```
 
-Now the proof. The lemma about appended code was the key to Section 14.5. Is it still true?
+现在来看证明。关于连接代码的引理是第 14.5 节的关键。它还成立吗？
 
 ```isabelle
 lemma "exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)"
@@ -1176,14 +968,9 @@ Evaluated terms:
   exec2 c2 s (exec2 c1 s stk) = [- 1]
 ```
 
-It is not. A jump at the end of c1 skips instructions of c2 when the two run as one program, but finds
-nothing to skip when c1 runs alone. Running `c1 @ c2` is no longer "run c1, then c2". The lemma held for
-the old machine because each of its instructions affected only the stack, never which instruction
-comes next.
+不成立了。当 c1 和 c2 作为一个程序一起运行时，c1 末尾的跳转会跳过 c2 中的指令；而当 c1 单独运行时，它没有东西可跳。运行 `c1 @ c2` 不再等于“先运行 c1，再运行 c2”。这条引理之所以对原来的机器成立，是因为那台机器的每条指令都只影响栈，从不影响接下来执行哪条指令。
 
-The way out is another generalisation. Instead of splitting a program at an arbitrary point, describe
-what the code of e does in front of *any* code c that follows it: running `compile2 e @ c` is the same as
-putting the value of e on the stack and then running c.
+出路是再做一次推广。不要在任意一点上拆分程序，而是描述 e 的代码放在**任意**后续代码 c 前面时做了什么：运行 `compile2 e @ c`，等同于先把 e 的值放到栈上，再运行 c。
 
 ```isabelle
 theorem compile2_correct:
@@ -1191,14 +978,9 @@ theorem compile2_correct:
   by (induction e arbitrary: c stk) auto
 ```
 
-The induction hypotheses now speak about the code of a subexpression followed by anything, and in every
-case that is exactly the shape the simplifier meets. In the case `Cond t a b`, the hypothesis for t is
-used with the code that follows t, which starts with `JMPZ`. If the test is 0, the jump lands exactly at
-the start of the code of b, followed by c, and the hypothesis for b applies; otherwise the hypothesis for
-a applies, and `JMP` lands exactly at the start of c. The jumps never leave the code of the conditional,
-except to its end, and the theorem never needs to say what a jump to anywhere else would do.
+现在，归纳假设谈论的是一个子表达式的代码后面跟着任意代码的情况，而在每种情形中，这正是化简器遇到的形状。在情形 `Cond t a b` 中，t 的归纳假设用于 t 后面的那段代码，这段代码以 `JMPZ` 开头。如果条件为 0，跳转恰好落在 b 的代码的开头，后面跟着 c，于是 b 的归纳假设适用；否则 a 的归纳假设适用，而 `JMP` 恰好落在 c 的开头。除了跳到条件表达式代码的末尾之外，跳转从不离开这段代码，所以定理从来不需要说明跳到别处会发生什么。
 
-The form of Section 14.5 is the special case in which nothing follows, c = []:
+第 14.5 节中的形式，就是后面什么也不跟的特例，即 c = []：
 
 ```isabelle
 corollary "exec2 (compile2 e) s stk = eval2 e s # stk"
@@ -1206,104 +988,63 @@ corollary "exec2 (compile2 e) s stk = eval2 e s # stk"
 ```
 
 ::: keyidea
-When a lemma about splitting programs fails, generalise over the context instead: state what a piece of
-code does in front of any continuation. The proof then only ever looks at the code the compiler
-produces, never at arbitrary splits. Exercise 14.6 proves the theorem of Section 14.5 in this form,
-without `exec_append`.
+当关于拆分程序的引理不成立时，就改为对上下文进行推广：陈述一段代码放在任意后续代码（continuation）前面时做了什么。这样，证明就只会涉及编译器生成的代码，而从不涉及任意的拆分。练习 14.6 就用这种形式证明了第 14.5 节的定理，没有用到 `exec_append`。
 :::
 
-### Further directions {#directions}
+### 进一步的方向 {#directions}
 
-- **More operators.** Multiplication needs one constructor, one instruction and one equation in each
-  function; the proofs go through unchanged.
-- **`let`.** An expression `let x = a in b` needs an instruction that stores a value into a variable.
-  The code then changes the state as well as the stack, and the theorem must say which variables it may
-  change: storing the value of a in x itself destroys the x that the surrounding expression may need.
-- **Loops.** With backward jumps a program can run for ever, so execution becomes a relation between
-  configurations of the machine (a program counter, a state and a stack), defined with `inductive` as in
-  Modules 11 and 13, instead of a function.
-- **Other machines.** Exercise 14.7 makes the machine stop on a stack underflow, and Exercise 14.8
-  compiles to a machine with registers.
+- **更多的运算符。**乘法需要一个构造子、一条指令，并在每个函数中加一个等式；证明不用改就能通过。
+- **`let`。**表达式 `let x = a in b` 需要一条把值存入变量的指令。这样，代码除了改变栈，还会改变状态，而定理必须说明代码可以改变哪些变量：把 a 的值直接存入 x 本身，会破坏外围表达式可能还需要的那个 x。
+- **循环。**有了向后的跳转，程序就可能永远运行下去，所以执行要变成机器格局（configuration，由程序计数器、状态和栈组成）之间的一个关系，像模块 11 和模块 13 中那样用 `inductive` 来定义，而不再是一个函数。
+- **其他机器。**练习 14.7 让机器在栈下溢时停止，练习 14.8 则编译到一台带寄存器的机器上。
 
-## Looking back, looking ahead {#outlook}
+## 回顾与展望 {#outlook}
 
-This module used almost every part of the series. Here is where each piece came from.
+本模块几乎用到了本系列的每一个部分。下面是每一块内容的来源。
 
-| Module | What it contributed | Where it appeared here |
+| 模块 | 它提供了什么 | 在本模块中用在哪里 |
 |---|---|---|
-| 1 | `value`, `lemma`, Quickcheck; compilers in the trusted base | testing, Section 14.1 |
-| 2–3 | Logic; free variables of a lemma are universally quantified | "for every e, s and stk" |
-| 4 | Functions | the state, a function from names to values |
-| 5 | Recursion and structural induction | `eval`, `exec`, `compile`, every proof |
-| 6–7 | Proof rules, `rule`, schematic variables | `rule Add.IH(2)` with `?stk` |
-| 8 | `datatype`, `fun`, lists, `export_code` | the language, the machine, the export |
-| 9 | Simp rules, `simp only`, Quickcheck | `exec_append [simp]`, the tests |
-| 10 | Isar: cases and calculations | the proof of `compile_correct` |
-| 11 | `arbitrary:`, auxiliary lemmas, computation induction | the stack, `exec_append`, `fold_add.induct` |
-| 12 | Specification against implementation | `eval` against `compile` and `exec` |
-| 13 | State machines | the stack machine itself |
+| 1 | `value`、`lemma`、Quickcheck；可信基中的编译器 | 测试，第 14.1 节 |
+| 2–3 | 逻辑；引理中的自由变元是全称量化的 | “对每个 e、s 和 stk” |
+| 4 | 函数 | 状态，一个从名字到值的函数 |
+| 5 | 递归与结构归纳法 | `eval`、`exec`、`compile`，以及每一个证明 |
+| 6–7 | 证明规则、`rule`、图式变量 | 带 `?stk` 的 `rule Add.IH(2)` |
+| 8 | `datatype`、`fun`、列表、`export_code` | 语言、机器、导出 |
+| 9 | 化简规则（simp rule）、`simp only`、Quickcheck | `exec_append [simp]`、测试 |
+| 10 | Isar：情形与计算推理 | `compile_correct` 的证明 |
+| 11 | `arbitrary:`、辅助引理、计算归纳 | 栈、`exec_append`、`fold_add.induct` |
+| 12 | 规约与实现的对照 | 以 `eval` 对照 `compile` 和 `exec` |
+| 13 | 状态机（state machine） | 栈机本身 |
 
-In Module 2 you decided formulas with truth tables, by checking finitely many cases. Truth tables cannot
-reach a statement about every expression: there are infinitely many. Proof can. Along the way you
-learned to write such statements in logic, to prove them on paper with rules, and to let Isabelle check
-every step. The compiler is small, but its proof has the ingredients of the proofs behind CompCert and
-seL4: a semantics for each language, a precise statement of what correct means, an induction that follows
-the structure of the programs, and lemmas found by reading the goals where the proof stops.
+在模块 2 中，你用真值表（truth table）来判定公式，办法是检查有限多种情况。真值表处理不了关于每一个表达式的陈述：表达式有无穷多个。证明却可以。一路走来，你学会了用逻辑写出这样的陈述，在纸上用规则证明它们，并让 Isabelle 检查每一步。这个编译器很小，但它的证明具备了 CompCert 和 seL4 背后那些证明的要素：每种语言的语义，对“正确”含义的精确陈述，沿着程序结构进行的归纳，以及通过阅读证明停下之处的目标而找到的引理。
 
-Where to go from here:
+接下来可以去哪里：
 
-- ***Concrete Semantics*** by Tobias Nipkow and Gerwin Klein (Springer, 2014; web site
-  concrete-semantics.org) continues where this module ends. Its first part is an Isabelle
-  tutorial; its second part defines a small imperative language, IMP, with assignments and loops, and
-  treats its semantics, a compiler for it, type systems, Hoare logic and program analysis, all in
-  Isabelle.
-- The **[Archive of Formal Proofs](https://www.isa-afp.org)** holds hundreds of checked Isabelle
-  developments, among them verified compilers, algorithms and data structures, and shows how experts
-  structure large proofs.
-- **seL4** and **CompCert** (Module 1) show these methods at industrial scale; their papers explain what
-  was proved, what is trusted, and what the proofs cost.
-- On this site, **[Isabelle for model verification](../isabelle/)** applies Isabelle to an engineering
-  model: a small model of a lid, an operation on it, an invariant, and a theorem that a translation
-  between two representations preserves meaning, the same kind of theorem as `compile_correct`. It uses
-  Isabelle2025-2.
+- 托比亚斯·尼普科（Tobias Nipkow）和格尔温·克莱因（Gerwin Klein）合著的 **《Concrete Semantics》**（Springer，2014 年；网站为 concrete-semantics.org）从本模块结束的地方接着讲下去。它的第一部分是一个 Isabelle 教程；第二部分定义了一个带有赋值和循环的小型命令式语言 IMP，并讲解它的语义、它的编译器、类型系统、霍尔逻辑（Hoare logic）和程序分析，全部都在 Isabelle 中完成。
+- **[形式化证明档案库](https://www.isa-afp.org)**（Archive of Formal Proofs）收录了数百个经过检查的 Isabelle 项目，其中有经过验证的编译器、算法和数据结构；从中可以看到专家们怎样组织大型证明。
+- **seL4** 和 **CompCert**（模块 1）展示了这些方法在工业规模上的应用；它们的论文说明了证明了什么、信任了什么，以及这些证明付出了多大的代价。
+- 本站的 **[Isabelle 模型验证](../isabelle/)**（英文）把 Isabelle 应用于一个工程模型：一个关于盖子的小模型、作用于它的一个操作、一个不变式（invariant），以及一个说明两种表示之间的转换保持含义的定理，这和 `compile_correct` 是同一类定理。它使用的是 Isabelle2025-2。
 
-Module 1 ended its first theory with three activities: compute with `value`, prove with `lemma`, refute
-with Quickcheck. In this module you used all three on a real piece of software, a compiler, and the
-result is a theorem about every program it will ever compile.
+模块 1 的第一个理论以三件事收尾：用 `value` 计算，用 `lemma` 证明，用 Quickcheck 反驳。在本模块中，你把这三件事都用在了一个真正的软件上，也就是一个编译器；而你得到的，是一个关于它将来要编译的每一个程序的定理。
 
-## What you learned {#summary}
+## 小结 {#summary}
 
-- A compiler is correct when running its code agrees with the meaning of the source program. To state
-  this you need both semantics as functions: here `eval` for expressions and `exec` for the stack
-  machine. The statement is the equation `exec (compile e) s stk = eval e s # stk`.
-- Abstract syntax is a datatype; a compositional semantics is a recursive function on it. A **state**
-  maps variable names to values; `f(a := v)` updates a function.
-- A **stack machine** takes its operands from the top of a stack. The compiler produces code in postfix
-  order: the code of the operands, then the operator.
-- Test first. `value` compares evaluation and execution on examples; Quickcheck finds the smallest
-  counterexample to a wrong claim or a wrong compiler. Limit the search with `quickcheck [size = n]` when
-  the claim has functions among its variables.
-- The proof needs two ideas from Module 11: the auxiliary lemma `exec_append`, found from the stuck goal,
-  and **generalisation over the stack**, with `arbitrary: stk`, because the code of the second operand
-  runs on a stack that holds the value of the first.
-- **Constant folding** is proved correct by structural induction, with a lemma about `fold_add` proved
-  by computation induction. Theorems about passes compose, so optimise-then-compile is correct with a
-  one-line proof.
-- `export_code` turns the verified functions into Haskell; the code generator and the Haskell compiler
-  remain in the trusted base.
-- With jumps, the lemma about appended code fails; generalising over the code that follows,
-  `exec2 (compile2 e @ c) s stk = exec2 c s (eval2 e s # stk)`, repairs the proof.
+- 如果运行编译器生成的代码与源程序的含义一致，编译器就是正确的。要陈述这一点，你需要把两种语义都写成函数：这里是表达式的 `eval` 和栈机的 `exec`。这个陈述就是等式 `exec (compile e) s stk = eval e s # stk`。
+- 抽象语法是一个数据类型；组合式的语义是它上面的一个递归函数。**状态**把变量名映射到值；`f(a := v)` 更新一个函数。
+- **栈机**从栈顶取出它的操作数。编译器按后缀顺序生成代码：先是操作数的代码，然后是运算符。
+- 先测试。`value` 在例子上比较求值和执行；Quickcheck 能为错误的断言或错误的编译器找到最小的反例。当断言的变量中有函数时，用 `quickcheck [size = n]` 限制搜索范围。
+- 证明需要模块 11 中的两个思想：从卡住的目标中找到的辅助引理 `exec_append`，以及用 `arbitrary: stk` 实现的**对栈的推广**，因为第二个操作数的代码运行在一个存放着第一个操作数的值的栈上。
+- **常量折叠**的正确性用结构归纳法证明，其中用到一条用计算归纳证明的、关于 `fold_add` 的引理。关于各遍的定理可以组合，所以“先优化再编译”的正确性只需一行证明。
+- `export_code` 把经过验证的函数变成 Haskell 代码；代码生成器和 Haskell 编译器仍然留在可信基中。
+- 有了跳转，关于连接代码的引理就不成立了；对后面的代码进行推广，即 `exec2 (compile2 e @ c) s stk = exec2 c s (eval2 e s # stk)`，就能修复证明。
 
-## Exercises {#exercises}
+## 练习 {#exercises}
 
-:::: exercise Run the machine by hand {#ex-14-1} ★
-Compile the expression `(x + 1) + y` by hand, that is, `Add (Add (Var ''x'') (Num 1)) (Var ''y'')`. Then
-write down the stack after each instruction when the code runs in the state `s0` (x = 5, y = 7) on the
-empty stack. How many numbers does the stack hold at most? Compare with the program of Figure 14.2, and
-check your answers with `value`.
+:::: exercise 手工运行机器 {#ex-14-1} ★
+手工编译表达式 `(x + 1) + y`，也就是 `Add (Add (Var ''x'') (Num 1)) (Var ''y'')`。然后写出代码在状态 `s0`（x = 5，y = 7）中从空栈开始运行时，每条指令执行之后的栈。栈上最多同时有几个数？与图 14.2 中的程序比较一下，并用 `value` 检查你的答案。
 
 ::: solution
-The code is the code of `x + 1`, then the code of y, then `ADD`:
+代码依次是 `x + 1` 的代码、y 的代码和 `ADD`：
 
 ```isabelle
 value "compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))"
@@ -1314,7 +1055,7 @@ value "compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))"
   :: "instr list"
 ```
 
-The stacks after the five instructions are `[5]`, `[1, 5]`, `[6]`, `[7, 6]` and `[13]`:
+五条指令执行之后的栈依次是 `[5]`、`[1, 5]`、`[6]`、`[7, 6]` 和 `[13]`：
 
 ```isabelle
 value "exec (compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))) s0 []"
@@ -1325,30 +1066,27 @@ value "exec (compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))) s0 []"
   :: "int list"
 ```
 
-The stack holds at most two numbers. The code for `x + (2 + y)` in Figure 14.2 needs three, because the
-second operand of its outer addition is itself an addition, whose operands go on top of the value of x.
-When the nesting is on the left, each partial sum is finished before the next operand is pushed.
+栈上最多有两个数。图 14.2 中 `x + (2 + y)` 的代码需要三个，因为它外层加法的第二个操作数本身就是一个加法，而这个加法的操作数要放在 x 的值的上面。当嵌套在左边时，每个部分和都会在下一个操作数被压入之前算完。
 :::
 ::::
 
-:::: exercise Which claims hold? {#ex-14-2} ★
-Decide for each claim whether it is true for every e, s and stk. Test each with Quickcheck, and prove the
-true ones with `simp` and the theorems of Section 14.5.
+:::: exercise 哪些断言成立？ {#ex-14-2} ★
+判断下面每个断言是否对每个 e、s 和 stk 都成立。用 Quickcheck 测试每一个，并用 `simp` 和第 14.5 节的定理证明成立的那些。
 
 1. `exec (compile e) s stk = [eval e s]`
 2. `length (exec (compile e) s stk) = length stk + 1`
 3. `exec (compile e @ compile e) s stk = eval e s # eval e s # stk`
 
 ::: solution
-1. **False**, as Section 14.4.3 showed: when stk is not empty, its numbers stay below the value.
-2. **True**: the code pushes exactly one number.
+1. **不成立**，第 14.4.3 节已经说明了这一点：当 stk 不为空时，它的数会留在那个值的下面。
+2. **成立**：代码恰好压入一个数。
 
    ```isabelle
    lemma "length (exec (compile e) s stk) = length stk + 1"
      by (simp add: compile_correct)
    ```
 
-3. **True**: by `exec_append`, the second copy of the code runs on the stack that the first copy left.
+3. **成立**：由 `exec_append`，代码的第二份副本在第一份副本留下的栈上运行。
 
    ```isabelle
    lemma "exec (compile e @ compile e) s stk = eval e s # eval e s # stk"
@@ -1357,14 +1095,11 @@ true ones with `simp` and the theorems of Section 14.5.
 :::
 ::::
 
-:::: exercise Optimised code is never longer {#ex-14-3} ★★
-Prove that constant folding never makes the code longer:
-`length (compile (cfold e)) ≤ length (compile e)`. Start with an auxiliary lemma about `fold_add`,
-proved by computation induction like `eval_fold_add`, and then prove the theorem by induction on e, in
-Isar if you like.
+:::: exercise 优化后的代码不会更长 {#ex-14-3} ★★
+证明常量折叠从不会使代码变长：`length (compile (cfold e)) ≤ length (compile e)`。先像 `eval_fold_add` 那样，用计算归纳证明一条关于 `fold_add` 的辅助引理，再对 e 做归纳来证明这个定理；愿意的话，可以用 Isar 来写。
 
 ::: solution
-The code of `fold_add a b` is never longer than the code of a, then b, then one `ADD`:
+`fold_add a b` 的代码从不会比“a 的代码，然后 b 的代码，再加一条 `ADD`”更长：
 
 ```isabelle
 lemma length_fold_add:
@@ -1373,8 +1108,7 @@ lemma length_fold_add:
   by (induction a b rule: fold_add.induct) auto
 ```
 
-In the case `Add a b` the lemma applies to `cfold a` and `cfold b`, and the induction hypotheses bound
-their code:
+在情形 `Add a b` 中，这条引理作用于 `cfold a` 和 `cfold b`，而归纳假设给出了它们的代码长度的上界：
 
 ```isabelle
 theorem cfold_shorter:
@@ -1390,12 +1124,12 @@ proof (induction e)
 qed simp_all
 ```
 
-`qed simp_all` proves the cases `Num` and `Var`, which the Isar text does not mention, by `simp`.
+`qed simp_all` 用 `simp` 证明了 Isar 文本中没有提到的情形 `Num` 和 `Var`。
 :::
 ::::
 
-:::: exercise A wrong optimisation {#ex-14-4} ★★
-A colleague suggests a shorter `fold_add` that drops every number added on the right:
+:::: exercise 一项错误的优化 {#ex-14-4} ★★
+一位同事建议写一个更短的 `fold_add`，它会去掉加在右边的每一个数：
 
 ```isabelle
 fun fold_add_bad :: "expr ⇒ expr ⇒ expr" where
@@ -1404,12 +1138,11 @@ fun fold_add_bad :: "expr ⇒ expr ⇒ expr" where
 | "fold_add_bad a b = Add a b"
 ```
 
-1. Use Quickcheck to show that it is wrong, and explain the counterexample.
-2. Write `fold_add0`, a correct version of `fold_add` that also removes an addition of 0 on the
-   **left**, and prove that it preserves the value.
+1. 用 Quickcheck 说明它是错的，并解释反例。
+2. 写出 `fold_add0`：它是 `fold_add` 的一个正确版本，并且还会去掉在**左边**加 0 的加法；证明它保持值不变。
 
 ::: solution
-1. Quickcheck finds an expression that loses a number:
+1. Quickcheck 找到了一个会丢掉一个数的表达式：
 
    ```isabelle
    lemma "eval (fold_add_bad a b) s = eval a s + eval b s"
@@ -1429,10 +1162,8 @@ fun fold_add_bad :: "expr ⇒ expr ⇒ expr" where
      eval a s + eval b s = - 3
    ```
 
-   Quickcheck's a is the variable whose name is the empty string, printed `[]` because a string is a
-   list of characters. Its value in s is −2, and `fold_add_bad` loses the −1 added to it. The second
-   equation is right only for `Num 0`: any other number on the right is lost.
-2. Test for 0 on either side; the proof is the same as for `fold_add`:
+   Quickcheck 给出的 a 是名字为空字符串的变量，它被打印成 `[]`，因为字符串是字符的列表。它在 s 中的值是 −2，而 `fold_add_bad` 丢掉了加在它上面的 −1。第二个等式只对 `Num 0` 才是对的：右边的任何其他数都会丢失。
+2. 检查两边是否为 0；证明和 `fold_add` 的一样：
 
    ```isabelle
    fun fold_add0 :: "expr ⇒ expr ⇒ expr" where
@@ -1446,14 +1177,12 @@ fun fold_add_bad :: "expr ⇒ expr ⇒ expr" where
 :::
 ::::
 
-:::: exercise Substitution {#ex-14-5} ★★
-Define `subst :: "vname ⇒ int ⇒ expr ⇒ expr"` so that `subst x n e` replaces every occurrence of the
-variable x in e by the number n. Check it with `value`, then prove
+:::: exercise 代入 {#ex-14-5} ★★
+定义 `subst :: "vname ⇒ int ⇒ expr ⇒ expr"`，使得 `subst x n e` 把 e 中变量 x 的每一次出现都替换成数 n。用 `value` 检查它，然后证明
 
 `eval (subst x n e) s = eval e (s(x := n))`
 
-in words: substituting n for x gives the value that e has in a state where x is n. A compiler uses this
-fact when it replaces a variable whose value it knows by that value.
+用文字来说：把 x = n 代入（substitute）e 后得到的值，就是 e 在 x 为 n 的状态中的值。当编译器把一个值已知的变量替换成这个值时，用的就是这个事实。
 
 ::: solution
 ```isabelle
@@ -1475,25 +1204,19 @@ lemma eval_subst: "eval (subst x n e) s = eval e (s(x := n))"
   by (induction e) auto
 ```
 
-In the case `Var y`, the simplifier splits the `if`: if y = x, both sides are n; otherwise both are
-`s y`. No variable needs to be arbitrary, because x, n and s stay the same in the recursive calls.
+在情形 `Var y` 中，化简器会拆开 `if`：如果 y = x，两边都是 n；否则两边都是 `s y`。没有哪个变量需要是任意的，因为 x、n 和 s 在递归调用中都保持不变。
 :::
 ::::
 
-:::: exercise Correctness without the append lemma {#ex-14-6} ★★★
-Section 14.8 proved the extended compiler correct in a form with a continuation c, the code that
-follows. Prove the theorem for the original compiler in the same form,
+:::: exercise 不用连接引理的正确性证明 {#ex-14-6} ★★★
+第 14.8 节用一种带有后续代码 c（也就是跟在后面的代码）的形式，证明了扩展后的编译器是正确的。用同样的形式为原来的编译器证明这个定理：
 
-`exec (compile e @ c) s stk = exec c s (eval e s # stk)`,
+`exec (compile e @ c) s stk = exec c s (eval e s # stk)`，
 
-by induction on e, **without** using `exec_append`. Then derive `exec (compile e) s stk = eval e s # stk`
-from it. Which variables must be arbitrary, and why?
+要求对 e 做归纳，并且**不**使用 `exec_append`。然后由它推出 `exec (compile e) s stk = eval e s # stk`。哪些变量必须是任意的？为什么？
 
 ::: solution
-Both c and stk must be arbitrary: in the case `Add a b`, the hypothesis for a is used with the
-continuation `compile b @ ADD # c`, and the hypothesis for b with the stack `eval a s # stk`.
-`exec_append` is a simp rule, so `auto` would use it without being asked. Remove it with `simp del:`
-(Module 9), so that the proof really does without it:
+c 和 stk 都必须是任意的：在情形 `Add a b` 中，a 的归纳假设用于后续代码 `compile b @ ADD # c`，b 的归纳假设用于栈 `eval a s # stk`。`exec_append` 是一条化简规则，所以即使你不要求，`auto` 也会使用它。用 `simp del:` 把它去掉（模块 9），证明才真正没有用到它：
 
 ```isabelle
 lemma compile_cont:
@@ -1501,28 +1224,23 @@ lemma compile_cont:
   by (induction e arbitrary: c stk) (auto simp del: exec_append)
 ```
 
-In the case `Add a b`, the simplifier reassociates `(compile a @ compile b @ [ADD]) @ c` to
-`compile a @ (compile b @ ADD # c)` and then applies the two hypotheses and the equation of `exec` for
-`ADD`. The original theorem is the instance c = []:
+在情形 `Add a b` 中，化简器把 `(compile a @ compile b @ [ADD]) @ c` 重新结合成 `compile a @ (compile b @ ADD # c)`，然后应用两个归纳假设，以及 `exec` 关于 `ADD` 的等式。原来的定理是 c = [] 时的实例：
 
 ```isabelle
 lemma "exec (compile e) s stk = eval e s # stk"
   using compile_cont [of e "[]"] by simp
 ```
 
-This form needs no lemma about arbitrary splits of programs, which is why it still works with jumps.
+这种形式不需要关于任意拆分程序的引理，这就是它在有跳转时仍然适用的原因。
 :::
 ::::
 
-:::: exercise A machine that can fail {#ex-14-7} ★★★
-A real stack machine stops with an error on a stack underflow. Model this with an option type (Module
-8): `exec1_opt` returns `None` when `ADD` finds fewer than two numbers, and `exec_opt` stops at the first
-`None`. Define both, check with `value` that `[PUSH 1, ADD]` fails on the empty stack, and prove that
-compiled code never fails:
+:::: exercise 一台会出错的机器 {#ex-14-7} ★★★
+真实的栈机在发生栈下溢时会报错并停止。用选项类型（option type，见模块 8）为此建模：当 `ADD` 发现栈上的数不到两个时，`exec1_opt` 返回 `None`，而 `exec_opt` 在遇到第一个 `None` 时停止。定义这两个函数，用 `value` 检查 `[PUSH 1, ADD]` 在空栈上会失败，并证明编译出的代码永远不会失败：
 
-`exec_opt (compile e) s stk = Some (eval e s # stk)`.
+`exec_opt (compile e) s stk = Some (eval e s # stk)`。
 
-Hint: prove the form with a continuation from Exercise 14.6 first.
+提示：先证明练习 14.6 中那种带后续代码的形式。
 
 ::: solution
 ```isabelle
@@ -1547,8 +1265,7 @@ value "(exec_opt [PUSH 1, ADD] s0 [], exec_opt (compile sample) s0 [])"
   :: "int list option × int list option"
 ```
 
-With a continuation, the proof is the same as in Exercise 14.6. In the case `Add a b` the simplifier
-meets `exec1_opt ADD s (eval b s # eval a s # stk)`, which is `Some …`, so the `case` disappears:
+有了后续代码，证明就和练习 14.6 中一样。在情形 `Add a b` 中，化简器遇到 `exec1_opt ADD s (eval b s # eval a s # stk)`，它等于 `Some …`，所以 `case` 就消失了：
 
 ```isabelle
 lemma exec_opt_cont:
@@ -1560,14 +1277,12 @@ theorem exec_opt_compile:
   using exec_opt_cont [of e "[]"] by simp
 ```
 
-The theorem is stronger than `compile_correct`: it also says that compiled code never underflows, on
-any stack.
+这个定理比 `compile_correct` 更强：它还说明，编译出的代码在任何栈上都不会发生下溢。
 :::
 ::::
 
-:::: exercise A register machine {#ex-14-8} ★★★
-Instead of a stack, a register machine has numbered registers, modelled as a function `nat ⇒ int`, and
-instructions that name the registers they use:
+:::: exercise 一台寄存器机 {#ex-14-8} ★★★
+寄存器机（register machine）没有栈，而是有一些编了号的寄存器，用一个函数 `nat ⇒ int` 来建模；它的指令会写明自己使用哪些寄存器：
 
 ```isabelle
 datatype rinstr = LDI nat int | LDV nat vname | ADDR nat nat
@@ -1575,11 +1290,7 @@ datatype rinstr = LDI nat int | LDV nat vname | ADDR nat nat
 type_synonym regs = "nat ⇒ int"
 ```
 
-`LDI r n` loads the number n into register r, `LDV r x` loads the value of the variable x, and `ADDR r q`
-adds register q to register r. Define `rexec1` and `rexec` like `exec1` and `exec`, and a compiler
-`rcompile :: "expr ⇒ nat ⇒ rinstr list"` such that `rcompile e r` leaves the value of e in register r and
-uses only registers r, r + 1, … as scratch space. Prove that it is correct: the value ends up in register
-r, and the registers below r keep their contents.
+`LDI r n` 把数 n 装入寄存器 r，`LDV r x` 把变量 x 的值装入寄存器 r，`ADDR r q` 把寄存器 q 的值加到寄存器 r 上。仿照 `exec1` 和 `exec` 定义 `rexec1` 和 `rexec`，再定义一个编译器 `rcompile :: "expr ⇒ nat ⇒ rinstr list"`，使得 `rcompile e r` 把 e 的值留在寄存器 r 中，并且只把寄存器 r、r + 1、r + 2 等用作临时存储空间。证明它是正确的：值最后放在寄存器 r 中，而编号小于 r 的寄存器保持原来的内容。
 
 ::: solution
 ```isabelle
@@ -1610,11 +1321,7 @@ value "rcompile sample 0"
   :: "rinstr list"
 ```
 
-The register number plays the part of the stack height: the code for b works one register higher, so
-that it cannot overwrite the value of a in register r. The claim must say both things at once, because
-the case `Add` needs both from its hypotheses: the value of a is still in register r after the code of b
-has run only because that code leaves the registers below r + 1 alone. Both r and the register contents
-change between the recursive calls, so both are arbitrary:
+寄存器编号扮演了栈高度的角色：b 的代码在高一号的寄存器上工作，这样它就不会覆盖寄存器 r 中 a 的值。断言必须同时说出这两件事，因为情形 `Add` 需要从归纳假设中得到这两者：b 的代码运行之后，a 的值之所以还在寄存器 r 中，只是因为这段代码不去动编号小于 r + 1 的寄存器。r 和寄存器的内容在递归调用之间都会改变，所以两者都是任意的：
 
 ```isabelle
 theorem rcompile_correct:
@@ -1623,7 +1330,7 @@ theorem rcompile_correct:
   by (induction e arbitrary: r rs) auto
 ```
 
-Prove only the first half, and the induction gets stuck:
+如果只证明前一半，归纳就会卡住：
 
 ```isabelle
 lemma "rexec (rcompile e r) s rs r = eval e s"
@@ -1641,61 +1348,58 @@ goal (1 subgoal):
           eval e1 s
 ```
 
-The goal that remains asks whether the code of e2, compiled for register r + 1 (written `Suc r`), leaves
-register r alone. The hypotheses of the weaker claim say nothing about other registers, so the claim must
-be strengthened, as in Module 11.
+剩下的目标问的是：为寄存器 r + 1（写作 `Suc r`）编译的 e2 的代码，是否不去动寄存器 r。较弱的断言的归纳假设对其他寄存器什么也没说，所以必须像模块 11 中那样加强断言。
 
 ```isabelle
   oops
 ```
 
-The proof of McCarthy and Painter in 1967 (Section 14.1) was about a machine of this kind: an
-accumulator and registers, not a stack.
+麦卡锡和佩因特在 1967 年的证明（第 14.1 节）针对的正是这类机器：它有一个累加器和若干寄存器，而不是一个栈。
 :::
 ::::
 
-## Check yourself {#quiz}
+## 自测题 {#quiz}
 
 ```quiz
-? What does the theorem `compile_correct` say?
-- [ ] The compiler terminates on every expression
-- [x] For every expression, state and stack, running the compiled code puts the expression's value on top of the stack and leaves the rest unchanged
-- [ ] Running the compiled code on the empty stack gives a stack with one element
-- [ ] `eval` and `exec` are the same function
-> The statement is `exec (compile e) s stk = eval e s # stk` for all e, s and stk. The empty-stack version is a special case.
+? 定理 `compile_correct` 说的是什么？
+- [ ] 编译器对每个表达式都会终止
+- [x] 对每个表达式、状态和栈，运行编译出的代码都会把表达式的值放到栈顶，并保持栈的其余部分不变
+- [ ] 在空栈上运行编译出的代码，会得到一个只有一个元素的栈
+- [ ] `eval` 和 `exec` 是同一个函数
+> 这个陈述是：对所有的 e、s 和 stk，`exec (compile e) s stk = eval e s # stk`。关于空栈的版本只是一个特例。
 
-? Why does the proof of `compile_correct` need `arbitrary: stk`?
-- [ ] Because `eval` changes the state in its recursive calls
-- [ ] Because `stk` is a list
-- [ ] Because the claim is false for the empty stack
-- [x] Because in the case `Add a b` the hypothesis for b is needed with the stack `eval a s # stk`, not with stk
-> The code of b runs on top of the value of a. Without `arbitrary`, the hypothesis is about the fixed stk only.
+? 为什么 `compile_correct` 的证明需要 `arbitrary: stk`？
+- [ ] 因为 `eval` 在递归调用中会改变状态
+- [ ] 因为 `stk` 是一个列表
+- [ ] 因为断言对空栈不成立
+- [x] 因为在情形 `Add a b` 中，b 的归纳假设需要用于栈 `eval a s # stk`，而不是 stk
+> b 的代码在 a 的值的上面运行。没有 `arbitrary`，归纳假设就只谈论那个固定的 stk。
 
-? What is `compile (Add (Num 1) (Var ''x''))`?
+? `compile (Add (Num 1) (Var ''x''))` 是什么？
 - [ ] `[ADD, PUSH 1, LOAD ''x'']`
 - [ ] `[PUSH 1, ADD, LOAD ''x'']`
 - [x] `[PUSH 1, LOAD ''x'', ADD]`
 - [ ] `[LOAD ''x'', PUSH 1, ADD]`
-> Postfix order: the code of the left operand, then the code of the right one, then the operator.
+> 后缀顺序：先是左操作数的代码，然后是右操作数的代码，最后是运算符。
 
-? `quickcheck [size = 3]` finds no counterexample to a claim. What do you know?
-- [x] The claim holds for the values up to size 3 that Quickcheck tried; it may still be false
-- [ ] The claim is a theorem
-- [ ] The claim is false for some value larger than 3
-- [ ] Quickcheck ran out of time
-> Testing is evidence, not proof. Only a proof covers every expression.
+? `quickcheck [size = 3]` 没有为一个断言找到反例。你能得出什么结论？
+- [x] 这个断言对 Quickcheck 试过的、大小不超过 3 的值成立；它仍然可能是错的
+- [ ] 这个断言是一个定理
+- [ ] 这个断言对某个大于 3 的值不成立
+- [ ] Quickcheck 超时了
+> 测试是证据，而不是证明。只有证明才能覆盖每一个表达式。
 
-? For the machine with jumps, the lemma `exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)` is false. Why?
-- [ ] Because `SUB` is not commutative
-- [x] Because a jump in c1 can skip instructions of c2 when the two run as one program
-- [ ] Because `exec2` does not terminate
-- [ ] Because `drop` is not defined for long lists
-> Running c1 alone, a jump at its end skips nothing. The repair is to state correctness for the compiled code followed by any continuation c.
+? 对于带跳转的机器，引理 `exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)` 不成立。为什么？
+- [ ] 因为 `SUB` 不满足交换律
+- [x] 因为当两者作为一个程序运行时，c1 中的跳转可能会跳过 c2 的指令
+- [ ] 因为 `exec2` 不会终止
+- [ ] 因为 `drop` 对长列表没有定义
+> 单独运行 c1 时，它末尾的跳转什么也跳不过。修复的办法是：针对后面跟着任意后续代码 c 的编译代码来陈述正确性。
 
-? You run the Haskell code that `export_code` generated from `compile`. What must you still trust?
-- [ ] The proof of `compile_correct`
-- [ ] The simplifier that proved the lemmas
+? 你运行 `export_code` 从 `compile` 生成的 Haskell 代码。你仍然必须信任什么？
+- [ ] `compile_correct` 的证明
+- [ ] 证明了那些引理的化简器
 - [ ] Quickcheck
-- [x] Isabelle's code generator and the Haskell compiler
-> The proofs are checked by Isabelle's kernel. The translation to Haskell and its compilation are outside the kernel, so they are part of the trusted base.
+- [x] Isabelle 的代码生成器和 Haskell 编译器
+> 证明由 Isabelle 的内核检查。翻译成 Haskell 以及对它的编译都在内核之外，所以它们属于可信基。
 ```

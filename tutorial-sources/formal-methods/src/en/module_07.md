@@ -3,7 +3,7 @@ title: Natural deduction in Isabelle
 part: 2
 lead: Turn the paper proofs of Module 6 into Isabelle proof scripts, rule by rule, read every proof state on the way, and recognise what went wrong when a step fails.
 minutes: 240
-needs: Modules 1, 2, 3 and 6
+needs: Modules 1–3 and 6
 goals:
   - Tell Isabelle's meta-logic (⟹, ⋀, ≡) from the object logic HOL (⟶, ∀, =) and read rules written with ⟹
   - Look up the Isabelle name and statement of every natural-deduction rule with `thm`

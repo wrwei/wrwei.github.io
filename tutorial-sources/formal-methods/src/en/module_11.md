@@ -3,7 +3,7 @@ title: Induction in depth
 part: 3
 lead: Learn what to do when the obvious induction gets stuck. You will read a failed induction from its proof state, generalise or strengthen the claim, find the missing lemma, follow a function's own recursion, prove facts about predicates defined by rules, and choose the right kind of induction for each goal.
 minutes: 220
-needs: Modules 5 and 7 to 10
+needs: Modules 5 and 7–10
 goals:
   - Diagnose a stuck induction from its proof state and generalise the goal with arbitrary
   - Strengthen a claim, or find and prove an auxiliary lemma, when the induction hypothesis is too weak

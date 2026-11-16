@@ -1,101 +1,75 @@
 ---
-title: Verifying functional programs
+title: 验证函数式程序
 part: 4
-lead: Prove that a program does what its specification says, for every input. You will verify insertion sort, a binary search tree and a queue made of two lists, see why a specification needs each of its parts, and turn the verified functions into Haskell code.
+lead: 证明一个程序对每个输入都做到了它的规约所说的事。你将验证插入排序、二叉搜索树和由两个列表构成的队列，看清为什么规约的每一部分都不可缺少，并把经过验证的函数转换成 Haskell 代码。
 minutes: 230
-needs: Modules 1–11, especially Module 8 (functions), Module 10 (Isar) and Module 11 (auxiliary lemmas)
+needs: 模块 1–11，尤其是模块 8（函数）、模块 10（Isar）和模块 11（辅助引理）
 goals:
-  - Separate a specification (what a program must do) from an implementation (how it does it), and state the theorem that connects them
-  - Verify insertion sort against the specification "sorted, and a permutation of the input", finding the lemmas the proofs need
-  - Explain why each half of a specification is needed, and catch weak specifications with Quickcheck and Nitpick
-  - Verify a binary search tree with an invariant and an abstraction function
-  - Prove a queue made of two lists correct by data refinement, and say where its invariant is needed
-  - Export verified functions as Haskell code, and say what the generated code is and is not guaranteed to do
+  - 区分规约（程序必须做什么）和实现（程序怎样做），并陈述把两者联系起来的定理
+  - 对照规约“有序，并且是输入的一个排列”验证插入排序，并找出证明所需的引理
+  - 解释为什么规约的每一半都不可缺少，并用 Quickcheck 和 Nitpick 发现过弱的规约
+  - 借助不变式和抽象函数验证二叉搜索树
+  - 用数据精化证明由两个列表构成的队列是正确的，并指出哪里需要它的不变式
+  - 把经过验证的函数导出为 Haskell 代码，并说明生成的代码能保证什么、不能保证什么
 imports: Main "HOL-Library.Multiset"
 ---
 
-## What it means to verify a program {#verify}
+## 验证一个程序意味着什么 {#verify}
 
-Module 1 began with a requirement from a school's software: *"Sort the list of scores before printing
-it."* It turned the sentence into a formula about the input list xs and the output list ys,
+模块 1 从学校软件中的一条需求讲起：“打印成绩列表之前，先把它排好序。”它把这句话变成了一个关于输入列表 xs 和输出列表 ys 的公式，
 
 $$
 \mathit{sorted}(ys) \;\land\; \mathit{mset}(ys) = \mathit{mset}(xs),
 $$
 
-and promised that a proof could show that a sorting program meets it for every input. Parts II and III
-gave you the tools: functions defined with `fun` (Module 8), automation (Module 9), structured proofs
-(Module 10) and the art of finding the right induction and the missing lemma (Module 11). This module puts
-them together and keeps the promise.
+并且许诺：可以用证明来表明，一个排序程序对每个输入都满足这个公式。第二部分和第三部分为你准备好了工具：用 `fun` 定义的函数（模块 8）、自动化（模块 9）、结构化证明（模块 10），以及找出合适的归纳和所缺引理的技巧（模块 11）。本模块把它们结合起来，兑现这个承诺。
 
-Three things are involved in every verification, and it pays to keep them apart.
+每一次验证都涉及三样东西，把它们区分清楚是值得的。
 
-::: definition Implementation, specification, correctness theorem
-The **implementation** is the program that does the work: here, a function defined with `fun`. It says
-*how* to compute the result.
+::: definition 实现、规约、正确性定理
+**实现**（implementation）是完成实际工作的程序：在这里，就是一个用 `fun` 定义的函数。它说明**怎样**计算结果。
 
-The **specification** is a property that every acceptable result must have. It says *what* the result
-must be, not how to compute it.
+**规约**（specification）是每个可接受的结果都必须具有的性质。它说明结果必须是**什么**，而不说明怎样计算它。
 
-A **correctness theorem** states that for every input, the result of the implementation has the property
-of the specification. A program is **verified** when its correctness theorem has been proved.
+**正确性定理**（correctness theorem）断言：对每个输入，实现给出的结果都具有规约所要求的性质。当一个程序的正确性定理得到证明时，这个程序就是**经过验证的**（verified）。
 :::
 
-For sorting, the implementation in this module is insertion sort, a function `isort`. The specification
-is the formula above. The correctness theorem joins them:
+就排序而言，本模块中的实现是插入排序（insertion sort），即函数 `isort`。规约就是上面的公式。正确性定理把两者连接起来：
 
 $$
 \forall xs.\; \mathit{sorted}(\mathit{isort}\ xs) \land \mathit{mset}(\mathit{isort}\ xs) = \mathit{mset}(xs)
 $$
 
 ::: figure id=fig-12-1
-Verification connects two separate descriptions. The specification says what a sorted copy of a list is;
-the implementation says how insertion sort computes one. The correctness theorem, proved once, connects
-them for every list.
+验证把两份互相独立的描述联系起来。规约说明一个列表排好序的副本是什么样的；实现说明插入排序怎样算出这样一个副本。正确性定理只需证明一次，就对每个列表都把两者联系了起来。
 :::
 
-Why write two descriptions of the same thing? Because they serve different readers.
+为什么要为同一件事写两份描述？因为它们是写给不同的读者的。
 
-- **The specification is for people.** It should be short and close to what was meant, so that you can
-  check by reading it that it says the right thing. This is validation (Module 1), and it is easier the
-  less the specification says about computation.
-- **The implementation is for the computer.** It should be fast, use little memory, or fit the data
-  structures at hand. Clever implementations are hard to check by reading.
-- **The proof is the bridge.** Once the theorem is proved, nobody has to read the implementation to trust
-  it: it is enough to read the specification and know that Isabelle has checked the proof.
+- **规约是写给人看的。** 它应该简短，并且贴近本来想表达的意思，这样你读一读就能检查它说得对不对。这就是确认（模块 1）；规约讲到的计算细节越少，确认就越容易。
+- **实现是写给计算机的。** 它应该运行得快、占用内存少，或者适合手头的数据结构。巧妙的实现很难靠阅读来检查。
+- **证明是两者之间的桥梁。** 定理一旦得到证明，谁也不必为了信任实现而去读它：只要读懂规约，并且知道 Isabelle 已经检查过证明，就够了。
 
-One specification also serves many implementations. Insertion sort, merge sort and quicksort all meet the
-same sorting specification; each needs its own proof, but the statement of the theorem is the same.
+一个规约还可以服务于许多实现。插入排序、归并排序和快速排序都满足同一个排序规约；每种排序都需要自己的证明，但定理的陈述是相同的。
 
-Specifications come in two kinds, and this module uses both. A **property** describes the result
-directly, as `sorted` and `mset` do for sorting. A **model** describes a simple version of the data and
-its operations, such as a mathematical set or a plain list, and the theorem says that the clever version
-behaves like the simple one. Sections 12.5 and 12.6 develop the second kind.
+规约分为两种，本模块两种都会用到。**性质**（property）直接描述结果，就像 `sorted` 和 `mset` 对排序所做的那样。**模型**（model）描述数据及其操作的一个简单版本，例如数学上的集合或普通的列表，而定理说明巧妙的版本与简单的版本行为一致。第 12.5 节和第 12.6 节会展开讲第二种。
 
 ::: keyidea
-A test checks the implementation on one input. A correctness theorem covers every input, but it is
-only as good as its specification: a proof against a specification that says too little proves too
-little. Section 12.4 shows what happens when half of a specification is missing.
+一个测试只在一个输入上检查实现。正确性定理覆盖每一个输入，但它的价值取决于它的规约：对照一个说得太少的规约所做的证明，证明的东西也太少。第 12.4 节会展示规约缺了一半时会发生什么。
 :::
 
 ::: note
-The correctness in this module is **functional correctness**: it is about which result a program
-computes. How long it takes and how much memory it uses are other properties, with specifications of
-their own. They can be verified too, but this module does not; Section 12.6 points to a library theory
-that does it for one of the programs here.
+本模块中的正确性是**功能正确性**（functional correctness）：它关心的是程序算出什么结果。程序运行多长时间、占用多少内存是另外的性质，有它们自己的规约。这些性质也可以验证，但本模块不做；第 12.6 节会指出一个库理论，它为这里的一个程序做了这件事。
 :::
 
-## Insertion sort and its specification {#isort}
+## 插入排序及其规约 {#isort}
 
-### The program {#isort-program}
+### 程序 {#isort-program}
 
-Insertion sort is the way many people sort a hand of cards: take the cards one at a time and insert each
-into its place among the cards already sorted. As a recursive function it reads: to sort a list x # xs,
-sort the tail xs, then insert x at the right place. Inserting x into a sorted list walks along the list
-until it meets an element that is not smaller than x, and puts x in front of it.
+插入排序就是许多人整理手中扑克牌的方法：一次拿起一张牌，把它插到已经排好的那些牌中合适的位置上。写成递归函数，就是：要给列表 x # xs 排序，先给尾部 xs 排序，再把 x 插到正确的位置上。把 x 插入一个有序的（sorted）列表时，沿着列表往后走，直到遇到一个不小于 x 的元素，然后把 x 放在它前面。
 
-::: example Insertion sort on paper
-Write `ins x ys` for inserting x into the sorted list ys, and `isort` for the sort. Then
+::: example 在纸上做插入排序
+用 `ins x ys` 表示把 x 插入有序列表 ys，用 `isort` 表示排序。于是
 
 $$
 \begin{aligned}
@@ -109,12 +83,10 @@ $$
 \end{aligned}
 $$
 
-`ins 1 [2]` puts 1 in front at once, because 1 ≤ 2. `ins 3 [1, 2]` passes 1 and 2, because neither is
-at least 3, and arrives at the end of the list.
+`ins 1 [2]` 立即把 1 放在最前面，因为 1 ≤ 2。`ins 3 [1, 2]` 会越过 1 和 2，因为它们都小于 3，最后到达列表的末尾。
 :::
 
-Start a new theory for this module, for example `Verify.thy`. Its header imports a theory from Isabelle's
-library **HOL-Library** besides `Main`:
+为本模块新建一个理论，例如 `Verify.thy`。它的开头除了 `Main` 之外，还导入了 Isabelle 的库 **HOL-Library** 中的一个理论：
 
 ```isabelle norun
 theory Verify
@@ -124,19 +96,11 @@ begin
 end
 ```
 
-The Isabelle text of this module goes between `begin` and `end`. HOL-Library is a collection of theories
-that comes with Isabelle but is not part of `Main`. `"HOL-Library.Multiset"` names its theory
-`Multiset`, which defines multisets and the function `mset` of the specification. The quotation marks
-are needed because of the hyphen: without them Isabelle would read three imports, `HOL`, `-` and
-`Library.Multiset`. (Here they do not mark inner syntax, as they do in a `lemma`.)
+本模块的 Isabelle 文本都写在 `begin` 和 `end` 之间。HOL-Library 是随 Isabelle 一起提供、但不属于 `Main` 的一组理论。`"HOL-Library.Multiset"` 指的是其中的理论 `Multiset`，它定义了多重集（multiset）和规约中用到的函数 `mset`。引号是必需的，因为名字里有连字符：没有引号，Isabelle 会把它读成三个导入项：`HOL`、`-` 和 `Library.Multiset`。（在这里，引号并不像在 `lemma` 中那样标记内层语法。）
 
-When you open a theory with this import, Isabelle/jEdit first checks `Multiset` and the library theory
-it builds on, and only then your own text. This can take up to a minute. The **Theories** panel shows
-the progress; until it has finished, your own text stays unchecked and the Output panel shows nothing
-for it. It happens each time you start Isabelle/jEdit, because HOL-Library is not part of the prebuilt
-HOL image that Isabelle/jEdit loads at the start.
+打开带有这个导入的理论时，Isabelle/jEdit 会先检查 `Multiset` 及其所依赖的库理论，然后才检查你自己的文本。这可能要花上一分钟。**Theories**（理论）面板会显示进度；在它完成之前，你自己的文本还没有被检查，**Output**（输出）面板也不会为它显示任何内容。每次启动 Isabelle/jEdit 都会这样，因为 Isabelle/jEdit 启动时加载的是预先构建好的 HOL 映像，而 HOL-Library 不在其中。
 
-Now the two functions:
+现在来看这两个函数：
 
 ```isabelle
 fun ins :: "'a::linorder ⇒ 'a list ⇒ 'a list" where
@@ -164,14 +128,9 @@ consts
 Found termination order: "length <*mlex*> {}"
 ```
 
-The type `'a::linorder` reads "any type `'a` in the class `linorder`". Module 8 introduced type
-classes; `linorder` is the class of **linearly ordered** types, whose `≤` is reflexive, transitive and
-antisymmetric and relates any two values one way or the other: x ≤ y or y ≤ x. The natural numbers and
-the integers are linearly ordered, so `isort` sorts lists of either. Isabelle's answer prints the types
-without the class, as it does by default (Module 8 showed how to make sorts visible). The names `ins`
-and `isort` are chosen so as not to clash with the library's own insertion sort, `insort` and `sort`.
+类型 `'a::linorder` 读作“类 `linorder` 中的任意类型 `'a`”。模块 8 介绍过类型类（type class）；`linorder` 是**线性有序**（linearly ordered）类型的类。这些类型的 `≤` 是自反的、传递的和反对称的，并且任意两个值都能比较：x ≤ y 或 y ≤ x；也就是说，`≤` 是一个全序（模块 4）。自然数和整数都是线性有序的，所以 `isort` 既能给自然数列表排序，也能给整数列表排序。Isabelle 的回答打印类型时没有写出类，这是它的默认做法；模块 8 演示过怎样让类别（sort）显示出来。之所以取名 `ins` 和 `isort`，是为了不与库中自带的插入排序 `insort` 和 `sort` 冲突。
 
-Test the program before you try to prove anything about it:
+在试图证明关于这个程序的任何东西之前，先测试它：
 
 ```isabelle
 value "isort [3, 1, 4, 1, 5, 9, 2, 6 :: int]"
@@ -183,7 +142,7 @@ value "isort [3, 1, 4, 1, 5, 9, 2, 6 :: int]"
 ```
 
 ::: trouble
-If you leave out `::linorder`, Isabelle does not know that `≤` exists for the type `'a`:
+如果去掉 `::linorder`，Isabelle 就不知道类型 `'a` 上有 `≤`：
 
 ```isabelle fails
 fun ins_any :: "'a ⇒ 'a list ⇒ 'a list" where
@@ -201,20 +160,14 @@ fun ins_any :: "'a ⇒ 'a list ⇒ 'a list" where
 ***
 ```
 
-A plain `'a` stands for any type at all, including types that have no `≤`; in Isabelle's words, its sort
-is `type`, the sort of all types. The message says that such a variable is not of sort `ord`, the class
-of types with `≤` and `<`. The **sort** after `::` (Module 8) restricts `'a` to types that have them.
-`'a::ord` would be enough to make the definition type-check, but the proofs below need the laws of a
-linear order, so use `linorder`.
+不加限制的 `'a` 可以代表任何类型，包括没有 `≤` 的类型；用 Isabelle 的话说，它的类别是 `type`，即所有类型构成的类别。消息开头的“Type unification failed”意思是类型合一失败；它接着说，这样的变量不属于类别 `ord`，而 `ord` 是带有 `≤` 和 `<` 的类型构成的类。`::` 后面的**类别**（模块 8）把 `'a` 限制为具有这些运算的类型。写成 `'a::ord` 就足以让这个定义通过类型检查，但下面的证明需要线性序的定律，所以要用 `linorder`。
 :::
 
-### The specification {#isort-spec}
+### 规约 {#isort-spec}
 
-The specification has two halves, both made of library functions.
+这个规约分为两半，两半都由库函数构成。
 
-**Sorted.** `sorted` from the library says that each element of a list is at most every element after
-it. The library defines `sorted` through a more general function, `sorted_wrt`, so its equations are
-not called `sorted.simps`; they are the lemma `sorted_simps`:
+**有序。** 库中的 `sorted` 说的是：列表中的每个元素都不大于它后面的每个元素。库是通过一个更一般的函数 `sorted_wrt` 来定义 `sorted` 的，所以它的等式不叫 `sorted.simps`，而是引理 `sorted_simps`：
 
 ```isabelle
 thm sorted_simps
@@ -225,10 +178,7 @@ thm sorted_simps
   sorted (?x # ?ys) = ((∀y∈set ?ys. ?x ≤ y) ∧ sorted ?ys)
 ```
 
-The question marks mark schematic variables (Module 7): the equations hold for every x and ys. Read the
-second equation aloud: "x # ys is sorted if and only if x is at most every y in ys, and ys is sorted".
-`set ys` is the set of the elements of ys, and `∀y∈set ys. P y` reads "for every y in ys, P of y". Try
-it on two lists:
+问号标出的是图式变量（schematic variable，模块 7）：这些等式对每个 x 和 ys 都成立。把第二个等式读出来：“x # ys 是有序的，当且仅当 x 不大于 ys 中的每个 y，并且 ys 是有序的”。`set ys` 是 ys 的元素组成的集合，`∀y∈set ys. P y` 读作“对 ys 中的每个 y，P y 成立”。在两个列表上试一试：
 
 ```isabelle
 value "sorted [1, 2, 2, 5 :: nat]"
@@ -243,15 +193,10 @@ value "sorted [1, 3, 2 :: nat]"
   :: "bool"
 ```
 
-**A permutation.** Sortedness alone is not enough, as Module 1 noticed: the empty list is sorted. The
-result must also contain the same elements as the input, each as often. Sets cannot say "as often", so the
-specification uses multisets.
+**是一个排列。** 正如模块 1 已经注意到的，光是有序还不够：空列表也是有序的。结果还必须与输入含有相同的元素，并且每个元素出现的次数也相同。集合无法表达“次数相同”，所以规约使用多重集。
 
-::: definition Multiset and permutation
-A **multiset** (or *bag*) is a collection in which order does not matter but the number of copies of each
-element does. `mset xs`, of type `'a multiset`, is the multiset of the elements of the list xs;
-`count M x` is the number of copies of x in M. A list ys is a **permutation** of xs if it has the
-same elements, each as often: `mset ys = mset xs`.
+::: definition 多重集与排列
+**多重集**也叫**袋**（bag），它是这样一种汇集：元素的顺序无关紧要，但每个元素有几个副本是要紧的。`mset xs` 的类型是 `'a multiset`，它是列表 xs 的元素组成的多重集；`count M x` 是 x 在 M 中的副本个数。如果列表 ys 与 xs 含有相同的元素，并且每个元素出现的次数也相同，即 `mset ys = mset xs`，就说 ys 是 xs 的一个**排列**（permutation）。
 :::
 
 ```isabelle
@@ -271,8 +216,7 @@ value "count (mset [2, 1, 2 :: nat]) 2"
   :: "nat"
 ```
 
-`[2, 1, 2]` and `[1, 2, 2]` are permutations of each other; `[1, 2]` has one 2 too few. In proofs you
-meet multisets through the two equations that define `mset`:
+`[2, 1, 2]` 和 `[1, 2, 2]` 互为排列；`[1, 2]` 则少了一个 2。在证明中，你会通过定义 `mset` 的两个等式与多重集打交道：
 
 ```isabelle
 thm mset.simps
@@ -283,10 +227,7 @@ thm mset.simps
   mset (?a # ?x) = add_mset ?a (mset ?x)
 ```
 
-The second equation reads "the multiset of a # x is the multiset of x with one more copy of a". `{#}` is
-the empty multiset and `add_mset a M` is M with one more copy of a. So
-`mset [3, 1] = add_mset 3 (add_mset 1 {#})`, which Isabelle also writes `{#3, 1#}`. When `value`
-computes a multiset, though, it shows it as `mset` of a list:
+第二个等式读作“a # x 的多重集，就是 x 的多重集再加上一个 a 的副本”。`{#}` 是空多重集，`add_mset a M` 是 M 再加上一个 a 的副本。所以 `mset [3, 1] = add_mset 3 (add_mset 1 {#})`，Isabelle 也把它写成 `{#3, 1#}`。不过，当 `value` 计算出一个多重集时，它会把结果显示成某个列表的 `mset`：
 
 ```isabelle
 value "mset [3, 1 :: nat]"
@@ -297,15 +238,13 @@ value "mset [3, 1 :: nat]"
   :: "nat multiset"
 ```
 
-To compute with multisets, Isabelle represents each one by a list of its elements, and `value` prints
-that representation. Section 12.6 comes back to this.
+为了用多重集进行计算，Isabelle 用一个由元素组成的列表来表示每个多重集，而 `value` 打印的正是这种表示。第 12.6 节还会回到这一点。
 
-::: definition The sorting specification
-A function `f :: 'a::linorder list ⇒ 'a list` **meets the sorting specification** if for every list xs,
-`sorted (f xs)` and `mset (f xs) = mset xs`: the result is sorted, and it is a permutation of the input.
+::: definition 排序规约
+如果对每个列表 xs，都有 `sorted (f xs)` 和 `mset (f xs) = mset xs`，也就是说，结果是有序的，并且是输入的一个排列，就说函数 `f :: 'a::linorder list ⇒ 'a list` **满足排序规约**。
 :::
 
-Before you spend time on a proof, test the claim. Quickcheck (Module 9) tries to refute it:
+在花时间做证明之前，先测试这个断言。Quickcheck（模块 9）会尝试反驳它：
 
 ```isabelle
 lemma "sorted (isort xs) ∧ mset (isort xs) = mset xs"
@@ -319,20 +258,15 @@ Testing conjecture with Quickcheck-exhaustive...
 Quickcheck found no counterexample.
 ```
 
-Quickcheck tried every list up to a small size and found no counterexample. That is encouraging, not
-conclusive: a bug might show only on longer lists. In Isabelle/jEdit you do not even need the command,
-because Auto Quickcheck tries every new `lemma` statement and marks the line with a blue **i** when it
-finds a counterexample (Module 1). Now prove it.
+Quickcheck 尝试了规模不超过某个较小上限的所有列表，没有找到反例。这令人鼓舞，但还不是定论：错误可能只在更长的列表上才显现出来。在 Isabelle/jEdit 中，你甚至不需要这条命令，因为 Auto Quickcheck 会尝试每个新的 `lemma` 陈述，找到反例时就在那一行旁边标出一个蓝色的 **i**（模块 1）。现在来证明它。
 
-## Proving insertion sort correct {#isort-proof}
+## 证明插入排序的正确性 {#isort-proof}
 
-The correctness theorem is a conjunction, so prove its halves separately and join them at the end.
-Both halves follow the same plan, the one Module 11 taught: try the obvious induction, read the goal on
-which automation gets stuck, and find the lemma that is missing.
+正确性定理是一个合取式，所以分别证明它的两半，最后再把它们合起来。两半都遵循同一个计划，也就是模块 11 教过的那个：先尝试最直接的归纳，读一读自动化工具卡住的那个目标，再找出缺少的引理。
 
-### Sorted: the obvious attempt {#sorted-attempt}
+### 有序：最直接的尝试 {#sorted-attempt}
 
-`isort` is defined by recursion on the list, so try induction on the list:
+`isort` 是通过在列表上递归来定义的，所以试试对列表做归纳：
 
 ```isabelle fails
 lemma "sorted (isort xs)"

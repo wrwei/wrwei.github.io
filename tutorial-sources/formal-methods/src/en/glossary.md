@@ -98,6 +98,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **contrapositive**<br>逆否命题 | The contrapositive of A ⟶ B is ¬B ⟶ ¬A. Both say the same, so proving one proves the other. | [6.1](module_06_EN.html#informal) |
 | **converse (of a relation)**<br>逆关系 | R⁻¹, which reverses every pair of R. Isabelle writes `r¯`. | [4.2.4](module_04_EN.html#rel-ops) |
 | **converse (of an implication)**<br>逆命题 | The converse of A ⟶ B is B ⟶ A, which says something different. Proving it instead is a common mistake. | [6.1](module_06_EN.html#informal) |
+| **corollary**<br>推论 | A fact that follows directly from a theorem. In Isabelle the command `corollary` means the same as `lemma`; the name only tells the reader. | [11.7.3](module_11_EN.html#grammar), [14.5.4](module_14_EN.html#isar) |
 | **correctness theorem**<br>正确性定理 | A theorem stating that for every input, the result of the implementation has the property of the specification. | [12.1](module_12_EN.html#verify) |
 | **countable**<br>可数的 | A set is countable if there is an injective function from it to ℕ: it is finite, or its elements can be listed as a₀, a₁, a₂, … | [4.7.3](module_04_EN.html#countable) |
 | **counterexample**<br>反例 | Something that makes a claim false: a valuation, values of the free variables, or a run that reaches a bad state. | [2.4](module_02_EN.html#classify), [13.3](module_13_EN.html#invariants) |
@@ -165,7 +166,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **fairness**<br>公平性 | An assumption that rules out unfair runs, such as "an event whose guard stays true is eventually taken". Proofs of liveness need it. | [13.8.1](module_13_EN.html#liveness) |
 | **falsum (⊥)**<br>恒假（⊥） | ⊥, read "bottom" or "falsum": the formula that is false in every valuation and every structure. Isabelle writes `False`. | [6.4.5](module_06_EN.html#not) |
 | **finite model**<br>有限模型 | A model in which every type is finite. Nitpick searches for one that makes a claim false. | [9.7.2](module_09_EN.html#nitpick) |
-| **fixed variable**<br>固定变量 | A variable bound by ⋀ in a subgoal, or introduced by `fix` in Isar. It stands for an arbitrary value, and unification never replaces it. Isabelle also calls it a parameter. | [7.6.1](module_07_EN.html#quantifiers-all), [10.2.4](module_10_EN.html#shape-fix) |
+| **fixed variable**<br>固定变元 | A variable bound by ⋀ in a subgoal, or introduced by `fix` in Isar. It stands for an arbitrary value, and unification never replaces it. Isabelle also calls it a parameter. | [7.6.1](module_07_EN.html#quantifiers-all), [10.2.4](module_10_EN.html#shape-fix) |
 | **formal language**<br>形式语言 | A language with an exact grammar, so that every statement has one reading; the first ingredient of a formal method. | [1.2](module_01_EN.html#formal) |
 | **formal method**<br>形式化方法 | A way of specifying or verifying a system in a language with a precise mathematical meaning, so that claims about the system can be checked by calculation or proof. | [1.2](module_01_EN.html#formal) |
 | **formal specification**<br>形式化规约 | A specification written in a formal language. | [1.2](module_01_EN.html#formal) |
@@ -400,7 +401,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 
 | Term | Meaning | Section |
 |---|---|---|
-| **safe**<br>安全的 | A step or rule is safe if it never turns a provable goal into unprovable subgoals, as `conjI` and `impI` do; unsafe ones, such as `disjI1` and `allE`, may. | [6.7](module_06_EN.html#search), [9.4](module_09_EN.html#classical) |
+| **safe rule**<br>安全规则 | A rule, or a step of proof search, is safe if it never turns a provable goal into unprovable subgoals, as `conjI` and `impI` do; unsafe ones, such as `disjI1` and `allE`, may. | [6.7](module_06_EN.html#search), [9.4](module_09_EN.html#classical) |
 | **safety property**<br>安全性质 | A property saying that something bad never happens: it must hold in every reachable state. | [4.5.2](module_04_EN.html#reachability), [13.3](module_13_EN.html#invariants) |
 | **SAT (satisfiability problem)**<br>可满足性问题（SAT） | Given a propositional formula, usually in CNF, is it satisfiable? | [2.8](module_02_EN.html#sat) |
 | **SAT solver**<br>SAT 求解器 | A program that decides whether a propositional formula is satisfiable and, if it is, returns a satisfying valuation. | [2.8](module_02_EN.html#sat) |
@@ -453,7 +454,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | Term | Meaning | Section |
 |---|---|---|
 | **tail**<br>尾部 | The rest xs of a list x # xs, after its head. | [5.2.1](module_05_EN.html#lists) |
-| **tail recursion**<br>尾递归 | A function is tail-recursive when the recursive call is the last thing it does, so that it can run as a loop. | [11.1.1](module_11_EN.html#running-total) |
+| **tail-recursive**<br>尾递归的 | A function is tail-recursive when the recursive call is the last thing it does, so that it can run as a loop. | [11.1.1](module_11_EN.html#running-total) |
 | **tautology**<br>重言式 | A formula true under every valuation; also called valid. | [2.4](module_02_EN.html#classify) |
 | **temporal logic**<br>时序逻辑 | A logic whose operators speak about runs, such as □ P ("always P") and ◇ P ("eventually P"); model checkers check its formulas. | [13.8.1](module_13_EN.html#liveness) |
 | **term**<br>项 | An expression that names an object: a variable, a constant, or a function applied to terms. In HOL every expression is a term, formulas included. | [3.2.1](module_03_EN.html#terms), [8.1.2](module_08_EN.html#terms) |

@@ -3,7 +3,7 @@ title: Proof automation
 part: 3
 lead: Use Isabelle's automatic tools with understanding. Steer the simplifier, choose the right method for logic, sets and arithmetic, find lemmas and counterexamples, call Sledgehammer, and know what to do when automation fails.
 minutes: 210
-needs: Modules 1–8, especially induction (Module 5), rules (Module 7) and definitions (Module 8)
+needs: Modules 1–8
 goals:
   - Explain how the simplifier rewrites a goal, and steer it with simp rules, `add:`, `del:`, `only:` and `split:`
   - Recognise conditional rules, case splits and rules that loop, and read a simplifier trace

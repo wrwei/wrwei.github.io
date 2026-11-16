@@ -3,7 +3,7 @@ title: What is a proof? Natural deduction
 part: 2
 lead: What turns an argument into a proof, and how to write proofs that a machine can check. You will learn the rules of natural deduction for every connective, both quantifiers and equality, build derivations by hand, and find them by working backwards from the goal, as Isabelle does.
 minutes: 220
-needs: Modules 1–5, especially Modules 2 and 3 (truth tables and ⊨, quantifiers and structures)
+needs: Modules 1–5
 goals:
   - Recognise the common patterns of informal proof and name the rule behind each
   - Explain the difference between ⊢ and ⊨, and what soundness and completeness guarantee

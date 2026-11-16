@@ -16,7 +16,7 @@ imports: Main
 
 ## 一个系统中的两种逻辑 {#meta}
 
-在[模块 6](module_06_ZH.html)中，你在纸上构造了自然演绎（natural deduction）证明：从你想要的公式出发，选一条能得出它的规则，然后一步步向上推，直到每个分支都终止于一个假设。Isabelle 正是这样构造证明的，而且会检查每一步。在本模块中，你将在 Isabelle 中一条规则一条规则地重做模块 6 的证明，让每一棵纸上的证明树都变成一段简短的证明脚本（proof script）。
+在[模块 6](module_06_ZH.html) 中，你在纸上构造了自然演绎（natural deduction）证明：从你想要的公式出发，选一条能得出它的规则，然后一步步向上推，直到每个分支都终止于一个假设。Isabelle 正是这样构造证明的，而且会检查每一步。在本模块中，你将在 Isabelle 中一条规则一条规则地重做模块 6 的证明，让每一棵纸上的证明树都变成一段简短的证明脚本（proof script）。
 
 在做第一个证明之前，你需要先学会读 Isabelle 书写规则和目标所用的记法。这套记法涉及第二种逻辑：一种位于 HOL 之下、更小的逻辑。
 
@@ -126,12 +126,11 @@ lemma "(A ⟹ B) ∧ C"
 Isabelle 报告“Inner syntax error”（内层语法错误）和“Failed to parse prop”（未能解析 prop）：它把 `(A ⟹ B)` 读成了一个 Pure 陈述，接下来就无法处理 `∧ C` 了，因为 ∧ 连接的是 HOL 公式。在公式内部要写 ⟶。还要注意，⟹ 比 HOL 的任何符号结合得都弱：`A ∧ B ⟹ C` 的意思是 `(A ∧ B) ⟹ C`。
 :::
 
-## Rules are theorems {#rules}
+## 规则就是定理 {#rules}
 
-### Look a rule up with thm {#rules-thm}
+### 用 thm 查看规则 {#rules-thm}
 
-In Isabelle a rule is not a separate kind of object. It is a theorem whose statement uses ⟹, and `thm`
-shows it:
+在 Isabelle 中，规则并不是另一种对象，而是一个陈述中用到了 ⟹ 的定理，`thm` 可以把它显示出来：
 
 ```isabelle
 thm conjI
@@ -141,7 +140,7 @@ thm conjI
 ⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q
 ```
 
-Compare it with (∧I) as Module 6 drew it:
+把它和模块 6 画出的 (∧I) 比较一下：
 
 ```prooftree
 P ∧ Q   (∧I)
@@ -149,18 +148,13 @@ P ∧ Q   (∧I)
   Q
 ```
 
-The premises above the line become the premises before ⟹, and the conclusion below the line becomes the
-conclusion after it. The name, conjI, is short for *conjunction introduction*.
+横线上方的前提变成了 ⟹ 前面的前提，横线下方的结论变成了 ⟹ 后面的结论。名字 conjI 是 **conjunction introduction**（合取引入）的缩写。
 
-::: definition Schematic variable
-A **schematic variable**, or **unknown**, is a variable written with a question mark, such as `?P`. It is
-a placeholder: when a theorem is used, Isabelle may replace it with any term of the right type, the same
-term at every occurrence. When Isabelle stores a proved lemma, it turns the lemma's free variables into
-schematic variables, which records that the lemma holds for all their values.
+::: definition 图式变量
+**图式变量**（schematic variable），又叫**未知量**（unknown），是带问号的变量，例如 `?P`。它是一个占位符：使用定理时，Isabelle 可以把它换成任何类型合适的项（term），但每一处出现都要换成同一个项。Isabelle 存储一条已经证明的引理时，会把引理中的自由变元（free variable）变成图式变量，以此记下这条引理对这些变元的所有取值都成立。
 :::
 
-So conjI works for any two formulas. You can choose them yourself with `of`, which replaces the schematic
-variables from left to right:
+所以 conjI 对任意两个公式都适用。你可以用 `of` 自己选定这两个公式，`of` 按从左到右的顺序替换图式变量：
 
 ```isabelle
 thm conjI[of "door_closed" "lift_stopped"]
@@ -170,14 +164,11 @@ thm conjI[of "door_closed" "lift_stopped"]
 ⟦door_closed; lift_stopped⟧ ⟹ door_closed ∧ lift_stopped
 ```
 
-Here `door_closed` and `lift_stopped` are free variables of type `bool`: two facts about a lift, say.
-Usually you do not choose by hand. Isabelle finds the right replacement itself, by unification
-(Section 7.3).
+这里的 `door_closed` 和 `lift_stopped` 是类型为 `bool` 的自由变元，比如说，关于一部电梯的两个事实（门已关好，电梯已停稳）。通常你不必手工选择：Isabelle 会通过合一自己找到正确的替换（第 7.3 节）。
 
-### The rules of Module 6 {#rules-table}
+### 模块 6 的规则 {#rules-table}
 
-Here are the rules of Module 6 as Isabelle states them. Each `thm` command below shows several rules, one
-per line, in the order of their names:
+下面是 Isabelle 所陈述的模块 6 的规则。下面每条 `thm` 命令都显示几条规则，每行一条，顺序与命令中名字的顺序相同：
 
 ```isabelle
 thm conjI conjunct1 conjunct2 conjE disjI1 disjI2 disjE
@@ -233,92 +224,71 @@ thm ccontr classical refl subst ssubst iffI iffD1 iffD2
   ⟦?P = ?Q; ?Q⟧ ⟹ ?P
 ```
 
-The table puts each one next to its paper rule:
+下表把每条规则和它对应的纸上规则并排列出：
 
-| Paper rule (Module 6) | Isabelle name | Statement, as `thm` prints it |
+| 纸上规则（模块 6） | Isabelle 中的名字 | `thm` 显示的陈述 |
 |---|---|---|
 | (∧I) | `conjI` | `⟦?P; ?Q⟧ ⟹ ?P ∧ ?Q` |
 | (∧E₁) | `conjunct1` | `?P ∧ ?Q ⟹ ?P` |
 | (∧E₂) | `conjunct2` | `?P ∧ ?Q ⟹ ?Q` |
-| (∧E₁) and (∧E₂) at once | `conjE` | `⟦?P ∧ ?Q; ⟦?P; ?Q⟧ ⟹ ?R⟧ ⟹ ?R` |
+| (∧E₁) 和 (∧E₂) 合在一起 | `conjE` | `⟦?P ∧ ?Q; ⟦?P; ?Q⟧ ⟹ ?R⟧ ⟹ ?R` |
 | (∨I₁) | `disjI1` | `?P ⟹ ?P ∨ ?Q` |
 | (∨I₂) | `disjI2` | `?Q ⟹ ?P ∨ ?Q` |
 | (∨E) | `disjE` | `⟦?P ∨ ?Q; ?P ⟹ ?R; ?Q ⟹ ?R⟧ ⟹ ?R` |
 | (⟶I) | `impI` | `(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q` |
 | (⟶E) | `mp` | `⟦?P ⟶ ?Q; ?P⟧ ⟹ ?Q` |
-| (⟶E), elimination form | `impE` | `⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R` |
+| (⟶E)，消去形式 | `impE` | `⟦?P ⟶ ?Q; ?P; ?Q ⟹ ?R⟧ ⟹ ?R` |
 | (¬I) | `notI` | `(?P ⟹ False) ⟹ ¬ ?P` |
-| (¬E), with ⊥ as ?R | `notE` | `⟦¬ ?P; ?P⟧ ⟹ ?R` |
+| (¬E)，?R 取 ⊥ | `notE` | `⟦¬ ?P; ?P⟧ ⟹ ?R` |
 | (⊥E) | `FalseE` | `False ⟹ ?P` |
 | (∀I) | `allI` | `(⋀x. ?P x) ⟹ ∀x. ?P x` |
 | (∀E) | `spec` | `∀x. ?P x ⟹ ?P ?x` |
-| (∀E), elimination form | `allE` | `⟦∀x. ?P x; ?P ?x ⟹ ?R⟧ ⟹ ?R` |
+| (∀E)，消去形式 | `allE` | `⟦∀x. ?P x; ?P ?x ⟹ ?R⟧ ⟹ ?R` |
 | (∃I) | `exI` | `?P ?x ⟹ ∃x. ?P x` |
 | (∃E) | `exE` | `⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q` |
 | (RAA) | `ccontr` | `(¬ ?P ⟹ False) ⟹ ?P` |
-| (RAA), variant | `classical` | `(¬ ?P ⟹ ?P) ⟹ ?P` |
+| (RAA)，变体 | `classical` | `(¬ ?P ⟹ ?P) ⟹ ?P` |
 | (=I) | `refl` | `?t = ?t` |
 | (=E) | `subst` | `⟦?s = ?t; ?P ?s⟧ ⟹ ?P ?t` |
-| (=E), right to left | `ssubst` | `⟦?t = ?s; ?P ?s⟧ ⟹ ?P ?t` |
-| none | `iffI` | `⟦?P ⟹ ?Q; ?Q ⟹ ?P⟧ ⟹ ?P = ?Q` |
-| none | `iffD1` | `⟦?Q = ?P; ?Q⟧ ⟹ ?P` |
-| none | `iffD2` | `⟦?P = ?Q; ?Q⟧ ⟹ ?P` |
+| (=E)，从右到左 | `ssubst` | `⟦?t = ?s; ?P ?s⟧ ⟹ ?P ?t` |
+| 无 | `iffI` | `⟦?P ⟹ ?Q; ?Q ⟹ ?P⟧ ⟹ ?P = ?Q` |
+| 无 | `iffD1` | `⟦?Q = ?P; ?Q⟧ ⟹ ?P` |
+| 无 | `iffD2` | `⟦?P = ?Q; ?Q⟧ ⟹ ?P` |
 
-A few things to notice:
+有几点值得注意：
 
-- The names follow a pattern: `I` for introduction, `E` for elimination, `D` for destruction (explained
-  below), and `1` and `2` for the two versions of a rule. `mp` is *modus ponens*, `spec` is
-  *specialisation*, `refl` is *reflexivity*.
-- ⊥ is `False`, and Isabelle prints ¬ followed by a space: `¬ ?P`.
-- `notE` concludes any formula `?R`. With `?R` taken to be `False` it is (¬E), which derives ⊥ from ¬P
-  and P. With any other `?R` it is (¬E) followed by (⊥E), which derives anything from ⊥.
-- `ccontr` is (RAA) exactly: if assuming ¬P leads to ⊥, then P. Section 7.7 explains `classical`.
-- On formulas, Isabelle prints ⟷ as `=` (Module 3), so `?P = ?Q` in `iffI` is ?P ⟷ ?Q. Module 6's list
-  has no rules for ⟷: `iffI` proves an equivalence from the two implications, and `iffD1` and `iffD2`
-  use one in either direction.
+- 名字遵循一种规律：`I` 表示引入（introduction），`E` 表示消去（elimination），`D` 表示析构（destruction，下文解释），`1` 和 `2` 表示一条规则的两个版本。`mp` 是 **modus ponens**（肯定前件式），`spec` 是 **specialisation**（特化），`refl` 是 **reflexivity**（自反性）。
+- ⊥ 就是 `False`。Isabelle 显示 ¬ 时在后面加一个空格：`¬ ?P`。
+- `notE` 的结论是任意公式 `?R`。取 `?R` 为 `False` 时，它就是 (¬E)，由 ¬P 和 P 推导出 ⊥。取 `?R` 为其他公式时，它相当于先用 (¬E) 再用 (⊥E)，而 (⊥E) 由 ⊥ 可以推导出任何公式。
+- `ccontr` 恰好就是 (RAA)：如果假设 ¬P 会导致 ⊥，那么 P 成立。第 7.7 节会解释 `classical`。
+- 对于公式，Isabelle 把 ⟷ 显示为 `=`（模块 3），所以 `iffI` 中的 `?P = ?Q` 就是 ?P ⟷ ?Q。模块 6 列出的规则中没有关于 ⟷ 的：`iffI` 由两个方向的蕴涵证明一个等价式，`iffD1` 和 `iffD2` 则按两个方向中的一个使用已有的等价式。
 
-### Three shapes of rule {#rules-shapes}
+### 规则的三种形状 {#rules-shapes}
 
-Most rules in the table come in one of three shapes. The shape decides how you use a rule (Sections 7.3
-and 7.4), so it is worth learning to see it.
+表中的大多数规则都属于三种形状之一。形状决定了你怎样使用一条规则（第 7.3 节和第 7.4 节），所以值得学会辨认它。
 
-::: definition Introduction, elimination and destruction rules
-- An **introduction rule** has the connective in its conclusion: `conjI`, `disjI1`, `disjI2`, `impI`,
-  `notI`, `allI`, `exI`, `iffI`.
-- An **elimination rule** has the connective (or `False`) in its first premise, the **major premise**,
-  and an arbitrary formula, a schematic variable such as `?R`, as its conclusion. Its other premises say
-  what you may assume while you prove that formula: `conjE`, `disjE`, `impE`, `notE`, `FalseE`, `allE`,
-  `exE`.
-- A **destruction rule** has the connective in its major premise and a part of the major premise as its
-  conclusion: `conjunct1`, `conjunct2`, `mp`, `spec`, `iffD1`, `iffD2`.
+::: definition 引入规则、消去规则与析构规则
+- **引入规则**（introduction rule）的联结词出现在结论中：`conjI`、`disjI1`、`disjI2`、`impI`、`notI`、`allI`、`exI`、`iffI`。
+- **消去规则**（elimination rule）的联结词（或者 `False`）出现在第一个前提中，这个前提叫作**主前提**（major premise）；它的结论是一个任意的公式，即一个像 `?R` 这样的图式变量。它的其他前提说明在证明这个公式时可以假设什么：`conjE`、`disjE`、`impE`、`notE`、`FalseE`、`allE`、`exE`。
+- **析构规则**（destruction rule）的联结词出现在主前提中，结论是主前提的一部分：`conjunct1`、`conjunct2`、`mp`、`spec`、`iffD1`、`iffD2`。
 :::
 
-Isabelle often offers two versions of one paper rule: a destruction rule that reads like the paper rule
-(`conjunct1`, `mp`, `spec`), and an elimination rule that does the same work in a form better suited to
-reasoning about assumptions (`conjE`, `impE`, `allE`). Section 7.4 shows why the second form helps.
+对同一条纸上规则，Isabelle 常常提供两个版本：一条读起来和纸上规则一样的析构规则（`conjunct1`、`mp`、`spec`），以及一条做同样的工作、但形式更适合对假设进行推理的消去规则（`conjE`、`impE`、`allE`）。第 7.4 节会说明第二种形式好在哪里。
 
-The rules that discharge assumptions or need an eigenvariable deserve a closer look, because Pure states
-their side conditions without any words.
+那些解除（discharge）假设或者需要本征变元（eigenvariable）的规则值得仔细看一看，因为 Pure 不用任何文字就表达了它们的附加条件（side condition）。
 
-::: fact How Pure writes discharge and eigenvariables
-- In `impI`, `(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q`, the premise `?P ⟹ ?Q` is a derivation of ?Q that may use the
-  assumption ?P: the [A]¹ of Module 6. The assumption is available exactly inside that premise, so no
-  discharge numbers are needed.
-- In `disjE`, the premises `?P ⟹ ?R` and `?Q ⟹ ?R` are the two cases, each with its own assumption.
-- In `allI`, `(⋀x. ?P x) ⟹ ∀x. ?P x`, the premise says "?P x for an arbitrary x". The variable x is
-  local to the premise, so it cannot occur in any assumption from outside. This is the eigenvariable
-  condition of (∀I).
-- In `exE`, `⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q`, the second premise says "for an arbitrary x with ?P x,
-  derive ?Q". ?Q stands outside the scope of ⋀x, so it cannot mention x. This is the condition of (∃E)
-  that the eigenvariable must not occur in the conclusion.
+::: fact Pure 怎样表达解除和本征变元
+- 在 `impI`，即 `(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q` 中，前提 `?P ⟹ ?Q` 是 ?Q 的一个推导，其中可以使用假设 ?P：这就是模块 6 中的 [A]¹。这个假设恰好在该前提内部可用，所以不需要用编号来标记解除。
+- 在 `disjE` 中，前提 `?P ⟹ ?R` 和 `?Q ⟹ ?R` 是两种情形，各有自己的假设。
+- 在 `allI`，即 `(⋀x. ?P x) ⟹ ∀x. ?P x` 中，前提说的是“对任意的 x，?P x 成立”。变元 x 局限于这个前提之内，所以它不可能出现在外面的任何假设中。这正是 (∀I) 的本征变元条件。
+- 在 `exE`，即 `⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q` 中，第二个前提说的是“对任意一个满足 ?P x 的 x，推导出 ?Q”。?Q 位于 ⋀x 的辖域（scope）之外，所以不能提到 x。这正是 (∃E) 的附加条件：本征变元不能出现在结论中。
 :::
 
-## Proving backwards: rule and assumption {#backward}
+## 反向证明：rule 与 assumption {#backward}
 
-### The plan {#backward-plan}
+### 证明思路 {#backward-plan}
 
-Take the first theorem that Module 6 derived with natural deduction, A ∧ B ⟶ B ∧ A ([Section
-6.4](module_06_EN.html#connectives)). Here is its tree:
+以模块 6 用自然演绎推导出的第一个定理 A ∧ B ⟶ B ∧ A 为例（[第 6.4 节](module_06_ZH.html#connectives)）。下面是它的证明树：
 
 ```prooftree
 A ∧ B ⟶ B ∧ A   (⟶I¹)
@@ -329,14 +299,11 @@ A ∧ B ⟶ B ∧ A   (⟶I¹)
       [A ∧ B]¹
 ```
 
-Read it from the bottom up, the way you found it. The formula is an implication, so the last step is
-(⟶I): assume A ∧ B and prove B ∧ A. That is a conjunction, so the step above is (∧I), which leaves B and
-A. Each of them comes out of the assumption, by (∧E₂) and (∧E₁). In Isabelle you take the same steps in
-the same order. Each step names a rule; Isabelle applies it to the goal and shows you what is left.
+按你当初找到它的方式，从下往上读。这个公式是一个蕴涵，所以最后一步是 (⟶I)：假设 A ∧ B，证明 B ∧ A。B ∧ A 是一个合取，所以上面一步是 (∧I)，它留下 B 和 A。两者都可以从假设中得出，分别用 (∧E₂) 和 (∧E₁)。在 Isabelle 中，你按同样的顺序走同样的步骤。每一步说出一条规则的名字；Isabelle 把这条规则应用到目标上，并告诉你还剩下什么。
 
-### Applying a rule {#backward-rule}
+### 应用一条规则 {#backward-rule}
 
-State the lemma. The name `swap_and` lets you refer to it later:
+先陈述引理。有了名字 `swap_and`，以后就可以引用它：
 
 ```isabelle
 lemma swap_and: "A ∧ B ⟶ B ∧ A"
@@ -348,27 +315,19 @@ goal (1 subgoal):
  1. A ∧ B ⟶ B ∧ A
 ```
 
-`proof (prove)` means that Isabelle is waiting for proof steps. Below it are the **subgoals** still to be
-proved, numbered. At the start there is one: the whole statement.
+`proof (prove)` 表示 Isabelle 正在等待证明步骤。它下面列出了仍有待证明的**子目标**（subgoal），并带有编号。一开始只有一个子目标：整个陈述。
 
-::: definition Subgoal and proof state
-A **subgoal** has the form `⋀x₁ … xₖ. ⟦H₁; …; Hₙ⟧ ⟹ C`: for arbitrary values of the variables x₁ … xₖ
-(Section 7.6), and under the **assumptions** H₁ … Hₙ, prove the **conclusion** C. The variables and the
-assumptions may be missing. The **proof state** is the list of subgoals. The proof is complete when the
-list is empty.
+::: definition 子目标与证明状态
+**子目标**的形式是 `⋀x₁ … xₖ. ⟦H₁; …; Hₙ⟧ ⟹ C`：对变元 x₁ … xₖ 的任意取值（第 7.6 节），在**假设** H₁ … Hₙ 之下，证明**结论** C。变元和假设都可以没有。**证明状态**（proof state）是子目标的列表。列表为空时，证明就完成了。
 :::
 
-A subgoal is the goal Γ ⊢ C of Module 6's backward search ([Section 6.7](module_06_EN.html#search)),
-written in Pure: the assumptions Γ go before ⟹, and the conclusion C after it.
+子目标就是模块 6 反向搜索中的目标 Γ ⊢ C（[第 6.7 节](module_06_ZH.html#search)），只不过是用 Pure 写的：假设 Γ 写在 ⟹ 前面，结论 C 写在它后面。
 
-::: definition The method rule
-`apply (rule r)` applies the rule r backwards to subgoal 1. It unifies the conclusion of r with the
-conclusion of the subgoal (see "Unification" below), and replaces the subgoal with one new subgoal for
-each premise of r. Each new subgoal keeps the assumptions of the old one; a premise of the form `P ⟹ Q`
-adds P to them.
+::: definition 证明方法 rule
+`apply (rule r)` 把规则 r 反向应用到子目标 1 上。它把 r 的结论与子目标的结论合一（见下文的“合一”），然后把这个子目标换成若干个新的子目标，r 的每个前提对应一个。每个新的子目标都保留原来那个子目标的假设；形如 `P ⟹ Q` 的前提还会把 P 加入这些假设。
 :::
 
-The first step is (⟶I):
+第一步是 (⟶I)：
 
 ```isabelle
   apply (rule impI)
@@ -380,12 +339,9 @@ goal (1 subgoal):
  1. A ∧ B ⟹ B ∧ A
 ```
 
-`impI` is `(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q`. Its conclusion `?P ⟶ ?Q` matches the goal with ?P = A ∧ B and
-?Q = B ∧ A, so the new subgoal is the premise, `A ∧ B ⟹ B ∧ A`. A ∧ B is now an assumption. It is
-available in this subgoal and in every subgoal that grows out of it, exactly like the open assumption
-[A ∧ B]¹ in the tree.
+`impI` 是 `(?P ⟹ ?Q) ⟹ ?P ⟶ ?Q`。取 ?P = A ∧ B、?Q = B ∧ A，它的结论 `?P ⟶ ?Q` 就与目标相匹配，所以新的子目标就是它的前提，即 `A ∧ B ⟹ B ∧ A`。现在 A ∧ B 是一个假设。它在这个子目标中可用，在由这个子目标衍生出的每个子目标中也都可用，正像证明树中未解除的假设（open assumption）[A ∧ B]¹ 一样。
 
-Next, (∧I):
+接下来是 (∧I)：
 
 ```isabelle
   apply (rule conjI)
@@ -398,10 +354,9 @@ goal (2 subgoals):
  2. A ∧ B ⟹ A
 ```
 
-`conjI` has two premises, so there are now two subgoals, one for each branch of the tree. Both keep the
-assumption A ∧ B. Methods work on subgoal 1; subgoal 2 waits its turn.
+`conjI` 有两个前提，所以现在有两个子目标，证明树的每个分支对应一个。两者都保留了假设 A ∧ B。证明方法（proof method）作用于子目标 1；子目标 2 等着轮到它。
 
-Now (∧E₂), used backwards:
+现在反向使用 (∧E₂)：
 
 ```isabelle
   apply (rule conjunct2)
@@ -414,17 +369,12 @@ goal (2 subgoals):
  2. A ∧ B ⟹ A
 ```
 
-`conjunct2` is `?P ∧ ?Q ⟹ ?Q`. Its conclusion ?Q matches B, so its premise becomes a conjunction whose
-right half is B and whose left half is not yet known. Isabelle keeps that left half as a schematic
-variable in the new subgoal, `?P5`: the variable `?P` with the number 5 attached, its **index**, so that
-it cannot clash with other variables (the index has no other meaning). On paper you would look at the assumptions and write A ∧ B at once. Isabelle postpones
-the choice until a later step settles it.
+`conjunct2` 是 `?P ∧ ?Q ⟹ ?Q`。它的结论 ?Q 与 B 相匹配，所以它的前提变成一个合取式：右半部分是 B，左半部分还不知道。Isabelle 在新的子目标中把这个左半部分保留为一个图式变量 `?P5`：它是变量 `?P` 加上数字 5，这个数字叫作它的**索引**（index），作用是避免与其他变量冲突（索引没有别的含义）。在纸上，你会看一眼假设，马上写下 A ∧ B。Isabelle 则把这个选择推迟，直到后面的某一步把它确定下来。
 
-### Closing a subgoal with an assumption {#backward-assumption}
+### 用假设关闭子目标 {#backward-assumption}
 
-::: definition The method assumption
-`apply assumption` proves subgoal 1 if its conclusion unifies with one of its assumptions. Schematic
-variables in the conclusion are instantiated as needed, everywhere in the proof state.
+::: definition 证明方法 assumption
+如果子目标 1 的结论能与它的某个假设合一，`apply assumption` 就证明了这个子目标。结论中的图式变量会按需要被实例化（instantiate），而且是在整个证明状态中处处实例化。
 :::
 
 ```isabelle
@@ -437,9 +387,7 @@ goal (1 subgoal):
  1. A ∧ B ⟹ A
 ```
 
-Unifying `?P5 ∧ B` with the assumption `A ∧ B` sets ?P5 to A, and the subgoal is closed: that is the leaf
-[A ∧ B]¹ of the left branch. The right branch goes the same way with `conjunct1`, whose premise becomes a
-conjunction with A on the left:
+把 `?P5 ∧ B` 与假设 `A ∧ B` 合一，就把 ?P5 定为 A，于是这个子目标被关闭了：这就是左边分支的叶子 [A ∧ B]¹。右边的分支用 `conjunct1` 以同样的方式处理，它的前提变成一个左边是 A 的合取式：
 
 ```isabelle
   apply (rule conjunct1)
@@ -461,18 +409,17 @@ goal:
 No subgoals!
 ```
 
-No subgoals are left. `done` ends the proof:
+Isabelle 显示“No subgoals!”（没有子目标了！）：已经没有剩下的子目标了。`done` 结束这个证明：
 
 ```isabelle
   done
 ```
 
-::: definition The command done
-`done` finishes a proof when no subgoals are left. It does not prove anything itself: if any subgoal
-remains, `done` fails (Section 7.8).
+::: definition 命令 done
+`done` 在没有剩下子目标时结束一个证明。它自己不证明任何东西：只要还剩下子目标，`done` 就会失败（第 7.8 节）。
 :::
 
-Isabelle has now stored the lemma under its name:
+现在 Isabelle 已经用这条引理的名字把它存储起来了：
 
 ```isabelle
 thm swap_and
@@ -482,64 +429,47 @@ thm swap_and
 ?A ∧ ?B ⟶ ?B ∧ ?A
 ```
 
-The free variables A and B have become schematic. `swap_and` holds for any two formulas, and you can use
-it as a rule, like `conjI`. Figure 7.2 puts the tree and the script side by side.
+自由变元 A 和 B 变成了图式变量。`swap_and` 对任意两个公式都成立，你可以像使用 `conjI` 那样把它当作规则来用。图 7.2 把证明树和证明脚本并排放在一起。
 
 ::: figure id=fig-07-2
-The tree of A ∧ B ⟶ B ∧ A and its proof script. Each `rule` step adds one inference to the tree,
-starting at the root; each `assumption` step closes one leaf. The goal after each step lists the
-branches that are still open.
+A ∧ B ⟶ B ∧ A 的证明树和它的证明脚本。从根部开始，每个 `rule` 步骤给证明树添加一步推理；每个 `assumption` 步骤关闭一个叶子。每一步之后的目标列出了仍未关闭的分支。
 :::
 
 ::: analogy
-The proof state is a to-do list. Each `apply` takes the first item off the list and may put new, smaller
-items in its place; `done` checks that the list is empty.
+证明状态就是一张待办清单。每个 `apply` 从清单上取下第一项，并可能在原处放上几个新的、更小的事项；`done` 检查清单是否已经清空。
 :::
 
-### Unification {#backward-unification}
+### 合一 {#backward-unification}
 
-::: definition Unification
-**Unification** makes two terms identical by choosing values for their schematic variables. Isabelle uses
-it whenever it applies a rule: in `rule`, between the conclusion of the rule and the conclusion of the
-subgoal; in `assumption`, between the conclusion of the subgoal and an assumption. If no choice of values
-makes the two terms identical, the step fails.
+::: definition 合一
+**合一**（unification）通过为图式变量选择值，使两个项变得完全相同。Isabelle 每次应用规则时都要用到它：在 `rule` 中，合一的是规则的结论和子目标的结论；在 `assumption` 中，合一的是子目标的结论和某个假设。如果无论怎样选值都不能使两个项完全相同，这一步就失败了。
 :::
 
-| Unify | with | Result |
+| 项 1 | 项 2 | 合一的结果 |
 |---|---|---|
-| `?P ⟶ ?Q` | `A ∧ B ⟶ B ∧ A` | ?P = A ∧ B and ?Q = B ∧ A |
+| `?P ⟶ ?Q` | `A ∧ B ⟶ B ∧ A` | ?P = A ∧ B，?Q = B ∧ A |
 | `?P5 ∧ B` | `A ∧ B` | ?P5 = A |
-| `?P ∧ ?Q` | `A ∧ (B ∨ C)` | ?P = A and ?Q = B ∨ C |
-| `?P ∨ ?Q` | `B ∧ A` | impossible: ∨ is not ∧ |
-| `A ∧ ?Q` | `B ∧ A` | impossible: A is not B |
+| `?P ∧ ?Q` | `A ∧ (B ∨ C)` | ?P = A，?Q = B ∨ C |
+| `?P ∨ ?Q` | `B ∧ A` | 不可能：∨ 不是 ∧ |
+| `A ∧ ?Q` | `B ∧ A` | 不可能：A 不是 B |
 
-The last row matters. A and B in the goal are not schematic: they are free variables that stand for
-fixed but arbitrary formulas, and unification never replaces them. That is why the proof works for every
-A and B. It never used anything about them.
+最后一行很重要。目标中的 A 和 B 不是图式变量：它们是自由变元，代表固定但任意的公式，合一永远不会替换它们。正因为如此，这个证明对每个 A 和 B 都成立：它从未用到关于它们的任何信息。
 
 ::: keyidea
-Proving in Isabelle is building the paper tree from the root upwards. `rule` adds an inference on top of
-an open branch, `assumption` closes a branch at an open assumption, and schematic variables are the parts
-of the tree you have not filled in yet.
+在 Isabelle 中证明，就是从根部向上构造纸上的证明树。`rule` 在一个未关闭的分支顶端添加一步推理，`assumption` 在一个未解除的假设处关闭一个分支，而图式变量是证明树中你还没有填上的部分。
 :::
 
-## Using assumptions: erule, drule and frule {#assumptions}
+## 使用假设：erule、drule 与 frule {#assumptions}
 
-In Section 7.3 the conjunction A ∧ B sat among the assumptions, and you reached its parts by working
-backwards from B and from A, leaving Isabelle to guess ?P5 on the way. On paper you think the other way
-round: you have A ∧ B, so you take it apart. Elimination and destruction rules are made for that, and
-Isabelle has three methods that apply them to assumptions.
+在第 7.3 节中，合取式 A ∧ B 就在假设当中，你却是从 B 和 A 出发反向推理，才得到它的两部分的，途中还要让 Isabelle 去猜 ?P5。在纸上，你的思路正好相反：你有 A ∧ B，所以把它拆开。消去规则和析构规则就是为此而设的，Isabelle 有三个证明方法，专门把它们应用到假设上。
 
-### erule: take an assumption apart {#assumptions-erule}
+### erule：拆开一个假设 {#assumptions-erule}
 
-::: definition The method erule
-`apply (erule r)` applies an elimination rule r to an assumption of subgoal 1. It unifies the major
-premise of r with an assumption, and the conclusion of r with the conclusion of the subgoal. It removes
-that assumption and adds one new subgoal for each of the other premises of r.
+::: definition 证明方法 erule
+`apply (erule r)` 把消去规则 r 应用到子目标 1 的某个假设上。它把 r 的主前提与一个假设合一，并把 r 的结论与子目标的结论合一。然后它删去那个假设，并为 r 的其余每个前提各产生一个新的子目标。
 :::
 
-With `conjE`, `⟦?P ∧ ?Q; ⟦?P; ?Q⟧ ⟹ ?R⟧ ⟹ ?R`, the effect is to replace an assumption P ∧ Q with the two
-assumptions P and Q. The swap proof becomes shorter:
+用 `conjE`，即 `⟦?P ∧ ?Q; ⟦?P; ?Q⟧ ⟹ ?R⟧ ⟹ ?R`，效果是把一个假设 P ∧ Q 换成两个假设 P 和 Q。这样，交换 A 与 B 的那个证明就更短了：
 
 ```isabelle
 lemma "A ∧ B ⟶ B ∧ A"
@@ -579,13 +509,11 @@ goal (2 subgoals):
   done
 ```
 
-After `erule conjE`, A and B are separate assumptions, so each half of B ∧ A is closed by `assumption`
-with nothing to guess. This is the usual way to use a conjunction you have.
+`erule conjE` 之后，A 和 B 是两个独立的假设，所以 B ∧ A 的每一半都由 `assumption` 关闭，什么也不用猜。这是使用已有合取式的常规做法。
 
-### Proof by cases: disjE {#assumptions-cases}
+### 分情形证明：disjE {#assumptions-cases}
 
-Disjunction elimination, (∨E), is a proof by cases: to use A ∨ B, prove the goal once assuming A and once
-assuming B. Here is A ∨ B ⟶ B ∨ A from Module 6:
+析取消去 (∨E) 就是情形分析（case analysis）：要使用 A ∨ B，就先在假设 A 的情况下证明一次目标，再在假设 B 的情况下证明一次。下面是模块 6 中的 A ∨ B ⟶ B ∨ A：
 
 ```prooftree
 A ∨ B ⟶ B ∨ A   (⟶I¹)
@@ -619,9 +547,7 @@ goal (2 subgoals):
  2. B ⟹ B ∨ A
 ```
 
-`disjE` is `⟦?P ∨ ?Q; ?P ⟹ ?R; ?Q ⟹ ?R⟧ ⟹ ?R`. `erule` matched its major premise with the assumption
-A ∨ B and removed it. The two other premises became the two cases, each with its own assumption: [A]²
-and [B]² in the tree. In the first case, B ∨ A follows from A by (∨I₂):
+`disjE` 是 `⟦?P ∨ ?Q; ?P ⟹ ?R; ?Q ⟹ ?R⟧ ⟹ ?R`。`erule` 把它的主前提与假设 A ∨ B 匹配，并删去了这个假设。另外两个前提变成了两种情形，各有自己的假设，也就是证明树中的 [A]² 和 [B]²。在第一种情形中，B ∨ A 由 A 通过 (∨I₂) 得出：
 
 ```isabelle
   apply (rule disjI2)
@@ -644,7 +570,7 @@ goal (1 subgoal):
  1. B ⟹ B ∨ A
 ```
 
-The second case uses (∨I₁):
+第二种情形用 (∨I₁)：
 
 ```isabelle
   apply (rule disjI1)
@@ -661,17 +587,13 @@ goal (1 subgoal):
   done
 ```
 
-### drule and frule: reason forwards {#assumptions-drule}
+### drule 与 frule：正向推理 {#assumptions-drule}
 
-::: definition The methods drule and frule
-`apply (drule r)` applies a destruction rule r forwards. It unifies the major premise of r with an
-assumption of subgoal 1 and removes that assumption. Each other premise of r becomes a new subgoal, and
-then the original subgoal comes back with the conclusion of r as a new assumption. `apply (frule r)` does
-the same but keeps the assumption it used.
+::: definition 证明方法 drule 与 frule
+`apply (drule r)` 正向应用析构规则 r。它把 r 的主前提与子目标 1 的某个假设合一，并删去那个假设。r 的其余每个前提都成为一个新的子目标，排在它们后面的是原来的子目标，只是多了 r 的结论作为新的假设。`apply (frule r)` 做的事情相同，但会保留它用过的那个假设。
 :::
 
-Modus ponens is the typical destruction rule. Module 6 proved (A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C) with three
-(⟶I) steps and two (⟶E) steps:
+肯定前件式是典型的析构规则。模块 6 用三步 (⟶I) 和两步 (⟶E) 证明了 (A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)：
 
 ```prooftree
 (A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)   (⟶I¹)
@@ -684,8 +606,7 @@ Modus ponens is the typical destruction rule. Module 6 proved (A ⟶ B) ⟶ (B �
           [A]³
 ```
 
-In Isabelle the three implications become three assumptions, one `rule impI` for each (⟶I) of the
-tree:
+在 Isabelle 中，这三个蕴涵变成了三个假设，证明树中的每个 (⟶I) 对应一步 `rule impI`：
 
 ```isabelle
 lemma imp_chain: "(A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)"
@@ -718,9 +639,7 @@ goal (1 subgoal):
  1. ⟦A ⟶ B; B ⟶ C; A⟧ ⟹ C
 ```
 
-The assumptions appear in the order of the discharge numbers, [A ⟶ B]¹, [B ⟶ C]² and [A]³, and Isabelle
-has dropped the parentheses around A ⟶ C because ⟶ groups to the right (Module 2). Now reason forwards,
-from the leaves of the tree: A and A ⟶ B give B.
+假设出现的顺序与解除编号的顺序一致：[A ⟶ B]¹、[B ⟶ C]² 和 [A]³。Isabelle 去掉了 A ⟶ C 两边的括号，因为 ⟶ 向右结合（模块 2）。现在从证明树的叶子出发正向推理：由 A 和 A ⟶ B 得到 B。
 
 ```isabelle
   apply (drule mp)
@@ -733,9 +652,7 @@ goal (2 subgoals):
  2. ⟦B ⟶ C; A; B⟧ ⟹ C
 ```
 
-`mp` is `⟦?P ⟶ ?Q; ?P⟧ ⟹ ?Q`. `drule` matched its major premise with the first implication among the
-assumptions, A ⟶ B, and removed it. The second premise of `mp`, here A, became subgoal 1: to use A ⟶ B,
-you must show A. Subgoal 2 is the original goal with the conclusion B added to the assumptions.
+`mp` 是 `⟦?P ⟶ ?Q; ?P⟧ ⟹ ?Q`。`drule` 把它的主前提与假设中的第一个蕴涵 A ⟶ B 匹配，并删去了这个假设。`mp` 的第二个前提，这里是 A，变成了子目标 1：要使用 A ⟶ B，你必须证明 A。子目标 2 是原来的目标，只是假设中多了结论 B。
 
 ```isabelle
   apply assumption
@@ -747,7 +664,7 @@ goal (1 subgoal):
  1. ⟦B ⟶ C; A; B⟧ ⟹ C
 ```
 
-The same again, with B ⟶ C:
+再用 B ⟶ C 重复一遍：
 
 ```isabelle
   apply (drule mp)
@@ -766,11 +683,9 @@ goal (2 subgoals):
   done
 ```
 
-`erule impE` does the same work as `drule mp`, since `impE` is the elimination form of `mp`; which of the
-two you use is a matter of taste.
+`erule impE` 和 `drule mp` 做的工作相同，因为 `impE` 是 `mp` 的消去形式；用哪一个，全凭个人喜好。
 
-`frule` matters when you need an assumption again after using it. A small demonstration: `frule
-conjunct1` adds A but keeps A ∧ B, so that `drule conjunct2` can still take B from it.
+如果一个假设用过之后还需要再用，`frule` 就派上用场了。下面是一个小小的演示：`frule conjunct1` 加入了 A，但保留了 A ∧ B，所以 `drule conjunct2` 还能从中取出 B。
 
 ```isabelle
 lemma "A ∧ B ⟶ B ∧ A"
@@ -801,14 +716,12 @@ goal (1 subgoal):
   done
 ```
 
-Section 7.6 has a case where `frule` is necessary: a quantified assumption that is needed twice.
+第 7.6 节中有一个非用 `frule` 不可的例子：一个要用两次的带量词的假设。
 
-### Many steps at once: intro and elim {#assumptions-intro}
+### 一次走多步：intro 与 elim {#assumptions-intro}
 
-::: definition The methods intro and elim
-`apply (intro r₁ … rₙ)` applies the given introduction rules to subgoal 1, then again to the subgoals
-that result, for as long as one of them applies. `apply (elim r₁ … rₙ)` does the same with elimination
-rules on assumptions.
+::: definition 证明方法 intro 与 elim
+`apply (intro r₁ … rₙ)` 把给定的引入规则应用到子目标 1 上，然后再应用到由此产生的子目标上，只要其中还有规则适用，就一直这样做下去。`apply (elim r₁ … rₙ)` 对假设应用消去规则，做法相同。
 :::
 
 ```isabelle
@@ -841,39 +754,31 @@ goal (2 subgoals):
   done
 ```
 
-`intro` applied `impI` and then `conjI`, which split the goal; `elim` took the conjunction apart in
-subgoal 1 only. In `imp_chain` above, `apply (intro impI)` would replace the three `rule impI` steps.
+`intro` 先应用了 `impI`，再应用了 `conjI`，把目标一分为二；`elim` 只拆开了子目标 1 中的合取式。在上面的 `imp_chain` 中，一步 `apply (intro impI)` 就可以代替三步 `rule impI`。
 
-### Which method when {#assumptions-which}
+### 什么时候用哪个方法 {#assumptions-which}
 
-| Situation | Kind of rule | Method | Example |
+| 情况 | 规则的种类 | 证明方法 | 例子 |
 |---|---|---|---|
-| The conclusion has a connective to break up | introduction | `rule` | `apply (rule conjI)` |
-| An assumption has a connective to take apart | elimination | `erule` | `apply (erule disjE)` |
-| An assumption gives a new fact | destruction | `drule`, or `frule` to keep it | `apply (drule mp)` |
-| The conclusion is one of the assumptions | none | `assumption` | `apply assumption` |
-| Many steps of one kind | introduction or elimination | `intro`, `elim` | `apply (intro impI conjI)` |
+| 结论中有一个要拆开的联结词 | 引入规则 | `rule` | `apply (rule conjI)` |
+| 某个假设中有一个要拆开的联结词 | 消去规则 | `erule` | `apply (erule disjE)` |
+| 由某个假设可以得到一个新事实 | 析构规则 | `drule`；要保留这个假设就用 `frule` | `apply (drule mp)` |
+| 结论就是某个假设 | 无 | `assumption` | `apply assumption` |
+| 同一类的许多步骤 | 引入规则或消去规则 | `intro`、`elim` | `apply (intro impI conjI)` |
 
 ::: tip
-Look at the subgoal before you look for a rule. If you want to attack the main connective of the
-conclusion, apply its introduction rule with `rule`. If you want to use an assumption, apply the
-elimination rule of its connective with `erule`. Section 7.8 shows what happens when the two are mixed
-up.
+先看子目标，再找规则。如果你想处理结论的主联结词（main connective），就用 `rule` 应用它的引入规则。如果你想使用某个假设，就用 `erule` 应用这个假设的联结词的消去规则。第 7.8 节会说明把两者弄混时会发生什么。
 :::
 
-## Negation and falsity {#negation}
+## 否定与恒假 {#negation}
 
-Section 7.1 showed that HOL defines ¬A as A ⟶ False, in the same way as Module 6. The negation rules
-follow from that definition:
+第 7.1 节说明了，HOL 和模块 6 一样，把 ¬A 定义为 A ⟶ False。否定的规则都由这个定义得出：
 
-- `notI`, `(?P ⟹ False) ⟹ ¬ ?P`, is (¬I): to prove ¬A, assume A and derive False.
-- `notE`, `⟦¬ ?P; ?P⟧ ⟹ ?R`, is (¬E) when ?R is False, and (¬E) followed by (⊥E) otherwise: from ¬A
-  and A, anything follows.
-- `FalseE`, `False ⟹ ?P`, is (⊥E).
+- `notI`，即 `(?P ⟹ False) ⟹ ¬ ?P`，就是 (¬I)：要证明 ¬A，就假设 A 并推导出 False。
+- `notE`，即 `⟦¬ ?P; ?P⟧ ⟹ ?R`，在 ?R 为 False 时就是 (¬E)，否则就是先用 (¬E) 再用 (⊥E)：由 ¬A 和 A 可以得出任何公式。
+- `FalseE`，即 `False ⟹ ?P`，就是 (⊥E)。
 
-You use `notE` with `erule`, and its effect is worth remembering: **to use an assumption ¬A, prove A**.
-`erule notE` removes ¬A, and whatever the conclusion was, it becomes A. Here is
-¬(A ∨ B) ⟶ ¬A ∧ ¬B from Module 6:
+`notE` 要和 `erule` 一起用，它的效果值得记住：**要使用假设 ¬A，就去证明 A**。`erule notE` 删去 ¬A，并且不管原来的结论是什么，都把它变成 A。下面是模块 6 中的 ¬(A ∨ B) ⟶ ¬A ∧ ¬B：
 
 ```prooftree
 ¬(A ∨ B) ⟶ ¬A ∧ ¬B   (⟶I¹)
@@ -903,7 +808,7 @@ goal (2 subgoals):
  2. ¬ (A ∨ B) ⟹ ¬ B
 ```
 
-To prove ¬A, assume A and derive False, (¬I²):
+要证明 ¬A，就假设 A 并推导出 False，即 (¬I²)：
 
 ```isabelle
   apply (rule notI)
@@ -916,7 +821,7 @@ goal (2 subgoals):
  2. ¬ (A ∨ B) ⟹ ¬ B
 ```
 
-False follows from ¬(A ∨ B) once you show A ∨ B, (¬E):
+只要证明了 A ∨ B，就能由 ¬(A ∨ B) 得出 False，即 (¬E)：
 
 ```isabelle
   apply (erule notE)
@@ -940,7 +845,7 @@ goal (1 subgoal):
  1. ¬ (A ∨ B) ⟹ ¬ B
 ```
 
-The second half is the same with `disjI2`:
+后一半也一样，只是改用 `disjI2`：
 
 ```isabelle
   apply (rule notI)
@@ -950,8 +855,7 @@ The second half is the same with `disjI2`:
   done
 ```
 
-When False itself is among the assumptions, `erule FalseE` closes the subgoal at once, because `FalseE`
-has no other premises:
+当 False 本身就在假设中时，`erule FalseE` 会立即关闭这个子目标，因为 `FalseE` 没有其他前提：
 
 ```isabelle
 lemma "False ⟶ A"
@@ -970,16 +874,14 @@ goal (1 subgoal):
 ```
 
 ::: pitfall
-`erule` uses the first assumption that fits. With several negated assumptions, `erule notE` takes the
-first one, which may not be the one you want. Section 7.7 has a proof where the first one is right, and
-Section 7.6 shows how to name the formula you want (Exercise 7.5 needs it).
+`erule` 使用第一个合适的假设。如果有好几个否定形式的假设，`erule notE` 会取第一个，而它未必是你想要的那个。第 7.7 节有一个证明，其中第一个恰好就是对的；第 7.6 节则说明怎样指定你想要的公式（练习 7.5 需要用到）。
 :::
 
-## Quantifiers and fixed variables {#quantifiers}
+## 量词与固定变元 {#quantifiers}
 
-### ∀ and fixed variables {#quantifiers-all}
+### ∀ 与固定变元 {#quantifiers-all}
 
-Module 6 proved that a universally quantified conjunction gives two universally quantified formulas:
+模块 6 证明过：一个全称量化的合取式能给出两个全称量化的公式：
 
 ```prooftree
 (∀x. P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x)   (⟶I¹)
@@ -995,10 +897,7 @@ Module 6 proved that a universally quantified conjunction gives two universally 
 ```
 
 ::: pitfall
-Some books write this formula ∀x.(P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x), with the quantifier applying only
-to the bracket after it. In Isabelle, as in Modules 3 and 6, the body of ∀x reaches as far to the right
-as possible, so `∀x. (P x ∧ Q x) ⟶ …` would put the whole implication inside the quantifier. Put the
-parentheses around the quantifier instead: `(∀x. P x ∧ Q x) ⟶ …`.
+有些书把这个公式写成 ∀x.(P x ∧ Q x) ⟶ (∀x. P x) ∧ (∀x. Q x)，让量词只作用于紧跟在它后面的括号。在 Isabelle 中，和模块 3、模块 6 一样，∀x 的辖域尽可能向右延伸，所以 `∀x. (P x ∧ Q x) ⟶ …` 会把整个蕴涵都放进量词里面。应该把括号加在量词外面：`(∀x. P x ∧ Q x) ⟶ …`。
 :::
 
 ```isabelle
@@ -1014,7 +913,7 @@ goal (2 subgoals):
  2. ∀x. P x ∧ Q x ⟹ ∀x. Q x
 ```
 
-Subgoal 1 asks for ∀x. P x, so the next step is (∀I):
+子目标 1 要求证明 ∀x. P x，所以下一步是 (∀I)：
 
 ```isabelle
   apply (rule allI)
@@ -1027,18 +926,13 @@ goal (2 subgoals):
  2. ∀x. P x ∧ Q x ⟹ ∀x. Q x
 ```
 
-`allI`, `(⋀x. ?P x) ⟹ ∀x. ?P x`, replaced the HOL quantifier ∀x with the Pure quantifier ⋀x. The subgoal
-now reads: for an arbitrary x, assuming ∀x. P x ∧ Q x, prove P x. The x inside the assumption is bound by
-its own ∀ and is a different variable that happens to have the same name. The x after ⋀ is the arbitrary
-one; the paper tree calls it a.
+`allI`，即 `(⋀x. ?P x) ⟹ ∀x. ?P x`，把 HOL 的量词 ∀x 换成了 Pure 的量词 ⋀x。现在这个子目标读作：对任意的 x，假设 ∀x. P x ∧ Q x，证明 P x。假设里的 x 被它自己的 ∀ 约束，是另一个碰巧同名的变元。⋀ 后面的 x 才是那个任意的 x；纸上的证明树把它叫作 a。
 
-::: definition Fixed variable
-A variable bound by ⋀ at the front of a subgoal is a **fixed variable**; Isabelle also calls it a
-**parameter**. It stands for an arbitrary value: it belongs to its subgoal alone, and unification never
-replaces it. `allI` creates one, and in doing so enforces the eigenvariable condition of (∀I).
+::: definition 固定变元
+在子目标最前面由 ⋀ 约束的变元叫作**固定变元**（fixed variable）；Isabelle 也把它叫作**参数**（parameter）。它代表一个任意的值：它只属于自己所在的子目标，合一永远不会替换它。`allI` 会产生一个固定变元，并借此保证了 (∀I) 的本征变元条件。
 :::
 
-Now use the assumption, by (∀E) in its elimination form `allE`:
+现在用 (∀E) 的消去形式 `allE` 来使用这个假设：
 
 ```isabelle
   apply (erule allE)
@@ -1051,10 +945,7 @@ goal (2 subgoals):
  2. ∀x. P x ∧ Q x ⟹ ∀x. Q x
 ```
 
-`allE`, `⟦∀x. ?P x; ?P ?x ⟹ ?R⟧ ⟹ ?R`, replaced the assumption ∀x. P x ∧ Q x with an instance P t ∧ Q t
-for a term t that is not chosen yet. Isabelle writes that term as `?x7 x`: a schematic variable applied
-to the fixed variable x. This records that the term may be built from x, since x was fixed before the
-unknown was created.
+`allE`，即 `⟦∀x. ?P x; ?P ?x ⟹ ?R⟧ ⟹ ?R`，把假设 ∀x. P x ∧ Q x 换成了它的一个实例（instance）P t ∧ Q t，其中的项 t 还没有选定。Isabelle 把这个项写成 `?x7 x`：一个作用于固定变元 x 的图式变量。这样写记下了一点：这个项可以由 x 构造出来，因为 x 在这个未知量产生之前就已经固定了。
 
 ```isabelle
   apply (erule conjE)
@@ -1077,9 +968,7 @@ goal (1 subgoal):
  1. ∀x. P x ∧ Q x ⟹ ∀x. Q x
 ```
 
-`assumption` unified P (?x7 x) with P x, which makes the term x itself: the instance chosen for (∀E) is
-the arbitrary x, as the tree uses a in both places. The second half goes the same way. This time it
-uses `spec`, the destruction form of (∀E), through `drule`:
+`assumption` 把 P (?x7 x) 与 P x 合一，于是这个项就是 x 本身：为 (∀E) 选定的实例正是那个任意的 x，就像证明树在两处都用 a 一样。后一半的做法相同，只是这一次通过 `drule` 使用 (∀E) 的析构形式 `spec`：
 
 ```isabelle
   apply (rule allI)
@@ -1099,9 +988,7 @@ goal (1 subgoal):
 ```
 
 ::: pitfall
-⟹ binds more weakly than ∀. So `∀x. P x ⟹ P x` is not a statement about one x: it means
-(∀x. P x) ⟹ P x, and the x of the conclusion is a free variable, unrelated to the bound one. The stored
-theorem shows it:
+⟹ 比 ∀ 结合得弱。所以 `∀x. P x ⟹ P x` 并不是关于同一个 x 的陈述：它的意思是 (∀x. P x) ⟹ P x，结论中的 x 是一个自由变元，与约束的那个 x 毫无关系。存储下来的定理表明了这一点：
 
 ```isabelle
 lemma all_inst: "∀x. P x ⟹ P x"
@@ -1116,20 +1003,14 @@ thm all_inst
 ∀x. ?P x ⟹ ?P ?x
 ```
 
-The x of the conclusion has become `?x`, a separate schematic variable. Here no harm is done, since the
-lemma is (∀E) itself. But if you mean "for every x, P x implies P x", write `⋀x. P x ⟹ P x` or
-`∀x. P x ⟶ P x`.
+结论中的 x 变成了 `?x`，一个单独的图式变量。在这里这并无害处，因为这条引理本身就是 (∀E)。但如果你想表达的是“对每个 x，P x 蕴涵 P x”，就要写成 `⋀x. P x ⟹ P x` 或 `∀x. P x ⟶ P x`。
 :::
 
-### ∃ and the order of steps {#quantifiers-ex}
+### ∃ 与步骤的顺序 {#quantifiers-ex}
 
-`exI`, `?P ?x ⟹ ∃x. ?P x`, is (∃I): to prove ∃x. P x, prove P t for some term t, the witness. Used
-backwards, it leaves the witness as an unknown, to be settled later by unification. `exE`,
-`⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q`, is (∃E): to use ∃x. P x, take a new x for which P x holds. Used with
-`erule`, it turns the assumption ∃x. P x into a fixed variable x and an assumption P x.
+`exI`，即 `?P ?x ⟹ ∃x. ?P x`，就是 (∃I)：要证明 ∃x. P x，就对某个项 t 证明 P t，t 就是见证（witness）。反向使用时，它把见证留作一个未知量，以后再由合一确定。`exE`，即 `⟦∃x. ?P x; ⋀x. ?P x ⟹ ?Q⟧ ⟹ ?Q`，就是 (∃E)：要使用 ∃x. P x，就取一个使 P x 成立的新的 x。和 `erule` 一起用时，它把假设 ∃x. P x 变成一个固定变元 x 和一个假设 P x。
 
-Module 6's example swaps the quantifiers of ∃x. ∀y. R x y. Read R x y as "key x opens door y": a master
-key opens every door, so every door has a key.
+模块 6 的例子交换了 ∃x. ∀y. R x y 中的两个量词。把 R x y 读作“钥匙 x 能打开门 y”：一把万能钥匙能打开每扇门，所以每扇门都有一把钥匙。
 
 ```prooftree
 (∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)   (⟶I¹)
@@ -1141,8 +1022,7 @@ key opens every door, so every door has a key.
           [∀y. R a y]²
 ```
 
-Read from the bottom: (⟶I), then (∀I) with the eigenvariable b, then (∃E) with the eigenvariable a, then
-(∃I) with the witness a, then (∀E) with the instance b. In Isabelle:
+从下往上读：先是 (⟶I)，然后是本征变元为 b 的 (∀I)，然后是本征变元为 a 的 (∃E)，然后是以 a 为见证的 (∃I)，最后是以 b 为实例的 (∀E)。在 Isabelle 中：
 
 ```isabelle
 lemma ex_all: "(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)"
@@ -1166,7 +1046,7 @@ goal (1 subgoal):
  1. ⋀y x. ∀y. R x y ⟹ ∃x. R x y
 ```
 
-Two fixed variables now: y, which `allI` fixed (the b of the tree), and x, which `exE` fixed (the a).
+现在有两个固定变元：y 由 `allI` 固定（即证明树中的 b），x 由 `exE` 固定（即 a）。
 
 ```isabelle
   apply (rule exI)
@@ -1178,7 +1058,7 @@ goal (1 subgoal):
  1. ⋀y x. ∀y. R x y ⟹ R (?x6 y x) y
 ```
 
-The witness is an unknown applied to both fixed variables: it may be built from y and from x.
+见证是一个作用于两个固定变元的未知量：它可以由 y 和 x 构造出来。
 
 ```isabelle
   apply (erule allE)
@@ -1195,12 +1075,11 @@ goal (1 subgoal):
   done
 ```
 
-`assumption` made the two sides of ⟹ identical, by taking x as the witness and y as the instance of ∀y.
+`assumption` 取 x 作为见证、y 作为 ∀y 的实例，使 ⟹ 的两边完全相同。
 
-### Fix first, guess later {#quantifiers-order}
+### 先固定，后猜测 {#quantifiers-order}
 
-What if you introduce the existential quantifier before eliminating the other one? Apply `exI` before
-`exE`:
+如果在消去另一个量词之前就引入存在量词，会怎样？在 `exE` 之前应用 `exI`：
 
 ```isabelle
 lemma "(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)"
@@ -1235,9 +1114,7 @@ goal (1 subgoal):
  1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y
 ```
 
-The witness is now `?x4 y`. It was created when only y was fixed, so it may be built from y but not from
-x, which `exE` fixed afterwards. To close the subgoal, Isabelle would have to make the two sides of ⟹
-identical, and that needs the witness to be x. Unification may not do that, so `assumption` fails:
+现在见证是 `?x4 y`。它产生的时候只有 y 已经固定，所以它可以由 y 构造，却不能由 x 构造，因为 x 是 `exE` 后来才固定的。要关闭这个子目标，Isabelle 必须使 ⟹ 的两边完全相同，而这需要见证就是 x。合一不允许这样做，所以 `assumption` 失败了，Isabelle 报告“Failed to apply proof method”（未能应用证明方法）：
 
 ```isabelle fails
   apply assumption
@@ -1250,32 +1127,23 @@ identical, and that needs the witness to be x. Unification may not do that, so `
 ***  1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y
 ```
 
-No other method can help either. The proof is stuck, and the only way out is to go back:
+其他证明方法也帮不上忙。证明卡住了，唯一的出路是退回去：
 
 ```isabelle
   oops
 ```
 
-On paper the same thing happens. Applying (∃I) below (∃E) in the tree means choosing the witness before
-the eigenvariable a of (∃E) exists. The only witness that works is a, and then the conclusion of (∃E)
-would mention its own eigenvariable, which the side condition forbids. Isabelle's check is the same
-condition in another form.
+在纸上也会发生同样的事情。在证明树中把 (∃I) 放在 (∃E) 下面，就意味着要在 (∃E) 的本征变元 a 出现之前选定见证。唯一可行的见证是 a，可那样一来，(∃E) 的结论就会提到它自己的本征变元，而附加条件禁止这样做。Isabelle 的检查只是同一个条件的另一种形式。
 
 ::: keyidea
-**Fix first, guess later.** `rule allI` and `erule exE` fix variables; `rule exI`, `erule allE` and
-`drule spec` create unknowns. An unknown can only become a term built from variables that were fixed
-before it was created. So apply the rules that fix variables first, and the rules that create unknowns
-afterwards. This is the advice of Section 6.7, to open existential assumptions first and then choose
-instances and witnesses, and Isabelle's unknowns show why it works.
+**先固定，后猜测。** `rule allI` 和 `erule exE` 固定变元；`rule exI`、`erule allE` 和 `drule spec` 产生未知量。一个未知量只能变成由它产生之前就已固定的变元构造出的项。所以，先应用固定变元的规则，再应用产生未知量的规则。这正是第 6.7 节的建议：先打开存在量词的假设，再选择实例和见证；而 Isabelle 的未知量说明了这条建议为什么行得通。
 :::
 
-For a statement that is not valid, no order works. The converse, (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y), says
-that if every door has a key, there is a master key. [Section 6.6](module_06_EN.html#quantifiers) gave a
-countermodel, and Exercise 7.9 lets you watch the attempt get stuck.
+如果一个陈述不是有效的（valid），那么什么顺序都不行。逆命题（converse）(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y) 说的是：如果每扇门都有钥匙，那么存在一把万能钥匙。[第 6.6 节](module_06_ZH.html#quantifiers)给出了一个反模型（countermodel），练习 7.9 则让你亲眼看着证明的尝试卡住。
 
-### Choosing an instance yourself {#quantifiers-inst}
+### 自己选定实例 {#quantifiers-inst}
 
-Unification finds a witness only when the goal shows what it must be. Here it does not:
+只有当目标显示出见证必须是什么时，合一才能找到它。下面这个目标就没有显示出来：
 
 ```isabelle
 lemma "∃n::nat. n + n = 6"
@@ -1288,8 +1156,7 @@ goal (1 subgoal):
  1. ?n + ?n = 6
 ```
 
-No assumption says which number `?n` should be, and `simp` (Module 1) cannot solve an equation for an
-unknown:
+没有哪个假设说明 `?n` 应该是哪个数，而 `simp`（模块 1）不会求出等式中的未知量：
 
 ```isabelle fails
   apply simp
@@ -1306,7 +1173,7 @@ unknown:
   oops
 ```
 
-Name the witness yourself:
+自己说出见证：
 
 ```isabelle
 lemma "∃n::nat. n + n = 6"
@@ -1324,16 +1191,11 @@ goal (1 subgoal):
   done
 ```
 
-::: definition The methods rule_tac, erule_tac, drule_tac and frule_tac
-`apply (rule_tac x = t in r)` applies the rule r as `rule` does, after replacing its schematic variable
-`?x` with the term t. Name the variable as `thm r` shows it, without the question mark, and put t in
-quotation marks unless it is a single name or number; several instantiations are separated by `and`.
-`erule_tac`, `drule_tac` and `frule_tac` work in the same way. Alternatively, instantiate the rule with
-`of` (Section 7.2) and apply the result: `apply (rule exI[of _ 3])`, where `_` skips ?P.
+::: definition 证明方法 rule_tac、erule_tac、drule_tac 与 frule_tac
+`apply (rule_tac x = t in r)` 先把规则 r 的图式变量 `?x` 换成项 t，再像 `rule` 那样应用 r。变量名按 `thm r` 显示的那样写，但不带问号；除非 t 是单个名字或数字，否则要给它加上引号；几个实例化之间用 `and` 隔开。`erule_tac`、`drule_tac` 和 `frule_tac` 的用法相同。另一种做法是用 `of`（第 7.2 节）实例化规则，再应用得到的结果：`apply (rule exI[of _ 3])`，其中 `_` 跳过 ?P。
 :::
 
-Unification can also choose wrongly. Here is a small invariant argument: if every step from a safe
-state leads to a safe state, and s is safe, then two steps from s lead to a safe state.
+合一也可能选错。下面是一个小小的不变式（invariant）论证：如果从一个安全状态出发的每一步都通向一个安全状态，并且 s 是安全的，那么从 s 出发走两步，到达的也是一个安全状态。
 
 ```isabelle
 lemma "⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))"
@@ -1347,9 +1209,7 @@ goal (1 subgoal):
     ⟹ safe (step (step s))
 ```
 
-The quantified assumption is needed twice, once for each step, so `frule spec` keeps it while adding an
-instance with an unknown `?x`. `erule impE` uses that instance; its premise `safe ?x` becomes subgoal 1,
-which `assumption` closes with ?x = s:
+带量词的假设要用两次，每一步用一次，所以 `frule spec` 在加入一个带未知量 `?x` 的实例的同时保留了它。`erule impE` 使用这个实例；它的前提 `safe ?x` 变成子目标 1，`assumption` 取 ?x = s 关闭了这个子目标：
 
 ```isabelle
   apply (erule impE)
@@ -1363,7 +1223,7 @@ goal (1 subgoal):
     ⟹ safe (step (step s))
 ```
 
-For the second step, the same three methods:
+对第二步，用同样的三个证明方法：
 
 ```isabelle
   apply (erule allE)
@@ -1377,14 +1237,13 @@ goal (1 subgoal):
  1. ⟦safe s; safe (step s); safe (step s)⟧ ⟹ safe (step (step s))
 ```
 
-This time `assumption` had two candidates for `safe ?x`: safe s and safe (step s). It took the first,
-so the unknown became s again, and the proof is stuck: no assumption says safe (step (step s)).
+这一次，`assumption` 有两个候选的假设可以与 `safe ?x` 合一：safe s 和 safe (step s)。它取了第一个，于是未知量又变成了 s，证明就卡住了：没有哪个假设说 safe (step (step s))。
 
 ```isabelle
   oops
 ```
 
-Tell Isabelle which instance you want:
+告诉 Isabelle 你想要哪个实例：
 
 ```isabelle
 lemma safe_twice: "⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))"
@@ -1408,15 +1267,13 @@ goal (1 subgoal):
   done
 ```
 
-Arguments of this kind, about every state a system can reach, return in Module 13.
+这类关于系统所能到达的每个状态的论证，会在模块 13 中再次出现。
 
-## Classical reasoning and equality {#classical}
+## 经典推理与相等 {#classical}
 
-### Proof by contradiction {#classical-raa}
+### 反证法 {#classical-raa}
 
-All the rules used so far are intuitionistic: none of them is (RAA). Module 6 showed that some
-tautologies cannot be derived without (RAA) ([Section 6.5](module_06_EN.html#classical)), and A ∨ ¬A, the
-law of excluded middle, is the standard example. Try it without:
+到目前为止用到的规则都是直觉主义的（intuitionistic）：其中没有一条是 (RAA)。模块 6 说明了，有些重言式（tautology）不用 (RAA) 就推导不出来（[第 6.5 节](module_06_ZH.html#classical)），排中律（law of excluded middle）A ∨ ¬A 就是标准的例子。不用 (RAA) 试试看：
 
 ```isabelle
 lemma "A ∨ ¬ A"
@@ -1429,14 +1286,13 @@ goal (1 subgoal):
  1. A
 ```
 
-A is not provable: nothing is known about A. `disjI2` would leave ¬A, which is no better. Abandon the
-attempt:
+A 是不可证的：关于 A，什么也不知道。`disjI2` 会留下 ¬A，也好不到哪里去。放弃这次尝试：
 
 ```isabelle
   oops
 ```
 
-The way out is (RAA), which in Isabelle is `ccontr`. Here is the derivation from Section 6.5:
+出路是 (RAA)，它在 Isabelle 中就是 `ccontr`。下面是第 6.5 节中的推导：
 
 ```prooftree
 A ∨ ¬A   (RAA¹)
@@ -1461,8 +1317,7 @@ goal (1 subgoal):
  1. ¬ (A ∨ ¬ A) ⟹ False
 ```
 
-(RAA¹): assume the negation, and derive False. The next step is the (¬E) at the bottom of the tree,
-used backwards:
+这就是 (RAA¹)：假设目标的否定，推导出 False。下一步是证明树底部的那个 (¬E)，反向使用：
 
 ```isabelle
   apply (rule notE)
@@ -1475,9 +1330,7 @@ goal (2 subgoals):
  2. ¬ (A ∨ ¬ A) ⟹ ?P2
 ```
 
-To derive False, find a formula `?P2` such that both ¬?P2 and ?P2 hold. This step uses `rule notE`, not
-`erule notE`, because the assumption ¬(A ∨ ¬A) is needed again further up the tree, and `erule` would
-remove it.
+要推导出 False，就要找一个公式 `?P2`，使 ¬?P2 和 ?P2 都成立。这一步用的是 `rule notE`，而不是 `erule notE`，因为在证明树中更靠上的地方还要再用到假设 ¬(A ∨ ¬A)，而 `erule` 会把它删去。
 
 ```isabelle
   apply assumption
@@ -1489,8 +1342,7 @@ goal (1 subgoal):
  1. ¬ (A ∨ ¬ A) ⟹ A ∨ ¬ A
 ```
 
-Subgoal 1 unified with the assumption, which set ?P2 to A ∨ ¬A: that is the leaf [¬(A ∨ ¬A)]¹. The rest
-follows the tree: (∨I₂), (¬I²), (¬E) and (∨I₁).
+子目标 1 与假设合一，这把 ?P2 定为 A ∨ ¬A：这就是叶子 [¬(A ∨ ¬A)]¹。剩下的步骤沿着证明树走：(∨I₂)、(¬I²)、(¬E) 和 (∨I₁)。
 
 ```isabelle
   apply (rule disjI2)
@@ -1519,8 +1371,7 @@ goal (1 subgoal):
   done
 ```
 
-The first three steps, `rule ccontr`, `rule notE` and `assumption`, together do the work of a single
-rule, `classical`, `(¬ ?P ⟹ ?P) ⟹ ?P`: assume the negation of the goal, and prove the goal itself.
+前三步，即 `rule ccontr`、`rule notE` 和 `assumption`，合起来完成的工作相当于一条规则 `classical`，即 `(¬ ?P ⟹ ?P) ⟹ ?P`：假设目标的否定，然后证明目标本身。
 
 ```isabelle
 lemma "A ∨ ¬ A"
@@ -1542,7 +1393,7 @@ goal (1 subgoal):
   done
 ```
 
-The library has this law already, with the disjuncts the other way round:
+库中已经有这条定律，只是两个析取项的顺序相反：
 
 ```isabelle
 thm excluded_middle
@@ -1552,11 +1403,9 @@ thm excluded_middle
 ¬ ?P ∨ ?P
 ```
 
-### A De Morgan law {#classical-demorgan}
+### 一条德摩根律 {#classical-demorgan}
 
-Of the four directions of De Morgan's laws, Section 6.5 showed that one needs (RAA):
-¬(A ∧ B) ⟶ ¬A ∨ ¬B. The idea: suppose ¬A ∨ ¬B were false. Then A would have to hold, since otherwise
-¬A ∨ ¬B would; and B likewise. But A ∧ B contradicts ¬(A ∧ B).
+第 6.5 节说明了，在德摩根律（De Morgan's laws）的四个方向中，有一个需要 (RAA)：¬(A ∧ B) ⟶ ¬A ∨ ¬B。思路是：假设 ¬A ∨ ¬B 为假。那么 A 必定成立，否则 ¬A ∨ ¬B 就成立了；B 也是一样。但 A ∧ B 与 ¬(A ∧ B) 矛盾。
 
 ```prooftree
 ¬(A ∧ B) ⟶ ¬A ∨ ¬B   (⟶I¹)
@@ -1598,9 +1447,7 @@ goal (1 subgoal):
  1. ¬ (¬ A ∨ ¬ B) ⟹ A ∧ B
 ```
 
-`erule notE` took the first negated assumption, ¬(A ∧ B), and left its opposite, A ∧ B, to prove: the
-(¬E) at the bottom of the tree, with [¬(A ∧ B)]¹ as its first premise. Each half of A ∧ B is another
-proof by contradiction:
+`erule notE` 取了第一个否定形式的假设 ¬(A ∧ B)，留下它的反面 A ∧ B 有待证明：这就是证明树底部的那个 (¬E)，它的第一个前提是 [¬(A ∧ B)]¹。A ∧ B 的每一半又各是一次反证法（proof by contradiction）：
 
 ```isabelle
   apply (rule conjI)
@@ -1634,16 +1481,11 @@ goal (1 subgoal):
   done
 ```
 
-The other three directions of the De Morgan laws need no classical rule; Exercise 7.5 asks you to prove
-two of them.
+德摩根律的另外三个方向都不需要经典规则；练习 7.5 要你证明其中的两个。
 
-### Equality {#classical-eq}
+### 相等 {#classical-eq}
 
-`refl`, `?t = ?t`, is (=I), and `subst`, `⟦?s = ?t; ?P ?s⟧ ⟹ ?P ?t`, is (=E): if s = t and some property
-holds of s, it holds of t. The property `?P` is a schematic variable of function type, which unification
-fills in with a function. Module 6 derived symmetry from these two rules ([Section
-6.8](module_06_EN.html#equality)), with x = s as P x. Written as a rule, from s = t to t = s, the
-derivation is:
+`refl`，即 `?t = ?t`，就是 (=I)；`subst`，即 `⟦?s = ?t; ?P ?s⟧ ⟹ ?P ?t`，就是 (=E)：如果 s = t，并且某个性质对 s 成立，那么它对 t 也成立。性质 `?P` 是一个函数类型的图式变量，合一会用一个函数来填充它。模块 6 由这两条规则推导出了对称性（[第 6.8 节](module_06_ZH.html#equality)），其中取 P x 为 x = s。写成一条由 s = t 得出 t = s 的规则，推导就是：
 
 ```prooftree
 t = s   (=E)
@@ -1651,7 +1493,7 @@ t = s   (=E)
   s = s   (=I)
 ```
 
-Here (=E) uses the property "equal to s": it holds of s, so it holds of t.
+这里 (=E) 用的是性质“等于 s”：它对 s 成立，所以对 t 也成立。
 
 ```isabelle
 lemma "s = t ⟹ t = s"
@@ -1664,22 +1506,18 @@ goal (1 subgoal):
  1. s = s
 ```
 
-`erule` unified the major premise `?s = ?t` with the assumption s = t, and the conclusion `?P t` with
-t = s. For the second, Isabelle had to find a property ?P such that ?P t is t = s. The new subgoal shows
-which one it chose: the property "equal to s", since the remaining premise ?P s has become s = s.
-`refl` proves it:
+`erule` 把主前提 `?s = ?t` 与假设 s = t 合一，又把结论 `?P t` 与 t = s 合一。对于后者，Isabelle 必须找到一个性质 ?P，使 ?P t 就是 t = s。新的子目标显示了它选的是哪一个：性质“等于 s”，因为剩下的前提 ?P s 变成了 s = s。`refl` 能证明它：
 
 ```isabelle
   apply (rule refl)
   done
 ```
 
-In everyday proofs you rarely use `subst` by hand, because the simplifier rewrites with equations
-automatically (Module 9). But `subst` is what such rewriting means in natural deduction.
+在日常的证明中，你很少手工使用 `subst`，因为化简器（simplifier）会自动用等式进行重写（rewriting，模块 9）。但在自然演绎中，这种重写的含义正是 `subst`。
 
-### Equivalence {#classical-iff}
+### 等价 {#classical-iff}
 
-For ⟷, `iffI` turns one goal into two implications. Notice how Isabelle prints the goal:
+对于 ⟷，`iffI` 把一个目标变成两个蕴涵。注意 Isabelle 是怎样显示这个目标的：
 
 ```isabelle
 lemma "A ∧ B ⟷ B ∧ A"
@@ -1691,7 +1529,7 @@ goal (1 subgoal):
  1. (A ∧ B) = (B ∧ A)
 ```
 
-On formulas, ⟷ and = are the same, and Isabelle prints both as =. `iffI` gives the two directions:
+对于公式，⟷ 和 = 是一回事，Isabelle 把两者都显示为 =。`iffI` 给出两个方向：
 
 ```isabelle
   apply (rule iffI)
@@ -1704,7 +1542,7 @@ goal (2 subgoals):
  2. B ∧ A ⟹ A ∧ B
 ```
 
-Each subgoal is the swap lemma again, without the implication:
+每个子目标都又是那条交换引理，只是没有了蕴涵：
 
 ```isabelle
   apply (erule conjE)
@@ -1718,7 +1556,7 @@ Each subgoal is the swap lemma again, without the implication:
   done
 ```
 
-To use an equivalence that you have, `iffD1` and `iffD2` act like `mp` in either direction.
+要使用一个已有的等价式，`iffD1` 和 `iffD2` 的作用就像两个方向上的 `mp`。
 
 ## When a step fails {#errors}
 
