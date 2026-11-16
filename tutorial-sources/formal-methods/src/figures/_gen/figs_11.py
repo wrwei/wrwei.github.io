@@ -8,9 +8,9 @@ def fig_11_1(L):
                     narrow=['sumacc xs 0 = sum_list xs', 'speaks about the first call only'],
                     wide=['sumacc xs acc = acc + sum_list xs', 'holds at every call: an invariant'],
                     result='result'),
-         'zh': dict(title='为什么命题必须对每个累加器值成立',
-                    calls='sumacc [3, 1, 4] 0 的各次调用', inv='acc + 剩余部分的 sum_list',
-                    narrow=['sumacc xs 0 = sum_list xs', '只涉及第一次调用'],
+         'zh': dict(title='为什么断言必须对累加器的每个值都成立',
+                    calls='sumacc [3, 1, 4] 0 的各次调用', inv='acc + 剩余列表的 sum_list',
+                    narrow=['sumacc xs 0 = sum_list xs', '只描述第一次调用'],
                     wide=['sumacc xs acc = acc + sum_list xs', '在每次调用时都成立：一个不变式'],
                     result='结果')}[L]
     s = SVG(760, 300, T['title'])
@@ -52,10 +52,10 @@ def fig_11_3(L):
                     n3b='to the root: for every balanced word.', flow='P flows down'),
          'zh': dict(title='规则归纳沿着推导进行',
                     eps='ε', h1='bal (())() 的一个推导', n1='从上往下读：每条横线是一次',
-                    n1b='规则应用，旁边写着规则名。', n2='规则归纳要证明：每条规则都把',
-                    n2b='前提上的 P 传给结论，没有前提的', n2c='规则的结论也满足 P。',
+                    n1b='规则应用，旁边写着规则名。', n2='规则归纳要证明：每条规则都把 P',
+                    n2b='从前提传给结论，并且没有前提的', n2c='规则的结论满足 P。',
                     n2d='', n3='于是 P 在每个结点上都成立，一直',
-                    n3b='到根：对每个平衡的词都成立。', flow='P 向下传递')}[L]
+                    n3b='到根：对每个平衡的括号串都成立。', flow='P 向下传递')}[L]
     s = SVG(760, 330, T['title'])
     s.text(20, 26, T['h1'], size=13, weight=700, fill=C['slate'])
 
@@ -104,7 +104,7 @@ def fig_11_2(L):
                     c3='assuming', ih='one induction hypothesis per recursive call',
                     shrink1='first list shorter', shrink2='second list shorter'),
          'zh': dict(title='计算归纳沿着 merge 的递归进行',
-                    run='一次运行：', eqs='merge 的定义方程', cases='merge.induct 的情形',
+                    run='一次运行：', eqs='merge 的定义等式', cases='merge.induct 的情形',
                     c3='假设', ih='每个递归调用对应一个归纳假设',
                     shrink1='第一个列表变短', shrink2='第二个列表变短')}[L]
     s = SVG(760, 372, T['title'])

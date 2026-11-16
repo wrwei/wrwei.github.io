@@ -125,6 +125,10 @@ Use these everywhere. At a term's first use in a module, add the English in brac
 | classical logic / intuitionistic logic | 经典逻辑 / 直觉主义逻辑 |
 | safe rule (of a proof search) | 安全规则 |
 | proof state, goal, subgoal | 证明状态，目标，子目标 |
+| pending goal / initial method / proof outline | 待证目标 / 初始方法 / 证明大纲 |
+| fixed variable (`fix`) | 固定变元 |
+| destruction rule (`drule`) | 析构规则 |
+| fact chaining / named case | 链接（事实） / 命名情形 |
 | proof method | 证明方法 |
 | simplifier / rewriting / rewrite rule | 化简器 / 重写 / 重写规则 |
 | theory (Isabelle) | 理论 |

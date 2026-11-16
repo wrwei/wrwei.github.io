@@ -18,6 +18,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **abstract syntax**<br>抽象语法 | The structure of a program as a tree: each node is an operation and its children are its operands. In Isabelle it is a datatype. | [14.2.1](module_14_EN.html#syntax) |
 | **abstraction function**<br>抽象函数 | A function that maps each concrete value or state to the abstract one it represents, such as `set_of` from search trees to sets. | [12.5.1](module_12_EN.html#bst-trees), [13.7.1](module_13_EN.html#two-models) |
 | **accumulator**<br>累加器 | An argument in which a function collects its result as it goes. Inductions about such functions usually need `arbitrary:`. | [11.1.1](module_11_EN.html#running-total) |
+| **affirming the consequent**<br>肯定后件 | Concluding A from A ⟶ B and B: an invalid argument form, common enough to have a name. | [2.6](module_02_EN.html#consequence) |
 | **α-equivalent**<br>α 等价的 | Formulas that differ only in the names of their bound variables, such as ∃y. R x y and ∃z. R x z, are α-equivalent; they mean the same. | [3.5.2](module_03_EN.html#substitution) |
 | **antecedent**<br>前件 | In A ⟶ B, the formula A; B is the consequent. | [2.1](module_02_EN.html#connectives) |
 | **antisymmetric**<br>反对称的 | A relation R is antisymmetric if (x, y) ∈ R and (y, x) ∈ R imply x = y. | [4.2.3](module_04_EN.html#rel-props) |
@@ -26,9 +27,9 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **Archive of Formal Proofs**<br>形式化证明档案库 | An online library of checked Isabelle developments. | [1.4](module_01_EN.html#trust) |
 | **argument**<br>论证 | Premises together with a conclusion. An argument is valid if its conclusion is a logical consequence of its premises. | [2.6](module_02_EN.html#consequence) |
 | **arity**<br>元数 | (1) The number of arguments of a symbol. (2) In Isabelle, the record that a type belongs to a type class, as in the message No type arity light :: numeral. | [3.2](module_03_EN.html#language), [8.6.2](module_08_EN.html#classes) |
-| **assignment**<br>指派 | A choice of a value in the domain for every variable. Whether a formula with free variables is true depends on it. | [3.3](module_03_EN.html#structures) |
+| **assignment**<br>赋值 | A choice of a value in the domain for every variable. Whether a formula with free variables is true depends on it. | [3.3](module_03_EN.html#structures) |
 | **assumption**<br>假设 | A formula you may use without proving it: a leaf of a derivation, or a formula before ⟹ in a subgoal. | [6.2](module_06_EN.html#systems), [7.1.2](module_07_EN.html#meta-goals) |
-| **atom**<br>原子命题 | A proposition that is not built from other propositions, written as a name such as A or `fire`. Also called an atomic proposition. | [2.1](module_02_EN.html#connectives) |
+| **atom (atomic proposition)**<br>原子命题（原子） | A proposition that is not built from other propositions, written as a name such as A or `fire`. | [2.1](module_02_EN.html#connectives) |
 | **atomic formula**<br>原子公式 | In predicate logic, a predicate applied to terms, P t₁ … tₙ, or an equation t₁ = t₂ between terms. | [3.2.2](module_03_EN.html#atoms) |
 | **auxiliary lemma**<br>辅助引理 | A lemma proved first because a larger proof needs it. The goal on which the larger proof gets stuck usually shows what it must say. | [11.3](module_11_EN.html#lemmas), [14.5.1](module_14_EN.html#paper) |
 | **axiom**<br>公理 | An inference rule without premises. | [6.2](module_06_EN.html#systems) |
@@ -40,6 +41,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | Term | Meaning | Section |
 |---|---|---|
 | **backward search**<br>反向搜索 | Finding a proof by starting from the goal: choose a rule whose conclusion matches it, and its premises become subgoals. Isabelle works this way. | [6.7](module_06_EN.html#search) |
+| **bad row**<br>坏行 | A row of a truth table in which every premise is true and the conclusion false. An argument is valid exactly when it has no bad row. | [2.6](module_02_EN.html#consequence) |
 | **base case**<br>基础情形 | The case of a recursive definition or an induction that does not use the function or the hypothesis, such as 0 or the empty list. | [5.1.2](module_05_EN.html#nat-functions), [5.3.1](module_05_EN.html#principle) |
 | **base type**<br>基本类型 | A type that is a name, such as `bool`, `nat` or `int`. | [8.1.1](module_08_EN.html#types) |
 | **β-reduction**<br>β 归约 | The step that applies `λx. t` to an argument a: the result is t with a in place of x. | [8.2.1](module_08_EN.html#lambda) |
@@ -56,7 +58,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 
 | Term | Meaning | Section |
 |---|---|---|
-| **calculation**<br>链式计算 | In Isar, a chain of steps t₁ R t₂, t₂ R t₃, …, each with its own proof, from which Isabelle derives t₁ R tₙ by transitivity. It is written with `also` and `finally`. | [10.4.1](module_10_EN.html#calc-eq) |
+| **calculation**<br>计算推理 | In Isar, a chain of steps t₁ R t₂, t₂ R t₃, …, each with its own proof, from which Isabelle derives t₁ R tₙ by transitivity. It is written with `also` and `finally`. | [10.4.1](module_10_EN.html#calc-eq) |
 | **call by value**<br>传值调用 | An order of evaluation that evaluates the arguments of a call before the call itself. | [5.1.3](module_05_EN.html#rewriting) |
 | **Cantor's theorem**<br>康托尔定理 | No function maps a set onto its power set, so some sets are larger than others. The proof is the diagonal argument. | [4.7.4](module_04_EN.html#cantor) |
 | **cardinality**<br>基数 | The number of elements of a finite set A, written |A|. Isabelle writes `card A`. | [4.7.1](module_04_EN.html#finite) |
@@ -64,7 +66,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **case analysis**<br>情形分析 | A proof that splits into cases that together cover every possibility, and proves the claim in each. | [6.1](module_06_EN.html#informal), [10.5](module_10_EN.html#cases) |
 | **case expression**<br>case 表达式 | A term that takes a value apart by matching it against patterns, with one branch per pattern, such as a `case` on an option with branches for `None` and `Some x`. | [8.3.4](module_08_EN.html#case) |
 | **case split**<br>情形拆分 | Splitting a goal that contains an `if` or a `case` into one case per possibility. The simplifier splits `if` by itself, `case` only when asked with `split:`. | [9.3.3](module_09_EN.html#splits) |
-| **CDCL (conflict-driven clause learning)**<br>冲突驱动的子句学习（CDCL） | After a conflict, a SAT solver adds a clause that rules out the decisions that caused it, so that the search never makes the same mistake twice. | [2.8](module_02_EN.html#sat) |
+| **CDCL (conflict-driven clause learning)**<br>冲突驱动子句学习（CDCL） | After a conflict, a SAT solver adds a clause that rules out the decisions that caused it, so that the search never makes the same mistake twice. | [2.8](module_02_EN.html#sat) |
 | **classical logic**<br>经典逻辑 | The logic in which A ∨ ¬A holds for every A. Natural deduction needs (RAA), or an equivalent rule, to derive it. | [6.5](module_06_EN.html#classical) |
 | **classical reasoner**<br>经典推理器 | Isabelle's search methods built on natural-deduction rules, such as `blast`, `auto`, `force` and `fastforce`. They backtrack when a choice fails. | [7.9](module_07_EN.html#blast), [9.4](module_09_EN.html#classical) |
 | **clause**<br>子句 | A disjunction of literals, such as ¬A ∨ B ∨ ¬C; a single literal counts as a clause too. | [2.7](module_02_EN.html#normal-forms) |
@@ -79,7 +81,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **completeness theorem**<br>完备性定理 | Gödel's theorem (1929/1930) that every valid first-order formula can be proved. | [3.9](module_03_EN.html#decidability) |
 | **composition**<br>复合 | R O S takes an R-step followed by an S-step. For functions, (g ∘ f) x = g (f x), read "g after f". | [4.2.4](module_04_EN.html#rel-ops), [4.6.3](module_04_EN.html#inverse) |
 | **compositional**<br>组合式的 | A semantics is compositional if the meaning of each node is computed from the meanings of its children. | [14.2.2](module_14_EN.html#eval) |
-| **computation induction**<br>计算归纳法 | Induction that follows the recursion of a function f: one case per defining equation and one hypothesis per recursive call. In Isabelle, `rule: f.induct`. | [11.5.3](module_11_EN.html#f-induct) |
+| **computation induction**<br>计算归纳 | Induction that follows the recursion of a function f: one case per defining equation and one hypothesis per recursive call. In Isabelle, `rule: f.induct`. | [11.5.3](module_11_EN.html#f-induct) |
 | **conclusion**<br>结论 | The formula that an argument, a rule or a derivation reaches. In a subgoal, the formula after ⟹. | [2.6](module_02_EN.html#consequence), [6.2](module_06_EN.html#systems) |
 | **concrete syntax**<br>具体语法 | The text of a program, with its parentheses and spaces, as opposed to its abstract syntax. | [14.2.1](module_14_EN.html#syntax) |
 | **conditional rewrite rule**<br>条件重写规则 | A rule H ⟹ l = r, which the simplifier uses only after it has proved the condition H by simplification. | [9.3.1](module_09_EN.html#conditional) |
@@ -91,7 +93,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **constant**<br>常量 | A symbol that names a single object, such as `alice` or 0. In Isabelle, a name that has been defined or declared, as opposed to a variable. | [3.2](module_03_EN.html#language) |
 | **constant folding**<br>常量折叠 | An optimisation that replaces the parts of a program whose value does not depend on the state by their value, and removes operations that have no effect. | [14.6.1](module_14_EN.html#folding) |
 | **constructor**<br>构造子 | One of the functions that build the values of a datatype, such as `[]` and `#` for lists, or `Red` for traffic lights. | [5.2.2](module_05_EN.html#trees), [8.3.1](module_08_EN.html#enumerations) |
-| **contingent**<br>偶然式 | A formula that is satisfiable but not a tautology: true in some rows of its truth table and false in others. | [2.4](module_02_EN.html#classify) |
+| **contingent**<br>可满足但非有效的 | A formula that is satisfiable but not a tautology: true in some rows of its truth table and false in others. | [2.4](module_02_EN.html#classify) |
 | **contradiction**<br>矛盾式 | A formula that is true under no valuation; also called unsatisfiable. | [2.4](module_02_EN.html#classify) |
 | **contrapositive**<br>逆否命题 | The contrapositive of A ⟶ B is ¬B ⟶ ¬A. Both say the same, so proving one proves the other. | [6.1](module_06_EN.html#informal) |
 | **converse (of a relation)**<br>逆关系 | R⁻¹, which reverses every pair of R. Isabelle writes `r¯`. | [4.2.4](module_04_EN.html#rel-ops) |
@@ -117,18 +119,20 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **decidable**<br>可判定的 | A question is decidable if some algorithm answers it correctly for every input and always terminates. | [3.9](module_03_EN.html#decidability) |
 | **decision problem**<br>判定问题 | A yes-or-no question about inputs, such as "is this number prime?"; as a set, a subset of ℕ. | [4.7.4](module_04_EN.html#cantor) |
 | **decision procedure**<br>判定过程 | A program that decides, for every formula of some kind, whether it holds, and proves it if it does, such as `linarith`. | [9.5](module_09_EN.html#arith) |
+| **denying the antecedent**<br>否定前件 | Concluding ¬B from A ⟶ B and ¬A: an invalid argument form. | [2.6](module_02_EN.html#consequence) |
 | **derivable**<br>可推导的 | Γ ⊢ A, "A is derivable from Γ": some derivation has the conclusion A and all its open assumptions in Γ. | [6.2](module_06_EN.html#systems) |
 | **derivation**<br>推导 | A tree of formulas in which every formula is an assumption or follows from the formulas directly above it by a rule. | [6.2](module_06_EN.html#systems), [11.6.1](module_11_EN.html#ev) |
-| **destruction rule**<br>拆解规则 | A rule with the connective in its major premise and a part of that premise as its conclusion, such as `conjunct1`, `mp` and `spec`. It is used with `drule` and `frule`. | [7.2.3](module_07_EN.html#rules-shapes) |
+| **destruction rule**<br>析构规则 | A rule with the connective in its major premise and a part of that premise as its conclusion, such as `conjunct1`, `mp` and `spec`. It is used with `drule` and `frule`. | [7.2.3](module_07_EN.html#rules-shapes) |
 | **diagonal argument**<br>对角线论证 | Cantor's proof that no function f maps a set onto its power set: the set of elements x that are not in f x is not a value of f. | [4.7.4](module_04_EN.html#cantor) |
 | **difference**<br>差集 | A − B, the elements of A that are not in B. | [4.1.2](module_04_EN.html#sets-ops) |
 | **discharge**<br>解除（假设） | A rule such as (⟶I) discharges an assumption: the conclusion no longer depends on it. A discharged assumption is written [A]¹. | [6.4.2](module_06_EN.html#imp) |
 | **disjoint**<br>不相交的 | Two sets are disjoint if they have no element in common: A ∩ B = ∅. | [4.1.2](module_04_EN.html#sets-ops) |
 | **disjunction**<br>析取 | A ∨ B, read "A or B": true when at least one of them is true. | [2.1](module_02_EN.html#connectives) |
 | **disjunctive normal form (DNF)**<br>析取范式 | A disjunction of conjunctions of literals, such as (A ∧ ¬B) ∨ (¬A ∧ C) ∨ D. | [2.7.2](module_02_EN.html#cnf-dnf) |
+| **disjunctive syllogism**<br>析取三段论 | From A ∨ B and ¬A, conclude B: a valid argument form. | [2.6](module_02_EN.html#consequence) |
 | **domain (of a function)**<br>定义域 | For a function f : A → B, the set A. | [4.6.1](module_04_EN.html#fun-def) |
 | **domain (of a structure)**<br>论域 | The non-empty set of objects that the variables range over. | [3.3](module_03_EN.html#structures) |
-| **DPLL procedure**<br>DPLL 过程 | The search on which SAT solvers are based: unit propagation, decisions, and going back to the latest decision after a conflict. | [2.8](module_02_EN.html#sat) |
+| **DPLL procedure**<br>DPLL 算法 | The search on which SAT solvers are based: unit propagation, decisions, and going back to the latest decision after a conflict. | [2.8](module_02_EN.html#sat) |
 | **dual**<br>对偶 | The law obtained by swapping ∪ and ∩ (and ∅ and UNIV). The dual of a law of sets holds as well. | [4.1.3](module_04_EN.html#sets-laws) |
 
 <div class="section-anchor" id="g-e"></div>
@@ -166,7 +170,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **formal method**<br>形式化方法 | A way of specifying or verifying a system in a language with a precise mathematical meaning, so that claims about the system can be checked by calculation or proof. | [1.2](module_01_EN.html#formal) |
 | **formal specification**<br>形式化规约 | A specification written in a formal language. | [1.2](module_01_EN.html#formal) |
 | **formula**<br>公式 | An expression built by the formation rules: from atoms (or atomic formulas), `True` and `False`, with the connectives and, in predicate logic, the quantifiers. | [2.2.1](module_02_EN.html#formation), [3.2.3](module_03_EN.html#quantifiers) |
-| **forward chaining**<br>前向链接 | In Isar, passing facts to the next claim, whose proof method then receives them; `then`, `from` and `with` do it. | [10.3.1](module_10_EN.html#facts-then) |
+| **forward chaining**<br>正向链接 | In Isar, passing facts to the next claim, whose proof method then receives them; `then`, `from` and `with` do it. | [10.3.1](module_10_EN.html#facts-then) |
 | **free variable**<br>自由变元 | An occurrence of a variable that no quantifier binds; in Isabelle, a name that is not a constant. The free variables of a lemma are implicitly universal. | [3.2.4](module_03_EN.html#scope), [8.1.2](module_08_EN.html#terms) |
 | **fresh**<br>新的 | A name is fresh if it does not occur free where a rule forbids it: in the conclusion, in the quantified formula or in the open assumptions. | [6.6](module_06_EN.html#quantifiers) |
 | **function**<br>函数 | A relation in which every element of the domain is related to exactly one element of the codomain. In HOL a function is a value like any other. | [4.6.1](module_04_EN.html#fun-def) |
@@ -182,7 +186,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **generalise**<br>推广 | To prove a claim for all values of a variable at once, so that the induction hypothesis can be used with other values. `arbitrary:` does this. | [11.2](module_11_EN.html#generalise), [14.5.1](module_14_EN.html#paper) |
 | **genuine**<br>真实的（反例） | A Nitpick counterexample is genuine when Nitpick has checked that it falsifies the claim. A potentially spurious one might disappear in a larger model. | [9.7.2](module_09_EN.html#nitpick) |
 | **goal**<br>目标 | The statement still to be proved. | [1.7.3](module_01_EN.html#first-prove) |
-| **guard**<br>守卫条件 | (1) A predicate such as `user` that says which kind an object is, in a domain with several kinds (Module 3). (2) The condition under which an event of a state machine can happen (Module 13). | [3.7](module_03_EN.html#specifications), [13.1](module_13_EN.html#machines) |
+| **guard**<br>守卫 | (1) A predicate such as `user` that says which kind an object is, in a domain with several kinds (Module 3). (2) The condition under which an event of a state machine can happen (Module 13). | [3.7](module_03_EN.html#specifications), [13.1](module_13_EN.html#machines) |
 
 <div class="section-anchor" id="g-h"></div>
 
@@ -193,6 +197,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **Hasse diagram**<br>哈斯图 | A drawing of a partial order on a finite set: smaller elements lower, and a line only where one element covers another. | [4.4.2](module_04_EN.html#hasse) |
 | **head**<br>头部 | The first element x of a list x # xs. | [5.2.1](module_05_EN.html#lists) |
 | **higher-order logic (HOL)**<br>高阶逻辑 | A typed logic in which functions and predicates are values, so variables and quantifiers may range over them. It is the logic of Isabelle/HOL. | [1.4](module_01_EN.html#trust), [3.8](module_03_EN.html#types) |
+| **hypothetical syllogism**<br>假言三段论 | From A ⟶ B and B ⟶ C, conclude A ⟶ C; also called chaining. A valid argument form. | [2.6](module_02_EN.html#consequence) |
 
 <div class="section-anchor" id="g-i"></div>
 
@@ -224,6 +229,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **introduction rule**<br>引入规则 | A rule that says how to prove a formula with a given connective; it is used with `rule`. For an inductive definition, one of its defining rules. | [6.4](module_06_EN.html#connectives), [7.2.3](module_07_EN.html#rules-shapes), [11.6](module_11_EN.html#inductive) |
 | **intuitionistic logic**<br>直觉主义逻辑 | Natural deduction without (RAA): A ∨ ¬A and ¬¬A ⟶ A are not derivable, and proofs can be read as programs. | [6.5.1](module_06_EN.html#intuitionistic) |
 | **invariant**<br>不变式 | A property that keeps holding. In Module 5, one that holds initially and is preserved by every step; in Module 13, one that holds in every reachable state; for a data structure, one that every value built by its operations has. | [5.8](module_05_EN.html#invariants), [12.5.3](module_12_EN.html#bst-invariant), [13.3](module_13_EN.html#invariants) |
+| **inventor's paradox**<br>发明者悖论 | Pólya's observation that a more ambitious claim can be easier to prove. In an induction, a stronger claim gives a stronger induction hypothesis. | [11.2.3](module_11_EN.html#strengthen) |
 | **inverse**<br>逆函数 | g is an inverse of f : A → B if g (f a) = a and f (g b) = b for all a and b. A function has one exactly when it is bijective; Isabelle writes `inv f`. | [4.6.3](module_04_EN.html#inverse) |
 | **irreflexive**<br>反自反的 | A relation is irreflexive on A if no element of A is related to itself. | [4.2.3](module_04_EN.html#rel-props) |
 | **Isabelle/HOL**<br>Isabelle/HOL | Isabelle with higher-order logic, the proof assistant this series uses. | [1.4](module_01_EN.html#trust) |
@@ -268,16 +274,18 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 |---|---|---|
 | **main connective**<br>主联结词 | The connective at the root of a formula's parse tree; the formula is named after it, and it decides which rules apply. | [2.2.1](module_02_EN.html#formation), [6.4](module_06_EN.html#connectives) |
 | **major premise**<br>主前提 | The first premise of an elimination or destruction rule: the one that contains the connective. | [7.2.3](module_07_EN.html#rules-shapes) |
-| **many-sorted logic**<br>多类逻辑 | A typed logic: every argument and result of a symbol has a sort, and each variable ranges over the domain of one sort. | [3.8](module_03_EN.html#types) |
+| **many-sorted logic**<br>多类别逻辑 | A typed logic: every argument and result of a symbol has a sort, and each variable ranges over the domain of one sort. | [3.8](module_03_EN.html#types) |
 | **matching**<br>匹配 | Finding terms for the variables of an equation that make its left side identical to a part of the goal: unification in one direction only. | [9.2.1](module_09_EN.html#rewriting) |
 | **mathematical induction**<br>数学归纳法 | Prove P(0), and P(n) ⟶ P(n + 1) for an arbitrary n; then P(n) holds for every natural number n. | [5.3.1](module_05_EN.html#principle) |
 | **measure**<br>度量 | A function from the arguments of a recursive function to the natural numbers that gets smaller at every recursive call. It proves that the recursion terminates. | [5.7.2](module_05_EN.html#measures), [8.7.2](module_08_EN.html#termination-messages) |
 | **meta-logic**<br>元逻辑 | A logic for stating rules and proofs about another logic, the object logic. In Isabelle it is Pure. | [7.1.1](module_07_EN.html#meta-pure) |
 | **minimal element**<br>极小元素 | An element of a partial order with no element strictly below it; a maximal element has none strictly above it. A partial order can have several. | [4.4.2](module_04_EN.html#hasse) |
-| **mode**<br>证明模式 | The first line of every proof state: `proof (prove)` after a claim, `proof (state)` inside a block, `proof (chain)` after facts have been picked up. It tells you what may come next. | [10.2.1](module_10_EN.html#shape-blocks) |
+| **mode**<br>模式 | The first line of every proof state: `proof (prove)` after a claim, `proof (state)` inside a block, `proof (chain)` after facts have been picked up. It tells you what may come next. | [10.2.1](module_10_EN.html#shape-blocks) |
 | **model**<br>模型 | A valuation or a structure that makes a formula true. | [2.4](module_02_EN.html#classify), [3.3](module_03_EN.html#structures) |
 | **model checking**<br>模型检测 | Exploring every reachable state of a finite model to check a property; the answer is "holds" or a counterexample trace. A model checker, such as SPIN or TLC, does it. | [1.3](module_01_EN.html#landscape), [13.1](module_13_EN.html#machines) |
 | **modus ponens**<br>肯定前件式 | From A ⟶ B and A, conclude B: the rule (⟶E), `mp` in Isabelle. | [2.6](module_02_EN.html#consequence), [6.4.2](module_06_EN.html#imp) |
+| **modus tollens**<br>否定后件式 | From A ⟶ B and ¬B, conclude ¬A: a valid argument form. | [2.6](module_02_EN.html#consequence) |
+| **monotone**<br>单调的 | The rules of an inductive definition must be monotone: when more facts about the predicate hold, they may not derive fewer conclusions. A negated premise breaks this. | [11.6.4](module_11_EN.html#versus) |
 | **multiset**<br>多重集 | A collection in which order does not matter but the number of copies of each element does; also called a bag. `mset xs` is the multiset of the elements of a list. | [12.2.2](module_12_EN.html#isort-spec) |
 
 <div class="section-anchor" id="g-n"></div>
@@ -382,7 +390,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **relation**<br>关系 | A set of pairs: a relation from A to B is a subset of A × B. | [4.2.2](module_04_EN.html#rel-def) |
 | **rewrite rule**<br>重写规则 | An equation l = r that is used from left to right only. | [5.1.3](module_05_EN.html#rewriting), [9.2.1](module_09_EN.html#rewriting) |
 | **rewriting**<br>重写 | Replacing, again and again, a part of a term that matches the left side of an equation by the right side. | [5.1.3](module_05_EN.html#rewriting), [9.2.1](module_09_EN.html#rewriting) |
-| **rule induction**<br>规则归纳法 | Proving a property of everything an inductive definition derives: one case per rule, with an induction hypothesis for each premise about the predicate. In Isabelle, `rule: I.induct`. | [11.6.2](module_11_EN.html#rule-induction) |
+| **rule induction**<br>规则归纳 | Proving a property of everything an inductive definition derives: one case per rule, with an induction hypothesis for each premise about the predicate. In Isabelle, `rule: I.induct`. | [11.6.2](module_11_EN.html#rule-induction) |
 | **rule inversion**<br>规则反演 | Reasoning backwards from a fact I t: only the rules whose conclusion can match t could have derived it, so their premises hold. | [11.6.3](module_11_EN.html#inversion) |
 | **run**<br>运行 | A sequence of states that starts in an initial state and follows the transition relation. | [13.1](module_13_EN.html#machines) |
 
@@ -414,7 +422,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 | **Sledgehammer**<br>Sledgehammer | A tool that hands a goal and relevant library facts to external provers, and turns a proof one of them finds into an Isabelle proof that the kernel checks. | [9.8](module_09_EN.html#sledgehammer) |
 | **SMT solver**<br>SMT 求解器 | A SAT solver extended with numbers, arrays and other data, such as Z3 and cvc5. | [1.3](module_01_EN.html#landscape), [2.8](module_02_EN.html#sat) |
 | **sort (in Isabelle)**<br>类别 | A set of type classes, written {c₁, …, cₙ}. A type variable can be restricted to a sort, as in `'a::{one, plus}`. | [8.6.2](module_08_EN.html#classes) |
-| **sort (in many-sorted logic)**<br>类别（多类逻辑中） | In a many-sorted logic, another word for type: each symbol's arguments and results have one. | [3.8](module_03_EN.html#types) |
+| **sort (in many-sorted logic)**<br>类别（多类别逻辑中） | In a many-sorted logic, another word for type: each symbol's arguments and results have one. | [3.8](module_03_EN.html#types) |
 | **soundness**<br>可靠性 | A proof system is sound if everything it derives is a logical consequence: Γ ⊢ A implies Γ ⊨ A. | [6.3](module_06_EN.html#soundness) |
 | **specification**<br>规约 | A precise statement of what a system must do, without saying how. | [1.2](module_01_EN.html#formal), [12.1](module_12_EN.html#verify) |
 | **stack**<br>栈 | A list of values that is used only at one end, its top. | [14.3](module_14_EN.html#machine) |
@@ -500,7 +508,7 @@ A term with two meanings lists both. Symbols and notation are in the [cheat shee
 
 | Term | Meaning | Section |
 |---|---|---|
-| **vacuously true**<br>空真的 | An implication whose antecedent is false is true whatever its consequent is: it is vacuously true. | [2.3](module_02_EN.html#truth-tables) |
+| **vacuously true**<br>空真 | An implication whose antecedent is false is true whatever its consequent is: it is vacuously true. | [2.3](module_02_EN.html#truth-tables) |
 | **valid**<br>有效的 | True in every structure under every assignment; for a propositional formula, a tautology. | [2.4](module_02_EN.html#classify), [3.4](module_03_EN.html#validity) |
 | **validation**<br>确认 | Checking that the specification describes what is actually wanted: "are we building the right product?". | [1.2](module_01_EN.html#formal) |
 | **valuation**<br>赋值 | An assignment of a truth value, T or F, to each atom. | [2.3](module_02_EN.html#truth-tables) |

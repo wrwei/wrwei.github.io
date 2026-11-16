@@ -5,7 +5,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 
 有两种含义的术语会把两种含义都列出来。符号和记法见[速查表](cheatsheet_ZH.html#notation)，Isabelle 的消息见[问题排查](troubleshooting_ZH.html)。最后一列的数字是各模块的章节号：7.2.1 指模块 7 的第 7.2.1 节。以英文字母或符号开头的术语（例如 SAT 求解器、λ 抽象）按其英文读音排在相应字母下。
 
-[A](#g-a) · [B](#g-b) · [C](#g-c) · [D](#g-d) · [E](#g-e) · [F](#g-f) · [G](#g-g) · [H](#g-h) · [I](#g-i) · [J](#g-j) · [K](#g-k) · [L](#g-l) · [M](#g-m) · [N](#g-n) · [O](#g-o) · [P](#g-p) · [Q](#g-q) · [R](#g-r) · [S](#g-s) · [T](#g-t) · [W](#g-w) · [X](#g-x) · [Y](#g-y) · [Z](#g-z)
+[A](#g-a) · [B](#g-b) · [C](#g-c) · [D](#g-d) · [E](#g-e) · [F](#g-f) · [G](#g-g) · [H](#g-h) · [I](#g-i) · [J](#g-j) · [K](#g-k) · [L](#g-l) · [M](#g-m) · [N](#g-n) · [P](#g-p) · [Q](#g-q) · [R](#g-r) · [S](#g-s) · [T](#g-t) · [W](#g-w) · [X](#g-x) · [Y](#g-y) · [Z](#g-z)
 
 ## 术语（按拼音排序） {#terms}
 
@@ -58,10 +58,9 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 |---|---|---|
 | **case 表达式**<br>case expression | 通过与模式匹配来拆开一个值的项，每个模式一个分支，例如对一个选项值进行 `case`，分别处理 `None` 和 `Some x`。 | [8.3.4](module_08_ZH.html#case) |
 | **差集**<br>difference | A − B，属于 A 但不属于 B 的元素。 | [4.1.2](module_04_ZH.html#sets-ops) |
-| **拆解规则**<br>destruction rule | 主前提中含有联结词、结论是主前提的一部分的规则，例如 `conjunct1`、`mp` 和 `spec`。它与 `drule` 和 `frule` 一起使用。 | [7.2.3](module_07_ZH.html#rules-shapes) |
 | **常量**<br>constant | 指称单个对象的符号，例如 `alice` 或 0。在 Isabelle 中，指已定义或已声明的名字，与变元相对。 | [3.2](module_03_ZH.html#language) |
 | **常量折叠**<br>constant folding | 一种优化：把程序中值不依赖于状态的部分替换为它们的值，并去掉不起作用的运算。 | [14.6.1](module_14_ZH.html#folding) |
-| **冲突驱动的子句学习（CDCL）**<br>CDCL (conflict-driven clause learning) | 发生冲突后，SAT 求解器添加一个子句，排除导致冲突的那组决策，使搜索不会两次犯同样的错误。 | [2.8](module_02_ZH.html#sat) |
+| **冲突驱动子句学习（CDCL）**<br>CDCL (conflict-driven clause learning) | 发生冲突后，SAT 求解器添加一个子句，排除导致冲突的那组决策，使搜索不会两次犯同样的错误。 | [2.8](module_02_ZH.html#sat) |
 | **重叠的等式**<br>overlapping equations | 模式可以匹配同一个参数的 `fun` 等式。`fun` 使用第一个匹配的等式。 | [8.4.3](module_08_ZH.html#patterns) |
 | **重写**<br>rewriting | 反复把项中与等式左边匹配的部分替换为右边。 | [5.1.3](module_05_ZH.html#rewriting), [9.2.1](module_09_ZH.html#rewriting) |
 | **重写规则**<br>rewrite rule | 只从左往右使用的等式 l = r。 | [5.1.3](module_05_ZH.html#rewriting), [9.2.1](module_09_ZH.html#rewriting) |
@@ -88,8 +87,9 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **代码生成**<br>code generation | 用 `export_code` 把 HOL 中的定义翻译成 Standard ML、OCaml、Haskell 或 Scala。`value` 也使用同一套机制。 | [8.8](module_08_ZH.html#codegen) |
 | **代入**<br>substitution | φ[t/x]，把 φ 中每个自由的 x 换成项 t；也指规则 (=E)，即用相等的东西替换相等的东西。 | [3.5.2](module_03_ZH.html#substitution), [6.8](module_06_ZH.html#equality) |
 | **待证目标**<br>pending goal | Isar 证明块中在 `qed` 之前仍需由 `show` 解决的目标。 | [10.2.1](module_10_ZH.html#shape-blocks) |
+| **单调的**<br>monotone | 归纳定义的规则必须是单调的：关于被定义谓词成立的事实越多，规则能推出的结论不能越少。否定形式的前提会破坏这一点。 | [11.6.4](module_11_ZH.html#versus) |
 | **单射的**<br>injective | 不同的输入给出不同的输出：由 f x = f y 可以推出 x = y。Isabelle 中写作 `inj f`。 | [4.6.2](module_04_ZH.html#inj-surj) |
-| **单元传播**<br>unit propagation | DPLL 过程中的一步：如果一个子句中除一个文字外都为假，剩下的那个文字必须为真，于是给它赋值。 | [2.8](module_02_ZH.html#sat) |
+| **单元传播**<br>unit propagation | DPLL 算法中的一步：如果一个子句中除一个文字外都为假，剩下的那个文字必须为真，于是给它赋值。 | [2.8](module_02_ZH.html#sat) |
 | **德摩根律**<br>De Morgan's laws | ¬(A ∧ B) ≡ ¬A ∨ ¬B 以及 ¬(A ∨ B) ≡ ¬A ∧ ¬B。 | [2.5](module_02_ZH.html#equivalence) |
 | **等价关系**<br>equivalence relation | 自反、对称且传递的关系。它的等价类构成一个划分。 | [4.3](module_04_ZH.html#equivalence) |
 | **等价类**<br>equivalence class | 在一个等价关系下与 x 相关的元素组成的集合，记作 [x]。 | [4.3](module_04_ZH.html#equivalence) |
@@ -100,7 +100,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **递归数据类型**<br>recursive datatype | 在定义中引用自身的数据类型，例如列表、栈和树。 | [8.3.2](module_08_ZH.html#recursive) |
 | **定理**<br>theorem | 不需要任何假设就能推导出的公式。在 Isabelle 中指已证明的陈述，只有内核能创建它。 | [6.2](module_06_ZH.html#systems) |
 | **定义域**<br>domain (of a function) | 对函数 f : A → B 来说，集合 A。 | [4.6.1](module_04_ZH.html#fun-def) |
-| **DPLL 过程**<br>DPLL procedure | SAT 求解器所依据的搜索方法：单元传播、决策，以及发生冲突后回到最近的决策。 | [2.8](module_02_ZH.html#sat) |
+| **DPLL 算法**<br>DPLL procedure | SAT 求解器所依据的搜索方法：单元传播、决策，以及发生冲突后回到最近的决策。 | [2.8](module_02_ZH.html#sat) |
 | **度量**<br>measure | 从递归函数的参数到自然数的函数，在每次递归调用时都严格变小。它证明了递归会终止。 | [5.7.2](module_05_ZH.html#measures), [8.7.2](module_08_ZH.html#termination-messages) |
 | **队列**<br>queue | 排队的队伍：元素从队尾加入、从队首离开，先加入的先离开。 | [12.6.2](module_12_ZH.html#queue) |
 | **对称的**<br>symmetric | 如果由 (x, y) ∈ R 可以推出 (y, x) ∈ R，关系 R 就是对称的。 | [4.2.3](module_04_ZH.html#rel-props) |
@@ -108,7 +108,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **对偶**<br>dual | 把 ∪ 和 ∩（以及 ∅ 和 UNIV）互换得到的定律。集合定律的对偶也成立。 | [4.1.3](module_04_ZH.html#sets-laws) |
 | **对象逻辑**<br>object logic | 书写公式所用的逻辑；在 Isabelle/HOL 中是 HOL，含 ¬ ∧ ∨ ⟶ ∀ ∃ 和 =。 | [7.1.1](module_07_ZH.html#meta-pure) |
 | **多重集**<br>multiset | 不计顺序、但计每个元素出现次数的汇集；也叫袋。`mset xs` 是列表元素组成的多重集。 | [12.2.2](module_12_ZH.html#isort-spec) |
-| **多类逻辑**<br>many-sorted logic | 带类型的逻辑：符号的每个参数和结果都有一个类别，每个变元只在一个类别的论域中取值。 | [3.8](module_03_ZH.html#types) |
+| **多类别逻辑**<br>many-sorted logic | 类型化的逻辑：符号的每个参数和结果都有一个类别，每个变元只在一个类别的论域中取值。 | [3.8](module_03_ZH.html#types) |
 | **多态的**<br>polymorphic | 类型中含有类型变量的函数（例如 `rev :: 'a list ⇒ 'a list`）对该类型的每个实例都适用。 | [8.1.1](module_08_ZH.html#types) |
 
 <div class="section-anchor" id="g-e"></div>
@@ -126,19 +126,23 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 
 | 术语 | 释义 | 出处 |
 |---|---|---|
+| **发明者悖论**<br>inventor's paradox | 波利亚的观察：更有雄心的断言可能更容易证明。在归纳中，更强的结论带来更强的归纳假设。 | [11.2.3](module_11_ZH.html#strengthen) |
 | **反对称的**<br>antisymmetric | 如果由 (x, y) ∈ R 和 (y, x) ∈ R 可以推出 x = y，关系 R 就是反对称的。 | [4.2.3](module_04_ZH.html#rel-props) |
 | **反例**<br>counterexample | 使断言为假的东西：一个赋值、一组自由变元的值，或者一条到达坏状态的运行。 | [2.4](module_02_ZH.html#classify), [13.3](module_13_ZH.html#invariants) |
 | **反例轨迹**<br>counterexample trace | 从初始状态到违反某个性质的状态的一条运行，写成事件列表。 | [4.5.2](module_04_ZH.html#reachability), [13.6](module_13_ZH.html#traces) |
-| **反模型**<br>countermodel | 使一个公式为假的结构（连同对自由变元的指派）。一个反模型就足以否定有效性。 | [3.4](module_03_ZH.html#validity) |
+| **反模型**<br>countermodel | 使一个公式为假的结构（连同对自由变元的赋值）。一个反模型就足以否定有效性。 | [3.4](module_03_ZH.html#validity) |
 | **反向搜索**<br>backward search | 从目标出发寻找证明：选一条结论与目标相符的规则，它的前提就成为新的子目标。Isabelle 就是这样工作的。 | [6.7](module_06_ZH.html#search) |
 | **反证法**<br>proof by contradiction | 要证明 A，先假设 ¬A 并推出矛盾：即规则 (RAA)，在 Isabelle 中是 `ccontr`。 | [6.1](module_06_ZH.html#informal), [6.5](module_06_ZH.html#classical) |
 | **反自反的**<br>irreflexive | 如果 A 中没有元素与自身相关，关系在 A 上就是反自反的。 | [4.2.3](module_04_ZH.html#rel-props) |
 | **范式**<br>normal form | （1）公式的一种标准形状：否定范式、合取范式或析取范式。（2）在重写中，指不能再被任何规则重写的项。 | [2.7](module_02_ZH.html#normal-forms), [9.2.1](module_09_ZH.html#rewriting) |
 | **否定**<br>negation | ¬A，读作“非 A”：A 为假时为真。 | [2.1](module_02_ZH.html#connectives) |
 | **否定范式**<br>negation normal form (NNF) | 只用 ¬、∧ 和 ∨、并且每个 ¬ 都紧挨在原子前面的公式。 | [2.7.1](module_02_ZH.html#nnf) |
+| **否定后件式**<br>modus tollens | 由 A ⟶ B 和 ¬B 得出 ¬A：一种有效的论证形式。 | [2.6](module_02_ZH.html#consequence) |
+| **否定前件**<br>denying the antecedent | 由 A ⟶ B 和 ¬A 得出 ¬B：一种无效的论证形式。 | [2.6](module_02_ZH.html#consequence) |
 | **辅助引理**<br>auxiliary lemma | 因为一个更大的证明需要它而先行证明的引理。更大的证明卡住时剩下的目标通常会显示它应当说什么。 | [11.3](module_11_ZH.html#lemmas), [14.5.1](module_14_ZH.html#paper) |
 | **附加条件**<br>side condition | 规则的额外条件，例如本征变元条件，或者引入规则中不涉及被定义谓词的前提。 | [6.6](module_06_ZH.html#quantifiers), [11.6](module_11_ZH.html#inductive) |
 | **复合**<br>composition | R O S 先走一步 R，再走一步 S。对函数来说，(g ∘ f) x = g (f x)，读作“g 在 f 之后”。 | [4.2.4](module_04_ZH.html#rel-ops), [4.6.3](module_04_ZH.html#inverse) |
+| **赋值**<br>assignment | 为每个变元在论域中选定一个值。含自由变元的公式是否为真取决于赋值。 | [3.3](module_03_ZH.html#structures) |
 | **赋值**<br>valuation | 给每个原子指定一个真值 T 或 F。 | [2.3](module_02_ZH.html#truth-tables) |
 
 <div class="section-anchor" id="g-g"></div>
@@ -150,14 +154,14 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **高阶逻辑**<br>higher-order logic (HOL) | 一种带类型的逻辑，函数和谓词都是值，因此变元和量词可以取遍它们。它就是 Isabelle/HOL 的逻辑。 | [1.4](module_01_ZH.html#trust), [3.8](module_03_ZH.html#types) |
 | **鸽巢原理**<br>pigeonhole principle | 不存在从一个有限集合到更小集合的单射。 | [4.7.2](module_04_ZH.html#pigeonhole) |
 | **公理**<br>axiom | 没有前提的推理规则。 | [6.2](module_06_ZH.html#systems) |
-| **公平性**<br>fairness | 排除不公平运行的假设，例如“守卫条件一直为真的事件终究会发生”。活性的证明需要它。 | [13.8.1](module_13_ZH.html#liveness) |
+| **公平性**<br>fairness | 排除不公平运行的假设，例如“守卫一直为真的事件终究会发生”。活性的证明需要它。 | [13.8.1](module_13_ZH.html#liveness) |
 | **公式**<br>formula | 按形成规则构造的表达式：由原子（或原子公式）、`True` 和 `False` 出发，用联结词以及（在谓词逻辑中）量词构成。 | [2.2.1](module_02_ZH.html#formation), [3.2.3](module_03_ZH.html#quantifiers) |
 | **功能正确性**<br>functional correctness | 关于程序计算出什么结果的正确性，不涉及它花多长时间、用多少内存。 | [12.1](module_12_ZH.html#verify) |
 | **构造子**<br>constructor | 构造数据类型的值的函数之一，例如列表的 `[]` 和 `#`，或者交通灯的 `Red`。 | [5.2.2](module_05_ZH.html#trees), [8.3.1](module_08_ZH.html#enumerations) |
 | **固定变量**<br>fixed variable | 子目标中由 ⋀ 约束的变量，或在 Isar 中由 `fix` 引入的变量。它代表一个任意的值，合一永远不会替换它。Isabelle 也称之为参数。 | [7.6.1](module_07_ZH.html#quantifiers-all), [10.2.4](module_10_ZH.html#shape-fix) |
 | **关系**<br>relation | 有序对的集合：从 A 到 B 的关系是 A × B 的子集。 | [4.2.2](module_04_ZH.html#rel-def) |
 | **归谬法（RAA）**<br>RAA (reductio ad absurdum) | 拉丁语 reductio ad absurdum 的缩写，指这样一条规则：要证明 A，假设 ¬A 并推出 ⊥。它使自然演绎成为经典的；在 Isabelle 中是 `ccontr`。 | [6.5](module_06_ZH.html#classical) |
-| **归纳**<br>induction | 先证明结论对最小的值成立，再证明它能从较小的值传到较大的值，以此证明它对每个值成立。数学归纳法、结构归纳法、强归纳法和规则归纳法都是它的形式。 | [5.3.1](module_05_ZH.html#principle) |
+| **归纳**<br>induction | 先证明结论对最小的值成立，再证明它能从较小的值传到较大的值，以此证明它对每个值成立。数学归纳法、结构归纳法、强归纳法和规则归纳都是它的形式。 | [5.3.1](module_05_ZH.html#principle) |
 | **归纳不变式**<br>inductive invariant | 在每个初始状态都成立、并被每一步保持的性质。它因此在每个可达状态中都成立。 | [13.3](module_13_ZH.html#invariants) |
 | **归纳步骤**<br>induction step | 归纳中由归纳假设证明结论对 n + 1（或更大的值）成立的那一部分。 | [5.3.1](module_05_ZH.html#principle) |
 | **归纳定义**<br>inductive definition | 用引入规则定义谓词。谓词恰好对有限次应用规则所能推导出的对象成立：它是对这些规则封闭的最小谓词。 | [11.6](module_11_ZH.html#inductive) |
@@ -165,7 +169,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **归纳假设**<br>induction hypothesis (IH) | 归纳步骤中“结论对较小的值成立”的假设。在 Isabelle 的子目标中它位于 ⟹ 前面；在 Isar 中它是 `c.IH`。 | [5.3.1](module_05_ZH.html#principle) |
 | **规约**<br>specification | 对系统必须做什么的精确陈述，不说明怎样做。 | [1.2](module_01_ZH.html#formal), [12.1](module_12_ZH.html#verify) |
 | **规则反演**<br>rule inversion | 从事实 I t 往回推理：只有结论能与 t 匹配的规则才可能推出它，因此这些规则的前提成立。 | [11.6.3](module_11_ZH.html#inversion) |
-| **规则归纳法**<br>rule induction | 证明归纳定义推导出的一切都具有某个性质：每条规则一个情形，每个关于该谓词的前提都有一个归纳假设。在 Isabelle 中用 `rule: I.induct`。 | [11.6.2](module_11_ZH.html#rule-induction) |
+| **规则归纳**<br>rule induction | 证明归纳定义推导出的一切都具有某个性质：每条规则一个情形，每个关于该谓词的前提都有一个归纳假设。在 Isabelle 中用 `rule: I.induct`。 | [11.6.2](module_11_ZH.html#rule-induction) |
 | **轨迹**<br>trace | 写成事件列表（以及它们所到达的状态）的运行。 | [13.1](module_13_ZH.html#machines) |
 
 <div class="section-anchor" id="g-h"></div>
@@ -191,6 +195,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **化简规则集**<br>simp set | 理论中某一处的全部化简规则：`fun` 和 `primrec` 的等式、`datatype` 的事实以及标记为 `[simp]` 的引理，但不包括定义。 | [9.2.3](module_09_ZH.html#simp-rules) |
 | **化简器**<br>simplifier | Isabelle 的重写引擎，即方法 `simp`：它用等式从左往右重写目标，直到目标变成 `True` 或没有规则可用。 | [1.7.3](module_01_ZH.html#first-prove), [9.2.1](module_09_ZH.html#rewriting) |
 | **划分**<br>partition | 由 A 的若干非空子集（称为块）组成的集合，使 A 的每个元素恰好属于一个块。 | [4.3](module_04_ZH.html#equivalence) |
+| **坏行**<br>bad row | 真值表中所有前提都为真而结论为假的一行。一个论证有效，当且仅当它没有坏行。 | [2.6](module_02_ZH.html#consequence) |
 | **活性性质**<br>liveness property | 说明好事终究会发生的性质，例如请求终究会得到处理。不变式无法表达它。 | [13.8.1](module_13_ZH.html#liveness) |
 
 <div class="section-anchor" id="g-i"></div>
@@ -215,10 +220,12 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **基数**<br>cardinality | 有限集合 A 的元素个数，记作 |A|。Isabelle 中写作 `card A`。 | [4.7.1](module_04_ZH.html#finite) |
 | **极小元素**<br>minimal element | 偏序中没有任何元素严格位于其下的元素；极大元素则没有任何元素严格位于其上。一个偏序可以有好几个极小元素。 | [4.4.2](module_04_ZH.html#hasse) |
 | **集合**<br>set | 由元素组成的汇集，完全由它的元素决定。在 Isabelle 中，每个集合都有元素类型，例如 `nat set`。 | [4.1.1](module_04_ZH.html#sets-notation) |
-| **计算归纳法**<br>computation induction | 沿着函数 f 的递归进行的归纳：每个定义等式一个情形，每个递归调用一个归纳假设。在 Isabelle 中用 `rule: f.induct`。 | [11.5.3](module_11_ZH.html#f-induct) |
+| **计算归纳**<br>computation induction | 沿着函数 f 的递归进行的归纳：每个定义等式一个情形，每个递归调用一个归纳假设。在 Isabelle 中用 `rule: f.induct`。 | [11.5.3](module_11_ZH.html#f-induct) |
+| **计算推理**<br>calculation | Isar 中由 t₁ R t₂、t₂ R t₃……组成、每一步各有证明的链，Isabelle 由传递性从中推出 t₁ R tₙ。用 `also` 和 `finally` 书写。 | [10.4.1](module_10_ZH.html#calc-eq) |
 | **记录**<br>record | 各个分量（字段）都有名字的元组。`cars s` 选取一个字段，`s⦇cars := Amber⦈` 更新它。 | [13.4.1](module_13_ZH.html#records) |
 | **加强**<br>strengthen | 证明比所需更强的结论或不变式，使归纳步骤能够通过。 | [11.2.3](module_11_ZH.html#strengthen), [13.5.2](module_13_ZH.html#strengthen-invar) |
 | **假设**<br>assumption | 可以不加证明直接使用的公式：推导树的叶子，或者子目标中 ⟹ 前面的公式。 | [6.2](module_06_ZH.html#systems), [7.1.2](module_07_ZH.html#meta-goals) |
+| **假言三段论**<br>hypothetical syllogism | 由 A ⟶ B 和 B ⟶ C 得出 A ⟶ C；也叫链式推理。一种有效的论证形式。 | [2.6](module_02_ZH.html#consequence) |
 | **见证**<br>witness | 使 ∃ 为真的元素，或者表明某个 ∀ 性质不成立的元素。 | [3.3](module_03_ZH.html#structures), [4.2.3](module_04_ZH.html#rel-props) |
 | **交互式定理证明**<br>interactive theorem proving | 在表达力强的逻辑中写出定义、定理和证明，由程序检查每一步，并借助自动化完成。 | [1.3](module_01_ZH.html#landscape) |
 | **交集**<br>intersection | A ∩ B，同时属于 A 和 B 的元素。 | [4.1.2](module_04_ZH.html#sets-ops) |
@@ -246,15 +253,17 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **柯里–霍华德对应**<br>Curry–Howard correspondence | 直觉主义的证明可以读作程序：A ⟶ B 的证明是一个把 A 的证据变成 B 的证据的函数。Rocq 和 Lean 就建立在这个思想之上。 | [6.5.1](module_06_ZH.html#intuitionistic) |
 | **可达状态**<br>reachable state | 从某个初始状态出发、某条运行能够到达的状态。 | [4.5.2](module_04_ZH.html#reachability), [13.1](module_13_ZH.html#machines) |
 | **可靠性**<br>soundness | 如果一个证明系统推导出的一切都是逻辑推论，即由 Γ ⊢ A 可得 Γ ⊨ A，它就是可靠的。 | [6.3](module_06_ZH.html#soundness) |
+| **可满足但非有效的**<br>contingent | 可满足但不是重言式的公式：在真值表的某些行为真，在另一些行为假。 | [2.4](module_02_ZH.html#classify) |
 | **可满足的**<br>satisfiable | 至少在一个赋值下（或至少在一个结构中）为真。 | [2.4](module_02_ZH.html#classify), [3.4](module_03_ZH.html#validity) |
 | **可满足性问题（SAT）**<br>SAT (satisfiability problem) | 给定一个命题公式（通常是合取范式），它是可满足的吗？ | [2.8](module_02_ZH.html#sat) |
 | **可判定的**<br>decidable | 如果有一个算法对每个输入都能给出正确答案并且总会终止，这个问题就是可判定的。 | [3.9](module_03_ZH.html#decidability) |
 | **可数的**<br>countable | 如果存在从一个集合到 ℕ 的单射，它就是可数的：它是有限的，或者它的元素可以排成 a₀、a₁、a₂…… | [4.7.3](module_04_ZH.html#countable) |
 | **可推导的**<br>derivable | Γ ⊢ A，“A 可以由 Γ 推导出”：存在一个结论为 A、所有未解除的假设都在 Γ 中的推导。 | [6.2](module_06_ZH.html#systems) |
 | **可信基**<br>trusted base | 经过验证的结果仍然依赖的一切：证明检查器，以及关于编译器、硬件和环境的假设。 | [1.2](module_01_ZH.html#formal) |
+| **肯定后件**<br>affirming the consequent | 由 A ⟶ B 和 B 得出 A：一种无效的论证形式，因为常见而有了名字。 | [2.6](module_02_ZH.html#consequence) |
 | **肯定前件式**<br>modus ponens | 由 A ⟶ B 和 A 得出 B：即规则 (⟶E)，在 Isabelle 中是 `mp`。 | [2.6](module_02_ZH.html#consequence), [6.4.2](module_06_ZH.html#imp) |
 | **空集**<br>empty set | ∅，没有元素的集合。Isabelle 中写作 `{}`。 | [4.1.1](module_04_ZH.html#sets-notation) |
-| **空真的**<br>vacuously true | 前件为假的蕴涵，无论后件是什么都为真：它是空真的。 | [2.3](module_02_ZH.html#truth-tables) |
+| **空真**<br>vacuously true | 前件为假的蕴涵，无论后件是什么都为真：这叫作空真。 | [2.3](module_02_ZH.html#truth-tables) |
 
 <div class="section-anchor" id="g-l"></div>
 
@@ -265,7 +274,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **λ 抽象**<br>λ-abstraction | `λx. t`，把每个 x 映射为 t 的无名函数。 | [8.2.1](module_08_ZH.html#lambda) |
 | **LCF 方法**<br>LCF approach | 一种架构：定理是一个抽象类型的值，只有内核的推理规则能创建它们，因此证明工具中的错误不会产生错误的定理。 | [1.4](module_01_ZH.html#trust) |
 | **类别**<br>sort (in Isabelle) | 类型类的集合，写作 {c₁, …, cₙ}。类型变量可以被限制到某个类别，例如 `'a::{one, plus}`。 | [8.6.2](module_08_ZH.html#classes) |
-| **类别（多类逻辑中）**<br>sort (in many-sorted logic) | 在多类逻辑中是“类型”的另一个说法：符号的每个参数和结果都有一个类别。 | [3.8](module_03_ZH.html#types) |
+| **类别（多类别逻辑中）**<br>sort (in many-sorted logic) | 在多类别逻辑中是“类型”的另一个说法：符号的每个参数和结果都有一个类别。 | [3.8](module_03_ZH.html#types) |
 | **类型**<br>type | 项所代表的值的种类，例如 `nat` 或 `'a list ⇒ nat`。Isabelle 首先检查类型。 | [8.1.1](module_08_ZH.html#types) |
 | **类型变量**<br>type variable | 代表任意类型的变量，例如 `'a`，读作 alpha。 | [3.4](module_03_ZH.html#validity), [8.1.1](module_08_ZH.html#types) |
 | **类型标注**<br>type annotation | `t :: τ` 告诉 Isabelle：t 的类型是 τ，例如 `value "2 + 3 :: nat"`。 | [1.7.2](module_01_ZH.html#first-compute), [8.1.2](module_08_ZH.html#terms) |
@@ -277,7 +286,6 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **理论**<br>theory | 包含定义、陈述和证明的 Isabelle 文件，就像编程语言中的模块。理论 T 存放在文件 T.thy 中。 | [1.7](module_01_ZH.html#first) |
 | **理论导出**<br>theory exports | 属于某个理论的文件，例如 `export_code` 生成的代码。File Browser 在 `isabelle-export:` 下显示它们。 | [8.8](module_08_ZH.html#codegen), [12.7](module_12_ZH.html#export) |
 | **联结词**<br>connective | 由较小的公式构成较大公式的符号：¬、∧、∨、⟶ 和 ⟷。 | [2.1](module_02_ZH.html#connectives) |
-| **链式计算**<br>calculation | Isar 中由 t₁ R t₂、t₂ R t₃……组成、每一步各有证明的链，Isabelle 由传递性从中推出 t₁ R tₙ。用 `also` 和 `finally` 书写。 | [10.4.1](module_10_ZH.html#calc-eq) |
 | **良基的**<br>well-founded | 如果一个关系没有无限下降链，它就是良基的。Isabelle 中写作 `wf r`。 | [4.4.3](module_04_ZH.html#well-founded) |
 | **良基归纳法**<br>well-founded induction | 沿任意良基关系进行的归纳；结构归纳法和强归纳法都是它的特例。 | [5.6](module_05_ZH.html#strong) |
 | **良序**<br>well-order | 没有无限下降链的线性序，例如 `nat` 上的 <。`less_induct` 对它成立。 | [11.8](module_11_ZH.html#complete) |
@@ -304,6 +312,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **命名情形**<br>named case | 在 Isar 中，用 `case c` 或 `case (c x y …)` 进入的 `cases` 或 `induction` 的情形；它假定该情形的事实，在归纳中还会设定 `?case`。 | [10.6.1](module_10_ZH.html#induction-skeleton) |
 | **命题**<br>proposition | 非真即假的陈述。 | [2.1](module_02_ZH.html#connectives) |
 | **命题逻辑**<br>propositional logic | 关于“非”“并且”“或者”“蕴涵”“当且仅当”这些联结词作用于命题的逻辑。 | [2.1](module_02_ZH.html#connectives) |
+| **模式**<br>mode | 每个证明状态的第一行：陈述一个断言后是 `proof (prove)`，在证明块内是 `proof (state)`，拾取事实后是 `proof (chain)`。它告诉你下一步可以写什么。 | [10.2.1](module_10_ZH.html#shape-blocks) |
 | **模式匹配**<br>pattern matching | 根据参数的形状选择等式：每个等式的左边含有一个模式，例如 `Red` 或 `x # xs`。 | [8.3.1](module_08_ZH.html#enumerations) |
 | **模型**<br>model | 使一个公式为真的赋值或结构。 | [2.4](module_02_ZH.html#classify), [3.3](module_03_ZH.html#structures) |
 | **模型检测**<br>model checking | 遍历有限模型的每个可达状态来检查一条性质；结果是“成立”或一条反例轨迹。做这件事的程序叫模型检测器，例如 SPIN 或 TLC。 | [1.3](module_01_ZH.html#landscape), [13.1](module_13_ZH.html#machines) |
@@ -323,14 +332,6 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **逆命题**<br>converse (of an implication) | A ⟶ B 的逆命题是 B ⟶ A，两者意思不同。误证逆命题是常见的错误。 | [6.1](module_06_ZH.html#informal) |
 | **Nitpick**<br>Nitpick | Isabelle 的反例搜索器：它借助 SAT 求解器寻找一个使断言为假的有限模型。 | [2.4](module_02_ZH.html#classify), [9.7.2](module_09_ZH.html#nitpick) |
 | **NP 完全的**<br>NP-complete | 属于 NP、并且 NP 中每个问题都能高效地转化为它的问题。SAT 是第一个被证明为 NP 完全的问题（库克，1971）。 | [2.8](module_02_ZH.html#sat) |
-
-<div class="section-anchor" id="g-o"></div>
-
-### O
-
-| 术语 | 释义 | 出处 |
-|---|---|---|
-| **偶然式**<br>contingent | 可满足但不是重言式的公式：在真值表的某些行为真，在另一些行为假。 | [2.4](module_02_ZH.html#classify) |
 
 <div class="section-anchor" id="g-p"></div>
 
@@ -356,7 +357,6 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **迁移关系**<br>transition relation | 状态机中说明哪个状态可以在一步之内跟在哪个状态之后的关系。 | [4.5.2](module_04_ZH.html#reachability), [13.1](module_13_ZH.html#machines) |
 | **前件**<br>antecedent | 在 A ⟶ B 中，A 是前件，B 是后件。 | [2.1](module_02_ZH.html#connectives) |
 | **前提**<br>premise | 论证或规则的出发公式。在 Isabelle 中，规则的前提写在 ⟹ 前面。 | [2.6](module_02_ZH.html#consequence), [6.2](module_06_ZH.html#systems) |
-| **前向链接**<br>forward chaining | 在 Isar 中，把事实传给下一个断言，由它的证明方法接收；`then`、`from` 和 `with` 都起这个作用。 | [10.3.1](module_10_ZH.html#facts-then) |
 | **强归纳法**<br>strong induction | 归纳步骤可以假定结论对所有更小的值都成立的归纳；也叫完全归纳法或累积归纳法。 | [5.6](module_05_ZH.html#strong) |
 | **情形拆分**<br>case split | 把含有 `if` 或 `case` 的目标按每种可能拆成若干情形。化简器会自动拆分 `if`，而 `case` 只有用 `split:` 指明时才拆分。 | [9.3.3](module_09_ZH.html#splits) |
 | **情形分析**<br>case analysis | 把证明分成合起来覆盖所有可能性的若干情形，并在每种情形下证明结论。 | [6.1](module_06_ZH.html#informal), [10.5](module_10_ZH.html#cases) |
@@ -386,9 +386,9 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **时序逻辑**<br>temporal logic | 其算子谈论运行的逻辑，例如 □ P（“总是 P”）和 ◇ P（“终究 P”）；模型检测器检查它的公式。 | [13.8.1](module_13_ZH.html#liveness) |
 | **实例**<br>instance | 属于某个类型类的类型：`nat` 和 `int` 都是类型类 `plus` 的实例。 | [8.6.2](module_08_ZH.html#classes) |
 | **实现**<br>implementation | 实际完成工作的程序：它说明怎样计算结果。 | [12.1](module_12_ZH.html#verify) |
-| **事件**<br>event | 状态机的一类步骤，例如按下按钮。当它的守卫条件成立时可以发生，并按它的效果改变状态。 | [13.1](module_13_ZH.html#machines) |
+| **事件**<br>event | 状态机的一类步骤，例如按下按钮。当它的守卫成立时可以发生，并按它的效果改变状态。 | [13.1](module_13_ZH.html#machines) |
 | **事实**<br>fact | 在 Isar 中，证明可以使用的已证明陈述：假设、`have` 或 `show` 的结果，或者引理。 | [10.3.1](module_10_ZH.html#facts-then) |
-| **守卫条件**<br>guard | （1）在含有多类对象的论域中，说明一个对象属于哪一类的谓词，例如 `user`（模块 3）。（2）状态机中某个事件可以发生的条件（模块 13）。 | [3.7](module_03_ZH.html#specifications), [13.1](module_13_ZH.html#machines) |
+| **守卫**<br>guard | （1）在含有多类对象的论域中，说明一个对象属于哪一类的谓词，例如 `user`（模块 3）。（2）状态机中某个事件可以发生的条件（模块 13）。 | [3.7](module_03_ZH.html#specifications), [13.1](module_13_ZH.html#machines) |
 | **数据精化**<br>data refinement | 证明一个具体数据结构实现了一个抽象模型：借助抽象函数和不变式，每个具体操作都与相应的抽象操作对应。 | [12.6.1](module_12_ZH.html#refine-pattern) |
 | **数据类型**<br>datatype | 其值由构造子构造的类型；以不同方式构造的值互不相同。用 `datatype` 命令定义。 | [5.2.2](module_05_ZH.html#trees), [8.3.1](module_08_ZH.html#enumerations) |
 | **数学归纳法**<br>mathematical induction | 证明 P(0)，再对任意的 n 证明 P(n) ⟶ P(n + 1)；于是 P(n) 对每个自然数 n 都成立。 | [5.3.1](module_05_ZH.html#principle) |
@@ -444,8 +444,10 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 
 | 术语 | 释义 | 出处 |
 |---|---|---|
+| **析构规则**<br>destruction rule | 主前提中含有联结词、结论是主前提的一部分的规则，例如 `conjunct1`、`mp` 和 `spec`。它与 `drule` 和 `frule` 一起使用。 | [7.2.3](module_07_ZH.html#rules-shapes) |
 | **析取**<br>disjunction | A ∨ B，读作“A 或者 B”：至少一个为真时为真。 | [2.1](module_02_ZH.html#connectives) |
 | **析取范式**<br>disjunctive normal form (DNF) | 文字合取的析取，例如 (A ∧ ¬B) ∨ (¬A ∧ C) ∨ D。 | [2.7.2](module_02_ZH.html#cnf-dnf) |
+| **析取三段论**<br>disjunctive syllogism | 由 A ∨ B 和 ¬A 得出 B：一种有效的论证形式。 | [2.6](module_02_ZH.html#consequence) |
 | **辖域**<br>scope | 公式中量词的变元指向该量词的那一部分。在 Isabelle 中，辖域向右延伸得尽可能远。 | [3.2.4](module_03_ZH.html#scope) |
 | **线性算术**<br>linear arithmetic | 由变元、数、+、−、=、<、≤ 和联结词构成的公式，其中变元可以乘以数，但不能乘以另一个变元。`linarith` 可以判定它。 | [9.5](module_09_ZH.html#arith) |
 | **项**<br>term | 指称一个对象的表达式：变元、常量，或者作用于项的函数。在 HOL 中每个表达式都是项，公式也不例外。 | [3.2.1](module_03_ZH.html#terms), [8.1.2](module_08_ZH.html#terms) |
@@ -473,7 +475,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **优先级**<br>priority | 联结词结合的紧密程度。在 Isabelle 中 ¬ 结合得最紧，其次是 ∧，再次是 ∨，然后是 ⟶ 和 ⟷。 | [2.2.2](module_02_ZH.html#priorities) |
 | **有界量词**<br>bounded quantifier | ∀x ∈ A. P x，读作“对 A 中所有 x，P x 成立”，是 ∀x. x ∈ A ⟶ P x 的简写。 | [4.2.3](module_04_ZH.html#rel-props) |
 | **有限模型**<br>finite model | 其中每个类型都有限的模型。Nitpick 搜索的就是使断言为假的有限模型。 | [9.7.2](module_09_ZH.html#nitpick) |
-| **有效的**<br>valid | 在每个结构、每个指派下都为真；对命题公式来说，就是重言式。 | [2.4](module_02_ZH.html#classify), [3.4](module_03_ZH.html#validity) |
+| **有效的**<br>valid | 在每个结构中、每个赋值下都为真；对命题公式来说，就是重言式。 | [2.4](module_02_ZH.html#classify), [3.4](module_03_ZH.html#validity) |
 | **有序对**<br>pair | (a, b)，第一个分量是 a，第二个分量是 b；当 a = c 且 b = d 时 (a, b) = (c, d)。`fst` 和 `snd` 返回各个分量。 | [4.2.1](module_04_ZH.html#products), [8.3.3](module_08_ZH.html#options) |
 | **语法分析器**<br>parser | 把程序文本变成抽象语法的程序。 | [14.2.1](module_14_ZH.html#syntax) |
 | **语法树**<br>parse tree | 表示公式如何由各部分构成的树，主联结词位于树根。 | [2.2.1](module_02_ZH.html#formation) |
@@ -485,7 +487,7 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **元组**<br>tuple | 按顺序排列的 n 个元素 (d₁, …, dₙ)；二元组就是有序对。 | [3.3](module_03_ZH.html#structures) |
 | **原始递归**<br>primitive recursion | 每个构造子一个等式、递归调用只作用于参数的直接组成部分的递归。`primrec` 只接受这种形式。 | [8.4.2](module_08_ZH.html#fun-primrec) |
 | **原子公式**<br>atomic formula | 谓词逻辑中作用于项的谓词 P t₁ … tₙ，或者项之间的等式 t₁ = t₂。 | [3.2.2](module_03_ZH.html#atoms) |
-| **原子命题**<br>atom | 不由其他命题构成的命题，写成一个名字，例如 A 或 `fire`。也简称原子。 | [2.1](module_02_ZH.html#connectives) |
+| **原子命题（原子）**<br>atom (atomic proposition) | 不由其他命题构成的命题，写成一个名字，例如 A 或 `fire`。 | [2.1](module_02_ZH.html#connectives) |
 | **约束变元**<br>bound variable | 处在关于该变元的量词辖域中的变元出现。在整个辖域中给它改名不改变含义。 | [3.2.4](module_03_ZH.html#scope) |
 | **运行**<br>run | 从初始状态出发、沿着迁移关系前进的状态序列。 | [13.1](module_13_ZH.html#machines) |
 | **蕴涵**<br>implication | A ⟶ B，读作“A 蕴涵 B”或“如果 A，那么 B”：只有在 A 为真而 B 为假时才为假。 | [2.1](module_02_ZH.html#connectives) |
@@ -503,11 +505,11 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **真值表**<br>truth table | 对公式原子的每个赋值各占一行、给出公式在每一行的值的表；n 个原子有 2ⁿ 行。 | [2.3](module_02_ZH.html#truth-tables) |
 | **真子集**<br>proper subset | A ⊂ B：A ⊆ B 并且 A ≠ B。 | [4.1.1](module_04_ZH.html#sets-notation) |
 | **正确性定理**<br>correctness theorem | 陈述“对每个输入，实现的结果都具有规约要求的性质”的定理。 | [12.1](module_12_ZH.html#verify) |
+| **正向链接**<br>forward chaining | 在 Isar 中，把事实传给下一个断言，由它的证明方法接收；`then`、`from` 和 `with` 都起这个作用。 | [10.3.1](module_10_ZH.html#facts-then) |
 | **证明**<br>proof | 从假设到结论的一串步骤，每一步都有规则作依据。 | [6.1](module_06_ZH.html#informal) |
 | **证明大纲**<br>proof outline | 在 `proof (cases …)` 或 `proof (induction …)` 之后 Isabelle/jEdit 显示的各情形的骨架；点击即可插入。 | [10.5.1](module_10_ZH.html#cases-bool) |
 | **证明方法**<br>proof method | Isabelle 作用于目标的一个步骤，例如 `simp`、`auto`、`blast`、`rule` 或 `induction`。 | [5.4.2](module_05_ZH.html#induction-state) |
 | **证明块**<br>proof block | `proof m … qed`：证明紧挨在它前面陈述的目标。块内的步骤建立事实并解决待证目标。 | [10.2.1](module_10_ZH.html#shape-blocks) |
-| **证明模式**<br>mode | 每个证明状态的第一行：陈述一个断言后是 `proof (prove)`，在证明块内是 `proof (state)`，拾取事实后是 `proof (chain)`。它告诉你下一步可以写什么。 | [10.2.1](module_10_ZH.html#shape-blocks) |
 | **证明器集成开发环境**<br>prover IDE | 在你输入的同时由证明器持续检查文本的编辑器；Isabelle/jEdit 就是一个。 | [1.6](module_01_ZH.html#tour) |
 | **证明系统**<br>proof system | 由公式语言和推理规则组成、一步一步推导陈述的系统，规则简单到计算机可以检查每一步。 | [1.2](module_01_ZH.html#formal), [6.2](module_06_ZH.html#systems) |
 | **证明助手**<br>proof assistant | 检查用形式逻辑写成的证明、并帮助你找到证明的程序；也叫交互式定理证明器。 | [1.4](module_01_ZH.html#trust) |
@@ -515,12 +517,11 @@ lead: 本系列定义的每一个术语，按汉语拼音排序，附简短的�
 | **直觉主义逻辑**<br>intuitionistic logic | 没有 (RAA) 的自然演绎：A ∨ ¬A 和 ¬¬A ⟶ A 不可推导，而证明可以读作程序。 | [6.5.1](module_06_ZH.html#intuitionistic) |
 | **值**<br>value | 不能再被任何等式重写的项：求值的结果。 | [5.1.3](module_05_ZH.html#rewriting) |
 | **值域**<br>range | 整个定义域的像，即 f 的所有值。Isabelle 中写作 `range f`。 | [4.6.1](module_04_ZH.html#fun-def) |
-| **指派**<br>assignment | 为每个变元在论域中选定一个值。含自由变元的公式是否为真取决于指派。 | [3.3](module_03_ZH.html#structures) |
 | **置换规则**<br>permutative rule | 两边只在变元顺序上不同的重写规则，例如交换律。化简器只用它把项排成固定的顺序。 | [9.3.4](module_09_ZH.html#loops) |
 | **终止性**<br>termination | 函数的每次求值都会停止。`fun` 只有在用度量证明了终止性之后才接受递归定义。 | [5.7.1](module_05_ZH.html#why-terminate) |
 | **终止序**<br>termination order | `fun` 证明终止性之后报告的度量或度量的字典序组合，例如 `size <*mlex*> {}`。 | [5.7.2](module_05_ZH.html#measures), [8.7.2](module_08_ZH.html#termination-messages) |
 | **主联结词**<br>main connective | 公式语法树根部的联结词；公式以它命名，也由它决定可以使用哪些规则。 | [2.2.1](module_02_ZH.html#formation), [6.4](module_06_ZH.html#connectives) |
-| **主前提**<br>major premise | 消去规则或拆解规则的第一个前提，即含有联结词的那个前提。 | [7.2.3](module_07_ZH.html#rules-shapes) |
+| **主前提**<br>major premise | 消去规则或析构规则的第一个前提，即含有联结词的那个前提。 | [7.2.3](module_07_ZH.html#rules-shapes) |
 | **状态**<br>state | 系统在某一时刻保存的内容。对表达式来说，是从变元名到值的函数。 | [13.1](module_13_ZH.html#machines), [14.2.1](module_14_ZH.html#syntax) |
 | **状态机**<br>state machine | 由一组状态、一组初始状态和一个迁移关系组成；也叫迁移系统。 | [4.5.2](module_04_ZH.html#reachability), [13.1](module_13_ZH.html#machines) |
 | **子公式**<br>sub-formula | 另一个公式语法树上某个结点处的公式，包括该公式本身。 | [2.2.1](module_02_ZH.html#formation) |
