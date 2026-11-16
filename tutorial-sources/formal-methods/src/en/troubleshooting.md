@@ -226,7 +226,7 @@ Unfinished subgoals:
 (a, 1, <):
  1. False
 Calls:
-  a) x ~> x
+  a) n ~> n
 Measures:
   1) size
 Result matrix:
