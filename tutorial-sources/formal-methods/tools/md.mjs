@@ -259,14 +259,17 @@ function renderProofTree(content, env) {
     const f = `<span class="pt-f">${escapeHtml(n.formula)}</span>`
     if (!n.children.length && !n.rule) return `<div class="pt-node pt-leaf">${f}</div>`
     const prem = n.children.length ? `<div class="pt-prem">${n.children.map(draw).join('')}</div>` : '<div class="pt-prem pt-axiom"></div>'
-    return `<div class="pt-node">${prem}<div class="pt-bar"><span class="pt-rule">${escapeHtml(n.rule)}</span></div><div class="pt-concl">${f}</div></div>`
+    // The rule name hangs to the right of the bar; reserve room for it so that it cannot run into a
+    // neighbouring premise (about 0.5rem per character at the label's font size, plus the gap).
+    const room = n.rule ? ` style="margin-right:${(0.6 + [...n.rule].length * 0.5).toFixed(1)}rem"` : ''
+    return `<div class="pt-node"${room}>${prem}<div class="pt-bar"><span class="pt-rule">${escapeHtml(n.rule)}</span></div><div class="pt-concl">${f}</div></div>`
   }
   return `<div class="prooftree"><div class="pt-scroll">${root.children.map(draw).join('')}</div></div>\n`
 }
 
 // ---------- truth tables ----------
 // Formulas: atoms (identifiers), True, False, ¬ ∧ ∨ ⟶ ⟷ and parentheses; ASCII ~ & | --> <-> too.
-// Precedence, strongest first: ¬, ∧, ∨, ⟶, ⟷; the binary connectives group to the right.
+// Precedence as in Isabelle, strongest first: ¬, ∧, ∨, then ⟶ and ⟷ (equal); binary connectives group to the right.
 export function parseFormula(src) {
   const toks = []
   const re = /\s*(⟷|<->|⟶|-->|∧|&|∨|\||¬|~|\(|\)|True|False|[A-Za-z][\w']*)/y

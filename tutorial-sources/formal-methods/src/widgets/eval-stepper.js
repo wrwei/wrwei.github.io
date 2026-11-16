@@ -8,10 +8,11 @@ FMWidgets.register('eval-stepper', function (root, api) {
 
   api.css('eval-stepper', [
     '.evs .evs-args{display:flex;flex-wrap:wrap;gap:.5rem .9rem;align-items:center}',
-    '.evs label{font-size:.85rem;color:var(--slate);display:inline-flex;align-items:center;gap:.4rem;flex-wrap:wrap}',
+    '.evs label{font-size:.85rem;color:var(--slate);display:inline-flex;align-items:center;gap:.4rem;max-width:100%;min-width:0}',
+    '.evs .evs-args label.wide{display:flex;flex:1 1 18rem}',
     '.evs select{font:inherit;font-size:.9rem;padding:.35rem .5rem;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--navy)}',
-    '.evs .evs-arg{flex:0 1 auto;width:auto;min-width:4.5rem;max-width:100%}',
-    '.evs .evs-arg.wide{min-width:min(17rem,100%)}',
+    '.evs .evs-arg{flex:0 0 auto;width:auto;max-width:100%}',
+    '.evs .evs-arg.wide{flex:1 1 auto;width:100%;min-width:0}',
     '.evs .evs-eqs{margin:.6rem 0;border:1px solid var(--border);border-radius:8px;background:var(--bg);padding:.45rem .6rem;overflow-x:auto}',
     '.evs .evs-eq{font-family:var(--font-isa,monospace);font-size:.82rem;line-height:1.55;white-space:pre;padding:0 .35rem;border-radius:5px;color:#111}',
     '.evs .evs-eq.head{color:var(--slate)}',
@@ -74,7 +75,6 @@ FMWidgets.register('eval-stepper', function (root, api) {
     while (e.k === 'cons') { out.push(e.h); e = e.t }
     return e.k === 'nil' ? out : null
   }
-  function size(e) { var n = 1; kids(e).forEach(function (k) { n += size(k) }); return n }
 
   // ------------------------------------------------------------------ printing (Isabelle syntax)
   // Priorities as in Isabelle: application 1000, * infixl 70, + infixl 65, # infixr 65.
@@ -192,7 +192,7 @@ FMWidgets.register('eval-stepper', function (root, api) {
     { f: 'app', args: [['list', 'xs', '[1, 2]'], ['list', 'ys', '[3]']], defs: ['app'] },
     { f: 'reverse', args: [['list', 'xs', '[1, 2, 3]']], defs: ['reverse', 'app'] },
     { f: 'lsum', args: [['nlist', 'xs', '[3, 1, 4]']], defs: ['lsum'] },
-    { f: 'mirror', args: [['tree', 't', 'Node (Node Tip 1 Tip) 2 (Node Tip 3 Tip)']], defs: ['mirror'] },
+    { f: 'mirror', args: [['tree', 't', 'Node (Node Tip 1 Tip) 2 (Node (Node Tip 3 Tip) 4 Tip)']], defs: ['mirror'] },
   ]
   // Largest arguments, so that every trace stays small enough to step through.
   var CAP = { sum_upto: [30], fac: [12], pow: [20, 12], fib: [15] }
@@ -282,7 +282,7 @@ FMWidgets.register('eval-stepper', function (root, api) {
   }
 
   // ------------------------------------------------------------------ the interface
-  var state = { item: MENU[0], steps: null, tally: null, i: 0, values: {} }
+  var state = { item: MENU[0], steps: null, tally: null, i: 0 }
 
   var select = h('select', { id: 'evs-fn-' + Math.random().toString(36).slice(2, 8), onchange: function () { choose(select.value) } },
     MENU.map(function (m) { return h('option', { value: m.f }, m.f) }))
@@ -316,9 +316,9 @@ FMWidgets.register('eval-stepper', function (root, api) {
     state.item.args.forEach(function (a, i) {
       var id = select.id + '-' + i
       var input = h('input', { id: id, class: 'fmw-input evs-arg' + (a[0] === 'nat' ? '' : ' wide'), type: 'text', spellcheck: 'false',
-        autocomplete: 'off', inputmode: a[0] === 'nat' ? 'numeric' : null, value: a[2], 'data-arg': String(i),
+        autocomplete: 'off', inputmode: a[0] === 'nat' ? 'numeric' : null, size: a[0] === 'nat' ? 6 : null, value: a[2], 'data-arg': String(i),
         oninput: rebuild, onkeydown: function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); go(state.i + 1) } } })
-      argBox.appendChild(h('label', { for: id }, h('span', { class: 'fmw-isa' }, a[1] + ' ='), input))
+      argBox.appendChild(h('label', { for: id, class: a[0] === 'nat' ? null : 'wide' }, h('span', { class: 'fmw-isa' }, a[1] + ' ='), input))
     })
     rebuild()
   }
@@ -365,7 +365,16 @@ FMWidgets.register('eval-stepper', function (root, api) {
   function line(step, isNow, first) {
     var segs = print(step.term, 0, isNow ? step.next : null)
     var el = h('div', { class: 'evs-line' + (isNow ? ' now' : '') }, h('span', { class: 'evs-eqsign' }, first ? '  ' : '= '))
-    segs.forEach(function (sg) { el.appendChild(sg.hl ? h('span', { class: 'evs-redex' }, sg.s) : document.createTextNode(sg.s)) })
+    // consecutive highlighted segments form one highlighted span
+    var hl = '', plain = ''
+    function flush() {
+      if (hl) { el.appendChild(h('span', { class: 'evs-redex' }, hl)); hl = '' }
+      if (plain) { el.appendChild(document.createTextNode(plain)); plain = '' }
+    }
+    segs.forEach(function (sg) {
+      if (sg.hl) { if (plain) flush(); hl += sg.s } else { if (hl) flush(); plain += sg.s }
+    })
+    flush()
     return el
   }
 

@@ -32,12 +32,13 @@ FMWidgets.register('model-explorer', function (root, api) {
     '.mx-h{font-size:.82rem;font-weight:600;color:var(--slate);margin:.2rem 0 .1rem}',
     '.mx-table{border-collapse:collapse;font-family:var(--font-isa,monospace);font-size:.9rem;margin:.3rem 0}',
     '.mx-table th,.mx-table td{border:1px solid var(--border);padding:.15rem .35rem;text-align:center}',
-    '.mx-table th{background:var(--bg);font-weight:600}',
+    '.mx-table th{background:var(--bg);color:var(--navy);font-weight:600;font-size:.88rem;padding:.15rem .45rem;text-align:center}',
     '.mx-table input{width:1.15rem;height:1.15rem;margin:.2rem;accent-color:var(--blue);cursor:pointer}',
     '.mx-cell{font:inherit;width:2rem;height:2rem;border:1px solid var(--border);border-radius:6px;background:var(--white);color:var(--muted);cursor:pointer;padding:0}',
     '.mx-cell[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}',
     '.mx-cell:focus-visible,.mx-del:focus-visible,.mx table input:focus-visible{outline:2px solid var(--sky);outline-offset:1px}',
-    '.mx-summary{font-family:var(--font-isa,monospace);font-size:.86rem;color:var(--navy);margin:.4rem 0;overflow-wrap:anywhere}',
+    '.mx-summary{font-family:var(--font-isa,monospace);font-size:.86rem;color:var(--navy);margin:.4rem 0;display:flex;flex-wrap:wrap;gap:.1rem 1.4rem}',
+    '.mx-summary span{overflow-wrap:anywhere}',
     '.mx-list{list-style:none;margin:.4rem 0;padding:0;border-top:1px solid var(--border)}',
     '.mx-item{display:flex;flex-wrap:wrap;align-items:center;gap:.15rem .6rem;padding:.4rem .2rem;border-bottom:1px solid var(--border)}',
     '.mx-f{font-family:var(--font-isa,monospace);font-size:.92rem;flex:1 1 12rem;min-width:0;overflow-wrap:anywhere}',
@@ -144,6 +145,12 @@ FMWidgets.register('model-explorer', function (root, api) {
   }
   function eqs(vars, vals) { return vars.map(function (v, i) { return v + ' = ' + vals[i] }).join(', ') }
   function isa(s) { return h('span', { class: 'fmw-isa', text: s }) }
+  // Print as Isabelle does: ∀x. ∀y. φ becomes ∀x y. φ
+  function show(f) {
+    var s = Logic.show(f), prev
+    do { prev = s; s = s.replace(/([∀∃])([\w' ]+)\. \1(?=[\w'])/g, '$1$2 ') } while (s !== prev)
+    return s
+  }
 
   // Returns the explanation (an array of nodes and strings) for a sentence f with value val.
   function explain(f, val, M) {
@@ -185,7 +192,7 @@ FMWidgets.register('model-explorer', function (root, api) {
     }
     if (f.k === 'all' && val) {
       if (c.body.k === 'imp' && !firstTuple(c.vars, c.body.l, M, {}, true))
-        return [t('True, vacuously: no ' + vs + ' satisfies ', '真，但只是空真：没有 ' + vs + ' 满足 '), isa(Logic.show(c.body.l)), t('.', '。')]
+        return [t('True, vacuously: no ' + vs + ' satisfies ', '真，但只是空真：没有 ' + vs + ' 满足 '), isa(show(c.body.l)), t('.', '。')]
       return [t('True for every ' + vs + '.', '对每个 ' + vs + ' 都成立。')]
     }
     return [t('No ' + vs + ' makes it true.', '没有任何 ' + vs + ' 使它成立。')]
@@ -199,11 +206,11 @@ FMWidgets.register('model-explorer', function (root, api) {
   var resetBtn = h('button', { type: 'button', class: 'fmw-btn', text: t('Reset', '重置'), onclick: function () { st = initial(); drawStructure(); drawFormulas(); msg.textContent = t('Back to the starting structure and formulas.', '已恢复初始的结构和公式。') } })
   var domText = h('span', { class: 'fmw-isa' })
   var tables = h('div', { class: 'mx-top' })
-  var summary = h('p', { class: 'mx-summary' })
+  var summary = h('div', { class: 'mx-summary' })
   var items = h('ol', { class: 'mx-list', 'aria-label': t('Formulas', '公式') })
   var input = h('input', { type: 'text', id: uid + '-in', class: 'fmw-input mx-input', autocomplete: 'off', spellcheck: 'false',
     placeholder: '∃x. R x x', onkeydown: function (e) { if (e.key === 'Enter') { e.preventDefault(); addFormula() } } })
-  var msg = h('p', { class: 'fmw-msg mx-msg', role: 'status', 'aria-live': 'polite' })
+  var msg = h('div', { class: 'fmw-msg mx-msg', role: 'status', 'aria-live': 'polite' })
 
   root.appendChild(h('div', { class: 'fmw-row' }, h('span', { class: 'mx-h', text: t('Domain', '论域') }), domText, addBtn, delBtn, resetBtn))
   root.appendChild(tables)
@@ -211,7 +218,8 @@ FMWidgets.register('model-explorer', function (root, api) {
   root.appendChild(h('div', { class: 'mx-h', text: t('Formulas (true or false in this structure)', '公式（在这个结构中为真或为假）') }))
   root.appendChild(items)
   root.appendChild(h('div', { class: 'fmw-row mx-add' },
-    h('label', { for: uid + '-in', text: t('Add a formula (∀ ∃ ¬ ∧ ∨ ⟶ ⟷ =, or ASCII: ALL EX ~ & | --> <-> )', '添加公式（∀ ∃ ¬ ∧ ∨ ⟶ ⟷ =，也可以用 ASCII：ALL EX ~ & | --> <-> ）') }),
+    h('label', { for: uid + '-in' }, t('Add a formula, with ', '添加公式，可用 '), isa('∀ ∃ ¬ ∧ ∨ ⟶ ⟷ ='),
+      t(' or in ASCII: ', '，或用 ASCII：'), isa('ALL EX ~ & | --> <->')),
     input, h('button', { type: 'button', class: 'fmw-btn', text: t('Add', '添加'), onclick: addFormula })))
   root.appendChild(msg)
 
@@ -270,14 +278,15 @@ FMWidgets.register('model-explorer', function (root, api) {
   function drawSummary() {
     var M = structure()
     function set(rel) { return '{' + rel.map(function (r) { return r.length === 1 ? r[0] : '(' + r.join(', ') + ')' }).join(', ') + '}' }
-    summary.textContent = 'P = ' + set(M.preds.P) + '    Q = ' + set(M.preds.Q) + '    R = ' + set(M.preds.R)
+    summary.textContent = ''
+    ;['P', 'Q', 'R'].forEach(function (p) { summary.appendChild(h('span', { text: p + ' = ' + set(M.preds[p]) })) })
   }
 
   // Evaluate one formula; returns {text, cls, verdict, why}
   function evaluate(src, M) {
     var f
     try { f = Logic.parse(src) } catch (e) { return { text: src, error: parseMessage(e.message) } }
-    var shown = Logic.show(f)
+    var shown = show(f)
     var problem = vocabularyProblem(f)
     if (problem) return { text: shown, error: problem }
     try {

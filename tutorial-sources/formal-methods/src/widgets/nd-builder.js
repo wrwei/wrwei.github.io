@@ -37,6 +37,7 @@ FMWidgets.register('nd-builder', function (root, api) {
     '.ndb .nd-term{flex:1 1 7rem;max-width:14rem}',
     '.ndb .nd-proof-h{font-weight:600;margin:.8rem 0 .2rem}',
     '.ndb .nd-proof .prooftree{margin:.5rem 0 .7rem}',
+    '.ndb .nd-proof .pt-node:not(.pt-leaf){padding-right:2.6rem}',
     '.ndb .nd-proof details{margin:.4rem 0 0}',
     '.ndb .nd-proof summary{cursor:pointer;padding:.4rem .8rem;font-size:.85rem;color:var(--blue)}',
     '.ndb .nd-text{font-family:var(--font-isa,monospace);font-size:.82rem;line-height:1.5;margin:0;padding:.5rem .8rem .7rem;overflow-x:auto;white-space:pre}',
@@ -559,7 +560,8 @@ FMWidgets.register('nd-builder', function (root, api) {
     var f = h('span', { class: 'pt-f', text: node.f })
     if (!node.kids.length && !node.rule) return h('div', { class: 'pt-node pt-leaf' }, f)
     var prem = node.kids.length ? h('div', { class: 'pt-prem' }, node.kids.map(treeEl)) : h('div', { class: 'pt-prem pt-axiom' })
-    return h('div', { class: 'pt-node' }, prem, h('div', { class: 'pt-bar' }, h('span', { class: 'pt-rule', text: node.rule })), h('div', { class: 'pt-concl' }, f))
+    // like the page's trees: the rule name without its brackets beside the line
+    return h('div', { class: 'pt-node' }, prem, h('div', { class: 'pt-bar' }, h('span', { class: 'pt-rule', text: node.rule.replace(/^\((.*)\)$/, '$1') })), h('div', { class: 'pt-concl' }, f))
   }
   function treeText(node, ind, out) {
     out.push(new Array(ind + 1).join(' ') + node.f + (node.rule ? '   ' + node.rule : ''))
@@ -706,7 +708,7 @@ FMWidgets.register('nd-builder', function (root, api) {
           ? g.ctx.map(function (hid) {
             var hy = S.hyps[hid], txt = show(hy.f)
             return h('button', { class: 'nd-hyp', type: 'button', 'data-f': txt, 'data-key': 'h:' + gid + ':' + hid, 'aria-pressed': sel && S.selHyp === hid ? 'true' : 'false',
-              title: hy.src.k === 'hyp' ? t('assumption ' + hy.src.label + ', discharged by the rule marked ' + hy.src.label, '假设 ' + hy.src.label + '，由标号 ' + hy.src.label + ' 的规则消解') : t('derived by (' + hy.src.rule + ')', '由 (' + hy.src.rule + ') 推出'),
+              title: hy.src.k === 'hyp' ? t('assumption ' + hy.src.label + ', discharged by the rule marked ' + hy.src.label, '假设 ' + hy.src.label + '，由标号为 ' + hy.src.label + ' 的规则解除') : t('derived by (' + hy.src.rule + ')', '由 (' + hy.src.rule + ') 推出'),
               text: txt, onclick: safe(function () { select(gid, hid) }) })
           })
           : [h('span', { class: 'nd-none', text: t('none', '无') })]
