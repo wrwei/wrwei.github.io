@@ -26,6 +26,7 @@ Output block options (first line, after ```output):
            (combine with the others, e.g. ```output result varies)
 """
 import argparse
+import glob
 import os
 import re
 import shutil
@@ -318,6 +319,17 @@ def main():
     if not plans:
         print('no Isabelle blocks found')
         return
+
+    # Guard: a user-level Pure or HOL heap (left by `isabelle build -f` or a build of Pure/HOL) hides the
+    # prebuilt heaps of the distribution, and every build would then rebuild HOL (minutes, gigabytes).
+    stray = sorted(glob.glob(os.path.expanduser(f'~/.isabelle/{VERSION}/heaps/*/Pure')) +
+                   glob.glob(os.path.expanduser(f'~/.isabelle/{VERSION}/heaps/*/HOL')) +
+                   glob.glob(os.path.expanduser(f'~/.isabelle/{VERSION}/heaps/*/log/Pure.db')) +
+                   glob.glob(os.path.expanduser(f'~/.isabelle/{VERSION}/heaps/*/log/HOL.db')))
+    if stray:
+        raise SystemExit('stopped: user-level Pure/HOL heap files hide the prebuilt heaps, so this build would rebuild\n'
+                         'HOL. Remove them (after stopping any running Isabelle builds), then run again:\n  '
+                         + '\n  '.join(stray))
 
     # A run for some modules only uses its own directory, so that runs for different modules can go on
     # at the same time; only a full run writes the downloads.

@@ -144,7 +144,11 @@ Rules:
 - Keep every proof fast (each block well under a few seconds). The whole module must build in under a
   minute.
 - To try things out, write a scratch theory outside the page (in `out/scratch/`, which is ignored) and
-  build it with Isabelle directly; but every output on the page comes from `isa.py`.
+  build it with `isabelle build -d out/scratch/X SESSION`; but every output on the page comes from
+  `isa.py`. **Never use `isabelle build -f`, never build `Pure` or `HOL`, and never write to or delete
+  anything in `~/.isabelle`**: a user-level Pure or HOL heap hides the prebuilt heaps, after which every
+  build of every author rebuilds HOL and runs out of memory. `isa.py` refuses to run if it finds such
+  files; tell the coordinator instead of removing them yourself.
 
 The Isabelle installation is at
 `/tmp/claude-0/-home-user-wrwei-github-io/7b6368c3-ecc9-5d53-a462-2dab7e36d355/scratchpad/isabelle/Isabelle2026`
