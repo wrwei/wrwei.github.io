@@ -492,8 +492,8 @@ qed
 ```
 
 The command `theorem`, like `corollary` (Module 11) and `proposition`, means the same as `lemma`; the
-word marks a main result. Insertion sort is verified: for every list of every linearly ordered type, `isort` returns a
-sorted permutation of its input.
+word marks a main result. Insertion sort is verified: for every list of every linearly ordered type,
+`isort` returns a sorted permutation of its input.
 
 ::: keyidea
 Proofs about programs are found from the top down and written from the bottom up. You start with the
@@ -1278,15 +1278,15 @@ library's `hd`. The comparisons `≤` and `<` have become `less_eq` and `less`, 
 type class `Ord` that Isabelle generates from its own class `ord`; the classes `preorder`, `order` and
 `linorder` become Haskell classes too (Module 8 compared type classes with Haskell's). The first lines
 of the module list what it exports: the functions, the class `Linorder`, and the types `Btree` and
-`Queue` without their constructors. By default `export_code` exports only what its list names, together
-with the types and classes that their types mention, and it exports the constructors of a datatype only
-when the list names one of them.
+`Queue` without their constructors.
 
-That last point protects the invariants. Other Haskell code can build trees only from `tempty` with
-`tinsert`, and queues only from `qempty` with `enq` and `deq`, so it cannot build a tree that breaks
-`bst` or a queue that breaks `qinv`. Had the list named the constructor `Lf` instead of `tempty`,
-Isabelle would have exported the type `Btree` with all its constructors, `Nd` included, and with them
-the power to build any tree at all.
+This is what `export_code` does by default: it exports the functions in its list and, without their
+constructors, the datatypes and classes that these functions use directly. It exports the constructors
+of a datatype only when the list names one of them. This protects the invariants. Other Haskell code
+can build trees only from `tempty` with `tinsert`, and queues only from `qempty` with `enq` and `deq`,
+so it cannot build a tree that breaks `bst` or a queue that breaks `qinv`. Had the list named the
+constructor `Lf` instead of `tempty`, Isabelle would have exported the type `Btree` with all its
+constructors, `Nd` included, and with them the power to build any tree at all.
 
 One more thing stays inside the module: the classes `Ord`, `Preorder` and `Order` on which `Linorder`
 builds. As exported here, other Haskell code cannot say how to compare the elements of its own types,

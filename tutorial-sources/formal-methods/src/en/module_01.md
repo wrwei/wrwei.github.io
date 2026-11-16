@@ -432,7 +432,7 @@ Found termination order: "{}"
 the ⇒ symbol. The equation after `where` says what `double` computes. Isabelle answers with the new
 constant and its type, and reports that it found a termination order: for every function defined with
 `fun`, Isabelle proves that the function terminates. Here there is no recursion, so the proof is trivial;
-Module 8 explains why termination matters. Now try the function:
+Modules 5 and 8 explain why termination matters. Now try the function:
 
 ```isabelle
 value "double 21"

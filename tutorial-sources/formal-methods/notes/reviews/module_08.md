@@ -47,8 +47,9 @@ numbers refer to the page as it was before the review.
 | 1966–2025 | Exercise 8.8 duplicated Module 5's Exercise 5.8 (same title, `count_down` ≈ `nbits`, Ackermann with `ack 2 3` and the 19,729 digits from §5.7, a harmless non-terminating equation). | Replaced by "Termination in Isabelle's words": `merge` (a new two-measure lexicographic order to predict and explain), `forever` (the `F` entry; not contradictory, now with the real message), and Module 5's `count_up` defined with `function` and an explicit measure. |
 | 2062 | Quiz: "can contradict each other" (it is one equation). | "can be contradictory". |
 
-All Isabelle changes rechecked with `python3 -I tools/isa.py --module 08` (all outputs match after the
-final run). `node tools/check.mjs --lang en`: no errors or warnings.
+All Isabelle changes rechecked: `python3 -I tools/isa.py --module 08` reports 74 blocks, 75 output
+blocks, all outputs match. `node tools/check.mjs --lang en`: no errors or warnings for this page (the
+one error it reports is `en/cheatsheet.md` linking to a glossary page that does not exist yet).
 
 ## Facts the page states, for notes/FACTS.md
 

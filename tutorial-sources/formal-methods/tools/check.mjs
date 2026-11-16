@@ -106,6 +106,10 @@ for (const f of pages) {
       if (!names.has(name)) { err(`${lang}/${f}:${line}`, `link to ${href}: no such page`); continue }
       if (suffix && suffix !== lang.toUpperCase()) err(`${lang}/${f}:${line}`, `link to ${href} points to the other language`)
     }
+    // An output captured from an interrupted build must not reach a page.
+    src.split('\n').forEach((ln, i) => {
+      if (/exception Interrupt|Interrupt_Breakdown/.test(ln)) err(`${lang}/${f}:${i + 1}`, 'an Isabelle output from an interrupted build: run tools/isa.py --update again')
+    })
     // A fence that opens on a list-marker line ("2. ```isabelle") is shown on the page but never checked by isa.py.
     src.split('\n').forEach((ln, i) => {
       if (/^\s*(\d+[.)]|[-*+])\s+`{3,}\s*(isabelle|output)/.test(ln)) err(`${lang}/${f}:${i + 1}`, 'a code fence on a list-item line is not checked by isa.py: put the fence on its own line, indented under the item')

@@ -56,7 +56,7 @@ as it was before the review.
 | 1266 | `force` used before Module 9 with a thin explanation, and "follows" without saying from what. | Explained how the theorem follows from `diagonal`, and what `force` does differently from `auto`. |
 
 All Isabelle changes rechecked: `python3 -I tools/isa.py --module 04` reports 46 blocks, 29 output
-blocks, all outputs match. `node tools/check.mjs --lang en`: no errors or warnings.
+blocks, all outputs match. `node tools/check.mjs --lang en`: no errors or warnings for this page.
 
 ## Not changed
 

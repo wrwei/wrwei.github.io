@@ -388,8 +388,11 @@ def main():
         return sorted(s for s in names if not re.search(r'^Theory "' + re.escape(s) + r'\.', text, re.M))
     narrow = set(FALLBACK)
     # Any session whose theory section is missing is built again (a finished session too: its database is
-    # removed first, so that Isabelle really builds it instead of reporting it up to date).
-    todo = incomplete(log.stdout, sessions)
+    # removed first, so that Isabelle really builds it instead of reporting it up to date). So is a session
+    # whose messages show that the build was interrupted (e.g. "exception Interrupt_Breakdown raised").
+    def interrupted(m):
+        return {k[0][:-4] for k, v in m.items() for _, body in v if 'Interrupt' in body and 'exception' in body}
+    todo = sorted(set(incomplete(log.stdout, sessions)) | interrupted(msgs))
     for _ in range(3):
         if not todo:
             break
@@ -398,7 +401,7 @@ def main():
         run([args.isabelle, 'build', '-d', isa_dir, '-j', args.jobs] + todo)
         text = run([args.isabelle, 'build_log', '-U', '-v'] + todo).stdout
         again, again_narrow = parse_log(text), set(FALLBACK)
-        still = incomplete(text, todo)
+        still = sorted(set(incomplete(text, todo)) | (interrupted(again) & set(todo)))
         for sess in todo:
             if sess in still:
                 continue      # this attempt is no better: keep what we have

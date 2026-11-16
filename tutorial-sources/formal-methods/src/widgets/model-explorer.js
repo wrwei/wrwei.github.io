@@ -98,7 +98,7 @@ FMWidgets.register('model-explorer', function (root, api) {
       problem = NAMES.indexOf(tm.name) >= 0
         ? t('There is no element ' + tm.name + ' in the domain {' + list(dom) + '}.', '论域 {' + list(dom) + '} 中没有元素 ' + tm.name + '。')
         : t(tm.name + ' is free here: bind it with ∀ or ∃, or use an element name (' + list(dom) + ').',
-          tm.name + ' 在这里是自由变量：请用 ∀ 或 ∃ 约束它，或者改用元素名（' + list(dom) + '）。')
+          tm.name + ' 在这里是自由变元：请用 ∀ 或 ∃ 约束它，或者改用元素名（' + list(dom) + '）。')
     }
     function walk(g, bound) {
       if (problem) return

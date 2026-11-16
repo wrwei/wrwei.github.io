@@ -298,7 +298,7 @@ consts
 Found termination order: "{}"
 ```
 
-`double :: "nat ⇒ nat"` 声明 `double` 接受一个自然数并返回一个自然数；输入 `=>` 就能得到符号 ⇒。`where` 后面的等式说明 `double` 计算什么。Isabelle 的回答给出了新常量和它的类型，并报告它找到了一个终止序（termination order）：对每个用 `fun` 定义的函数，Isabelle 都会证明它会终止。这里没有递归，所以证明是平凡的；模块 8 会解释为什么终止性很重要。现在试一试这个函数：
+`double :: "nat ⇒ nat"` 声明 `double` 接受一个自然数并返回一个自然数；输入 `=>` 就能得到符号 ⇒。`where` 后面的等式说明 `double` 计算什么。Isabelle 的回答给出了新常量和它的类型，并报告它找到了一个终止序（termination order）：对每个用 `fun` 定义的函数，Isabelle 都会证明它会终止。这里没有递归，所以证明是平凡的；模块 5 和模块 8 会解释为什么终止性很重要。现在试一试这个函数：
 
 ```isabelle
 value "double 21"

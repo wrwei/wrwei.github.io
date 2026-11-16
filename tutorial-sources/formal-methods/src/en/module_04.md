@@ -660,13 +660,13 @@ blocks.
 :::
 
 Here is the proof of the first half. The classes are subsets of $A$, because $R$ is a relation on $A$.
-Reflexivity puts every $x$ into its own class, so the classes are non-empty and cover $A$. It remains to show that two classes that meet are equal. Suppose $z$ is in
-$[x]$ and in $[y]$, so $(x, z) \in R$ and $(y, z) \in R$. By symmetry $(z, y) \in R$, and by
-transitivity $(x, y) \in R$. Now for any $w \in [y]$, transitivity turns $(x, y)$ and $(y, w)$ into
-$(x, w)$, so $w \in [x]$. Hence $[y] \subseteq [x]$; the same argument with $x$ and $y$ swapped gives
-$[x] \subseteq [y]$, and Fact 4.1 gives $[x] = [y]$. For the second half: every element is in some
-block (reflexive), the wording is symmetric, and two blocks that share an element are the same block
-(transitive).
+Reflexivity puts every $x$ into its own class, so the classes are non-empty and cover $A$. It remains to
+show that two classes that meet are equal. Suppose $z$ is in $[x]$ and in $[y]$, so $(x, z) \in R$ and
+$(y, z) \in R$. By symmetry $(z, y) \in R$, and by transitivity $(x, y) \in R$. Now for any $w \in [y]$,
+transitivity turns $(x, y)$ and $(y, w)$ into $(x, w)$, so $w \in [x]$. Hence $[y] \subseteq [x]$; the
+same argument with $x$ and $y$ swapped gives $[x] \subseteq [y]$, and Fact 4.1 gives $[x] = [y]$. For the
+second half: every element is in some block (reflexive), the wording is symmetric, and two blocks that
+share an element are the same block (transitive).
 
 Equivalence relations appear wherever software ignores a detail. **Equivalence partitioning**, a
 standard way of designing tests, splits the inputs into classes that the program should treat alike
@@ -728,8 +728,8 @@ a relation that is irreflexive and transitive.
 :::
 
 Partial orders are usually written $\le$ and strict orders $<$, and each gives the other:
-$x < y \iff x \le y \land x \neq y$, and $x \le y \iff x < y \lor x = y$. A strict order is **asymmetric**: $x < y$ and $y < x$ would give
-$x < x$ by transitivity, which irreflexivity forbids.
+$x < y \iff x \le y \land x \neq y$, and $x \le y \iff x < y \lor x = y$. A strict order is
+**asymmetric**: $x < y$ and $y < x$ would give $x < x$ by transitivity, which irreflexivity forbids.
 
 ::: example Orders, total and partial
 - $\le$ on numbers is a total order.
@@ -742,9 +742,10 @@ $x < x$ by transitivity, which irreflexivity forbids.
 ### Hasse diagrams {#hasse}
 
 The graph of a partial order has many arrows: a loop at every node, and a shortcut for every path. A
-**Hasse diagram** of a partial order on a finite set leaves out what the properties imply. It puts smaller elements lower, draws no loops
-and no arrowheads, and draws a line from $x$ up to $y$ only when $y$ **covers** $x$: $x < y$ with
-nothing strictly between them. Then $x \le y$ exactly when an upward path leads from $x$ to $y$.
+**Hasse diagram** of a partial order on a finite set leaves out what the properties imply. It puts
+smaller elements lower, draws no loops and no arrowheads, and draws a line from $x$ up to $y$ only when
+$y$ **covers** $x$: $x < y$ with nothing strictly between them. Then $x \le y$ exactly when an upward
+path leads from $x$ to $y$.
 
 ::: figure id=fig-04-2
 Two Hasse diagrams. Left: the subsets of $\{1, 2, 3\}$, ordered by $\subseteq$. Right: the divisors of
@@ -1000,8 +1001,8 @@ in mathematics (type `\lambda` or `%`). Every HOL function is **total**: it has 
 element of its argument type. (This sense of "total" has nothing to do with the total relations of
 Section 4.2.) A relation in which every input has *at most* one output is a **partial function**, such
 as the function computed by a program that may loop or fail; HOL models one as a total function whose
-result says whether there is a value, with the type `option` of Module 8. Isabelle writes the image of a set as `` f ` A `` (one backquote) and the range as
-`range f`.
+result says whether there is a value, with the type `option` of Module 8. Isabelle writes the image of
+a set as `` f ` A `` (one backquote) and the range as `range f`.
 
 ### Injective, surjective, bijective {#inj-surj}
 

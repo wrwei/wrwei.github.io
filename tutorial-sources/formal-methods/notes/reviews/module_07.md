@@ -48,6 +48,7 @@ sources and manuals.
 - Intermittent: `tools/isa.py --module 07` (default `--jobs 4`) twice produced an empty log for the main
   session `Module_07` (no `PIDE/messages` exports, empty theory timings, return code 0), so all 90 output
   blocks were reported as "Isabelle printed nothing". The same theories built under another session name
-  produced every message; a run with `--jobs 2`, and the final run with the default, gave "all outputs
-  match". `isa.py` retries incomplete probe logs but not the main session; it could do the same for
-  `Module_NN`, or at least say "incomplete log" instead of 90 separate "printed nothing" lines.
+  produced every message. A third run lost only the messages of `Module_07_Solutions` (13 blocks). Runs
+  in between, and the last run, gave "all outputs match" with no change to any Isabelle block. `isa.py`
+  retries incomplete probe logs but not the main session; it could do the same for `Module_NN`, or at
+  least say "incomplete log" instead of 90 separate "printed nothing" lines.

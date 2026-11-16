@@ -52,7 +52,7 @@ export async function run(t) {
   t.check((await t.text('.mx-msg')).length > 0 && await t.count('.mx-item') === 8, 'an incomplete formula gives a message and is not added')
   await t.type('.mx-input', 'P x')
   await t.click(zh ? '添加' : 'Add')
-  t.check((await t.text('.mx-msg')).includes(zh ? '自由变量' : 'free'), 'a free variable is reported')
+  t.check((await t.text('.mx-msg')).includes(zh ? '自由变元' : 'free'), 'a free variable is reported')
   await t.type('.mx-input', '∀x. S x')
   await t.click(zh ? '添加' : 'Add')
   t.check((await t.text('.mx-msg')).includes('S'), 'an unknown predicate is reported')

@@ -145,23 +145,15 @@ goal (1 subgoal):
 qed
 ```
 
-`using ab` hands the fact `ab` to `blast`; Section 10.3.3 explains why you have to. When the proof of
-the `show` succeeds, Isabelle uses the shown fact to solve the pending goal, and `qed` finds nothing
-left to do. This works because `ab` is the premise A ∧ B of the goal. An `assume` must match a premise
-of the goal: assume something else, and the `show` at the end fails (Section 10.8).
+`using ab` 把事实 `ab` 交给 `blast`；第 10.3.3 节会解释为什么必须这样做。`show` 的证明成功之后，Isabelle 用 `show` 得到的事实解决待证目标，于是 `qed` 发现已经没有什么要做的了。这之所以行得通，是因为 `ab` 正是目标的前提（premise）A ∧ B。`assume` 必须与目标的某个前提相符：如果假设别的东西，最后的 `show` 就会失败（第 10.8 节）。
 
 ::: note
-The first line of every proof state names the **mode** Isabelle is in, which tells you what may come
-next. `proof (prove)`: a claim (`lemma`, `have`, `show`) has been stated, and its proof comes next.
-`proof (state)`: you are inside a block and may assume, claim or close it. `proof (chain)`: facts have
-been picked up for the next claim (Section 10.3).
+每个证明状态的第一行都给出 Isabelle 当前所处的**模式**（mode），它告诉你接下来可以写什么。`proof (prove)`：已经陈述了一个断言（`lemma`、`have`、`show`），接下来是它的证明。`proof (state)`：你在一个块中，可以做假设、提出断言，或者关闭这个块。`proof (chain)`：已经为下一个断言取好了事实（第 10.3 节）。
 :::
 
-### Steps on the way: have {#shape-have}
+### 中间步骤：have {#shape-have}
 
-A paper proof rarely jumps to its conclusion: it reaches it through intermediate facts. `have` states
-such a fact, with its own proof, and adds it to the proof for later steps. Unlike `show`, `have` does not
-touch the pending goals.
+纸上的证明很少一步就跳到结论：它要经过一些中间事实才到达结论。`have` 陈述这样一个事实，并给出它自己的证明，然后把它加入证明，供后面的步骤使用。与 `show` 不同，`have` 不会动待证目标。
 
 ```isabelle
 lemma "A ∧ B ⟶ B ∧ A"
@@ -173,13 +165,11 @@ proof (rule impI)
 qed
 ```
 
-Each `have` gets a name, `b` and `a`, and the `show` uses both. The proof reads as on paper: from A ∧ B
-we get B, and we get A, so B ∧ A.
+两个 `have` 各有一个名字 `b` 和 `a`，`show` 用到了这两个事实。这个证明读起来和纸上的一样：由 A ∧ B 得到 B，也得到 A，所以 B ∧ A。
 
-### Nested blocks and next {#shape-nested}
+### 嵌套的块与 next {#shape-nested}
 
-The proof of a `have` or a `show` can itself be a block. Here the conclusion B ∧ A is proved with the
-rule for conjunction, which leaves two goals:
+`have` 或 `show` 的证明本身也可以是一个块。这里，结论 B ∧ A 用合取的规则来证明，它留下两个目标：
 
 ```isabelle
 lemma "A ∧ B ⟶ B ∧ A"
@@ -196,7 +186,7 @@ goal (2 subgoals):
  2. A
 ```
 
-Each of the two goals gets its own `show`:
+两个目标各用一个 `show` 来证明：
 
 ```isabelle
     show "B" using ab by blast
@@ -206,22 +196,15 @@ Each of the two goals gets its own `show`:
 qed
 ```
 
-A `show` may solve any pending goal of its block, not only the first: Isabelle looks for a goal that the
-shown fact solves. `next` separates the proofs of different goals. It closes the current part of the
-block and opens a fresh one, so that whatever you assume for one goal is not available for the next.
-Here nothing is assumed inside the inner block, so `next` could be left out; with case analysis and
-induction (Sections 10.5 and 10.6) it is needed. Figure 10.1 shows the structure of this proof.
+`show` 可以解决它所在的块中任何一个待证目标，而不只是第一个：Isabelle 会寻找一个能被 `show` 得到的事实解决的目标。`next` 把不同目标的证明分隔开。它结束块中当前的这一部分，并开始新的一部分，这样，你为一个目标所做的假设，在下一个目标中就不能使用了。这里内层的块中没有做任何假设，所以 `next` 可以省略；但在情形分析（case analysis）和归纳（第 10.5 节和第 10.6 节）中就需要它。图 10.1 展示了这个证明的结构。
 
 ::: figure id=fig-10-1
-The block structure of the nested proof. Each `proof … qed` opens a block with its own pending goals,
-and each `show` solves one of them. The fact `ab`, assumed in the outer block, can be used in every block
-nested inside it.
+这个嵌套证明的块结构。每个 `proof … qed` 开启一个块，它有自己的待证目标，每个 `show` 解决其中一个。在外层块中假设的事实 `ab`，可以在嵌套于其中的每个块中使用。
 :::
 
-### Arbitrary values: fix {#shape-fix}
+### 任意的值：fix {#shape-fix}
 
-To prove a statement for all x, a paper proof says "let x be arbitrary" and proves the statement for
-that x. This is the rule (∀I) of Module 6. Isar says `fix x`:
+要证明一个陈述对所有 x 都成立，纸上的证明会说“设 x 是任意的”，然后对这个 x 证明这个陈述。这就是模块 6 中的规则 (∀I)。在 Isar 中，这写作 `fix x`：
 
 ```isabelle
 lemma "∀u. admin u ⟶ admin u ∨ staff u"
@@ -234,9 +217,7 @@ goal (1 subgoal):
  1. ⋀u. admin u ⟶ admin u ∨ staff u
 ```
 
-`proof` without a method applied the rule for ∀ (Section 10.2.6 lists what it does for each
-connective). The goal starts with ⋀u, Isabelle's own "for every u" from Module 7. Fix such a u and
-prove the statement for it:
+不带方法的 `proof` 应用了 ∀ 的规则（第 10.2.6 节列出了它对每个联结词做什么）。现在目标以 ⋀u 开头，这是模块 7 中讲过的 Isabelle 自己的“对每个 u”。固定这样一个 u，并对它证明这个陈述：
 
 ```isabelle
   fix u
@@ -248,17 +229,13 @@ prove the statement for it:
 qed
 ```
 
-::: definition Fixed variable
-`fix x` introduces a **fixed variable** x, like the variables bound by ⋀ in Module 7: a name for an
-arbitrary value, about which the proof knows nothing except what it assumes. When the block is closed,
-a fact proved for the fixed x holds for every value of x.
+::: definition 固定变量
+`fix x` 引入一个**固定变量**（fixed variable）x，就像模块 7 中由 ⋀ 约束的变量那样：它是一个任意值的名字，除了证明对它所做的假设之外，证明对它一无所知。块关闭之后，对固定的 x 证明了的事实，对 x 的每个值都成立。
 :::
 
-### Lemmas with assumptions: assumes, shows and ?thesis {#shape-assms}
+### 带假设的引理：assumes、shows 和 ?thesis {#shape-assms}
 
-Statements about programs usually have conditions. Here is a function that every programmer has written
-in some form: `clamp lo hi x` keeps a value x inside the range from lo to hi, as a volume control or a
-sensor reading does.
+关于程序的陈述通常带有条件。下面这个函数，每个程序员都以某种形式写过：`clamp lo hi x` 把值 x 限制在从 lo 到 hi 的范围之内，音量调节或传感器读数就是这样处理的。
 
 ```isabelle
 fun clamp :: "int ⇒ int ⇒ int ⇒ int" where
@@ -289,8 +266,7 @@ value "clamp 0 100 42"
   :: "int"
 ```
 
-The result is never below lo, provided the range is not empty. A lemma can state the condition
-separately, with `assumes`, and the claim with `shows`:
+只要这个范围不是空的，结果就永远不会小于 lo。引理可以用 `assumes` 单独陈述条件，再用 `shows` 陈述断言：
 
 ```isabelle
 lemma clamp_lower:
@@ -304,8 +280,7 @@ goal (1 subgoal):
  1. lo ≤ clamp lo hi x
 ```
 
-The goal shows only the claim. The assumption is available as a fact called `assms`, the list of all
-assumptions of the lemma:
+目标中只显示断言。假设可以作为一个名为 `assms` 的事实来使用，它是这条引理所有假设的列表：
 
 ```isabelle
 proof -
@@ -313,39 +288,31 @@ proof -
 qed
 ```
 
-Two new things appear here. `proof -` starts a block without changing the goal: the hyphen is the
-method that does nothing. And `?thesis`, read "the thesis", is an abbreviation that Isabelle defines for
-every claim: it stands for the statement after `shows` (or after `lemma`, `have` or `show`), here
-`lo ≤ clamp lo hi x`. It saves you from copying long statements. You can also name each assumption,
-`assumes order: "lo ≤ hi"`, or refer to the i-th one as `assms(i)`. The result of the lemma is the
-implication `lo ≤ hi ⟹ lo ≤ clamp lo hi x`, which later proofs use under the name `clamp_lower`.
+这里出现了两样新东西。`proof -` 开始一个块，但不改变目标：连字符是一个什么也不做的方法。`?thesis` 读作“the thesis”（论题），它是 Isabelle 为每个断言定义的缩写：它代表 `shows` 后面（或者 `lemma`、`have`、`show` 后面）的陈述，这里就是 `lo ≤ clamp lo hi x`。有了它，你就不用照抄很长的陈述。你也可以给每个假设起名字，例如 `assumes order: "lo ≤ hi"`，或者用 `assms(i)` 指第 i 个假设。这条引理的结果是蕴涵 `lo ≤ hi ⟹ lo ≤ clamp lo hi x`，后面的证明用 `clamp_lower` 这个名字来使用它。
 
-A one-step proof works too: `using assms by simp` directly after the statement. The block form pays off
-when the proof needs several steps.
+一步完成的证明也可以：在陈述之后直接写 `using assms by simp`。当证明需要好几步时，块的形式才显出它的好处。
 
-### How a block starts {#shape-start}
+### 块怎样开始 {#shape-start}
 
-The initial method decides which pending goals the block has to prove. Three forms cover most proofs:
+初始方法决定了块要证明哪些待证目标。大多数证明用的是下面三种形式之一：
 
-- `proof (rule r)` applies the rule r backwards, as `apply (rule r)` does, for example `rule impI`.
-- `proof` with no method applies one **standard rule** chosen by the main connective of the goal (or, when
-  facts are passed to it, an elimination rule for them; Section 10.5.3).
-- `proof -` leaves the goal as it is.
+- `proof (rule r)` 反向应用规则 r，就像 `apply (rule r)` 那样，例如 `rule impI`。
+- 不带方法的 `proof` 应用一条**标准规则**（standard rule），这条规则由目标的主联结词选定；如果有事实传给它，它就应用这些事实的消去规则（elimination rule），见第 10.5.3 节。
+- `proof -` 让目标保持原样。
 
-For the standard rule, the block then follows the patterns of natural deduction:
+用标准规则开始的块，接下来遵循自然演绎的模式：
 
-| Goal | `proof` applies | Inside the block |
+| 目标 | `proof` 应用 | 块中 |
 |---|---|---|
 | `A ⟶ B` | `impI` | `assume "A"` … `show "B"` |
 | `A ∧ B` | `conjI` | `show "A"` … `next` … `show "B"` |
 | `A ⟷ B` | `iffI` | `assume "A"` … `show "B"` `next` `assume "B"` … `show "A"` |
 | `¬ A` | `notI` | `assume "A"` … `show False` |
 | `∀x. P x` | `allI` | `fix x` … `show "P x"` |
-| `∃x. P x` | `exI` | `show "P t"` for a witness t of your choice |
+| `∃x. P x` | `exI` | `show "P t"`，其中 t 是你选定的见证（witness） |
 
 ::: pitfall
-`proof` on its own fails when no standard rule fits the goal, for example when the goal is `False` or an
-equation between numbers:
+当没有标准规则适合目标时，单独的 `proof` 会失败，例如目标是 `False` 或者是数之间的等式时：
 
 ```isabelle fails
 lemma
@@ -362,7 +329,7 @@ qed
 ***  1. False
 ```
 
-The fix is `proof -`, which starts the block without applying any rule:
+解决办法是改用 `proof -`，它开始一个块，但不应用任何规则：
 
 ```isabelle
 lemma
@@ -374,23 +341,17 @@ qed
 ```
 :::
 
-## Passing facts along {#facts}
+## 传递事实 {#facts}
 
-The proofs so far handed facts to methods with `using`. Isar has several ways to pass facts from one
-step to the next. They make the flow of a proof visible, as words like "hence" and "from this" do on
-paper.
+到目前为止，证明都是用 `using` 把事实交给方法的。Isar 有好几种方式把事实从一步传给下一步。它们让证明的脉络清晰可见，就像纸上的“因此”“由此可得”这样的词语一样。
 
-### Chaining facts with then {#facts-then}
+### 用 then 链接事实 {#facts-then}
 
-::: definition Fact, this and chaining
-A **fact** is a proved statement available in a proof: an assumption, the result of `have` or `show`, or
-a lemma from the library or from your theory. After each step, the fact it produced is called
-**this**. **Forward chaining** passes facts to the next claim, whose proof method receives them, as
-`using` does.
+::: definition 事实、this 与链接
+**事实**（fact）是证明中可以使用的、已经得证的陈述：一个假设、`have` 或 `show` 的结果，或者来自库或你自己理论中的一条引理。每一步之后，这一步产生的事实叫作 **this**。**正向链接**（forward chaining）把事实传给下一个断言，由证明这个断言的方法接收，就像 `using` 那样。
 :::
 
-`then` chains `this` into the next claim. A proof in which every step uses the result of the step before
-reads like a pipeline:
+`then` 把 `this` 链接到下一个断言。如果证明的每一步都使用前一步的结果，它读起来就像一条流水线：
 
 ```isabelle
 lemma "A ∧ (A ⟶ B) ⟶ B ∨ C"
@@ -412,10 +373,7 @@ goal (1 subgoal):
  1. B
 ```
 
-Isabelle prints two states for the last line, one for each command. After `then` the mode is
-`proof (chain)`, and `picking this` shows the fact being passed. After `have "B"` the new goal appears,
-with the fact it will use listed under `using this`. In Isabelle/jEdit you see the state of the command
-under the cursor. Finish the pipeline:
+对最后一行，Isabelle 打印了两个状态，每个命令一个。`then` 之后的模式是 `proof (chain)`，`picking this`（选取 this）显示正在传递的事实。`have "B"` 之后出现了新的目标，它将要使用的事实列在 `using this`（使用 this）下面。在 Isabelle/jEdit 中，你看到的是光标所在命令的状态。完成这条流水线：
 
 ```isabelle
     by blast
@@ -423,11 +381,9 @@ under the cursor. Finish the pipeline:
 qed
 ```
 
-### Names, from, with, using and note {#facts-names}
+### 名字，以及 from、with、using 和 note {#facts-names}
 
-A pipeline breaks as soon as a step needs an older fact. `from` names the facts to pass, so `then` is
-the same as `from this`. Facts can be referred to by name, or by their statement between the quotes
-`‹` and `›`: `‹A›` reads "the fact A" and refers to the fact of the proof whose statement is A.
+一旦某一步需要更早的事实，流水线就断了。`from` 指明要传递哪些事实，所以 `then` 就等于 `from this`。引用事实可以用它的名字，也可以把它的陈述写在引号 `‹` 和 `›` 之间：`‹A›` 读作“事实 A”，指的是证明中陈述为 A 的那个事实。
 
 ```isabelle
 lemma "A ∧ B ⟶ B ∧ A"
@@ -439,14 +395,13 @@ proof (rule impI)
 qed
 ```
 
-`with ‹A›` is short for `from ‹A› this`: it passes the named fact *and* the current one, here B.
+`with ‹A›` 是 `from ‹A› this` 的简写：它既传递指明的事实，**也**传递当前的事实，这里是 B。
 
 ::: tip
-To type `‹` and `›` in Isabelle/jEdit, type a back-quote (`` ` ``) and accept the first completion,
-which inserts `‹›` with the cursor between the two quotes.
+要在 Isabelle/jEdit 中输入 `‹` 和 `›`，就输入一个反引号（`` ` ``），然后接受第一个补全项，它会插入 `‹›`，并把光标放在两个引号之间。
 :::
 
-`note` puts facts into `this` without proving anything, and can give the group a name:
+`note` 把事实放进 `this`，但不证明任何东西；它还可以给这组事实起一个名字：
 
 ```isabelle
 lemma "A ∧ B ⟶ B ∧ A"
@@ -472,11 +427,10 @@ goal (1 subgoal):
 qed
 ```
 
-The order of the facts matters here: `rule conjI` uses the first fact for the left conjunct and the
-second for the right one. For `blast`, `simp` and `auto` the order makes no difference.
+这里事实的顺序很重要：`rule conjI` 用第一个事实证明左边的合取项，用第二个事实证明右边的合取项。对 `blast`、`simp` 和 `auto` 来说，顺序没有影响。
 
-::: fact Chaining shorthands
-| You write | It means |
+::: fact 链接的简写
+| 你写的 | 它的意思 |
 |---|---|
 | `then` | `from this` |
 | `with a` | `from a this` |
@@ -485,13 +439,11 @@ second for the right one. For `blast`, `simp` and `auto` the order makes no diff
 | `thus` | `then show` |
 :::
 
-You will meet `hence` and `thus` in older proofs, including the Isabelle tutorial. Isabelle2026 still
-accepts them, but its reference manual calls them left-overs from the early history of Isar and
-recommends the longer forms, which this series uses.
+你会在较早的证明中遇到 `hence` 和 `thus`，Isabelle 的教程中也有。Isabelle2026 仍然接受它们，但它的参考手册称它们是 Isar 早期历史的遗留物，并建议使用较长的形式，本系列用的也是较长的形式。
 
-### Methods see only the facts you give them {#facts-visible}
+### 方法只看得到你交给它的事实 {#facts-visible}
 
-In Section 10.2.5 the proof of `clamp_lower` said `using assms`. Leave it out:
+在第 10.2.5 节中，`clamp_lower` 的证明写了 `using assms`。把它去掉：
 
 ```isabelle fails
 lemma
@@ -506,30 +458,22 @@ lemma
 ***  1. hi < x ⟶ ¬ x < lo ⟶ lo ≤ hi
 ```
 
-The simplifier unfolded `clamp` and split the `if`s, and what remains is the one case that needs the
-assumption: when x is above the range, `clamp` returns hi, and lo ≤ hi is exactly what `simp` did not
-know. The assumption was in the proof all the time, but **a proof method sees only the goal and the
-facts passed to it** with `then`, `from`, `with` or `using`, besides the rules it always uses (for
-`simp`, the simp rules, which include the equation of `clamp`). This is deliberate: you decide which
-facts matter, and automation does not get lost among hundreds of them.
+化简器（simplifier）展开了 `clamp`，拆开了其中的 `if`，剩下的正是需要这个假设的那一种情形：当 x 在范围之上时，`clamp` 返回 hi，而 lo ≤ hi 恰恰是 `simp` 不知道的。这个假设一直都在证明中，但是**证明方法只看得到目标，以及用 `then`、`from`、`with` 或 `using` 传给它的事实**，此外就是它总会使用的那些规则：对 `simp` 来说，就是化简规则（simp rule），其中包括 `clamp` 的等式。这是有意这样设计的：由你决定哪些事实是相关的，自动化工具也就不会迷失在成百上千个事实之中。
 
 ::: keyidea
-Assumptions and proved facts are available in a proof, but a method uses them only when you pass them.
-When a step fails, first check that it receives the facts it needs.
+假设和已经证明的事实在证明中都可以使用，但只有当你把它们传给方法时，方法才会使用它们。某一步失败时，先检查它是否得到了它需要的事实。
 :::
 
-### Using an existential: obtain {#facts-obtain}
+### 使用存在性事实：obtain {#facts-obtain}
 
-The rule (∃E) of Module 6 says: from ∃x. P x you may introduce a new name a with P a, provided the
-conclusion does not mention a. In Isar this is `obtain`. Look again at the Isar proof of Section 10.1:
+模块 6 中的规则 (∃E) 说：由 ∃x. P x，你可以引入一个新名字 a 以及 P a，只要结论中不提到 a。在 Isar 中，这就是 `obtain`。再看一看第 10.1 节中的 Isar 证明：
 
-- `assume all: …` and `assume "∃u. admin u"` take the two premises that `proof (intro impI)` left.
-- `then obtain a where "admin a" by blast` introduces a new fixed variable `a` and the fact `admin a`.
-  The proof, `by blast`, shows that such an `a` exists, using the chained fact ∃u. admin u.
-- `with all have "staff a"` passes `all` and `admin a` to `blast`.
-- `then show "∃u. staff u"` uses `staff a`: `a` is the witness.
+- `assume all: …` 和 `assume "∃u. admin u"` 接过 `proof (intro impI)` 留下的两个前提。
+- `then obtain a where "admin a" by blast` 引入一个新的固定变量 `a` 和事实 `admin a`。它的证明 `by blast` 利用链接过来的事实 ∃u. admin u，说明这样的 `a` 确实存在。
+- `with all have "staff a"` 把 `all` 和 `admin a` 传给 `blast`。
+- `then show "∃u. staff u"` 使用 `staff a`：`a` 就是见证。
 
-Forget to chain the existential, and `obtain` cannot be proved:
+如果忘了链接这个存在性事实，`obtain` 就无法得到证明：
 
 ```isabelle fails
 lemma "(∃u. admin u) ⟶ (∃u. admin u ∨ staff u)"
@@ -546,16 +490,11 @@ qed
 ***  1. (⋀a. admin a ⟹ thesis) ⟹ thesis
 ```
 
-The goal in the message is what `obtain` has to prove: whatever you want to show (`thesis`), if it
-follows from `admin a` for an arbitrary `a`, then it holds. `blast` cannot prove that without the fact
-∃u. admin u. Write `then obtain`, or name the fact and write `obtain a where "admin a" using ex by blast`
-with `using` after the clause.
+消息中的目标就是 `obtain` 必须证明的东西：无论你想证明的是什么（`thesis`），只要对任意的 `a`，它都能由 `admin a` 得出，它就成立。没有事实 ∃u. admin u，`blast` 证明不了这一点。要么写成 `then obtain`；要么给这个事实起个名字，然后写 `obtain a where "admin a" using ex by blast`，把 `using` 放在这个子句的后面。
 
-### Collecting facts: moreover and ultimately {#facts-moreover}
+### 收集事实：moreover 和 ultimately {#facts-moreover}
 
-Sometimes a step needs several facts that are proved one after another. Instead of naming each one, you
-can collect them: `moreover` adds the most recent fact, `this`, to a collection, and `ultimately` adds
-the last one and passes the whole collection to the next claim.
+有时，一步需要好几个先后证明出来的事实。你不必给每个事实都起名字，而可以把它们收集起来：`moreover` 把最近的事实 `this` 加到一组事实中，`ultimately` 加入最后一个事实，然后把这一整组事实传给下一个断言。
 
 ```isabelle
 lemma clamp_in_range:
@@ -568,17 +507,15 @@ proof -
 qed
 ```
 
-The proof says what a reviewer wants to see: the result is at least lo, it is at most hi, so it lies in
-the range.
+这个证明说的正是审阅者想看到的：结果至少是 lo，至多是 hi，所以它落在这个范围之内。
 
-## Calculations {#calc}
+## 计算推理 {#calc}
 
-Much of mathematics, and much reasoning about programs, is calculation: a chain of equations or
-inequalities in which each step follows from the one before.
+数学中的很多推理，以及关于程序的很多推理，都是计算推理：由等式或不等式组成的一条链，其中每一步都由前一步得出。
 
-### Chains of equations {#calc-eq}
+### 等式链 {#calc-eq}
 
-On paper, you multiply out (a + b)(a + b) like this:
+在纸上，你会这样把 (a + b)(a + b) 展开：
 
 $$
 \begin{aligned}
@@ -588,7 +525,7 @@ $$
 \end{aligned}
 $$
 
-and conclude that the first term equals the last. Isar writes the same chain:
+然后得出结论：最前面的式子等于最后面的式子。Isar 写出的是同一条链：
 
 ```isabelle
 lemma "(a + b) * (a + b) = a * a + 2 * a * b + b * (b :: int)"
@@ -600,32 +537,23 @@ proof -
 qed
 ```
 
-- `…` reads "the right-hand side of the previous step". To type it, type three dots `...`: Isabelle/jEdit
-  offers the symbol …, and the three dots work as well.
-- `also` adds the new step to the chain. Isabelle composes the steps by transitivity: from a = b and
-  b = c it derives a = c.
-- `finally` composes the last step and passes the result, first term = last term, to the next claim.
-- `.` (a single dot) is a proof that succeeds when the claim is exactly the fact passed to it. Here the
-  claim is `?thesis`, the statement of the lemma.
+- `…` 读作“上一步的右边”。要输入它，就输入三个点 `...`：Isabelle/jEdit 会提供符号 …，而直接用三个点也可以。
+- `also` 把新的一步加入链中。Isabelle 用传递性把各步组合起来：由 a = b 和 b = c 推出 a = c。
+- `finally` 组合最后一步，并把结果“最前面的式子 = 最后面的式子”传给下一个断言。
+- `.`（一个点）是一个证明，当断言恰好就是传给它的事实时，它就会成功。这里的断言是 `?thesis`，即引理的陈述。
 
-Each step has its own justification: `distrib_right` is the law (a + b)c = ac + bc, `distrib_left` the
-law a(b + c) = ab + ac, and `algebra_simps` a collection of laws such as commutativity, which `simp`
-uses to rearrange terms.
+每一步都有自己的依据：`distrib_right` 是定律 (a + b)c = ac + bc，`distrib_left` 是定律 a(b + c) = ab + ac，而 `algebra_simps` 是交换律等一组定律，`simp` 用它们来重新排列各项。
 
-::: definition Calculation
-A **calculation** is a chain of steps t₁ R t₂, t₂ R t₃, …, each with its own proof, from which Isabelle
-derives t₁ R tₙ by **transitivity**: a R b and b R c give a R c. In Isar, `also` extends the chain and
-`finally` ends it; `…` stands for the right-hand side of the previous step.
+::: definition 计算推理
+**计算推理**（calculation）是由步骤 t₁ R t₂、t₂ R t₃、… 组成的一条链，每一步都有自己的证明；Isabelle 由它们通过**传递性**（transitivity）推出 t₁ R tₙ：由 a R b 和 b R c 得到 a R c。在 Isar 中，`also` 延长这条链，`finally` 结束它；`…` 代表上一步的右边。
 :::
 
-### Inequalities {#calc-ineq}
+### 不等式 {#calc-ineq}
 
-Chains may mix `=`, `≤` and `<`. The result has the strictest relation of the chain: one `<` anywhere
-makes the whole chain `<`.
+一条链中可以混用 `=`、`≤` 和 `<`。结果取链中最严格的关系：只要任何地方有一个 `<`，整条链的结果就是 `<`。
 
-::: example Indices in a binary heap
-A binary heap is often stored in an array: the node at index i has its left child at index 2i + 1.
-If i is one of the first n indices, is the child within the first 2n?
+::: example 二叉堆中的下标
+二叉堆（binary heap）常常存放在数组中：下标为 i 的结点，它的左子结点的下标是 2i + 1。如果 i 是前 n 个下标之一，这个子结点是否在前 2n 个下标之内？
 
 ```isabelle
 lemma heap_child:
@@ -640,14 +568,11 @@ proof -
 qed
 ```
 
-`fixes i n :: nat` declares the lemma's variables with their type, for the whole statement; without
-it, Isabelle would not know which kind of numbers i and n are. The chain is < then = then ≤, so the
-result is `2 * i + 1 < 2 * n`. Only the last step needs the assumption, and only that step is given it.
+`fixes i n :: nat` 为整个陈述声明引理的变量及其类型；没有它，Isabelle 就不知道 i 和 n 是哪一种数。这条链依次是 <、= 和 ≤，所以结果是 `2 * i + 1 < 2 * n`。只有最后一步需要这个假设，也只有这一步得到了它。
 :::
 
 ::: pitfall
-`finally` produces the strictest relation, and `.` accepts only that exact fact. A weaker claim fails,
-even though it follows:
+`finally` 产生的是最严格的关系，而 `.` 只接受与这个事实完全相同的断言。较弱的断言会失败，尽管它可以由这个事实得出：
 
 ```isabelle fails
 lemma
@@ -669,11 +594,9 @@ qed
 ***  1. x ≤ z
 ```
 
-The message shows the fact the chain produced (`using this: x < z`) and the claim. Either claim
-`x < z`, or replace `.` by a method that can weaken it, here `by simp`.
+消息显示了这条链产生的事实（`using this: x < z`）以及断言。要么断言 `x < z`，要么把 `.` 换成一个能弱化这个事实的方法，这里用 `by simp`。
 
-Chains with `≥` and `>` do not work as you might expect. Isabelle reads a ≥ b as b ≤ a, so `…` stands for
-a, not b, and the steps no longer fit together:
+用 `≥` 和 `>` 写的链，效果和你预想的不一样。Isabelle 把 a ≥ b 读作 b ≤ a，所以 `…` 代表的是 a 而不是 b，各步就再也接不上了：
 
 ```isabelle fails
 lemma
@@ -694,19 +617,16 @@ qed
 ***     c ≤ a
 ```
 
-Write chains from the small end to the big end, with `≤` and `<`.
+写链时，要用 `≤` 和 `<`，从小的一端写到大的一端。
 :::
 
-## Case analysis {#cases}
+## 情形分析 {#cases}
 
-Many proofs about programs split into cases: the list is empty or not, the condition of an `if` holds or
-not, the input is below, inside or above a range. In Isar each case gets its own part of the block,
-separated by `next`.
+许多关于程序的证明都要分情形：列表为空或不为空，`if` 的条件成立或不成立，输入在某个范围之下、之内或之上。在 Isar 中，每种情形在块中各占一部分，彼此用 `next` 分隔。
 
-### Two cases: true or false {#cases-bool}
+### 两种情形：真或假 {#cases-bool}
 
-`clamp lo hi x` should agree with the mathematical description "the maximum of lo and the minimum of hi
-and x". Prove it by cases on the first test of `clamp`:
+`clamp lo hi x` 应当与这样的数学描述一致：“先取 hi 和 x 中较小的那个，再取它与 lo 中较大的那个”。按 `clamp` 的第一个条件判断分情形来证明这一点：
 
 ```isabelle
 lemma clamp_max_min:
@@ -722,8 +642,7 @@ goal (2 subgoals):
  2. ¬ x < lo ⟹ clamp lo hi x = max lo (min hi x)
 ```
 
-`proof (cases "x < lo")` splits the goal into the case where x < lo holds and the case where it does
-not. The command `case True` enters the first case:
+`proof (cases "x < lo")` 把目标分成两种情形：x < lo 成立的情形，以及它不成立的情形。命令 `case True` 进入第一种情形：
 
 ```isabelle
   case True
@@ -739,9 +658,7 @@ goal (2 subgoals):
  2. ¬ x < lo ⟹ clamp lo hi x = max lo (min hi x)
 ```
 
-`case True` assumes the condition of the case, which the state lists under `this:`. The state still
-lists both pending goals, and the claim to prove is still `?thesis`, the statement of the lemma. Shown
-under the assumption x < lo, it solves the first goal:
+`case True` 假设这种情形的条件成立，证明状态把这个条件列在 `this:` 下面。状态中仍然列出两个待证目标，要证明的断言也仍然是 `?thesis`，即引理的陈述。在假设 x < lo 之下证明了它，就解决了第一个目标：
 
 ```isabelle
   then show ?thesis using assms by simp
@@ -751,8 +668,7 @@ next
 qed
 ```
 
-When you write `proof (cases …)` or `proof (induction …)`, Isabelle/jEdit also shows a message that
-begins **Proof outline with cases:**, with the skeleton of the rest of the proof. For this lemma it is
+当你写下 `proof (cases …)` 或 `proof (induction …)` 时，Isabelle/jEdit 还会显示一条以 **Proof outline with cases:**（带情形的证明大纲）开头的消息，给出证明其余部分的骨架。对这条引理，这条消息是：
 
 ```text
 Proof outline with cases:
@@ -764,15 +680,11 @@ next
 qed
 ```
 
-Click on the skeleton and Isabelle/jEdit inserts it into your text. Each `sorry` marks a proof still to
-be written: Isabelle/jEdit accepts it in place of a proof while you work, but a theory that contains
-`sorry` is not proved. Replace every one.
+点击这个骨架，Isabelle/jEdit 就会把它插入你的文本。每个 `sorry` 标出一个还没有写的证明：在你工作的过程中，Isabelle/jEdit 接受用它来代替证明，但含有 `sorry` 的理论并没有得到证明。要把每一个 `sorry` 都换掉。
 
-### Cases of a datatype {#cases-datatype}
+### 数据类型的情形 {#cases-datatype}
 
-For a list, the cases are the two ways of building one: the empty list `[]`, called `Nil`, and `y # ys`,
-called `Cons`. Take a function that returns the first element of a list, or a default value d for the
-empty list:
+对列表来说，情形就是构造列表的两种方式：空列表 `[]`，叫作 `Nil`；以及 `y # ys`，叫作 `Cons`。看一个函数：它返回列表的第一个元素，对空列表则返回一个默认值 d：
 
 ```isabelle
 fun first_or :: "'a ⇒ 'a list ⇒ 'a" where
@@ -780,8 +692,7 @@ fun first_or :: "'a ⇒ 'a list ⇒ 'a" where
 | "first_or d (y # ys) = y"
 ```
 
-The first element of `xs @ ys` is the first element of xs, unless xs is empty; then it is the first
-element of ys:
+`xs @ ys` 的第一个元素就是 xs 的第一个元素，除非 xs 为空；这时它是 ys 的第一个元素：
 
 ```isabelle
 lemma first_or_append: "first_or d (xs @ ys) = first_or (first_or d ys) xs"
@@ -813,10 +724,7 @@ goal (1 subgoal):
        xs = a # list ⟹ first_or d (xs @ ys) = first_or (first_or d ys) xs
 ```
 
-`case (Cons z zs)` gives names to the head and tail of xs: the state shows the assumption xs = z # zs,
-while the goal still uses Isabelle's own names for them, `a` and `list`. Choose names that the lemma does
-not use already. `case (Cons y ys)` would create a second `ys`, which hides the lemma's own `ys` for the
-rest of the case, although Isabelle prints both as `ys`. Finish the case:
+`case (Cons z zs)` 给 xs 的头部和尾部起了名字：状态中显示假设 xs = z # zs，而目标仍然使用 Isabelle 自己给它们起的名字 `a` 和 `list`。要选引理中还没有用过的名字。`case (Cons y ys)` 会造出第二个 `ys`，在这种情形余下的部分中，它会遮住引理自己的 `ys`，尽管 Isabelle 把两者都显示为 `ys`。完成这种情形：
 
 ```isabelle
   then show ?thesis by simp
@@ -824,7 +732,7 @@ qed
 ```
 
 ::: pitfall
-Without `next`, the assumption of the first case stays in force in the second:
+没有 `next`，第一种情形的假设在第二种情形中仍然有效：
 
 ```isabelle fails
 lemma "first_or d (xs @ ys) = first_or (first_or d ys) xs"
@@ -840,15 +748,12 @@ qed
 *** Failed to refine any pending goal
 ```
 
-The second `show` proves its claim under both xs = [] and xs = z # zs, and no pending goal has both
-assumptions, so the shown fact solves none of them. Put `next` between the cases.
+第二个 `show` 是在 xs = [] 和 xs = z # zs 这两个假设之下证明它的断言的，而没有哪个待证目标同时带有这两个假设，所以它得到的事实一个目标也解决不了。在两种情形之间加上 `next`。
 :::
 
-### Cases from a disjunction {#cases-or}
+### 由析取式分情形 {#cases-or}
 
-The rule (∨E) of Module 6 proves C from A ∨ B by proving C once from A and once from B. In Isar, pass the
-disjunction to `proof` and give each case its `assume`. Here a user may read a file if they own it, or if
-they are an administrator:
+模块 6 中的规则 (∨E) 由 A ∨ B 证明 C 的方法是：由 A 证明一次 C，再由 B 证明一次 C。在 Isar 中，把这个析取式传给 `proof`，并在每种情形中写上相应的 `assume`。在下面的例子中，用户如果是文件的所有者，或者是管理员，就可以读这个文件：
 
 ```isabelle
 lemma
@@ -866,15 +771,11 @@ next
 qed
 ```
 
-`using who` before `proof` passes the disjunction to the initial method, so `proof` applies the
-elimination rule for ∨ instead of an introduction rule. In both cases `?thesis` is the claim of the
-lemma, `may_read u`.
+`proof` 之前的 `using who` 把这个析取式传给初始方法，所以 `proof` 应用的是 ∨ 的消去规则，而不是引入规则（introduction rule）。在两种情形中，`?thesis` 都是引理的断言 `may_read u`。
 
-### Your own cases: consider {#cases-consider}
+### 自己定义的情形：consider {#cases-consider}
 
-Sometimes the natural cases are neither a datatype nor a single condition. `clamp` distinguishes three:
-x below the range, inside it, or above it. `consider` states such a split, with a name for each case, and
-proves that the cases cover every possibility:
+有时，自然的情形划分既不来自数据类型，也不来自单个条件。`clamp` 区分三种情形：x 在范围之下、之内或之上。`consider` 陈述这样的一种划分，并给每种情形起一个名字，然后证明这些情形涵盖了所有的可能：
 
 ```isabelle
 lemma
@@ -897,20 +798,15 @@ proof -
 qed
 ```
 
-The proof of `consider`, here `linarith` from Module 9, shows that every x falls into one of the three
-cases. `then show ?thesis proof cases` then splits the proof along them, and `case inside` assumes both
-facts of that case. A lemma can state such a split for later use, with `obtains` in place of `shows`; in
-a proof, `consider` is the local form.
+`consider` 的证明（这里是模块 9 中的 `linarith`）说明每个 x 都落在这三种情形之一中。接着，`then show ?thesis proof cases` 按这些情形拆分证明，`case inside` 假设这种情形的两个事实。引理也可以陈述这样的划分，供以后使用，这时用 `obtains` 代替 `shows`；在证明内部，`consider` 就是它的局部形式。
 
-## Induction with named cases {#induction}
+## 用命名情形做归纳 {#induction}
 
-In Module 5 you proved properties of recursive functions with `apply (induction xs)` and read the base
-case and the induction step off the proof state. In Isar, each case of the induction becomes a named part of
-the block, and the induction hypothesis becomes a named fact.
+在模块 5 中，你用 `apply (induction xs)` 证明递归函数的性质，并从证明状态中读出基础情形（base case）和归纳步骤（induction step）。在 Isar 中，归纳的每种情形都成为块中有名字的一部分，而归纳假设（induction hypothesis）则成为一个有名字的事实。
 
-### The skeleton of an induction {#induction-skeleton}
+### 归纳的骨架 {#induction-skeleton}
 
-Here is the total of a list of amounts, such as the items of a bill:
+下面的函数求一列金额的总和，例如一张账单上各项的总额：
 
 ```isabelle
 fun mysum :: "nat list ⇒ nat" where
@@ -925,7 +821,7 @@ consts
 Found termination order: "size_list size <*mlex*> {}"
 ```
 
-The total of two bills put together is the sum of their totals. Start an induction on xs:
+把两张账单合在一起，总额等于两张账单的总额之和。对 xs 开始归纳：
 
 ```isabelle
 lemma mysum_append: "mysum (xs @ ys) = mysum xs + mysum ys"
@@ -941,8 +837,7 @@ goal (2 subgoals):
        mysum ((a # xs) @ ys) = mysum (a # xs) + mysum ys
 ```
 
-These are the base case and the induction step of Module 5. The proof outline that Isabelle/jEdit shows
-names the two cases after the constructors of lists:
+这就是模块 5 中的基础情形和归纳步骤。Isabelle/jEdit 显示的证明大纲按照列表的构造子给这两种情形命名：
 
 ```text
 Proof outline with cases:
@@ -954,7 +849,7 @@ next
 qed
 ```
 
-Prove the base case, then enter the induction step with names of your choice for the head and the tail:
+先证明基础情形，然后进入归纳步骤，并给头部和尾部起你自己选定的名字：
 
 ```isabelle
   case Nil
@@ -974,31 +869,22 @@ goal (1 subgoal):
        mysum ((a # xs) @ ys) = mysum (a # xs) + mysum ys
 ```
 
-`case (Cons x xs)` does three things. It fixes x and xs, your names for the variables the goal calls
-`a` and `xs`. It assumes the induction hypothesis, which the state shows under `this:`. And it sets
-`?case`, read "the case", to the claim of this case:
-`mysum ((x # xs) @ ys) = mysum (x # xs) + mysum ys`. Pass the hypothesis to `simp` with `then`:
+`case (Cons x xs)` 做了三件事。它固定 x 和 xs，这是你给目标中叫作 `a` 和 `xs` 的那两个变量起的名字。它假定归纳假设成立，状态把归纳假设显示在 `this:` 下面。它还把 `?case`（读作“the case”，即“这种情形”）设为这种情形的断言：`mysum ((x # xs) @ ys) = mysum (x # xs) + mysum ys`。用 `then` 把归纳假设传给 `simp`：
 
 ```isabelle
   then show ?case by simp
 qed
 ```
 
-::: definition Named case
-In a proof by `cases` or `induction`, **`case c`** enters the case named c, and **`case (c x y …)`** also
-gives names to its variables. The case assumes its facts, available together under the name c. In an
-induction, `case` also sets **`?case`** to the claim of the case, **c.IH** is the induction hypothesis
-and **c.prems** are the premises of the claim (Section 10.6.2). In a proof by `cases`, every case proves
-the same claim, `?thesis`.
+::: definition 命名情形
+在用 `cases` 或 `induction` 做的证明中，**`case c`** 进入名为 c 的情形，**`case (c x y …)`** 还会给这种情形的变量起名字。情形会假设它的那些事实，这些事实合在一起可以用名字 c 来引用。在归纳中，`case` 还会把 **`?case`** 设为这种情形的断言，**c.IH** 是归纳假设，**c.prems** 是断言的前提（第 10.6.2 节）。在用 `cases` 做的证明中，每种情形证明的都是同一个断言 `?thesis`。
 :::
 
-For natural numbers the cases are called `0` and `Suc`: `case 0`, then `case (Suc n)` with the
-hypothesis `Suc.IH`. For a datatype of your own they are named after its constructors.
+对自然数，两种情形叫作 `0` 和 `Suc`：先是 `case 0`，然后是 `case (Suc n)`，后者的归纳假设是 `Suc.IH`。对你自己定义的数据类型，情形以它的构造子命名。
 
-### The induction hypothesis, premises and ?case {#induction-names}
+### 归纳假设、前提与 ?case {#induction-names}
 
-A paper proof of the induction step is a calculation that uses the induction hypothesis once. The Isar proof
-can say exactly that, with the hypothesis named `Cons.IH`:
+纸上证明中的归纳步骤，是一个只用一次归纳假设的计算推理。Isar 证明可以原原本本地写出这一点，其中归纳假设的名字是 `Cons.IH`：
 
 ```isabelle
 lemma "mysum (xs @ ys) = mysum xs + mysum ys"
@@ -1014,11 +900,10 @@ next
 qed
 ```
 
-When the claim has a premise, the induction keeps it apart from the hypothesis.
+当断言带有前提时，归纳会把前提与归纳假设分开。
 
-::: example A bill whose items are bounded
-If every item of a bill costs at most m, the total is at most m times the number of items. `set xs` is
-the set of the elements of xs, so ∀x ∈ set xs. x ≤ m says that every item is at most m.
+::: example 各项都有上限的账单
+如果账单上的每一项都不超过 m，那么总额不超过 m 乘以项数。`set xs` 是由 xs 的元素组成的集合，所以 ∀x ∈ set xs. x ≤ m 说的是每一项都不超过 m。
 
 ```isabelle
 lemma mysum_bound: "(∀x ∈ set xs. x ≤ m) ⟹ mysum xs ≤ length xs * m"
@@ -1038,11 +923,7 @@ cases:
       prems : "∀x∈set (a_ # xs_). x ≤ m"
 ```
 
-`print_cases` lists the cases with everything they provide: the fixed variables, `?case`, the
-induction hypothesis under `IH` and the premise of the claim under `prems`. The names `a_` and `xs_`,
-with a trailing underscore, are hidden: the proof cannot refer to them until `case (Cons a xs)` gives
-them names. Each case receives the premise for its own list, and the hypothesis is the whole
-implication for the shorter list xs.
+`print_cases` 列出各种情形以及它们提供的一切：固定变量、`?case`、`IH` 下的归纳假设，以及 `prems` 下的断言前提。名字 `a_` 和 `xs_` 末尾带有下划线，它们是隐藏的：在 `case (Cons a xs)` 给它们起名字之前，证明无法引用它们。每种情形都得到关于它自己那个列表的前提，而归纳假设是关于较短的列表 xs 的整个蕴涵。
 
 ```isabelle
   case Nil
@@ -1057,14 +938,11 @@ next
 qed
 ```
 
-The second step needs only the premise: a ≤ m, because a is in the list. The third step needs the
-hypothesis, and the hypothesis needs its own premise, that every item of xs is at most m, which again
-follows from `Cons.prems`. So both are passed.
+第二步只需要前提：因为 a 在列表中，所以 a ≤ m。第三步需要归纳假设，而归纳假设又需要它自己的前提，即 xs 的每一项都不超过 m，这同样可以由 `Cons.prems` 得出。所以两者都要传过去。
 :::
 
 ::: trouble
-- **`show ?thesis` instead of `show ?case`.** In an induction, `?thesis` is the whole lemma for the
-  original xs, not the claim of the case:
+- **把 `show ?case` 写成了 `show ?thesis`。** 在归纳中，`?thesis` 是关于原来的 xs 的整条引理，而不是这种情形的断言：
 
   ```isabelle fails
   lemma "mysum (xs @ ys) = mysum xs + mysum ys"
@@ -1083,8 +961,8 @@ follows from `Cons.prems`. So both are passed.
   ***  1. mysum (xs @ ys) = mysum xs + mysum ys
   ```
 
-  `simp` cannot prove the lemma about an unknown list, so the step fails. Write `?case`.
-- **A case name that does not exist.** The names come from the constructors, here `Nil` and `Cons`:
+  `simp` 无法对一个未知的列表证明这条引理，所以这一步失败了。要写 `?case`。
+- **不存在的情形名。** 情形名来自构造子，这里是 `Nil` 和 `Cons`：
 
   ```isabelle fails
   lemma "mysum (xs @ ys) = mysum xs + mysum ys"
@@ -1101,8 +979,8 @@ follows from `Cons.prems`. So both are passed.
   *** Undefined case: "Empty"⌂
   ```
 
-  The proof outline and `print_cases` show the right names.
-- **The hypothesis is not passed.** Without `then` (or `using Cons.IH`), `simp` does not see it:
+  证明大纲和 `print_cases` 会显示正确的名字。
+- **没有传递归纳假设。** 没有 `then`（或 `using Cons.IH`），`simp` 就看不到归纳假设：
 
   ```isabelle fails
   lemma "mysum (xs @ ys) = mysum xs + mysum ys"
@@ -1121,17 +999,16 @@ follows from `Cons.prems`. So both are passed.
   ***  1. mysum (xs @ ys) = mysum xs + mysum ys
   ```
 
-  The remaining goal is the induction hypothesis itself: a sure sign that it was not passed.
+  剩下的目标正是归纳假设本身：这清楚地表明归纳假设没有传过去。
 :::
 
-## From paper and apply scripts to Isar {#translate}
+## 从纸上证明和 apply 脚本到 Isar {#translate}
 
-You have now seen every part of Isar that this series needs. This section puts it side by side with the
-proofs of Modules 5, 6 and 7, so that you can translate in both directions.
+现在你已经见过本系列需要的 Isar 的所有部分。本节把 Isar 和模块 5、6、7 中的证明并排放在一起，让你能在两个方向上互相改写。
 
-### A natural-deduction proof {#translate-nd}
+### 一个自然演绎证明 {#translate-nd}
 
-In Module 6 you proved A ∧ B ⟶ B ∧ A with this tree:
+在模块 6 中，你用下面这棵树证明了 A ∧ B ⟶ B ∧ A：
 
 ```prooftree
 A ∧ B ⟶ B ∧ A   (⟶I¹)
@@ -1142,7 +1019,7 @@ A ∧ B ⟶ B ∧ A   (⟶I¹)
       [A ∧ B]¹
 ```
 
-In Module 7 you replayed it with `apply`:
+在模块 7 中，你用 `apply` 重现了它：
 
 ```isabelle
 lemma "A ∧ B ⟶ B ∧ A"
@@ -1154,8 +1031,7 @@ lemma "A ∧ B ⟶ B ∧ A"
   done
 ```
 
-The Isar proof follows the tree rule by rule. It needs (∧E₁) and (∧E₂) in the form the tree uses them,
-from A ∧ B to A and to B: the destruction rules `conjunct1` and `conjunct2` of Module 7.
+Isar 证明一条规则一条规则地沿着这棵树走。它需要树中所用形式的 (∧E₁) 和 (∧E₂)，即由 A ∧ B 得到 A、由 A ∧ B 得到 B：这就是模块 7 中的析构规则（destruction rule）`conjunct1` 和 `conjunct2`。
 
 ```isabelle
 thm conjunct1 conjunct2
@@ -1176,27 +1052,19 @@ proof (rule impI)
 qed
 ```
 
-Each rule of the tree is one line of the proof (Figure 10.2). The assumption [A ∧ B]¹, which the tree
-discharges with (⟶I), is the `assume` inside the block that `rule impI` opened. The tree is read from
-the leaves down, the Isar text from the top down, and both contain the same steps. The apply script, in
-contrast, works backwards from the goal and never states B or A at all.
+树中的每条规则都是证明中的一行（图 10.2）。树用 (⟶I) 解除的假设 [A ∧ B]¹，就是 `rule impI` 开启的块中的那个 `assume`。树从叶子往下读，Isar 文本从上往下读，两者包含的步骤完全相同。相比之下，apply 脚本从目标出发反向工作，根本没有陈述过 B 或 A。
 
 ::: figure id=fig-10-2
-The natural-deduction tree of Module 6 and its Isar proof. Each rule of the tree, in its colour, is one
-step of the Isar text; the discharged assumption [A ∧ B]¹ is the `assume`.
+模块 6 中的自然演绎证明树及其 Isar 证明。证明树中的每条规则（以各自的颜色标出）是 Isar 证明中的一步；被解除的假设 [A ∧ B]¹ 就是那个 `assume`。
 :::
 
-Writing the rule names is useful for learning. In practice you let Isabelle choose the rule: `..`
-(two dots) is a proof by one standard rule step, so `from ab have "B" ..` works as well, and `by blast`
-proves such steps too.
+写出规则的名字对学习很有帮助。实际使用时，你可以让 Isabelle 自己选择规则：`..`（两个点）是用一步标准规则完成的证明，所以写 `from ab have "B" ..` 也可以；`by blast` 同样能证明这样的步骤。
 
-### Rule by rule {#translate-rules}
+### 逐条规则对照 {#translate-rules}
 
-Every rule of natural deduction has an Isar counterpart. In the table, A, B and C are formulas, and
-`ab`, `imp`, `a`, `b`, `na`, `all`, `pa` and `ex` are the names of facts A ∧ B, A ⟶ B, A, B, ¬ A,
-∀x. P x, P a and ∃x. P x.
+自然演绎的每条规则在 Isar 中都有对应的写法。表中的 A、B 和 C 是公式，`ab`、`imp`、`a`、`b`、`na`、`all`、`pa` 和 `ex` 分别是事实 A ∧ B、A ⟶ B、A、B、¬ A、∀x. P x、P a 和 ∃x. P x 的名字。
 
-| Rule (Module 6) | Apply step (Module 7) | Isar |
+| 规则（模块 6） | apply 步骤（模块 7） | Isar |
 |---|---|---|
 | (⟶I) | `rule impI` | `assume "A"` … `show "B"` |
 | (⟶E) | `erule impE` | `from imp a have "B" by (rule mp)` |
@@ -1212,13 +1080,11 @@ Every rule of natural deduction has an Isar counterpart. In the table, A, B and 
 | (∃E) | `erule exE` | `from ex obtain a where "P a" by blast` |
 | (RAA) | `rule ccontr` | `proof (rule ccontr)` `assume "¬ A"` … `show False` |
 
-`spec` is the destruction rule for (∀E) (Module 7): from ∀x. P x it gives P x for any x.
+`spec` 是 (∀E) 对应的析构规则（模块 7）：由 ∀x. P x，它对任意 x 给出 P x。
 
-### An induction {#translate-induction}
+### 一个归纳证明 {#translate-induction}
 
-Module 5 proved the sum formula $2 \cdot \mathit{sum\_upto}(n) = n \cdot (n + 1)$ twice: on paper, in
-the example *The sum formula*, and in Isabelle, with an apply script. Here are the definition and the
-script again:
+模块 5 两次证明了求和公式 $2 \cdot \mathit{sum\_upto}(n) = n \cdot (n + 1)$：一次在纸上，即“求和公式”这个例子；一次在 Isabelle 中，用的是 apply 脚本。下面再列出定义和那个脚本：
 
 ```isabelle
 fun sum_upto :: "nat ⇒ nat" where
@@ -1234,9 +1100,7 @@ lemma "2 * sum_upto n = n * (n + 1)"
   done
 ```
 
-The script does not say what the two cases are, or how the step uses the induction hypothesis. The
-paper proof does: its step is a chain of four equations. The Isar proof repeats that chain line for
-line:
+这个脚本既没有说出两种情形是什么，也没有说出归纳步骤怎样使用归纳假设。纸上的证明说出来了：它的归纳步骤是由四个等式组成的一条链。Isar 证明一行对一行地重复了这条链：
 
 ```isabelle
 lemma sum_formula: "2 * sum_upto n = n * (n + 1)"
@@ -1253,34 +1117,29 @@ next
 qed
 ```
 
-| On paper (Module 5) | In Isar |
+| 纸上（模块 5） | Isar 中 |
 |---|---|
-| Proof by induction on $n$. | `proof (induction n)` |
-| Base case $P(0)$. | `case 0`, `show ?case by simp` |
-| Let $n$ be any number, and assume the IH. | `next`, `case (Suc n)` |
-| $2 \cdot \mathit{sum\_upto}(n+1) = 2 \cdot (\mathit{sum\_upto}(n) + (n+1))$, by sum_upto.2 | `have "2 * sum_upto (Suc n) = …" by simp` |
-| $= 2 \cdot \mathit{sum\_upto}(n) + 2 \cdot (n+1)$, arithmetic | `also have "… = …" by simp` |
-| $= n \cdot (n+1) + 2 \cdot (n+1)$, by the IH | `also have "… = …" using Suc.IH by simp` |
-| $= (n+1) \cdot (n+2)$, arithmetic | `also have "… = …" by simp` |
-| By induction, $P(n)$ holds for every $n$. | `finally show ?case .`, `qed` |
+| 对 $n$ 做归纳。 | `proof (induction n)` |
+| 基础情形 $P(0)$。 | `case 0`，`show ?case by simp` |
+| 设 $n$ 是任意一个数，并假设归纳假设成立。 | `next`，`case (Suc n)` |
+| $2 \cdot \mathit{sum\_upto}(n+1) = 2 \cdot (\mathit{sum\_upto}(n) + (n+1))$，由 sum_upto.2 | `have "2 * sum_upto (Suc n) = …" by simp` |
+| $= 2 \cdot \mathit{sum\_upto}(n) + 2 \cdot (n+1)$，算术 | `also have "… = …" by simp` |
+| $= n \cdot (n+1) + 2 \cdot (n+1)$，由归纳假设 | `also have "… = …" using Suc.IH by simp` |
+| $= (n+1) \cdot (n+2)$，算术 | `also have "… = …" by simp` |
+| 由归纳法，$P(n)$ 对每个 $n$ 都成立。 | `finally show ?case .`，`qed` |
 
-Isabelle writes n + 1 as `Suc n`, as in the subgoals of Module 5. Each step is checked on its own, so
-the proof shows exactly where the hypothesis is used.
+和模块 5 的子目标中一样，Isabelle 把 n + 1 写成 `Suc n`。每一步都单独检查，所以这个证明准确地显示出归纳假设用在了哪里。
 
-### From an apply script to Isar: a recipe {#translate-recipe}
+### 从 apply 脚本到 Isar：改写的步骤 {#translate-recipe}
 
-To turn an apply script into Isar, run the script in Isabelle/jEdit and read the proof state after each
-line. Then write down what the states say, not what the methods do:
+要把 apply 脚本改写成 Isar，先在 Isabelle/jEdit 中运行这个脚本，并查看每一行之后的证明状态。然后写下这些状态说了什么，而不是方法做了什么：
 
-1. The first steps usually only introduce: `rule impI`, `rule allI`, `intro impI`. They become
-   `proof (intro …)` or `proof`, followed by `assume` for each premise and `fix` for each ⋀-variable
-   that the state then shows.
-2. A step that derives a new fact, such as `drule mp` or `erule conjE`, becomes a `have` with that fact
-   as its statement.
-3. The step that finishes the goal becomes `show`.
-4. Prove each step with the rule of the apply step, or with automation.
+1. 开头几步通常只做引入：`rule impI`、`rule allI`、`intro impI`。它们变成 `proof (intro …)` 或 `proof`，后面跟上状态中随之出现的东西：每个前提写一个 `assume`，每个由 ⋀ 约束的变量写一个 `fix`。
+2. 推出一个新事实的步骤，例如 `drule mp` 或 `erule conjE`，变成一个以这个事实为陈述的 `have`。
+3. 完成目标的那一步变成 `show`。
+4. 用 apply 步骤中的规则或者用自动化工具证明每一步。
 
-Here is a script in the style of Module 7, for the transitivity of implication:
+下面是一个模块 7 风格的脚本，证明的是蕴涵的传递性：
 
 ```isabelle
 lemma "(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C"
@@ -1291,8 +1150,7 @@ lemma "(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C"
   done
 ```
 
-After `intro impI` the state has the premises A ⟶ B, B ⟶ C and A and the conclusion C. The first
-`erule mp` works backwards from C to B, the second from B to A. Written forwards, as a reader thinks:
+`intro impI` 之后，状态中有前提 A ⟶ B、B ⟶ C 和 A，以及结论 C。第一个 `erule mp` 从 C 反向推到 B，第二个从 B 反向推到 A。按照读者的思路正向写出来就是：
 
 ```isabelle
 lemma "(A ⟶ B) ⟶ (B ⟶ C) ⟶ A ⟶ C"
@@ -1303,22 +1161,20 @@ proof (intro impI)
 qed
 ```
 
-## When an Isar proof fails {#errors}
+## Isar 证明失败时 {#errors}
 
-Because every step of an Isar proof is a statement, Isabelle can tell you which step failed and what
-remained of it. These are the messages you will meet most often; you have seen most of them in this
-module already.
+由于 Isar 证明的每一步都是一个陈述，Isabelle 能告诉你哪一步失败了，以及它还剩下什么没有证明。下面是你最常遇到的消息，其中大多数你在本模块中已经见过。
 
-| Message | Meaning | What to do |
+| 消息 | 含义 | 怎么办 |
 |---|---|---|
-| Failed to finish proof, or Failed to apply initial proof method, at a `by` | The method could not prove this step from the facts it was given. The message shows what remained. | Pass the missing facts (`then`, `using`); add a lemma (`simp add:`); split the step; try `sledgehammer` (Module 9). |
-| Failed to apply initial proof method, at `proof` | The initial method cannot start, for example no standard rule fits the goal. | Use `proof -`, or name the rule. |
-| Failed to refine any pending goal | The shown fact, under the assumptions of its block, solves no pending goal. | Compare the claim with the goal in the state; check `?case` and `?thesis`, `next`, and assumptions that are not premises of the goal. |
-| Illegal application of proof command in "prove" mode | A claim has no proof, so the next command comes too early. | Give the claim a proof, `by …` or `proof … qed`. |
-| Undefined case, Undefined fact | A case or fact name is wrong. | Use the proof outline or `print_cases`. |
-| Vacuous calculation result | The steps of a chain do not fit together. | Write chains with `=`, `≤` and `<`. |
+| 出现在 `by` 处的 Failed to finish proof（未能完成证明）或 Failed to apply initial proof method（未能应用初始的证明方法） | 方法无法用交给它的事实证明这一步。消息显示了还剩下什么。 | 传入缺少的事实（`then`、`using`）；加一条引理（`simp add:`）；把这一步拆开；试试 `sledgehammer`（模块 9）。 |
+| 出现在 `proof` 处的 Failed to apply initial proof method | 初始方法无法开始，例如没有适合目标的标准规则。 | 用 `proof -`，或者写明规则。 |
+| Failed to refine any pending goal（未能解决任何待证目标） | `show` 得到的事实，在它所在块的假设之下，解决不了任何待证目标。 | 把断言和状态中的目标比较一下；检查 `?case` 和 `?thesis`、`next`，以及那些不是目标前提的假设。 |
+| Illegal application of proof command in "prove" mode（在“prove”模式下非法使用证明命令） | 某个断言没有证明，所以下一个命令来得太早了。 | 给这个断言加上证明：`by …` 或 `proof … qed`。 |
+| Undefined case（未定义的情形）、Undefined fact（未定义的事实） | 情形名或事实名写错了。 | 参考证明大纲或 `print_cases`。 |
+| Vacuous calculation result（空洞的计算结果） | 链中的各步接不上。 | 用 `=`、`≤` 和 `<` 写链。 |
 
-The fourth message appears, for example, when a `have` has no proof:
+例如，当一个 `have` 没有证明时，就会出现第四条消息：
 
 ```isabelle fails
 lemma "A ∧ B ⟶ B ∧ A"
@@ -1333,12 +1189,9 @@ qed
 *** Illegal application of proof command in "prove" mode
 ```
 
-After `have "B"` Isabelle is in `prove` mode and expects a proof; `show` is not one.
+在 `have "B"` 之后，Isabelle 处于 `prove` 模式，等待一个证明；而 `show` 不是证明。
 
-"Failed to refine any pending goal" deserves a closer look, because the step itself succeeded: the claim
-was proved, but it does not fit the goal. Isabelle/jEdit warns about this before the proof of the
-`show` has finished, with the message "Local statement fails to refine any pending goal". Here is the
-typical case, a claim that is not the goal:
+“Failed to refine any pending goal”值得仔细看一看，因为这一步本身是成功的：断言得到了证明，只是它与目标不相符。在 `show` 的证明完成之前，Isabelle/jEdit 就会用消息“Local statement fails to refine any pending goal”（局部陈述未能解决任何待证目标）对此发出警告。下面是典型的情况，即断言并不是目标：
 
 ```isabelle fails
 lemma "A ∧ B ⟶ B ∧ A"
@@ -1352,50 +1205,30 @@ qed
 *** Failed to refine any pending goal
 ```
 
-To find out what is wrong, change `show` into `have`: if the step is then accepted, the claim is right
-and the mismatch is between the claim and the goal. Look at the goal in the state and compare.
+要找出哪里出了错，就把 `show` 改成 `have`：如果这一步随后被接受了，说明断言本身没有问题，不相符的是断言和目标。查看状态中的目标，把两者比较一下。
 
-A few habits make Isar proofs easier to write and to keep working:
+下面几个习惯能让 Isar 证明更容易写，也更容易长期保持可用：
 
-- **Write the skeleton first.** State the lemma, write `proof …`, the `assume`, `fix` and `show` lines
-  and `qed`, and let the proof outline fill in cases. Then prove the steps, one at a time.
-- **One idea per step.** If a `by` needs a long list of facts or a clever method, put an intermediate
-  `have` in between.
-- **Chain what you need and nothing else.** Pass a fact where it is used, with `then`, `with` or
-  `using`; name it only if it is used further away.
-- **Let automation do the small steps.** `simp`, `blast`, `auto` and `linarith` prove the steps;
-  Isar provides the structure that a person reads.
+- **先写骨架。** 陈述引理，写出 `proof …`、`assume`、`fix` 和 `show` 这几行以及 `qed`，让证明大纲来填入各种情形。然后一次证明一步。
+- **每一步只表达一个想法。** 如果某个 `by` 需要一长串事实或者一个巧妙的方法，就在中间插入一个 `have`。
+- **只链接需要的事实。** 在用到某个事实的地方，用 `then`、`with` 或 `using` 传递它；只有当它要在较远的地方用到时，才给它起名字。
+- **让自动化工具完成小步骤。** `simp`、`blast`、`auto` 和 `linarith` 负责证明各个步骤；Isar 提供供人阅读的结构。
 
-## What you learned {#summary}
+## 小结 {#summary}
 
-- **Isar** writes proofs as structured text: each step states what is true, and Isabelle checks it.
-  Such proofs can be read without Isabelle, and a failing step is marked where it fails.
-- A **proof block** `proof m … qed` starts with an initial method: `proof (rule r)`, `proof` (a standard
-  rule for the goal) or `proof -` (nothing). Inside it, `assume` takes a premise, `fix` an arbitrary
-  value, `have` proves an intermediate fact and `show` solves a pending goal. `next` separates the
-  proofs of different goals.
-- **Facts** flow from step to step: `then` passes `this`, `from a` passes named facts, `with a` passes
-  both, `using a` comes after the claim, `note` collects facts, and `moreover … ultimately` collects
-  several before using them. `hence` and `thus` are old forms of `then have` and `then show`. A method
-  sees only the facts passed to it.
-- `obtain x where …` uses an existential fact, as the rule (∃E) does.
-- **Calculations** chain steps with `also` and end them with `finally`; `…` stands for the previous
-  right-hand side, and `.` proves the claim that the chain produced. The result has the strictest
-  relation of the chain.
-- **Case analysis** uses `proof (cases …)` with `case True`/`case False` or the constructors of a
-  datatype, `consider` for cases of your own, and `proof` with a disjunction passed to it.
-- **Induction** uses `proof (induction x)` with `case Nil`, `case (Cons x xs)`, `case 0`,
-  `case (Suc n)`; inside a case, `?case` is its claim, `c.IH` the induction hypothesis and `c.prems` the
-  premises.
-- Natural-deduction proofs and apply scripts translate into Isar step by step, and Isabelle's messages
-  (Failed to finish proof, Failed to refine any pending goal, Undefined case, …) point to the step to
-  repair.
+- **Isar** 把证明写成结构化的文本：每一步陈述什么为真，由 Isabelle 检查。这样的证明不用 Isabelle 也能读懂，出错的步骤会在出错的地方被标出来。
+- **证明块** `proof m … qed` 以一个初始方法开始：`proof (rule r)`、`proof`（应用目标的一条标准规则）或 `proof -`（什么也不做）。在块中，`assume` 取一个前提，`fix` 取一个任意的值，`have` 证明一个中间事实，`show` 解决一个待证目标。`next` 把不同目标的证明分隔开。
+- **事实**从一步流向下一步：`then` 传递 `this`，`from a` 传递指明的事实，`with a` 两者都传递，`using a` 写在断言之后，`note` 收集事实，`moreover … ultimately` 先收集几个事实再一起使用。`hence` 和 `thus` 是 `then have` 和 `then show` 的旧形式。方法只看得到传给它的事实。
+- `obtain x where …` 使用一个存在性事实，就像规则 (∃E) 那样。
+- **计算推理**用 `also` 把各步串起来，用 `finally` 结束；`…` 代表上一步的右边，`.` 证明的是链所产生的断言。结果取链中最严格的关系。
+- **情形分析**使用 `proof (cases …)`，配合 `case True`/`case False` 或数据类型的构造子；自己定义的情形用 `consider`；还可以把析取式传给 `proof`。
+- **归纳**使用 `proof (induction x)`，配合 `case Nil`、`case (Cons x xs)`、`case 0`、`case (Suc n)`；在一种情形中，`?case` 是它的断言，`c.IH` 是归纳假设，`c.prems` 是前提。
+- 自然演绎证明和 apply 脚本可以一步一步地改写成 Isar；Isabelle 的消息（Failed to finish proof、Failed to refine any pending goal、Undefined case……）会指出需要修复的那一步。
 
-## Exercises {#exercises}
+## 练习 {#exercises}
 
-:::: exercise Read a proof {#ex-10-1} ★
-Here is a proof about a login check: a user who is not locked out and enters a valid password may log
-in.
+:::: exercise 读懂一个证明 {#ex-10-1} ★
+下面是一个关于登录检查的证明：一个没有被锁定、并且输入了有效密码的用户可以登录。
 
 ```isabelle
 lemma
@@ -1410,23 +1243,21 @@ proof -
 qed
 ```
 
-1. What is `this` after the first `have`?
-2. Which facts does `blast` receive in the second step?
-3. What does `?thesis` stand for?
-4. Rewrite the second step with `from` instead of `with`.
+1. 第一个 `have` 之后，`this` 是什么？
+2. 在第二步中，`blast` 得到了哪些事实？
+3. `?thesis` 代表什么？
+4. 用 `from` 代替 `with`，改写第二步。
 
 ::: solution
-1. `valid pw ∧ ¬ locked u`, the fact that this step proved.
-2. `policy` and `this`, that is ∀p v. valid p ∧ ¬ locked v ⟶ login v p and valid pw ∧ ¬ locked u:
-   `with policy` is short for `from policy this`.
-3. The statement after `shows`: `login u pw ∧ valid pw`.
-4. `from policy ‹valid pw ∧ ¬ locked u› have "login u pw" by blast`.
+1. `valid pw ∧ ¬ locked u`，即这一步证明的事实。
+2. `policy` 和 `this`，也就是 ∀p v. valid p ∧ ¬ locked v ⟶ login v p 和 valid pw ∧ ¬ locked u：`with policy` 是 `from policy this` 的简写。
+3. `shows` 后面的陈述：`login u pw ∧ valid pw`。
+4. `from policy ‹valid pw ∧ ¬ locked u› have "login u pw" by blast`。
 :::
 ::::
 
-:::: exercise Spell out the shorthands {#ex-10-2} ★
-Rewrite this proof without `hence`, `thus` and `with`: use only `from` with names. Check your version in
-Isabelle.
+:::: exercise 展开简写 {#ex-10-2} ★
+不用 `hence`、`thus` 和 `with` 改写这个证明：只用带名字的 `from`。在 Isabelle 中检查你写的版本。
 
 ```isabelle
 lemma "(A ⟶ B) ∧ A ⟶ B ∨ C"
@@ -1439,8 +1270,7 @@ qed
 ```
 
 ::: solution
-`hence` is `then have`, that is `from this have`; `with prem` is `from prem this`; `thus` is
-`from this show`. With names for the intermediate facts:
+`hence` 就是 `then have`，即 `from this have`；`with prem` 就是 `from prem this`；`thus` 就是 `from this show`。再给中间事实起上名字，就得到：
 
 ```isabelle
 lemma "(A ⟶ B) ∧ A ⟶ B ∨ C"
@@ -1454,8 +1284,8 @@ qed
 :::
 ::::
 
-:::: exercise Predict the error {#ex-10-3} ★
-Each of these proofs fails. Say which message Isabelle gives, why, and how to repair the proof.
+:::: exercise 预测错误 {#ex-10-3} ★
+下面每个证明都会失败。说出 Isabelle 给出什么消息、为什么，以及怎样修复这个证明。
 
 ```isabelle fails
 lemma "A ∧ B ⟶ A"
@@ -1485,14 +1315,9 @@ qed
 ```
 
 ::: solution
-1. **Failed to refine any pending goal.** The proof of `A ∧ B` succeeds, but the pending goal is A
-   (under the assumption A ∧ B). Claim the goal: `then show "A" by blast`.
-2. **Failed to apply initial proof method**, at the proof of `obtain`, with the goal
-   `(⋀a. P a ∧ Q a ⟹ thesis) ⟹ thesis`. The existential is not passed to `blast`. Write
-   `then obtain`.
-3. **Failed to refine any pending goal**, at the second `show`: without `next`, the second case still
-   has the assumption x < lo of the first, so its result fits no pending goal. Insert `next` before
-   `case False`.
+1. **Failed to refine any pending goal**。`A ∧ B` 的证明成功了，但待证目标是 A（在假设 A ∧ B 之下）。要断言的是目标本身：`then show "A" by blast`。
+2. **Failed to apply initial proof method**，出现在 `obtain` 的证明处，目标是 `(⋀a. P a ∧ Q a ⟹ thesis) ⟹ thesis`。存在性事实没有传给 `blast`。要写成 `then obtain`。
+3. **Failed to refine any pending goal**，出现在第二个 `show` 处：没有 `next`，第二种情形仍然带着第一种情形的假设 x < lo，所以它的结果与任何待证目标都不相符。在 `case False` 之前插入 `next`。
 
 ```isabelle
 lemma "A ∧ B ⟶ A"
@@ -1520,9 +1345,8 @@ qed
 :::
 ::::
 
-:::: exercise Disjunction the Isar way {#ex-10-4} ★★
-Module 7 proved `A ∨ B ⟶ B ∨ A` with `erule disjE`. Prove it in Isar, with a case split on the assumed
-disjunction as in Section 10.5.3. Use `blast` only for the steps inside the cases.
+:::: exercise 用 Isar 的方式处理析取 {#ex-10-4} ★★
+模块 7 用 `erule disjE` 证明了 `A ∨ B ⟶ B ∨ A`。在 Isar 中证明它：像第 10.5.3 节那样，对假设的析取式分情形。只在各情形内部的步骤中使用 `blast`。
 
 ::: solution
 ```isabelle
@@ -1540,15 +1364,12 @@ proof
 qed
 ```
 
-The outer `proof` applies `impI`. The inner `proof` receives the disjunction through `then`, so it
-applies the elimination rule `disjE` and leaves two goals, one for each case. The steps inside the
-cases are (∨I₂) and (∨I₁); `by (rule disjI2)` and `by (rule disjI1)` work as well.
+外层的 `proof` 应用 `impI`。内层的 `proof` 通过 `then` 得到这个析取式，所以它应用消去规则 `disjE`，留下两个目标，每种情形一个。各情形内部的步骤是 (∨I₂) 和 (∨I₁)；用 `by (rule disjI2)` 和 `by (rule disjI1)` 也可以。
 :::
 ::::
 
-:::: exercise Swap the quantifiers {#ex-10-5} ★★
-Prove `(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)` in Isar with `obtain` and `fix`. Read the formula in words
-first: if one x is related to every y, then every y has some x related to it.
+:::: exercise 交换量词 {#ex-10-5} ★★
+在 Isar 中用 `obtain` 和 `fix` 证明 `(∃x. ∀y. R x y) ⟶ (∀y. ∃x. R x y)`。先用话把这个公式读出来：如果有某一个 x 与每个 y 都有关系 R，那么每个 y 都有某个 x 与它有关系 R。
 
 ::: solution
 ```isabelle

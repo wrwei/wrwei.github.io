@@ -123,11 +123,14 @@ function mathPlugin(md) {
     while (end < s.length && (s[end] !== '$' || s[end - 1] === '\\')) end++
     if (end >= s.length || end === start + 1) return false
     if (/\s/.test(s[start + 1]) || /\s/.test(s[end - 1])) return false
+    // Closing punctuation straight after the formula (，。；：、？！）” and ASCII , . ; : ) ) stays on the same line.
+    const punct = (s.slice(end + 1).match(/^[，。；：、？！）」』”,.;:)!?]+/) || [''])[0]
     if (!silent) {
       const tok = state.push('math_inline', 'math', 0)
       tok.content = s.slice(start + 1, end)
+      tok.meta = { punct }
     }
-    state.pos = end + 1
+    state.pos = end + 1 + punct.length
     return true
   })
   md.block.ruler.after('blockquote', 'math_block', (state, startLine, endLine, silent) => {
@@ -155,7 +158,13 @@ function mathPlugin(md) {
     state.line = line + 1
     return true
   }, { alt: ['paragraph', 'reference', 'blockquote', 'list'] })
-  md.renderer.rules.math_inline = (toks, i, opts, env) => tex(toks[i].content, false, env)
+  md.renderer.rules.math_inline = (toks, i, opts, env) => {
+    const punct = (toks[i].meta && toks[i].meta.punct) || ''
+    const m = tex(toks[i].content, false, env)
+    // A word joiner (U+2060) forbids a line break before the punctuation only; the formula itself may
+    // still break at its operators, as KaTeX allows.
+    return punct ? `${m}\u2060${escapeHtml(punct)}` : m
+  }
   md.renderer.rules.math_block = (toks, i, opts, env) => `<div class="math-display">${tex(toks[i].content, true, env)}</div>\n`
 }
 
