@@ -1584,23 +1584,15 @@ proof (induction n rule: less_induct)
 qed
 ```
 
-Each IH is used as a rule: `rule less.IH` reduces `fib k < 2 ^ k` to `k < n`, which follows from the
-case's fact `n = Suc (Suc k)`, named `3`. (Passing `less.IH` to `simp` instead does not work here: the
-simplifier first rewrites `2 ^ Suc k` to `2 * 2 ^ k`, and then the IH no longer matches.) `fib.cases`
-is the case analysis that `fun` generates together with `fib.induct`. Compare the three
-proofs of the bound: by strengthening (Module 5), by computation induction (Section 11.5) and by
-complete induction. Computation induction gives the shortest proof, because `fib.induct` provides
-induction hypotheses for exactly the calls that `fib` makes.
+每次都把归纳假设当作规则来用：`rule less.IH` 把 `fib k < 2 ^ k` 归结为 `k < n`，而这可以由该情形的事实 `n = Suc (Suc k)`（名为 `3`）推出。（改为把 `less.IH` 传给 `simp`，在这里是行不通的：化简器会先把 `2 ^ Suc k` 重写成 `2 * 2 ^ k`，之后归纳假设就匹配不上了。）`fib.cases` 是 `fun` 在生成 `fib.induct` 的同时生成的分情况规则。比较一下这个上界的三种证明：通过加强断言（模块 5）、通过计算归纳（第 11.5 节），以及通过完全归纳法。计算归纳给出的证明最短，因为 `fib.induct` 恰好为 `fib` 所做的那些调用提供了归纳假设。
 :::
 ::::
 
-:::: exercise Even in both senses {#ex-11-8} ★★★
-Prove `even n ⟹ ev n` by complete induction, and conclude `ev n ⟷ even n`. Hint: for `n ≥ 2`, the
-claim for `n - 2` helps.
+:::: exercise 两种意义上的偶数 {#ex-11-8} ★★★
+用完全归纳法证明 `even n ⟹ ev n`，并由此得出 `ev n ⟷ even n`。提示：对于 `n ≥ 2`，断言对 `n - 2` 成立这一点会有帮助。
 
 ::: solution
-If `n = 0`, rule `ev_0` applies. Otherwise `n` is even and not 0, so it is at least 2: `n = Suc (Suc k)`
-with `even k` and `k < n`. The IH gives `ev k`, and rule `ev_SS` gives `ev n`.
+如果 `n = 0`，规则 `ev_0` 适用。否则 `n` 是偶数且不为 0，所以它至少是 2：`n = Suc (Suc k)`，其中 `even k` 并且 `k < n`。由归纳假设得 `ev k`，再由规则 `ev_SS` 得 `ev n`。
 
 ```isabelle
 lemma even_ev: "even n ⟹ ev n"
@@ -1623,23 +1615,15 @@ lemma "ev n ⟷ even n"
   using ev_even even_ev by blast
 ```
 
-`cases m` excludes `n = Suc 0`: then `n` would be odd, which contradicts `less.prems`. As in Module 10,
-`‹n = Suc (Suc k)›` refers to the fact with that statement. Computation induction with a
-function that recurses on `n - 2` would work as well; complete induction needs no extra function.
+`cases m` 排除了 `n = Suc 0` 的情况：那时 `n` 会是奇数，与 `less.prems` 矛盾。和模块 10 一样，`‹n = Suc (Suc k)›` 指的是陈述为 `n = Suc (Suc k)` 的那个事实。用一个在 `n - 2` 上递归的函数做计算归纳也可以；而完全归纳法不需要额外的函数。
 :::
 ::::
 
-:::: exercise Merging sorted lists {#ex-11-9} ★★★
-The point of `merge` is that it keeps lists sorted. Prove
-`sorted xs ⟹ sorted ys ⟹ sorted (merge xs ys)` with the library's `sorted`. You will need `set_merge`
-from Section 11.5. Why?
+:::: exercise 合并有序列表 {#ex-11-9} ★★★
+`merge` 的意义就在于它能保持列表有序。用库中的 `sorted` 证明 `sorted xs ⟹ sorted ys ⟹ sorted (merge xs ys)`。你会需要第 11.5 节中的 `set_merge`。为什么？
 
 ::: solution
-Computation induction with `merge.induct`. In case 3 with `x ≤ y`, the result is
-`x # merge xs (y # ys)`. It is sorted if `merge xs (y # ys)` is sorted (the IH) and `x` is at most every
-element of `merge xs (y # ys)`. The second part is a statement about the *elements* of a merge, and
-`set_merge` turns it into a statement about the elements of `xs` and `y # ys`, which the premises
-cover. The case `¬ x ≤ y` is symmetric. `auto` does all of this:
+用 `merge.induct` 做计算归纳。在情形 3 中，当 `x ≤ y` 时，结果是 `x # merge xs (y # ys)`。如果 `merge xs (y # ys)` 是有序的（这是归纳假设），并且 `x` 不大于 `merge xs (y # ys)` 的每个元素，那么这个结果就是有序的。第二部分是关于合并结果的**元素**的陈述，而 `set_merge` 把它变成关于 `xs` 和 `y # ys` 的元素的陈述，这些由前提就能保证。`¬ x ≤ y` 的情形是对称的。`auto` 能完成所有这些：
 
 ```isabelle
 lemma "sorted xs ⟹ sorted ys ⟹ sorted (merge xs ys)"
