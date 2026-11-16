@@ -1260,37 +1260,25 @@ which is about time, or "every employee's badge opens the doors of their own dep
 many objects at once. Predicate logic in Module 3 adds objects and quantifiers, and Module 13 models
 systems that change over time.
 
-## What you learned {#summary}
+## 小结 {#summary}
 
-- A **proposition** is true or false. Formulas are built from **atoms**, `True` and `False` with ¬, ∧, ∨,
-  ⟶ and ⟷, by an inductive definition, and each formula has a **parse tree**.
-- In Isabelle, ¬ binds most tightly, then ∧, then ∨, then ⟶ and ⟷, which share a priority; the binary
-  connectives group to the right. Isabelle prints ⟷ as `=`. Mix ⟶ and ⟷ only with parentheses.
-- A **valuation** gives each atom a truth value, and a **truth table** lists all $2^n$ valuations.
-  A ⟶ B is false only when A is true and B false.
-- A formula is a **tautology** (true in every row), **contingent** (true in some rows and false in
-  others) or a **contradiction** (true in none); φ is a tautology exactly when ¬φ is unsatisfiable.
-- φ ≡ ψ when φ ⟷ ψ is a tautology. The **laws** (De Morgan, distributivity, contrapositive …) transform
-  formulas without changing their meaning.
-- φ₁, …, φₙ ⊨ ψ when no row makes the premises true and ψ false. Modus ponens and modus tollens are
-  valid; affirming the consequent and denying the antecedent are not. Inconsistent premises entail
-  everything.
-- Every formula has an equivalent **NNF**, **CNF** and **DNF**. Distribution can make a CNF exponentially
-  large; the Tseitin transformation avoids that.
-- **SAT** is NP-complete (Cook, 1971), yet CDCL solvers decide very large formulas in practice.
-- For requirements, **consistency** is satisfiability, a property follows when requirements ⟶ property is
-  a tautology, and each counterexample is a situation to discuss.
-- In Isabelle, a lemma whose variables have type `bool` claims a tautology. `simp`, `blast` and `auto`
-  prove tautologies (`blast` and `auto` more of them than `simp`); `quickcheck` and `nitpick` find
-  counterexamples; a counterexample to ¬φ is a model of φ.
+- **命题**要么为真，要么为假。公式由**原子**、`True` 和 `False` 用 ¬、∧、∨、⟶ 和 ⟷ 按归纳定义构造而成，每个公式都有一棵**语法树**。
+- 在 Isabelle 中，¬ 结合得最紧，其次是 ∧，再次是 ∨，然后是优先级相同的 ⟶ 和 ⟷；二元联结词都向右结合。Isabelle 把 ⟷ 打印成 `=`。混用 ⟶ 和 ⟷ 时一定要加括号。
+- **赋值**给每个原子一个真值，**真值表**列出全部 $2^n$ 种赋值。A ⟶ B 只在 A 为真、B 为假时为假。
+- 公式要么是**重言式**（在每一行中都为真），要么是**可满足但非有效的**（在一些行中为真，在另一些行中为假），要么是**矛盾式**（在任何一行中都不为真）；φ 是重言式，恰好是在 ¬φ 不可满足的时候。
+- 当 φ ⟷ ψ 是重言式时，φ ≡ ψ。各条**定律**（德摩根律、分配律、逆否律……）能在不改变意思的前提下变换公式。
+- 当没有哪一行使前提全都为真而 ψ 为假时，φ₁, …, φₙ ⊨ ψ。肯定前件式和否定后件式是有效的；肯定后件和否定前件则不是。不一致的前提能推出一切。
+- 每个公式都有与之等价的**否定范式**、**合取范式**和**析取范式**。分配律可能使合取范式变得指数级地大；Tseitin 变换能避免这一点。
+- **SAT** 是 NP 完全的（库克，1971 年），但在实践中，CDCL 求解器能判定非常大的公式。
+- 对于需求，**一致性**就是可满足性；当“需求 ⟶ 性质”是重言式时，这条性质就能从需求推出；每个反例都是一个需要讨论的情形。
+- 在 Isabelle 中，变量类型为 `bool` 的引理断言的是一个重言式。`simp`、`blast` 和 `auto` 能证明重言式（`blast` 和 `auto` 能证明的比 `simp` 多）；`quickcheck` 和 `nitpick` 寻找反例；¬φ 的反例就是 φ 的模型。
 
-The Mathematical Foundations series covers propositional and predicate logic for computing in general,
-with more practice, in [Logic, quantifiers, and specifications](../math/module_02_EN.html).
+数学基础系列中的模块[逻辑、量词与规格说明](../math/module_02_ZH.html)面向一般的计算机学科讲解命题逻辑和谓词逻辑，练习更多。
 
-## Exercises {#exercises}
+## 练习 {#exercises}
 
-:::: exercise Parentheses and main connectives {#ex-2-1} ★
-Add all the parentheses that Isabelle's priorities imply, and name the main connective of each formula.
+:::: exercise 括号与主联结词 {#ex-2-1} ★
+按照 Isabelle 的优先级，为下面每个公式加上所有隐含的括号，并指出每个公式的主联结词。
 
 1. ¬A ∨ B ∧ C
 2. A ∧ B ⟶ C ∨ D
@@ -1298,14 +1286,12 @@ Add all the parentheses that Isabelle's priorities imply, and name the main conn
 4. A ∨ B ⟷ C ⟶ D
 
 ::: solution
-1. (¬A) ∨ (B ∧ C). The main connective is ∨.
-2. (A ∧ B) ⟶ (C ∨ D). The main connective is ⟶.
-3. A ⟶ (B ⟶ (C ∧ D)). The main connective is the first ⟶, because ⟶ groups to the right.
-4. (A ∨ B) ⟷ (C ⟶ D). ∨ binds more tightly than ⟷ and ⟶, which have the same priority and group to the
-   right. The main connective is ⟷.
+1. (¬A) ∨ (B ∧ C)。主联结词是 ∨。
+2. (A ∧ B) ⟶ (C ∨ D)。主联结词是 ⟶。
+3. A ⟶ (B ⟶ (C ∧ D))。主联结词是第一个 ⟶，因为 ⟶ 向右结合。
+4. (A ∨ B) ⟷ (C ⟶ D)。∨ 比 ⟷ 和 ⟶ 结合得更紧，而 ⟷ 和 ⟶ 优先级相同，并且向右结合。主联结词是 ⟷。
 
-`value` confirms the third answer: it prints the fully parenthesised formula without the parentheses
-that the priorities make unnecessary.
+`value` 可以确认第三个答案：它打印加满括号的公式时，会去掉那些按优先级来看多余的括号。
 
 ```isabelle
 value "A ⟶ (B ⟶ (C ∧ D))"
@@ -1318,9 +1304,8 @@ value "A ⟶ (B ⟶ (C ∧ D))"
 :::
 ::::
 
-:::: exercise Classify by truth table {#ex-2-2} ★
-Use truth tables to classify each formula as a tautology, a contradiction or contingent. For each
-contingent formula, give a model and a counterexample.
+:::: exercise 用真值表分类 {#ex-2-2} ★
+用真值表判断下面每个公式是重言式、矛盾式，还是可满足但非有效的公式。对每个可满足但非有效的公式，给出一个模型和一个反例。
 
 1. (A ⟶ B) ∨ (B ⟶ A)
 2. (A ⟶ B) ∧ A ∧ ¬B
@@ -1328,8 +1313,7 @@ contingent formula, give a model and a counterexample.
 4. (A ∧ B ⟶ C) ⟶ (A ⟶ C) ∨ (B ⟶ C)
 
 ::: solution
-1. A tautology. Whatever the values, one of the two implications is true: if B is true, A ⟶ B is; if B
-   is false, B ⟶ A is.
+1. 重言式。无论 A 和 B 取什么值，两个蕴涵式中总有一个为真：如果 B 为真，A ⟶ B 为真；如果 B 为假，B ⟶ A 为真。
 
 ```truthtable
 (A ⟶ B) ∨ (B ⟶ A)
@@ -1337,7 +1321,7 @@ A ⟶ B
 B ⟶ A
 ```
 
-2. A contradiction: A ⟶ B and A force B, which contradicts ¬B.
+2. 矛盾式：A ⟶ B 和 A 迫使 B 为真，这与 ¬B 矛盾。
 
 ```truthtable
 (A ⟶ B) ∧ A ∧ ¬B
@@ -1345,8 +1329,7 @@ A ⟶ B
 ¬B
 ```
 
-3. Contingent. A model: A = T, B = T. A counterexample: A = F, B = T, where A ⟶ B is true but its
-   converse B ⟶ A is false.
+3. 可满足但非有效。一个模型：A = T，B = T。一个反例：A = F，B = T，此时 A ⟶ B 为真，而它的逆命题 B ⟶ A 为假。
 
 ```truthtable
 (A ⟶ B) ⟶ (B ⟶ A)
@@ -1354,8 +1337,7 @@ A ⟶ B
 B ⟶ A
 ```
 
-4. A tautology, perhaps surprisingly. The conclusion is false only when both A ⟶ C and B ⟶ C are false,
-   that is, when A and B are true and C is false; but then the premise A ∧ B ⟶ C is false too.
+4. 重言式，这也许出人意料。结论只有在 A ⟶ C 和 B ⟶ C 都为假时才为假，也就是 A 和 B 为真而 C 为假时；但这时前提 A ∧ B ⟶ C 也为假。
 
 ```truthtable
 (A ∧ B ⟶ C) ⟶ (A ⟶ C) ∨ (B ⟶ C)
@@ -1365,23 +1347,19 @@ A ∧ B ⟶ C
 :::
 ::::
 
-:::: exercise Equivalences by the laws {#ex-2-3} ★★
-Show with the laws of Fact 2.3, step by step and naming each law, that
+:::: exercise 用定律推导等价式 {#ex-2-3} ★★
+用事实 2.3 中的定律一步一步地证明下面的等价式，并写出每一步所用的定律：
 
 1. (A ⟶ B) ∧ (A ⟶ C) ≡ A ⟶ B ∧ C
 2. A ⟶ (B ⟶ C) ≡ B ⟶ (A ⟶ C)
-3. ¬fire ⟶ (opens ⟶ badge ∧ pin) ≡ opens ⟶ badge ∧ pin ∨ fire (the two readings of Example 2.1)
+3. ¬fire ⟶ (opens ⟶ badge ∧ pin) ≡ opens ⟶ badge ∧ pin ∨ fire（例 2.1 中的两种理解）
 
-Then check all three in Isabelle.
+然后在 Isabelle 中检查这三个等价式。
 
 ::: solution
-1. (A ⟶ B) ∧ (A ⟶ C) ≡ (¬A ∨ B) ∧ (¬A ∨ C) by implication, twice; ≡ ¬A ∨ (B ∧ C) by distributivity,
-   read from right to left; ≡ A ⟶ B ∧ C by implication.
-2. A ⟶ (B ⟶ C) ≡ A ∧ B ⟶ C by exportation; ≡ B ∧ A ⟶ C by commutativity; ≡ B ⟶ (A ⟶ C) by exportation.
-3. ¬fire ⟶ (opens ⟶ badge ∧ pin) ≡ ¬fire ∧ opens ⟶ badge ∧ pin by exportation; ≡ ¬(¬fire ∧ opens) ∨
-   (badge ∧ pin) by implication; ≡ (fire ∨ ¬opens) ∨ (badge ∧ pin) by De Morgan and double negation;
-   ≡ ¬opens ∨ ((badge ∧ pin) ∨ fire) by commutativity and associativity; ≡ opens ⟶ badge ∧ pin ∨ fire by
-   implication.
+1. (A ⟶ B) ∧ (A ⟶ C) ≡ (¬A ∨ B) ∧ (¬A ∨ C)（两次使用蕴涵律）；≡ ¬A ∨ (B ∧ C)（分配律，从右往左用）；≡ A ⟶ B ∧ C（蕴涵律）。
+2. A ⟶ (B ⟶ C) ≡ A ∧ B ⟶ C（输出律）；≡ B ∧ A ⟶ C（交换律）；≡ B ⟶ (A ⟶ C)（输出律）。
+3. ¬fire ⟶ (opens ⟶ badge ∧ pin) ≡ ¬fire ∧ opens ⟶ badge ∧ pin（输出律）；≡ ¬(¬fire ∧ opens) ∨ (badge ∧ pin)（蕴涵律）；≡ (fire ∨ ¬opens) ∨ (badge ∧ pin)（德摩根律和双重否定律）；≡ ¬opens ∨ ((badge ∧ pin) ∨ fire)（交换律和结合律）；≡ opens ⟶ badge ∧ pin ∨ fire（蕴涵律）。
 
 ```isabelle
 lemma "(A ⟶ B) ∧ (A ⟶ C) ⟷ (A ⟶ B ∧ C)"
@@ -1396,25 +1374,19 @@ lemma "(¬ fire ⟶ (opens ⟶ badge ∧ pin)) ⟷ (opens ⟶ badge ∧ pin ∨ 
 :::
 ::::
 
-:::: exercise Valid or invalid? {#ex-2-4} ★★
-Write each argument with premises and a conclusion, and decide whether it is valid. For each invalid
-argument, give a counterexample. Then check your answers in Isabelle.
+:::: exercise 有效还是无效？ {#ex-2-4} ★★
+把每个论证写成前提和结论，并判断它是否有效。对每个无效的论证，给出一个反例。然后在 Isabelle 中检查你的答案。
 
-1. If the cache is warm, the request is fast. The request is not fast. So the cache is not warm.
-2. If the input is valid, the parser accepts it. The input is not valid. So the parser does not accept
-   it.
-3. The service uses TLS or runs on an internal network. It does not run on an internal network. So it
-   uses TLS.
-4. If the job runs at night, it finishes early. If it finishes early, the report is ready. The report is
-   ready. So the job ran at night.
+1. 如果缓存是热的，请求就很快。请求不快。所以缓存不是热的。
+2. 如果输入合法，解析器就接受它。输入不合法。所以解析器不接受它。
+3. 这个服务使用 TLS，或者运行在内部网络上。它没有运行在内部网络上。所以它使用 TLS。
+4. 如果作业在夜间运行，它就会提早完成。如果它提早完成，报告就准备好了。报告准备好了。所以作业是在夜间运行的。
 
 ::: solution
-1. `warm ⟶ fast`, `¬ fast` ⊨ `¬ warm`: modus tollens, valid.
-2. `ok ⟶ accepts`, `¬ ok` ⊨ `¬ accepts` (with `ok` for "the input is valid"): denying the antecedent,
-   invalid. Counterexample: ok = F, accepts = T, a lenient parser that accepts some invalid input.
-3. `tls ∨ internal`, `¬ internal` ⊨ `tls`: disjunctive syllogism, valid.
-4. `night ⟶ early`, `early ⟶ ready`, `ready` ⊨ `night`: invalid, a form of affirming the consequent.
-   Counterexample: night = F, ready = T; the report can be ready for another reason.
+1. `warm ⟶ fast`, `¬ fast` ⊨ `¬ warm`（`warm`、`fast` 分别表示缓存是热的、请求很快）：否定后件式，有效。
+2. `ok ⟶ accepts`, `¬ ok` ⊨ `¬ accepts`（`ok` 表示“输入合法”，`accepts` 表示解析器接受输入）：否定前件，无效。反例：ok = F，accepts = T，即一个宽松的解析器接受了某个不合法的输入。
+3. `tls ∨ internal`, `¬ internal` ⊨ `tls`（`tls`、`internal` 分别表示使用 TLS、运行在内部网络上）：析取三段论，有效。
+4. `night ⟶ early`, `early ⟶ ready`, `ready` ⊨ `night`（`night`、`early`、`ready` 分别表示作业在夜间运行、提早完成、报告已准备好）：无效，这是肯定后件的一种形式。反例：night = F，ready = T；报告可能因为别的原因而准备好了。
 
 ```isabelle
 lemma "(warm ⟶ fast) ∧ ¬ fast ⟶ ¬ warm"

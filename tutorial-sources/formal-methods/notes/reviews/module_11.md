@@ -8,6 +8,7 @@ scratch builds (`out/scratch/rev1011`).
 
 | Line | Issue | Kind | Fix |
 |---|---|---|---|
+| 1177 | The output of the failing `inductive odd'` is not reproducible: the monotonicity proof is forked (`Goal.prove_future` in `inductive.ML`), so the error lands at different places among the "Proving …" messages. One `isa.py` run matched, the next reported "output differs". | correctness (build) | Output block marked `varies` (labelled "one run; yours may differ"); the text says why the order can differ. |
 | 1734 | Exercise 11.4: "Both recursive calls pass a different accumulator"; `flat r acc` passes it unchanged (the solution's last sentence says so). | correctness | Only the call on `l` changes it, to `x # flat r acc`. |
 | 1342–1345 | Pitfall: "Module 13 meets the same situation: the reachable states … start from one fixed initial state". Module 13 builds the initial state into `lreach` and meets the problem with the pair pattern `lreach (d, m)`. | cross-reference | Rephrased to what Module 13 does. |
 | 167–168 | "In the words of Module 5, the claim is a **loop invariant**": Module 5 defines *invariant* (a property of states, initially true and preserved); the lemma is not such a property. | consistency, precision | Names the invariant property "`acc + sum_list xs` is the final total". |

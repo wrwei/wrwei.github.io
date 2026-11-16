@@ -1243,8 +1243,8 @@ This module used almost every part of the series. Here is where each piece came 
 | 12 | Specification against implementation | `eval` against `compile` and `exec` |
 | 13 | State machines | the stack machine itself |
 
-Module 2 began with truth tables, which decide a formula by checking finitely many cases. Truth tables
-cannot reach a statement about every expression: there are infinitely many. Proof can. Along the way you
+In Module 2 you decided formulas with truth tables, by checking finitely many cases. Truth tables cannot
+reach a statement about every expression: there are infinitely many. Proof can. Along the way you
 learned to write such statements in logic, to prove them on paper with rules, and to let Isabelle check
 every step. The compiler is small, but its proof has the ingredients of the proofs behind CompCert and
 seL4: a semantics for each language, a precise statement of what correct means, an induction that follows
@@ -1647,6 +1647,9 @@ be strengthened, as in Module 11.
 ```isabelle
   oops
 ```
+
+The proof of McCarthy and Painter in 1967 (Section 14.1) was about a machine of this kind: an
+accumulator and registers, not a stack.
 :::
 ::::
 

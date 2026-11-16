@@ -583,44 +583,36 @@ Nitpick found a counterexample for card 'a = 2:
 ```
 :::
 
-## Equality {#equality}
+## 相等 {#equality}
 
-Equality is a predicate with a fixed meaning. A structure chooses what $P$ and $R$ mean, but not what
-$=$ means: in every structure, $t_1 = t_2$ is true exactly when $t_1$ and $t_2$ stand for the same
-element. That is why $=$ counts as a logical symbol. Its laws hold in every structure.
+相等是一个含义固定的谓词。结构可以选择 $P$ 和 $R$ 的含义，却不能选择 $=$ 的含义：在每个结构中，$t_1 = t_2$ 为真，当且仅当 $t_1$ 和 $t_2$ 代表同一个元素。这就是 $=$ 被算作逻辑符号的原因。它的定律在每个结构中都成立。
 
-::: fact Laws of equality
-- Reflexivity: $t = t$.
-- Symmetry: $t = u \imp u = t$.
-- Transitivity: $t = u \land u = v \imp t = v$.
-- Substitution of equals: $t = u \imp (\varphi[t/x] \imp \varphi[u/x])$.
+::: fact 相等的定律
+- 自反性：$t = t$。
+- 对称性：$t = u \imp u = t$。
+- 传递性：$t = u \land u = v \imp t = v$。
+- 等量代换：$t = u \imp (\varphi[t/x] \imp \varphi[u/x])$。
 :::
 
-The last law says that equal objects have the same properties. If
-$\mathit{owner}\ \mathit{report} = \mathit{alice}$ and $\mathit{admin}\ (\mathit{owner}\ \mathit{report})$,
-then $\mathit{admin}\ \mathit{alice}$.
+最后一条定律说的是：相等的对象具有相同的性质。如果 $\mathit{owner}\ \mathit{report} = \mathit{alice}$，并且 $\mathit{admin}\ (\mathit{owner}\ \mathit{report})$，那么 $\mathit{admin}\ \mathit{alice}$。
 
-With equality you can count. Two variables need not stand for different objects:
-$\exists x\ y.\ P\ x \land P\ y$ is true as soon as a single element has $P$, with $x$ and $y$ both
-standing for it. To say "two", you must say that they differ.
+有了相等，就可以计数。两个变元不一定代表不同的对象：只要有一个元素具有性质 $P$，$\exists x\ y.\ P\ x \land P\ y$ 就为真，$x$ 和 $y$ 都代表这个元素。要说“两个”，就必须说明它们不同。
 
-::: example Counting with equality
-| English | Formula |
+::: example 用相等来计数
+| 说法 | 公式 |
 |---|---|
-| at least one $P$ | $\exists x.\ P\ x$ |
-| at least two $P$ | $\exists x\ y.\ x \neq y \land P\ x \land P\ y$ |
-| at most one $P$ | $\forall x\ y.\ P\ x \land P\ y \imp x = y$ |
-| exactly one $P$ | $\exists x.\ P\ x \land (\forall y.\ P\ y \imp y = x)$ |
+| 至少有一个 $P$ | $\exists x.\ P\ x$ |
+| 至少有两个 $P$ | $\exists x\ y.\ x \neq y \land P\ x \land P\ y$ |
+| 至多有一个 $P$ | $\forall x\ y.\ P\ x \land P\ y \imp x = y$ |
+| 恰好有一个 $P$ | $\exists x.\ P\ x \land (\forall y.\ P\ y \imp y = x)$ |
 
-$x \neq y$ abbreviates $\lnot (x = y)$. "At most one" does not claim that any $P$ exists: when nothing is
-$P$, it is vacuously true. "Exactly one" combines "at least one" with "at most one". Isabelle has a
-quantifier for it: $\exists!\, x.\ P\ x$ reads "there is exactly one $x$ such that $P\ x$".
+$x \neq y$ 是 $\lnot (x = y)$ 的缩写。“至多一个”并没有断言存在任何 $P$：没有东西是 $P$ 时，它空真。“恰好一个”把“至少一个”和“至多一个”结合了起来。Isabelle 为它提供了一个量词：$\exists!\, x.\ P\ x$ 读作“恰好存在一个 $x$，使得 $P\ x$”。
 :::
 
 ::: isabelle
-Two details of `=` in Isabelle catch many beginners.
+Isabelle 中 `=` 的两个细节让许多初学者栽过跟头。
 
-First, `=` binds more tightly than `¬`. So `¬ x = y` means `¬ (x = y)`, and Isabelle prints it with `≠`:
+第一，`=` 比 `¬` 结合得更紧。所以 `¬ x = y` 的意思是 `¬ (x = y)`，Isabelle 会用 `≠` 把它打印出来：
 
 ```isabelle
 lemma "¬ x = y"
@@ -636,10 +628,7 @@ goal (1 subgoal):
   oops
 ```
 
-Second, between two formulas `=` means "if and only if": on the type `bool` of formulas, `=` and `⟷`
-are the same function. Isabelle even prints `⟷` as `=`, as you saw in Section 3.5. But the parser gives
-the two symbols different priorities: `=` binds more tightly than `∧`, while `⟷` binds more loosely,
-like `⟶`. Compare:
+第二，在两个公式之间，`=` 的意思是“当且仅当”：在公式的类型 `bool` 上，`=` 和 `⟷` 是同一个函数。正如你在第 3.5 节看到的，Isabelle 甚至把 `⟷` 打印成 `=`。但语法分析器给这两个符号的优先级不同：`=` 比 `∧` 结合得更紧，而 `⟷` 结合得更松，和 `⟶` 一样。比较一下：
 
 ```isabelle
 lemma "(A = B ∧ C) ⟷ (A ⟷ B ∧ C)"
@@ -651,8 +640,7 @@ goal (1 subgoal):
  1. (A = B ∧ C) = (A = (B ∧ C))
 ```
 
-The goal shows Isabelle's reading. `A = B ∧ C` is `(A = B) ∧ C`, but `A ⟷ B ∧ C` is `A ⟷ (B ∧ C)`,
-which Isabelle prints as `A = (B ∧ C)`. The two are not equivalent:
+目标显示了 Isabelle 的读法。`A = B ∧ C` 是 `(A = B) ∧ C`，而 `A ⟷ B ∧ C` 是 `A ⟷ (B ∧ C)`，Isabelle 把后者打印成 `A = (B ∧ C)`。两者并不等价：
 
 ```isabelle
   nitpick
@@ -668,14 +656,13 @@ Nitpick found a counterexample:
     C = False
 ```
 
-With `A` false, `B` true and `C` false, the left-hand side is false and the right-hand side true. Hence
-the rule: write `=` between terms, which stand for objects, and `⟷` between formulas.
+当 `A` 为假、`B` 为真、`C` 为假时，左边为假而右边为真。由此得到一条规则：在代表对象的项之间写 `=`，在公式之间写 `⟷`。
 
 ```isabelle
   oops
 ```
 
-The `∃!` quantifier is written as in the text (type `∃`, then `!`), and `blast` confirms its meaning:
+`∃!` 量词的写法和正文中一样（先输入 `∃`，再输入 `!`），`blast` 证实了它的含义：
 
 ```isabelle
 lemma "(∃!x. P x) ⟷ (∃x. P x ∧ (∀y. P y ⟶ y = x))"
