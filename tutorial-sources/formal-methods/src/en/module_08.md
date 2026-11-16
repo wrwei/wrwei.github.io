@@ -1333,80 +1333,63 @@ lemma "trace 2 Red = [Red, RedAmber]"
 
 ## Why every function must terminate {#termination}
 
-Every `fun` you have written produced a line "Found termination order". Module 1 promised to explain why
-Isabelle insists on proving that functions terminate. This section keeps that promise.
+Every `fun` you have written produced a line "Found termination order". Module 5 (Section 5.7)
+explained why Isabelle insists on termination, what a measure is, and how to read the message when `fun`
+rejects a definition. Module 1 promised that this module would explain why termination matters, so this
+section recalls the argument and connects it with the three ways of defining a function in Section 8.4.
+Then it reads Isabelle's termination messages in full, and shows what to do when a function terminates
+but Isabelle cannot see why.
 
 ### Total functions and consistency {#total}
 
 When you define a function with `fun`, Isabelle makes your equations into theorems: after
 `fun next_light`, the equation `next_light Red = RedAmber` is a theorem you can use in any proof. This is
-only safe if some function really satisfies the equations. Suppose Isabelle accepted this "definition"
-of a function `f :: nat ⇒ nat`:
+only safe if some function really satisfies the equations. Module 5 showed what goes wrong otherwise,
+with the "definition" `bad n = bad n + 1` of a function `bad :: nat ⇒ nat`. Suppose Isabelle accepted it:
 
-$$
-f\;x = f\;x + 1
-$$
+1. The equation would be a theorem for every `n`. Take `n = 0` and write `k` for the number `bad 0`:
+   the theorem says `k = k + 1`.
+2. Subtract `k` from both sides. This works even with truncated subtraction: `k - k = 0` and
+   `(k + 1) - k = 1`. So `0 = 1` would be a theorem.
+3. But `0 ≠ 1` is a theorem too: `1` is `Suc 0`, and values built with different constructors are
+   different (Definition 8.5; `nat` behaves like a datatype, Section 8.6).
+4. A statement and its negation together are a contradiction, and from a contradiction every statement
+   follows: the principle of explosion of Module 2, the rule (⊥E) of Module 6.
 
-The equation would become a theorem for every `x`. Take `x = 0` and write `n` for the natural number
-`f 0`: the theorem says `n = n + 1`. Subtract `n` from both sides and you get `0 = 1`. (This works even
-with truncated subtraction, since `n - n = 0` and `(n + 1) - n = 1`.) From the false statement `0 = 1`,
-every statement follows, as Module 6 showed. Every claim, true or false, would become a theorem, and the
-proof assistant would be worthless.
-
-The equation describes no function at all: no number `n` satisfies `n = n + 1`. As a program it would
-call itself forever. Recursion that terminates cannot cause this. If every chain of recursive calls ends
-in an equation without a recursive call, the equations determine the function's value for every
-argument, one step at a time, as in Example 8.1.
+One bad equation would make every statement a theorem, and every proof would be worthless.
 
 ::: keyidea
-`fun` does not take your equations on trust. It constructs the function from Isabelle's basic
-definition principles and then *proves* your equations from that construction, and the proof needs a
-termination argument. If Isabelle cannot find one, the definition is rejected, and nothing about the
-function becomes a theorem.
+A `definition` as in Section 8.4 is safe without any proof: its right-hand side does not mention the
+constant being defined, so it cannot be circular, and it can never make the logic inconsistent. `fun`
+does not take your recursive equations on trust. It first defines the function by non-recursive
+definitions of this safe kind, through a construction that Isabelle carries out for you, and then
+*proves* your equations from them as theorems. That proof needs a termination argument. If Isabelle
+cannot find one, the definition is rejected, and nothing about the function becomes a theorem.
 :::
 
-Here is the bad definition in Isabelle:
-
-```isabelle fails
-fun bad :: "nat ⇒ nat" where
-  "bad x = bad x + 1"
-```
-
-```output
-consts
-  bad :: "nat ⇒ nat"
-
-*** Unfinished subgoals:
-*** (a, 1, <):
-***  1. False
-*** Calls:
-***   a) x ~> x
-*** Measures:
-***   1) size
-*** Result matrix:
-***     1
-*** a:  <=
-***
-*** Could not find lexicographic termination order.
-```
-
-Isabelle first declares the constant (the `consts` lines), then tries to prove termination, fails, and
-rejects the whole definition: `bad` is not defined, and no equation about it becomes a theorem.
+If every chain of recursive calls ends in an equation without a recursive call, the equations determine
+the function's value for every argument, one step at a time, as in Example 8.1, and the proof goes
+through. Not every non-terminating equation is contradictory: Module 5 pointed out that every function
+satisfies `f n = f n`. But `fun` does not try to tell harmless equations from harmful ones; it accepts
+recursion only with a termination proof. A missing pattern (Section 8.4) is a different matter: it leaves
+a value unspecified, which can never contradict anything, so `fun` only warns about it.
 
 ### Reading the termination messages {#termination-messages}
 
-To prove termination, Isabelle looks for a **measure**: a function from the arguments to the natural
-numbers that becomes smaller with every recursive call. A natural number cannot become smaller forever
-(Module 5), so the recursion must stop.
+To prove termination, Isabelle looks for a measure, as in Module 5: a function from the arguments to the
+natural numbers that becomes smaller with every recursive call. The measures it tries are built from the
+sizes of the arguments.
 
-::: definition Measure and size
-A **measure** for a recursive function maps its arguments to natural numbers, so that the arguments of
-every recursive call have a smaller measure than the arguments of the call that makes it. The measure
-Isabelle tries first is the **size** of an argument: for a natural number `n` the size is `n`, for a list
-its length, and for a value of another datatype the number of constructors in it that take arguments.
+::: definition Size
+Every value of a datatype has a **size**, a natural number, written `size x`. For a natural number `n`
+the size is `n` itself, and for a list its length. For a value of a datatype you define, the size counts
+the constructors in it that have an argument of the same datatype, a **recursive** argument:
+`size (Push 1 (Push 2 Empty))` is 2, and every `light` has size 0, because no constructor of `light`
+takes an argument.
 :::
 
-When the search succeeds, `fun` prints the measure it found. You have seen three kinds of report:
+When the search succeeds, `fun` prints the measure it found. You have seen three kinds of report in this
+module:
 
 | Report | Meaning |
 |---|---|
@@ -1414,28 +1397,31 @@ When the search succeeds, `fun` prints the measure it found. You have seen three
 | `"(λp. size (fst p)) <*mlex*> {}"` | the size of the first argument decreases (`trace`) |
 | `"(λp. length (fst p)) <*mlex*> {}"` | the length of the first argument, a list, decreases (`push_all`) |
 
-The arguments of a function with several arguments are combined into one tuple `p`, so `fst p` is the
-first argument. `<*mlex*>` chains measures lexicographically: if the first measure stays the same, the
-next one must decrease. The final `{}` ends the chain. Exercise 8.8 shows a function that needs two
-measures.
+As in Module 5, the arguments of a function with several arguments form one tuple `p`, so `fst p` is the
+first argument. `<*mlex*>` chains measures lexicographically, as for Ackermann's function in Module 5: if
+the first measure stays the same, the next one must decrease. The final `{}` ends the chain.
 
-When the search fails, the message shows what Isabelle tried. Look again at the message for `bad`:
+When the search fails, Isabelle prints what it tried. Module 5 read the message for `bad`, with one call
+and one measure. In general the message has four parts:
 
-- **Calls** lists the recursive calls, named a), b), …: `a) x ~> x` says that a call with argument `x`
-  leads to a call with argument `x`.
-- **Measures** lists the measures Isabelle tried: here only `size`, the size of the argument.
+- **Calls** lists the recursive calls, named a), b), …, each with the argument before and after the call:
+  `a) n ~> n div 2` says that a call with argument `n` leads to a call with argument `n div 2`.
+- **Measures** lists the measures Isabelle tried, numbered 1), 2), … .
 - **Result matrix** has one row for each call and one column for each measure. Each entry says what
-  Isabelle could prove about the measure in that call: `<` means it decreases, `<=` that it does not
-  grow (but may stay the same), and `?` that Isabelle could prove neither.
-- **Unfinished subgoals** are the statements that Isabelle could not prove. For `bad`, to show that the
-  size of `x` decreases in call a), it would have had to prove `False`.
+  Isabelle could prove about the measure at that call: `<` means it decreases, `<=` that it does not grow
+  (but may stay the same), `?` that Isabelle could prove neither, and `F` that it grows, so that it can
+  never decrease there.
+- **Unfinished subgoals** are the statements that Isabelle could not prove, each labelled with a call, a
+  measure and a relation: `(b, 1, <)` is the claim that measure 1 decreases at call b).
 
-Only an entry `<` makes progress, and the row of call a) has none. So Isabelle reports **Could not find
-lexicographic termination order**.
+A lexicographic order exists when Isabelle can pick measures one after another so that every call has `<`
+under one of the picked measures and `<=` under all the measures picked before it. When no choice works,
+the message ends with **Could not find lexicographic termination order**.
 
-::: example A function nobody can prove terminating
-This function counts the steps that the famous "3n + 1" process takes from `n` to 1: halve an even number,
-triple an odd one and add 1.
+::: example A function nobody has proved terminating
+Module 5 ended its section on termination with the Collatz function, which counts the steps that the
+famous "3n + 1" process takes from `n` to 1: halve an even number, triple an odd one and add 1. Here is
+what Isabelle says about it:
 
 ```isabelle fails
 fun collatz :: "nat ⇒ nat" where
@@ -1466,10 +1452,14 @@ consts
 *** Could not find lexicographic termination order.
 ```
 
-The matrix shows that call a), with `n div 2`, decreases the size, but for call b), with `3 * n + 1`,
-Isabelle could prove nothing. It is not alone: whether this process reaches 1 for every starting number
-is the Collatz conjecture, posed by Lothar Collatz in 1937 and still unsolved. Nobody can supply a
-termination proof, so nobody can define this function with `fun`.
+There are two calls and one measure, the size of `n`. Call a), with `n div 2`, decreases it: the entry is
+`<`. For call b), with `3 * n + 1`, the two unfinished subgoals show what Isabelle was left with when it
+tried to prove that the size decreases (`<`) or at least does not grow (`<=`): `False`, under the
+conditions of the call, that `n` is above 1 and odd. Since `3 * n + 1` is larger than `n`, no proof is
+possible. (Isabelle writes `F` only when such a goal becomes plain `False`, without conditions; here the
+conditions remain, so the entry is `?`.) The row of call b) has no `<`, so there is no termination
+order. No other measure is known either: as Module 5 explained, a termination proof would settle the
+Collatz conjecture, which is still open.
 :::
 
 ### When Isabelle needs help {#termination-help}
@@ -1503,11 +1493,11 @@ consts
 ```
 
 The function does terminate: from any state, the light is green after at most three steps. But the only
-measure Isabelle tries is the size of `l`, and the size of every light is 0, because no constructor of
-`light` takes an argument. So the unfinished subgoal asks for `size (next_light l) < size l`, which is
-false, and the matrix entry is `?`.
+measure Isabelle tries is the size of `l`, and every light has size 0 (Definition 8.9). A measure that is
+always 0 never decreases, so the subgoal for `<` is false. The subgoal for `<=` is true, but Isabelle
+would have to split `l` into its four cases to prove it, and it does not try; so the entry is `?`.
 
-The fix is to write the function so that termination is evident. Here the library does the work: take
+One fix is to write the function so that termination is evident. Here the library does the work: take
 the first four states, keep those before the first green with `takeWhile`, and add up their durations.
 `takeWhile P xs` is the longest initial part of `xs` whose elements all satisfy `P`. The definition is not
 recursive at all:
@@ -1526,13 +1516,38 @@ value "map wait [Red, RedAmber, Green, Amber]"
 
 A driver who arrives at amber waits 3 + 30 + 2 = 35 seconds.
 
-::: note
-When no reformulation is natural, you can prove termination yourself. The command `function` states
-the equations, and a separate `termination` proof names a measure and shows that it decreases. The
-manual *Defining Recursive Functions in Isabelle/HOL*, under **functions** in the Documentation panel,
-explains how. Every function defined with `fun` also comes with an induction rule that follows its
-recursion, `f.induct`; Module 11 uses it.
-:::
+When no such reformulation is natural, you can supply the measure yourself. Module 5 met an example:
+`sum_from i n = (if n < i then 0 else i + sum_from (i + 1) n)` adds up the numbers from `i` to `n`. It
+terminates because the distance `n + 1 - i` decreases at every call, but neither argument gets smaller,
+so `fun` gives up. The command `function` separates the definition from its termination proof:
+
+```isabelle
+function sum_from :: "nat ⇒ nat ⇒ nat" where
+  "sum_from i n = (if n < i then 0 else i + sum_from (i + 1) n)"
+  by pat_completeness auto
+termination
+  by (relation "measure (λ(i, n). n + 1 - i)") auto
+```
+
+`function` takes the same equations as `fun`, but proves nothing by itself. The line
+`by pat_completeness auto` proves that the patterns cover every case and do not contradict each other;
+with a single equation that is a formality. `termination` then asks for the termination proof, and you
+name the measure. `λ(i, n). n + 1 - i` is the function that maps the pair of arguments `(i, n)` to
+`n + 1 - i`; `measure` turns it into the relation "has a smaller measure", and the method `relation`
+makes Isabelle use that relation. `auto` proves the rest: that the relation is well-founded, as every
+measure is (Module 5), and that the call decreases the measure, from `n + 1 - i` to `n + 1 - (i + 1)`,
+because the call happens only when `¬ n < i`. Now `sum_from` is defined, and it computes:
+
+```isabelle
+value "sum_from 3 5"
+```
+
+```output
+```
+
+The manual *Defining Recursive Functions in Isabelle/HOL*, under **functions** in the Documentation
+panel, explains `function` in depth. Every function defined with `fun` or `function` also comes with an
+induction rule that follows its recursion, `f.induct`; Module 11 uses it.
 
 ## From HOL to running code {#codegen}
 
@@ -1866,9 +1881,9 @@ lemma "height (from_list xs) = length xs"
   by (induction xs) auto
 ```
 
-Both proofs follow the recursion of `from_list` over the list: the base case `[]` and the step case
-`x # xs` are computed by the equations of `from_list`, `to_list` and `height`, and the step case uses the
-induction hypothesis. Compare `from_list` with `push_all` from Section 8.4, which puts the *last* element
+Both proofs follow the recursion of `from_list` over the list: the base case `[]` and the induction step
+`x # xs` are computed by the equations of `from_list`, `to_list` and `height`, and the induction step
+uses the induction hypothesis. Compare `from_list` with `push_all` from Section 8.4, which puts the *last* element
 on top.
 :::
 ::::

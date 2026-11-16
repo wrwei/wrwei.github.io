@@ -979,91 +979,54 @@ Nitpick found a counterexample:
 With A false and C true, the left side is true and the right side false.
 :::
 
-## Satisfiability and SAT solvers {#sat}
+## 可满足性与 SAT 求解器 {#sat}
 
-All the questions of this module come down to one problem.
+本模块的所有问题都可以归结为同一个问题。
 
-::: definition The satisfiability problem
-The **satisfiability problem**, **SAT** for short, asks: given a propositional formula, usually in
-CNF, is it satisfiable? A **SAT solver** is a program that answers this question and, when the answer
-is yes, returns a satisfying valuation.
+::: definition 可满足性问题
+**可满足性问题**（satisfiability problem），简称 **SAT**，问的是：给定一个命题公式（通常是合取范式），它是可满足的吗？**SAT 求解器**（SAT solver）是回答这个问题的程序；当答案为“是”时，它还会返回一个满足该公式的赋值。
 :::
 
-By Fact 2.1, φ is a tautology exactly when ¬φ is unsatisfiable. By Fact 2.5, φ₁, …, φₙ ⊨ ψ exactly when
-φ₁ ∧ … ∧ φₙ ∧ ¬ψ is unsatisfiable, because a model of that formula is a bad row. And requirements are
-consistent exactly when their conjunction is satisfiable. So one SAT solver answers every question of
-this module.
+由事实 2.1，φ 是重言式当且仅当 ¬φ 不可满足。由事实 2.5，φ₁, …, φₙ ⊨ ψ 当且仅当 φ₁ ∧ … ∧ φₙ ∧ ¬ψ 不可满足，因为这个公式的模型正是一个坏行。而一组需求是一致的，当且仅当它们的合取是可满足的。所以，一个 SAT 求解器就能回答本模块的所有问题。
 
-How hard is SAT? Checking a proposed valuation is quick: evaluate the formula once. Finding one is
-another matter, since a truth table has $2^n$ rows.
+SAT 有多难？检查别人给出的一个赋值很快：只要对公式求一次值。自己找出一个这样的赋值则是另一回事，因为真值表有 $2^n$ 行。
 
-::: fact Cook's theorem
-SAT is **NP-complete** (Stephen Cook, 1971).
+::: fact 库克定理
+SAT 是 **NP 完全**的。这是斯蒂芬·库克（Stephen Cook）在 1971 年证明的。
 :::
 
-**NP** is the class of yes-or-no problems in which a "yes" can be *checked* quickly once someone proposes
-a solution, that is, in a number of steps bounded by a polynomial in the size of the problem. SAT is one
-of them. So are these: Can the exams be timetabled without clashes? Can this Sudoku be completed? Can
-these versions of software packages be installed together? A problem is **NP-complete** if it is in NP
-and every problem in NP can be translated into it efficiently. SAT was the first problem shown to be
-NP-complete; Leonid Levin found the same result independently. So a fast (polynomial-time) algorithm for
-SAT would give fast algorithms for every problem in NP. Nobody knows whether one exists: this is the
-**P versus NP** question (P is the class of problems that can be *solved* in polynomial time), open since
-1971 and one of the seven Millennium Prize Problems of the Clay Mathematics Institute.
+**NP** 是这样一类判定问题（即回答“是”或“否”的问题）：一旦有人给出一个解，答案“是”就能很快地得到**检验**，也就是说，检验所需的步数不超过问题规模的某个多项式。SAT 就是其中之一。下面这些问题也是：考试能否排出一张没有冲突的时间表？这个数独能否填完？这几个版本的软件包能否一起安装？如果一个问题属于 NP，并且 NP 中的每个问题都能高效地转化为它，这个问题就是 **NP 完全**的（NP-complete）。SAT 是第一个被证明为 NP 完全的问题；列昂尼德·列文（Leonid Levin）独立地得到了同样的结果。因此，只要 SAT 有一个快速的（多项式时间的）算法，NP 中的每个问题就都有快速算法。没有人知道这样的算法是否存在：这就是 **P 与 NP 问题**（P versus NP），其中 P 是能在多项式时间内**求解**的问题类。这个问题自 1971 年以来一直悬而未决，是克雷数学研究所的七个千禧年大奖难题之一。
 
-Even so, SAT solving is one of the great practical successes of computer science. The worst case is
-exponential, but formulas from real problems have structure, and solvers exploit it. Most solvers
-descend from the **DPLL procedure**, named after Davis, Putnam, Logemann and Loveland, who described it in
-the early 1960s. It works on a CNF and repeats two steps:
+尽管如此，SAT 求解仍是计算机科学在实践中取得的伟大成功之一。最坏情况需要指数时间，但来自实际问题的公式是有结构的，求解器能利用这些结构。大多数求解器都源自 **DPLL 算法**（DPLL procedure），它以 Davis、Putnam、Logemann 和 Loveland 的名字命名，他们在 20 世纪 60 年代初描述了这个算法。它作用于合取范式，反复执行两个步骤：
 
-1. **Unit propagation.** If every literal of a clause but one is false, the remaining literal must be
-   true: set it. Repeat while possible.
-2. **Decision.** Otherwise, choose an atom without a value and try a value for it.
+1. **单元传播**（unit propagation）。如果一个子句中除了一个文字之外，其余文字都为假，那么剩下的那个文字必须为真：把它设为真。只要还能这样做，就一直重复。
+2. **决策**（decision）。否则，选一个还没有取值的原子，给它试一个值。
 
-When a clause becomes false (a **conflict**), the procedure goes back to its latest decision whose other
-value it has not tried yet, undoes everything it did after that decision, and tries the other value. If
-every clause becomes true, the formula is satisfiable; if a conflict leaves no decision to go back to,
-the formula is unsatisfiable.
+当某个子句变为假时，就出现了**冲突**（conflict）。这时算法回到最近的、另一个值还没有试过的那个决策，撤销该决策之后所做的一切，然后试另一个值。如果每个子句都变为真，公式就是可满足的；如果发生冲突时已经没有可以回退的决策，公式就是不可满足的。
 
-Since the late 1990s, solvers have added **conflict-driven clause learning (CDCL)**: after a conflict,
-the solver works out which decisions caused it and adds a clause that rules out that combination, so the
-search never makes the same mistake twice. Modern CDCL solvers often decide formulas from industry with
-hundreds of thousands of atoms and millions of clauses.
+从 20 世纪 90 年代末开始，求解器加入了**冲突驱动子句学习**（conflict-driven clause learning，CDCL）：出现冲突后，求解器找出是哪些决策导致了这个冲突，并加入一个排除这种组合的子句，这样搜索就永远不会犯同样的错误两次。现代 CDCL 求解器经常能判定来自工业界的、含有几十万个原子和几百万个子句的公式。
 
-::: example Unit propagation
-Is this CNF satisfiable?
+::: example 单元传播
+这个合取范式是可满足的吗？
 
 $$
 (A \lor B) \land (\lnot A \lor C) \land (\lnot B \lor C) \land (\lnot C \lor D) \land \lnot D
 $$
 
-The last clause is a single literal, so D = F. Then the clause ¬C ∨ D forces C = F. Then ¬A ∨ C forces
-A = F, and ¬B ∨ C forces B = F. Now A ∨ B is false: a conflict, reached without a single decision. The
-formula is unsatisfiable, and the solver has shown it without writing the 16 rows of its truth table.
+最后一个子句是单个文字，所以 D = F。于是子句 ¬C ∨ D 迫使 C = F。接着 ¬A ∨ C 迫使 A = F，¬B ∨ C 迫使 B = F。这时 A ∨ B 为假：出现了冲突，而且一次决策都没有做。这个公式是不可满足的，求解器没有写出它的 16 行真值表就证明了这一点。
 :::
 
-SAT solvers are at work wherever a problem can be phrased as many yes-or-no choices with constraints
-between them: checking that two circuits compute the same function, and searching a design for a run
-that breaks a property within a fixed number of steps (bounded model checking); deciding which software
-packages can be installed together (the Eclipse development environment resolves the dependencies of its
-plug-ins with the SAT solver Sat4j); timetables and rosters. SMT solvers, such as Z3 and cvc5 from
-Module 1, extend SAT solving with numbers, arrays and other data, and power program verifiers. And
-Isabelle's Nitpick turns the search for a counterexample into a SAT problem.
+凡是能表述成许多相互约束的是非选择的问题，都有 SAT 求解器的用武之地：检查两个电路是否计算同一个函数，以及在一个设计中搜索在固定步数之内违反某条性质的运行（即有界模型检测）；判定哪些软件包可以一起安装（Eclipse 开发环境就用 SAT 求解器 Sat4j 来解决其插件之间的依赖关系）；排课表和排班表。SMT 求解器，例如模块 1 中提到的 Z3 和 cvc5，用数、数组和其他数据扩展了 SAT 求解，是程序验证器背后的引擎。Isabelle 的 Nitpick 则把寻找反例的问题转化为 SAT 问题。
 
 ::: isabelle
-Isabelle contains a small CDCL solver of its own, and the proof method `sat` uses it. `sat` converts the
-negation of the goal into CNF and asks the solver whether that is satisfiable. Here it confirms
-Example 2.9:
+Isabelle 自带一个小型 CDCL 求解器，证明方法 `sat` 就使用它。`sat` 把目标的否定转换成合取范式，然后问求解器它是否可满足。下面用它确认例 2.9：
 
 ```isabelle
 lemma "¬ ((A ∨ B) ∧ (¬ A ∨ C) ∧ (¬ B ∨ C) ∧ (¬ C ∨ D) ∧ ¬ D)"
   by sat
 ```
 
-Why trust the solver? You do not have to. When the solver finds the negated goal unsatisfiable, it also
-returns the steps of its reasoning, a proof by resolution, and Isabelle replays every step in its
-kernel: the LCF idea of Module 1. When the goal is not a tautology, the solver finds a model of its
-negation, and `sat` fails with that valuation, a counterexample:
+为什么要信任求解器？你不必信任它。当求解器发现否定后的目标不可满足时，它还会返回推理的各个步骤，即一个归结证明（proof by resolution），而 Isabelle 会在内核中重放每一步：这正是模块 1 中的 LCF 思想。当目标不是重言式时，求解器会找到目标的否定的一个模型，于是 `sat` 失败，并给出这个赋值，也就是一个反例：
 
 ```isabelle fails
 lemma "A ⟶ B ⟶ A ∧ B ∧ C"
@@ -1075,39 +1038,34 @@ lemma "A ⟶ B ⟶ A ∧ B ∧ C"
 *** A: true, B: true, C: false
 ```
 
-The first line of the message is technical; the second is the counterexample you found in Section 2.4.
-A second method, `satx`, first applies a definitional CNF transformation of the Tseitin kind, which keeps
-the CNF of large goals small.
+消息的第一行是技术性的；第二行说 SAT 求解器找到了一个反模型（countermodel），也就是你在第 2.4 节中找到的那个反例。另一个方法 `satx` 会先做一次 Tseitin 式的定义式合取范式变换，使大目标的合取范式保持较小的规模。
 :::
 
-## Requirements as propositional constraints {#requirements}
+## 把需求写成命题约束 {#requirements}
 
-Back to the server-room door. After some discussion, the security team agrees on four requirements:
+回到机房的门。经过一番讨论，安全团队就四条需求达成了一致：
 
-| | Requirement | Formula |
+| | 需求 | 公式 |
 |---|---|---|
-| R1 | The door opens only if a valid badge is shown and the correct PIN is entered, or the fire alarm is on. | `opens ⟶ badge ∧ pin ∨ fire` |
-| R2 | When the fire alarm is on, the door opens. | `fire ⟶ opens` |
-| R3 | During a lockdown, the door stays shut. | `lockdown ⟶ ¬ opens` |
-| R4 | A valid badge with the correct PIN opens the door. | `badge ∧ pin ⟶ opens` |
+| R1 | 仅当出示了有效的门禁卡并输入了正确的密码，或者火警正在报警时，门才打开。 | `opens ⟶ badge ∧ pin ∨ fire` |
+| R2 | 火警正在报警时，门打开。 | `fire ⟶ opens` |
+| R3 | 封锁期间，门保持关闭。 | `lockdown ⟶ ¬ opens` |
+| R4 | 有效的门禁卡加上正确的密码能打开门。 | `badge ∧ pin ⟶ opens` |
 
-The atoms `badge`, `pin`, `fire` and `lockdown` describe the situation: the sensors report them, and the
-controller cannot choose them. `opens` is the controller's decision. Three questions matter:
+原子 `badge`、`pin`、`fire` 和 `lockdown`（正处于封锁状态）描述的是情形：它们由传感器报告，控制器无法选择。`opens` 是控制器的决定。有三个问题很重要：
 
-1. Are the requirements consistent: can a controller meet them all at once?
-2. Can it meet them in every situation, whatever the sensors report?
-3. Do they guarantee the properties the team cares about?
+1. 这些需求是一致的吗？也就是说，控制器能否同时满足它们？
+2. 无论传感器报告什么，控制器能否在每一种情形下都满足它们？
+3. 它们能否保证团队关心的那些性质？
 
-::: definition Consistent requirements
-A set of requirements, written as formulas, is **consistent** if their conjunction is satisfiable: some
-valuation makes all of them true.
+::: definition 一致的需求
+如果一组写成公式的需求的合取是可满足的，也就是存在一个赋值使它们全都为真，就称这组需求是**一致的**（consistent）。
 :::
 
-### Consistency {#consistency}
+### 一致性 {#consistency}
 
 ::: isabelle
-Nitpick looks for counterexamples, and by Fact 2.1 a counterexample to ¬φ is a model of φ. So to find a
-model of the requirements, state their negation and ask Nitpick for a counterexample:
+Nitpick 寻找反例，而由事实 2.1，¬φ 的反例就是 φ 的模型。所以，要找需求的一个模型，就写出它们的否定，再请 Nitpick 找反例：
 
 ```isabelle
 lemma "¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
@@ -1130,20 +1088,16 @@ Nitpick found a counterexample:
     pin = False
 ```
 
-The counterexample to the negation is a model of the requirements: with a valid badge, the wrong PIN, no
-fire and no lockdown, a shut door meets all four. So the requirements are consistent.
+这个否定式的反例就是需求的一个模型：门禁卡有效、密码错误、没有火警、也没有封锁时，门关着就满足全部四条需求。所以这些需求是一致的。
 :::
 
 ::: tip
-Nitpick can also look for a model directly: `nitpick [satisfy]` on the requirements themselves (without
-the ¬) reports "Nitpick found a model", followed by the valuation.
+Nitpick 也可以直接找模型：对需求本身（不加 ¬）使用 `nitpick [satisfy]`，它会报告“Nitpick found a model”（Nitpick 找到了一个模型），后面跟着那个赋值。
 :::
 
-### Situations that break the requirements {#scenarios}
+### 让需求失效的情形 {#scenarios}
 
-One model is not enough: the door must work in every situation, including rare ones. What happens during
-a lockdown when the fire alarm goes off? Add `fire` and `lockdown` to the requirements and ask whether the
-result is still satisfiable:
+有一个模型还不够：门必须在每一种情形下都能正常工作，包括罕见的情形。在封锁期间，如果火警响了，会怎么样？把 `fire` 和 `lockdown` 加到需求中，看看结果是否仍然可满足：
 
 ```isabelle
 lemma "¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
@@ -1154,27 +1108,18 @@ lemma "¬ ((opens ⟶ badge ∧ pin ∨ fire) ∧
   by blast
 ```
 
-Isabelle proves that no valuation satisfies them. In a fire during a lockdown, R2 says that the door
-must open and R3 that it must stay shut, and no controller can do both. The same happens between R3 and
-R4 when someone shows a valid badge and the right PIN during a lockdown. Conflicts like these hide in
-combinations of rare events, which is exactly where testing seldom looks. And in these situations
-Fact 2.6 applies: from the requirements, Isabelle would prove anything, even that the door is both open
-and shut. Proofs about inconsistent requirements succeed, and mean nothing.
+Isabelle 证明了没有任何赋值能满足它们。封锁期间发生火警时，R2 说门必须打开，R3 说门必须保持关闭，没有哪个控制器能两者兼顾。封锁期间有人出示有效的门禁卡并输入正确的密码时，R3 和 R4 之间也会发生同样的冲突。这样的冲突藏在罕见事件的组合之中，而这恰恰是测试很少触及的地方。而且在这些情形下，事实 2.6 适用：从这些需求出发，Isabelle 能证明任何东西，甚至能证明门既开着又关着。关于不一致需求的证明都会成功，却毫无意义。
 
-### Repairing the requirements {#repair}
+### 修复需求 {#repair}
 
-The conflicts are not mistakes in logic but decisions nobody has made, and only the people who wrote the
-requirements can make them; this is validation, in the sense of Module 1. Suppose the team decides that
-people's safety comes first: a fire overrides a lockdown, and a lockdown overrides badges. R3 and R4
-become:
+这些冲突不是逻辑上的错误，而是还没有人做出的决定，而且只有编写需求的人才能做出这些决定；这就是模块 1 所说的确认。假设团队决定人身安全优先：火警优先于封锁，封锁优先于门禁卡。R3 和 R4 变为：
 
-| | Requirement | Formula |
+| | 需求 | 公式 |
 |---|---|---|
-| R3′ | During a lockdown, the door stays shut unless the fire alarm is on. | `lockdown ∧ ¬ fire ⟶ ¬ opens` |
-| R4′ | A valid badge with the correct PIN opens the door, except during a lockdown. | `badge ∧ pin ∧ ¬ lockdown ⟶ opens` |
+| R3′ | 封锁期间，除非火警正在报警，否则门保持关闭。 | `lockdown ∧ ¬ fire ⟶ ¬ opens` |
+| R4′ | 有效的门禁卡加上正确的密码能打开门，封锁期间除外。 | `badge ∧ pin ∧ ¬ lockdown ⟶ opens` |
 
-Now a stronger check is possible. Together with R1 and R2, the new requirements fix the door's behaviour
-completely: they force `opens` to have the same value as fire ∨ (badge ∧ pin ∧ ¬lockdown).
+现在可以做更强的检查了。新需求与 R1 和 R2 一起，完全确定了门的行为：它们迫使 `opens` 与 fire ∨ (badge ∧ pin ∧ ¬lockdown) 取相同的值。
 
 ```isabelle
 lemma door_determined:
@@ -1186,8 +1131,7 @@ lemma door_determined:
   by blast
 ```
 
-Conversely, a controller that opens the door exactly when fire ∨ (badge ∧ pin ∧ ¬lockdown) meets all
-four requirements, whatever the sensors report:
+反过来，一个恰好在 fire ∨ (badge ∧ pin ∧ ¬lockdown) 成立时开门的控制器，无论传感器报告什么，都满足全部四条需求：
 
 ```isabelle
 lemma door_rule_ok:
@@ -1199,16 +1143,11 @@ lemma door_rule_ok:
   by blast
 ```
 
-The lemma `door_rule_ok` is verification in miniature. The requirements are the specification, the rule
-for `opens` is the implementation, and the proof covers all sixteen situations of the four sensors at
-once. It also shows that the repaired requirements are consistent in every situation, since in each one
-the rule's decision meets them all. The lemma `door_determined` adds that no other decision would: the
-requirements leave the controller no choice.
+引理 `door_rule_ok` 是一次具体而微的验证。需求是规约，`opens` 的规则是实现，而这个证明一次就覆盖了四个传感器的全部十六种情形。它还表明，修复后的需求在每一种情形下都是一致的，因为在每种情形下，按这条规则做出的决定都满足全部需求。引理 `door_determined` 进一步说明，其他任何决定都做不到这一点：需求没有给控制器留下任何选择的余地。
 
-### Properties that follow, and one that does not {#properties}
+### 能推出的性质，以及一条推不出的性质 {#properties}
 
-Finally, the properties. The team wants to be sure that, outside a fire, nobody gets in without the
-right PIN: `opens ∧ ¬ fire ⟶ pin`. It follows from the requirements:
+最后来看性质。团队希望确保：在没有火警时，不输入正确的密码，谁也进不去，即 `opens ∧ ¬ fire ⟶ pin`。这条性质能从需求推出：
 
 ```isabelle
 lemma "(opens ⟶ badge ∧ pin ∨ fire) ∧
@@ -1219,7 +1158,7 @@ lemma "(opens ⟶ badge ∧ pin ∨ fire) ∧
   by blast
 ```
 
-The old promise "during a lockdown, the door stays shut" no longer follows:
+原来的承诺“封锁期间，门保持关闭”则不再能推出了：
 
 ```isabelle
 lemma "(opens ⟶ badge ∧ pin ∨ fire) ∧
@@ -1243,22 +1182,13 @@ Nitpick found a counterexample:
     pin = False
 ```
 
-The counterexample is a fire during a lockdown, with the door open: exactly the decision the team made.
-A counterexample is not always a bug. Here it documents a deliberate trade-off in one concrete
-situation, which is the best way to show it to the people who must accept it. If they did not expect
-it, the requirements are wrong, not the proof.
+这个反例是封锁期间发生了火警，门开着：这正是团队做出的决定。反例并不总是意味着错误。这里，它在一个具体情形中记录了一个有意的权衡，而这正是向必须接受这个权衡的人展示它的最好方式。如果他们没有料到这一点，那么错的是需求，而不是证明。
 
 ::: keyidea
-To analyse requirements with propositional logic: choose atoms, separating what the environment decides
-from what the system decides; write each requirement as a formula; check that the requirements are
-consistent, also in the rare situations that matter; prove that the properties you need follow; and
-read every counterexample as a situation to discuss. Each of these checks is a satisfiability question.
+用命题逻辑分析需求的步骤是：选择原子，把由环境决定的和由系统决定的区分开；把每条需求写成公式；检查需求是否一致，包括在那些重要的罕见情形下；证明你需要的性质确实能够推出；把每个反例都当作一个需要讨论的情形来读。这些检查中的每一项都是一个可满足性问题。
 :::
 
-Propositional logic has limits. It cannot say "the door locks again ten seconds after the alarm stops",
-which is about time, or "every employee's badge opens the doors of their own department", which is about
-many objects at once. Predicate logic in Module 3 adds objects and quantifiers, and Module 13 models
-systems that change over time.
+命题逻辑有它的局限。它无法表达“警报停止十秒后，门重新上锁”，因为这涉及时间；也无法表达“每个员工的门禁卡都能打开本部门的门”，因为这同时涉及许多对象。模块 3 的谓词逻辑加入了对象和量词，模块 13 则为随时间变化的系统建模。
 
 ## 小结 {#summary}
 

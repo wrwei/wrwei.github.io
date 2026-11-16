@@ -469,7 +469,7 @@ goal (1 subgoal):
         (v ≠ u ∧ (a = (v, p) ∨ allows es v p)))
 ```
 
-The base case is proved. In the step case the simplifier unfolded `revoke u (a # es)`, split the `if` on
+The base case is proved. In the induction step the simplifier unfolded `revoke u (a # es)`, split the `if` on
 `fst a = u` into the two implications you see, and used the induction hypothesis. Then it got stuck. To go
 on, it would have to conclude from `a = (v, p)` that `fst a = v`, and the simplifier does not look inside a
 pair variable such as `a`. `auto`, which you meet in Section 9.4, first replaces a pair variable by a pair
@@ -834,7 +834,8 @@ says that role `y` grants `Read`.
 
 `auto`, `force`, `fastforce` and `clarsimp` accept the simplifier's modifiers, written `simp add:` (or
 `simp:` for short), `simp del:` and `split:`, because `add:` alone would be ambiguous. They also accept
-rules for the classical reasoner: `intro:`, `elim:` and `dest:`, with the rules of Module 7. So
+rules for the classical reasoner: `intro:`, `elim:` and `dest:`, for introduction, elimination and
+destruction rules as in Module 7. So
 `auto simp add: grant_def`, or `auto simp: grant_def` as Module 4 wrote it, unfolds `grant`, and
 `blast intro: r` lets `blast` use a rule `r` of your own.
 
@@ -1283,11 +1284,11 @@ checks every step. The `sledgehammer` command itself proves nothing: delete it o
 Sledgehammer is at its best when a goal follows from a few library facts in a way that the other methods
 miss. Two segments of a log that commute and have the same length are equal:
 `⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs`. `blast` fails on this goal, and `simp` and `auto`
-do worse: they never finish. The simplifier rewrites the first assumption with the library's simp rule
-`append_eq_append_conv`, which says when two appended lists are equal, into `es = fs ∧ fs = es`. Then it
-uses these two equations as rewrite rules, turning `es` into `fs` and `fs` back into `es`, for ever. You
-would have to stop it by hand. Sledgehammer uses the same library lemma as a fact rather than as a rewrite
-rule, and suggests a proof such as this one:
+do worse: they run until Isabelle runs out of memory. The simplifier rewrites the first assumption with
+the library's simp rule `append_eq_append_conv`, which says when two appended lists are equal, into
+`es = fs ∧ fs = es`. Then it uses these two equations as rewrite rules, turning `es` into `fs` and `fs`
+back into `es`, again and again. Sledgehammer uses the same library lemma as a fact rather than as a
+rewrite rule, and suggests a proof such as this one:
 
 ```isabelle
 lemma "⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs"
@@ -1371,7 +1372,7 @@ goal (2 subgoals):
        ⟹ b = Admin
 ```
 
-The base case is proved. Two subgoals of the step case remain, and both have an `if` in an assumption:
+The base case is proved. Two subgoals of the induction step remain, and both have an `if` in an assumption:
 `auto` split the pair `a` into `a` and `b` but not the `if` in the definition of `owner`. Step 4 says what
 to do: an `if` in an assumption needs `split: if_splits`.
 
@@ -1514,8 +1515,8 @@ say why the proof fails, and fix it.
 2. "Failed to finish proof", and the remaining goal has a `case` on `owner es` in its assumption. A `case`
    in an assumption is split only with `split: option.splits`.
 3. "Failed to apply initial proof method". The claim is about all lists and involves the recursive
-   function `revoke`, so it needs induction. In the step case the `if` of `revoke` ends up in an assumption,
-   which needs `split: if_splits`.
+   function `revoke`, so it needs induction. In the induction step the `if` of `revoke` ends up in an
+   assumption, which needs `split: if_splits`.
 
 ```isabelle
 lemma "set (grant u p es) = insert (u, p) (set es)"
@@ -1552,7 +1553,7 @@ lemma "length (revoke u es) ≤ length es"
   by (induction es) auto
 ```
 
-In the third, after splitting the `if`, the step case needs `length (revoke u es) ≤ Suc (length es)` from
+In the third, after splitting the `if`, the induction step needs `length (revoke u es) ≤ Suc (length es)` from
 the induction hypothesis `length (revoke u es) ≤ length es`: linear arithmetic, which `auto` does.
 :::
 ::::

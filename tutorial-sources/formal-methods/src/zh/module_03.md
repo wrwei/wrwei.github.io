@@ -935,56 +935,36 @@ lemma "(∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. 
 ***  1. (∀x. ¬ R x x) ∧ (∀x y z. R x y ∧ R y z ⟶ R x z) ⟶ ¬ (∀x. ∃y. R x y)
 ```
 
-`blast` searches for a proof with a growing bound on its "unsafe" steps, such as choosing an instance of
-a ∀ that it may need again later, from 0 up to 20 by default, and then gives up with this message.
-Neither message settles the question. You need to think, and here the thought is the infinite
-countermodel above.
+`blast` 搜索证明时，会给它的“不安全”步骤（例如为一个以后可能还要再用的 ∀ 选定一个实例）设一个逐渐增大的上限，默认从 0 增加到 20，然后放弃，并给出这条消息：“Failed to apply initial proof method”（未能应用初始证明方法）。两条消息都不能解决这个问题。你需要动脑筋，而在这里，要想到的正是上面那个无限反模型。
 :::
 
-What this means in practice:
+这在实践中意味着：
 
-- **Proof search** (`simp`, `blast`, `auto`, and the provers that Sledgehammer calls in Module 9)
-  succeeds or gives up. Success gives a theorem; giving up tells you nothing.
-- **Countermodel search** (Nitpick and Quickcheck) is the other half: a genuine counterexample shows that
-  a formula is not valid; finding none shows nothing.
-- When both give up, the work is yours: find the idea of the proof and guide Isabelle through it, as
-  Parts II and III teach, or find a countermodel that the tools cannot see.
+- **证明搜索**（`simp`、`blast`、`auto`，以及模块 9 中 Sledgehammer 调用的证明器）要么成功，要么放弃。成功会给你一个定理；放弃则什么也没告诉你。
+- **反模型搜索**（Nitpick 和 Quickcheck）是另一半：一个真正的反例表明公式不是有效的；找不到反例则什么也说明不了。
+- 两者都放弃时，就轮到你了：找出证明的思路并引导 Isabelle 完成它（第二部分和第三部分会教你怎么做），或者找出一个工具看不到的反模型。
 
-Not everything is undecidable. Propositional logic is decidable, and so is the part of predicate logic
-in which every predicate takes one argument and there are no function symbols. SAT and SMT solvers
-(Module 1) decide useful fragments efficiently, which is why Isabelle's tools call them for help.
+并非一切都不可判定。命题逻辑是可判定的；谓词逻辑中每个谓词都只有一个参数、并且没有函数符号的那一部分，也是可判定的。SAT 求解器和 SMT 求解器（模块 1）能高效地判定一些有用的片段，这就是 Isabelle 的工具要请它们帮忙的原因。
 
 ::: keyidea
-Validity in predicate logic is semi-decidable: a systematic search finds a proof whenever one exists,
-but no program can always tell you that none exists. That is why Isabelle offers both provers and
-counterexample finders, why automation sometimes gives up on true statements, and why the rest of this
-series teaches you to guide proofs yourself.
+谓词逻辑中的有效性是半可判定的：只要证明存在，系统的搜索就能找到它；但没有程序总能告诉你证明不存在。这就是为什么 Isabelle 既提供证明器，也提供反例搜索器；为什么自动化有时会在真的陈述上放弃；也是为什么本系列的其余部分要教你自己引导证明。
 :::
 
-## What you learned {#summary}
+## 小结 {#summary}
 
-- Predicate logic adds **terms**, which name objects, **predicates**, which state properties and
-  relations, and the **quantifiers** ∀ ("for all") and ∃ ("there exists") to propositional logic.
-- In Isabelle a quantifier's **scope** extends as far to the right as possible. Occurrences of a variable
-  in the scope of its quantifier are **bound**, the others **free**; a **sentence** has no free variables.
-- A **structure** is a non-empty domain with an interpretation of the vocabulary. A false ∀ has a
-  **counterexample**, a true ∃ a **witness**.
-- A formula is **valid** if it is true in every structure, **satisfiable** if it is true in some. One
-  **countermodel** refutes validity; validity needs an argument about every structure.
-- Negation swaps ∀ and ∃; ∀ distributes over ∧ and ∃ over ∨, but not the other way round; ∃y. ∀x
-  implies ∀x. ∃y, but not conversely. **Substitution** must not **capture** variables.
-- In specifications, ∀ goes with ⟶ and ∃ with ∧, "only" reverses the arrow, and counting needs `=`.
-- In Isabelle, predicates are functions to `bool`; `typedecl` and `consts` declare a vocabulary; free
-  variables of a lemma are implicitly universal; `blast` proves first-order goals and `nitpick` finds
-  countermodels. `=` binds more tightly than `¬` and `∧`, `⟷` as loosely as `⟶`.
-- Validity is **semi-decidable** (Gödel's completeness theorem) but **undecidable** (Church and Turing,
-  1936): provers may give up on valid formulas, and countermodel finders miss infinite countermodels.
+- 谓词逻辑在命题逻辑的基础上加入了为对象命名的**项**、陈述性质和关系的**谓词**，以及**量词** ∀（“对所有”）和 ∃（“存在”）。
+- 在 Isabelle 中，量词的**辖域**尽可能向右延伸。变元在其量词辖域中的出现是**约束的**，其他出现是**自由的**；**语句**没有自由变元。
+- **结构**是一个非空论域，加上对词汇表的一个解释。为假的 ∀ 语句有**反例**，为真的 ∃ 语句有**见证**。
+- 公式如果在每个结构中都为真，就是**有效的**；如果在某个结构中为真，就是**可满足的**。一个**反模型**就能否定有效性；而要确立有效性，需要一个对每个结构都成立的论证。
+- 否定使 ∀ 和 ∃ 互换；∀ 对 ∧ 可分配，∃ 对 ∨ 可分配，反过来则不行；∃y. ∀x 蕴涵 ∀x. ∃y，反之不然。**代入**不能**捕获**变元。
+- 在规约中，∀ 与 ⟶ 搭配，∃ 与 ∧ 搭配，“只有”使箭头反向，计数需要 `=`。
+- 在 Isabelle 中，谓词是取值为 `bool` 的函数；`typedecl` 和 `consts` 声明词汇表；引理中的自由变元隐含地是全称量化的；`blast` 证明一阶目标，`nitpick` 寻找反模型。`=` 比 `¬` 和 `∧` 结合得更紧，`⟷` 则和 `⟶` 一样松。
+- 有效性是**半可判定的**（哥德尔完备性定理），但不是可判定的，即**不可判定的**（丘奇和图灵，1936）：证明器可能在有效的公式上放弃，反模型搜索器会漏掉无限反模型。
 
-## Exercises {#exercises}
+## 练习 {#exercises}
 
-:::: exercise Free or bound? {#ex-3-1} ★
-For each formula, say which occurrences of variables are free, and which quantifier each bound
-occurrence belongs to. Which formulas are sentences? Use Isabelle's convention for scopes.
+:::: exercise 自由还是约束？ {#ex-3-1} ★
+对下面每个公式，说出变元的哪些出现是自由的，以及每个约束出现属于哪个量词。哪些公式是语句？按 Isabelle 的辖域约定来判断。
 
 1. $\forall x.\ R\ x\ y \imp (\exists y.\ R\ y\ x)$
 2. $(\exists x.\ P\ x) \land Q\ x$
@@ -992,22 +972,15 @@ occurrence belongs to. Which formulas are sentences? Use Isabelle's convention f
 4. $\forall x.\ (\exists x.\ R\ x\ x) \imp P\ x$
 
 ::: solution
-1. The scope of $\forall x$ is all the rest of the formula. In $R\ x\ y$, the $x$ belongs to $\forall x$
-   and the $y$ is free. In $\exists y.\ R\ y\ x$, the $y$ belongs to $\exists y$ and the $x$ to
-   $\forall x$. Not a sentence, because of the first $y$.
-2. The parentheses close the scope of $\exists x$ after $P\ x$, so the $x$ in $Q\ x$ is free. Not a
-   sentence.
-3. The scope of $\exists x$ runs to the end, so both occurrences of $x$ belong to it. A sentence.
-   Formulas 2 and 3 differ only in their parentheses, and they mean different things.
-4. Both occurrences of $x$ in $R\ x\ x$ belong to the inner $\exists x$, whose scope ends at the closing
-   parenthesis. The $x$ in $P\ x$ belongs to $\forall x$. A sentence.
+1. $\forall x$ 的辖域是公式的其余全部。在 $R\ x\ y$ 中，$x$ 属于 $\forall x$，$y$ 是自由的。在 $\exists y.\ R\ y\ x$ 中，$y$ 属于 $\exists y$，$x$ 属于 $\forall x$。因为第一个 $y$，它不是语句。
+2. 括号在 $P\ x$ 之后结束了 $\exists x$ 的辖域，所以 $Q\ x$ 中的 $x$ 是自由的。不是语句。
+3. $\exists x$ 的辖域一直延伸到末尾，所以 $x$ 的两次出现都属于它。是语句。公式 2 和公式 3 只是括号不同，意思却不一样。
+4. $R\ x\ x$ 中 $x$ 的两次出现都属于里面的 $\exists x$，它的辖域在右括号处结束。$P\ x$ 中的 $x$ 属于 $\forall x$。是语句。
 :::
 ::::
 
-:::: exercise True in a structure? {#ex-3-2} ★
-Let $\mathcal M_2$ have the domain $\{1, 2, 3\}$, $P^{\mathcal M_2} = \{1, 3\}$ ("is odd"), and let
-$R\ x\ y$ hold when $x < y$. Decide whether each sentence is true in $\mathcal M_2$. Give a witness for
-each true ∃ and a counterexample for each false ∀.
+:::: exercise 在结构中为真吗？ {#ex-3-2} ★
+设 $\mathcal M_2$ 的论域是 $\{1, 2, 3\}$，$P^{\mathcal M_2} = \{1, 3\}$（“是奇数”），并且当 $x < y$ 时 $R\ x\ y$ 成立。判断下面每个语句在 $\mathcal M_2$ 中是否为真。对每个为真的 ∃ 语句给出一个见证，对每个为假的 ∀ 语句给出一个反例。
 
 1. $\forall x.\ \exists y.\ R\ x\ y$
 2. $\exists y.\ \forall x.\ \lnot\, R\ y\ x$
