@@ -1,0 +1,1558 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 12: Verifying functional programs — Formal Methods with Isabelle</title>
+<meta name="description" content="Prove that a program does what its specification says, for every input. You will verify insertion sort, a binary search tree and a queue made of two lists, see why a specification needs each of its parts, and turn the verified functions into Haskell code.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="12" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Formal methods</a><span class="sep">/</span><span class="crumb crumb-now">Module 12</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Module 12 of 14</button><div class="dropdown-menu"><a href="module_01_EN.html"><span class="dd-n">1</span>Formal methods, what and why<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_EN.html"><span class="dd-n">2</span>Propositional logic<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_EN.html"><span class="dd-n">3</span>Predicate logic<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_EN.html"><span class="dd-n">4</span>Sets, relations and functions<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_EN.html"><span class="dd-n">5</span>Induction and recursion<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_EN.html"><span class="dd-n">6</span>What is a proof? Natural deduction<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_EN.html"><span class="dd-n">7</span>Natural deduction in Isabelle<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_EN.html"><span class="dd-n">8</span>Functional programming in HOL<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_EN.html"><span class="dd-n">9</span>Proof automation<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_EN.html"><span class="dd-n">10</span>Structured proofs in Isar<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_EN.html"><span class="dd-n">11</span>Induction in depth<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_EN.html" class="active"><span class="dd-n">12</span>Verifying functional programs<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_EN.html"><span class="dd-n">13</span>Modelling systems: state machines and invariants<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_EN.html"><span class="dd-n">14</span>Capstone: a verified compiler<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html"><span class="dd-n">&#9670;</span>Troubleshooting</a>
+<a href="glossary_EN.html"><span class="dd-n">&#9670;</span>Glossary</a></div></div>
+  
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#verify"><span class="num">1</span><span class="side-t">What it means to verify a program</span></a><a href="#isort"><span class="num">2</span><span class="side-t">Insertion sort and its specification</span></a><a href="#isort-proof"><span class="num">3</span><span class="side-t">Proving insertion sort correct</span></a><a href="#halves"><span class="num">4</span><span class="side-t">Why a specification needs both halves</span></a><a href="#bst"><span class="num">5</span><span class="side-t">Binary search trees</span></a><a href="#refinement"><span class="num">6</span><span class="side-t">Data refinement</span></a><a href="#export"><span class="num">7</span><span class="side-t">From verified functions to running code</span></a><a href="#summary"><span class="num">8</span><span class="side-t">What you learned</span></a><a href="#exercises"><span class="num">9</span><span class="side-t">Exercises</span></a><a href="#quiz"><span class="num">10</span><span class="side-t">Check yourself</span></a></nav>
+<div class="sidebar-label">Reference</div><div class="side-links"><a href="cheatsheet_EN.html">Cheat sheet</a><a href="troubleshooting_EN.html">Troubleshooting</a><a href="glossary_EN.html">Glossary</a><a href="formal-methods-theories.zip">Theory files (ZIP)</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Formal Methods with Isabelle &middot; Part IV · Verification</div>
+      <h1 class="module-title"><span class="title-n">Module 12</span>Verifying functional programs</h1>
+      <p class="module-lead">Prove that a program does what its specification says, for every input. You will verify insertion sort, a binary search tree and a queue made of two lists, see why a specification needs each of its parts, and turn the verified functions into Haskell code.</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 230 min</span><span class="chip chip-needs">You need: Modules 1–11</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Separate a specification (what a program must do) from an implementation (how it does it), and state the theorem that connects them</li><li>Verify insertion sort against the specification “sorted, and a permutation of the input”, finding the lemmas the proofs need</li><li>Explain why each half of a specification is needed, and catch weak specifications with Quickcheck and Nitpick</li><li>Verify a binary search tree with an invariant and an abstraction function</li><li>Prove a queue made of two lists correct by data refinement, and say where its invariant is needed</li><li>Export verified functions as Haskell code, and say what the generated code is and is not guaranteed to do</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="verify"></span>
+<div class="section-header"><span class="section-num">1</span><h2>What it means to verify a program</h2></div>
+<p>Module 1 began with a requirement from a school’s software: <em>“Sort the list of scores before printing
+it.”</em> It turned the sentence into a formula about the input list xs and the output list ys,</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi><mi>e</mi><mi>d</mi></mrow><mo stretchy="false">(</mo><mi>y</mi><mi>s</mi><mo stretchy="false">)</mo><mtext>  </mtext><mo>∧</mo><mtext>  </mtext><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><mo stretchy="false">(</mo><mi>y</mi><mi>s</mi><mo stretchy="false">)</mo><mo>=</mo><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><mo stretchy="false">(</mo><mi>x</mi><mi>s</mi><mo stretchy="false">)</mo><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">\mathit{sorted}(ys) \;\land\; \mathit{mset}(ys) = \mathit{mset}(xs),
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">sorted</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">mset</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">mset</span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mpunct">,</span></span></span></span></span></div>
+<p>and promised that a proof could show that a sorting program meets it for every input. Parts II and III
+gave you the tools: functions defined with <code>fun</code> (Module 8), automation (Module 9), structured proofs
+(Module 10) and the art of finding the right induction and the missing lemma (Module 11). This module puts
+them together and keeps the promise.</p>
+<p>Three things are involved in every verification, and it pays to keep them apart.</p>
+<div class="box box-definition"><div class="box-label">Definition 12.1<span class="box-title">Implementation, specification, correctness theorem</span></div>
+<p>The <strong>implementation</strong> is the program that does the work: here, a function defined with <code>fun</code>. It says
+<em>how</em> to compute the result.</p>
+<p>The <strong>specification</strong> is a property that every acceptable result must have. It says <em>what</em> the result
+must be, not how to compute it.</p>
+<p>A <strong>correctness theorem</strong> states that for every input, the result of the implementation has the property
+of the specification. A program is <strong>verified</strong> when its correctness theorem has been proved.</p>
+</div>
+<p>For sorting, the implementation in this module is insertion sort, a function <code>isort</code>. The specification
+is the formula above. The correctness theorem joins them:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi mathvariant="normal">∀</mi><mi>x</mi><mi>s</mi><mi mathvariant="normal">.</mi><mtext>  </mtext><mrow><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi><mi>e</mi><mi>d</mi></mrow><mo stretchy="false">(</mo><mrow><mi>i</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi></mrow><mtext> </mtext><mi>x</mi><mi>s</mi><mo stretchy="false">)</mo><mo>∧</mo><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><mo stretchy="false">(</mo><mrow><mi>i</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi></mrow><mtext> </mtext><mi>x</mi><mi>s</mi><mo stretchy="false">)</mo><mo>=</mo><mrow><mi>m</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><mo stretchy="false">(</mo><mi>x</mi><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\forall xs.\; \mathit{sorted}(\mathit{isort}\ xs) \land \mathit{mset}(\mathit{isort}\ xs) = \mathit{mset}(xs)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∀</span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span><span class="mord">.</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">sorted</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">isort</span></span><span class="mspace"> </span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∧</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">mset</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">isort</span></span><span class="mspace"> </span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">mset</span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span><span class="mclose">)</span></span></span></span></span></div>
+<figure class="fig" id="fig-12-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" width="760" height="330" role="img"><title>Specification, implementation and the correctness theorem</title><defs><marker id="fig-12-1__ah-15803D" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#15803D"/></marker><marker id="fig-12-1__ah-2563EB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2563EB"/></marker></defs><rect x="20" y="20" width="340" height="168" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="40" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">Specification</text><text x="40" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">what the result must be</text><text x="40" y="96" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">ys is sorted and a permutation of xs:</text><text x="56" y="122" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">sorted ys</text><text x="56" y="144" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">mset ys = mset xs</text><text x="40" y="176" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">short, close to the requirement: for people</text><rect x="400" y="20" width="340" height="168" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="420" y="48" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#15803D" text-anchor="start">Implementation</text><text x="420" y="67" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">how to compute it</text><text x="420" y="94" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">ins x [] = [x]</text><text x="420" y="113" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">ins x (y # ys) = …</text><text x="420" y="132" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">isort [] = []</text><text x="420" y="151" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">isort (x # xs) = ins x (isort xs)</text><text x="420" y="176" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">may be clever and fast: for the computer</text><rect x="110" y="232" width="540" height="80" rx="12" fill="#F5F3FF" stroke="#6D28D9" stroke-width="2.2"/><text x="130" y="258" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14.5" font-weight="700" fill="#6D28D9" text-anchor="start">Correctness theorem</text><text x="630" y="258" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#6D28D9" text-anchor="end" font-style="italic">proved once, for every list xs</text><text x="380" y="292" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">sorted (isort xs) ∧ mset (isort xs) = mset xs</text><line x1="190" y1="190" x2="250" y2="228" stroke="#2563EB" stroke-width="2" marker-end="url(#fig-12-1__ah-2563EB)"/><text x="206" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#2563EB" text-anchor="end">the property</text><line x1="570" y1="190" x2="510" y2="228" stroke="#15803D" stroke-width="2" marker-end="url(#fig-12-1__ah-15803D)"/><text x="554" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#15803D" text-anchor="start">the program</text></svg>
+</div><figcaption><span class="fig-num">Figure 12.1</span> <p>Verification connects two separate descriptions. The specification says what a sorted copy of a list is;
+the implementation says how insertion sort computes one. The correctness theorem, proved once, connects
+them for every list.</p>
+</figcaption></figure>
+<p>Why write two descriptions of the same thing? Because they serve different readers.</p>
+<ul>
+<li><strong>The specification is for people.</strong> It should be short and close to what was meant, so that you can
+check by reading it that it says the right thing. This is validation (Module 1), and it is easier the
+less the specification says about computation.</li>
+<li><strong>The implementation is for the computer.</strong> It should be fast, use little memory, or fit the data
+structures at hand. Clever implementations are hard to check by reading.</li>
+<li><strong>The proof is the bridge.</strong> Once the theorem is proved, nobody has to read the implementation to trust
+it: it is enough to read the specification and know that Isabelle has checked the proof.</li>
+</ul>
+<p>One specification also serves many implementations. Insertion sort, merge sort and quicksort all meet the
+same sorting specification; each needs its own proof, but the statement of the theorem is the same.</p>
+<p>Specifications come in two kinds, and this module uses both. A <strong>property</strong> describes the result
+directly, as <code>sorted</code> and <code>mset</code> do for sorting. A <strong>model</strong> describes a simple version of the data and
+its operations, such as a mathematical set or a plain list, and the theorem says that the clever version
+behaves like the simple one. Sections 12.5 and 12.6 develop the second kind.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>A test checks the implementation on one input. A correctness theorem covers every input, but it is
+only as good as its specification: a proof against a specification that says too little proves too
+little. Section 12.4 shows what happens when half of a specification is missing.</p>
+</div>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>The correctness in this module is <strong>functional correctness</strong>: it is about which result a program
+computes. How long it takes and how much memory it uses are other properties, with specifications of
+their own. They can be verified too, but this module does not; Section 12.6 points to a library theory
+that does it for one of the programs here.</p>
+</div>
+<span class="section-anchor" id="isort"></span>
+<div class="section-header"><span class="section-num">2</span><h2>Insertion sort and its specification</h2></div>
+<h3 id="isort-program">The program</h3>
+<p>Insertion sort is the way many people sort a hand of cards: take the cards one at a time and insert each
+into its place among the cards already sorted. As a recursive function it reads: to sort a list x # xs,
+sort the tail xs, then insert x at the right place. Inserting x into a sorted list walks along the list
+until it meets an element that is not smaller than x, and puts x in front of it.</p>
+<div class="box box-example"><div class="box-label">Example 12.1<span class="box-title">Insertion sort on paper</span></div>
+<p>Write <code>ins x ys</code> for inserting x into the sorted list ys, and <code>isort</code> for the sort. Then</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mi>i</mi><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi></mrow><mtext> </mtext><mo stretchy="false">[</mo><mn>3</mn><mo separator="true">,</mo><mn>1</mn><mo separator="true">,</mo><mn>2</mn><mo stretchy="false">]</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>i</mi><mi>n</mi><mi>s</mi></mrow><mtext> </mtext><mn>3</mn><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>i</mi><mi>n</mi><mi>s</mi></mrow><mtext> </mtext><mn>1</mn><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>i</mi><mi>n</mi><mi>s</mi></mrow><mtext> </mtext><mn>2</mn><mtext> </mtext><mo stretchy="false">[</mo><mtext> </mtext><mo stretchy="false">]</mo><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo>=</mo><mrow><mi>i</mi><mi>n</mi><mi>s</mi></mrow><mtext> </mtext><mn>3</mn><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>i</mi><mi>n</mi><mi>s</mi></mrow><mtext> </mtext><mn>1</mn><mtext> </mtext><mo stretchy="false">[</mo><mn>2</mn><mo stretchy="false">]</mo><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>i</mi><mi>n</mi><mi>s</mi></mrow><mtext> </mtext><mn>3</mn><mtext> </mtext><mo stretchy="false">[</mo><mn>1</mn><mo separator="true">,</mo><mn>2</mn><mo stretchy="false">]</mo><mo>=</mo><mn>1</mn><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>i</mi><mi>n</mi><mi>s</mi></mrow><mtext> </mtext><mn>3</mn><mtext> </mtext><mo stretchy="false">[</mo><mn>2</mn><mo stretchy="false">]</mo><mo>=</mo><mn>1</mn><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mn>2</mn><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>i</mi><mi>n</mi><mi>s</mi></mrow><mtext> </mtext><mn>3</mn><mtext> </mtext><mo stretchy="false">[</mo><mtext> </mtext><mo stretchy="false">]</mo><mo>=</mo><mo stretchy="false">[</mo><mn>1</mn><mo separator="true">,</mo><mn>2</mn><mo separator="true">,</mo><mn>3</mn><mo stretchy="false">]</mo><mi mathvariant="normal">.</mi></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\mathit{isort}\ [3, 1, 2]
+&amp;= \mathit{ins}\ 3\ (\mathit{ins}\ 1\ (\mathit{ins}\ 2\ [\,]))
+= \mathit{ins}\ 3\ (\mathit{ins}\ 1\ [2]) \\
+&amp;= \mathit{ins}\ 3\ [1, 2]
+= 1 \mathbin{\#} \mathit{ins}\ 3\ [2]
+= 1 \mathbin{\#} 2 \mathbin{\#} \mathit{ins}\ 3\ [\,]
+= [1, 2, 3].
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.7em;vertical-align:-1.1em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.6em;"><span style="top:-3.76em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathit">isort</span></span><span class="mspace"> </span><span class="mopen">[</span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">2</span><span class="mclose">]</span></span></span><span style="top:-2.26em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.1em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.6em;"><span style="top:-3.76em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">ins</span></span><span class="mspace"> </span><span class="mord">3</span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">ins</span></span><span class="mspace"> </span><span class="mord">1</span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">ins</span></span><span class="mspace"> </span><span class="mord">2</span><span class="mspace"> </span><span class="mopen">[</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">]))</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">ins</span></span><span class="mspace"> </span><span class="mord">3</span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">ins</span></span><span class="mspace"> </span><span class="mord">1</span><span class="mspace"> </span><span class="mopen">[</span><span class="mord">2</span><span class="mclose">])</span></span></span><span style="top:-2.26em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">ins</span></span><span class="mspace"> </span><span class="mord">3</span><span class="mspace"> </span><span class="mopen">[</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">2</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">ins</span></span><span class="mspace"> </span><span class="mord">3</span><span class="mspace"> </span><span class="mopen">[</span><span class="mord">2</span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">ins</span></span><span class="mspace"> </span><span class="mord">3</span><span class="mspace"> </span><span class="mopen">[</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">[</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">3</span><span class="mclose">]</span><span class="mord">.</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.1em;"><span></span></span></span></span></span></span></span></span></span></span></span></div>
+<p><code>ins 1 [2]</code> puts 1 in front at once, because 1 ≤ 2. <code>ins 3 [1, 2]</code> passes 1 and 2, because neither is
+at least 3, and arrives at the end of the list.</p>
+</div>
+<p>Start a new theory for this module, for example <code>Verify.thy</code>. Its header imports a theory from Isabelle’s
+library <strong>HOL-Library</strong> besides <code>Main</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag">not checked</span><button type="button" class="copy-btn" data-copy="theory Verify
+  imports Main &quot;HOL-Library.Multiset&quot;
+begin
+
+end">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theory</span> Verify
+  <span class="isa-minor">imports</span> Main <span class="isa-inner">&quot;HOL-Library.Multiset&quot;</span>
+<span class="isa-cmd">begin</span>
+
+<span class="isa-cmd">end</span></code></pre></div>
+<p>The Isabelle text of this module goes between <code>begin</code> and <code>end</code>. HOL-Library is a collection of theories
+that comes with Isabelle but is not part of <code>Main</code>. <code>&quot;HOL-Library.Multiset&quot;</code> names its theory
+<code>Multiset</code>, which defines multisets and the function <code>mset</code> of the specification. The quotation marks
+are needed because of the hyphen: without them Isabelle would read three imports, <code>HOL</code>, <code>-</code> and
+<code>Library.Multiset</code>. (Here they do not mark inner syntax, as they do in a <code>lemma</code>.)</p>
+<p>When you open a theory with this import, Isabelle/jEdit first checks <code>Multiset</code> and the library theory
+it builds on, and only then your own text. This can take up to a minute. The <strong>Theories</strong> panel shows
+the progress; until it has finished, your own text stays unchecked and the Output panel shows nothing
+for it. It happens each time you start Isabelle/jEdit, because HOL-Library is not part of the prebuilt
+HOL image that Isabelle/jEdit loads at the start.</p>
+<p>Now the two functions:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun ins :: &quot;'a::linorder ⇒ 'a list ⇒ 'a list&quot; where
+  &quot;ins x [] = [x]&quot;
+| &quot;ins x (y # ys) = (if x ≤ y then x # y # ys else y # ins x ys)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> ins :: <span class="isa-inner">&quot;'a::linorder ⇒ 'a list ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;ins x [] = [x]&quot;</span>
+| <span class="isa-inner">&quot;ins x (y # ys) = (if x ≤ y then x # y # ys else y # ins x ys)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  ins :: &quot;'a ⇒ 'a list ⇒ 'a list&quot;
+
+Found termination order: &quot;(λp. length (snd p)) &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun isort :: &quot;'a::linorder list ⇒ 'a list&quot; where
+  &quot;isort [] = []&quot;
+| &quot;isort (x # xs) = ins x (isort xs)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> isort :: <span class="isa-inner">&quot;'a::linorder list ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;isort [] = []&quot;</span>
+| <span class="isa-inner">&quot;isort (x # xs) = ins x (isort xs)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  isort :: &quot;'a list ⇒ 'a list&quot;
+
+Found termination order: &quot;length &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<p>The type <code>'a::linorder</code> reads “any type <code>'a</code> in the class <code>linorder</code>”. Module 8 introduced type
+classes; <code>linorder</code> is the class of <strong>linearly ordered</strong> types, whose <code>≤</code> is reflexive, transitive and
+antisymmetric and relates any two values one way or the other: x ≤ y or y ≤ x. The natural numbers and
+the integers are linearly ordered, so <code>isort</code> sorts lists of either. Isabelle’s answer prints the types
+without the class, as it does by default (Module 8 showed how to make sorts visible). The names <code>ins</code>
+and <code>isort</code> are chosen so as not to clash with the library’s own insertion sort, <code>insort</code> and <code>sort</code>.</p>
+<p>Test the program before you try to prove anything about it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;isort [3, 1, 4, 1, 5, 9, 2, 6 :: int]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;isort [3, 1, 4, 1, 5, 9, 2, 6 :: int]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[1, 1, 2, 3, 4, 5, 6, 9]&quot;
+  :: &quot;int list&quot;</code></pre></div>
+<details class="trouble"><summary>If something went wrong</summary><div class="details-body">
+<p>If you leave out <code>::linorder</code>, Isabelle does not know that <code>≤</code> exists for the type <code>'a</code>:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> ins_any :: <span class="isa-inner">&quot;'a ⇒ 'a list ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;ins_any x [] = [x]&quot;</span>
+| <span class="isa-inner">&quot;ins_any x (y # ys) = (if x ≤ y then x # y # ys else y # ins_any x ys)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Type unification failed: Variable 'a::type not of sort ord
+
+Type error in application: incompatible operand type
+
+Operator:  (≤) :: ??'a ⇒ ??'a ⇒ bool
+Operand:   x :: 'a
+</span></code></pre></div>
+<p>A plain <code>'a</code> stands for any type at all, including types that have no <code>≤</code>; in Isabelle’s words, its sort
+is <code>type</code>, the sort of all types. The message says that such a variable is not of sort <code>ord</code>, the class
+of types with <code>≤</code> and <code>&lt;</code>. The <strong>sort</strong> after <code>::</code> (Module 8) restricts <code>'a</code> to types that have them.
+<code>'a::ord</code> would be enough to make the definition type-check, but the proofs below need the laws of a
+linear order, so use <code>linorder</code>.</p>
+</div></details>
+<h3 id="isort-spec">The specification</h3>
+<p>The specification has two halves, both made of library functions.</p>
+<p><strong>Sorted.</strong> <code>sorted</code> from the library says that each element of a list is at most every element after
+it. The library defines <code>sorted</code> through a more general function, <code>sorted_wrt</code>, so its equations are
+not called <code>sorted.simps</code>; they are the lemma <code>sorted_simps</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm sorted_simps">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> sorted_simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  sorted [] = True
+  sorted (?x # ?ys) = ((∀y∈set ?ys. ?x ≤ y) ∧ sorted ?ys)</code></pre></div>
+<p>The question marks mark schematic variables (Module 7): the equations hold for every x and ys. Read the
+second equation aloud: “x # ys is sorted if and only if x is at most every y in ys, and ys is sorted”.
+<code>set ys</code> is the set of the elements of ys, and <code>∀y∈set ys. P y</code> reads “for every y in ys, P of y”. Try
+it on two lists:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;sorted [1, 2, 2, 5 :: nat]&quot;
+value &quot;sorted [1, 3, 2 :: nat]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;sorted [1, 2, 2, 5 :: nat]&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;sorted [1, 3, 2 :: nat]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;True&quot;
+  :: &quot;bool&quot;
+
+&quot;False&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p><strong>A permutation.</strong> Sortedness alone is not enough, as Module 1 noticed: the empty list is sorted. The
+result must also contain the same elements as the input, each as often. Sets cannot say “as often”, so the
+specification uses multisets.</p>
+<div class="box box-definition"><div class="box-label">Definition 12.2<span class="box-title">Multiset and permutation</span></div>
+<p>A <strong>multiset</strong> (or <em>bag</em>) is a collection in which order does not matter but the number of copies of each
+element does. <code>mset xs</code>, of type <code>'a multiset</code>, is the multiset of the elements of the list xs;
+<code>count M x</code> is the number of copies of x in M. A list ys is a <strong>permutation</strong> of xs if it has the
+same elements, each as often: <code>mset ys = mset xs</code>.</p>
+</div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;mset [2, 1, 2 :: nat] = mset [1, 2, 2]&quot;
+value &quot;mset [1, 2 :: nat] = mset [1, 2, 2]&quot;
+value &quot;count (mset [2, 1, 2 :: nat]) 2&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;mset [2, 1, 2 :: nat] = mset [1, 2, 2]&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;mset [1, 2 :: nat] = mset [1, 2, 2]&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;count (mset [2, 1, 2 :: nat]) 2&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;True&quot;
+  :: &quot;bool&quot;
+
+&quot;False&quot;
+  :: &quot;bool&quot;
+
+&quot;2&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p><code>[2, 1, 2]</code> and <code>[1, 2, 2]</code> are permutations of each other; <code>[1, 2]</code> has one 2 too few. In proofs you
+meet multisets through the two equations that define <code>mset</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm mset.simps">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> mset.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  mset [] = {#}
+  mset (?a # ?x) = add_mset ?a (mset ?x)</code></pre></div>
+<p>The second equation reads “the multiset of a # x is the multiset of x with one more copy of a”. <code>{#}</code> is
+the empty multiset and <code>add_mset a M</code> is M with one more copy of a. So
+<code>mset [3, 1] = add_mset 3 (add_mset 1 {#})</code>, which Isabelle also writes <code>{#3, 1#}</code>. When <code>value</code>
+computes a multiset, though, it shows it as <code>mset</code> of a list:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;mset [3, 1 :: nat]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;mset [3, 1 :: nat]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;mset [3, 1]&quot;
+  :: &quot;nat multiset&quot;</code></pre></div>
+<p>To compute with multisets, Isabelle represents each one by a list of its elements, and <code>value</code> prints
+that representation. Section 12.6 comes back to this.</p>
+<div class="box box-definition"><div class="box-label">Definition 12.3<span class="box-title">The sorting specification</span></div>
+<p>A function <code>f :: 'a::linorder list ⇒ 'a list</code> <strong>meets the sorting specification</strong> if for every list xs,
+<code>sorted (f xs)</code> and <code>mset (f xs) = mset xs</code>: the result is sorted, and it is a permutation of the input.</p>
+</div>
+<p>Before you spend time on a proof, test the claim. Quickcheck (Module 9) tries to refute it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;sorted (isort xs) ∧ mset (isort xs) = mset xs&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted (isort xs) ∧ mset (isort xs) = mset xs&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.</code></pre></div>
+<p>Quickcheck tried every list up to a small size and found no counterexample. That is encouraging, not
+conclusive: a bug might show only on longer lists. In Isabelle/jEdit you do not even need the command,
+because Auto Quickcheck tries every new <code>lemma</code> statement and marks the line with a blue <strong>i</strong> when it
+finds a counterexample (Module 1). Now prove it.</p>
+<span class="section-anchor" id="isort-proof"></span>
+<div class="section-header"><span class="section-num">3</span><h2>Proving insertion sort correct</h2></div>
+<p>The correctness theorem is a conjunction, so prove its halves separately and join them at the end.
+Both halves follow the same plan, the one Module 11 taught: try the obvious induction, read the goal on
+which automation gets stuck, and find the lemma that is missing.</p>
+<h3 id="sorted-attempt">Sorted: the obvious attempt</h3>
+<p><code>isort</code> is defined by recursion on the list, so try induction on the list:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted (isort xs)&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ⋀a xs. sorted (isort xs) ⟹ sorted (ins a (isort xs))</span></code></pre></div>
+<p>The base case is solved; the induction step is not. Read the goal that is left. Its premise is the
+induction hypothesis, <code>sorted (isort xs)</code>, and its conclusion is <code>sorted (ins a (isort xs))</code>, where a
+is Isabelle’s name for the head of the list. So the step needs one fact: <strong>inserting into a sorted list
+gives a sorted list</strong>. That fact is about <code>ins</code> alone; <code>isort</code> only supplies the sorted list. Following
+Module 11’s recipe, replace the specific list <code>isort xs</code> by a variable, and state the fact as a lemma of
+its own:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi><mi>e</mi><mi>d</mi></mrow><mtext> </mtext><mi>x</mi><mi>s</mi><mo>⟹</mo><mrow><mi>s</mi><mi>o</mi><mi>r</mi><mi>t</mi><mi>e</mi><mi>d</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>i</mi><mi>n</mi><mi>s</mi></mrow><mtext> </mtext><mi>x</mi><mtext> </mtext><mi>x</mi><mi>s</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathit{sorted}\ xs \Longrightarrow \mathit{sorted}\ (\mathit{ins}\ x\ xs)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7184em;vertical-align:-0.024em;"></span><span class="mord"><span class="mord mathit">sorted</span></span><span class="mspace"> </span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">⟹</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">sorted</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">ins</span></span><span class="mspace"> </span><span class="mord mathnormal">x</span><span class="mspace"> </span><span class="mord mathnormal">x</span><span class="mord mathnormal">s</span><span class="mclose">)</span></span></span></span></span></div>
+<h3 id="ins-lemmas">The lemmas about ins</h3>
+<p>On paper, the lemma follows by induction on xs. For the empty list, <code>ins x [] = [x]</code> is sorted. For
+y # ys, look at the two branches of <code>ins</code>:</p>
+<ul>
+<li>If x ≤ y, the result is x # y # ys. It is sorted because x ≤ y, y is at most every element of ys (the
+list y # ys is sorted), so x is too, and y # ys is sorted.</li>
+<li>Otherwise y &lt; x, and the result is y # ins x ys. The tail <code>ins x ys</code> is sorted by the induction
+hypothesis, because ys is sorted. And y must be at most every element of <code>ins x ys</code>. Which elements are
+those? Those of ys, and x. y is at most each of them: at most x because y &lt; x, at most the elements of
+ys because y # ys is sorted.</li>
+</ul>
+<p>The second branch uses a fact that is so obvious on paper that it is easy to overlook: the elements of
+<code>ins x ys</code> are x and the elements of ys. Isabelle does not overlook it. Start the proof of the lemma and
+look at the goals that <code>auto</code> leaves:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;sorted xs ⟹ sorted (ins x xs)&quot;
+  apply (induction xs)
+  apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted xs ⟹ sorted (ins x xs)&quot;</span>
+  <span class="isa-proof">apply</span> (induction xs)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀a xs xa.
+       ⟦sorted (ins x xs); ∀x∈set xs. a ≤ x; sorted xs; ¬ x ≤ a;
+        xa ∈ set (ins x xs)⟧
+       ⟹ a ≤ xa</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>One goal remains, from the branch where ¬ x ≤ a: the head a must be at most every element xa of
+<code>ins x xs</code>. (The bound x in <code>∀x∈set xs. a ≤ x</code> is a different x from the one being inserted; Isabelle
+reuses the name.) <code>auto</code> knows that a is at most every element of xs and that ¬ x ≤ a, but nothing about
+which elements <code>ins x xs</code> has: exactly the fact the paper proof used without comment. State it as a
+lemma. It has its own, easy induction:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma set_ins: &quot;set (ins x xs) = insert x (set xs)&quot;
+  by (induction xs) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> set_ins: <span class="isa-inner">&quot;set (ins x xs) = insert x (set xs)&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) auto</code></pre></div>
+<p><code>insert x A</code> is the set A with x added, <code>{x} ∪ A</code>. With <code>set_ins</code> available, the lemma about
+sortedness goes through. Here it is in Isar, following the paper proof case by case:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma sorted_ins: &quot;sorted xs ⟹ sorted (ins x xs)&quot;
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons y ys)
+  show ?case
+  proof (cases &quot;x ≤ y&quot;)
+    case True
+    with Cons.prems show ?thesis by auto
+  next
+    case False
+    with Cons show ?thesis by (auto simp: set_ins)
+  qed
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> sorted_ins: <span class="isa-inner">&quot;sorted xs ⟹ sorted (ins x xs)&quot;</span>
+<span class="isa-proof">proof</span> (induction xs)
+  <span class="isa-proof">case</span> Nil
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Cons y ys)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span>
+  <span class="isa-proof">proof</span> (cases <span class="isa-inner">&quot;x ≤ y&quot;</span>)
+    <span class="isa-proof">case</span> True
+    <span class="isa-proof">with</span> Cons.prems <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> auto
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">case</span> False
+    <span class="isa-proof">with</span> Cons <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> (auto simp: set_ins)
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p>In the case x ≤ y, the premise <code>Cons.prems</code>, that y # ys is sorted, is all <code>auto</code> needs. In the other
+case it also needs the induction hypothesis (passed with the whole of <code>Cons</code>) and the new lemma. Once you
+know which facts each step needs, the whole induction fits on one line as well; the Isar version shows a
+reader where each fact is used.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;sorted xs ⟹ sorted (ins x xs)&quot;
+  by (induction xs) (auto simp: set_ins)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted xs ⟹ sorted (ins x xs)&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) (auto simp: set_ins)</code></pre></div>
+<p>Now the theorem’s first half is the original induction, with the lemma passed to <code>auto</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma sorted_isort: &quot;sorted (isort xs)&quot;
+  by (induction xs) (auto simp: sorted_ins)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> sorted_isort: <span class="isa-inner">&quot;sorted (isort xs)&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) (auto simp: sorted_ins)</code></pre></div>
+<h3 id="perm-proof">A permutation</h3>
+<p>The second half goes the same way. Try the obvious induction and look at the step:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mset (isort xs) = mset xs&quot;
+  apply (induction xs)
+  apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mset (isort xs) = mset xs&quot;</span>
+  <span class="isa-proof">apply</span> (induction xs)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀a xs.
+       mset (isort xs) = mset xs ⟹
+       mset (ins a (isort xs)) = add_mset a (mset xs)</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>The step needs the multiset of <code>ins a (isort xs)</code>. With the hypothesis <code>mset (isort xs) = mset xs</code>,
+the goal would follow from a fact about <code>ins</code> alone: inserting x adds one copy of x to the multiset. As
+before, generalise <code>isort xs</code> to any list:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma mset_ins: &quot;mset (ins x xs) = add_mset x (mset xs)&quot;
+  by (induction xs) auto
+
+lemma mset_isort: &quot;mset (isort xs) = mset xs&quot;
+  by (induction xs) (auto simp: mset_ins)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> mset_ins: <span class="isa-inner">&quot;mset (ins x xs) = add_mset x (mset xs)&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) auto
+
+<span class="isa-cmd">lemma</span> mset_isort: <span class="isa-inner">&quot;mset (isort xs) = mset xs&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) (auto simp: mset_ins)</code></pre></div>
+<p>Notice that <code>mset_ins</code> holds for every list, sorted or not: <code>ins</code> never loses or duplicates an element,
+wherever it stops.</p>
+<h3 id="isort-theorem">The correctness theorem</h3>
+<p>The two halves give the theorem. <code>proof</code> without a method applies the standard rule for <code>∧</code> (Module 10),
+which leaves one goal for each half:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem isort_correct: &quot;sorted (isort xs) ∧ mset (isort xs) = mset xs&quot;
+proof
+  show &quot;sorted (isort xs)&quot; by (rule sorted_isort)
+next
+  show &quot;mset (isort xs) = mset xs&quot; by (rule mset_isort)
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> isort_correct: <span class="isa-inner">&quot;sorted (isort xs) ∧ mset (isort xs) = mset xs&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;sorted (isort xs)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> sorted_isort)
+<span class="isa-proof">next</span>
+  <span class="isa-proof">show</span> <span class="isa-inner">&quot;mset (isort xs) = mset xs&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> mset_isort)
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The command <code>theorem</code>, like <code>corollary</code> (Module 11) and <code>proposition</code>, means the same as <code>lemma</code>; the
+word marks a main result. Insertion sort is verified: for every list of every linearly ordered type,
+<code>isort</code> returns a sorted permutation of its input.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>Proofs about programs are found from the top down and written from the bottom up. You start with the
+theorem, try induction, and read the goal on which automation stops; the goal tells you which lemma about
+a smaller function is missing, often after you generalise a specific term to a variable. The finished
+theory lists the lemmas first (<code>set_ins</code>, <code>sorted_ins</code>, <code>mset_ins</code>) and the theorem last.</p>
+</div>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>When a goal mentions a library function, such as <code>mset</code> of an appended list, the lemma you need is
+probably in the library already. Search for it with <code>find_theorems</code> (Module 9) before you prove it
+yourself. For functions of your own, such as <code>ins</code>, the lemmas are yours to state.</p>
+</div>
+<span class="section-anchor" id="halves"></span>
+<div class="section-header"><span class="section-num">4</span><h2>Why a specification needs both halves</h2></div>
+<p>A verified program is only as good as its specification, so look at the specification as critically as
+at the program. Would one half have been enough? Two deliberately wrong “sorting” functions answer the
+question.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition sort_drop :: &quot;'a::linorder list ⇒ 'a list&quot; where
+  &quot;sort_drop xs = []&quot;
+
+definition sort_keep :: &quot;'a::linorder list ⇒ 'a list&quot; where
+  &quot;sort_keep xs = xs&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> sort_drop :: <span class="isa-inner">&quot;'a::linorder list ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;sort_drop xs = []&quot;</span>
+
+<span class="isa-cmd">definition</span> sort_keep :: <span class="isa-inner">&quot;'a::linorder list ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;sort_keep xs = xs&quot;</span></code></pre></div>
+<p><code>sort_drop</code> throws the list away; <code>sort_keep</code> returns it unchanged. Neither sorts. But <code>sort_drop</code> meets
+the first half of the specification, because the empty list is sorted:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;sorted (sort_drop xs)&quot;
+  by (simp add: sort_drop_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted (sort_drop xs)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: sort_drop_def)</code></pre></div>
+<p>Its failure shows only in the second half, and Quickcheck finds it at once:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mset (sort_drop xs) = mset xs&quot;
+  quickcheck">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mset (sort_drop xs) = mset xs&quot;</span>
+  <span class="isa-cmd">quickcheck</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a<sub>1</sub>]
+Evaluated terms:
+  mset (sort_drop xs) = mset []
+  mset xs = mset [a<sub>1</sub>]</code></pre></div>
+<p>The counterexample is a list with one element, a₁. Quickcheck tests a claim about an unknown element type
+on small types whose values it calls a₁, a₂, a₃ and so on. The evaluated terms show the two sides of the
+equation, each multiset printed as <code>mset</code> of a list, as <code>value</code> prints it: the empty multiset on the
+left, a multiset with a₁ on the right. Nitpick (Module 9) agrees. It tries several sizes of the element
+type at once, so which counterexample it reports first can vary from run to run; the option
+<code>card 'a = 2</code> fixes the size of <code>'a</code> to two values:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  nitpick [card 'a = 2]">Copy</button></div><pre class="isa-body"><code>  <span class="isa-cmd">nitpick</span> [card 'a = 2]</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 2:
+  Free variable:
+    xs = [a<sub>1</sub>]</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p><code>sort_keep</code> is the mirror image. It meets the second half, since every list is a permutation of itself:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mset (sort_keep xs) = mset xs&quot;
+  by (simp add: sort_keep_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mset (sort_keep xs) = mset xs&quot;</span>
+  <span class="isa-proof">by</span> (simp add: sort_keep_def)</code></pre></div>
+<p>and fails the first:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;sorted (sort_keep xs)&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted (sort_keep xs)&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a<sub>2</sub>, a<sub>1</sub>]</code></pre></div>
+<p>Quickcheck’s small types are ordered by the index of their values, a₁ &lt; a₂ &lt; a₃, so the list
+<code>[a₂, a₁]</code> is out of order, and <code>sort_keep</code> returns it unchanged.</p>
+<p>Each half rules out one kind of wrong program. “Sorted” rules out programs that leave elements out of
+order; “permutation” rules out programs that lose, add or duplicate elements. Only together do they say
+what sorting means.</p>
+<p>Are the two halves together enough, or could a wrong program still meet both? They are enough: for each
+input, exactly one list is sorted and a permutation of it. The library proves this about its own sorting
+function <code>sort</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm properties_for_sort">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> properties_for_sort</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>⟦mset ?ys = mset ?xs; sorted ?ys⟧ ⟹ sort ?xs = ?ys</code></pre></div>
+<p>Read it as: if ys is a permutation of xs and ys is sorted, then ys is <code>sort xs</code>. So every function that
+meets the specification computes the same results as <code>sort</code>; Exercise 12.7 uses this to prove
+<code>isort xs = sort xs</code>. The specification pins down the result for every input.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>A common weakening of the specification uses sets instead of multisets: <code>sorted ys ∧ set ys = set xs</code>.
+It looks right, and it is wrong. A function that sorts and also removes duplicates, turning
+<code>[2, 1, 2]</code> into <code>[1, 2]</code>, meets it. For scores in a school this loses a pupil’s mark whenever two pupils
+have the same score. Exercise 12.8 builds such a function and lets Quickcheck expose it.</p>
+</div>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>Not every specification has to pin down the result. A specification that allows several results is useful
+when any of them will do: “return some element of the list”, “return a shortest path”. But then
+“meets the specification” is all the theorem promises, and the users of the program must not rely on
+which result they get.</p>
+</div>
+<span class="section-anchor" id="bst"></span>
+<div class="section-header"><span class="section-num">5</span><h2>Binary search trees</h2></div>
+<p>Sorting is a function from inputs to outputs. Many programs instead keep data in a structure and offer
+operations on it: insert a key, ask whether a key is present. Such a structure is correct if the
+operations behave as they should on the data the structure represents. A <strong>binary search tree</strong> is the
+standard example.</p>
+<p>To find a name in a sorted phone book you do not read it from the first page: you open it in the middle,
+see whether the name comes before or after, and repeat in the half that remains. A binary search tree
+stores keys so that every search can work like that. Each node holds a key; the keys in its left subtree
+are smaller, the keys in its right subtree larger. To look for a key, compare it with the key at the root
+and go left or right. A search follows a single path from the root, so it takes at most as many steps as
+the tree is high. In a well-balanced tree with n keys that is about log₂ n steps, far fewer than n.</p>
+<h3 id="bst-trees">Trees and the set they represent</h3>
+<p>The trees are those of Module 11: a tree is either a leaf <code>Lf</code>, which holds nothing, or a node
+<code>Nd l x r</code> with a left subtree l, a key x and a right subtree r. Your theory for this module needs its
+own copy of the datatype:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype 'a btree = Lf | Nd &quot;'a btree&quot; 'a &quot;'a btree&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> 'a btree = Lf | Nd <span class="isa-inner">&quot;'a btree&quot;</span> 'a <span class="isa-inner">&quot;'a btree&quot;</span></code></pre></div>
+<p>A search tree stands for a set of keys: the set of all keys in its nodes. This is what a user of the tree
+cares about. Which shape the tree has, and where each key sits, is the tree’s business. Define the set as
+a function:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun set_of :: &quot;'a btree ⇒ 'a set&quot; where
+  &quot;set_of Lf = {}&quot;
+| &quot;set_of (Nd l x r) = set_of l ∪ {x} ∪ set_of r&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> set_of :: <span class="isa-inner">&quot;'a btree ⇒ 'a set&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;set_of Lf = {}&quot;</span>
+| <span class="isa-inner">&quot;set_of (Nd l x r) = set_of l ∪ {x} ∪ set_of r&quot;</span></code></pre></div>
+<p><code>set_of</code> is the <strong>abstraction function</strong> of search trees: it maps each tree, the concrete data, to the
+set it represents, the abstract value. Section 12.6 makes the idea general.</p>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>The <code>datatype</code> command defines such a function by itself, called <code>set_btree</code>, together with others such
+as <code>map_btree</code> (the Isabelle manual on datatypes, <code>datatypes.pdf</code>, lists them). Its equations, with
+variable names that Isabelle generated, say the same as those of <code>set_of</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm btree.set">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> btree.set</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  set_btree Lf = {}
+  set_btree (Nd ?x21.0 ?x22.0 ?x23.0) =
+  set_btree ?x21.0 ∪ {?x22.0} ∪ set_btree ?x23.0</code></pre></div>
+<p><code>?x21.0</code> is the schematic variable <code>?x21</code>: Isabelle adds <code>.0</code> to a name that ends in a digit. This
+module defines its own function, so that the abstraction function is visible in the theory.</p>
+</div>
+<h3 id="bst-ops">Search and insertion</h3>
+<p>Searching compares the key with the key of the node and goes left, goes right, or stops:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun isin :: &quot;'a::linorder ⇒ 'a btree ⇒ bool&quot; where
+  &quot;isin x Lf = False&quot;
+| &quot;isin x (Nd l y r) =
+     (if x &lt; y then isin x l else if y &lt; x then isin x r else True)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> isin :: <span class="isa-inner">&quot;'a::linorder ⇒ 'a btree ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;isin x Lf = False&quot;</span>
+| <span class="isa-inner">&quot;isin x (Nd l y r) =
+     (if x &lt; y then isin x l else if y &lt; x then isin x r else True)&quot;</span></code></pre></div>
+<p>Insertion searches in the same way. If it finds the key, the tree stays as it is; if it reaches a leaf,
+the key was not there, and the leaf becomes a new node:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun tinsert :: &quot;'a::linorder ⇒ 'a btree ⇒ 'a btree&quot; where
+  &quot;tinsert x Lf = Nd Lf x Lf&quot;
+| &quot;tinsert x (Nd l y r) =
+     (if x &lt; y then Nd (tinsert x l) y r
+      else if y &lt; x then Nd l y (tinsert x r)
+      else Nd l y r)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> tinsert :: <span class="isa-inner">&quot;'a::linorder ⇒ 'a btree ⇒ 'a btree&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;tinsert x Lf = Nd Lf x Lf&quot;</span>
+| <span class="isa-inner">&quot;tinsert x (Nd l y r) =
+     (if x &lt; y then Nd (tinsert x l) y r
+      else if y &lt; x then Nd l y (tinsert x r)
+      else Nd l y r)&quot;</span></code></pre></div>
+<p>Here is a tree with six keys to try them on; Figure 12.2 draws it.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition t0 :: &quot;int btree&quot; where
+  &quot;t0 = Nd (Nd (Nd Lf 1 Lf) 2 (Nd Lf 4 Lf)) 5 (Nd Lf 8 (Nd Lf 9 Lf))&quot;
+
+value &quot;set_of t0&quot;
+value &quot;isin 4 t0&quot;
+value &quot;isin 7 t0&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> t0 :: <span class="isa-inner">&quot;int btree&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;t0 = Nd (Nd (Nd Lf 1 Lf) 2 (Nd Lf 4 Lf)) 5 (Nd Lf 8 (Nd Lf 9 Lf))&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;set_of t0&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;isin 4 t0&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;isin 7 t0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  t0 :: &quot;int btree&quot;
+
+&quot;{5, 2, 1, 4, 8, 9}&quot;
+  :: &quot;int set&quot;
+
+&quot;True&quot;
+  :: &quot;bool&quot;
+
+&quot;False&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>A set has no order: Isabelle prints the keys in the order in which the generated code collected them, and
+<code>{5, 2, 1, 4, 8, 9}</code> is the same set as <code>{1, 2, 4, 5, 8, 9}</code>. The search for 4 goes left at 5 and right
+at 2, and finds 4. The search for 7 goes right at 5, left at 8, and reaches a leaf: 7 is not there.
+Inserting 6 takes the same path as the search for 7, and puts a new node where that search ended:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;tinsert 6 t0&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;tinsert 6 t0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Nd (Nd (Nd Lf 1 Lf) 2 (Nd Lf 4 Lf)) 5 (Nd (Nd Lf 6 Lf) 8 (Nd Lf 9 Lf))&quot;
+  :: &quot;int btree&quot;</code></pre></div>
+<figure class="fig" id="fig-12-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="760" height="340" role="img"><title>A binary search tree before and after inserting 6</title><defs><marker id="fig-12-2__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="30" y="106" width="140" height="122" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.3" stroke-dasharray="5 4"/><text x="100" y="246" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">keys &lt; 5</text><rect x="206" y="106" width="148" height="122" rx="10" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.3" stroke-dasharray="5 4"/><text x="280" y="246" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="middle">keys &gt; 5</text><line x1="190" y1="64" x2="100" y2="134" stroke="#475569" stroke-width="1.8"/><line x1="190" y1="64" x2="280" y2="134" stroke="#475569" stroke-width="1.8"/><line x1="100" y1="134" x2="55" y2="200" stroke="#475569" stroke-width="1.8"/><line x1="100" y1="134" x2="145" y2="200" stroke="#475569" stroke-width="1.8"/><line x1="280" y1="134" x2="325" y2="200" stroke="#475569" stroke-width="1.8"/><circle cx="190" cy="64" r="18" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="190" y="69" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">5</text><circle cx="100" cy="134" r="18" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="100" y="139" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">2</text><circle cx="280" cy="134" r="18" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="280" y="139" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">8</text><circle cx="55" cy="200" r="18" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="55" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">1</text><circle cx="145" cy="200" r="18" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="145" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">4</text><circle cx="325" cy="200" r="18" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="325" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">9</text><line x1="280" y1="134" x2="238" y2="196" stroke="#475569" stroke-width="1.4" stroke-dasharray="4 4"/><rect x="226" y="190" width="24" height="18" rx="4" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.2"/><text x="238" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="10.5" font-weight="400" fill="#475569" text-anchor="middle">Lf</text><text x="190" y="30" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">t0</text><line x1="570" y1="64" x2="480" y2="134" stroke="#475569" stroke-width="1.8"/><line x1="570" y1="64" x2="660" y2="134" stroke="#C2410C" stroke-width="3"/><line x1="480" y1="134" x2="435" y2="200" stroke="#475569" stroke-width="1.8"/><line x1="480" y1="134" x2="525" y2="200" stroke="#475569" stroke-width="1.8"/><line x1="660" y1="134" x2="615" y2="200" stroke="#C2410C" stroke-width="3"/><line x1="660" y1="134" x2="705" y2="200" stroke="#475569" stroke-width="1.8"/><circle cx="570" cy="64" r="18" fill="#FFF7ED" stroke="#C2410C" stroke-width="2.4"/><text x="570" y="69" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">5</text><circle cx="480" cy="134" r="18" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="480" y="139" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">2</text><circle cx="660" cy="134" r="18" fill="#FFF7ED" stroke="#C2410C" stroke-width="2.4"/><text x="660" y="139" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">8</text><circle cx="435" cy="200" r="18" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="435" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">1</text><circle cx="525" cy="200" r="18" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="525" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">4</text><circle cx="615" cy="200" r="18" fill="#DCFCE7" stroke="#15803D" stroke-width="2.6"/><text x="615" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#15803D" text-anchor="middle">6</text><circle cx="705" cy="200" r="18" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="705" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">9</text><text x="570" y="30" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">tinsert 6 t0</text><text x="622" y="92" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#C2410C" text-anchor="start">6 &gt; 5: go right</text><text x="604" y="176" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#C2410C" text-anchor="end">6 &lt; 8: go left</text><text x="615" y="238" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11" font-weight="600" fill="#15803D" text-anchor="middle" font-style="italic">new node, where the leaf was</text><line x1="380" y1="64" x2="520" y2="64" stroke="#475569" stroke-width="2" marker-end="url(#fig-12-2__ah-475569)"/><text x="450" y="54" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#475569" text-anchor="middle">tinsert 6</text><rect x="20" y="270" width="720" height="58" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="36" y="293" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">Invariant bst: at every node, every key in the left subtree is smaller and every key</text><text x="36" y="314" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">in the right subtree is larger. Search and insertion rely on it; insertion preserves it.</text></svg>
+</div><figcaption><span class="fig-num">Figure 12.2</span> <p>The search tree <code>t0</code> before and after <code>tinsert 6</code>. Insertion follows the path of a search (right at 5,
+left at 8) and replaces the leaf where the search ends by a new node. At every node, the keys in the left
+subtree are smaller than the node’s key and the keys in the right subtree are larger: the invariant <code>bst</code>.</p>
+</figcaption></figure>
+<h3 id="bst-invariant">The invariant</h3>
+<p>The search only works if the keys are in the right places. In this tree, 6 sits in the left subtree of
+5, where only smaller keys belong:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;isin 6 (Nd (Nd Lf 1 (Nd Lf 6 Lf)) 5 (Lf :: int btree))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;isin 6 (Nd (Nd Lf 1 (Nd Lf 6 Lf)) 5 (Lf :: int btree))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;False&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>The key 6 is in the tree, but the search goes right at 5 and finds a leaf. The functions are not wrong;
+they assume something about the tree that this tree does not satisfy. That assumption is the tree’s
+invariant.</p>
+<div class="box box-definition"><div class="box-label">Definition 12.4<span class="box-title">Invariant of a data structure</span></div>
+<p>An <strong>invariant</strong> of a data structure is a property that every value built by its operations has, and
+that the operations may rely on. The operations must <strong>preserve</strong> it: if their input satisfies the
+invariant, so does their output.</p>
+</div>
+<p>For search trees, the invariant is that at every node, all keys of the left subtree are smaller than the
+node’s key and all keys of the right subtree are larger:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun bst :: &quot;'a::linorder btree ⇒ bool&quot; where
+  &quot;bst Lf = True&quot;
+| &quot;bst (Nd l x r) =
+     (bst l ∧ bst r ∧ (∀y ∈ set_of l. y &lt; x) ∧ (∀y ∈ set_of r. x &lt; y))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> bst :: <span class="isa-inner">&quot;'a::linorder btree ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;bst Lf = True&quot;</span>
+| <span class="isa-inner">&quot;bst (Nd l x r) =
+     (bst l ∧ bst r ∧ (∀y ∈ set_of l. y &lt; x) ∧ (∀y ∈ set_of r. x &lt; y))&quot;</span></code></pre></div>
+<p><code>∀y ∈ set_of l. y &lt; x</code> reads “every key y of l is less than x”. Check it on the two trees:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;bst t0&quot;
+value &quot;bst (Nd (Nd Lf 1 (Nd Lf 6 Lf)) 5 (Lf :: int btree))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;bst t0&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;bst (Nd (Nd Lf 1 (Nd Lf 6 Lf)) 5 (Lf :: int btree))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;True&quot;
+  :: &quot;bool&quot;
+
+&quot;False&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<p>The specification of search trees now has three parts, and Section 12.6 shows that they are an instance
+of a general pattern:</p>
+<ol>
+<li>Insertion preserves the invariant: <code>bst t ⟹ bst (tinsert x t)</code>.</li>
+<li>Insertion inserts: <code>set_of (tinsert x t) = insert x (set_of t)</code>.</li>
+<li>Search is correct: <code>bst t ⟹ isin x t = (x ∈ set_of t)</code>.</li>
+</ol>
+<p>The second and third parts say that <code>tinsert</code> and <code>isin</code> do to the tree what <code>insert</code> and <code>∈</code> do to the
+set it represents. The third holds only for trees that satisfy the invariant, as the tree with 6 in the
+wrong place showed.</p>
+<h3 id="bst-wrong">A wrong invariant</h3>
+<p>The invariant must say the right thing, and that is easy to get wrong. A tempting simplification
+compares each node only with its two children: the left child’s key must be smaller, the right child’s
+larger. It is easier to state and quicker to check:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun bst_local :: &quot;'a::linorder btree ⇒ bool&quot; where
+  &quot;bst_local Lf = True&quot;
+| &quot;bst_local (Nd l x r) =
+     (bst_local l ∧ bst_local r ∧
+      (case l of Lf ⇒ True | Nd _ y _ ⇒ y &lt; x) ∧
+      (case r of Lf ⇒ True | Nd _ y _ ⇒ x &lt; y))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> bst_local :: <span class="isa-inner">&quot;'a::linorder btree ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;bst_local Lf = True&quot;</span>
+| <span class="isa-inner">&quot;bst_local (Nd l x r) =
+     (bst_local l ∧ bst_local r ∧
+      (case l of Lf ⇒ True | Nd _ y _ ⇒ y &lt; x) ∧
+      (case r of Lf ⇒ True | Nd _ y _ ⇒ x &lt; y))&quot;</span></code></pre></div>
+<p>The pattern <code>Nd _ y _</code> matches any node and names only its key; <code>_</code> stands for a part you do not need.
+Is search correct for trees with this invariant? Ask Quickcheck before trying to prove it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;bst_local t ⟹ isin x t = (x ∈ set_of t)&quot;
+  quickcheck">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;bst_local t ⟹ isin x t = (x ∈ set_of t)&quot;</span>
+  <span class="isa-cmd">quickcheck</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  t = Nd Lf a<sub>2</sub> (Nd (Nd Lf a<sub>1</sub> Lf) a<sub>3</sub> Lf)
+  x = a<sub>1</sub>
+Evaluated terms:
+  isin x t = False
+  x ∈ set_of t = True</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>Draw the tree. Its root holds a₂ and has an empty left subtree. The right child holds a₃, and the left
+child of that node holds a₁. Each node is in order with its children: a₃ is larger than a₂, and a₁ is
+smaller than a₃. So <code>bst_local</code> holds. But a₁ is smaller than a₂ and sits in a₂’s right subtree. The
+search for a₁ compares it with a₂, goes left and finds a leaf: <code>isin</code> answers False, although a₁ is in
+the tree. The evaluated terms show exactly this.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>An invariant about a recursive structure usually has to speak about whole subtrees, not only about
+neighbours. If a property holds between neighbours only, check with Quickcheck or Nitpick that it
+implies what the operations need, before you build proofs on it.</p>
+</div>
+<h3 id="bst-proofs">Proving the search tree correct</h3>
+<p>Start with the first part of the specification, the invariant, and try the obvious induction:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;bst t ⟹ bst (tinsert x t)&quot;
+  apply (induction t)
+  apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;bst t ⟹ bst (tinsert x t)&quot;</span>
+  <span class="isa-proof">apply</span> (induction t)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀t1 x2 t2 xa.
+       ⟦bst (tinsert x t1); bst (tinsert x t2); bst t1; bst t2;
+        ∀y∈set_of t1. y &lt; x2; ∀x∈set_of t2. x2 &lt; x; x2 &lt; x; ¬ x &lt; x2;
+        xa ∈ set_of (tinsert x t2)⟧
+       ⟹ x2 &lt; xa
+ 2. ⋀t1 x2 t2 y.
+       ⟦bst (tinsert x t1); bst (tinsert x t2); bst t1; bst t2;
+        ∀y∈set_of t1. y &lt; x2; ∀x∈set_of t2. x2 &lt; x; ¬ x2 &lt; x; x &lt; x2;
+        y ∈ set_of (tinsert x t1)⟧
+       ⟹ y &lt; x2</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>Two goals remain, one for each direction in which <code>tinsert</code> descends. Look at the first: insertion went
+right (x2 &lt; x, where x2 is the key at the node), and the goal asks that x2 be smaller than every key xa
+of <code>tinsert x t2</code>. The premises say that x2 is smaller than every key of t2 and smaller than x. That
+would be enough if <code>auto</code> knew that the keys of <code>tinsert x t2</code> are x and the keys of t2, which is the
+second part of the specification. Prove it first, and pass it to <code>auto</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma set_of_tinsert: &quot;set_of (tinsert x t) = insert x (set_of t)&quot;
+  by (induction t) auto
+
+lemma bst_tinsert: &quot;bst t ⟹ bst (tinsert x t)&quot;
+  by (induction t) (auto simp: set_of_tinsert)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> set_of_tinsert: <span class="isa-inner">&quot;set_of (tinsert x t) = insert x (set_of t)&quot;</span>
+  <span class="isa-proof">by</span> (induction t) auto
+
+<span class="isa-cmd">lemma</span> bst_tinsert: <span class="isa-inner">&quot;bst t ⟹ bst (tinsert x t)&quot;</span>
+  <span class="isa-proof">by</span> (induction t) (auto simp: set_of_tinsert)</code></pre></div>
+<p>The lemma <code>set_of_tinsert</code> is the second part of the specification. It plays the role that <code>set_ins</code>
+played for insertion sort: the invariant talks about the keys in subtrees, so preserving it requires
+knowing which keys insertion adds.</p>
+<p>The third part, correctness of search, needs no new lemma. Try the obvious induction:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma isin_set_of: &quot;bst t ⟹ isin x t = (x ∈ set_of t)&quot;
+  by (induction t) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> isin_set_of: <span class="isa-inner">&quot;bst t ⟹ isin x t = (x ∈ set_of t)&quot;</span>
+  <span class="isa-proof">by</span> (induction t) auto</code></pre></div>
+<p>It works at once. It is still worth knowing why it holds, because the argument shows where the invariant
+is needed. On paper: take a tree Nd l y r that satisfies the invariant, and compare x with y. There are
+three cases.</p>
+<ul>
+<li><strong>x &lt; y.</strong> The search continues in l, and by the induction hypothesis it answers whether x ∈ set_of l.
+That is the right answer, because x cannot be y, and x cannot be in r, whose keys are all larger than
+y.</li>
+<li><strong>x = y.</strong> The search stops and answers True, which is right.</li>
+<li><strong>y &lt; x.</strong> The mirror image of the first case.</li>
+</ul>
+<p>The invariant is used twice in each of the outer cases: once for the induction hypothesis, which needs
+the subtree to be a search tree, and once to rule out the other subtree. <code>auto</code> found both uses by itself,
+because the definition of <code>bst</code> is a simplification rule.</p>
+<span class="section-anchor" id="refinement"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Data refinement</h2></div>
+<p>The search tree was verified in a particular way. Its specification did not describe trees at all; it
+described sets, and the proofs related the tree operations to set operations through the abstraction
+function. This way of verifying a data structure is called data refinement, and it applies to almost
+every data structure.</p>
+<h3 id="refine-pattern">The pattern</h3>
+<div class="box box-definition"><div class="box-label">Definition 12.5<span class="box-title">Data refinement</span></div>
+<p>An <strong>abstract model</strong> is a simple mathematical type with operations whose meaning is clear, such as
+sets with <code>{}</code>, <code>insert</code> and <code>∈</code>. A <strong>concrete data structure</strong> implements it with a type and operations
+of its own, chosen for efficiency. They are connected by an <strong>abstraction function</strong> α, which maps each
+concrete value to the abstract value it represents, and an <strong>invariant</strong> I on concrete values. The
+concrete structure <strong>refines</strong> the model if:</p>
+<ol>
+<li>the concrete empty value represents the abstract one and satisfies I;</li>
+<li>every concrete operation preserves I;</li>
+<li>on values that satisfy I, every concrete operation corresponds to its abstract one: applying the
+concrete operation and then α gives the same as applying α and then the abstract operation; and every
+query, such as a search, gives the answer the abstract query gives.</li>
+</ol>
+</div>
+<p>Condition 3 is often drawn as a square, as in Figure 12.3: going along the top and then down gives the
+same result as going down and then along the bottom. Diagrams of this kind are called <strong>commuting
+squares</strong>.</p>
+<p>For search trees the pieces are:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Abstract model</th>
+<th>Concrete structure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Values</td>
+<td><code>'a set</code></td>
+<td><code>'a btree</code> satisfying <code>bst</code></td>
+</tr>
+<tr>
+<td>Empty</td>
+<td><code>{}</code></td>
+<td><code>Lf</code></td>
+</tr>
+<tr>
+<td>Insert</td>
+<td><code>insert x A</code></td>
+<td><code>tinsert x t</code></td>
+</tr>
+<tr>
+<td>Member</td>
+<td><code>x ∈ A</code></td>
+<td><code>isin x t</code></td>
+</tr>
+<tr>
+<td>Connection</td>
+<td></td>
+<td>α = <code>set_of</code>, I = <code>bst</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><code>set_of Lf = {}</code> and <code>bst Lf</code> hold by the definitions, <code>bst_tinsert</code> is condition 2, and
+<code>set_of_tinsert</code> and <code>isin_set_of</code> are condition 3.</p>
+<p>The reward comes when you use the data structure. A program that uses search trees can be reasoned about
+with sets, which you know well, instead of with trees. Here is a fact about trees proved without looking
+at a single tree, from the three lemmas alone:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;bst t ⟹ isin y (tinsert x t) = (y = x ∨ isin y t)&quot;
+  by (simp add: bst_tinsert isin_set_of set_of_tinsert)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;bst t ⟹ isin y (tinsert x t) = (y = x ∨ isin y t)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: bst_tinsert isin_set_of set_of_tinsert)</code></pre></div>
+<p>The simplifier turns both sides into statements about <code>set_of t</code>, where the claim is a law of sets. The
+proof never looks inside <code>isin</code> or <code>tinsert</code>: if you replaced the trees by balanced trees with the same
+three lemmas, this proof would not change.</p>
+<h3 id="queue">A queue made of two lists</h3>
+<p>A <strong>queue</strong> is a waiting line: elements join at the back and leave from the front, so the first to
+join is the first to leave. The abstract model is a list, with the front of the queue at the head of
+the list. Joining is <code>xs @ [x]</code>. Leaving is <code>tl xs</code>, the tail of the list: the list without its first
+element. The element at the front is <code>hd xs</code>, the head of the list. In Isabelle <code>tl [] = []</code>, while
+<code>hd []</code> has no specified value (Module 8).</p>
+<p>As a program, the plain list is slow: <code>xs @ [x]</code> copies the whole list, so a queue of n elements costs n
+steps for each element that joins. A classic functional implementation uses two lists. The <strong>front</strong>
+list holds the first elements, in order; the <strong>back</strong> list holds the last elements in reverse order, so
+that joining the queue puts an element at the head of the back list in one step. Elements leave from the
+head of the front list. When the front list runs empty, the back list is reversed and becomes the new
+front list.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype 'a queue = Queue &quot;'a list&quot; &quot;'a list&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> 'a queue = Queue <span class="isa-inner">&quot;'a list&quot;</span> <span class="isa-inner">&quot;'a list&quot;</span></code></pre></div>
+<p>A value <code>Queue f b</code> has the front list f and the back list b. The queue it represents is the front list
+followed by the back list reversed. That is the abstraction function:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun list_of :: &quot;'a queue ⇒ 'a list&quot; where
+  &quot;list_of (Queue f b) = f @ rev b&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> list_of :: <span class="isa-inner">&quot;'a queue ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;list_of (Queue f b) = f @ rev b&quot;</span></code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;list_of (Queue [1, 2] [4, 3 :: nat])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;list_of (Queue [1, 2] [4, 3 :: nat])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[1, 2, 3, 4]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<p>Now the operations. <code>refill</code> moves the back list to the front when the front list is empty; <code>enq</code>
+(enqueue) adds an element at the back, <code>deq</code> (dequeue) removes the front element, and <code>first</code> returns it.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition qempty :: &quot;'a queue&quot; where
+  &quot;qempty = Queue [] []&quot;
+
+fun refill :: &quot;'a queue ⇒ 'a queue&quot; where
+  &quot;refill (Queue [] b) = Queue (rev b) []&quot;
+| &quot;refill q = q&quot;
+
+fun enq :: &quot;'a ⇒ 'a queue ⇒ 'a queue&quot; where
+  &quot;enq x (Queue f b) = refill (Queue f (x # b))&quot;
+
+fun deq :: &quot;'a queue ⇒ 'a queue&quot; where
+  &quot;deq (Queue [] b) = Queue [] b&quot;
+| &quot;deq (Queue (x # f) b) = refill (Queue f b)&quot;
+
+fun first :: &quot;'a queue ⇒ 'a&quot; where
+  &quot;first (Queue f b) = hd f&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> qempty :: <span class="isa-inner">&quot;'a queue&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;qempty = Queue [] []&quot;</span>
+
+<span class="isa-cmd">fun</span> refill :: <span class="isa-inner">&quot;'a queue ⇒ 'a queue&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;refill (Queue [] b) = Queue (rev b) []&quot;</span>
+| <span class="isa-inner">&quot;refill q = q&quot;</span>
+
+<span class="isa-cmd">fun</span> enq :: <span class="isa-inner">&quot;'a ⇒ 'a queue ⇒ 'a queue&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;enq x (Queue f b) = refill (Queue f (x # b))&quot;</span>
+
+<span class="isa-cmd">fun</span> deq :: <span class="isa-inner">&quot;'a queue ⇒ 'a queue&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;deq (Queue [] b) = Queue [] b&quot;</span>
+| <span class="isa-inner">&quot;deq (Queue (x # f) b) = refill (Queue f b)&quot;</span>
+
+<span class="isa-cmd">fun</span> first :: <span class="isa-inner">&quot;'a queue ⇒ 'a&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;first (Queue f b) = hd f&quot;</span></code></pre></div>
+<p>The second equation of <code>refill</code> applies only when the first does not, that is, when the front list is
+not empty (Module 8 explained how <code>fun</code> resolves overlapping patterns). Try the operations:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;enq 5 (Queue [1, 2] [4, 3 :: nat])&quot;
+value &quot;deq (Queue [1] [4, 3, 2 :: nat])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;enq 5 (Queue [1, 2] [4, 3 :: nat])&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;deq (Queue [1] [4, 3, 2 :: nat])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Queue [1, 2] [5, 4, 3]&quot;
+  :: &quot;nat queue&quot;
+
+&quot;Queue [2, 3, 4] []&quot;
+  :: &quot;nat queue&quot;</code></pre></div>
+<p>Adding 5 puts it at the head of the back list. Removing 1 empties the front list, so <code>refill</code> reverses
+the back list into the front: <code>[4, 3, 2]</code> becomes <code>[2, 3, 4]</code>. Every element is moved from the back to
+the front at most once, so on average each operation takes a constant number of steps, although a
+single <code>deq</code> may take longer. (That is a claim about running time, which this module does not prove;
+the theory <code>Queue_2Lists</code>, described at the end of this section, does.)</p>
+<p><code>first</code> returns the head of the front list. That is the right answer only if the front list is
+empty only when the whole queue is: otherwise the first element might be waiting in the back list. The
+operations keep this true, because <code>refill</code> never leaves an empty front list in front of a non-empty
+back list. It is the invariant of the queue:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun qinv :: &quot;'a queue ⇒ bool&quot; where
+  &quot;qinv (Queue f b) = (f = [] ⟶ b = [])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> qinv :: <span class="isa-inner">&quot;'a queue ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;qinv (Queue f b) = (f = [] ⟶ b = [])&quot;</span></code></pre></div>
+<figure class="fig" id="fig-12-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" width="760" height="330" role="img"><title>The two-list queue and its abstraction function</title><defs><marker id="fig-12-3__ah-15803D" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#15803D"/></marker><marker id="fig-12-3__ah-2563EB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2563EB"/></marker><marker id="fig-12-3__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><text x="20" y="66" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#15803D" text-anchor="start">Concrete</text><text x="20" y="86" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">front list and</text><text x="20" y="102" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">reversed back list</text><text x="20" y="230" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#2563EB" text-anchor="start">Abstract</text><text x="20" y="250" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">the queue as</text><text x="20" y="266" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">one list</text><rect x="130" y="30" width="230" height="82" rx="10" fill="#F0FDF4" stroke="#15803D" stroke-width="1.7"/><text x="245" y="58" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">Queue [1, 2] [4, 3]</text><text x="144" y="90" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">front:</text><text x="186" y="90" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">[1, 2]</text><text x="246" y="90" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">back:</text><text x="286" y="90" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">[4, 3]</text><rect x="510" y="30" width="230" height="82" rx="10" fill="#F0FDF4" stroke="#15803D" stroke-width="1.7"/><text x="625" y="58" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">Queue [1, 2] [5, 4, 3]</text><text x="524" y="90" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">front:</text><text x="566" y="90" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">[1, 2]</text><text x="626" y="90" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="start">back:</text><text x="666" y="90" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">[5, 4, 3]</text><rect x="130" y="206" width="230" height="52" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.7"/><text x="245" y="238" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="600" fill="#1A2E4A" text-anchor="middle">[1, 2, 3, 4]</text><rect x="510" y="206" width="230" height="52" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.7"/><text x="625" y="238" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="600" fill="#1A2E4A" text-anchor="middle">[1, 2, 3, 4, 5]</text><line x1="366" y1="71" x2="503" y2="71" stroke="#15803D" stroke-width="2.2" marker-end="url(#fig-12-3__ah-15803D)"/><text x="435" y="62" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#15803D" text-anchor="middle">enq 5</text><text x="435" y="90" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">concrete operation</text><line x1="366" y1="232" x2="503" y2="232" stroke="#2563EB" stroke-width="2.2" marker-end="url(#fig-12-3__ah-2563EB)"/><text x="435" y="223" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle">@ [5]</text><text x="435" y="251" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">abstract operation</text><line x1="245" y1="116" x2="245" y2="200" stroke="#6D28D9" stroke-width="2.2" marker-end="url(#fig-12-3__ah-6D28D9)"/><text x="255" y="162" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="700" fill="#6D28D9" text-anchor="start">list_of</text><line x1="625" y1="116" x2="625" y2="200" stroke="#6D28D9" stroke-width="2.2" marker-end="url(#fig-12-3__ah-6D28D9)"/><text x="635" y="162" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="700" fill="#6D28D9" text-anchor="start">list_of</text><text x="435" y="292" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Both paths give the same list (lemma list_of_enq):</text><text x="435" y="316" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">list_of (enq x q) = list_of q @ [x]</text></svg>
+</div><figcaption><span class="fig-num">Figure 12.3</span> <p>The two-list queue as a commuting square. Along the top, the concrete operation <code>enq 5</code>; along the
+bottom, the abstract operation, appending <code>[5]</code>; the abstraction function <code>list_of</code> goes down on both
+sides. Both paths from the top left corner give the list <code>[1, 2, 3, 4, 5]</code>.</p>
+</figcaption></figure>
+<h3 id="queue-proof">Proving the queue correct</h3>
+<p>The specification follows the pattern of Definition 12.5, with lists as the abstract model:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Abstract model</th>
+<th>Queue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Empty</td>
+<td><code>[]</code></td>
+<td><code>qempty</code></td>
+</tr>
+<tr>
+<td>Join at the back</td>
+<td><code>xs @ [x]</code></td>
+<td><code>enq x q</code></td>
+</tr>
+<tr>
+<td>Leave at the front</td>
+<td><code>tl xs</code></td>
+<td><code>deq q</code></td>
+</tr>
+<tr>
+<td>Front element</td>
+<td><code>hd xs</code></td>
+<td><code>first q</code></td>
+</tr>
+<tr>
+<td>Connection</td>
+<td></td>
+<td>α = <code>list_of</code>, I = <code>qinv</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Start with the empty queue, which needs only the definition of <code>qempty</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma list_of_qempty: &quot;list_of qempty = []&quot;
+  by (simp add: qempty_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> list_of_qempty: <span class="isa-inner">&quot;list_of qempty = []&quot;</span>
+  <span class="isa-proof">by</span> (simp add: qempty_def)</code></pre></div>
+<p>Next, <code>enq</code>. A queue is always of the form <code>Queue f b</code>, so split the proof into that one case with
+<code>cases q</code> (Module 10) and try <code>auto</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;list_of (enq x q) = list_of q @ [x]&quot;
+  apply (cases q)
+  apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;list_of (enq x q) = list_of q @ [x]&quot;</span>
+  <span class="isa-proof">apply</span> (cases q)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀x1 x2.
+       q = Queue x1 x2 ⟹
+       list_of (refill (Queue x1 (x # x2))) = x1 @ rev x2 @ [x]</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p><code>cases q</code> names the two lists of the queue x1 and x2. <code>auto</code> has unfolded <code>enq</code> on the left and
+<code>list_of q</code> on the right, but it is stuck at <code>list_of (refill (Queue x1 (x # x2)))</code>. The equations of
+<code>refill</code> depend on whether the front list x1 is empty, and <code>auto</code> does not split on that by itself.
+You could tell it to, but there is a better way: state once and for all what <code>refill</code> does to the list
+a queue represents, namely nothing. That lemma will serve every operation that calls <code>refill</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma list_of_refill: &quot;list_of (refill q) = list_of q&quot;
+  by (cases q rule: refill.cases) auto
+
+lemma list_of_enq: &quot;list_of (enq x q) = list_of q @ [x]&quot;
+  by (cases q) (simp add: list_of_refill)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> list_of_refill: <span class="isa-inner">&quot;list_of (refill q) = list_of q&quot;</span>
+  <span class="isa-proof">by</span> (cases q <span class="isa-minor">rule</span>: refill.cases) auto
+
+<span class="isa-cmd">lemma</span> list_of_enq: <span class="isa-inner">&quot;list_of (enq x q) = list_of q @ [x]&quot;</span>
+  <span class="isa-proof">by</span> (cases q) (simp add: list_of_refill)</code></pre></div>
+<p><code>cases q rule: refill.cases</code> splits the proof into the cases of the equations of <code>refill</code>: a queue with
+an empty front list, and one with a non-empty front list. It is the case analysis that follows a
+function’s patterns, as <code>rule: f.induct</code> is the induction that follows its recursion (Module 11). Note
+that <code>list_of_enq</code> has no premise: <code>enq</code> is correct on every queue, invariant or not, because it only
+ever adds to the back.</p>
+<p>Is <code>deq</code> correct on every queue too? Ask Quickcheck before proving:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;list_of (deq q) = tl (list_of q)&quot;
+  quickcheck">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;list_of (deq q) = tl (list_of q)&quot;</span>
+  <span class="isa-cmd">quickcheck</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  q = Queue [] [a<sub>1</sub>]
+Evaluated terms:
+  list_of (deq q) = [a<sub>1</sub>]
+  tl (list_of q) = []</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>The queue <code>Queue [] [a₁]</code> has an empty front list and one element in the back list. It represents the
+list <code>[a₁]</code>, so removing the front element should leave the empty list. But <code>deq</code> sees an empty front
+list and returns the queue unchanged. This queue breaks the invariant, and no sequence of <code>enq</code> and
+<code>deq</code> starting from <code>qempty</code> builds it. So the correspondence for <code>deq</code> holds only under the invariant,
+and the invariant is needed exactly when the front list is empty. The Isar proof makes that visible:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma list_of_deq:
+  assumes &quot;qinv q&quot;
+  shows &quot;list_of (deq q) = tl (list_of q)&quot;
+proof (cases q)
+  case (Queue f b)
+  show ?thesis
+  proof (cases f)
+    case Nil
+    with Queue assms have &quot;b = []&quot; by simp
+    with Nil Queue show ?thesis by simp
+  next
+    case (Cons x f')
+    with Queue show ?thesis by (simp add: list_of_refill)
+  qed
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> list_of_deq:
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;qinv q&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;list_of (deq q) = tl (list_of q)&quot;</span>
+<span class="isa-proof">proof</span> (cases q)
+  <span class="isa-proof">case</span> (Queue f b)
+  <span class="isa-proof">show</span> ?thesis
+  <span class="isa-proof">proof</span> (cases f)
+    <span class="isa-proof">case</span> Nil
+    <span class="isa-proof">with</span> Queue assms <span class="isa-proof">have</span> <span class="isa-inner">&quot;b = []&quot;</span> <span class="isa-proof">by</span> simp
+    <span class="isa-proof">with</span> Nil Queue <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+  <span class="isa-proof">next</span>
+    <span class="isa-proof">case</span> (Cons x f')
+    <span class="isa-proof">with</span> Queue <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> (simp add: list_of_refill)
+  <span class="isa-proof">qed</span>
+<span class="isa-proof">qed</span></code></pre></div>
+<p>With an empty front list, the invariant says that the back list is empty too, so the queue is empty and
+<code>deq</code> correctly leaves it as it is, since <code>tl [] = []</code>. With a non-empty front list, <code>deq</code> removes its
+head, and <code>refill</code> does not change the list. The remaining parts are short:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma first_correct: &quot;qinv q ⟹ list_of q ≠ [] ⟹ first q = hd (list_of q)&quot;
+  by (cases q) auto
+
+lemma qinv_refill: &quot;qinv (refill q)&quot;
+  by (cases q rule: refill.cases) auto
+
+lemma qinv_qempty: &quot;qinv qempty&quot;
+  by (simp add: qempty_def)
+
+lemma qinv_enq: &quot;qinv (enq x q)&quot;
+  by (cases q) (simp add: qinv_refill)
+
+lemma qinv_deq: &quot;qinv q ⟹ qinv (deq q)&quot;
+  by (cases q rule: deq.cases) (auto simp: qinv_refill)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> first_correct: <span class="isa-inner">&quot;qinv q ⟹ list_of q ≠ [] ⟹ first q = hd (list_of q)&quot;</span>
+  <span class="isa-proof">by</span> (cases q) auto
+
+<span class="isa-cmd">lemma</span> qinv_refill: <span class="isa-inner">&quot;qinv (refill q)&quot;</span>
+  <span class="isa-proof">by</span> (cases q <span class="isa-minor">rule</span>: refill.cases) auto
+
+<span class="isa-cmd">lemma</span> qinv_qempty: <span class="isa-inner">&quot;qinv qempty&quot;</span>
+  <span class="isa-proof">by</span> (simp add: qempty_def)
+
+<span class="isa-cmd">lemma</span> qinv_enq: <span class="isa-inner">&quot;qinv (enq x q)&quot;</span>
+  <span class="isa-proof">by</span> (cases q) (simp add: qinv_refill)
+
+<span class="isa-cmd">lemma</span> qinv_deq: <span class="isa-inner">&quot;qinv q ⟹ qinv (deq q)&quot;</span>
+  <span class="isa-proof">by</span> (cases q <span class="isa-minor">rule</span>: deq.cases) (auto simp: qinv_refill)</code></pre></div>
+<p><code>first_correct</code> has two premises: the invariant, and that the queue is not empty. An empty queue has no
+front element: in the model, <code>hd []</code> has no specified value. So the specification promises nothing
+about <code>first</code> on an empty queue, and leaves an implementation free to return anything there. (This
+implementation happens to return <code>hd []</code> for the empty queue, so this particular proof would also work
+without the second premise.)</p>
+<p>The lemmas <code>qinv_qempty</code>, <code>qinv_enq</code> and <code>qinv_deq</code> say that every queue built from <code>qempty</code> with <code>enq</code>
+and <code>deq</code> satisfies the invariant, so the premise <code>qinv q</code> of <code>list_of_deq</code> and <code>first_correct</code> always
+holds for the queues a program can build.</p>
+<h3 id="practice">Verified data structures in practice</h3>
+<p>Search trees and queues are textbook examples, but the pattern is the one used for verified software in
+general.</p>
+<ul>
+<li><strong>Isabelle’s own library.</strong> The Isabelle distribution contains the session HOL-Data_Structures, a
+collection of verified functional data structures (in the folder <code>src/HOL/Data_Structures</code> of your
+Isabelle installation). Its theory <code>Queue_Spec</code> states the queue specification of this section, with
+an emptiness test as well (Exercise 12.6): eight properties, with an abstraction function <code>list</code> and an
+invariant <code>invar</code>. <code>Queue_2Lists</code> proves them for the two-list queue, and proves that on average
+each operation takes a constant number of steps.
+<code>Set_Specs</code> states the set specification of Section 12.5, with deletion as well, and theories such as
+<code>Tree_Set</code>, <code>AVL_Set</code> and <code>RBT_Set</code> prove it for unbalanced, AVL and red-black trees.</li>
+<li><strong>The code generator.</strong> When Isabelle generates code for sets, it represents a finite set by a list of
+its elements, a data refinement built into the library; importing <code>HOL-Library.RBT_Set</code> switches to
+red-black trees. Multisets are represented by lists too, which is why <code>value</code> printed <code>mset [3, 1]</code> in
+Section 12.2.</li>
+<li><strong>Large systems.</strong> The seL4 proof (Module 1) is a refinement proof on a large scale: it shows that the
+kernel’s C code refines an executable specification, which in turn refines an abstract specification
+of what the kernel does.</li>
+</ul>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>Data refinement separates two questions: what a data structure means (the abstract model) and how it is
+built (the concrete structure). The abstraction function connects them, and the invariant records what
+the concrete operations assume. Programs that use the structure are reasoned about with the model only.</p>
+</div>
+<span class="section-anchor" id="export"></span>
+<div class="section-header"><span class="section-num">7</span><h2>From verified functions to running code</h2></div>
+<p>Module 8 showed how <code>export_code</code> translates HOL functions into Standard ML, OCaml, Haskell or Scala.
+Applied to verified functions, it turns them into verified programs, with a guarantee that the end of
+this section makes precise. Export everything this module has verified, as one Haskell module. One
+addition first: Haskell code that uses search trees needs an empty tree to start from, so give the empty
+tree a name of its own (the reason for not using <code>Lf</code> follows below):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition tempty :: &quot;'a btree&quot; where
+  &quot;tempty = Lf&quot;
+
+export_code isort tempty isin tinsert qempty enq deq first
+  in Haskell module_name Verified">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> tempty :: <span class="isa-inner">&quot;'a btree&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;tempty = Lf&quot;</span>
+
+<span class="isa-cmd">export_code</span> isort tempty isin tinsert qempty enq deq first
+  <span class="isa-minor">in</span> Haskell module_name Verified</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>See theory exports</code></pre></div>
+<p>As in Module 8, the Output panel only says where the code went: Isabelle stores generated code as
+<strong>theory exports</strong>, files that belong to the theory, instead of printing it. In Isabelle/jEdit,
+<em>theory exports</em> in the message is a link. Click it, and the File Browser opens the folder of code
+exported by your theory, under the virtual address <code>isabelle-export:</code>. There, the folder <code>export1</code>
+holds the file <code>Verified.hs</code>: <code>export_code</code> numbers the exports of a theory <code>export1</code>, <code>export2</code>, …
+unless you name the folder yourself with the option <code>file_prefix</code>.</p>
+<p>Open <code>Verified.hs</code> and you find your theory again, in Haskell. The datatypes have become Haskell <code>data</code>
+declarations: <code>Btree</code> with the constructors <code>Lf</code> and <code>Nd</code>, and <code>Queue</code> with the constructor <code>Queue</code>.
+Each function has the equations that <code>fun</code> derived from yours, with <code>#</code> written <code>:</code> and <code>rev</code> written
+<code>reverse</code>, and the functions that the exported ones need are there too: <code>ins</code>, <code>refill</code> and the
+library’s <code>hd</code>. The comparisons <code>≤</code> and <code>&lt;</code> have become <code>less_eq</code> and <code>less</code>, the operations of a Haskell
+type class <code>Ord</code> that Isabelle generates from its own class <code>ord</code>; the classes <code>preorder</code>, <code>order</code> and
+<code>linorder</code> become Haskell classes too (Module 8 compared type classes with Haskell’s). The first lines
+of the module list what it exports: the functions, the class <code>Linorder</code>, and the types <code>Btree</code> and
+<code>Queue</code> without their constructors.</p>
+<p>This is what <code>export_code</code> does by default: it exports the functions in its list and, without their
+constructors, the datatypes and classes that these functions use directly. It exports the constructors
+of a datatype only when the list names one of them. This protects the invariants. Other Haskell code
+can build trees only from <code>tempty</code> with <code>tinsert</code>, and queues only from <code>qempty</code> with <code>enq</code> and <code>deq</code>,
+so it cannot build a tree that breaks <code>bst</code> or a queue that breaks <code>qinv</code>. Had the list named the
+constructor <code>Lf</code> instead of <code>tempty</code>, Isabelle would have exported the type <code>Btree</code> with all its
+constructors, <code>Nd</code> included, and with them the power to build any tree at all.</p>
+<p>One more thing stays inside the module: the classes <code>Ord</code>, <code>Preorder</code> and <code>Order</code> on which <code>Linorder</code>
+builds. As exported here, other Haskell code cannot say how to compare the elements of its own types,
+so it cannot yet call <code>isort</code> or the tree functions. Writing <code>export_code open …</code> exports everything:
+the classes with their operations, and the datatypes with their constructors. Then the functions can be
+used on any type, but the protection of the invariants is gone. Choosing what to export is part of
+designing the interface of verified code.</p>
+<h3 id="guarantee">What is guaranteed</h3>
+<p>Every function in the generated module comes from equations that are theorems in the logic: for your
+own functions, the equations of your <code>fun</code> and <code>definition</code> commands (Module 8). The code generator
+translates each equation into an equation of the target language and adds the definitions it needs from
+the library. So when the generated <code>isort</code> returns a list, that list is the value of <code>isort</code> in the
+logic, and the correctness theorem says that it is sorted and a permutation of the input. This
+guarantee, that every result the program produces is a result the logic agrees with, is called
+<strong>partial correctness</strong> (Module 8): it speaks about the results the program returns, not about whether
+it returns at all. The generated <code>first</code>, for example, stops with an error on an empty queue, because
+the library’s <code>hd</code> has no equation for <code>[]</code>. That is no result, so it breaks no promise.</p>
+<p>What the guarantee rests on is the trusted base of Module 1, enlarged by the steps after the proof:</p>
+<ul>
+<li><strong>The code generator.</strong> Its translation of equations into the target language happens outside the
+kernel. Isabelle’s code generation manual (<code>codegen.pdf</code>) explains that the last steps, translation
+and printing, are carried out outside the logic and are kept as thin as possible, so that there is
+little code to trust. Little is not nothing.</li>
+<li><strong>The target compiler and its run-time system</strong>: the Haskell compiler, its libraries, garbage
+collector and integer arithmetic.</li>
+<li><strong>The machine</strong>: the hardware, the operating system, and limits that the logic does not know about.
+In the logic <code>isort</code> works on lists of any length; a real computer runs out of memory or stack at some
+length.</li>
+<li><strong>The code around it.</strong> The theorems about <code>isin</code>, <code>deq</code> and <code>first</code> assume the invariants <code>bst</code> and
+<code>qinv</code>. The generated module keeps them safe from other Haskell code, as described above, but not
+from code that edits the generated file or exports the constructors: a tree or queue that breaks its
+invariant voids the promise. In the same way, the theorems about <code>isort</code> and the tree functions
+assume that <code>≤</code> and <code>&lt;</code> form a linear order. After <code>export_code open</code>, other code compares the
+elements of its own types with operations that it supplies, and nothing checks that they obey the laws
+of <code>linorder</code>.</li>
+<li><strong>The specification.</strong> A verified function does what its specification says. Whether that is what
+the users need is still validation.</li>
+</ul>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>Some correspondences between HOL and the target language are set up by hand, and they belong to the
+trusted base as well. Even the default set-up has a few: the generated code uses Haskell’s own lists,
+Booleans and <code>reverse</code>. Library theories such as <code>HOL-Library.Code_Target_Nat</code>, which Module 8
+mentioned, add more: they make the generated code use the target language’s own integers instead of a
+datatype of natural numbers. That is faster, and it is safe as long as the target’s integers behave like
+mathematical ones, which Haskell’s <code>Integer</code> does; but the kernel does not check it.</p>
+</div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">8</span><h2>What you learned</h2></div>
+<ul>
+<li>To <strong>verify</strong> a program is to prove a <strong>correctness theorem</strong>: for every input, the result of the
+<strong>implementation</strong> (how) has the property of the <strong>specification</strong> (what). The specification is
+written for people to read and validate; the implementation for the computer.</li>
+<li><strong>Insertion sort</strong> meets the sorting specification: <code>sorted (isort xs) ∧ mset (isort xs) = mset xs</code>.
+<code>mset</code> from <code>HOL-Library.Multiset</code> turns a list into the multiset of its elements; <code>mset ys = mset xs</code>
+says that ys is a permutation of xs.</li>
+<li>Proofs about programs are found from the top down: try induction, read the goal on which <code>auto</code> stops,
+generalise it into a lemma about a smaller function (<code>set_ins</code>, <code>sorted_ins</code>, <code>mset_ins</code>), and prove
+that first.</li>
+<li>Each half of a specification rules out its own kind of wrong program: <code>[]</code> is sorted, and the input
+itself is a permutation. Test specifications with Quickcheck and Nitpick before proving, and test them
+against deliberately wrong programs. Sets instead of multisets would let duplicates disappear.</li>
+<li>A <strong>binary search tree</strong> is verified with an <strong>abstraction function</strong> (<code>set_of</code>) and an
+<strong>invariant</strong> (<code>bst</code>): insertion preserves the invariant and inserts into the set, and search answers
+membership in the set. An invariant that compares only neighbours is too weak.</li>
+<li><strong>Data refinement</strong> is the general pattern: a concrete structure, an abstract model, an abstraction
+function and an invariant, with the concrete operations corresponding to the abstract ones. The
+two-list queue refines lists, and needs its invariant for <code>deq</code> and <code>first</code>.</li>
+<li><code>export_code</code> turns verified functions into code, stored as theory exports. The generated code is
+partially correct relative to the proved equations; the code generator, the compiler, the machine and
+the calling code remain in the trusted base. Exporting types without their constructors keeps other
+code from breaking the invariants.</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">9</span><h2>Exercises</h2></div>
+<div class="exercise" id="ex-12-1"><div class="ex-label"><span class="ex-num">Exercise 12.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">Which functions sort?</span></div>
+<p>Decide on paper which of these functions meet the sorting specification of Definition 12.3, and why.
+Then check your answers in Isabelle: prove the claims that hold from <code>sorted_isort</code> and <code>mset_isort</code>, and
+let Quickcheck refute the others.</p>
+<ol>
+<li><code>isort (rev xs)</code></li>
+<li><code>rev (isort xs)</code></li>
+<li><code>isort (isort xs)</code></li>
+<li><code>remdups (isort xs)</code>, where <code>remdups</code> removes repeated elements from a list</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><strong>Meets it.</strong> <code>isort</code> sorts any list, so the result is sorted, and
+<code>mset (isort (rev xs)) = mset (rev xs) = mset xs</code>: reversing does not change the multiset.</li>
+<li><strong>Does not.</strong> The result is a permutation of xs, but in descending order. Quickcheck’s
+counterexample below, <code>xs = [a₁, a₂]</code>, is turned into <code>[a₂, a₁]</code>.</li>
+<li><strong>Meets it.</strong> Sorting a sorted list changes nothing, and in any case <code>isort</code> returns a sorted
+permutation of <code>isort xs</code>, which is a permutation of xs.</li>
+<li><strong>Does not.</strong> The result is sorted but loses repeated elements, so it is not a permutation:
+<code>[a₁, a₁]</code> becomes <code>[a₁]</code>.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;sorted (isort (rev xs)) ∧ mset (isort (rev xs)) = mset xs&quot;
+  by (simp add: sorted_isort mset_isort)
+
+lemma &quot;sorted (isort (isort xs)) ∧ mset (isort (isort xs)) = mset xs&quot;
+  by (simp add: sorted_isort mset_isort)
+
+lemma &quot;sorted (rev (isort xs))&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted (isort (rev xs)) ∧ mset (isort (rev xs)) = mset xs&quot;</span>
+  <span class="isa-proof">by</span> (simp add: sorted_isort mset_isort)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted (isort (isort xs)) ∧ mset (isort (isort xs)) = mset xs&quot;</span>
+  <span class="isa-proof">by</span> (simp add: sorted_isort mset_isort)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted (rev (isort xs))&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a<sub>1</sub>, a<sub>2</sub>]</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mset (remdups (isort xs)) = mset xs&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mset (remdups (isort xs)) = mset xs&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a<sub>1</sub>, a<sub>1</sub>]
+Evaluated terms:
+  mset (remdups (isort xs)) = mset [a<sub>1</sub>]
+  mset xs = mset [a<sub>1</sub>, a<sub>1</sub>]</code></pre></div>
+<p>In the first proof <code>simp</code> also uses the library’s <code>mset_rev</code>, <code>mset (rev xs) = mset xs</code>, which is a
+simp rule.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-12-2"><div class="ex-label"><span class="ex-num">Exercise 12.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">A queue by hand</span></div>
+<p>For each queue, write down the list it represents and say whether it satisfies <code>qinv</code>:
+<code>Queue [1] [3, 2]</code>, <code>Queue [] [2, 1]</code>, <code>Queue [] []</code>. Then work out <code>deq (Queue [1] [3, 2])</code> and
+<code>enq 4 qempty</code> by hand, using the equations of Section 12.6. Check your answers with <code>value</code>.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p><code>Queue [1] [3, 2]</code> represents <code>[1] @ rev [3, 2] = [1, 2, 3]</code> and satisfies the invariant (its front list
+is not empty). <code>Queue [] [2, 1]</code> represents <code>[1, 2]</code> but breaks the invariant: its front list is empty
+while its back list is not. <code>Queue [] []</code> represents <code>[]</code> and satisfies the invariant.</p>
+<p><code>deq (Queue [1] [3, 2]) = refill (Queue [] [3, 2]) = Queue [2, 3] []</code>, which represents <code>[2, 3]</code>, the
+tail of <code>[1, 2, 3]</code>. <code>enq 4 qempty = refill (Queue [] [4]) = Queue [4] []</code>.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;list_of (Queue [1] [3, 2 :: nat])&quot;
+value &quot;qinv (Queue [] [2, 1 :: nat])&quot;
+value &quot;deq (Queue [1] [3, 2 :: nat])&quot;
+value &quot;enq 4 (qempty :: nat queue)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;list_of (Queue [1] [3, 2 :: nat])&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;qinv (Queue [] [2, 1 :: nat])&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;deq (Queue [1] [3, 2 :: nat])&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;enq 4 (qempty :: nat queue)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[1, 2, 3]&quot;
+  :: &quot;nat list&quot;
+
+&quot;False&quot;
+  :: &quot;bool&quot;
+
+&quot;Queue [2, 3] []&quot;
+  :: &quot;nat queue&quot;
+
+&quot;Queue [4] []&quot;
+  :: &quot;nat queue&quot;</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-12-3"><div class="ex-label"><span class="ex-num">Exercise 12.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">Search trees by hand</span></div>
+<p>Which of these trees satisfy <code>bst</code>? Draw each one first.</p>
+<ol>
+<li><code>Nd (Nd Lf 2 Lf) 3 (Nd Lf 1 Lf)</code></li>
+<li><code>Nd Lf 1 (Nd (Nd Lf 2 Lf) 3 Lf)</code></li>
+<li><code>Nd (Nd Lf 1 (Nd Lf 4 Lf)) 3 (Nd Lf 5 Lf)</code></li>
+</ol>
+<p>Where does <code>tinsert 3 t0</code> put the key 3, with <code>t0</code> from Section 12.5? Check your answers with <code>value</code>.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><strong>No</strong>: 1 is in the right subtree of 3 but smaller than 3.</li>
+<li><strong>Yes</strong>: 2 and 3 are larger than 1 and lie to its right; 2 lies to the left of 3.</li>
+<li><strong>No</strong>: 4 is in the left subtree of 3 but larger than 3. Every node is bigger than its left child
+and smaller than its right child, so the tree satisfies <code>bst_local</code> of Section 12.5: this is the
+kind of tree on which the wrong invariant fails.</li>
+</ol>
+<p><code>tinsert 3 t0</code> goes left at 5, right at 2, and left at 4, where it finds a leaf, so 3 becomes the left
+child of 4.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;bst (Nd (Nd Lf 2 Lf) 3 (Nd Lf 1 Lf) :: int btree)&quot;
+value &quot;bst (Nd Lf 1 (Nd (Nd Lf 2 Lf) 3 Lf) :: int btree)&quot;
+value &quot;bst (Nd (Nd Lf 1 (Nd Lf 4 Lf)) 3 (Nd Lf 5 Lf) :: int btree)&quot;
+value &quot;bst_local (Nd (Nd Lf 1 (Nd Lf 4 Lf)) 3 (Nd Lf 5 Lf) :: int btree)&quot;
+value &quot;tinsert 3 t0&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;bst (Nd (Nd Lf 2 Lf) 3 (Nd Lf 1 Lf) :: int btree)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;bst (Nd Lf 1 (Nd (Nd Lf 2 Lf) 3 Lf) :: int btree)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;bst (Nd (Nd Lf 1 (Nd Lf 4 Lf)) 3 (Nd Lf 5 Lf) :: int btree)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;bst_local (Nd (Nd Lf 1 (Nd Lf 4 Lf)) 3 (Nd Lf 5 Lf) :: int btree)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;tinsert 3 t0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;False&quot;
+  :: &quot;bool&quot;
+
+&quot;True&quot;
+  :: &quot;bool&quot;
+
+&quot;False&quot;
+  :: &quot;bool&quot;
+
+&quot;True&quot;
+  :: &quot;bool&quot;
+
+&quot;Nd (Nd (Nd Lf 1 Lf) 2 (Nd (Nd Lf 3 Lf) 4 Lf)) 5 (Nd Lf 8 (Nd Lf 9 Lf))&quot;
+  :: &quot;int btree&quot;</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-12-4"><div class="ex-label"><span class="ex-num">Exercise 12.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Sorting keeps the length</span></div>
+<p>Prove <code>length (isort xs) = length xs</code> in two ways.</p>
+<ol>
+<li>By induction, with a lemma about the length of <code>ins x xs</code>.</li>
+<li>Without induction, from <code>mset_isort</code>. The number of elements of a multiset M, counted with their
+copies, is <code>size M</code>. Use <code>find_theorems</code> to find a library fact that relates <code>size (mset xs)</code> to the
+length of xs.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>
+<p>The lemma and the induction:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma length_ins: &quot;length (ins x xs) = Suc (length xs)&quot;
+  by (induction xs) auto
+
+lemma &quot;length (isort xs) = length xs&quot;
+  by (induction xs) (auto simp: length_ins)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> length_ins: <span class="isa-inner">&quot;length (ins x xs) = Suc (length xs)&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) auto
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;length (isort xs) = length xs&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) (auto simp: length_ins)</code></pre></div>
+</li>
+<li>
+<p>Search for facts about the size of <code>mset xs</code>; the underscore stands for any term:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_theorems &quot;size (mset _)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">find_theorems</span> <span class="isa-inner">&quot;size (mset _)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>find_theorems
+  &quot;size (mset _)&quot;
+
+found 1 theorem(s):
+  Multiset.size_mset: size (mset ?xs) = length ?xs</code></pre></div>
+<p><code>size_mset</code> is a simp rule, so <code>simp</code> turns the sizes into lengths:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;length (isort xs) = length xs&quot;
+proof -
+  have &quot;size (mset (isort xs)) = size (mset xs)&quot; by (simp add: mset_isort)
+  then show ?thesis by simp
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;length (isort xs) = length xs&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;size (mset (isort xs)) = size (mset xs)&quot;</span> <span class="isa-proof">by</span> (simp add: mset_isort)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+</li>
+</ol>
+<p>The second proof shows a benefit of a strong specification: other facts follow from it without new
+inductions.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-12-5"><div class="ex-label"><span class="ex-num">Exercise 12.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">A bug in insertion</span></div>
+<p>A colleague’s insertion has a bug:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun ins_bad :: &quot;'a::linorder ⇒ 'a list ⇒ 'a list&quot; where
+  &quot;ins_bad x [] = [x]&quot;
+| &quot;ins_bad x (y # ys) = (if x ≤ y then x # ys else y # ins_bad x ys)&quot;
+
+fun isort_bad :: &quot;'a::linorder list ⇒ 'a list&quot; where
+  &quot;isort_bad [] = []&quot;
+| &quot;isort_bad (x # xs) = ins_bad x (isort_bad xs)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> ins_bad :: <span class="isa-inner">&quot;'a::linorder ⇒ 'a list ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;ins_bad x [] = [x]&quot;</span>
+| <span class="isa-inner">&quot;ins_bad x (y # ys) = (if x ≤ y then x # ys else y # ins_bad x ys)&quot;</span>
+
+<span class="isa-cmd">fun</span> isort_bad :: <span class="isa-inner">&quot;'a::linorder list ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;isort_bad [] = []&quot;</span>
+| <span class="isa-inner">&quot;isort_bad (x # xs) = ins_bad x (isort_bad xs)&quot;</span></code></pre></div>
+<p>Find the bug by reading. Then test each half of the specification with Quickcheck. Which half catches
+the bug, and why does the other not?</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>In the case x ≤ y, <code>ins_bad</code> returns <code>x # ys</code> and forgets y. Quickcheck finds no counterexample to the
+first half:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;sorted (isort_bad xs)&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted (isort_bad xs)&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.</code></pre></div>
+<p>but refutes the second:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mset (isort_bad xs) = mset xs&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mset (isort_bad xs) = mset xs&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a<sub>1</sub>, a<sub>1</sub>]
+Evaluated terms:
+  mset (isort_bad xs) = mset [a<sub>1</sub>]
+  mset xs = mset [a<sub>1</sub>, a<sub>1</sub>]</code></pre></div>
+<p>Dropping y does not disorder the list: x ≤ y and y is at most every element of ys, so <code>x # ys</code> is still
+sorted. In fact <code>sorted (isort_bad xs)</code> holds for every list. The proof goes as for <code>sorted_ins</code> and
+<code>sorted_isort</code>, with the lemma <code>set (ins_bad x xs) ⊆ insert x (set xs)</code> in place of <code>set_ins</code>:
+<code>ins_bad</code> may lose elements, but it adds none except x. Only the permutation half notices that an
+element is lost. The fix is the equation of <code>ins</code>: <code>x # y # ys</code>.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-12-6"><div class="ex-label"><span class="ex-num">Exercise 12.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Is the queue empty?</span></div>
+<p>Add an operation that tests whether a queue is empty by looking at the front list only:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun isempty :: &quot;'a queue ⇒ bool&quot; where
+  &quot;isempty (Queue f b) = (f = [])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> isempty :: <span class="isa-inner">&quot;'a queue ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;isempty (Queue f b) = (f = [])&quot;</span></code></pre></div>
+<p>State its correctness in the style of Section 12.6: it should agree with the abstract test
+<code>list_of q = []</code>. First let Quickcheck show that the claim needs the invariant, then prove it with the
+invariant.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;isempty q = (list_of q = [])&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;isempty q = (list_of q = [])&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  q = Queue [] [a<sub>1</sub>]
+Evaluated terms:
+  isempty q = True
+  list_of q = [] = False</code></pre></div>
+<p>The counterexample has an empty front list and a non-empty back list: <code>isempty</code> answers True for a
+queue that is not empty. Such a queue breaks the invariant, and with the invariant as a premise the
+claim holds:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma isempty_correct: &quot;qinv q ⟹ isempty q = (list_of q = [])&quot;
+  by (cases q) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> isempty_correct: <span class="isa-inner">&quot;qinv q ⟹ isempty q = (list_of q = [])&quot;</span>
+  <span class="isa-proof">by</span> (cases q) auto</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-12-7"><div class="ex-label"><span class="ex-num">Exercise 12.7</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">The specification determines the result</span></div>
+<p>Prove <code>isort xs = sort xs</code>, where <code>sort</code> is the library’s sorting function. Use <code>properties_for_sort</code>
+(Section 12.4) with <code>mset_isort</code> and <code>sorted_isort</code>, and no induction.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p><code>properties_for_sort</code> concludes <code>sort xs = ys</code> from <code>mset ys = mset xs</code> and <code>sorted ys</code>. With
+<code>ys = isort xs</code>, its two premises are exactly <code>mset_isort</code> and <code>sorted_isort</code>, in this order, so <code>rule</code>
+can use them as the facts that discharge the premises:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma isort_sort: &quot;isort xs = sort xs&quot;
+proof -
+  have &quot;sort xs = isort xs&quot;
+    using mset_isort sorted_isort by (rule properties_for_sort)
+  then show ?thesis by simp
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> isort_sort: <span class="isa-inner">&quot;isort xs = sort xs&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;sort xs = isort xs&quot;</span>
+    <span class="isa-proof">using</span> mset_isort sorted_isort <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> properties_for_sort)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The proof never looks at how <code>isort</code> works. Any function with the two properties is equal to <code>sort</code>, so
+this lemma could be proved for merge sort or quicksort in the same way.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-12-8"><div class="ex-label"><span class="ex-num">Exercise 12.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Tree sort and a weak specification</span></div>
+<p>Sort a list by inserting its elements into a search tree and reading the tree from left to right:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun inorder :: &quot;'a btree ⇒ 'a list&quot; where
+  &quot;inorder Lf = []&quot;
+| &quot;inorder (Nd l x r) = inorder l @ [x] @ inorder r&quot;
+
+fun build :: &quot;'a::linorder list ⇒ 'a btree&quot; where
+  &quot;build [] = Lf&quot;
+| &quot;build (x # xs) = tinsert x (build xs)&quot;
+
+definition tsort :: &quot;'a::linorder list ⇒ 'a list&quot; where
+  &quot;tsort xs = inorder (build xs)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> inorder :: <span class="isa-inner">&quot;'a btree ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;inorder Lf = []&quot;</span>
+| <span class="isa-inner">&quot;inorder (Nd l x r) = inorder l @ [x] @ inorder r&quot;</span>
+
+<span class="isa-cmd">fun</span> build :: <span class="isa-inner">&quot;'a::linorder list ⇒ 'a btree&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;build [] = Lf&quot;</span>
+| <span class="isa-inner">&quot;build (x # xs) = tinsert x (build xs)&quot;</span>
+
+<span class="isa-cmd">definition</span> tsort :: <span class="isa-inner">&quot;'a::linorder list ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;tsort xs = inorder (build xs)&quot;</span></code></pre></div>
+<ol>
+<li>Prove that <code>tsort</code> meets the weak specification of Section 12.4:
+<code>sorted (tsort xs) ∧ set (tsort xs) = set xs</code>. You need lemmas about <code>set (inorder t)</code>,
+<code>sorted (inorder t)</code>, <code>bst (build xs)</code> and <code>set_of (build xs)</code>; the library lemma <code>sorted_append</code>
+describes when an appended list is sorted.</li>
+<li>Show with Quickcheck that <code>tsort</code> does not meet the sorting specification, and explain why.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>
+<p>Four lemmas, then the claim:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma set_inorder: &quot;set (inorder t) = set_of t&quot;
+  by (induction t) auto
+
+lemma sorted_inorder: &quot;bst t ⟹ sorted (inorder t)&quot;
+  by (induction t)
+     (auto simp: sorted_append set_inorder intro: less_imp_le less_trans)
+
+lemma bst_build: &quot;bst (build xs)&quot;
+  by (induction xs) (auto simp: bst_tinsert)
+
+lemma set_of_build: &quot;set_of (build xs) = set xs&quot;
+  by (induction xs) (auto simp: set_of_tinsert)
+
+lemma &quot;sorted (tsort xs) ∧ set (tsort xs) = set xs&quot;
+  by (simp add: tsort_def sorted_inorder bst_build set_inorder set_of_build)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> set_inorder: <span class="isa-inner">&quot;set (inorder t) = set_of t&quot;</span>
+  <span class="isa-proof">by</span> (induction t) auto
+
+<span class="isa-cmd">lemma</span> sorted_inorder: <span class="isa-inner">&quot;bst t ⟹ sorted (inorder t)&quot;</span>
+  <span class="isa-proof">by</span> (induction t)
+     (auto simp: sorted_append set_inorder intro: less_imp_le less_trans)
+
+<span class="isa-cmd">lemma</span> bst_build: <span class="isa-inner">&quot;bst (build xs)&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) (auto simp: bst_tinsert)
+
+<span class="isa-cmd">lemma</span> set_of_build: <span class="isa-inner">&quot;set_of (build xs) = set xs&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) (auto simp: set_of_tinsert)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;sorted (tsort xs) ∧ set (tsort xs) = set xs&quot;</span>
+  <span class="isa-proof">by</span> (simp add: tsort_def sorted_inorder bst_build set_inorder set_of_build)</code></pre></div>
+<p><code>sorted_inorder</code> is the hard one. With <code>sorted_append</code> and <code>set_inorder</code> alone, <code>auto</code> stops at a goal
+<code>x ≤ xa</code> for a key x of the left subtree and a key xa of the right subtree. Its premises say that
+every key of the left subtree is smaller than the key x2 at the node and every key of the right
+subtree is larger, so <code>x &lt; x2</code> and <code>x2 &lt; xa</code>, but <code>auto</code> does not chain the two. The library rules
+<code>less_trans</code> (from <code>x &lt; y</code> and <code>y &lt; z</code> conclude <code>x &lt; z</code>) and <code>less_imp_le</code> (from <code>x &lt; y</code> conclude
+<code>x ≤ y</code>), given to <code>auto</code> with <code>intro:</code> (Module 9), supply the missing steps.</p>
+</li>
+<li>
+<p>Quickcheck refutes the sorting specification at once:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;mset (tsort xs) = mset xs&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;mset (tsort xs) = mset xs&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a<sub>1</sub>, a<sub>1</sub>]
+Evaluated terms:
+  mset (tsort xs) = mset [a<sub>1</sub>]
+  mset xs = mset [a<sub>1</sub>, a<sub>1</sub>]</code></pre></div>
+<p>A search tree stores a set: <code>tinsert</code> leaves the tree unchanged when the key is already there. So
+<code>tsort</code> removes duplicates. It satisfies the weak specification with sets, which is exactly why that
+specification is too weak.</p>
+</li>
+</ol>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">10</span><h2>Check yourself</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">1</span><div>What does a correctness theorem for a program state?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">That the program passes all of its tests</button></li><li><button type="button" class="quiz-opt" data-i="1">That the specification says what the users want</button></li><li><button type="button" class="quiz-opt" data-i="2">That for every input, the program’s result has the property the specification describes</button></li><li><button type="button" class="quiz-opt" data-i="3">That the program terminates quickly on every input</button></li></ol><div class="quiz-expl" hidden>The theorem connects implementation and specification for all inputs. Whether the specification is what the users want is validation.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div><code>sort_drop xs = []</code> for every list. Which half of the sorting specification does it meet?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>sorted (sort_drop xs)</code>, but not <code>mset (sort_drop xs) = mset xs</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>mset (sort_drop xs) = mset xs</code>, but not <code>sorted (sort_drop xs)</code></button></li><li><button type="button" class="quiz-opt" data-i="2">Both halves</button></li><li><button type="button" class="quiz-opt" data-i="3">Neither half</button></li></ol><div class="quiz-expl" hidden>The empty list is sorted, but it is not a permutation of a non-empty list. Only the permutation half catches it.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>Why does the sorting specification use <code>mset</code> rather than <code>set</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>set</code> cannot be used in Isabelle proofs</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>mset</code> makes the proofs shorter</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>set</code> would not allow the elements to be reordered</button></li><li><button type="button" class="quiz-opt" data-i="3">With <code>set</code>, a function that drops repeated elements would meet the specification</button></li></ol><div class="quiz-expl" hidden><code>set [2, 1, 2] = set [1, 2]</code>, so sets cannot tell whether an element was lost from a group of equal ones. Multisets count copies.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">4</span><div>Search is correct only for trees that satisfy the invariant <code>bst</code>. Why does <code>bst</code> compare a node’s key with all keys in its subtrees, not only with its children?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Comparing with children only would make <code>bst</code> impossible to compute</button></li><li><button type="button" class="quiz-opt" data-i="1">A tree can have every node in order with its children and still have a key on the wrong side of an ancestor, where search misses it</button></li><li><button type="button" class="quiz-opt" data-i="2">Isabelle cannot express comparisons with children</button></li><li><button type="button" class="quiz-opt" data-i="3">It does not matter; both invariants make search correct</button></li></ol><div class="quiz-expl" hidden>Quickcheck found such a tree for <code>bst_local</code>: a₁ sits in the right subtree of a₂ although it is smaller than a₂, so the search goes left and misses it.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>What is <code>list_of (Queue [1, 2] [5, 4, 3])</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>[1, 2, 5, 4, 3]</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>[3, 4, 5, 1, 2]</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>[1, 2, 3, 4, 5]</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>[5, 4, 3, 2, 1]</code></button></li></ol><div class="quiz-expl" hidden>The abstraction function is <code>f @ rev b</code>: the front list followed by the reversed back list.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div><code>export_code</code> generates Haskell code for a verified function. Which statement is right?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The Haskell code is checked by Isabelle’s kernel</button></li><li><button type="button" class="quiz-opt" data-i="1">The generated program can never crash or run out of memory</button></li><li><button type="button" class="quiz-opt" data-i="2">Nothing about the program is guaranteed, since the code generator is not verified</button></li><li><button type="button" class="quiz-opt" data-i="3">Every result the program returns agrees with the logic, provided the code generator, the compiler and the machine work as assumed</button></li></ol><div class="quiz-expl" hidden>The guarantee is partial correctness relative to the trusted base, which now includes the code generator and the target compiler.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="12"><div class="done-q">Finished this module?</div><button type="button" class="done-btn" data-yes="Done" data-no="Mark as done" data-undo="Mark as not done">Mark as done</button><div class="done-progress" data-label="{d} of {n} modules done"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_11_EN.html"><span class="mnav-label">&larr; Previous</span><span class="mnav-title">Module 11: Induction in depth</span></a><a class="mnav next" href="module_13_EN.html"><span class="mnav-label">Next &rarr;</span><span class="mnav-title">Module 13: Modelling systems: state machines and invariants</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

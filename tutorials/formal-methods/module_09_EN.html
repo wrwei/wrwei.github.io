@@ -1,0 +1,1583 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 9: Proof automation — Formal Methods with Isabelle</title>
+<meta name="description" content="Use Isabelle's automatic tools with understanding. Steer the simplifier, choose the right method for logic, sets and arithmetic, find lemmas and counterexamples, call Sledgehammer, and know what to do when automation fails.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="9" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Formal methods</a><span class="sep">/</span><span class="crumb crumb-now">Module 9</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Module 9 of 14</button><div class="dropdown-menu"><a href="module_01_EN.html"><span class="dd-n">1</span>Formal methods, what and why<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_EN.html"><span class="dd-n">2</span>Propositional logic<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_EN.html"><span class="dd-n">3</span>Predicate logic<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_EN.html"><span class="dd-n">4</span>Sets, relations and functions<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_EN.html"><span class="dd-n">5</span>Induction and recursion<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_EN.html"><span class="dd-n">6</span>What is a proof? Natural deduction<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_EN.html"><span class="dd-n">7</span>Natural deduction in Isabelle<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_EN.html"><span class="dd-n">8</span>Functional programming in HOL<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_EN.html" class="active"><span class="dd-n">9</span>Proof automation<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_EN.html"><span class="dd-n">10</span>Structured proofs in Isar<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_EN.html"><span class="dd-n">11</span>Induction in depth<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_EN.html"><span class="dd-n">12</span>Verifying functional programs<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_EN.html"><span class="dd-n">13</span>Modelling systems: state machines and invariants<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_EN.html"><span class="dd-n">14</span>Capstone: a verified compiler<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html"><span class="dd-n">&#9670;</span>Troubleshooting</a>
+<a href="glossary_EN.html"><span class="dd-n">&#9670;</span>Glossary</a></div></div>
+  
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#toolbox"><span class="num">1</span><span class="side-t">The automation toolbox</span></a><a href="#simp"><span class="num">2</span><span class="side-t">Rewriting with the simplifier</span></a><a href="#steering"><span class="num">3</span><span class="side-t">Steering the simplifier</span></a><a href="#classical"><span class="num">4</span><span class="side-t">Logic and sets: blast, auto and friends</span></a><a href="#arith"><span class="num">5</span><span class="side-t">Arithmetic</span></a><a href="#find"><span class="num">6</span><span class="side-t">Searching the library</span></a><a href="#refute"><span class="num">7</span><span class="side-t">Counterexamples: Quickcheck and Nitpick</span></a><a href="#sledgehammer"><span class="num">8</span><span class="side-t">Sledgehammer</span></a><a href="#strategy"><span class="num">9</span><span class="side-t">When automation fails</span></a><a href="#summary"><span class="num">10</span><span class="side-t">What you learned</span></a><a href="#exercises"><span class="num">11</span><span class="side-t">Exercises</span></a><a href="#quiz"><span class="num">12</span><span class="side-t">Check yourself</span></a></nav>
+<div class="sidebar-label">Reference</div><div class="side-links"><a href="cheatsheet_EN.html">Cheat sheet</a><a href="troubleshooting_EN.html">Troubleshooting</a><a href="glossary_EN.html">Glossary</a><a href="formal-methods-theories.zip">Theory files (ZIP)</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Formal Methods with Isabelle &middot; Part III · Isabelle/HOL in practice</div>
+      <h1 class="module-title"><span class="title-n">Module 9</span>Proof automation</h1>
+      <p class="module-lead">Use Isabelle’s automatic tools with understanding. Steer the simplifier, choose the right method for logic, sets and arithmetic, find lemmas and counterexamples, call Sledgehammer, and know what to do when automation fails.</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 210 min</span><span class="chip chip-needs">You need: Modules 1–8</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Explain how the simplifier rewrites a goal, and steer it with simp rules, <code>add:</code>, <code>del:</code>, <code>only:</code> and <code>split:</code></li><li>Recognise conditional rules, case splits and rules that loop, and read a simplifier trace</li><li>Choose between <code>simp</code>, <code>auto</code>, <code>blast</code>, <code>force</code>, <code>fastforce</code> and the arithmetic methods, and recognise how each one fails</li><li>Search the library with <code>find_theorems</code>, and test claims with Quickcheck and Nitpick before proving them</li><li>Run Sledgehammer, use the proofs it suggests, and explain why they can be trusted</li><li>Follow a plan when automation fails</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="toolbox"></span>
+<div class="section-header"><span class="section-num">1</span><h2>The automation toolbox</h2></div>
+<p>Since Module 1 you have finished proofs with a single word: <code>by simp</code>, <code>by auto</code>, <code>by blast</code>. Each of these
+words starts a program that searches for a proof. When it works, it saves you dozens of rule applications.
+When it fails, it can leave you puzzled: the goal looked easy, and Isabelle only says that the method failed.
+This module opens the toolbox. You will learn how the tools work, what each one is good at, how to steer
+them, and what to do when none of them works.</p>
+<p>First, a reminder of why it is safe to use tools whose inner workings you do not know in detail. In
+Section 1.4 you met the LCF architecture: only the small kernel can make a theorem. Every tool in this
+module, however clever, ends by asking the kernel to check each inference. A tool can fail, or run for a
+long time, but it cannot turn a false statement into a theorem. This holds even for Sledgehammer, which
+calls programs outside Isabelle; Section 9.8 shows how.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What it does</th>
+<th>Good for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>simp</code></td>
+<td>rewrites the goal with equations, from left to right</td>
+<td>equations, definitions, functions on lists and numbers</td>
+</tr>
+<tr>
+<td><code>auto</code></td>
+<td><code>simp</code> plus logical reasoning, on every subgoal</td>
+<td>many easy subgoals at once</td>
+</tr>
+<tr>
+<td><code>blast</code></td>
+<td>searches for a proof with the rules of logic</td>
+<td>logic, sets and relations</td>
+</tr>
+<tr>
+<td><code>force</code>, <code>fastforce</code></td>
+<td>logic and rewriting together, on the first subgoal</td>
+<td>quantifiers mixed with equations</td>
+</tr>
+<tr>
+<td><code>linarith</code>, <code>arith</code>, <code>presburger</code></td>
+<td>prove facts of linear arithmetic</td>
+<td>inequalities; even and odd; <code>div</code> and <code>mod</code> by numbers</td>
+</tr>
+<tr>
+<td><code>find_theorems</code></td>
+<td>searches the library</td>
+<td>finding the lemma you need</td>
+</tr>
+<tr>
+<td><code>quickcheck</code>, <code>nitpick</code></td>
+<td>search for counterexamples</td>
+<td>testing a claim before you try to prove it</td>
+</tr>
+<tr>
+<td><code>sledgehammer</code></td>
+<td>asks external provers, returns a proof that Isabelle checks</td>
+<td>goals that follow from a few library lemmas</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="acl">A running example: access control</h3>
+<p>So that every tool has real work to do, this module uses one example throughout. A document-sharing
+service decides who may do what with each document. For every document it keeps an <strong>access-control list</strong>
+(ACL): a list of entries, each of which gives one user one permission.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype perm = Read | Write | Admin
+
+type_synonym 'u acl = &quot;('u × perm) list&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> perm = Read | Write | Admin
+
+<span class="isa-cmd">type_synonym</span> 'u acl = <span class="isa-inner">&quot;('u × perm) list&quot;</span></code></pre></div>
+<p>The datatype <code>perm</code> has three values. <code>type_synonym</code> gives a type a shorter name: <code>'u acl</code> is the type
+<code>('u × perm) list</code>, a list of pairs of a user and a permission. The type variable <code>'u</code> is the type of
+users. The examples below use strings such as <code>''ann''</code>; Isabelle writes a string with two single quotes on
+each side.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun allows :: &quot;'u acl ⇒ 'u ⇒ perm ⇒ bool&quot; where
+  &quot;allows [] u p = False&quot;
+| &quot;allows (e # es) u p = (e = (u, p) ∨ allows es u p)&quot;
+
+definition grant :: &quot;'u ⇒ perm ⇒ 'u acl ⇒ 'u acl&quot; where
+  &quot;grant u p es = (u, p) # es&quot;
+
+fun revoke :: &quot;'u ⇒ 'u acl ⇒ 'u acl&quot; where
+  &quot;revoke u [] = []&quot;
+| &quot;revoke u (e # es) = (if fst e = u then revoke u es else e # revoke u es)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> allows :: <span class="isa-inner">&quot;'u acl ⇒ 'u ⇒ perm ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;allows [] u p = False&quot;</span>
+| <span class="isa-inner">&quot;allows (e # es) u p = (e = (u, p) ∨ allows es u p)&quot;</span>
+
+<span class="isa-cmd">definition</span> grant :: <span class="isa-inner">&quot;'u ⇒ perm ⇒ 'u acl ⇒ 'u acl&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;grant u p es = (u, p) # es&quot;</span>
+
+<span class="isa-cmd">fun</span> revoke :: <span class="isa-inner">&quot;'u ⇒ 'u acl ⇒ 'u acl&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;revoke u [] = []&quot;</span>
+| <span class="isa-inner">&quot;revoke u (e # es) = (if fst e = u then revoke u es else e # revoke u es)&quot;</span></code></pre></div>
+<p><code>allows es u p</code> holds when the list <code>es</code> gives user <code>u</code> permission <code>p</code>, that is, when some entry is the
+pair <code>(u, p)</code>. <code>grant u p es</code> adds the entry <code>(u, p)</code> at the front. <code>revoke u es</code> removes every entry of
+user <code>u</code>: <code>fst e</code> is the first component of the pair <code>e</code>, its user. Notice that <code>grant</code> is a <code>definition</code>
+and the other two are defined with <code>fun</code>. The difference matters to the simplifier, as you will see in
+Section 9.2. A quick test:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;allows [(''ann'', Read), (''bob'', Write)] ''bob'' Write&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;allows [(''ann'', Read), (''bob'', Write)] ''bob'' Write&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;True&quot;
+  :: &quot;bool&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;revoke ''ann'' (grant ''ann'' Admin [(''bob'', Write), (''ann'', Read)])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;revoke ''ann'' (grant ''ann'' Admin [(''bob'', Write), (''ann'', Read)])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[(''bob'', Write)]&quot;
+  :: &quot;(char list × perm) list&quot;</code></pre></div>
+<p>The type in the second answer shows that a string is a list of characters, <code>char list</code>.</p>
+<span class="section-anchor" id="simp"></span>
+<div class="section-header"><span class="section-num">2</span><h2>Rewriting with the simplifier</h2></div>
+<h3 id="rewriting">Rewriting on paper</h3>
+<p>The simplifier does one thing: it <strong>rewrites</strong>. Given an equation <code>l = r</code>, it looks for a part of the goal
+that has the shape of <code>l</code>, and replaces that part with the corresponding instance of <code>r</code>. It repeats this
+until no equation applies any more. If the goal has become <code>True</code>, it is proved.</p>
+<p>Here is a worked example with four equations. The first two are the definition of <code>grant</code> and the second
+equation of <code>allows</code>; the other two are laws of logic.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>No.</th>
+<th>Equation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(1)</td>
+<td><code>grant u p es = (u, p) # es</code></td>
+</tr>
+<tr>
+<td>(2)</td>
+<td><code>allows (e # es) u p = (e = (u, p) ∨ allows es u p)</code></td>
+</tr>
+<tr>
+<td>(3)</td>
+<td><code>(x = x) = True</code></td>
+</tr>
+<tr>
+<td>(4)</td>
+<td><code>(True ∨ P) = True</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="box box-example"><div class="box-label">Example 9.1<span class="box-title">Rewriting a goal to True</span></div>
+<p>Take the goal <code>allows (grant u Read es) u Read</code>: user <code>u</code> may read after being granted read access.</p>
+<ol>
+<li>The subterm <code>grant u Read es</code> has the shape of the left side of (1), with <code>u</code> for <code>u</code>, <code>Read</code> for <code>p</code>
+and <code>es</code> for <code>es</code>. Replace it: the goal becomes <code>allows ((u, Read) # es) u Read</code>.</li>
+<li>The whole goal now has the shape of the left side of (2), with <code>(u, Read)</code> for <code>e</code>. Replace it:
+<code>(u, Read) = (u, Read) ∨ allows es u Read</code>.</li>
+<li>The subterm <code>(u, Read) = (u, Read)</code> matches (3), with <code>(u, Read)</code> for <code>x</code>:
+<code>True ∨ allows es u Read</code>.</li>
+<li>This matches (4): the goal is <code>True</code>, and the proof is finished.</li>
+</ol>
+<p>Equation (2) never rewrites <code>allows es u Read</code>, because <code>es</code> is not of the form <code>e # es</code>. That part of the
+goal stays as it is, but after step 4 it no longer matters.</p>
+</div>
+<p>The variables in an equation are placeholders. In Isabelle’s display of theorems they carry a question
+mark, <code>?u</code>, like the schematic variables of Module 7. To use an equation, the simplifier finds terms for its
+variables that make the left side identical to a part of the goal. This is <strong>matching</strong>. It is unification
+from Module 7 in one direction only: the variables of the equation may be instantiated, those of the goal
+may not.</p>
+<div class="box box-definition"><div class="box-label">Definition 9.1<span class="box-title">Rewriting</span></div>
+<p>A <strong>rewrite rule</strong> is an equation <code>l = r</code> that is used from left to right only. To <strong>rewrite</strong> a term with
+a set of rules is to replace, again and again, a subterm that is an instance of some left side <code>l</code> by the
+same instance of the right side <code>r</code>. A term that no rule can rewrite is in <strong>normal form</strong>. The simplifier
+proves a goal by rewriting it to <code>True</code>.</p>
+</div>
+<p>In logic, <code>l = r</code> and <code>r = l</code> say the same. The simplifier still uses each equation in one direction only,
+and that is what makes it fast and predictable: it never has to choose between going forwards and going
+back. It also follows a fixed order. Before it rewrites a term, it rewrites the parts of the term, from
+the inside out, as Figure 9.1 shows.</p>
+<figure class="fig" id="fig-09-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 432" width="760" height="432" role="img"><title>Rewriting a goal step by step</title><defs><marker id="fig-09-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="20" y="16" width="400" height="40" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="34" y="42" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" fill="#1A2E4A">allows (<tspan fill="#2563EB" font-weight="700">grant u Read es</tspan>) u Read</text><line x1="60" y1="60" x2="60" y2="96" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-1__ah-475569)"/><text x="78" y="84" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#475569" text-anchor="start">(1)  grant u p es = (u, p) # es</text><rect x="20" y="102" width="400" height="40" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="34" y="128" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" fill="#1A2E4A"><tspan fill="#2563EB" font-weight="700">allows ((u, Read) # es) u Read</tspan></text><line x1="60" y1="146" x2="60" y2="182" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-1__ah-475569)"/><text x="78" y="170" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#475569" text-anchor="start">(2)  allows (e # es) u p = (e = (u, p) ∨ allows es u p)</text><rect x="20" y="188" width="400" height="40" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="34" y="214" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" fill="#1A2E4A"><tspan fill="#2563EB" font-weight="700">(u, Read) = (u, Read)</tspan> ∨ allows es u Read</text><line x1="60" y1="232" x2="60" y2="268" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-1__ah-475569)"/><text x="78" y="256" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#475569" text-anchor="start">(3)  (x = x) = True</text><rect x="20" y="274" width="400" height="40" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><text x="34" y="300" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" fill="#1A2E4A"><tspan fill="#2563EB" font-weight="700">True ∨ allows es u Read</tspan></text><line x1="60" y1="318" x2="60" y2="354" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-1__ah-475569)"/><text x="78" y="342" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#475569" text-anchor="start">(4)  (True ∨ P) = True</text><rect x="20" y="360" width="120" height="40" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.5"/><text x="34" y="386" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" fill="#1A2E4A"><tspan fill="#15803D" font-weight="700">True</tspan></text><rect x="182.0" y="369" width="76" height="22" rx="11.0" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/><text x="220.0" y="386" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="middle">⊢ proved</text><circle cx="532" cy="35" r="11" fill="#2563EB" stroke="#2563EB" stroke-width="1"/><text x="532" y="40" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text><text x="552" y="40" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">The bold blue part is</text><text x="552" y="58" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">rewritten in the next step.</text><circle cx="532" cy="135" r="11" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><text x="532" y="140" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text><text x="552" y="140" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">Inner parts first:</text><text x="552" y="158" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">grant u Read es is rewritten</text><text x="552" y="176" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">before the term around it.</text><circle cx="532" cy="235" r="11" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><text x="532" y="240" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text><text x="552" y="240" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">Each step replaces an instance</text><text x="552" y="258" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">of a rule’s left side by the</text><text x="552" y="276" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">same instance of its right side.</text></svg>
+</div><figcaption><span class="fig-num">Figure 9.1</span> <p>The simplifier at work on <code>allows (grant u Read es) u Read</code>. At each step the highlighted part is
+rewritten with the rule named on the arrow. Inner parts are rewritten before the term around them.</p>
+</figcaption></figure>
+<h3 id="simp-only">Watching it in Isabelle</h3>
+<p>You can make Isabelle take the steps of the example one at a time. <code>simp only: r₁ r₂</code> rewrites with the
+rules <code>r₁ r₂</code> and with no others:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (grant u Read es) u Read&quot;
+  apply (simp only: grant_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read es) u Read&quot;</span>
+  <span class="isa-proof">apply</span> (simp only: grant_def)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. allows ((u, Read) # es) u Read</code></pre></div>
+<p><code>grant_def</code> is the theorem that the <code>definition</code> command created: <code>grant ?u ?p ?es = (?u, ?p) # ?es</code>. It
+is rule (1). Rule (2) belongs to <code>allows.simps</code>, the equations that <code>fun</code> proved for <code>allows</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (simp only: allows.simps)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (simp only: allows.simps)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. (u, Read) = (u, Read) ∨ allows es u Read</code></pre></div>
+<p>Even <code>(u, Read) = (u, Read)</code> is left untouched, because you allowed no rule that applies to it. Rules (3)
+and (4) belong to <code>simp_thms</code>, a collection of basic laws of logic:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (simp only: simp_thms)
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (simp only: simp_thms)
+  <span class="isa-proof">done</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal:
+No subgoals!</code></pre></div>
+<h3 id="simp-rules">Where simp rules come from</h3>
+<p>Plain <code>simp</code> does not take a list of rules. It uses the <strong>simp set</strong>, a large collection of rules that
+grows as theories are loaded:</p>
+<ul>
+<li>the equations of every function defined with <code>fun</code> or <code>primrec</code>, such as <code>allows.simps</code> and
+<code>revoke.simps</code>;</li>
+<li>facts that <code>datatype</code> proves: the constructors are different (<code>Read ≠ Write</code>), and a constructor applied
+to different arguments gives different values, so <code>(x # xs = y # ys) = (x = y ∧ xs = ys)</code>;</li>
+<li>thousands of library lemmas that carry the attribute <code>[simp]</code>, such as <code>rev (rev xs) = xs</code>;</li>
+<li>your own lemmas, when you give them <code>[simp]</code>.</li>
+</ul>
+<div class="box box-definition"><div class="box-label">Definition 9.2<span class="box-title">Simp rule and simp set</span></div>
+<p>A <strong>simp rule</strong> is a theorem that the simplifier uses without being told. The <strong>simp set</strong> is the
+collection of all simp rules at a point of a theory. You make a lemma a simp rule by writing <code>[simp]</code> after
+its name, or later with <code>declare name [simp]</code>; <code>declare name [simp del]</code> removes it again.</p>
+</div>
+<p>One thing is missing from the list: definitions. A <code>definition</code> is not a simp rule, so <code>simp</code> treats
+<code>grant</code> as an unknown function:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read es) u Read&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. allows (grant u Read es) u Read</span></code></pre></div>
+<p>“Failed to apply initial proof method” means that <code>simp</code> could not change the goal at all: no rule in the
+simp set matches any part of it. Tell <code>simp</code> to use the definition, with <code>add:</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (grant u Read es) u Read&quot;
+  by (simp add: grant_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read es) u Read&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def)</code></pre></div>
+<p>Why are definitions not simp rules? A definition introduces a new idea, such as “grant a permission”. Once
+you have proved the properties of the idea that you need, later proofs should use those properties and
+not the definition. If you change the definition later, only the proofs of the properties have to change.
+So the usual style is to prove a few laws about a defined function, and make the laws simp rules:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma allows_grant [simp]:
+  &quot;allows (grant u p es) v q = ((u, p) = (v, q) ∨ allows es v q)&quot;
+  by (simp add: grant_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> allows_grant [simp]:
+  <span class="isa-inner">&quot;allows (grant u p es) v q = ((u, p) = (v, q) ∨ allows es v q)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def)</code></pre></div>
+<p>From now on <code>simp</code> knows how <code>allows</code> and <code>grant</code> work together, without looking inside <code>grant</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (grant u Read (grant v Write es)) v Write&quot;
+  by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read (grant v Write es)) v Write&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>To the simplifier, <code>u = v</code> and <code>v = u</code> are different terms, and no rule in the simp set turns one into the
+other. So the order in which you write an equation can decide whether <code>simp</code> succeeds. State
+<code>allows_grant</code> with the sides of the equation swapped, and the same proof fails:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u p es) v q = ((v, q) = (u, p) ∨ allows es v q)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. (u = v ∧ p = q ∨ allows es v q) = (v = u ∧ q = p ∨ allows es v q)</span></code></pre></div>
+<p>The simplifier rewrote both sides as far as it could and was left with <code>u = v ∧ p = q</code> on the left and
+<code>v = u ∧ q = p</code> on the right. Write the lemma in the orientation that the definitions produce.</p>
+</div>
+<h3 id="modifiers"><code>add:</code>, <code>del:</code>, <code>only:</code> and <code>simp_all</code></h3>
+<p>You have now seen most of the ways to change the rules that the simplifier uses. Here they are together.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Uses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>simp</code></td>
+<td>the simp set and the assumptions of the first subgoal</td>
+</tr>
+<tr>
+<td><code>simp add: a b</code></td>
+<td>the simp set, plus the theorems <code>a</code> and <code>b</code></td>
+</tr>
+<tr>
+<td><code>simp del: a</code></td>
+<td>the simp set without <code>a</code></td>
+</tr>
+<tr>
+<td><code>simp only: a b</code></td>
+<td>only <code>a</code> and <code>b</code>, plus the assumptions</td>
+</tr>
+<tr>
+<td><code>simp_all</code></td>
+<td>like <code>simp</code>, on every subgoal</td>
+</tr>
+</tbody>
+</table></div>
+<p>Even with <code>only:</code>, a few built-in helpers stay: the simplifier still closes a goal that has become
+trivial, such as <code>t = t</code>, and it may still call linear arithmetic (Section 9.5) to finish a goal.</p>
+<p><code>del:</code> removes a rule for one call, for example a simp rule that rewrites a term into a form you do not
+want. Without <code>allows_grant</code> the simplifier is back where it started:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read (grant v Write es)) v Write&quot;</span>
+  <span class="isa-proof">by</span> (simp del: allows_grant)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. allows (grant u Read (grant v Write es)) v Write</span></code></pre></div>
+<p><code>simp</code> works on the first subgoal only. After <code>induction</code> there are usually several subgoals, and
+<code>simp_all</code> simplifies them all. Here is a law that later sections need:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma allows_append [simp]:
+  &quot;allows (es @ fs) u p = (allows es u p ∨ allows fs u p)&quot;
+  apply (induction es)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> allows_append [simp]:
+  <span class="isa-inner">&quot;allows (es @ fs) u p = (allows es u p ∨ allows fs u p)&quot;</span>
+  <span class="isa-proof">apply</span> (induction es)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. allows ([] @ fs) u p = (allows [] u p ∨ allows fs u p)
+ 2. ⋀a es.
+       allows (es @ fs) u p = (allows es u p ∨ allows fs u p) ⟹
+       allows ((a # es) @ fs) u p = (allows (a # es) u p ∨ allows fs u p)</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply simp_all
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> simp_all
+  <span class="isa-proof">done</span></code></pre></div>
+<p>In the second subgoal the simplifier used the induction hypothesis, an assumption of that subgoal, as a
+rewrite rule. Section 9.3 explains how simp uses assumptions.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>The simplifier is predictable. It uses the rules of the simp set, plus what you add, from left to right,
+and nothing else. When <code>simp</code> fails, ask which equation it would have needed, and whether that equation
+is in the simp set.</p>
+</div>
+<details class="trouble"><summary>If something went wrong</summary><div class="details-body">
+<p>The two messages of a failed <code>by</code> mean different things:</p>
+<ul>
+<li><strong>“Failed to apply initial proof method”</strong>: the method could not do anything with the goal. For <code>simp</code>,
+no rule applied at all. Often a definition is not unfolded, or a needed lemma is not a simp rule.</li>
+<li><strong>“Failed to finish proof”</strong>: the method made progress but did not prove the goal. The message shows what
+is left. Read it: it tells you what the simplifier could not do.</li>
+</ul>
+</div></details>
+<span class="section-anchor" id="steering"></span>
+<div class="section-header"><span class="section-num">3</span><h2>Steering the simplifier</h2></div>
+<h3 id="conditional">Conditional rewrite rules</h3>
+<p>Many useful equations hold only under a condition. Revoking <code>u</code>’s entries does not change what another user
+<code>v</code> may do, but only if <code>v</code> really is another user:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma revoke_other [simp]: &quot;v ≠ u ⟹ allows (revoke u es) v p = allows es v p&quot;
+  by (induction es) auto
+
+lemma revoke_self [simp]: &quot;allows (revoke u es) u p = False&quot;
+  by (induction es) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> revoke_other [simp]: <span class="isa-inner">&quot;v ≠ u ⟹ allows (revoke u es) v p = allows es v p&quot;</span>
+  <span class="isa-proof">by</span> (induction es) auto
+
+<span class="isa-cmd">lemma</span> revoke_self [simp]: <span class="isa-inner">&quot;allows (revoke u es) u p = False&quot;</span>
+  <span class="isa-proof">by</span> (induction es) auto</code></pre></div>
+<div class="box box-definition"><div class="box-label">Definition 9.3<span class="box-title">Conditional rewrite rule</span></div>
+<p>A <strong>conditional rewrite rule</strong> has the form <code>H ⟹ l = r</code>, or <code>⟦H₁; …; Hₙ⟧ ⟹ l = r</code> with several
+conditions. Before the simplifier replaces an instance of <code>l</code> by the same instance of <code>r</code>, it tries to prove
+the same instance of each condition <code>Hᵢ</code>, by simplification. If it cannot, it does not use the rule.</p>
+</div>
+<p>Two concrete users are different, and the simplifier can prove it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (revoke ''ann'' es) ''bob'' Read = allows es ''bob'' Read&quot;
+  by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (revoke ''ann'' es) ''bob'' Read = allows es ''bob'' Read&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>To use <code>revoke_other</code> here, the simplifier had to prove the condition <code>''bob'' ≠ ''ann''</code>. It did, by
+simplifying the condition to <code>True</code>: the two strings differ in their first character. With variables in
+place of the names, the condition cannot be proved, and the rule is not used:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (revoke u es) v p = allows es v p&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. allows (revoke u es) v p = allows es v p</span></code></pre></div>
+<p>The simplifier is right to stop: the claim is false when <code>v = u</code>.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>The conditions of a rule must be simpler than its left side, or the simplifier can run in circles. The rule
+<code>Suc n &lt; m ⟹ (n &lt; m) = True</code> is true, but as a simp rule it is useless: to rewrite <code>n &lt; m</code>, the
+simplifier must first prove <code>Suc n &lt; m</code>, which the same rule rewrites if it can prove <code>Suc (Suc n) &lt; m</code>,
+and so on. The simplifier gives up only after 40 nested attempts, the default of its option
+<code>simp_depth_limit</code>, and then leaves <code>n &lt; m</code> as it was.</p>
+</div>
+<h3 id="assumptions">How simp uses assumptions</h3>
+<p>By default the simplifier uses the assumptions of a subgoal, the formulas before ⟹, as extra rewrite rules,
+and it simplifies the assumptions too. It turns each assumption into a rule:</p>
+<ul>
+<li>an equation <code>t = s</code> is usually used to rewrite <code>t</code> to <code>s</code>;</li>
+<li>a negation <code>¬ P</code> becomes <code>P = False</code>, so <code>v ≠ u</code> becomes <code>(v = u) = False</code>;</li>
+<li>any other formula <code>P</code> becomes <code>P = True</code>;</li>
+<li><code>∀x. P x ⟶ Q x</code> becomes the conditional rule <code>P ?x ⟹ Q ?x = True</code>.</li>
+</ul>
+<p>So the false claim above becomes true, and provable by <code>simp</code>, once you add the assumption it needs:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;v ≠ u ⟹ allows (revoke u es) v p = allows es v p&quot;
+  by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;v ≠ u ⟹ allows (revoke u es) v p = allows es v p&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>The assumption gave the rule <code>(v = u) = False</code>, which proved the condition <code>v ≠ u</code> of <code>revoke_other</code>. The
+last kind of assumption in the list is how simp uses a general fact about all users. Suppose that every
+user who may write may also read, and that <code>u</code> may write:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦∀w. allows es w Write ⟶ allows es w Read; allows es u Write⟧
+       ⟹ allows es u Read&quot;
+  by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀w. allows es w Write ⟶ allows es w Read; allows es u Write⟧
+       ⟹ allows es u Read&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>The first assumption became the conditional rule <code>allows es ?w Write ⟹ allows es ?w Read = True</code>. To
+rewrite the goal <code>allows es u Read</code> with it, the simplifier had to prove <code>allows es u Write</code>, and the second
+assumption, now the rule <code>allows es u Write = True</code>, did that.</p>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>Assumptions can also make the simplifier loop. An assumption such as <code>∀x. f x = g (f (g x))</code> becomes a
+rule that rewrites <code>f x</code> to a term that contains <code>f (g x)</code>, which the same rule rewrites again, and so on
+for ever. (Isabelle notices simpler cases, such as <code>∀x. f x = g (f x)</code>, and turns them round, but not this
+one.) If a goal has such an assumption that the proof does not need, <code>simp (no_asm)</code> ignores the
+assumptions of the subgoal. Section 9.8 shows a goal whose own assumptions send the simplifier round in
+circles.</p>
+</div>
+<h3 id="splits">Case splits</h3>
+<p>A goal that contains <code>if c then a else b</code> cannot be simplified much as it is: the simplifier does not know
+whether <code>c</code> holds. So it <strong>splits</strong> the goal into two cases, one where <code>c</code> holds and one where it does not,
+with this library rule:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm if_split">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> if_split</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>?P (if ?Q then ?x else ?y) = ((?Q ⟶ ?P ?x) ∧ (¬ ?Q ⟶ ?P ?y))</code></pre></div>
+<p>Read <code>?P</code> as “the rest of the goal around the <code>if</code>”. The simplifier splits <code>if</code>s automatically. You can
+watch it in the proof of a law about <code>revoke</code>, whose definition contains an <code>if</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma allows_revoke: &quot;allows (revoke u es) v p = (v ≠ u ∧ allows es v p)&quot;
+  apply (induction es)
+  apply simp_all">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> allows_revoke: <span class="isa-inner">&quot;allows (revoke u es) v p = (v ≠ u ∧ allows es v p)&quot;</span>
+  <span class="isa-proof">apply</span> (induction es)
+  <span class="isa-proof">apply</span> simp_all</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀a es.
+       allows (revoke u es) v p = (v ≠ u ∧ allows es v p) ⟹
+       (fst a = u ⟶
+        (v ≠ u ∧ allows es v p) = (v ≠ u ∧ (a = (v, p) ∨ allows es v p))) ∧
+       (fst a ≠ u ⟶
+        (a = (v, p) ∨ v ≠ u ∧ allows es v p) =
+        (v ≠ u ∧ (a = (v, p) ∨ allows es v p)))</code></pre></div>
+<p>The base case is proved. In the induction step the simplifier unfolded <code>revoke u (a # es)</code>, split the <code>if</code> on
+<code>fst a = u</code> into the two implications you see, and used the induction hypothesis. Then it got stuck. To go
+on, it would have to conclude from <code>a = (v, p)</code> that <code>fst a = v</code>, and the simplifier does not look inside a
+pair variable such as <code>a</code>. <code>auto</code>, which you meet in Section 9.4, first replaces a pair variable by a pair
+of two variables, and then finishes:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply auto
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> auto
+  <span class="isa-proof">done</span></code></pre></div>
+<p>A <code>case</code> expression is different: the simplifier does not split it automatically, because for a recursive
+datatype that could go on for ever. Here is a function with a <code>case</code>. The first entry with the permission
+<code>Admin</code> names the owner of a document, and only the owner may delete it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun owner :: &quot;'u acl ⇒ 'u option&quot; where
+  &quot;owner [] = None&quot;
+| &quot;owner (e # es) = (if snd e = Admin then Some (fst e) else owner es)&quot;
+
+definition may_delete :: &quot;'u ⇒ 'u acl ⇒ bool&quot; where
+  &quot;may_delete u es = (case owner es of None ⇒ False | Some v ⇒ v = u)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> owner :: <span class="isa-inner">&quot;'u acl ⇒ 'u option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;owner [] = None&quot;</span>
+| <span class="isa-inner">&quot;owner (e # es) = (if snd e = Admin then Some (fst e) else owner es)&quot;</span>
+
+<span class="isa-cmd">definition</span> may_delete :: <span class="isa-inner">&quot;'u ⇒ 'u acl ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;may_delete u es = (case owner es of None ⇒ False | Some v ⇒ v = u)&quot;</span></code></pre></div>
+<p>The type <code>'u option</code> has the values <code>None</code>, for no result, and <code>Some v</code>, for the result <code>v</code>. <code>snd e</code> is the
+second component of <code>e</code>, its permission. After unfolding the definition, the simplifier gets stuck at the
+<code>case</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;may_delete u es = (owner es = Some u)&quot;
+  apply (simp add: may_delete_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;may_delete u es = (owner es = Some u)&quot;</span>
+  <span class="isa-proof">apply</span> (simp add: may_delete_def)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. (case owner es of None ⇒ False | Some v ⇒ v = u) = (owner es = Some u)</code></pre></div>
+<p>The modifier <code>split:</code> names a rule that splits a <code>case</code>. For a datatype <code>t</code> the rule is called <code>t.split</code>,
+so for <code>option</code> it is <code>option.split</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm option.split">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> option.split</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>?P (case ?option of None ⇒ ?f1.0 | Some x ⇒ ?f2.0 x) =
+((?option = None ⟶ ?P ?f1.0) ∧ (∀x2. ?option = Some x2 ⟶ ?P (?f2.0 x2)))</code></pre></div>
+<p>The rule turns the <code>case</code> into two implications, one for each constructor, as <code>if_split</code> does for an
+<code>if</code>. Read <code>?f1.0</code> as the schematic variable named <code>f1</code> with index 0 (Module 7 explained indexes with
+<code>?P5</code>): when a name ends in a digit, Isabelle puts a dot before the index, so that the two cannot run
+together. With this rule, the simplifier finishes:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (simp split: option.split)
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (simp split: option.split)
+  <span class="isa-proof">done</span></code></pre></div>
+<p>The same works for lists with <code>list.split</code> and for natural numbers with <code>nat.split</code>. These rules split a
+<code>case</code> in the conclusion of a goal. A <code>case</code> or an <code>if</code> in an assumption needs the variants <code>option.splits</code>
+and <code>if_splits</code>, with an <code>s</code> at the end. With <code>option.split</code>, the <code>case</code> in the assumption stays:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;may_delete u es ⟹ owner es = Some u&quot;</span>
+  <span class="isa-proof">by</span> (simp add: may_delete_def split: option.split)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. case owner es of None ⇒ False | Some v ⇒ v = u ⟹ owner es = Some u</span></code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;may_delete u es ⟹ owner es = Some u&quot;
+  by (simp add: may_delete_def split: option.splits)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;may_delete u es ⟹ owner es = Some u&quot;</span>
+  <span class="isa-proof">by</span> (simp add: may_delete_def split: option.splits)</code></pre></div>
+<h3 id="loops">Rules that loop</h3>
+<p>Nothing guarantees that rewriting stops. The library has the simp rule <code>append_assoc</code>:
+<code>(xs @ ys) @ zs = xs @ (ys @ zs)</code>. Suppose you added its mirror image, <code>xs @ (ys @ zs) = (xs @ ys) @ zs</code>,
+as a simp rule. Then a goal containing <code>es @ (fs @ gs)</code> would be rewritten like this:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mtext mathvariant="monospace">es</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">(fs</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">gs)</mtext></mrow><mtext>  </mtext><mo>→</mo><mtext>  </mtext><mrow><mtext mathvariant="monospace">(es</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">fs)</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">gs</mtext></mrow><mtext>  </mtext><mo>→</mo><mtext>  </mtext><mrow><mtext mathvariant="monospace">es</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">(fs</mtext><mtext> </mtext><mtext mathvariant="monospace">@</mtext><mtext> </mtext><mtext mathvariant="monospace">gs)</mtext></mrow><mtext>  </mtext><mo>→</mo><mtext>  </mtext><mo>⋯</mo></mrow><annotation encoding="application/x-tex">\texttt{es @ (fs @ gs)} \;\to\; \texttt{(es @ fs) @ gs} \;\to\; \texttt{es @ (fs @ gs)} \;\to\; \cdots
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9167em;vertical-align:-0.2222em;"></span><span class="mord text"><span class="mord texttt">es @ (fs @ gs)</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9167em;vertical-align:-0.2222em;"></span><span class="mord text"><span class="mord texttt">(es @ fs) @ gs</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9167em;vertical-align:-0.2222em;"></span><span class="mord text"><span class="mord texttt">es @ (fs @ gs)</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.313em;"></span><span class="minner">⋯</span></span></span></span></span></div>
+<p>The simplifier would never stop. In Isabelle/jEdit the proof keeps running and never finishes. Remove the
+rule from the text, and Isabelle checks the changed text again.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>It is your job to keep the simp set terminating. A rule of thumb: the right side of a simp rule should be
+simpler than its left side, and the conditions of a conditional rule simpler than its left side. Never add
+both an equation and its mirror image. If you need a simp rule in the other direction for one call, write
+<code>simp flip: name</code>: it removes the rule and adds its mirror image, for that call only.</p>
+</div>
+<p>Some useful equations look as if they must loop. Granting two permissions in either order gives the same
+set of entries, which is an instance of this library rule:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm insert_commute">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> insert_commute</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>insert ?x (insert ?y ?A) = insert ?y (insert ?x ?A)</code></pre></div>
+<p>Used again and again, the rule would swap <code>x</code> and <code>y</code> back and forth. Isabelle recognises such
+<strong>permutative</strong> rules, whose two sides are the same up to the order of the variables, and uses them only
+when the result is smaller in a fixed order on terms. So the rule swaps two elements into order, and then
+stops:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;insert b (insert a A) = X&quot;
+  apply (simp only: insert_commute)
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;insert b (insert a A) = X&quot;</span>
+  <span class="isa-proof">apply</span> (simp only: insert_commute)
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. insert a (insert b A) = X</code></pre></div>
+<p>The goal <code>insert a (insert b A) = X</code> is already in order, so the rule does not apply to it again. Applied
+to both sides of an equation, ordered rewriting brings both into the same order:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;set (grant u p (grant v q es)) = set (grant v q (grant u p es))&quot;
+  by (simp add: grant_def insert_commute)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;set (grant u p (grant v q es)) = set (grant v q (grant u p es))&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def insert_commute)</code></pre></div>
+<p>The same idea handles operators that are associative and commutative, such as <code>+</code>, <code>*</code>, <code>∪</code> and <code>∩</code>. With
+associativity oriented from left to right and two permutative rules, the simplifier sorts the operands into
+a fixed order. For <code>∪</code> the three rules, plus one more, are collected under the name <code>Un_ac</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm Un_ac">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> Un_ac</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  ?A ∪ ?B ∪ ?C = ?A ∪ (?B ∪ ?C)
+  ?A ∪ (?A ∪ ?B) = ?A ∪ ?B
+  ?A ∪ ?B = ?B ∪ ?A
+  ?A ∪ (?B ∪ ?C) = ?B ∪ (?A ∪ ?C)</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;C ∪ B ∪ A = X&quot;
+  apply (simp only: Un_ac)
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;C ∪ B ∪ A = X&quot;</span>
+  <span class="isa-proof">apply</span> (simp only: Un_ac)
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. A ∪ (B ∪ C) = X</code></pre></div>
+<p>Two unions with the same operands in any order and grouping reach the same normal form, so their equality
+is proved by <code>simp only: Un_ac</code>. The name <code>ac_simps</code> collects such rules for many operators at once.</p>
+<h3 id="tracing">Tracing</h3>
+<p>When the simplifier does something unexpected, you can ask it to report every step. Put
+<code>using [[simp_trace]]</code> before the method. The double brackets set a configuration option, here for this
+proof only:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (grant u Read es) u Read&quot;
+  using [[simp_trace]] by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read es) u Read&quot;</span>
+  <span class="isa-proof">using</span> [[simp_trace]] <span class="isa-proof">by</span> simp</code></pre></div>
+<p>The <strong>trace</strong> appears in the Output panel, below the proof state. The build that checks the outputs on
+these pages does not record traces, so this one was copied from a run of Isabelle2026. For this proof it
+reads:</p>
+<pre class="code"><code class="language-text">[1]SIMPLIFIER INVOKED ON THE FOLLOWING TERM:
+allows (grant u Read es) u Read
+[1]Applying instance of rewrite rule &quot;allows_grant&quot;:
+allows (grant ?u1 ?p1 ?es1) ?v1 ?q1 ≡
+(?u1, ?p1) = (?v1, ?q1) ∨ allows ?es1 ?v1 ?q1
+[1]Rewriting:
+allows (grant u Read es) u Read ≡ (u, Read) = (u, Read) ∨ allows es u Read
+[1]Applying instance of rewrite rule &quot;simp_thms(6)&quot;:
+?x1 = ?x1 ≡ True
+[1]Rewriting:
+(u, Read) = (u, Read) ≡ True
+[1]Applying instance of rewrite rule &quot;simp_thms(30)&quot;:
+True ∨ ?P1 ≡ True
+[1]Rewriting:
+True ∨ allows es u Read ≡ True
+</code></pre>
+<p>These are the steps of the example in Section 9.2, except that the simplifier used the lemma
+<code>allows_grant</code> instead of unfolding <code>grant</code>. Each “Applying instance of rewrite rule” names a rule:
+<code>simp_thms(6)</code> is the sixth law in <code>simp_thms</code>. The rule is written with <code>≡</code>, the equality of Isabelle’s
+meta-logic in which rewrite rules are stored, and with its variables numbered (<code>?u1</code>). Each “Rewriting:”
+shows the instance that was used: which part of the goal, and what it became. The <code>[1]</code> is the depth.
+When the simplifier calls itself to prove the condition of a conditional rule, those steps are marked
+<code>[2]</code>; they are hidden unless you also raise the option <code>simp_trace_depth_limit</code>, whose default is 1, for
+example with <code>using [[simp_trace, simp_trace_depth_limit = 3]]</code>.</p>
+<p>A trace can be long. Isabelle/jEdit shows at most 1000 trace messages for a command, then pauses with the
+message “Tracing paused. Stop, or continue with next 100, 1000, 10000 messages?”. If that happens with a
+small goal, suspect a rule that loops. Remove <code>using [[simp_trace]]</code> when you are done.</p>
+<span class="section-anchor" id="classical"></span>
+<div class="section-header"><span class="section-num">4</span><h2>Logic and sets: blast, auto and friends</h2></div>
+<p>The simplifier rewrites. It never searches: it does not try a step, find that it leads nowhere, and go back
+to try another. Many goals need such a search. Which assumption should be used? Which value should an
+<code>∃</code> get? Isabelle’s <strong>classical reasoner</strong>, which you met with <code>blast</code> in Module 7, answers these
+questions by searching. It applies the introduction and elimination rules of natural deduction from
+Modules 6 and 7, together with the rules declared for sets and relations, and it backtracks when a choice
+fails.</p>
+<div class="box box-definition"><div class="box-label">Definition 9.4<span class="box-title">Safe and unsafe rules</span></div>
+<p>A rule is <strong>safe</strong> if applying it to a provable goal always leaves provable subgoals, as <code>conjI</code> and <code>impI</code>
+do: these are the safe steps of Section 6.7. A rule is <strong>unsafe</strong> if it might turn a provable goal into an
+unprovable one: <code>disjI1</code> reduces <code>P ∨ Q</code> to <code>P</code>, which may be the wrong choice, and <code>allE</code> must guess a
+term for the variable. The classical reasoner applies safe rules freely and unsafe rules only with
+backtracking.</p>
+</div>
+<p>To give the classical reasoner real work, extend the running example with roles. In a larger service,
+permissions belong to roles and users have roles. Two relations, sets of pairs as in Module 4, describe
+this. <code>UR</code> contains <code>(u, r)</code> when user <code>u</code> has role <code>r</code>; <code>RP</code> contains <code>(r, p)</code> when role <code>r</code> grants
+permission <code>p</code>. A user has a permission when one of the user’s roles grants it. Isabelle writes this
+composition of relations as <code>UR O RP</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm relcomp_unfold">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> relcomp_unfold</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>?r O ?s = {(x, z). ∃y. (x, y) ∈ ?r ∧ (y, z) ∈ ?s}</code></pre></div>
+<h3 id="blast">blast</h3>
+<p><code>blast</code> is a search procedure for first-order logic, the logic of ∀, ∃ and the connectives from
+Module 3, with the rules for sets and relations built in. Here is a policy fact: if every role that grants
+<code>Write</code> also grants <code>Read</code>, then every user who may write may read.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦∀r. (r, Write) ∈ RP ⟶ (r, Read) ∈ RP; (u, Write) ∈ UR O RP⟧
+       ⟹ (u, Read) ∈ UR O RP&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀r. (r, Write) ∈ RP ⟶ (r, Read) ∈ RP; (u, Write) ∈ UR O RP⟧
+       ⟹ (u, Read) ∈ UR O RP&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>On paper the proof needs a role <code>r</code> with <code>(u, r) ∈ UR</code> and <code>(r, Write) ∈ RP</code>, an instance of the <code>∀</code> for
+that <code>r</code>, and the role <code>r</code> again as the witness for the <code>∃</code> hidden in <code>O</code>. <code>blast</code> found all three. Giving
+users more roles never takes a permission away:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;UR ⊆ UR' ⟹ UR O RP ⊆ UR' O RP&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;UR ⊆ UR' ⟹ UR O RP ⊆ UR' O RP&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>In principle <code>blast</code> is a <strong>complete</strong> method for first-order logic: if its search had no limit, it would
+find a proof of every valid first-order formula. In practice its search is bounded, as Section 6.9
+described. It does no rewriting and knows little about equality, so it fails on goals that need
+definitions unfolded, functions computed or arithmetic:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (grant u Read es) u Read&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. allows (grant u Read es) u Read</span></code></pre></div>
+<p><code>blast</code> either proves the goal or fails with this message. It never leaves a partly proved goal behind, so
+when it fails it gives you no hint why.</p>
+<h3 id="auto">auto</h3>
+<p><code>auto</code> combines the two worlds. It simplifies, applies safe rules, and tries a bounded search with unsafe
+rules, on every subgoal. It proves the subgoals it can and leaves the rest, simplified, in the proof state.
+That makes it good at goals with many easy parts, and at telling you what it could not do. Here is a false
+claim about roles: removing the pair <code>(r, p)</code> from <code>RP</code> does not take permission <code>p</code> away from anyone.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(u, p) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r, p)})&quot;
+  apply auto
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(u, p) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r, p)})&quot;</span>
+  <span class="isa-proof">apply</span> auto
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀y. ⟦(u, y) ∈ UR; (y, p) ∈ RP⟧ ⟹ (u, p) ∈ UR O (RP - {(r, p)})</code></pre></div>
+<p><code>auto</code> took the composition apart and left one subgoal, which you can read as a statement about roles. It
+is not provable, because the role <code>y</code> that gives <code>u</code> the permission may be <code>r</code> itself. When <code>auto</code> leaves a
+subgoal that you think should be easy, read it carefully: it may be false, as here, or it may need a lemma
+that <code>auto</code> does not know. Section 9.7 shows how to tell the difference automatically.</p>
+<h3 id="force">force and fastforce</h3>
+<p>Some goals need search and rewriting at the same time. A storage service keeps every log twice in a row,
+so every log in the set <code>A</code> is some list <code>ys</code> followed by itself. Then every log in <code>A</code> has even length:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n&quot;</span>
+  <span class="isa-proof">by</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. ⟦∀xs∈A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n</span></code></pre></div>
+<p><code>auto</code> could do nothing with this goal, and <code>blast</code> fails too, because the proof needs the equation
+<code>length (ys @ ys) = length ys + length ys</code> in the middle of the search. <code>fastforce</code> combines the search of
+the classical reasoner with the simplifier at every step:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n&quot;
+  by fastforce">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n&quot;</span>
+  <span class="isa-proof">by</span> fastforce</code></pre></div>
+<p><code>force</code> does the same with a more thorough search. It sometimes succeeds where <code>fastforce</code> fails, and
+it can take much longer. Both work on the first subgoal only, and like <code>blast</code> they either prove it or
+fail.</p>
+<h3 id="clarsimp">clarsimp</h3>
+<p><code>clarsimp</code> applies safe rules and the simplifier. Unlike <code>auto</code>, it does not use logic to split a goal
+into several subgoals, and it never guesses. It does not try to finish the proof; it tidies the goal so
+that you can see what remains:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;∀u. (u, Write) ∈ UR O RP ⟶ (u, Read) ∈ UR O RP&quot;
+  apply clarsimp
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∀u. (u, Write) ∈ UR O RP ⟶ (u, Read) ∈ UR O RP&quot;</span>
+  <span class="isa-proof">apply</span> clarsimp
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀x y. ⟦(x, y) ∈ UR; (y, Write) ∈ RP⟧ ⟹ (x, Read) ∈ UR O RP</code></pre></div>
+<p><code>clarsimp</code> removed the <code>∀</code> and the <code>⟶</code>, and took apart the assumption <code>(x, Write) ∈ UR O RP</code> into a role
+<code>y</code> with two facts about it. What is left is the heart of the problem, and it is not provable: nothing
+says that role <code>y</code> grants <code>Read</code>.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Works on</th>
+<th>When it fails</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>simp</code>, <code>simp_all</code></td>
+<td>first subgoal; all subgoals</td>
+<td>leaves the simplified goal, or fails if nothing changed</td>
+</tr>
+<tr>
+<td><code>auto</code></td>
+<td>all subgoals</td>
+<td>leaves what it could not prove, or fails if nothing changed</td>
+</tr>
+<tr>
+<td><code>blast</code></td>
+<td>first subgoal</td>
+<td>fails, with no hint</td>
+</tr>
+<tr>
+<td><code>force</code>, <code>fastforce</code></td>
+<td>first subgoal</td>
+<td>fails, with no hint</td>
+</tr>
+<tr>
+<td><code>clarsimp</code></td>
+<td>first subgoal</td>
+<td>does not try to finish; leaves the goal tidied</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>auto</code>, <code>force</code>, <code>fastforce</code> and <code>clarsimp</code> accept the simplifier’s modifiers, written <code>simp add:</code> (or
+<code>simp:</code> for short), <code>simp del:</code> and <code>split:</code>, because <code>add:</code> alone would be ambiguous. They also accept
+rules for the classical reasoner: <code>intro:</code>, <code>elim:</code> and <code>dest:</code>, for introduction, elimination and
+destruction rules as in Module 7. So
+<code>auto simp add: grant_def</code>, or <code>auto simp: grant_def</code> as Module 4 wrote it, unfolds <code>grant</code>, and
+<code>blast intro: r</code> lets <code>blast</code> use a rule <code>r</code> of your own.</p>
+<span class="section-anchor" id="arith"></span>
+<div class="section-header"><span class="section-num">5</span><h2>Arithmetic</h2></div>
+<p>Arithmetic gets its own tools, because neither rewriting nor logical search handles it well. A formula of
+<strong>linear arithmetic</strong> is built from variables, numbers, <code>+</code>, <code>-</code>, <code>=</code>, <code>&lt;</code>, <code>≤</code> and the connectives, where
+a variable may be multiplied by a number, as in <code>2 * x</code>, but not by another variable. For such formulas
+there are <strong>decision procedures</strong>: programs that decide, for every formula of the kind, whether it holds,
+and prove it if it does.</p>
+<p>A storage service gives each user a quota. A new file fits if its size is at most the free space:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦used ≤ quota; new ≤ quota - used⟧ ⟹ used + new ≤ (quota :: nat)&quot;
+  by linarith">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦used ≤ quota; new ≤ quota - used⟧ ⟹ used + new ≤ (quota :: nat)&quot;</span>
+  <span class="isa-proof">by</span> linarith</code></pre></div>
+<p><code>linarith</code> proves goals of linear arithmetic over <code>nat</code>, <code>int</code> and <code>real</code>. Subtraction on <code>nat</code> is
+tricky, because <code>3 - 5 = 0</code> for natural numbers, and <code>linarith</code> takes care of it by distinguishing the
+cases <code>used ≤ quota</code> and <code>quota &lt; used</code>. In fact <code>simp</code> proves this goal too: the simplifier calls a fast but
+weaker version of the same procedure. Use <code>linarith</code> when <code>simp</code> and <code>auto</code> leave an arithmetic goal.</p>
+<p><code>linarith</code> combines inequalities by adding multiples of them, as you would to solve a system of
+inequalities over the real numbers, plus one rule for whole numbers: from <code>a &lt; b</code> it concludes
+<code>a + 1 ≤ b</code>. That is enough for many goals about whole numbers, but not for all of them: for <code>nat</code> and
+<code>int</code>, <code>linarith</code> is not a decision procedure. It does not know, for example, that an even number is never
+odd. Suppose a load balancer sends requests with even numbers to one server and odd ones to another; no
+request should go to both:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(2::int) * x ≠ 2 * y + 1&quot;</span>
+  <span class="isa-proof">by</span> linarith</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. 2 * x ≠ 2 * y + 1</span></code></pre></div>
+<p><code>presburger</code> decides <strong>Presburger arithmetic</strong>: linear arithmetic over the integers and natural numbers,
+including quantifiers, divisibility, and <code>div</code> and <code>mod</code> by numbers.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(2::int) * x ≠ 2 * y + 1&quot;
+  by presburger">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(2::int) * x ≠ 2 * y + 1&quot;</span>
+  <span class="isa-proof">by</span> presburger</code></pre></div>
+<p>Quantifiers are no obstacle. A file system stores data in blocks of 3 and 5 kilobytes; every amount of at
+least 8 kilobytes can be made up exactly:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;∀n ≥ 8. ∃a b. n = 3 * a + 5 * (b :: nat)&quot;
+  by presburger">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;∀n ≥ 8. ∃a b. n = 3 * a + 5 * (b :: nat)&quot;</span>
+  <span class="isa-proof">by</span> presburger</code></pre></div>
+<p><code>arith</code> tries <code>linarith</code> first and <code>presburger</code> after it, so it proves all three goals above. Products of
+variables are a different matter:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(x::nat) ≤ y ⟹ x * x ≤ y * y&quot;</span>
+  <span class="isa-proof">by</span> linarith</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. x ≤ y ⟹ x * x ≤ y * y</span></code></pre></div>
+<p><code>auto</code> fails too. The fact is simple, but it lies outside linear arithmetic, and so outside what these
+methods decide.</p>
+<div class="box box-fact"><div class="box-label">Fact 9.1<span class="box-title">Deciding arithmetic</span></div>
+<p>Presburger arithmetic, the first-order theory of the natural numbers with addition, is decidable (Mojżesz
+Presburger, 1929). With multiplication of variables it is not, not even for single equations: no
+algorithm decides, for every polynomial equation with integer coefficients, whether it has a solution in
+whole numbers (Yuri Matiyasevich, 1970, completing work of Martin Davis, Hilary Putnam and Julia
+Robinson). Over the real numbers, formulas with addition and multiplication are decidable again (Alfred
+Tarski), but the known algorithms take very long on all but small problems.</p>
+</div>
+<p>A goal such as <code>x ≤ y ⟹ x * x ≤ y * y</code> is true exactly when the opposite, <code>x ≤ y</code> together with
+<code>y * y &lt; x * x</code>, has no solution. So for whole numbers there is no complete method for arithmetic with
+products, and there cannot be one: it would answer questions that, by the fact above, no algorithm can
+answer. Isabelle’s answer is the library: it contains thousands of proved facts about multiplication. The
+next section shows how to find the one you need, and Section 9.8 shows a tool that finds it for you.</p>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>Decision procedures need the right type. <code>2 * x ≠ 2 * y + 1</code> is false for real numbers (take
+<code>x = y + 1/2</code>), so no method can prove it without knowing that <code>x</code> and <code>y</code> are integers. Annotate a type,
+as in <code>(2::int)</code>, whenever a number could belong to several types.</p>
+</div>
+<span class="section-anchor" id="find"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Searching the library</h2></div>
+<p>Even the library loaded by <code>Main</code> contains more than 20,000 theorems, and their names follow conventions
+that take a while to learn. <code>find_theorems</code> searches them by shape and by name. Type it in a theory, or
+use the <strong>Query</strong> panel of Isabelle/jEdit: its <strong>Find Theorems</strong> tab has a <strong>Find:</strong> field for the same
+criteria and an <strong>Apply</strong> button. A pattern is a term in quotes, with <code>_</code> for any term:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_theorems &quot;rev (rev _)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">find_theorems</span> <span class="isa-inner">&quot;rev (rev _)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>find_theorems
+  &quot;rev (rev _)&quot;
+
+found 1 theorem(s):
+  List.rev_rev_ident: rev (rev ?xs) = ?xs</code></pre></div>
+<p>The answer gives the full name, <code>List.rev_rev_ident</code>: the theory and the theorem. You can use it as
+<code>rev_rev_ident</code>. For the multiplication goal of Section 9.5, a pattern alone finds too much:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_theorems (3) &quot;_ * _ ≤ _ * _&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">find_theorems</span> (3) <span class="isa-inner">&quot;_ * _ ≤ _ * _&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>find_theorems
+  &quot;_ * _ ≤ _ * _&quot;
+
+found 31 theorem(s) (3 displayed):
+  Nat.mult_le_mono1: ?i ≤ ?j ⟹ ?i * ?k ≤ ?j * ?k
+  Nat.mult_le_mono2: ?i ≤ ?j ⟹ ?k * ?i ≤ ?k * ?j
+  Nat.Suc_mult_le_cancel1: (Suc ?k * ?m ≤ Suc ?k * ?n) = (?m ≤ ?n)</code></pre></div>
+<p>The <code>(3)</code> limits the display to three of the matches. Narrow the search instead. Give the type, and add a
+second criterion: monotonicity laws usually have <code>mono</code> in their name. Several criteria must all hold:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_theorems &quot;(_::nat) * _ ≤ _ * _&quot; name: mono">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">find_theorems</span> <span class="isa-inner">&quot;(_::nat) * _ ≤ _ * _&quot;</span> name: mono</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>find_theorems
+  &quot;_ * _ ≤ _ * _&quot;
+  name: &quot;mono&quot;
+
+found 3 theorem(s):
+  Nat.mult_le_mono1: ?i ≤ ?j ⟹ ?i * ?k ≤ ?j * ?k
+  Nat.mult_le_mono2: ?i ≤ ?j ⟹ ?k * ?i ≤ ?k * ?j
+  Nat.mult_le_mono: ⟦?i ≤ ?j; ?k ≤ ?l⟧ ⟹ ?i * ?k ≤ ?j * ?l</code></pre></div>
+<p><code>mult_le_mono</code> fits: with <code>x ≤ y</code> twice, it gives <code>x * x ≤ y * y</code>. The simplifier can use it as a
+conditional rule, and proves both conditions from the assumption:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(x::nat) ≤ y ⟹ x * x ≤ y * y&quot;
+  by (simp add: mult_le_mono)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(x::nat) ≤ y ⟹ x * x ≤ y * y&quot;</span>
+  <span class="isa-proof">by</span> (simp add: mult_le_mono)</code></pre></div>
+<p>The criteria you will use most:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Finds theorems</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&quot;pattern&quot;</code></td>
+<td>that contain the pattern somewhere</td>
+</tr>
+<tr>
+<td><code>name: s</code></td>
+<td>whose name contains <code>s</code></td>
+</tr>
+<tr>
+<td><code>simp: &quot;term&quot;</code></td>
+<td>that are equations whose left side matches the term, so that they could rewrite it</td>
+</tr>
+<tr>
+<td><code>intro</code>, <code>elim</code>, <code>dest</code></td>
+<td>that could be applied as such a rule to the current goal (inside a proof)</td>
+</tr>
+<tr>
+<td><code>-</code> before a criterion</td>
+<td>that do not meet it</td>
+</tr>
+</tbody>
+</table></div>
+<p>The <code>simp:</code> criterion answers the question “what does the simplifier know about this term?”:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_theorems simp: &quot;set (filter _ _)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">find_theorems</span> simp: <span class="isa-inner">&quot;set (filter _ _)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>find_theorems
+  simp: &quot;set (filter _ _)&quot;
+
+found 1 theorem(s):
+  List.set_filter: set (filter ?P ?xs) = {x ∈ set ?xs. ?P x}</code></pre></div>
+<p><code>find_consts</code> finds functions by their type. Which functions turn a list into a set?</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="find_consts &quot;'a list ⇒ 'a set&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">find_consts</span> <span class="isa-inner">&quot;'a list ⇒ 'a set&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>find_consts
+  &quot;'a list ⇒ 'a set&quot;
+
+found 3 constant(s):
+  BNF_Greatest_Fixpoint.Succ :: &quot;'a list set ⇒ 'a list ⇒ 'a set&quot;
+  List.coset :: &quot;'a list ⇒ 'a set&quot;
+  List.list.set :: &quot;'a list ⇒ 'a set&quot;</code></pre></div>
+<p>Besides <code>set</code>, the answer contains <code>coset</code>, and a function whose type contains <code>'a list ⇒ 'a set</code> as a
+part: <code>find_consts</code> also matches types inside larger ones.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>Use <code>_</code> in patterns, not variable names. In a pattern, <code>xs</code> is not a placeholder: it matches only the
+variable <code>xs</code> itself, and library theorems are stated with variables of their own. Write <code>&quot;rev (rev _)&quot;</code>,
+not <code>&quot;rev (rev xs)&quot;</code>. For an operator, give a whole term such as <code>&quot;_ * _&quot;</code>, not the symbol <code>*</code> alone.</p>
+</div>
+<span class="section-anchor" id="refute"></span>
+<div class="section-header"><span class="section-num">7</span><h2>Counterexamples: Quickcheck and Nitpick</h2></div>
+<p>Trying to prove a false statement wastes time, and automation fails on false statements without saying
+that they are false. So test a claim before you try to prove it. Isabelle has two counterexample finders,
+Quickcheck (Module 1) and Nitpick (Modules 2 and 3). Isabelle/jEdit runs Quickcheck automatically on
+every new <code>lemma</code>; the examples here call the tools explicitly, as you can too.</p>
+<h3 id="quickcheck">Quickcheck</h3>
+<p><strong>Quickcheck</strong> turns the claim into a program and runs it on many values of its free variables. By default
+it tries all values up to a small size, systematically. Here is a claim that sounds reasonable: whoever
+may write may also read.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows es u Write ⟹ allows es u Read&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows es u Write ⟹ allows es u Read&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  es = [(a<sub>1</sub>, Write)]
+  u = a<sub>1</sub></code></pre></div>
+<p>The counterexample is a list with a single entry. <code>a₁</code> is a value of the user type <code>'u</code>, about which
+Quickcheck knows nothing else. A user who is granted only <code>Write</code> may write and not read. The claim is not a
+law of ACLs: it is a property that some ACLs have and others lack. Exercise 9.8 turns it into an invariant.</p>
+<p>Quickcheck takes options in square brackets:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>quickcheck [random]</code></td>
+<td>tests random values instead of all small ones</td>
+</tr>
+<tr>
+<td><code>quickcheck [exhaustive]</code></td>
+<td>tests all values up to the size bound (the default)</td>
+</tr>
+<tr>
+<td><code>quickcheck [size = 5]</code></td>
+<td>sets the size bound for the values tested</td>
+</tr>
+<tr>
+<td><code>quickcheck [timeout = 30]</code></td>
+<td>stops after 30 seconds</td>
+</tr>
+<tr>
+<td><code>quickcheck [expect = counterexample]</code></td>
+<td>reports an error unless a counterexample is found; also <code>no_counterexample</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows es u Write ⟹ allows es u Read&quot;
+  quickcheck [random]
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows es u Write ⟹ allows es u Read&quot;</span>
+  <span class="isa-cmd">quickcheck</span> [random]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-random...
+
+Quickcheck found a counterexample:
+  es = [(a<sub>1</sub>, Write)]
+  u = a<sub>1</sub></code></pre></div>
+<p>When a claim involves a function’s result, Quickcheck also shows the values of the terms involved. Does
+revoking a user’s entries after a grant give back the original list?</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;revoke u (grant u p es) = es&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;revoke u (grant u p es) = es&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  u = a<sub>1</sub>
+  p = Read
+  es = [(a<sub>1</sub>, Read)]
+Evaluated terms:
+  revoke u (grant u p es) = []</code></pre></div>
+<p>The list already contained an entry of user <code>a₁</code>, and <code>revoke</code> removed that one too. On a true claim
+Quickcheck reports that it found nothing:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (revoke u es) v p = (v ≠ u ∧ allows es v p)&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (revoke u es) v p = (v ≠ u ∧ allows es v p)&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.</code></pre></div>
+<p>That is evidence, not proof: Quickcheck tried small values only.</p>
+<h3 id="nitpick">Nitpick</h3>
+<p><strong>Nitpick</strong> works differently. It looks for a <strong>finite model</strong> that makes the claim false: a small finite
+type for each type variable and values for the free variables. It translates the problem into
+propositional logic and hands it to a SAT solver. Because it reasons about sets, relations and quantifiers
+directly, it is good at the claims that Quickcheck finds hard to run.</p>
+<p>A claim about roles: if role <code>r</code> grants <code>Read</code>, then after taking <code>r</code> away from user <code>u</code>, the user can no
+longer read.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(r::'r, Read) ∈ RP ⟹ (u::'u, Read) ∉ (UR - {(u, r)}) O RP&quot;
+  nitpick [card 'u = 1, card 'r = 2]
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(r::'r, Read) ∈ RP ⟹ (u::'u, Read) ∉ (UR - {(u, r)}) O RP&quot;</span>
+  <span class="isa-cmd">nitpick</span> [card 'u = 1, card 'r = 2]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output varies"><div class="isa-output-bar">Output<span class="isa-varies">one run; yours may differ</span></div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample for card 'r = 2 and card 'u = 1:
+  Free variables:
+    RP = {(r<sub>1</sub>, Read), (r<sub>2</sub>, Read)}
+    UR = {(u<sub>1</sub>, r<sub>1</sub>)}
+    r = r<sub>2</sub>
+    u = u<sub>1</sub></code></pre></div>
+<p>The option <code>card 'r = 2</code> tells Nitpick to try a type <code>'r</code> with exactly two elements. Without the option
+it tries sizes 1 to 10 in parallel, and the size of the counterexample it reports can change from run to
+run. Even with the option, your run may show a different counterexample. Nitpick names the elements of each
+type after the type: <code>u₁</code> is a user, <code>r₁</code> and <code>r₂</code> are roles. Read the counterexample: both roles grant
+<code>Read</code>, and user <code>u₁</code> has role <code>r₁</code>. The claim takes role <code>r₂</code> away from <code>u₁</code>, but <code>u₁</code> can still read
+through <code>r₁</code>. The claim forgot that a user may get a permission from another role. Add the assumption that
+no other role of <code>u</code> grants <code>Read</code>, and Nitpick finds nothing; <code>blast</code> then proves the claim:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦(r::'r, Read) ∈ RP; ∀r'. (u::'u, r') ∈ UR ∧ (r', Read) ∈ RP ⟶ r' = r⟧
+       ⟹ (u, Read) ∉ (UR - {(u, r)}) O RP&quot;
+  nitpick [card 'u = 1, card 'r = 2]">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦(r::'r, Read) ∈ RP; ∀r'. (u::'u, r') ∈ UR ∧ (r', Read) ∈ RP ⟶ r' = r⟧
+       ⟹ (u, Read) ∉ (UR - {(u, r)}) O RP&quot;</span>
+  <span class="isa-cmd">nitpick</span> [card 'u = 1, card 'r = 2]</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking goal:
+  ⟦(r, Read) ∈ RP; ∀r'. (u, r') ∈ UR ∧ (r', Read) ∈ RP ⟶ r' = r⟧
+  ⟹ (u, Read) ∉ (UR - {(u, r)}) O RP
+
+Nitpick found no counterexample</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by blast">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> blast</code></pre></div>
+<p>A counterexample from Nitpick is <strong>genuine</strong> when Nitpick has checked that it really falsifies the claim.
+For claims about infinite types such as <code>nat</code>, it may report a counterexample as <strong>potentially
+spurious</strong>: one that might disappear in a larger model. Treat those as hints. “No counterexample” is not a
+proof either: there may be a counterexample larger than the sizes Nitpick tried. On claims about
+recursive functions on lists, Nitpick often runs out of time; Quickcheck is the better tool there.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th>Quickcheck</th>
+<th>Nitpick</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Method</td>
+<td>runs the claim as a program on many values</td>
+<td>searches for a finite model with a SAT solver</td>
+</tr>
+<tr>
+<td>Strong on</td>
+<td>functions on lists and numbers</td>
+<td>sets, relations, quantifiers</td>
+</tr>
+<tr>
+<td>Needs</td>
+<td>executable definitions</td>
+<td>nothing special</td>
+</tr>
+<tr>
+<td>Runs automatically in jEdit</td>
+<td>yes</td>
+<td>no (it can be turned on)</td>
+</tr>
+<tr>
+<td>Main option</td>
+<td><code>size</code></td>
+<td><code>card</code></td>
+</tr>
+</tbody>
+</table></div>
+<span class="section-anchor" id="sledgehammer"></span>
+<div class="section-header"><span class="section-num">8</span><h2>Sledgehammer</h2></div>
+<p>The goal <code>x * x ≤ y * y</code> from Section 9.5 needed the lemma <code>mult_le_mono</code>. Finding it with <code>find_theorems</code>
+took some thought. <strong>Sledgehammer</strong> searches for you. It hands the goal, together with up to about a
+thousand library facts that look relevant, to several automatic theorem provers that run outside
+Isabelle. If one of them finds a proof, Sledgehammer turns it into a one-line Isabelle proof that you can
+paste into your theory.</p>
+<figure class="fig" id="fig-09-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>How Sledgehammer finds a proof</title><defs><marker id="fig-09-2__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="560" y="14" width="190" height="266" rx="14" fill="#FFF7ED" stroke="#C2410C" stroke-width="1.6" stroke-dasharray="6 5"/><text x="655" y="272" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#C2410C" text-anchor="middle">outside Isabelle: not trusted</text><rect x="10" y="14" width="530" height="266" rx="14" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.4" stroke-dasharray="6 5"/><text x="275" y="272" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#475569" text-anchor="middle">inside Isabelle</text><rect x="22" y="30" width="150" height="86" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="97" y="54" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#2563EB" text-anchor="middle">Your goal</text><text x="97" y="80" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">x ≤ y ⟹</text><text x="97" y="98" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">x * x ≤ y * y</text><rect x="200" y="30" width="150" height="86" rx="10" fill="#F8FAFC" stroke="#475569" stroke-width="1.5"/><text x="275" y="54" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">Relevance filter</text><text x="275" y="78" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">picks up to about</text><text x="275" y="95" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">1000 library facts</text><rect x="378" y="30" width="150" height="86" rx="10" fill="#F8FAFC" stroke="#475569" stroke-width="1.5"/><text x="453" y="54" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#1A2E4A" text-anchor="middle">Translation</text><text x="453" y="78" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">into the language</text><text x="453" y="95" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">of each prover</text><rect x="572" y="30" width="166" height="86" rx="10" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6"/><text x="655" y="52" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#C2410C" text-anchor="middle">External provers</text><text x="655" y="72" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">E, Vampire, SPASS,</text><text x="655" y="87" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Zipperposition</text><text x="655" y="102" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">cvc5, veriT, Z3 (SMT)</text><line x1="174" y1="73" x2="196" y2="73" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><line x1="352" y1="73" x2="374" y2="73" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><line x1="530" y1="73" x2="568" y2="73" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><line x1="655" y1="118" x2="655" y2="158" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><rect x="572" y="162" width="166" height="82" rx="10" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6"/><text x="655" y="186" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#C2410C" text-anchor="middle">A prover finds a proof</text><text x="655" y="208" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">facts used:</text><text x="655" y="228" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">mult_le_mono</text><rect x="300" y="162" width="228" height="82" rx="10" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.6"/><text x="414" y="186" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13.5" font-weight="700" fill="#6D28D9" text-anchor="middle">Reconstruction in Isabelle</text><text x="414" y="208" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">“Try this:” one-line proof</text><text x="414" y="229" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">by (metis mult_le_mono)</text><rect x="40" y="162" width="210" height="82" rx="10" fill="#F0FDF4" stroke="#15803D" stroke-width="2.4"/><text x="145" y="186" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#15803D" text-anchor="middle">Kernel</text><text x="145" y="206" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#15803D" text-anchor="middle">checks every step</text><rect x="103.5" y="216" width="83" height="22" rx="11.0" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/><text x="145.0" y="233" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="middle">⊢ theorem</text><line x1="572" y1="203" x2="532" y2="203" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><line x1="300" y1="203" x2="254" y2="203" stroke="#475569" stroke-width="2" marker-end="url(#fig-09-2__ah-475569)"/><text x="380" y="312" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">If a prover or the translation is wrong, reconstruction fails.</text><text x="380" y="330" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">A false statement never becomes a theorem.</text></svg>
+</div><figcaption><span class="fig-num">Figure 9.2</span> <p>From a goal to a checked proof. Sledgehammer selects facts, translates the problem for external provers and
+reconstructs a proof from the facts that a prover used. Only the last step, checked by the kernel, makes a
+theorem.</p>
+</figcaption></figure>
+<p>The provers come with Isabelle (Module 1): E, Vampire, Zipperposition and SPASS are automatic theorem
+provers for first-order and higher-order logic; cvc5, veriT and Z3 are SMT solvers, which also know
+arithmetic. Isabelle2026 also runs some of its own proof methods, such as <code>metis</code> and <code>auto</code>, as further
+“provers”. Nobody needs to trust the external programs or the translation, because their answers are only
+used to construct a proof that the kernel checks:</p>
+<ul>
+<li><code>metis</code> is a proof method inside Isabelle that searches for a first-order proof from a short list of
+facts. Searching with three facts is far easier than with thousands, and every step goes through the
+kernel.</li>
+<li><code>smt</code> sends the problem to an SMT solver and replays the solver’s proof, step by step, inside Isabelle.</li>
+<li>When an ordinary method such as <code>simp</code> or <code>auto</code> works with the facts found, Sledgehammer suggests it.</li>
+</ul>
+<p>Write <code>sledgehammer</code> where the next proof step would go:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(x::nat) ≤ y ⟹ x * x ≤ y * y&quot;
+  sledgehammer">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(x::nat) ≤ y ⟹ x * x ≤ y * y&quot;</span>
+  <span class="isa-cmd">sledgehammer</span></code></pre></div>
+<div class="isa-output varies"><div class="isa-output-bar">Output<span class="isa-varies">one run; yours may differ</span></div><pre class="isa-output-body"><code>Sledgehammering...
+
+metis found a proof...
+
+metis: Try this: by (metis mult_le_mono mult_le_mono1) (82 ms)
+
+cvc5 found a proof...
+
+cvc5: Try this: by (simp add: mult_le_mono) (1 ms)
+
+vampire found a proof...
+
+vampire: Try this: by (simp add: mult_mono') (4 ms)
+
+spass found a proof...
+
+verit found a proof...
+
+verit: Duplicate proof
+
+zipperposition found a proof...
+
+e found a proof...
+
+e: Duplicate proof
+
+zipperposition: Try this: using mult_le_mono by blast (1 ms)
+
+spass: Try this: using mult_le_mono by presburger (1 ms)
+
+Done</code></pre></div>
+<p>Read the output from the top. “Sledgehammering...” means that the provers have started. Each
+“… found a proof...” comes from one prover. That prover’s suggestion follows, at once or a few lines
+later, as “prover: Try this: …”, with the time the suggested proof took to check in parentheses.
+“Duplicate proof” means that a prover found a proof that was already suggested. “Done” means that all provers have finished. In Isabelle/jEdit you click a
+suggestion to insert it. Choose a short and fast one, and replace the <code>sledgehammer</code> line with it. Here
+cvc5’s suggestion is the proof you found by hand in Section 9.6:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  by (simp add: mult_le_mono)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">by</span> (simp add: mult_le_mono)</code></pre></div>
+<p>Whichever suggestion you choose, the proof is carried out by an Isabelle method, <code>simp</code> here, and the kernel
+checks every step. The <code>sledgehammer</code> command itself proves nothing: delete it once you have a proof.</p>
+<p>Sledgehammer is at its best when a goal follows from a few library facts in a way that the other methods
+miss. Two segments of a log that commute and have the same length are equal:
+<code>⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs</code>. <code>blast</code> fails on this goal, and <code>simp</code> and <code>auto</code>
+do worse: they run until Isabelle runs out of memory. The simplifier rewrites the first assumption with
+the library’s simp rule <code>append_eq_append_conv</code>, which says when two appended lists are equal, into
+<code>es = fs ∧ fs = es</code>. Then it uses these two equations as rewrite rules, turning <code>es</code> into <code>fs</code> and <code>fs</code>
+back into <code>es</code>, again and again. Sledgehammer uses the same library lemma as a fact rather than as a
+rewrite rule, and suggests a proof such as this one:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs&quot;
+  by (metis append_eq_append_conv)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs&quot;</span>
+  <span class="isa-proof">by</span> (metis append_eq_append_conv)</code></pre></div>
+<p>You may not have thought of using the lemma in this way, but Sledgehammer found it.</p>
+<p>Isabelle/jEdit also has a <strong>Sledgehammer</strong> panel at the bottom of the window. Put the cursor in a proof
+and click <strong>Apply</strong>: the provers run in the background while you go on working, and the results appear in
+the panel, where a click on a proof inserts it into the text. The <strong>Provers:</strong> field lists the provers to
+run, and <strong>Cancel</strong> stops them.</p>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>Sledgehammer works best on small, first-order goals. Simplify first with <code>simp</code> or <code>auto</code> and call
+Sledgehammer on what is left. It does not do induction, so for a claim about all lists start the induction
+yourself and call Sledgehammer on the cases. Options go in square brackets, for example
+<code>sledgehammer [timeout = 60]</code> to give the provers 60 seconds instead of the default 30.</p>
+</div>
+<details class="trouble"><summary>If something went wrong</summary><div class="details-body">
+<ul>
+<li><strong>Windows: no prover runs, or a message says that a prover failed to start.</strong> Windows Defender can block
+Isabelle’s external provers, as Module 1 warned. Exclude the whole Isabelle folder in <strong>Virus &amp; threat
+protection</strong>, as Isabelle’s installation page recommends, and run Sledgehammer again.</li>
+<li><strong>No prover finds a proof.</strong> The goal may be false: check it with <code>quickcheck</code> and <code>nitpick</code>. It may need
+induction, or a lemma that is not in the library: prove that lemma first. Or the provers need more time:
+<code>sledgehammer [timeout = 120]</code>.</li>
+<li><strong>The suggested <code>metis</code> call fails or runs for a long time.</strong> Try another suggestion from the list.</li>
+</ul>
+</div></details>
+<span class="section-anchor" id="strategy"></span>
+<div class="section-header"><span class="section-num">9</span><h2>When automation fails</h2></div>
+<p>No method proves everything; there is no complete proof method for higher-order logic, not even in
+principle. Sooner or later every method fails on a goal that you believe is true. Then work through these
+steps, roughly in this order.</p>
+<ol>
+<li><strong>Is the claim true?</strong> Run <code>quickcheck</code> and <code>nitpick</code>. If one finds a counterexample, the statement
+needs fixing, not the proof.</li>
+<li><strong>Simplify and read.</strong> <code>apply auto</code> (or <code>apply simp</code>) and read what is left. The remaining subgoals
+show what the tools could not do.</li>
+<li><strong>Unfold definitions.</strong> Definitions are not simp rules: add them with <code>simp add: f_def</code>.</li>
+<li><strong>Split cases.</strong> A <code>case</code> needs <code>split: t.split</code>; an <code>if</code> or <code>case</code> in an assumption needs
+<code>split: if_splits</code> or <code>t.splits</code>.</li>
+<li><strong>Use induction</strong> when the claim is about all values of a recursive type and involves a recursive
+function. Start it, then automate the cases.</li>
+<li><strong>Find or prove a lemma.</strong> Search with <code>find_theorems</code>. If the library has nothing, state the missing
+step as a lemma of its own and prove it first.</li>
+<li><strong>Try Sledgehammer</strong> on what is left.</li>
+<li><strong>Choose a different method</strong> for the kind of goal (Figure 9.3).</li>
+</ol>
+<figure class="fig" id="fig-09-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>Which method to try first</title><defs><marker id="fig-09-3__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><text x="24" y="26" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#475569" text-anchor="start">The goal is about …</text><text x="500" y="26" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="14" font-weight="700" fill="#475569" text-anchor="start">Try first</text><rect x="14" y="40" width="436" height="30" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">equations, definitions, functions on lists and numbers</text><line x1="452" y1="55" x2="488" y2="55" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="44" width="46" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="519.0" y="61" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">simp</text><rect x="550" y="44" width="46" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="573.0" y="61" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">auto</text><rect x="14" y="78" width="436" height="30" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="98" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">all lists or numbers, with a recursive function</text><line x1="452" y1="93" x2="488" y2="93" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="82" width="83" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="537.5" y="99" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">induction</text><text x="587" y="98" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">then simp, auto</text><rect x="14" y="116" width="436" height="30" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="136" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">∀ ∃ ∧ ∨ ⟶, sets and relations, no arithmetic</text><line x1="452" y1="131" x2="488" y2="131" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="120" width="53" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="522.5" y="137" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">blast</text><rect x="14" y="154" width="436" height="30" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="174" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">logic mixed with equations</text><line x1="452" y1="169" x2="488" y2="169" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="158" width="83" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="537.5" y="175" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">fastforce</text><rect x="587" y="158" width="53" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="613.5" y="175" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">force</text><rect x="648" y="158" width="46" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="671.0" y="175" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">auto</text><rect x="14" y="192" width="436" height="30" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="212" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">+ − &lt; ≤, numbers times variables</text><line x1="452" y1="207" x2="488" y2="207" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="196" width="76" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="534.0" y="213" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">linarith</text><rect x="580" y="196" width="53" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="606.5" y="213" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">arith</text><rect x="14" y="230" width="436" height="30" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="250" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">even, odd, div and mod by numbers, ∃ over numbers</text><line x1="452" y1="245" x2="488" y2="245" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="234" width="90" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="541.0" y="251" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">presburger</text><rect x="14" y="268" width="436" height="30" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="288" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">products of variables; a lemma you cannot name</text><line x1="452" y1="283" x2="488" y2="283" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="272" width="113" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="552.5" y="289" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">find_theorems</text><rect x="617" y="272" width="105" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="669.5" y="289" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">sledgehammer</text><rect x="14" y="306" width="436" height="30" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="28" y="326" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">a claim you are not sure of</text><line x1="452" y1="321" x2="488" y2="321" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-09-3__ah-475569)"/><rect x="496" y="310" width="90" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="541.0" y="327" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">quickcheck</text><rect x="594" y="310" width="68" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="628.0" y="327" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">nitpick</text></svg>
+</div><figcaption><span class="fig-num">Figure 9.3</span> <p>Which method to try first, by the kind of goal. When the first choice fails, read what it leaves and go
+down the list of steps above.</p>
+</figcaption></figure>
+<div class="box box-example"><div class="box-label">Example 9.2<span class="box-title">Steps 1, 2, 4 and 5 at work</span></div>
+<p>Prove that the owner of a document may administer it: if <code>owner es = Some v</code> then
+<code>allows es v Admin</code>.</p>
+<p>Step 1: <code>quickcheck</code> finds no counterexample, so the claim is probably true. Step 5: both <code>owner</code> and
+<code>allows</code> are recursive functions on the list, so start an induction. Step 2: let <code>auto</code> do what it can.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma owner_admin: &quot;owner es = Some v ⟹ allows es v Admin&quot;
+  apply (induction es)
+  apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> owner_admin: <span class="isa-inner">&quot;owner es = Some v ⟹ allows es v Admin&quot;</span>
+  <span class="isa-proof">apply</span> (induction es)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀a b es.
+       ⟦owner es = Some v ⟹ False;
+        (if b = Admin then Some (fst (a, b)) else owner es) = Some v;
+        ¬ allows es v Admin⟧
+       ⟹ a = v
+ 2. ⋀a b es.
+       ⟦owner es = Some v ⟹ False;
+        (if b = Admin then Some (fst (a, b)) else owner es) = Some v;
+        ¬ allows es v Admin⟧
+       ⟹ b = Admin</code></pre></div>
+<p>The base case is proved. Two subgoals of the induction step remain, and both have an <code>if</code> in an assumption:
+<code>auto</code> split the pair <code>a</code> into <code>a</code> and <code>b</code> but not the <code>if</code> in the definition of <code>owner</code>. Step 4 says what
+to do: an <code>if</code> in an assumption needs <code>split: if_splits</code>.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops
+
+lemma owner_admin: &quot;owner es = Some v ⟹ allows es v Admin&quot;
+  apply (induction es)
+  apply (auto split: if_splits)
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span>
+
+<span class="isa-cmd">lemma</span> owner_admin: <span class="isa-inner">&quot;owner es = Some v ⟹ allows es v Admin&quot;</span>
+  <span class="isa-proof">apply</span> (induction es)
+  <span class="isa-proof">apply</span> (auto split: if_splits)
+  <span class="isa-proof">done</span></code></pre></div>
+</div>
+<p>The lemma helps with the next claim at once. Only someone who may administer a document may delete it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;may_delete u es ⟹ allows es u Admin&quot;
+  by (simp add: may_delete_def owner_admin split: option.splits)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;may_delete u es ⟹ allows es u Admin&quot;</span>
+  <span class="isa-proof">by</span> (simp add: may_delete_def owner_admin split: option.splits)</code></pre></div>
+<p>The proof uses steps 3, 4 and 6 together: it unfolds <code>may_delete</code>, splits the <code>case</code> in the assumption,
+and uses the lemma proved above.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>Automation fails for a reason, and the reason is usually visible: in the remaining subgoals, in a
+counterexample, or in a trace. Read before you try another method. The fix is most often a definition to
+unfold, a case to split, an induction to start, or a lemma to prove first.</p>
+</div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">10</span><h2>What you learned</h2></div>
+<ul>
+<li>The <strong>simplifier</strong> rewrites with equations from left to right, inner parts first, until no rule applies;
+a goal rewritten to <code>True</code> is proved. It uses the <strong>simp set</strong>: equations of <code>fun</code>, facts from <code>datatype</code>,
+and lemmas marked <code>[simp]</code>, but not definitions.</li>
+<li><code>simp add:</code>, <code>simp del:</code> and <code>simp only:</code> change the rules for one call; <code>simp_all</code> works on every
+subgoal; <code>[simp]</code> and <code>declare … [simp]</code> change the simp set.</li>
+<li>A <strong>conditional rule</strong> is used only if the simplifier can prove its conditions. The assumptions of a
+subgoal become rewrite rules too.</li>
+<li><code>if</code> is split automatically; <code>case</code> needs <code>split: t.split</code>, and splits in assumptions need <code>if_splits</code>
+or <code>t.splits</code>.</li>
+<li>Rewriting may loop; keep right sides simpler than left sides. <strong>Permutative</strong> rules such as commutativity
+are safe, because Isabelle applies them only to sort terms. <code>using [[simp_trace]]</code> shows every step.</li>
+<li><code>blast</code> searches first-order logic, sets and relations; <code>auto</code> simplifies and reasons on all subgoals and
+leaves what it cannot prove; <code>force</code> and <code>fastforce</code> mix search and rewriting; <code>clarsimp</code> tidies a goal.</li>
+<li><code>linarith</code> proves linear arithmetic (on <code>nat</code> and <code>int</code>, not all of it); <code>presburger</code> decides linear
+arithmetic on whole numbers, with divisibility and quantifiers; <code>arith</code> tries both. Arithmetic on whole
+numbers with products of variables is undecidable; use library lemmas.</li>
+<li><code>find_theorems</code> and <code>find_consts</code> search the library; Quickcheck and Nitpick search for counterexamples.</li>
+<li><strong>Sledgehammer</strong> asks external provers for the facts that a proof needs and reconstructs a proof that the
+kernel checks.</li>
+<li>When automation fails: test the claim, read what is left, unfold, split, induct, find or prove a lemma,
+and try Sledgehammer.</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">11</span><h2>Exercises</h2></div>
+<div class="exercise" id="ex-9-1"><div class="ex-label"><span class="ex-num">Exercise 9.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">Which tool?</span></div>
+<p>For each goal, name the method you would try first, and say why. Then check your answers in Isabelle.</p>
+<ol>
+<li><code>rev (rev xs @ ys) = rev ys @ xs</code></li>
+<li><code>⟦A ⊆ B; B ∩ C ⊆ D⟧ ⟹ A ∩ C ⊆ D</code></li>
+<li><code>⟦(a::int) &lt; b; b &lt; c⟧ ⟹ a + 2 ≤ c</code></li>
+<li><code>(n::nat) mod 4 = 1 ⟹ n mod 2 = 1</code></li>
+<li><code>allows es u Admin ⟹ allows es u Write</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><code>simp</code>: an equation about the library function <code>rev</code>, which the simp set knows well.</li>
+<li><code>blast</code>: pure reasoning about sets.</li>
+<li><code>linarith</code>: linear arithmetic. For integers, <code>a &lt; b</code> means <code>a + 1 ≤ b</code>, and <code>linarith</code> knows that.</li>
+<li><code>presburger</code>: <code>mod</code> by a number is Presburger arithmetic. The argument needs the fact that <code>4 * q + 1</code>
+is odd, which is beyond <code>linarith</code>.</li>
+<li><code>quickcheck</code>: an ACL that grants only <code>Admin</code> is a counterexample, so no method can prove it.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;rev (rev xs @ ys) = rev ys @ xs&quot;
+  by simp
+
+lemma &quot;⟦A ⊆ B; B ∩ C ⊆ D⟧ ⟹ A ∩ C ⊆ D&quot;
+  by blast
+
+lemma &quot;⟦(a::int) &lt; b; b &lt; c⟧ ⟹ a + 2 ≤ c&quot;
+  by linarith
+
+lemma &quot;(n::nat) mod 4 = 1 ⟹ n mod 2 = 1&quot;
+  by presburger
+
+lemma &quot;allows es u Admin ⟹ allows es u Write&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;rev (rev xs @ ys) = rev ys @ xs&quot;</span>
+  <span class="isa-proof">by</span> simp
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦A ⊆ B; B ∩ C ⊆ D⟧ ⟹ A ∩ C ⊆ D&quot;</span>
+  <span class="isa-proof">by</span> blast
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦(a::int) &lt; b; b &lt; c⟧ ⟹ a + 2 ≤ c&quot;</span>
+  <span class="isa-proof">by</span> linarith
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(n::nat) mod 4 = 1 ⟹ n mod 2 = 1&quot;</span>
+  <span class="isa-proof">by</span> presburger
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows es u Admin ⟹ allows es u Write&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  es = [(a<sub>1</sub>, Admin)]
+  u = a<sub>1</sub></code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-2"><div class="ex-label"><span class="ex-num">Exercise 9.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">Rewriting by hand</span></div>
+<p>Rewrite the term <code>allows (revoke u [(u, Read)]) u Read</code> to <code>False</code> by hand, using the equations of
+<code>revoke</code> and <code>allows</code> and these laws: <code>fst (a, b) = a</code>, <code>(x = x) = True</code> and
+<code>(if True then s else t) = s</code>. Write down each step and the rule it uses. Then confirm in Isabelle that
+these rules suffice, with <code>simp only:</code>. The two laws about <code>fst</code> and <code>if</code> are called <code>fst_conv</code> and
+<code>if_True</code>.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Inner parts first:</p>
+<ol>
+<li><code>revoke u [(u, Read)]</code> matches the second equation of <code>revoke</code>, with <code>(u, Read)</code> for <code>e</code> and <code>[]</code> for
+<code>es</code>: it becomes <code>if fst (u, Read) = u then revoke u [] else (u, Read) # revoke u []</code>.</li>
+<li>Now the parts of this new term. In the condition, <code>fst (u, Read)</code> becomes <code>u</code> by <code>fst_conv</code>, and then
+<code>u = u</code> becomes <code>True</code> by <code>(x = x) = True</code>. In both branches, <code>revoke u []</code> becomes <code>[]</code> by the first
+equation of <code>revoke</code>.</li>
+<li><code>if True then [] else [(u, Read)]</code> becomes <code>[]</code> by <code>if_True</code>.</li>
+<li><code>allows [] u Read</code> becomes <code>False</code> by the first equation of <code>allows</code>.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;allows (revoke u [(u, Read)]) u Read = False&quot;
+  by (simp only: revoke.simps allows.simps fst_conv simp_thms if_True)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;allows (revoke u [(u, Read)]) u Read = False&quot;</span>
+  <span class="isa-proof">by</span> (simp only: revoke.simps allows.simps fst_conv simp_thms if_True)</code></pre></div>
+<p>After step 4 the lemma reads <code>False = False</code>, which <code>(x = x) = True</code> from <code>simp_thms</code> turns into <code>True</code>.
+(Rewriting in another order, for example resolving the <code>if</code> before simplifying its branches, reaches the
+same result.)</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-3"><div class="ex-label"><span class="ex-num">Exercise 9.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">Why did simp fail?</span></div>
+<p>These three lemmas are true, but <code>by simp</code> fails on each of them. Try each in Isabelle, read the message,
+say why the proof fails, and fix it.</p>
+<ol>
+<li><code>set (grant u p es) = insert (u, p) (set es)</code></li>
+<li><code>may_delete u es ⟹ owner es ≠ None</code>, with <code>by (simp add: may_delete_def)</code> instead of <code>by simp</code></li>
+<li><code>x ∈ set (revoke u es) ⟹ fst x ≠ u</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>“Failed to apply initial proof method”: no rule applies. <code>grant</code> is a definition, so the simplifier
+does not unfold it, and no simp rule says anything about <code>set (grant u p es)</code>. (<code>allows_grant</code> is about
+<code>allows</code>, not about <code>set</code>.) Add <code>grant_def</code>.</li>
+<li>“Failed to finish proof”, and the remaining goal has a <code>case</code> on <code>owner es</code> in its assumption. A <code>case</code>
+in an assumption is split only with <code>split: option.splits</code>.</li>
+<li>“Failed to apply initial proof method”. The claim is about all lists and involves the recursive
+function <code>revoke</code>, so it needs induction. In the induction step the <code>if</code> of <code>revoke</code> ends up in an
+assumption, which needs <code>split: if_splits</code>.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;set (grant u p es) = insert (u, p) (set es)&quot;
+  by (simp add: grant_def)
+
+lemma &quot;may_delete u es ⟹ owner es ≠ None&quot;
+  by (simp add: may_delete_def split: option.splits)
+
+lemma &quot;x ∈ set (revoke u es) ⟹ fst x ≠ u&quot;
+  by (induction es) (auto split: if_splits)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;set (grant u p es) = insert (u, p) (set es)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;may_delete u es ⟹ owner es ≠ None&quot;</span>
+  <span class="isa-proof">by</span> (simp add: may_delete_def split: option.splits)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;x ∈ set (revoke u es) ⟹ fst x ≠ u&quot;</span>
+  <span class="isa-proof">by</span> (induction es) (auto split: if_splits)</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-4"><div class="ex-label"><span class="ex-num">Exercise 9.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">More laws for revoke</span></div>
+<p>Prove these three laws. Some of them need induction; choose <code>simp</code> or <code>auto</code> for the cases.</p>
+<ol>
+<li><code>revoke u (grant u p es) = revoke u es</code></li>
+<li><code>revoke u (revoke v es) = revoke v (revoke u es)</code></li>
+<li><code>length (revoke u es) ≤ length es</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The first needs no induction, only the definition of <code>grant</code>. The second and third are about all lists, so
+they need induction; <code>revoke</code> contains an <code>if</code>, which the simplifier splits.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;revoke u (grant u p es) = revoke u es&quot;
+  by (simp add: grant_def)
+
+lemma revoke_commute: &quot;revoke u (revoke v es) = revoke v (revoke u es)&quot;
+  by (induction es) auto
+
+lemma &quot;length (revoke u es) ≤ length es&quot;
+  by (induction es) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;revoke u (grant u p es) = revoke u es&quot;</span>
+  <span class="isa-proof">by</span> (simp add: grant_def)
+
+<span class="isa-cmd">lemma</span> revoke_commute: <span class="isa-inner">&quot;revoke u (revoke v es) = revoke v (revoke u es)&quot;</span>
+  <span class="isa-proof">by</span> (induction es) auto
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;length (revoke u es) ≤ length es&quot;</span>
+  <span class="isa-proof">by</span> (induction es) auto</code></pre></div>
+<p>In the third, after splitting the <code>if</code>, the induction step needs <code>length (revoke u es) ≤ Suc (length es)</code> from
+the induction hypothesis <code>length (revoke u es) ≤ length es</code>: linear arithmetic, which <code>auto</code> does.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-5"><div class="ex-label"><span class="ex-num">Exercise 9.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Splitting a case</span></div>
+<p>Define a function <code>latest :: &quot;'u acl ⇒ ('u × perm) option&quot;</code> that returns the first entry of a list, or
+<code>None</code> for the empty list, using a <code>case</code> expression in a <code>definition</code>. Then prove:</p>
+<ol>
+<li><code>latest (grant u p es) = Some (u, p)</code></li>
+<li><code>(latest es = None) = (es = [])</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition latest :: &quot;'u acl ⇒ ('u × perm) option&quot; where
+  &quot;latest es = (case es of [] ⇒ None | e # _ ⇒ Some e)&quot;
+
+lemma &quot;latest (grant u p es) = Some (u, p)&quot;
+  by (simp add: latest_def grant_def)
+
+lemma &quot;(latest es = None) = (es = [])&quot;
+  by (simp add: latest_def split: list.split)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> latest :: <span class="isa-inner">&quot;'u acl ⇒ ('u × perm) option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;latest es = (case es of [] ⇒ None | e # _ ⇒ Some e)&quot;</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;latest (grant u p es) = Some (u, p)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: latest_def grant_def)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(latest es = None) = (es = [])&quot;</span>
+  <span class="isa-proof">by</span> (simp add: latest_def split: list.split)</code></pre></div>
+<p>In the first lemma the list is <code>(u, p) # es</code>, so the simplifier reduces the <code>case</code> without a split: the
+datatype’s <code>case</code> equations are simp rules. In the second the list is the variable <code>es</code>, and the <code>case</code>
+must be split with <code>list.split</code>.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-6"><div class="ex-label"><span class="ex-num">Exercise 9.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Arithmetic for a quota</span></div>
+<p>Prove each goal with an arithmetic method, and say why the method fits. For the last one, find the lemma
+you need with <code>find_theorems</code>.</p>
+<ol>
+<li><code>⟦used ≤ quota; quota ≤ used + 5⟧ ⟹ quota - used ≤ (5::nat)</code></li>
+<li><code>(x::nat) ≤ y ⟹ 3 * x ≤ 3 * y</code></li>
+<li><code>even (n::nat) ⟹ ¬ even (n + 1)</code></li>
+<li><code>(x::nat) ≤ y ⟹ x * z ≤ y * z</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><code>linarith</code>: linear, with subtraction on <code>nat</code>.</li>
+<li><code>linarith</code>: multiplication by a number is linear.</li>
+<li><code>presburger</code>: <code>even n</code> means that 2 divides <code>n</code>, and divisibility by a number is Presburger arithmetic.</li>
+<li>Products of variables: not linear. <code>find_theorems &quot;(_::nat) * _ ≤ _ * _&quot; name: mono</code> (Section 9.6)
+lists <code>mult_le_mono1: ?i ≤ ?j ⟹ ?i * ?k ≤ ?j * ?k</code>, which is exactly the claim.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦used ≤ quota; quota ≤ used + 5⟧ ⟹ quota - used ≤ (5::nat)&quot;
+  by linarith
+
+lemma &quot;(x::nat) ≤ y ⟹ 3 * x ≤ 3 * y&quot;
+  by linarith
+
+lemma &quot;even (n::nat) ⟹ ¬ even (n + 1)&quot;
+  by presburger
+
+lemma &quot;(x::nat) ≤ y ⟹ x * z ≤ y * z&quot;
+  by (simp add: mult_le_mono1)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦used ≤ quota; quota ≤ used + 5⟧ ⟹ quota - used ≤ (5::nat)&quot;</span>
+  <span class="isa-proof">by</span> linarith
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(x::nat) ≤ y ⟹ 3 * x ≤ 3 * y&quot;</span>
+  <span class="isa-proof">by</span> linarith
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;even (n::nat) ⟹ ¬ even (n + 1)&quot;</span>
+  <span class="isa-proof">by</span> presburger
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(x::nat) ≤ y ⟹ x * z ≤ y * z&quot;</span>
+  <span class="isa-proof">by</span> (simp add: mult_le_mono1)</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-7"><div class="ex-label"><span class="ex-num">Exercise 9.7</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Refute, fix, prove</span></div>
+<p>A security review claims: “if a user has permission <code>p</code>, then after the permission <code>p</code> is removed from
+role <code>r</code>, the user still has <code>p</code>”. In Isabelle:
+<code>(u, p) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r, p)})</code>. Find a counterexample with Nitpick, explain it, then
+add an assumption that makes the claim true and prove it with <code>blast</code>.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;(u::'u, p::perm) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r::'r, p)})&quot;
+  nitpick [card 'u = 1, card 'r = 1]
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;(u::'u, p::perm) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r::'r, p)})&quot;</span>
+  <span class="isa-cmd">nitpick</span> [card 'u = 1, card 'r = 1]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output varies"><div class="isa-output-bar">Output<span class="isa-varies">one run; yours may differ</span></div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample for card 'r = 1 and card 'u = 1:
+  Free variables:
+    RP = {(r<sub>1</sub>, p<sub>2</sub>)}
+    UR = {(u<sub>1</sub>, r<sub>1</sub>)}
+    p = p<sub>2</sub>
+    r = r<sub>1</sub>
+    u = u<sub>1</sub></code></pre></div>
+<p>Here <code>p₂</code> is one of the three permissions. With a single role, the user gets <code>p</code> only through <code>r</code>; when <code>r</code>
+loses <code>p</code>, so does the user. The claim holds if <code>u</code> has <code>p</code> through some role other than <code>r</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;⟦(u, r') ∈ UR; (r', p) ∈ RP; r' ≠ r⟧ ⟹ (u, p) ∈ UR O (RP - {(r, p)})&quot;
+  by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;⟦(u, r') ∈ UR; (r', p) ∈ RP; r' ≠ r⟧ ⟹ (u, p) ∈ UR O (RP - {(r, p)})&quot;</span>
+  <span class="isa-proof">by</span> blast</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-8"><div class="ex-label"><span class="ex-num">Exercise 9.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">An invariant</span></div>
+<p>Call an ACL well formed if every user who may write may also read:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition wf_acl :: &quot;'u acl ⇒ bool&quot; where
+  &quot;wf_acl es = (∀u. allows es u Write ⟶ allows es u Read)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> wf_acl :: <span class="isa-inner">&quot;'u acl ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;wf_acl es = (∀u. allows es u Write ⟶ allows es u Read)&quot;</span></code></pre></div>
+<ol>
+<li>Prove that <code>revoke</code> keeps an ACL well formed: <code>wf_acl es ⟹ wf_acl (revoke u es)</code>.</li>
+<li>Show with Quickcheck that <code>grant u Write</code> does not.</li>
+<li>Prove that granting <code>Read</code> together with <code>Write</code> keeps it well formed:
+<code>wf_acl es ⟹ wf_acl (grant u Read (grant u Write es))</code>.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;wf_acl es ⟹ wf_acl (revoke u es)&quot;
+  by (simp add: wf_acl_def allows_revoke)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;wf_acl es ⟹ wf_acl (revoke u es)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: wf_acl_def allows_revoke)</code></pre></div>
+<p>After unfolding, <code>allows_revoke</code> rewrites both occurrences of <code>allows (revoke u es) w …</code>, and the
+assumption, a <code>∀</code> over <code>⟶</code>, becomes a conditional rewrite rule that finishes the proof (Section 9.3).</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;wf_acl es ⟹ wf_acl (grant u Write es)&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;wf_acl es ⟹ wf_acl (grant u Write es)&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  es = []
+  u = a<sub>1</sub></code></pre></div>
+<p>The empty list is well formed, but after granting <code>Write</code> alone the user may write and not read.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;wf_acl es ⟹ wf_acl (grant u Read (grant u Write es))&quot;
+  by (simp add: wf_acl_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;wf_acl es ⟹ wf_acl (grant u Read (grant u Write es))&quot;</span>
+  <span class="isa-proof">by</span> (simp add: wf_acl_def)</code></pre></div>
+<p>After unfolding, <code>allows_grant</code> compares each user <code>w</code> with the two new entries. For <code>w = u</code> both
+<code>Write</code> and <code>Read</code> hold; for any other user the old list decides both, and the assumption, again a
+conditional rule, finishes the proof.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-9-9"><div class="ex-label"><span class="ex-num">Exercise 9.9</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Loops and orders</span></div>
+<ol>
+<li>The lemma <code>rev_append</code> of the library is a simp rule: <code>rev (xs @ ys) = rev ys @ rev xs</code>. Explain what
+would happen if you also declared <code>rev ys @ rev xs = rev (xs @ ys)</code> as a simp rule.</li>
+<li>Prove <code>insert a (insert b (insert c A)) = insert c (insert a (insert b A))</code> with <code>simp only:</code> and a single
+library rule, and explain why the simplifier stops.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>The two rules undo each other: <code>rev (xs @ ys)</code> would be rewritten to <code>rev ys @ rev xs</code> and back, for ever.
+Neither rule is permutative (their sides are different terms, not the same term with variables swapped),
+so ordered rewriting does not apply, and the simplifier would loop.</li>
+<li><code>insert_commute</code> is permutative. Isabelle applies it only when the result is smaller in its fixed order
+on terms, so it sorts the inserted elements, like bubble sort, and stops when they are in order. Both
+sides reach the same sorted form.</li>
+</ol>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;insert a (insert b (insert c A)) = insert c (insert a (insert b A))&quot;
+  by (simp only: insert_commute)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;insert a (insert b (insert c A)) = insert c (insert a (insert b A))&quot;</span>
+  <span class="isa-proof">by</span> (simp only: insert_commute)</code></pre></div>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">12</span><h2>Check yourself</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">1</span><div>Why does <code>by simp</code> fail on <code>allows (grant u Read es) u Read</code> while <code>by (simp add: grant_def)</code> succeeds?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>simp</code> cannot handle lists</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>grant_def</code> is a conditional rule</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>grant</code> is defined with <code>definition</code>, and definitions are not simp rules</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>simp</code> only uses rules written with <code>[simp]</code> in the same theory</button></li></ol><div class="quiz-expl" hidden>The equations of <code>fun</code> and many library lemmas are simp rules, but a <code>definition</code> is unfolded only when you add its <code>_def</code> theorem.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">2</span><div>A simp rule has the form <code>v ≠ u ⟹ allows (revoke u es) v p = allows es v p</code>. When does <code>simp</code> use it on <code>allows (revoke a es) b Read</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Only if it can prove <code>b ≠ a</code>, for example from an assumption of the subgoal</button></li><li><button type="button" class="quiz-opt" data-i="1">Always, since the left side matches</button></li><li><button type="button" class="quiz-opt" data-i="2">Never, since conditional rules are only used by <code>auto</code></button></li><li><button type="button" class="quiz-opt" data-i="3">Only if you write <code>simp add:</code> with the rule</button></li></ol><div class="quiz-expl" hidden>A conditional rule is applied only after the simplifier has proved the instance of its condition, by simplification.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>You call <code>simp add: add.commute</code>, adding commutativity <code>x + y = y + x</code> to the simp set. Why does <code>simp</code> not loop?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Isabelle stops every rewriting after 100 steps</button></li><li><button type="button" class="quiz-opt" data-i="1">It is used from right to left only</button></li><li><button type="button" class="quiz-opt" data-i="2">It is permutative, and Isabelle applies it only when the result is smaller in a fixed order on terms</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>simp</code> never uses rules about <code>+</code></button></li></ol><div class="quiz-expl" hidden>Ordered rewriting applies a permutative rule only when it brings the term into order, so the rule sorts the operands once and stops.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">4</span><div>Which method fits a goal about sets and relations with ∀ and ∃, and no arithmetic?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>linarith</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>blast</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>simp only:</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>presburger</code></button></li></ol><div class="quiz-expl" hidden><code>blast</code> searches first-order logic, with the rules for sets and relations built in.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">5</span><div><code>linarith</code> fails on <code>(x::nat) ≤ y ⟹ x * x ≤ y * y</code>. What is the reason?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The goal is false</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>linarith</code> works only on integers</button></li><li><button type="button" class="quiz-opt" data-i="2">The goal needs <code>presburger</code></button></li><li><button type="button" class="quiz-opt" data-i="3">The goal multiplies two variables, so it is not linear arithmetic</button></li></ol><div class="quiz-expl" hidden>Linear arithmetic allows multiplication by numbers only. Arithmetic with products of variables is undecidable in general, so the proof needs a lemma such as <code>mult_le_mono</code>.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>Sledgehammer suggests a proof <code>by (metis …)</code> that uses two library lemmas. Why can you trust the resulting theorem?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Because the external provers are verified programs</button></li><li><button type="button" class="quiz-opt" data-i="1">Because several provers agreed</button></li><li><button type="button" class="quiz-opt" data-i="2">Because Sledgehammer double-checks the translation</button></li><li><button type="button" class="quiz-opt" data-i="3">Because <code>metis</code> builds the proof inside Isabelle, and the kernel checks every step</button></li></ol><div class="quiz-expl" hidden>The external provers only point to the facts that are needed. The proof itself is found again by <code>metis</code> and checked by the kernel, as for every other method.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="9"><div class="done-q">Finished this module?</div><button type="button" class="done-btn" data-yes="Done" data-no="Mark as done" data-undo="Mark as not done">Mark as done</button><div class="done-progress" data-label="{d} of {n} modules done"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_08_EN.html"><span class="mnav-label">&larr; Previous</span><span class="mnav-title">Module 8: Functional programming in HOL</span></a><a class="mnav next" href="module_10_EN.html"><span class="mnav-label">Next &rarr;</span><span class="mnav-title">Module 10: Structured proofs in Isar</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

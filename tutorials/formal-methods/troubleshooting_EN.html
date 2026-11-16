@@ -1,0 +1,687 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Troubleshooting — Formal Methods with Isabelle</title>
+<meta name="description" content="Isabelle's messages that beginners meet most often, grouped by what you were doing, each with what it means, its usual causes and the fix. Search this page for a few words of your message (Ctrl+F, or Cmd+F on a Mac).">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="reference" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Formal methods</a><span class="sep">/</span><span class="crumb crumb-now">Troubleshooting</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Reference</button><div class="dropdown-menu"><a href="module_01_EN.html"><span class="dd-n">1</span>Formal methods, what and why<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_EN.html"><span class="dd-n">2</span>Propositional logic<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_EN.html"><span class="dd-n">3</span>Predicate logic<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_EN.html"><span class="dd-n">4</span>Sets, relations and functions<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_EN.html"><span class="dd-n">5</span>Induction and recursion<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_EN.html"><span class="dd-n">6</span>What is a proof? Natural deduction<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_EN.html"><span class="dd-n">7</span>Natural deduction in Isabelle<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_EN.html"><span class="dd-n">8</span>Functional programming in HOL<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_EN.html"><span class="dd-n">9</span>Proof automation<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_EN.html"><span class="dd-n">10</span>Structured proofs in Isar<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_EN.html"><span class="dd-n">11</span>Induction in depth<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_EN.html"><span class="dd-n">12</span>Verifying functional programs<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_EN.html"><span class="dd-n">13</span>Modelling systems: state machines and invariants<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_EN.html"><span class="dd-n">14</span>Capstone: a verified compiler<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html" class="active"><span class="dd-n">&#9670;</span>Troubleshooting</a>
+<a href="glossary_EN.html"><span class="dd-n">&#9670;</span>Glossary</a></div></div>
+  
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#first"><span class="num">1</span><span class="side-t">Before anything else</span></a><a href="#theory"><span class="num">2</span><span class="side-t">Theories and files</span></a><a href="#syntax"><span class="num">3</span><span class="side-t">Syntax and types</span></a><a href="#definitions"><span class="num">4</span><span class="side-t">Definitions and termination</span></a><a href="#proofs"><span class="num">5</span><span class="side-t">Proofs that fail</span></a><a href="#isar"><span class="num">6</span><span class="side-t">Isar proofs</span></a><a href="#tools"><span class="num">7</span><span class="side-t">Automatic tools</span></a><a href="#install"><span class="num">8</span><span class="side-t">Installation and the editor</span></a></nav>
+<div class="sidebar-label">Reference</div><div class="side-links"><a href="cheatsheet_EN.html">Cheat sheet</a><a href="troubleshooting_EN.html">Troubleshooting</a><a href="glossary_EN.html">Glossary</a><a href="formal-methods-theories.zip">Theory files (ZIP)</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Formal Methods with Isabelle &middot; Reference</div>
+      <h1 class="module-title">Troubleshooting</h1>
+      <p class="module-lead">Isabelle’s messages that beginners meet most often, grouped by what you were doing, each with what it means, its usual causes and the fix. Search this page for a few words of your message (Ctrl+F, or Cmd+F on a Mac).</p>
+    </div>
+<div class="content">
+<span class="section-anchor" id="first"></span>
+<div class="section-header"><span class="section-num">1</span><h2>Before anything else</h2></div>
+<ol>
+<li><strong>Put the cursor on the line with the red underline</strong> and read the whole message in the <strong>Output</strong>
+panel. If there are several errors, fix the first one: later errors often follow from it.</li>
+<li><strong>Read what is left.</strong> Many messages end with the goal that Isabelle could not prove. Compare it with
+what you expected: it usually shows the missing fact, the false claim or the wrong step.</li>
+<li><strong>Tick Proof state</strong> in the Output panel, so that you see the goals as you move the cursor
+(<a href="module_01_EN.html#tour">Section 1.6</a>).</li>
+<li><strong>Test the claim.</strong> A proof of a false statement fails whatever you do; <code>quickcheck</code> and <code>nitpick</code> find
+many false claims in seconds (<a href="module_09_EN.html#strategy">Section 9.9</a>).</li>
+<li><strong>Only the red message counts.</strong> A line starting with <code>theorem</code> above a failed proof does not mean that
+the proof worked (<a href="module_01_EN.html#first-refute">Section 1.7.5</a>).</li>
+</ol>
+<p>The messages below are copied from the modules, where Isabelle2026 printed them. The goals in them belong
+to the modules’ examples; yours will show your own. ⌂ marks a position: in Isabelle/jEdit it is a link to
+the place in the text that the message is about. If you are stuck, Isabelle’s community answers questions
+on the isabelle-users mailing list, on Zulip chat and on Stack Overflow.</p>
+<span class="section-anchor" id="theory"></span>
+<div class="section-header"><span class="section-num">2</span><h2>Theories and files</h2></div>
+<h3 id="bad-theory-name">Bad theory name</h3>
+<pre class="code"><code class="language-text">Bad theory name &quot;First&quot; for file &quot;Scratch.thy&quot;⌂
+</code></pre>
+<p>The name after <code>theory</code> and the name of the file differ. A theory <code>First</code> must live in the file
+<code>First.thy</code>. Save the file under the theory’s name, or change the name after <code>theory</code> to match the file
+(<a href="module_01_EN.html#first-file">Section 1.7.1</a>).</p>
+<h3 id="bad-context">Bad context for command</h3>
+<pre class="code"><code class="language-text">Bad context for command &quot;lemma&quot;⌂
+</code></pre>
+<p>A command that belongs at the top level of the theory arrived while a proof was still open.</p>
+<ul>
+<li><strong>An apply script without <code>done</code>.</strong> The next <code>lemma</code> is refused. Add <code>done</code> after the last <code>apply</code>, or
+<code>oops</code> to abandon the proof (<a href="module_07_EN.html#errors-forget">Section 7.8.4</a>).</li>
+<li><strong>A numbered case name without quotes.</strong> In an Isar proof by computation induction, <code>3.IH</code> is not read as
+one name, and Isabelle reports a confusing error, for example <code>Bad context for command &quot;qed&quot;</code>. Write
+<code>&quot;3.IH&quot;</code> (<a href="module_11_EN.html#f-induct">Section 11.5.3</a>).</li>
+</ul>
+<p>If the unfinished proof is the last one in the theory, <code>end</code> is refused instead, with
+<a href="#illegal-prove">Illegal application of proof command in “prove” mode</a>.</p>
+<h3 id="outer-syntax">Outer syntax error</h3>
+<pre class="code"><code class="language-text">Outer syntax error⌂: name expected,
+but keyword file⌂ was found
+</code></pre>
+<p>Isabelle expected a name in a command and found one of its keywords. Some English words are keywords of
+Isabelle’s command language, <code>file</code> among them. Choose another name, such as <code>doc</code>
+(<a href="module_03_EN.html#types">Section 3.8</a>).</p>
+<span class="section-anchor" id="syntax"></span>
+<div class="section-header"><span class="section-num">3</span><h2>Syntax and types</h2></div>
+<h3 id="inner-syntax">Inner syntax error</h3>
+<pre class="code"><code class="language-text">Inner syntax error⌂
+at &quot;∧ C&quot;
+Failed to parse prop
+</code></pre>
+<p>The text between the quotation marks is not a well-formed statement; the line <code>at &quot;∧ C&quot;</code> shows where Isabelle
+stopped reading. The usual cause is ⟹ inside a formula: ⟹ belongs to Pure and may appear only at the outside of a
+statement. Inside a formula, write ⟶ (<a href="module_07_EN.html#meta-def">Section 7.1.3</a>).</p>
+<h3 id="type-clash">Clash of types: incompatible operand type</h3>
+<pre class="code"><code class="language-text">Type unification failed: Clash of types &quot;bool&quot; and &quot;nat&quot;
+
+Type error in application: incompatible operand type
+
+Operator:  Suc :: nat ⇒ nat
+Operand:   True :: bool
+</code></pre>
+<p>A function, the <strong>Operator</strong>, is applied to an argument, the <strong>Operand</strong>, of the wrong type. The clash names
+the two types that could not be made equal (<a href="module_08_EN.html#type-errors">Section 8.1.4</a>).</p>
+<ul>
+<li><strong>An argument of the wrong type</strong>, as in <code>Suc True</code>, or arguments in the wrong order, as in
+<code>owns report alice</code> (<a href="module_03_EN.html#types">Section 3.8</a>). Check the types with <code>term</code>.</li>
+<li><strong>Missing parentheses.</strong> Application groups to the left, so <code>Suc Suc 0</code> means <code>(Suc Suc) 0</code>. Write
+<code>Suc (Suc 0)</code> (<a href="module_08_EN.html#currying">Section 8.2.2</a>).</li>
+<li><strong>∈ where ⊆ is meant.</strong> <code>{1} ∈ {1, 2 :: nat}</code> asks whether a set is an element of a set of numbers. Write
+<code>{1} ⊆ {1, 2}</code> or <code>1 ∈ {1, 2}</code> (<a href="module_04_EN.html#sets-isabelle">Section 4.1.4</a>).</li>
+<li><strong>Book notation for sets.</strong> In Isabelle <code>|</code> is a way to type ∨, so <code>{x | x &lt; (5::nat)}</code> clashes <code>nat</code>
+with <code>bool</code>. Write <code>{x. x &lt; 5}</code>, with a dot (<a href="module_04_EN.html#sets-isabelle">Section 4.1.4</a>).</li>
+</ul>
+<h3 id="not-function">Clash of types: operator not of function type</h3>
+<pre class="code"><code class="language-text">Type unification failed: Clash of types &quot;_ ⇒ _&quot; and &quot;_ list&quot;
+
+Type error in application: operator not of function type
+
+Operator:  rev [1, 2] :: nat list
+Operand:   [3::??'a] :: ??'a list
+</code></pre>
+<p>Something that is not a function has been given an argument. <code>_ ⇒ _</code> stands for “some function type”, and
+<code>??'a</code> for a type that Isabelle had not worked out yet (<a href="module_08_EN.html#type-errors">Section 8.1.4</a>).</p>
+<ul>
+<li><strong>Too many arguments</strong>, as in <code>rev [1, 2] [3]</code>: <code>rev</code> takes one list.</li>
+<li><strong>A predicate with different numbers of arguments</strong> in different places, as in <code>P x ⟶ P x y</code>. Give each
+predicate the same number of arguments everywhere (<a href="module_03_EN.html#types">Section 3.8</a>).</li>
+</ul>
+<h3 id="no-type-arity">No type arity</h3>
+<pre class="code"><code class="language-text">Type unification failed: No type arity light :: numeral
+
+Type error in application: incompatible operand type
+
+Operator:  next_light :: light ⇒ light
+Operand:   3::??'a :: ??'a
+</code></pre>
+<p>The type <code>light</code> is not in the class <code>numeral</code>, the class of types that have numerals, so <code>3</code> cannot be a
+light. An arity is Isabelle’s record that a type belongs to a class. Give the function a value of its own
+type, such as <code>Red</code> (<a href="module_08_EN.html#classes">Section 8.6.2</a>).</p>
+<h3 id="not-of-sort">Variable not of sort</h3>
+<pre class="code"><code class="language-text">Type unification failed: Variable 'a::type not of sort ord
+
+Type error in application: incompatible operand type
+
+Operator:  (≤) :: ??'a ⇒ ??'a ⇒ bool
+Operand:   x :: 'a
+</code></pre>
+<p>A function uses <code>≤</code> on a type variable that may stand for any type, including types without <code>≤</code>. Restrict
+the type variable to a class: <code>'a::linorder</code> for a linear order (<a href="module_12_EN.html#isort-program">Section 12.2.1</a>).</p>
+<h3 id="wellsortedness">Wellsortedness error</h3>
+<pre class="code"><code class="language-text">Wellsortedness error:
+Type 'a not of sort term_of
+Cannot derive subsort relation numeral &lt; term_of
+</code></pre>
+<p>A type is required to be in a class that it is not known to be in. For <code>value &quot;2 + 2&quot;</code>, all Isabelle knows
+about the type of <code>2 + 2</code> is that it has numerals, and <code>value</code> needs a type whose values it can print
+(<a href="module_08_EN.html#classes">Section 8.6.2</a>).</p>
+<ul>
+<li><strong>A number without a type.</strong> Add an annotation: <code>value &quot;2 + 3 :: nat&quot;</code>
+(<a href="module_01_EN.html#first-compute">Section 1.7.2</a>).</li>
+<li><strong><code>value</code> on an infinite set</strong>, such as <code>{x. x &lt; (5::nat)}</code>. The message then says <code>not of sort enum</code>:
+<code>value</code> would have to try every natural number. Take the elements from a finite set, as in
+<code>{x ∈ {0..10}. x &lt; 5}</code> (<a href="module_04_EN.html#sets-isabelle">Section 4.1.4</a>).</li>
+<li><strong><code>export_code</code> on a definition that quantifies over <code>nat</code>.</strong> It has no program, for the same reason
+(<a href="module_08_EN.html#codegen">Section 8.8</a>).</li>
+</ul>
+<h3 id="undefined-type">Undefined type name</h3>
+<pre class="code"><code class="language-text">Undefined type name: &quot;lights&quot;
+</code></pre>
+<p>A type in a signature is misspelt: here <code>lights</code> for <code>light</code>. Correct the name
+(<a href="module_08_EN.html#names">Section 8.4.4</a>).</p>
+<h3 id="record-input">Error in record input</h3>
+<pre class="code"><code class="language-text">exception TERM raised⌂:
+  Error in record input: expecting more fields
+  ??.cars = Amber::&lt;position&gt;
+</code></pre>
+<p>With <code>=</code>, Isabelle reads <code>⦇cars = Amber⦈</code> as a record value, which must list every field. An update needs
+<code>:=</code>: write <code>start⦇cars := Amber⦈</code> (<a href="module_13_EN.html#records">Section 13.4.1</a>).</p>
+<h3 id="value-unevaluated">value gives your term back</h3>
+<pre class="code"><code class="language-text">&quot;lenght [1, 2]&quot;
+  :: &quot;'a&quot;
+</code></pre>
+<p>No error, but no result either. A misspelt name is a free variable, which <code>value</code> cannot evaluate; the
+type variable <code>'a</code> in the answer is the sign. Isabelle/jEdit shows free variables in blue. Correct the name
+(<a href="module_08_EN.html#value">Section 8.1.3</a>).</p>
+<h3 id="reading">Isabelle reads the formula differently</h3>
+<pre class="code"><code class="language-text">proof (prove)
+goal (1 subgoal):
+ 1. (A = B ∧ C) = (A = (B ∧ C))
+</code></pre>
+<p>No error: the statement means something other than you intended. State it and read the goal, which
+Isabelle prints with only the parentheses that matter.</p>
+<ul>
+<li><code>=</code> binds more tightly than ∧ and ∨, but ⟷ as loosely as ⟶; Isabelle prints ⟷ as <code>=</code>. Write <code>=</code> between
+terms and ⟷ between formulas (<a href="module_03_EN.html#equality">Section 3.6</a>).</li>
+<li>¬A ∧ B is (¬A) ∧ B, and ⟶ and ⟷ have the same priority: write parentheses when you mix them
+(<a href="module_02_EN.html#priorities">Section 2.2.2</a>).</li>
+<li>A quantifier’s scope runs as far to the right as possible: ∀x. P x ⟶ Q x is ∀x. (P x ⟶ Q x)
+(<a href="module_03_EN.html#scope">Section 3.2.4</a>).</li>
+</ul>
+<span class="section-anchor" id="definitions"></span>
+<div class="section-header"><span class="section-num">4</span><h2>Definitions and termination</h2></div>
+<h3 id="termination">Could not find lexicographic termination order</h3>
+<pre class="code"><code class="language-text">consts
+  bad :: &quot;nat ⇒ nat&quot;
+
+Unfinished subgoals:
+(a, 1, &lt;):
+ 1. False
+Calls:
+  a) n ~&gt; n
+Measures:
+  1) size
+Result matrix:
+    1
+a:  &lt;=
+
+Could not find lexicographic termination order.
+</code></pre>
+<p><code>fun</code> could not prove that the recursion terminates, and rejected the definition; the first lines only
+announce the constant, which is not defined afterwards. Read the message from the bottom up: <strong>Calls</strong>
+lists the recursive calls (<code>~&gt;</code> means “calls”), <strong>Measures</strong> the measures tried, and the <strong>Result matrix</strong>
+says for each call and measure whether it decreases (<code>&lt;</code>), does not grow (<code>&lt;=</code>) or neither could be shown
+(<code>?</code>). <strong>Unfinished subgoals</strong> are what Isabelle could not prove
+(<a href="module_08_EN.html#termination-messages">Section 8.7.2</a>).</p>
+<ul>
+<li><strong>The recursion does not terminate</strong>, as in <code>bad n = bad n + 1</code>. Such an equation could prove <code>0 = 1</code>;
+rethink the definition (<a href="module_05_EN.html#why-terminate">Section 5.7.1</a>).</li>
+<li><strong>A missing base case.</strong> <code>sum_down n = sum_down (n - 1) + n</code> calls itself for ever at 0, because
+<code>0 - 1 = 0</code> on <code>nat</code>. Use the patterns <code>0</code> and <code>Suc n</code> (<a href="module_05_EN.html#no-measure">Section 5.7.3</a>).</li>
+<li><strong>The function terminates, but not by the size of an argument</strong>, like <code>wait</code> on traffic lights. Rewrite
+it so that termination is evident, for example with library functions, or prove termination yourself
+with <code>function</code> (<a href="module_08_EN.html#termination-help">Section 8.7.3</a>).</li>
+</ul>
+<h3 id="missing-patterns">Missing patterns in function definition</h3>
+<pre class="code"><code class="language-text">Missing patterns in function definition:
+top_value Empty = undefined
+</code></pre>
+<p>A warning: the equations do not cover every constructor. Isabelle completes the function with
+<code>undefined</code>, so its value there is unspecified, and <code>value</code> stops with
+<a href="#exception-match">exception Match raised</a> on it. Add the missing equation, or return an option such as
+<code>None</code> (<a href="module_08_EN.html#patterns">Section 8.4.3</a>). <code>primrec</code> warns about a missing constructor with
+<code>No equation for constructor &quot;Empty&quot;</code>.</p>
+<h3 id="exception-match">exception Match raised</h3>
+<pre class="code"><code class="language-text">exception Match raised⌂
+</code></pre>
+<p><code>value</code> reached an unspecified value, for which no equation exists: <code>top_value Empty</code> above, <code>hd []</code>, or
+<code>xs ! n</code> with <code>n</code> beyond the end of the list. The ⌂ points into the generated program, not into your
+theory. Handle the missing case, or make sure that <code>xs</code> is not empty and that <code>n &lt; length xs</code>
+(<a href="module_08_EN.html#patterns">Section 8.4.3</a>, <a href="module_08_EN.html#comprehension">Section 8.5.2</a>).</p>
+<h3 id="redundant">Equation is redundant</h3>
+<pre class="code"><code class="language-text">Equation is redundant (covered by preceding clauses):
+is_red2 Red =
+True
+</code></pre>
+<p><code>fun</code> uses the first equation that matches. A general equation before a specific one hides it. Put the
+specific equation first (<a href="module_08_EN.html#patterns">Section 8.4.3</a>).</p>
+<h3 id="constructor-pattern">Constructor pattern missing</h3>
+<pre class="code"><code class="language-text">Constructor pattern missing in left-hand side at
+  is_red3 l =
+  False
+</code></pre>
+<p><code>primrec</code> needs one equation per constructor, each with the constructor applied to variables; a plain
+variable is not such a pattern. Write an equation for each constructor, or use <code>fun</code>
+(<a href="module_08_EN.html#patterns">Section 8.4.3</a>).</p>
+<h3 id="rhs-only">Variable occurs on right hand side only</h3>
+<pre class="code"><code class="language-text">Variable &quot;duraton&quot; occurs on right hand side only:
+⋀l ls duraton.
+   cycle_time (l # ls) =
+   duraton l +
+   cycle_time
+    ls
+</code></pre>
+<p>A name on the right-hand side is not a constant, so Isabelle took it for a variable, which has no value.
+Usually it is a misspelt function name, here <code>duraton</code> for <code>duration</code>
+(<a href="module_08_EN.html#names">Section 8.4.4</a>).</p>
+<h3 id="bad-lhs">Bad arguments on lhs</h3>
+<pre class="code"><code class="language-text">Bad arguments on lhs: &quot;(a, b)&quot;
+The error(s) above occurred in definition:
+&quot;safe2 (a, b) ≡
+ a = Red ∨
+ b =
+ Red&quot;
+</code></pre>
+<p><code>definition</code> takes no patterns: its left-hand side is the constant applied to variables. Use <code>fst</code> and
+<code>snd</code>, a <code>case</code> expression, or <code>fun</code>, which accepts patterns (<a href="module_08_EN.html#definition">Section 8.4.1</a>).</p>
+<h3 id="inductive-mono">Proof failed for an inductive definition</h3>
+<pre class="code"><code class="language-text">Proof failed.
+ 1. ⋀x y xa n. x (?x10 x y xa n) ⟶ y (?x10 x y xa n) ⟹ y n ⟶ x n
+The error(s) above occurred for the goal statement⌂:
+mono (λp x. ∃n. x = Suc n ∧ ¬ p n)
+</code></pre>
+<p>The predicate being defined appears negated in a premise of one of its own rules. The rules must be
+monotone, which the goal <code>mono (…)</code> says, and a negated premise breaks that. The details of the goal may
+differ on your screen. Rewrite the rules without negating the predicate
+(<a href="module_11_EN.html#versus">Section 11.6.4</a>).</p>
+<h3 id="no-code-equations">No code equations</h3>
+<pre class="code"><code class="language-text">No code equations for ev,
+requested by dependencies
+</code></pre>
+<p>An inductive predicate is not a program, so <code>value</code> and Quickcheck cannot run it. Prove facts about it with
+its rules instead, search for counterexamples with Nitpick, or define a recursive function if you need to
+compute (<a href="module_11_EN.html#versus">Section 11.6.4</a>, <a href="module_13_EN.html#fails">Section 13.5.1</a>).</p>
+<span class="section-anchor" id="proofs"></span>
+<div class="section-header"><span class="section-num">5</span><h2>Proofs that fail</h2></div>
+<h3 id="initial-method">Failed to apply initial proof method</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. ((A ⟶ B) ⟶ A) ⟶ A
+</code></pre>
+<p>The method after <code>by</code> could do nothing with the goal, which the message shows unchanged. For <code>simp</code> it means
+that no rule applied at all, for <code>auto</code> that it could not change the goal; <code>blast</code> and <code>linarith</code> say it
+whenever they find no proof (<a href="module_02_EN.html#classify">Section 2.4</a>,
+<a href="module_09_EN.html#modifiers">Section 9.2.4</a>, <a href="module_09_EN.html#arith">Section 9.5</a>).</p>
+<ul>
+<li><strong>A definition is not unfolded.</strong> The equation of a <code>definition</code> is not a simp rule: write
+<code>simp add: safe_def</code> (<a href="module_08_EN.html#definition">Section 8.4.1</a>).</li>
+<li><strong>The method is the wrong kind.</strong> Rewriting does not prove every tautology: try <code>blast</code> or <code>auto</code> for
+logic, <code>fastforce</code> when the search needs rewriting, <code>presburger</code> or <code>arith</code> for arithmetic
+(<a href="module_09_EN.html#classical">Section 9.4</a>, <a href="module_09_EN.html#arith">Section 9.5</a>).</li>
+<li><strong>A lemma is missing.</strong> Find it with <code>find_theorems</code> and pass it with <code>simp add:</code>, or let Sledgehammer
+look for it (<a href="module_09_EN.html#find">Section 9.6</a>, <a href="module_09_EN.html#sledgehammer">Section 9.8</a>).</li>
+<li><strong>A numeral meets a <code>Suc</code> pattern.</strong> <code>simp</code> does not match <code>2</code> against <code>Suc n</code>; add <code>numeral_eq_Suc</code>
+(<a href="module_08_EN.html#classes">Section 8.6.2</a>).</li>
+<li><strong>The type is open.</strong> In <code>x + 0 = x</code>, <code>x</code> has some type with <code>+</code> and <code>0</code>, and nothing more is known.
+Annotate it: <code>x + 0 = (x::nat)</code> (<a href="module_08_EN.html#classes">Section 8.6.2</a>).</li>
+<li><strong>The claim is false.</strong> Test it with <code>quickcheck</code> and <code>nitpick</code> (<a href="module_09_EN.html#refute">Section 9.7</a>).</li>
+</ul>
+<h3 id="finish-proof">Failed to finish proof</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. n + n = n * n
+</code></pre>
+<p>The method made progress but did not prove the goal; the message shows what is left. At <code>done</code> the message
+reads <code>Failed to finish proof:</code> and lists the subgoals that remain
+(<a href="module_01_EN.html#first-refute">Section 1.7.5</a>, <a href="module_07_EN.html#errors-done">Section 7.8.3</a>).</p>
+<ul>
+<li><strong>The claim is false</strong>, as here: <code>n + n = n * n</code> does not hold in general. Fix the statement, or abandon
+it with <code>oops</code>.</li>
+<li><strong>A fact is not passed to the method.</strong> A method sees only the facts you give it
+(<a href="module_10_EN.html#facts-visible">Section 10.3.3</a>), and see <a href="#not-passed">the entry below</a>.</li>
+<li><strong>An equation in the other orientation.</strong> To the simplifier, <code>u = v</code> and <code>v = u</code> are different terms.
+State lemmas in the orientation that the definitions produce
+(<a href="module_09_EN.html#simp-rules">Section 9.2.3</a>).</li>
+<li><strong>A <code>case</code> or <code>if</code> in an assumption.</strong> Split it with <code>split: option.splits</code> or <code>split: if_splits</code>
+(<a href="module_09_EN.html#splits">Section 9.3.3</a>).</li>
+<li><strong>A recursive function applied to a variable</strong>, such as <code>sum_upto n</code>: no equation applies until you do
+induction (<a href="module_05_EN.html#simp-not-enough">Section 5.4.1</a>).</li>
+<li><strong><code>done</code> with subgoals left.</strong> <code>done</code> proves nothing itself; add the missing steps.</li>
+</ul>
+<h3 id="induction-stuck">An induction leaves a goal</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ⋀a xs. sumacc xs 0 = sum_list xs ⟹ sumacc xs a = a + sum_list xs
+</code></pre>
+<p>The base case or the step cannot be finished from the definitions and the induction hypothesis. Compare
+the hypothesis, to the left of ⟹, with the conclusion: the difference shows what to change
+(<a href="module_11_EN.html#stuck-isabelle">Section 11.1.2</a>). The <a href="cheatsheet_EN.html#induction">cheat sheet</a> has
+the table of remedies.</p>
+<ul>
+<li><strong>Induction on the wrong variable.</strong> Induct on the argument that the function takes apart
+(<a href="module_05_EN.html#list-induction">Section 5.5.1</a>).</li>
+<li><strong>A missing lemma.</strong> A term in the goal that no equation can rewrite needs a lemma about it, proved first
+and declared <code>[simp]</code> (<a href="module_05_EN.html#lemmas">Section 5.5.3</a>, <a href="module_11_EN.html#lemmas">Section 11.3</a>).</li>
+<li><strong>The hypothesis fixes a value that the step needs to vary</strong>, as <code>0</code> above. Generalise it:
+<code>induction xs arbitrary: acc</code> (<a href="module_11_EN.html#generalise">Section 11.2</a>).</li>
+<li><strong>The hypothesis is true but says too little.</strong> Prove a stronger claim
+(<a href="module_05_EN.html#strong">Section 5.6</a>, <a href="module_11_EN.html#strengthen">Section 11.2.3</a>).</li>
+<li><strong>The function recurses in its own pattern.</strong> Use computation induction, <code>rule: f.induct</code>
+(<a href="module_11_EN.html#computation">Section 11.5</a>).</li>
+</ul>
+<h3 id="apply-method">Failed to apply proof method</h3>
+<pre class="code"><code class="language-text">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. A ∧ B ⟶ B ∧ A
+</code></pre>
+<p>An <code>apply</code> step could do nothing with subgoal 1, which the message shows as it was before the step
+(<a href="module_07_EN.html#errors-apply">Section 7.8.1</a>).</p>
+<ul>
+<li><strong>The rule does not fit the conclusion.</strong> For <code>rule</code>, the rule’s conclusion must have the main
+connective of the subgoal’s conclusion: <code>disjI1</code> cannot prove a conjunction. Look the rule up with <code>thm</code>.</li>
+<li><strong>Taking an assumption apart before it is one.</strong> In A ∧ B ⟶ B ∧ A, the conjunction is not yet an
+assumption: apply <code>impI</code> before <code>erule conjE</code>.</li>
+<li><strong>Expecting <code>assumption</code> to look inside a formula.</strong> It only unifies whole formulas; take the assumption
+apart first.</li>
+<li><strong>A numeral against a <code>Suc</code> pattern.</strong> <code>rule ev_SS</code> does not apply to <code>ev 4</code>. Write the number with
+<code>Suc</code>, or simplify with <code>numeral_eq_Suc</code> first (<a href="module_11_EN.html#ev">Section 11.6.1</a>).</li>
+</ul>
+<h3 id="unknowns">Unknowns that nothing can close</h3>
+<pre class="code"><code class="language-text">Failed to apply proof method⌂:
+goal (1 subgoal):
+ 1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y
+</code></pre>
+<p>The unknown <code>?x4 y</code> was created before <code>x</code> was fixed, so it can never become <code>x</code>. Fix first, guess later:
+apply <code>allI</code> and <code>exE</code>, which fix variables, before <code>exI</code>, <code>allE</code> and <code>spec</code>, which create unknowns
+(<a href="module_07_EN.html#quantifiers-order">Section 7.6.3</a>). When the goal does not show what an unknown must
+be, as in <code>?n + ?n = 6</code>, name the witness yourself: <code>apply (rule_tac x = 3 in exI)</code>
+(<a href="module_07_EN.html#quantifiers-inst">Section 7.6.4</a>).</p>
+<h3 id="undefined-fact">Undefined fact</h3>
+<pre class="code"><code class="language-text">Undefined fact: &quot;conjl&quot;⌂
+</code></pre>
+<p>No theorem has this name. Often a capital I has become a lower-case l, as in <code>conjl</code> for <code>conjI</code>
+(<a href="module_07_EN.html#errors-name">Section 7.8.2</a>), or a function name is misspelt, as in <code>duraton.simps</code>
+(<a href="module_08_EN.html#names">Section 8.4.4</a>). A definition’s equation is called <code>f_def</code>, the equations of a
+<code>fun</code> <code>f.simps</code>. To search by name, give <code>find_theorems</code> the criterion <code>name: s</code>
+(<a href="module_09_EN.html#find">Section 9.6</a>).</p>
+<h3 id="sat-countermodel">SAT solver found a countermodel</h3>
+<pre class="code"><code class="language-text">exception THM 0 raised⌂: SAT solver found a countermodel:
+A: true, B: true, C: false
+</code></pre>
+<p><code>sat</code> failed because the goal is not a tautology. The first line is technical; the second is a
+counterexample (<a href="module_02_EN.html#sat">Section 2.8</a>).</p>
+<h3 id="thm-instantiate">exception THM: infer_instantiate_types</h3>
+<pre class="code"><code class="language-text">exception THM 0 raised⌂:
+  infer_instantiate_types: type ?'a of variable ?a
+  cannot be unified with type 'a of term n
+  (⋀x. (⋀y. y &lt; x ⟹ ?P y) ⟹ ?P x) ⟹
+  ?P ?a
+</code></pre>
+<p>The rule <code>less_induct</code> cannot be used on a variable whose type is unknown. Annotate the variable, as in
+<code>0 &lt; (n::nat)</code> (<a href="module_11_EN.html#complete">Section 11.8</a>).</p>
+<h3 id="rule-induction-pattern">Rule induction leaves a goal that makes no sense</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. m ⟹ d = Closed
+</code></pre>
+<p>The inductive premise has a pattern, here <code>lreach (d, m)</code>, or a constant where the rule has a variable, and
+the cases lose their meaning. State the property as a function of the whole state, as in
+<code>lreach s ⟹ lift_ok s</code> (<a href="module_13_EN.html#invariants">Section 13.3</a>), or replace the constant by a
+variable with an equation (<a href="module_11_EN.html#constants">Section 11.7.2</a>).</p>
+<h3 id="rule-induction-premise">Rule induction on the wrong premise</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ⋀aa b c.
+       ⟦r aa b; steps r b c; steps r a b ⟹ steps r a c; steps r a aa⟧
+       ⟹ steps r a c
+</code></pre>
+<p><code>induction rule: steps.induct</code> always inducts on the first premise. Put the premise you want to induct on
+first (<a href="module_11_EN.html#closure">Section 11.7.1</a>).</p>
+<h3 id="invariant-step">The step case of an invariant fails</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ⟦reach s; e = ToGreen; cars s = Red; ¬ req s; peds s = Walk⟧ ⟹ False
+</code></pre>
+<p>The goal describes a state that satisfies the property and an event that leads out of it: a
+counterexample to induction. If the state is reachable, the design is wrong; search for a trace with
+<code>nitpick</code>. If it is not, strengthen the invariant with a fact that holds in every reachable state
+(<a href="module_13_EN.html#strengthen">Section 13.5</a>, <a href="module_13_EN.html#traces">Section 13.6</a>).</p>
+<span class="section-anchor" id="isar"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Isar proofs</h2></div>
+<h3 id="proof-start">Failed to apply initial proof method at proof</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method:
+goal (1 subgoal):
+ 1. False
+</code></pre>
+<p><code>proof</code> with no method applies the standard rule for the goal, and no rule fits a goal such as <code>False</code> or
+an equation between numbers. Write <code>proof -</code>, which starts the block without changing the goal, or name
+the rule: <code>proof (rule r)</code> (<a href="module_10_EN.html#shape-start">Section 10.2.6</a>).</p>
+<h3 id="refine">Failed to refine any pending goal</h3>
+<pre class="code"><code class="language-text">Failed to refine any pending goal
+</code></pre>
+<p>The claim of a <code>show</code> was proved, but under the assumptions of its block it solves no pending goal.
+Isabelle/jEdit warns about this before the proof of the <code>show</code> has finished, with “Local statement fails
+to refine any pending goal” (<a href="module_10_EN.html#errors">Section 10.8</a>).</p>
+<ul>
+<li><strong>The claim is not the goal.</strong> Compare it with the goal in the proof state; check <code>?thesis</code> and <code>?case</code>.
+Changing <code>show</code> into <code>have</code> tells you whether the claim itself is right.</li>
+<li><strong>A missing <code>next</code></strong> between cases: the assumption of the first case stays in force in the second
+(<a href="module_10_EN.html#cases-datatype">Section 10.5.2</a>).</li>
+<li><strong>An <code>assume</code> that is not a premise of the goal</strong> (<a href="module_10_EN.html#shape-blocks">Section 10.2.1</a>).</li>
+</ul>
+<h3 id="illegal-prove">Illegal application of proof command in “prove” mode</h3>
+<pre class="code"><code class="language-text">Illegal application of proof command in &quot;prove&quot; mode
+</code></pre>
+<p>A claim (<code>have</code>, <code>show</code>, <code>lemma</code>) has no proof, so the next command comes too early. Give the claim a
+proof, <code>by …</code> or <code>proof … qed</code> (<a href="module_10_EN.html#errors">Section 10.8</a>). At <code>end</code>, the same message means
+that the last proof of the theory is unfinished (<a href="module_07_EN.html#errors-forget">Section 7.8.4</a>).</p>
+<h3 id="undefined-case">Undefined case</h3>
+<pre class="code"><code class="language-text">Undefined case: &quot;Empty&quot;⌂
+</code></pre>
+<p>The case names come from the constructors (<code>Nil</code> and <code>Cons</code> for lists, <code>0</code> and <code>Suc</code> for numbers), from the
+rules of an inductive definition, from the equations of a function (<code>1</code>, <code>2</code>, <code>3</code>), or <code>less</code> for
+<code>less_induct</code>. The proof outline that Isabelle/jEdit shows, and <code>print_cases</code>, list the right names
+(<a href="module_10_EN.html#induction-names">Section 10.6.2</a>).</p>
+<h3 id="thesis-in-induction">show ?thesis in an induction</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. mysum (xs @ ys) = mysum xs + mysum ys
+</code></pre>
+<p>In an induction, <code>?thesis</code> is the whole lemma for the original variable, not the claim of the case. Write
+<code>show ?case</code> (<a href="module_10_EN.html#induction-names">Section 10.6.2</a>).</p>
+<h3 id="not-passed">A fact is not passed</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. hi &lt; x ⟶ ¬ x &lt; lo ⟶ lo ≤ hi
+</code></pre>
+<p>A proof method sees only the goal and the facts passed to it with <code>then</code>, <code>from</code>, <code>with</code> or <code>using</code>. Here
+the lemma’s assumption <code>lo ≤ hi</code> was not passed: write <code>using assms</code>
+(<a href="module_10_EN.html#facts-visible">Section 10.3.3</a>). When the goal left over is the induction hypothesis
+itself, the hypothesis was not passed: write <code>then show ?case</code> or <code>using Cons.IH</code>
+(<a href="module_10_EN.html#induction-names">Section 10.6.2</a>).</p>
+<h3 id="ih-not-fit">The induction hypothesis does not fit</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. sumacc xs (acc + x) = acc + x + sum_list xs
+</code></pre>
+<p>The step needs the hypothesis for another value (here <code>acc + x</code>), but the hypothesis is about the fixed
+<code>acc</code> of the claim, so <code>rule Cons.IH</code> does not fit. Generalise the variable: <code>induction xs arbitrary: acc</code>
+(<a href="module_11_EN.html#arbitrary">Section 11.2.2</a>). The compiler proof of Module 14 needs <code>arbitrary: stk</code> for
+the same reason (<a href="module_14_EN.html#isar">Section 14.5.4</a>).</p>
+<h3 id="calc-strict">A chain proves something stronger</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method:
+using this:
+  x &lt; z
+goal (1 subgoal):
+ 1. x ≤ z
+</code></pre>
+<p><code>finally</code> produces the strictest relation of the chain, and <code>.</code> accepts only that exact fact. Claim
+<code>x &lt; z</code>, or replace <code>.</code> by a method that can weaken it, such as <code>by simp</code>
+(<a href="module_10_EN.html#calc-ineq">Section 10.4.2</a>).</p>
+<h3 id="vacuous">Vacuous calculation result</h3>
+<pre class="code"><code class="language-text">Vacuous calculation result: (⋀x y. x ≤ y ⟹ a ≤ a) ⟹ b ≤ a
+derived as projection (1) from:
+    b ≤ a
+    c ≤ a
+</code></pre>
+<p>The steps of a calculation do not fit together. Isabelle reads a ≥ b as b ≤ a, so in a chain written with
+≥, <code>…</code> stands for the wrong term. Write chains from the small end to the big end, with <code>=</code>, <code>≤</code> and <code>&lt;</code>
+(<a href="module_10_EN.html#calc-ineq">Section 10.4.2</a>).</p>
+<h3 id="obtain">obtain cannot be proved</h3>
+<pre class="code"><code class="language-text">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. (⋀a. admin a ⟹ thesis) ⟹ thesis
+</code></pre>
+<p>This goal is what <code>obtain</code> has to prove, and its proof did not receive the existential fact. Write
+<code>then obtain</code>, or pass the fact with <code>using</code> (<a href="module_10_EN.html#facts-obtain">Section 10.3.4</a>).</p>
+<h3 id="case-hides-rule">A case hides a rule of the same name</h3>
+<pre class="code"><code class="language-text">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ev (Suc (Suc (k + n)))
+</code></pre>
+<p>Inside <code>case ev_SS</code>, the name <code>ev_SS</code> means the facts of the case, not the rule. Use the qualified name of
+the rule, <code>ev.ev_SS</code> (<a href="module_11_EN.html#rule-induction">Section 11.6.2</a>).</p>
+<span class="section-anchor" id="tools"></span>
+<div class="section-header"><span class="section-num">7</span><h2>Automatic tools</h2></div>
+<h3 id="quickcheck-found">Quickcheck found a counterexample</h3>
+<pre class="code"><code class="language-text">Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  n = 1
+Evaluated terms:
+  double n = 2
+  n * n = 1
+</code></pre>
+<p>The claim is false for these values, so no proof can succeed. Fix the statement, or abandon it with <code>oops</code>.
+Isabelle/jEdit runs Quickcheck on every new lemma and marks the line with a blue <strong>i</strong> when it finds a
+counterexample (<a href="module_01_EN.html#first-refute">Section 1.7.5</a>, <a href="module_09_EN.html#quickcheck">Section 9.7.1</a>).
+Values such as a₁ and a₂ are different elements of a type about which Quickcheck knows nothing else.</p>
+<h3 id="quickcheck-none">Quickcheck found no counterexample</h3>
+<pre class="code"><code class="language-text">Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.
+</code></pre>
+<p>Evidence, not proof: Quickcheck tried small values only (<a href="module_09_EN.html#quickcheck">Section 9.7.1</a>).
+On a claim whose counterexamples are large, such as a run of five events, fix the size of the input
+(<a href="module_13_EN.html#traces">Section 13.6</a>). When a claim has functions among its variables, Quickcheck may
+stop with “Quickcheck ran out of time”: limit the search with <code>quickcheck [size = 3]</code>
+(<a href="module_14_EN.html#testing">Section 14.4.3</a>).</p>
+<h3 id="nitpick-found">Nitpick found a counterexample</h3>
+<pre class="code"><code class="language-text">Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variables:
+    A = True
+    B = True
+    C = False
+</code></pre>
+<p>Nitpick found values for the free variables that make the claim false
+(<a href="module_02_EN.html#classify">Section 2.4</a>). In larger answers, <code>card 'a = 2</code> gives the size of the domain
+it used, and <strong>Skolem constant</strong> shows values chosen for bound variables
+(<a href="module_03_EN.html#validity">Section 3.4</a>). A counterexample marked potentially spurious might disappear
+in a larger model: treat it as a hint (<a href="module_09_EN.html#nitpick">Section 9.7.2</a>). Without the option
+<code>card</code>, Nitpick tries several sizes in parallel, and its answer can change from run to run; <code>[card = 6]</code>
+or <code>[card 'a = 2]</code> makes it repeatable (<a href="module_13_EN.html#traces">Section 13.6</a>).</p>
+<h3 id="nitpick-none">Nitpick found no counterexample</h3>
+<pre class="code"><code class="language-text">Nitpicking formula...
+
+Nitpick found no counterexample
+</code></pre>
+<p>Nitpick searched domains up to a size limit and found nothing. That is not a proof: some formulas that are
+not valid have only infinite countermodels (<a href="module_03_EN.html#validity">Section 3.4</a>,
+<a href="module_03_EN.html#decidability">Section 3.9</a>).</p>
+<h3 id="type-constraint">Hint: Maybe you forgot a type constraint?</h3>
+<pre class="code"><code class="language-text">Hint: Maybe you forgot a type constraint?
+</code></pre>
+<p>The last line of a Nitpick answer whose counterexample may rely on types you did not intend: in
+<code>A - (B - C) = A - B - C</code>, <code>-</code> also exists for other types than sets. Annotate a variable, as in
+<code>(C :: 'a set)</code> (<a href="module_04_EN.html#sets-isabelle">Section 4.1.4</a>).</p>
+<h3 id="sledgehammer">Reading Sledgehammer’s answer</h3>
+<pre class="code"><code class="language-text">Sledgehammering...
+
+metis found a proof...
+
+metis: Try this: by (metis mult_le_mono mult_le_mono1) (82 ms)
+</code></pre>
+<p>Each prover that succeeds reports “… found a proof...” and suggests a proof after “Try this:”, with the time
+it took to check. “Duplicate proof” means that the proof was already suggested, and “Done” that all
+provers have finished. Click a short, fast suggestion to insert it, and delete the <code>sledgehammer</code> line
+(<a href="module_09_EN.html#sledgehammer">Section 9.8</a>).</p>
+<ul>
+<li><strong>No prover finds a proof.</strong> The goal may be false (try <code>quickcheck</code> and <code>nitpick</code>), may need induction,
+or a lemma that is not in the library. Or give the provers more time: <code>sledgehammer [timeout = 120]</code>.</li>
+<li><strong>The suggested <code>metis</code> call fails or runs for a long time.</strong> Try another suggestion.</li>
+</ul>
+<h3 id="tracing-paused">Tracing paused</h3>
+<pre class="code"><code class="language-text">Tracing paused. Stop, or continue with next 100, 1000, 10000 messages?
+</code></pre>
+<p>Isabelle/jEdit shows at most 1000 trace messages for a command. If this happens with a small goal, suspect
+a rule that loops. Remove <code>using [[simp_trace]]</code> when you are done
+(<a href="module_09_EN.html#tracing">Section 9.3.5</a>).</p>
+<h3 id="simp-loops">The simplifier never stops</h3>
+<p>No message: the proof keeps running. The simp set contains rules that loop, such as an equation and its
+mirror image, or an assumption like <code>∀x. f x = g (f x)</code> that rewrites a term into one that contains it.
+Remove the rule; use <code>simp flip: name</code> to turn a rule round for one call, and <code>simp (no_asm)</code> to ignore the
+assumptions (<a href="module_09_EN.html#loops">Section 9.3.4</a>, <a href="module_09_EN.html#assumptions">Section 9.3.2</a>).</p>
+<h3 id="auto-tools">A blue i next to a new lemma</h3>
+<pre class="code"><code class="language-text">Auto solve_direct: the current goal can be solved directly with List.rev_rev_ident: rev (rev ?xs) = ?xs
+</code></pre>
+<p>Isabelle/jEdit runs Auto Quickcheck and Auto solve_direct on every new statement. This message says that
+the library already has the lemma; you can use the library’s theorem instead of proving it again. The
+message “Auto Quickcheck found a counterexample:” says that the statement is false
+(<a href="module_01_EN.html#first-prove">Section 1.7.3</a>, <a href="module_01_EN.html#first-refute">Section 1.7.5</a>).</p>
+<span class="section-anchor" id="install"></span>
+<div class="section-header"><span class="section-num">8</span><h2>Installation and the editor</h2></div>
+<h3 id="windows-protected">Windows protected your PC</h3>
+<p>Isabelle is not signed by a registered developer, so Windows rejects it at first. In the blue window
+“Windows protected your PC”, click <strong>More info</strong>, then <strong>Run anyway</strong>
+(<a href="module_01_EN.html#install">Section 1.5</a>).</p>
+<h3 id="macos-open-anyway">macOS: there is no Open Anyway button</h3>
+<p>The button appears in <strong>System Settings → Privacy &amp; Security</strong> only after you have tried to open the
+application once. Open Isabelle2026.app again, click <strong>Cancel</strong>, and look again
+(<a href="module_01_EN.html#install">Section 1.5</a>).</p>
+<h3 id="linux-desktop">Linux: Isabelle/jEdit does not start</h3>
+<p>Isabelle/jEdit needs a graphical desktop that works with Java. Start it from a desktop session with
+<code>Isabelle2026/Isabelle2026</code> (<a href="module_01_EN.html#install">Section 1.5</a>).</p>
+<h3 id="memory">Isabelle is very slow, or runs out of memory</h3>
+<p>Close other large programs. Isabelle’s home page asks for 4 GB of memory and 2 processor cores for small
+experiments, and 8 GB and 4 cores for medium-sized applications (<a href="module_01_EN.html#install">Section 1.5</a>).</p>
+<h3 id="windows-defender">A prover fails to run on Windows</h3>
+<p>Windows Defender can block Isabelle’s external provers, which Sledgehammer and <code>smt</code> use. Exclude the whole
+Isabelle folder in <strong>Virus &amp; threat protection</strong>, as Isabelle’s installation page recommends, and try
+again (<a href="module_01_EN.html#install">Section 1.5</a>, <a href="module_09_EN.html#sledgehammer">Section 9.8</a>).</p>
+<h3 id="prover-ready">Nothing is checked yet</h3>
+<p>After a start, Isabelle loads HOL first. Wait until the <strong>Theories</strong> panel on the right says
+<strong>Prover: ready</strong> (<a href="module_01_EN.html#install">Section 1.5</a>). A theory that imports a library theory
+outside <code>Main</code>, such as <code>&quot;HOL-Library.Multiset&quot;</code>, loads it each time you start Isabelle/jEdit, which takes
+a little while; the Theories panel shows the progress (<a href="module_12_EN.html#isort-program">Section 12.2.1</a>).</p>
+<h3 id="proof-state">The proof state does not show</h3>
+<p>Open the <strong>Output</strong> panel with its tab at the bottom of the window, and tick <strong>Proof state</strong> there; the
+setting is remembered. Then put the cursor at the end of the line whose state you want to see
+(<a href="module_01_EN.html#tour">Section 1.6</a>, <a href="module_05_EN.html#by-induction">Section 5.4.3</a>). While <strong>Proof
+state</strong> is not ticked, goals appear in the separate <strong>State</strong> panel instead.</p>
+<h3 id="symbol">A symbol is not accepted</h3>
+<p>Type ⟷ as <code>&lt;--&gt;</code>: the shorter <code>&lt;-&gt;</code> is also the abbreviation of ↔, which jEdit offers first and HOL
+rejects. Accept a completion with <kbd>Tab</kbd>; <kbd>Return</kbd> does not accept it. The cheat sheet
+lists <a href="cheatsheet_EN.html#symbols">every symbol</a>.</p>
+<h3 id="theory-exports">Where is the generated code?</h3>
+<pre class="code"><code class="language-text">See theory exports
+</code></pre>
+<p><code>export_code</code> stores the code as theory exports instead of printing it. In Isabelle/jEdit, <em>theory exports</em>
+in the message is a link: click it, and the File Browser opens on the generated files, in a folder whose
+name begins with <code>isabelle-export:</code> (<a href="module_08_EN.html#codegen">Section 8.8</a>,
+<a href="module_12_EN.html#export">Section 12.7</a>).</p>
+
+</div>
+<nav class="module-nav"><a class="mnav prev" href="index.html"><span class="mnav-label">&larr; All modules</span><span class="mnav-title">Formal Methods with Isabelle</span></a><a class="mnav next" href="cheatsheet_EN.html"><span class="mnav-label">Reference &rarr;</span><span class="mnav-title">Cheat sheet</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

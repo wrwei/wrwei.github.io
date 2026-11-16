@@ -1,0 +1,1398 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 13: Modelling systems: state machines and invariants — Formal Methods with Isabelle</title>
+<meta name="description" content="Describe a system as a state machine and prove in Isabelle that nothing bad ever happens in it. You will model states, events, guards and effects, define the reachable states, prove safety properties with invariants, strengthen an invariant that is not inductive, turn a counterexample into a trace, and carry what you proved about an abstract model over to a more concrete one.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="13" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Formal methods</a><span class="sep">/</span><span class="crumb crumb-now">Module 13</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Module 13 of 14</button><div class="dropdown-menu"><a href="module_01_EN.html"><span class="dd-n">1</span>Formal methods, what and why<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_EN.html"><span class="dd-n">2</span>Propositional logic<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_EN.html"><span class="dd-n">3</span>Predicate logic<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_EN.html"><span class="dd-n">4</span>Sets, relations and functions<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_EN.html"><span class="dd-n">5</span>Induction and recursion<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_EN.html"><span class="dd-n">6</span>What is a proof? Natural deduction<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_EN.html"><span class="dd-n">7</span>Natural deduction in Isabelle<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_EN.html"><span class="dd-n">8</span>Functional programming in HOL<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_EN.html"><span class="dd-n">9</span>Proof automation<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_EN.html"><span class="dd-n">10</span>Structured proofs in Isar<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_EN.html"><span class="dd-n">11</span>Induction in depth<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_EN.html"><span class="dd-n">12</span>Verifying functional programs<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_EN.html" class="active"><span class="dd-n">13</span>Modelling systems: state machines and invariants<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_EN.html"><span class="dd-n">14</span>Capstone: a verified compiler<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html"><span class="dd-n">&#9670;</span>Troubleshooting</a>
+<a href="glossary_EN.html"><span class="dd-n">&#9670;</span>Glossary</a></div></div>
+  
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#machines"><span class="num">1</span><span class="side-t">Systems that react</span></a><a href="#lift"><span class="num">2</span><span class="side-t">State machines in Isabelle</span></a><a href="#invariants"><span class="num">3</span><span class="side-t">Safety properties and invariants</span></a><a href="#crossing"><span class="num">4</span><span class="side-t">Modelling a pedestrian crossing</span></a><a href="#strengthen"><span class="num">5</span><span class="side-t">When an invariant is not inductive</span></a><a href="#traces"><span class="num">6</span><span class="side-t">Counterexample traces</span></a><a href="#refinement"><span class="num">7</span><span class="side-t">Refinement: from abstract to concrete</span></a><a href="#next"><span class="num">8</span><span class="side-t">Beyond safety, and where to go next</span></a><a href="#summary"><span class="num">9</span><span class="side-t">What you learned</span></a><a href="#exercises"><span class="num">10</span><span class="side-t">Exercises</span></a><a href="#quiz"><span class="num">11</span><span class="side-t">Check yourself</span></a></nav>
+<div class="sidebar-label">Reference</div><div class="side-links"><a href="cheatsheet_EN.html">Cheat sheet</a><a href="troubleshooting_EN.html">Troubleshooting</a><a href="glossary_EN.html">Glossary</a><a href="formal-methods-theories.zip">Theory files (ZIP)</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Formal Methods with Isabelle &middot; Part IV · Verification</div>
+      <h1 class="module-title"><span class="title-n">Module 13</span>Modelling systems: state machines and invariants</h1>
+      <p class="module-lead">Describe a system as a state machine and prove in Isabelle that nothing bad ever happens in it. You will model states, events, guards and effects, define the reachable states, prove safety properties with invariants, strengthen an invariant that is not inductive, turn a counterexample into a trace, and carry what you proved about an abstract model over to a more concrete one.</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 230 min</span><span class="chip chip-needs">You need: Modules 1–12</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Model a system as a state machine with states, an initial state, and events that have guards and effects</li><li>Define the transitions and the reachable states of a model with <code>inductive</code>, and relate reachability to <code>r⇧*</code></li><li>Prove a safety property by rule induction with an invariant, and strengthen an invariant that is not inductive</li><li>Find a run that breaks a faulty design with Quickcheck or Nitpick, read it as a trace, and fix the design</li><li>Prove that a concrete model refines an abstract one, so that the abstract invariants hold in the concrete model</li><li>Tell safety from liveness, and name the tools that check liveness</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="machines"></span>
+<div class="section-header"><span class="section-num">1</span><h2>Systems that react</h2></div>
+<p>The programs you verified in Module 12 compute a result: they take a list and return it sorted, or take a
+tree and a key and return a new tree. Their specification relates the output to the input. Many systems
+do not work like that. A traffic light controller, a lift, a network protocol, a bank and an operating
+system never finish. They keep a <strong>state</strong>, and they react to <strong>events</strong>: a button is pressed, a timer
+runs out, a message arrives. For such a system the question is not “is the result right?” but “can the
+system ever get into a bad state?”. Two trains on the same piece of track, a lift that moves with its
+door open, a lock held by two processes at once: these are bad states, and the system must never reach
+one, however its events are ordered and however long it runs.</p>
+<p>This module describes such systems as <strong>state machines</strong> and proves in Isabelle that no reachable state
+is bad. The method is the invariant of Module 5, now on systems with many events, together with the
+inductive definitions and rule induction of Module 11.</p>
+<p>Start with a small system, the door of a lift. The door is open, closing or closed, and the lift is
+moving or not. Five events can happen. Each has a <strong>guard</strong>, a condition on the current state that says
+when the event can happen, and an <strong>effect</strong>, which says how the event changes the state.</p>
+<div class="box box-example"><div class="box-label">Example 13.1<span class="box-title">The lift door</span></div>
+<p>The state has two parts: the door (Open, Closing or Closed) and whether the lift moves. Initially the
+door is closed and the lift stands still.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Guard: it can happen when</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>open</td>
+<td>the lift does not move</td>
+<td>the door becomes Open</td>
+</tr>
+<tr>
+<td>close</td>
+<td>the door is Open</td>
+<td>the door becomes Closing</td>
+</tr>
+<tr>
+<td>shut</td>
+<td>the door is Closing</td>
+<td>the door becomes Closed</td>
+</tr>
+<tr>
+<td>start</td>
+<td>the door is Closed</td>
+<td>the lift moves</td>
+</tr>
+<tr>
+<td>stop</td>
+<td>always</td>
+<td>the lift stops</td>
+</tr>
+</tbody>
+</table></div>
+<p>The event <em>shut</em> is the door mechanism reporting that the door has finished closing. The guard of
+<em>open</em> allows the door to reopen while it is closing, as real lift doors do when someone steps in.</p>
+</div>
+<p>Module 4 introduced state machines, with a door and its lock as the example, and found their reachable
+states with the closure <code>r⇧*</code>. This module uses the same definition and describes the steps by events.</p>
+<div class="box box-definition"><div class="box-label">Definition 13.1<span class="box-title">State machine</span></div>
+<p>A <strong>state machine</strong>, or <strong>transition system</strong>, consists of a set of <strong>states</strong>, a set of <strong>initial
+states</strong>, and a <strong>transition relation</strong>: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>→</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">s \to t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span> means that the machine can go from state <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span></span></span></span> to state
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span> in one step. In this module the steps are described by <strong>events</strong>. An event can happen in state <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span></span></span></span>
+when its <strong>guard</strong> holds in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span></span></span></span>⁠, and it leads to the state given by its <strong>effect</strong>.</p>
+</div>
+<div class="box box-definition"><div class="box-label">Definition 13.2<span class="box-title">Run, trace and reachable state</span></div>
+<p>A <strong>run</strong> is a sequence of states <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>0</mn></msub><mo>→</mo><msub><mi>s</mi><mn>1</mn></msub><mo>→</mo><msub><mi>s</mi><mn>2</mn></msub><mo>→</mo><mo>…</mo></mrow><annotation encoding="application/x-tex">s_0 \to s_1 \to s_2 \to \dots</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.123em;"></span><span class="minner">…</span></span></span></span>⁠, finite or infinite, that starts in
+an initial state and follows the transition relation. A <strong>trace</strong> describes a run by the list of its
+events; the states follow from them. A state is <strong>reachable</strong> if some run leads to it.</p>
+</div>
+<p>Here is a run of the lift, from the initial state, with the events written over the arrows:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mrow><mi>C</mi><mi>l</mi><mi>o</mi><mi>s</mi><mi>e</mi><mi>d</mi></mrow><mo separator="true">,</mo><mtext>still</mtext><mo stretchy="false">)</mo><mover><mo stretchy="true" minsize="3.0em">→</mo><mpadded width="+0.6em" lspace="0.3em"><mrow><mtext> </mtext><mrow><mi>o</mi><mi>p</mi><mi>e</mi><mi>n</mi></mrow><mtext> </mtext></mrow></mpadded></mover><mo stretchy="false">(</mo><mrow><mi>O</mi><mi>p</mi><mi>e</mi><mi>n</mi></mrow><mo separator="true">,</mo><mtext>still</mtext><mo stretchy="false">)</mo><mover><mo stretchy="true" minsize="3.0em">→</mo><mpadded width="+0.6em" lspace="0.3em"><mrow><mtext> </mtext><mrow><mi>c</mi><mi>l</mi><mi>o</mi><mi>s</mi><mi>e</mi></mrow><mtext> </mtext></mrow></mpadded></mover><mo stretchy="false">(</mo><mrow><mi>C</mi><mi>l</mi><mi>o</mi><mi>s</mi><mi>i</mi><mi>n</mi><mi>g</mi></mrow><mo separator="true">,</mo><mtext>still</mtext><mo stretchy="false">)</mo><mover><mo stretchy="true" minsize="3.0em">→</mo><mpadded width="+0.6em" lspace="0.3em"><mrow><mtext> </mtext><mrow><mi>s</mi><mi>h</mi><mi>u</mi><mi>t</mi></mrow><mtext> </mtext></mrow></mpadded></mover><mo stretchy="false">(</mo><mrow><mi>C</mi><mi>l</mi><mi>o</mi><mi>s</mi><mi>e</mi><mi>d</mi></mrow><mo separator="true">,</mo><mtext>still</mtext><mo stretchy="false">)</mo><mover><mo stretchy="true" minsize="3.0em">→</mo><mpadded width="+0.6em" lspace="0.3em"><mrow><mtext> </mtext><mrow><mi>s</mi><mi>t</mi><mi>a</mi><mi>r</mi><mi>t</mi></mrow><mtext> </mtext></mrow></mpadded></mover><mo stretchy="false">(</mo><mrow><mi>C</mi><mi>l</mi><mi>o</mi><mi>s</mi><mi>e</mi><mi>d</mi></mrow><mo separator="true">,</mo><mtext>moving</mtext><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(\mathit{Closed}, \text{still}) \xrightarrow{\ \mathit{open}\ } (\mathit{Open}, \text{still})
+\xrightarrow{\ \mathit{close}\ } (\mathit{Closing}, \text{still}) \xrightarrow{\ \mathit{shut}\ }
+(\mathit{Closed}, \text{still}) \xrightarrow{\ \mathit{start}\ } (\mathit{Closed}, \text{moving})
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1734em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Closed</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">still</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel x-arrow"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9234em;"><span style="top:-3.322em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight x-arrow-pad"><span class="mord mtight"><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mtight"><span class="mord mathit mtight">open</span></span><span class="mspace mtight"><span class="mtight"> </span></span></span></span></span><span class="svg-align" style="top:-2.689em;"><span class="pstrut" style="height:2.7em;"></span><span class="hide-tail" style="height:0.522em;min-width:1.469em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="0.522em" viewBox="0 0 400000 522" preserveAspectRatio="xMaxYMin slice"><path d="M0 241v40h399891c-47.3 35.3-84 78-110 128
+-16.7 32-27.7 63.7-33 95 0 1.3-.2 2.7-.5 4-.3 1.3-.5 2.3-.5 3 0 7.3 6.7 11 20
+ 11 8 0 13.2-.8 15.5-2.5 2.3-1.7 4.2-5.5 5.5-11.5 2-13.3 5.7-27 11-41 14.7-44.7
+ 39-84.5 73-119.5s73.7-60.2 119-75.5c6-2 9-5.7 9-11s-3-9-9-11c-45.3-15.3-85
+-40.5-119-75.5s-58.3-74.8-73-119.5c-4.7-14-8.3-27.3-11-40-1.3-6.7-3.2-10.8-5.5
+-12.5-2.3-1.7-7.5-2.5-15.5-2.5-14 0-21 3.7-21 11 0 2 2 10.3 6 25 20.7 83.3 67
+ 151.7 139 205zm0 0v40h399900v-40z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.011em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.3581em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Open</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">still</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel x-arrow"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1081em;"><span style="top:-3.322em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight x-arrow-pad"><span class="mord mtight"><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mtight"><span class="mord mathit mtight">close</span></span><span class="mspace mtight"><span class="mtight"> </span></span></span></span></span><span class="svg-align" style="top:-2.689em;"><span class="pstrut" style="height:2.7em;"></span><span class="hide-tail" style="height:0.522em;min-width:1.469em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="0.522em" viewBox="0 0 400000 522" preserveAspectRatio="xMaxYMin slice"><path d="M0 241v40h399891c-47.3 35.3-84 78-110 128
+-16.7 32-27.7 63.7-33 95 0 1.3-.2 2.7-.5 4-.3 1.3-.5 2.3-.5 3 0 7.3 6.7 11 20
+ 11 8 0 13.2-.8 15.5-2.5 2.3-1.7 4.2-5.5 5.5-11.5 2-13.3 5.7-27 11-41 14.7-44.7
+ 39-84.5 73-119.5s73.7-60.2 119-75.5c6-2 9-5.7 9-11s-3-9-9-11c-45.3-15.3-85
+-40.5-119-75.5s-58.3-74.8-73-119.5c-4.7-14-8.3-27.3-11-40-1.3-6.7-3.2-10.8-5.5
+-12.5-2.3-1.7-7.5-2.5-15.5-2.5-14 0-21 3.7-21 11 0 2 2 10.3 6 25 20.7 83.3 67
+ 151.7 139 205zm0 0v40h399900v-40z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.011em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.3581em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Closing</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">still</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel x-arrow"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1081em;"><span style="top:-3.322em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight x-arrow-pad"><span class="mord mtight"><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mtight"><span class="mord mathit mtight">shut</span></span><span class="mspace mtight"><span class="mtight"> </span></span></span></span></span><span class="svg-align" style="top:-2.689em;"><span class="pstrut" style="height:2.7em;"></span><span class="hide-tail" style="height:0.522em;min-width:1.469em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="0.522em" viewBox="0 0 400000 522" preserveAspectRatio="xMaxYMin slice"><path d="M0 241v40h399891c-47.3 35.3-84 78-110 128
+-16.7 32-27.7 63.7-33 95 0 1.3-.2 2.7-.5 4-.3 1.3-.5 2.3-.5 3 0 7.3 6.7 11 20
+ 11 8 0 13.2-.8 15.5-2.5 2.3-1.7 4.2-5.5 5.5-11.5 2-13.3 5.7-27 11-41 14.7-44.7
+ 39-84.5 73-119.5s73.7-60.2 119-75.5c6-2 9-5.7 9-11s-3-9-9-11c-45.3-15.3-85
+-40.5-119-75.5s-58.3-74.8-73-119.5c-4.7-14-8.3-27.3-11-40-1.3-6.7-3.2-10.8-5.5
+-12.5-2.3-1.7-7.5-2.5-15.5-2.5-14 0-21 3.7-21 11 0 2 2 10.3 6 25 20.7 83.3 67
+ 151.7 139 205zm0 0v40h399900v-40z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.011em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.3026em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Closed</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">still</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel x-arrow"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0526em;"><span style="top:-3.322em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight x-arrow-pad"><span class="mord mtight"><span class="mspace mtight"><span class="mtight"> </span></span><span class="mord mtight"><span class="mord mathit mtight">start</span></span><span class="mspace mtight"><span class="mtight"> </span></span></span></span></span><span class="svg-align" style="top:-2.689em;"><span class="pstrut" style="height:2.7em;"></span><span class="hide-tail" style="height:0.522em;min-width:1.469em;"><svg xmlns="http://www.w3.org/2000/svg" width="400em" height="0.522em" viewBox="0 0 400000 522" preserveAspectRatio="xMaxYMin slice"><path d="M0 241v40h399891c-47.3 35.3-84 78-110 128
+-16.7 32-27.7 63.7-33 95 0 1.3-.2 2.7-.5 4-.3 1.3-.5 2.3-.5 3 0 7.3 6.7 11 20
+ 11 8 0 13.2-.8 15.5-2.5 2.3-1.7 4.2-5.5 5.5-11.5 2-13.3 5.7-27 11-41 14.7-44.7
+ 39-84.5 73-119.5s73.7-60.2 119-75.5c6-2 9-5.7 9-11s-3-9-9-11c-45.3-15.3-85
+-40.5-119-75.5s-58.3-74.8-73-119.5c-4.7-14-8.3-27.3-11-40-1.3-6.7-3.2-10.8-5.5
+-12.5-2.3-1.7-7.5-2.5-15.5-2.5-14 0-21 3.7-21 11 0 2 2 10.3 6 25 20.7 83.3 67
+ 151.7 139 205zm0 0v40h399900v-40z"/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.011em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Closed</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">moving</span></span><span class="mclose">)</span></span></span></span></span></div>
+<p>Its trace is <em>open, close, shut, start</em>. The machine has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>×</mo><mn>2</mn><mo>=</mo><mn>6</mn></mrow><annotation encoding="application/x-tex">3 \times 2 = 6</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">6</span></span></span></span> states, and four of them are
+reachable. The other two are the dangerous ones:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Door</th>
+<th>Lift</th>
+<th>Reachable?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Closed</td>
+<td>still</td>
+<td>yes, it is the initial state</td>
+</tr>
+<tr>
+<td>Open</td>
+<td>still</td>
+<td>yes, by <em>open</em></td>
+</tr>
+<tr>
+<td>Closing</td>
+<td>still</td>
+<td>yes, by <em>open</em>, <em>close</em></td>
+</tr>
+<tr>
+<td>Closed</td>
+<td>moving</td>
+<td>yes, by <em>start</em></td>
+</tr>
+<tr>
+<td>Open</td>
+<td>moving</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Closing</td>
+<td>moving</td>
+<td>no</td>
+</tr>
+</tbody>
+</table></div>
+<p>Why can the lift never move with its door open or closing? With six states you can check every state
+and every event by hand. A real controller has many more states, and a model with a counter or a queue
+has infinitely many. A <strong>model checker</strong> explores the reachable states of a finite model one by one
+(Module 1). This module proves the property for all reachable states at once, by induction, which works
+however many states there are.</p>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>A model is a decision about what to leave out. The lift model has no floors, no passengers, no motor and
+no time. A proof about the model says nothing about what the model leaves out; as Module 1 put it, a
+proof shows that the model meets its specification, and only validation shows that the model and the
+specification describe the real lift. Choose what goes into a model by the property you want to prove:
+here, the door and the motion.</p>
+</div>
+<span class="section-anchor" id="lift"></span>
+<div class="section-header"><span class="section-num">2</span><h2>State machines in Isabelle</h2></div>
+<p>In Isabelle, describe the states with types you know, the transitions with an inductive definition
+(Module 11), and the reachable states with another one. A state of the lift is a pair: the door, and a
+Boolean that is <code>True</code> when the lift moves.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype door = Open | Closing | Closed
+
+inductive lstep :: &quot;door × bool ⇒ door × bool ⇒ bool&quot; where
+  open_door:  &quot;¬ m ⟹ lstep (d, m) (Open, m)&quot;
+| close_door: &quot;d = Open ⟹ lstep (d, m) (Closing, m)&quot;
+| shut_door:  &quot;d = Closing ⟹ lstep (d, m) (Closed, m)&quot;
+| start_lift: &quot;d = Closed ⟹ lstep (d, m) (d, True)&quot;
+| stop_lift:  &quot;lstep (d, m) (d, False)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> door = Open | Closing | Closed
+
+<span class="isa-cmd">inductive</span> lstep :: <span class="isa-inner">&quot;door × bool ⇒ door × bool ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  open_door:  <span class="isa-inner">&quot;¬ m ⟹ lstep (d, m) (Open, m)&quot;</span>
+| close_door: <span class="isa-inner">&quot;d = Open ⟹ lstep (d, m) (Closing, m)&quot;</span>
+| shut_door:  <span class="isa-inner">&quot;d = Closing ⟹ lstep (d, m) (Closed, m)&quot;</span>
+| start_lift: <span class="isa-inner">&quot;d = Closed ⟹ lstep (d, m) (d, True)&quot;</span>
+| stop_lift:  <span class="isa-inner">&quot;lstep (d, m) (d, False)&quot;</span></code></pre></div>
+<p><code>lstep s t</code> says that one step leads from state <code>s</code> to state <code>t</code>: it is the transition relation. Each
+rule is one event of Example 13.1. The premise of a rule is the guard of its event, and the conclusion
+relates the state before the event to the state after it; the effect is the difference between the two.
+Rule <code>start_lift</code> reads: if the door is closed, one step leads from <code>(d, m)</code> to <code>(d, True)</code>, the same door
+with the lift moving. Rule <code>stop_lift</code> has no premise, because stopping is always possible.</p>
+<p>The reachable states are those you get from the initial state by any number of steps:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="inductive lreach :: &quot;door × bool ⇒ bool&quot; where
+  init: &quot;lreach (Closed, False)&quot;
+| step: &quot;lreach s ⟹ lstep s t ⟹ lreach t&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">inductive</span> lreach :: <span class="isa-inner">&quot;door × bool ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  init: <span class="isa-inner">&quot;lreach (Closed, False)&quot;</span>
+| step: <span class="isa-inner">&quot;lreach s ⟹ lstep s t ⟹ lreach t&quot;</span></code></pre></div>
+<p>Rule <code>init</code> makes the initial state reachable. Rule <code>step</code> says that one step from a reachable state
+leads to a reachable state. Nothing else is reachable, because an inductive definition defines the
+smallest predicate closed under its rules (Module 11). A run is a derivation with these rules. Here is
+the run to <code>(Closing, False)</code>, step by step, in Isar (Module 10):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;lreach (Closing, False)&quot;
+proof -
+  have &quot;lreach (Closed, False)&quot; by (rule lreach.init)
+  moreover have &quot;lstep (Closed, False) (Open, False)&quot; by (rule open_door) simp
+  ultimately have &quot;lreach (Open, False)&quot; by (rule lreach.step)
+  moreover have &quot;lstep (Open, False) (Closing, False)&quot; by (rule close_door) simp
+  ultimately show &quot;lreach (Closing, False)&quot; by (rule lreach.step)
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;lreach (Closing, False)&quot;</span>
+<span class="isa-proof">proof</span> -
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;lreach (Closed, False)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> lreach.init)
+  <span class="isa-proof">moreover</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;lstep (Closed, False) (Open, False)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> open_door) simp
+  <span class="isa-proof">ultimately</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;lreach (Open, False)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> lreach.step)
+  <span class="isa-proof">moreover</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;lstep (Open, False) (Closing, False)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> close_door) simp
+  <span class="isa-proof">ultimately</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;lreach (Closing, False)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> lreach.step)
+<span class="isa-proof">qed</span></code></pre></div>
+<p>Each <code>lstep</code> fact is one event of the run, proved with its rule: <code>rule open_door</code> leaves the guard
+<code>¬ False</code> to prove, which <code>simp</code> does. Each <code>ultimately</code> adds the step to the run with rule
+<code>lreach.step</code>.</p>
+<p>To prove something about <em>every</em> reachable state, you need the induction rule of <code>lreach</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm lreach.induct">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> lreach.induct</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>⟦lreach ?x; ?P (Closed, False); ⋀s t. ⟦lreach s; ?P s; lstep s t⟧ ⟹ ?P t⟧
+⟹ ?P ?x</code></pre></div>
+<p>Read it as the invariant method of Module 5. To prove that a property <code>?P</code> holds in every reachable
+state <code>?x</code>, prove that it holds in the initial state, and that one step from a reachable state with
+<code>?P</code> leads to a state with <code>?P</code>. Section 13.3 uses this rule.</p>
+<h3 id="closure">Reachability is a closure</h3>
+<p>In Module 4 you met the reflexive–transitive closure <code>r⇧*</code> of a relation <code>r</code>: the pairs <code>(a, b)</code> such
+that <code>b</code> can be reached from <code>a</code> in zero or more steps of <code>r</code>. The reachable states of the lift are the
+states <code>s</code> with <code>((Closed, False), s)</code> in the closure of the step relation. Isabelle proves that the two
+definitions agree:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma lreach_rtrancl: &quot;lreach s ⟷ ((Closed, False), s) ∈ {(s, t). lstep s t}⇧*&quot;
+proof
+  assume &quot;lreach s&quot;
+  then show &quot;((Closed, False), s) ∈ {(s, t). lstep s t}⇧*&quot;
+    by induction (auto intro: rtrancl_into_rtrancl)
+next
+  assume &quot;((Closed, False), s) ∈ {(s, t). lstep s t}⇧*&quot;
+  then show &quot;lreach s&quot;
+    by induction (auto intro: lreach.intros)
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> lreach_rtrancl: <span class="isa-inner">&quot;lreach s ⟷ ((Closed, False), s) ∈ {(s, t). lstep s t}<sup>*</sup>&quot;</span>
+<span class="isa-proof">proof</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;lreach s&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;((Closed, False), s) ∈ {(s, t). lstep s t}<sup>*</sup>&quot;</span>
+    <span class="isa-proof">by</span> induction (auto intro: rtrancl_into_rtrancl)
+<span class="isa-proof">next</span>
+  <span class="isa-proof">assume</span> <span class="isa-inner">&quot;((Closed, False), s) ∈ {(s, t). lstep s t}<sup>*</sup>&quot;</span>
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> <span class="isa-inner">&quot;lreach s&quot;</span>
+    <span class="isa-proof">by</span> induction (auto intro: lreach.intros)
+<span class="isa-proof">qed</span></code></pre></div>
+<p><code>{(s, t). lstep s t}</code> is the step relation as a set of pairs, and <code>⇧*</code> (type <code>^*</code>) is the closure. In
+each half, <code>then</code> passes the assumption to the <code>induction</code> method, which then needs no arguments: it
+inducts on that fact with the fact’s own induction rule. The first half is a rule induction on
+<code>lreach s</code>. The second is an induction on the closure, with the library’s rule <code>rtrancl_induct</code>. The
+library rule <code>rtrancl_into_rtrancl</code> adds one step at the end of a path, as <code>lreach.step</code> does.</p>
+<p>You could work with <code>r⇧*</code> directly. A definition of your own, such as <code>lreach</code>, gives its induction rule
+exactly the two cases of the invariant method, with names you choose, and builds the initial state into
+the definition. Module 11 defined reachability with the step at the front instead (<code>steps</code>). For
+invariants, the step at the end is more convenient: the induction hypothesis is then about the state
+<em>before</em> the last step, exactly as in the invariant method, and the initial state stays fixed. With the
+step at the front, a rule induction about the runs from one initial state meets the problem that Module
+11 met with <code>steps move Done s</code>: the induction rule replaces the start of the run by a variable.</p>
+<span class="section-anchor" id="invariants"></span>
+<div class="section-header"><span class="section-num">3</span><h2>Safety properties and invariants</h2></div>
+<p>The property you want for the lift is that it never moves unless its door is closed. Properties of this
+kind have a name.</p>
+<div class="box box-definition"><div class="box-label">Definition 13.3<span class="box-title">Safety property</span></div>
+<p>A <strong>safety property</strong> says that something bad never happens. In this module the bad thing is a bad
+state, so a safety property is a property of states that must hold in every reachable state. A run that
+reaches a state where it fails is a <strong>counterexample</strong> to it.</p>
+</div>
+<div class="box box-definition"><div class="box-label">Definition 13.4<span class="box-title">Invariant and inductive invariant</span></div>
+<p>A property <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> of states is an <strong>invariant</strong> of a state machine if it holds in every reachable state. It
+is <strong>inductive</strong> if it holds in every initial state and every step from a state that satisfies <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> leads
+to a state that satisfies <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span>⁠.</p>
+</div>
+<p>Module 5 called a property an invariant when it holds initially and every step preserves it, which is
+the second notion. From now on the difference matters: every inductive property is an invariant, but
+Section 13.5 shows an invariant that is not inductive.</p>
+<div class="box box-fact"><div class="box-label">Fact 13.1<span class="box-title">Inductive invariants hold in every reachable state</span></div>
+<p>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> is inductive, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> holds in every reachable state.</p>
+</div>
+<p>The proof is a rule induction over reachability: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> holds in the initial state, and the rule for a step
+passes <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> from a reachable state to the next one. In Isabelle, write the safety property of the lift
+as a function of the state, and start the rule induction:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun lift_ok :: &quot;door × bool ⇒ bool&quot; where
+  &quot;lift_ok (d, m) = (m ⟶ d = Closed)&quot;
+
+lemma lift_safe: &quot;lreach s ⟹ lift_ok s&quot;
+  apply (induction rule: lreach.induct)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> lift_ok :: <span class="isa-inner">&quot;door × bool ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;lift_ok (d, m) = (m ⟶ d = Closed)&quot;</span>
+
+<span class="isa-cmd">lemma</span> lift_safe: <span class="isa-inner">&quot;lreach s ⟹ lift_ok s&quot;</span>
+  <span class="isa-proof">apply</span> (induction <span class="isa-minor">rule</span>: lreach.induct)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. lift_ok (Closed, False)
+ 2. ⋀s t. ⟦lreach s; lift_ok s; lstep s t⟧ ⟹ lift_ok t</code></pre></div>
+<p>Subgoal 1 is the base case: the initial state is safe. Subgoal 2 is the induction step: for a
+reachable state <code>s</code> that is safe and a step from <code>s</code> to <code>t</code>, the state <code>t</code> is safe. Both follow from the
+rules of <code>lstep</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply (auto elim: lstep.cases)
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> (auto elim: lstep.cases)
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>lstep.cases</code> is rule inversion (Module 11): from <code>lstep s t</code> it produces one case for each rule, with
+<code>s</code> and <code>t</code> replaced by the states in that rule and the guard as an assumption. In four of the five cases
+the new state is safe whatever the old state was: <em>open</em> needs a lift that stands still and keeps it
+still, <em>start</em> needs a closed door, and <em>shut</em> and <em>stop</em> lead to a closed door or a still lift. In the
+case <em>close</em>, the induction hypothesis matters. The door was open, so by <code>lift_ok s</code> the lift did not
+move, and the new state <code>(Closing, False)</code> is safe. That is why an invariant proof needs the induction
+hypothesis: an event that leaves part of the state alone relies on that part being safe already.</p>
+<p>The theorem answers the question of Section 13.1:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="corollary &quot;¬ lreach (Open, True)&quot;
+  using lift_safe by force">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">corollary</span> <span class="isa-inner">&quot;¬ lreach (Open, True)&quot;</span>
+  <span class="isa-proof">using</span> lift_safe <span class="isa-proof">by</span> force</code></pre></div>
+<p>Isabelle treats <code>corollary</code> and <code>theorem</code> exactly as it treats <code>lemma</code>. The words tell the reader what
+role a result plays: a theorem is a main result, and a corollary follows directly from one.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>State the property for a state variable, not for a pattern. This version looks the same, but fails:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;lreach (d, m) ⟹ m ⟶ d = Closed&quot;</span>
+  <span class="isa-proof">by</span> (induction <span class="isa-minor">rule</span>: lreach.induct) (auto elim: lstep.cases)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. m ⟹ d = Closed</span></code></pre></div>
+<p>The goal left over is false: it claims that for the <code>d</code> and <code>m</code> of the lemma, a moving lift has a
+closed door. The argument of <code>lreach</code> is the pair <code>(d, m)</code>, not a variable, and the induction rule is
+about a variable state <code>?x</code>. Given a pattern, the method does not replace <code>d</code> and <code>m</code> by the states of
+the rules; they stay as they are, so the base case asks for the claim about <code>d</code> and <code>m</code> instead of
+about <code>(Closed, False)</code>. Module 11 met the same problem with a constant. Write the property as a
+function of the whole state, as <code>lift_ok</code> does, and the induction works.</p>
+</div>
+<span class="section-anchor" id="crossing"></span>
+<div class="section-header"><span class="section-num">4</span><h2>Modelling a pedestrian crossing</h2></div>
+<p>The rest of the module works with one larger system: a pedestrian crossing with a push button. Cars see a
+traffic light (green, amber, red); pedestrians see a signal (walk or don’t walk). The controller should
+meet these requirements:</p>
+<ul>
+<li><strong>R1.</strong> Pedestrians may walk only when the cars have red.</li>
+<li><strong>R2.</strong> After someone presses the button, the pedestrians eventually get to walk.</li>
+</ul>
+<p>R1 is a safety property, and Sections 13.5 to 13.7 prove it. R2 is of another kind, which Section 13.8
+discusses.</p>
+<h3 id="records">States as records</h3>
+<p>The state has three parts: the car light, the pedestrian signal, and whether a request is pending (the
+button was pressed and the pedestrians have not walked yet). A pair would do for two parts. For three or
+more, give the parts names with a <strong>record</strong>: a tuple whose components, its <strong>fields</strong>, have names.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype light = Green | Amber | Red
+datatype signal = Walk | DontWalk
+
+record crossing =
+  cars :: light
+  peds :: signal
+  req  :: bool">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> light = Green | Amber | Red
+<span class="isa-cmd">datatype</span> signal = Walk | DontWalk
+
+<span class="isa-cmd">record</span> crossing =
+  cars :: light
+  peds :: signal
+  req  :: bool</code></pre></div>
+<p>The record command defines the type <code>crossing</code> and, for each field, a function that selects it: if <code>s</code>
+is a crossing, <code>cars s</code> is its car light. A record value lists its fields in brackets, as in
+<code>⦇cars = Green, peds = DontWalk, req = False⦈</code>; type <code>⦇</code> as <code>(|</code> and <code>⦈</code> as <code>|)</code>. The notation
+<code>s⦇cars := Amber⦈</code> is the <strong>update</strong> of a field: the crossing <code>s</code> with its car light changed to amber and
+the other fields unchanged. The simplifier knows how selectors and updates interact, so that it rewrites
+<code>cars (s⦇req := True⦈)</code> to <code>cars s</code> by itself.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition start :: crossing where
+  &quot;start = ⦇cars = Green, peds = DontWalk, req = False⦈&quot;
+
+value &quot;start⦇cars := Amber⦈&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> start :: crossing <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;start = ⦇cars = Green, peds = DontWalk, req = False⦈&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;start⦇cars := Amber⦈&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;⦇cars = Amber, peds = DontWalk, req = False⦈&quot;
+  :: &quot;crossing&quot;</code></pre></div>
+<details class="trouble"><summary>If something went wrong</summary><div class="details-body">
+<p>An update needs <code>:=</code>. With <code>=</code>, Isabelle reads <code>⦇cars = Amber⦈</code> as a record value, which must list
+every field of the record, in the order of the <code>record</code> command:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;start⦇cars = Amber⦈&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">exception TERM raised⌂:
+  Error in record input: expecting more fields
+  ??.cars = Amber::&lt;position&gt;</span></code></pre></div>
+<p>The message says that the record value lacks fields; <code>??.cars = Amber</code> is the field that Isabelle
+read, in its internal form. Write <code>start⦇cars := Amber⦈</code>.</p>
+</div></details>
+<h3 id="events">Events with guards and effects</h3>
+<p>The controller reacts to six events. The button press comes from outside; the other five are the
+controller’s own decisions.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Guard</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Press</td>
+<td>always</td>
+<td>the request is set</td>
+</tr>
+<tr>
+<td>ToAmber</td>
+<td>cars have green and a request is pending</td>
+<td>cars get amber</td>
+</tr>
+<tr>
+<td>ToRed</td>
+<td>cars have amber</td>
+<td>cars get red</td>
+</tr>
+<tr>
+<td>StartWalk</td>
+<td>cars have red, pedestrians don’t walk, a request is pending</td>
+<td>pedestrians walk</td>
+</tr>
+<tr>
+<td>EndWalk</td>
+<td>pedestrians walk</td>
+<td>pedestrians stop; the request is cleared</td>
+</tr>
+<tr>
+<td>ToGreen</td>
+<td>cars have red and no request is pending</td>
+<td>cars get green</td>
+</tr>
+</tbody>
+</table></div>
+<p>Notice how the design uses the request. It stays set until the walk has ended, and the cars get green
+only when no request is pending. For the lift, each event was a rule of an inductive definition. This
+time, write the guards and the effects as two functions. Functions can be computed with <code>value</code>, so you
+can run the model, which will matter when you look for bugs in Section 13.6.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype event = Press | ToAmber | ToRed | StartWalk | EndWalk | ToGreen
+
+fun guard :: &quot;event ⇒ crossing ⇒ bool&quot; where
+  &quot;guard Press s = True&quot;
+| &quot;guard ToAmber s = (cars s = Green ∧ req s)&quot;
+| &quot;guard ToRed s = (cars s = Amber)&quot;
+| &quot;guard StartWalk s = (cars s = Red ∧ peds s = DontWalk ∧ req s)&quot;
+| &quot;guard EndWalk s = (peds s = Walk)&quot;
+| &quot;guard ToGreen s = (cars s = Red ∧ ¬ req s)&quot;
+
+fun effect :: &quot;event ⇒ crossing ⇒ crossing&quot; where
+  &quot;effect Press s = s⦇req := True⦈&quot;
+| &quot;effect ToAmber s = s⦇cars := Amber⦈&quot;
+| &quot;effect ToRed s = s⦇cars := Red⦈&quot;
+| &quot;effect StartWalk s = s⦇peds := Walk⦈&quot;
+| &quot;effect EndWalk s = s⦇peds := DontWalk, req := False⦈&quot;
+| &quot;effect ToGreen s = s⦇cars := Green⦈&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> event = Press | ToAmber | ToRed | StartWalk | EndWalk | ToGreen
+
+<span class="isa-cmd">fun</span> guard :: <span class="isa-inner">&quot;event ⇒ crossing ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;guard Press s = True&quot;</span>
+| <span class="isa-inner">&quot;guard ToAmber s = (cars s = Green ∧ req s)&quot;</span>
+| <span class="isa-inner">&quot;guard ToRed s = (cars s = Amber)&quot;</span>
+| <span class="isa-inner">&quot;guard StartWalk s = (cars s = Red ∧ peds s = DontWalk ∧ req s)&quot;</span>
+| <span class="isa-inner">&quot;guard EndWalk s = (peds s = Walk)&quot;</span>
+| <span class="isa-inner">&quot;guard ToGreen s = (cars s = Red ∧ ¬ req s)&quot;</span>
+
+<span class="isa-cmd">fun</span> effect :: <span class="isa-inner">&quot;event ⇒ crossing ⇒ crossing&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;effect Press s = s⦇req := True⦈&quot;</span>
+| <span class="isa-inner">&quot;effect ToAmber s = s⦇cars := Amber⦈&quot;</span>
+| <span class="isa-inner">&quot;effect ToRed s = s⦇cars := Red⦈&quot;</span>
+| <span class="isa-inner">&quot;effect StartWalk s = s⦇peds := Walk⦈&quot;</span>
+| <span class="isa-inner">&quot;effect EndWalk s = s⦇peds := DontWalk, req := False⦈&quot;</span>
+| <span class="isa-inner">&quot;effect ToGreen s = s⦇cars := Green⦈&quot;</span></code></pre></div>
+<p>The transition relation of the crossing is: <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>→</mo><mi>t</mi></mrow><annotation encoding="application/x-tex">s \to t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span> when <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi></mrow><annotation encoding="application/x-tex">t</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span> = <code>effect e s</code> for some event <code>e</code> whose
+guard holds in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span></span></span></span>⁠. To run the model, apply a list of events in order. An event whose guard is false
+cannot happen, and <code>run</code> skips it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun run :: &quot;event list ⇒ crossing ⇒ crossing&quot; where
+  &quot;run [] s = s&quot;
+| &quot;run (e # es) s = run es (if guard e s then effect e s else s)&quot;
+
+value &quot;run [Press, ToAmber, ToRed, StartWalk] start&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> run :: <span class="isa-inner">&quot;event list ⇒ crossing ⇒ crossing&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;run [] s = s&quot;</span>
+| <span class="isa-inner">&quot;run (e # es) s = run es (if guard e s then effect e s else s)&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;run [Press, ToAmber, ToRed, StartWalk] start&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;⦇cars = Red, peds = Walk, req = True⦈&quot;
+  :: &quot;crossing&quot;</code></pre></div>
+<p>A pedestrian pressed the button, the car light went through amber to red, and the pedestrians walk. Now
+the same events without the press:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;run [ToAmber, ToRed, StartWalk] start&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;run [ToAmber, ToRed, StartWalk] start&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;⦇cars = Green, peds = DontWalk, req = False⦈&quot;
+  :: &quot;crossing&quot;</code></pre></div>
+<p>Nothing happened. Without a request the guard of <code>ToAmber</code> is false, and while the car light is green,
+the guards of <code>ToRed</code> and <code>StartWalk</code> are false too, so <code>run</code> skips all three events. Figure 13.1 shows
+every state that runs can reach.</p>
+<figure class="fig" id="fig-13-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 372" width="760" height="372" role="img"><title>The pedestrian crossing as a state machine</title><defs><marker id="fig-13-1__ah-1A2E4A" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#1A2E4A"/></marker><marker id="fig-13-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="40" y="60" width="176" height="80" rx="10" fill="#F0F9FF" stroke="#1A2E4A" stroke-width="2.6"/><rect x="52" y="77" width="18" height="46" rx="5" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><circle cx="61" cy="86.66666666666667" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><circle cx="61" cy="100.0" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><circle cx="61" cy="113.33333333333334" r="5" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="82" y="86" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="start">cars = Green</text><text x="82" y="105" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">peds = DontWalk</text><text x="82" y="124" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">req  = False</text><rect x="292" y="60" width="176" height="80" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><rect x="304" y="77" width="18" height="46" rx="5" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><circle cx="313" cy="86.66666666666667" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><circle cx="313" cy="100.0" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><circle cx="313" cy="113.33333333333334" r="5" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="334" y="86" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="start">cars = Green</text><text x="334" y="105" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">peds = DontWalk</text><text x="334" y="124" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">req  = True</text><rect x="544" y="60" width="176" height="80" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><rect x="556" y="77" width="18" height="46" rx="5" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><circle cx="565" cy="86.66666666666667" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><circle cx="565" cy="100.0" r="5" fill="#B45309" stroke="#B45309" stroke-width="1"/><circle cx="565" cy="113.33333333333334" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><text x="586" y="86" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#B45309" text-anchor="start">cars = Amber</text><text x="586" y="105" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">peds = DontWalk</text><text x="586" y="124" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">req  = True</text><rect x="40" y="228" width="176" height="80" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><rect x="52" y="245" width="18" height="46" rx="5" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><circle cx="61" cy="254.66666666666666" r="5" fill="#DC2626" stroke="#DC2626" stroke-width="1"/><circle cx="61" cy="268.0" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><circle cx="61" cy="281.33333333333337" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><text x="82" y="254" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#DC2626" text-anchor="start">cars = Red</text><text x="82" y="273" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">peds = DontWalk</text><text x="82" y="292" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">req  = False</text><rect x="292" y="228" width="176" height="80" rx="10" fill="#F0FDF4" stroke="#15803D" stroke-width="1.6"/><rect x="304" y="245" width="18" height="46" rx="5" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><circle cx="313" cy="254.66666666666666" r="5" fill="#DC2626" stroke="#DC2626" stroke-width="1"/><circle cx="313" cy="268.0" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><circle cx="313" cy="281.33333333333337" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><text x="334" y="254" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#DC2626" text-anchor="start">cars = Red</text><text x="334" y="273" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="start">peds = Walk</text><text x="334" y="292" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">req  = True</text><rect x="544" y="228" width="176" height="80" rx="10" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><rect x="556" y="245" width="18" height="46" rx="5" fill="#1A2E4A" stroke="#1A2E4A" stroke-width="1"/><circle cx="565" cy="254.66666666666666" r="5" fill="#DC2626" stroke="#DC2626" stroke-width="1"/><circle cx="565" cy="268.0" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><circle cx="565" cy="281.33333333333337" r="5" fill="#334155" stroke="#334155" stroke-width="1"/><text x="586" y="254" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#DC2626" text-anchor="start">cars = Red</text><text x="586" y="273" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">peds = DontWalk</text><text x="586" y="292" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#1A2E4A" text-anchor="start">req  = True</text><line x1="128" y1="18" x2="128" y2="56" stroke="#1A2E4A" stroke-width="2" marker-end="url(#fig-13-1__ah-1A2E4A)"/><text x="138" y="32" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#1A2E4A" text-anchor="start">start</text><line x1="218" y1="100" x2="288" y2="100" stroke="#475569" stroke-width="2" marker-end="url(#fig-13-1__ah-475569)"/><text x="253" y="92" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="middle">Press</text><line x1="470" y1="100" x2="540" y2="100" stroke="#475569" stroke-width="2" marker-end="url(#fig-13-1__ah-475569)"/><text x="505" y="92" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="middle">ToAmber</text><line x1="632" y1="142" x2="632" y2="224" stroke="#475569" stroke-width="2" marker-end="url(#fig-13-1__ah-475569)"/><text x="640" y="187" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="start">ToRed</text><line x1="542" y1="268" x2="472" y2="268" stroke="#475569" stroke-width="2" marker-end="url(#fig-13-1__ah-475569)"/><text x="507" y="260" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="middle">StartWalk</text><line x1="290" y1="268" x2="220" y2="268" stroke="#475569" stroke-width="2" marker-end="url(#fig-13-1__ah-475569)"/><text x="255" y="260" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="middle">EndWalk</text><line x1="128" y1="226" x2="128" y2="144" stroke="#475569" stroke-width="2" marker-end="url(#fig-13-1__ah-475569)"/><text x="120" y="187" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="end">ToGreen</text><path d="M 128 310 C 128 352, 632 352, 632 314" stroke="#475569" stroke-width="2" fill="none" marker-end="url(#fig-13-1__ah-475569)"/><text x="380" y="362" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#6D28D9" text-anchor="middle">Press</text><text x="380" y="178" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">In a state where req is already True,</text><text x="380" y="195" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">Press changes nothing.</text></svg>
+</div><figcaption><span class="fig-num">Figure 13.1</span> <p>The reachable states of the crossing and the events between them. In each box, the small light shows the
+car light. The thick box is the initial state <code>start</code>.</p>
+</figcaption></figure>
+<p>The reachable states are defined as for the lift, with a rule for the initial state and a rule for one
+event:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="inductive reach :: &quot;crossing ⇒ bool&quot; where
+  init: &quot;reach start&quot;
+| step: &quot;reach s ⟹ guard e s ⟹ reach (effect e s)&quot;
+
+thm reach.induct">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">inductive</span> reach :: <span class="isa-inner">&quot;crossing ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  init: <span class="isa-inner">&quot;reach start&quot;</span>
+| step: <span class="isa-inner">&quot;reach s ⟹ guard e s ⟹ reach (effect e s)&quot;</span>
+
+<span class="isa-cmd">thm</span> reach.induct</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>⟦reach ?x; ?P start; ⋀s e. ⟦reach s; ?P s; guard e s⟧ ⟹ ?P (effect e s)⟧
+⟹ ?P ?x</code></pre></div>
+<p>The induction rule has the same two cases as before. In the induction step, the event <code>e</code> is arbitrary: a
+proof must deal with every event whose guard holds in a reachable state.</p>
+<span class="section-anchor" id="strengthen"></span>
+<div class="section-header"><span class="section-num">5</span><h2>When an invariant is not inductive</h2></div>
+<p>Requirement R1 says: if the pedestrians walk, the cars have red.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition safe :: &quot;crossing ⇒ bool&quot; where
+  &quot;safe s ⟷ (peds s = Walk ⟶ cars s = Red)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> safe :: <span class="isa-inner">&quot;crossing ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;safe s ⟷ (peds s = Walk ⟶ cars s = Red)&quot;</span></code></pre></div>
+<h3 id="fails">The proof that fails</h3>
+<p>Try the proof of the lift. In Isar, with one case for the initial state and one for an event, and
+<code>cases e</code> to consider every event in turn:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> <span class="isa-inner">&quot;reach s ⟹ safe s&quot;</span>
+<span class="isa-proof">proof</span> (induction <span class="isa-minor">rule</span>: reach.induct)
+  <span class="isa-proof">case</span> init
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (simp add: safe_def start_def)
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (step s e)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (cases e) (auto simp: safe_def)
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to finish proof⌂:
+goal (1 subgoal):
+ 1. ⟦reach s; e = ToGreen; cars s = Red; ¬ req s; peds s = Walk⟧ ⟹ False</span></code></pre></div>
+<p>The base case went through, and so did five of the six events. The goal that is left belongs to
+<code>ToGreen</code>. Read it as a state: the cars have red, no request is pending, and the pedestrians walk. The
+state is safe, because the cars have red. The guard of <code>ToGreen</code> holds in it, because the cars have red
+and no request is pending. After <code>ToGreen</code> the cars have green while the pedestrians walk, which is not
+safe. So <code>safe</code> is <em>not inductive</em>: a step from a safe state can lead to an unsafe one.</p>
+<p>You can ask Isabelle for such a step directly. The lemma below says that every event preserves <code>safe</code>,
+from any state, reachable or not. Quickcheck tests it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;safe s ⟹ guard e s ⟹ safe (effect e s)&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;safe s ⟹ guard e s ⟹ safe (effect e s)&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  s = ⦇cars = Red, peds = Walk, req = False⦈
+  e = ToGreen</code></pre></div>
+<p>A state and an event that break the induction step in this way are a <strong>counterexample to induction</strong>. Isabelle
+does not know whether this state can occur. There are two possibilities, and they call for different
+actions:</p>
+<ol>
+<li>The state is <strong>reachable</strong>. Then some run leads to it, the next <code>ToGreen</code> makes it unsafe, and the
+design is wrong. Section 13.6 shows this case.</li>
+<li>The state is <strong>not reachable</strong>. Then the design may well be safe, but <code>safe</code> is too weak to carry
+the induction: it allows states that never occur, and the induction step fails on one of them.</li>
+</ol>
+<p>Quickcheck cannot answer this question. It tests a statement by running the definitions in it, and an
+inductive definition such as <code>reach</code> is not a function that it can run (Module 11):</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;reach s ⟹ safe s&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">No code equations for reach,
+requested by dependencies
+</span></code></pre></div>
+<p>Nitpick (Module 9) works differently: it searches for a model of the definitions, and it handles
+inductive definitions. Let it search the reachable states for an unsafe one:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;reach s ⟹ safe s&quot;
+  nitpick
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;reach s ⟹ safe s&quot;</span>
+  <span class="isa-cmd">nitpick</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found no counterexample</code></pre></div>
+<p>Nitpick finds no reachable state that breaks <code>safe</code>. That is not a proof, but it points to the second
+possibility. Find out on paper why the state of the goal cannot be reached. The pedestrians start to
+walk only through <code>StartWalk</code>, whose guard needs a request. While they walk, the request stays set,
+since only <code>EndWalk</code> clears it, and <code>EndWalk</code> also ends the walk. So in every reachable state: <em>if the pedestrians walk, a
+request is pending</em>. The state in the goal violates exactly this.</p>
+<h3 id="strengthen-invar">Strengthen the invariant</h3>
+<p>Add the missing fact to the property you prove. The new invariant says that pedestrians walk only when
+the cars have red <em>and</em> a request is pending:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition invar :: &quot;crossing ⇒ bool&quot; where
+  &quot;invar s ⟷ (peds s = Walk ⟶ cars s = Red ∧ req s)&quot;
+
+lemma reach_invar: &quot;reach s ⟹ invar s&quot;
+proof (induction rule: reach.induct)
+  case init
+  show ?case by (simp add: invar_def start_def)
+next
+  case (step s e)
+  then show ?case by (cases e) (auto simp: invar_def)
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> invar :: <span class="isa-inner">&quot;crossing ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;invar s ⟷ (peds s = Walk ⟶ cars s = Red ∧ req s)&quot;</span>
+
+<span class="isa-cmd">lemma</span> reach_invar: <span class="isa-inner">&quot;reach s ⟹ invar s&quot;</span>
+<span class="isa-proof">proof</span> (induction <span class="isa-minor">rule</span>: reach.induct)
+  <span class="isa-proof">case</span> init
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (simp add: invar_def start_def)
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (step s e)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (cases e) (auto simp: invar_def)
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The proof is the same as before, and this time it goes through. Check the critical event on paper: in a
+state that satisfies <code>invar</code>, the guard of <code>ToGreen</code> says that no request is pending, so by <code>invar</code> the
+pedestrians do not walk, and turning the cars green is safe. The other events keep <code>invar</code> too: <code>Press</code>
+only sets the request; <code>StartWalk</code> needs red and a request, and keeps both; <code>EndWalk</code> ends the walk;
+<code>ToAmber</code> and <code>ToRed</code> happen only when the cars do not have red, so by <code>invar</code> the pedestrians do not
+walk. Safety follows at once, because <code>invar</code> says more than <code>safe</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem crossing_safe: &quot;reach s ⟹ safe s&quot;
+  using reach_invar by (simp add: invar_def safe_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> crossing_safe: <span class="isa-inner">&quot;reach s ⟹ safe s&quot;</span>
+  <span class="isa-proof">using</span> reach_invar <span class="isa-proof">by</span> (simp add: invar_def safe_def)</code></pre></div>
+<p>The crossing has <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>×</mo><mn>2</mn><mo>×</mo><mn>2</mn><mo>=</mo><mn>12</mn></mrow><annotation encoding="application/x-tex">3 \times 2 \times 2 = 12</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">12</span></span></span></span> states, few enough to draw them all. Figure 13.2 shows how the
+three sets of states fit together.</p>
+<figure class="fig" id="fig-13-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 312" width="760" height="312" role="img"><title>Reachable states, an inductive invariant and the safety property</title><defs><marker id="fig-13-2__ah-DC2626" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#DC2626"/></marker></defs><rect x="8" y="22" width="744" height="282" rx="14" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/><rect x="16" y="40" width="512" height="210" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><rect x="24" y="58" width="398" height="184" rx="11" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8" stroke-dasharray="7 4"/><rect x="32" y="76" width="284" height="158" rx="10" fill="#DCFCE7" stroke="#1A2E4A" stroke-width="1.8"/><text x="20" y="36" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#475569" text-anchor="start">all 12 states</text><text x="28" y="54" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#2563EB" text-anchor="start">safe: 8 states</text><text x="36" y="72" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#15803D" text-anchor="start">invar: 7 states, inductive</text><text x="44" y="90" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#1A2E4A" text-anchor="start">reachable: 6 states</text><text x="610" y="52" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="700" fill="#DC2626" text-anchor="middle">not safe</text><rect x="44" y="100" width="80" height="54" rx="8" fill="#FFFFFF" stroke="#1A2E4A" stroke-width="2.4"/><text x="84.0" y="117" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="84.0" y="132" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">DontWalk</text><text x="84.0" y="147" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬ req</text><rect x="134" y="100" width="80" height="54" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="1.3"/><text x="174.0" y="117" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="174.0" y="132" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">DontWalk</text><text x="174.0" y="147" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><rect x="224" y="100" width="80" height="54" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="1.3"/><text x="264.0" y="117" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="264.0" y="132" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">DontWalk</text><text x="264.0" y="147" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><rect x="44" y="168" width="80" height="54" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="1.3"/><text x="84.0" y="185" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">Red</text><text x="84.0" y="200" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">DontWalk</text><text x="84.0" y="215" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬ req</text><rect x="134" y="168" width="80" height="54" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="1.3"/><text x="174.0" y="185" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">Red</text><text x="174.0" y="200" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#15803D" text-anchor="middle">Walk</text><text x="174.0" y="215" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><rect x="224" y="168" width="80" height="54" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="1.3"/><text x="264.0" y="185" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">Red</text><text x="264.0" y="200" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">DontWalk</text><text x="264.0" y="215" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><rect x="334" y="100" width="80" height="54" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="1.3"/><text x="374.0" y="117" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="374.0" y="132" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">DontWalk</text><text x="374.0" y="147" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬ req</text><rect x="440" y="168" width="80" height="54" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="1.3"/><text x="480.0" y="185" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">Red</text><text x="480.0" y="200" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#15803D" text-anchor="middle">Walk</text><text x="480.0" y="215" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬ req</text><rect x="556" y="100" width="80" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.3"/><text x="596.0" y="117" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="596.0" y="132" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#DC2626" text-anchor="middle">Walk</text><text x="596.0" y="147" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><rect x="650" y="100" width="80" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.3"/><text x="690.0" y="117" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="690.0" y="132" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#DC2626" text-anchor="middle">Walk</text><text x="690.0" y="147" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><rect x="556" y="168" width="80" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.3"/><text x="596.0" y="185" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="596.0" y="200" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#DC2626" text-anchor="middle">Walk</text><text x="596.0" y="215" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬ req</text><rect x="650" y="168" width="80" height="54" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.3"/><text x="690.0" y="185" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="690.0" y="200" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#DC2626" text-anchor="middle">Walk</text><text x="690.0" y="215" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬ req</text><path d="M 480 222 C 480 280, 596 280, 596 226" stroke="#DC2626" stroke-width="2.2" fill="none" marker-end="url(#fig-13-2__ah-DC2626)"/><text x="538" y="290" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="700" fill="#DC2626" text-anchor="middle">ToGreen</text></svg>
+</div><figcaption><span class="fig-num">Figure 13.2</span> <p>The 12 states of the crossing. The 6 reachable states (the thick box is <code>start</code>) lie inside the 7
+states that satisfy <code>invar</code>, which lie inside the 8 states that satisfy <code>safe</code>. No step leads out of
+<code>invar</code>. From the one state that satisfies <code>safe</code> but not <code>invar</code> (cars red, pedestrians walking, no
+request), the event <code>ToGreen</code> leads out of <code>safe</code>.</p>
+</figcaption></figure>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>To prove that every reachable state is safe, find an <strong>inductive invariant</strong> in between: a set of
+states that contains the initial state, that no step leaves, and that contains only safe states. The
+reachable states themselves form such a set, but you rarely have a description of them. The safety
+property itself is often too large, because it contains unreachable states from which a step leads out.
+<strong>Strengthening</strong> the invariant shrinks it, by adding facts that hold in every reachable state, until no
+step leads out.</p>
+</div>
+<p>When an invariant proof fails, the goal left over tells you what to add. It describes a state that
+satisfies your invariant but is not reachable (if the design is right). Find a fact about reachable
+states that this state violates, add it to the invariant with ∧, and try again. A larger system may need
+several rounds; each round removes the unreachable states that the last failure showed.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<ul>
+<li><strong>Adding a fact that is false.</strong> A fact that fails in some reachable state cannot be part of an
+invariant: the base case or the induction step fails, however many rounds you add. Test a candidate
+first: <code>nitpick</code> on <code>reach s ⟹ invar s</code> should find no counterexample. A fact that is true but not
+preserved together with the rest makes the induction step fail too; then you need another round.</li>
+<li><strong>Trying a stronger proof method.</strong> No method can prove the failed induction step for <code>safe</code> from <code>safe s</code>
+and the guard alone: that claim is false, as Quickcheck showed. The induction step also has the premise
+<code>reach s</code>, but using it needs a fact about all reachable states, which is the invariant you are
+looking for. A failed induction step asks for a stronger invariant, not for more automation.</li>
+</ul>
+</div>
+<span class="section-anchor" id="traces"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Counterexample traces</h2></div>
+<p>Not every failed proof is a weak invariant. Sometimes the design is wrong, and then you want to see how.</p>
+<p>Suppose a colleague proposes a change: the request has been served as soon as the pedestrians start to
+walk, so <code>StartWalk</code> should clear it, and <code>EndWalk</code> need not. Only two effects change:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun effect_early :: &quot;event ⇒ crossing ⇒ crossing&quot; where
+  &quot;effect_early StartWalk s = s⦇peds := Walk, req := False⦈&quot;
+| &quot;effect_early EndWalk s = s⦇peds := DontWalk⦈&quot;
+| &quot;effect_early e s = effect e s&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> effect_early :: <span class="isa-inner">&quot;event ⇒ crossing ⇒ crossing&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;effect_early StartWalk s = s⦇peds := Walk, req := False⦈&quot;</span>
+| <span class="isa-inner">&quot;effect_early EndWalk s = s⦇peds := DontWalk⦈&quot;</span>
+| <span class="isa-inner">&quot;effect_early e s = effect e s&quot;</span></code></pre></div>
+<p><code>fun</code> reads overlapping equations in order, so the last equation covers the four other events: for them,
+<code>effect_early</code> does what <code>effect</code> does. Define the reachable states of the new design as before:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="inductive reach_early :: &quot;crossing ⇒ bool&quot; where
+  &quot;reach_early start&quot;
+| &quot;reach_early s ⟹ guard e s ⟹ reach_early (effect_early e s)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">inductive</span> reach_early :: <span class="isa-inner">&quot;crossing ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;reach_early start&quot;</span>
+| <span class="isa-inner">&quot;reach_early s ⟹ guard e s ⟹ reach_early (effect_early e s)&quot;</span></code></pre></div>
+<p>The failed proof of Section 13.5, run on <code>reach_early</code>, stops at the same goal for <code>ToGreen</code>. This time
+Nitpick finds a reachable state that is not safe:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;reach_early s ⟹ safe s&quot;
+  nitpick [card = 6]
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;reach_early s ⟹ safe s&quot;</span>
+  <span class="isa-cmd">nitpick</span> [card = 6]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variable:
+    s = ⦇cars = Green, peds = Walk, req = False⦈</code></pre></div>
+<p>The cars have green while the pedestrians walk. The option <code>card = 6</code> fixes the size of the models
+that Nitpick tries: six values for each type whose size it has to choose, such as states and lists of
+events. Six are enough here, and with one fixed size Nitpick reports the same counterexample every time.
+Without the option it tries the sizes 1 to 10, and which counterexample it reports can change from run
+to run.</p>
+<p>Nitpick shows the bad state but not how to get there. To see the run, search for a list of events
+instead. Define <code>run_early</code> as <code>run</code> was defined, with the new effects, and ask whether every run of the
+new design ends in a safe state:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun run_early :: &quot;event list ⇒ crossing ⇒ crossing&quot; where
+  &quot;run_early [] s = s&quot;
+| &quot;run_early (e # es) s =
+     run_early es (if guard e s then effect_early e s else s)&quot;
+
+lemma &quot;safe (run_early es start)&quot;
+  nitpick [card = 6]
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> run_early :: <span class="isa-inner">&quot;event list ⇒ crossing ⇒ crossing&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;run_early [] s = s&quot;</span>
+| <span class="isa-inner">&quot;run_early (e # es) s =
+     run_early es (if guard e s then effect_early e s else s)&quot;</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;safe (run_early es start)&quot;</span>
+  <span class="isa-cmd">nitpick</span> [card = 6]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variable:
+    es = [Press, ToAmber, ToRed, StartWalk, ToGreen]</code></pre></div>
+<p>That is a <strong>counterexample trace</strong>: five events from <code>start</code> to an unsafe state. Replay it with <code>value</code>
+to see every state on the way. <code>take n es</code> is the first <code>n</code> events of <code>es</code>, so the list below holds the
+state after 0, 1, …, 5 events:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;map (λn. run_early (take n [Press, ToAmber, ToRed, StartWalk, ToGreen]) start)
+         [0..&lt;6]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;map (λn. run_early (take n [Press, ToAmber, ToRed, StartWalk, ToGreen]) start)
+         [0..&lt;6]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[⦇cars = Green, peds = DontWalk, req = False⦈,
+  ⦇cars = Green, peds = DontWalk, req = True⦈,
+  ⦇cars = Amber, peds = DontWalk, req = True⦈,
+  ⦇cars = Red, peds = DontWalk, req = True⦈,
+  ⦇cars = Red, peds = Walk, req = False⦈,
+  ⦇cars = Green, peds = Walk, req = False⦈]&quot;
+  :: &quot;crossing list&quot;</code></pre></div>
+<p>As a story: someone presses the button; the car light turns amber, then red; the pedestrian signal
+shows walk and, in the new design, the request is cleared; the controller sees no request and turns the
+car light green, while the pedestrians are still on the road.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>After</th>
+<th>Event</th>
+<th>cars</th>
+<th>peds</th>
+<th>req</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 events</td>
+<td></td>
+<td>Green</td>
+<td>DontWalk</td>
+<td>False</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Press</td>
+<td>Green</td>
+<td>DontWalk</td>
+<td>True</td>
+</tr>
+<tr>
+<td>2</td>
+<td>ToAmber</td>
+<td>Amber</td>
+<td>DontWalk</td>
+<td>True</td>
+</tr>
+<tr>
+<td>3</td>
+<td>ToRed</td>
+<td>Red</td>
+<td>DontWalk</td>
+<td>True</td>
+</tr>
+<tr>
+<td>4</td>
+<td>StartWalk</td>
+<td>Red</td>
+<td>Walk</td>
+<td>False</td>
+</tr>
+<tr>
+<td>5</td>
+<td>ToGreen</td>
+<td>Green</td>
+<td>Walk</td>
+<td>False</td>
+</tr>
+</tbody>
+</table></div>
+<p>Compare the state after 4 events with the goal of the failed proof in Section 13.5: cars red, pedestrians
+walking, no request. In the design of Section 13.4 that state is unreachable, and the remedy was a
+stronger invariant. In the new design it is reachable, and the remedy is to fix the design. Keep the
+request until the walk ends, as the design of Section 13.4 does; or add <code>peds s = DontWalk</code> to the guard
+of <code>ToGreen</code>, so that the controller checks the pedestrian signal itself (Exercise 13.6 asks you to prove
+that this fix works).</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>When the induction step of an invariant proof fails, the goal describes a state and an event. Find out whether
+the state is reachable. If it is, the property you are proving fails in a reachable state; when that
+property is your safety property, the design is wrong: search for a trace with Nitpick, or with
+Quickcheck on an executable model, and fix the design. If it is not, the design may be right and the
+invariant too weak: strengthen it.</p>
+</div>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>Quickcheck and Nitpick search in different ways. Quickcheck runs the definitions on many small values,
+so it needs functions it can execute, such as <code>guard</code>, <code>effect_early</code> and <code>run_early</code>. Nitpick translates
+the problem into a SAT problem, which also covers inductive definitions such as <code>reach</code>. Quickcheck’s
+exhaustive search tries small values first and stops early (by default at size 5). On
+<code>safe (run_early es start)</code> it finds nothing, because the shortest bad run has five events and its
+search does not get that far. Fix the length of the run, with one variable for each event, and it finds
+the trace at once:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;safe (run_early [e1, e2, e3, e4, e5] start)&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;safe (run_early [e1, e2, e3, e4, e5] start)&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  e1 = Press
+  e2 = ToAmber
+  e3 = ToRed
+  e4 = StartWalk
+  e5 = ToGreen</code></pre></div>
+<p>Isabelle/jEdit runs Quickcheck on every new lemma by itself, but not Nitpick: call <code>nitpick</code> yourself.</p>
+</div>
+<span class="section-anchor" id="refinement"></span>
+<div class="section-header"><span class="section-num">7</span><h2>Refinement: from abstract to concrete</h2></div>
+<p>The crossing of Section 13.4 has no time. A real controller keeps the amber light on for a few seconds,
+gives the pedestrians a minimum time to cross, and gives the cars a minimum green time before it serves
+the next request. You could add a timer to the model and prove safety again, with a new invariant. There
+is a better way: show that the timed controller <strong>refines</strong> the crossing, and let the safety theorem
+carry over.</p>
+<h3 id="two-models">Two models of one system</h3>
+<p>The timed controller has the lights of the crossing and a timer, which counts down the ticks that the
+current phase still lasts. A light may change only when the timer has run out, and a change sets the
+timer to the length of the new phase. The button can be pressed at any time.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="record timed =
+  lights :: crossing
+  timer :: nat
+
+fun delay :: &quot;event ⇒ nat&quot; where
+  &quot;delay ToAmber = 3&quot;
+| &quot;delay ToRed = 2&quot;
+| &quot;delay StartWalk = 6&quot;
+| &quot;delay EndWalk = 2&quot;
+| &quot;delay ToGreen = 10&quot;
+| &quot;delay Press = 0&quot;
+
+inductive tstep :: &quot;timed ⇒ timed ⇒ bool&quot; where
+  tick:   &quot;timer c &gt; 0 ⟹ tstep c (c⦇timer := timer c - 1⦈)&quot;
+| press:  &quot;tstep c (c⦇lights := effect Press (lights c)⦈)&quot;
+| switch: &quot;e ≠ Press ⟹ timer c = 0 ⟹ guard e (lights c) ⟹
+             tstep c ⦇lights = effect e (lights c), timer = delay e⦈&quot;
+
+inductive treach :: &quot;timed ⇒ bool&quot; where
+  init: &quot;treach ⦇lights = start, timer = 0⦈&quot;
+| step: &quot;treach c ⟹ tstep c c' ⟹ treach c'&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">record</span> timed =
+  lights :: crossing
+  timer :: nat
+
+<span class="isa-cmd">fun</span> delay :: <span class="isa-inner">&quot;event ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;delay ToAmber = 3&quot;</span>
+| <span class="isa-inner">&quot;delay ToRed = 2&quot;</span>
+| <span class="isa-inner">&quot;delay StartWalk = 6&quot;</span>
+| <span class="isa-inner">&quot;delay EndWalk = 2&quot;</span>
+| <span class="isa-inner">&quot;delay ToGreen = 10&quot;</span>
+| <span class="isa-inner">&quot;delay Press = 0&quot;</span>
+
+<span class="isa-cmd">inductive</span> tstep :: <span class="isa-inner">&quot;timed ⇒ timed ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  tick:   <span class="isa-inner">&quot;timer c &gt; 0 ⟹ tstep c (c⦇timer := timer c - 1⦈)&quot;</span>
+| press:  <span class="isa-inner">&quot;tstep c (c⦇lights := effect Press (lights c)⦈)&quot;</span>
+| switch: <span class="isa-inner">&quot;e ≠ Press ⟹ timer c = 0 ⟹ guard e (lights c) ⟹
+             tstep c ⦇lights = effect e (lights c), timer = delay e⦈&quot;</span>
+
+<span class="isa-cmd">inductive</span> treach :: <span class="isa-inner">&quot;timed ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  init: <span class="isa-inner">&quot;treach ⦇lights = start, timer = 0⦈&quot;</span>
+| step: <span class="isa-inner">&quot;treach c ⟹ tstep c c' ⟹ treach c'&quot;</span></code></pre></div>
+<p>Amber lasts 3 ticks, the pedestrians get 6, and green lasts at least 10. A press does not start a phase,
+so the value of <code>delay Press</code> is never used. The event <code>tick</code> is new: it changes the timer and leaves the
+lights alone. The other events of the crossing are still there, with a stronger guard: the timer must
+have run out.</p>
+<p>The two models describe the same crossing at two levels of detail. The crossing is the <strong>abstract</strong>
+model, the timed controller the <strong>concrete</strong> one. They are related by an <strong>abstraction function</strong>: the
+field selector <code>lights</code> maps a concrete state to the abstract state it represents, by forgetting the
+timer. In Module 12, an abstraction function mapped a data structure to the value it represents. Here it
+maps the states of one machine to the states of another.</p>
+<div class="box box-definition"><div class="box-label">Definition 13.5<span class="box-title">Refinement</span></div>
+<p>Let <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span> map the states of a concrete machine <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span> to the states of an abstract machine <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span>⁠. Then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span>
+<strong>refines</strong> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span> (with abstraction function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span>⁠) if</p>
+<ol>
+<li><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span> maps every initial state of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span> to an initial state of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span>⁠, and</li>
+<li>for every step <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>→</mo><msup><mi>c</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></mrow><annotation encoding="application/x-tex">c \to c&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">c</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span> of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span>⁠, either <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mtext> </mtext><mi>c</mi><mo>→</mo><mi>α</mi><mtext> </mtext><msup><mi>c</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></mrow><annotation encoding="application/x-tex">\alpha\ c \to \alpha\ c&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace"> </span><span class="mord mathnormal">c</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span> is a step of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span>⁠, or
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mtext> </mtext><msup><mi>c</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo>=</mo><mi>α</mi><mtext> </mtext><mi>c</mi></mrow><annotation encoding="application/x-tex">\alpha\ c&#x27; = \alpha\ c</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace"> </span><span class="mord mathnormal">c</span></span></span></span>⁠. A step of the second kind is a <strong>stutter step</strong>: the abstract state does
+not change.</li>
+</ol>
+</div>
+<p>Stutter steps are what allow the concrete model to take more steps than the abstract one. Every <code>tick</code>
+of the timed controller is a stutter step: the timer changes, the lights do not. Figure 13.3 shows a
+run of the timed controller and the run of the crossing that it represents.</p>
+<figure class="fig" id="fig-13-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300" role="img"><title>The timed controller refines the crossing</title><defs><marker id="fig-13-3__ah-2563EB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2563EB"/></marker><marker id="fig-13-3__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker><marker id="fig-13-3__ah-94A3B8" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#94A3B8"/></marker></defs><text x="24" y="24" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#2563EB" text-anchor="start">crossing: reach</text><text x="24" y="260" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="700" fill="#6D28D9" text-anchor="start">timed controller: treach</text><rect x="24" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="61.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="61.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬ req</text><text x="61.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 0</text><rect x="130" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="167.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="167.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="167.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 0</text><rect x="236" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="273.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="273.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="273.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 3</text><rect x="342" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="379.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="379.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="379.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 2</text><rect x="448" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="485.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="485.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="485.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 1</text><rect x="554" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="591.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="591.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="591.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 0</text><rect x="660" y="168" width="74" height="62" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="697.0" y="186" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">Red</text><text x="697.0" y="203" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><text x="697.0" y="221" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#6D28D9" text-anchor="middle">timer 2</text><line x1="100" y1="199.0" x2="126" y2="199.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="113.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">Press</text><line x1="206" y1="199.0" x2="232" y2="199.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="219.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">ToAmber</text><line x1="312" y1="199.0" x2="338" y2="199.0" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#fig-13-3__ah-94A3B8)"/><text x="325.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#94A3B8" text-anchor="middle">tick</text><line x1="418" y1="199.0" x2="444" y2="199.0" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#fig-13-3__ah-94A3B8)"/><text x="431.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#94A3B8" text-anchor="middle">tick</text><line x1="524" y1="199.0" x2="550" y2="199.0" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#fig-13-3__ah-94A3B8)"/><text x="537.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#94A3B8" text-anchor="middle">tick</text><line x1="630" y1="199.0" x2="656" y2="199.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="643.0" y="160" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">ToRed</text><rect x="24" y="54" width="74" height="46" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="61.0" y="73" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="61.0" y="91" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">¬ req</text><rect x="130" y="54" width="74" height="46" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="167.0" y="73" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#15803D" text-anchor="middle">Green</text><text x="167.0" y="91" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><rect x="236" y="54" width="392" height="46" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="432.0" y="73" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#B45309" text-anchor="middle">Amber</text><text x="432.0" y="91" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><rect x="660" y="54" width="74" height="46" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="697.0" y="73" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" fill="#DC2626" text-anchor="middle">Red</text><text x="697.0" y="91" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">req</text><line x1="100" y1="77.0" x2="126" y2="77.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="113.0" y="46" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">Press</text><line x1="206" y1="77.0" x2="232" y2="77.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="219.0" y="46" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">ToAmber</text><line x1="630" y1="77.0" x2="656" y2="77.0" stroke="#475569" stroke-width="1.8" marker-end="url(#fig-13-3__ah-475569)"/><text x="643.0" y="46" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11" font-weight="600" fill="#6D28D9" text-anchor="middle">ToRed</text><line x1="61.0" y1="152" x2="61.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="167.0" y1="152" x2="167.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="273.0" y1="152" x2="273.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="379.0" y1="152" x2="379.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="485.0" y1="152" x2="485.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="591.0" y1="152" x2="591.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><line x1="697.0" y1="152" x2="697.0" y2="104" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#fig-13-3__ah-2563EB)"/><text x="67.0" y="132" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#2563EB" text-anchor="start">lights</text><path d="M273.0 238 V246 H591.0 V238" stroke="#94A3B8" stroke-width="1.6" fill="none"/><text x="432.0" y="262" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">three ticks: stutter steps</text></svg>
+</div><figcaption><span class="fig-num">Figure 13.3</span> <p>A run of the timed controller (below) and its image under <code>lights</code> (above). The three ticks change only
+the timer, so they are stutter steps; every other step is a step of the crossing.</p>
+</figcaption></figure>
+<h3 id="refinement-proof">The proof</h3>
+<p>The initial states match: <code>lights ⦇lights = start, timer = 0⦈</code> is <code>start</code>. For the steps, prove that
+each concrete step is a stutter step or a step of the crossing. In Isar, <code>proof cases</code> takes the step
+apart by rule inversion, one case for each rule of <code>tstep</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma sim:
+  assumes &quot;tstep c c'&quot;
+  shows &quot;lights c' = lights c ∨
+         (∃e. guard e (lights c) ∧ lights c' = effect e (lights c))&quot;
+  using assms
+proof cases
+  case tick
+  then show ?thesis by simp
+next
+  case press
+  then have &quot;guard Press (lights c) ∧ lights c' = effect Press (lights c)&quot; by simp
+  then show ?thesis by blast
+next
+  case (switch e)
+  then show ?thesis by auto
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> sim:
+  <span class="isa-minor">assumes</span> <span class="isa-inner">&quot;tstep c c'&quot;</span>
+  <span class="isa-minor">shows</span> <span class="isa-inner">&quot;lights c' = lights c ∨
+         (∃e. guard e (lights c) ∧ lights c' = effect e (lights c))&quot;</span>
+  <span class="isa-proof">using</span> assms
+<span class="isa-proof">proof</span> cases
+  <span class="isa-proof">case</span> tick
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> press
+  <span class="isa-proof">then</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;guard Press (lights c) ∧ lights c' = effect Press (lights c)&quot;</span> <span class="isa-proof">by</span> simp
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> blast
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (switch e)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?thesis <span class="isa-proof">by</span> auto
+<span class="isa-proof">qed</span></code></pre></div>
+<p>Case <code>tick</code> is a stutter step. Case <code>press</code> is the abstract event <code>Press</code>: the <code>have</code> states the step
+with <code>Press</code> in place of <code>e</code>, and <code>blast</code> then proves the disjunction with <code>Press</code> as the witness for
+<code>∃e</code>. Case <code>switch</code> is the abstract event <code>e</code>, and its abstract guard holds because it is part of the
+concrete guard.</p>
+<p>Now the general argument: every reachable concrete state represents a reachable abstract state. It is a
+rule induction over <code>treach</code>, and it uses only the two conditions of the definition: the initial states
+match, and <code>sim</code>.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma treach_reach: &quot;treach c ⟹ reach (lights c)&quot;
+proof (induction rule: treach.induct)
+  case init
+  show ?case by (simp add: reach.init)
+next
+  case (step c c')
+  from ‹tstep c c'› have &quot;lights c' = lights c ∨
+      (∃e. guard e (lights c) ∧ lights c' = effect e (lights c))&quot;
+    by (rule sim)
+  with step.IH show ?case by (auto intro: reach.step)
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> treach_reach: <span class="isa-inner">&quot;treach c ⟹ reach (lights c)&quot;</span>
+<span class="isa-proof">proof</span> (induction <span class="isa-minor">rule</span>: treach.induct)
+  <span class="isa-proof">case</span> init
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (simp add: reach.init)
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (step c c')
+  <span class="isa-proof">from</span> <span class="isa-cartouche">‹tstep c c'›</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;lights c' = lights c ∨
+      (∃e. guard e (lights c) ∧ lights c' = effect e (lights c))&quot;</span>
+    <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> sim)
+  <span class="isa-proof">with</span> step.IH <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (auto intro: reach.step)
+<span class="isa-proof">qed</span></code></pre></div>
+<p>In the induction step, a stutter step leads to the same abstract state, which is reachable by the induction
+hypothesis; any other step is a step of the crossing from a reachable state, which <code>reach.step</code> covers.
+And now the safety of the timed controller costs one line:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem timed_safe: &quot;treach c ⟹ safe (lights c)&quot;
+  using treach_reach crossing_safe by blast">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> timed_safe: <span class="isa-inner">&quot;treach c ⟹ safe (lights c)&quot;</span>
+  <span class="isa-proof">using</span> treach_reach crossing_safe <span class="isa-proof">by</span> blast</code></pre></div>
+<p>No new invariant was needed. The timed controller has more states than the crossing (one for every
+value of the timer), but its proof only had to check that each of its steps is one the crossing allows.</p>
+<div class="box box-fact"><div class="box-label">Fact 13.2<span class="box-title">Refinement preserves invariants</span></div>
+<p>If <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span> refines <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span> with abstraction function <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span>⁠, then <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span> maps every reachable state of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span> to
+a reachable state of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span>⁠. So for every invariant <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi></mrow><annotation encoding="application/x-tex">A</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span></span></span></span>⁠, the property “<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi><mo stretchy="false">(</mo><mi>α</mi><mtext> </mtext><mi>c</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">I(\alpha\ c)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mspace"> </span><span class="mord mathnormal">c</span><span class="mclose">)</span></span></span></span>” is an
+invariant of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">C</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span></span></span></span>⁠.</p>
+</div>
+<p>This is the idea behind <strong>refinement-based development</strong>, used for example in the B method, with which
+the software of Paris Métro line 14 was developed (Module 1), and in its successor Event-B. You start with
+an abstract model in which the important properties are simple to state and prove. Then you add detail in
+small steps, timers, buttons, messages, data structures, and prove that each step is a refinement. The
+safety properties proved at the top hold all the way down.</p>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>An abstraction function is a special case. In general, a concrete state may correspond to several
+abstract states. Then a <strong>simulation relation</strong> <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi></mrow><annotation encoding="application/x-tex">R</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span></span></span></span> between concrete and abstract states takes the place
+of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi></mrow><annotation encoding="application/x-tex">\alpha</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span></span></span></span>⁠: every initial concrete state is related to some initial abstract state, and whenever
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mtext> </mtext><mi>c</mi><mtext> </mtext><mi>a</mi></mrow><annotation encoding="application/x-tex">R\ c\ a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="mspace"> </span><span class="mord mathnormal">c</span><span class="mspace"> </span><span class="mord mathnormal">a</span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>→</mo><msup><mi>c</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></mrow><annotation encoding="application/x-tex">c \to c&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">c</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>⁠, there is an <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></mrow><annotation encoding="application/x-tex">a&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span> with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>R</mi><mtext> </mtext><msup><mi>c</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mtext> </mtext><msup><mi>a</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup></mrow><annotation encoding="application/x-tex">R\ c&#x27;\ a&#x27;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">a</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span> that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi></mrow><annotation encoding="application/x-tex">a</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">a</span></span></span></span> reaches in zero steps or one. The
+proof has the same shape.</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>The direction matters. The definition says that every concrete step is allowed by the abstract model;
+that is why safety properties carry over from the abstract model to the concrete one. It does not say
+that the concrete model can do everything the abstract one can. A concrete model may do <em>less</em>: the
+timed controller never changes a light while its timer runs, which the crossing would allow. Section
+13.8 shows what refinement therefore does not preserve.</p>
+</div>
+<span class="section-anchor" id="next"></span>
+<div class="section-header"><span class="section-num">8</span><h2>Beyond safety, and where to go next</h2></div>
+<h3 id="liveness">Liveness</h3>
+<p>Requirement R2 says that after a press, the pedestrians <em>eventually</em> walk. It is not about bad states.</p>
+<div class="box box-definition"><div class="box-label">Definition 13.6<span class="box-title">Liveness property</span></div>
+<p>A <strong>liveness property</strong> says that something good eventually happens: a request is eventually served, a
+message is eventually delivered, a program eventually terminates.</p>
+</div>
+<p>No finite run can break a liveness property, because the good thing might still happen later. A
+counterexample is an infinite run in which it never happens, typically a loop that repeats forever. The
+crossing has one: press the button again and again, forever, and nothing else ever happens. Every state
+of this run is reachable and safe, and the pedestrians never walk. To rule out such runs, a model needs a
+<strong>fairness</strong> assumption, such as “an event whose guard stays true is eventually taken”. Proofs of
+liveness then use a measure that decreases until the good thing happens, like the termination measures
+of Module 5. Leslie Lamport introduced the words <em>safety</em> and <em>liveness</em> for these two kinds of
+properties in 1977.</p>
+<p>An invariant cannot express a liveness property, because it talks about one state at a time. And
+refinement as defined in Section 13.7 does not preserve liveness: a controller that never changes its
+lights, whatever happens, refines the crossing, since all its steps are presses and stutter steps
+(Exercise 13.9). It is perfectly safe and perfectly useless. Refinement methods add proof obligations
+for liveness. Event-B, for example, can ask you to show that new events such as <code>tick</code> cannot run
+forever, with a measure that each of them decreases, here the timer; that rules out a controller that
+only ticks. A requirement such as R2 still needs a proof of its own.</p>
+<p>Liveness is the home ground of <strong>temporal logic</strong>, which Amir Pnueli proposed for programs in 1977. Its
+operators speak about runs: □ <em>P</em> (“always <em>P</em>”) and ◇ <em>P</em> (“eventually <em>P</em>”). Requirement R2 becomes
+□(<em>req</em> ⟶ ◇ <em>Walk</em>): at every point of a run, if a request is pending, the pedestrians walk then or at
+some later point.
+<strong>Model checkers</strong> check such formulas on finite models automatically, and print a counterexample run
+when they fail: <strong>SPIN</strong> for models in its language Promela, <strong>nuXmv</strong> for models in the SMV language,
+and <strong>TLC</strong> for specifications in Lamport’s <strong>TLA+</strong>, the language that Amazon’s engineers used
+(Module 1). Isabelle can prove liveness too, but that needs more machinery than this series covers.</p>
+<h3 id="further">Where to go next</h3>
+<ul>
+<li><strong>Isabelle for model verification.</strong> The site’s single-page guide
+<a href="../isabelle/">Isabelle for model verification</a> applies these ideas to a small model of a lid: a
+record of state, a guard that admits an operation, a lemma that the operation preserves the state
+invariant, and a proof that a translation between two representations preserves meaning. Its guard
+and update form an event in the sense of Section 13.4, and its lemma is the induction step of an invariant
+proof (Section 13.3); the translation theorem is of the kind that Module 14 proves for a compiler. The
+guide was written for Isabelle2025-2.</li>
+<li><strong>The Archive of Formal Proofs</strong> is a large online library of checked Isabelle developments, among
+them models of protocols, algorithms and systems with their invariants and refinements.</li>
+<li><strong>Event-B</strong> and its tool, the Rodin platform, are built around refinement: abstract machines, events
+with guards and actions, invariants, and refinement proofs, discharged mostly by automatic provers.</li>
+<li><strong>Model checkers</strong> such as TLC, SPIN and nuXmv explore finite models automatically and handle
+liveness. They are the quickest way to find a counterexample trace in a design; a proof covers what a
+finite model cannot.</li>
+</ul>
+<p>Module 14 ends the series with a different kind of system: a compiler, proved correct.</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">9</span><h2>What you learned</h2></div>
+<ul>
+<li>A <strong>state machine</strong> has states, initial states and a transition relation. Its steps are <strong>events</strong>, each
+with a <strong>guard</strong> (when it can happen) and an <strong>effect</strong> (how it changes the state). A <strong>run</strong> follows
+the steps from an initial state; a <strong>trace</strong> lists its events; a state is <strong>reachable</strong> if a run leads
+to it.</li>
+<li>In Isabelle, a state is a datatype, a pair or a <strong>record</strong> (fields <code>cars s</code>, values
+<code>⦇cars = …, …⦈</code>, updates <code>s⦇cars := …⦈</code>). The transition relation is an <code>inductive</code> definition with
+one rule per event, or a pair of functions <code>guard</code> and <code>effect</code>, which <code>value</code> can run. The reachable
+states are an inductive definition with a rule for the initial state and a rule for a step, the same
+as the reflexive–transitive closure <code>r⇧*</code> from the initial state.</li>
+<li>A <strong>safety property</strong> must hold in every reachable state. An <strong>invariant</strong> holds in every reachable
+state; it is <strong>inductive</strong> if it holds initially and every step preserves it. Rule induction over the
+reachable states proves an inductive invariant: a base case and an induction step.</li>
+<li>A safety property is often not inductive. The failed induction step shows a state and an event: a
+<strong>counterexample to induction</strong>. If the state is unreachable, <strong>strengthen</strong> the invariant with a fact
+that holds in every reachable state. If it is reachable, the design is wrong.</li>
+<li>Nitpick finds reachable bad states, also of inductive definitions, and with an executable <code>run</code> it finds
+<strong>counterexample traces</strong>: lists of events that lead to a bad state. <code>value</code> replays them. Fix the
+option <code>card</code> to make Nitpick report the same counterexample every time.</li>
+<li>A concrete model <strong>refines</strong> an abstract one if an <strong>abstraction function</strong> maps initial states to
+initial states and every concrete step to an abstract step or a <strong>stutter step</strong>. Then every invariant
+of the abstract model holds, through the abstraction function, in the concrete one.</li>
+<li>A <strong>liveness property</strong> says that something good eventually happens. Invariants and refinement do not
+cover it; temporal logic and model checkers such as SPIN, nuXmv and TLC do.</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">10</span><h2>Exercises</h2></div>
+<div class="exercise" id="ex-13-1"><div class="ex-label"><span class="ex-num">Exercise 13.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">Runs of the lift</span></div>
+<p>Use the lift of Example 13.1.</p>
+<ol>
+<li>Which events can happen in the state where the door is open and the lift stands still, and to which
+states do they lead?</li>
+<li>Give a trace from the initial state to the state where the door is closed and the lift moves, that
+passes through the state where the door is closing.</li>
+<li>Why is the state “door closing, lift moving” unreachable? Look at the events that could lead to it.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><em>open</em> (the door stays open: same state), <em>close</em> (the door becomes Closing, the lift still) and
+<em>stop</em> (same state). <em>shut</em> needs a closing door and <em>start</em> a closed one.</li>
+<li><em>open, close, shut, start</em>: (Closed, still) → (Open, still) → (Closing, still) → (Closed, still) →
+(Closed, moving).</li>
+<li>Only <em>close</em> leads to a closing door, and it keeps the motion as it is, so the state before would
+have to be “door open, lift moving”. No event leads to that state: <em>open</em> needs a lift that stands
+still and keeps it still, <em>start</em> needs a closed door, and <em>close</em>, <em>shut</em> and <em>stop</em> never produce an
+open door with a moving lift. So neither unsafe state can be reached. The proof of <code>lift_safe</code> makes
+this argument for every state at once.</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-13-2"><div class="ex-label"><span class="ex-num">Exercise 13.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">Safety or liveness?</span></div>
+<p>Say whether each requirement is a safety or a liveness property.</p>
+<ol>
+<li>Two trains are never on the same section of track.</li>
+<li>Every print job is eventually printed.</li>
+<li>The balance of an account never becomes negative.</li>
+<li>A message that is sent is eventually delivered.</li>
+<li>The program never divides by zero.</li>
+<li>The program terminates.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>Safety: the bad state is two trains on one section, and a finite run can reach it.</li>
+<li>Liveness: something good (the printout) must eventually happen; a counterexample is an infinite run
+in which the job is never printed.</li>
+<li>Safety.</li>
+<li>Liveness.</li>
+<li>Safety: the bad thing is a division by zero, and a finite run that performs one is a counterexample.</li>
+<li>Liveness: termination says that the program eventually stops. No finite run shows that a program
+never stops; the counterexample is an infinite run.</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-13-3"><div class="ex-label"><span class="ex-num">Exercise 13.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">Predict a run</span></div>
+<p>Work out on paper the result of <code>run [Press, Press, ToAmber, ToGreen, ToRed] start</code>, event by event.
+Then check it with <code>value</code>.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p><code>Press</code> sets the request. The second <code>Press</code> changes nothing, since the request is already set. <code>ToAmber</code>
+is enabled (green, request) and makes the car light amber. <code>ToGreen</code> needs red, so <code>run</code> skips it. <code>ToRed</code>
+makes the car light red. The pedestrians never walk, and the request is still pending:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;run [Press, Press, ToAmber, ToGreen, ToRed] start&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;run [Press, Press, ToAmber, ToGreen, ToRed] start&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;⦇cars = Red, peds = DontWalk, req = True⦈&quot;
+  :: &quot;crossing&quot;</code></pre></div>
+</div></details>
+</div>
+<div class="exercise" id="ex-13-4"><div class="ex-label"><span class="ex-num">Exercise 13.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Invariant, inductive, or neither?</span></div>
+<p>For the crossing of Section 13.4, decide for each property whether it holds in every reachable state,
+and whether it is inductive on its own. Use Figure 13.1 for the reachable states. When a property is not
+inductive, give a state and an event that break the induction step; when it is not an invariant, give a run
+that breaks it.</p>
+<ol>
+<li><code>peds s = Walk ⟶ req s</code></li>
+<li><code>cars s = Amber ⟶ req s</code></li>
+<li><code>peds s = DontWalk</code></li>
+<li><code>cars s = Amber ⟶ peds s = DontWalk</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li><strong>Invariant and inductive.</strong> Only <code>StartWalk</code> makes the pedestrians walk, and its guard needs the
+request. While they walk, only <code>EndWalk</code> clears the request, and it ends the walk. No other event
+changes the two fields involved, except <code>Press</code>, which sets the request. (This is the part that
+Section 13.5 added to <code>safe</code>.)</li>
+<li><strong>Invariant, not inductive.</strong> The only reachable state with amber has a request. But take the
+unreachable state ⦇cars = Amber, peds = Walk, req = True⦈: it satisfies the property, and <code>EndWalk</code>
+clears the request and keeps the amber light. Exercise 13.7 proves the invariant.</li>
+<li><strong>Not an invariant</strong>, so not inductive either. The run <em>Press, ToAmber, ToRed, StartWalk</em> reaches a
+state where the pedestrians walk.</li>
+<li><strong>Invariant, not inductive.</strong> In the reachable states, amber comes only with don’t walk. But the
+unreachable state ⦇cars = Green, peds = Walk, req = True⦈ satisfies the property (the cars are not
+amber), and <code>ToAmber</code> leads to amber while the pedestrians walk.</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-13-5"><div class="ex-label"><span class="ex-num">Exercise 13.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Runs reach reachable states</span></div>
+<p>Prove that every state that <code>run</code> produces from a reachable state is reachable, and conclude that
+<code>run es start</code> is reachable for every list of events <code>es</code>. Which variable must be generalised in the
+induction, and why?</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Induct on <code>es</code>. In the recursive call <code>run es (…)</code>, the state changes, so the induction hypothesis must
+hold for every state: generalise <code>s</code> with <code>arbitrary:</code> (Module 11).</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma reach_run: &quot;reach s ⟹ reach (run es s)&quot;
+  by (induction es arbitrary: s) (auto intro: reach.step)
+
+corollary &quot;reach (run es start)&quot;
+  by (simp add: reach.init reach_run)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> reach_run: <span class="isa-inner">&quot;reach s ⟹ reach (run es s)&quot;</span>
+  <span class="isa-proof">by</span> (induction es <span class="isa-minor">arbitrary</span>: s) (auto intro: reach.step)
+
+<span class="isa-cmd">corollary</span> <span class="isa-inner">&quot;reach (run es start)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: reach.init reach_run)</code></pre></div>
+<p>In the induction step, the simplifier splits the <code>if</code> in the definition of <code>run</code>. If the guard holds, the next
+state is reachable by <code>reach.step</code>; if not, it is <code>s</code> itself. Together with <code>crossing_safe</code>, this shows
+that no run of events leads to an unsafe state: the property that Nitpick refuted for the colleague’s
+design in Section 13.6 holds for the design of Section 13.4.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-13-6"><div class="ex-label"><span class="ex-num">Exercise 13.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Fix the guard instead</span></div>
+<p>Keep the colleague’s effects <code>effect_early</code> from Section 13.6, but give <code>ToGreen</code> the guard
+<code>cars s = Red ∧ peds s = DontWalk ∧ ¬ req s</code>. Define the new guard function <code>guard_safe</code> and the
+reachable states <code>reach_fixed</code> of this design, and prove that every reachable state is safe. Do you need
+to strengthen <code>safe</code>?</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Only one equation of the guard changes; as in Section 13.6, a final equation covers the other events.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun guard_safe :: &quot;event ⇒ crossing ⇒ bool&quot; where
+  &quot;guard_safe ToGreen s = (cars s = Red ∧ peds s = DontWalk ∧ ¬ req s)&quot;
+| &quot;guard_safe e s = guard e s&quot;
+
+inductive reach_fixed :: &quot;crossing ⇒ bool&quot; where
+  init: &quot;reach_fixed start&quot;
+| step: &quot;reach_fixed s ⟹ guard_safe e s ⟹ reach_fixed (effect_early e s)&quot;
+
+lemma &quot;reach_fixed s ⟹ safe s&quot;
+proof (induction rule: reach_fixed.induct)
+  case init
+  show ?case by (simp add: safe_def start_def)
+next
+  case (step s e)
+  then show ?case by (cases e) (auto simp: safe_def)
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> guard_safe :: <span class="isa-inner">&quot;event ⇒ crossing ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;guard_safe ToGreen s = (cars s = Red ∧ peds s = DontWalk ∧ ¬ req s)&quot;</span>
+| <span class="isa-inner">&quot;guard_safe e s = guard e s&quot;</span>
+
+<span class="isa-cmd">inductive</span> reach_fixed :: <span class="isa-inner">&quot;crossing ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  init: <span class="isa-inner">&quot;reach_fixed start&quot;</span>
+| step: <span class="isa-inner">&quot;reach_fixed s ⟹ guard_safe e s ⟹ reach_fixed (effect_early e s)&quot;</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;reach_fixed s ⟹ safe s&quot;</span>
+<span class="isa-proof">proof</span> (induction <span class="isa-minor">rule</span>: reach_fixed.induct)
+  <span class="isa-proof">case</span> init
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (simp add: safe_def start_def)
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (step s e)
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (cases e) (auto simp: safe_def)
+<span class="isa-proof">qed</span></code></pre></div>
+<p>No strengthening is needed: <code>safe</code> is inductive in this design. The guard of <code>ToGreen</code> now checks the
+pedestrian signal itself, so the step that broke the proof in Section 13.5 is no longer possible. A
+guard that checks the property it protects makes the proof short; a design that relies on another
+variable, as the request did, needs an invariant that relates the two.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-13-7"><div class="ex-label"><span class="ex-num">Exercise 13.7</span><span class="ex-stars" title="2">★★</span><span class="ex-title">One invariant helps another</span></div>
+<p>Prove that in every reachable state of the crossing, the car light is amber only while a request is
+pending: <code>reach s ⟹ cars s = Amber ⟶ req s</code>. The rule induction alone fails (Exercise 13.4). Use the
+invariant <code>reach_invar</code>, which you have already proved.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>In the induction step, the premise <code>reach s</code> is available, so <code>reach_invar</code> gives <code>invar s</code> for the state
+before the event. That is the missing fact: in the state where <code>EndWalk</code> clears the request, the
+pedestrians walk, so by <code>invar</code> the cars have red, not amber.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;reach s ⟹ cars s = Amber ⟶ req s&quot;
+proof (induction rule: reach.induct)
+  case init
+  show ?case by (simp add: start_def)
+next
+  case (step s e)
+  moreover from ‹reach s› have &quot;invar s&quot; by (rule reach_invar)
+  ultimately show ?case by (cases e) (auto simp: invar_def)
+qed">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;reach s ⟹ cars s = Amber ⟶ req s&quot;</span>
+<span class="isa-proof">proof</span> (induction <span class="isa-minor">rule</span>: reach.induct)
+  <span class="isa-proof">case</span> init
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (simp add: start_def)
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (step s e)
+  <span class="isa-proof">moreover</span> <span class="isa-proof">from</span> <span class="isa-cartouche">‹reach s›</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;invar s&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> reach_invar)
+  <span class="isa-proof">ultimately</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (cases e) (auto simp: invar_def)
+<span class="isa-proof">qed</span></code></pre></div>
+<p>Using an invariant that is already proved is often easier than putting everything into one big
+invariant: each proof stays small, and later proofs can use the earlier ones.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-13-8"><div class="ex-label"><span class="ex-num">Exercise 13.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">A turnstile</span></div>
+<p>A turnstile is locked until a coin is inserted. A coin unlocks it; pushing an unlocked turnstile lets one
+person through and locks it again. It counts coins and passes:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="record gate =
+  locked :: bool
+  coins :: nat
+  passes :: nat
+
+inductive greach :: &quot;gate ⇒ bool&quot; where
+  &quot;greach ⦇locked = True, coins = 0, passes = 0⦈&quot;
+| &quot;greach g ⟹ greach (g⦇locked := False, coins := coins g + 1⦈)&quot;
+| &quot;greach g ⟹ ¬ locked g ⟹ greach (g⦇locked := True, passes := passes g + 1⦈)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">record</span> gate =
+  locked :: bool
+  coins :: nat
+  passes :: nat
+
+<span class="isa-cmd">inductive</span> greach :: <span class="isa-inner">&quot;gate ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;greach ⦇locked = True, coins = 0, passes = 0⦈&quot;</span>
+| <span class="isa-inner">&quot;greach g ⟹ greach (g⦇locked := False, coins := coins g + 1⦈)&quot;</span>
+| <span class="isa-inner">&quot;greach g ⟹ ¬ locked g ⟹ greach (g⦇locked := True, passes := passes g + 1⦈)&quot;</span></code></pre></div>
+<p>The safety property is that nobody passes without paying: <code>passes g ≤ coins g</code>. Try to prove that it
+holds in every reachable state, read the goal that is left, and strengthen the invariant until the proof
+works.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The direct attempt leaves the push:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;greach g ⟹ passes g ≤ coins g&quot;
+  apply (induction rule: greach.induct)
+  apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;greach g ⟹ passes g ≤ coins g&quot;</span>
+  <span class="isa-proof">apply</span> (induction <span class="isa-minor">rule</span>: greach.induct)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀g. ⟦greach g; passes g ≤ coins g; ¬ locked g⟧
+        ⟹ Suc (passes g) ≤ coins g</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>The goal is the push. From <code>passes g ≤ coins g</code> and an unlocked turnstile, it must show that one more
+pass still fits, <code>Suc (passes g) ≤ coins g</code>. That fails when passes and coins are equal: an unlocked
+turnstile with as many passes as coins satisfies the invariant, and a push lets someone through without
+paying. That state is unreachable, because a turnstile is unlocked only by a coin that has not been used
+for a pass yet. Say so in the invariant: when the turnstile is unlocked, passes are strictly fewer than
+coins.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;greach g ⟹ passes g ≤ coins g ∧ (¬ locked g ⟶ passes g &lt; coins g)&quot;
+  by (induction rule: greach.induct) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;greach g ⟹ passes g ≤ coins g ∧ (¬ locked g ⟶ passes g &lt; coins g)&quot;</span>
+  <span class="isa-proof">by</span> (induction <span class="isa-minor">rule</span>: greach.induct) auto</code></pre></div>
+<p>The safety property is the first half of the strengthened invariant. The second half is the fact about
+reachable states that the failed goal violated.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-13-9"><div class="ex-label"><span class="ex-num">Exercise 13.9</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">A lazy controller</span></div>
+<p>A lazy controller accepts presses and does nothing else:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="inductive lazy :: &quot;crossing ⇒ bool&quot; where
+  init:  &quot;lazy start&quot;
+| press: &quot;lazy s ⟹ lazy (s⦇req := True⦈)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">inductive</span> lazy :: <span class="isa-inner">&quot;crossing ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  init:  <span class="isa-inner">&quot;lazy start&quot;</span>
+| press: <span class="isa-inner">&quot;lazy s ⟹ lazy (s⦇req := True⦈)&quot;</span></code></pre></div>
+<ol>
+<li>Each step of the lazy controller is the abstract event <code>Press</code>, so it refines the crossing, with the
+identity as abstraction function. Prove what follows by Fact 13.2, <code>lazy s ⟹ reach s</code>, by rule
+induction as for <code>treach_reach</code>, and conclude that the lazy controller is safe.</li>
+<li>Prove that in the lazy controller the cars always have green.</li>
+<li>What do 1 and 2 say about requirement R2, and about what refinement preserves?</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>
+<p>In case <code>press</code>, the step is the abstract event <code>Press</code> from a reachable state:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma lazy_reach: &quot;lazy s ⟹ reach s&quot;
+proof (induction rule: lazy.induct)
+  case init
+  show ?case by (rule reach.init)
+next
+  case (press s)
+  from press.IH have &quot;reach (effect Press s)&quot; by (rule reach.step) simp
+  then show ?case by simp
+qed
+
+corollary &quot;lazy s ⟹ safe s&quot;
+  by (simp add: crossing_safe lazy_reach)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> lazy_reach: <span class="isa-inner">&quot;lazy s ⟹ reach s&quot;</span>
+<span class="isa-proof">proof</span> (induction <span class="isa-minor">rule</span>: lazy.induct)
+  <span class="isa-proof">case</span> init
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> reach.init)
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (press s)
+  <span class="isa-proof">from</span> press.IH <span class="isa-proof">have</span> <span class="isa-inner">&quot;reach (effect Press s)&quot;</span> <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> reach.step) simp
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span>
+
+<span class="isa-cmd">corollary</span> <span class="isa-inner">&quot;lazy s ⟹ safe s&quot;</span>
+  <span class="isa-proof">by</span> (simp add: crossing_safe lazy_reach)</code></pre></div>
+<p>The <code>have</code> states the new state in the form that <code>reach.step</code> produces: <code>rule reach.step</code> takes the
+induction hypothesis <code>reach s</code> for its first premise and leaves the guard <code>guard Press s</code>, which
+<code>simp</code> proves. In the last step, <code>simp</code> turns <code>effect Press s</code> into <code>s⦇req := True⦈</code>.</p>
+</li>
+<li>
+<p>The cars have green in <code>start</code>, and a press does not change the car light:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;lazy s ⟹ cars s = Green&quot;
+  by (induction rule: lazy.induct) (auto simp: start_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;lazy s ⟹ cars s = Green&quot;</span>
+  <span class="isa-proof">by</span> (induction <span class="isa-minor">rule</span>: lazy.induct) (auto simp: start_def)</code></pre></div>
+</li>
+<li>
+<p>The lazy controller is safe, and it never lets anyone cross: after a press, the pedestrians never
+walk, so it breaks R2. Refinement preserves safety properties, but not liveness properties. A
+refinement may do less than the abstract model, including nothing at all.</p>
+</li>
+</ol>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">11</span><h2>Check yourself</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>In a model of a state machine, what does the guard of an event describe?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">How the event changes the state</button></li><li><button type="button" class="quiz-opt" data-i="1">The states in which the event can happen</button></li><li><button type="button" class="quiz-opt" data-i="2">The initial state</button></li><li><button type="button" class="quiz-opt" data-i="3">The property that every reachable state must have</button></li></ol><div class="quiz-expl" hidden>The guard is a condition on the current state; the effect describes the change.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>A property I holds in the initial state and in every reachable state. What else must hold for I to be inductive?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">I must hold in every state, reachable or not</button></li><li><button type="button" class="quiz-opt" data-i="1">Every run must be finite</button></li><li><button type="button" class="quiz-opt" data-i="2">Every step from any state that satisfies I must lead to a state that satisfies I</button></li><li><button type="button" class="quiz-opt" data-i="3">I must be a liveness property</button></li></ol><div class="quiz-expl" hidden>An inductive invariant is preserved by every step from every state that satisfies it, including unreachable ones. That is what the induction step of the rule induction checks.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>The induction step of an invariant proof fails, and the goal describes a state s and an event e. What should you find out first?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Whether a stronger proof method such as auto or force proves the goal</button></li><li><button type="button" class="quiz-opt" data-i="1">Whether e is the last event of the datatype</button></li><li><button type="button" class="quiz-opt" data-i="2">Whether the initial state satisfies the invariant</button></li><li><button type="button" class="quiz-opt" data-i="3">Whether s is reachable</button></li></ol><div class="quiz-expl" hidden>If s is reachable, the property fails in a reachable state, and a trace shows how; for a safety property, the design is wrong. If it is not, the invariant is too weak and must be strengthened.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>Why can Quickcheck test <code>safe (run es start)</code> but not <code>reach s ⟹ safe s</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Quickcheck executes definitions, and an inductive predicate such as reach is not executable by default</button></li><li><button type="button" class="quiz-opt" data-i="1">Quickcheck cannot handle records</button></li><li><button type="button" class="quiz-opt" data-i="2">reach has too many states for Quickcheck</button></li><li><button type="button" class="quiz-opt" data-i="3">Quickcheck only works on lists</button></li></ol><div class="quiz-expl" hidden>Quickcheck evaluates the statement on test values, so it needs executable functions such as run. Nitpick also handles inductive definitions.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>In a refinement proof, a concrete step changes only the timer, and the abstraction function forgets the timer. What is this step in the abstract model?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">An error: every concrete step must be an abstract step</button></li><li><button type="button" class="quiz-opt" data-i="1">A new abstract event that must be added to the abstract model</button></li><li><button type="button" class="quiz-opt" data-i="2">A stutter step: the abstract state does not change</button></li><li><button type="button" class="quiz-opt" data-i="3">A liveness violation</button></li></ol><div class="quiz-expl" hidden>Refinement allows stutter steps, which is why a concrete model can take more steps than the abstract one.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>Which requirement is a liveness property?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The cars never have green while pedestrians walk</button></li><li><button type="button" class="quiz-opt" data-i="1">The lift never moves with its door open</button></li><li><button type="button" class="quiz-opt" data-i="2">The balance of an account never becomes negative</button></li><li><button type="button" class="quiz-opt" data-i="3">After a press, the pedestrians eventually get to walk</button></li></ol><div class="quiz-expl" hidden>“Eventually” makes it a liveness property: no finite run can break it, and invariants and refinement do not cover it.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="13"><div class="done-q">Finished this module?</div><button type="button" class="done-btn" data-yes="Done" data-no="Mark as done" data-undo="Mark as not done">Mark as done</button><div class="done-progress" data-label="{d} of {n} modules done"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_12_EN.html"><span class="mnav-label">&larr; Previous</span><span class="mnav-title">Module 12: Verifying functional programs</span></a><a class="mnav next" href="module_14_EN.html"><span class="mnav-label">Next &rarr;</span><span class="mnav-title">Module 14: Capstone: a verified compiler</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

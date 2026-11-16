@@ -1,0 +1,1720 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 8: Functional programming in HOL — Formal Methods with Isabelle</title>
+<meta name="description" content="Use Isabelle/HOL as a typed functional programming language. Define your own data types and functions, compute with them, read the types and messages Isabelle prints, see why every function must terminate, and turn your definitions into Haskell code.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="8" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Formal methods</a><span class="sep">/</span><span class="crumb crumb-now">Module 8</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Module 8 of 14</button><div class="dropdown-menu"><a href="module_01_EN.html"><span class="dd-n">1</span>Formal methods, what and why<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_EN.html"><span class="dd-n">2</span>Propositional logic<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_EN.html"><span class="dd-n">3</span>Predicate logic<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_EN.html"><span class="dd-n">4</span>Sets, relations and functions<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_EN.html"><span class="dd-n">5</span>Induction and recursion<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_EN.html"><span class="dd-n">6</span>What is a proof? Natural deduction<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_EN.html"><span class="dd-n">7</span>Natural deduction in Isabelle<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_EN.html" class="active"><span class="dd-n">8</span>Functional programming in HOL<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_EN.html"><span class="dd-n">9</span>Proof automation<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_EN.html"><span class="dd-n">10</span>Structured proofs in Isar<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_EN.html"><span class="dd-n">11</span>Induction in depth<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_EN.html"><span class="dd-n">12</span>Verifying functional programs<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_EN.html"><span class="dd-n">13</span>Modelling systems: state machines and invariants<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_EN.html"><span class="dd-n">14</span>Capstone: a verified compiler<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html"><span class="dd-n">&#9670;</span>Troubleshooting</a>
+<a href="glossary_EN.html"><span class="dd-n">&#9670;</span>Glossary</a></div></div>
+  
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#hol"><span class="num">1</span><span class="side-t">Programs in a logic</span></a><a href="#functions"><span class="num">2</span><span class="side-t">Functions are values</span></a><a href="#datatypes"><span class="num">3</span><span class="side-t">Data types</span></a><a href="#definitions"><span class="num">4</span><span class="side-t">Three ways to define a function</span></a><a href="#lists"><span class="num">5</span><span class="side-t">Lists in practice</span></a><a href="#numbers"><span class="num">6</span><span class="side-t">Numbers and type classes</span></a><a href="#termination"><span class="num">7</span><span class="side-t">Why every function must terminate</span></a><a href="#codegen"><span class="num">8</span><span class="side-t">From HOL to running code</span></a><a href="#summary"><span class="num">9</span><span class="side-t">What you learned</span></a><a href="#exercises"><span class="num">10</span><span class="side-t">Exercises</span></a><a href="#quiz"><span class="num">11</span><span class="side-t">Check yourself</span></a></nav>
+<div class="sidebar-label">Reference</div><div class="side-links"><a href="cheatsheet_EN.html">Cheat sheet</a><a href="troubleshooting_EN.html">Troubleshooting</a><a href="glossary_EN.html">Glossary</a><a href="formal-methods-theories.zip">Theory files (ZIP)</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Formal Methods with Isabelle &middot; Part III · Isabelle/HOL in practice</div>
+      <h1 class="module-title"><span class="title-n">Module 8</span>Functional programming in HOL</h1>
+      <p class="module-lead">Use Isabelle/HOL as a typed functional programming language. Define your own data types and functions, compute with them, read the types and messages Isabelle prints, see why every function must terminate, and turn your definitions into Haskell code.</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 210 min</span><span class="chip chip-needs">You need: Modules 1–7</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Read and write HOL types and terms, and inspect them with <code>typ</code>, <code>term</code> and <code>value</code></li><li>Use λ-abstraction, currying and partial application</li><li>Define data types, and functions on them with <code>definition</code>, <code>fun</code> and <code>primrec</code></li><li>Compute with lists and numbers, and explain overloaded notation with type classes</li><li>Explain why every function must terminate, read Isabelle’s termination messages, and supply a measure when Isabelle cannot find one</li><li>Generate Haskell code from your definitions with <code>export_code</code></li></ul></section>
+<div class="content">
+<span class="section-anchor" id="hol"></span>
+<div class="section-header"><span class="section-num">1</span><h2>Programs in a logic</h2></div>
+<p>In Part II you used Isabelle to check proofs about formulas. Part III turns to the other half of
+Isabelle/HOL: it is also a programming language. HOL contains a small, typed <strong>functional programming
+language</strong>, close to Haskell, OCaml and Standard ML (the language of Isabelle’s own core).
+You write programs as equations, Isabelle runs them, and because the programs are part of the logic,
+you can prove facts about them. Modules 9 to 11 are about the proving; this module is about the
+programming.</p>
+<p>Programs in HOL differ from programs in Python, Java or C in three ways.</p>
+<ul>
+<li><strong>No side effects.</strong> A HOL function does not change variables, print, or read files. Given the same
+arguments, it always returns the same result, like a function in mathematics.</li>
+<li><strong>No loops.</strong> Repetition is done by recursion, as in Module 5.</li>
+<li><strong>Every function is total.</strong> It returns a result for every argument of its type. Section 8.7 explains
+why the logic insists on this.</li>
+</ul>
+<p>This module builds one example step by step: a controller for a British traffic light, which shows red,
+then red and amber together, then green, then amber, and then red again. You will describe its states as
+a data type, compute its sequence of states and their timing with lists and numbers, check a safety rule
+for a junction, and finally generate Haskell code for it. On the way you will meet the errors that
+beginners meet, with Isabelle’s real messages.</p>
+<p>Start a new theory for this module, as in Module 1 (for example <code>Traffic.thy</code> with <code>theory Traffic</code>),
+and type the blocks into it as you read.</p>
+<h3 id="types">Types</h3>
+<p>Every term in HOL has a <strong>type</strong>, and Isabelle checks types before it does anything else. Types rule out
+nonsense such as adding a number to a list: a term that cannot be given a type is rejected at once.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Its values</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bool</code></td>
+<td>the truth values</td>
+<td><code>True</code>, <code>False</code></td>
+</tr>
+<tr>
+<td><code>nat</code></td>
+<td>the natural numbers 0, 1, 2, …</td>
+<td><code>0</code>, <code>Suc 0</code>, <code>42</code></td>
+</tr>
+<tr>
+<td><code>int</code></td>
+<td>the integers …, −1, 0, 1, …</td>
+<td><code>-3</code>, <code>7</code></td>
+</tr>
+<tr>
+<td><code>'a list</code></td>
+<td>finite lists of elements of type <code>'a</code></td>
+<td><code>[]</code>, <code>[1, 2, 3]</code></td>
+</tr>
+<tr>
+<td><code>'a × 'b</code></td>
+<td>pairs of an <code>'a</code> and a <code>'b</code></td>
+<td><code>(3, True)</code></td>
+</tr>
+<tr>
+<td><code>'a option</code></td>
+<td>no value, or one value of type <code>'a</code></td>
+<td><code>None</code>, <code>Some 5</code></td>
+</tr>
+<tr>
+<td><code>'a ⇒ 'b</code></td>
+<td>functions from <code>'a</code> to <code>'b</code></td>
+<td><code>Suc</code>, <code>rev</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="box box-definition"><div class="box-label">Definition 8.1<span class="box-title">Types in HOL</span></div>
+<p>A <strong>base type</strong> such as <code>bool</code>, <code>nat</code> or <code>int</code> is a name. A <strong>type constructor</strong> such as <code>list</code> or
+<code>option</code> builds a type from other types and is written <em>after</em> its arguments: <code>nat list</code> is the type of
+lists of natural numbers, and <code>nat list list</code> the type of lists of such lists. <code>'a × 'b</code> is the type of
+pairs and <code>'a ⇒ 'b</code> the type of functions. A <strong>type variable</strong> <code>'a</code>, <code>'b</code>, … stands for any type; a
+function whose type contains one, such as <code>rev :: 'a list ⇒ 'a list</code>, works for every instance of it
+and is called <strong>polymorphic</strong>.</p>
+</div>
+<p>Read <code>t :: τ</code> as “t has type τ”. Type the function arrow ⇒ as <code>=&gt;</code> and the product sign × as <code>&lt;*&gt;</code> (or
+write <code>*</code> instead of ×). The arrow binds more weakly than any type constructor, so <code>nat ⇒ bool list</code>
+means <code>nat ⇒ (bool list)</code>.</p>
+<p>The command <code>typ</code> checks that a type is well formed and prints it back:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="typ &quot;nat × bool&quot;
+typ &quot;nat ⇒ bool list&quot;
+typ &quot;(nat ⇒ bool) list&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">typ</span> <span class="isa-inner">&quot;nat × bool&quot;</span>
+<span class="isa-cmd">typ</span> <span class="isa-inner">&quot;nat ⇒ bool list&quot;</span>
+<span class="isa-cmd">typ</span> <span class="isa-inner">&quot;(nat ⇒ bool) list&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;nat × bool&quot;
+
+&quot;nat ⇒ bool list&quot;
+
+&quot;(nat ⇒ bool) list&quot;</code></pre></div>
+<p>Isabelle prints each type with as few parentheses as possible. The second type needs none, because ⇒
+binds most weakly; the third needs them, because it is a list of functions, not a function that returns a
+list.</p>
+<h3 id="terms">Terms and type inference</h3>
+<p>A <strong>term</strong> is an expression of HOL: a constant such as <code>True</code>, <code>0</code> or <code>rev</code>, a variable such as <code>x</code>, a
+function applied to arguments such as <code>rev xs</code>, or one of the forms this module introduces. The command
+<code>term</code> reads a term, works out its type and prints both, without evaluating anything:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;Suc 0&quot;
+term &quot;[Suc 0, 5]&quot;
+term &quot;(Suc 0, [True])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;Suc 0&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;[Suc 0, 5]&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;(Suc 0, [True])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Suc 0&quot;
+  :: &quot;nat&quot;
+
+&quot;[Suc 0, 5]&quot;
+  :: &quot;nat list&quot;
+
+&quot;(Suc 0, [True])&quot;
+  :: &quot;nat × bool list&quot;</code></pre></div>
+<p>You never said that <code>5</code> is a natural number; Isabelle worked it out. All elements of a list have one
+type, <code>Suc 0</code> is a <code>nat</code>, so <code>5</code> must be a <code>nat</code> too. In the last term, the pair has a <code>nat</code> on the left
+and a <code>bool list</code> on the right, so its type is <code>nat × bool list</code>.</p>
+<div class="box box-definition"><div class="box-label">Definition 8.2<span class="box-title">Type inference and type annotations</span></div>
+<p><strong>Type inference</strong> computes the type of every part of a term from the types of the constants in it.
+Where the constants leave the type open, the result contains type variables. A <strong>type annotation</strong>
+<code>t :: τ</code> (or <code>(t::τ)</code> inside a larger term) tells Isabelle that <code>t</code> has type τ.</p>
+</div>
+<p>Here the constants leave the type open:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;x + 1&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;x + 1&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;x + 1&quot;
+  :: &quot;'a&quot;</code></pre></div>
+<p>The variable <code>x</code> and the number <code>1</code> could be natural numbers, integers or real numbers: all of them have
+<code>+</code> and <code>1</code>. Isabelle answers with the type variable <code>'a</code>, “some type”. One annotation settles it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;x + (1::nat)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;x + (1::nat)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;x + 1&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>Since <code>+</code> takes two arguments of the same type, <code>x</code> is now a <code>nat</code> too. Section 8.6 explains what Isabelle
+knows about the <code>'a</code> in <code>x + 1</code>.</p>
+<p><code>x</code> is a <strong>free variable</strong>: a name that is not a constant. Isabelle/jEdit shows free variables in blue,
+and constants such as <code>Suc</code> in black.</p>
+<h3 id="value">Computing with value</h3>
+<p><code>value</code> evaluates a term and prints the result with its type, as in Module 1. It also works with free
+variables, which it treats as unknown values:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;rev [a, b, c]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;rev [a, b, c]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[c, b, a]&quot;
+  :: &quot;'a list&quot;</code></pre></div>
+<p>Isabelle reversed a list of three elements it knows nothing about. This is useful for testing a function
+on symbolic inputs.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>A misspelt name is a free variable too. Isabelle has no constant <code>lenght</code>, so here it takes <code>lenght</code> to be
+an unknown function and hands the term back unevaluated, with an unknown type:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;lenght [1, 2::nat]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;lenght [1, 2::nat]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;lenght [1, 2]&quot;
+  :: &quot;'a&quot;</code></pre></div>
+<p>There is no error message. When <code>value</code> returns your term unchanged with a type variable such as <code>'a</code>,
+look for a misspelt name: Isabelle/jEdit shows it in blue, like any variable.</p>
+</div>
+<h3 id="type-errors">When types do not fit</h3>
+<p>A term that cannot be typed is rejected with a message. <code>Suc</code> takes a natural number, and <code>True</code> is not
+one:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;Suc True&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Type unification failed: Clash of types &quot;bool&quot; and &quot;nat&quot;
+
+Type error in application: incompatible operand type
+
+Operator:  Suc :: nat ⇒ nat
+Operand:   True :: bool
+</span></code></pre></div>
+<p>Read the message from the top:</p>
+<ul>
+<li><strong>Type unification failed.</strong> To type an application <code>f a</code>, Isabelle must make the argument type of <code>f</code>
+equal to the type of <code>a</code>. Finding types that make two types equal is called <strong>type unification</strong>: the
+same idea as the unification of formulas in Module 7, applied to types. Here it failed.</li>
+<li><strong>Clash of types “bool” and “nat”</strong> names the two types that could not be made equal.</li>
+<li><strong>Operator</strong> is the function, <code>Suc :: nat ⇒ nat</code>; <strong>Operand</strong> is the argument, <code>True :: bool</code>.</li>
+</ul>
+<p>Giving a function too many arguments produces a different message. <code>rev</code> takes one list:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;rev [1, 2::nat] [3]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Type unification failed: Clash of types &quot;_ ⇒ _&quot; and &quot;_ list&quot;
+
+Type error in application: operator not of function type
+
+Operator:  rev [1, 2] :: nat list
+Operand:   [3::??'a] :: ??'a list
+</span></code></pre></div>
+<p>Isabelle reads <code>rev [1, 2] [3]</code> as the list <code>rev [1, 2]</code> applied to <code>[3]</code>. A list is not a function, so
+the <strong>operator</strong> <code>rev [1, 2]</code> is “not of function type”. In the clash, <code>_ ⇒ _</code> stands for “some function
+type” and <code>_ list</code> for “some list type”. The type <code>??'a</code> of <code>[3]</code> is a type variable that Isabelle
+invented while it worked on the term and never had to fix.</p>
+<span class="section-anchor" id="functions"></span>
+<div class="section-header"><span class="section-num">2</span><h2>Functions are values</h2></div>
+<p>In HOL a function is a value like a number or a list. You can pass it to another function, return it as a
+result, and keep it in a list. This section shows how to write functions without naming them, and how
+functions of several arguments work.</p>
+<h3 id="lambda">λ-abstraction</h3>
+<p>To write a function without giving it a name, use <strong>λ-abstraction</strong>: <code>λx. x + 1</code> is the function that
+maps <code>x</code> to <code>x + 1</code>. Read it “lambda x, x plus 1”. Type λ as <code>%</code> or <code>\lambda</code>.</p>
+<div class="box box-definition"><div class="box-label">Definition 8.3<span class="box-title">λ-abstraction and application</span></div>
+<p>If <code>t</code> is a term of type τ₂ in which the variable <code>x</code> of type τ₁ may occur, then <code>λx. t</code> is the function of
+type τ₁ ⇒ τ₂ that maps each value <code>x</code> to <code>t</code>. <strong>Application</strong> of a function <code>f</code> to an argument <code>a</code> is
+written <code>f a</code>, without parentheses or commas. Applying <code>λx. t</code> to <code>a</code> gives <code>t</code> with <code>a</code> in place of <code>x</code>;
+this step is called <strong>β-reduction</strong>.</p>
+</div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;λx::nat. x + 1&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;λx::nat. x + 1&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;λx. x + 1&quot;
+  :: &quot;nat ⇒ nat&quot;</code></pre></div>
+<p>The annotation <code>x::nat</code> after the λ fixes the type of the bound variable, so the function has type
+<code>nat ⇒ nat</code>. Now apply a function to an argument:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(λx::nat. x * x) 7&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(λx::nat. x * x) 7&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;49&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>The difference between <code>term</code> and <code>value</code> shows here too. <code>term</code> shows the term after the β-reduction
+step, but it does no arithmetic:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;(λx::nat. x * x) 7&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;(λx::nat. x * x) 7&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;7 * 7&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<h3 id="currying">Functions of several arguments</h3>
+<p>Every HOL function takes exactly one argument. A function of two numbers takes the first number and
+returns a function that waits for the second. Its type is <code>nat ⇒ nat ⇒ nat</code>, which means
+<code>nat ⇒ (nat ⇒ nat)</code>, because ⇒ groups to the right. Application groups to the left: <code>f x y</code> means
+<code>(f x) y</code>. Figure 8.1 follows the two steps.</p>
+<figure class="fig" id="fig-08-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300" role="img"><title>The type of a curried function</title><defs><marker id="fig-08-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker></defs><rect x="20" y="24" width="180" height="140" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="110" y="60" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="16" font-weight="700" fill="#2563EB" text-anchor="middle">(+)</text><text x="110" y="88" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">:: nat ⇒ (nat ⇒ nat)</text><text x="110" y="120" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">a function of two numbers</text><text x="110" y="140" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">takes the first number …</text><rect x="290" y="24" width="180" height="140" rx="12" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.8"/><text x="380" y="60" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="16" font-weight="700" fill="#6D28D9" text-anchor="middle">(+) 3</text><text x="380" y="88" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">:: nat ⇒ nat</text><text x="380" y="120" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">… and returns a function</text><text x="380" y="140" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">that waits for the second</text><rect x="560" y="24" width="180" height="140" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="650" y="60" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="16" font-weight="700" fill="#15803D" text-anchor="middle">(+) 3 4</text><text x="650" y="88" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">:: nat</text><text x="650" y="120" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">a number</text><text x="650" y="140" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="400" fill="#475569" text-anchor="middle">= 7</text><line x1="204" y1="94" x2="282" y2="94" stroke="#475569" stroke-width="2" marker-end="url(#fig-08-1__ah-475569)"/><text x="244" y="84" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">apply to 3</text><line x1="474" y1="94" x2="552" y2="94" stroke="#475569" stroke-width="2" marker-end="url(#fig-08-1__ah-475569)"/><text x="514" y="84" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">apply to 4</text><rect x="20" y="190" width="720" height="92" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><text x="44" y="224" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="start">nat ⇒ nat ⇒ nat</text><text x="206" y="224" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">means</text><text x="250" y="224" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="start">nat ⇒ (nat ⇒ nat)</text><text x="716" y="224" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="end" font-style="italic">⇒ groups to the right</text><text x="44" y="260" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="start">(+) 3 4</text><text x="206" y="260" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">means</text><text x="250" y="260" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="start">((+) 3) 4</text><text x="716" y="260" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="end" font-style="italic">application groups to the left</text></svg>
+</div><figcaption><span class="fig-num">Figure 8.1</span> <p>A function of two arguments takes them one at a time. <code>(+)</code> applied to 3 gives a function, <code>(+) 3</code>, which
+adds 3 to its argument; applied to 4, that gives the number 7.</p>
+</figcaption></figure>
+<div class="box box-definition"><div class="box-label">Definition 8.4<span class="box-title">Currying and partial application</span></div>
+<p>Writing a function of several arguments as a function that takes the first argument and returns a
+function of the rest is called <strong>currying</strong>, after the logician Haskell Curry. Applying such a function
+to fewer arguments than it can take is <strong>partial application</strong>; the result is a function.</p>
+</div>
+<p>The infix <code>+</code> is notation for a curried function whose name is <code>(+)</code>: <code>x + y</code> is short for <code>(+) x y</code>.
+You can see this when you write a function of two arguments with a λ:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;λx y. x + (y::nat)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;λx y. x + (y::nat)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;(+)&quot;
+  :: &quot;nat ⇒ nat ⇒ nat&quot;</code></pre></div>
+<p>Isabelle prints <code>(+)</code> instead of your λ-term. The two are the same function: <code>λx y. x + y</code> takes <code>x</code>
+and <code>y</code> and adds them, which is exactly what <code>(+)</code> does, and Isabelle prints the shorter form. A
+partial application of <code>(+)</code> is a function of one argument:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;(+) (3::nat)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;(+) (3::nat)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;(+) 3&quot;
+  :: &quot;nat ⇒ nat&quot;</code></pre></div>
+<p>Functions that take functions as arguments are called <strong>higher-order</strong>. The most common one is <code>map</code>,
+which applies a function to every element of a list:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;map&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;map&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;map&quot;
+  :: &quot;('a ⇒ 'b) ⇒ 'a list ⇒ 'b list&quot;</code></pre></div>
+<p>The type says it all: <code>map</code> takes a function from <code>'a</code> to <code>'b</code> and a list of <code>'a</code>s, and returns a list of
+<code>'b</code>s. Give it the partial application from above:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;map ((+) (3::nat)) [1, 2, 3]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;map ((+) (3::nat)) [1, 2, 3]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[4, 5, 6]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<p>HOL is called <em>higher-order</em> logic for the same reason: its variables, too, may stand for functions, and
+its quantifiers may range over them.</p>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>You could also write a function of two numbers as a function on pairs, of type <code>nat × nat ⇒ nat</code>. It
+takes one argument, a pair. Isabelle’s library almost always uses the curried form instead, because it
+allows partial application, as in <code>map ((+) 3)</code>.</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>Application groups to the left, so <code>Suc Suc 0</code> means <code>(Suc Suc) 0</code>: <code>Suc</code> applied to the function
+<code>Suc</code>.</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;Suc Suc 0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Type unification failed: Clash of types &quot;_ ⇒ _&quot; and &quot;nat&quot;
+
+Type error in application: incompatible operand type
+
+Operator:  Suc :: nat ⇒ nat
+Operand:   Suc :: nat ⇒ nat
+</span></code></pre></div>
+<p>The operand of <code>Suc</code> is the function <code>Suc :: nat ⇒ nat</code> where a <code>nat</code> is needed. Write <code>Suc (Suc 0)</code>.
+Missing parentheses are the most common cause of type errors.</p>
+</div>
+<span class="section-anchor" id="datatypes"></span>
+<div class="section-header"><span class="section-num">3</span><h2>Data types</h2></div>
+<p>Now the traffic light. At any moment it is in one of four states. HOL lets you define a new type whose
+values are exactly these states.</p>
+<h3 id="enumerations">Enumerations</h3>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype light = Red | RedAmber | Green | Amber">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> light = Red | RedAmber | Green | Amber</code></pre></div>
+<p>This command introduces the type <code>light</code> and four <strong>constructors</strong>, <code>Red</code>, <code>RedAmber</code>, <code>Green</code> and
+<code>Amber</code>, the values of the type. Constructor names start with a capital letter by convention.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;Green&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;Green&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Green&quot;
+  :: &quot;light&quot;</code></pre></div>
+<div class="box box-definition"><div class="box-label">Definition 8.5<span class="box-title">Datatype</span></div>
+<p>A declaration <code>datatype t = C₁ τ… | … | Cₙ τ…</code> introduces a new type <code>t</code> whose values are built with
+the <strong>constructors</strong> C₁, …, Cₙ. Each constructor takes arguments of the types listed after it (possibly
+none). Values built with different constructors are different; values built with the same constructor
+are equal only if their arguments are equal; and every value of <code>t</code> is built with the constructors. A
+datatype whose constructors take no arguments is an <strong>enumeration</strong>.</p>
+</div>
+<p>A function on <code>light</code> says what to do for each constructor. The traffic light’s next state:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun next_light :: &quot;light ⇒ light&quot; where
+  &quot;next_light Red = RedAmber&quot;
+| &quot;next_light RedAmber = Green&quot;
+| &quot;next_light Green = Amber&quot;
+| &quot;next_light Amber = Red&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> next_light :: <span class="isa-inner">&quot;light ⇒ light&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;next_light Red = RedAmber&quot;</span>
+| <span class="isa-inner">&quot;next_light RedAmber = Green&quot;</span>
+| <span class="isa-inner">&quot;next_light Green = Amber&quot;</span>
+| <span class="isa-inner">&quot;next_light Amber = Red&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  next_light :: &quot;light ⇒ light&quot;
+
+Found termination order: &quot;{}&quot;</code></pre></div>
+<p>This is <strong>pattern matching</strong>: the left-hand side of each equation contains a <strong>pattern</strong>, here a
+constructor, that says which arguments the equation is for. The equations are separated by <code>|</code>.
+Isabelle reports the new constant with its type, and a termination order, <code>&quot;{}&quot;</code>, which is empty because
+<code>next_light</code> does not call itself; Section 8.7 explains these reports.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;next_light (next_light Red)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;next_light (next_light Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Green&quot;
+  :: &quot;light&quot;</code></pre></div>
+<p>The facts listed in Definition 8.5 come with the datatype and are known to <code>simp</code>. It proves at once that
+two constructors differ:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;Red ≠ Green&quot;
+  by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;Red ≠ Green&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<p>Every light is one of the four constructors, so you can prove a claim about all lights by checking each
+constructor in turn. The proof method <code>cases l</code> splits a goal into one case per constructor:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;next_light (next_light (next_light (next_light l))) = l&quot;
+  apply (cases l)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;next_light (next_light (next_light (next_light l))) = l&quot;</span>
+  <span class="isa-proof">apply</span> (cases l)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (4 subgoals):
+ 1. l = Red ⟹ next_light (next_light (next_light (next_light l))) = l
+ 2. l = RedAmber ⟹ next_light (next_light (next_light (next_light l))) = l
+ 3. l = Green ⟹ next_light (next_light (next_light (next_light l))) = l
+ 4. l = Amber ⟹ next_light (next_light (next_light (next_light l))) = l</code></pre></div>
+<p>Each subgoal assumes a different value for <code>l</code>. <code>simp</code> uses the assumption to replace <code>l</code> and then
+computes:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply simp_all
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> simp_all
+  <span class="isa-proof">done</span></code></pre></div>
+<p><code>simp_all</code> applies <code>simp</code> to all subgoals. A test with <code>value</code> would have checked one light; the lemma
+covers all four.</p>
+<p>Finally, the light’s timing. Each state lasts a fixed number of seconds:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun duration :: &quot;light ⇒ nat&quot; where
+  &quot;duration Red = 30&quot;
+| &quot;duration RedAmber = 2&quot;
+| &quot;duration Green = 25&quot;
+| &quot;duration Amber = 3&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> duration :: <span class="isa-inner">&quot;light ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;duration Red = 30&quot;</span>
+| <span class="isa-inner">&quot;duration RedAmber = 2&quot;</span>
+| <span class="isa-inner">&quot;duration Green = 25&quot;</span>
+| <span class="isa-inner">&quot;duration Amber = 3&quot;</span></code></pre></div>
+<h3 id="recursive">Recursive data types</h3>
+<p>A list can be arbitrarily long, so no enumeration can describe all lists. A <strong>recursive</strong> datatype refers
+to itself in its definition. Here is a stack, the last-in, first-out store found in every programming
+course, as a datatype of your own:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype 'a stack = Empty | Push 'a &quot;'a stack&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> 'a stack = Empty | Push 'a <span class="isa-inner">&quot;'a stack&quot;</span></code></pre></div>
+<p>Read it as: a stack of elements of type <code>'a</code> is either <code>Empty</code>, or <code>Push x s</code>, an element <code>x</code> pushed on
+top of a stack <code>s</code>. The type variable makes the type polymorphic: <code>nat stack</code>, <code>light stack</code> and so on. An
+argument type that is more than a single name, such as <code>'a stack</code>, goes in quotation marks.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;Push (1::nat) (Push 2 (Push 3 Empty))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;Push (1::nat) (Push 2 (Push 3 Empty))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Push 1 (Push 2 (Push 3 Empty))&quot;
+  :: &quot;nat stack&quot;</code></pre></div>
+<p>Figure 8.2 draws this value as a tree. Each <code>Push</code> has two branches, the element and the rest of the
+stack, and the tree ends in <code>Empty</code>.</p>
+<figure class="fig" id="fig-08-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>A datatype value drawn as a tree</title><defs></defs><rect x="20" y="16" width="350" height="280" rx="12" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="40" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#2563EB" text-anchor="start">A stack</text><text x="40" y="64" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">Push 1 (Push 2 (Push 3 Empty))</text><rect x="390" y="16" width="350" height="280" rx="12" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.2"/><text x="410" y="42" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="15" font-weight="700" fill="#15803D" text-anchor="start">A list</text><text x="410" y="64" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="start">1 # 2 # 3 # []   =   [1, 2, 3]</text><rect x="90" y="88" width="60" height="28" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="120" y="107" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle">Push</text><line x1="110" y1="116" x2="90" y2="139" stroke="#475569" stroke-width="1.6"/><circle cx="86" cy="150" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="86" y="155" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">1</text><line x1="130" y1="116" x2="174" y2="138" stroke="#475569" stroke-width="1.6"/><rect x="152" y="138" width="60" height="28" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="182" y="157" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle">Push</text><line x1="172" y1="166" x2="152" y2="189" stroke="#475569" stroke-width="1.6"/><circle cx="148" cy="200" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="148" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">2</text><line x1="192" y1="166" x2="236" y2="188" stroke="#475569" stroke-width="1.6"/><rect x="214" y="188" width="60" height="28" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.6"/><text x="244" y="207" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle">Push</text><line x1="234" y1="216" x2="214" y2="239" stroke="#475569" stroke-width="1.6"/><circle cx="210" cy="250" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="210" y="255" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">3</text><line x1="254" y1="216" x2="298" y2="238" stroke="#475569" stroke-width="1.6"/><rect x="273.5" y="238" width="65" height="28" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="306" y="257" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#475569" text-anchor="middle">Empty</text><rect x="460" y="88" width="60" height="28" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.6"/><text x="490" y="107" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#15803D" text-anchor="middle">#</text><line x1="480" y1="116" x2="460" y2="139" stroke="#475569" stroke-width="1.6"/><circle cx="456" cy="150" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="456" y="155" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">1</text><line x1="500" y1="116" x2="544" y2="138" stroke="#475569" stroke-width="1.6"/><rect x="522" y="138" width="60" height="28" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.6"/><text x="552" y="157" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#15803D" text-anchor="middle">#</text><line x1="542" y1="166" x2="522" y2="189" stroke="#475569" stroke-width="1.6"/><circle cx="518" cy="200" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="518" y="205" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">2</text><line x1="562" y1="166" x2="606" y2="188" stroke="#475569" stroke-width="1.6"/><rect x="584" y="188" width="60" height="28" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.6"/><text x="614" y="207" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#15803D" text-anchor="middle">#</text><line x1="604" y1="216" x2="584" y2="239" stroke="#475569" stroke-width="1.6"/><circle cx="580" cy="250" r="13" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/><text x="580" y="255" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">3</text><line x1="624" y1="216" x2="668" y2="238" stroke="#475569" stroke-width="1.6"/><rect x="646.0" y="238" width="60" height="28" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="676" y="257" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#475569" text-anchor="middle">[]</text><text x="380" y="322" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="middle">The same shape: a constructor with an element</text><text x="380" y="341" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="middle">and the rest, until the constructor without arguments.</text></svg>
+</div><figcaption><span class="fig-num">Figure 8.2</span> <p>A value of a recursive datatype is a tree of constructors. The stack on the left and the list on the
+right have the same shape.</p>
+</figcaption></figure>
+<p>Isabelle’s own lists are a datatype of exactly this shape. The library theory <code>List</code> defines them, in
+essence, as <code>datatype 'a list = Nil | Cons 'a &quot;'a list&quot;</code>, with the notation <code>[]</code> for <code>Nil</code> and the infix
+<code>x # xs</code> for <code>Cons x xs</code>. The list <code>[1, 2, 3]</code> is notation for <code>1 # 2 # 3 # []</code>, where <code>#</code> groups to the
+right. Every list you have used so far was built with these two constructors.</p>
+<p>Functions on a recursive datatype are usually recursive too. One equation per constructor, with a
+recursive call on the inner stack:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="primrec height :: &quot;'a stack ⇒ nat&quot; where
+  &quot;height Empty = 0&quot;
+| &quot;height (Push x s) = Suc (height s)&quot;
+
+primrec to_list :: &quot;'a stack ⇒ 'a list&quot; where
+  &quot;to_list Empty = []&quot;
+| &quot;to_list (Push x s) = x # to_list s&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">primrec</span> height :: <span class="isa-inner">&quot;'a stack ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;height Empty = 0&quot;</span>
+| <span class="isa-inner">&quot;height (Push x s) = Suc (height s)&quot;</span>
+
+<span class="isa-cmd">primrec</span> to_list :: <span class="isa-inner">&quot;'a stack ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;to_list Empty = []&quot;</span>
+| <span class="isa-inner">&quot;to_list (Push x s) = x # to_list s&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  height :: &quot;'a stack ⇒ nat&quot;
+
+consts
+  to_list :: &quot;'a stack ⇒ 'a list&quot;</code></pre></div>
+<p><code>primrec</code> is a variant of <code>fun</code> for this simple kind of recursion; Section 8.4 compares them. <code>to_list</code>
+turns a stack into a list, top element first:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;to_list (Push (1::nat) (Push 2 (Push 3 Empty)))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;to_list (Push (1::nat) (Push 2 (Push 3 Empty)))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[1, 2, 3]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<h3 id="options">Options and pairs</h3>
+<p>What is the top element of an empty stack? In Java you might get an exception, in C whatever happens to
+be in memory. A HOL function is total, so a function of type <code>'a stack ⇒ 'a</code> must return <em>some</em> element
+even for <code>Empty</code>. The clean way out is to change the result type. HOL’s library defines, in essence,</p>
+<p><code>datatype 'a option = None | Some 'a</code></p>
+<p>A value of type <code>'a option</code> is either <code>None</code>, “no result”, or <code>Some x</code>, the result <code>x</code>. Functions that
+can fail return an option:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun top :: &quot;'a stack ⇒ 'a option&quot; where
+  &quot;top Empty = None&quot;
+| &quot;top (Push x s) = Some x&quot;
+
+fun pop :: &quot;'a stack ⇒ ('a × 'a stack) option&quot; where
+  &quot;pop Empty = None&quot;
+| &quot;pop (Push x s) = Some (x, s)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> top :: <span class="isa-inner">&quot;'a stack ⇒ 'a option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;top Empty = None&quot;</span>
+| <span class="isa-inner">&quot;top (Push x s) = Some x&quot;</span>
+
+<span class="isa-cmd">fun</span> pop :: <span class="isa-inner">&quot;'a stack ⇒ ('a × 'a stack) option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;pop Empty = None&quot;</span>
+| <span class="isa-inner">&quot;pop (Push x s) = Some (x, s)&quot;</span></code></pre></div>
+<p><code>pop</code> returns two things at once, the top element and the rest of the stack, as a <strong>pair</strong> <code>(x, s)</code> of
+type <code>'a × 'a stack</code>.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;pop (Push Red (Push Green Empty))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;pop (Push Red (Push Green Empty))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Some (Red, Push Green Empty)&quot;
+  :: &quot;(light × light stack) option&quot;</code></pre></div>
+<div class="box box-definition"><div class="box-label">Definition 8.6<span class="box-title">Pairs and options</span></div>
+<p>A <strong>pair</strong> <code>(a, b)</code> has type <code>τ₁ × τ₂</code> when <code>a :: τ₁</code> and <code>b :: τ₂</code>; the functions <code>fst</code> and <code>snd</code>
+return its first and second component. A triple <code>(a, b, c)</code> is short for <code>(a, (b, c))</code>. The <strong>option
+type</strong> <code>'a option</code> has the values <code>None</code> and <code>Some x</code> for every <code>x :: 'a</code>; it is the type of results
+that may be missing.</p>
+</div>
+<h3 id="case">Taking values apart with case</h3>
+<p>A function that receives an option must deal with both possibilities. Besides pattern matching in
+equations, HOL has a <strong>case expression</strong> that matches a value against patterns inside a term:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun top_or :: &quot;'a ⇒ 'a stack ⇒ 'a&quot; where
+  &quot;top_or d s = (case top s of None ⇒ d | Some x ⇒ x)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> top_or :: <span class="isa-inner">&quot;'a ⇒ 'a stack ⇒ 'a&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;top_or d s = (case top s of None ⇒ d | Some x ⇒ x)&quot;</span></code></pre></div>
+<p><code>top_or d s</code> is the top element of <code>s</code>, or the default <code>d</code> if <code>s</code> is empty. Read
+<code>case t of p₁ ⇒ e₁ | p₂ ⇒ e₂</code> as: compute <code>t</code>, find the first pattern pᵢ that matches its value, and
+return eᵢ, with the variables of the pattern standing for the matching parts. The arrow is the same ⇒ as
+in function types. A <code>case</code> expression inside a larger term must be in parentheses, like
+<code>if … then … else …</code>.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;top_or Red (Push Green Empty)&quot;
+value &quot;top_or Red Empty&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;top_or Red (Push Green Empty)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;top_or Red Empty&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Green&quot;
+  :: &quot;light&quot;
+
+&quot;Red&quot;
+  :: &quot;light&quot;</code></pre></div>
+<p>Patterns can be nested. <code>Some (x, s)</code> matches an option that contains a pair, and names both parts:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;case pop (Push Green (Push Red Empty)) of None ⇒ [] | Some (x, s) ⇒ [x, x]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;case pop (Push Green (Push Red Empty)) of None ⇒ [] | Some (x, s) ⇒ [x, x]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[Green, Green]&quot;
+  :: &quot;light list&quot;</code></pre></div>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p><code>fun</code> equations and <code>case</code> expressions are two ways to write the same thing. Use equations when a
+function’s behaviour depends on the shape of its arguments; use <code>case</code> when one intermediate result, such
+as <code>top s</code> above, has to be taken apart.</p>
+</div>
+<span class="section-anchor" id="definitions"></span>
+<div class="section-header"><span class="section-num">4</span><h2>Three ways to define a function</h2></div>
+<p>You have now used <code>fun</code> and <code>primrec</code>. HOL has a third command, <code>definition</code>. The three differ in what
+they accept, in what they prove for you, and in how proofs use them.</p>
+<h3 id="definition">Non-recursive functions: definition</h3>
+<p>The traffic light stands at a crossroads, where two lights control the two directions, north–south and
+east–west. A simple, strict safety rule says that at every moment at least one of the two lights is in
+the state <code>Red</code> (red alone, not red and amber). The state of the junction is a pair of lights, and the
+rule is a function on such pairs:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition safe :: &quot;light × light ⇒ bool&quot; where
+  &quot;safe p = (fst p = Red ∨ snd p = Red)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> safe :: <span class="isa-inner">&quot;light × light ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;safe p = (fst p = Red ∨ snd p = Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  safe :: &quot;light × light ⇒ bool&quot;</code></pre></div>
+<p><code>definition</code> introduces a constant with a single equation <code>f x₁ … xₙ = t</code>, where the right-hand side <code>t</code>
+must not mention <code>f</code>: no recursion and no pattern matching. Isabelle stores the equation as a theorem
+named <code>safe_def</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm safe_def">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> safe_def</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>safe ?p = (fst ?p = Red ∨ snd ?p = Red)</code></pre></div>
+<p>The question marks are the schematic variables of Module 7: the equation holds for every <code>p</code>. Now prove
+that one particular state is safe:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;safe (Red, Green)&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. safe (Red, Green)</span></code></pre></div>
+<p><code>simp</code> could not even start. Unlike the equations of <code>fun</code> and <code>primrec</code>, the equation of a <code>definition</code>
+is not given to the simplifier, so for <code>simp</code>, <code>safe</code> is an unknown function. Name the definition and
+<code>simp</code> uses it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;safe (Red, Green)&quot;
+  by (simp add: safe_def)
+
+lemma &quot;¬ safe (Green, Amber)&quot;
+  by (simp add: safe_def)
+
+lemma safe_Red: &quot;safe (Red, l)&quot;
+  by (simp add: safe_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;safe (Red, Green)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: safe_def)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;¬ safe (Green, Amber)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: safe_def)
+
+<span class="isa-cmd">lemma</span> safe_Red: <span class="isa-inner">&quot;safe (Red, l)&quot;</span>
+  <span class="isa-proof">by</span> (simp add: safe_def)</code></pre></div>
+<p>The last lemma holds for every state <code>l</code> of the east–west light: whatever it shows, the junction is safe
+while the north–south light is red.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p><code>simp</code> does not unfold a <code>definition</code> unless you ask with <code>simp add: f_def</code>. This is deliberate. A
+definition introduces a concept; once you have proved its important properties, such as <code>safe_Red</code>,
+later proofs should use those properties rather than the definition. Proofs then stay short, and if the
+definition changes, only the proofs of the properties need repair. Module 9 shows more ways of
+controlling the simplifier.</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p><code>definition</code> takes no patterns. A pattern for the pair on the left-hand side is rejected:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> safe2 :: <span class="isa-inner">&quot;light × light ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;safe2 (a, b) = (a = Red ∨ b = Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Bad arguments on lhs: &quot;(a, b)&quot;
+The error(s) above occurred in definition:
+&quot;safe2 (a, b) ≡
+ a = Red ∨
+ b =
+ Red&quot;</span></code></pre></div>
+<p>Use <code>fst</code> and <code>snd</code> as above, a <code>case</code> expression, or <code>fun</code>, which accepts patterns.</p>
+</div>
+<h3 id="fun-primrec">Recursive functions: fun and primrec</h3>
+<p><code>primrec</code> accepts only <strong>primitive recursion</strong>: one equation for each constructor, each with the
+constructor applied to variables as its pattern, and recursive calls only on the immediate parts of the
+argument, such as <code>height s</code> in the equation for <code>Push x s</code>. Such a function always terminates, so
+<code>primrec</code> needs no termination proof; it reports only the new constant, as you saw for <code>height</code>.</p>
+<p><code>fun</code> accepts much more: nested patterns, patterns on several arguments, equations that overlap, and any
+recursion for which Isabelle can find a termination proof by itself. This function pushes the elements of
+a list onto a stack, one after another; its recursive call changes both arguments:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun push_all :: &quot;'a list ⇒ 'a stack ⇒ 'a stack&quot; where
+  &quot;push_all [] s = s&quot;
+| &quot;push_all (x # xs) s = push_all xs (Push x s)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> push_all :: <span class="isa-inner">&quot;'a list ⇒ 'a stack ⇒ 'a stack&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;push_all [] s = s&quot;</span>
+| <span class="isa-inner">&quot;push_all (x # xs) s = push_all xs (Push x s)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  push_all :: &quot;'a list ⇒ 'a stack ⇒ 'a stack&quot;
+
+Found termination order: &quot;(λp. length (fst p)) &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<p><code>fun</code> reports how it proved termination: the length of the first argument, <code>fst p</code> of the pair <code>p</code> of
+arguments, decreases in every recursive call. The element pushed last ends on top:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;to_list (push_all [1, 2, 3::nat] Empty)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;to_list (push_all [1, 2, 3::nat] Empty)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[3, 2, 1]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<p>Both commands give the simplifier the defining equations under the name <code>f.simps</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm height.simps">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> height.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  height Empty = 0
+  height (Push ?x ?s) = Suc (height ?s)</code></pre></div>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th><code>definition</code></th>
+<th><code>primrec</code></th>
+<th><code>fun</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recursion</td>
+<td>none</td>
+<td>primitive: on the immediate parts</td>
+<td>general, once termination is proved</td>
+</tr>
+<tr>
+<td>Patterns</td>
+<td>none: <code>f x₁ … xₙ = t</code></td>
+<td>one constructor pattern per equation</td>
+<td>any constructor patterns, also nested and overlapping</td>
+</tr>
+<tr>
+<td>Used by <code>simp</code></td>
+<td>only with <code>simp add: f_def</code></td>
+<td>always (<code>f.simps</code>)</td>
+<td>always (<code>f.simps</code>)</td>
+</tr>
+<tr>
+<td>Termination</td>
+<td>no question</td>
+<td>guaranteed by the form</td>
+<td>proved automatically, or the definition is rejected</td>
+</tr>
+</tbody>
+</table></div>
+<p>Which to choose? Use <code>definition</code> for a non-recursive concept that you want to reason about abstractly,
+<code>fun</code> for recursive functions and for anything that needs patterns, and <code>primrec</code> when a function follows
+the structure of a datatype exactly and you want to be sure no termination proof is involved. Many
+users write <code>fun</code> almost everywhere, as Module 1 did for <code>double</code>.</p>
+<h3 id="patterns">Missing and overlapping patterns</h3>
+<p>What if the equations do not cover every constructor? This function forgets the empty stack:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun top_value :: &quot;'a stack ⇒ 'a&quot; where
+  &quot;top_value (Push x s) = x&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> top_value :: <span class="isa-inner">&quot;'a stack ⇒ 'a&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;top_value (Push x s) = x&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-warning">Missing patterns in function definition:
+top_value Empty = undefined</span>
+
+consts
+  top_value :: &quot;'a stack ⇒ 'a&quot;
+
+Found termination order: &quot;{}&quot;</code></pre></div>
+<p>Isabelle accepts the definition with a warning, and completes it with the equation
+<code>top_value Empty = undefined</code>. It uses this equation to construct the function, but it does not add it
+to <code>top_value.simps</code>, so <code>simp</code> cannot use it. Here <code>undefined</code> is a constant of every type about which
+nothing is known:
+<code>top_value Empty</code> is <em>some</em> element, but no proof can tell which. The function is total, as every HOL
+function is, but on <code>Empty</code> it is <strong>unspecified</strong>. When you try to compute that value, the code behind
+<code>value</code> has no equation to use and stops with an exception (Section 8.8 explains where this code comes
+from):</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;top_value (Empty :: nat stack)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">exception Match raised⌂</span></code></pre></div>
+<p>The ⌂ points into the generated program, not into your theory. The library’s <code>hd</code>, the first element of a list, is unspecified for <code>[]</code> in the same way, and
+<code>value &quot;hd ([] :: light list)&quot;</code> fails with the same exception.</p>
+<div class="callout tip"><div class="callout-label">Tip</div>
+<p>Missing patterns are often a sign of a missing case in your thinking. Prefer an option result, as in
+<code>top</code>, so that the caller has to handle the empty case. <code>primrec</code> warns about a missing constructor too,
+with the message <code>No equation for constructor &quot;Empty&quot;</code>.</p>
+</div>
+<p>Equations may also <strong>overlap</strong>: one argument may match several patterns. <code>fun</code> then uses the first
+equation that matches, as Haskell and ML do:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun is_red :: &quot;light ⇒ bool&quot; where
+  &quot;is_red Red = True&quot;
+| &quot;is_red l = False&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> is_red :: <span class="isa-inner">&quot;light ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;is_red Red = True&quot;</span>
+| <span class="isa-inner">&quot;is_red l = False&quot;</span></code></pre></div>
+<p>The variable <code>l</code> matches every light, <code>Red</code> included. <code>fun</code> resolves the overlap by turning the second
+equation into one equation for each remaining constructor, as <code>thm</code> shows:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm is_red.simps">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> is_red.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  is_red Red = True
+  is_red RedAmber = False
+  is_red Green = False
+  is_red Amber = False</code></pre></div>
+<p>The order of the equations therefore matters. Put the general equation first, and the specific one can
+never be used. Isabelle rejects such a definition:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> is_red2 :: <span class="isa-inner">&quot;light ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;is_red2 l = False&quot;</span>
+| <span class="isa-inner">&quot;is_red2 Red = True&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Equation is redundant (covered by preceding clauses):
+is_red2 Red =
+True</span></code></pre></div>
+<p><code>primrec</code> does not accept overlapping equations at all: its patterns must be constructors applied to
+variables, and the plain variable <code>l</code> is not such a pattern:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">primrec</span> is_red3 :: <span class="isa-inner">&quot;light ⇒ bool&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;is_red3 Red = True&quot;</span>
+| <span class="isa-inner">&quot;is_red3 l = False&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Constructor pattern missing in left-hand side at
+  is_red3 l =
+  False</span></code></pre></div>
+<h3 id="names">When a name is misspelt</h3>
+<p>Section 8.1 showed that a misspelt name in a term becomes a free variable. In a definition, a free
+variable on the right-hand side has no value, so Isabelle rejects it:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> cycle_time :: <span class="isa-inner">&quot;light list ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;cycle_time [] = 0&quot;</span>
+| <span class="isa-inner">&quot;cycle_time (l # ls) = duraton l + cycle_time ls&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Variable &quot;duraton&quot; occurs on right hand side only:
+⋀l ls duraton.
+   cycle_time (l # ls) =
+   duraton l +
+   cycle_time
+    ls</span></code></pre></div>
+<p>The message lists <code>duraton</code> among the variables of the equation (after ⋀, “for all”): Isabelle took
+the misspelt <code>duration</code> for a variable. Misspelt names of types and theorems give “Undefined” errors
+instead, because Isabelle looks them up:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> duraton.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Undefined fact: &quot;duraton.simps&quot;⌂</span></code></pre></div>
+<p>The same happens for a misspelt type in a signature, such as <code>lights</code> for <code>light</code>: the message is
+<code>Undefined type name: &quot;lights&quot;</code>.</p>
+<span class="section-anchor" id="lists"></span>
+<div class="section-header"><span class="section-num">5</span><h2>Lists in practice</h2></div>
+<p>Back to the traffic light. A list of states describes how the light behaves over time. <code>trace n l</code> is
+the list of the first <code>n</code> states, starting with <code>l</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun trace :: &quot;nat ⇒ light ⇒ light list&quot; where
+  &quot;trace 0 l = []&quot;
+| &quot;trace (Suc n) l = l # trace n (next_light l)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> trace :: <span class="isa-inner">&quot;nat ⇒ light ⇒ light list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;trace 0 l = []&quot;</span>
+| <span class="isa-inner">&quot;trace (Suc n) l = l # trace n (next_light l)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  trace :: &quot;nat ⇒ light ⇒ light list&quot;
+
+Found termination order: &quot;(λp. size (fst p)) &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;trace 6 Red&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;trace 6 Red&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[Red, RedAmber, Green, Amber, Red, RedAmber]&quot;
+  :: &quot;light list&quot;</code></pre></div>
+<div class="box box-example"><div class="box-label">Example 8.1<span class="box-title">Evaluating trace by hand</span></div>
+<p><code>value</code> computes by rewriting with the defining equations, and you can do the same on paper. Write <code>3</code>
+as <code>Suc (Suc (Suc 0))</code>:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>3</mn><mtext>  </mtext><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>2</mn><mtext>  </mtext><mo stretchy="false">(</mo><mrow><mi>n</mi><mi>e</mi><mi>x</mi><mi>t</mi><mi>_</mi><mi>l</mi><mi>i</mi><mi>g</mi><mi>h</mi><mi>t</mi></mrow><mtext>  </mtext><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo stretchy="false">)</mo><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>2</mn><mtext>  </mtext><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>1</mn><mtext>  </mtext><mrow><mi>G</mi><mi>r</mi><mi>e</mi><mi>e</mi><mi>n</mi></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>G</mi><mi>r</mi><mi>e</mi><mi>e</mi><mi>n</mi></mrow><mo mathvariant="normal" lspace="0.22em" rspace="0.22em">#</mo><mrow><mi>t</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>e</mi></mrow><mtext>  </mtext><mn>0</mn><mtext>  </mtext><mrow><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mo stretchy="false">[</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi></mrow><mo separator="true">,</mo><mrow><mi>R</mi><mi>e</mi><mi>d</mi><mi>A</mi><mi>m</mi><mi>b</mi><mi>e</mi><mi>r</mi></mrow><mo separator="true">,</mo><mrow><mi>G</mi><mi>r</mi><mi>e</mi><mi>e</mi><mi>n</mi></mrow><mo stretchy="false">]</mo></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\mathit{trace}\;3\;\mathit{Red} &amp;= \mathit{Red} \mathbin{\#} \mathit{trace}\;2\;(\mathit{next\_light}\;\mathit{Red}) = \mathit{Red} \mathbin{\#} \mathit{trace}\;2\;\mathit{RedAmber}\\
+&amp;= \mathit{Red} \mathbin{\#} \mathit{RedAmber} \mathbin{\#} \mathit{trace}\;1\;\mathit{Green}\\
+&amp;= \mathit{Red} \mathbin{\#} \mathit{RedAmber} \mathbin{\#} \mathit{Green} \mathbin{\#} \mathit{trace}\;0\;\mathit{Amber}\\
+&amp;= [\mathit{Red}, \mathit{RedAmber}, \mathit{Green}]
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:5.7em;vertical-align:-2.6em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.1em;"><span style="top:-5.26em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathit">trace</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span></span></span><span style="top:-3.76em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-2.26em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-0.76em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.6em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:3.1em;"><span style="top:-5.26em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">trace</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">next_light</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">trace</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">RedAmber</span></span></span></span><span style="top:-3.76em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">RedAmber</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">trace</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Green</span></span></span></span><span style="top:-2.26em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Red</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">RedAmber</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">Green</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin"><span class="mord">#</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">trace</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">0</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">Amber</span></span></span></span><span style="top:-0.76em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mopen">[</span><span class="mord"><span class="mord mathit">Red</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathit">RedAmber</span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathit">Green</span></span><span class="mclose">]</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:2.6em;"><span></span></span></span></span></span></span></span></span></span></span></span></div>
+<p>Each step uses an equation of <code>trace</code> or of <code>next_light</code>. Every recursive call has a smaller first
+argument, so the computation reaches <code>trace 0</code> and stops.</p>
+</div>
+<h3 id="library">The list library</h3>
+<p>The theory <code>List</code>, part of <code>Main</code>, defines about a hundred functions on lists and proves more than a
+thousand lemmas about them. These are the ones you will use most:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Function</th>
+<th>What it computes</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>length xs</code></td>
+<td>the number of elements</td>
+<td><code>length [a, b] = 2</code></td>
+</tr>
+<tr>
+<td><code>xs @ ys</code></td>
+<td><code>xs</code> followed by <code>ys</code></td>
+<td><code>[a] @ [b, c] = [a, b, c]</code></td>
+</tr>
+<tr>
+<td><code>map f xs</code></td>
+<td><code>f</code> applied to every element</td>
+<td><code>map f [a, b] = [f a, f b]</code></td>
+</tr>
+<tr>
+<td><code>filter P xs</code></td>
+<td>the elements that satisfy <code>P</code></td>
+<td><code>filter P [a, b] = [a]</code> if <code>P a</code> and <code>¬ P b</code></td>
+</tr>
+<tr>
+<td><code>foldr f xs e</code></td>
+<td>the elements combined with <code>f</code>, from the right</td>
+<td><code>foldr f [a, b] e = f a (f b e)</code></td>
+</tr>
+<tr>
+<td><code>zip xs ys</code></td>
+<td>pairs of corresponding elements</td>
+<td><code>zip [a, b] [c, d] = [(a, c), (b, d)]</code></td>
+</tr>
+<tr>
+<td><code>take n xs</code>, <code>drop n xs</code></td>
+<td>the first <code>n</code> elements; the rest</td>
+<td><code>take 1 [a, b] = [a]</code></td>
+</tr>
+<tr>
+<td><code>xs ! n</code></td>
+<td>element number <code>n</code>, counting from 0</td>
+<td><code>[a, b] ! 1 = b</code></td>
+</tr>
+<tr>
+<td><code>[m..&lt;n]</code></td>
+<td>the numbers from <code>m</code> up to <code>n − 1</code></td>
+<td><code>[2..&lt;5] = [2, 3, 4]</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Apply them to traces. How long is each state of one cycle, and how long is the whole cycle?</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;map duration (trace 4 Red)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;map duration (trace 4 Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[30, 2, 25, 3]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;sum_list (map duration (trace 4 Red))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;sum_list (map duration (trace 4 Red))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;60&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>A full cycle takes a minute. <code>sum_list</code> adds up a list of numbers. Which states in a longer trace are
+green?</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;filter (λl. l = Green) (trace 9 Red)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;filter (λl. l = Green) (trace 9 Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[Green, Green]&quot;
+  :: &quot;light list&quot;</code></pre></div>
+<p><code>foldr</code> is the general way to combine all elements of a list into one value. <code>foldr f [x₁, x₂, x₃] e</code> is
+<code>f x₁ (f x₂ (f x₃ e))</code>: start from <code>e</code> at the right end and combine each element with the result so far.
+With <code>f</code> adding a state’s duration to a running total, it computes the cycle time again:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;foldr (λl t. duration l + t) (trace 4 Red) 0&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;foldr (λl t. duration l + t) (trace 4 Red) 0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;60&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>Figure 8.3 shows <code>map</code>, <code>filter</code> and <code>foldr</code> side by side on one cycle.</p>
+<figure class="fig" id="fig-08-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" role="img"><title>How map, filter and foldr transform a list</title><defs><marker id="fig-08-3__ah-15803D" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#15803D"/></marker><marker id="fig-08-3__ah-2563EB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2563EB"/></marker></defs><text x="268" y="50" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="30" font-weight="400" fill="#475569" text-anchor="start">[</text><circle cx="320" cy="40" r="11" fill="#DC2626" stroke="#DC2626" stroke-width="1"/><text x="320" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Red</text><circle cx="421" cy="40" r="9" fill="#DC2626" stroke="#DC2626" stroke-width="1"/><circle cx="439" cy="40" r="9" fill="#B45309" stroke="#B45309" stroke-width="1"/><text x="430" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">RedAmber</text><circle cx="540" cy="40" r="11" fill="#15803D" stroke="#15803D" stroke-width="1"/><text x="540" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Green</text><circle cx="650" cy="40" r="11" fill="#B45309" stroke="#B45309" stroke-width="1"/><text x="650" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="400" fill="#1A2E4A" text-anchor="middle">Amber</text><text x="730" y="50" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="30" font-weight="400" fill="#475569" text-anchor="end">]</text><line x1="320" y1="80" x2="320" y2="112" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fig-08-3__ah-2563EB)"/><line x1="430" y1="80" x2="430" y2="112" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fig-08-3__ah-2563EB)"/><line x1="540" y1="80" x2="540" y2="112" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fig-08-3__ah-2563EB)"/><line x1="650" y1="80" x2="650" y2="112" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fig-08-3__ah-2563EB)"/><rect x="20" y="96" width="105" height="22" rx="11.0" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.4"/><text x="72.5" y="113" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#2563EB" text-anchor="middle">map duration</text><text x="22" y="138" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">applies the function to every element</text><rect x="296" y="120" width="48" height="30" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.5"/><text x="320" y="141" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">30</text><rect x="406" y="120" width="48" height="30" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.5"/><text x="430" y="141" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">2</text><rect x="516" y="120" width="48" height="30" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.5"/><text x="540" y="141" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">25</text><rect x="626" y="120" width="48" height="30" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.5"/><text x="650" y="141" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">3</text><line x1="311" y1="168" x2="329" y2="186" stroke="#DC2626" stroke-width="2"/><line x1="329" y1="168" x2="311" y2="186" stroke="#DC2626" stroke-width="2"/><line x1="430" y1="156" x2="430" y2="196" stroke="#15803D" stroke-width="1.8" marker-end="url(#fig-08-3__ah-15803D)"/><line x1="531" y1="168" x2="549" y2="186" stroke="#DC2626" stroke-width="2"/><line x1="549" y1="168" x2="531" y2="186" stroke="#DC2626" stroke-width="2"/><line x1="650" y1="156" x2="650" y2="196" stroke="#15803D" stroke-width="1.8" marker-end="url(#fig-08-3__ah-15803D)"/><rect x="20" y="180" width="157" height="22" rx="11.0" fill="#DCFCE7" stroke="#15803D" stroke-width="1.4"/><text x="98.5" y="197" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#15803D" text-anchor="middle">filter (λd. d &lt; 10)</text><text x="22" y="222" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="start" font-style="italic">keeps the elements that pass the test</text><rect x="406" y="204" width="48" height="30" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.5"/><text x="430" y="225" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">2</text><rect x="626" y="204" width="48" height="30" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.5"/><text x="650" y="225" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#1A2E4A" text-anchor="middle">3</text><text x="485" y="258" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="600" fill="#15803D" text-anchor="middle">[2, 3]</text><rect x="20" y="280" width="720" height="124" rx="10" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.2"/><rect x="40" y="296" width="113" height="22" rx="11.0" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="96.5" y="313" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">foldr (+) … 0</text><text x="716" y="311" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="end" font-style="italic">combines the elements from the right</text><text x="380" y="352" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="14" font-weight="400" fill="#1A2E4A" text-anchor="middle">foldr (+) [30, 2, 25, 3] 0 = 30 + (2 + (25 + (3 + 0)))</text><text x="380" y="384" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="700" fill="#6D28D9" text-anchor="middle">= 60</text></svg>
+</div><figcaption><span class="fig-num">Figure 8.3</span> <p><code>map</code> transforms every element, <code>filter</code> keeps some of them, and <code>foldr</code> combines all of them into one
+value. <code>sum_list</code> is <code>foldr (+)</code> with start value 0.</p>
+</figcaption></figure>
+<p><code>zip</code> pairs two lists element by element, and <code>[0..&lt;4]</code> is the list of the numbers 0, 1, 2 and 3, so
+together they number the states:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;zip [0..&lt;4] (trace 4 Red)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;zip [0..&lt;4] (trace 4 Red)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[(0, Red), (1, RedAmber), (2, Green), (3, Amber)]&quot;
+  :: &quot;(nat × light) list&quot;</code></pre></div>
+<p><code>length</code> counts elements, and <code>take</code>, <code>drop</code> and <code>!</code> cut lists and select elements. Positions count
+from 0:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;length (trace 6 Red)&quot;
+value &quot;take 2 (trace 6 Red)&quot;
+value &quot;drop 4 (trace 6 Red)&quot;
+value &quot;trace 6 Red ! 2&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;length (trace 6 Red)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;take 2 (trace 6 Red)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;drop 4 (trace 6 Red)&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;trace 6 Red ! 2&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;6&quot;
+  :: &quot;nat&quot;
+
+&quot;[Red, RedAmber]&quot;
+  :: &quot;light list&quot;
+
+&quot;[Red, RedAmber]&quot;
+  :: &quot;light list&quot;
+
+&quot;Green&quot;
+  :: &quot;light&quot;</code></pre></div>
+<h3 id="comprehension">List comprehension</h3>
+<p>Combinations of <code>map</code> and <code>filter</code> can also be written as a <strong>list comprehension</strong>, as in Haskell and
+Python. <code>[e. x ← xs, P x]</code> is the list of the values of <code>e</code> for the elements <code>x</code> of <code>xs</code> that satisfy
+<code>P x</code>. Type ← as <code>&lt;-</code>. Here are the short states of a cycle, with their durations:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;[(l, duration l). l ← trace 4 Red, duration l &lt; 10]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;[(l, duration l). l ← trace 4 Red, duration l &lt; 10]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[(RedAmber, 2), (Amber, 3)]&quot;
+  :: &quot;(light × nat) list&quot;</code></pre></div>
+<p>The expression <code>(l, duration l)</code> builds a pair for each element; <code>l ← trace 4 Red</code> is a <strong>generator</strong>,
+which takes the elements <code>l</code> of the list one by one; <code>duration l &lt; 10</code> is a condition. There can be
+several generators and conditions, separated by commas.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>Some list functions are unspecified for some arguments: <code>hd []</code>, the first element of the empty list,
+and <code>xs ! n</code> when <code>n</code> is not a position of <code>xs</code>. They return <em>some</em> value of the right type, but nothing
+is known about it, and computing it with <code>value</code> stops with an exception, as for <code>top_value</code> in
+Section 8.4. Before you use <code>hd xs</code> or <code>xs ! n</code> in a definition, make sure that <code>xs</code> is not empty or that
+<code>n &lt; length xs</code>.</p>
+</div>
+<span class="section-anchor" id="numbers"></span>
+<div class="section-header"><span class="section-num">6</span><h2>Numbers and type classes</h2></div>
+<p>HOL has several types of numbers: <code>nat</code>, <code>int</code>, and, with the theory <code>Complex_Main</code>, <code>real</code> and
+<code>complex</code>. This series needs only <code>nat</code> and <code>int</code>.</p>
+<h3 id="nat-int">Natural numbers and integers</h3>
+<p>The type <code>nat</code> behaves like a datatype with two constructors, <code>0</code> and <code>Suc</code>: every natural number is
+either <code>0</code> or <code>Suc n</code> for a smaller natural number <code>n</code>. That is why you can define functions on <code>nat</code> by
+pattern matching on <code>0</code> and <code>Suc n</code>, as <code>trace</code> does. A numeral such as <code>3</code> denotes the same number as
+<code>Suc (Suc (Suc 0))</code> (though the two are written differently, which matters for <code>simp</code>, as the pitfall at
+the end of this section shows), and <code>value</code> prints natural numbers as numerals:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;Suc (Suc 0)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;Suc (Suc 0)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;2&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>The type <code>int</code> contains the negative numbers too. The two types differ most visibly in subtraction:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(2::nat) - 3&quot;
+value &quot;(2::int) - 3&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(2::nat) - 3&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(2::int) - 3&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;0&quot;
+  :: &quot;nat&quot;
+
+&quot;- 1&quot;
+  :: &quot;int&quot;</code></pre></div>
+<p>Isabelle prints negative numbers with a space after the minus sign.</p>
+<div class="box box-definition"><div class="box-label">Definition 8.7<span class="box-title">Truncated subtraction</span></div>
+<p>On <code>nat</code>, subtraction is <strong>truncated</strong>: <code>m - n</code> is <code>0</code> whenever <code>m ≤ n</code>, because there is no natural
+number below 0. On <code>int</code>, subtraction is the usual one.</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>Truncated subtraction breaks familiar laws. On <code>nat</code>, <code>(m - n) + n = m</code> holds only if <code>n ≤ m</code>: with
+<code>m = 5</code> and <code>n = 7</code>, the left side is <code>0 + 7 = 7</code>. A bank account whose balance is a <code>nat</code> cannot go
+overdrawn: withdrawing too much leaves exactly 0, silently, instead of a debt. When negative values make
+sense, use <code>int</code>; when they do not, check <code>n ≤ m</code> before you subtract.</p>
+</div>
+<p>Division on <code>nat</code> and <code>int</code> is <code>div</code>, with remainder <code>mod</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(17::nat) div 5&quot;
+value &quot;(17::nat) mod 5&quot;
+value &quot;(-17::int) div 5&quot;
+value &quot;(-17::int) mod 5&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(17::nat) div 5&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(17::nat) mod 5&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(-17::int) div 5&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(-17::int) mod 5&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;3&quot;
+  :: &quot;nat&quot;
+
+&quot;2&quot;
+  :: &quot;nat&quot;
+
+&quot;- 4&quot;
+  :: &quot;int&quot;
+
+&quot;3&quot;
+  :: &quot;int&quot;</code></pre></div>
+<p>On <code>int</code>, <code>div</code> rounds down, towards minus infinity, so <code>-17 div 5</code> is −4, and <code>mod</code> is chosen to make
+<code>(a div b) * b + a mod b = a</code> hold: (−4) · 5 + 3 = −17. And division by zero?</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(17::nat) div 0&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(17::nat) div 0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;0&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<div class="box box-fact"><div class="box-label">Fact 8.1<span class="box-title">Division by zero</span></div>
+<p>In HOL, <code>a div 0 = 0</code> and <code>a mod 0 = a</code> for every <code>a</code> (the library’s lemmas <code>div_by_0</code> and <code>mod_by_0</code>).</p>
+</div>
+<p>This is not a mistake. Every HOL function is total, so <code>17 div 0</code> must be some number. The library
+chooses 0, a value that makes many laws hold without side conditions. A program that divides by zero is
+still wrong; the logic does not stop with an error. When division by zero matters, state <code>b ≠ 0</code>
+as an assumption in your lemmas.</p>
+<p>The functions <code>int :: nat ⇒ int</code> and <code>nat :: int ⇒ nat</code> convert between the two types; <code>nat</code> maps
+negative integers to 0. The operator <code>/</code> is division on fields such as the real numbers, not on <code>nat</code>
+or <code>int</code>, and <code>x ^ n</code> is the power xⁿ, with <code>n</code> a natural number.</p>
+<h3 id="classes">Overloading and type classes</h3>
+<p>You have used <code>+</code>, <code>0</code> and numerals on both <code>nat</code> and <code>int</code>. Such names are <strong>overloaded</strong>: one name has
+several meanings, chosen by the type. And yet they do not exist for every type. A light is not a number:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;next_light 3&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Type unification failed: No type arity light :: numeral
+
+Type error in application: incompatible operand type
+
+Operator:  next_light :: light ⇒ light
+Operand:   3::??'a :: ??'a
+</span></code></pre></div>
+<p>“No type arity light :: numeral” says that the type <code>light</code> is not in the class <code>numeral</code>, the class of
+types that have numerals, so <code>3</code> cannot be a light. (An <em>arity</em> is Isabelle’s record that a type belongs
+to a class.) Isabelle organises overloading in <strong>type classes</strong>.</p>
+<div class="box box-definition"><div class="box-label">Definition 8.8<span class="box-title">Type class and sort</span></div>
+<p>A <strong>type class</strong> is a named collection of types that provide certain operations, sometimes with laws.
+For example, the class <code>plus</code> contains the types that have an operation <code>+</code>, <code>zero</code> those with a <code>0</code>,
+<code>numeral</code> those with numerals 1, 2, 3, … and an associative <code>+</code>, and <code>ord</code> those with <code>≤</code> and <code>&lt;</code>. A type
+in a class is an <strong>instance</strong> of it: <code>nat</code> and <code>int</code> are instances of all four. A <strong>sort</strong> is a set of
+classes, written <code>{c₁, …, cₙ}</code>, or <code>c</code> for a single class. A type variable can be restricted to a sort:
+<code>'a::{one, plus}</code> stands for any type that is an instance of both <code>one</code> and <code>plus</code>.</p>
+</div>
+<div class="callout analogy"><div class="callout-label">Think of it like this</div>
+<p>Type classes play the role of interfaces in Java or traits in Rust, and Haskell’s type classes are the
+same idea. A sort says which interfaces an unknown type must implement.</p>
+</div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>“Sort” has a different meaning here from the one in Module 3. There, in many-sorted logic, a sort was a
+kind of individual, much what Isabelle calls a type. In Isabelle a sort is a set of type classes: a
+constraint on a type, not a type.</p>
+</div>
+<p>Isabelle hides sorts unless you ask for them. The option <code>show_sorts</code> makes them visible:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="declare [[show_sorts]]
+term &quot;x + 1&quot;
+term &quot;2 + 2&quot;
+declare [[show_sorts = false]]">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">declare</span> [[show_sorts]]
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;x + 1&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;2 + 2&quot;</span>
+<span class="isa-cmd">declare</span> [[show_sorts = false]]</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;(x::'a::{one,plus}) + 1&quot;
+  :: &quot;'a::{one,plus}&quot;
+
+&quot;(2::'a::numeral) + (2::'a::numeral)&quot;
+  :: &quot;'a::numeral&quot;</code></pre></div>
+<p>Now you can see what Isabelle knows about the <code>'a</code> of Section 8.1: <code>x + 1</code> has <em>some</em> type that has
+<code>1</code> and <code>+</code>. And <code>2 + 2</code> has some type of the class <code>numeral</code>. That is the key to the message from
+Module 1, which promised that you would learn to read it here:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;2 + 2&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Wellsortedness error:
+Type 'a not of sort term_of
+Cannot derive subsort relation numeral &lt; term_of</span></code></pre></div>
+<p>To print a result, <code>value</code> must turn the computed value back into a term. It does so with an overloaded
+function <code>term_of</code>, which exists for the types in the class <code>term_of</code>: <code>nat</code>, <code>int</code>, lists, and the
+datatypes you define, among others. Now read the message line by line.</p>
+<ul>
+<li><strong>Wellsortedness error</strong>: some type is required to be in a class it is not known to be in.</li>
+<li><strong>Type 'a not of sort term_of</strong>: the type of <code>2 + 2</code> is the unknown <code>'a</code>, and <code>value</code> needs it to be in
+the class <code>term_of</code>.</li>
+<li><strong>Cannot derive subsort relation numeral &lt; term_of</strong>: all Isabelle knows about <code>'a</code> is that it is in
+<code>numeral</code>. That would be enough only if every type in <code>numeral</code> were also in <code>term_of</code>, that is, if
+<code>numeral</code> were a subclass of <code>term_of</code>, written <code>numeral &lt; term_of</code>. It is not.</li>
+</ul>
+<p>The cure is the one from Module 1: say which type you mean, as in <code>value &quot;2 + 2 :: nat&quot;</code>. The same
+missing information can make a proof fail:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;x + 0 = x&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. x + 0 = x</span></code></pre></div>
+<p>The goal is about a type of sort <code>{plus, zero}</code>: a type with some <code>+</code> and some <code>0</code>. Nothing in those
+classes says that <code>0</code> is neutral for <code>+</code>, so the claim cannot be proved for every such type. For natural
+numbers it is a law of arithmetic:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;x + 0 = (x::nat)&quot;
+  by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;x + 0 = (x::nat)&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p><code>value</code> computes with numerals, but <code>simp</code> does not match a numeral against a <code>Suc</code> pattern. The
+equations of <code>trace</code> are about <code>0</code> and <code>Suc n</code>, and <code>2</code> is neither, syntactically:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;trace 2 Red = [Red, RedAmber]&quot;</span>
+  <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. trace 2 Red = [Red, RedAmber]</span></code></pre></div>
+<p>The library lemma <code>numeral_eq_Suc</code> rewrites a numeral into <code>Suc</code> of a smaller number, after which the
+equations of <code>trace</code> apply:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;trace 2 Red = [Red, RedAmber]&quot;
+  by (simp add: numeral_eq_Suc)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;trace 2 Red = [Red, RedAmber]&quot;</span>
+  <span class="isa-proof">by</span> (simp add: numeral_eq_Suc)</code></pre></div>
+</div>
+<span class="section-anchor" id="termination"></span>
+<div class="section-header"><span class="section-num">7</span><h2>Why every function must terminate</h2></div>
+<p>Every <code>fun</code> you have written produced a line “Found termination order”. Module 5 (Section 5.7)
+explained why Isabelle insists on termination, what a measure is, and how to read the message when <code>fun</code>
+rejects a definition. Module 1 promised that this module would explain why termination matters, so this
+section recalls the argument and connects it with the three ways of defining a function in Section 8.4.
+Then it reads Isabelle’s termination messages in full, and shows what to do when a function terminates
+but Isabelle cannot see why.</p>
+<h3 id="total">Total functions and consistency</h3>
+<p>When you define a function with <code>fun</code>, Isabelle makes your equations into theorems: after
+<code>fun next_light</code>, the equation <code>next_light Red = RedAmber</code> is a theorem you can use in any proof. This is
+only safe if some function really satisfies the equations. Module 5 showed what goes wrong otherwise,
+with the “definition” <code>bad n = bad n + 1</code> of a function <code>bad :: nat ⇒ nat</code>. Suppose Isabelle accepted it:</p>
+<ol>
+<li>The equation would be a theorem for every <code>n</code>. Take <code>n = 0</code> and write <code>k</code> for the number <code>bad 0</code>:
+the theorem says <code>k = k + 1</code>.</li>
+<li>Subtract <code>k</code> from both sides. This works even with truncated subtraction: <code>k - k = 0</code> and
+<code>(k + 1) - k = 1</code>. So <code>0 = 1</code> would be a theorem.</li>
+<li>But <code>0 ≠ 1</code> is a theorem too: <code>1</code> is <code>Suc 0</code>, and values built with different constructors are
+different (Definition 8.5; <code>nat</code> behaves like a datatype, Section 8.6).</li>
+<li>A statement and its negation together are a contradiction, and from a contradiction every statement
+follows: the principle of explosion of Module 2, the rule (⊥E) of Module 6.</li>
+</ol>
+<p>One bad equation would make every statement a theorem, and every proof would be worthless.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>A <code>definition</code> as in Section 8.4 is safe without any proof: its right-hand side does not mention the
+constant being defined, so it cannot be circular, and it can never make the logic inconsistent. <code>fun</code>
+does not take your recursive equations on trust. It first defines the function by non-recursive
+definitions of this safe kind, through a construction that Isabelle carries out for you, and then
+<em>proves</em> your equations from them as theorems. That proof needs a termination argument. If Isabelle
+cannot find one, the definition is rejected, and nothing about the function becomes a theorem.</p>
+</div>
+<p>If every chain of recursive calls ends in an equation without a recursive call, the equations determine
+the function’s value for every argument, one step at a time, as in Example 8.1, and the proof goes
+through. Not every non-terminating equation is contradictory: Module 5 pointed out that every function
+satisfies <code>f n = f n</code>. But <code>fun</code> does not try to tell harmless equations from harmful ones; it accepts
+recursion only with a termination proof. A missing pattern (Section 8.4) is a different matter: it leaves
+a value unspecified, which can never contradict anything, so <code>fun</code> only warns about it.</p>
+<h3 id="termination-messages">Reading the termination messages</h3>
+<p>To prove termination, Isabelle looks for a measure, as in Module 5: a function from the arguments to the
+natural numbers that becomes smaller with every recursive call. The measures it tries are built from the
+sizes of the arguments.</p>
+<div class="box box-definition"><div class="box-label">Definition 8.9<span class="box-title">Size</span></div>
+<p>Every value of a datatype has a <strong>size</strong>, a natural number, written <code>size x</code>. For a natural number <code>n</code>
+the size is <code>n</code> itself, and for a list its length. For a value of a datatype you define, the size counts
+the constructors in it that have an argument of the same datatype, a <strong>recursive</strong> argument:
+<code>size (Push 1 (Push 2 Empty))</code> is 2, and every <code>light</code> has size 0, because no constructor of <code>light</code>
+takes an argument.</p>
+</div>
+<p>When the search succeeds, <code>fun</code> prints the measure it found. You have seen three kinds of report in this
+module:</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Report</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&quot;{}&quot;</code></td>
+<td>no recursive calls, nothing to prove (<code>next_light</code>, <code>top</code>)</td>
+</tr>
+<tr>
+<td><code>&quot;(λp. size (fst p)) &lt;*mlex*&gt; {}&quot;</code></td>
+<td>the size of the first argument decreases (<code>trace</code>)</td>
+</tr>
+<tr>
+<td><code>&quot;(λp. length (fst p)) &lt;*mlex*&gt; {}&quot;</code></td>
+<td>the length of the first argument, a list, decreases (<code>push_all</code>)</td>
+</tr>
+</tbody>
+</table></div>
+<p>As in Module 5, the arguments of a function with several arguments form one tuple <code>p</code>, so <code>fst p</code> is the
+first argument. <code>&lt;*mlex*&gt;</code> chains measures lexicographically, as for Ackermann’s function in Module 5: if
+the first measure stays the same, the next one must decrease. The final <code>{}</code> ends the chain.</p>
+<p>When the search fails, Isabelle prints what it tried. Module 5 read the message for <code>bad</code>, with one call
+and one measure. In general the message has four parts:</p>
+<ul>
+<li><strong>Calls</strong> lists the recursive calls, named a), b), …, each with the argument before and after the call:
+<code>a) n ~&gt; n div 2</code> says that a call with argument <code>n</code> leads to a call with argument <code>n div 2</code>.</li>
+<li><strong>Measures</strong> lists the measures Isabelle tried, numbered 1), 2), … .</li>
+<li><strong>Result matrix</strong> has one row for each call and one column for each measure. Each entry says what
+Isabelle could prove about the measure at that call: <code>&lt;</code> means it decreases, <code>&lt;=</code> that it does not grow
+(but may stay the same), <code>?</code> that Isabelle could prove neither, and <code>F</code> that it grows, so that it can
+never decrease there.</li>
+<li><strong>Unfinished subgoals</strong> are the statements that Isabelle could not prove, each labelled with a call, a
+measure and a relation: <code>(b, 1, &lt;)</code> is the claim that measure 1 decreases at call b).</li>
+</ul>
+<p>A lexicographic order exists when Isabelle can pick measures one after another so that every call has <code>&lt;</code>
+under one of the picked measures and <code>&lt;=</code> under all the measures picked before it. When no choice works,
+the message ends with <strong>Could not find lexicographic termination order</strong>. Exercise 8.8 gives you three
+more reports to predict and read.</p>
+<div class="box box-example"><div class="box-label">Example 8.2<span class="box-title">A function nobody has proved terminating</span></div>
+<p>Module 5 ended its section on termination with the Collatz function, which counts the steps that the
+famous “3n + 1” process takes from <code>n</code> to 1: halve an even number, triple an odd one and add 1. Here is
+what Isabelle says about it:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> collatz :: <span class="isa-inner">&quot;nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;collatz n = (if n ≤ 1 then 0
+                else if n mod 2 = 0 then collatz (n div 2) + 1
+                else collatz (3 * n + 1) + 1)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  collatz :: &quot;nat ⇒ nat&quot;
+
+<span class="isa-error">Unfinished subgoals:
+(b, 1, &lt;):
+ 1. ⋀n. ⟦¬ n ≤ Suc 0; n mod 2 = Suc 0⟧ ⟹ False
+(b, 1, &lt;=):
+ 1. ⋀n. ⟦¬ n ≤ Suc 0; n mod 2 = Suc 0⟧ ⟹ False
+Calls:
+  a) n ~&gt; n div 2
+  b) n ~&gt; 3 * n + 1
+Measures:
+  1) size
+Result matrix:
+    1
+a:  &lt;
+b:  ?
+
+Could not find lexicographic termination order.</span></code></pre></div>
+<p>There are two calls and one measure, the size of <code>n</code>. Call a), with <code>n div 2</code>, decreases it: the entry is
+<code>&lt;</code>. For call b), with <code>3 * n + 1</code>, the two unfinished subgoals show what Isabelle was left with when it
+tried to prove that the size decreases (<code>&lt;</code>) or at least does not grow (<code>&lt;=</code>): <code>False</code>, under the
+conditions of the call, that <code>n</code> is above 1 and odd. Since <code>3 * n + 1</code> is larger than <code>n</code>, no proof is
+possible. (Isabelle writes <code>F</code> only when such a goal becomes plain <code>False</code>, without conditions; here the
+conditions remain, so the entry is <code>?</code>.) The row of call b) has no <code>&lt;</code>, so there is no termination
+order. No other measure is known either: as Module 5 explained, a termination proof would settle the
+Collatz conjecture, which is still open.</p>
+</div>
+<h3 id="termination-help">When Isabelle needs help</h3>
+<p>Some functions terminate, but not by a measure that Isabelle tries. How long must a driver wait for
+green? From each state, add up the durations until the light turns green:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> wait :: <span class="isa-inner">&quot;light ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;wait l = (if l = Green then 0 else duration l + wait (next_light l))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  wait :: &quot;light ⇒ nat&quot;
+
+<span class="isa-error">Unfinished subgoals:
+(a, 1, &lt;):
+ 1. ⋀l. l ≠ Green ⟹ size (next_light l) &lt; size l
+(a, 1, &lt;=):
+ 1. ⋀l. l ≠ Green ⟹ size (next_light l) ≤ size l
+Calls:
+  a) l ~&gt; next_light l
+Measures:
+  1) size
+Result matrix:
+    1
+a:  ?
+
+Could not find lexicographic termination order.</span></code></pre></div>
+<p>The function does terminate: from any state, the light is green after at most three steps. But the only
+measure Isabelle tries is the size of <code>l</code>, and every light has size 0 (Definition 8.9). A measure that is
+always 0 never decreases, so the subgoal for <code>&lt;</code> is false. The subgoal for <code>&lt;=</code> is true, but Isabelle
+would have to split <code>l</code> into its four cases to prove it, and it does not try; so the entry is <code>?</code>.</p>
+<p>One fix is to write the function so that termination is evident. Here the library does the work: take
+the first four states, keep those before the first green with <code>takeWhile</code>, and add up their durations.
+<code>takeWhile P xs</code> is the longest initial part of <code>xs</code> whose elements all satisfy <code>P</code>. The definition is not
+recursive at all:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition wait :: &quot;light ⇒ nat&quot; where
+  &quot;wait l = sum_list (map duration (takeWhile (λx. x ≠ Green) (trace 4 l)))&quot;
+
+value &quot;map wait [Red, RedAmber, Green, Amber]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> wait :: <span class="isa-inner">&quot;light ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;wait l = sum_list (map duration (takeWhile (λx. x ≠ Green) (trace 4 l)))&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;map wait [Red, RedAmber, Green, Amber]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[32, 2, 0, 35]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<p>A driver who arrives at amber waits 3 + 30 + 2 = 35 seconds.</p>
+<p>When no such reformulation is natural, you can supply the measure yourself. Module 5 met an example:
+<code>sum_from i n = (if n &lt; i then 0 else i + sum_from (i + 1) n)</code> adds up the numbers from <code>i</code> to <code>n</code>. It
+terminates because the distance <code>n + 1 - i</code> decreases at every call, but neither argument gets smaller,
+so <code>fun</code> gives up. The command <code>function</code> separates the definition from its termination proof:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="function sum_from :: &quot;nat ⇒ nat ⇒ nat&quot; where
+  &quot;sum_from i n = (if n &lt; i then 0 else i + sum_from (i + 1) n)&quot;
+  by pat_completeness auto
+termination
+  by (relation &quot;measure (λ(i, n). n + 1 - i)&quot;) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">function</span> sum_from :: <span class="isa-inner">&quot;nat ⇒ nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;sum_from i n = (if n &lt; i then 0 else i + sum_from (i + 1) n)&quot;</span>
+  <span class="isa-proof">by</span> pat_completeness auto
+<span class="isa-cmd">termination</span>
+  <span class="isa-proof">by</span> (relation <span class="isa-inner">&quot;measure (λ(i, n). n + 1 - i)&quot;</span>) auto</code></pre></div>
+<p><code>function</code> takes the same equations as <code>fun</code>, but proves nothing by itself. The line
+<code>by pat_completeness auto</code> proves that the patterns cover every case and do not contradict each other;
+with a single equation that is a formality. <code>termination</code> then asks for the termination proof, and you
+name the measure. <code>λ(i, n). n + 1 - i</code> is the function that maps the pair of arguments <code>(i, n)</code> to
+<code>n + 1 - i</code>; <code>measure</code> turns it into the relation “has a smaller measure”, and the method <code>relation</code>
+makes Isabelle use that relation. <code>auto</code> proves the rest: that the relation is well-founded, as it is
+for every measure (Module 5), and that the call decreases the measure, from <code>n + 1 - i</code> to
+<code>n + 1 - (i + 1)</code>, because the call happens only when <code>¬ n &lt; i</code>. Now <code>sum_from</code> is defined, and it computes:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;sum_from 3 5&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;sum_from 3 5&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;12&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>The manual <em>Defining Recursive Functions in Isabelle/HOL</em>, under <strong>functions</strong> in the Documentation
+panel, explains <code>function</code> in depth. Every function defined with <code>fun</code> or <code>function</code> also comes with an
+induction rule that follows its recursion, <code>f.induct</code>; Module 11 uses it.</p>
+<span class="section-anchor" id="codegen"></span>
+<div class="section-header"><span class="section-num">8</span><h2>From HOL to running code</h2></div>
+<p>The functions you have defined are programs, and Isabelle can translate them into other programming
+languages: Standard ML, OCaml, Haskell and Scala. This is how a function that you have proved correct
+becomes part of real software, and Modules 12 and 14 use it for verified programs. Generate Haskell
+code for the traffic light:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="export_code next_light duration trace in Haskell module_name Traffic">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">export_code</span> next_light duration trace <span class="isa-minor">in</span> Haskell module_name Traffic</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>See theory exports</code></pre></div>
+<p><code>export_code</code> takes the names of the functions to translate, and adds everything they need: here the
+datatype <code>light</code> and the natural numbers. <code>module_name</code> names the Haskell module. Write <code>in SML</code>,
+<code>in OCaml</code> or <code>in Scala</code> for the other languages. Only definitions that compute can be translated. A
+definition that quantifies over all natural numbers, such as <code>all_small k = (∀n::nat. n &lt; k)</code>, has no
+program: <code>export_code</code> rejects it with a wellsortedness error, because <code>∀</code> can be computed only over
+types whose elements can be listed, the class <code>enum</code>, and <code>nat</code> is not in it.</p>
+<p>The code does not appear in the Output panel. In Isabelle/jEdit, the words <em>theory exports</em> in the
+message are a link: click it, and jEdit’s File Browser opens on the generated files, in a virtual folder
+whose name begins with <code>isabelle-export:</code>. The Haskell module is the file <code>Traffic.hs</code>, in a folder
+<code>export1</code> (<code>export_code</code> numbers the exports of a theory <code>export1</code>, <code>export2</code>, …). Here it is, without
+its first line, an option for the Haskell compiler, and without the <code>import</code> declarations that follow
+the <code>module</code> line:</p>
+<pre class="code"><code class="language-text">module Traffic(Nat, Num, Light, next_light, trace, duration) where {
+
+data Nat = Zero_nat | Suc Nat;
+
+data Num = One | Bit0 Num | Bit1 Num;
+
+data Light = Red | RedAmber | Green | Amber;
+
+plus_nat :: Nat -&gt; Nat -&gt; Nat;
+plus_nat Zero_nat n = n;
+plus_nat (Suc m) n = plus_nat m (Suc n);
+
+one_nat :: Nat;
+one_nat = Suc Zero_nat;
+
+nat_of_num :: Num -&gt; Nat;
+nat_of_num One = one_nat;
+nat_of_num (Bit0 n) = let {
+                        m = nat_of_num n;
+                      } in plus_nat m m;
+nat_of_num (Bit1 n) = let {
+                        m = nat_of_num n;
+                      } in Suc (plus_nat m m);
+
+next_light :: Light -&gt; Light;
+next_light Red = RedAmber;
+next_light RedAmber = Green;
+next_light Green = Amber;
+next_light Amber = Red;
+
+trace :: Nat -&gt; Light -&gt; [Light];
+trace Zero_nat l = [];
+trace (Suc n) l = l : trace n (next_light l);
+
+duration :: Light -&gt; Nat;
+duration Red = nat_of_num (Bit0 (Bit1 (Bit1 (Bit1 One))));
+duration RedAmber = nat_of_num (Bit0 One);
+duration Green = nat_of_num (Bit1 (Bit0 (Bit0 (Bit1 One))));
+duration Amber = nat_of_num (Bit1 One);
+
+}
+</code></pre>
+<p>The translation follows your equations closely. The <code>module</code> line names the module <code>Traffic</code>, as
+<code>module_name</code> asked, and lists what it exports. The datatype <code>light</code> becomes a Haskell <code>data</code> type with
+the same constructors, and <code>next_light</code> and <code>trace</code> have the same equations as in Isabelle. Everything
+else is the natural numbers, translated as the logic builds them: a datatype <code>Nat</code> with the constructors
+<code>Zero_nat</code> and <code>Suc</code>, and numerals in binary, built from <code>One</code> with <code>Bit0</code> (append the binary digit 0)
+and <code>Bit1</code> (append 1). So 30 is <code>Bit0 (Bit1 (Bit1 (Bit1 One)))</code>, binary 11110, and <code>nat_of_num</code>
+converts it into <code>Suc</code> form. This representation is faithful but slow. For efficient code, import the
+library theory <code>HOL-Library.Code_Target_Nat</code> in the theory header (<code>imports Main &quot;HOL-Library.Code_Target_Nat&quot;</code>): the code generator then represents <code>nat</code> by Haskell’s built-in
+integers.</p>
+<div class="callout note"><div class="callout-label">Good to know</div>
+<p>The code generator is not part of Isabelle’s kernel, so the generated code is not checked by the kernel:
+the code generator belongs to the trusted base (Module 1). It is designed so that every computation
+step of the generated program corresponds to rewriting with equations that are theorems in the logic.
+So if the program returns a result, the result agrees with your definitions; the guarantee is called
+<em>partial correctness</em>. The command <code>value</code> uses the same machinery. For a term without variables it
+translates the term into ML, runs it, and turns the result back into a term with <code>term_of</code>; that is why
+it needs the class <code>term_of</code> (Section 8.6), and why it stopped with an exception at <code>top_value Empty</code>
+(Section 8.4). For a term with variables, such as <code>rev [a, b, c]</code>, it uses a symbolic variant of the
+same translation.</p>
+</div>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">9</span><h2>What you learned</h2></div>
+<ul>
+<li>HOL is a typed functional programming language inside a logic. Functions have no side effects, use
+recursion instead of loops, and are total. <code>typ</code> prints a type, <code>term</code> the type of a term, and <code>value</code>
+evaluates a term.</li>
+<li>Types are built from base types (<code>bool</code>, <code>nat</code>, <code>int</code>), type constructors written after their
+arguments (<code>'a list</code>, <code>'a option</code>), pairs <code>'a × 'b</code>, functions <code>'a ⇒ 'b</code> and type variables. Isabelle
+infers types; an annotation <code>t :: τ</code> fixes one. Misspelt names become free variables.</li>
+<li><code>λx. t</code> is a function without a name. Functions of several arguments are curried: <code>nat ⇒ nat ⇒ nat</code>
+means <code>nat ⇒ (nat ⇒ nat)</code>, <code>f x y</code> means <code>(f x) y</code>, and a partial application is a function.</li>
+<li><code>datatype</code> defines enumerations and recursive types such as stacks and lists. Functions take values
+apart by pattern matching in equations or with <code>case</code>. Options represent results that may be missing.</li>
+<li><code>definition</code> defines non-recursive functions; <code>simp</code> uses <code>f_def</code> only when asked. <code>primrec</code> allows
+primitive recursion; <code>fun</code> allows general patterns and recursion, warns about missing patterns, and
+resolves overlapping ones in order.</li>
+<li>The list library offers <code>map</code>, <code>filter</code>, <code>foldr</code>, <code>zip</code>, <code>take</code>, <code>drop</code>, <code>!</code>, <code>[m..&lt;n]</code> and list
+comprehension. Subtraction on <code>nat</code> is truncated, <code>div</code> and <code>mod</code> are total, and overloaded
+operations are organised in type classes and sorts.</li>
+<li>Every <code>fun</code> must terminate, or its equations could prove <code>0 = 1</code>. Isabelle searches for a decreasing
+measure, reports it, and explains its failure with a matrix of calls and measures. With <code>function</code> and
+<code>termination</code> you supply the measure yourself.</li>
+<li><code>export_code</code> translates definitions into Haskell, SML, OCaml or Scala.</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">10</span><h2>Exercises</h2></div>
+<div class="exercise" id="ex-8-1"><div class="ex-label"><span class="ex-num">Exercise 8.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">Types by hand</span></div>
+<p>Work out the type of each term by hand. Then check your answers with <code>term</code> in the theory of this
+module, where <code>Red</code> and <code>next_light</code> are defined.</p>
+<ol>
+<li><code>[Some True, None]</code></li>
+<li><code>(Suc, [0::nat])</code></li>
+<li><code>λxs. Red # xs</code></li>
+<li><code>map next_light</code></li>
+<li><code>λf x. f (f x)</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term &quot;[Some True, None]&quot;
+term &quot;(Suc, [0::nat])&quot;
+term &quot;λxs. Red # xs&quot;
+term &quot;map next_light&quot;
+term &quot;λf x. f (f x)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> <span class="isa-inner">&quot;[Some True, None]&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;(Suc, [0::nat])&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;λxs. Red # xs&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;map next_light&quot;</span>
+<span class="isa-cmd">term</span> <span class="isa-inner">&quot;λf x. f (f x)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[Some True, None]&quot;
+  :: &quot;bool option list&quot;
+
+&quot;(Suc, [0])&quot;
+  :: &quot;(nat ⇒ nat) × nat list&quot;
+
+&quot;(#) Red&quot;
+  :: &quot;light list ⇒ light list&quot;
+
+&quot;map next_light&quot;
+  :: &quot;light list ⇒ light list&quot;
+
+&quot;λf x. f (f x)&quot;
+  :: &quot;('a ⇒ 'a) ⇒ 'a ⇒ 'a&quot;</code></pre></div>
+<ol>
+<li><code>None</code> has type <code>'a option</code> for every <code>'a</code>; next to <code>Some True</code> it must be a <code>bool option</code>.</li>
+<li>A pair of a function <code>nat ⇒ nat</code> and a <code>nat list</code>.</li>
+<li><code>#</code> puts a light in front of <code>xs</code>, so <code>xs</code> is a list of lights, and so is the result. Isabelle
+prints the λ-term as <code>(#) Red</code>, the partial application of <code>#</code>, for the same reason as it printed
+<code>(+)</code> in Section 8.2.</li>
+<li>A partial application: <code>map</code> has received its function, <code>light ⇒ light</code>, and waits for the list.</li>
+<li><code>f</code> is applied to <code>x</code> and then to the result <code>f x</code>, so its argument type and its result type must be
+the same, <code>'a</code>. The term applies a function twice.</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-2"><div class="ex-label"><span class="ex-num">Exercise 8.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">Lists by hand</span></div>
+<p>Work out the value of each term on paper, then check with <code>value</code>.</p>
+<ol>
+<li><code>take 3 (drop 2 [0..&lt;10])</code></li>
+<li><code>zip [Red, Green] [1, 2, 3::nat]</code></li>
+<li><code>filter (λn. n mod 3 = 0) [0..&lt;10]</code></li>
+<li><code>foldr (λx xs. xs @ [x]) [1, 2, 3::nat] []</code></li>
+<li><code>[n * n. n ← [1..&lt;5]]</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;take 3 (drop 2 [0..&lt;10])&quot;
+value &quot;zip [Red, Green] [1, 2, 3::nat]&quot;
+value &quot;filter (λn. n mod 3 = 0) [0..&lt;10]&quot;
+value &quot;foldr (λx xs. xs @ [x]) [1, 2, 3::nat] []&quot;
+value &quot;[n * n. n ← [1..&lt;5]]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;take 3 (drop 2 [0..&lt;10])&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;zip [Red, Green] [1, 2, 3::nat]&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;filter (λn. n mod 3 = 0) [0..&lt;10]&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;foldr (λx xs. xs @ [x]) [1, 2, 3::nat] []&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;[n * n. n ← [1..&lt;5]]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[2, 3, 4]&quot;
+  :: &quot;nat list&quot;
+
+&quot;[(Red, 1), (Green, 2)]&quot;
+  :: &quot;(light × nat) list&quot;
+
+&quot;[0, 3, 6, 9]&quot;
+  :: &quot;nat list&quot;
+
+&quot;[3, 2, 1]&quot;
+  :: &quot;nat list&quot;
+
+&quot;[1, 4, 9, 16]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<ol>
+<li><code>drop 2</code> removes 0 and 1; <code>take 3</code> keeps the next three numbers.</li>
+<li><code>zip</code> stops at the end of the shorter list, so the 3 has no partner.</li>
+<li>The multiples of 3 below 10, including 0.</li>
+<li><code>foldr f [1, 2, 3] []</code> is <code>f 1 (f 2 (f 3 []))</code>. Each step appends the element at the end of the list
+built so far: first <code>[3]</code>, then <code>[3, 2]</code>, then <code>[3, 2, 1]</code>. This <code>foldr</code> reverses the list.</li>
+<li>The squares of 1 to 4: <code>[1..&lt;5]</code> stops before 5.</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-3"><div class="ex-label"><span class="ex-num">Exercise 8.3</span><span class="ex-stars" title="1">★</span><span class="ex-title">Natural numbers and integers</span></div>
+<p>Predict each value, then check it. Explain each result that surprised you.</p>
+<ol>
+<li><code>(5::nat) - 7 + 7</code> and <code>(5::int) - 7 + 7</code></li>
+<li><code>(7::nat) div 2 * 2</code></li>
+<li><code>(-7::int) div 2</code> and <code>(-7::int) mod 2</code></li>
+<li><code>(7::nat) mod 0</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(5::nat) - 7 + 7&quot;
+value &quot;(5::int) - 7 + 7&quot;
+value &quot;(7::nat) div 2 * 2&quot;
+value &quot;(-7::int) div 2&quot;
+value &quot;(-7::int) mod 2&quot;
+value &quot;(7::nat) mod 0&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(5::nat) - 7 + 7&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(5::int) - 7 + 7&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(7::nat) div 2 * 2&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(-7::int) div 2&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(-7::int) mod 2&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(7::nat) mod 0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;7&quot;
+  :: &quot;nat&quot;
+
+&quot;5&quot;
+  :: &quot;int&quot;
+
+&quot;6&quot;
+  :: &quot;nat&quot;
+
+&quot;- 4&quot;
+  :: &quot;int&quot;
+
+&quot;1&quot;
+  :: &quot;int&quot;
+
+&quot;7&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<ol>
+<li>On <code>nat</code>, <code>5 - 7</code> is truncated to 0, and <code>0 + 7 = 7</code>. On <code>int</code> the result is the expected 5.</li>
+<li><code>7 div 2 = 3</code>, and <code>3 * 2 = 6</code>: integer division throws the remainder away.</li>
+<li><code>div</code> on <code>int</code> rounds down, so <code>-7 div 2 = -4</code> (not −3), and then <code>-7 mod 2 = 1</code>, because
+<code>(-4) * 2 + 1 = -7</code>.</li>
+<li><code>a mod 0 = a</code>: <code>mod</code> is total, like every HOL function, and this is the value the library chooses
+for a remainder by 0 (Fact 8.1).</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-4"><div class="ex-label"><span class="ex-num">Exercise 8.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Is the junction safe?</span></div>
+<p>A designer controls the east–west light of the junction from the north–south light with this function:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun cross :: &quot;light ⇒ light&quot; where
+  &quot;cross Red = Green&quot;
+| &quot;cross RedAmber = Amber&quot;
+| &quot;cross Green = Red&quot;
+| &quot;cross Amber = RedAmber&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> cross :: <span class="isa-inner">&quot;light ⇒ light&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;cross Red = Green&quot;</span>
+| <span class="isa-inner">&quot;cross RedAmber = Amber&quot;</span>
+| <span class="isa-inner">&quot;cross Green = Red&quot;</span>
+| <span class="isa-inner">&quot;cross Amber = RedAmber&quot;</span></code></pre></div>
+<p>The state of the junction is <code>(l, cross l)</code>. Use <code>value</code> and <code>map</code> to check <code>safe</code> for all four states
+<code>l</code>. Which states break the rule of Section 8.4? Then write the cycle of a safe controller as a list of
+junction states, with all-red states in between, and check with <code>value</code> that every state in it is safe.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;map (λl. safe (l, cross l)) [Red, RedAmber, Green, Amber]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;map (λl. safe (l, cross l)) [Red, RedAmber, Green, Amber]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[True, False, True, False]&quot;
+  :: &quot;bool list&quot;</code></pre></div>
+<p>The states with <code>l = RedAmber</code> and <code>l = Amber</code> are unsafe: then neither light is in the state <code>Red</code>,
+because one shows red and amber and the other amber. A safe cycle lets each direction run its sequence while the other is
+red, with both red in between:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition safe_cycle :: &quot;(light × light) list&quot; where
+  &quot;safe_cycle = [(Green, Red), (Amber, Red), (Red, Red), (Red, RedAmber),
+                 (Red, Green), (Red, Amber), (Red, Red), (RedAmber, Red)]&quot;
+
+value &quot;filter (λp. ¬ safe p) safe_cycle&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> safe_cycle :: <span class="isa-inner">&quot;(light × light) list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;safe_cycle = [(Green, Red), (Amber, Red), (Red, Red), (Red, RedAmber),
+                 (Red, Green), (Red, Amber), (Red, Red), (RedAmber, Red)]&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;filter (λp. ¬ safe p) safe_cycle&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[]&quot;
+  :: &quot;(light × light) list&quot;</code></pre></div>
+<p>No state is unsafe. <code>value</code> can use <code>safe</code> and <code>safe_cycle</code> without being told: the code generator
+always uses the equations of definitions, unlike <code>simp</code>.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-5"><div class="ex-label"><span class="ex-num">Exercise 8.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">From lists to stacks</span></div>
+<p>Define <code>from_list :: 'a list ⇒ 'a stack</code> with <code>primrec</code>, so that the first element of the list ends on top
+of the stack. Test it with <code>value</code>. Then prove <code>to_list (from_list xs) = xs</code> and
+<code>height (from_list xs) = length xs</code> by induction, as in Module 5.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="primrec from_list :: &quot;'a list ⇒ 'a stack&quot; where
+  &quot;from_list [] = Empty&quot;
+| &quot;from_list (x # xs) = Push x (from_list xs)&quot;
+
+value &quot;from_list [Red, Green]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">primrec</span> from_list :: <span class="isa-inner">&quot;'a list ⇒ 'a stack&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;from_list [] = Empty&quot;</span>
+| <span class="isa-inner">&quot;from_list (x # xs) = Push x (from_list xs)&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;from_list [Red, Green]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Push Red (Push Green Empty)&quot;
+  :: &quot;light stack&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;to_list (from_list xs) = xs&quot;
+  by (induction xs) auto
+
+lemma &quot;height (from_list xs) = length xs&quot;
+  by (induction xs) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;to_list (from_list xs) = xs&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) auto
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;height (from_list xs) = length xs&quot;</span>
+  <span class="isa-proof">by</span> (induction xs) auto</code></pre></div>
+<p>Both proofs follow the recursion of <code>from_list</code> over the list: the base case <code>[]</code> and the induction step
+<code>x # xs</code> are computed by the equations of <code>from_list</code>, <code>to_list</code> and <code>height</code>, and the induction step
+uses the induction hypothesis. Compare <code>from_list</code> with <code>push_all</code> from Section 8.4, which puts the <em>last</em> element
+on top.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-6"><div class="ex-label"><span class="ex-num">Exercise 8.6</span><span class="ex-stars" title="2">★★</span><span class="ex-title">An average</span></div>
+<p>Define <code>average :: nat list ⇒ nat</code> with <code>definition</code>, as the sum of the list divided by its length. Compute
+the average duration of the states of one cycle, and <code>average []</code>. Why does <code>average []</code> not fail? Then
+prove <code>average [] = 0</code> and, for every <code>n</code>, <code>average [n] = n</code>.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition average :: &quot;nat list ⇒ nat&quot; where
+  &quot;average xs = sum_list xs div length xs&quot;
+
+value &quot;average (map duration (trace 4 Red))&quot;
+value &quot;average []&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> average :: <span class="isa-inner">&quot;nat list ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;average xs = sum_list xs div length xs&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;average (map duration (trace 4 Red))&quot;</span>
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;average []&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  average :: &quot;nat list ⇒ nat&quot;
+
+&quot;15&quot;
+  :: &quot;nat&quot;
+
+&quot;0&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p>The four durations add up to 60, and <code>60 div 4 = 15</code>. For the empty list the sum and the length are both
+0, and <code>0 div 0 = 0</code> (Fact 8.1), so <code>average []</code> is 0 rather than an error. Whether 0 is a sensible
+average of nothing is a question for the specification, not for Isabelle.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;average [] = 0&quot;
+  by (simp add: average_def)
+
+lemma &quot;average [n] = n&quot;
+  by (simp add: average_def)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;average [] = 0&quot;</span>
+  <span class="isa-proof">by</span> (simp add: average_def)
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;average [n] = n&quot;</span>
+  <span class="isa-proof">by</span> (simp add: average_def)</code></pre></div>
+<p>Without <code>add: average_def</code>, <code>simp</code> would fail, as it did for <code>safe</code> in Section 8.4.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-7"><div class="ex-label"><span class="ex-num">Exercise 8.7</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Sensor codes</span></div>
+<p>A sensor reports the state of the light as a number: 0 for red, 1 for red and amber, 2 for green and 3 for
+amber. Define <code>code_of :: light ⇒ nat</code> and a decoder <code>light_of :: nat ⇒ light option</code> with <code>fun</code>, using
+the patterns <code>0</code>, <code>Suc 0</code>, … and a final catch-all equation that returns <code>None</code> for every other number.
+Check with <code>thm light_of.simps</code> how <code>fun</code> handled the overlapping last equation. Test the decoder on
+<code>[0, 2, 7]</code>. Then prove that decoding undoes encoding: <code>light_of (code_of l) = Some l</code>.
+(Hint: the pitfall at the end of Section 8.6.)</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun code_of :: &quot;light ⇒ nat&quot; where
+  &quot;code_of Red = 0&quot;
+| &quot;code_of RedAmber = 1&quot;
+| &quot;code_of Green = 2&quot;
+| &quot;code_of Amber = 3&quot;
+
+fun light_of :: &quot;nat ⇒ light option&quot; where
+  &quot;light_of 0 = Some Red&quot;
+| &quot;light_of (Suc 0) = Some RedAmber&quot;
+| &quot;light_of (Suc (Suc 0)) = Some Green&quot;
+| &quot;light_of (Suc (Suc (Suc 0))) = Some Amber&quot;
+| &quot;light_of n = None&quot;
+
+thm light_of.simps">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> code_of :: <span class="isa-inner">&quot;light ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;code_of Red = 0&quot;</span>
+| <span class="isa-inner">&quot;code_of RedAmber = 1&quot;</span>
+| <span class="isa-inner">&quot;code_of Green = 2&quot;</span>
+| <span class="isa-inner">&quot;code_of Amber = 3&quot;</span>
+
+<span class="isa-cmd">fun</span> light_of :: <span class="isa-inner">&quot;nat ⇒ light option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;light_of 0 = Some Red&quot;</span>
+| <span class="isa-inner">&quot;light_of (Suc 0) = Some RedAmber&quot;</span>
+| <span class="isa-inner">&quot;light_of (Suc (Suc 0)) = Some Green&quot;</span>
+| <span class="isa-inner">&quot;light_of (Suc (Suc (Suc 0))) = Some Amber&quot;</span>
+| <span class="isa-inner">&quot;light_of n = None&quot;</span>
+
+<span class="isa-cmd">thm</span> light_of.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  light_of 0 = Some Red
+  light_of (Suc 0) = Some RedAmber
+  light_of (Suc (Suc 0)) = Some Green
+  light_of (Suc (Suc (Suc 0))) = Some Amber
+  light_of (Suc (Suc (Suc (Suc ?va)))) = None</code></pre></div>
+<p><code>fun</code> replaced the catch-all equation by one for the numbers that the earlier equations do not cover:
+those of the form <code>Suc (Suc (Suc (Suc ?va)))</code>, that is, 4 and above.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;map light_of [0, 2, 7]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;map light_of [0, 2, 7]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[Some Red, Some Green, None]&quot;
+  :: &quot;light option list&quot;</code></pre></div>
+<p>For the proof, split on <code>l</code> with <code>cases</code>. In each case the goal is about a numeral, such as
+<code>light_of 2 = Some Green</code>, and the equations of <code>light_of</code> are about <code>Suc</code> patterns. <code>numeral_eq_Suc</code>
+turns the numerals into <code>Suc</code> form:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;light_of (code_of l) = Some l&quot;
+  by (cases l) (simp_all add: numeral_eq_Suc)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;light_of (code_of l) = Some l&quot;</span>
+  <span class="isa-proof">by</span> (cases l) (simp_all add: numeral_eq_Suc)</code></pre></div>
+<p>Without <code>numeral_eq_Suc</code>, <code>simp</code> proves the cases for <code>Red</code> and <code>RedAmber</code> but gets stuck on
+<code>light_of 2 = Some Green</code> and <code>light_of 3 = Some Amber</code>, as the pitfall predicts.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-8-8"><div class="ex-label"><span class="ex-num">Exercise 8.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Termination in Isabelle’s words</span></div>
+<p>For each definition, predict whether <code>fun</code> accepts it, and what it reports: the termination order, or
+the entries of the result matrix. Then try it.</p>
+<ol>
+<li><code>merge</code>, which merges two sorted lists into one sorted list, with the type
+<code>'a::linorder list ⇒ 'a list ⇒ 'a list</code> and the equations <code>merge [] ys = ys</code>, <code>merge xs [] = xs</code> and
+<code>merge (x # xs) (y # ys) = (if x ≤ y then x # merge xs (y # ys) else y # merge (x # xs) ys)</code>. The
+class <code>linorder</code> contains the types with a linear order <code>≤</code>, such as <code>nat</code> and <code>int</code>.</li>
+<li><code>forever n = forever (n + 1)</code>, with type <code>nat ⇒ nat</code>. Is it as dangerous as <code>bad</code> in Section 8.7?</li>
+<li><code>count_up i n = (if i &lt; n then count_up (i + 1) n + 1 else 0)</code>, with type <code>nat ⇒ nat ⇒ nat</code>, from
+Exercise 5.8, which <code>fun</code> rejects. Define it with <code>function</code>, as <code>sum_from</code> in Section 8.7, and compute
+<code>count_up 3 10</code>.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>
+<p>Accepted:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun merge :: &quot;'a::linorder list ⇒ 'a list ⇒ 'a list&quot; where
+  &quot;merge [] ys = ys&quot;
+| &quot;merge xs [] = xs&quot;
+| &quot;merge (x # xs) (y # ys) =
+     (if x ≤ y then x # merge xs (y # ys) else y # merge (x # xs) ys)&quot;
+
+value &quot;merge [1, 4, 6] [2, 3, 7::nat]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> merge :: <span class="isa-inner">&quot;'a::linorder list ⇒ 'a list ⇒ 'a list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;merge [] ys = ys&quot;</span>
+| <span class="isa-inner">&quot;merge xs [] = xs&quot;</span>
+| <span class="isa-inner">&quot;merge (x # xs) (y # ys) =
+     (if x ≤ y then x # merge xs (y # ys) else y # merge (x # xs) ys)&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;merge [1, 4, 6] [2, 3, 7::nat]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  merge :: &quot;'a list ⇒ 'a list ⇒ 'a list&quot;
+
+Found termination order:
+  &quot;(λp. length (snd p)) &lt;*mlex*&gt; (λp. length (fst p)) &lt;*mlex*&gt; {}&quot;
+
+&quot;[1, 2, 3, 4, 6, 7]&quot;
+  :: &quot;nat list&quot;</code></pre></div>
+<p>There are two recursive calls. The first makes the first list shorter and keeps the second; the
+second call does the opposite. So neither length decreases at both calls, and no single measure works,
+but a lexicographic order does, as for Ackermann’s function in Module 5. Isabelle picked the length of
+the second list first: it decreases (<code>&lt;</code>) at the second call and stays the same (<code>&lt;=</code>) at the first
+call, where the length of the first list then decreases. Comparing the first lists first would work as
+well.</p>
+</li>
+<li>
+<p>Rejected:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> forever :: <span class="isa-inner">&quot;nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;forever n = forever (n + 1)&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  forever :: &quot;nat ⇒ nat&quot;
+
+<span class="isa-error">Unfinished subgoals:
+(a, 1, &lt;):
+ 1. False
+Calls:
+  a) n ~&gt; n + 1
+Measures:
+  1) size
+Result matrix:
+    1
+a:  F
+
+Could not find lexicographic termination order.</span></code></pre></div>
+<p>The call goes from <code>n</code> to <code>n + 1</code>, so the size grows, and the matrix entry is <code>F</code>: the claim that the
+size does not grow, <code>n + 1 ≤ n</code>, became plain <code>False</code>. No measure can work at all: it would have to
+decrease from <code>n</code> to <code>n + 1</code> to <code>n + 2</code> and so on, an infinite descending chain of natural numbers.
+But <code>forever</code> is not dangerous in the way <code>bad</code> is: every constant function satisfies
+<code>forever n = forever (n + 1)</code>, so the equation is not contradictory. It is merely not a definition: it
+does not determine which function <code>forever</code> is, and as a program it runs forever. Like <code>f n = f n</code> in
+Module 5, it shows that <code>fun</code> rejects every recursion whose termination it cannot prove, whether the
+equations are contradictory or not.</p>
+</li>
+<li>
+<p>The measure is <code>n - i</code>. The call happens only when <code>i &lt; n</code>, and then <code>n - (i + 1) &lt; n - i</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="function count_up :: &quot;nat ⇒ nat ⇒ nat&quot; where
+  &quot;count_up i n = (if i &lt; n then count_up (i + 1) n + 1 else 0)&quot;
+  by pat_completeness auto
+termination
+  by (relation &quot;measure (λ(i, n). n - i)&quot;) auto
+
+value &quot;count_up 3 10&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">function</span> count_up :: <span class="isa-inner">&quot;nat ⇒ nat ⇒ nat&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;count_up i n = (if i &lt; n then count_up (i + 1) n + 1 else 0)&quot;</span>
+  <span class="isa-proof">by</span> pat_completeness auto
+<span class="isa-cmd">termination</span>
+  <span class="isa-proof">by</span> (relation <span class="isa-inner">&quot;measure (λ(i, n). n - i)&quot;</span>) auto
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;count_up 3 10&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;7&quot;
+  :: &quot;nat&quot;</code></pre></div>
+<p><code>count_up i n</code> counts the steps from <code>i</code> up to <code>n</code>, so it equals <code>n - i</code>, here 7.</p>
+</li>
+</ol>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">11</span><h2>Check yourself</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>What is the difference between the commands <code>term</code> and <code>value</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>term</code> works only for terms without variables</button></li><li><button type="button" class="quiz-opt" data-i="1"><code>term</code> prints a term and its type without evaluating it; <code>value</code> evaluates it</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>value</code> prints only the type, <code>term</code> only the value</button></li><li><button type="button" class="quiz-opt" data-i="3">There is none; they are two names for the same command</button></li></ol><div class="quiz-expl" hidden><code>term &quot;(λx::nat. x * x) 7&quot;</code> prints <code>7 * 7</code>, after β-reduction but without arithmetic; <code>value</code> prints <code>49</code>.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">2</span><div>What is the type of <code>map Suc</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>nat ⇒ nat</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>(nat ⇒ nat) ⇒ nat list ⇒ nat list</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>nat list ⇒ nat list</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>nat list</code></button></li></ol><div class="quiz-expl" hidden><code>map :: ('a ⇒ 'b) ⇒ 'a list ⇒ 'b list</code> has received its first argument, <code>Suc :: nat ⇒ nat</code>. The partial application waits for a list of natural numbers.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">3</span><div>What does <code>value &quot;(3::nat) - 5&quot;</code> print?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>- 2</code></button></li><li><button type="button" class="quiz-opt" data-i="1">an error, because the result is negative</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>2</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>0</code></button></li></ol><div class="quiz-expl" hidden>Subtraction on <code>nat</code> is truncated: <code>m - n = 0</code> whenever <code>m ≤ n</code>.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div>You define <code>safe</code> with <code>definition</code>, and <code>lemma &quot;safe (Red, Green)&quot; by simp</code> fails. Why?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>simp</code> does not use the equation of a <code>definition</code> unless you add it, as in <code>simp add: safe_def</code></button></li><li><button type="button" class="quiz-opt" data-i="1">The lemma is false</button></li><li><button type="button" class="quiz-opt" data-i="2"><code>definition</code> cannot define functions on pairs</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>simp</code> cannot prove statements about datatypes</button></li></ol><div class="quiz-expl" hidden>Definitions are not unfolded automatically, so that proofs can use proved properties of a concept instead of its definition.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">5</span><div>Why does <code>fun</code> refuse a recursive definition whose termination it cannot prove?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Because non-terminating functions would make <code>value</code> slow</button></li><li><button type="button" class="quiz-opt" data-i="1">Because HOL has no type for infinite computations</button></li><li><button type="button" class="quiz-opt" data-i="2">Because the equations of a non-terminating “definition” can be contradictory, as <code>f x = f x + 1</code> implies <code>0 = 1</code></button></li><li><button type="button" class="quiz-opt" data-i="3">Because the code generator cannot translate such functions</button></li></ol><div class="quiz-expl" hidden><code>fun</code> proves your equations from a construction that needs a termination argument. Without one, accepting the equations could make the logic inconsistent.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div><code>value &quot;2 + 2&quot;</code> reports “Cannot derive subsort relation numeral &lt; term_of”. What is the cause?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The number 2 is too small for <code>value</code></button></li><li><button type="button" class="quiz-opt" data-i="1">Natural numbers cannot be added with <code>value</code></button></li><li><button type="button" class="quiz-opt" data-i="2">The class <code>numeral</code> is not defined in <code>Main</code></button></li><li><button type="button" class="quiz-opt" data-i="3">The type of <code>2 + 2</code> is unknown; Isabelle knows only that it has numerals, which is not enough to print the result</button></li></ol><div class="quiz-expl" hidden><code>value</code> needs the class <code>term_of</code> to print a result. A type annotation such as <code>:: nat</code> fixes the type and removes the error.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="8"><div class="done-q">Finished this module?</div><button type="button" class="done-btn" data-yes="Done" data-no="Mark as done" data-undo="Mark as not done">Mark as done</button><div class="done-progress" data-label="{d} of {n} modules done"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_07_EN.html"><span class="mnav-label">&larr; Previous</span><span class="mnav-title">Module 7: Natural deduction in Isabelle</span></a><a class="mnav next" href="module_09_EN.html"><span class="mnav-label">Next &rarr;</span><span class="mnav-title">Module 9: Proof automation</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>

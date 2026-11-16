@@ -1,0 +1,1443 @@
+<!-- Created by Ran Wei · Licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) -->
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 14: Capstone: a verified compiler — Formal Methods with Isabelle</title>
+<meta name="description" content="Build a small compiler in Isabelle, from arithmetic expressions to code for a stack machine, test it, and prove that the code it produces is right for every expression. Then verify an optimisation, export the compiler as Haskell code, and extend it with subtraction, conditionals and jumps.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-lesson="14" data-lessons="14" data-series="formal-methods">
+<div id="progress-bar"></div>
+<header id="topbar">
+  <a href="../../tutorials/" class="brand">Ran <span>Wei</span></a><span class="sep">/</span>
+  <a href="index.html" class="crumb">Formal methods</a><span class="sep">/</span><span class="crumb crumb-now">Module 14</span>
+  <div class="module-dropdown" id="moduleDropdown"><button class="badge" type="button" aria-haspopup="true" aria-expanded="false">Module 14 of 14</button><div class="dropdown-menu"><a href="module_01_EN.html"><span class="dd-n">1</span>Formal methods, what and why<span class="dd-done" data-lesson="1"></span></a>
+<a href="module_02_EN.html"><span class="dd-n">2</span>Propositional logic<span class="dd-done" data-lesson="2"></span></a>
+<a href="module_03_EN.html"><span class="dd-n">3</span>Predicate logic<span class="dd-done" data-lesson="3"></span></a>
+<a href="module_04_EN.html"><span class="dd-n">4</span>Sets, relations and functions<span class="dd-done" data-lesson="4"></span></a>
+<a href="module_05_EN.html"><span class="dd-n">5</span>Induction and recursion<span class="dd-done" data-lesson="5"></span></a>
+<a href="module_06_EN.html"><span class="dd-n">6</span>What is a proof? Natural deduction<span class="dd-done" data-lesson="6"></span></a>
+<a href="module_07_EN.html"><span class="dd-n">7</span>Natural deduction in Isabelle<span class="dd-done" data-lesson="7"></span></a>
+<a href="module_08_EN.html"><span class="dd-n">8</span>Functional programming in HOL<span class="dd-done" data-lesson="8"></span></a>
+<a href="module_09_EN.html"><span class="dd-n">9</span>Proof automation<span class="dd-done" data-lesson="9"></span></a>
+<a href="module_10_EN.html"><span class="dd-n">10</span>Structured proofs in Isar<span class="dd-done" data-lesson="10"></span></a>
+<a href="module_11_EN.html"><span class="dd-n">11</span>Induction in depth<span class="dd-done" data-lesson="11"></span></a>
+<a href="module_12_EN.html"><span class="dd-n">12</span>Verifying functional programs<span class="dd-done" data-lesson="12"></span></a>
+<a href="module_13_EN.html"><span class="dd-n">13</span>Modelling systems: state machines and invariants<span class="dd-done" data-lesson="13"></span></a>
+<a href="module_14_EN.html" class="active"><span class="dd-n">14</span>Capstone: a verified compiler<span class="dd-done" data-lesson="14"></span></a><div class="dd-sep"></div><a href="cheatsheet_EN.html"><span class="dd-n">&#9670;</span>Cheat sheet</a>
+<a href="troubleshooting_EN.html"><span class="dd-n">&#9670;</span>Troubleshooting</a>
+<a href="glossary_EN.html"><span class="dd-n">&#9670;</span>Glossary</a></div></div>
+  
+</header>
+<div id="layout">
+<aside id="sidebar"><div class="sidebar-label">On this page</div><nav><a href="#circle"><span class="num">1</span><span class="side-t">Closing the circle</span></a><a href="#source"><span class="num">2</span><span class="side-t">Expressions and their meaning</span></a><a href="#machine"><span class="num">3</span><span class="side-t">A stack machine</span></a><a href="#compiler"><span class="num">4</span><span class="side-t">The compiler</span></a><a href="#proof"><span class="num">5</span><span class="side-t">The correctness proof</span></a><a href="#optimise"><span class="num">6</span><span class="side-t">A verified optimisation</span></a><a href="#export"><span class="num">7</span><span class="side-t">From proof to program</span></a><a href="#extensions"><span class="num">8</span><span class="side-t">Extending the compiler ★★★</span></a><a href="#outlook"><span class="num">9</span><span class="side-t">Looking back, looking ahead</span></a><a href="#summary"><span class="num">10</span><span class="side-t">What you learned</span></a><a href="#exercises"><span class="num">11</span><span class="side-t">Exercises</span></a><a href="#quiz"><span class="num">12</span><span class="side-t">Check yourself</span></a></nav>
+<div class="sidebar-label">Reference</div><div class="side-links"><a href="cheatsheet_EN.html">Cheat sheet</a><a href="troubleshooting_EN.html">Troubleshooting</a><a href="glossary_EN.html">Glossary</a><a href="formal-methods-theories.zip">Theory files (ZIP)</a></div></aside>
+  <main id="main">
+    <div class="module-hero">
+      <div class="series">Formal Methods with Isabelle &middot; Part IV · Verification</div>
+      <h1 class="module-title"><span class="title-n">Module 14</span>Capstone: a verified compiler</h1>
+      <p class="module-lead">Build a small compiler in Isabelle, from arithmetic expressions to code for a stack machine, test it, and prove that the code it produces is right for every expression. Then verify an optimisation, export the compiler as Haskell code, and extend it with subtraction, conditionals and jumps.</p>
+      <div class="hero-chips"><span class="chip chip-time">&#9201; 240 min</span><span class="chip chip-needs">You need: Modules 1–13</span></div>
+    </div>
+<section class="goals"><h3 class="goals-h">In this module you will</h3><ul><li>Define a small language by a datatype, and its meaning by an evaluation function</li><li>Define a stack machine and a compiler for it, and compare evaluation with execution on examples</li><li>Test a compiler with value and Quickcheck before proving anything about it</li><li>Prove the compiler correct by induction, generalising over the stack and adding the lemma about appended code</li><li>Prove an optimisation correct, combine the two theorems, and export the verified compiler as code</li><li>Extend the language and the machine, and judge which parts of the proof carry over</li></ul></section>
+<div class="content">
+<span class="section-anchor" id="circle"></span>
+<div class="section-header"><span class="section-num">1</span><h2>Closing the circle</h2></div>
+<p>Module 1 began with software that must not fail, and one of its examples was a compiler: CompCert, a C
+compiler with a machine-checked proof of correctness. Compilers deserve that attention. Every program
+you run has been translated by one, and a bug in the translation breaks programs whose source code is
+correct. It breaks proofs too. A proof about a C function speaks about the C code, but the computer runs
+whatever the compiler produced. In Exercise 1.6 the compiler appeared on the list of things that a
+verified program still has to trust. A verified compiler takes it off that list, or nearly so (Section
+14.7 says what remains): its correctness theorem says that the code it produces does what the source
+program means, for every source program.</p>
+<p>The idea is almost as old as compilers. In 1967 John McCarthy and James Painter proved on paper that a
+compiler for arithmetic expressions is correct, the first proof of its kind. In 1972 Robin Milner and
+Richard Weyhrauch checked such a proof by machine, for a compiler from arithmetic expressions to code
+for a stack machine, in Stanford LCF, the forerunner of the LCF system of Module 1. Today CompCert
+compiles a large subset of C, and CakeML, verified in the prover HOL4,
+compiles a dialect of ML. Their proofs run to many thousands of lines, but the central argument is the
+one you will write in this module, for the language McCarthy and Painter started with.</p>
+<p>You will build every piece yourself:</p>
+<ol>
+<li>a source language of arithmetic expressions, and its meaning (Section 14.2);</li>
+<li>a target machine that computes with a stack (Section 14.3);</li>
+<li>the compiler, and tests that compare source and target (Section 14.4);</li>
+<li>the proof that the compiler is correct (Section 14.5);</li>
+<li>an optimisation with its own proof, and the verified code exported to Haskell (Sections 14.6
+and 14.7);</li>
+<li>extensions: subtraction, conditionals and jumps (Section 14.8).</li>
+</ol>
+<p>What does “correct” mean for a compiler? Figure 14.1 shows the answer that this module proves. From an
+expression there are two ways to a result. You can evaluate the expression directly, using the meaning
+of the source language. Or you can compile it and run the code on the machine. The compiler is correct
+if the two ways always agree.</p>
+<figure class="fig" id="fig-14-1"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="760" height="360" role="img"><title>Two ways from an expression to its value</title><defs><marker id="fig-14-1__ah-15803D" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#15803D"/></marker><marker id="fig-14-1__ah-2563EB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2563EB"/></marker><marker id="fig-14-1__ah-475569" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker><marker id="fig-14-1__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><text x="130" y="24" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#2563EB" text-anchor="middle">Source language</text><text x="588" y="24" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#15803D" text-anchor="middle">Target machine</text><rect x="20" y="38" width="220" height="82" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="130" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">expression e</text><text x="130" y="84" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">x + (2 + y)</text><text x="130" y="106" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" fill="#475569" text-anchor="middle">Add (Var &#x27;&#x27;x&#x27;&#x27;) (Add …)</text><rect x="436" y="38" width="304" height="82" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="588" y="60" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">code compile e</text><text x="588" y="84" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">LOAD &#x27;&#x27;x&#x27;&#x27;, PUSH 2,</text><text x="588" y="106" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">LOAD &#x27;&#x27;y&#x27;&#x27;, ADD, ADD</text><rect x="20" y="236" width="220" height="72" rx="12" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.8"/><text x="130" y="258" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">value</text><text x="130" y="290" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="20" font-weight="700" fill="#1A2E4A" text-anchor="middle">14</text><rect x="436" y="236" width="304" height="72" rx="12" fill="#F0FDF4" stroke="#15803D" stroke-width="1.8"/><text x="588" y="258" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">stack</text><text x="588" y="290" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="20" font-weight="700" fill="#1A2E4A" text-anchor="middle">14 # stk</text><line x1="246" y1="79" x2="428" y2="79" stroke="#6D28D9" stroke-width="2.4" marker-end="url(#fig-14-1__ah-6D28D9)"/><text x="337" y="70" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="700" fill="#6D28D9" text-anchor="middle">compile</text><line x1="130" y1="126" x2="130" y2="228" stroke="#2563EB" stroke-width="2.2" marker-end="url(#fig-14-1__ah-2563EB)"/><text x="140" y="182" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#2563EB" text-anchor="start">eval e s</text><line x1="588" y1="126" x2="588" y2="228" stroke="#15803D" stroke-width="2.2" marker-end="url(#fig-14-1__ah-15803D)"/><text x="598" y="176" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#15803D" text-anchor="start">exec (compile e)</text><text x="598" y="194" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#15803D" text-anchor="start">s stk</text><line x1="246" y1="272" x2="428" y2="272" stroke="#475569" stroke-width="2.2" marker-end="url(#fig-14-1__ah-475569)"/><text x="337" y="263" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">push onto stk</text><rect x="244" y="148" width="188" height="58" rx="10" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.6" stroke-dasharray="5 4"/><text x="338" y="171" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="700" fill="#C2410C" text-anchor="middle">compile_correct:</text><text x="338" y="192" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#C2410C" text-anchor="middle">both ways give the same stack</text><text x="380" y="340" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">in the state x = 5, y = 7</text></svg>
+</div><figcaption><span class="fig-num">Figure 14.1</span> <p>Evaluating an expression and running its compiled code must agree. The theorem <code>compile_correct</code> of
+Section 14.5 says that they do, for every expression, every state of the variables and every stack.</p>
+</figcaption></figure>
+<p>The machine is a <strong>stack machine</strong>: it keeps intermediate results on a stack, and its instructions take
+their operands from the top of the stack and put their results back there. This is a realistic design.
+The Java Virtual Machine, WebAssembly and the interpreter of Python all run instructions for stack
+machines of this kind, and their compilers produce such code.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>A compiler translates, and a correct translation preserves meaning. To prove that it does, you need the
+meaning of both languages as mathematical functions: an evaluation function for the source and an
+execution function for the target. “Preserves meaning” then becomes an equation between the two, which
+you can test on examples and prove by induction.</p>
+</div>
+<span class="section-anchor" id="source"></span>
+<div class="section-header"><span class="section-num">2</span><h2>Expressions and their meaning</h2></div>
+<h3 id="syntax">Names, states and expressions</h3>
+<p>Programs are written as text, but a compiler works on their structure. The text <code>x + (2 + y)</code> is an
+addition whose left operand is the variable x and whose right operand is another addition, of the number
+2 and the variable y. The program that turns text into structure is the <strong>parser</strong>. Parsing is a subject
+of its own, and this module, like most compiler proofs, starts after it.</p>
+<div class="box box-definition"><div class="box-label">Definition 14.1<span class="box-title">Abstract syntax</span></div>
+<p>The <strong>abstract syntax</strong> of a language describes its programs as trees: each node is an operation and its
+children are the operands. Parentheses and spaces belong to the text, the <strong>concrete syntax</strong>, and do not
+appear in the tree. In Isabelle, abstract syntax is a datatype.</p>
+</div>
+<p>Expressions contain variables, so you need names for variables and a way to give them values. Names are
+strings. As in Module 4, a string is written between two pairs of single quotes, as in <code>''x''</code>, because
+the double quote already marks the end of a term. Values are integers (<code>int</code>, Module 8), so that
+subtraction makes sense when Section 14.8 adds it. The values of all variables at one moment form a
+<strong>state</strong>: a function from names to values.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="type_synonym vname = string
+type_synonym state = &quot;vname ⇒ int&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">type_synonym</span> vname = string
+<span class="isa-cmd">type_synonym</span> state = <span class="isa-inner">&quot;vname ⇒ int&quot;</span></code></pre></div>
+<p><code>type_synonym</code> introduces a new name for an existing type. <code>vname</code> is another name for <code>string</code>, which is
+itself <code>char list</code>, a list of characters, and <code>state</code> is another name for <code>vname ⇒ int</code>. Nothing new is
+created: Isabelle’s output often shows the full types instead of the short names.</p>
+<p>An expression is a number, a variable, or the sum of two expressions:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype expr = Num int | Var vname | Add expr expr">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> expr = Num int | Var vname | Add expr expr</code></pre></div>
+<p>The datatype is recursive, like the trees of Module 5, and its values are exactly the trees described
+above: <code>Add</code> makes a node with two children, and <code>Num</code> and <code>Var</code> make leaves. The text <code>x + (2 + y)</code>
+becomes the tree <code>Add (Var ''x'') (Add (Num 2) (Var ''y''))</code>. It will serve as the running example, so
+give it a name:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition sample :: expr where
+  &quot;sample = Add (Var ''x'') (Add (Num 2) (Var ''y''))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> sample :: expr <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;sample = Add (Var ''x'') (Add (Num 2) (Var ''y''))&quot;</span></code></pre></div>
+<h3 id="eval">Evaluation</h3>
+<p>The meaning of an expression is its value, and its value depends on the state. A recursive function says
+what each kind of node means:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun eval :: &quot;expr ⇒ state ⇒ int&quot; where
+  &quot;eval (Num n) s = n&quot;
+| &quot;eval (Var x) s = s x&quot;
+| &quot;eval (Add a b) s = eval a s + eval b s&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> eval :: <span class="isa-inner">&quot;expr ⇒ state ⇒ int&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;eval (Num n) s = n&quot;</span>
+| <span class="isa-inner">&quot;eval (Var x) s = s x&quot;</span>
+| <span class="isa-inner">&quot;eval (Add a b) s = eval a s + eval b s&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  eval :: &quot;expr ⇒ (char list ⇒ int) ⇒ int&quot;
+
+Found termination order: &quot;(λp. size (fst p)) &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<p>Read the equations aloud: a number means itself; a variable means its value in the state s; a sum means
+the sum of the meanings of its parts. On the left, <code>Add</code> is a piece of syntax; on the right, <code>+</code> is the
+addition of integers. <code>eval</code> connects the two. Isabelle shows the type of <code>eval</code> with the synonyms
+unfolded, <code>state</code> as <code>char list ⇒ int</code>, and reports that <code>eval</code> terminates because each recursive call
+is on a smaller expression, the first of its two arguments (Module 8).</p>
+<div class="box box-definition"><div class="box-label">Definition 14.2<span class="box-title">Semantics</span></div>
+<p>The <strong>semantics</strong> of a language gives each of its programs a precise mathematical meaning, the second
+ingredient of a formal method in Module 1. Here the meaning of an expression e in a state s is the
+integer <code>eval e s</code>. The definition is <strong>compositional</strong>: the meaning of a node is computed from the
+meanings of its children.</p>
+</div>
+<p>To try <code>eval</code>, you need a state. Isabelle writes <code>f(a := v)</code> for the function that maps a to v and every
+other argument b to <code>f b</code>; you met this notation in Nitpick’s counterexamples in Module 3. Start from
+<code>λ_. 0</code>, the function that maps every name to 0 (the underscore is a variable whose name does not
+matter), and update it twice:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition s0 :: state where
+  &quot;s0 = (λ_. 0)(''x'' := 5, ''y'' := 7)&quot;
+
+value &quot;(s0 ''x'', s0 ''y'', s0 ''z'')&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> s0 :: state <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;s0 = (λ_. 0)(''x'' := 5, ''y'' := 7)&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(s0 ''x'', s0 ''y'', s0 ''z'')&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;(5, 7, 0)&quot;
+  :: &quot;int × int × int&quot;</code></pre></div>
+<p>In the state <code>s0</code> the variable x has the value 5, y has 7 and every other variable has 0. Now evaluate
+the running example:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;eval sample s0&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;eval sample s0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;14&quot;
+  :: &quot;int&quot;</code></pre></div>
+<div class="box box-example"><div class="box-label">Example 14.1<span class="box-title">Evaluating by hand</span></div>
+<p>The equations of <code>eval</code> produce the same result step by step. Unfold <code>sample</code> and work from the outside
+in:</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mtable rowspacing="0.25em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mrow><mi>s</mi><mi>a</mi><mi>m</mi><mi>p</mi><mi>l</mi><mi>e</mi></mrow><mtext> </mtext><msub><mi>s</mi><mn>0</mn></msub></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>V</mi><mi>a</mi><mi>r</mi></mrow><mtext> </mtext><mi>x</mi><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>s</mi><mn>0</mn></msub><mo>+</mo><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>A</mi><mi>d</mi><mi>d</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>N</mi><mi>u</mi><mi>m</mi></mrow><mtext> </mtext><mn>2</mn><mo stretchy="false">)</mo><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>V</mi><mi>a</mi><mi>r</mi></mrow><mtext> </mtext><mi>y</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>s</mi><mn>0</mn></msub></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mn>5</mn><mo>+</mo><mo stretchy="false">(</mo><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>N</mi><mi>u</mi><mi>m</mi></mrow><mtext> </mtext><mn>2</mn><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>s</mi><mn>0</mn></msub><mo>+</mo><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>V</mi><mi>a</mi><mi>r</mi></mrow><mtext> </mtext><mi>y</mi><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>s</mi><mn>0</mn></msub><mo stretchy="false">)</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mo>=</mo><mn>5</mn><mo>+</mo><mo stretchy="false">(</mo><mn>2</mn><mo>+</mo><mn>7</mn><mo stretchy="false">)</mo><mo>=</mo><mn>14</mn></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+\mathit{eval}\ \mathit{sample}\ s_0
+&amp;= \mathit{eval}\ (\mathit{Var}\ x)\ s_0 + \mathit{eval}\ (\mathit{Add}\ (\mathit{Num}\ 2)\ (\mathit{Var}\ y))\ s_0\\
+&amp;= 5 + (\mathit{eval}\ (\mathit{Num}\ 2)\ s_0 + \mathit{eval}\ (\mathit{Var}\ y)\ s_0)\\
+&amp;= 5 + (2 + 7) = 14
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:4.2em;vertical-align:-1.85em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mord"><span class="mord mathit">sample</span></span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.35em;"><span style="top:-4.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Var</span></span><span class="mspace"> </span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Add</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Num</span></span><span class="mspace"> </span><span class="mord">2</span><span class="mclose">)</span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Var</span></span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mclose">))</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Num</span></span><span class="mspace"> </span><span class="mord">2</span><span class="mclose">)</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">Var</span></span><span class="mspace"> </span><span class="mord mathnormal" style="margin-right:0.0359em;">y</span><span class="mclose">)</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span><span style="top:-1.51em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">5</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mopen">(</span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">7</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord">14</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.85em;"><span></span></span></span></span></span></span></span></span></span></span></span></div>
+</div>
+<span class="section-anchor" id="machine"></span>
+<div class="section-header"><span class="section-num">3</span><h2>A stack machine</h2></div>
+<p>The target machine knows nothing about expressions. It has a stack of integers, reads variables from the
+state, as the expressions do, and understands three instructions:</p>
+<ul>
+<li><code>PUSH n</code> puts the number n on top of the stack;</li>
+<li><code>LOAD x</code> puts the value of the variable x on top of the stack;</li>
+<li><code>ADD</code> takes the two numbers on top of the stack off and puts their sum on.</li>
+</ul>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype instr = PUSH int | LOAD vname | ADD
+
+type_synonym stack = &quot;int list&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> instr = PUSH int | LOAD vname | ADD
+
+<span class="isa-cmd">type_synonym</span> stack = <span class="isa-inner">&quot;int list&quot;</span></code></pre></div>
+<p>A stack is a list whose head is the top: in <code>[2, 5]</code> the 2 lies on top of the 5. Putting a value on the
+stack is <code>#</code>, and taking values off is pattern matching on <code>#</code>.</p>
+<div class="box box-definition"><div class="box-label">Definition 14.3<span class="box-title">Stack machine</span></div>
+<p>A <strong>stack machine</strong> computes with a <strong>stack</strong>, a list of values that is used only at one end, its
+<strong>top</strong>. Each instruction takes its operands from the top of the stack and leaves its result there. A
+<strong>program</strong> for the machine is a list of instructions, executed from left to right.</p>
+</div>
+<p>The function <code>exec1</code> executes one instruction:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun exec1 :: &quot;instr ⇒ state ⇒ stack ⇒ stack&quot; where
+  &quot;exec1 (PUSH n) s stk = n # stk&quot;
+| &quot;exec1 (LOAD x) s stk = s x # stk&quot;
+| &quot;exec1 ADD s (j # i # stk) = (i + j) # stk&quot;
+| &quot;exec1 ADD s stk = stk&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> exec1 :: <span class="isa-inner">&quot;instr ⇒ state ⇒ stack ⇒ stack&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;exec1 (PUSH n) s stk = n # stk&quot;</span>
+| <span class="isa-inner">&quot;exec1 (LOAD x) s stk = s x # stk&quot;</span>
+| <span class="isa-inner">&quot;exec1 ADD s (j # i # stk) = (i + j) # stk&quot;</span>
+| <span class="isa-inner">&quot;exec1 ADD s stk = stk&quot;</span></code></pre></div>
+<p>The third equation does the work of <code>ADD</code>: j is the top of the stack and i the number below it, and the
+sum i + j replaces both. The order of i and j looks irrelevant now, but it will matter when you add
+subtraction in Section 14.8. The fourth equation is there because every HOL function is total (Module
+8): <code>exec1</code> must return a stack even when <code>ADD</code> finds fewer than two numbers. A real machine would stop
+with an error, a <strong>stack underflow</strong>; this one leaves the stack as it is. The choice does not affect the
+compiler, whose code never meets this case. Exercise 14.7 builds a machine that stops instead, and
+proves that.</p>
+<p>The third and fourth equations overlap: a stack with two or more numbers matches both. <code>fun</code> resolves the
+overlap in order, the earlier equation first (Module 8). <code>thm exec1.simps</code> shows the equations that
+<code>fun</code> has derived from the definition, the ones <code>simp</code> uses:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="thm exec1.simps">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">thm</span> exec1.simps</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>  exec1 (PUSH ?n) ?s ?stk = ?n # ?stk
+  exec1 (LOAD ?x) ?s ?stk = ?s ?x # ?stk
+  exec1 ADD ?s (?j # ?i # ?stk) = (?i + ?j) # ?stk
+  exec1 ADD ?s [] = []
+  exec1 ADD ?s [?v] = [?v]</code></pre></div>
+<p>The fourth equation has become two, for the empty stack and for a stack with one number: exactly the
+stacks that the third equation does not cover.</p>
+<p>A program runs one instruction after the other, each on the stack that the previous one left:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun exec :: &quot;instr list ⇒ state ⇒ stack ⇒ stack&quot; where
+  &quot;exec [] s stk = stk&quot;
+| &quot;exec (i # c) s stk = exec c s (exec1 i s stk)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> exec :: <span class="isa-inner">&quot;instr list ⇒ state ⇒ stack ⇒ stack&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;exec [] s stk = stk&quot;</span>
+| <span class="isa-inner">&quot;exec (i # c) s stk = exec c s (exec1 i s stk)&quot;</span></code></pre></div>
+<p>The letter c stands for code, a list of instructions. Now run the machine, first one instruction, then a
+whole program:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;exec1 ADD s0 [7, 5]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;exec1 ADD s0 [7, 5]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[12]&quot;
+  :: &quot;int list&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;exec [LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD] s0 []&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;exec [LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD] s0 []&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[14]&quot;
+  :: &quot;int list&quot;</code></pre></div>
+<p>Figure 14.2 shows the stack after each instruction of this program. The stack grows to three numbers
+when <code>LOAD ''y''</code> has run, and each <code>ADD</code> makes it one shorter.</p>
+<figure class="fig" id="fig-14-2"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 262" width="760" height="262" role="img"><title>Running the code of x + (2 + y)</title><defs><marker id="fig-14-2__ah-94A3B8" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#94A3B8"/></marker></defs><text x="70" y="34" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">start</text><line x1="36" y1="176" x2="104" y2="176" stroke="#475569" stroke-width="2"/><text x="70" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[]</text><rect x="150.5" y="18.5" width="87" height="21.5" rx="10.75" fill="#111827" stroke="#111827" stroke-width="1.4"/><text x="194.0" y="35" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#E5E7EB" text-anchor="middle">LOAD &#x27;&#x27;x&#x27;&#x27;</text><line x1="98" y1="29" x2="142.5" y2="29" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-14-2__ah-94A3B8)"/><line x1="160" y1="176" x2="228" y2="176" stroke="#475569" stroke-width="2"/><rect x="164" y="148" width="60" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="194" y="167.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">5</text><text x="194" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[5]</text><rect x="288.5" y="18.5" width="59" height="21.5" rx="10.75" fill="#111827" stroke="#111827" stroke-width="1.4"/><text x="318.0" y="35" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#E5E7EB" text-anchor="middle">PUSH 2</text><line x1="243.5" y1="29" x2="280.5" y2="29" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-14-2__ah-94A3B8)"/><line x1="284" y1="176" x2="352" y2="176" stroke="#475569" stroke-width="2"/><rect x="288" y="148" width="60" height="26" rx="6" fill="#F0F9FF" stroke="#CBD5E1" stroke-width="1.2"/><text x="318" y="167.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">5</text><rect x="288" y="118" width="60" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="318" y="137.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">2</text><text x="318" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[2, 5]</text><rect x="398.5" y="18.5" width="87" height="21.5" rx="10.75" fill="#111827" stroke="#111827" stroke-width="1.4"/><text x="442.0" y="35" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#E5E7EB" text-anchor="middle">LOAD &#x27;&#x27;y&#x27;&#x27;</text><line x1="353.5" y1="29" x2="390.5" y2="29" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-14-2__ah-94A3B8)"/><line x1="408" y1="176" x2="476" y2="176" stroke="#475569" stroke-width="2"/><rect x="412" y="148" width="60" height="26" rx="6" fill="#F0F9FF" stroke="#CBD5E1" stroke-width="1.2"/><text x="442" y="167.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">5</text><rect x="412" y="118" width="60" height="26" rx="6" fill="#F0F9FF" stroke="#CBD5E1" stroke-width="1.2"/><text x="442" y="137.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">2</text><rect x="412" y="88" width="60" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="442" y="107.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">7</text><text x="442" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[7, 2, 5]</text><rect x="547.5" y="18.5" width="37" height="21.5" rx="10.75" fill="#111827" stroke="#111827" stroke-width="1.4"/><text x="566.0" y="35" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#E5E7EB" text-anchor="middle">ADD</text><line x1="491.5" y1="29" x2="539.5" y2="29" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-14-2__ah-94A3B8)"/><line x1="532" y1="176" x2="600" y2="176" stroke="#475569" stroke-width="2"/><rect x="536" y="148" width="60" height="26" rx="6" fill="#F0F9FF" stroke="#CBD5E1" stroke-width="1.2"/><text x="566" y="167.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">5</text><rect x="536" y="118" width="60" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="566" y="137.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">9</text><text x="566" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[9, 5]</text><rect x="671.5" y="18.5" width="37" height="21.5" rx="10.75" fill="#111827" stroke="#111827" stroke-width="1.4"/><text x="690.0" y="35" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="11.5" font-weight="600" fill="#E5E7EB" text-anchor="middle">ADD</text><line x1="590.5" y1="29" x2="663.5" y2="29" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#fig-14-2__ah-94A3B8)"/><line x1="656" y1="176" x2="724" y2="176" stroke="#475569" stroke-width="2"/><rect x="660" y="148" width="60" height="26" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/><text x="690" y="167.0" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="15" font-weight="600" fill="#1A2E4A" text-anchor="middle">14</text><text x="690" y="204" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="middle">[14]</text><text x="478" y="105" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="11.5" font-weight="600" fill="#2563EB" text-anchor="start">← top</text><text x="380" y="246" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-style="italic">x = 5, y = 7. The top of the stack is the head of the list, drawn at the top.</text></svg>
+</div><figcaption><span class="fig-num">Figure 14.2</span> <p>The program <code>LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD</code> run in the state <code>s0</code> on the empty stack. Each
+<code>ADD</code> replaces the two numbers on top by their sum.</p>
+</figcaption></figure>
+<p>What was on the stack before a program started stays where it is, below the new values:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;exec [LOAD ''x'', PUSH 2] s0 [100]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;exec [LOAD ''x'', PUSH 2] s0 [100]&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[2, 5, 100]&quot;
+  :: &quot;int list&quot;</code></pre></div>
+<p>This property, code that leaves the rest of the stack alone, is what will make the compiler work.</p>
+<span class="section-anchor" id="compiler"></span>
+<div class="section-header"><span class="section-num">4</span><h2>The compiler</h2></div>
+<h3 id="compiling">Compiling expressions</h3>
+<p>How does the machine compute <code>Add a b</code>? It runs code that leaves the value of a on the stack, then code
+that leaves the value of b on top of it, and then <code>ADD</code>. Numbers and variables need one instruction
+each. That is the whole compiler:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun compile :: &quot;expr ⇒ instr list&quot; where
+  &quot;compile (Num n) = [PUSH n]&quot;
+| &quot;compile (Var x) = [LOAD x]&quot;
+| &quot;compile (Add a b) = compile a @ compile b @ [ADD]&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> compile :: <span class="isa-inner">&quot;expr ⇒ instr list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;compile (Num n) = [PUSH n]&quot;</span>
+| <span class="isa-inner">&quot;compile (Var x) = [LOAD x]&quot;</span>
+| <span class="isa-inner">&quot;compile (Add a b) = compile a @ compile b @ [ADD]&quot;</span></code></pre></div>
+<p><code>@</code> appends lists (Module 1). Like <code>eval</code>, the compiler has one equation for each kind of node, and the
+code for a node is built from the code of its children. Compile the running example:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;compile sample&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;compile sample&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD]&quot;
+  :: &quot;instr list&quot;</code></pre></div>
+<p>This is the program of Figure 14.2. The operands come before their operator: first x, then 2 and y, then
+the inner <code>ADD</code>, then the outer one. This order is called <strong>postfix</strong> or <strong>reverse Polish</strong> notation.</p>
+<div class="callout analogy"><div class="callout-label">Think of it like this</div>
+<p>Some pocket calculators work in reverse Polish notation. To compute 2 + 3 you key in 2, Enter, 3 and
+then +. The calculator keeps the numbers on a stack until the + combines them, exactly as <code>ADD</code> does. The
+compiler translates the notation you learned at school into the keystrokes for such a calculator.</p>
+</div>
+<p>Now compare evaluation and execution on the example, with 100 already on the stack:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(exec (compile sample) s0 [100], eval sample s0 # [100])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(exec (compile sample) s0 [100], eval sample s0 # [100])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;([14, 100], [14, 100])&quot;
+  :: &quot;int list × int list&quot;</code></pre></div>
+<p>Both give 14 on top of the 100.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>Why is the compiler called <code>compile</code> and not the shorter <code>comp</code>? Because <code>comp</code> is taken. It is function
+composition, written ∘:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="term comp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">term</span> comp</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;(∘)&quot;
+  :: &quot;('a ⇒ 'b) ⇒ ('c ⇒ 'a) ⇒ 'c ⇒ 'b&quot;</code></pre></div>
+<p>Isabelle would accept a function of your own called <code>comp</code>, and the name would then refer to yours. But
+the short name would have two meanings, so from then on Isabelle prints yours with the name of your
+theory in front, as in <code>T.comp (Num 1)</code> for a theory <code>T</code>, in every goal and message. Before you name a
+function, ask Isabelle whether the name is free. <code>term</code> prints the type of a constant that exists; a name
+that is not a constant is printed with type <code>'a</code>, because Isabelle reads it as a free variable (Module
+8). <code>find_consts</code> (Module 9) searches by type, and with the criterion <code>name:</code> also by name.</p>
+</div>
+<h3 id="correct">What correct means</h3>
+<p>On the example, the two ways agree. “Correct” means that they agree always:</p>
+<div class="box box-definition"><div class="box-label">Definition 14.4<span class="box-title">Compiler correctness</span></div>
+<p>The compiler is <strong>correct</strong> if for every expression e, every state s and every stack stk,</p>
+<div class="math-display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mrow><mi>e</mi><mi>x</mi><mi>e</mi><mi>c</mi></mrow><mtext> </mtext><mo stretchy="false">(</mo><mrow><mi>c</mi><mi>o</mi><mi>m</mi><mi>p</mi><mi>i</mi><mi>l</mi><mi>e</mi></mrow><mtext> </mtext><mi>e</mi><mo stretchy="false">)</mo><mtext> </mtext><mi>s</mi><mtext> </mtext><mrow><mi>s</mi><mi>t</mi><mi>k</mi></mrow><mo>=</mo><mrow><mi>e</mi><mi>v</mi><mi>a</mi><mi>l</mi></mrow><mtext> </mtext><mi>e</mi><mtext> </mtext><mi>s</mi><mtext> </mtext><mi mathvariant="normal">#</mi><mtext> </mtext><mrow><mi>s</mi><mi>t</mi><mi>k</mi></mrow></mrow><annotation encoding="application/x-tex">\mathit{exec}\ (\mathit{compile}\ e)\ s\ \mathit{stk} = \mathit{eval}\ e\ s\ \#\ \mathit{stk}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathit">exec</span></span><span class="mspace"> </span><span class="mopen">(</span><span class="mord"><span class="mord mathit">compile</span></span><span class="mspace"> </span><span class="mord mathnormal">e</span><span class="mclose">)</span><span class="mspace"> </span><span class="mord mathnormal">s</span><span class="mspace"> </span><span class="mord"><span class="mord mathit">stk</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathit">eval</span></span><span class="mspace"> </span><span class="mord mathnormal">e</span><span class="mspace"> </span><span class="mord mathnormal">s</span><span class="mspace"> </span><span class="mord">#</span><span class="mspace"> </span><span class="mord"><span class="mord mathit">stk</span></span></span></span></span></span></div>
+<p>In words: running the code of e on any stack puts the value of e on top of that stack and changes nothing
+below it.</p>
+</div>
+<p>Three things about this statement are worth noticing.</p>
+<ul>
+<li>It is a <strong>specification</strong> in the sense of Module 12: <code>eval</code> says what the value must be, and
+<code>compile</code> with <code>exec</code> is the implementation.</li>
+<li>It speaks about every stack, although a user starts with the empty one. The compiler combines code:
+the code of b in <code>Add a b</code> runs on a stack that already holds the value of a. Section 14.5 shows that
+the proof needs the general form.</li>
+<li>It describes the whole stack. A weaker claim, “the top of the stack is the value of e”, would allow
+code that destroys what lies below, and such code would break the code around it.</li>
+</ul>
+<h3 id="testing">Test before you prove</h3>
+<p>A proof takes effort; a test takes seconds. Module 9 advised testing every claim before trying to prove
+it, so start with Quickcheck:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s stk = eval e s # stk&quot;
+  quickcheck [size = 3]
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s stk = eval e s # stk&quot;</span>
+  <span class="isa-cmd">quickcheck</span> [size = 3]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.</code></pre></div>
+<p>Quickcheck tried every expression, state and stack up to size 3 and found nothing wrong. The option
+<code>size = 3</code> limits the search to small values. Without it, Quickcheck searches up to its default size, and
+on this claim it stops with “Quickcheck ran out of time” when its time limit is reached: the state is a
+function from strings to integers, and there are very many small functions of that kind. On a false
+claim the plain command is fast, because Quickcheck stops at the first counterexample it finds.</p>
+<p>Quickcheck is at its best on claims that are wrong. Here is a correctness claim that forgets the stack:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s stk = [eval e s]&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s stk = [eval e s]&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  e = Num (- 1)
+  s = λx. - 2
+  stk = [- 1]
+Evaluated terms:
+  exec (compile e) s stk = [- 1, - 1]
+  [eval e s] = [- 1]</code></pre></div>
+<p>Read the counterexample. The expression is the number −1 (Isabelle prints negative numbers with a
+space, Module 8), the state maps every name to −2, which does not matter here, and the stack already
+holds −1. The code pushes −1 on top, so the result has two numbers where the claim expects one. The
+claim, not the compiler, is wrong.</p>
+<p>Now a compiler with a bug. Writing each operator between its operands, in the order of the text
+<code>x + y</code>, is a natural first attempt:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun compile_bad :: &quot;expr ⇒ instr list&quot; where
+  &quot;compile_bad (Num n) = [PUSH n]&quot;
+| &quot;compile_bad (Var x) = [LOAD x]&quot;
+| &quot;compile_bad (Add a b) = compile_bad a @ [ADD] @ compile_bad b&quot;
+
+value &quot;(compile_bad sample, exec (compile_bad sample) s0 [])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> compile_bad :: <span class="isa-inner">&quot;expr ⇒ instr list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;compile_bad (Num n) = [PUSH n]&quot;</span>
+| <span class="isa-inner">&quot;compile_bad (Var x) = [LOAD x]&quot;</span>
+| <span class="isa-inner">&quot;compile_bad (Add a b) = compile_bad a @ [ADD] @ compile_bad b&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(compile_bad sample, exec (compile_bad sample) s0 [])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;([LOAD ''x'', ADD, PUSH 2, ADD, LOAD ''y''], [7, 7])&quot;
+  :: &quot;instr list × int list&quot;</code></pre></div>
+<p>The first <code>ADD</code> finds a single number and changes nothing, the second adds 2 to 5, and the value of y
+ends up on the stack next to the 7. On a single example you might wonder whether you set it up wrongly.
+Quickcheck removes the doubt:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile_bad e) s stk = eval e s # stk&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile_bad e) s stk = eval e s # stk&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  e = Add (Num 0) (Num 0)
+  s = λx. - 2
+  stk = []
+Evaluated terms:
+  exec (compile_bad e) s stk = [0, 0]
+  eval e s # stk = [0]</code></pre></div>
+<p>The smallest counterexample is 0 + 0. The numbers do not matter: the order of the instructions is wrong,
+and Quickcheck, which tries small values first, finds the smallest expression that contains an <code>ADD</code>.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>Test before you prove. <code>value</code> checks one example; Quickcheck checks thousands of small ones and reports
+the first failure it finds, which is usually the simplest. Neither proves anything, but both are fast,
+and a counterexample shows you exactly what is wrong. A proof attempt on a false claim only fails, and
+the goal it leaves does not tell you whether the claim or the proof is at fault.</p>
+</div>
+<span class="section-anchor" id="proof"></span>
+<div class="section-header"><span class="section-num">5</span><h2>The correctness proof</h2></div>
+<h3 id="paper">On paper</h3>
+<p><strong>Claim.</strong> For every expression e, state s and stack stk, <code>exec (compile e) s stk = eval e s # stk</code>.</p>
+<p><strong>Proof</strong> by structural induction on e (Module 5), with one case for each constructor.</p>
+<ul>
+<li><em>Case</em> <code>Num n</code>. The code is <code>[PUSH n]</code>, which puts n on the stack, and <code>eval (Num n) s = n</code>.</li>
+<li><em>Case</em> <code>Var x</code>. The code is <code>[LOAD x]</code>, which puts <code>s x</code> on the stack, and <code>eval (Var x) s = s x</code>.</li>
+<li><em>Case</em> <code>Add a b</code>, where the claim holds for a and for b (the induction hypotheses). The code is
+<code>compile a @ compile b @ [ADD]</code>. Run it in three stages (Figure 14.3):
+<ol>
+<li><code>compile a</code> runs on stk. By the hypothesis for a, it leaves <code>eval a s # stk</code>.</li>
+<li><code>compile b</code> runs on <code>eval a s # stk</code>. By the hypothesis for b, applied to <em>this</em> stack, it leaves
+<code>eval b s # eval a s # stk</code>.</li>
+<li><code>ADD</code> replaces the two numbers on top by their sum, which gives
+<code>(eval a s + eval b s) # stk</code>, and that is <code>eval (Add a b) s # stk</code>. ∎</li>
+</ol>
+</li>
+</ul>
+<figure class="fig" id="fig-14-3"><div class="fig-svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" width="760" height="380" role="img"><title>The shape of the correctness proof for Add a b</title><defs><marker id="fig-14-3__ah-15803D" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#15803D"/></marker><marker id="fig-14-3__ah-2563EB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2563EB"/></marker><marker id="fig-14-3__ah-6D28D9" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#6D28D9"/></marker></defs><text x="40" y="26" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="start">The stack while compile (Add a b) runs</text><text x="392" y="26" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="700" fill="#475569" text-anchor="start">Why the step is right</text><rect x="40" y="42" width="250" height="30" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="165" y="62" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">stk</text><line x1="165" y1="76" x2="165" y2="112" stroke="#2563EB" stroke-width="2.2" marker-end="url(#fig-14-3__ah-2563EB)"/><rect x="178" y="84" width="83" height="22" rx="11.0" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="219.5" y="101" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">compile a</text><line x1="300" y1="94" x2="380" y2="94" stroke="#2563EB" stroke-width="1.4" stroke-dasharray="4 4"/><rect x="386" y="76" width="354" height="40" rx="8" fill="#F0F9FF" stroke="#2563EB" stroke-width="1.4"/><text x="398" y="100" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#2563EB" text-anchor="start">hypothesis for a, with the stack stk</text><rect x="40" y="118" width="250" height="30" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="165" y="138" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">eval a s # stk</text><line x1="165" y1="152" x2="165" y2="188" stroke="#6D28D9" stroke-width="2.2" marker-end="url(#fig-14-3__ah-6D28D9)"/><rect x="178" y="160" width="83" height="22" rx="11.0" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="219.5" y="177" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">compile b</text><line x1="300" y1="170" x2="380" y2="170" stroke="#6D28D9" stroke-width="1.4" stroke-dasharray="4 4"/><rect x="386" y="152" width="354" height="50" rx="8" fill="#F5F3FF" stroke="#6D28D9" stroke-width="1.4"/><text x="398" y="172" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#6D28D9" text-anchor="start">hypothesis for b, with the stack</text><text x="398" y="190" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#6D28D9" text-anchor="start">eval a s # stk, which is not stk</text><rect x="40" y="194" width="250" height="30" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="165" y="214" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">eval b s # eval a s # stk</text><line x1="165" y1="228" x2="165" y2="264" stroke="#15803D" stroke-width="2.2" marker-end="url(#fig-14-3__ah-15803D)"/><rect x="178" y="236" width="38" height="22" rx="11.0" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.4"/><text x="197.0" y="253" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12" font-weight="600" fill="#475569" text-anchor="middle">ADD</text><line x1="300" y1="246" x2="380" y2="246" stroke="#15803D" stroke-width="1.4" stroke-dasharray="4 4"/><rect x="386" y="228" width="354" height="40" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.4"/><text x="398" y="252" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="12.5" font-weight="400" fill="#15803D" text-anchor="start">the equation of exec1 for ADD</text><rect x="40" y="270" width="250" height="30" rx="8" fill="#F8FAFC" stroke="#475569" stroke-width="1.4"/><text x="165" y="290" font-family="'Isabelle DejaVu Sans Mono', 'DejaVu Sans Mono', Consolas, Menlo, 'PingFang SC', 'Microsoft YaHei', monospace" font-size="12.5" font-weight="600" fill="#1A2E4A" text-anchor="middle">(eval a s + eval b s) # stk</text><rect x="20" y="314" width="720" height="56" rx="10" fill="#FFF7ED" stroke="#C2410C" stroke-width="1.4"/><text x="36" y="337" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">The hypothesis for b is needed for a stack other than stk. So the claim must</text><text x="36" y="358" font-family="'DM Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif" font-size="13" font-weight="400" fill="#1A2E4A" text-anchor="start">hold for every stack: the induction needs arbitrary: stk.</text></svg>
+</div><figcaption><span class="fig-num">Figure 14.3</span> <p>The case <code>Add a b</code> of the proof. The hypothesis for a is used with the stack of the claim, the
+hypothesis for b with a different one.</p>
+</figcaption></figure>
+<p>Two steps of this argument use more than the equations of the functions.</p>
+<ul>
+<li><em>“Run it in three stages.”</em> That running <code>c1 @ c2</code> means running c1 and then running c2 on the stack
+c1 leaves is a property of <code>exec</code>. It is true, but it needs its own proof: an <strong>auxiliary lemma</strong>
+(Module 11).</li>
+<li><em>“Applied to this stack.”</em> Stage 2 uses the hypothesis for b with the stack <code>eval a s # stk</code>, not with
+stk. That is allowed only if the claim, and with it the induction hypothesis, speaks about every stack.
+The induction must be <strong>generalised</strong> over the stack (Module 11).</li>
+</ul>
+<p>The next two sections let Isabelle discover both points from its proof states.</p>
+<h3 id="append">The lemma about appended code</h3>
+<p>The claim a user of the compiler cares about starts with the empty stack and expects one number at the
+end. Try to prove it with the usual induction:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s [] = [eval e s]&quot;
+  apply (induction e)
+  apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s [] = [eval e s]&quot;</span>
+  <span class="isa-proof">apply</span> (induction e)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀e1 e2.
+       ⟦exec (compile e1) s [] = [eval e1 s];
+        exec (compile e2) s [] = [eval e2 s]⟧
+       ⟹ exec (compile e1 @ compile e2 @ [ADD]) s [] =
+          [eval e1 s + eval e2 s]</code></pre></div>
+<p><code>auto</code> has proved the cases <code>Num</code> and <code>Var</code> and unfolded <code>compile</code> in the case <code>Add</code>; Isabelle calls the
+two subexpressions e1 and e2, after the type <code>expr</code>. Then it stopped. Module 11’s recipe starts with the
+subterm that the simplifier cannot rewrite: <code>exec (compile e1 @ compile e2 @ [ADD]) s []</code>. The equations
+of <code>exec</code> are about <code>[]</code> and about <code>i # c</code>, and this argument is an append. Abandon the attempt:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>Next, replace the parts that are specific to this proof by variables: the question is what
+<code>exec (c1 @ c2) s stk</code> is, for any code c1 and c2. The paper proof gives the answer, run c1 first and c2
+afterwards, and an example agrees:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(exec ([LOAD ''x'', PUSH 2] @ [ADD]) s0 [1],
+        exec [ADD] s0 (exec [LOAD ''x'', PUSH 2] s0 [1]))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(exec ([LOAD ''x'', PUSH 2] @ [ADD]) s0 [1],
+        exec [ADD] s0 (exec [LOAD ''x'', PUSH 2] s0 [1]))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;([7, 1], [7, 1])&quot;
+  :: &quot;int list × int list&quot;</code></pre></div>
+<p>Test the conjecture:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)&quot;
+  quickcheck [size = 3]
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)&quot;</span>
+  <span class="isa-cmd">quickcheck</span> [size = 3]
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.</code></pre></div>
+<p>Prove it by induction on c1. The recursive call of <code>exec</code> receives a new stack, <code>exec1 i s stk</code>, so the
+stack must be arbitrary, as Module 11’s tip says for every argument that changes in a recursive call:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma exec_append [simp]: &quot;exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)&quot;
+  apply (induction c1 arbitrary: stk)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> exec_append [simp]: <span class="isa-inner">&quot;exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)&quot;</span>
+  <span class="isa-proof">apply</span> (induction c1 <span class="isa-minor">arbitrary</span>: stk)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (2 subgoals):
+ 1. ⋀stk. exec ([] @ c2) s stk = exec c2 s (exec [] s stk)
+ 2. ⋀a c1 stk.
+       (⋀stk. exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)) ⟹
+       exec ((a # c1) @ c2) s stk = exec c2 s (exec (a # c1) s stk)</code></pre></div>
+<p>In subgoal 2, the hypothesis holds for every stack (⋀stk). The simplifier rewrites <code>(a # c1) @ c2</code> to
+<code>a # (c1 @ c2)</code>, executes <code>a</code>, and then needs the hypothesis for the stack <code>exec1 a s stk</code>, which it may
+now use:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply auto
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> auto
+  <span class="isa-proof">done</span></code></pre></div>
+<p>The attribute <code>[simp]</code> adds the lemma to the simplifier’s rules (Module 9), so that <code>simp</code> and <code>auto</code>
+split appended code from now on.</p>
+<h3 id="generalise">Generalise over the stack</h3>
+<p>With <code>exec_append</code> available, try the claim about the empty stack again:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s [] = [eval e s]&quot;
+  apply (induction e)
+  apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s [] = [eval e s]&quot;</span>
+  <span class="isa-proof">apply</span> (induction e)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀e1 e2.
+       ⟦exec (compile e1) s [] = [eval e1 s];
+        exec (compile e2) s [] = [eval e2 s]⟧
+       ⟹ exec1 ADD s (exec (compile e2) s [eval e1 s]) =
+          [eval e1 s + eval e2 s]</code></pre></div>
+<p>Progress: the code of e1 has run, by <code>exec_append</code> and the hypothesis for e1, and left <code>[eval e1 s]</code>.
+Now the code of e2 runs on the stack <code>[eval e1 s]</code>, but the hypothesis for e2 speaks only about the empty
+stack. This is the second point of the paper proof. The hypothesis is too weak, and the remedy is to
+change the claim, not to add a lemma.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>Module 11 showed what to do, in two steps:</p>
+<ol>
+<li>Replace the constant by a variable: claim the result for any stack stk. The expected result then
+becomes <code>eval e s # stk</code> instead of <code>[eval e s]</code>. This is the statement of Definition 14.4.</li>
+<li>Make the variable arbitrary in the induction, so that the hypotheses hold for every stack, including
+the stack <code>eval e1 s # stk</code> on which the code of e2 runs.</li>
+</ol>
+<p>With both steps the proof goes through:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s stk = eval e s # stk&quot;
+  by (induction e arbitrary: stk) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s stk = eval e s # stk&quot;</span>
+  <span class="isa-proof">by</span> (induction e <span class="isa-minor">arbitrary</span>: stk) auto</code></pre></div>
+<p>Step 1 alone is not enough. Without <code>arbitrary: stk</code>, stk is fixed for the whole induction, the
+hypothesis for e2 speaks about that one stack, and the code of e2 still runs on another one. The box at
+the end of Section 14.5.4 shows the error you get.</p>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>State the claim in the form that the recursion needs. <code>compile</code> places the code of b after the code of
+a, so the code of b runs on a stack that already holds the value of a. A claim about the empty stack
+cannot describe that; a claim about every stack can. The stronger claim is the easier one to prove: it
+is Module 11’s inventor’s paradox once more.</p>
+</div>
+<h3 id="isar">The proof in Isar</h3>
+<p>The one-line proof hides the argument. The Isar proof follows the paper proof step by step, and Isabelle
+checks every step. <code>theorem</code> means the same as <code>lemma</code>; it marks the main results of a theory.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem compile_correct: &quot;exec (compile e) s stk = eval e s # stk&quot;
+proof (induction e arbitrary: stk)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> compile_correct: <span class="isa-inner">&quot;exec (compile e) s stk = eval e s # stk&quot;</span>
+<span class="isa-proof">proof</span> (induction e <span class="isa-minor">arbitrary</span>: stk)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+goal (3 subgoals):
+ 1. ⋀x stk. exec (compile (Num x)) s stk = eval (Num x) s # stk
+ 2. ⋀x stk. exec (compile (Var x)) s stk = eval (Var x) s # stk
+ 3. ⋀e1 e2 stk.
+       ⟦⋀stk. exec (compile e1) s stk = eval e1 s # stk;
+        ⋀stk. exec (compile e2) s stk = eval e2 s # stk⟧
+       ⟹ exec (compile (Add e1 e2)) s stk = eval (Add e1 e2) s # stk</code></pre></div>
+<p>Read subgoal 3 aloud: “for all e1, e2 and stk: if for every stack the claim holds for e1, and for every
+stack it holds for e2, then it holds for <code>Add e1 e2</code> and stk”. The ⋀stk inside the hypotheses is the
+effect of <code>arbitrary: stk</code>. The cases <code>Num</code> and <code>Var</code> follow from the definitions; enter the case <code>Add</code>
+with names of your own for the subexpressions:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  case (Num n)
+  show ?case by simp
+next
+  case (Var x)
+  show ?case by simp
+next
+  case (Add a b)">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">case</span> (Num n)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Var x)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Add a b)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (state)
+this:
+    exec (compile a) s ?stk = eval a s # ?stk
+    exec (compile b) s ?stk = eval b s # ?stk
+
+goal (1 subgoal):
+ 1. ⋀e1 e2 stk.
+       ⟦⋀stk. exec (compile e1) s stk = eval e1 s # stk;
+        ⋀stk. exec (compile e2) s stk = eval e2 s # stk⟧
+       ⟹ exec (compile (Add e1 e2)) s stk = eval (Add e1 e2) s # stk</code></pre></div>
+<p>The induction hypotheses are listed under <code>this</code>, with the schematic variable <code>?stk</code> (Module 7): they
+may be used with any stack. <code>Add.IH(1)</code> is the hypothesis for a, and <code>Add.IH(2)</code> the one for b. The
+paper proof uses each of them once, a with the stack stk and b with the stack <code>eval a s # stk</code>. State
+the two facts and let <code>rule</code> instantiate <code>?stk</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  have run_a: &quot;exec (compile a) s stk = eval a s # stk&quot;
+    by (rule Add.IH(1))
+  have run_b: &quot;exec (compile b) s (eval a s # stk)
+               = eval b s # eval a s # stk&quot;">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">have</span> run_a: <span class="isa-inner">&quot;exec (compile a) s stk = eval a s # stk&quot;</span>
+    <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> Add.IH(1))
+  <span class="isa-proof">have</span> run_b: <span class="isa-inner">&quot;exec (compile b) s (eval a s # stk)
+               = eval b s # eval a s # stk&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. exec (compile b) s (eval a s # stk) = eval b s # eval a s # stk</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="    by (rule Add.IH(2))">Copy</button></div><pre class="isa-body"><code>    <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> Add.IH(2))</code></pre></div>
+<p>Now the calculation of Module 10, in the three stages of Figure 14.3:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  have &quot;exec (compile (Add a b)) s stk
+        = exec [ADD] s (exec (compile b) s (exec (compile a) s stk))&quot;
+    by simp
+  also have &quot;… = exec [ADD] s (exec (compile b) s (eval a s # stk))&quot;
+    by (simp only: run_a)
+  also have &quot;… = exec [ADD] s (eval b s # eval a s # stk)&quot;
+    by (simp only: run_b)
+  also have &quot;… = eval (Add a b) s # stk&quot;
+    by simp
+  finally show ?case .
+qed">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">have</span> <span class="isa-inner">&quot;exec (compile (Add a b)) s stk
+        = exec [ADD] s (exec (compile b) s (exec (compile a) s stk))&quot;</span>
+    <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = exec [ADD] s (exec (compile b) s (eval a s # stk))&quot;</span>
+    <span class="isa-proof">by</span> (simp only: run_a)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = exec [ADD] s (eval b s # eval a s # stk)&quot;</span>
+    <span class="isa-proof">by</span> (simp only: run_b)
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… = eval (Add a b) s # stk&quot;</span>
+    <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span></code></pre></div>
+<p>The first step is the shape of the code: <code>simp</code> unfolds <code>compile</code> and applies <code>exec_append</code> twice, so
+that the code of a runs first, then the code of b, then <code>ADD</code>. The second and third steps rewrite with
+<code>run_a</code> and <code>run_b</code> only (<code>simp only</code>, Module 9). The last step executes <code>ADD</code> and unfolds <code>eval</code>. The
+theorem a user wants, for the empty stack, is now an instance:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="corollary compile_correct_empty: &quot;exec (compile e) s [] = [eval e s]&quot;
+  by (simp add: compile_correct)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">corollary</span> compile_correct_empty: <span class="isa-inner">&quot;exec (compile e) s [] = [eval e s]&quot;</span>
+  <span class="isa-proof">by</span> (simp add: compile_correct)</code></pre></div>
+<p><code>corollary</code> is another synonym of <code>lemma</code>, for a result that follows directly from a theorem.</p>
+<div class="box box-fact"><div class="box-label">Fact 14.1<span class="box-title">The compiler is correct</span></div>
+<p>For every expression e, state s and stack stk, <code>exec (compile e) s stk = eval e s # stk</code>. In
+particular, <code>exec (compile e) s [] = [eval e s]</code>. (Theorems <code>compile_correct</code> and
+<code>compile_correct_empty</code>.)</p>
+</div>
+<details class="trouble"><summary>If something went wrong</summary><div class="details-body">
+<p>Leave out <code>arbitrary: stk</code>, and the step <code>run_b</code> fails:</p>
+<div class="isa isa-fails"><div class="isa-bar"><span class="isa-title">Isabelle</span><span class="isa-tag isa-tag-fails">fails on purpose</span></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s stk = eval e s # stk&quot;</span>
+<span class="isa-proof">proof</span> (induction e)
+  <span class="isa-proof">case</span> (Num n)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Var x)
+  <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">by</span> simp
+<span class="isa-proof">next</span>
+  <span class="isa-proof">case</span> (Add a b)
+  <span class="isa-proof">have</span> run_b: <span class="isa-inner">&quot;exec (compile b) s (eval a s # stk)
+               = eval b s # eval a s # stk&quot;</span>
+    <span class="isa-proof">by</span> (<span class="isa-minor">rule</span> Add.IH(2))
+  <span class="isa-proof">then</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> <span class="isa-proof">using</span> Add.IH(1) <span class="isa-proof">by</span> simp
+<span class="isa-proof">qed</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code><span class="isa-error">Failed to apply initial proof method⌂:
+goal (1 subgoal):
+ 1. exec (compile b) s (eval a s # stk) = eval b s # eval a s # stk</span></code></pre></div>
+<p>Without <code>arbitrary</code>, <code>Add.IH(2)</code> says <code>exec (compile b) s stk = eval b s # stk</code> for the one stack stk of
+the claim. It does not fit the goal, which is about the stack <code>eval a s # stk</code>, so <code>rule</code> cannot apply
+it. When <code>rule</code> with an induction hypothesis fails like this, look for a variable that should be
+arbitrary (Module 11).</p>
+</div></details>
+<span class="section-anchor" id="optimise"></span>
+<div class="section-header"><span class="section-num">6</span><h2>A verified optimisation</h2></div>
+<p>Real compilers improve the code they produce: they <strong>optimise</strong> it. Every optimisation is a new chance
+for a bug, because the improved code must do exactly what the original did, in every case. A verified
+compiler proves that for each optimisation.</p>
+<h3 id="folding">Constant folding</h3>
+<p>Part of an expression may not depend on the state at all. In <code>(2 + 3) + (x + 0)</code>, the sum 2 + 3 is 5 in
+every state, and adding 0 changes nothing. A compiler can do that work once, at compile time, instead of
+every time the code runs.</p>
+<div class="box box-definition"><div class="box-label">Definition 14.5<span class="box-title">Constant folding</span></div>
+<p><strong>Constant folding</strong> replaces the parts of a program whose value does not depend on the state by their
+value, and removes operations that have no effect. An optimisation is <strong>correct</strong>, or
+<strong>semantics-preserving</strong>, if the optimised program has the same meaning as the original in every state.</p>
+</div>
+<p>The work is done one addition at a time, by a function that builds an addition and simplifies it where it
+can:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun fold_add :: &quot;expr ⇒ expr ⇒ expr&quot; where
+  &quot;fold_add (Num m) (Num n) = Num (m + n)&quot;
+| &quot;fold_add a b = (if b = Num 0 then a else Add a b)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> fold_add :: <span class="isa-inner">&quot;expr ⇒ expr ⇒ expr&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;fold_add (Num m) (Num n) = Num (m + n)&quot;</span>
+| <span class="isa-inner">&quot;fold_add a b = (if b = Num 0 then a else Add a b)&quot;</span></code></pre></div>
+<p>Two numbers are added at once. Otherwise an addition of 0 on the right is dropped, and anything else
+stays an addition. The two equations overlap, and the first one wins. The optimiser folds the children
+of a node first, and then the node itself:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun cfold :: &quot;expr ⇒ expr&quot; where
+  &quot;cfold (Num n) = Num n&quot;
+| &quot;cfold (Var x) = Var x&quot;
+| &quot;cfold (Add a b) = fold_add (cfold a) (cfold b)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> cfold :: <span class="isa-inner">&quot;expr ⇒ expr&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;cfold (Num n) = Num n&quot;</span>
+| <span class="isa-inner">&quot;cfold (Var x) = Var x&quot;</span>
+| <span class="isa-inner">&quot;cfold (Add a b) = fold_add (cfold a) (cfold b)&quot;</span></code></pre></div>
+<p>Try it on <code>(2 + 3) + (x + 0)</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="definition sample2 :: expr where
+  &quot;sample2 = Add (Add (Num 2) (Num 3)) (Add (Var ''x'') (Num 0))&quot;
+
+value &quot;cfold sample2&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">definition</span> sample2 :: expr <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;sample2 = Add (Add (Num 2) (Num 3)) (Add (Var ''x'') (Num 0))&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;cfold sample2&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Add (Num 5) (Var ''x'')&quot;
+  :: &quot;expr&quot;</code></pre></div>
+<p>The result is <code>5 + x</code>. The code shrinks from seven instructions to three:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(compile sample2, compile (cfold sample2))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(compile sample2, compile (cfold sample2))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;([PUSH 2, PUSH 3, ADD, LOAD ''x'', PUSH 0, ADD, ADD],
+  [PUSH 5, LOAD ''x'', ADD])&quot;
+  :: &quot;instr list × instr list&quot;</code></pre></div>
+<p><code>cfold</code> folds only where two numbers meet. In <code>2 + (3 + x)</code> they do not, and nothing changes:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;cfold (Add (Num 2) (Add (Num 3) (Var ''x'')))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;cfold (Add (Num 2) (Add (Num 3) (Var ''x'')))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Add (Num 2) (Add (Num 3) (Var ''x''))&quot;
+  :: &quot;expr&quot;</code></pre></div>
+<p>Turning it into <code>5 + x</code> would need the associative law, a cleverer optimiser and a proof to match.</p>
+<h3 id="folding-correct">Folding preserves meaning</h3>
+<p>The claim is <code>eval (cfold e) s = eval e s</code>. Its case <code>Add</code> needs a fact about <code>fold_add</code>: whatever it
+builds has the value of the sum of its arguments. Prove that first, by computation induction on
+<code>fold_add</code> (Module 11):</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma eval_fold_add [simp]: &quot;eval (fold_add a b) s = eval a s + eval b s&quot;
+  apply (induction a b rule: fold_add.induct)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> eval_fold_add [simp]: <span class="isa-inner">&quot;eval (fold_add a b) s = eval a s + eval b s&quot;</span>
+  <span class="isa-proof">apply</span> (induction a b <span class="isa-minor">rule</span>: fold_add.induct)</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (5 subgoals):
+ 1. ⋀m n. eval (fold_add (Num m) (Num n)) s =
+          eval (Num m) s + eval (Num n) s
+ 2. ⋀v b. eval (fold_add (Var v) b) s = eval (Var v) s + eval b s
+ 3. ⋀v va b. eval (fold_add (Add v va) b) s = eval (Add v va) s + eval b s
+ 4. ⋀a v. eval (fold_add a (Var v)) s = eval a s + eval (Var v) s
+ 5. ⋀a v va. eval (fold_add a (Add v va)) s = eval a s + eval (Add v va) s</code></pre></div>
+<p>The cases follow the equations of <code>fold_add</code>, after <code>fun</code> has made them non-overlapping, as it did for
+<code>exec1</code>. The second equation has become four: one for each shape of a and b that the first equation does
+not cover. In every case the simplifier can evaluate <code>fold_add</code>, and <code>auto</code> splits the <code>if</code> into its
+two cases:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  apply auto
+  done">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">apply</span> auto
+  <span class="isa-proof">done</span></code></pre></div>
+<p>The theorem follows by structural induction:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem cfold_correct: &quot;eval (cfold e) s = eval e s&quot;
+  by (induction e) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> cfold_correct: <span class="isa-inner">&quot;eval (cfold e) s = eval e s&quot;</span>
+  <span class="isa-proof">by</span> (induction e) auto</code></pre></div>
+<p>This time no variable is arbitrary. <code>eval</code> passes the state unchanged to its recursive calls, so the
+hypotheses for the same s are exactly what the case <code>Add</code> needs. Compare <code>exec</code>, whose recursive call
+receives a new stack: Module 11’s tip asks which arguments change in the recursive calls, and only those
+need generalising.</p>
+<h3 id="pipeline">Optimise, then compile</h3>
+<p>The two theorems fit together. Optimise first, then compile, and the code still computes the value of
+the original expression:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem compile_cfold_correct:
+  &quot;exec (compile (cfold e)) s stk = eval e s # stk&quot;
+  by (simp add: compile_correct cfold_correct)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> compile_cfold_correct:
+  <span class="isa-inner">&quot;exec (compile (cfold e)) s stk = eval e s # stk&quot;</span>
+  <span class="isa-proof">by</span> (simp add: compile_correct cfold_correct)</code></pre></div>
+<p><code>compile_correct</code> turns the left-hand side into <code>eval (cfold e) s # stk</code>, and <code>cfold_correct</code> turns that
+into the right-hand side. Verified compilers grow in this way. CompCert translates C in a long series of
+passes, through several intermediate languages, and each pass has its own proof that it preserves the
+meaning; the theorems compose into one about the whole chain of passes.</p>
+<div class="callout pitfall"><div class="callout-label">Watch out</div>
+<p>An optimisation is correct with respect to a semantics, here the semantics of mathematical integers.
+For other kinds of numbers it may be wrong. In IEEE floating-point arithmetic, which almost every
+processor uses, adding 0.0 to −0.0 gives +0.0. So replacing <code>x + 0.0</code> by <code>x</code> changes the result when x
+is −0.0, and compilers that follow the IEEE rules do not make that replacement. A proof about the wrong
+semantics proves nothing about the real program.</p>
+</div>
+<span class="section-anchor" id="export"></span>
+<div class="section-header"><span class="section-num">7</span><h2>From proof to program</h2></div>
+<p>The compiler is a function in HOL, and Module 8 showed how to turn such functions into programs in
+other languages. Export the verified compiler and optimiser as Haskell:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="export_code compile cfold in Haskell module_name StackCompiler">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">export_code</span> compile cfold <span class="isa-minor">in</span> Haskell module_name StackCompiler</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>See theory exports</code></pre></div>
+<p>As in Module 8, the code does not appear in the Output panel. In Isabelle/jEdit the words <em>theory
+exports</em> are a link: click it, and the File Browser opens on the generated files, in a virtual folder
+whose name begins with <code>isabelle-export:</code>. Each <code>export_code</code> of a theory writes into a folder of its
+own, <code>export1</code> for the first, <code>export2</code> for the second, and so on; here <code>export1</code> holds the Haskell
+module <code>StackCompiler.hs</code>. Here are its central parts, as Isabelle2026 generates them. The two
+datatypes:</p>
+<pre class="code"><code class="language-text">data Expr = Num Int | Var [Char] | Add Expr Expr;
+
+data Instr = PUSH Int | LOAD [Char] | ADD;
+</code></pre>
+<p>and the three functions:</p>
+<pre class="code"><code class="language-text">fold_add :: Expr -&gt; Expr -&gt; Expr;
+fold_add (Num m) (Num n) = Num (plus_int m n);
+fold_add (Var v) b =
+  (if equal_expr b (Num Zero_int) then Var v else Add (Var v) b);
+fold_add (Add v va) b =
+  (if equal_expr b (Num Zero_int) then Add v va else Add (Add v va) b);
+fold_add a (Var v) =
+  (if equal_expr (Var v) (Num Zero_int) then a else Add a (Var v));
+fold_add a (Add v va) =
+  (if equal_expr (Add v va) (Num Zero_int) then a else Add a (Add v va));
+
+cfold :: Expr -&gt; Expr;
+cfold (Num n) = Num n;
+cfold (Var x) = Var x;
+cfold (Add a b) = fold_add (cfold a) (cfold b);
+
+compile :: Expr -&gt; [Instr];
+compile (Num n) = [PUSH n];
+compile (Var x) = [LOAD x];
+compile (Add a b) = compile a ++ compile b ++ [ADD];
+</code></pre>
+<p><code>cfold</code> and <code>compile</code> have the same equations as in Isabelle, with Haskell’s <code>++</code> for <code>@</code>. <code>fold_add</code>
+has the five equations that <code>fun</code> derived from its two (Section 14.6.2), and the test <code>b = Num 0</code> has
+become a call of <code>equal_expr</code>, an equality test that the code generator wrote for the datatype. The parts
+left out are the module header and the types <code>Char</code> and <code>Int</code>, with the operations on them that the
+functions need, such as <code>plus_int</code>. Characters become a datatype with eight Boolean fields, and integers
+are built from the constructors <code>Zero_int</code>, <code>Pos</code> and <code>Neg</code> and the binary numerals <code>One</code>, <code>Bit0</code> and
+<code>Bit1</code> of Module 8. That is faithful but slow; the library theory <code>HOL-Library.Code_Target_Int</code> makes the
+code use Haskell’s own integers instead.</p>
+<p>The module header lists what the module exports: the types <code>Char</code>, <code>Int</code>, <code>Expr</code> and <code>Instr</code> and the
+functions <code>cfold</code> and <code>compile</code>, but no constructors. Module 12 explained why <code>export_code</code> does this.
+Here it means that other Haskell code cannot build an expression to give to <code>compile</code>. Write
+<code>export_code open compile cfold …</code> to export everything, constructors included.</p>
+<p>What does the proof guarantee for this program? The theorems are about the HOL functions. The code
+generator is designed so that each step of the generated program corresponds to rewriting with
+equations that are theorems, but it is not part of the kernel (Module 8): it belongs to the trusted
+base, together with the Haskell compiler that turns the generated code into machine code, and the
+hardware. The trusted base has not disappeared. It has moved from your compiler to a few general tools
+that many people use and check. CompCert is in the same position: it is written and proved in Rocq and
+turned into OCaml code by Rocq’s own code extraction.</p>
+<span class="section-anchor" id="extensions"></span>
+<div class="section-header"><span class="section-num">8</span><h2>Extending the compiler ★★★</h2></div>
+<p>This section is a stretch, at the level of the ★★★ exercises. It adds subtraction and a conditional
+expression to the language, and subtraction and jumps to the machine. Most of the development carries
+over; the lemma about appended code does not, and its replacement is a lesson in generalisation.</p>
+<p>In your own theory you would extend <code>expr</code>, <code>instr</code> and the functions in place. On this page the earlier
+definitions must stay as they are, so the extended versions get new names: the types and functions end
+in 2, and so do the old constructors (<code>Num2</code>, <code>Var2</code>, <code>Add2</code>, <code>PUSH2</code>, <code>LOAD2</code>, <code>ADD2</code>); the new
+constructors have plain names.</p>
+<h3 id="extended-language">Subtraction and conditionals</h3>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype expr2 = Num2 int | Var2 vname | Add2 expr2 expr2
+  | Sub expr2 expr2 | Cond expr2 expr2 expr2
+
+fun eval2 :: &quot;expr2 ⇒ state ⇒ int&quot; where
+  &quot;eval2 (Num2 n) s = n&quot;
+| &quot;eval2 (Var2 x) s = s x&quot;
+| &quot;eval2 (Add2 a b) s = eval2 a s + eval2 b s&quot;
+| &quot;eval2 (Sub a b) s = eval2 a s - eval2 b s&quot;
+| &quot;eval2 (Cond t a b) s = (if eval2 t s ≠ 0 then eval2 a s else eval2 b s)&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> expr2 = Num2 int | Var2 vname | Add2 expr2 expr2
+  | Sub expr2 expr2 | Cond expr2 expr2 expr2
+
+<span class="isa-cmd">fun</span> eval2 :: <span class="isa-inner">&quot;expr2 ⇒ state ⇒ int&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;eval2 (Num2 n) s = n&quot;</span>
+| <span class="isa-inner">&quot;eval2 (Var2 x) s = s x&quot;</span>
+| <span class="isa-inner">&quot;eval2 (Add2 a b) s = eval2 a s + eval2 b s&quot;</span>
+| <span class="isa-inner">&quot;eval2 (Sub a b) s = eval2 a s - eval2 b s&quot;</span>
+| <span class="isa-inner">&quot;eval2 (Cond t a b) s = (if eval2 t s ≠ 0 then eval2 a s else eval2 b s)&quot;</span></code></pre></div>
+<p><code>Sub a b</code> is a − b. <code>Cond t a b</code> is a conditional expression, written <code>t ? a : b</code> in C: its value is the
+value of a if the test t is not 0, and the value of b otherwise. As in C, 0 counts as false.</p>
+<p>The machine gets an instruction for subtraction and two <strong>jumps</strong>. <code>JMP n</code> skips the next n
+instructions. <code>JMPZ n</code> takes the number on top of the stack off and skips the next n instructions if that
+number is 0; otherwise execution continues with the next instruction.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype instr2 = PUSH2 int | LOAD2 vname | ADD2 | SUB | JMP nat | JMPZ nat
+
+fun exec2 :: &quot;instr2 list ⇒ state ⇒ stack ⇒ stack&quot; where
+  &quot;exec2 [] s stk = stk&quot;
+| &quot;exec2 (PUSH2 n # c) s stk = exec2 c s (n # stk)&quot;
+| &quot;exec2 (LOAD2 x # c) s stk = exec2 c s (s x # stk)&quot;
+| &quot;exec2 (ADD2 # c) s (j # i # stk) = exec2 c s ((i + j) # stk)&quot;
+| &quot;exec2 (SUB # c) s (j # i # stk) = exec2 c s ((i - j) # stk)&quot;
+| &quot;exec2 (JMP n # c) s stk = exec2 (drop n c) s stk&quot;
+| &quot;exec2 (JMPZ n # c) s (v # stk) =
+     (if v = 0 then exec2 (drop n c) s stk else exec2 c s stk)&quot;
+| &quot;exec2 (_ # c) s stk = exec2 c s stk&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> instr2 = PUSH2 int | LOAD2 vname | ADD2 | SUB | JMP nat | JMPZ nat
+
+<span class="isa-cmd">fun</span> exec2 :: <span class="isa-inner">&quot;instr2 list ⇒ state ⇒ stack ⇒ stack&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;exec2 [] s stk = stk&quot;</span>
+| <span class="isa-inner">&quot;exec2 (PUSH2 n # c) s stk = exec2 c s (n # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec2 (LOAD2 x # c) s stk = exec2 c s (s x # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec2 (ADD2 # c) s (j # i # stk) = exec2 c s ((i + j) # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec2 (SUB # c) s (j # i # stk) = exec2 c s ((i - j) # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec2 (JMP n # c) s stk = exec2 (drop n c) s stk&quot;</span>
+| <span class="isa-inner">&quot;exec2 (JMPZ n # c) s (v # stk) =
+     (if v = 0 then exec2 (drop n c) s stk else exec2 c s stk)&quot;</span>
+| <span class="isa-inner">&quot;exec2 (_ # c) s stk = exec2 c s stk&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>consts
+  exec2 :: &quot;instr2 list ⇒ (char list ⇒ int) ⇒ int list ⇒ int list&quot;
+
+Found termination order: &quot;(λp. length (fst p)) &lt;*mlex*&gt; {}&quot;</code></pre></div>
+<p><code>drop n c</code> is c without its first n elements, so a jump forward is a recursive call on a shorter
+program. The last equation catches what the others leave out, an <code>ADD2</code> or <code>SUB</code> on a short stack and a
+<code>JMPZ</code> on the empty one, and skips the instruction. Jumps only go forwards, so every recursive call is on
+a shorter list, and Isabelle finds the termination order, the length of the program, without help. With
+backward jumps a program could run for ever, and <code>fun</code> could not define <code>exec2</code> (more on that in
+Section 14.8.4).</p>
+<h3 id="operand-order">The order of operands</h3>
+<p><code>SUB</code> computes i − j, where j is the top of the stack and i the number below it. So the compiler must
+push a first and b second, as it does for addition:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun compile2 :: &quot;expr2 ⇒ instr2 list&quot; where
+  &quot;compile2 (Num2 n) = [PUSH2 n]&quot;
+| &quot;compile2 (Var2 x) = [LOAD2 x]&quot;
+| &quot;compile2 (Add2 a b) = compile2 a @ compile2 b @ [ADD2]&quot;
+| &quot;compile2 (Sub a b) = compile2 a @ compile2 b @ [SUB]&quot;
+| &quot;compile2 (Cond t a b) =
+     compile2 t @ [JMPZ (length (compile2 a) + 1)] @ compile2 a @
+     [JMP (length (compile2 b))] @ compile2 b&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> compile2 :: <span class="isa-inner">&quot;expr2 ⇒ instr2 list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;compile2 (Num2 n) = [PUSH2 n]&quot;</span>
+| <span class="isa-inner">&quot;compile2 (Var2 x) = [LOAD2 x]&quot;</span>
+| <span class="isa-inner">&quot;compile2 (Add2 a b) = compile2 a @ compile2 b @ [ADD2]&quot;</span>
+| <span class="isa-inner">&quot;compile2 (Sub a b) = compile2 a @ compile2 b @ [SUB]&quot;</span>
+| <span class="isa-inner">&quot;compile2 (Cond t a b) =
+     compile2 t @ [JMPZ (length (compile2 a) + 1)] @ compile2 a @
+     [JMP (length (compile2 b))] @ compile2 b&quot;</span></code></pre></div>
+<p>For addition the order did not matter, because addition is commutative; for subtraction it does. Had the
+<code>Sub</code> equation pushed b first, the code would compute b − a. Quickcheck catches the swap at once:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec2 (compile2 b @ compile2 a @ [SUB]) s stk
+       = (eval2 a s - eval2 b s) # stk&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec2 (compile2 b @ compile2 a @ [SUB]) s stk
+       = (eval2 a s - eval2 b s) # stk&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  b = Num2 0
+  a = Num2 (- 1)
+  s = λx. - 2
+  stk = []
+Evaluated terms:
+  exec2 (compile2 b @ compile2 a @ [SUB]) s stk = [1]
+  (eval2 a s - eval2 b s) # stk = [- 1]</code></pre></div>
+<p>With a = −1 and b = 0, the value of a − b is −1, but the swapped code computes 0 − (−1) = 1. A bug of
+this kind can survive tests on hand-picked examples: whenever a and b have the same value, the swapped
+code gives the right answer.</p>
+<h3 id="jumps">Conditionals and jumps</h3>
+<p>The code for <code>Cond t a b</code> evaluates the test and then jumps over the code it does not need:</p>
+<pre class="code"><code class="language-text">code of t | JMPZ k | code of a | JMP m | code of b |
+            k = length (code of a) + 1     m = length (code of b)
+</code></pre>
+<p>If the test is 0, <code>JMPZ k</code> skips the code of a and the <code>JMP</code> after it, and execution continues with the
+code of b. Otherwise the code of a runs, and <code>JMP m</code> skips the code of b. Either way, execution continues
+after the code of b with one new value on the stack. Two runs, in the state <code>s0</code> where x is 5 and z is 0:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[LOAD2 ''x'', JMPZ 2, PUSH2 1, JMP 1, PUSH2 2]&quot;
+  :: &quot;instr2 list&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;(exec2 (compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))) s0 [],
+        exec2 (compile2 (Cond (Var2 ''z'') (Num2 1) (Num2 2))) s0 [])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;(exec2 (compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))) s0 [],
+        exec2 (compile2 (Cond (Var2 ''z'') (Num2 1) (Num2 2))) s0 [])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;([1], [2])&quot;
+  :: &quot;int list × int list&quot;</code></pre></div>
+<p>Now the proof. The lemma about appended code was the key to Section 14.5. Is it still true?</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  c1 = [JMP 1]
+  c2 = [PUSH2 (- 1)]
+  s = λx. - 3
+  stk = []
+Evaluated terms:
+  exec2 (c1 @ c2) s stk = []
+  exec2 c2 s (exec2 c1 s stk) = [- 1]</code></pre></div>
+<p>It is not. A jump at the end of c1 skips instructions of c2 when the two run as one program, but finds
+nothing to skip when c1 runs alone. Running <code>c1 @ c2</code> is no longer “run c1, then c2”. The lemma held for
+the old machine because each of its instructions affected only the stack, never which instruction
+comes next.</p>
+<p>The way out is another generalisation. Instead of splitting a program at an arbitrary point, describe
+what the code of e does in front of <em>any</em> code c that follows it: running <code>compile2 e @ c</code> is the same as
+putting the value of e on the stack and then running c.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem compile2_correct:
+  &quot;exec2 (compile2 e @ c) s stk = exec2 c s (eval2 e s # stk)&quot;
+  by (induction e arbitrary: c stk) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> compile2_correct:
+  <span class="isa-inner">&quot;exec2 (compile2 e @ c) s stk = exec2 c s (eval2 e s # stk)&quot;</span>
+  <span class="isa-proof">by</span> (induction e <span class="isa-minor">arbitrary</span>: c stk) auto</code></pre></div>
+<p>The induction hypotheses now speak about the code of a subexpression followed by anything, and in every
+case that is exactly the shape the simplifier meets. In the case <code>Cond t a b</code>, the hypothesis for t is
+used with the code that follows t, which starts with <code>JMPZ</code>. If the test is 0, the jump lands exactly at
+the start of the code of b, followed by c, and the hypothesis for b applies; otherwise the hypothesis for
+a applies, and <code>JMP</code> lands exactly at the start of c. The jumps never leave the code of the conditional,
+except to its end, and the theorem never needs to say what a jump to anywhere else would do.</p>
+<p>The form of Section 14.5 is the special case in which nothing follows, c = []:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="corollary &quot;exec2 (compile2 e) s stk = eval2 e s # stk&quot;
+  using compile2_correct [of e &quot;[]&quot;] by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">corollary</span> <span class="isa-inner">&quot;exec2 (compile2 e) s stk = eval2 e s # stk&quot;</span>
+  <span class="isa-proof">using</span> compile2_correct [of e <span class="isa-inner">&quot;[]&quot;</span>] <span class="isa-proof">by</span> simp</code></pre></div>
+<div class="callout keyidea"><div class="callout-label">Key idea</div>
+<p>When a lemma about splitting programs fails, generalise over the context instead: state what a piece of
+code does in front of any continuation. The proof then only ever looks at the code the compiler
+produces, never at arbitrary splits. Exercise 14.6 proves the theorem of Section 14.5 in this form,
+without <code>exec_append</code>.</p>
+</div>
+<h3 id="directions">Further directions</h3>
+<ul>
+<li><strong>More operators.</strong> Multiplication needs one constructor, one instruction and one equation in each
+function; the proofs go through unchanged.</li>
+<li><strong><code>let</code>.</strong> An expression <code>let x = a in b</code> needs an instruction that stores a value into a variable.
+The code then changes the state as well as the stack, and the theorem must say which variables it may
+change: storing the value of a in x itself destroys the x that the surrounding expression may need.</li>
+<li><strong>Loops.</strong> With backward jumps a program can run for ever, so execution becomes a relation between
+configurations of the machine (a program counter, a state and a stack), defined with <code>inductive</code> as in
+Modules 11 and 13, instead of a function.</li>
+<li><strong>Other machines.</strong> Exercise 14.7 makes the machine stop on a stack underflow, and Exercise 14.8
+compiles to a machine with registers.</li>
+</ul>
+<span class="section-anchor" id="outlook"></span>
+<div class="section-header"><span class="section-num">9</span><h2>Looking back, looking ahead</h2></div>
+<p>This module used almost every part of the series. Here is where each piece came from.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Module</th>
+<th>What it contributed</th>
+<th>Where it appeared here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>value</code>, <code>lemma</code>, Quickcheck; compilers in the trusted base</td>
+<td>testing, Section 14.1</td>
+</tr>
+<tr>
+<td>2–3</td>
+<td>Logic; free variables of a lemma are universally quantified</td>
+<td>“for every e, s and stk”</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Functions</td>
+<td>the state, a function from names to values</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Recursion and structural induction</td>
+<td><code>eval</code>, <code>exec</code>, <code>compile</code>, every proof</td>
+</tr>
+<tr>
+<td>6–7</td>
+<td>Proof rules, <code>rule</code>, schematic variables</td>
+<td><code>rule Add.IH(2)</code> with <code>?stk</code></td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>datatype</code>, <code>fun</code>, lists, <code>export_code</code></td>
+<td>the language, the machine, the export</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Simp rules, <code>simp only</code>, Quickcheck</td>
+<td><code>exec_append [simp]</code>, the tests</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Isar: cases and calculations</td>
+<td>the proof of <code>compile_correct</code></td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>arbitrary:</code>, auxiliary lemmas, computation induction</td>
+<td>the stack, <code>exec_append</code>, <code>fold_add.induct</code></td>
+</tr>
+<tr>
+<td>12</td>
+<td>Specification against implementation</td>
+<td><code>eval</code> against <code>compile</code> and <code>exec</code></td>
+</tr>
+<tr>
+<td>13</td>
+<td>State machines</td>
+<td>the stack machine itself</td>
+</tr>
+</tbody>
+</table></div>
+<p>In Module 2 you decided formulas with truth tables, by checking finitely many cases. Truth tables cannot
+reach a statement about every expression: there are infinitely many. Proof can. Along the way you
+learned to write such statements in logic, to prove them on paper with rules, and to let Isabelle check
+every step. The compiler is small, but its proof has the ingredients of the proofs behind CompCert and
+seL4: a semantics for each language, a precise statement of what correct means, an induction that follows
+the structure of the programs, and lemmas found by reading the goals where the proof stops.</p>
+<p>Where to go from here:</p>
+<ul>
+<li><em><strong>Concrete Semantics</strong></em> by Tobias Nipkow and Gerwin Klein (Springer, 2014; web site
+concrete-semantics.org) continues where this module ends. Its first part is an Isabelle
+tutorial; its second part defines a small imperative language, IMP, with assignments and loops, and
+treats its semantics, a compiler for it, type systems, Hoare logic and program analysis, all in
+Isabelle.</li>
+<li>The <strong><a href="https://www.isa-afp.org" target="_blank" rel="noopener">Archive of Formal Proofs</a></strong> holds hundreds of checked Isabelle
+developments, among them verified compilers, algorithms and data structures, and shows how experts
+structure large proofs.</li>
+<li><strong>seL4</strong> and <strong>CompCert</strong> (Module 1) show these methods at industrial scale; their papers explain what
+was proved, what is trusted, and what the proofs cost.</li>
+<li>On this site, <strong><a href="../isabelle/">Isabelle for model verification</a></strong> applies Isabelle to an engineering
+model: a small model of a lid, an operation on it, an invariant, and a theorem that a translation
+between two representations preserves meaning, the same kind of theorem as <code>compile_correct</code>. It uses
+Isabelle2025-2.</li>
+</ul>
+<p>Module 1 ended its first theory with three activities: compute with <code>value</code>, prove with <code>lemma</code>, refute
+with Quickcheck. In this module you used all three on a real piece of software, a compiler, and the
+result is a theorem about every program it will ever compile.</p>
+<span class="section-anchor" id="summary"></span>
+<div class="section-header"><span class="section-num">10</span><h2>What you learned</h2></div>
+<ul>
+<li>A compiler is correct when running its code agrees with the meaning of the source program. To state
+this you need both semantics as functions: here <code>eval</code> for expressions and <code>exec</code> for the stack
+machine. The statement is the equation <code>exec (compile e) s stk = eval e s # stk</code>.</li>
+<li>Abstract syntax is a datatype; a compositional semantics is a recursive function on it. A <strong>state</strong>
+maps variable names to values; <code>f(a := v)</code> updates a function.</li>
+<li>A <strong>stack machine</strong> takes its operands from the top of a stack. The compiler produces code in postfix
+order: the code of the operands, then the operator.</li>
+<li>Test first. <code>value</code> compares evaluation and execution on examples; Quickcheck finds the smallest
+counterexample to a wrong claim or a wrong compiler. Limit the search with <code>quickcheck [size = n]</code> when
+the claim has functions among its variables.</li>
+<li>The proof needs two ideas from Module 11: the auxiliary lemma <code>exec_append</code>, found from the stuck goal,
+and <strong>generalisation over the stack</strong>, with <code>arbitrary: stk</code>, because the code of the second operand
+runs on a stack that holds the value of the first.</li>
+<li><strong>Constant folding</strong> is proved correct by structural induction, with a lemma about <code>fold_add</code> proved
+by computation induction. Theorems about passes compose, so optimise-then-compile is correct with a
+one-line proof.</li>
+<li><code>export_code</code> turns the verified functions into Haskell; the code generator and the Haskell compiler
+remain in the trusted base.</li>
+<li>With jumps, the lemma about appended code fails; generalising over the code that follows,
+<code>exec2 (compile2 e @ c) s stk = exec2 c s (eval2 e s # stk)</code>, repairs the proof.</li>
+</ul>
+<span class="section-anchor" id="exercises"></span>
+<div class="section-header"><span class="section-num">11</span><h2>Exercises</h2></div>
+<div class="exercise" id="ex-14-1"><div class="ex-label"><span class="ex-num">Exercise 14.1</span><span class="ex-stars" title="1">★</span><span class="ex-title">Run the machine by hand</span></div>
+<p>Compile the expression <code>(x + 1) + y</code> by hand, that is, <code>Add (Add (Var ''x'') (Num 1)) (Var ''y'')</code>. Then
+write down the stack after each instruction when the code runs in the state <code>s0</code> (x = 5, y = 7) on the
+empty stack. How many numbers does the stack hold at most? Compare with the program of Figure 14.2, and
+check your answers with <code>value</code>.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The code is the code of <code>x + 1</code>, then the code of y, then <code>ADD</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[LOAD ''x'', PUSH 1, ADD, LOAD ''y'', ADD]&quot;
+  :: &quot;instr list&quot;</code></pre></div>
+<p>The stacks after the five instructions are <code>[5]</code>, <code>[1, 5]</code>, <code>[6]</code>, <code>[7, 6]</code> and <code>[13]</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="value &quot;exec (compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))) s0 []&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">value</span> <span class="isa-inner">&quot;exec (compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))) s0 []&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[13]&quot;
+  :: &quot;int list&quot;</code></pre></div>
+<p>The stack holds at most two numbers. The code for <code>x + (2 + y)</code> in Figure 14.2 needs three, because the
+second operand of its outer addition is itself an addition, whose operands go on top of the value of x.
+When the nesting is on the left, each partial sum is finished before the next operand is pushed.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-2"><div class="ex-label"><span class="ex-num">Exercise 14.2</span><span class="ex-stars" title="1">★</span><span class="ex-title">Which claims hold?</span></div>
+<p>Decide for each claim whether it is true for every e, s and stk. Test each with Quickcheck, and prove the
+true ones with <code>simp</code> and the theorems of Section 14.5.</p>
+<ol>
+<li><code>exec (compile e) s stk = [eval e s]</code></li>
+<li><code>length (exec (compile e) s stk) = length stk + 1</code></li>
+<li><code>exec (compile e @ compile e) s stk = eval e s # eval e s # stk</code></li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>
+<p><strong>False</strong>, as Section 14.4.3 showed: when stk is not empty, its numbers stay below the value.</p>
+</li>
+<li>
+<p><strong>True</strong>: the code pushes exactly one number.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;length (exec (compile e) s stk) = length stk + 1&quot;
+  by (simp add: compile_correct)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;length (exec (compile e) s stk) = length stk + 1&quot;</span>
+  <span class="isa-proof">by</span> (simp add: compile_correct)</code></pre></div>
+</li>
+<li>
+<p><strong>True</strong>: by <code>exec_append</code>, the second copy of the code runs on the stack that the first copy left.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e @ compile e) s stk = eval e s # eval e s # stk&quot;
+  by (simp add: compile_correct)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e @ compile e) s stk = eval e s # eval e s # stk&quot;</span>
+  <span class="isa-proof">by</span> (simp add: compile_correct)</code></pre></div>
+</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-3"><div class="ex-label"><span class="ex-num">Exercise 14.3</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Optimised code is never longer</span></div>
+<p>Prove that constant folding never makes the code longer:
+<code>length (compile (cfold e)) ≤ length (compile e)</code>. Start with an auxiliary lemma about <code>fold_add</code>,
+proved by computation induction like <code>eval_fold_add</code>, and then prove the theorem by induction on e, in
+Isar if you like.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>The code of <code>fold_add a b</code> is never longer than the code of a, then b, then one <code>ADD</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma length_fold_add:
+  &quot;length (compile (fold_add a b))
+   ≤ length (compile a) + length (compile b) + 1&quot;
+  by (induction a b rule: fold_add.induct) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> length_fold_add:
+  <span class="isa-inner">&quot;length (compile (fold_add a b))
+   ≤ length (compile a) + length (compile b) + 1&quot;</span>
+  <span class="isa-proof">by</span> (induction a b <span class="isa-minor">rule</span>: fold_add.induct) auto</code></pre></div>
+<p>In the case <code>Add a b</code> the lemma applies to <code>cfold a</code> and <code>cfold b</code>, and the induction hypotheses bound
+their code:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem cfold_shorter:
+  &quot;length (compile (cfold e)) ≤ length (compile e)&quot;
+proof (induction e)
+  case (Add a b)
+  have &quot;length (compile (cfold (Add a b)))
+        ≤ length (compile (cfold a)) + length (compile (cfold b)) + 1&quot;
+    using length_fold_add by simp
+  also have &quot;… ≤ length (compile (Add a b))&quot;
+    using Add.IH by simp
+  finally show ?case .
+qed simp_all">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> cfold_shorter:
+  <span class="isa-inner">&quot;length (compile (cfold e)) ≤ length (compile e)&quot;</span>
+<span class="isa-proof">proof</span> (induction e)
+  <span class="isa-proof">case</span> (Add a b)
+  <span class="isa-proof">have</span> <span class="isa-inner">&quot;length (compile (cfold (Add a b)))
+        ≤ length (compile (cfold a)) + length (compile (cfold b)) + 1&quot;</span>
+    <span class="isa-proof">using</span> length_fold_add <span class="isa-proof">by</span> simp
+  <span class="isa-proof">also</span> <span class="isa-proof">have</span> <span class="isa-inner">&quot;… ≤ length (compile (Add a b))&quot;</span>
+    <span class="isa-proof">using</span> Add.IH <span class="isa-proof">by</span> simp
+  <span class="isa-proof">finally</span> <span class="isa-proof">show</span> ?<span class="isa-proof">case</span> .
+<span class="isa-proof">qed</span> simp_all</code></pre></div>
+<p><code>qed simp_all</code> proves the cases <code>Num</code> and <code>Var</code>, which the Isar text does not mention, by <code>simp</code>.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-4"><div class="ex-label"><span class="ex-num">Exercise 14.4</span><span class="ex-stars" title="2">★★</span><span class="ex-title">A wrong optimisation</span></div>
+<p>A colleague suggests a shorter <code>fold_add</code> that drops every number added on the right:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun fold_add_bad :: &quot;expr ⇒ expr ⇒ expr&quot; where
+  &quot;fold_add_bad (Num m) (Num n) = Num (m + n)&quot;
+| &quot;fold_add_bad a (Num n) = a&quot;
+| &quot;fold_add_bad a b = Add a b&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> fold_add_bad :: <span class="isa-inner">&quot;expr ⇒ expr ⇒ expr&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;fold_add_bad (Num m) (Num n) = Num (m + n)&quot;</span>
+| <span class="isa-inner">&quot;fold_add_bad a (Num n) = a&quot;</span>
+| <span class="isa-inner">&quot;fold_add_bad a b = Add a b&quot;</span></code></pre></div>
+<ol>
+<li>Use Quickcheck to show that it is wrong, and explain the counterexample.</li>
+<li>Write <code>fold_add0</code>, a correct version of <code>fold_add</code> that also removes an addition of 0 on the
+<strong>left</strong>, and prove that it preserves the value.</li>
+</ol>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<ol>
+<li>
+<p>Quickcheck finds an expression that loses a number:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;eval (fold_add_bad a b) s = eval a s + eval b s&quot;
+  quickcheck
+  oops">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;eval (fold_add_bad a b) s = eval a s + eval b s&quot;</span>
+  <span class="isa-cmd">quickcheck</span>
+  <span class="isa-proof">oops</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  a = Var []
+  b = Num (- 1)
+  s = λx. - 2
+Evaluated terms:
+  eval (fold_add_bad a b) s = - 2
+  eval a s + eval b s = - 3</code></pre></div>
+<p>Quickcheck’s a is the variable whose name is the empty string, printed <code>[]</code> because a string is a
+list of characters. Its value in s is −2, and <code>fold_add_bad</code> loses the −1 added to it. The second
+equation is right only for <code>Num 0</code>: any other number on the right is lost.</p>
+</li>
+<li>
+<p>Test for 0 on either side; the proof is the same as for <code>fold_add</code>:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun fold_add0 :: &quot;expr ⇒ expr ⇒ expr&quot; where
+  &quot;fold_add0 (Num m) (Num n) = Num (m + n)&quot;
+| &quot;fold_add0 a b =
+     (if a = Num 0 then b else if b = Num 0 then a else Add a b)&quot;
+
+lemma &quot;eval (fold_add0 a b) s = eval a s + eval b s&quot;
+  by (induction a b rule: fold_add0.induct) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> fold_add0 :: <span class="isa-inner">&quot;expr ⇒ expr ⇒ expr&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;fold_add0 (Num m) (Num n) = Num (m + n)&quot;</span>
+| <span class="isa-inner">&quot;fold_add0 a b =
+     (if a = Num 0 then b else if b = Num 0 then a else Add a b)&quot;</span>
+
+<span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;eval (fold_add0 a b) s = eval a s + eval b s&quot;</span>
+  <span class="isa-proof">by</span> (induction a b <span class="isa-minor">rule</span>: fold_add0.induct) auto</code></pre></div>
+</li>
+</ol>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-5"><div class="ex-label"><span class="ex-num">Exercise 14.5</span><span class="ex-stars" title="2">★★</span><span class="ex-title">Substitution</span></div>
+<p>Define <code>subst :: &quot;vname ⇒ int ⇒ expr ⇒ expr&quot;</code> so that <code>subst x n e</code> replaces every occurrence of the
+variable x in e by the number n. Check it with <code>value</code>, then prove</p>
+<p><code>eval (subst x n e) s = eval e (s(x := n))</code></p>
+<p>in words: substituting n for x gives the value that e has in a state where x is n. A compiler uses this
+fact when it replaces a variable whose value it knows by that value.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun subst :: &quot;vname ⇒ int ⇒ expr ⇒ expr&quot; where
+  &quot;subst x n (Num m) = Num m&quot;
+| &quot;subst x n (Var y) = (if y = x then Num n else Var y)&quot;
+| &quot;subst x n (Add a b) = Add (subst x n a) (subst x n b)&quot;
+
+value &quot;subst ''x'' 3 (Add (Var ''x'') (Add (Var ''y'') (Var ''x'')))&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> subst :: <span class="isa-inner">&quot;vname ⇒ int ⇒ expr ⇒ expr&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;subst x n (Num m) = Num m&quot;</span>
+| <span class="isa-inner">&quot;subst x n (Var y) = (if y = x then Num n else Var y)&quot;</span>
+| <span class="isa-inner">&quot;subst x n (Add a b) = Add (subst x n a) (subst x n b)&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;subst ''x'' 3 (Add (Var ''x'') (Add (Var ''y'') (Var ''x'')))&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;Add (Num 3) (Add (Var ''y'') (Num 3))&quot;
+  :: &quot;expr&quot;</code></pre></div>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma eval_subst: &quot;eval (subst x n e) s = eval e (s(x := n))&quot;
+  by (induction e) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> eval_subst: <span class="isa-inner">&quot;eval (subst x n e) s = eval e (s(x := n))&quot;</span>
+  <span class="isa-proof">by</span> (induction e) auto</code></pre></div>
+<p>In the case <code>Var y</code>, the simplifier splits the <code>if</code>: if y = x, both sides are n; otherwise both are
+<code>s y</code>. No variable needs to be arbitrary, because x, n and s stay the same in the recursive calls.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-6"><div class="ex-label"><span class="ex-num">Exercise 14.6</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">Correctness without the append lemma</span></div>
+<p>Section 14.8 proved the extended compiler correct in a form with a continuation c, the code that
+follows. Prove the theorem for the original compiler in the same form,</p>
+<p><code>exec (compile e @ c) s stk = exec c s (eval e s # stk)</code>,</p>
+<p>by induction on e, <strong>without</strong> using <code>exec_append</code>. Then derive <code>exec (compile e) s stk = eval e s # stk</code>
+from it. Which variables must be arbitrary, and why?</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<p>Both c and stk must be arbitrary: in the case <code>Add a b</code>, the hypothesis for a is used with the
+continuation <code>compile b @ ADD # c</code>, and the hypothesis for b with the stack <code>eval a s # stk</code>.
+<code>exec_append</code> is a simp rule, so <code>auto</code> would use it without being asked. Remove it with <code>simp del:</code>
+(Module 9), so that the proof really does without it:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma compile_cont:
+  &quot;exec (compile e @ c) s stk = exec c s (eval e s # stk)&quot;
+  by (induction e arbitrary: c stk) (auto simp del: exec_append)">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> compile_cont:
+  <span class="isa-inner">&quot;exec (compile e @ c) s stk = exec c s (eval e s # stk)&quot;</span>
+  <span class="isa-proof">by</span> (induction e <span class="isa-minor">arbitrary</span>: c stk) (auto simp del: exec_append)</code></pre></div>
+<p>In the case <code>Add a b</code>, the simplifier reassociates <code>(compile a @ compile b @ [ADD]) @ c</code> to
+<code>compile a @ (compile b @ ADD # c)</code> and then applies the two hypotheses and the equation of <code>exec</code> for
+<code>ADD</code>. The original theorem is the instance c = []:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;exec (compile e) s stk = eval e s # stk&quot;
+  using compile_cont [of e &quot;[]&quot;] by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;exec (compile e) s stk = eval e s # stk&quot;</span>
+  <span class="isa-proof">using</span> compile_cont [of e <span class="isa-inner">&quot;[]&quot;</span>] <span class="isa-proof">by</span> simp</code></pre></div>
+<p>This form needs no lemma about arbitrary splits of programs, which is why it still works with jumps.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-7"><div class="ex-label"><span class="ex-num">Exercise 14.7</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">A machine that can fail</span></div>
+<p>A real stack machine stops with an error on a stack underflow. Model this with an option type (Module
+8): <code>exec1_opt</code> returns <code>None</code> when <code>ADD</code> finds fewer than two numbers, and <code>exec_opt</code> stops at the first
+<code>None</code>. Define both, check with <code>value</code> that <code>[PUSH 1, ADD]</code> fails on the empty stack, and prove that
+compiled code never fails:</p>
+<p><code>exec_opt (compile e) s stk = Some (eval e s # stk)</code>.</p>
+<p>Hint: prove the form with a continuation from Exercise 14.6 first.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun exec1_opt :: &quot;instr ⇒ state ⇒ stack ⇒ stack option&quot; where
+  &quot;exec1_opt (PUSH n) s stk = Some (n # stk)&quot;
+| &quot;exec1_opt (LOAD x) s stk = Some (s x # stk)&quot;
+| &quot;exec1_opt ADD s (j # i # stk) = Some ((i + j) # stk)&quot;
+| &quot;exec1_opt ADD s stk = None&quot;
+
+fun exec_opt :: &quot;instr list ⇒ state ⇒ stack ⇒ stack option&quot; where
+  &quot;exec_opt [] s stk = Some stk&quot;
+| &quot;exec_opt (i # c) s stk =
+     (case exec1_opt i s stk of
+        None ⇒ None
+      | Some stk' ⇒ exec_opt c s stk')&quot;
+
+value &quot;(exec_opt [PUSH 1, ADD] s0 [], exec_opt (compile sample) s0 [])&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> exec1_opt :: <span class="isa-inner">&quot;instr ⇒ state ⇒ stack ⇒ stack option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;exec1_opt (PUSH n) s stk = Some (n # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec1_opt (LOAD x) s stk = Some (s x # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec1_opt ADD s (j # i # stk) = Some ((i + j) # stk)&quot;</span>
+| <span class="isa-inner">&quot;exec1_opt ADD s stk = None&quot;</span>
+
+<span class="isa-cmd">fun</span> exec_opt :: <span class="isa-inner">&quot;instr list ⇒ state ⇒ stack ⇒ stack option&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;exec_opt [] s stk = Some stk&quot;</span>
+| <span class="isa-inner">&quot;exec_opt (i # c) s stk =
+     (case exec1_opt i s stk of
+        None ⇒ None
+      | Some stk' ⇒ exec_opt c s stk')&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;(exec_opt [PUSH 1, ADD] s0 [], exec_opt (compile sample) s0 [])&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;(None, Some [14])&quot;
+  :: &quot;int list option × int list option&quot;</code></pre></div>
+<p>With a continuation, the proof is the same as in Exercise 14.6. In the case <code>Add a b</code> the simplifier
+meets <code>exec1_opt ADD s (eval b s # eval a s # stk)</code>, which is <code>Some …</code>, so the <code>case</code> disappears:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma exec_opt_cont:
+  &quot;exec_opt (compile e @ c) s stk = exec_opt c s (eval e s # stk)&quot;
+  by (induction e arbitrary: c stk) auto
+
+theorem exec_opt_compile:
+  &quot;exec_opt (compile e) s stk = Some (eval e s # stk)&quot;
+  using exec_opt_cont [of e &quot;[]&quot;] by simp">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> exec_opt_cont:
+  <span class="isa-inner">&quot;exec_opt (compile e @ c) s stk = exec_opt c s (eval e s # stk)&quot;</span>
+  <span class="isa-proof">by</span> (induction e <span class="isa-minor">arbitrary</span>: c stk) auto
+
+<span class="isa-cmd">theorem</span> exec_opt_compile:
+  <span class="isa-inner">&quot;exec_opt (compile e) s stk = Some (eval e s # stk)&quot;</span>
+  <span class="isa-proof">using</span> exec_opt_cont [of e <span class="isa-inner">&quot;[]&quot;</span>] <span class="isa-proof">by</span> simp</code></pre></div>
+<p>The theorem is stronger than <code>compile_correct</code>: it also says that compiled code never underflows, on
+any stack.</p>
+</div></details>
+</div>
+<div class="exercise" id="ex-14-8"><div class="ex-label"><span class="ex-num">Exercise 14.8</span><span class="ex-stars" title="3">★★★</span><span class="ex-title">A register machine</span></div>
+<p>Instead of a stack, a register machine has numbered registers, modelled as a function <code>nat ⇒ int</code>, and
+instructions that name the registers they use:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="datatype rinstr = LDI nat int | LDV nat vname | ADDR nat nat
+
+type_synonym regs = &quot;nat ⇒ int&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">datatype</span> rinstr = LDI nat int | LDV nat vname | ADDR nat nat
+
+<span class="isa-cmd">type_synonym</span> regs = <span class="isa-inner">&quot;nat ⇒ int&quot;</span></code></pre></div>
+<p><code>LDI r n</code> loads the number n into register r, <code>LDV r x</code> loads the value of the variable x, and <code>ADDR r q</code>
+adds register q to register r. Define <code>rexec1</code> and <code>rexec</code> like <code>exec1</code> and <code>exec</code>, and a compiler
+<code>rcompile :: &quot;expr ⇒ nat ⇒ rinstr list&quot;</code> such that <code>rcompile e r</code> leaves the value of e in register r and
+uses only registers r, r + 1, … as scratch space. Prove that it is correct: the value ends up in register
+r, and the registers below r keep their contents.</p>
+<details class="solution"><summary>Show solution</summary><div class="details-body">
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="fun rexec1 :: &quot;rinstr ⇒ state ⇒ regs ⇒ regs&quot; where
+  &quot;rexec1 (LDI r n) s rs = rs(r := n)&quot;
+| &quot;rexec1 (LDV r x) s rs = rs(r := s x)&quot;
+| &quot;rexec1 (ADDR r q) s rs = rs(r := rs r + rs q)&quot;
+
+fun rexec :: &quot;rinstr list ⇒ state ⇒ regs ⇒ regs&quot; where
+  &quot;rexec [] s rs = rs&quot;
+| &quot;rexec (i # c) s rs = rexec c s (rexec1 i s rs)&quot;
+
+lemma rexec_append [simp]:
+  &quot;rexec (c1 @ c2) s rs = rexec c2 s (rexec c1 s rs)&quot;
+  by (induction c1 arbitrary: rs) auto
+
+fun rcompile :: &quot;expr ⇒ nat ⇒ rinstr list&quot; where
+  &quot;rcompile (Num n) r = [LDI r n]&quot;
+| &quot;rcompile (Var x) r = [LDV r x]&quot;
+| &quot;rcompile (Add a b) r =
+     rcompile a r @ rcompile b (r + 1) @ [ADDR r (r + 1)]&quot;
+
+value &quot;rcompile sample 0&quot;">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">fun</span> rexec1 :: <span class="isa-inner">&quot;rinstr ⇒ state ⇒ regs ⇒ regs&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;rexec1 (LDI r n) s rs = rs(r := n)&quot;</span>
+| <span class="isa-inner">&quot;rexec1 (LDV r x) s rs = rs(r := s x)&quot;</span>
+| <span class="isa-inner">&quot;rexec1 (ADDR r q) s rs = rs(r := rs r + rs q)&quot;</span>
+
+<span class="isa-cmd">fun</span> rexec :: <span class="isa-inner">&quot;rinstr list ⇒ state ⇒ regs ⇒ regs&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;rexec [] s rs = rs&quot;</span>
+| <span class="isa-inner">&quot;rexec (i # c) s rs = rexec c s (rexec1 i s rs)&quot;</span>
+
+<span class="isa-cmd">lemma</span> rexec_append [simp]:
+  <span class="isa-inner">&quot;rexec (c1 @ c2) s rs = rexec c2 s (rexec c1 s rs)&quot;</span>
+  <span class="isa-proof">by</span> (induction c1 <span class="isa-minor">arbitrary</span>: rs) auto
+
+<span class="isa-cmd">fun</span> rcompile :: <span class="isa-inner">&quot;expr ⇒ nat ⇒ rinstr list&quot;</span> <span class="isa-minor">where</span>
+  <span class="isa-inner">&quot;rcompile (Num n) r = [LDI r n]&quot;</span>
+| <span class="isa-inner">&quot;rcompile (Var x) r = [LDV r x]&quot;</span>
+| <span class="isa-inner">&quot;rcompile (Add a b) r =
+     rcompile a r @ rcompile b (r + 1) @ [ADDR r (r + 1)]&quot;</span>
+
+<span class="isa-cmd">value</span> <span class="isa-inner">&quot;rcompile sample 0&quot;</span></code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>&quot;[LDV 0 ''x'', LDI 1 2, LDV 2 ''y'', ADDR 1 2, ADDR 0 1]&quot;
+  :: &quot;rinstr list&quot;</code></pre></div>
+<p>The register number plays the part of the stack height: the code for b works one register higher, so
+that it cannot overwrite the value of a in register r. The claim must say both things at once, because
+the case <code>Add</code> needs both from its hypotheses: the value of a is still in register r after the code of b
+has run only because that code leaves the registers below r + 1 alone. Both r and the register contents
+change between the recursive calls, so both are arbitrary:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="theorem rcompile_correct:
+  &quot;rexec (rcompile e r) s rs r = eval e s ∧
+   (∀q &lt; r. rexec (rcompile e r) s rs q = rs q)&quot;
+  by (induction e arbitrary: r rs) auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">theorem</span> rcompile_correct:
+  <span class="isa-inner">&quot;rexec (rcompile e r) s rs r = eval e s ∧
+   (∀q &lt; r. rexec (rcompile e r) s rs q = rs q)&quot;</span>
+  <span class="isa-proof">by</span> (induction e <span class="isa-minor">arbitrary</span>: r rs) auto</code></pre></div>
+<p>Prove only the first half, and the induction gets stuck:</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="lemma &quot;rexec (rcompile e r) s rs r = eval e s&quot;
+  apply (induction e arbitrary: r rs)
+  apply auto">Copy</button></div><pre class="isa-body"><code><span class="isa-cmd">lemma</span> <span class="isa-inner">&quot;rexec (rcompile e r) s rs r = eval e s&quot;</span>
+  <span class="isa-proof">apply</span> (induction e <span class="isa-minor">arbitrary</span>: r rs)
+  <span class="isa-proof">apply</span> auto</code></pre></div>
+<div class="isa-output"><div class="isa-output-bar">Output</div><pre class="isa-output-body"><code>proof (prove)
+goal (1 subgoal):
+ 1. ⋀e1 e2 r rs.
+       ⟦⋀r rs. rexec (rcompile e1 r) s rs r = eval e1 s;
+        ⋀r rs. rexec (rcompile e2 r) s rs r = eval e2 s⟧
+       ⟹ rexec (rcompile e2 (Suc r)) s (rexec (rcompile e1 r) s rs) r =
+          eval e1 s</code></pre></div>
+<p>The goal that remains asks whether the code of e2, compiled for register r + 1 (written <code>Suc r</code>), leaves
+register r alone. The hypotheses of the weaker claim say nothing about other registers, so the claim must
+be strengthened, as in Module 11.</p>
+<div class="isa"><div class="isa-bar"><span class="isa-title">Isabelle</span><button type="button" class="copy-btn" data-copy="  oops">Copy</button></div><pre class="isa-body"><code>  <span class="isa-proof">oops</span></code></pre></div>
+<p>The proof of McCarthy and Painter in 1967 (Section 14.1) was about a machine of this kind: an
+accumulator and registers, not a stack.</p>
+</div></details>
+</div>
+<span class="section-anchor" id="quiz"></span>
+<div class="section-header"><span class="section-num">12</span><h2>Check yourself</h2></div>
+<div class="quiz" data-n="6">
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">1</span><div>What does the theorem <code>compile_correct</code> say?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The compiler terminates on every expression</button></li><li><button type="button" class="quiz-opt" data-i="1">For every expression, state and stack, running the compiled code puts the expression’s value on top of the stack and leaves the rest unchanged</button></li><li><button type="button" class="quiz-opt" data-i="2">Running the compiled code on the empty stack gives a stack with one element</button></li><li><button type="button" class="quiz-opt" data-i="3"><code>eval</code> and <code>exec</code> are the same function</button></li></ol><div class="quiz-expl" hidden>The statement is <code>exec (compile e) s stk = eval e s # stk</code> for all e, s and stk. The empty-stack version is a special case.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">2</span><div>Why does the proof of <code>compile_correct</code> need <code>arbitrary: stk</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Because <code>eval</code> changes the state in its recursive calls</button></li><li><button type="button" class="quiz-opt" data-i="1">Because <code>stk</code> is a list</button></li><li><button type="button" class="quiz-opt" data-i="2">Because the claim is false for the empty stack</button></li><li><button type="button" class="quiz-opt" data-i="3">Because in the case <code>Add a b</code> the hypothesis for b is needed with the stack <code>eval a s # stk</code>, not with stk</button></li></ol><div class="quiz-expl" hidden>The code of b runs on top of the value of a. Without <code>arbitrary</code>, the hypothesis is about the fixed stk only.</div></div>
+<div class="quiz-q" data-answer="2"><div class="quiz-stem"><span class="quiz-n">3</span><div>What is <code>compile (Add (Num 1) (Var ''x''))</code>?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0"><code>[ADD, PUSH 1, LOAD ''x'']</code></button></li><li><button type="button" class="quiz-opt" data-i="1"><code>[PUSH 1, ADD, LOAD ''x'']</code></button></li><li><button type="button" class="quiz-opt" data-i="2"><code>[PUSH 1, LOAD ''x'', ADD]</code></button></li><li><button type="button" class="quiz-opt" data-i="3"><code>[LOAD ''x'', PUSH 1, ADD]</code></button></li></ol><div class="quiz-expl" hidden>Postfix order: the code of the left operand, then the code of the right one, then the operator.</div></div>
+<div class="quiz-q" data-answer="0"><div class="quiz-stem"><span class="quiz-n">4</span><div><code>quickcheck [size = 3]</code> finds no counterexample to a claim. What do you know?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The claim holds for the values up to size 3 that Quickcheck tried; it may still be false</button></li><li><button type="button" class="quiz-opt" data-i="1">The claim is a theorem</button></li><li><button type="button" class="quiz-opt" data-i="2">The claim is false for some value larger than 3</button></li><li><button type="button" class="quiz-opt" data-i="3">Quickcheck ran out of time</button></li></ol><div class="quiz-expl" hidden>Testing is evidence, not proof. Only a proof covers every expression.</div></div>
+<div class="quiz-q" data-answer="1"><div class="quiz-stem"><span class="quiz-n">5</span><div>For the machine with jumps, the lemma <code>exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)</code> is false. Why?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">Because <code>SUB</code> is not commutative</button></li><li><button type="button" class="quiz-opt" data-i="1">Because a jump in c1 can skip instructions of c2 when the two run as one program</button></li><li><button type="button" class="quiz-opt" data-i="2">Because <code>exec2</code> does not terminate</button></li><li><button type="button" class="quiz-opt" data-i="3">Because <code>drop</code> is not defined for long lists</button></li></ol><div class="quiz-expl" hidden>Running c1 alone, a jump at its end skips nothing. The repair is to state correctness for the compiled code followed by any continuation c.</div></div>
+<div class="quiz-q" data-answer="3"><div class="quiz-stem"><span class="quiz-n">6</span><div>You run the Haskell code that <code>export_code</code> generated from <code>compile</code>. What must you still trust?</div></div><ol class="quiz-opts" type="A"><li><button type="button" class="quiz-opt" data-i="0">The proof of <code>compile_correct</code></button></li><li><button type="button" class="quiz-opt" data-i="1">The simplifier that proved the lemmas</button></li><li><button type="button" class="quiz-opt" data-i="2">Quickcheck</button></li><li><button type="button" class="quiz-opt" data-i="3">Isabelle’s code generator and the Haskell compiler</button></li></ol><div class="quiz-expl" hidden>The proofs are checked by Isabelle’s kernel. The translation to Haskell and its compilation are outside the kernel, so they are part of the trusted base.</div></div>
+<div class="quiz-bar"><span class="quiz-score" aria-live="polite"></span><button type="button" class="quiz-reset">Try again</button></div></div>
+
+</div>
+<section class="done-box" data-lesson="14"><div class="done-q">Finished this module?</div><button type="button" class="done-btn" data-yes="Done" data-no="Mark as done" data-undo="Mark as not done">Mark as done</button><div class="done-progress" data-label="{d} of {n} modules done"></div></section>
+<nav class="module-nav"><a class="mnav prev" href="module_13_EN.html"><span class="mnav-label">&larr; Previous</span><span class="mnav-title">Module 13: Modelling systems: state machines and invariants</span></a><a class="mnav next" href="index.html"><span class="mnav-label">All modules &rarr;</span><span class="mnav-title">Formal Methods with Isabelle</span></a></nav>
+  </main>
+</div>
+<footer class="site-footer"><p>&copy; Ran Wei &middot; Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> &middot; Isabelle fonts: BSD-3-Clause</p></footer>
+<script src="assets/tutorial.js" defer></script>
+</body></html>
