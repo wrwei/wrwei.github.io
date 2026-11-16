@@ -1474,12 +1474,10 @@ flat Lf acc = acc
 flat (Nd l x r) acc = flat l (x # flat r acc)
 ```
 
-and prove `flat t [] = inorder t`. Which generalisation do you need?
+并证明 `flat t [] = inorder t`。你需要做什么样的推广？
 
 ::: solution
-`flat t acc` puts the traversal of `t` in front of `acc`, so the general claim is
-`flat t acc = inorder t @ acc`. The recursive call on `l` passes a different accumulator,
-`x # flat r acc`, so generalise `acc`:
+`flat t acc` 把 `t` 的遍历结果放在 `acc` 的前面，所以一般的断言是 `flat t acc = inorder t @ acc`。在 `l` 上的递归调用传递的是一个不同的累加器 `x # flat r acc`，所以要推广 `acc`：
 
 ```isabelle
 fun flat :: "'a btree ⇒ 'a list ⇒ 'a list" where
@@ -1493,17 +1491,16 @@ lemma "flat t [] = inorder t"
   by (simp add: flat_inorder)
 ```
 
-In case `Nd`, the IH for `r` is used with accumulator `acc`, and the IH for `l` with `x # flat r acc`.
+在情形 `Nd` 中，关于 `r` 的归纳假设取累加器 `acc` 来使用，关于 `l` 的归纳假设则取 `x # flat r acc`。
 :::
 ::::
 
-:::: exercise More even numbers {#ex-11-5} ★★
-1. Prove `ev (n + n)` for every `n`.
-2. Prove `ev m ⟹ ev (m * n)`. Which induction works best here? You may use `ev_add`.
+:::: exercise 再谈偶数 {#ex-11-5} ★★
+1. 证明 `ev (n + n)` 对每个 `n` 都成立。
+2. 证明 `ev m ⟹ ev (m * n)`。这里哪种归纳最合适？你可以使用 `ev_add`。
 
 ::: solution
-1. Structural induction on `n`. In the step, `Suc n + Suc n` simplifies to `Suc (Suc (n + n))`, and rule
-   `ev_SS` applies to the IH:
+1. 对 `n` 做结构归纳。在归纳步骤中，`Suc n + Suc n` 化简为 `Suc (Suc (n + n))`，再对归纳假设应用规则 `ev_SS`：
 
 ```isabelle
 lemma ev_double: "ev (n + n)"
@@ -1516,9 +1513,7 @@ next
 qed
 ```
 
-2. Induction on `n`, not rule induction on `ev m`: `m * Suc n` simplifies to `m + m * n`, and `ev_add`
-   combines `ev m` with the IH `ev (m * n)`. (Rule induction on `ev m` would lead to
-   `ev (n + (n + k * n))`, which needs more lemmas.)
+2. 对 `n` 做归纳，而不是对 `ev m` 做规则归纳：`m * Suc n` 化简为 `m + m * n`，再由 `ev_add` 把 `ev m` 和归纳假设 `ev (m * n)` 结合起来。（对 `ev m` 做规则归纳会得到 `ev (n + (n + k * n))`，那需要更多的引理。）
 
 ```isabelle
 lemma "ev m ⟹ ev (m * n)"
