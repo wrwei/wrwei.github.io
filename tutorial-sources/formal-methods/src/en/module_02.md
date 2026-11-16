@@ -51,7 +51,7 @@ A ⟶ B, A is the **antecedent** and B the **consequent**.
 :::
 
 Section 2.3 makes the last column exact. In Isabelle/jEdit you type the symbols with the abbreviations
-from Module 1: `~` for ¬, `&` for ∧, `|` for ∨, `-->` for ⟶ and `<->` for ⟷.
+from Module 1: `~` for ¬, `&` for ∧, `|` for ∨, `-->` for ⟶ and `<-->` for ⟷.
 
 ### From English to formulas {#english}
 
@@ -156,8 +156,9 @@ four atoms, `badge ∧ pin`, `badge ∧ pin ∨ fire` and the whole formula.
 Rule 3 puts parentheses around every binary connective, so that each formula has exactly one parse
 tree. But the parentheses make formulas hard to read: the door requirement would be
 (opens ⟶ ((badge ∧ pin) ∨ fire)). School algebra solves the same problem with a convention: × binds more
-tightly than +, so 2 + 3 × 4 means 2 + (3 × 4). In logic, each connective has a **priority**; a higher
-priority binds more tightly, and the binary connectives **group to the right**:
+tightly than +, so 2 + 3 × 4 means 2 + (3 × 4). Logic has the same kind of convention: each connective
+has a **priority**, and a higher priority binds more tightly. In Isabelle, the binary connectives also
+**group to the right**:
 
 | Connective | Priority in Isabelle | Grouping |
 |---|---|---|
@@ -437,7 +438,8 @@ Three proof methods prove tautologies:
   `True`.
 - `blast` searches for a proof: it takes the formula apart, considers cases and backtracks when a
   choice leads nowhere. It either proves the goal completely or fails.
-- `auto` simplifies, reasons as `blast` does, and leaves behind what it cannot prove.
+- `auto` combines the simplifier with logical steps of the kind `blast` takes, and leaves behind what it
+  cannot prove.
 
 Rewriting is not enough for every tautology. Peirce's law defeats `simp`:
 
@@ -650,7 +652,8 @@ In the same way, ¬(A ∧ B) is equivalent to ¬A ∨ ¬B, not to ¬A ∧ ¬B: n
 :::
 
 ::: isabelle
-An equivalence is a lemma with ⟷. `blast` proves the whole simplification of Example 2.5 in one step:
+In Isabelle, an equivalence is a lemma with ⟷. (Isabelle has a symbol ≡ too, but it uses it for
+definitions, as Module 7 explains.) `blast` proves the whole simplification of Example 2.5 in one step:
 
 ```isabelle
 lemma "¬ (valid ∧ ¬ expired) ∨ expired ⟷ (valid ⟶ expired)"

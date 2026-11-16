@@ -144,7 +144,8 @@ compiler is correct for every program ever written, but needs your guidance to p
 methods combine. Program verifiers such as Dafny and Frama-C turn programs into formulas for SMT solvers.
 And Isabelle, as you will see, includes a tester (**Quickcheck**), a counterexample finder (**Nitpick**,
 which uses a SAT solver) and a bridge to automatic provers and SMT solvers (**Sledgehammer**, which calls
-Z3, cvc5 and others), all checked by the same small kernel.
+Z3, cvc5 and others). The proofs that Sledgehammer finds are checked by the same small kernel as every
+other proof (Section 1.4).
 
 ::: note
 Why can a computer not decide by itself whether any statement is true? Because no algorithm can: Alan
@@ -197,8 +198,8 @@ ACL2. They differ in their logics and styles, but the ideas in this series carry
 
 Isabelle2026, released in October 2026, is the current version. The download contains everything: the
 Isabelle/jEdit editor, the prebuilt HOL logic, the automatic provers and the manuals. You do not need to
-install Java or anything else. Isabelle's home page asks for at least 4 GB of memory and 2 processor
-cores for small experiments, and recommends 8 GB and 4 cores; this series stays small.
+install Java or anything else. Isabelle's home page asks for 4 GB of memory and 2 processor cores for
+small experiments, and 8 GB and 4 cores for medium-sized applications; this series stays small.
 
 Download it from **isabelle.in.tum.de** (the "Download for …" links on the home page), then follow the
 steps for your system.
@@ -288,7 +289,7 @@ You can also type a backslash and the symbol's name, such as `\forall`, or click
 | ∨ | `\/` or <code>&#124;</code> | or |
 | ¬ | `~` | not |
 | ⟶ | `-->` | implies |
-| ⟷ | `<->` | if and only if |
+| ⟷ | `<-->` | if and only if |
 | ∀ | `\forall` | for all |
 | ∃ | `\exists` | there exists |
 | ≠ | `~=` | not equal |

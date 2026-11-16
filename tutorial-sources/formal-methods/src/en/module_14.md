@@ -122,6 +122,10 @@ fun eval :: "expr ⇒ state ⇒ int" where
 ```
 
 ```output
+consts
+  eval :: "expr ⇒ (char list ⇒ int) ⇒ int"
+
+Found termination order: "(λp. size (fst p)) <*mlex*> {}"
 ```
 
 Read the equations aloud: a number means itself; a variable means its value in the state s; a sum means
@@ -150,6 +154,8 @@ value "(s0 ''x'', s0 ''y'', s0 ''z'')"
 ```
 
 ```output result
+"(5, 7, 0)"
+  :: "int × int × int"
 ```
 
 In the state `s0` the variable x has the value 5, y has 7 and every other variable has 0. Now evaluate
@@ -160,6 +166,8 @@ value "eval sample s0"
 ```
 
 ```output
+"14"
+  :: "int"
 ```
 
 ::: example Evaluating by hand
@@ -227,6 +235,11 @@ thm exec1.simps
 ```
 
 ```output
+  exec1 (PUSH ?n) ?s ?stk = ?n # ?stk
+  exec1 (LOAD ?x) ?s ?stk = ?s ?x # ?stk
+  exec1 ADD ?s (?j # ?i # ?stk) = (?i + ?j) # ?stk
+  exec1 ADD ?s [] = []
+  exec1 ADD ?s [?v] = [?v]
 ```
 
 The fourth equation has become two, for the empty stack and for a stack with one number: exactly the
@@ -248,6 +261,8 @@ value "exec1 ADD s0 [7, 5]"
 ```
 
 ```output
+"[12]"
+  :: "int list"
 ```
 
 ```isabelle
@@ -255,6 +270,8 @@ value "exec [LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD] s0 []"
 ```
 
 ```output
+"[14]"
+  :: "int list"
 ```
 
 Figure 14.2 shows the stack after each instruction of this program. The stack grows to three numbers
@@ -272,6 +289,8 @@ value "exec [LOAD ''x'', PUSH 2] s0 [100]"
 ```
 
 ```output
+"[2, 5, 100]"
+  :: "int list"
 ```
 
 This property, code that leaves the rest of the stack alone, is what will make the compiler work.
@@ -299,6 +318,8 @@ value "compile sample"
 ```
 
 ```output
+"[LOAD ''x'', PUSH 2, LOAD ''y'', ADD, ADD]"
+  :: "instr list"
 ```
 
 This is the program of Figure 14.2. The operands come before their operator: first x, then 2 and y, then
@@ -317,6 +338,8 @@ value "(exec (compile sample) s0 [100], eval sample s0 # [100])"
 ```
 
 ```output
+"([14, 100], [14, 100])"
+  :: "int list × int list"
 ```
 
 Both give 14 on top of the 100.
@@ -330,12 +353,16 @@ term comp
 ```
 
 ```output
+"(∘)"
+  :: "('a ⇒ 'b) ⇒ ('c ⇒ 'a) ⇒ 'c ⇒ 'b"
 ```
 
-Before you name a function, ask Isabelle whether the name is free. `term` prints the type of a constant
-that exists; a name that is not a constant is printed with type `'a`, because Isabelle reads it as a free
-variable (Module 8). `find_consts` (Module 9) searches by name or by type. Reusing a library name for
-your own function makes your theory hard to read and Isabelle's messages confusing.
+Isabelle would accept a function of your own called `comp`, and the name would then refer to yours. But
+the short name would have two meanings, so from then on Isabelle prints yours with the name of your
+theory in front, as in `T.comp (Num 1)` for a theory `T`, in every goal and message. Before you name a
+function, ask Isabelle whether the name is free. `term` prints the type of a constant that exists; a name
+that is not a constant is printed with type `'a`, because Isabelle reads it as a free variable (Module
+8). `find_consts` (Module 9) searches by name or by type.
 :::
 
 ### What correct means {#correct}
@@ -355,13 +382,13 @@ below it.
 
 Three things about this statement are worth noticing.
 
-- It is a **specification** in the sense of Module 12. `eval` says what the value must be; `compile`
-  together with `exec` is the implementation that computes it.
-- It speaks about every stack, not only the empty one, although a user of the compiler only ever starts
-  with an empty stack. The reason is that the compiler combines code: the code of b in `Add a b` runs on
-  a stack that already holds the value of a. Section 14.5 shows that the proof needs the general form.
-- It describes the whole stack after the run. A weaker claim, "the top of the stack is the value of e",
-  would allow code that destroys what lies below, and such code would break the code around it.
+- It is a **specification** in the sense of Module 12: `eval` says what the value must be, and
+  `compile` with `exec` is the implementation.
+- It speaks about every stack, although a user starts with the empty one. The compiler combines code:
+  the code of b in `Add a b` runs on a stack that already holds the value of a. Section 14.5 shows that
+  the proof needs the general form.
+- It describes the whole stack. A weaker claim, "the top of the stack is the value of e", would allow
+  code that destroys what lies below, and such code would break the code around it.
 
 ### Test before you prove {#testing}
 
@@ -375,13 +402,16 @@ lemma "exec (compile e) s stk = eval e s # stk"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.
 ```
 
 Quickcheck tried every expression, state and stack up to size 3 and found nothing wrong. The option
-`size = 3` limits the search. Without it, Quickcheck searches up to its default size, and on this claim it
-would stop with "Quickcheck ran out of time" after its time limit: the state is a function from strings
-to integers, and there are very many small functions of that kind. Size 3 already includes expressions
-with two additions and stacks with three numbers, enough to catch the mistakes below.
+`size = 3` limits the search to small values. Without it, Quickcheck searches up to its default size, and
+on this claim it stops with "Quickcheck ran out of time" when its time limit is reached: the state is a
+function from strings to integers, and there are very many small functions of that kind. On a false
+claim the plain command is fast, because Quickcheck stops at the first counterexample it finds.
 
 Quickcheck is at its best on claims that are wrong. Here is a correctness claim that forgets the stack:
 
@@ -392,6 +422,15 @@ lemma "exec (compile e) s stk = [eval e s]"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  e = Num (- 1)
+  s = λx. - 2
+  stk = [- 1]
+Evaluated terms:
+  exec (compile e) s stk = [- 1, - 1]
+  [eval e s] = [- 1]
 ```
 
 Read the counterexample. The expression is the number −1 (Isabelle prints negative numbers with a
@@ -412,6 +451,8 @@ value "(compile_bad sample, exec (compile_bad sample) s0 [])"
 ```
 
 ```output result
+"([LOAD ''x'', ADD, PUSH 2, ADD, LOAD ''y''], [7, 7])"
+  :: "instr list × int list"
 ```
 
 The first `ADD` finds a single number and changes nothing, the second adds 2 to 5, and the value of y
@@ -425,6 +466,15 @@ lemma "exec (compile_bad e) s stk = eval e s # stk"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  e = Add (Num 0) (Num 0)
+  s = λx. - 2
+  stk = []
+Evaluated terms:
+  exec (compile_bad e) s stk = [0, 0]
+  eval e s # stk = [0]
 ```
 
 The smallest counterexample is 0 + 0. The numbers do not matter: the order of the instructions is wrong,
@@ -483,6 +533,13 @@ lemma "exec (compile e) s [] = [eval e s]"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀e1 e2.
+       ⟦exec (compile e1) s [] = [eval e1 s];
+        exec (compile e2) s [] = [eval e2 s]⟧
+       ⟹ exec (compile e1 @ compile e2 @ [ADD]) s [] =
+          [eval e1 s + eval e2 s]
 ```
 
 `auto` has proved the cases `Num` and `Var` and unfolded `compile` in the case `Add`; Isabelle calls the
@@ -504,6 +561,8 @@ value "(exec ([LOAD ''x'', PUSH 2] @ [ADD]) s0 [1],
 ```
 
 ```output
+"([7, 1], [7, 1])"
+  :: "int list × int list"
 ```
 
 Test the conjecture:
@@ -515,6 +574,9 @@ lemma "exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.
 ```
 
 Prove it by induction on c1. The recursive call of `exec` receives a new stack, `exec1 i s stk`, so the
@@ -526,6 +588,12 @@ lemma exec_append [simp]: "exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. ⋀stk. exec ([] @ c2) s stk = exec c2 s (exec [] s stk)
+ 2. ⋀a c1 stk.
+       (⋀stk. exec (c1 @ c2) s stk = exec c2 s (exec c1 s stk)) ⟹
+       exec ((a # c1) @ c2) s stk = exec c2 s (exec (a # c1) s stk)
 ```
 
 In subgoal 2, the hypothesis holds for every stack (⋀stk). The simplifier rewrites `(a # c1) @ c2` to
@@ -551,6 +619,13 @@ lemma "exec (compile e) s [] = [eval e s]"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀e1 e2.
+       ⟦exec (compile e1) s [] = [eval e1 s];
+        exec (compile e2) s [] = [eval e2 s]⟧
+       ⟹ exec1 ADD s (exec (compile e2) s [eval e1 s]) =
+          [eval e1 s + eval e2 s]
 ```
 
 Progress: the code of e1 has run, by `exec_append` and the hypothesis for e1, and left `[eval e1 s]`.
@@ -597,6 +672,14 @@ proof (induction e arbitrary: stk)
 ```
 
 ```output state
+proof (state)
+goal (3 subgoals):
+ 1. ⋀x stk. exec (compile (Num x)) s stk = eval (Num x) s # stk
+ 2. ⋀x stk. exec (compile (Var x)) s stk = eval (Var x) s # stk
+ 3. ⋀e1 e2 stk.
+       ⟦⋀stk. exec (compile e1) s stk = eval e1 s # stk;
+        ⋀stk. exec (compile e2) s stk = eval e2 s # stk⟧
+       ⟹ exec (compile (Add e1 e2)) s stk = eval (Add e1 e2) s # stk
 ```
 
 Read subgoal 3 aloud: "for all e1, e2 and stk: if for every stack the claim holds for e1, and for every
@@ -615,6 +698,16 @@ next
 ```
 
 ```output state
+proof (state)
+this:
+    exec (compile a) s ?stk = eval a s # ?stk
+    exec (compile b) s ?stk = eval b s # ?stk
+
+goal (1 subgoal):
+ 1. ⋀e1 e2 stk.
+       ⟦⋀stk. exec (compile e1) s stk = eval e1 s # stk;
+        ⋀stk. exec (compile e2) s stk = eval e2 s # stk⟧
+       ⟹ exec (compile (Add e1 e2)) s stk = eval (Add e1 e2) s # stk
 ```
 
 The induction hypotheses are listed under `this`, with the schematic variable `?stk` (Module 7): they
@@ -625,10 +718,14 @@ the two facts and let `rule` instantiate `?stk`:
 ```isabelle
   have run_a: "exec (compile a) s stk = eval a s # stk"
     by (rule Add.IH(1))
-  have run_b: "exec (compile b) s (eval a s # stk) = eval b s # eval a s # stk"
+  have run_b: "exec (compile b) s (eval a s # stk)
+               = eval b s # eval a s # stk"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. exec (compile b) s (eval a s # stk) = eval b s # eval a s # stk
 ```
 
 ```isabelle
@@ -682,13 +779,17 @@ next
   show ?case by simp
 next
   case (Add a b)
-  have run_b: "exec (compile b) s (eval a s # stk) = eval b s # eval a s # stk"
+  have run_b: "exec (compile b) s (eval a s # stk)
+               = eval b s # eval a s # stk"
     by (rule Add.IH(2))
   then show ?case using Add.IH(1) by simp
 qed
 ```
 
 ```output
+*** Failed to apply initial proof method⌂:
+*** goal (1 subgoal):
+***  1. exec (compile b) s (eval a s # stk) = eval b s # eval a s # stk
 ```
 
 Without `arbitrary`, `Add.IH(2)` says `exec (compile b) s stk = eval b s # stk` for the one stack stk of
@@ -700,8 +801,8 @@ arbitrary (Module 11).
 ## A verified optimisation {#optimise}
 
 Real compilers improve the code they produce: they **optimise** it. Every optimisation is a new chance
-for a bug, and optimisations are where many compiler bugs live. A verified compiler proves each one
-correct.
+for a bug, because the improved code must do exactly what the original did, in every case. A verified
+compiler proves that for each optimisation.
 
 ### Constant folding {#folding}
 
@@ -745,6 +846,8 @@ value "cfold sample2"
 ```
 
 ```output
+"Add (Num 5) (Var ''x'')"
+  :: "expr"
 ```
 
 The result is `5 + x`. The code shrinks from seven instructions to three:
@@ -754,6 +857,9 @@ value "(compile sample2, compile (cfold sample2))"
 ```
 
 ```output
+"([PUSH 2, PUSH 3, ADD, LOAD ''x'', PUSH 0, ADD, ADD],
+  [PUSH 5, LOAD ''x'', ADD])"
+  :: "instr list × instr list"
 ```
 
 `cfold` folds only where two numbers meet. In `2 + (3 + x)` they do not, and nothing changes:
@@ -763,10 +869,11 @@ value "cfold (Add (Num 2) (Add (Num 3) (Var ''x'')))"
 ```
 
 ```output
+"Add (Num 2) (Add (Num 3) (Var ''x''))"
+  :: "expr"
 ```
 
-The expression equals `5 + x`, but finding that needs the associative law, a cleverer optimiser and a
-proof to match. Folding as it is will do here.
+Turning it into `5 + x` would need the associative law, a cleverer optimiser and a proof to match.
 
 ### Folding preserves meaning {#folding-correct}
 
@@ -780,12 +887,20 @@ lemma eval_fold_add [simp]: "eval (fold_add a b) s = eval a s + eval b s"
 ```
 
 ```output state
+proof (prove)
+goal (5 subgoals):
+ 1. ⋀m n. eval (fold_add (Num m) (Num n)) s =
+          eval (Num m) s + eval (Num n) s
+ 2. ⋀v b. eval (fold_add (Var v) b) s = eval (Var v) s + eval b s
+ 3. ⋀v va b. eval (fold_add (Add v va) b) s = eval (Add v va) s + eval b s
+ 4. ⋀a v. eval (fold_add a (Var v)) s = eval a s + eval (Var v) s
+ 5. ⋀a v va. eval (fold_add a (Add v va)) s = eval a s + eval (Add v va) s
 ```
 
 The cases follow the equations of `fold_add`, after `fun` has made them non-overlapping, as it did for
 `exec1`. The second equation has become four: one for each shape of a and b that the first equation does
-not cover. In every case the simplifier can evaluate `fold_add`, and the `if` splits into two easy
-cases:
+not cover. In every case the simplifier can evaluate `fold_add`, and `auto` splits the `if` into its
+two cases:
 
 ```isabelle
   apply auto
@@ -810,7 +925,8 @@ The two theorems fit together. Optimise first, then compile, and the code still 
 the original expression:
 
 ```isabelle
-theorem compile_cfold_correct: "exec (compile (cfold e)) s stk = eval e s # stk"
+theorem compile_cfold_correct:
+  "exec (compile (cfold e)) s stk = eval e s # stk"
   by (simp add: compile_correct cfold_correct)
 ```
 
@@ -822,8 +938,9 @@ meaning; because the theorems compose, the whole compiler is correct.
 ::: pitfall
 An optimisation is correct with respect to a semantics, here the semantics of mathematical integers.
 For other kinds of numbers it may be wrong. In IEEE floating-point arithmetic, which almost every
-processor uses, adding 0.0 to −0.0 gives +0.0, so replacing `x + 0.0` by `x` changes the result when x is −0.0, and compilers
-do not make that replacement. A proof about the wrong semantics proves nothing about the real program.
+processor uses, adding 0.0 to −0.0 gives +0.0. So replacing `x + 0.0` by `x` changes the result when x
+is −0.0, and compilers do not make that replacement. A proof about the wrong semantics proves nothing
+about the real program.
 :::
 
 ## From proof to program {#export}
@@ -836,43 +953,72 @@ export_code compile cfold in Haskell module_name StackCompiler
 ```
 
 ```output
+See theory exports
 ```
 
-As in Module 8, the code does not appear in the Output panel. In Isabelle/jEdit, the words *theory
-exports* are a link to the generated files, which the File Browser shows in a virtual folder whose name
-begins with `isabelle-export:`. The Haskell module is the file `StackCompiler.hs`. Here is its central
-part, as Isabelle2026 generates it:
+As in Module 8, the code does not appear in the Output panel. In Isabelle/jEdit the words *theory
+exports* are a link: click it, and the File Browser opens on the generated files, in a virtual folder
+whose name begins with `isabelle-export:`. The folder `export1`, named after the first `export_code` of
+the theory, holds the Haskell module `StackCompiler.hs`. Here are its central parts, as Isabelle2026
+generates them. The two datatypes:
 
 ```text
-CODE_PLACEHOLDER
+data Expr = Num Int | Var [Char] | Add Expr Expr;
+
+data Instr = PUSH Int | LOAD [Char] | ADD;
 ```
 
-The datatypes and the two functions have the same equations as in Isabelle.
+and the three functions:
+
+```text
+fold_add :: Expr -> Expr -> Expr;
+fold_add (Num m) (Num n) = Num (plus_int m n);
+fold_add (Var v) b =
+  (if equal_expr b (Num Zero_int) then Var v else Add (Var v) b);
+fold_add (Add v va) b =
+  (if equal_expr b (Num Zero_int) then Add v va else Add (Add v va) b);
+fold_add a (Var v) =
+  (if equal_expr (Var v) (Num Zero_int) then a else Add a (Var v));
+fold_add a (Add v va) =
+  (if equal_expr (Add v va) (Num Zero_int) then a else Add a (Add v va));
+
+cfold :: Expr -> Expr;
+cfold (Num n) = Num n;
+cfold (Var x) = Var x;
+cfold (Add a b) = fold_add (cfold a) (cfold b);
+
+compile :: Expr -> [Instr];
+compile (Num n) = [PUSH n];
+compile (Var x) = [LOAD x];
+compile (Add a b) = compile a ++ compile b ++ [ADD];
+```
+
+`cfold` and `compile` have the same equations as in Isabelle, with Haskell's `++` for `@`. `fold_add`
+has the five equations that `fun` derived from its two (Section 14.6.2), and the test `b = Num 0` has
+become a call of `equal_expr`, an equality test that the code generator wrote for the datatype. The parts
+left out define the types `Char` and `Int`. Characters become a datatype with eight Boolean fields, and
+integers are written in binary with the constructors `Zero_int`, `Pos` and `Neg`, as natural numbers were
+in Module 8. That is faithful but slow; the library theory `HOL-Library.Code_Target_Int` makes the code
+use Haskell's own integers instead.
 
 What does the proof guarantee for this program? The theorems are about the HOL functions. The code
 generator is designed so that each step of the generated program corresponds to rewriting with
 equations that are theorems, but it is not part of the kernel (Module 8): it belongs to the trusted
 base, together with the Haskell compiler that turns the generated code into machine code, and the
 hardware. The trusted base has not disappeared. It has moved from your compiler to a few general tools
-that many people use and check.
-
-::: note
-CompCert faces the same question at a larger scale. Its compiler is written and proved in Rocq and
-extracted to OCaml code by Rocq's extraction mechanism, which plays the role of Isabelle's code
-generator here.
-:::
+that many people use and check. CompCert is in the same position: it is written and proved in Rocq and
+turned into OCaml code by Rocq's own code extraction.
 
 ## Extending the compiler ★★★ {#extensions}
 
-This section is a stretch, at the level of the ★★★ exercises. It extends the language with subtraction
-and a conditional expression, and the machine with subtraction and jumps. Most of the development
-carries over unchanged; the lemma about appended code does not, and its replacement is a lesson in
-generalisation of its own.
+This section is a stretch, at the level of the ★★★ exercises. It adds subtraction and a conditional
+expression to the language, and subtraction and jumps to the machine. Most of the development carries
+over; the lemma about appended code does not, and its replacement is a lesson in generalisation.
 
-In your own theory you would add the new constructors to `expr` and `instr` and extend the functions. On
-this page the definitions of the earlier sections must stay as they are, so the extended versions get new
-names. The types and functions end in 2, and so do the constructors that existed before (`Num2`, `Var2`,
-`Add2`, `PUSH2`, `LOAD2`, `ADD2`); the new constructors have plain names.
+In your own theory you would extend `expr`, `instr` and the functions in place. On this page the earlier
+definitions must stay as they are, so the extended versions get new names: the types and functions end
+in 2, and so do the old constructors (`Num2`, `Var2`, `Add2`, `PUSH2`, `LOAD2`, `ADD2`); the new
+constructors have plain names.
 
 ### Subtraction and conditionals {#extended-language}
 
@@ -911,12 +1057,16 @@ fun exec2 :: "instr2 list ⇒ state ⇒ stack ⇒ stack" where
 ```
 
 ```output
+consts
+  exec2 :: "instr2 list ⇒ (char list ⇒ int) ⇒ int list ⇒ int list"
+
+Found termination order: "(λp. length (fst p)) <*mlex*> {}"
 ```
 
 `drop n c` is c without its first n elements, so a jump forward is a recursive call on a shorter
 program. The last equation catches what the others leave out, an `ADD2` or `SUB` on a short stack and a
 `JMPZ` on the empty one, and skips the instruction. Jumps only go forwards, so every recursive call is on
-a shorter list, and Isabelle finds the termination order without help. With backward jumps a program
+a shorter list, and Isabelle finds the termination order, the length of the program, without help. With backward jumps a program
 could run for ever, and `exec2` could not be a function (more on that in Section 14.8.4).
 
 ### The order of operands {#operand-order}
@@ -939,16 +1089,28 @@ For addition the order did not matter, because addition is commutative; for subt
 `Sub` equation pushed b first, the code would compute b − a. Quickcheck catches the swap at once:
 
 ```isabelle
-lemma "exec2 (compile2 b @ compile2 a @ [SUB]) s stk = (eval2 a s - eval2 b s) # stk"
+lemma "exec2 (compile2 b @ compile2 a @ [SUB]) s stk
+       = (eval2 a s - eval2 b s) # stk"
   quickcheck
   oops
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  b = Num2 0
+  a = Num2 (- 1)
+  s = λx. - 2
+  stk = []
+Evaluated terms:
+  exec2 (compile2 b @ compile2 a @ [SUB]) s stk = [1]
+  (eval2 a s - eval2 b s) # stk = [- 1]
 ```
 
-A bug of this kind slips easily past tests on hand-picked examples: with a = b, or with the operands of
-an addition, the swapped code gives the right answer.
+With a = −1 and b = 0, the value of a − b is −1, but the swapped code computes 0 − (−1) = 1. A bug of
+this kind can survive tests on hand-picked examples: whenever a and b have the same value, the swapped
+code gives the right answer.
 
 ### Conditionals and jumps {#jumps}
 
@@ -968,6 +1130,8 @@ value "compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))"
 ```
 
 ```output
+"[LOAD2 ''x'', JMPZ 2, PUSH2 1, JMP 1, PUSH2 2]"
+  :: "instr2 list"
 ```
 
 ```isabelle
@@ -976,6 +1140,8 @@ value "(exec2 (compile2 (Cond (Var2 ''x'') (Num2 1) (Num2 2))) s0 [],
 ```
 
 ```output
+"([1], [2])"
+  :: "int list × int list"
 ```
 
 Now the proof. The lemma about appended code was the key to Section 14.5. Is it still true?
@@ -987,6 +1153,16 @@ lemma "exec2 (c1 @ c2) s stk = exec2 c2 s (exec2 c1 s stk)"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  c1 = [JMP 1]
+  c2 = [PUSH2 (- 1)]
+  s = λx. - 3
+  stk = []
+Evaluated terms:
+  exec2 (c1 @ c2) s stk = []
+  exec2 c2 s (exec2 c1 s stk) = [- 1]
 ```
 
 It is not. A jump at the end of c1 skips instructions of c2 when the two run as one program, but finds
@@ -1028,17 +1204,15 @@ without `exec_append`.
 ### Further directions {#directions}
 
 - **More operators.** Multiplication needs one constructor, one instruction and one equation in each
-  function; the proofs above go through unchanged, as `auto` handles the new case like `Add2`.
+  function; the proofs go through unchanged.
 - **`let`.** An expression `let x = a in b` needs an instruction that stores a value into a variable.
-  Then code changes the state as well as the stack, and the correctness theorem must say which variables
-  the code may change. Storing the value of a in x itself, for instance, destroys the x that the
-  surrounding expression may still need.
-- **Loops.** With backward jumps a program can run for ever, so execution is no longer a total function.
-  It becomes a relation between configurations of the machine (a program counter, a state and a stack),
-  defined with `inductive` as in Modules 11 and 13, and the theorem says that the compiled code can run
-  from the start to the end with the right result.
+  The code then changes the state as well as the stack, and the theorem must say which variables it may
+  change: storing the value of a in x itself destroys the x that the surrounding expression may need.
+- **Loops.** With backward jumps a program can run for ever, so execution becomes a relation between
+  configurations of the machine (a program counter, a state and a stack), defined with `inductive` as in
+  Modules 11 and 13, instead of a function.
 - **Other machines.** Exercise 14.7 makes the machine stop on a stack underflow, and Exercise 14.8
-  compiles to a machine with registers instead of a stack.
+  compiles to a machine with registers.
 
 ## Looking back, looking ahead {#outlook}
 
@@ -1067,16 +1241,16 @@ follows the structure of the programs, and lemmas found by reading the goals whe
 
 Where to go from here:
 
-- ***Concrete Semantics*** by Tobias Nipkow and Gerwin Klein (Springer, 2014; free to read at
-  concrete-semantics.org) continues exactly where this module ends. Its first part is an Isabelle
+- ***Concrete Semantics*** by Tobias Nipkow and Gerwin Klein (Springer, 2014; web site
+  concrete-semantics.org) continues where this module ends. Its first part is an Isabelle
   tutorial; its second part defines a small imperative language, IMP, with assignments and loops, and
   treats its semantics, a compiler for it, type systems, Hoare logic and program analysis, all in
   Isabelle.
 - The **[Archive of Formal Proofs](https://www.isa-afp.org)** holds hundreds of checked Isabelle
-  developments, among them verified compilers, algorithms and data structures. Reading a few entries is a
-  good way to learn how experts structure large proofs.
-- **seL4** and **CompCert** (Module 1) show what the methods of this series achieve at industrial scale.
-  Their papers and web sites explain what was proved, what is trusted, and what the proofs cost.
+  developments, among them verified compilers, algorithms and data structures, and shows how experts
+  structure large proofs.
+- **seL4** and **CompCert** (Module 1) show these methods at industrial scale; their papers explain what
+  was proved, what is trusted, and what the proofs cost.
 - On this site, **[Isabelle for model verification](../isabelle/)** applies Isabelle to an engineering
   model: a small model of a lid, an operation on it, an invariant, and a theorem that a translation
   between two representations preserves meaning, the same kind of theorem as `compile_correct`. It uses
@@ -1124,6 +1298,8 @@ value "compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))"
 ```
 
 ```output
+"[LOAD ''x'', PUSH 1, ADD, LOAD ''y'', ADD]"
+  :: "instr list"
 ```
 
 The stacks after the five instructions are `[5]`, `[1, 5]`, `[6]`, `[7, 6]` and `[13]`:
@@ -1133,6 +1309,8 @@ value "exec (compile (Add (Add (Var ''x'') (Num 1)) (Var ''y''))) s0 []"
 ```
 
 ```output
+"[13]"
+  :: "int list"
 ```
 
 The stack holds at most two numbers. The code for `x + (2 + y)` in Figure 14.2 needs three, because the
@@ -1148,7 +1326,6 @@ true ones with `simp` and the theorems of Section 14.5.
 1. `exec (compile e) s stk = [eval e s]`
 2. `length (exec (compile e) s stk) = length stk + 1`
 3. `exec (compile e @ compile e) s stk = eval e s # eval e s # stk`
-4. `exec (compile e @ [ADD]) s [] = [eval e s]`
 
 ::: solution
 1. **False**, as Section 14.4.3 showed: when stk is not empty, its numbers stay below the value.
@@ -1165,16 +1342,6 @@ true ones with `simp` and the theorems of Section 14.5.
    lemma "exec (compile e @ compile e) s stk = eval e s # eval e s # stk"
      by (simp add: compile_correct)
    ```
-
-4. **True**, for a curious reason: on the empty stack, the code leaves a single number, and the extra
-   `ADD` finds too few numbers and leaves the stack as it is (the fourth equation of `exec1`).
-
-   ```isabelle
-   lemma "exec (compile e @ [ADD]) s [] = [eval e s]"
-     by (simp add: compile_correct)
-   ```
-
-   On a non-empty stack the claim is false: `ADD` then adds the value to the number below it.
 :::
 ::::
 
@@ -1189,7 +1356,8 @@ The code of `fold_add a b` is never longer than the code of a, then b, then one 
 
 ```isabelle
 lemma length_fold_add:
-  "length (compile (fold_add a b)) ≤ length (compile a) + length (compile b) + 1"
+  "length (compile (fold_add a b))
+   ≤ length (compile a) + length (compile b) + 1"
   by (induction a b rule: fold_add.induct) auto
 ```
 
@@ -1197,7 +1365,8 @@ In the case `Add a b` the lemma applies to `cfold a` and `cfold b`, and the indu
 their code:
 
 ```isabelle
-theorem cfold_shorter: "length (compile (cfold e)) ≤ length (compile e)"
+theorem cfold_shorter:
+  "length (compile (cfold e)) ≤ length (compile e)"
 proof (induction e)
   case (Add a b)
   have "length (compile (cfold (Add a b)))
@@ -1237,15 +1406,27 @@ fun fold_add_bad :: "expr ⇒ expr ⇒ expr" where
    ```
 
    ```output result
+   Testing conjecture with Quickcheck-exhaustive...
+
+   Quickcheck found a counterexample:
+     a = Var []
+     b = Num (- 1)
+     s = λx. - 2
+   Evaluated terms:
+     eval (fold_add_bad a b) s = - 2
+     eval a s + eval b s = - 3
    ```
 
-   The colleague's second equation is right only for `Num 0`: any other number on the right is lost.
+   Quickcheck's a is the variable whose name is the empty string, printed `[]` because a string is a
+   list of characters. Its value in s is −2, and `fold_add_bad` loses the −1 added to it. The second
+   equation is right only for `Num 0`: any other number on the right is lost.
 2. Test for 0 on either side; the proof is the same as for `fold_add`:
 
    ```isabelle
    fun fold_add0 :: "expr ⇒ expr ⇒ expr" where
      "fold_add0 (Num m) (Num n) = Num (m + n)"
-   | "fold_add0 a b = (if a = Num 0 then b else if b = Num 0 then a else Add a b)"
+   | "fold_add0 a b =
+        (if a = Num 0 then b else if b = Num 0 then a else Add a b)"
 
    lemma "eval (fold_add0 a b) s = eval a s + eval b s"
      by (induction a b rule: fold_add0.induct) auto
@@ -1273,6 +1454,8 @@ value "subst ''x'' 3 (Add (Var ''x'') (Add (Var ''y'') (Var ''x'')))"
 ```
 
 ```output
+"Add (Num 3) (Add (Var ''y'') (Num 3))"
+  :: "expr"
 ```
 
 ```isabelle
@@ -1301,7 +1484,8 @@ continuation `compile b @ ADD # c`, and the hypothesis for b with the stack `eva
 program before the hypotheses can be used:
 
 ```isabelle
-lemma compile_cont: "exec (compile e @ c) s stk = exec c s (eval e s # stk)"
+lemma compile_cont:
+  "exec (compile e @ c) s stk = exec c s (eval e s # stk)"
   by (induction e arbitrary: c stk) (auto simp del: exec_append)
 ```
 
@@ -1339,22 +1523,28 @@ fun exec1_opt :: "instr ⇒ state ⇒ stack ⇒ stack option" where
 fun exec_opt :: "instr list ⇒ state ⇒ stack ⇒ stack option" where
   "exec_opt [] s stk = Some stk"
 | "exec_opt (i # c) s stk =
-     (case exec1_opt i s stk of None ⇒ None | Some stk' ⇒ exec_opt c s stk')"
+     (case exec1_opt i s stk of
+        None ⇒ None
+      | Some stk' ⇒ exec_opt c s stk')"
 
 value "(exec_opt [PUSH 1, ADD] s0 [], exec_opt (compile sample) s0 [])"
 ```
 
 ```output
+"(None, Some [14])"
+  :: "int list option × int list option"
 ```
 
 With a continuation, the proof is the same as in Exercise 14.6. In the case `Add a b` the simplifier
 meets `exec1_opt ADD s (eval b s # eval a s # stk)`, which is `Some …`, so the `case` disappears:
 
 ```isabelle
-lemma exec_opt_cont: "exec_opt (compile e @ c) s stk = exec_opt c s (eval e s # stk)"
+lemma exec_opt_cont:
+  "exec_opt (compile e @ c) s stk = exec_opt c s (eval e s # stk)"
   by (induction e arbitrary: c stk) auto
 
-theorem exec_opt_compile: "exec_opt (compile e) s stk = Some (eval e s # stk)"
+theorem exec_opt_compile:
+  "exec_opt (compile e) s stk = Some (eval e s # stk)"
   using exec_opt_cont [of e "[]"] by simp
 ```
 
@@ -1390,18 +1580,22 @@ fun rexec :: "rinstr list ⇒ state ⇒ regs ⇒ regs" where
   "rexec [] s rs = rs"
 | "rexec (i # c) s rs = rexec c s (rexec1 i s rs)"
 
-lemma rexec_append [simp]: "rexec (c1 @ c2) s rs = rexec c2 s (rexec c1 s rs)"
+lemma rexec_append [simp]:
+  "rexec (c1 @ c2) s rs = rexec c2 s (rexec c1 s rs)"
   by (induction c1 arbitrary: rs) auto
 
 fun rcompile :: "expr ⇒ nat ⇒ rinstr list" where
   "rcompile (Num n) r = [LDI r n]"
 | "rcompile (Var x) r = [LDV r x]"
-| "rcompile (Add a b) r = rcompile a r @ rcompile b (r + 1) @ [ADDR r (r + 1)]"
+| "rcompile (Add a b) r =
+     rcompile a r @ rcompile b (r + 1) @ [ADDR r (r + 1)]"
 
 value "rcompile sample 0"
 ```
 
 ```output
+"[LDV 0 ''x'', LDI 1 2, LDV 2 ''y'', ADDR 1 2, ADDR 0 1]"
+  :: "rinstr list"
 ```
 
 The register number plays the part of the stack height: the code for b works one register higher, so
@@ -1412,12 +1606,36 @@ change between the recursive calls, so both are arbitrary:
 
 ```isabelle
 theorem rcompile_correct:
-  "rexec (rcompile e r) s rs r = eval e s ∧ (∀q < r. rexec (rcompile e r) s rs q = rs q)"
+  "rexec (rcompile e r) s rs r = eval e s ∧
+   (∀q < r. rexec (rcompile e r) s rs q = rs q)"
   by (induction e arbitrary: r rs) auto
 ```
 
-Proving only the first half fails, in the same way as an induction without `arbitrary:`: the hypothesis
-is too weak (Module 11's strengthening of the claim).
+Prove only the first half, and the induction gets stuck:
+
+```isabelle
+lemma "rexec (rcompile e r) s rs r = eval e s"
+  apply (induction e arbitrary: r rs)
+  apply auto
+```
+
+```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀e1 e2 r rs.
+       ⟦⋀r rs. rexec (rcompile e1 r) s rs r = eval e1 s;
+        ⋀r rs. rexec (rcompile e2 r) s rs r = eval e2 s⟧
+       ⟹ rexec (rcompile e2 (Suc r)) s (rexec (rcompile e1 r) s rs) r =
+          eval e1 s
+```
+
+The goal that remains asks whether the code of e2, compiled for register r + 1 (written `Suc r`), leaves
+register r alone. The hypotheses of the weaker claim say nothing about other registers, so the claim must
+be strengthened, as in Module 11.
+
+```isabelle
+  oops
+```
 :::
 ::::
 
@@ -1446,9 +1664,9 @@ is too weak (Module 11's strengthening of the claim).
 > Postfix order: the code of the left operand, then the code of the right one, then the operator.
 
 ? `quickcheck [size = 3]` finds no counterexample to a claim. What do you know?
+- [x] The claim holds for the values up to size 3 that Quickcheck tried; it may still be false
 - [ ] The claim is a theorem
 - [ ] The claim is false for some value larger than 3
-- [x] The claim holds for every value up to size 3 that Quickcheck tried; it may still be false
 - [ ] Quickcheck ran out of time
 > Testing is evidence, not proof. Only a proof covers every expression.
 
@@ -1459,7 +1677,7 @@ is too weak (Module 11's strengthening of the claim).
 - [ ] Because `drop` is not defined for long lists
 > Running c1 alone, a jump at its end skips nothing. The repair is to state correctness for the compiled code followed by any continuation c.
 
-? After `export_code`, which of these must you still trust when you run the Haskell compiler?
+? You run the Haskell code that `export_code` generated from `compile`. What must you still trust?
 - [ ] The proof of `compile_correct`
 - [ ] The simplifier that proved the lemmas
 - [ ] Quickcheck

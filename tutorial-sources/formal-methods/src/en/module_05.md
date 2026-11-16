@@ -3,7 +3,7 @@ title: Induction and recursion
 part: 1
 lead: Define functions on numbers, lists and trees by recursion and evaluate them step by step; prove that a property holds for every input by induction, on paper and in Isabelle; and see why every recursive definition must terminate.
 minutes: 240
-needs: Modules 1 to 4
+needs: Modules 1–4, especially well-founded relations (Module 4)
 goals:
   - Define functions on natural numbers, lists and binary trees by recursion, and evaluate them by rewriting
   - Prove a statement for every natural number by induction, naming the base case, the induction step and the induction hypothesis
@@ -170,8 +170,8 @@ module, the order changes the terms you see along the way, but never the final v
 
 ::: note
 Isabelle's `value` command does not rewrite step by step: it turns the equations into a program and runs
-it, which is much faster. Proofs, however, work by rewriting. The simplifier `simp` rewrites with the
-defining equations of every function defined with `fun`, as you will see in Section 5.4.
+it, which is much faster. The simplifier `simp`, on the other hand, does rewrite: it uses the defining
+equations of every function defined with `fun` as rewrite rules, as you will see in Section 5.4.
 :::
 
 ## Lists and trees {#data}
@@ -258,8 +258,9 @@ datatype 'a tree2 = Tip | Node "'a tree2" 'a "'a tree2"
 
 Read it as: a tree with elements of type `'a` is either `Tip`, the empty tree, or `Node l x r`, with a
 left subtree `l`, an element `x` and a right subtree `r`. The types of the arguments of `Node` follow its
-name; each type that is more than a single name or type variable goes in quotation marks. Isabelle's
-library has a type `tree` of its own, so this one is called `tree2`.
+name; each type that is more than a single name or type variable goes in quotation marks. Isabelle
+comes with a library theory of trees whose type is called `tree` (it is not part of `Main`), so this one
+is called `tree2` to keep the two apart.
 
 ::: definition Datatype
 A **datatype** is a type whose values are built from **constructors**. Every value is built by applying
@@ -342,8 +343,8 @@ The calls made to compute `fib 5`. Each call of `fib` on a number of 2 or more m
 
 As a definition, `fib` is fine: it says exactly what the Fibonacci numbers are. As a program it is slow.
 A program that keeps the last two values computes `fib n` in about n steps. Proving that such a faster
-program computes the same function as the clear definition is a typical verification task, and Module 12
-does such proofs.
+program computes the same function as the clear definition is a typical verification task, and Modules 11
+and 12 do such proofs.
 
 ## Mathematical induction {#induction}
 
@@ -857,17 +858,19 @@ proofs need more. The Fibonacci numbers look two steps back, and a divisor of a 
 number, not only the one before.
 
 ::: fact Strong induction
-Let $P(n)$ be a statement about a natural number $n$. If, for every $n$, $P(m)$ for all $m < n$ implies
-$P(n)$, then $P(n)$ holds for every natural number $n$.
+Let $P(n)$ be a statement about a natural number $n$. If, for every $n$, $P(m)$ for all $m < n$ (the
+induction hypothesis) implies $P(n)$, then $P(n)$ holds for every natural number $n$.
 :::
 
-In symbols: $(\forall n.\ (\forall m < n.\ P(m)) \imp P(n)) \imp (\forall n.\ P(n))$. This is also called
-**complete induction** or course-of-values induction. There is no separate base case. For $n = 0$ there is
-no $m < 0$, so the IH says nothing and $P(0)$ must be proved without help; in practice, a proof by strong
-induction treats the smallest values separately.
+In symbols: $(\forall n.\ (\forall m < n.\ P(m)) \imp P(n)) \imp (\forall n.\ P(n))$. Here
+$\forall m < n.\ P(m)$ reads "for all m less than n, P of m" and is short for
+$\forall m.\ m < n \imp P(m)$, like the bounded quantifier $\forall x \in A$ of Module 4. Strong induction
+is also called **complete induction** or course-of-values induction. There is no separate base case. For
+$n = 0$ there is no $m < 0$, so the IH says nothing and $P(0)$ must be proved without help; in practice, a
+proof by strong induction treats the smallest values separately.
 
 Strong induction is no stronger than ordinary induction; it follows from it. Apply ordinary induction to
-the statement $Q(n)$: "$P(m)$ holds for every $m < n$". $Q(0)$ holds trivially, as there is no $m < 0$. If
+the statement $Q(n)$: "$P(m)$ holds for every $m < n$". $Q(0)$ holds because there is no $m < 0$. If
 $Q(n)$ holds, then $P(n)$ holds by the assumption of strong induction, so $P(m)$ holds for every
 $m < n + 1$: that is $Q(n + 1)$. Hence $Q(n)$ holds for every $n$, and $P(n)$ follows from $Q(n + 1)$.
 
@@ -922,7 +925,8 @@ lemma "fib n < 2 ^ n"
 
 The IH speaks about `fib n` only, but `fib (Suc n)` is the sum of the two values before it, and it cannot
 even be unfolded: `Suc n` matches neither `Suc 0` nor `Suc (Suc m)` as long as nothing is known about
-`n`. (`2 ^ n` is the library's power function, defined like `pow`.)
+`n`. (`2 ^ n` is the library's power function, defined by recursion on `n` like `pow`; it has the same
+values as `pow 2 n`.)
 
 The repair is the trick that derived strong induction from ordinary induction: prove a stronger
 statement that carries the two previous values along.
@@ -975,11 +979,11 @@ $$
 If there were a function $\mathit{bad}$ on $\N$ with this property, subtracting $\mathit{bad}(n)$ from both
 sides would give $0 = 1$. An equation in a definition is a claim that something is true, and this one is
 false for every function. If Isabelle accepted it as it stands, you could prove $0 = 1$, and from a false
-statement every statement follows: every theorem would become worthless.
+statement every statement follows (Module 2): every theorem would become worthless.
 
 So Isabelle never takes the equations of a `fun` on trust. It constructs a function from them and then
-proves the equations as theorems, and that construction needs a proof that the recursion terminates.
-`fun` searches for one automatically. For `bad` there is none:
+proves the equations as theorems, and that proof needs an argument that the recursion terminates. `fun`
+searches for one automatically. For `bad` there is none:
 
 ```isabelle fails
 fun bad :: "nat ⇒ nat" where
@@ -1015,7 +1019,7 @@ smaller (`<=`), which is not enough.
 ::: keyidea
 In HOL every function is **total**: it has a value for every argument. A recursive definition whose
 recursion terminates determines exactly one function, so it is safe. `fun` proves termination before it
-accepts a definition, and so a definition can never make the logic inconsistent.
+accepts a definition, and so a definition made with `fun` can never make the logic inconsistent.
 :::
 
 Not every non-terminating equation is contradictory: every function satisfies $f(n) = f(n)$. But Isabelle
@@ -1049,7 +1053,8 @@ none.
 
 These are the termination orders that Isabelle reports. For `sum_upto` it said `size <*mlex*> {}`: the
 measure is `size`, which for a number is the number itself, for a list its length and for a tree its
-number of nodes. Read `f <*mlex*> {}` as "the measure `f`".
+number of nodes. Read `f <*mlex*> {}` as "the measure `f`". For the list functions Isabelle writes
+`length` instead of `size`, for example `length <*mlex*> {}` for `reverse`.
 
 Sometimes no single measure decreases at every call. The Ackermann function is a famous example:
 
@@ -1120,8 +1125,11 @@ consts
 
 This time the unfinished subgoal is `n - Suc 0 < n`, that is $n - 1 < n$, and it is false for $n = 0$.
 Subtraction on natural numbers cannot go below 0, so `0 - 1 = 0` in Isabelle, and `sum_down 0` would call
-`sum_down 0` for ever. The definition forgot its base case. Pattern matching, as in `sum_upto`, prevents
-this mistake: there the recursive equation applies only to `Suc n`, where `n` really is smaller.
+`sum_down 0` for ever. The definition forgot its base case. Unlike `bad`, it is not contradictory: for
+$n = 0$ it says `sum_down 0 = sum_down 0 + 0`, which holds whatever the value of `sum_down 0` is. But it
+leaves that value open, and `fun` rejects the definition all the same, because it cannot prove
+termination. Pattern matching, as in `sum_upto`, prevents this mistake: there the recursive equation
+applies only to `Suc n`, where `n` really is smaller.
 
 Sometimes a function does terminate, but `fun` cannot see why. It tries only measures built from the sizes
 of the arguments, combined lexicographically. A function that counts upwards, such as
@@ -1143,7 +1151,8 @@ $$
 
 Computers have checked that it terminates for every $n$ up to astronomically large bounds, but whether it
 terminates for every $n$ is an open problem, the Collatz conjecture, posed by Lothar Collatz in 1937.
-Isabelle's `fun` rejects this definition, and so far nobody has been able to do better.
+Isabelle's `fun` rejects this definition, and nobody can supply a termination proof by hand either:
+such a proof would settle the conjecture.
 :::
 
 ## Invariants {#invariants}
@@ -1630,7 +1639,7 @@ in Isabelle.
 - [ ] Because `value` would run for ever
 - [ ] Because non-terminating functions cannot be compiled
 - [ ] Because termination makes the simplifier faster
-> In HOL every function is total, and the equations of a definition are claims of truth. A recursion that does not terminate may have no solution at all, and accepting it would make the logic inconsistent.
+> In HOL every function is total, and the equations of a definition are claims of truth. A recursion that does not terminate may have no solution at all, and accepting such equations would make the logic inconsistent. `fun` cannot tell such cases from harmless ones, so it insists on a termination proof.
 
 ? Which measure shows that `app` terminates?
 - [ ] The length of the second argument

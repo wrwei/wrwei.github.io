@@ -53,8 +53,8 @@ type_synonym 'u acl = "('u × perm) list"
 
 The datatype `perm` has three values. `type_synonym` gives a type a shorter name: `'u acl` is the type
 `('u × perm) list`, a list of pairs of a user and a permission. The type variable `'u` is the type of
-users. The examples below use strings such as `''ann''`; Isabelle writes a string between two pairs of
-single quotes.
+users. The examples below use strings such as `''ann''`; Isabelle writes a string with two single quotes on
+each side.
 
 ```isabelle
 fun allows :: "'u acl ⇒ 'u ⇒ perm ⇒ bool" where
@@ -268,8 +268,7 @@ lemma "allows (grant u p es) v q = ((v, q) = (u, p) ∨ allows es v q)"
 ```
 
 The simplifier rewrote both sides as far as it could and was left with `u = v ∧ p = q` on the left and
-`v = u ∧ q = p` on the right. Write the lemma in the orientation that the definitions produce, or use
-`auto` (Section 9.4), which reasons about equality in both directions.
+`v = u ∧ q = p` on the right. Write the lemma in the orientation that the definitions produce.
 :::
 
 ### `add:`, `del:`, `only:` and `simp_all` {#modifiers}
@@ -1189,8 +1188,8 @@ recursive functions on lists, Nitpick often runs out of time; Quickcheck is the 
 ## Sledgehammer {#sledgehammer}
 
 The goal `x * x ≤ y * y` from Section 9.5 needed the lemma `mult_le_mono`. Finding it with `find_theorems`
-took some thought. **Sledgehammer** searches for you. It hands the goal, together with a few hundred
-library facts that look relevant, to several automatic theorem provers that run outside Isabelle. If one of
+took some thought. **Sledgehammer** searches for you. It hands the goal, together with up to about a
+thousand library facts that look relevant, to several automatic theorem provers that run outside Isabelle. If one of
 them finds a proof, Sledgehammer turns it into a one-line Isabelle proof that you can paste into your theory.
 
 ::: figure id=fig-09-2

@@ -38,6 +38,7 @@ export async function run(t) {
   const res = await t.text('.evs-result')
   t.check((await now()) === '= 5' && (await t.text('.evs-count')).includes('22'), 'fib 5 = 5 after 22 steps')
   t.check(res.includes('fib 2 ×3') && res.includes('fib 3 ×2'), 'the tally shows fib 3 twice and fib 2 three times')
+  t.check(res.includes(L('15 calls in all', '一共 15 次调用')), 'the number of calls, 15, is stated')
 
   // lists and trees
   await choose('reverse', ['[1, 2, 3]'])

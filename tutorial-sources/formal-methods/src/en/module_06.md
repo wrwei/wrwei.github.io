@@ -3,7 +3,7 @@ title: What is a proof? Natural deduction
 part: 2
 lead: What turns an argument into a proof, and how to write proofs that a machine can check. You will learn the rules of natural deduction for every connective, both quantifiers and equality, build derivations by hand, and find them by working backwards from the goal, as Isabelle does.
 minutes: 220
-needs: Modules 2 and 3 (truth tables and ⊨, quantifiers and structures)
+needs: Modules 1–5, especially Modules 2 and 3 (truth tables and ⊨, quantifiers and structures)
 goals:
   - Recognise the common patterns of informal proof and name the rule behind each
   - Explain the difference between ⊢ and ⊨, and what soundness and completeness guarantee
@@ -31,10 +31,11 @@ this module adds the third ingredient of a formal method from Module 1, a proof 
 **Proof.** Assume b ≥ 0 and a ≤ b. Subtract a from both sides of a ≤ b: this gives 0 ≤ b − a. ∎
 :::
 
-Two patterns are at work. To prove an *if … then …* statement, the proof **assumes** the *if* part and
-proves the *then* part; the assumption is available only inside this argument. And the step it takes is a
-**direct** consequence of what is known, here a law of arithmetic. Notice also that the assumption b ≥ 0 is
-never used. A proof may ignore an assumption; when it does, the claim holds more generally than stated.
+The mark ∎ ends a proof. Two patterns are at work. To prove an *if … then …* statement, the proof
+**assumes** the *if* part and proves the *then* part; the assumption is available only inside this
+argument. And the step it takes is a **direct** consequence of what is known, here a law of arithmetic.
+Notice also that the assumption b ≥ 0 is never used. A proof may ignore an assumption; when it does, the
+claim holds more generally than stated.
 
 ::: example The maximum is at least its first argument
 **Claim.** For all integers x and y, max(x, y) ≥ x, where max is defined by
@@ -107,7 +108,8 @@ n² = 4k² + 4k + 1 = 2(2k² + 2k) + 1, which is odd, and therefore not even. �
 :::
 
 An implication *if A then B* and its contrapositive *if not B then not A* rule out the same situation: A
-true and B false. Proving one proves the other. (Section 6.5 shows that this step needs classical logic.)
+true and B false. Proving one proves the other. (Going from the contrapositive back to the implication
+needs classical logic, as Section 6.5 explains.)
 
 The table collects the patterns, with the rules of natural deduction that the rest of the module gives for
 them.
@@ -237,8 +239,8 @@ by 2". The system is **sound**: (ev₀) concludes a true statement, and (ev₂) 
 true one, because n + 2 is divisible by 2 whenever n is. A derivation applies these rules finitely often, so
 its conclusion is true (an induction on the size of the derivation, as in Module 5). In particular *even 3*
 is false, so it has no derivation: soundness answers the question of the last section without trying a
-single tree. The system is also **complete**: for every even number 2k, one use of (ev₀) and k uses of
-(ev₂) derive *even 2k*.
+single tree. For statements without assumptions the system is also **complete**: every true statement
+*even 2k* has a derivation, with one use of (ev₀) and k uses of (ev₂).
 
 ::: figure id=fig-06-1
 Two questions with the same answers. ⊢ asks whether a derivation exists, ⊨ whether the formula is true
@@ -249,9 +251,10 @@ What would it mean if one of the two properties failed?
 
 - **If soundness fails**, the system can derive something false. Suppose you add to the rules of this
   module one plausible-looking rule: from A ∨ B, conclude A. ("The request came from the admin or from a
-  guest, so it came from the admin.") Then A ∨ B ⊢ A, although A ∨ B ⊭ A: with A false and B true, A ∨ B
-  is true and A is false. It gets worse. Section 6.5 derives A ∨ ¬A for every formula A; with the new rule,
-  every A would follow, including ⊥, the formula that is always false. A derivation in an unsound system
+  guest, so it came from the admin.") Then A ∨ B ⊢ A, although A ∨ B ⊭ A (read "A ∨ B does not entail
+  A"): with A false and B true, A ∨ B is true and A is false. It gets worse. Section 6.5 derives A ∨ ¬A
+  for every formula A; with the new rule, every A would follow, including ⊥, the formula that is always
+  false. A derivation in an unsound system
   proves nothing. For a proof assistant this is the worst possible bug, which is why Module 1's LCF kernel
   is kept small and checked with care.
 - **If completeness fails**, some consequence has no derivation. The system never derives anything false,
@@ -284,8 +287,9 @@ Three consequences matter in practice.
 3. **Gödel's incompleteness theorem is about something else.** Completeness concerns truth in *every*
    structure; the incompleteness theorem of 1931 (Module 1) concerns truth in one structure, the natural
    numbers: no mechanically checkable proof system that derives only true statements about arithmetic
-   derives all of them. Isabelle/HOL can express arithmetic, so no proof system is complete for it. What
-   Isabelle guarantees is soundness, and soundness is what you rely on when you trust a theorem.
+   derives all of them. Isabelle/HOL can express arithmetic, so its proof system, like every other that a
+   machine can check, cannot derive every true statement about the natural numbers. What Isabelle
+   guarantees is soundness, and soundness is what you rely on when you trust a theorem.
 
 ## Natural deduction: the connectives {#connectives}
 
@@ -603,7 +607,9 @@ De Morgan's laws come in four directions, and only one of them needs (RAA):
 ```
 
 The goal ¬(A ∨ B) is a negation, so assume A ∨ B (¬I²) and derive ⊥ by cases (∨E³): in each case the
-assumption ¬A ∧ ¬B supplies the matching negation. The fourth law needs (RAA) three times:
+assumption ¬A ∧ ¬B supplies the matching negation. The fourth law needs (RAA), and the derivation below
+uses it three times. Suppose ¬A ∨ ¬B were false (RAA²). Then A must hold, because ¬A would make ¬A ∨ ¬B
+true (RAA³); in the same way B must hold (RAA⁴). But A ∧ B contradicts the assumption ¬(A ∧ B) (¬E):
 
 ```prooftree
 ¬(A ∧ B) ⟶ ¬A ∨ ¬B   (⟶I¹)
@@ -742,9 +748,10 @@ key, namely a (∃I). Check the side conditions:
   ∀y. ∃x. R x y mentions b.
 
 The converse, (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y), says that if every door has a key, then there is a master
-key. It is false. Take the structure with domain {0, 1} in which R x y holds when x = y: each element opens
-itself and nothing else. Every element is opened by something, so ∀y. ∃x. R x y is true; no element opens
-both, so ∃x. ∀y. R x y is false. By soundness, the converse has no derivation.
+key. It is not valid. Take the structure with domain {0, 1} in which R x y holds when x = y: each element
+opens itself and nothing else. Every element is opened by something, so ∀y. ∃x. R x y is true; no element
+opens both, so ∃x. ∀y. R x y is false, and the converse is false in this structure. By soundness, it has no
+derivation.
 
 ### Two wrong proofs {#wrong}
 
@@ -874,7 +881,7 @@ some name c and open the result: R a c for a fresh key a. Take a as the witness:
 ∀y. R a y, and (∀I) needs a fresh door, which cannot be c, because c occurs in the assumptions. So it is a
 new door d, and the goal R a d is out of reach: what you know is R a c. Instantiating the assumption with d
 gives a key for d, but (∃E) must call it by a fresh name, not a. Every new door brings a new key, and the
-search never closes. That is no accident: the formula is false, so by soundness every search must fail.
+search never closes. That is no accident: the formula is not valid, so by soundness every search must fail.
 
 ::: widget name=nd-builder
 Build proofs backwards, as above. Pick a goal from the list or type your own. Select a goal, then a rule;

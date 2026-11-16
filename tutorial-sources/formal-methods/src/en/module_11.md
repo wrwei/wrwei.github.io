@@ -164,8 +164,8 @@ $$
 \mathit{sumacc}\ xs\ acc = acc + \mathit{sum\_list}\ xs
 $$
 
-and the original claim is the case `acc = 0`. Programmers call such a statement a **loop invariant**: a
-property that holds before and after every iteration (Figure 11.1).
+and the original claim is the case `acc = 0`. In the words of Module 5, the claim is a **loop
+invariant**: a property that holds before and after every iteration (Figure 11.1).
 
 ::: figure id=fig-11-1
 The accumulator changes in every call. The claim with `0` describes the first call only; the general
@@ -301,6 +301,9 @@ qed
 ```
 
 ```output result
+*** Failed to apply initial proof method⌂:
+*** goal (1 subgoal):
+***  1. sumacc xs (acc + x) = acc + x + sum_list xs
 ```
 
 The goal is about `acc + x`, but `Cons.IH` is only about the fixed `acc`, so the rule does not fit.
@@ -415,6 +418,8 @@ value "counter 6"
 ```
 
 ```output
+"[False, True, True]"
+  :: "bool list"
 ```
 
 Six is 110 in binary, and the list holds its bits from right to left. The counter should count
@@ -427,6 +432,9 @@ lemma "val (counter n) = n"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀n. val (counter n) = n ⟹ val (inc (counter n)) = Suc n
 ```
 
 ```isabelle
@@ -447,6 +455,8 @@ value "val (inc [True, True, False])"
 ```
 
 ```output
+"4"
+  :: "nat"
 ```
 
 `[True, True, False]` is 3, and incrementing it gives 4. So the conjecture is
@@ -459,6 +469,9 @@ lemma "val (inc bs) = Suc (val bs)"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.
 ```
 
 No counterexample. The lemma has its own short induction on the bit list, in which `auto` splits the
@@ -494,6 +507,11 @@ find_theorems "rev (_ @ _)"
 ```
 
 ```output result
+find_theorems
+  "rev (_ @ _)"
+
+found 1 theorem(s):
+  List.rev_append: rev (?xs @ ?ys) = rev ?ys @ rev ?xs
 ```
 
 ::: pitfall
@@ -646,6 +664,12 @@ lemma "fib n < 2 ^ n"
 ```
 
 ```output state
+proof (prove)
+goal (3 subgoals):
+ 1. fib 0 < 2 ^ 0
+ 2. fib (Suc 0) < 2 ^ Suc 0
+ 3. ⋀n. ⟦fib n < 2 ^ n; fib (Suc n) < 2 ^ Suc n⟧
+        ⟹ fib (Suc (Suc n)) < 2 ^ Suc (Suc n)
 ```
 
 There is one case for each equation of `fib`, and the third case has two IHs, one for each recursive
@@ -912,6 +936,9 @@ lemma "ev 4"
 ```
 
 ```output
+*** Failed to apply proof method⌂:
+*** goal (1 subgoal):
+***  1. ev 4
 ```
 
 `rule` must make the goal `ev 4` and the conclusion `ev (Suc (Suc ?n))` identical by instantiating
@@ -1032,6 +1059,9 @@ qed
 ```
 
 ```output result
+*** Failed to finish proof⌂:
+*** goal (1 subgoal):
+***  1. ev (Suc (Suc (k + n)))
 ```
 
 Use the qualified name `ev.ev_SS` for the rule.
@@ -1121,6 +1151,9 @@ value "ev (Suc (Suc 0))"
 ```
 
 ```output
+*** No code equations for ev,
+*** requested by dependencies
+***
 ```
 
 (Isabelle can turn many inductive predicates into programs with the command `code_pred`; this series
@@ -1142,6 +1175,22 @@ inductive odd' :: "nat ⇒ bool" where
 ```
 
 ```output
+Proofs for inductive predicate(s) "odd'"
+
+  Proving monotonicity ...
+
+  Proving the introduction rules ...
+
+  Proving the elimination rules ...
+
+  Proving the induction rule ...
+
+  Proving the simplification rules ...
+
+*** Proof failed.
+***  1. ⋀x y xa n. x (?x10 x y xa n) ⟶ y (?x10 x y xa n) ⟹ y n ⟶ x n
+*** The error(s) above occurred for the goal statement⌂:
+*** mono (λp x. ∃n. x = Suc n ∧ ¬ p n)
 ```
 :::
 
@@ -1226,6 +1275,11 @@ lemma "steps r b c ⟹ steps r a b ⟹ steps r a c"
 ```
 
 ```output
+*** Failed to finish proof⌂:
+*** goal (1 subgoal):
+***  1. ⋀aa b c.
+***        ⟦r aa b; steps r b c; steps r a b ⟹ steps r a c; steps r a aa⟧
+***        ⟹ steps r a c
 ```
 
 Put the premise you want to induct on first.
@@ -1481,6 +1535,11 @@ lemma "0 < n ⟹ ∃k m. n = 2 ^ k * m ∧ odd m"
 ```
 
 ```output
+*** exception THM 0 raised⌂:
+***   infer_instantiate_types: type ?'a of variable ?a
+***   cannot be unified with type 'a of term n
+***   (⋀x. (⋀y. y < x ⟹ ?P y) ⟹ ?P x) ⟹
+***   ?P ?a
 ```
 
 The numbers in the claim could belong to any type with `0`, `^` and `odd`, so Isabelle gives `n` a type

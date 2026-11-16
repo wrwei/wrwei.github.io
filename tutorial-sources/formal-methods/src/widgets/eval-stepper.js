@@ -412,17 +412,22 @@ FMWidgets.register('eval-stepper', function (root, api) {
       var calls = 0
       Object.keys(state.tally).forEach(function (k) { calls += state.tally[k] })
       result.appendChild(h('div', { class: 'fmw-ok' },
-        t('Value: ', '值：') + show(steps[last].term) + t(' after ' + last + ' steps (' + calls + ' by equations, ' + (last - calls) + ' by arithmetic).',
+        t('Value: ', '值：') + show(steps[last].term) + t(' after ' + last + (last === 1 ? ' step (' : ' steps (') + calls + ' by equations, ' + (last - calls) + ' by arithmetic).',
           '，共 ' + last + ' 步（' + calls + ' 步用方程，' + (last - calls) + ' 步是算术）。')))
       if (state.item.f === 'fib') {
         var keys = Object.keys(state.tally).sort(function (a, b) { return parseInt(b.slice(4), 10) - parseInt(a.slice(4), 10) })
         var rep = keys.filter(function (k) { return state.tally[k] > 1 })
-        result.appendChild(h('div', {}, t('Calls rewritten: ', '被改写的调用：'),
+        // each equation step rewrites one call, so the number of calls is the number of equation steps
+        result.appendChild(h('div', {}, t(calls + (calls === 1 ? ' call' : ' calls') + ' in all: ', '一共 ' + calls + ' 次调用：'),
           h('span', { class: 'evs-tally' }, keys.map(function (k) { return k + ' ×' + state.tally[k] }).join(', '))))
         if (rep.length) {
-          var k0 = rep[0]
-          result.appendChild(h('div', {}, t('Repeated work: ' + k0 + ' was computed ' + state.tally[k0] + ' times, each time from scratch.',
-            '重复劳动：' + k0 + ' 被从头计算了 ' + state.tally[k0] + ' 次。')))
+          // the largest repeated call, and the most repeated call that recurses (fib 2 or more)
+          var k0 = rep[0], k1 = rep.filter(function (k) { return parseInt(k.slice(4), 10) >= 2 })
+            .sort(function (a, b) { return state.tally[b] - state.tally[a] })[0]
+          var also = k1 && k1 !== k0
+          result.appendChild(h('div', {}, t('Repeated work: ' + k0 + ' was computed ' + state.tally[k0] + ' times' +
+            (also ? ' and ' + k1 + ' ' + state.tally[k1] + ' times' : '') + ', each time from scratch.',
+            '重复劳动：' + k0 + ' 被从头计算了 ' + state.tally[k0] + ' 次' + (also ? '，' + k1 + ' 被从头计算了 ' + state.tally[k1] + ' 次' : '') + '。')))
         }
       }
     }

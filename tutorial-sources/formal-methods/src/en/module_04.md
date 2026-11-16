@@ -82,9 +82,9 @@ For all sets $A$ and $B$:
 2. $A = B \iff A \subseteq B \land B \subseteq A$.
 :::
 
-For the first, $x \in \emptyset$ is false for every $x$, so $x \in \emptyset \imp x \in A$ is true: an
-implication with a false premise is true (Module 2). This is called **vacuous truth**, and it will come
-back. The second combines extensionality with the law $(p \iff q) \iff (p \imp q) \land (q \imp p)$.
+For the first, $x \in \emptyset$ is false for every $x$, so $x \in \emptyset \imp x \in A$ is vacuously
+true (Module 2); vacuous truth will come back in this module. The second combines extensionality with
+the law $(p \iff q) \iff (p \imp q) \land (q \imp p)$.
 It is also how you usually prove two sets equal: show that each is a subset of the other.
 
 Because HOL is typed (Module 3), a universe is always the universe of one type: `UNIV :: bool set` is
@@ -240,6 +240,8 @@ value "{1, 2, 3} ∪ {3, 4 :: nat}"
 ```
 
 ```output
+"{2, 1, 3, 4}"
+  :: "nat set"
 ```
 
 One annotation, `:: nat`, fixes the element type of the whole expression. Isabelle lists the elements
@@ -252,6 +254,8 @@ value "{x ∈ {0..10}. x mod 3 = (0::nat)}"
 ```
 
 ```output
+"{0, 3, 6, 9}"
+  :: "nat set"
 ```
 
 The power set of a set of numbers is a set of sets of numbers, a `nat set set`:
@@ -261,6 +265,8 @@ value "Pow {1, 2, 3 :: nat}"
 ```
 
 ```output
+"{{2, 3}, {2}, {}, {3}, {1, 3}, {1}, {1, 2}, {1, 2, 3}}"
+  :: "nat set set"
 ```
 
 Mixing up $\in$ and $\subseteq$ is a type error, as the pitfall above said:
@@ -289,6 +295,9 @@ lemma "A ∩ (B ∪ C) = A ∩ B ∪ A ∩ C"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. A ∩ (B ∪ C) = A ∩ B ∪ A ∩ C
 ```
 
 Isabelle prints `A ∩ B ∪ A ∩ C` without brackets because $\cap$ binds more tightly than $\cup$, as
@@ -321,6 +330,13 @@ lemma "A - (B - C) = (A - B) - (C :: 'a set)"
 ```
 
 ```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 1:
+  Free variables:
+    A = {a⇩1}
+    B = {}
+    C = {a⇩1}
 ```
 
 The counterexample is the row of the truth table found above: a₁ is in `A` and `C` but not in `B`.
@@ -339,6 +355,15 @@ lemma "A - (B - C) = A - B - C"
 ```
 
 ```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 2:
+  Free variables:
+    A = a⇩1
+    B = a⇩1
+    C = a⇩1
+
+Hint: Maybe you forgot a type constraint?
 ```
 
 `∪`, `∩`, `⊆` and `∈` exist only for sets, so a lemma that uses one of them needs no annotation.
@@ -536,6 +561,8 @@ value "{1, 2 :: nat} × {''x'', ''y''}"
 ```
 
 ```output
+"{(1, ''x''), (1, ''y''), (2, ''x''), (2, ''y'')}"
+  :: "(nat × char list) set"
 ```
 
 Isabelle names the six properties `refl_on A r`, `irrefl_on A r`, `sym_on A r`, `antisym_on A r`,
@@ -550,6 +577,14 @@ value "trans_on {1, 2, 3} {(1::nat, 2), (2, 3), (1, 3)}"
 ```
 
 ```output all
+"False"
+  :: "bool"
+
+"False"
+  :: "bool"
+
+"True"
+  :: "bool"
 ```
 
 The first relation lacks `(3, 3)`; the second lacks the shortcut `(1, 3)`, which the third has.
@@ -561,6 +596,8 @@ value "{(''alice'', ''admin''), (''bob'', ''guest'')}
 ```
 
 ```output
+"{(''alice'', ''read''), (''alice'', ''write''), (''bob'', ''read'')}"
+  :: "(char list × char list) set"
 ```
 
 To prove the facts above for all relations, `auto` must see the definitions of `trans` and `sym`. The
@@ -645,6 +682,8 @@ value "{(x, y) ∈ {0..8::nat} × {0..8}. x mod 3 = y mod 3} `` {4}"
 ```
 
 ```output
+"{1, 4, 7}"
+  :: "nat set"
 ```
 
 ```isabelle
@@ -652,6 +691,8 @@ value "{0..8::nat} // {(x, y) ∈ {0..8} × {0..8}. x mod 3 = y mod 3}"
 ```
 
 ```output
+"{{2, 5, 8}, {1, 4, 7}, {0, 3, 6}}"
+  :: "nat set set"
 ```
 
 For all natural numbers the relation is an equivalence; the proof unfolds the definitions:
@@ -768,17 +809,21 @@ thm wf_iff_no_infinite_down_chain
 ```
 
 ```output result
+wf ?r = (∄f. ∀i. (f (Suc i), f i) ∈ ?r)
 ```
 
 The chain is a function `f` on the natural numbers, `f 0`, `f 1`, `f 2`, … , and `Suc i` is `i + 1`.
-`∄` reads "there is no". The question mark in `?r` marks a variable of the theorem, which can be any
-relation; Module 7 says more. Finally, two incomparable sets show that $\subseteq$ is not total:
+`∄` reads "there is no", and `=` between two truth values is $\iff$ (Module 3). The question mark in
+`?r` marks a variable of the theorem, which can be any relation; Module 7 says more. Finally, two
+incomparable sets show that $\subseteq$ is not total:
 
 ```isabelle
 value "{1::nat} ⊆ {2} ∨ {2} ⊆ {1::nat}"
 ```
 
 ```output
+"False"
+  :: "bool"
 ```
 :::
 
@@ -854,7 +899,7 @@ checker gives when a property fails.
 
 ::: figure id=fig-04-3
 Left: the relation $\{(1, 2), (2, 3), (3, 4)\}$ (solid) and the pairs its transitive closure adds
-(dashed). Right: the door as a state machine. The shaded states are reachable from CL; the red dashed
+(dashed). Right: the door as a state machine. The green states are reachable from CL; the red dashed
 transition is the one the designer added, which makes the bad state OL reachable.
 :::
 
@@ -871,6 +916,8 @@ definition door :: "(string × string) set" where
 ```
 
 ```output
+consts
+  door :: "(char list × char list) set"
 ```
 
 The reachable states are the image of the initial state under the reflexive-transitive closure:
@@ -880,6 +927,8 @@ value "door⇧* `` {''CL''}"
 ```
 
 ```output
+"{''OU'', ''CU'', ''CL''}"
+  :: "char list set"
 ```
 
 The bad state is not reachable, until the extra transition is added:
@@ -890,6 +939,11 @@ value "''OL'' ∈ (door ∪ {(''OU'', ''OL'')})⇧* `` {''CL''}"
 ```
 
 ```output all
+"False"
+  :: "bool"
+
+"True"
+  :: "bool"
 ```
 
 The transitive closure of the chain:
@@ -899,6 +953,8 @@ value "{(1::nat, 2), (2, 3), (3, 4)}⇧+"
 ```
 
 ```output
+"{(1, 2), (2, 3), (3, 4), (2, 4), (1, 3), (1, 4)}"
+  :: "(nat × nat) set"
 ```
 
 And for all relations, $R^+$ contains $R$, it is transitive, and closing a closure again adds nothing:
@@ -994,6 +1050,9 @@ lemma "inj (λn::nat. 2 * n)"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. inj ((*) 2)
 ```
 
 Isabelle prints `λn. 2 * n` in a shorter form, `(*) 2`: multiplication with its first argument fixed
@@ -1031,6 +1090,8 @@ value "bij_betw (λx::nat. (x + 1) mod 3) {0, 1, 2} {0, 1, 2}"
 ```
 
 ```output
+"True"
+  :: "bool"
 ```
 :::
 
@@ -1076,8 +1137,8 @@ $\lceil |A| / |B| \rceil$ elements of $A$.
 If more pigeons than holes fly into the holes, some hole holds two pigeons. Among any 13 people, two
 were born in the same month. A hash table with 1000 keys and 256 buckets has a bucket with at least
 $\lceil 1000/256 \rceil = 4$ keys, whatever the hash function. And no lossless compression program
-makes every file shorter: there are $2^n$ files of $n$ bits but only $2^n - 1$ shorter ones, so two
-files would get the same compressed form.
+makes every file shorter: there are $2^n$ files of $n$ bits but only
+$2^0 + 2^1 + \dots + 2^{n-1} = 2^n - 1$ shorter ones, so two files would get the same compressed form.
 
 ::: isabelle
 `card` counts, and repeated elements count once:
@@ -1088,6 +1149,11 @@ value "card (Pow {1, 2, 3 :: nat})"
 ```
 
 ```output all
+"3"
+  :: "nat"
+
+"8"
+  :: "nat"
 ```
 
 Thirteen numbers have only twelve possible remainders by 12, so the remainder is not injective on
@@ -1098,6 +1164,8 @@ value "inj_on (λn::nat. n mod 12) {0..12}"
 ```
 
 ```output
+"False"
+  :: "bool"
 ```
 
 The library proves the counting rules for all finite sets; the rule for power sets is `card_Pow`, and
@@ -1218,6 +1286,7 @@ thm Cantors_theorem
 ```
 
 ```output result
+∄f. f ` ?A = Pow ?A
 ```
 :::
 
@@ -1264,6 +1333,20 @@ value "Pow {1, 5 :: nat}"
 ```
 
 ```output all
+"{1, 2}"
+  :: "nat set"
+
+"{5}"
+  :: "nat set"
+
+"{}"
+  :: "nat set"
+
+"{(1, 0), (1, 1), (5, 0), (5, 1)}"
+  :: "(nat × nat) set"
+
+"{{5}, {}, {1}, {1, 5}}"
+  :: "nat set set"
 ```
 
 2. All three are true. $C \subseteq A \cup B = \{1, 2, 3, 4, 5\}$, and $\emptyset$ and $\{5\}$ are
@@ -1320,7 +1403,16 @@ property that fails, give a witness, and check your answers with the widget.
    ```
 
    ```output result
+   Nitpicking formula...
+
+   Nitpick found a counterexample for card 'a = 1:
+     Free variables:
+       A = {a⇩1}
+       B = {}
+       C = {a⇩1}
    ```
+
+   It is the same counterexample, with a₁ for $x$.
 :::
 ::::
 
@@ -1350,6 +1442,17 @@ value "(''main'', ''main'') ∈ calls⇧+"
 ```
 
 ```output all
+consts
+  calls :: "(char list × char list) set"
+
+"{''parse'', ''lex'', ''apply'', ''eval''}"
+  :: "char list set"
+
+"True"
+  :: "bool"
+
+"False"
+  :: "bool"
 ```
 :::
 ::::
@@ -1374,6 +1477,8 @@ value "bij_betw (λn::nat. 3 * n mod 4) {0, 1, 2, 3} {0, 1, 2, 3}"
 ```
 
 ```output
+"True"
+  :: "bool"
 ```
 :::
 ::::
@@ -1405,6 +1510,8 @@ Let $R$ and $S$ be equivalence relations on $A$.
    ```
 
    ```output
+   "False"
+     :: "bool"
    ```
 
 3. $(R \cup S)^+$. It is reflexive on $A$ because it contains $R$, symmetric because a path read

@@ -93,10 +93,15 @@ def front_matter(lines):
     return meta, 0
 
 
+PAGE_TEXT = {}      # page path -> its text when this run read it (an update is written only if unchanged)
+
+
 def parse_page(path):
     """The page's Isabelle blocks, each with its output block (if any), in order."""
     with open(path, encoding='utf-8') as fh:
-        lines = fh.read().split('\n')
+        text = fh.read()
+    PAGE_TEXT[path] = text
+    lines = text.split('\n')
     meta, start = front_matter(lines)
     blocks = []
     stack = []            # open containers: (fence length, name)
@@ -346,9 +351,10 @@ def main():
     # A run for some modules only uses its own directory, so that runs for different modules can go on
     # at the same time; only a full run writes the downloads.
     isa_dir = os.path.join(OUT, 'isa' if not wanted else 'isa-' + '-'.join(sorted(wanted)))
-    sessions = write_sessions(plans, isa_dir)
     # One Isabelle build at a time on this machine: each build needs 2-4 GB, and parallel builds by
-    # several authors have run the container out of memory. Runs queue on a lock file.
+    # several authors have run the container out of memory. Runs queue on a lock file. The build
+    # directory is written only once the lock is held, so that two runs for the same module cannot
+    # replace each other's theory files during a build.
     os.makedirs(OUT, exist_ok=True)
     lock = open(os.path.join(OUT, '.isa-build.lock'), 'w')
     try:
@@ -356,21 +362,50 @@ def main():
     except BlockingIOError:
         print('waiting for another isa.py run to finish its Isabelle build ...', flush=True)
         fcntl.flock(lock, fcntl.LOCK_EX)
+    sessions = write_sessions(plans, isa_dir)
+    # Results must come from this run only: remove the databases and logs of this run's own sessions
+    # (Module_NN, Module_NN_Solutions, Module_NN_Probe_K; never Pure or HOL). Otherwise a killed build, or
+    # probes renumbered since an earlier run, would let build_log read old messages for other blocks.
+    for heap_dir in glob.glob(os.path.expanduser(f'~/.isabelle/{VERSION}/heaps/*')):
+        for sess in sessions:
+            if not sess.startswith('Module_'):
+                continue
+            for f in (os.path.join(heap_dir, 'log', sess + '.db'), os.path.join(heap_dir, 'log', sess + '.gz'),
+                      os.path.join(heap_dir, 'log', sess), os.path.join(heap_dir, sess)):
+                if os.path.isfile(f):
+                    os.remove(f)
     build = run([args.isabelle, 'build', '-d', isa_dir, '-j', args.jobs] + sessions)
     log = run([args.isabelle, 'build_log', '-U', '-v'] + sessions)
     msgs = parse_log(log.stdout)
-    # For a failed probe, the theory-level error message is sometimes missing from the log, and only the
-    # "Build errors" copy (wrapped at a narrower margin) is there. Build such probes again, up to twice.
-    for _ in range(2):
-        retry = sorted({f[:-4] for f, _ in FALLBACK if '_Probe_' in f})
-        if not retry:
+    # A failed probe's log is sometimes incomplete: its whole theory section (every message) can be missing,
+    # or its error is known only from the "Build errors" copy, wrapped at a narrower margin. Build such probes
+    # again, up to three times, and keep a complete result as soon as one comes.
+    def incomplete(text, names):
+        # Errors at definitions (fun, primrec, definition …) appear only under "Build errors", even in a complete
+        # log; what is missing in a bad log is the theory section with every other message.
+        return sorted(s for s in names if not re.search(r'^Theory "' + re.escape(s) + r'\.', text, re.M))
+    narrow = set(FALLBACK)
+    todo = incomplete(log.stdout, [s for s in sessions if '_Probe_' in s])
+    for _ in range(3):
+        if not todo:
             break
         FALLBACK.clear()
-        run([args.isabelle, 'build', '-d', isa_dir, '-j', args.jobs] + retry)
-        again = parse_log(run([args.isabelle, 'build_log', '-U', '-v'] + retry).stdout)
-        for key in [k for k in msgs if k[0][:-4] in retry]:
-            del msgs[key]
-        msgs.update(again)
+        run([args.isabelle, 'build', '-d', isa_dir, '-j', args.jobs] + todo)
+        text = run([args.isabelle, 'build_log', '-U', '-v'] + todo).stdout
+        again, again_narrow = parse_log(text), set(FALLBACK)
+        still = incomplete(text, todo)
+        for sess in todo:
+            if sess in still:
+                continue      # this attempt is no better: keep what we have
+            for key in [k for k in msgs if k[0][:-4] == sess]:
+                del msgs[key]
+            msgs.update({k: v for k, v in again.items() if k[0][:-4] == sess})
+            narrow = {k for k in narrow if k[0][:-4] != sess} | {k for k in again_narrow if k[0][:-4] == sess}
+        todo = still
+    FALLBACK.clear()
+    FALLBACK.update(narrow)
+    if todo:
+        print('incomplete Isabelle log for ' + ', '.join(todo) + ' after three attempts; its outputs may be partial')
     lock.close()
     killed = 'Killed' in build.stdout or 'Interrupt' in build.stdout
 
@@ -418,7 +453,13 @@ def main():
                     elif varies and [x for x in have if x.strip()] and want:
                         pass        # captured once from a real run; differs between runs (e.g. Sledgehammer)
                     elif same_text(have, want):
-                        pass        # equal up to line wrapping (Isabelle wraps the two copies of an error differently)
+                        # equal up to line wrapping (Isabelle wraps the two copies of an error differently);
+                        # with --update, prefer the full-width layout that Isabelle/jEdit shows
+                        narrow = any((th['name'] + '.thy', l) in FALLBACK for l in range(start, start + n + 1))
+                        if args.update and not narrow and [x.rstrip() for x in have] != [x.rstrip() for x in want]:
+                            print(f'--- {rel}:{b["output"]["start"] + 1}: output re-wrapped as Isabelle/jEdit shows it')
+                            changes.setdefault(plan['path'], []).append(
+                                (b['output']['start'], b['output']['end'], b['output']['indent'], want))
                     elif [x.rstrip() for x in have] != [x.rstrip() for x in want]:
                         problems += 1
                         print(f'--- {rel}:{b["output"]["start"] + 1}: output differs')
@@ -443,7 +484,12 @@ def main():
     if args.update and changes:
         for path, edits in changes.items():
             with open(path, encoding='utf-8') as fh:
-                lines = fh.read().split('\n')
+                text = fh.read()
+            if text != PAGE_TEXT.get(path):
+                problems += 1
+                print(f'{os.path.relpath(path, ROOT)} changed while Isabelle was running: nothing written; run again')
+                continue
+            lines = text.split('\n')
             for start, end, indent, body in sorted(edits, reverse=True):
                 lines[start + 1:end] = [(indent + x.rstrip()) if x.strip() else "" for x in body]
             with open(path, 'w', encoding='utf-8') as fh:

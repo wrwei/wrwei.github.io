@@ -205,7 +205,7 @@ export function isaHighlight(text) {
 }
 
 // Isabelle's ⇩x (subscript) as HTML
-function subscripts(html) { return html.replace(/⇩(\w)/g, '<sub>$1</sub>') }
+function subscripts(html) { return html.replace(/⇩(\w)/g, '<sub>$1</sub>').replace(/⇧([^\s<])/g, '<sup>$1</sup>') }
 
 function renderIsabelle(content, info, L) {
   const a = parseAttrs(info)

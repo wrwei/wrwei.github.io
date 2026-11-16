@@ -87,5 +87,10 @@ export async function run(t) {
   await t.type('.nd-input', 'A ∧ (B')
   await t.click('.nd-start')
   t.check((await msg()).includes(zh ? '无法读取' : 'Cannot read'), 'reports a formula it cannot read')
+
+  // True has no rule in Module 6, so a goal with True is refused rather than left unprovable
+  await t.type('.nd-input', 'A ⟶ True')
+  await t.click('.nd-start')
+  t.check((await msg()).includes('True') && (await msg()).includes('¬⊥'), 'refuses a goal with True and suggests ¬⊥')
   await t.shot()
 }

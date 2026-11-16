@@ -154,6 +154,8 @@ thm lreach.induct
 ```
 
 ```output result
+⟦lreach ?x; ?P (Closed, False); ⋀s t. ⟦lreach s; ?P s; lstep s t⟧ ⟹ ?P t⟧
+⟹ ?P ?x
 ```
 
 Read it as the invariant method of Module 5. To prove that a property `?P` holds in every reachable
@@ -230,6 +232,10 @@ lemma lift_safe: "lreach s ⟹ lift_ok s"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. lift_ok (Closed, False)
+ 2. ⋀s t. ⟦lreach s; lift_ok s; lstep s t⟧ ⟹ lift_ok t
 ```
 
 Subgoal 1 is the **initial case**: the initial state is safe. Subgoal 2 is the **step case**: for a
@@ -265,12 +271,17 @@ lemma "lreach (d, m) ⟹ m ⟶ d = Closed"
 ```
 
 ```output
+*** Failed to finish proof⌂:
+*** goal (1 subgoal):
+***  1. m ⟹ d = Closed
 ```
 
-The argument of `lreach` is the pair `(d, m)`, not a variable. Rule induction needs a variable there,
-as Module 11 explained for constants: given a compound term, the method cannot connect the claim to the
-states in the rule, and the cases make no sense. Write the property as a function of the whole state, as
-`lift_ok` does, and the induction works.
+The goal left over is false: it claims that for the `d` and `m` of the lemma, a moving lift has a
+closed door. The argument of `lreach` is the pair `(d, m)`, not a variable, and the induction rule is
+about a variable state `?x`. Given a pattern, the method does not replace `d` and `m` by the states of
+the rules; they stay as they are, so the initial case asks for the claim about `d` and `m` instead of
+about `(Closed, False)`. Module 11 met the same problem with a constant. Write the property as a
+function of the whole state, as `lift_ok` does, and the induction works.
 :::
 
 ## Modelling a pedestrian crossing {#crossing}
@@ -316,27 +327,26 @@ value "start⦇cars := Amber⦈"
 ```
 
 ```output
+"⦇cars = Amber, peds = DontWalk, req = False⦈"
+  :: "crossing"
 ```
 
 ::: trouble
-An update needs `:=`. With `=`, Isabelle cannot parse the term:
+An update needs `:=`. With `=`, Isabelle reads `⦇cars = Amber⦈` as a record value, which must list
+every field of the record, in the order of the `record` command:
 
 ```isabelle fails
 value "start⦇cars = Amber⦈"
 ```
 
 ```output
+*** exception TERM raised⌂:
+***   Error in record input: expecting more fields
+***   ??.cars = Amber::<position>
 ```
 
-A record value must list the fields in the order of the `record` command. Here the first two are
-swapped:
-
-```isabelle fails
-value "⦇peds = DontWalk, cars = Green, req = False⦈"
-```
-
-```output
-```
+The message says that the record value lacks fields; `??.cars = Amber` is the field that Isabelle
+read, in its internal form. Write `start⦇cars := Amber⦈`.
 :::
 
 ### Events with guards and effects {#events}
@@ -391,6 +401,8 @@ value "run [Press, ToAmber, ToRed, StartWalk] start"
 ```
 
 ```output
+"⦇cars = Red, peds = Walk, req = True⦈"
+  :: "crossing"
 ```
 
 A pedestrian pressed the button, the car light went through amber to red, and the pedestrians walk. Now
@@ -401,6 +413,8 @@ value "run [ToAmber, ToRed, StartWalk] start"
 ```
 
 ```output
+"⦇cars = Green, peds = DontWalk, req = False⦈"
+  :: "crossing"
 ```
 
 Nothing happened. Without a request the guard of `ToAmber` is false, and while the car light is green,
@@ -424,6 +438,8 @@ thm reach.induct
 ```
 
 ```output result
+⟦reach ?x; ?P start; ⋀s e. ⟦reach s; ?P s; guard e s⟧ ⟹ ?P (effect e s)⟧
+⟹ ?P ?x
 ```
 
 The induction rule has the same two cases as before. In the step case, the event `e` is arbitrary: a
@@ -454,15 +470,17 @@ next
 qed
 ```
 
-```output
+```output result
+*** Failed to finish proof⌂:
+*** goal (1 subgoal):
+***  1. ⟦reach s; e = ToGreen; cars s = Red; ¬ req s; peds s = Walk⟧ ⟹ False
 ```
 
 The initial case went through, and so did five of the six events. The goal that is left belongs to
 `ToGreen`. Read it as a state: the cars have red, no request is pending, and the pedestrians walk. The
 state is safe, because the cars have red. The guard of `ToGreen` holds in it, because the cars have red
 and no request is pending. After `ToGreen` the cars have green while the pedestrians walk, which is not
-safe.
-So `safe` is *not inductive*: a step from a safe state can lead to an unsafe one.
+safe. So `safe` is *not inductive*: a step from a safe state can lead to an unsafe one.
 
 You can ask Isabelle for such a step directly. The lemma below says that every event preserves `safe`,
 from any state, reachable or not. Quickcheck tests it:
@@ -474,6 +492,11 @@ lemma "safe s ⟹ guard e s ⟹ safe (effect e s)"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  s = ⦇cars = Red, peds = Walk, req = False⦈
+  e = ToGreen
 ```
 
 A state and an event that break the step case in this way are a **counterexample to induction**. Isabelle
@@ -485,8 +508,23 @@ actions:
 2. The state is **not reachable**. Then the design may well be safe, but `safe` is too weak to carry
    the induction: it allows states that never occur, and the step case fails on one of them.
 
-Nitpick (Module 9) can search the reachable states for an unsafe one. It works with inductive
-definitions such as `reach`, which Quickcheck cannot run:
+Quickcheck cannot answer this question. It tests a statement by running the definitions in it, and an
+inductive definition such as `reach` is not a function that it can run (Module 11):
+
+```isabelle fails
+lemma "reach s ⟹ safe s"
+  quickcheck
+  oops
+```
+
+```output
+*** No code equations for reach,
+*** requested by dependencies
+***
+```
+
+Nitpick (Module 9) works differently: it searches for a model of the definitions, and it handles
+inductive definitions. Let it search the reachable states for an unsafe one:
 
 ```isabelle
 lemma "reach s ⟹ safe s"
@@ -495,12 +533,15 @@ lemma "reach s ⟹ safe s"
 ```
 
 ```output result
+Nitpicking formula...
+
+Nitpick found no counterexample
 ```
 
-No reachable state breaks `safe`. That is not a proof, but it points to the second possibility. Find
-out on paper why the state of the goal cannot be reached. The pedestrians start to walk only through
-`StartWalk`, whose guard needs a request. While they walk, the request stays set, since only `EndWalk`
-clears it, and `EndWalk` also ends the walk. So in every reachable state: *if the pedestrians walk, a
+Nitpick finds no reachable state that breaks `safe`. That is not a proof, but it points to the second
+possibility. Find out on paper why the state of the goal cannot be reached. The pedestrians start to
+walk only through `StartWalk`, whose guard needs a request. While they walk, the request stays set,
+since only `EndWalk` clears it, and `EndWalk` also ends the walk. So in every reachable state: *if the pedestrians walk, a
 request is pending*. The state in the goal violates exactly this.
 
 ### Strengthen the invariant {#strengthen-invar}
@@ -525,8 +566,9 @@ qed
 The proof is the same as before, and this time it goes through. Check the critical event on paper: in a
 state that satisfies `invar`, the guard of `ToGreen` says that no request is pending, so by `invar` the
 pedestrians do not walk, and turning the cars green is safe. The other events keep `invar` too: `Press`
-only sets the request; `StartWalk` needs red and a request, and keeps both; `EndWalk` ends the walk.
-Safety follows at once, because `invar` says more than `safe`:
+only sets the request; `StartWalk` needs red and a request, and keeps both; `EndWalk` ends the walk;
+`ToAmber` and `ToRed` happen only when the cars do not have red, so by `invar` the pedestrians do not
+walk. Safety follows at once, because `invar` says more than `safe`:
 
 ```isabelle
 theorem crossing_safe: "reach s ⟹ safe s"
@@ -600,13 +642,18 @@ lemma "reach_early s ⟹ safe s"
 ```
 
 ```output result
+Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variable:
+    s = ⦇cars = Green, peds = Walk, req = False⦈
 ```
 
-The cars have green while the pedestrians walk. The option `card = 6` sets the size of the models that
-Nitpick tries: it may use up to six different values of each type whose size is not fixed, such as
-states and lists. Six are enough here, and with one fixed size Nitpick reports the same counterexample
-every time. Without the option it tries the sizes 1 to 10, and which counterexample it reports first can
-change from run to run.
+The cars have green while the pedestrians walk. The option `card = 6` fixes the size of the models
+that Nitpick tries: six values for each type whose size it has to choose, such as states and lists of
+events. Six are enough here, and with one fixed size Nitpick reports the same counterexample every time.
+Without the option it tries the sizes 1 to 10, and which counterexample it reports can change from run
+to run.
 
 Nitpick shows the bad state but not how to get there. To see the run, search for a list of events
 instead. Define `run_early` as `run` was defined, with the new effects, and ask whether every run of the
@@ -624,6 +671,11 @@ lemma "safe (run_early es start)"
 ```
 
 ```output result
+Nitpicking formula...
+
+Nitpick found a counterexample:
+  Free variable:
+    es = [Press, ToAmber, ToRed, StartWalk, ToGreen]
 ```
 
 That is a **counterexample trace**: five events from `start` to an unsafe state. Replay it with `value`
@@ -636,6 +688,13 @@ value "map (λn. run_early (take n [Press, ToAmber, ToRed, StartWalk, ToGreen]) 
 ```
 
 ```output
+"[⦇cars = Green, peds = DontWalk, req = False⦈,
+  ⦇cars = Green, peds = DontWalk, req = True⦈,
+  ⦇cars = Amber, peds = DontWalk, req = True⦈,
+  ⦇cars = Red, peds = DontWalk, req = True⦈,
+  ⦇cars = Red, peds = Walk, req = False⦈,
+  ⦇cars = Green, peds = Walk, req = False⦈]"
+  :: "crossing list"
 ```
 
 As a story: someone presses the button; the car light turns amber, then red; the pedestrian signal
@@ -667,10 +726,31 @@ invariant too weak: strengthen it.
 
 ::: tip
 Quickcheck and Nitpick search in different ways. Quickcheck runs the definitions on many small values,
-so it needs functions it can execute, such as `guard`, `effect` and `run`. Nitpick translates the
-problem into a SAT problem and also handles inductive definitions such as `reach`. Here Quickcheck found
-the counterexample to induction at once, but finds no trace for `run_early`: it tries only short lists
-of events. Try both. Isabelle/jEdit runs Quickcheck on every new lemma by itself, but not Nitpick.
+so it needs functions it can execute, such as `guard`, `effect_early` and `run_early`. Nitpick translates
+the problem into a SAT problem, which also covers inductive definitions such as `reach`. Quickcheck's
+exhaustive search tries small values first and stops early (by default at size 5). On
+`safe (run_early es start)` it finds nothing, because the shortest bad run has five events and its
+search does not get that far. Fix the length of the run, with one variable for each event, and it finds
+the trace at once:
+
+```isabelle
+lemma "safe (run_early [e1, e2, e3, e4, e5] start)"
+  quickcheck
+  oops
+```
+
+```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  e1 = Press
+  e2 = ToAmber
+  e3 = ToRed
+  e4 = StartWalk
+  e5 = ToGreen
+```
+
+Isabelle/jEdit runs Quickcheck on every new lemma by itself, but not Nitpick: call `nitpick` yourself.
 :::
 
 ## Refinement: from abstract to concrete {#refinement}
@@ -964,6 +1044,8 @@ value "run [Press, Press, ToAmber, ToGreen, ToRed] start"
 ```
 
 ```output
+"⦇cars = Red, peds = DontWalk, req = True⦈"
+  :: "crossing"
 ```
 :::
 ::::
@@ -1014,8 +1096,8 @@ corollary "reach (run es start)"
 
 In the step case, the simplifier splits the `if` in the definition of `run`. If the guard holds, the next
 state is reachable by `reach.step`; if not, it is `s` itself. Together with `crossing_safe`, this shows
-that no run of events leads to an unsafe state, which is what Quickcheck and Nitpick were testing in
-Section 13.6.
+that no run of events leads to an unsafe state: the property that Nitpick refuted for the colleague's
+design in Section 13.6 holds for the design of Section 13.4.
 :::
 ::::
 
@@ -1111,14 +1193,20 @@ lemma "greach g ⟹ passes g ≤ coins g"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀g. ⟦greach g; passes g ≤ coins g; ¬ locked g⟧
+        ⟹ Suc (passes g) ≤ coins g
 ```
 
 ```isabelle
   oops
 ```
 
-The goal describes an unlocked turnstile with as many passes as coins. Pushing it would make passes
-exceed coins. That state is unreachable: a turnstile is unlocked only after a coin that has not been used
+The goal is the push. From `passes g ≤ coins g` and an unlocked turnstile, it must show that one more
+pass still fits, `Suc (passes g) ≤ coins g`. That fails when passes and coins are equal: an unlocked
+turnstile with as many passes as coins satisfies the invariant, and a push lets someone through without
+paying. That state is unreachable, because a turnstile is unlocked only by a coin that has not been used
 for a pass yet. Say so in the invariant: when the turnstile is unlocked, passes are strictly fewer than
 coins.
 
@@ -1137,8 +1225,8 @@ A lazy controller accepts presses and does nothing else:
 
 ```isabelle
 inductive lazy :: "crossing ⇒ bool" where
-  "lazy start"
-| "lazy s ⟹ lazy (s⦇req := True⦈)"
+  init:  "lazy start"
+| press: "lazy s ⟹ lazy (s⦇req := True⦈)"
 ```
 
 1. Prove that it refines the crossing, with the identity as abstraction function: `lazy s ⟹ reach s`.
@@ -1152,11 +1240,11 @@ inductive lazy :: "crossing ⇒ bool" where
    ```isabelle
    lemma lazy_reach: "lazy s ⟹ reach s"
    proof (induction rule: lazy.induct)
-     case 1
+     case init
      show ?case by (rule reach.init)
    next
-     case (2 s)
-     then have "reach (effect Press s)" by (simp add: reach.step)
+     case (press s)
+     from press.IH have "reach (effect Press s)" by (rule reach.step) simp
      then show ?case by simp
    qed
 
@@ -1164,8 +1252,9 @@ inductive lazy :: "crossing ⇒ bool" where
      by (simp add: crossing_safe lazy_reach)
    ```
 
-   The rules of `lazy` have no names, so Isabelle numbers the cases. The `have` states the reachable
-   state in the form that `reach.step` produces, and `simp` turns `effect Press s` into `s⦇req := True⦈`.
+   The `have` states the new state in the form that `reach.step` produces: `rule reach.step` takes the
+   induction hypothesis `reach s` for its first premise and leaves the guard `guard Press s`, which
+   `simp` proves. In the last step, `simp` turns `effect Press s` into `s⦇req := True⦈`.
 2. ```isabelle
    lemma "lazy s ⟹ cars s = Green"
      by (induction rule: lazy.induct) (auto simp: start_def)

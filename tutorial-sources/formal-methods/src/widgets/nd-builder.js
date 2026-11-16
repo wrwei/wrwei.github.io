@@ -131,6 +131,11 @@ FMWidgets.register('nd-builder', function (root, api) {
     if (f.k === 'iff') return true
     return ['a', 'l', 'r', 'body'].some(function (x) { return f[x] && f[x].k && hasIff(f[x]) })
   }
+  // True (⊤) has no rule in Module 6, so a goal that needs it could never be finished.
+  function hasTrue(f) {
+    if (f.k === 'const' && f.v) return true
+    return ['a', 'l', 'r', 'body'].some(function (x) { return f[x] && f[x].k && hasTrue(f[x]) })
+  }
 
   function freshVar(avoid, base) {
     var b = String(base || 'x').replace(/\d+$/, '') || 'x'
@@ -637,6 +642,7 @@ FMWidgets.register('nd-builder', function (root, api) {
     var f
     try { f = Logic.parse(s) } catch (e) { throw new Refusal(t('Cannot read the formula: ', '无法读取公式：') + errText(e.message)) }
     need(!hasIff(f), t('This builder has no rules for ⟷. Write (A ⟶ B) ∧ (B ⟶ A) instead.', '本工具没有 ⟷ 的规则，请改写为 (A ⟶ B) ∧ (B ⟶ A)。'))
+    need(!hasTrue(f), t('This builder has no rule for True. Write ¬⊥ (¬False) instead, which (¬I) proves.', '本工具没有 True 的规则，请改写为 ¬⊥（¬False），它可以用 (¬I) 证明。'))
     var sym = symbols(f)
     need(!sym.bad, t(sym.bad + ' is used in two ways (as a predicate and as a term, or with different numbers of arguments). Rename one of them.', sym.bad + ' 有两种用法（既作谓词又作项，或参数个数不同）。请给其中一个改名。'))
     return f

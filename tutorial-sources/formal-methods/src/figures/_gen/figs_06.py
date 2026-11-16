@@ -84,17 +84,18 @@ def fig_06_2(L):
     s = SVG(760, 316, T['title'])
     s.text(20, 28, T['left'], size=14, weight=700, fill=C['navy'])
     x0 = 30         # the tree is drawn around x = 257 + x0
-    # nested scopes, outermost first; each ends just above the rule that discharges its assumption
-    s.rect(84, 50, 410, 159, fill=C['skyp'], stroke=C['blue'], r=10, sw=1.4, dash='5 4')
-    s.rect(92, 55, 394, 124, fill=C['purplep'], stroke=C['purple'], r=9, sw=1.4, dash='5 4')
-    s.rect(100, 60, 378, 89, fill=C['amberp'], stroke=C['amber'], r=8, sw=1.4, dash='5 4')
+    # nested scopes, outermost first; each ends just above the rule that discharges its assumption, and
+    # that rule's label sits a little below its line, so that it stays clear of the scope's border
+    s.rect(84, 50, 410, 158, fill=C['skyp'], stroke=C['blue'], r=10, sw=1.4, dash='5 4')
+    s.rect(92, 55, 394, 123, fill=C['purplep'], stroke=C['purple'], r=9, sw=1.4, dash='5 4')
+    s.rect(100, 60, 378, 88, fill=C['amberp'], stroke=C['amber'], r=8, sw=1.4, dash='5 4')
     s.text(108, 144, T['s3'], size=11, fill=C['amber'], weight=600)
     s.text(100, 174, T['s2'], size=11, fill=C['purple'], weight=600)
     s.text(92, 204, T['s1'], size=11, fill=C['blue'], weight=600)
     # the derivation of (A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)
-    def bar(x1, x2, y, label, col=C['slate']):
+    def bar(x1, x2, y, label, col=C['slate'], dy=4):
         s.line(x1 + x0, y, x2 + x0, y, stroke=C['navy'], sw=1.4)
-        s.text(x2 + x0 + 5, y + 4, label, size=11, fill=col, mono=True)
+        s.text(x2 + x0 + 5, y + dy, label, size=11, fill=col, mono=True)
 
     def f(x, y, txt, col=C['navy'], weight=400):
         s.text(x + x0, y, txt, size=13, anchor='middle', mono=True, fill=col, weight=weight)
@@ -105,11 +106,11 @@ def fig_06_2(L):
     f(327, 114, 'B')
     bar(112, 402, 123, '(⟶E)')
     f(257, 144, 'C')
-    bar(212, 302, 153, '(⟶I³)', C['amber'])
+    bar(212, 302, 153, '(⟶I³)', C['amber'], dy=7)
     f(257, 174, 'A ⟶ C')
-    bar(178, 336, 183, '(⟶I²)', C['purple'])
+    bar(178, 336, 183, '(⟶I²)', C['purple'], dy=7)
     f(257, 204, '(B ⟶ C) ⟶ (A ⟶ C)')
-    bar(150, 364, 213, '(⟶I¹)', C['blue'])
+    bar(150, 364, 213, '(⟶I¹)', C['blue'], dy=7)
     f(257, 234, '(A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)')
     s.lines(257 + x0, 272, T['note'], size=12.5, fill=C['navy'], anchor='middle', gap=18)
     # right: the wrong derivation of (A ⟶ A) ∧ A

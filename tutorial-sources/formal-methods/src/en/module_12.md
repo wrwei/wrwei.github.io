@@ -120,10 +120,13 @@ library **HOL-Library** besides `Main`:
 theory Verify
   imports Main "HOL-Library.Multiset"
 begin
+
+end
 ```
 
-HOL-Library comes with Isabelle, but it is not part of `Main`; `"HOL-Library.Multiset"` names its theory
-`Multiset`, which defines the function `mset` of the specification. The first time you open a theory with
+The Isabelle text of this module goes between `begin` and `end`. HOL-Library comes with Isabelle, but it
+is not part of `Main`; `"HOL-Library.Multiset"` names its theory `Multiset`, which defines the function
+`mset` of the specification. The first time you open a theory with
 this import, Isabelle/jEdit loads `Multiset` and the theories it builds on before it checks your own text,
 and that takes a little while; the progress shows in the **Theories** panel. It happens again each time
 you start Isabelle/jEdit, because the library theory is not part of the prebuilt HOL image.
@@ -137,6 +140,10 @@ fun ins :: "'a::linorder ⇒ 'a list ⇒ 'a list" where
 ```
 
 ```output
+consts
+  ins :: "'a ⇒ 'a list ⇒ 'a list"
+
+Found termination order: "(λp. length (snd p)) <*mlex*> {}"
 ```
 
 ```isabelle
@@ -146,13 +153,18 @@ fun isort :: "'a::linorder list ⇒ 'a list" where
 ```
 
 ```output
+consts
+  isort :: "'a list ⇒ 'a list"
+
+Found termination order: "length <*mlex*> {}"
 ```
 
 The type `'a::linorder` reads "any type `'a` in the class `linorder`". Module 8 introduced type
 classes; `linorder` is the class of **linearly ordered** types, whose `≤` is reflexive, transitive and
-antisymmetric and relates any two values one way or the other: x ≤ y or y ≤ x. The natural numbers and the
-integers are linearly ordered, so `isort` sorts lists of either. The names `ins` and
-`isort` are chosen so as not to clash with the library's own insertion sort, `insort` and `sort`.
+antisymmetric and relates any two values one way or the other: x ≤ y or y ≤ x. The natural numbers and
+the integers are linearly ordered, so `isort` sorts lists of either. Isabelle's answer prints the types
+without the class, as it does by default (Module 8 showed how to make sorts visible). The names `ins`
+and `isort` are chosen so as not to clash with the library's own insertion sort, `insort` and `sort`.
 
 Test the program before you try to prove anything about it:
 
@@ -161,6 +173,8 @@ value "isort [3, 1, 4, 1, 5, 9, 2, 6 :: int]"
 ```
 
 ```output
+"[1, 1, 2, 3, 4, 5, 6, 9]"
+  :: "int list"
 ```
 
 ::: trouble
@@ -173,11 +187,20 @@ fun ins_any :: "'a ⇒ 'a list ⇒ 'a list" where
 ```
 
 ```output
+*** Type unification failed: Variable 'a::type not of sort ord
+***
+*** Type error in application: incompatible operand type
+***
+*** Operator:  (≤) :: ??'a ⇒ ??'a ⇒ bool
+*** Operand:   x :: 'a
+***
 ```
 
-A plain `'a` stands for any type at all, including types that have no `≤`. The **sort** after `::`
-(Module 8) restricts `'a` to types that have one. `'a::ord` would be enough to make the definition
-type-check, but the proofs below need the laws of a linear order, so use `linorder`.
+A plain `'a` stands for any type at all, including types that have no `≤`; in Isabelle's words, its sort
+is `type`, the sort of all types. The message says that such a variable is not of sort `ord`, the class
+of types with `≤` and `<`. The **sort** after `::` (Module 8) restricts `'a` to types that have them.
+`'a::ord` would be enough to make the definition type-check, but the proofs below need the laws of a
+linear order, so use `linorder`.
 :::
 
 ### The specification {#isort-spec}
@@ -192,11 +215,14 @@ thm sorted_simps
 ```
 
 ```output
+  sorted [] = True
+  sorted (?x # ?ys) = ((∀y∈set ?ys. ?x ≤ y) ∧ sorted ?ys)
 ```
 
-Read the second equation aloud: "x # ys is sorted if and only if x is at most every y in ys, and ys is
-sorted". `set ys` is the set of the elements of ys, and `∀y ∈ set ys. P y` reads "for every y in ys, P of
-y". Try it on two lists:
+The question marks mark schematic variables (Module 7): the equations hold for every x and ys. Read the
+second equation aloud: "x # ys is sorted if and only if x is at most every y in ys, and ys is sorted".
+`set ys` is the set of the elements of ys, and `∀y∈set ys. P y` reads "for every y in ys, P of y". Try
+it on two lists:
 
 ```isabelle
 value "sorted [1, 2, 2, 5 :: nat]"
@@ -204,6 +230,11 @@ value "sorted [1, 3, 2 :: nat]"
 ```
 
 ```output all
+"True"
+  :: "bool"
+
+"False"
+  :: "bool"
 ```
 
 **A permutation.** Sortedness alone is not enough, as Module 1 noticed: the empty list is sorted. The
@@ -224,6 +255,14 @@ value "count (mset [2, 1, 2 :: nat]) 2"
 ```
 
 ```output all
+"True"
+  :: "bool"
+
+"False"
+  :: "bool"
+
+"2"
+  :: "nat"
 ```
 
 `[2, 1, 2]` and `[1, 2, 2]` are permutations of each other; `[1, 2]` has one 2 too few. In proofs you
@@ -234,40 +273,50 @@ thm mset.simps
 ```
 
 ```output
+  mset [] = {#}
+  mset (?a # ?x) = add_mset ?a (mset ?x)
 ```
 
-`{#}` is the empty multiset and `add_mset x M` is M with one more copy of x. So
-`mset [3, 1] = add_mset 3 (add_mset 1 {#})`. Isabelle also writes `{#3, 1#}` for this multiset.
+The second equation reads "the multiset of a # x is the multiset of x with one more copy of a". `{#}` is
+the empty multiset and `add_mset a M` is M with one more copy of a. So
+`mset [3, 1] = add_mset 3 (add_mset 1 {#})`, which Isabelle also writes `{#3, 1#}`. When `value`
+computes a multiset, though, it shows it as `mset` of a list:
+
+```isabelle
+value "mset [3, 1 :: nat]"
+```
+
+```output
+"mset [3, 1]"
+  :: "nat multiset"
+```
+
+To compute with multisets, Isabelle represents each one by a list of its elements, and `value` prints
+that representation. Section 12.6 comes back to this.
 
 ::: definition The sorting specification
 A function `f :: 'a::linorder list ⇒ 'a list` **meets the sorting specification** if for every list xs,
 `sorted (f xs)` and `mset (f xs) = mset xs`: the result is sorted, and it is a permutation of the input.
 :::
 
-Before you spend time on a proof, test the claim. Quickcheck and Nitpick (Module 9) try to refute it:
+Before you spend time on a proof, test the claim. Quickcheck (Module 9) tries to refute it:
 
 ```isabelle
 lemma "sorted (isort xs) ∧ mset (isort xs) = mset xs"
   quickcheck
-```
-
-```output result
-```
-
-```isabelle
-  nitpick
-```
-
-```output result
-```
-
-```isabelle
   oops
 ```
 
-Neither tool finds a counterexample. That is encouraging, not conclusive: both search only small inputs.
-In Isabelle/jEdit you would not even need the commands, because Auto Quickcheck tries every new `lemma`
-statement and shows a counterexample in the Output panel as soon as it finds one. Now prove it.
+```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.
+```
+
+Quickcheck tried every list up to a small size and found no counterexample. That is encouraging, not
+conclusive: a bug might show only on longer lists. In Isabelle/jEdit you do not even need the command,
+because Auto Quickcheck tries every new `lemma` statement and marks the line with a blue **i** when it
+finds a counterexample (Module 1). Now prove it.
 
 ## Proving insertion sort correct {#isort-proof}
 
@@ -285,11 +334,14 @@ lemma "sorted (isort xs)"
 ```
 
 ```output
+*** Failed to finish proof⌂:
+*** goal (1 subgoal):
+***  1. ⋀a xs. sorted (isort xs) ⟹ sorted (ins a (isort xs))
 ```
 
 The base case is solved; the induction step is not. Read the goal that is left. Its premise is the
-induction hypothesis, `sorted (isort xs)`, and its conclusion is `sorted (ins x (isort xs))`, with
-Isabelle's name `x1` for the head of the list. So the step needs one fact: **inserting into a sorted list
+induction hypothesis, `sorted (isort xs)`, and its conclusion is `sorted (ins a (isort xs))`, where a
+is Isabelle's name for the head of the list. So the step needs one fact: **inserting into a sorted list
 gives a sorted list**. That fact is about `ins` alone; `isort` only supplies the sorted list. Following
 Module 11's recipe, replace the specific list `isort xs` by a variable, and state the fact as a lemma of
 its own:
@@ -321,15 +373,23 @@ lemma "sorted xs ⟹ sorted (ins x xs)"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀a xs xa.
+       ⟦sorted (ins x xs); ∀x∈set xs. a ≤ x; sorted xs; ¬ x ≤ a;
+        xa ∈ set (ins x xs)⟧
+       ⟹ a ≤ xa
 ```
 
 ```isabelle
   oops
 ```
 
-The goal that remains mentions `set (ins x xs)`: it needs to know which elements the inserted list
-contains, exactly the fact the paper proof used without comment. State it as a lemma. It has its own,
-easy induction:
+One goal remains, from the branch where ¬ x ≤ a: the head a must be at most every element xa of
+`ins x xs`. (The bound x in `∀x∈set xs. a ≤ x` is a different x from the one being inserted; Isabelle
+reuses the name.) `auto` knows that a is at most every element of xs and that ¬ x ≤ a, but nothing about
+which elements `ins x xs` has: exactly the fact the paper proof used without comment. State it as a
+lemma. It has its own, easy induction:
 
 ```isabelle
 lemma set_ins: "set (ins x xs) = insert x (set xs)"
@@ -359,8 +419,13 @@ qed
 
 In the case x ≤ y, the premise `Cons.prems`, that y # ys is sorted, is all `auto` needs. In the other
 case it also needs the induction hypothesis (passed with the whole of `Cons`) and the new lemma. Once you
-know which facts each step needs, the whole induction fits on one line as well,
-`by (induction xs) (auto simp: set_ins)`; the Isar version shows a reader where each fact is used.
+know which facts each step needs, the whole induction fits on one line as well; the Isar version shows a
+reader where each fact is used.
+
+```isabelle
+lemma "sorted xs ⟹ sorted (ins x xs)"
+  by (induction xs) (auto simp: set_ins)
+```
 
 Now the theorem's first half is the original induction, with the lemma passed to `auto`:
 
@@ -380,13 +445,18 @@ lemma "mset (isort xs) = mset xs"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀a xs.
+       mset (isort xs) = mset xs ⟹
+       mset (ins a (isort xs)) = add_mset a (mset xs)
 ```
 
 ```isabelle
   oops
 ```
 
-The step needs the multiset of `ins x1 (isort xs)`. With the hypothesis `mset (isort xs) = mset xs`,
+The step needs the multiset of `ins a (isort xs)`. With the hypothesis `mset (isort xs) = mset xs`,
 the goal would follow from a fact about `ins` alone: inserting x adds one copy of x to the multiset. As
 before, generalise `isort xs` to any list:
 
@@ -461,6 +531,32 @@ lemma "mset (sort_drop xs) = mset xs"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a⇩1]
+Evaluated terms:
+  mset (sort_drop xs) = mset []
+  mset xs = mset [a⇩1]
+```
+
+The counterexample is a list with one element, a₁. Quickcheck tests a claim about an unknown element type
+on small types whose values it calls a₁, a₂, a₃ and so on. The evaluated terms show the two sides of the
+equation, each multiset printed as `mset` of a list, as `value` prints it: the empty multiset on the
+left, a multiset with a₁ on the right. Nitpick (Module 9) agrees.
+It tries several sizes of the element type at once, so which counterexample it reports first can vary
+from run to run; the option `card 'a = 2` fixes the size of `'a` to two values:
+
+```isabelle
+  nitpick [card 'a = 2]
+```
+
+```output result
+Nitpicking formula...
+
+Nitpick found a counterexample for card 'a = 2:
+  Free variable:
+    xs = [a⇩1]
 ```
 
 ```isabelle
@@ -479,29 +575,18 @@ and fails the first:
 ```isabelle
 lemma "sorted (sort_keep xs)"
   quickcheck
-```
-
-```output result
-```
-
-```isabelle
   oops
 ```
 
-Nitpick finds the same kinds of counterexample; the size of list it reports can vary from run to run
-(Module 9), so the option `card` fixes the size of the element type:
-
-```isabelle
-lemma "sorted (sort_keep xs)"
-  nitpick [card 'a = 2]
-```
-
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a⇩2, a⇩1]
 ```
 
-```isabelle
-  oops
-```
+Quickcheck's small types are ordered by the index of their values, a₁ < a₂ < a₃, so the list
+`[a₂, a₁]` is out of order, and `sort_keep` returns it unchanged.
 
 Each half rules out one kind of wrong program. "Sorted" rules out programs that leave elements out of
 order; "permutation" rules out programs that lose, add or duplicate elements. Only together do they say
@@ -516,12 +601,12 @@ thm properties_for_sort
 ```
 
 ```output
+⟦mset ?ys = mset ?xs; sorted ?ys⟧ ⟹ sort ?xs = ?ys
 ```
 
 Read it as: if ys is a permutation of xs and ys is sorted, then ys is `sort xs`. So every function that
 meets the specification computes the same results as `sort`; Exercise 12.7 uses this to prove
-`isort xs = sort xs`. A specification with this property is called **complete**: it pins down the result
-for every input.
+`isort xs = sort xs`. The specification pins down the result for every input.
 
 ::: pitfall
 A common weakening of the specification uses sets instead of multisets: `sorted ys ∧ set ys = set xs`.
@@ -531,7 +616,7 @@ have the same score. Exercise 12.8 builds such a function and lets Quickcheck ex
 :::
 
 ::: note
-Not every specification has to be complete. A specification that allows several results is useful
+Not every specification has to pin down the result. A specification that allows several results is useful
 when any of them will do: "return some element of the list", "return a shortest path". But then
 "meets the specification" is all the theorem promises, and the users of the program must not rely on
 which result they get.
@@ -574,10 +659,21 @@ fun set_of :: "'a btree ⇒ 'a set" where
 set it represents, the abstract value. Section 12.6 makes the idea general.
 
 ::: note
-The `datatype` command defines such a function by itself, called `set_btree`, together with
-others such as `map_btree` (the Isabelle manual on datatypes, `datatypes.pdf`, lists them). It means the
-same as `set_of`. This module defines its own, so that the abstraction function is visible in the
-theory, with equations you can read.
+The `datatype` command defines such a function by itself, called `set_btree`, together with others such
+as `map_btree` (the Isabelle manual on datatypes, `datatypes.pdf`, lists them). Its equations, with
+variable names that Isabelle generated, say the same as those of `set_of`:
+
+```isabelle
+thm btree.set
+```
+
+```output
+  set_btree Lf = {}
+  set_btree (Nd ?x21.0 ?x22.0 ?x23.0) =
+  set_btree ?x21.0 ∪ {?x22.0} ∪ set_btree ?x23.0
+```
+
+This module defines its own function, so that the abstraction function is visible in the theory.
 :::
 
 ### Search and insertion {#bst-ops}
@@ -614,9 +710,22 @@ value "isin 7 t0"
 ```
 
 ```output all
+consts
+  t0 :: "int btree"
+
+"{5, 2, 1, 4, 8, 9}"
+  :: "int set"
+
+"True"
+  :: "bool"
+
+"False"
+  :: "bool"
 ```
 
-The search for 4 goes left at 5 and right at 2, and finds 4. The search for 7 goes right at 5, left at
+A set has no order: Isabelle prints the keys in the order in which the generated code collected them, and
+`{5, 2, 1, 4, 8, 9}` is the same set as `{1, 2, 4, 5, 8, 9}`. The search for 4 goes left at 5 and right
+at 2, and finds 4. The search for 7 goes right at 5, left at
 8, and reaches a leaf: 7 is not there. Inserting 6 takes the same path as the search for 7, and puts a
 new node where that search ended:
 
@@ -625,6 +734,8 @@ value "tinsert 6 t0"
 ```
 
 ```output
+"Nd (Nd (Nd Lf 1 Lf) 2 (Nd Lf 4 Lf)) 5 (Nd (Nd Lf 6 Lf) 8 (Nd Lf 9 Lf))"
+  :: "int btree"
 ```
 
 ::: figure id=fig-12-2
@@ -643,6 +754,8 @@ value "isin 6 (Nd (Nd Lf 1 (Nd Lf 6 Lf)) 5 (Lf :: int btree))"
 ```
 
 ```output
+"False"
+  :: "bool"
 ```
 
 The key 6 is in the tree, but the search goes right at 5 and finds a leaf. The functions are not wrong;
@@ -673,6 +786,11 @@ value "bst (Nd (Nd Lf 1 (Nd Lf 6 Lf)) 5 (Lf :: int btree))"
 ```
 
 ```output all
+"True"
+  :: "bool"
+
+"False"
+  :: "bool"
 ```
 
 The specification of search trees now has three parts, and Section 12.6 shows that they are an instance
@@ -710,13 +828,25 @@ lemma "bst_local t ⟹ isin x t = (x ∈ set_of t)"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  t = Nd Lf a⇩2 (Nd (Nd Lf a⇩1 Lf) a⇩3 Lf)
+  x = a⇩1
+Evaluated terms:
+  isin x t = False
+  x ∈ set_of t = True
 ```
 
 ```isabelle
   oops
 ```
 
-COUNTEREXAMPLE_EXPLANATION
+Draw the tree. Its root holds a₂ and has an empty left subtree. The right child holds a₃, and the left
+child of that node holds a₁. Each node is in order with its children: a₃ is larger than a₂, and a₁ is
+smaller than a₃. So `bst_local` holds. But a₁ is smaller than a₂ and sits in a₂'s right subtree. The
+search for a₁ compares it with a₂, goes left and finds a leaf: `isin` answers False, although a₁ is in
+the tree. The evaluated terms show exactly this.
 
 ::: pitfall
 An invariant about a recursive structure usually has to speak about whole subtrees, not only about
@@ -735,13 +865,29 @@ lemma "bst t ⟹ bst (tinsert x t)"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. ⋀t1 x2 t2 xa.
+       ⟦bst (tinsert x t1); bst (tinsert x t2); bst t1; bst t2;
+        ∀y∈set_of t1. y < x2; ∀x∈set_of t2. x2 < x; x2 < x; ¬ x < x2;
+        xa ∈ set_of (tinsert x t2)⟧
+       ⟹ x2 < xa
+ 2. ⋀t1 x2 t2 y.
+       ⟦bst (tinsert x t1); bst (tinsert x t2); bst t1; bst t2;
+        ∀y∈set_of t1. y < x2; ∀x∈set_of t2. x2 < x; ¬ x2 < x; x < x2;
+        y ∈ set_of (tinsert x t1)⟧
+       ⟹ y < x2
 ```
 
 ```isabelle
   oops
 ```
 
-BST_STUCK_EXPLANATION
+Two goals remain, one for each direction in which `tinsert` descends. Look at the first: insertion went
+right (x2 < x, where x2 is the key at the node), and the goal asks that x2 be smaller than every key xa
+of `tinsert x t2`. The premises say that x2 is smaller than every key of t2 and smaller than x. That
+would be enough if `auto` knew that the keys of `tinsert x t2` are x and the keys of t2, which is the
+second part of the specification. Prove it first, and pass it to `auto`:
 
 ```isabelle
 lemma set_of_tinsert: "set_of (tinsert x t) = insert x (set_of t)"
@@ -755,8 +901,16 @@ The lemma `set_of_tinsert` is the second part of the specification. It plays the
 played for insertion sort: the invariant talks about the keys in subtrees, so preserving it requires
 knowing which keys insertion adds.
 
-The third part, correctness of search, needs one more idea. On paper: take a tree Nd l y r that
-satisfies the invariant, and compare x with y. There are three cases.
+The third part, correctness of search, needs no new lemma. Try the obvious induction:
+
+```isabelle
+lemma isin_set_of: "bst t ⟹ isin x t = (x ∈ set_of t)"
+  by (induction t) auto
+```
+
+It works at once. It is still worth knowing why it holds, because the argument shows where the invariant
+is needed. On paper: take a tree Nd l y r that satisfies the invariant, and compare x with y. There are
+three cases.
 
 - **x < y.** The search continues in l, and by the induction hypothesis it answers whether x ∈ set_of l.
   That is the right answer, because x cannot be y, and x cannot be in r, whose keys are all larger than
@@ -764,41 +918,9 @@ satisfies the invariant, and compare x with y. There are three cases.
 - **x = y.** The search stops and answers True, which is right.
 - **y < x.** The mirror image of the first case.
 
-The rule `linorder_cases` from the library splits a proof into exactly these three cases:
-
-```isabelle
-thm linorder_cases
-```
-
-```output
-```
-
-Its cases are named `less`, `equal` and `greater`. With it, the Isar proof follows the paper proof:
-
-```isabelle
-lemma isin_set_of: "bst t ⟹ isin x t = (x ∈ set_of t)"
-proof (induction t)
-  case Lf
-  show ?case by simp
-next
-  case (Nd l y r)
-  show ?case
-  proof (cases x y rule: linorder_cases)
-    case less
-    with Nd show ?thesis by auto
-  next
-    case equal
-    then show ?thesis by simp
-  next
-    case greater
-    with Nd show ?thesis by auto
-  qed
-qed
-```
-
-In the cases `less` and `greater`, `Nd` passes the induction hypotheses and the premise `bst (Nd l y r)`;
-`auto` unfolds the premise into the facts about the keys of l and r, and concludes that x cannot be
-in the other subtree.
+The invariant is used twice in each of the outer cases: once for the induction hypothesis, which needs
+the subtree to be a search tree, and once to rule out the other subtree. `auto` found both uses by itself,
+because the definition of `bst` is a simplification rule.
 
 ## Data refinement {#refinement}
 
@@ -850,8 +972,8 @@ lemma "bst t ⟹ isin y (tinsert x t) = (y = x ∨ isin y t)"
 ```
 
 The simplifier turns both sides into statements about `set_of t`, where the claim is a law of sets. The
-definitions of `isin` and `tinsert` are not used: if you replaced the trees by balanced trees with the
-same three lemmas, this proof would not change.
+proof never looks inside `isin` or `tinsert`: if you replaced the trees by balanced trees with the same
+three lemmas, this proof would not change.
 
 ### A queue made of two lists {#queue}
 
@@ -883,6 +1005,8 @@ value "list_of (Queue [1, 2] [4, 3 :: nat])"
 ```
 
 ```output
+"[1, 2, 3, 4]"
+  :: "nat list"
 ```
 
 Now the operations. `refill` moves the back list to the front when the front list is empty; `enq`
@@ -916,9 +1040,14 @@ value "deq (Queue [1] [4, 3, 2 :: nat])"
 ```
 
 ```output all
+"Queue [1, 2] [5, 4, 3]"
+  :: "nat queue"
+
+"Queue [2, 3, 4] []"
+  :: "nat queue"
 ```
 
-Adding 5 conses it onto the back list. Removing 1 empties the front list, so `refill` reverses the back
+Adding 5 puts it at the head of the back list. Removing 1 empties the front list, so `refill` reverses the back
 list into the front: `[4, 3, 2]` becomes `[2, 3, 4]`. Every element is moved from the back to the front
 at most once, so on average each operation takes a constant number of steps, although a single `deq`
 may take longer. (That is a claim about running time, which this module does not prove; the theory
@@ -969,13 +1098,22 @@ lemma "list_of (enq x q) = list_of q @ [x]"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀x1 x2.
+       q = Queue x1 x2 ⟹
+       list_of (refill (Queue x1 (x # x2))) = x1 @ rev x2 @ [x]
 ```
 
 ```isabelle
   oops
 ```
 
-ENQ_STUCK_EXPLANATION
+`cases q` names the two lists of the queue x1 and x2. `auto` has unfolded `enq` and `list_of` on the
+right, but on the left it is stuck at `refill (Queue x1 (x # x2))`. The equations of `refill` depend on
+whether the front list x1 is empty, and `auto` does not split on that by itself. You could tell it to,
+but there is a better way: state once and for all what `refill` does to the list a queue represents,
+namely nothing. That lemma will serve every operation that calls `refill`:
 
 ```isabelle
 lemma list_of_refill: "list_of (refill q) = list_of q"
@@ -999,16 +1137,24 @@ lemma "list_of (deq q) = tl (list_of q)"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  q = Queue [] [a⇩1]
+Evaluated terms:
+  list_of (deq q) = [a⇩1]
+  tl (list_of q) = []
 ```
 
 ```isabelle
   oops
 ```
 
-QUEUE_COUNTEREXAMPLE_EXPLANATION
-
-For `deq` the invariant is needed exactly when the front list is empty. The Isar proof makes that
-visible:
+The queue `Queue [] [a₁]` has an empty front list and one element in the back list. It represents the
+list `[a₁]`, so removing the front element should leave the empty list. But `deq` sees an empty front
+list and returns the queue unchanged. This queue breaks the invariant, and no sequence of `enq` and
+`deq` starting from `qempty` builds it. So the correspondence for `deq` holds only under the invariant,
+and the invariant is needed exactly when the front list is empty. The Isar proof makes that visible:
 
 ```isabelle
 lemma list_of_deq:
@@ -1045,7 +1191,7 @@ lemma qinv_qempty: "qinv qempty"
 lemma qinv_enq: "qinv (enq x q)"
   by (cases q) (simp add: qinv_refill)
 
-lemma qinv_deq: "qinv (deq q)"
+lemma qinv_deq: "qinv q ⟹ qinv (deq q)"
   by (cases q rule: deq.cases) (auto simp: qinv_refill)
 ```
 
@@ -1083,23 +1229,52 @@ the concrete operations assume. Programs that use the structure are reasoned abo
 ## From verified functions to running code {#export}
 
 Module 8 showed how `export_code` translates HOL functions into Standard ML, OCaml, Haskell or Scala.
-Applied to verified functions, it turns them into verified programs, with a guarantee that the next part
-of this section makes precise. Export everything this module has verified, as one Haskell module:
+Applied to verified functions, it turns them into verified programs, with a guarantee that the end of
+this section makes precise. Export everything this module has verified, as one Haskell module. One
+addition first: Haskell code that uses search trees needs an empty tree to start from, so give the empty
+tree a name of its own (the reason for not using `Lf` follows below):
 
 ```isabelle
-export_code isort isin tinsert qempty enq deq first
+definition tempty :: "'a btree" where
+  "tempty = Lf"
+
+export_code isort tempty isin tinsert qempty enq deq first
   in Haskell module_name Verified
 ```
 
 ```output
+See theory exports
 ```
 
 As in Module 8, the batch build and the Output panel only say where the code went: Isabelle stores
 generated code as **theory exports**, files that belong to the theory, instead of printing it. In
 Isabelle/jEdit, *theory exports* in the message is a link. Click it, and the File Browser opens the
-folder of code exported by your theory, under the virtual address `isabelle-export:`. EXPORT_FOLDER
+folder of code exported by your theory, under the virtual address `isabelle-export:`. There, the folder
+`export1` holds the file `Verified.hs`: `export_code` numbers the exports of a theory `export1`,
+`export2`, … unless you name the folder yourself with the option `file_prefix`.
 
-EXPORT_CONTENT
+Open `Verified.hs` and you find your theory again, in Haskell. The datatypes have become Haskell `data`
+declarations: `Btree` with the constructors `Lf` and `Nd`, and `Queue` with the constructor `Queue`.
+Each function has the equations that `fun` derived from yours, with `#` written `:` and `rev` written
+`reverse`, and the functions that the exported ones need are there too: `ins`, `refill` and the
+library's `hd`. The
+comparisons `≤` and `<` have become `less_eq` and `less`, the operations of a Haskell type class `Ord`
+that Isabelle generates from its own class `ord`; the classes `preorder`, `order` and `linorder` become
+Haskell classes too (Module 8 compared type classes with Haskell's). The first lines of the module list
+what it exports: the functions, and the types `Btree` and `Queue` without their constructors.
+
+That last point protects the invariants. Other Haskell code can build trees only from `tempty` with
+`tinsert`, and queues only from `qempty` with `enq` and `deq`, so it cannot build a tree that breaks
+`bst` or a queue that breaks `qinv`. Had the list named the constructor `Lf` instead of `tempty`,
+Isabelle would have exported the type `Btree` with all its constructors, `Nd` included, and with them
+the power to build any tree at all.
+
+One more thing stays inside the module: the classes `Ord`, `Preorder` and `Order` on which `Linorder`
+builds. As exported here, other Haskell code cannot say how to compare the elements of its own types,
+so it cannot yet call `isort` or the tree functions. Writing `export_code open …` exports everything:
+the classes with their operations, and the datatypes with their constructors. Then the functions can be
+used on any type, but the protection of the invariants is gone. Choosing what to export is part of
+designing the interface of verified code.
 
 ### What is guaranteed {#guarantee}
 
@@ -1122,24 +1297,20 @@ What the guarantee rests on is the trusted base of Module 1, enlarged by the ste
 - **The machine**: the hardware, the operating system, and limits that the logic does not know about.
   In the logic `isort` works on lists of any length; a real computer runs out of memory or stack at some
   length.
-- **The code around it.** The theorems about `deq` and `first` assume the invariant `qinv`. They hold for
-  queues built with `qempty`, `enq` and `deq`. Hand-written code that builds a `Queue` value directly may
-  break the invariant, and then nothing is promised.
+- **The code around it.** The theorems about `isin`, `deq` and `first` assume the invariants `bst` and
+  `qinv`. The generated module keeps them safe from other Haskell code, as described above, but not
+  from code that edits the generated file or exports the constructors: a tree or queue that breaks its
+  invariant voids the promise.
 - **The specification.** A verified function does what its specification says. Whether that is what
   the users need is still validation.
 
 ::: note
-Any customisation of the code generator joins the trusted base too. Library theories such as
-`HOL-Library.Code_Target_Nat`, which Module 8 mentioned, make the generated code use the target
-language's own integers instead of a datatype of natural numbers. That is faster, and it is safe as long
-as the target's integers behave like mathematical ones, which Haskell's `Integer` does; but the
-correspondence is set up by hand in the library, and the kernel does not check it.
-:::
-
-::: tip
-You can test the generated code without leaving Isabelle: `export_code … checking SML` translates the
-functions into Standard ML and compiles the result with the ML compiler that runs Isabelle itself. A
-check for Haskell, OCaml or Scala needs that language's compiler to be installed and configured.
+Some correspondences between HOL and the target language are set up by hand, and they belong to the
+trusted base as well. Even the default set-up has a few: the generated code uses Haskell's own lists,
+Booleans and `reverse`. Library theories such as `HOL-Library.Code_Target_Nat`, which Module 8
+mentioned, add more: they make the generated code use the target language's own integers instead of a
+datatype of natural numbers. That is faster, and it is safe as long as the target's integers behave like
+mathematical ones, which Haskell's `Integer` does; but the kernel does not check it.
 :::
 
 ## What you learned {#summary}
@@ -1199,6 +1370,10 @@ lemma "sorted (rev (isort xs))"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a⇩1, a⇩2]
 ```
 
 ```isabelle
@@ -1208,6 +1383,13 @@ lemma "mset (remdups (isort xs)) = mset xs"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a⇩1, a⇩1]
+Evaluated terms:
+  mset (remdups (isort xs)) = mset [a⇩1]
+  mset xs = mset [a⇩1, a⇩1]
 ```
 
 In the first proof `simp` also uses the library's `mset_rev`, `mset (rev xs) = mset xs`, which is a
@@ -1236,6 +1418,17 @@ value "enq 4 (qempty :: nat queue)"
 ```
 
 ```output all
+"[1, 2, 3]"
+  :: "nat list"
+
+"False"
+  :: "bool"
+
+"Queue [2, 3] []"
+  :: "nat queue"
+
+"Queue [4] []"
+  :: "nat queue"
 ```
 :::
 ::::
@@ -1263,10 +1456,25 @@ child of 4.
 value "bst (Nd (Nd Lf 2 Lf) 3 (Nd Lf 1 Lf) :: int btree)"
 value "bst (Nd Lf 1 (Nd (Nd Lf 2 Lf) 3 Lf) :: int btree)"
 value "bst (Nd (Nd Lf 1 (Nd Lf 4 Lf)) 3 (Nd Lf 5 Lf) :: int btree)"
+value "bst_local (Nd (Nd Lf 1 (Nd Lf 4 Lf)) 3 (Nd Lf 5 Lf) :: int btree)"
 value "tinsert 3 t0"
 ```
 
 ```output all
+"False"
+  :: "bool"
+
+"True"
+  :: "bool"
+
+"False"
+  :: "bool"
+
+"True"
+  :: "bool"
+
+"Nd (Nd (Nd Lf 1 Lf) 2 (Nd (Nd Lf 3 Lf) 4 Lf)) 5 (Nd Lf 8 (Nd Lf 9 Lf))"
+  :: "int btree"
 ```
 :::
 ::::
@@ -1297,6 +1505,11 @@ Prove `length (isort xs) = length xs` in two ways.
    ```
 
    ```output result
+   find_theorems
+     "size (mset _)"
+
+   found 1 theorem(s):
+     Multiset.size_mset: size (mset ?xs) = length ?xs
    ```
 
    `size_mset` is a simp rule, so `simp` turns the sizes into lengths:
@@ -1341,6 +1554,9 @@ lemma "sorted (isort_bad xs)"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.
 ```
 
 but refutes the second:
@@ -1352,6 +1568,13 @@ lemma "mset (isort_bad xs) = mset xs"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = [a⇩1, a⇩1]
+Evaluated terms:
+  mset (isort_bad xs) = mset [a⇩1]
+  mset xs = mset [a⇩1, a⇩1]
 ```
 
 Dropping y does not disorder the list: x ≤ y and y is at most every element of ys, so `x # ys` is still
@@ -1380,6 +1603,13 @@ lemma "isempty q = (list_of q = [])"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  q = Queue [] [a⇩1]
+Evaluated terms:
+  isempty q = True
+  list_of q = [] = False
 ```
 
 The counterexample has an empty front list and a non-empty back list: `isempty` answers True for a
@@ -1446,7 +1676,7 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
      by (induction t) auto
 
    lemma sorted_inorder: "bst t ⟹ sorted (inorder t)"
-     by (induction t) (fastforce simp: sorted_append set_inorder)
+     by (induction t) (auto simp: sorted_append set_inorder intro: less_imp_le less_trans)
 
    lemma bst_build: "bst (build xs)"
      by (induction xs) (auto simp: bst_tinsert)
@@ -1458,7 +1688,11 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
      by (simp add: tsort_def sorted_inorder bst_build set_inorder set_of_build)
    ```
 
-   SORTED_INORDER_EXPLANATION
+   `sorted_inorder` is the hard one. With `sorted_append` and `set_inorder` alone, `auto` stops at a goal
+   `x ≤ xa` for a key x of the left subtree and a key xa of the right subtree: it has `x < x2` and
+   `x2 < xa` for the key x2 at the node, but does not chain them. The library rules `less_trans`
+   (from `x < y` and `y < z` conclude `x < z`) and `less_imp_le` (from `x < y` conclude `x ≤ y`), given
+   to `auto` with `intro:` (Module 9), supply the missing steps.
 
 2. ```isabelle
    lemma "mset (tsort xs) = mset xs"

@@ -121,11 +121,13 @@ Rules:
     never compared, and labelled on the page as one run. Combine: ` ```output result varies `.
 - What readers see in Isabelle/jEdit and what the batch build prints differ in a few ways; write the
   page so that both agree with it:
-  - Isabelle/jEdit runs Auto Quickcheck, Auto Nitpick-style tools and Auto solve_direct on every new
-    `lemma` automatically; the batch build does not. When you show a counterexample, call
+  - Isabelle/jEdit runs Auto Quickcheck and Auto solve_direct on every new `lemma` automatically (Auto
+    Nitpick and Auto Sledgehammer are off by default); the batch build runs none of them. When you show a counterexample, call
     `quickcheck` or `nitpick` explicitly in the block, and say that jEdit also shows it automatically.
-  - The batch build prints `theorem …` for a finished lemma at the `lemma` line; jEdit shows it at the
-    end of the proof. Use `output state` after a lemma statement so that only the goal is shown.
+  - The batch build prints `theorem …` for a lemma at the `lemma` line, even when its proof then fails, so a
+    `theorem` line is no evidence that a proof worked; only `all outputs match` with no reported error is.
+    jEdit shows it at the end of the proof. Use `output state` after a lemma statement so that only the
+    goal is shown.
   - Readers have ticked **Proof state** (Module 1), so they see proof states in the Output panel.
   - Positions in messages print as ⌂.
 - Nitpick searches several sizes in parallel, so the size of the counterexample it reports can change
