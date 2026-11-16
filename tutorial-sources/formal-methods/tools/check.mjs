@@ -106,6 +106,10 @@ for (const f of pages) {
       if (!names.has(name)) { err(`${lang}/${f}:${line}`, `link to ${href}: no such page`); continue }
       if (suffix && suffix !== lang.toUpperCase()) err(`${lang}/${f}:${line}`, `link to ${href} points to the other language`)
     }
+    // A fence that opens on a list-marker line ("2. ```isabelle") is shown on the page but never checked by isa.py.
+    src.split('\n').forEach((ln, i) => {
+      if (/^\s*(\d+[.)]|[-*+])\s+`{3,}\s*(isabelle|output)/.test(ln)) err(`${lang}/${f}:${i + 1}`, 'a code fence on a list-item line is not checked by isa.py: put the fence on its own line, indented under the item')
+    })
     if (f.startsWith('module_')) {
       for (const k of ['title', 'lead', 'minutes', 'needs', 'part']) if (!s.meta[k]) err(`${lang}/${f}`, `front matter has no ${k}`)
       if (!Array.isArray(s.meta.goals) || !s.meta.goals.length) err(`${lang}/${f}`, 'front matter has no goals')
