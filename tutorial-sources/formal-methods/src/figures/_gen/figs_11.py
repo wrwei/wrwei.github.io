@@ -43,7 +43,7 @@ def fig_11_1(L):
     return s
 
 
-def fig_11_2(L):
+def fig_11_3(L):
     T = {'en': dict(title='Rule induction follows the derivation',
                     eps='ε', h1='A derivation of bal (())()', n1='Read from the top: each bar is one',
                     n1b='rule application, with the rule’s name.', n2='Rule induction shows that every rule',
@@ -98,7 +98,7 @@ def fig_11_2(L):
     return s
 
 
-def fig_11_3(L):
+def fig_11_2(L):
     T = {'en': dict(title='Computation induction follows the recursion of merge',
                     run='One run:', eqs='The equations of merge', cases='The cases of merge.induct',
                     c3='assuming', ih='one induction hypothesis per recursive call',

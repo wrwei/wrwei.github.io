@@ -274,6 +274,13 @@ def clean(body):
     return HERE_POS.sub('⌂', body)
 
 
+def same_text(a, b):
+    """Equal apart from whitespace and line wrapping, ignoring the *** and ### prefixes of wrapped lines."""
+    def norm(lines):
+        return ' '.join(' '.join(re.sub(r'^(\*\*\*|###)( |$)', '', x) for x in lines).split())
+    return norm(a) == norm(b)
+
+
 def block_messages(th_name, start, nlines, msgs, opts):
     """The messages for an output block after a block of nlines lines starting at `start`."""
     lines_with = sorted(line for (f, line) in msgs if f == th_name + '.thy' and start <= line < start + nlines)
@@ -372,6 +379,8 @@ def main():
                     varies = 'varies' in b['output']['opts']
                     if varies and [x for x in have if x.strip()] and want:
                         pass        # captured once from a real run; differs between runs (e.g. Sledgehammer)
+                    elif same_text(have, want):
+                        pass        # equal up to line wrapping (Isabelle wraps the two copies of an error differently)
                     elif [x.rstrip() for x in have] != [x.rstrip() for x in want]:
                         problems += 1
                         print(f'--- {rel}:{b["output"]["start"] + 1}: output differs')

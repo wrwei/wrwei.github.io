@@ -80,8 +80,6 @@ value "allows [(''ann'', Read), (''bob'', Write)] ''bob'' Write"
 ```
 
 ```output
-"True"
-  :: "bool"
 ```
 
 ```isabelle
@@ -89,8 +87,6 @@ value "revoke ''ann'' (grant ''ann'' Admin [(''bob'', Write), (''ann'', Read)])"
 ```
 
 ```output
-"[(''bob'', Write)]"
-  :: "(char list × perm) list"
 ```
 
 The type in the second answer shows that a string is a list of characters, `char list`.
@@ -162,9 +158,6 @@ lemma "allows (grant u Read es) u Read"
 ```
 
 ```output state
-proof (prove)
-goal (1 subgoal):
- 1. allows ((u, Read) # es) u Read
 ```
 
 `grant_def` is the theorem that the `definition` command created: `grant ?u ?p ?es = (?u, ?p) # ?es`. It
@@ -175,9 +168,6 @@ is rule (1). Rule (2) belongs to `allows.simps`, the equations that `fun` proved
 ```
 
 ```output state
-proof (prove)
-goal (1 subgoal):
- 1. (u, Read) = (u, Read) ∨ allows es u Read
 ```
 
 Even `(u, Read) = (u, Read)` is left untouched, because you allowed no rule that applies to it. Rules (3)
@@ -189,9 +179,6 @@ and (4) belong to `simp_thms`, a collection of basic laws of logic:
 ```
 
 ```output state
-proof (prove)
-goal:
-No subgoals!
 ```
 
 ### Where simp rules come from {#simp-rules}
@@ -265,7 +252,10 @@ lemma "allows (grant u p es) v q = ((v, q) = (u, p) ∨ allows es v q)"
 ```output
 *** Failed to finish proof⌂:
 *** goal (1 subgoal):
-***  1. (u = v ∧ p = q ∨ allows es v q) = (v = u ∧ q = p ∨ allows es v q)
+***  1. (u = v ∧ p = q ∨ allows es v q) =
+***     (v = u ∧ q = p ∨
+***      allows es v
+***       q)
 ```
 
 The simplifier rewrote both sides as far as it could and was left with `u = v ∧ p = q` on the left and
@@ -309,12 +299,6 @@ lemma allows_append [simp]:
 ```
 
 ```output state
-proof (prove)
-goal (2 subgoals):
- 1. allows ([] @ fs) u p = (allows [] u p ∨ allows fs u p)
- 2. ⋀a es.
-       allows (es @ fs) u p = (allows es u p ∨ allows fs u p) ⟹
-       allows ((a # es) @ fs) u p = (allows (a # es) u p ∨ allows fs u p)
 ```
 
 ```isabelle
@@ -378,9 +362,6 @@ lemma "allows (revoke u es) v p = allows es v p"
 ```
 
 ```output
-*** Failed to apply initial proof method⌂:
-*** goal (1 subgoal):
-***  1. allows (revoke u es) v p = allows es v p
 ```
 
 The simplifier is right to stop: the claim is false when `v = u`.
@@ -440,7 +421,6 @@ thm if_split
 ```
 
 ```output result
-?P (if ?Q then ?x else ?y) = ((?Q ⟶ ?P ?x) ∧ (¬ ?Q ⟶ ?P ?y))
 ```
 
 Read `?P` as "the rest of the goal around the `if`". The simplifier splits `if`s automatically. You can
@@ -453,15 +433,6 @@ lemma allows_revoke: "allows (revoke u es) v p = (v ≠ u ∧ allows es v p)"
 ```
 
 ```output state
-proof (prove)
-goal (1 subgoal):
- 1. ⋀a es.
-       allows (revoke u es) v p = (v ≠ u ∧ allows es v p) ⟹
-       (fst a = u ⟶
-        (v ≠ u ∧ allows es v p) = (v ≠ u ∧ (a = (v, p) ∨ allows es v p))) ∧
-       (fst a ≠ u ⟶
-        (a = (v, p) ∨ v ≠ u ∧ allows es v p) =
-        (v ≠ u ∧ (a = (v, p) ∨ allows es v p)))
 ```
 
 The base case is proved. In the step case the simplifier unfolded `revoke u (a # es)`, split the `if` on
@@ -497,9 +468,6 @@ lemma "may_delete u es = (owner es = Some u)"
 ```
 
 ```output state
-proof (prove)
-goal (1 subgoal):
- 1. (case owner es of None ⇒ False | Some v ⇒ v = u) = (owner es = Some u)
 ```
 
 The modifier `split:` names a rule that splits a `case`. For a datatype `t` the rule is called `t.split`,
@@ -510,8 +478,6 @@ thm option.split
 ```
 
 ```output result
-?P (case ?option of None ⇒ ?f1.0 | Some x ⇒ ?f2.0 x) =
-((?option = None ⟶ ?P ?f1.0) ∧ (∀x2. ?option = Some x2 ⟶ ?P (?f2.0 x2)))
 ```
 
 The rule turns the `case` into two implications, one for each constructor, just as `if_split` does for an
@@ -570,7 +536,6 @@ thm insert_commute
 ```
 
 ```output result
-insert ?x (insert ?y ?A) = insert ?y (insert ?x ?A)
 ```
 
 Used again and again, the rule would swap `x` and `y` back and forth. Isabelle recognises such
@@ -585,9 +550,6 @@ lemma "insert b (insert a A) = X"
 ```
 
 ```output state
-proof (prove)
-goal (1 subgoal):
- 1. insert a (insert b A) = X
 ```
 
 The goal `insert a (insert b A) = X` is already in order, so the rule does not apply to it again. Applied
@@ -607,10 +569,6 @@ thm Un_ac
 ```
 
 ```output result
-  ?A ∪ ?B ∪ ?C = ?A ∪ (?B ∪ ?C)
-  ?A ∪ (?A ∪ ?B) = ?A ∪ ?B
-  ?A ∪ ?B = ?B ∪ ?A
-  ?A ∪ (?B ∪ ?C) = ?B ∪ (?A ∪ ?C)
 ```
 
 ```isabelle
@@ -620,9 +578,6 @@ lemma "C ∪ B ∪ A = X"
 ```
 
 ```output state
-proof (prove)
-goal (1 subgoal):
- 1. A ∪ (B ∪ C) = X
 ```
 
 Two unions with the same operands in any order and grouping reach the same normal form, so their equality
@@ -639,23 +594,34 @@ lemma "allows (grant u Read es) u Read"
   using [[simp_trace]] by simp
 ```
 
-The **trace** appears in the Output panel, below the proof state. For this proof it begins:
+The **trace** appears in the Output panel, below the proof state. For this proof it reads:
 
 ```text
 [1]SIMPLIFIER INVOKED ON THE FOLLOWING TERM:
 allows (grant u Read es) u Read
-[1]Applying instance of rewrite rule "Module_09.allows_grant":
-allows (grant ?u ?p ?es) ?v ?q ≡ (?u, ?p) = (?v, ?q) ∨ allows ?es ?v ?q
+[1]Applying instance of rewrite rule "allows_grant":
+allows (grant ?u1 ?p1 ?es1) ?v1 ?q1 ≡
+(?u1, ?p1) = (?v1, ?q1) ∨ allows ?es1 ?v1 ?q1
 [1]Rewriting:
 allows (grant u Read es) u Read ≡ (u, Read) = (u, Read) ∨ allows es u Read
+[1]Applying instance of rewrite rule "simp_thms(6)":
+?x1 = ?x1 ≡ True
+[1]Rewriting:
+(u, Read) = (u, Read) ≡ True
+[1]Applying instance of rewrite rule "simp_thms(30)":
+True ∨ ?P1 ≡ True
+[1]Rewriting:
+True ∨ allows es u Read ≡ True
 ```
 
-Each "Applying instance of rewrite rule" names a rule, written with `≡`, the equality of Isabelle's
-meta-logic in which rewrite rules are stored. Each "Rewriting:" shows the instance that was used: which part
-of the goal, and what it became. The `[1]` is the depth: when the simplifier calls itself to prove the
-condition of a conditional rule, those steps are marked `[2]`. They are hidden unless you also raise the
-option `simp_trace_depth_limit`, whose default is 1, for example with `using [[simp_trace,
-simp_trace_depth_limit = 3]]`.
+These are the steps of the example in Section 9.2, except that the simplifier used the lemma
+`allows_grant` instead of unfolding `grant`. Each "Applying instance of rewrite rule" names a rule:
+`simp_thms(6)` is the sixth law in `simp_thms`. The rule is written with `≡`, the equality of Isabelle's
+meta-logic in which rewrite rules are stored, and with its variables numbered (`?u1`). Each "Rewriting:"
+shows the instance that was used: which part of the goal, and what it became. The `[1]` is the depth.
+When the simplifier calls itself to prove the condition of a conditional rule, those steps are marked
+`[2]`; they are hidden unless you also raise the option `simp_trace_depth_limit`, whose default is 1, for
+example with `using [[simp_trace, simp_trace_depth_limit = 3]]`.
 
 A trace can be long. Isabelle/jEdit shows at most 1000 trace messages for a command, then pauses with the
 message "Tracing paused. Stop, or continue with next 100, 1000, 10000 messages?". If that happens with a
@@ -687,7 +653,6 @@ thm relcomp_unfold
 ```
 
 ```output result
-?r O ?s = {(x, z). ∃y. (x, y) ∈ ?r ∧ (y, z) ∈ ?s}
 ```
 
 ### blast {#blast}
@@ -744,9 +709,6 @@ lemma "(u, p) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r, p)})"
 ```
 
 ```output state
-proof (prove)
-goal (1 subgoal):
- 1. ⋀y. ⟦(u, y) ∈ UR; (y, p) ∈ RP⟧ ⟹ (u, p) ∈ UR O (RP - {(r, p)})
 ```
 
 `auto` took the composition apart and left one subgoal, which you can read as a statement about roles. It
@@ -765,6 +727,9 @@ lemma "⟦∀xs ∈ A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n 
 ```
 
 ```output
+*** Failed to apply initial proof method⌂:
+*** goal (1 subgoal):
+***  1. ⟦∀xs∈A. ∃ys. xs = ys @ ys; us ∈ A⟧ ⟹ ∃n. length us = n + n
 ```
 
 `auto` could do nothing with this goal, and `blast` fails too, because the proof needs the equation
@@ -793,9 +758,6 @@ lemma "∀u. (u, Write) ∈ UR O RP ⟶ (u, Read) ∈ UR O RP"
 ```
 
 ```output state
-proof (prove)
-goal (1 subgoal):
- 1. ⋀x y. ⟦(x, y) ∈ UR; (y, Write) ∈ RP⟧ ⟹ (x, Read) ∈ UR O RP
 ```
 
 `clarsimp` removed the `∀` and the `⟶`, and took apart the assumption `(x, Write) ∈ UR O RP` into a role
@@ -909,11 +871,6 @@ find_theorems "rev (rev _)"
 ```
 
 ```output result
-find_theorems
-  "rev (rev _)"
-
-found 1 theorem(s):
-  List.rev_rev_ident: rev (rev ?xs) = ?xs
 ```
 
 The answer gives the full name, `List.rev_rev_ident`: the theory and the theorem. You can use it as
@@ -924,13 +881,6 @@ find_theorems (3) "_ * _ ≤ _ * _"
 ```
 
 ```output result
-find_theorems
-  "_ * _ ≤ _ * _"
-
-found 31 theorem(s) (3 displayed):
-  Nat.mult_le_mono1: ?i ≤ ?j ⟹ ?i * ?k ≤ ?j * ?k
-  Nat.mult_le_mono2: ?i ≤ ?j ⟹ ?k * ?i ≤ ?k * ?j
-  Nat.Suc_mult_le_cancel1: (Suc ?k * ?m ≤ Suc ?k * ?n) = (?m ≤ ?n)
 ```
 
 The `(3)` limits the display to three of the matches. Narrow the search instead. Give the type, and add a
@@ -941,14 +891,6 @@ find_theorems "(_::nat) * _ ≤ _ * _" name: mono
 ```
 
 ```output result
-find_theorems
-  "_ * _ ≤ _ * _"
-  name: "mono"
-
-found 3 theorem(s):
-  Nat.mult_le_mono1: ?i ≤ ?j ⟹ ?i * ?k ≤ ?j * ?k
-  Nat.mult_le_mono2: ?i ≤ ?j ⟹ ?k * ?i ≤ ?k * ?j
-  Nat.mult_le_mono: ⟦?i ≤ ?j; ?k ≤ ?l⟧ ⟹ ?i * ?k ≤ ?j * ?l
 ```
 
 `mult_le_mono` fits: with `x ≤ y` twice, it gives `x * x ≤ y * y`. The simplifier can use it as a
@@ -976,11 +918,6 @@ find_theorems simp: "set (filter _ _)"
 ```
 
 ```output result
-find_theorems
-  simp: "set (filter _ _)"
-
-found 1 theorem(s):
-  List.set_filter: set (filter ?P ?xs) = {x ∈ set ?xs. ?P x}
 ```
 
 `find_consts` finds functions by their type. Which functions turn a list into a set?
@@ -990,13 +927,6 @@ find_consts "'a list ⇒ 'a set"
 ```
 
 ```output result
-find_consts
-  "'a list ⇒ 'a set"
-
-found 3 constant(s):
-  BNF_Greatest_Fixpoint.Succ :: "'a list set ⇒ 'a list ⇒ 'a set"
-  List.coset :: "'a list ⇒ 'a set"
-  List.list.set :: "'a list ⇒ 'a set"
 ```
 
 Besides `set`, the answer contains `coset`, and a function whose type contains `'a list ⇒ 'a set` as a
@@ -1028,11 +958,6 @@ lemma "allows es u Write ⟹ allows es u Read"
 ```
 
 ```output result
-Testing conjecture with Quickcheck-exhaustive...
-
-Quickcheck found a counterexample:
-  es = [(a⇩1, Write)]
-  u = a⇩1
 ```
 
 The counterexample is a list with a single entry. `a₁` is a value of the user type `'u`, about which
@@ -1056,11 +981,6 @@ lemma "allows es u Write ⟹ allows es u Read"
 ```
 
 ```output result
-Testing conjecture with Quickcheck-random...
-
-Quickcheck found a counterexample:
-  es = [(a⇩1, Write)]
-  u = a⇩1
 ```
 
 When a claim involves a function's result, Quickcheck also shows the values of the terms involved. Does
@@ -1073,14 +993,6 @@ lemma "revoke u (grant u p es) = es"
 ```
 
 ```output result
-Testing conjecture with Quickcheck-exhaustive...
-
-Quickcheck found a counterexample:
-  u = a⇩1
-  p = Read
-  es = [(a⇩1, Read)]
-Evaluated terms:
-  revoke u (grant u p es) = []
 ```
 
 The list already contained an entry of user `a₁`, and `revoke` removed that one too. On a true claim
@@ -1093,9 +1005,6 @@ lemma "allows (revoke u es) v p = (v ≠ u ∧ allows es v p)"
 ```
 
 ```output result
-Testing conjecture with Quickcheck-exhaustive...
-
-Quickcheck found no counterexample.
 ```
 
 That is evidence, not proof: Quickcheck tried small values only.
@@ -1107,25 +1016,16 @@ type for each type variable and values for the free variables. It translates the
 propositional logic and hands it to a SAT solver. Because it reasons about sets, relations and quantifiers
 directly, it is good at the claims that Quickcheck finds hard to run.
 
-A claim about roles: if role `r` grants permission `p`, then after taking `r` away from user `u`, the user
-no longer has `p`.
+A claim about roles: if role `r` grants `Read`, then after taking `r` away from user `u`, the user can no
+longer read.
 
 ```isabelle
-lemma "(r::'r, p::perm) ∈ RP ⟹ (u::'u, p) ∉ (UR - {(u, r)}) O RP"
+lemma "(r::'r, Read) ∈ RP ⟹ (u::'u, Read) ∉ (UR - {(u, r)}) O RP"
   nitpick [card 'u = 1, card 'r = 2]
   oops
 ```
 
-```output result
-Nitpicking formula...
-
-Nitpick found a counterexample for card 'r = 2 and card 'u = 1:
-  Free variables:
-    RP = {(r⇩1, p⇩1), (r⇩2, p⇩1)}
-    UR = {(u⇩1, r⇩1), (u⇩1, r⇩2)}
-    p = p⇩1
-    r = r⇩2
-    u = u⇩1
+```output result varies
 ```
 
 The option `card 'r = 2` tells Nitpick to try a type `'r` with exactly two elements. Without the option
@@ -1136,17 +1036,12 @@ run. Nitpick names the elements of each type after the type: `u₁` is a user, `
 assumption that no other role of `u` grants `p`, and Nitpick finds nothing; `blast` then proves the claim:
 
 ```isabelle
-lemma "⟦(r::'r, p::perm) ∈ RP; ∀r'. (u::'u, r') ∈ UR ∧ (r', p) ∈ RP ⟶ r' = r⟧
-       ⟹ (u, p) ∉ (UR - {(u, r)}) O RP"
+lemma "⟦(r::'r, Read) ∈ RP; ∀r'. (u::'u, r') ∈ UR ∧ (r', Read) ∈ RP ⟶ r' = r⟧
+       ⟹ (u, Read) ∉ (UR - {(u, r)}) O RP"
   nitpick [card 'u = 1, card 'r = 2]
 ```
 
 ```output result
-Nitpicking goal:
-  ⟦(r, p) ∈ RP; ∀r'. (u, r') ∈ UR ∧ (r', p) ∈ RP ⟶ r' = r⟧
-  ⟹ (u, p) ∉ (UR - {(u, r)}) O RP
-
-Nitpick found no counterexample
 ```
 
 ```isabelle
@@ -1200,33 +1095,6 @@ lemma "(x::nat) ≤ y ⟹ x * x ≤ y * y"
 ```
 
 ```output result varies
-Sledgehammering...
-
-metis found a proof...
-
-metis found a proof...
-
-metis: Try this: by (metis mult_le_mono) (26 ms)
-
-metis: Duplicate proof
-
-cvc5 found a proof...
-
-cvc5: Try this: using mult_le_mono by auto (1 ms)
-
-vampire found a proof...
-
-vampire: Try this: by (simp add: mult_mono') (0.7 ms)
-
-spass found a proof...
-
-spass: Try this: by (simp add: mult_le_mono) (1 ms)
-
-verit found a proof...
-
-verit: Duplicate proof
-
-Done
 ```
 
 Read the output from the top. "Sledgehammering..." means that the provers have started. Each
@@ -1243,54 +1111,16 @@ The lemma is now proved by `metis`, and the kernel has checked every step. The `
 proves nothing: delete it once you have a proof.
 
 Sledgehammer is at its best when a goal follows from a few library facts in a way that the simplifier does
-not see. Two segments of a log that commute and have the same length are equal:
+not see. Two segments of a log that commute and have the same length are equal. `simp`, `auto` and
+`blast` all fail on this goal, but Sledgehammer finds the library lemma `append_eq_append_conv`, which says
+when two appended lists are equal, and suggests a proof such as this one:
 
 ```isabelle
 lemma "⟦es @ fs = fs @ es; length es = length fs⟧ ⟹ es = fs"
-  sledgehammer
+  by (metis append_eq_append_conv)
 ```
 
-```output result varies
-Sledgehammering...
-
-metis found a proof...
-
-metis: Try this: by (metis append_eq_append_conv) (170 ms)
-
-cvc5 found a proof...
-
-vampire found a proof...
-
-cvc5: Try this: using append_eq_append_conv by blast (2 ms)
-
-vampire: Duplicate proof
-
-e found a proof...
-
-cvc5 found a proof...
-
-cvc5: Duplicate proof
-
-e: Try this: by (metis append_eq_conv_conj) (29 ms)
-
-verit found a proof...
-
-verit: Duplicate proof
-
-zipperposition found a proof...
-
-zipperposition: Duplicate proof
-
-Done
-```
-
-```isabelle
-  using append_eq_append_conv by blast
-```
-
-This time the suggestion has the form `using fact by method`: `using` hands the library fact
-`append_eq_append_conv` to `blast`, which could not have found it alone. The fact says when two appended
-lists are equal. You may not have known that it existed, but Sledgehammer did.
+You may not have known that the lemma existed, but Sledgehammer did.
 
 Isabelle/jEdit also has a **Sledgehammer** panel at the bottom of the window. Put the cursor in a proof
 and click **Apply**: the provers run in the background while you go on working, and the results appear in
@@ -1353,18 +1183,6 @@ lemma owner_admin: "owner es = Some v ⟹ allows es v Admin"
 ```
 
 ```output state
-proof (prove)
-goal (2 subgoals):
- 1. ⋀a b es.
-       ⟦owner es = Some v ⟹ False;
-        (if b = Admin then Some (fst (a, b)) else owner es) = Some v;
-        ¬ allows es v Admin⟧
-       ⟹ a = v
- 2. ⋀a b es.
-       ⟦owner es = Some v ⟹ False;
-        (if b = Admin then Some (fst (a, b)) else owner es) = Some v;
-        ¬ allows es v Admin⟧
-       ⟹ b = Admin
 ```
 
 The base case is proved. Two subgoals of the step case remain, and both have an `if` in an assumption:
@@ -1458,11 +1276,6 @@ lemma "allows es u Admin ⟹ allows es u Write"
 ```
 
 ```output result
-Testing conjecture with Quickcheck-exhaustive...
-
-Quickcheck found a counterexample:
-  es = [(a⇩1, Admin)]
-  u = a⇩1
 ```
 :::
 ::::
@@ -1622,16 +1435,7 @@ lemma "(u::'u, p::perm) ∈ UR O RP ⟹ (u, p) ∈ UR O (RP - {(r::'r, p)})"
   oops
 ```
 
-```output result
-Nitpicking formula...
-
-Nitpick found a counterexample for card 'r = 1 and card 'u = 1:
-  Free variables:
-    RP = {(r⇩1, p⇩3)}
-    UR = {(u⇩1, r⇩1)}
-    p = p⇩3
-    r = r⇩1
-    u = u⇩1
+```output result varies
 ```
 
 With a single role, the user gets `p` only through `r`; when `r` loses `p`, so does the user. The claim
@@ -1673,11 +1477,6 @@ lemma "wf_acl es ⟹ wf_acl (grant u Write es)"
 ```
 
 ```output result
-Testing conjecture with Quickcheck-exhaustive...
-
-Quickcheck found a counterexample:
-  es = []
-  u = a⇩1
 ```
 
 The empty list is well formed, but after granting `Write` alone the user may write and not read.

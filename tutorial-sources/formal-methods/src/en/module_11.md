@@ -49,6 +49,10 @@ fun sumacc :: "nat list ⇒ nat ⇒ nat" where
 ```
 
 ```output
+consts
+  sumacc :: "nat list ⇒ nat ⇒ nat"
+
+Found termination order: "(λp. size_list size (fst p)) <*mlex*> {}"
 ```
 
 ```isabelle
@@ -56,6 +60,8 @@ value "sumacc [3, 1, 4] 0"
 ```
 
 ```output
+"8"
+  :: "nat"
 ```
 
 ::: definition Accumulator and tail recursion
@@ -96,6 +102,9 @@ lemma "sumacc xs 0 = sum_list xs"
 ```
 
 ```output
+*** Failed to finish proof⌂:
+*** goal (1 subgoal):
+***  1. ⋀a xs. sumacc xs 0 = sum_list xs ⟹ sumacc xs a = a + sum_list xs
 ```
 
 To see where, run the proof one step at a time with `apply`:
@@ -106,6 +115,11 @@ lemma "sumacc xs 0 = sum_list xs"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. sumacc [] 0 = sum_list []
+ 2. ⋀a xs.
+       sumacc xs 0 = sum_list xs ⟹ sumacc (a # xs) 0 = sum_list (a # xs)
 ```
 
 Subgoal 1 is the base case and subgoal 2 the step case. Read subgoal 2 aloud: "for all `a` and `xs`, if
@@ -117,6 +131,9 @@ head of the list `a`; the IH stands before ⟹. Now let `auto` do what it can:
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀a xs. sumacc xs 0 = sum_list xs ⟹ sumacc xs a = a + sum_list xs
 ```
 
 `auto` has solved the base case and simplified the step case as far as it can. What is left is the goal
@@ -164,6 +181,14 @@ lemma "sumacc xs acc = sum_list xs"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found a counterexample:
+  xs = []
+  acc = 1
+Evaluated terms:
+  sumacc xs acc = 1
+  sum_list xs = 0
 ```
 
 The correct generalisation passes the test, so try to prove it:
@@ -175,6 +200,11 @@ lemma "sumacc xs acc = acc + sum_list xs"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀a xs.
+       sumacc xs acc = acc + sum_list xs ⟹
+       sumacc xs (acc + a) = acc + (a + sum_list xs)
 ```
 
 ```isabelle
@@ -205,6 +235,12 @@ lemma "sumacc xs acc = acc + sum_list xs"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. ⋀acc. sumacc [] acc = acc + sum_list []
+ 2. ⋀a xs acc.
+       (⋀acc. sumacc xs acc = acc + sum_list xs) ⟹
+       sumacc (a # xs) acc = acc + sum_list (a # xs)
 ```
 
 The IH in subgoal 2 is now `(⋀acc. sumacc xs acc = acc + sum_list xs)`, which reads "for all `acc`,
@@ -263,7 +299,10 @@ next
 qed
 ```
 
-```output
+```output result
+*** Failed to apply initial proof method⌂:
+*** goal (1 subgoal):
+***  1. sumacc xs (acc + x) = acc + x + sum_list xs
 ```
 
 The goal is about `acc + x`, but `Cons.IH` is only about the fixed `acc`, so the rule does not fit.
@@ -295,6 +334,8 @@ value "oddsum 4"
 ```
 
 ```output
+"16"
+  :: "nat"
 ```
 
 ::: example A claim that is too weak
@@ -318,6 +359,9 @@ lemma "∃k. oddsum n = k * k"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀n k. oddsum n = k * k ⟹ ∃ka. Suc (k * k + 2 * n) = ka * ka
 ```
 
 ```isabelle
@@ -364,6 +408,9 @@ lemma "slowrev (slowrev xs) = xs"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀a xs. slowrev (slowrev xs) = xs ⟹ slowrev (slowrev xs @ [a]) = a # xs
 ```
 
 ```isabelle
@@ -385,6 +432,8 @@ value "slowrev ([1, 2] @ [3 :: nat])"
 ```
 
 ```output
+"[3, 2, 1]"
+  :: "nat list"
 ```
 
 The appended element comes out first, followed by the reversed rest. So the conjecture is
@@ -397,6 +446,9 @@ lemma "slowrev (ys @ [a]) = a # slowrev ys"
 ```
 
 ```output result
+Testing conjecture with Quickcheck-exhaustive...
+
+Quickcheck found no counterexample.
 ```
 
 No counterexample. The lemma has its own, easy induction, and the attribute `[simp]` adds it to the
@@ -430,6 +482,11 @@ find_theorems "rev (_ @ _)"
 ```
 
 ```output result
+find_theorems
+  "rev (_ @ _)"
+
+found 1 theorem(s):
+  List.rev_append: rev (?xs @ ?ys) = rev ?ys @ rev ?xs
 ```
 
 ::: pitfall
@@ -470,6 +527,8 @@ value "inorder (mirror (Nd (Nd Lf 1 Lf) (2::nat) (Nd Lf 3 Lf)))"
 ```
 
 ```output
+"[3, 2, 1]"
+  :: "nat list"
 ```
 
 Mirroring a tree reverses its traversal. Induction on a tree has one case for each constructor, and the
@@ -481,6 +540,13 @@ lemma "inorder (mirror t) = rev (inorder t)"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. inorder (mirror Lf) = rev (inorder Lf)
+ 2. ⋀t1 x2 t2.
+       ⟦inorder (mirror t1) = rev (inorder t1);
+        inorder (mirror t2) = rev (inorder t2)⟧
+       ⟹ inorder (mirror (Nd t1 x2 t2)) = rev (inorder (Nd t1 x2 t2))
 ```
 
 Isabelle names the parts of the node `t1`, `x2` and `t2`. Both IHs are needed, and `auto` uses them
@@ -508,6 +574,11 @@ lemma "nodes t < 2 ^ height t"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀t1 t2.
+       ⟦nodes t1 < 2 ^ height t1; nodes t2 < 2 ^ height t2⟧
+       ⟹ Suc (nodes t1 + nodes t2) < 2 * 2 ^ max (height t1) (height t2)
 ```
 
 ```isabelle
@@ -562,18 +633,26 @@ fun merge :: "nat list ⇒ nat list ⇒ nat list" where
 ```
 
 ```output
+consts
+  merge :: "nat list ⇒ nat list ⇒ nat list"
+
+Found termination order:
+  "(λp. size_list size (snd p)) <*mlex*>
+   (λp. size_list size (fst p)) <*mlex*> {}"
 ```
 
 The termination order shows that neither argument shrinks in every call. The first recursive call
-shortens the first list, the second call the second list. Isabelle combines the two lengths
-lexicographically (`<*mlex*>`): in every call, either the length of the second list decreases, or it
-stays the same and the length of the first list decreases.
+shortens the first list, the second call the second list. Isabelle measures each list by its size
+(`size_list`) and combines the two sizes lexicographically (`<*mlex*>`): in every call, either the
+second list gets smaller, or it stays the same and the first list gets smaller.
 
 ```isabelle
 value "merge [1, 4, 6] [2, 3, 7]"
 ```
 
 ```output
+"[1, 2, 3, 4, 6, 7]"
+  :: "nat list"
 ```
 
 Merging should lose no element: `length (merge xs ys) = length xs + length ys`. Try structural
@@ -586,6 +665,11 @@ lemma "length (merge xs ys) = length xs + length ys"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀a xs ys.
+       (⋀ys. length (merge xs ys) = length xs + length ys) ⟹
+       length (merge (a # xs) ys) = Suc (length xs + length ys)
 ```
 
 ```isabelle
@@ -607,14 +691,19 @@ thm merge.induct
 ```
 
 ```output result
+⟦⋀ys. ?P [] ys; ⋀v va. ?P (v # va) [];
+ ⋀x xs y ys.
+    ⟦x ≤ y ⟹ ?P xs (y # ys); ¬ x ≤ y ⟹ ?P (x # xs) ys⟧
+    ⟹ ?P (x # xs) (y # ys)⟧
+⟹ ?P ?a0.0 ?a1.0
 ```
 
 Read it from the inside. To prove `?P ?a0.0 ?a1.0` for all arguments, prove three cases, one for each
 defining equation. The third case comes with two IHs, one for each recursive call, and each IH carries
 the condition under which that call happens: `x ≤ y` for the first call, `¬ x ≤ y` for the second.
-Figure 11.3 shows the correspondence.
+Figure 11.2 shows the correspondence.
 
-::: figure id=fig-11-3
+::: figure id=fig-11-2
 Computation induction for `merge`: one case per equation and one induction hypothesis per recursive
 call, with the condition of the `if` as its premise. In a run, each call shortens one list or the other.
 :::
@@ -629,6 +718,10 @@ thm merge.simps
 ```
 
 ```output result
+  merge [] ?ys = ?ys
+  merge (?v # ?va) [] = ?v # ?va
+  merge (?x # ?xs) (?y # ?ys) =
+  (if ?x ≤ ?y then ?x # merge ?xs (?y # ?ys) else ?y # merge (?x # ?xs) ?ys)
 ```
 
 Now apply the rule. You give the variables in the order of the function's arguments:
@@ -639,6 +732,15 @@ lemma "length (merge xs ys) = length xs + length ys"
 ```
 
 ```output state
+proof (prove)
+goal (3 subgoals):
+ 1. ⋀ys. length (merge [] ys) = length [] + length ys
+ 2. ⋀v va. length (merge (v # va) []) = length (v # va) + length []
+ 3. ⋀x xs y ys.
+       ⟦x ≤ y ⟹ length (merge xs (y # ys)) = length xs + length (y # ys);
+        ¬ x ≤ y ⟹ length (merge (x # xs) ys) = length (x # xs) + length ys⟧
+       ⟹ length (merge (x # xs) (y # ys)) =
+          length (x # xs) + length (y # ys)
 ```
 
 ```isabelle
@@ -728,6 +830,8 @@ thm ev.intros
 ```
 
 ```output result
+  ev 0
+  ev ?n ⟹ ev (Suc (Suc ?n))
 ```
 
 A **derivation** combines rules into a tree, like the proof trees of Module 6: each rule application
@@ -748,6 +852,9 @@ lemma "ev (Suc (Suc (Suc (Suc 0))))"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ev (Suc (Suc 0))
 ```
 
 ```isabelle
@@ -767,6 +874,9 @@ lemma "ev 4"
 ```
 
 ```output
+*** Failed to apply proof method⌂:
+*** goal (1 subgoal):
+***  1. ev 4
 ```
 
 `rule` must make the goal `ev 4` and the conclusion `ev (Suc (Suc ?n))` identical by instantiating
@@ -786,7 +896,7 @@ The rules say how to show that a number is even. How do you prove that *every* e
 property? Every fact `ev n` has a finite derivation, built from `ev_0` at the top and steps `ev_SS`.
 If a property holds for `0`, and every application of `ev_SS` passes it on from `n` to `Suc (Suc n)`,
 then it holds at every line of every derivation, so for every even number. This is induction over
-derivations (Figure 11.2).
+derivations (Figure 11.3).
 
 ::: definition Rule induction
 To prove $I\ x \Imp P\ x$ for an inductively defined $I$, prove for each rule
@@ -794,7 +904,7 @@ $I\ a_1 \Imp \dots \Imp I\ a_n \Imp I\ a$ that $P\ a$ follows from the premises 
 and the induction hypotheses $P\ a_1, …, P\ a_n$. Rules without premises about $I$ give base cases.
 :::
 
-::: figure id=fig-11-2
+::: figure id=fig-11-3
 A derivation, here of a balanced word from Section 11.7. Rule induction proves a property for the
 conclusion of every rule from the property of its premises, so the property travels down the
 derivation to the root.
@@ -807,6 +917,7 @@ thm ev.induct
 ```
 
 ```output result
+⟦ev ?x; ?P 0; ⋀n. ⟦ev n; ?P n⟧ ⟹ ?P (Suc (Suc n))⟧ ⟹ ?P ?x
 ```
 
 The first premise `ev ?x` says that the rule applies to an even `?x`. The other two are the cases: `?P 0`
@@ -820,6 +931,10 @@ lemma "ev n ⟹ even n"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. even 0
+ 2. ⋀n. ⟦ev n; even n⟧ ⟹ even (Suc (Suc n))
 ```
 
 The method finds `ev n` among the premises and inducts on it. Subgoal 2 has two assumptions: `ev n` is
@@ -880,7 +995,10 @@ next
 qed
 ```
 
-```output
+```output result
+*** Failed to finish proof⌂:
+*** goal (1 subgoal):
+***  1. ev (Suc (Suc (k + n)))
 ```
 
 Use the qualified name `ev.ev_SS` for the rule.
@@ -909,6 +1027,9 @@ inductive_cases ev_1E: "ev (Suc 0)"
 ```
 
 ```output all
+theorem ev_SSE: ⟦ev (Suc (Suc ?n)); ev ?n ⟹ ?P⟧ ⟹ ?P
+
+theorem ev_1E: ev (Suc 0) ⟹ ?P
 ```
 
 `ev_SSE` says: from `ev (Suc (Suc n))`, anything `?P` that follows from `ev n` follows. `ev_1E` has no
@@ -920,7 +1041,8 @@ lemma "¬ ev (Suc (Suc (Suc 0)))"
   by (auto elim: ev_SSE ev_1E)
 ```
 
-In Isar, pass the fact to `proof cases`. The impossible case `ev_0` does not appear at all:
+In Isar, pass the fact to `proof cases`. The impossible case `ev_0` needs no proof; only `ev_SS`
+remains:
 
 ```isabelle
 lemma ev_SS_inv: "ev (Suc (Suc n)) ⟹ ev n"
@@ -1040,6 +1162,12 @@ lemma steps_trans: "steps r a b ⟹ steps r b c ⟹ steps r a c"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. ⋀a. steps r a c ⟹ steps r a c
+ 2. ⋀a b ca.
+       ⟦r a b; steps r b ca; steps r ca c ⟹ steps r b c; steps r ca c⟧
+       ⟹ steps r a c
 ```
 
 The induction is on `steps r a b`, so the claim proved by induction is "`steps r b c` implies
@@ -1079,6 +1207,10 @@ lemma "steps move Done s ⟹ s = Done"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. ⋀a. a = a
+ 2. ⋀a b c. ⟦move a b; steps move b c; c = b⟧ ⟹ c = a
 ```
 
 ```isabelle
@@ -1107,6 +1239,10 @@ lemma "steps move Done s ⟹ s = Done"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. Done = Done
+ 2. ⋀b c. ⟦move Done b; steps move b c; b = Done ⟹ c = Done⟧ ⟹ c = Done
 ```
 
 ```isabelle
@@ -1134,7 +1270,7 @@ inductive bal :: "paren list ⇒ bool" where
 | bal_cat: "bal v ⟹ bal w ⟹ bal (v @ w)"
 ```
 
-Figure 11.2 above shows a derivation of the word `(())()`. A parser does not search for derivations; it
+Figure 11.3 above shows a derivation of the word `(())()`. A parser does not search for derivations; it
 checks a word in one pass, counting the brackets that are open:
 
 ```isabelle
@@ -1153,6 +1289,8 @@ value "chk [LP, LP, RP, RP, LP, RP] 0"
 ```
 
 ```output
+"True"
+  :: "bool"
 ```
 
 ```isabelle
@@ -1160,6 +1298,8 @@ value "chk [RP, LP] 0"
 ```
 
 ```output
+"False"
+  :: "bool"
 ```
 
 Is the checker right? One direction: it accepts every balanced word, `bal w ⟹ chk w 0`. Rule induction
@@ -1172,6 +1312,10 @@ lemma "bal w ⟹ chk w 0"
 ```
 
 ```output state
+proof (prove)
+goal (2 subgoals):
+ 1. ⋀w. ⟦bal w; chk w 0⟧ ⟹ chk (w @ [RP]) (Suc 0)
+ 2. ⋀v w. ⟦bal v; chk v 0; bal w; chk w 0⟧ ⟹ chk (v @ w) 0
 ```
 
 ```isabelle
@@ -1189,6 +1333,16 @@ lemma bal_chk: "bal w ⟹ chk (w @ v) n = chk v n"
 ```
 
 ```output state
+proof (prove)
+goal (3 subgoals):
+ 1. ⋀v n. chk ([] @ v) n = chk v n
+ 2. ⋀w v n.
+       ⟦bal w; ⋀v n. chk (w @ v) n = chk v n⟧
+       ⟹ chk ((LP # w @ [RP]) @ v) n = chk v n
+ 3. ⋀v w va n.
+       ⟦bal v; ⋀va n. chk (v @ va) n = chk va n; bal w;
+        ⋀v n. chk (w @ v) n = chk v n⟧
+       ⟹ chk ((v @ w) @ va) n = chk va n
 ```
 
 ```isabelle
@@ -1233,11 +1387,13 @@ thm less_induct
 ```
 
 ```output result
+(⋀x. (⋀y. y < x ⟹ ?P y) ⟹ ?P x) ⟹ ?P ?a
 ```
 
 To prove `?P ?a`, prove `?P x` for an arbitrary `x`, assuming `?P y` for every `y < x`. The rule holds
-for every type with a well-founded order (`nat` among them); for `nat` the library also has
-`nat_less_induct`, the same principle stated with ∀. Applied to the claim:
+for every type whose order is a **well-order**, a linear order with no infinite descending chain
+($x_1 > x_2 > x_3 > \dots$); `nat` is one. For `nat` the library also has `nat_less_induct`, the same
+principle stated with ∀. Applied to the claim:
 
 ```isabelle
 lemma "0 < (n::nat) ⟹ ∃k m. n = 2 ^ k * m ∧ odd m"
@@ -1245,6 +1401,10 @@ lemma "0 < (n::nat) ⟹ ∃k m. n = 2 ^ k * m ∧ odd m"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀x. ⟦⋀y. ⟦y < x; 0 < y⟧ ⟹ ∃k m. y = 2 ^ k * m ∧ odd m; 0 < x⟧
+        ⟹ ∃k m. x = 2 ^ k * m ∧ odd m
 ```
 
 ```isabelle
@@ -1289,8 +1449,8 @@ lemma "0 < n ⟹ ∃k m. n = 2 ^ k * m ∧ odd m"
 ```
 
 The numbers in the claim could belong to any type with `0`, `^` and `odd`, so Isabelle gives `n` a type
-variable. The proof state shows the symptom as `(2::'a)`. `less_induct` is stated for types with a
-well-founded order, and Isabelle cannot match it with a type it knows nothing about. Annotate the
+variable. The proof state shows the symptom as `(2::'a)`. `less_induct` is stated for well-ordered
+types, and Isabelle cannot match it with a type it knows nothing about. Annotate the
 variable, `(n::nat)`, and the error goes away.
 :::
 
@@ -1366,6 +1526,9 @@ lemma "itrev xs [] = rev xs"
 ```
 
 ```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⋀a xs. itrev xs [] = rev xs ⟹ itrev xs [a] = rev xs @ [a]
 ```
 
 ```isabelle
@@ -1403,7 +1566,7 @@ predicates of this module.
 2. `steps r a b ⟹ r b c ⟹ steps r a c`
 3. `count_list (merge xs ys) z = count_list xs z + count_list ys z`
 4. `sumacc xs (acc + d) = sumacc xs acc + d`
-5. `ev n ⟹ ev (n * 3)`
+5. `ev n ⟹ ¬ ev (Suc n)`
 6. `0 < n ⟹ n div 2 < n` for natural numbers
 
 ::: solution
@@ -1413,8 +1576,9 @@ predicates of this module.
    `r b c`, which becomes part of the claim.
 3. Computation induction with `merge.induct` on `xs ys`, as for `length` in Section 11.5.
 4. Structural induction on `xs` with `arbitrary: acc`: the accumulator changes in the recursive call.
-5. Rule induction on `ev n`: in case `ev_SS` you need `ev (Suc (Suc n) * 3)`, which is
-   `ev (Suc (Suc (Suc (Suc (Suc (Suc (n * 3)))))))`, three steps of `ev_SS` from the IH.
+5. Rule induction on `ev n`, with rule inversion in both cases: `¬ ev (Suc 0)` by `ev_1E`, and in case
+   `ev_SS`, `ev (Suc (Suc (Suc n)))` would give `ev (Suc n)` by `ev_SSE`, against the IH. In Isabelle,
+   `by (induction rule: ev.induct) (auto elim: ev_SSE ev_1E)`.
 6. No induction at all: this is linear arithmetic about `div`, which `simp` or `arith` proves. Not
    every goal about numbers needs induction; check with automation first.
 :::

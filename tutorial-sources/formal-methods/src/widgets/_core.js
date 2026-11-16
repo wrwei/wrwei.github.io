@@ -61,7 +61,7 @@
     '.fmw-isa{font-family:var(--font-isa,monospace)}',
     '.fmw-table{border-collapse:collapse;font-family:var(--font-isa,monospace);font-size:.9rem;margin:.5rem 0}',
     '.fmw-table th,.fmw-table td{border:1px solid var(--border);padding:.2rem .55rem;text-align:center}',
-    '.fmw-table th{background:var(--bg);font-weight:600}',
+    '.fmw-table th{background:var(--bg);color:var(--navy);font-weight:600}',
     '.fmw-t{color:#15803D}.fmw-f{color:#B91C1C}',
     '.fmw-scroll{overflow-x:auto;max-width:100%}',
   ].join('\n'))
@@ -70,13 +70,14 @@
   // Syntax as in Isabelle/HOL, with Isabelle's priorities: ¬ (40) binds tighter than ∧ (35), ∨ (30),
   // ⟶ and ⟷ (25, same level); the binary connectives group to the right; = (50) binds tighter than ¬,
   // so ¬ x = y means ¬ (x = y); a quantifier's body extends as far to the right as possible.
-  // ASCII input is accepted: ~ & | --> <-> ALL EX, and also ! / \ / -> <=> forall exists.
+  // ASCII input is accepted: ~ & | --> <-> ALL EX, and also /\ \/ -> <=> forall exists, and ! and ? for ∀ and ∃
+  // (Isabelle's input abbreviations).
   // AST: {k:'const',v} {k:'atom',name,args:[terms]} {k:'eq',l,r} {k:'not',a} {k:'and'|'or'|'imp'|'iff',l,r}
   //      {k:'all'|'ex',v,body};  terms: {k:'var'|'fn',name,args}
   var Logic = (function () {
-    var SYM = { '~': '¬', '!': '¬', '&': '∧', '&&': '∧', '/\\': '∧', '|': '∨', '||': '∨', '\\/': '∨', '-->': '⟶', '->': '⟶', '=>': '⟶',
+    var SYM = { '~': '¬', '!': '∀', '?': '∃', '&': '∧', '&&': '∧', '/\\': '∧', '|': '∨', '||': '∨', '\\/': '∨', '-->': '⟶', '->': '⟶', '=>': '⟶',
       '<->': '⟷', '<-->': '⟷', '<=>': '⟷', 'ALL': '∀', 'forall': '∀', 'EX': '∃', 'exists': '∃', '~=': '≠' }
-    var TOKEN = /\s*(⟷|⟶|<-->|<->|<=>|-->|->|=>|\/\\|\\\/|&&|\|\||~=|≠|[¬∧∨∀∃~!&|().,=]|[A-Za-z_][\w']*|\d+)/y
+    var TOKEN = /\s*(⟷|⟶|<-->|<->|<=>|-->|->|=>|\/\\|\\\/|&&|\|\||~=|≠|[¬∧∨∀∃~!?&|().,=]|[A-Za-z_][\w']*|\d+)/y
 
     function tokenize(src) {
       var toks = [], pos = 0, m
@@ -178,7 +179,11 @@
         case 'atom': return f.args.length ? f.name + ' ' + f.args.map(argStr).join(' ') : f.name
         case 'eq': s = termStr(f.l) + ' = ' + termStr(f.r); break
         case 'not': s = '¬' + (f.a.k === 'atom' || f.a.k === 'const' || f.a.k === 'not' ? '' : ' ') + show(f.a, 40); break
-        case 'all': case 'ex': s = (f.k === 'all' ? '∀' : '∃') + f.v + '. ' + show(f.body, 0); break
+        case 'all': case 'ex': {
+          var vs = [f.v], body = f.body
+          while (body.k === f.k) { vs.push(body.v); body = body.body }
+          s = (f.k === 'all' ? '∀' : '∃') + vs.join(' ') + '. ' + show(body, 0); break
+        }
         default: s = show(f.l, p + 1) + ' ' + OPS[f.k] + ' ' + show(f.r, p)
       }
       return p < ctx || ((f.k === 'all' || f.k === 'ex') && ctx > 0) ? '(' + s + ')' : s

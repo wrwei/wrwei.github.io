@@ -368,13 +368,6 @@ value "Suc Suc 0"
 ```
 
 ```output
-*** Type unification failed: Clash of types "_ ⇒ _" and "nat"
-***
-*** Type error in application: incompatible operand type
-***
-*** Operator:  Suc :: nat ⇒ nat
-*** Operand:   Suc :: nat ⇒ nat
-***
 ```
 
 The operand of `Suc` is the function `Suc :: nat ⇒ nat` where a `nat` is needed. Write `Suc (Suc 0)`.
@@ -686,9 +679,6 @@ lemma "safe (Red, Green)"
 ```
 
 ```output
-*** Failed to apply initial proof method⌂:
-*** goal (1 subgoal):
-***  1. safe (Red, Green)
 ```
 
 `simp` could not even start. Unlike the equations of `fun` and `primrec`, the equation of a `definition`
@@ -726,12 +716,6 @@ definition safe2 :: "light × light ⇒ bool" where
 ```
 
 ```output
-*** Bad arguments on lhs: "(a, b)"
-*** The error(s) above occurred in definition:
-*** "safe2 (a, b) ≡
-***  a = Red ∨
-***  b =
-***  Red"
 ```
 
 Use `fst` and `snd` as above, a `case` expression, or `fun`, which accepts patterns.
@@ -1469,23 +1453,6 @@ fun wait :: "light ⇒ nat" where
 ```
 
 ```output
-consts
-  wait :: "light ⇒ nat"
-
-*** Unfinished subgoals:
-*** (a, 1, <):
-***  1. ⋀l. l ≠ Green ⟹ size (next_light l) < size l
-*** (a, 1, <=):
-***  1. ⋀l. l ≠ Green ⟹ size (next_light l) ≤ size l
-*** Calls:
-***   a) l ~> next_light l
-*** Measures:
-***   1) size
-*** Result matrix:
-***     1
-*** a:  ?
-***
-*** Could not find lexicographic termination order.
 ```
 
 The function does terminate: from any state, the light is green after at most three steps. But the only
@@ -1537,7 +1504,10 @@ See theory exports
 
 `export_code` takes the names of the functions to translate, and adds everything they need: here the
 datatype `light` and the natural numbers. `module_name` names the Haskell module. Write `in SML`,
-`in OCaml` or `in Scala` for the other languages.
+`in OCaml` or `in Scala` for the other languages. Only definitions that compute can be translated. A
+definition that quantifies over all natural numbers, such as `all_small k = (∀n::nat. n < k)`, has no
+program: `export_code` rejects it with a wellsortedness error, because `∀` can be computed only over
+types whose elements can be listed, the class `enum`, and `nat` is not in it.
 
 The code does not appear in the Output panel. In Isabelle/jEdit, the words *theory exports* in the
 message are a link: click it, and jEdit's File Browser opens on the generated files, in a virtual folder
@@ -1545,16 +1515,56 @@ whose name begins with `isabelle-export:`. The Haskell module is the file `Traff
 part; the beginning of the file, a list of `import` declarations, is left out.
 
 ```text
-CODE_PLACEHOLDER
+data Nat = Zero_nat | Suc Nat;
+
+data Num = One | Bit0 Num | Bit1 Num;
+
+data Light = Red | RedAmber | Green | Amber;
+
+plus_nat :: Nat -> Nat -> Nat;
+plus_nat Zero_nat n = n;
+plus_nat (Suc m) n = plus_nat m (Suc n);
+
+one_nat :: Nat;
+one_nat = Suc Zero_nat;
+
+nat_of_num :: Num -> Nat;
+nat_of_num One = one_nat;
+nat_of_num (Bit0 n) = let {
+                        m = nat_of_num n;
+                      } in plus_nat m m;
+nat_of_num (Bit1 n) = let {
+                        m = nat_of_num n;
+                      } in Suc (plus_nat m m);
+
+next_light :: Light -> Light;
+next_light Red = RedAmber;
+next_light RedAmber = Green;
+next_light Green = Amber;
+next_light Amber = Red;
+
+trace :: Nat -> Light -> [Light];
+trace Zero_nat l = [];
+trace (Suc n) l = l : trace n (next_light l);
+
+duration :: Light -> Nat;
+duration Red = nat_of_num (Bit0 (Bit1 (Bit1 (Bit1 One))));
+duration RedAmber = nat_of_num (Bit0 One);
+duration Green = nat_of_num (Bit1 (Bit0 (Bit0 (Bit1 One))));
+duration Amber = nat_of_num (Bit1 One);
+
+}
 ```
 
 The translation follows your equations closely. The datatype `light` becomes a Haskell `data` type with
-the same constructors, and `next_light` and `trace` have the same equations as in Isabelle. Natural
-numbers become a datatype `Nat` with the constructors `Zero_nat` and `Suc`, exactly as in the logic, and
-numerals are written in binary with the constructors `One`, `Bit0` and `Bit1`: 30 is
-`Bit0 (Bit1 (Bit1 (Bit1 One)))`, binary 11110. This representation is faithful but slow. For efficient
-code, the library theory `HOL-Library.Code_Target_Nat` makes the code generator use Haskell's built-in
-integers for `nat` instead; you import it in the theory header.
+the same constructors, and `next_light` and `trace` have the same equations as in Isabelle. Everything
+else is the natural numbers, translated as the logic builds them: a datatype `Nat` with the constructors
+`Zero_nat` and `Suc`, and numerals in binary, built from `One` with `Bit0` (append the binary digit 0)
+and `Bit1` (append 1). So 30 is `Bit0 (Bit1 (Bit1 (Bit1 One)))`, binary 11110, and `nat_of_num`
+converts it into `Suc` form. This representation is faithful but slow. For efficient code, import the
+library theory `HOL-Library.Code_Target_Nat` in the theory header (`imports Main
+"HOL-Library.Code_Target_Nat"`): the code generator then represents `nat` by Haskell's built-in
+integers.
 
 ::: note
 The code generator is not part of Isabelle's kernel, so the generated code is not checked by the kernel:

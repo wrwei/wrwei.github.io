@@ -108,7 +108,7 @@ The method after `proof` makes the first move on the goal, as `apply` would. The
 and `qed` then prove what is left, and `qed` closes the block.
 
 ::: definition Proof block
-A **proof block** `proof m … qed` proves the goal stated just before it. The **initial method** m turns
+A **proof block** `proof m … qed` proves the goal stated directly before it. The **initial method** m turns
 the goal into **pending goals**. The steps inside the block establish facts and solve the pending goals;
 `qed` closes the block once all of them are solved. Every claim inside the block needs a proof of its
 own, which is again either a single step `by m` or a proof block, so blocks nest.
@@ -182,7 +182,7 @@ left to do.
 
 ::: note
 The first line of every proof state names the **mode** Isabelle is in, which tells you what may come
-next. `proof (prove)`: a claim (`lemma`, `have`, `show`) has just been stated, and its proof comes next.
+next. `proof (prove)`: a claim (`lemma`, `have`, `show`) has been stated, and its proof comes next.
 `proof (state)`: you are inside a block and may assume, claim or close it. `proof (chain)`: facts have
 been picked up for the next claim (Section 10.3).
 :::
@@ -533,7 +533,9 @@ lemma
 ```output
 *** Failed to finish proof⌂:
 *** goal (1 subgoal):
-***  1. hi < x ⟶ ¬ x < lo ⟶ lo ≤ hi
+***  1. hi < x ⟶
+***     ¬ x < lo ⟶
+***     lo ≤ hi
 ```
 
 The simplifier unfolded `clamp` and split the `if`s, and what remains is the one case that needs the
@@ -842,7 +844,7 @@ goal (1 subgoal):
 ```
 
 `case (Cons y ys)` gives names to the head and tail of xs: the state shows the assumption xs = y # ys,
-while the goal still uses Isabelle's own names for them. Finish the case:
+while the goal still uses Isabelle's own names for them, `a` and `list`. Finish the case:
 
 ```isabelle
   then show ?thesis by simp
@@ -1064,8 +1066,10 @@ cases:
 ```
 
 `print_cases` lists the cases with everything they provide: the fixed variables, `?case`, the
-induction hypothesis under `IH` and the premise of the claim under `prems`. Each case receives the
-premise for its own list. The hypothesis is the whole implication for the shorter list xs.
+induction hypothesis under `IH` and the premise of the claim under `prems`. The names `a_` and `xs_`,
+with a trailing underscore, are hidden: the proof cannot refer to them until `case (Cons a xs)` gives
+them names. Each case receives the premise for its own list, and the hypothesis is the whole
+implication for the shorter list xs.
 
 ```isabelle
   case Nil
@@ -1101,9 +1105,6 @@ follows from `Cons.prems`. So both are passed.
   ```
 
   ```output result
-  *** Failed to apply initial proof method⌂:
-  *** goal (1 subgoal):
-  ***  1. mysum (xs @ ys) = mysum xs + mysum ys
   ```
 
   `simp` cannot prove the lemma about an unknown list, so the step fails. Write `?case`.
@@ -1121,7 +1122,6 @@ follows from `Cons.prems`. So both are passed.
   ```
 
   ```output
-  *** Undefined case: "Empty"⌂
   ```
 
   The proof outline and `print_cases` show the right names.
@@ -1139,9 +1139,6 @@ follows from `Cons.prems`. So both are passed.
   ```
 
   ```output result
-  *** Failed to finish proof⌂:
-  *** goal (1 subgoal):
-  ***  1. mysum (xs @ ys) = mysum xs + mysum ys
   ```
 
   The remaining goal is the induction hypothesis itself: a sure sign that it was not passed.
@@ -1216,13 +1213,14 @@ proves such steps too.
 
 ### Rule by rule {#translate-rules}
 
-Every rule of natural deduction has an Isar counterpart. Each line of the table was checked in Isabelle,
-with A, B and C formulas, `ab` a name for A ∧ B, and so on.
+Every rule of natural deduction has an Isar counterpart. In the table, A, B and C are formulas, and
+`ab`, `imp`, `a`, `b`, `na`, `all`, `pa` and `ex` are the names of facts A ∧ B, A ⟶ B, A, B, ¬ A,
+∀x. P x, P a and ∃x. P x.
 
 | Rule (Module 6) | Apply step (Module 7) | Isar |
 |---|---|---|
 | (⟶I) | `rule impI` | `assume "A"` … `show "B"` |
-| (⟶E) | `erule mp` | `from ab a have "B" by (rule mp)` |
+| (⟶E) | `erule mp` | `from imp a have "B" by (rule mp)` |
 | (∧I) | `rule conjI` | `from a b have "A ∧ B" by (rule conjI)` |
 | (∧E₁), (∧E₂) | `erule conjE` | `from ab have "A" by (rule conjunct1)` |
 | (∨I₁) | `rule disjI1` | `from a have "A ∨ B" by (rule disjI1)` |
@@ -1349,7 +1347,6 @@ qed
 ```
 
 ```output
-*** Illegal application of proof command in "prove" mode
 ```
 
 After `have "B"` Isabelle is in `prove` mode and expects a proof; `show` is not one.
@@ -1368,7 +1365,6 @@ qed
 ```
 
 ```output result
-*** Failed to refine any pending goal
 ```
 
 To find out what is wrong, change `show` into `have`: if the step is then accepted, the claim is right
@@ -1435,7 +1431,7 @@ qed
 4. Rewrite the second step with `from` instead of `with`.
 
 ::: solution
-1. `valid pw ∧ ¬ locked u`, the fact just proved.
+1. `valid pw ∧ ¬ locked u`, the fact that this step proved.
 2. `policy` and `this`, that is ∀p v. valid p ∧ ¬ locked v ⟶ login v p and valid pw ∧ ¬ locked u:
    `with policy` is short for `from policy this`.
 3. The statement after `shows`: `login u pw ∧ valid pw`.

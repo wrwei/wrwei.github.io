@@ -66,6 +66,8 @@ and Isabelle turns each HOL formula into a Pure statement where one is needed, w
 rule: in `(A ⟹ B) ⟹ C`, the premise `A ⟹ B` is a derivation of B that may assume A.
 :::
 
+Figure 7.1 shows the two layers, and how one rule uses both.
+
 ::: figure id=fig-07-1
 Isabelle's two layers. HOL formulas, of type `bool`, are written with ¬ ∧ ∨ ⟶ ∀ ∃ and =. Rules and
 goals are Pure statements, of type `prop`, built from HOL formulas with ⟹, ⋀ and ≡.
@@ -709,12 +711,31 @@ Modus ponens is the typical destruction rule. Module 6 proved (A ⟶ B) ⟶ (B �
           [A]³
 ```
 
-In Isabelle the three implications become three assumptions, one `rule impI` each:
+In Isabelle the three implications become three assumptions, one `rule impI` for each (⟶I) of the
+tree:
 
 ```isabelle
 lemma imp_chain: "(A ⟶ B) ⟶ (B ⟶ C) ⟶ (A ⟶ C)"
   apply (rule impI)
+```
+
+```output state
+proof (prove)
+goal (1 subgoal):
+ 1. A ⟶ B ⟹ (B ⟶ C) ⟶ A ⟶ C
+```
+
+```isabelle
   apply (rule impI)
+```
+
+```output state
+proof (prove)
+goal (1 subgoal):
+ 1. ⟦A ⟶ B; B ⟶ C⟧ ⟹ A ⟶ C
+```
+
+```isabelle
   apply (rule impI)
 ```
 
@@ -724,7 +745,9 @@ goal (1 subgoal):
  1. ⟦A ⟶ B; B ⟶ C; A⟧ ⟹ C
 ```
 
-Now reason forwards, from the leaves of the tree: A and A ⟶ B give B.
+The assumptions appear in the order of the discharge numbers, [A ⟶ B]¹, [B ⟶ C]² and [A]³, and Isabelle
+has dropped the parentheses around A ⟶ C because ⟶ groups to the right (Module 2). Now reason forwards,
+from the leaves of the tree: A and A ⟶ B give B.
 
 ```isabelle
   apply (drule mp)
@@ -1240,17 +1263,12 @@ goal (1 subgoal):
 
 The witness is now `?x4 y`. It was created when only y was fixed, so it may be built from y but not from
 x, which `exE` fixed afterwards. To close the subgoal, Isabelle would have to make the two sides of ⟹
-identical, and that needs the witness to be x. Unification may not do that, and the step fails:
+identical, and that needs the witness to be x. Unification may not do that, so `assumption` fails, with
+the message Failed to apply proof method (Section 7.8) and the subgoal above unchanged:
 
 ```isabelle fails
   apply assumption
   done
-```
-
-```output
-*** Failed to apply proof method⌂:
-*** goal (1 subgoal):
-***  1. ⋀y x. R x (?y8 y x) ⟹ R (?x4 y) y
 ```
 
 No other method can help either. The proof is stuck, and the only way out is to go back:
@@ -1292,17 +1310,11 @@ goal (1 subgoal):
 ```
 
 No assumption says which number `?n` should be, and `simp` (Module 1) cannot solve an equation for an
-unknown:
+unknown. It fails with Failed to apply proof method and leaves the subgoal as it is:
 
 ```isabelle fails
   apply simp
   done
-```
-
-```output
-*** Failed to apply proof method⌂:
-*** goal (1 subgoal):
-***  1. ?n + ?n = 6
 ```
 
 ```isabelle
@@ -1731,12 +1743,28 @@ The steps before it are not affected, so you can replace the failing step with a
 
 ### Failed to apply proof method {#errors-apply}
 
-This is the most common message. It means that the method could not do anything with subgoal 1: the
-conclusion of the rule does not unify with the subgoal, or, for `erule` and `drule`, no assumption fits
-the rule's major premise. Isabelle shows the proof state it was working on. Three typical causes follow.
+This is the most common message. It means that the method could do nothing with subgoal 1: for `rule`,
+the conclusion of the rule does not unify with the conclusion of the subgoal; for `erule` and `drule`, in
+addition, no assumption fits the rule's major premise; for `assumption`, no assumption unifies with the
+conclusion. Isabelle shows the proof state it was given. Here is the early choice of a side that Module 6
+warned about (Section 6.4), followed by a hopeful `assumption`:
+
+```isabelle fails
+lemma "A ∨ ¬ A"
+  apply (rule disjI1)
+  apply assumption
+  done
+```
+
+```output
+```
+
+`disjI1` left the subgoal A, which has no assumptions at all, so `assumption` has nothing to unify with.
+Three other causes are common. Each gives the same message, followed by the goal as it was before the
+failing step.
 
 **Taking an assumption apart before it is one.** In the goal A ∧ B ⟶ B ∧ A, the conjunction A ∧ B is
-not an assumption; it is part of the implication:
+not an assumption; it is part of the implication, so `erule conjE` finds nothing to work on:
 
 ```isabelle fails
 lemma "A ∧ B ⟶ B ∧ A"
@@ -1744,16 +1772,10 @@ lemma "A ∧ B ⟶ B ∧ A"
   done
 ```
 
-```output
-*** Failed to apply proof method⌂:
-*** goal (1 subgoal):
-***  1. A ∧ B ⟶ B ∧ A
-```
-
 Apply `impI` first: it moves A ∧ B into the assumptions.
 
-**Expecting assumption to look inside a formula.** After `impI` and `conjI`, subgoal 1 is A ∧ B ⟹ B. B is
-part of the assumption, but it is not the assumption:
+**Expecting assumption to look inside a formula.** After `impI` and `conjI`, subgoal 1 is A ∧ B ⟹ B. B
+is part of the assumption, but it is not the assumption, so `assumption` fails:
 
 ```isabelle fails
 lemma "A ∧ B ⟶ B ∧ A"
@@ -1763,29 +1785,16 @@ lemma "A ∧ B ⟶ B ∧ A"
   done
 ```
 
-```output
-*** Failed to apply proof method⌂:
-*** goal (2 subgoals):
-***  1. A ∧ B ⟹ B
-***  2. A ∧ B ⟹ A
-```
-
 `assumption` only unifies whole formulas. Take the assumption apart first, with `erule conjE`.
 
 **Using a rule for the wrong connective.** `disjI1` concludes a disjunction, but the conclusion of the
-subgoal is a conjunction:
+subgoal A ∧ B ⟹ B ∧ A is a conjunction:
 
 ```isabelle fails
 lemma "A ∧ B ⟶ B ∧ A"
   apply (rule impI)
   apply (rule disjI1)
   done
-```
-
-```output
-*** Failed to apply proof method⌂:
-*** goal (1 subgoal):
-***  1. A ∧ B ⟹ B ∧ A
 ```
 
 When in doubt, look the rule up with `thm`: for `rule`, its conclusion must have the same main connective
@@ -1804,13 +1813,15 @@ lemma "A ∧ B ⟶ B ∧ A"
 ```
 
 ```output
-*** Undefined fact: "conjl"⌂
+*** Failed to finish proof:
+*** goal (1 subgoal):
+***  1. A
 ```
 
 ### Failed to finish proof {#errors-done}
 
-`done` fails if subgoals remain, and lists them. Here the first step chose a side of the disjunction, as
-in Section 7.7, and A is left with nothing to prove it:
+`done` fails if subgoals remain, and lists them. Take the same early choice as above and write `done`
+straight after it:
 
 ```isabelle fails
 lemma "A ∨ ¬ A"
@@ -1819,9 +1830,7 @@ lemma "A ∨ ¬ A"
 ```
 
 ```output
-*** Failed to finish proof:
-*** goal (1 subgoal):
-***  1. A
+*** Bad context for command "lemma"⌂
 ```
 
 `done` never proves anything itself, not even a subgoal whose conclusion is one of its assumptions. Add
@@ -1916,17 +1925,12 @@ lemma "⟦∀x. safe x ⟶ safe (step x); safe s⟧ ⟹ safe (step (step s))"
 fails, it tries another. And whatever `blast` finds, the theorem is built by Isabelle's kernel from the
 rules of the logic, as for every other method (Module 1).
 
-When the statement is not valid, `blast` fails, as Section 6.9 showed for the master key:
+When the statement is not valid, `blast` fails. Section 6.9 showed this for the master key: Isabelle
+reports Failed to apply initial proof method, followed by the goal:
 
 ```isabelle fails
 lemma "(∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)"
   by blast
-```
-
-```output
-*** Failed to apply initial proof method⌂:
-*** goal (1 subgoal):
-***  1. (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y)
 ```
 
 The message says only that `blast` found no proof. It does not say whether the statement is false or too

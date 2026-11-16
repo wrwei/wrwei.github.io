@@ -383,20 +383,9 @@ value "∃y::bool. ∀x. y ≠ x"
 
 `x::bool` in a quantifier says that `x` ranges over `bool`. Every `x` has a `y` different from it, but
 no `y` is different from every `x`, because nothing is different from itself. A type with infinitely
-many elements, such as `nat`, cannot be run through:
-
-```isabelle fails
-value "∀x::nat. x < x + 1"
-```
-
-```output
-*** Wellsortedness error:
-*** Type nat not of sort enum
-*** No type arity nat :: enum
-```
-
-The message says that `nat` is not of sort `enum`: it does not belong to `enum`, the class of types whose
-elements Isabelle can list. For such types you need a proof.
+many elements, such as `nat`, cannot be run through: `value "∀x::nat. x < x + 1"` stops with an error
+saying that `nat` is not of sort `enum`, the class of types whose elements Isabelle can list. For such
+types you need a proof.
 :::
 
 ## Validity, satisfiability and countermodels {#validity}
