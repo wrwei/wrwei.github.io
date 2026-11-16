@@ -98,7 +98,10 @@ $ python3 -I tools/isa.py --module NN --update
 ```
 
 It prints each output that changed, every Isabelle error in a normal block, and every `fails` block that
-did not fail, and ends with `all outputs match` when the page is consistent. Run it again without
+did not fail, and ends with `all outputs match` when the page is consistent. Isabelle builds run one at a
+time on this machine (a lock in `out/.isa-build.lock`), so a run may first print "waiting for another
+isa.py run…": give the command a long timeout (10 minutes) and let it finish. Put scratch builds behind
+the same lock: `flock out/.isa-build.lock …/bin/isabelle build -d out/scratch/X SESSION`. Run it again without
 `--update` at the end: it must say `all outputs match` with no problems. After every run, **read the real
 outputs** and make your prose agree with them (variable names, order of subgoals, the exact
 counterexample). Never edit an output block by hand.

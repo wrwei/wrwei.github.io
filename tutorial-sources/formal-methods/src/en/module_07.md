@@ -1286,8 +1286,8 @@ condition in another form.
 **Fix first, guess later.** `rule allI` and `erule exE` fix variables; `rule exI`, `erule allE` and
 `drule spec` create unknowns. An unknown can only become a term built from variables that were fixed
 before it was created. So apply the rules that fix variables first, and the rules that create unknowns
-afterwards. This is the rule of thumb of Section 6.7, now enforced by Isabelle: open the existential
-assumptions first, then choose instances and witnesses.
+afterwards. This is the advice of Section 6.7, to open existential assumptions first and then choose
+instances and witnesses, and Isabelle's unknowns show why it works.
 :::
 
 For a statement that is not valid, no order works. The converse, (∀y. ∃x. R x y) ⟶ (∃x. ∀y. R x y),
@@ -2088,8 +2088,9 @@ Then finish each proof in Isabelle.
 1. `rule conjI` leaves B and A, each closed by `assumption`.
 2. `erule conjE` leaves ⟦A; B⟧ ⟹ B, closed by `assumption`.
 3. `rule impI` leaves ⟦¬ A; A⟧ ⟹ B. Then `erule notE` turns the goal into A, closed by `assumption`.
-4. `erule allE` leaves P ?x ⟹ P c, and `assumption` sets ?x to c. (`drule spec` works too.)
-5. `rule exI` leaves P c ⟹ P ?x, and `assumption` sets ?x to c.
+4. `erule allE` replaces the assumption with an instance P t, where t is an unknown, and `assumption`
+   sets t to c. (`drule spec` works too.)
+5. `rule exI` leaves P t to prove, with an unknown witness t, and `assumption` sets t to c.
 
 ```isabelle
 lemma "⟦A; B⟧ ⟹ B ∧ A"

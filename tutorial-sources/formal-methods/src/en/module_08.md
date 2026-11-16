@@ -271,8 +271,8 @@ value "(λx::nat. x * x) 7"
   :: "nat"
 ```
 
-The difference between `term` and `value` shows here too. `term` performs the β-reduction step, which
-Isabelle does whenever it reads a term, but no arithmetic:
+The difference between `term` and `value` shows here too. `term` shows the term after the β-reduction
+step, but it does no arithmetic:
 
 ```isabelle
 term "(λx::nat. x * x) 7"
@@ -368,6 +368,13 @@ value "Suc Suc 0"
 ```
 
 ```output
+*** Type unification failed: Clash of types "_ ⇒ _" and "nat"
+***
+*** Type error in application: incompatible operand type
+***
+*** Operator:  Suc :: nat ⇒ nat
+*** Operand:   Suc :: nat ⇒ nat
+***
 ```
 
 The operand of `Suc` is the function `Suc :: nat ⇒ nat` where a `nat` is needed. Write `Suc (Suc 0)`.
@@ -555,7 +562,7 @@ value "to_list (Push (1::nat) (Push 2 (Push 3 Empty)))"
 
 What is the top element of an empty stack? In Java you might get an exception, in C whatever happens to
 be in memory. A HOL function is total, so a function of type `'a stack ⇒ 'a` must return *some* element
-even for `Empty`. The clean way out is to change the result type. HOL's library defines
+even for `Empty`. The clean way out is to change the result type. HOL's library defines, in essence,
 
 `datatype 'a option = None | Some 'a`
 
@@ -679,6 +686,9 @@ lemma "safe (Red, Green)"
 ```
 
 ```output
+*** Failed to apply initial proof method⌂:
+*** goal (1 subgoal):
+***  1. safe (Red, Green)
 ```
 
 `simp` could not even start. Unlike the equations of `fun` and `primrec`, the equation of a `definition`
@@ -716,6 +726,12 @@ definition safe2 :: "light × light ⇒ bool" where
 ```
 
 ```output
+*** Bad arguments on lhs: "(a, b)"
+*** The error(s) above occurred in definition:
+*** "safe2 (a, b) ≡
+***  a = Red ∨
+***  b =
+***  Red"
 ```
 
 Use `fst` and `snd` as above, a `case` expression, or `fun`, which accepts patterns.
@@ -814,7 +830,7 @@ value "top_value (Empty :: nat stack)"
 *** exception Match raised⌂
 ```
 
-The library's `hd`, the first element of a list, is unspecified for `[]` in the same way, and
+The ⌂ points into the generated program, not into your theory. The library's `hd`, the first element of a list, is unspecified for `[]` in the same way, and
 `value "hd ([] :: light list)"` fails with the same exception.
 
 ::: tip
@@ -951,7 +967,7 @@ $$
 \end{aligned}
 $$
 
-Each step uses one equation of `trace` or `next_light`. Every recursive call has a smaller first
+Each step uses an equation of `trace` or of `next_light`. Every recursive call has a smaller first
 argument, so the computation reaches `trace 0` and stops.
 :::
 
@@ -1182,24 +1198,18 @@ or `int`, and `x ^ n` is the power xⁿ, with `n` a natural number.
 ### Overloading and type classes {#classes}
 
 You have used `+`, `0` and numerals on both `nat` and `int`. Such names are **overloaded**: one name has
-several meanings, chosen by the type. And yet `+` does not exist for every type:
+several meanings, chosen by the type. And yet they do not exist for every type. A light is not a number:
 
 ```isabelle fails
 value "next_light 3"
 ```
 
 ```output
-*** Type unification failed: No type arity light :: numeral
-***
-*** Type error in application: incompatible operand type
-***
-*** Operator:  next_light :: light ⇒ light
-*** Operand:   3::??'a :: ??'a
-***
 ```
 
-"No type arity light :: numeral" says that the type `light` belongs to no class called `numeral`, so
-`3` cannot be a light. Isabelle organises overloading in **type classes**.
+"No type arity light :: numeral" says that the type `light` is not in the class `numeral`, the class of
+types that have numerals, so `3` cannot be a light. (An *arity* is Isabelle's record that a type belongs
+to a class.) Isabelle organises overloading in **type classes**.
 
 ::: definition Type class and sort
 A **type class** is a named collection of types that provide certain operations, sometimes with laws.
@@ -1241,9 +1251,6 @@ value "2 + 2"
 ```
 
 ```output
-*** Wellsortedness error:
-*** Type 'a not of sort term_of
-*** Cannot derive subsort relation numeral < term_of
 ```
 
 To print a result, `value` must turn the computed value back into a term. It does so with an overloaded
@@ -1363,6 +1370,9 @@ consts
 *** Could not find lexicographic termination order.
 ```
 
+Isabelle first declares the constant (the `consts` lines), then tries to prove termination, fails, and
+rejects the whole definition: `bad` is not defined, and no equation about it becomes a theorem.
+
 ### Reading the termination messages {#termination-messages}
 
 To prove termination, Isabelle looks for a **measure**: a function from the arguments to the natural
@@ -1453,6 +1463,23 @@ fun wait :: "light ⇒ nat" where
 ```
 
 ```output
+consts
+  wait :: "light ⇒ nat"
+
+*** Unfinished subgoals:
+*** (a, 1, <):
+***  1. ⋀l. l ≠ Green ⟹ size (next_light l) < size l
+*** (a, 1, <=):
+***  1. ⋀l. l ≠ Green ⟹ size (next_light l) ≤ size l
+*** Calls:
+***   a) l ~> next_light l
+*** Measures:
+***   1) size
+*** Result matrix:
+***     1
+*** a:  ?
+***
+*** Could not find lexicographic termination order.
 ```
 
 The function does terminate: from any state, the light is green after at most three steps. But the only
@@ -1640,7 +1667,9 @@ term "λf x. f (f x)"
 
 1. `None` has type `'a option` for every `'a`; next to `Some True` it must be a `bool option`.
 2. A pair of a function `nat ⇒ nat` and a `nat list`.
-3. `#` puts a light in front of `xs`, so `xs` is a list of lights, and so is the result.
+3. `#` puts a light in front of `xs`, so `xs` is a list of lights, and so is the result. Isabelle
+   prints the λ-term as `(#) Red`, the partial application of `#`, for the same reason as it printed
+   `(+)` in Section 8.2.
 4. A partial application: `map` has received its function, `light ⇒ light`, and waits for the list.
 5. `f` is applied to `x` and then to the result `f x`, so its argument type and its result type must be
    the same, `'a`. The term applies a function twice.
@@ -1894,7 +1923,7 @@ thm light_of.simps
 ```
 
 `fun` replaced the catch-all equation by one for the numbers that the earlier equations do not cover:
-those of the form `Suc (Suc (Suc (Suc v)))`, that is, 4 and above.
+those of the form `Suc (Suc (Suc (Suc ?va)))`, that is, 4 and above.
 
 ```isabelle
 value "map light_of [0, 2, 7]"
@@ -1914,8 +1943,8 @@ lemma "light_of (code_of l) = Some l"
   by (cases l) (simp_all add: numeral_eq_Suc)
 ```
 
-Without `numeral_eq_Suc`, `simp` proves the cases for `Red` and `RedAmber` (0 and 1 are written with
-`0` and `Suc 0` internally) but gets stuck on `light_of 2 = Some Green` and `light_of 3 = Some Amber`.
+Without `numeral_eq_Suc`, `simp` proves the cases for `Red` and `RedAmber` but gets stuck on
+`light_of 2 = Some Green` and `light_of 3 = Some Amber`, as the pitfall predicts.
 :::
 ::::
 
@@ -1972,7 +2001,8 @@ Found termination order:
    Ackermann's function grows extremely fast; `ack 4 2` already has 19,729 digits.
 
 3. Rejected, with "Could not find lexicographic termination order": the argument grows in every call, so
-   no measure can decrease. But `forever` is not dangerous in the way `bad` is: every constant function
+   no measure can decrease. The result matrix even shows a fourth kind of entry, `F`: Isabelle found that
+   `n + 1 ≤ n` is false, so the size grows. But `forever` is not dangerous in the way `bad` is: every constant function
    satisfies `forever n = forever (n + 1)`, so the equation is not contradictory. It is merely not a
    definition: it does not determine which function `forever` is, and as a program it runs forever. `fun`
    rejects every recursion whose termination it cannot prove, whether the equations are contradictory

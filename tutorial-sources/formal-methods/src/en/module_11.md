@@ -145,7 +145,7 @@ turns one into the other. The proof is abandoned:
 ```
 
 ::: keyidea
-A stuck goal is information, not just failure. Compare the IH with the conclusion and ask what differs.
+A stuck goal is information, not only a failure. Compare the IH with the conclusion and ask what differs.
 Here they differ in one argument: the IH fixes the accumulator to `0`, but the recursive call changes
 it. When a function changes an argument in its recursive call, the claim must speak about every value of
 that argument.
@@ -300,9 +300,6 @@ qed
 ```
 
 ```output result
-*** Failed to apply initial proof method⌂:
-*** goal (1 subgoal):
-***  1. sumacc xs (acc + x) = acc + x + sum_list xs
 ```
 
 The goal is about `acc + x`, but `Cons.IH` is only about the fixed `acc`, so the rule does not fit.
@@ -391,7 +388,9 @@ for one.
 
 Generalising changes the claim. Sometimes the claim is fine, and the step needs a fact about the
 function that the simplifier does not know. Then you have to find that fact, state it as a separate
-lemma, and prove it first. Here is a classic case, the quadratic list reversal that `rev` is based on:
+lemma, and prove it first. Here is a classic case: list reversal by the same two equations that define
+the library's `rev`. It is called `slowrev` here because it takes quadratic time; `@` walks along the
+whole list at every step:
 
 ```isabelle
 fun slowrev :: "'a list ⇒ 'a list" where
@@ -451,7 +450,7 @@ Testing conjecture with Quickcheck-exhaustive...
 Quickcheck found no counterexample.
 ```
 
-No counterexample. The lemma has its own, easy induction, and the attribute `[simp]` adds it to the
+No counterexample. The lemma has its own short induction, and the attribute `[simp]` adds it to the
 simplifier's rules (Module 9), so that later proofs use it automatically:
 
 ```isabelle
@@ -874,9 +873,6 @@ lemma "ev 4"
 ```
 
 ```output
-*** Failed to apply proof method⌂:
-*** goal (1 subgoal):
-***  1. ev 4
 ```
 
 `rule` must make the goal `ev 4` and the conclusion `ev (Suc (Suc ?n))` identical by instantiating
@@ -996,9 +992,6 @@ qed
 ```
 
 ```output result
-*** Failed to finish proof⌂:
-*** goal (1 subgoal):
-***  1. ev (Suc (Suc (k + n)))
 ```
 
 Use the qualified name `ev.ev_SS` for the rule.
@@ -1099,7 +1092,9 @@ gives you exactly the cases that matter.
 ::: pitfall
 The predicate being defined may appear in the premises of its rules only *positively*, not under a
 negation. A rule such as "if `odd' n` does not hold, then `odd' (Suc n)` holds" does not describe a
-smallest predicate, and Isabelle rejects it, because it cannot prove that the rules are monotone:
+smallest predicate, and Isabelle rejects it. It starts the usual proofs, then reports that a proof
+failed. The goal it could not prove, `mono (…)`, says that the rules must be *monotone*: when more
+facts `odd' n` hold, the rules may not derive fewer conclusions. A negated premise does exactly that.
 
 ```isabelle fails
 inductive odd' :: "nat ⇒ bool" where
@@ -1228,8 +1223,8 @@ lemma done_stays: "steps move a s ⟹ a = Done ⟹ s = Done"
   by (induction rule: steps.induct) (auto elim: move.cases)
 ```
 
-In case `step`, the premise `move Done b` would be needed, and rule inversion with `move.cases` shows
-that no move leaves `Done`. The `induction` method can also introduce the variable for you: in
+In case `step`, the equation `a = Done` turns the rule's premise into `move Done b`, and rule inversion
+with `move.cases` shows that no move leaves `Done`: the case is impossible. The `induction` method can also introduce the variable for you: in
 `induction Done s rule: steps.induct`, a term that is not a variable stands for a fresh variable with an
 equation, and the cases come out right:
 
@@ -1253,7 +1248,7 @@ goal (2 subgoals):
 ::: pitfall
 Rule induction needs variables in the inductive premise. If an argument is a constant or a compound
 term, generalise it by hand (`a = Done` as an extra premise), or name the terms after `induction`. Module
-13 meets the same situation with the reachable states of a system that start from one initial state.
+13 meets the same situation: the reachable states of a system all start from one fixed initial state.
 :::
 
 ### A grammar: balanced brackets {#grammar}

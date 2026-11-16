@@ -90,7 +90,7 @@ each step, and Isabelle checks every claim.
 ## The shape of an Isar proof {#shape}
 
 An Isar proof is built from a handful of commands. This section introduces them on small examples from
-logic, so that you can concentrate on the structure. From Section 10.3 on they work on programs.
+logic, so that you can concentrate on the structure, and then on a first function from programming.
 
 ### Proof blocks {#shape-blocks}
 
@@ -410,7 +410,7 @@ The proofs so far handed facts to methods with `using`. Isar has several ways to
 step to the next. They make the flow of a proof visible, as words like "hence" and "from this" do on
 paper.
 
-### this and then {#facts-then}
+### Chaining facts with then {#facts-then}
 
 ::: definition Fact, this and chaining
 A **fact** is a proved statement available in a proof: an assumption, the result of `have` or `show`, or
@@ -1167,10 +1167,9 @@ In Module 7 you replayed it with `apply`:
 ```isabelle
 lemma "A ∧ B ⟶ B ∧ A"
   apply (rule impI)
-  apply (rule conjI)
-   apply (erule conjE)
-   apply assumption
   apply (erule conjE)
+  apply (rule conjI)
+  apply assumption
   apply assumption
   done
 ```
@@ -1220,7 +1219,7 @@ Every rule of natural deduction has an Isar counterpart. In the table, A, B and 
 | Rule (Module 6) | Apply step (Module 7) | Isar |
 |---|---|---|
 | (⟶I) | `rule impI` | `assume "A"` … `show "B"` |
-| (⟶E) | `erule mp` | `from imp a have "B" by (rule mp)` |
+| (⟶E) | `erule impE` | `from imp a have "B" by (rule mp)` |
 | (∧I) | `rule conjI` | `from a b have "A ∧ B" by (rule conjI)` |
 | (∧E₁), (∧E₂) | `erule conjE` | `from ab have "A" by (rule conjunct1)` |
 | (∨I₁) | `rule disjI1` | `from a have "A ∨ B" by (rule disjI1)` |
@@ -1237,53 +1236,56 @@ Every rule of natural deduction has an Isar counterpart. In the table, A, B and 
 
 ### An induction {#translate-induction}
 
-In Module 5 you proved formulas such as 0 + 1 + ⋯ + n = n(n + 1)/2 by induction on n. Define the sum
-and state the formula without the division:
+Module 5 proved the sum formula $2 \cdot \mathit{sum\_upto}(n) = n \cdot (n + 1)$ twice: on paper, in
+the example *The sum formula*, and in Isabelle, with an apply script. Here are the definition and the
+script again:
 
 ```isabelle
-fun sumto :: "nat ⇒ nat" where
-  "sumto 0 = 0"
-| "sumto (Suc n) = sumto n + Suc n"
+fun sum_upto :: "nat ⇒ nat" where
+  "sum_upto 0 = 0"
+| "sum_upto (Suc n) = sum_upto n + Suc n"
 ```
 
-An apply proof in the style of Module 5 lets `simp` do both cases:
-
 ```isabelle
-lemma "2 * sumto n = n * (n + 1)"
+lemma "2 * sum_upto n = n * (n + 1)"
   apply (induction n)
-   apply simp
+  apply simp
   apply simp
   done
 ```
 
-On paper, the proof reads: *Base case: 2 · sumto 0 = 0 = 0 · (0 + 1). Step: assume
-2 · sumto n = n(n + 1). Then 2 · sumto (n + 1) = 2 · sumto n + 2(n + 1) by the definition,
-= n(n + 1) + 2(n + 1) by the hypothesis, = (n + 1)(n + 2) by arithmetic.* The Isar proof has the same
-lines:
+The script does not say what the two cases are, or how the step uses the induction hypothesis. The
+paper proof does: its step is a chain of four equations. The Isar proof repeats that chain line for
+line:
 
 ```isabelle
-lemma sumto_formula: "2 * sumto n = n * (n + 1)"
+lemma sum_formula: "2 * sum_upto n = n * (n + 1)"
 proof (induction n)
   case 0
   show ?case by simp
 next
   case (Suc n)
-  have "2 * sumto (Suc n) = 2 * sumto n + 2 * Suc n" by simp
+  have "2 * sum_upto (Suc n) = 2 * (sum_upto n + Suc n)" by simp
+  also have "… = 2 * sum_upto n + 2 * Suc n" by simp
   also have "… = n * (n + 1) + 2 * Suc n" using Suc.IH by simp
   also have "… = Suc n * (Suc n + 1)" by simp
   finally show ?case .
 qed
 ```
 
-| On paper | In Isar |
+| On paper (Module 5) | In Isar |
 |---|---|
-| By induction on n. | `proof (induction n)` |
-| Base case: … | `case 0` `show ?case by simp` |
-| Step: assume the claim for n. | `next` `case (Suc n)` |
-| 2 · sumto (n + 1) = 2 · sumto n + 2(n + 1), by definition | `have "2 * sumto (Suc n) = …" by simp` |
-| = n(n + 1) + 2(n + 1), by the hypothesis | `also have "… = …" using Suc.IH by simp` |
-| = (n + 1)(n + 2), by arithmetic | `also have "… = …" by simp` |
-| This proves the step. | `finally show ?case .` |
+| Proof by induction on $n$. | `proof (induction n)` |
+| Base case $P(0)$. | `case 0`, `show ?case by simp` |
+| Let $n$ be any number, and assume the IH. | `next`, `case (Suc n)` |
+| $2 \cdot \mathit{sum\_upto}(n+1) = 2 \cdot (\mathit{sum\_upto}(n) + (n+1))$, by sum_upto.2 | `have "2 * sum_upto (Suc n) = …" by simp` |
+| $= 2 \cdot \mathit{sum\_upto}(n) + 2 \cdot (n+1)$, arithmetic | `also have "… = …" by simp` |
+| $= n \cdot (n+1) + 2 \cdot (n+1)$, by the IH | `also have "… = …" using Suc.IH by simp` |
+| $= (n+1) \cdot (n+2)$, arithmetic | `also have "… = …" by simp` |
+| By induction, $P(n)$ holds for every $n$. | `finally show ?case .`, `qed` |
+
+Isabelle writes n + 1 as `Suc n`, as in the subgoals of Module 5. Each step is checked on its own, so
+the proof shows exactly where the hypothesis is used.
 
 ### From an apply script to Isar: a recipe {#translate-recipe}
 
@@ -1536,8 +1538,8 @@ qed
 ::::
 
 :::: exercise Disjunction the Isar way {#ex-10-4} ★★
-Prove `A ∨ B ⟶ B ∨ A` in Isar, with a case split on the assumed disjunction as in Section 10.5.3. Use
-`blast` only for the steps inside the cases.
+Module 7 proved `A ∨ B ⟶ B ∨ A` with `erule disjE`. Prove it in Isar, with a case split on the assumed
+disjunction as in Section 10.5.3. Use `blast` only for the steps inside the cases.
 
 ::: solution
 ```isabelle
@@ -1633,18 +1635,20 @@ the instance. Without the lemma, `simp` would get stuck at `mysum (rev xs @ [x])
 ::::
 
 :::: exercise Mirror a tree {#ex-10-8} ★★★
-Module 5 introduced binary trees. Here is a tree type and the function that mirrors a tree:
+Module 5 defined binary trees and the function `mirror`, and proved on paper, in the example *Mirroring
+twice*, that mirroring a tree twice gives the tree back. Here are the definitions again:
 
 ```isabelle
-datatype 'a btree = Tip | Nd "'a btree" 'a "'a btree"
+datatype 'a tree2 = Tip | Node "'a tree2" 'a "'a tree2"
 
-fun mirror :: "'a btree ⇒ 'a btree" where
+fun mirror :: "'a tree2 ⇒ 'a tree2" where
   "mirror Tip = Tip"
-| "mirror (Nd l x r) = Nd (mirror r) x (mirror l)"
+| "mirror (Node l x r) = Node (mirror r) x (mirror l)"
 ```
 
-Prove `mirror (mirror t) = t` in Isar by induction on t, with named cases and a calculation in the step
-case. How many induction hypotheses does the step case have, and how do you refer to each one?
+Prove `mirror (mirror t) = t` in Isar by induction on t, with named cases. Write the step case as a
+calculation with the three steps of the paper proof. How many induction hypotheses does the step case
+have, and how do you refer to each one?
 
 ::: solution
 ```isabelle
@@ -1653,16 +1657,18 @@ proof (induction t)
   case Tip
   show ?case by simp
 next
-  case (Nd l x r)
-  have "mirror (mirror (Nd l x r)) = Nd (mirror (mirror l)) x (mirror (mirror r))" by simp
-  also have "… = Nd l x r" using Nd.IH by simp
+  case (Node l x r)
+  have "mirror (mirror (Node l x r)) = mirror (Node (mirror r) x (mirror l))" by simp
+  also have "… = Node (mirror (mirror l)) x (mirror (mirror r))" by simp
+  also have "… = Node l x r" using Node.IH by simp
   finally show ?case .
 qed
 ```
 
-The cases are named after the constructors, `Tip` and `Nd`. A node has two subtrees, so the step case
-has two induction hypotheses, one for l and one for r. `Nd.IH` is the list of both; `Nd.IH(1)` is the
-one for l and `Nd.IH(2)` the one for r.
+The cases are named after the constructors, `Tip` and `Node`. A node has two subtrees, so the step case
+has two induction hypotheses, one for l and one for r. `Node.IH` is the list of both; `Node.IH(1)` is
+the one for l and `Node.IH(2)` the one for r. The first two steps use the second equation of `mirror`,
+the third uses both hypotheses.
 :::
 ::::
 
