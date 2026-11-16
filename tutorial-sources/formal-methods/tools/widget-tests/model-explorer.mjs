@@ -60,6 +60,19 @@ export async function run(t) {
   await t.click(zh ? '添加' : 'Add')
   t.check((await t.text('.mx-msg')).includes(zh ? '两个参数' : 'two arguments'), 'a wrong number of arguments is reported')
 
+  await t.type('.mx-input', '∃!x. P x')
+  await t.click(zh ? '添加' : 'Add')
+  t.check((await t.text('.mx-msg')).includes('∃x. P x ∧ (∀y. P y ⟶ y = x)') && await t.count('.mx-item') === 8, '∃! is explained, with the formula to write instead')
+  await t.type('.mx-input', '∀x1 x2 x3 x4 x5 x6 x7 x8 x9. R x1 x2')
+  await t.click(zh ? '添加' : 'Add')
+  t.check((await t.text('.mx-msg')).includes('8') && await t.count('.mx-item') === 8, 'nine quantified variables: the limit is explained')
+
+  // ≠ and mixed ⟶/⟷ print as in Isabelle, with the advised parentheses
+  await t.type('.mx-input', '∀x y. ~ x = y --> R x y <-> R y x')
+  await t.click(zh ? '添加' : 'Add')
+  t.check((await t.text('.mx-item[data-i="8"] .mx-f')) === '∀x y. x ≠ y ⟶ (R x y ⟷ R y x)', 'prints ¬ x = y as x ≠ y and keeps the parentheses of ⟷ inside ⟶')
+  await t.click('.mx-item[data-i="8"] .mx-del')
+
   // a good formula in ASCII is added, shown in Isabelle's notation and evaluated
   await t.type('.mx-input', 'EX y. ALL x. R x y --> P x')
   await t.page.keyboard.press('Enter')

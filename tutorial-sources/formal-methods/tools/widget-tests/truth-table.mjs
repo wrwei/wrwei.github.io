@@ -36,6 +36,16 @@ export async function run(t) {
   await t.type('.tt-f1', 'A ∧ B ∧ C ∧ D ∧ E ∧ F ∧ G')
   t.check(has(await t.text('.verdict'), 'at most 6 atoms', '最多显示 6 个原子'), 'seven atoms: the limit is explained')
 
+  // = between formulas, and symbols that look like connectives, get an explanation.
+  await t.type('.tt-f1', 'A ∧ B = B ∧ A')
+  t.check((await t.text('.verdict')).includes('“B = B”') && await t.count('tbody tr') === 0, '= binds more tightly than ∧: the message names B = B')
+  await t.type('.tt-f1', 'A ↔ B')
+  t.check((await t.text('.verdict')).includes('<-->'), '↔ is not Isabelle’s symbol: the message suggests <-->')
+
+  // ⟶ inside ⟷ keeps its parentheses in the columns, as the page advises.
+  await t.type('.tt-f1', 'A ⟶ B ⟷ C')
+  t.check((await t.texts('thead th')).includes('A ⟶ (B ⟷ C)'), 'A ⟶ B ⟷ C is shown as A ⟶ (B ⟷ C)')
+
   // A preset.
   await t.click('[data-preset="peirce"]')
   t.check(has(await t.text('.verdict'), 'tautology', '重言'), 'Peirce’s law preset is a tautology')
@@ -52,6 +62,8 @@ export async function run(t) {
   t.check(eq.startsWith(zh ? '等价' : 'Equivalent') && await t.count('tr.diff') === 0, 'De Morgan typed in ASCII: equivalent')
   await t.click('[data-preset="converse"]')
   t.check(await t.count('tr.diff') === 2, 'converse differs from the implication in 2 rows')
+  await t.click('[data-preset="contrapos"]')
+  t.check((await t.text('.verdict')).includes('(A ⟶ B) ⟷ (¬B ⟶ ¬A)'), 'contrapositive: equivalent, with both sides in parentheses')
   await t.shot('compare')
 
   // Narrow screen: the page must not scroll sideways; the table scrolls inside the widget.

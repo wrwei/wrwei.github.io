@@ -2,7 +2,7 @@
 title: Predicate logic
 part: 1
 lead: Say what holds for every object or for some, work out whether a formula is true in a structure, find countermodels, and turn requirements into precise formulas, on paper and in Isabelle.
-minutes: 210
+minutes: 240
 needs: Modules 1 and 2
 goals:
   - Read and write formulas with predicates, functions, ∀ and ∃, and tell free variables from bound ones
@@ -44,8 +44,8 @@ Alice of sentence 2 is the Alice of sentence 3, "every administrator" in sentenc
 **Predicate logic** adds exactly these to the connectives of Module 2. It is also called **first-order
 logic**, because its variables range over objects, the "first order" of things, and not over properties
 of objects. Gottlob Frege introduced quantifiers in his *Begriffsschrift* of 1879, and predicate logic
-has been the standard language of mathematics ever since. Written in it, the whole argument is one
-formula:
+has since become the standard language for stating mathematics precisely. Written in it, the whole
+argument is one formula:
 
 $$
 (\forall u\ d.\ \mathit{admin}\ u \imp \mathit{can\_delete}\ u\ d) \land \mathit{admin}\ \mathit{alice} \imp \mathit{can\_delete}\ \mathit{alice}\ \mathit{report}
@@ -137,7 +137,8 @@ The **formulas** over a vocabulary are built by these rules:
 
 1. Every atomic formula is a formula, and so are $\mathit{True}$ and $\mathit{False}$.
 2. If $\varphi$ and $\psi$ are formulas, so are $\lnot \varphi$, $\varphi \land \psi$,
-   $\varphi \lor \psi$, $\varphi \imp \psi$ and $\varphi \iff \psi$.
+   $\varphi \lor \psi$, $\varphi \imp \psi$ and $\varphi \iff \psi$, with parentheses where the
+   priorities of Module 2 need them.
 3. If $\varphi$ is a formula and $x$ is a variable, then $\forall x.\ \varphi$ and
    $\exists x.\ \varphi$ are formulas.
 :::
@@ -354,8 +355,8 @@ Change the structure by clicking: add or remove elements, tick where $P$ and $Q$
 arrows of $R$ on and off in the grid (row $x$, column $y$). Every formula is evaluated again after each
 click; a false ∀ shows a counterexample and a true ∃ a witness. Try to make $\forall x.\ \exists y.\ R\ x\ y$
 true while $\exists y.\ \forall x.\ R\ x\ y$ stays false. Then make $\forall x.\ P\ x \imp Q\ x$ true while
-$\exists x.\ P\ x \land Q\ x$ is false; there is only one way. You can add formulas of your own, in
-Isabelle's notation or in ASCII (`ALL`, `EX`, `~`, `&`, `|`, `-->`).
+$\exists x.\ P\ x \land Q\ x$ is false; there is only one way to choose $P$. You can add formulas of
+your own, in Isabelle's notation or in ASCII (`ALL`, `EX`, `~`, `&`, `|`, `-->`).
 :::
 
 ::: isabelle
@@ -496,8 +497,8 @@ Quickcheck writes a predicate as the set of elements where it is true, such as `
 
 ::: pitfall
 "Nitpick found no counterexample" does not mean that a lemma is true. Nitpick searches only domains up to
-a size limit, and Section 3.9 shows a false formula whose countermodels are all infinite. Only a proof
-shows that a formula is valid.
+a size limit, and Section 3.9 shows a formula that is not valid but whose countermodels are all
+infinite. Only a proof shows that a formula is valid.
 :::
 
 ## Reasoning with quantifiers {#reasoning}
@@ -644,9 +645,11 @@ This time there are two type variables. Nothing in the formula says that `x` and
 of thing, so Isabelle gave them different types, `'a` and `'b`, and `R` relates elements of `'a` to
 elements of `'b`. The option `[card = 2]` gives every type two elements. `R` is a table of tables:
 `R a₁` is the function that is true only at b₂, so `R a₁ b₂` holds, and likewise `R a₂ b₁`; all other
-pairs are false. Every `x` has a `y`, but no single `y` serves both. The Skolem constants show the
-dependence: `λx. y` is the `y` that Nitpick chose for each `x` to make the left-hand side true, a
-function of `x`; `λy. x` gives, for each `y`, an `x` at which `∀x. R x y` fails.
+pairs are false. Every `x` has a `y`, but no single `y` serves both. A countermodel with two types is
+not always one with a single domain, but this one is: read b₁ as a₁ and b₂ as a₂, and `R` relates each
+element of {a₁, a₂} to the other. The Skolem constants show the dependence: `λx. y` is the `y` that
+Nitpick chose for each `x` to make the left-hand side true, a function of `x`; `λy. x` gives, for each
+`y`, an `x` at which `∀x. R x y` fails.
 
 ```isabelle
   oops
@@ -1143,8 +1146,8 @@ logic? David Hilbert and Wilhelm Ackermann asked this in 1928, as the *Entscheid
 
 ::: fact Gödel's completeness theorem
 There are proof systems for predicate logic, natural deduction among them (Module 6), in which a formula
-can be proved exactly when it is valid. Kurt Gödel proved this in his doctoral thesis of 1929, published
-in 1930.
+can be proved exactly when it is valid. Kurt Gödel proved this for one such system in his doctoral thesis
+of 1929, published in 1930.
 :::
 
 Completeness has a practical consequence. Proofs are finite texts that a program can check, so a program
@@ -1155,7 +1158,8 @@ and at no point do you know whether waiting longer would help.
 
 ::: fact Undecidability of predicate logic
 No algorithm decides, for every formula of predicate logic, whether it is valid. Alonzo Church and Alan
-Turing proved this independently in 1936.
+Turing proved this independently in 1936. Validity stays undecidable even when the vocabulary has just
+one predicate symbol, with two arguments.
 :::
 
 Turing's proof connects to the halting problem that Module 1 mentioned: for every program you can write
@@ -1179,9 +1183,10 @@ numbers: no proof system whose axioms a program can check, and which proves only
 all of them. HOL can describe the natural numbers, so incompleteness applies to Isabelle's logic too.
 
 ::: figure id=fig-03-3
-What a search can settle. Valid formulas have proofs, and a proof search finds one in the end.
-Formulas with a finite countermodel are refuted by searching finite structures. For formulas whose
-countermodels are all infinite, neither search ever stops.
+What a search can settle in principle. Valid formulas have proofs, and a systematic proof search finds
+one in the end. Formulas with a finite countermodel are refuted by searching finite structures. For
+formulas whose countermodels are all infinite, neither search ever stops. Isabelle's tools search only
+up to a limit, so in practice they can also give up on formulas of the first two kinds.
 :::
 
 Why do some formulas defeat both kinds of search? Because a countermodel can be infinite. Take
@@ -1423,8 +1428,9 @@ Nitpick found a counterexample for card 'a = 2 and card 'b = 2:
 
 In formula 4, nothing forces `x` and `y` to have the same type, so Isabelle gives them two types, as
 in Section 3.5, and Nitpick's countermodel relates the elements of `'a` to those of `'b`; the option
-`[card = 2]` fixes the size of both. Nitpick's countermodels may differ from yours in which element is
-which; any countermodel will do.
+`[card = 2]` fixes the size of both. Read b₁ as a₁ and b₂ as a₂ to get a countermodel with one domain:
+everybody trusts a₂, and nobody trusts a₁. Nitpick's countermodels may differ from yours in which
+element is which; any countermodel will do.
 :::
 ::::
 

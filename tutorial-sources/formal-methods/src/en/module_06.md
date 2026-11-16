@@ -254,9 +254,8 @@ What would it mean if one of the two properties failed?
   guest, so it came from the admin.") Then A ∨ B ⊢ A, although A ∨ B ⊭ A (read "A ∨ B does not entail
   A"): with A false and B true, A ∨ B is true and A is false. It gets worse. Section 6.5 derives A ∨ ¬A
   for every formula A; with the new rule, every A would follow, including ⊥, the formula that is always
-  false. A derivation in an unsound system
-  proves nothing. For a proof assistant this is the worst possible bug, which is why Module 1's LCF kernel
-  is kept small and checked with care.
+  false. A derivation in an unsound system proves nothing. For a proof assistant this is the worst
+  possible bug, which is why Module 1's LCF kernel is kept small and checked with care.
 - **If completeness fails**, some consequence has no derivation. The system never derives anything false,
   but it cannot prove everything you need, and a failed search does not tell you whether you were unlucky
   or the system is too weak. Section 6.5 meets an example: without its last rule, natural deduction cannot

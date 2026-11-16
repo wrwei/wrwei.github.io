@@ -255,13 +255,14 @@ function renderProofTree(content, env) {
     stack.push(node)
   }
   if (root.children.length !== 1) env.errors.push('prooftree: expected exactly one conclusion at the top')
-  const draw = n => {
+  const draw = (n, last = true) => {
     const f = `<span class="pt-f">${escapeHtml(n.formula)}</span>`
     if (!n.children.length && !n.rule) return `<div class="pt-node pt-leaf">${f}</div>`
-    const prem = n.children.length ? `<div class="pt-prem">${n.children.map(draw).join('')}</div>` : '<div class="pt-prem pt-axiom"></div>'
-    // The rule name hangs to the right of the bar; reserve room for it so that it cannot run into a
-    // neighbouring premise (about 0.5rem per character at the label's font size, plus the gap).
-    const room = n.rule ? ` style="margin-right:${(0.6 + [...n.rule].length * 0.5).toFixed(1)}rem"` : ''
+    const prem = n.children.length ? `<div class="pt-prem">${n.children.map((c, i) => draw(c, i === n.children.length - 1)).join('')}</div>` : '<div class="pt-prem pt-axiom"></div>'
+    // The rule name hangs to the right of the bar. Reserve room for it where it could run into a premise
+    // to its right (about 0.5rem per character at the label's font size, plus the gap), and at the root so
+    // that it stays inside the box; the last premise's label has free space beside its parent's bar.
+    const room = n.rule && (!last || n === root.children[0]) ? ` style="margin-right:${(0.6 + [...n.rule].length * 0.5).toFixed(1)}rem"` : ''
     return `<div class="pt-node"${room}>${prem}<div class="pt-bar"><span class="pt-rule">${escapeHtml(n.rule)}</span></div><div class="pt-concl">${f}</div></div>`
   }
   return `<div class="prooftree"><div class="pt-scroll">${root.children.map(draw).join('')}</div></div>\n`

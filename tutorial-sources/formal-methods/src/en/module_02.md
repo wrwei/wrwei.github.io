@@ -313,7 +313,7 @@ atoms give 1,024 rows, twenty more than a million, and thirty more than a billio
 to this problem.
 
 ::: widget name=truth-table
-Type a formula, with symbols or in ASCII (`~ & | --> <->`); the table updates as you type. Start with
+Type a formula, with symbols or in ASCII (`~ & | --> <-->`); the table updates as you type. Start with
 the full door requirement, `opens --> badge & pin | fire`: in how many rows is it false, and why? Then try
 the presets, and switch to **Compare** to see whether two formulas have the same truth table.
 :::
@@ -605,7 +605,8 @@ formulas:
 
 ::: fact Substitution and replacement
 1. **Substitution.** If a formula is a tautology, replacing an atom everywhere in it by the same
-   formula gives a tautology. So each law of Fact 2.3 holds with any formulas in place of A, B and C.
+   formula gives a tautology. Each law of Fact 2.3, written with ⟷, is a tautology (Fact 2.2), so it
+   holds with any formulas in place of A, B and C.
 2. **Replacement.** If φ ≡ ψ, replacing an occurrence of φ inside a formula by ψ gives an equivalent
    formula.
 :::

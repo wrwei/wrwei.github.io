@@ -145,11 +145,39 @@ FMWidgets.register('model-explorer', function (root, api) {
   }
   function eqs(vars, vals) { return vars.map(function (v, i) { return v + ' = ' + vals[i] }).join(', ') }
   function isa(s) { return h('span', { class: 'fmw-isa', text: s }) }
-  // Print as Isabelle does: ∀x. ∀y. φ becomes ∀x y. φ
+  // Print as Isabelle does: ∀x. ∀y. φ becomes ∀x y. φ, and ¬ x = y becomes x ≠ y. Unlike Logic.show,
+  // keep the parentheses of ⟶ inside ⟷ and of ⟷ inside ⟶, as Module 2 advises.
+  function clarify(f) {
+    switch (f.k) {
+      case 'not':
+        if (f.a.k === 'eq') return { k: 'atom', name: Logic.show(f.a).replace(' = ', ' ≠ '), args: [] }
+        return { k: 'not', a: clarify(f.a) }
+      case 'all': case 'ex': return { k: f.k, v: f.v, body: clarify(f.body) }
+      case 'and': case 'or': case 'imp': case 'iff': {
+        var g = { k: f.k, l: clarify(f.l), r: clarify(f.r) }
+        if (f.k === 'imp' || f.k === 'iff') ['l', 'r'].forEach(function (side) {
+          var c = g[side]
+          if ((c.k === 'imp' || c.k === 'iff') && c.k !== f.k) g[side] = { k: 'atom', name: '(' + Logic.show(c) + ')', args: [] }
+        })
+        return g
+      }
+      default: return f
+    }
+  }
   function show(f) {
-    var s = Logic.show(f), prev
+    var s = Logic.show(clarify(f)), prev
     do { prev = s; s = s.replace(/([∀∃])([\w' ]+)\. \1(?=[\w'])/g, '$1$2 ') } while (s !== prev)
     return s
+  }
+  // The number of variables bound by quantifiers: evaluation takes up to (domain size)^n steps.
+  var MAX_BOUND = 8
+  function boundCount(f) {
+    switch (f.k) {
+      case 'all': case 'ex': return 1 + boundCount(f.body)
+      case 'not': return boundCount(f.a)
+      case 'and': case 'or': case 'imp': case 'iff': return boundCount(f.l) + boundCount(f.r)
+      default: return 0
+    }
   }
 
   // Returns the explanation (an array of nodes and strings) for a sentence f with value val.
@@ -219,7 +247,7 @@ FMWidgets.register('model-explorer', function (root, api) {
   root.appendChild(items)
   root.appendChild(h('div', { class: 'fmw-row mx-add' },
     h('label', { for: uid + '-in' }, t('Add a formula, with ', '添加公式，可用 '), isa('∀ ∃ ¬ ∧ ∨ ⟶ ⟷ ='),
-      t(' or in ASCII: ', '，或用 ASCII：'), isa('ALL EX ~ & | --> <->')),
+      t(' or in ASCII: ', '，或用 ASCII：'), isa('ALL EX ~ & | --> <-->')),
     input, h('button', { type: 'button', class: 'fmw-btn', text: t('Add', '添加'), onclick: addFormula })))
   root.appendChild(msg)
 
@@ -285,9 +313,13 @@ FMWidgets.register('model-explorer', function (root, api) {
   // Evaluate one formula; returns {text, cls, verdict, why}
   function evaluate(src, M) {
     var f
+    if (/(∃|\bEX|\?)\s*!/.test(src)) return { text: src, error: t('This explorer has no ∃!. For “exactly one x with P x”, write ∃x. P x ∧ (∀y. P y ⟶ y = x).',
+      '本组件没有 ∃!。要表达“恰好有一个 x 满足 P x”，请写 ∃x. P x ∧ (∀y. P y ⟶ y = x)。') }
     try { f = Logic.parse(src) } catch (e) { return { text: src, error: parseMessage(e.message) } }
     var shown = show(f)
     var problem = vocabularyProblem(f)
+    if (!problem && boundCount(f) > MAX_BOUND) problem = t('This explorer evaluates formulas with at most ' + MAX_BOUND + ' quantified variables.',
+      '本组件只能求值至多含 ' + MAX_BOUND + ' 个量化变量的公式。')
     if (problem) return { text: shown, error: problem }
     try {
       var val = Logic.holds(f, M, {})

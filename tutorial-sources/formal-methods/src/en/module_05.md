@@ -1639,7 +1639,7 @@ in Isabelle.
 - [ ] Because `value` would run for ever
 - [ ] Because non-terminating functions cannot be compiled
 - [ ] Because termination makes the simplifier faster
-> In HOL every function is total, and the equations of a definition are claims of truth. A recursion that does not terminate may have no solution at all, and accepting such equations would make the logic inconsistent. `fun` cannot tell such cases from harmless ones, so it insists on a termination proof.
+> In HOL every function is total, and the equations of a definition are claims of truth. A recursion that does not terminate may have no solution at all, and accepting such equations would make the logic inconsistent. `fun` does not try to tell such cases from harmless ones, so it insists on a termination proof.
 
 ? Which measure shows that `app` terminates?
 - [ ] The length of the second argument

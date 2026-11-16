@@ -633,8 +633,8 @@ To find a name in a sorted phone book you do not read it from the first page: yo
 see whether the name comes before or after, and repeat in the half that remains. A binary search tree
 stores keys so that every search can work like that. Each node holds a key; the keys in its left subtree
 are smaller, the keys in its right subtree larger. To look for a key, compare it with the key at the root
-and go left or right. A search follows a single path from the root, so in a well-balanced tree it takes a
-number of steps proportional to the height of the tree, not to the number of keys.
+and go left or right. A search follows a single path from the root, so it takes at most as many steps as
+the tree is high. In a well-balanced tree with n keys that is about log₂ n steps, far fewer than n.
 
 ### Trees and the set they represent {#bst-trees}
 
@@ -1333,9 +1333,10 @@ mathematical ones, which Haskell's `Integer` does; but the kernel does not check
 - **Data refinement** is the general pattern: a concrete structure, an abstract model, an abstraction
   function and an invariant, with the concrete operations corresponding to the abstract ones. The
   two-list queue refines lists, and needs its invariant for `deq` and `first`.
-- `export_code` turns verified functions into code. The generated code is partially correct relative to
-  the proved equations; the code generator, the compiler, the machine and the calling code remain in the
-  trusted base.
+- `export_code` turns verified functions into code, stored as theory exports. The generated code is
+  partially correct relative to the proved equations; the code generator, the compiler, the machine and
+  the calling code remain in the trusted base. Exporting types without their constructors keeps other
+  code from breaking the invariants.
 
 ## Exercises {#exercises}
 
@@ -1352,10 +1353,12 @@ let Quickcheck refute the others.
 ::: solution
 1. **Meets it.** `isort` sorts any list, so the result is sorted, and
    `mset (isort (rev xs)) = mset (rev xs) = mset xs`: reversing does not change the multiset.
-2. **Does not.** The result is a permutation of xs but in descending order.
+2. **Does not.** The result is a permutation of xs, but in descending order. Quickcheck's
+   counterexample below, `xs = [a₁, a₂]`, is turned into `[a₂, a₁]`.
 3. **Meets it.** Sorting a sorted list changes nothing, and in any case `isort` returns a sorted
    permutation of `isort xs`, which is a permutation of xs.
-4. **Does not.** The result is sorted but loses repeated elements, so it is not a permutation.
+4. **Does not.** The result is sorted but loses repeated elements, so it is not a permutation:
+   `[a₁, a₁]` becomes `[a₁]`.
 
 ```isabelle
 lemma "sorted (isort (rev xs)) ∧ mset (isort (rev xs)) = mset xs"
@@ -1578,7 +1581,7 @@ Evaluated terms:
 ```
 
 Dropping y does not disorder the list: x ≤ y and y is at most every element of ys, so `x # ys` is still
-sorted. In fact `sorted (isort_bad xs)` is true for every list. Only the permutation half notices that
+sorted. In fact `sorted (isort_bad xs)` holds for every list, by an induction like the one for `sorted_ins`. Only the permutation half notices that
 an element is lost. The fix is the equation of `ins`: `x # y # ys`.
 :::
 ::::
@@ -1694,7 +1697,9 @@ definition tsort :: "'a::linorder list ⇒ 'a list" where
    (from `x < y` and `y < z` conclude `x < z`) and `less_imp_le` (from `x < y` conclude `x ≤ y`), given
    to `auto` with `intro:` (Module 9), supply the missing steps.
 
-2. ```isabelle
+2. Quickcheck refutes the sorting specification at once:
+
+   ```isabelle
    lemma "mset (tsort xs) = mset xs"
      quickcheck
      oops

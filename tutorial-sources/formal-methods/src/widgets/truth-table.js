@@ -80,21 +80,54 @@ FMWidgets.register('truth-table', function (root, api) {
     for (var i = 0; i < parts.length; i++) { var b = nonProp(parts[i]); if (b) return b }
     return null
   }
+  // Symbols that look like connectives but are not Isabelle's.
+  function lookalike(s) {
+    var m = s.match(/[→⇒⊃↔⇔≡]/)
+    if (!m) return null
+    var c = m[0]
+    if (c === '≡') return t('≡ is not a connective: it says that two formulas are equivalent. Write ⟷, or use “Compare two formulas”.',
+      '≡ 不是联结词：它表示两个公式等价。请写 ⟷，或者使用“比较两个公式”。')
+    if (c === '↔' || c === '⇔') return t(c + ' is not Isabelle’s symbol for “if and only if”: write ⟷ (type <-->).',
+      c + ' 不是 Isabelle 中表示“当且仅当”的符号：请写 ⟷（输入 <-->）。')
+    return t(c + ' is not Isabelle’s symbol for implication: write ⟶ (type -->).', c + ' 不是 Isabelle 中表示蕴涵的符号：请写 ⟶（输入 -->）。')
+  }
   // {ast} or {error}
   function read(src) {
     var s = String(src || '').trim()
     if (!s) return { error: t('Type a formula.', '请输入一个公式。'), empty: true }
+    var look = lookalike(s)
+    if (look) return { error: look }
     var ast
     try { ast = Logic.parse(s) } catch (e) { return { error: t('Cannot read the formula: ', '无法读取公式：') + why(e) + t('.', '。') } }
     var bad = nonProp(ast)
     if (bad) {
       var shown = '“' + Logic.show(bad) + '”'
+      if (bad.k === 'eq') return { error: t(shown + ' uses = or ≠. Between formulas Isabelle reads = as ⟷, but = binds more tightly than every connective, so A ∧ B = B ∧ A means A ∧ (B = B) ∧ A. Write ⟷ in this widget.',
+        shown + ' 用了 = 或 ≠。在公式之间，Isabelle 把 = 读作 ⟷，但 = 比所有联结词结合得都紧，所以 A ∧ B = B ∧ A 的意思是 A ∧ (B = B) ∧ A。在本组件中请写 ⟷。') }
       return { error: bad.k === 'atom'
         ? t(shown + ' is not a propositional formula. Is a connective missing between two atoms?', shown + ' 不是命题公式。两个原子之间是否缺少联结词？')
         : t(shown + ' is not a propositional formula. This widget handles atoms, True, False, ¬ ∧ ∨ ⟶ ⟷ and parentheses.',
           shown + ' 不是命题公式。本组件只处理原子、True、False、¬ ∧ ∨ ⟶ ⟷ 和括号。') }
     }
     return { ast: ast }
+  }
+  // A formula as Isabelle prints it, except that ⟶ inside ⟷ and ⟷ inside ⟶ keep their parentheses
+  // (Logic.show drops them, since the two have the same priority; Module 2 advises writing them).
+  function clarify(f) {
+    if (f.k === 'not') return { k: 'not', a: clarify(f.a) }
+    if (f.k !== 'and' && f.k !== 'or' && f.k !== 'imp' && f.k !== 'iff') return f
+    var g = { k: f.k, l: clarify(f.l), r: clarify(f.r) }
+    if (f.k === 'imp' || f.k === 'iff') ['l', 'r'].forEach(function (s) {
+      var c = g[s]
+      if ((c.k === 'imp' || c.k === 'iff') && c.k !== f.k) g[s] = { k: 'atom', name: '(' + Logic.show(c) + ')', args: [] }
+    })
+    return g
+  }
+  function disp(f) { return Logic.show(clarify(f)) }
+  // The equivalence of two formulas, with each side in parentheses if it is an implication or equivalence.
+  function eqv(a, b) {
+    function side(x) { var s = disp(x); return x.k === 'imp' || x.k === 'iff' ? '(' + s + ')' : s }
+    return side(a) + ' ⟷ ' + side(b)
   }
   // The formula with every grouping made explicit (except around the whole formula).
   function full(f, inner) {
@@ -114,7 +147,7 @@ FMWidgets.register('truth-table', function (root, api) {
       if (g.k === 'atom' || g.k === 'const') return
       if (g.k === 'not') walk(g.a, depth + 1)
       else { walk(g.l, depth + 1); walk(g.r, depth + 1) }
-      var key = Logic.show(g)
+      var key = disp(g)
       if (depth > 0 && !seen[key]) { seen[key] = 1; out.push({ f: g, depth: depth, label: key }) }
     }
     walk(f, 0)
@@ -165,8 +198,8 @@ FMWidgets.register('truth-table', function (root, api) {
   var verdict = h('p', { class: 'verdict', 'aria-live': 'polite' })
   var rowsList = h('ul', { class: 'tt-rows' })
   var tableWrap = h('div', { class: 'fmw-scroll' })
-  var help = h('p', { class: 'fmw-msg tt-help' }, t('Type ~ & | --> <-> for ¬ ∧ ∨ ⟶ ⟷, or use the buttons. Priorities are Isabelle’s: ¬ binds most tightly, then ∧, then ∨, then ⟶ and ⟷, which group to the right.',
-    '可输入 ~ & | --> <-> 代表 ¬ ∧ ∨ ⟶ ⟷，也可以使用按钮。优先级与 Isabelle 相同：¬ 结合最紧，其次是 ∧，再次是 ∨，最后是 ⟶ 和 ⟷，二者向右结合。'))
+  var help = h('p', { class: 'fmw-msg tt-help' }, t('Type ~ & | --> <--> for ¬ ∧ ∨ ⟶ ⟷, or use the buttons. Priorities are Isabelle’s: ¬ binds most tightly, then ∧, then ∨, then ⟶ and ⟷, which group to the right.',
+    '可输入 ~ & | --> <--> 代表 ¬ ∧ ∨ ⟶ ⟷，也可以使用按钮。优先级与 Isabelle 相同：¬ 结合最紧，其次是 ∧，再次是 ∨，最后是 ⟶ 和 ⟷，二者向右结合。'))
 
   SYMS.forEach(function (s) {
     symRow.appendChild(h('button', { type: 'button', class: 'fmw-btn fmw-sym', 'data-sym': s, 'aria-label': t('Insert ', '插入 ') + s, onclick: function () { insert(s) } }, s))
@@ -249,8 +282,8 @@ FMWidgets.register('truth-table', function (root, api) {
     var nTrue = rows.filter(function (r) { return r.val }).length, n = rows.length
     var firstT = -1, firstF = -1
     rows.forEach(function (r, i) { if (r.val && firstT < 0) firstT = i; if (!r.val && firstF < 0) firstF = i })
-    if (nTrue === n) { verdict.className = 'verdict taut'; verdict.textContent = t('Tautology: true in all ' + n + (n === 1 ? ' row.' : ' rows.'), '重言式：全部 ' + n + ' 行都为真。') }
-    else if (nTrue === 0) { verdict.className = 'verdict contra'; verdict.textContent = t('Contradiction: false in all ' + n + (n === 1 ? ' row.' : ' rows.'), '矛盾式：全部 ' + n + ' 行都为假。') }
+    if (nTrue === n) { verdict.className = 'verdict taut'; verdict.textContent = t(n === 1 ? 'Tautology: true in its only row.' : 'Tautology: true in all ' + n + ' rows.', n === 1 ? '重言式：唯一的一行为真。' : '重言式：全部 ' + n + ' 行都为真。') }
+    else if (nTrue === 0) { verdict.className = 'verdict contra'; verdict.textContent = t(n === 1 ? 'Contradiction: false in its only row.' : 'Contradiction: false in all ' + n + ' rows.', n === 1 ? '矛盾式：唯一的一行为假。' : '矛盾式：全部 ' + n + ' 行都为假。') }
     else { verdict.className = 'verdict cont'; verdict.textContent = t('Satisfiable but not valid: true in ' + nTrue + ' of ' + n + ' rows.', '可满足但非有效：' + n + ' 行中有 ' + nTrue + ' 行为真。') }
     rowsList.appendChild(h('li', { class: 'tt-satrow' }, h('span', { class: 'mk', 'aria-hidden': 'true' }, '✓'), firstT >= 0
       ? t('Row ' + (firstT + 1) + ' makes it true (a model): ', '第 ' + (firstT + 1) + ' 行使它为真（一个模型）：') + describe(atoms, rows[firstT].v)
@@ -261,7 +294,7 @@ FMWidgets.register('truth-table', function (root, api) {
     var head = h('tr', null, h('th', { scope: 'col' }, '#'),
       atoms.map(function (a) { return h('th', { scope: 'col' }, a) }),
       subs.map(function (s) { return h('th', { scope: 'col' }, s.label) }),
-      h('th', { scope: 'col', class: 'main' }, Logic.show(f)))
+      h('th', { scope: 'col', class: 'main' }, disp(f)))
     var body = rows.map(function (r, i) {
       var cls = i === firstT ? 'sat' : i === firstF ? 'fal' : null
       var mark = i === firstT ? ' ✓' : i === firstF ? ' ✗' : ''
@@ -286,8 +319,8 @@ FMWidgets.register('truth-table', function (root, api) {
     var n = rows.length
     if (!diff.length) {
       verdict.className = 'verdict taut'
-      verdict.textContent = t('Equivalent: the two formulas agree in all ' + n + (n === 1 ? ' row' : ' rows') + ', so ' + Logic.show({ k: 'iff', l: p.ast, r: q.ast }) + ' is a tautology.',
-        '等价：两个公式在全部 ' + n + ' 行中取值相同，所以 ' + Logic.show({ k: 'iff', l: p.ast, r: q.ast }) + ' 是重言式。')
+      verdict.textContent = t('Equivalent: the two formulas agree in all ' + n + (n === 1 ? ' row' : ' rows') + ', so ' + eqv(p.ast, q.ast) + ' is a tautology.',
+        '等价：两个公式在全部 ' + n + ' 行中取值相同，所以 ' + eqv(p.ast, q.ast) + ' 是重言式。')
     } else {
       verdict.className = 'verdict contra'
       verdict.textContent = t('Not equivalent: they differ in ' + diff.length + ' of ' + n + ' rows (marked ≠).', '不等价：' + n + ' 行中有 ' + diff.length + ' 行取值不同（标记为 ≠）。')
@@ -297,7 +330,7 @@ FMWidgets.register('truth-table', function (root, api) {
           '第 ' + diff[0] + ' 行：' + describe(atoms, r0.v) + '，此时第一个公式为 ' + TF(r0.a) + '，第二个为 ' + TF(r0.b) + '。')))
     }
     var head = h('tr', null, h('th', { scope: 'col' }, '#'), atoms.map(function (a) { return h('th', { scope: 'col' }, a) }),
-      h('th', { scope: 'col', class: 'main' }, Logic.show(p.ast)), h('th', { scope: 'col' }, Logic.show(q.ast)))
+      h('th', { scope: 'col', class: 'main' }, disp(p.ast)), h('th', { scope: 'col' }, disp(q.ast)))
     var body = rows.map(function (r, i) {
       var d = r.a !== r.b
       return h('tr', { class: d ? 'diff' : null }, h('td', { class: 'n' }, (i + 1) + (d ? ' ≠' : '')),
